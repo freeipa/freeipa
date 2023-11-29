@@ -1614,6 +1614,7 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
             if not retry:
                 raise
         time.sleep(1)
+    raise errors.DNSResolverError(exception=ValueError("Record not found"))
 
 
 def ipa_backup(host, disable_role_check=False, raiseonerr=True):

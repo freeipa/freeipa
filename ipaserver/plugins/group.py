@@ -649,7 +649,9 @@ class group_add_member(LDAPAddMember):
                 raise errors.NotFound(reason=_('Cannot perform external member validation without '
                                       'Samba 4 support installed. Make sure you have installed '
                                       'server-trust-ad sub-package of IPA on the server'))
+            # pylint: disable=used-before-assignment
             domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+            # pylint: enable=used-before-assignment
             if not domain_validator.is_configured():
                 raise errors.NotFound(reason=_('Cannot perform join operation without own domain configured. '
                                       'Make sure you have run ipa-adtrust-install on the IPA server first'))

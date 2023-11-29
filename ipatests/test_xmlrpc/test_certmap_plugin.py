@@ -302,7 +302,7 @@ class EWE:
         self.value = None
 
         self.change_principal_cm = change_principal(self.user, self.password)
-        self.change_principal_cm.__enter__()  # pylint: disable=no-member
+        self.change_principal_cm.__enter__()
 
         if self.exception:
             self.assert_raises_cm = pytest.raises(self.exception)
@@ -311,7 +311,7 @@ class EWE:
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        self.change_principal_cm.__exit__(  # pylint: disable=no-member
+        self.change_principal_cm.__exit__(
             exc_type, exc_value, tb)
         if self.exception:
             return self.assert_raises_cm.__exit__(exc_type, exc_value, tb)

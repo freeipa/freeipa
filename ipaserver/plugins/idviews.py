@@ -617,7 +617,9 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
     # If not successful, try looking up the object in the trusted domain
     try:
         if _dcerpc_bindings_installed:
+            # pylint: disable=used-before-assignment
             domain_validator = ipaserver.dcerpc.DomainValidator(api)
+            # pylint: enable=used-before-assignment
             if domain_validator.is_configured():
                 sid = domain_validator.get_trusted_domain_object_sid(obj,
                         fallback_to_ldap=fallback_to_ldap)
