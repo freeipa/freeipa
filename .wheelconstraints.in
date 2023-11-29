@@ -10,5 +10,5 @@ ipaserver == @VERSION@
 ipatests == @VERSION@
 
 # keep pylint version in sync with current Fedora release
-# F37 has 2.15.5
-pylint ~= 2.15.5
+# F39 has 3.0.25
+pylint ~= 3.0.2
