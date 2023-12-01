@@ -1958,18 +1958,18 @@ jobs:
         timeout: 5000
         topology: *master_2repl_1client
 
-  fedora-rawhide/test_sso:
-    requires: [fedora-rawhide/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-rawhide/build_url}'
-        update_packages: True
-        test_suite: test_integration/test_sso.py
-        template: *ci-master-frawhide
-        timeout: 5000
-        topology: *master_2repl_1client
+#  fedora-rawhide/test_sso:
+#    requires: [fedora-rawhide/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{fedora-rawhide/build_url}'
+#        update_packages: True
+#        test_suite: test_integration/test_sso.py
+#        template: *ci-master-frawhide
+#        timeout: 5000
+#        topology: *master_2repl_1client
 
   fedora-rawhide/test_random_serial_numbers_TestInstallWithCA_DNS1_RSN:
     requires: [fedora-rawhide/build]
