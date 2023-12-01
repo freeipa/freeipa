@@ -8,12 +8,14 @@ Module provides tests for various options of ipa-client-install.
 
 from __future__ import absolute_import
 
+import os
 import pytest
 import re
 import shlex
 import textwrap
 
 from ipaplatform.paths import paths
+from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
@@ -90,6 +92,29 @@ class TestInstallClient(IntegrationTest):
         assert 'includedir {dir}'.format(
             dir=paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR
         ).encode() not in krb5_cfg
+        tasks.uninstall_client(self.clients[0])
+
+    def test_install_with_automount(self):
+        """Test that installation with automount is successful"""
+        tasks.install_client(self.master, self.clients[0],
+                             extra_args=['--automount-location', 'default'])
+
+    def test_uninstall_with_automount(self):
+        """Test that uninstall with automount is successful and complete"""
+        tasks.uninstall_client(self.clients[0])
+        index = os.path.join(
+            paths.IPA_CLIENT_SYSRESTORE, SYSRESTORE_INDEXFILE
+        )
+        state = os.path.join(
+            paths.IPA_CLIENT_SYSRESTORE, SYSRESTORE_STATEFILE
+        )
+        for filepath in (index, state):
+            try:
+                self.clients[0].get_file_contents(filepath)
+            except IOError:
+                pass
+            else:
+                pytest.fail("The client file %s was not removed" % filepath)
 
 
 class TestClientInstallBind(IntegrationTest):
