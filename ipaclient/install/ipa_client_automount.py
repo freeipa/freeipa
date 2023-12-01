@@ -340,14 +340,16 @@ def configure_nfs(fstore, statestore, options):
 
 
 def configure_automount():
-    try:
-        check_client_configuration()
-    except ScriptError as e:
-        print(e.msg)
-        sys.exit(e.rval)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+    if not statestore.get_state('installation', 'automount'):
+        # not called from ipa-client-install
+        try:
+            check_client_configuration()
+        except ScriptError as e:
+            print(e.msg)
+            sys.exit(e.rval)
 
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
     options, _args = parse_options()
 
