@@ -36,7 +36,7 @@ from six.moves.urllib.parse import urlsplit
 
 from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipapython import ipachangeconf
-from ipaclient.install import ipadiscovery
+from ipaclient import discovery
 from ipaclient.install.client import (
     CLIENT_NOT_CONFIGURED,
     CLIENT_ALREADY_CONFIGURED,
@@ -384,12 +384,12 @@ def configure_automount():
         sys.exit(CLIENT_ALREADY_CONFIGURED)
 
     autodiscover = False
-    ds = ipadiscovery.IPADiscovery()
+    ds = discovery.IPADiscovery()
     if not options.server:
         print("Searching for IPA server...")
         ret = ds.search(ca_cert_path=ca_cert_path)
         logger.debug('Executing DNS discovery')
-        if ret == ipadiscovery.NO_LDAP_SERVER:
+        if ret == discovery.NO_LDAP_SERVER:
             logger.debug('Autodiscovery did not find LDAP server')
             s = urlsplit(api.env.xmlrpc_uri)
             server = [s.netloc]
@@ -409,14 +409,14 @@ def configure_automount():
         server = options.server
         logger.debug("Verifying that %s is an IPA server", server)
         ldapret = ds.ipacheckldap(server, api.env.realm, ca_cert_path)
-        if ldapret[0] == ipadiscovery.NO_ACCESS_TO_LDAP:
+        if ldapret[0] == discovery.NO_ACCESS_TO_LDAP:
             print("Anonymous access to the LDAP server is disabled.")
             print("Proceeding without strict verification.")
             print(
                 "Note: This is not an error if anonymous access has been "
                 "explicitly restricted."
             )
-        elif ldapret[0] == ipadiscovery.NO_TLS_LDAP:
+        elif ldapret[0] == discovery.NO_TLS_LDAP:
             logger.warning("Unencrypted access to LDAP is not supported.")
         elif ldapret[0] != 0:
             sys.exit('Unable to confirm that %s is an IPA server' % server)
