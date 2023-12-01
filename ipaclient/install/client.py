@@ -1274,7 +1274,7 @@ def create_sshd_ipa_config(options):
     logger.info('Configured %s', paths.SSHD_IPA_CONFIG)
 
 
-def configure_automount(options):
+def configure_automount(options, statestore):
     logger.info('\nConfiguring automount:')
 
     args = [
@@ -1287,12 +1287,15 @@ def configure_automount(options):
     if not options.sssd:
         args.append('--no-sssd')
 
+    statestore.backup_state('installation', 'automount', True)
     try:
         result = run(args)
     except Exception as e:
         logger.error('Automount configuration failed: %s', str(e))
     else:
         logger.info('%s', result.output_log)
+    finally:
+        statestore.delete_state('installation', 'automount')
 
 
 def configure_nisdomain(options, domain, statestore):
@@ -3306,7 +3309,11 @@ def _install(options, tdict):
         configure_sshd_config(fstore, options)
 
     if options.location:
-        configure_automount(options)
+        configure_automount(options, statestore)
+
+        # Reload the state as automount install may have modified it
+        fstore._load()
+        statestore._load()
 
     if options.configure_firefox:
         configure_firefox(options, statestore, cli_domain)
@@ -3369,12 +3376,15 @@ def uninstall(options):
     fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
+    statestore.backup_state('installation', 'automount', True)
     try:
         run([paths.IPA_CLIENT_AUTOMOUNT, "--uninstall", "--debug"])
     except CalledProcessError as e:
         if e.returncode != CLIENT_NOT_CONFIGURED:
             logger.error(
                 "Unconfigured automount client failed: %s", str(e))
+    finally:
+        statestore.delete_state('installation', 'automount')
 
     # Reload the state as automount unconfigure may have modified it
     fstore._load()
