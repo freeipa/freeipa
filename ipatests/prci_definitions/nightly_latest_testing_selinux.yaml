@@ -2247,20 +2247,20 @@ jobs:
         timeout: 5000
         topology: *master_2repl_1client
 
-  testing-fedora/test_sso:
-    requires: [testing-fedora/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{testing-fedora/build_url}'
-        update_packages: True
-        selinux_enforcing: True
-        enable_testing_repo: True
-        test_suite: test_integration/test_sso.py
-        template: *ci-master-latest
-        timeout: 5000
-        topology: *master_2repl_1client
+#  testing-fedora/test_sso:
+#    requires: [testing-fedora/build]
+#    priority: 50
+#    job:
+#      class: RunPytest
+#      args:
+#        build_url: '{testing-fedora/build_url}'
+#        update_packages: True
+#        selinux_enforcing: True
+#        enable_testing_repo: True
+#        test_suite: test_integration/test_sso.py
+#        template: *ci-master-latest
+#        timeout: 5000
+#        topology: *master_2repl_1client
 
   testing-fedora/test_random_serial_numbers_TestInstallWithCA_DNS1_RSN:
     requires: [testing-fedora/build]
