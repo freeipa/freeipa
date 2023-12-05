@@ -114,7 +114,30 @@ def check_mscs_extension(ipa_csr, template):
         if ext.oid.dotted_string == template.ext_oid
     ]
     assert extensions
-    assert extensions[0].value.value == template.get_ext_data()
+    mscs_ext = extensions[0].value
+
+    # Crypto 41.0.0 supports cryptography.x509.MSCertificateTemplate
+    # The extension gets decoded into MSCertificateTemplate which
+    # provides additional attributes (template_id, major_minor and
+    # minor_version)
+    # If the test is executed with an older python-cryptography version,
+    # the extension is decoded as UnrecognizedExtension instead and
+    # provides only the encoded payload
+    if isinstance(mscs_ext, x509.UnrecognizedExtension):
+        assert mscs_ext.value == template.get_ext_data()
+    else:
+        # Compare the decoded extension with the values specified in the
+        # template with a format name_or_oid:major:minor
+        parts = template.unparsed_input.split(':')
+        assert mscs_ext.template_id.dotted_string == parts[0]
+
+        if isinstance(template, ipa_x509.MSCSTemplateV2):
+            # Also contains OID:major[:minor]
+            major = int(parts[1])
+            assert major == mscs_ext.major_version
+            if len(parts) > 2:
+                minor = int(parts[2])
+                assert minor == mscs_ext.minor_version
 
 
 class TestExternalCA(IntegrationTest):
