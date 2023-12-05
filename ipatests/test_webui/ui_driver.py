@@ -29,6 +29,7 @@ import re
 import time
 from datetime import datetime
 from functools import wraps
+from pkg_resources import parse_version
 from urllib.error import URLError
 
 import pytest
@@ -268,7 +269,15 @@ class UI_driver:
                     if "ff_profile" in cls.config:
                         fp = webdriver.FirefoxProfile(cls.config["ff_profile"])
                     ff_log_path = cls.config.get("geckodriver_log_path")
-                    driver = webdriver.Firefox(fp, log_path=ff_log_path)
+                    webdriver_version = parse_version(webdriver.__version__)
+                    if webdriver_version < parse_version('4.10.0'):
+                        driver = webdriver.Firefox(fp, log_path=ff_log_path)
+                    else:
+                        service = webdriver.FirefoxService(
+                            log_output=ff_log_path,
+                            service_args=['--log', 'debug'])
+                        driver = webdriver.Firefox(fp, service=service)
+
             except URLError as e:
                 pytest.skip(
                     'Error connecting to selenium server: %s' % e
