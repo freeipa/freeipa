@@ -764,6 +764,7 @@ def promotion_check_host_principal_auth_ind(conn, hostdn):
 
 
 def remote_connection(config):
+    logger.debug("Creating LDAP connection to %s", config.master_host_name)
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     xmlrpc_uri = 'https://{}/ipa/xml'.format(
         ipautil.format_netloc(config.master_host_name))
@@ -1073,7 +1074,7 @@ def promote_check(installer):
             'CA', conn, preferred_cas
         )
         if ca_host is not None:
-            if config.master_host_name != ca_host:
+            if options.setup_ca and config.master_host_name != ca_host:
                 conn.disconnect()
                 del remote_api
                 config.master_host_name = ca_host
@@ -1082,8 +1083,7 @@ def promote_check(installer):
                 conn = remote_api.Backend.ldap2
                 conn.connect(ccache=installer._ccache)
             config.ca_host_name = ca_host
-            config.master_host_name = ca_host
-            ca_enabled = True
+            ca_enabled = True  # There is a CA somewhere in the topology
             if options.dirsrv_cert_files:
                 logger.error("Certificates could not be provided when "
                              "CA is present on some master.")
@@ -1121,7 +1121,7 @@ def promote_check(installer):
             'KRA', conn, preferred_kras
         )
         if kra_host is not None:
-            if config.master_host_name != kra_host:
+            if options.setup_kra and config.master_host_name != kra_host:
                 conn.disconnect()
                 del remote_api
                 config.master_host_name = kra_host
@@ -1129,10 +1129,9 @@ def promote_check(installer):
                 installer._remote_api = remote_api
                 conn = remote_api.Backend.ldap2
                 conn.connect(ccache=installer._ccache)
-            config.kra_host_name = kra_host
-            config.ca_host_name = kra_host
-            config.master_host_name = kra_host
-            kra_enabled = True
+                config.kra_host_name = kra_host
+                config.ca_host_name = kra_host
+            kra_enabled = True  # There is a KRA somewhere in the topology
             if options.setup_kra and options.server and \
                kra_host != options.server:
                 # Installer was provided with a specific master
@@ -1349,10 +1348,10 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    if kra_enabled:
+    if options.setup_kra and kra_enabled:
         # A KRA peer always provides a CA, too.
         mode = custodiainstance.CustodiaModes.KRA_PEER
-    elif ca_enabled:
+    elif options.setup_ca and ca_enabled:
         mode = custodiainstance.CustodiaModes.CA_PEER
     else:
         mode = custodiainstance.CustodiaModes.MASTER_PEER
