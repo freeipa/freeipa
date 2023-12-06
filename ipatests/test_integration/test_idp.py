@@ -12,13 +12,22 @@ from ipatests.pytest_ipa.integration import tasks, create_keycloak
 user_code_script = textwrap.dedent("""
 from selenium import webdriver
 from datetime import datetime
+from pkg_resources import parse_version
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 options = Options()
-options.headless = True
-driver = webdriver.Firefox(executable_path="/opt/geckodriver", options=options)
+if  parse_version(webdriver.__version__) < parse_version('4.10.0'):
+    options.headless = True
+    driver = webdriver.Firefox(executable_path="/opt/geckodriver",
+                               options=options)
+else:
+    options.add_argument('-headless')
+    service = webdriver.FirefoxService(
+        executable_path="/opt/geckodriver")
+    driver = webdriver.Firefox(options=options, service=service)
+
 verification_uri = "{uri}"
 driver.get(verification_uri)
 try:
