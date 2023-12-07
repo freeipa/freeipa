@@ -1569,6 +1569,8 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
         grace_date = cert_expiry - timedelta(days=10)
         grace_date = datetime.strftime(grace_date, "%Y-%m-%d %H:%M:%S")
         self.master.run_command(['date', '-s', grace_date])
+        # restart service after date change
+        self.master.run_command(['ipactl', 'restart'])
 
         # get the count of certs track by certmonger
         cmd = self.master.run_command(['getcert', 'list'])
@@ -1591,6 +1593,8 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
         cert_expiry = cert_expiry + timedelta(days=3)
         cert_expiry = datetime.strftime(cert_expiry, "%Y-%m-%d %H:%M:%S")
         self.master.run_command(['date', '-s', cert_expiry])
+        # restart service after date change
+        self.master.run_command(['ipactl', 'restart'])
 
         passwd = "{passwd}\n{passwd}\n{passwd}".format(passwd=admin_pass)
         self.master.run_command(['kinit', 'admin'], stdin_text=passwd)
