@@ -33,7 +33,7 @@
  * Authors:
  * Nathaniel McCallum <npmccallum@redhat.com>
  *
- * Copyright (C) 2013 Red Hat, Inc.
+ * Copyright (C) 2013-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -46,7 +46,7 @@
 
 #include "util.h"
 
-#define PLUGIN_NAME "ipa-otp-lasttoken"
+#define IPA_PLUGIN_NAME "ipa-otp-lasttoken"
 #define OTP_CONTAINER "cn=otp,%s"
 
 static struct otp_config *otp_config;
@@ -191,8 +191,13 @@ static inline int send_error(Slapi_PBlock *pb, int rc, const char *errstr)
 
 static int preop_del(Slapi_PBlock *pb)
 {
+    char *dn = NULL;
+
     if (is_allowed(pb, NULL))
         return 0;
+
+    slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+    LOG("Can't delete last active token (%s)", dn);
 
     return send_error(pb, LDAP_UNWILLING_TO_PERFORM,
                       "Can't delete last active token");
@@ -221,10 +226,12 @@ static int preop_mod(Slapi_PBlock *pb)
         return 0;
 
     /* If a protected attribute is modified, deny. */
-    for (int i = 0; mods != NULL && mods[i] != NULL; i++) {
-        for (int j = 0; errors[j].attr != NULL; j++) {
-            if (strcasecmp(mods[i]->mod_type, errors[j].attr) == 0)
+    for (size_t i = 0; mods != NULL && mods[i] != NULL; i++) {
+        for (size_t j = 0; errors[j].attr != NULL; j++) {
+            if (strcasecmp(mods[i]->mod_type, errors[j].attr) == 0) {
+                LOG("%s (%s)", errors[j].msg, slapi_entry_get_dn_const(entry));
                 return send_error(pb, LDAP_UNWILLING_TO_PERFORM, errors[j].msg);
+            }
         }
     }
 
@@ -284,7 +291,7 @@ static int ipa_otp_lasttoken_start(Slapi_PBlock *pb)
 int ipa_otp_lasttoken_init(Slapi_PBlock *pb)
 {
     static const Slapi_PluginDesc preop_desc = {
-        PLUGIN_NAME,
+        IPA_PLUGIN_NAME,
         "FreeIPA",
         "FreeIPA/1.0",
         "Protect the user's last active token"
@@ -297,14 +304,14 @@ int ipa_otp_lasttoken_init(Slapi_PBlock *pb)
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *) &preop_desc);
     ret |= slapi_register_plugin("betxnpreoperation", 1, __func__, preop_init,
-                                 PLUGIN_NAME " betxnpreoperation", NULL,
+                                 IPA_PLUGIN_NAME " betxnpreoperation", NULL,
                                  ipa_otp_lasttoken_plugin_id);
     ret |= slapi_register_plugin("postoperation", 1, __func__, postop_init,
-                                 PLUGIN_NAME " postoperation", NULL,
+                                 IPA_PLUGIN_NAME " postoperation", NULL,
                                  ipa_otp_lasttoken_plugin_id);
     ret |= slapi_register_plugin("internalpostoperation", 1, __func__,
                                  intpostop_init,
-                                 PLUGIN_NAME " internalpostoperation", NULL,
+                                 IPA_PLUGIN_NAME " internalpostoperation", NULL,
                                  ipa_otp_lasttoken_plugin_id);
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_START_FN,
                             (void *)ipa_otp_lasttoken_start);
