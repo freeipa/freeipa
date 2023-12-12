@@ -33,7 +33,7 @@
  * Authors:
  * Simo Sorce <ssorce@redhat.com>
  *
- * Copyright (C) 2007-2010 Red Hat, Inc.
+ * Copyright (C) 2007-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -108,7 +108,7 @@ static void filter_keys(struct ipapwd_krbcfg *krbcfg,
                         struct ipapwd_keyset *kset,
                         bool allow_nthash)
 {
-    int i, j;
+    size_t i, j;
 
     for (i = 0; i < kset->num_keys; i++) {
         for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
@@ -151,11 +151,11 @@ static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
                             bool allow_nthash)
 {
     /* first filter for duplicates */
-    for (int i = 0; i + 1 < *num_kenctypes; i++) {
-        for (int j = i + 1; j < *num_kenctypes; j++) {
+    for (size_t i = 0; i + 1 < *num_kenctypes; i++) {
+        for (size_t j = i + 1; j < *num_kenctypes; j++) {
             if (kenctypes[i].ks_enctype == kenctypes[j].ks_enctype) {
                 /* duplicate, filter out */
-                for (int k = j; k + 1 < *num_kenctypes; k++) {
+                for (size_t k = j; k + 1 < *num_kenctypes; k++) {
                     kenctypes[k].ks_enctype = kenctypes[k + 1].ks_enctype;
                     kenctypes[k].ks_salttype = kenctypes[k + 1].ks_salttype;
                 }
@@ -166,8 +166,8 @@ static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
     }
 
     /* then filter for supported */
-    for (int i = 0; i < *num_kenctypes; i++) {
-        int j;
+    for (size_t i = 0; i < *num_kenctypes; i++) {
+        size_t j;
 
         /* Check if supported */
         for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
@@ -184,7 +184,7 @@ static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
         }
         if (j == krbcfg->num_supp_encsalts) {
             /* Unsupported, filter out */
-            for (int k = i; k + 1 < *num_kenctypes; k++) {
+            for (size_t k = i; k + 1 < *num_kenctypes; k++) {
                 kenctypes[k].ks_enctype = kenctypes[k + 1].ks_enctype;
                 kenctypes[k].ks_salttype = kenctypes[k + 1].ks_salttype;
             }
@@ -344,6 +344,8 @@ parse_req_done:
 
         rc = ipapwd_check_max_pwd_len(strlen(newPasswd), &errMesg);
         if (rc) {
+            LOG_PWDPOLICY("Failed to set password credentials for '%s': %s\n",
+                          bindDN, errMesg);
             goto free_and_return;
         }
 
@@ -456,7 +458,7 @@ parse_req_done:
             char *cur_pw;
 
             if (oldPasswd == NULL || *oldPasswd == '\0') {
-                LOG_FATAL("Old password was not provided!\n");
+                LOG_FATAL("Old password was not provided for '%s'!\n", dn);
                 rc = LDAP_INVALID_CREDENTIALS;
                 goto free_and_return;
             }
@@ -466,7 +468,7 @@ parse_req_done:
             cur_pw = slapi_entry_attr_get_charptr(targetEntry,
                                                   "userPassword");
             if (!cur_pw) {
-                LOG_FATAL("User has no current password?\n");
+                LOG_FATAL("User '%s' does not have a current password?\n", dn);
                 rc = LDAP_UNWILLING_TO_PERFORM;
                 goto free_and_return;
             }
@@ -485,7 +487,7 @@ parse_req_done:
             slapi_value_free(&pw);
 
             if (ret != 0) {
-                LOG_TRACE("Invalid password!\n");
+                LOG_TRACE("Invalid password for '%s'!\n", dn);
                 rc = LDAP_INVALID_CREDENTIALS;
                 goto free_and_return;
             }
@@ -579,11 +581,9 @@ parse_req_done:
     /* special cases */
     if ((strcasecmp(dn, bindDN) != 0) &&
         (strcasecmp(ipa_changepw_principal_dn, bindDN) != 0)) {
-        int i;
-
         pwdata.changetype = IPA_CHANGETYPE_ADMIN;
 
-        for (i = 0; i < krbcfg->num_passsync_mgrs; i++) {
+        for (size_t i = 0; i < krbcfg->num_passsync_mgrs; i++) {
             if (strcasecmp(krbcfg->passsync_mgrs[i], bindDN) == 0) {
                 pwdata.changetype = IPA_CHANGETYPE_DSMGR;
                 break;
@@ -606,6 +606,8 @@ parse_req_done:
 			errMesg = ipapwd_error2string(ret);
 			ret = ipapwd_to_ldap_pwpolicy_error(ret);
 			slapi_pwpolicy_make_response_control(pb, -1, -1, ret);
+			LOG_PWDPOLICY("Failed to set password credentials for"
+			              " '%s': %s\n", dn, errMesg);
 			rc = LDAP_CONSTRAINT_VIOLATION;
 			goto free_and_return;
 		}
@@ -666,7 +668,7 @@ free_and_return:
 	if (targetEntry) slapi_entry_free(targetEntry);
 	if (ber) ber_free(ber, 1);
 
-	LOG("%s", errMesg ? errMesg : "success");
+	LOG("%s\n", errMesg ? errMesg : "success");
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
@@ -732,7 +734,8 @@ static Slapi_Entry *get_entry_by_principal(const char *principal)
                          "krbCanonicalName",
                          "enrolledBy", NULL };
     Slapi_Entry **es = NULL;
-    int res, ret, i;
+    int res, ret;
+    size_t i;
     Slapi_Entry *entry = NULL;
 
     /* Find ancestor base DN */
@@ -774,7 +777,7 @@ static Slapi_Entry *get_entry_by_principal(const char *principal)
 
     /* if there is none or more than one, freak out */
     if (i != 1) {
-        LOG_TRACE("Too many entries, or entry no found (%d)", i);
+        LOG_TRACE("Too many entries, or entry no found (%ld)\n", i);
         goto free_and_return;
     }
     entry = slapi_entry_dup(es[0]);
@@ -809,7 +812,7 @@ static bool is_allowed_to_access_attr(Slapi_PBlock *pb, char *bindDN,
      */
     be = get_realm_backend();
     if (!be) {
-        LOG_FATAL("Could not fetch REALM backend!");
+        LOG_FATAL("Could not fetch REALM backend!\n");
         return false;
     }
     if (slapi_pblock_set(pb, SLAPI_BACKEND, be)) {
@@ -868,7 +871,8 @@ static void remove_user_password(Slapi_Mods *smods,
         if ((NULL != pw) && (NULL == krbLastPwdChange)) {
             slapi_mods_add_mod_values(smods, LDAP_MOD_DELETE,
                                       "userPassword", NULL);
-            LOG_TRACE("Removing userPassword from host entry\n");
+            LOG_TRACE("Removing userPassword from host entry '%s'\n",
+                      slapi_entry_get_dn_const(targetEntry));
         }
     }
     if (krbLastPwdChange) slapi_ch_free_string(&krbLastPwdChange);
@@ -891,8 +895,9 @@ static int store_new_keys(Slapi_Entry *target, char *svcname, char *bind_dn,
     rc = set_krbLastPwdChange(smods, time_now);
     if (rc) {
         rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to set krbLastPwdChange");
-        err_msg = "Internal error while storing keytab data\n";
+        LOG_FATAL("Failed to set krbLastPwdChange for target '%s'\n",
+                  slapi_entry_get_dn_const(target));
+        err_msg = "Internal error while storing keytab data";
         goto done;
     }
 
@@ -905,8 +910,9 @@ static int store_new_keys(Slapi_Entry *target, char *svcname, char *bind_dn,
     rc = ipapwd_apply_mods(slapi_entry_get_dn_const(target), smods);
     if (rc != LDAP_SUCCESS) {
         rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to apply mods");
-        err_msg = "Internal error while saving keys\n";
+        LOG_FATAL("Failed to apply mods to target '%s'\n",
+                  slapi_entry_get_dn_const(target));
+        err_msg = "Internal error while saving keys";
         goto done;
     }
 
@@ -914,8 +920,9 @@ static int store_new_keys(Slapi_Entry *target, char *svcname, char *bind_dn,
                               svcname, time_now);
     if (rc != LDAP_SUCCESS) {
         rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to set extradata");
-        err_msg = "Internal error while saving keytab extradata\n";
+        LOG_FATAL("Failed to set extradata for target '%s'\n",
+                  slapi_entry_get_dn_const(target));
+        err_msg = "Internal error while saving keytab extradata";
         goto done;
     }
 
@@ -1003,7 +1010,7 @@ static int decode_setkeytab_request(krb5_context krbctx,
     kset->mkvno = mkvno;
 
     rtag = ber_peek_tag(ber, &tlen);
-    for (int i = 0; rtag == LBER_SEQUENCE; i++) {
+    for (size_t i = 0; rtag == LBER_SEQUENCE; i++) {
         krb5_key_data *newset;
         ber_tag_t ctag;
         ber_int_t type;
@@ -1181,29 +1188,29 @@ static int encode_setkeytab_reply(struct ipapwd_keyset *kset,
     rc = ber_printf(ber, "{i{", (ber_int_t)kset->keys[0].key_data_kvno);
     if (rc == -1) {
         rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to ber_printf the kvno");
+        LOG_FATAL("Failed to ber_printf the kvno\n");
         goto done;
     }
 
-    for (int i = 0; i < kset->num_keys; i++) {
+    for (size_t i = 0; i < kset->num_keys; i++) {
         rc = ber_printf(ber, "{i}", (ber_int_t)kset->keys[i].key_data_type[0]);
         if (rc == -1) {
             rc = LDAP_OPERATIONS_ERROR;
-            LOG_FATAL("Failed to ber_printf the enctype");
+            LOG_FATAL("Failed to ber_printf the enctype\n");
             goto done;
         }
     }
     rc = ber_printf(ber, "}}");
     if (rc == -1) {
         rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to ber_printf the termination");
+        LOG_FATAL("Failed to ber_printf the termination\n");
         goto done;
     }
 
     rc = ber_flatten(ber, &bvp);
     if (rc == -1) {
         rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to ber_flatten the buffer");
+        LOG_FATAL("Failed to ber_flatten the buffer\n");
         goto done;
     }
 
@@ -1306,7 +1313,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
     /* get next kvno for entry (will be 1 if this is new) and fix keyset */
     kvno = ipapwd_get_cur_kvno(targetEntry) + 1;
-    for (int i = 0; i < kset->num_keys; i++) {
+    for (size_t i = 0; i < kset->num_keys; i++) {
         kset->keys[i].key_data_kvno = kvno;
     }
 
@@ -1352,7 +1359,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
     rc = encode_setkeytab_reply(kset, &bvp);
     if (rc) {
-        errMesg = "Internal Error.\n";
+        errMesg = "Internal Error.";
         goto free_and_return;
     }
 
@@ -1372,7 +1379,7 @@ free_and_return:
     if (targetEntry) slapi_entry_free(targetEntry);
 
 	if (svals) {
-		for (int i = 0; svals[i]; i++) {
+		for (size_t i = 0; svals[i]; i++) {
 			slapi_value_free(&svals[i]);
 		}
 		free(svals);
@@ -1382,7 +1389,7 @@ free_and_return:
 
         if (rc == LDAP_SUCCESS)
             errMesg = NULL;
-	LOG("%s", errMesg ? errMesg : "success");
+	LOG("%s\n", errMesg ? errMesg : "success");
 	slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
@@ -1403,7 +1410,6 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
     krb5_key_salt_tuple *enctypes = NULL;
     bool newkt;
     bool ret;
-    int i;
 
     ret = ipaasn1_dec_getkt(extop->bv_val, extop->bv_len, &newkt,
                             &svcname, &password, &etypes, &numtypes);
@@ -1423,7 +1429,7 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
                 goto done;
             }
 
-            for (i = 0; i < numtypes; i++) {
+            for (size_t i = 0; i < numtypes; i++) {
                 enctypes[i].ks_enctype = etypes[i];
                 enctypes[i].ks_salttype = KRB5_KDB_SALTTYPE_NORMAL;
             }
@@ -1466,7 +1472,7 @@ static int encode_getkeytab_reply(krb5_context krbctx,
     /* uses last key kvno */
     kvno = keys[num_keys-1].key_data_kvno;
 
-    for (int i = 0; i < num_keys; i++) {
+    for (size_t i = 0; i < num_keys; i++) {
         krb5_enc_data cipher = { 0 };
         krb5_data plain = { 0 };
         krb5_int16 plen;
@@ -1516,7 +1522,7 @@ static int encode_getkeytab_reply(krb5_context krbctx,
     rc = LDAP_SUCCESS;
 
 done:
-    for (int i = 0; i < ksc.nkeys; i ++) {
+    for (size_t i = 0; i < ksc.nkeys; i++) {
         free(ksc.ksdata[i].key.contents);
     }
     if (rc != LDAP_SUCCESS) {
@@ -1632,7 +1638,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     * this operation. */
     if (bind_dn == NULL || *bind_dn == '\0') {
         /* Refuse the operation because they're bound anonymously */
-        err_msg = "Anonymous Binds are not allowed.\n";
+        err_msg = "Anonymous Binds are not allowed.";
         rc = LDAP_INSUFFICIENT_ACCESS;
         goto free_and_return;
     }
@@ -1648,7 +1654,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
     if (!extop_value) {
         LOG_FATAL("Failed to retrieve extended op value from pblock\n");
-        err_msg = "Failed to retrieve extended operation value\n";
+        err_msg = "Failed to retrieve extended operation value";
         rc = LDAP_OPERATIONS_ERROR;
         goto free_and_return;
     }
@@ -1674,7 +1680,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     /* get Entry by krbPrincipalName */
     target_entry = get_entry_by_principal(service_name);
     if (!target_entry) {
-        err_msg = "PrincipalName not found.\n";
+        err_msg = "PrincipalName not found.";
         rc = LDAP_NO_SUCH_OBJECT;
         goto free_and_return;
     }
@@ -1690,7 +1696,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         if (!acl_ok) {
             LOG_FATAL("Not allowed to retrieve keytab on [%s] as user [%s]!\n",
                       service_name, bind_dn);
-            err_msg = "Insufficient access rights\n";
+            err_msg = "Insufficient access rights";
             rc = LDAP_INSUFFICIENT_ACCESS;
             goto free_and_return;
         }
@@ -1701,6 +1707,8 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
             /* if password was passed-in, check its length */
             rc = ipapwd_check_max_pwd_len(strlen(password), &err_msg);
             if (rc) {
+                LOG_PWDPOLICY("Failed to set password credentials for '%s': %s\n",
+                              bind_dn, err_msg);
                 goto free_and_return;
             }
 	}
@@ -1712,7 +1720,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         if (!acl_ok) {
             LOG_FATAL("Not allowed to set keytab on [%s]!\n",
                       service_name);
-            err_msg = "Insufficient access rights\n";
+            err_msg = "Insufficient access rights";
             rc = LDAP_INSUFFICIENT_ACCESS;
             goto free_and_return;
         }
@@ -1745,7 +1753,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         if (!svals) {
             rc = LDAP_OPERATIONS_ERROR;
             LOG_FATAL("encrypt_encode_keys failed!\n");
-            err_msg = "Internal error while encrypting keys\n";
+            err_msg = "Internal error while encrypting keys";
             goto free_and_return;
         }
 
@@ -1765,7 +1773,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     rc = encode_getkeytab_reply(krbctx, krbcfg->kmkey, mkvno,
                                 keys, num_keys, &bvp);
     if (rc != LDAP_SUCCESS) {
-        err_msg = "Internal Error.\n";
+        err_msg = "Internal Error.";
         goto free_and_return;
     }
 
@@ -1776,7 +1784,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 free_and_return:
     if (rc == LDAP_SUCCESS) err_msg = NULL;
-    LOG("%s", err_msg ? err_msg : "success");
+    LOG("%s\n", err_msg ? err_msg : "success");
     slapi_send_ldap_result(pb, rc, NULL, err_msg, 0, NULL);
 
     /* Free anything that we allocated above */
@@ -1787,7 +1795,7 @@ free_and_return:
     if (target_entry) slapi_entry_free(target_entry);
     if (keys) ipa_krb5_free_key_data(keys, num_keys);
     if (svals) {
-        for (int i = 0; svals[i]; i++) {
+        for (size_t i = 0; svals[i]; i++) {
             slapi_value_free(&svals[i]);
         }
         free(svals);
@@ -2031,7 +2039,7 @@ int ipapwd_init( Slapi_PBlock *pb )
                               "ipapwd_post_init_betxn", ipapwd_post_init_betxn,
                               "IPA pwd post ops betxn", NULL,
                               ipapwd_plugin_id);
-    } 
+    }
 
     slapi_register_plugin("preoperation", 1,
                           "ipapwd_pre_init", ipapwd_pre_init,

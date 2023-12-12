@@ -33,7 +33,7 @@
  * Authors:
  * Simo Sorce <ssorce@redhat.com>
  *
- * Copyright (C) 2007-2010 Red Hat, Inc.
+ * Copyright (C) 2007-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -231,7 +231,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
         if (!*svals) {
             /* errMesg should have been set in encrypt_encode_key() */
-            LOG_FATAL("key encryption/encoding failed\n");
+            LOG_FATAL("key encryption/encoding failed (%s)\n", *errMesg);
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }
@@ -267,6 +267,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
             }
             (*ntvals)[0] = slapi_value_new();
             if (slapi_value_set((*ntvals)[0], nt_key, 16) == NULL) {
+                LOG("Failed to set value for nt_key");
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
             }
