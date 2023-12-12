@@ -33,13 +33,15 @@
  * Authors:
  * Nathaniel McCallum <npmccallum@redhat.com>
  *
- * Copyright (C) 2014 Red Hat, Inc.
+ * Copyright (C) 2014-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
 #pragma once
 
 #include <slapi-plugin.h>
+
+#define IPA_PLUGIN_NAME "ipa-otp-counter"
 
 long long
 ldapmod_get_value(const LDAPMod *mod, long long def);
