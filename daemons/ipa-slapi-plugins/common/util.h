@@ -30,7 +30,7 @@
  * Program may make changes or additions to the list of Approved
  * Interfaces.
  *
- * Copyright (C) 2010 Red Hat, Inc.
+ * Copyright (C) 2010-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -67,6 +67,10 @@
                     "[file %s, line %d]: " fmt, \
                     __FILE__, __LINE__, ##__VA_ARGS__)
 
+#define LOG_PWDPOLICY(fmt, ...) \
+    slapi_log_error(SLAPI_LOG_PWDPOLICY, log_func, fmt, ##__VA_ARGS__)
+
+/* "Trace" logging is very expensive and should be avoided/replaced. TBD */
 #define LOG_TRACE(fmt, ...) \
     slapi_log_error(SLAPI_LOG_TRACE, log_func, fmt, ##__VA_ARGS__)
 
