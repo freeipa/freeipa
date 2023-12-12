@@ -30,7 +30,7 @@
  * Program may make changes or additions to the list of Approved
  * Interfaces.
  *
- * Copyright (C) 2022 Red Hat, Inc.
+ * Copyright (C) 2022-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -447,7 +447,7 @@ static int ipagraceperiod_preop(Slapi_PBlock *pb)
         LOG_TRACE("grace limit disabled, skipping\n");
         goto done;
     } else if (grace_limit < -1) {
-        LOG_FATAL("Invalid passwordGraceLimit value %d\n", grace_limit);
+        LOG_FATAL("Invalid passwordGraceLimit value %ld\n", grace_limit);
         return LDAP_OPERATIONS_ERROR;
     }
 
@@ -480,7 +480,7 @@ static int ipagraceperiod_preop(Slapi_PBlock *pb)
             slapi_pwpolicy_make_response_control(pb, -1, grace_limit - grace_user_time , -1);
         }
     } else if (grace_user_time >= grace_limit) {
-        LOG_TRACE("%s password is expired and out of grace limit\n", dn);
+        LOG_PWDPOLICY("%s password is expired and out of grace limit\n", dn);
         errstr = "Password is expired.\n";
         ret = LDAP_INVALID_CREDENTIALS;
 
