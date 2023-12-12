@@ -33,7 +33,7 @@
  * Authors:
  * Simo Sorce <ssorce@redhat.com>
  *
- * Copyright (C) 2007-2010 Red Hat, Inc.
+ * Copyright (C) 2007-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -248,6 +248,13 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         return 0;
     }
 
+    /* Get target DN */
+    ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+    if (ret) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
     /* Ok this is interesting,
      * Check this is a clear text password, or refuse operation */
     if ('{' == userpw[0]) {
@@ -280,6 +287,8 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
             } else {
                 rc = ipapwd_check_max_pwd_len(strlen(userpw_clear), &errMesg);
                 if (rc) {
+                    LOG_PWDPOLICY("Failed to set password credentials for '%s': %s\n",
+                                  slapi_sdn_get_dn(sdn), errMesg);
                     goto done;
                 }
                 userpw = slapi_ch_strdup(userpw_clear);
@@ -329,13 +338,6 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         goto done;
     }
 
-    /* Get target DN */
-    ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
-    if (ret) {
-        rc = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     if (ret != 0) {
@@ -359,7 +361,6 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
     } else {
         char *binddn;
-        int i;
 
         pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
 
@@ -367,7 +368,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
 
         /* if it is a passsync manager we also need to skip resets */
-        for (i = 0; i < krbcfg->num_passsync_mgrs; i++) {
+        for (size_t i = 0; i < krbcfg->num_passsync_mgrs; i++) {
             if (strcasecmp(krbcfg->passsync_mgrs[i], binddn) == 0) {
                 pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
                 break;
@@ -385,6 +386,8 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
     if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
         (ret != 0) ) {
         errMesg = ipapwd_error2string(ret);
+        LOG_PWDPOLICY("Failed to add password credentials for '%s': %s\n",
+                      slapi_sdn_get_dn(sdn), errMesg);
         rc = LDAP_CONSTRAINT_VIOLATION;
         goto done;
     }
@@ -507,6 +510,13 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         goto done;
     }
 
+    /* Get target DN */
+    ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
+    if (ret) {
+        rc = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
     /* grab the mods - we'll put them back later with
      * our modifications appended
      */
@@ -568,6 +578,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
             rc = ipapwd_check_max_pwd_len(bv->bv_len, &errMesg);
             if (rc) {
+                LOG_PWDPOLICY("Failed to set password credentials for '%s': %s\n",
+                              slapi_sdn_get_dn(sdn), errMesg);
                 goto done;
             }
             slapi_ch_free_string(&unhashedpw);
@@ -591,14 +603,6 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
     /* OK we have something interesting here, start checking for
      * pre-requisites */
-
-    /* Get target DN */
-    ret = slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn);
-    if (ret) {
-        rc = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
     tmp_sdn = slapi_sdn_dup(sdn);
     if (tmp_sdn) {
         /* xxxPAR: Ideally SLAPI_MODIFY_EXISTING_ENTRY should be
@@ -795,6 +799,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 const char *userpw_clear = &userpw[strlen("{CLEAR}")];
                 rc = ipapwd_check_max_pwd_len(strlen(userpw_clear), &errMesg);
                 if (rc) {
+                    LOG_PWDPOLICY("Failed to set password credentials for '%s': %s\n",
+                                  slapi_sdn_get_dn(sdn), errMesg);
                     goto done;
                 }
                 unhashedpw = slapi_ch_strdup(userpw_clear);
@@ -806,9 +812,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 slapi_ch_free_string(&userpw);
 
             } else if (slapi_is_encoded(userpw)) {
-
-                LOG("Pre-Encoded passwords are not valid\n");
-                errMesg = "Pre-Encoded passwords are not valid\n";
+                errMesg = "Pre-Encoded passwords are not valid";
+                LOG("%s (%s)\n", errMesg, slapi_sdn_get_dn(sdn));
                 rc = LDAP_CONSTRAINT_VIOLATION;
                 goto done;
             }
@@ -843,7 +848,6 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
     } else {
         char *binddn;
         Slapi_DN *bdn, *tdn;
-        int i;
 
         /* Check Bind DN */
         slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
@@ -857,18 +861,16 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
 
             /* if it is a passsync manager we also need to skip resets */
-            for (i = 0; i < krbcfg->num_passsync_mgrs; i++) {
+            for (size_t i = 0; i < krbcfg->num_passsync_mgrs; i++) {
                 if (strcasecmp(krbcfg->passsync_mgrs[i], binddn) == 0) {
                     pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
                     break;
                 }
             }
-
         }
 
         slapi_sdn_free(&bdn);
         slapi_sdn_free(&tdn);
-
     }
 
     pwdop->pwdata.dn = slapi_ch_strdup(slapi_sdn_get_dn(sdn));
@@ -884,6 +886,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
         if ((pwdop->pwdata.changetype != IPA_CHANGETYPE_DSMGR) &&
             (ret != 0)) {
             errMesg = ipapwd_error2string(ret);
+            LOG_PWDPOLICY("Check Password Policy failed for (%s) - %s/n",
+                          pwdop->pwdata.dn, errMesg);
             rc = LDAP_CONSTRAINT_VIOLATION;
             goto done;
         }
@@ -976,7 +980,6 @@ static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
     int num_keys;
     int mkvno;
     int ret;
-    int i;
 
     ret = slapi_entry_attr_find(entry, "ipaNTHash", &attr);
     if (ret == 0) {
@@ -1008,7 +1011,7 @@ static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
 
     ret = LDAP_UNWILLING_TO_PERFORM;
 
-    for (i = 0; i < num_keys; i++) {
+    for (size_t i = 0; i < num_keys; i++) {
         char nthash[16];
         krb5_enc_data cipher;
         krb5_data plain;
@@ -1511,6 +1514,8 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     } else {
         rc = ipapwd_check_max_pwd_len(credentials->bv_len, &errMesg);
         if (rc) {
+            LOG_PWDPOLICY("Failed to set password credentials for '%s': %s\n",
+                          slapi_sdn_get_dn(sdn), errMesg);
             goto invalid_creds;
         }
     }
