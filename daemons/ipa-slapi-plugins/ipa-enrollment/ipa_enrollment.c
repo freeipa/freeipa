@@ -30,7 +30,7 @@
  * Program may make changes or additions to the list of Approved
  * Interfaces.
  *
- * Copyright (C) 2005 Red Hat, Inc.
+ * Copyright (C) 2005-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -132,7 +132,8 @@ ipa_join(Slapi_PBlock *pb)
     Slapi_DN *sdn;
     Slapi_Backend *be;
     Slapi_Entry **es = NULL;
-    int rc=0, ret=0, res, i;
+    int rc=0, ret=0, res;
+    size_t i;
     int is_root=0;
     char *krbLastPwdChange = NULL;
     char *fqdn = NULL;
@@ -204,7 +205,7 @@ ipa_join(Slapi_PBlock *pb)
 
     /* if there is none or more than one, freak out */
     if (i != 1) {
-        LOG_TRACE("Too many entries, or entry no found (%d)", i);
+        LOG_TRACE("Too many entries, or entry no found (%lu)\n", i);
         if (i == 0)
             errMesg = "Host not found.\n";
         else
@@ -217,7 +218,7 @@ ipa_join(Slapi_PBlock *pb)
     /* Is this host already enrolled? */
     krbLastPwdChange = slapi_entry_attr_get_charptr(targetEntry, "krbLastPwdChange");
     if (NULL != krbLastPwdChange) {
-        LOG_TRACE("Host already enrolled");
+        LOG_TRACE("Host already enrolled\n");
         errMesg = "Host already enrolled.\n";
         rc = LDAP_OPERATIONS_ERROR;
         goto free_and_return;
@@ -313,8 +314,8 @@ done:
     ret = slapi_pblock_set(pb, SLAPI_EXT_OP_RET_OID, JOIN_OID);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_EXT_OP_RET_VALUE, &retbval);
     if (ret) {
-        errMesg = "Could not set return values";
-        LOG("%s\n", errMesg);
+        errMesg = "Could not set return values\n";
+        LOG("%s", errMesg);
         rc = SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
     }
 
