@@ -30,7 +30,7 @@
  * Program may make changes or additions to the list of Approved
  * Interfaces.
  *
- * Copyright (C) 2010 Red Hat, Inc.
+ * Copyright (C) 2010-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -1185,7 +1185,7 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
                  * enforce is enabled. */
                 errstr = slapi_ch_smprintf("Only the Directory Manager "
                                            "can set arbitrary values "
-                                           "for %s\n", cfgentry->attr);
+                                           "for %s", cfgentry->attr);
                 ret = LDAP_INSUFFICIENT_ACCESS;
                 goto done;
             }
@@ -1221,7 +1221,7 @@ done:
     }
 
     if (ret) {
-        LOG("operation failure [%d]\n", ret);
+        LOG("operation failure [%d] - %s\n", ret, errstr);
         slapi_send_ldap_result(pb, ret, NULL, errstr, 0, NULL);
         slapi_ch_free((void **)&errstr);
         ret = EFAIL;
