@@ -30,7 +30,7 @@
  * Program may make changes or additions to the list of Approved
  * Interfaces.
  *
- * Copyright (C) 2010 Red Hat, Inc.
+ * Copyright (C) 2010-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -350,7 +350,6 @@ ipamodrdn_load_plugin_config(void)
 {
     int status = EOK;
     int result;
-    int i;
     Slapi_PBlock *search_pb;
     Slapi_Entry **entries = NULL;
 
@@ -379,7 +378,7 @@ ipamodrdn_load_plugin_config(void)
         goto cleanup;
     }
 
-    for (i = 0; (entries[i] != NULL); i++) {
+    for (size_t i = 0; (entries[i] != NULL); i++) {
         /* We don't care about the status here because we may have
          * some invalid config entries, but we just want to continue
          * looking for valid ones. */
@@ -680,7 +679,8 @@ ipamodrdn_change_attr(struct configEntry *cfgentry,
     slapi_modify_internal_pb(mod_pb);
     slapi_pblock_get(mod_pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
     if (ret != LDAP_SUCCESS) {
-        LOG_FATAL("Failed to change attribute with error %d\n", ret);
+        LOG_FATAL("Failed to change attribute '%s' in '%s' with error %d\n",
+                  cfgentry->tattr, targetdn, ret);
         ret = EFAIL;
     }
     ret = EOK;
