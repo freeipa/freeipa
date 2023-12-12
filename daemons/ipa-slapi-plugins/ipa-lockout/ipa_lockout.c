@@ -30,7 +30,7 @@
  * Program may make changes or additions to the list of Approved
  * Interfaces.
  *
- * Copyright (C) 2010 Red Hat, Inc.
+ * Copyright (C) 2010-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -823,13 +823,15 @@ static int ipalockout_preop(Slapi_PBlock *pb)
     if (failedcount >= max_fail) {
         if (lockout_duration == 0) {
             errstr = "Entry permanently locked.\n";
+            LOG_PWDPOLICY("Entry '%s' is permanently locked.\n", dn);
             ret = LDAP_UNWILLING_TO_PERFORM;
             goto done;
         }
 
         if (time_now < last_failed + lockout_duration) {
             /* Too many failures */
-            LOG_TRACE("Too many failed logins. %lu out of %d\n", failedcount, max_fail);
+            LOG_PWDPOLICY("Too many failed logins for '%s'. %lu out of %d\n",
+                          dn, failedcount, max_fail);
             errstr = "Too many failed logins.\n";
             ret = LDAP_UNWILLING_TO_PERFORM;
         }
