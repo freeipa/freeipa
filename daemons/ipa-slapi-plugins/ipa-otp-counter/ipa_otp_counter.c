@@ -33,7 +33,7 @@
  * Authors:
  * Nathaniel McCallum <npmccallum@redhat.com>
  *
- * Copyright (C) 2014 Red Hat, Inc.
+ * Copyright (C) 2014-2023 Red Hat, Inc.
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
@@ -295,14 +295,16 @@ preop_mod(Slapi_PBlock *pb)
     }
 
     if (!simulate(mods, attr, cpre, &cpost) && repl == 0) {
-        msg = slapi_ch_smprintf("Invalid operation sequence on %s", attr);
+        msg = slapi_ch_smprintf("Invalid operation sequence on %s (%s)",
+                                attr, slapi_entry_get_dn_const(epre));
         goto error;
     }
 
     if (cpost < cpre) {
         if (repl == 0) {
-            msg = slapi_ch_smprintf("Will not %s %s",
-                cpost == COUNTER_UNSET ? "delete" : "decrement", attr);
+            msg = slapi_ch_smprintf("Will not %s %s (%s)",
+                cpost == COUNTER_UNSET ? "delete" : "decrement",
+                attr, slapi_entry_get_dn_const(epre));
             goto error;
         }
 
@@ -321,6 +323,9 @@ preop_mod(Slapi_PBlock *pb)
 
 error:
     rc = LDAP_UNWILLING_TO_PERFORM;
+    if (msg) {
+        LOG("%s - error %d\n", msg, rc);
+    }
     slapi_send_ldap_result(pb, rc, NULL, msg, 0, NULL);
     if (slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc)) {
         LOG_FATAL("slapi_pblock_set failed!\n");
