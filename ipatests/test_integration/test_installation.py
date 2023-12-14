@@ -1262,7 +1262,10 @@ class TestInstallMaster(IntegrationTest):
             tasks.uninstall_packages(self.master, [package_name])
             reinstall = True
         try:
-            tasks.install_master(self.master)
+            # Disable dnssec-validation as the test is calling dnf install
+            # and mirrors.fedoraproject.org have a broken trust chain
+            tasks.install_master(self.master,
+                                 extra_args=['--no-dnssec-validation'])
         finally:
             if reinstall:
                 tasks.install_packages(self.master, [package_name])

@@ -50,6 +50,16 @@ class TestAdvice(IntegrationTest):
     num_replicas = 0
     num_clients = 1
 
+    @classmethod
+    def install(cls, mh):
+        # Install without dnssec validation because the test is
+        # calling dnf install on the client and mirrors.fedoraproject.org
+        # has a broken trust chain
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
+        tasks.install_client(cls.master, cls.clients[0])
+
     def execute_advise(self, host, advice_id, *args):
         # ipa-advise script is only available on a server
         tasks.kinit_admin(self.master)
