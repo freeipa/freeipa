@@ -167,7 +167,8 @@ def get_cert_path(cert_path):
     if cert_path is not None:
         return cert_path
 
-    if os.path.exists(paths.IPA_CA_CRT):
+    if os.path.exists(paths.IPA_CA_CRT) and \
+            os.stat(paths.IPA_CA_CRT).st_size != 0:
         return paths.IPA_CA_CRT
 
     return None
