@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-09-23 15:35+0000\n"
+"PO-Revision-Date: 2023-12-18 14:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.0.2\n"
+"X-Generator: Weblate 5.3\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:72
 msgid "Add a new YubiKey OTP token."
@@ -24,7 +24,7 @@ msgstr "신규 Yubikey OTP 토큰 추가."
 
 #: ipaserver/plugins/selfservice.py:122
 msgid "Add a new self-service permission."
-msgstr "신규 셀프-서비스 권한을 추가합니다."
+msgstr "신규 자체-서비스 권한을 추가합니다."
 
 #: ipaserver/plugins/hostgroup.py:330
 msgid "Add members to a hostgroup."
@@ -95,11 +95,11 @@ msgid "Debugging output"
 msgstr "디버깅 출력"
 
 msgid "Degrees Longitude"
-msgstr "도 경도"
+msgstr "도 위도"
 
 #: ipaserver/plugins/selfservice.py:143
 msgid "Delete a self-service permission."
-msgstr "셀프-서비스 권한을 삭제합니다."
+msgstr "자체-서비스 권한을 삭제합니다."
 
 #: ipaserver/plugins/hbacrule.py:314
 msgid "Delete an HBAC rule."
@@ -249,7 +249,7 @@ msgid "LDAP uri to connect to. Mutually exclusive with --server"
 msgstr "연결 할 LDAP URI입니다. --server와 상호 배타적"
 
 msgid "LOC Minutes Longitude"
-msgstr "LOC 분 경도"
+msgstr "LOC 분 위도"
 
 #: ipaserver/plugins/topology.py:140
 msgid "Left node"
@@ -1782,7 +1782,7 @@ msgid ""
 "targetattr REPLACES the current attributes, it does not add to them.\n"
 msgstr ""
 "\n"
-"Directory Server Access Control Instructions (ACIs)\n"
+"디렉토리 서버 접근 제어 명령 (ACIs)\n"
 "\n"
 "ACIs are used to allow or deny access to information. This module is\n"
 "currently designed to allow, not deny, access.\n"
@@ -2033,7 +2033,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"Search for ACIs.\n"
+"ACIs 검색.\n"
 "\n"
 "    Returns a list of ACIs\n"
 "\n"
