@@ -158,7 +158,6 @@ TOMCAT_CONFIG_FILES = (
     paths.CA_CS_CFG_PATH,
 )
 
-
 def run_healthcheck(host, source=None, check=None, output_type="json",
                     failures_only=False, config=None):
     """
@@ -1262,6 +1261,10 @@ class TestIpaHealthCheck(IntegrationTest):
         )
         self.master.run_command(cmd)
 
+    @pytest.mark.skipif((osinfo.id == 'rhel'
+                         and osinfo.version_number >= (9,0)),
+                        reason=" TLS versions below 1.2 are not "
+                        "supported anymore in RHEL9.0 and above.")
     def test_ipahealthcheck_ds_encryption(self, modify_tls):
         """
         This testcase modifies the default TLS version of
