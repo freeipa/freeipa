@@ -409,7 +409,8 @@ class host(LDAPObject):
                                         api.env.container_hostgroup,
                                         api.env.basedn),
             ],
-            'ipapermdefaultattr': {'krblastpwdchange', 'krbprincipalkey'},
+            'ipapermdefaultattr': {'krblastpwdchange', 'krbprincipalkey',
+                                   'ipaprotectedoperation;write_keys'},
             'replaces': [
                 '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage host keytab";allow (write) groupdn = "ldap:///cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
