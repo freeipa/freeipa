@@ -277,6 +277,9 @@ class TestInstallClientNoAdmin(IntegrationTest):
         self.master.run_command(['ipa', 'privilege-add-permission',
                                  '--permissions', 'System: Add Hosts',
                                  'Add Hosts'])
+        self.master.run_command(['ipa', 'privilege-add-permission',
+                                 '--permissions', 'System: Manage Host Keytab',
+                                 'Add Hosts'])
 
         self.master.run_command(['ipa', 'role-add-privilege', 'useradmin',
                                  '--privileges', 'Host Enrollment'])
@@ -300,6 +303,10 @@ class TestInstallClientNoAdmin(IntegrationTest):
         install_log = client.get_file_contents(paths.IPACLIENT_INSTALL_LOG,
                                                encoding='utf-8')
         assert msg in install_log
+
+        # Make sure we do not fallback to an old keytab retrieval method anymore
+        msg = "Retrying with pre-4.0 keytab retrieval method..."
+        assert msg not in install_log
 
         # check that user is able to request a host cert, too
         result = tasks.run_certutil(client, ['-L'], paths.IPA_NSSDB_DIR)
