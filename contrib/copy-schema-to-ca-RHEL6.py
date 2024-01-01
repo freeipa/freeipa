@@ -118,20 +118,19 @@ def set_directive(filename, directive, value, quotes=True, separator=' '):
     """
     valueset = False
     st = os.stat(filename)
-    fd = open(filename)
-    newfile = []
-    for line in fd:
-        if line.lstrip().startswith(directive):
-            valueset = True
-            if value is not None:
-                if quotes:
-                    newfile.append('%s%s"%s"\n' %
-                                   (directive, separator, value))
-                else:
-                    newfile.append('%s%s%s\n' % (directive, separator, value))
-        else:
-            newfile.append(line)
-    fd.close()
+    with open(filename) as fd:
+        newfile = []
+        for line in fd:
+            if line.lstrip().startswith(directive):
+                valueset = True
+                if value is not None:
+                    if quotes:
+                        newfile.append('%s%s"%s"\n' %
+                                       (directive, separator, value))
+                    else:
+                        newfile.append('%s%s%s\n' % (directive, separator, value))
+            else:
+                newfile.append(line)
     if not valueset:
         if value is not None:
             if quotes:
