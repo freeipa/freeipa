@@ -40,7 +40,9 @@ if __name__ == '__main__':
             "ipaplatform.redhat",
             "ipaplatform.rhel",
             "ipaplatform.rhel_container",
-            "ipaplatform.suse"
+            "ipaplatform.suse",
+            "ipaplatform.opencloudos",
+            "ipaplatform.tencentos"
         ],
         install_requires=[
             "cffi",
