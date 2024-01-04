@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2023-11-01 02:48+0000\n"
+"PO-Revision-Date: 2024-01-05 04:37+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.1.1\n"
+"X-Generator: Weblate 5.3.1\n"
 
 msgid ""
 "\n"
@@ -1534,7 +1534,7 @@ msgid "New Principal Password"
 msgstr "ახალი პრინციპალის პაროლი"
 
 msgid "Verify Principal Password"
-msgstr ""
+msgstr "პრინციპალის პაროლის გადამოწმება"
 
 #, c-format
 msgid ""
@@ -2855,7 +2855,7 @@ msgid "Name of parent automount map (default: auto.master)."
 msgstr ""
 
 msgid "Delete an automount map."
-msgstr ""
+msgstr "ავტომიმაგრების რუკის წაშლა."
 
 msgid "Search for an automount map."
 msgstr ""
@@ -2867,7 +2867,7 @@ msgid "Modify an automount map."
 msgstr ""
 
 msgid "Display an automount map."
-msgstr ""
+msgstr "ავტომიმაგრების რუკის ჩვენება."
 
 msgid ""
 "\n"
@@ -3228,7 +3228,7 @@ msgid "Default types of supported user authentication"
 msgstr ""
 
 msgid "Modify configuration options."
-msgstr ""
+msgstr "კონფიგურაციის პარამეტრების შეცვლა."
 
 msgid "Show the current configuration."
 msgstr "მიმდინარე კონფიგურაციის ჩვენება."
@@ -3635,7 +3635,7 @@ msgid "AAAA IP Address"
 msgstr "AAAA IP მისამართი"
 
 msgid "AAAA Create reverse"
-msgstr ""
+msgstr "AAAA უკუჩანაწერის შექმნა"
 
 msgid "A6 record"
 msgstr ""
@@ -3884,7 +3884,7 @@ msgid "A host willing to act as a mail exchanger"
 msgstr ""
 
 msgid "NAPTR record"
-msgstr ""
+msgstr "NAPTR ჩანაწერი"
 
 msgid "Raw NAPTR records"
 msgstr ""
@@ -3953,13 +3953,13 @@ msgid "Raw RP records"
 msgstr ""
 
 msgid "SIG record"
-msgstr ""
+msgstr "SIG ჩანაწერი"
 
 msgid "Raw SIG records"
 msgstr ""
 
 msgid "SPF record"
-msgstr ""
+msgstr "SPF ჩანაწერი"
 
 msgid "Raw SPF records"
 msgstr ""
@@ -4006,7 +4006,7 @@ msgid "SSHFP Fingerprint"
 msgstr "SSHFP ანაბეჭდის"
 
 msgid "TA record"
-msgstr ""
+msgstr "TA ჩანაწერი"
 
 msgid "Raw TA records"
 msgstr ""
@@ -4193,7 +4193,7 @@ msgid "Display information about a DNS forward zone."
 msgstr ""
 
 msgid "Add new DNS resource record."
-msgstr ""
+msgstr "ახალი DNS რესურსის ჩანაწერის დამატება."
 
 msgid "force NS record creation even if its hostname is not in DNS"
 msgstr ""
@@ -4737,7 +4737,7 @@ msgid "HBAC service description"
 msgstr "HBAC სერვისის აღწერა"
 
 msgid "Member of HBAC service groups"
-msgstr ""
+msgstr "HBAC სერვისის ჯგუფების წევრი"
 
 msgid "Add a new HBAC service."
 msgstr "ახალი HBAC სერვისის დამატება."
@@ -19410,7 +19410,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Edit ${entity}"
-msgstr "{entity}-ის ჩასწორება"
+msgstr "${entity}-ის ჩასწორება"
 
 #, python-brace-format
 msgid "${product}, version: ${version}"
