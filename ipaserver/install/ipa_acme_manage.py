@@ -261,8 +261,13 @@ class IPAACMEManage(AdminTool):
             result = run(args, raiseonerr=False, capture_output=True,
                          capture_error=True)
             if result.returncode != 0:
+                # See if the parameter doesn't exist. If not then no
+                # user-specified value has been set.
+                # ERROR: No such parameter: jobsScheduler...
+                if 'No such parameter' in result.error_output:
+                    return ''
                 raise RuntimeError(result.error_output)
-            return result
+            return result.output.strip()
 
         def ca_config_set(directive, value,
                           prefix='jobsScheduler.job.pruning'):
@@ -274,9 +279,8 @@ class IPAACMEManage(AdminTool):
                 raise RuntimeError('Updating %s failed' % directive)
 
         def ca_config_show(directive):
-            result = run_pki_server('ca-config-show', directive,
-                                    prefix='jobsScheduler.job.pruning')
-            return result.output.strip()
+            return run_pki_server('ca-config-show', directive,
+                                  prefix='jobsScheduler.job.pruning')
 
         def config_show():
             status = ca_config_show('enabled')
