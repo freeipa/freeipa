@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-01-05 04:37+0000\n"
+"PO-Revision-Date: 2024-01-06 07:37+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -3620,7 +3620,7 @@ msgid "Raw A records"
 msgstr ""
 
 msgid "A Create reverse"
-msgstr "უკუჩანაწერის შექმნა"
+msgstr "A უკუჩანაწერის შექმნა"
 
 msgid "Create reverse record for this IP Address"
 msgstr ""
@@ -4517,7 +4517,7 @@ msgid "Search for groups without these member of sudo rules."
 msgstr ""
 
 msgid "Modify a group."
-msgstr ""
+msgstr "ჯგუფის შეცვლა."
 
 msgid "change to a POSIX group"
 msgstr ""
@@ -5674,7 +5674,7 @@ msgid "ID View Name"
 msgstr ""
 
 msgid "Add a new Group ID override."
-msgstr ""
+msgstr "ახალი ჯგუფის ID-ის გადაფარვის დამატება."
 
 msgid "Delete an Group ID override."
 msgstr "ჯგუფის ID-ის გადაფარვის წაშლა."
@@ -7365,7 +7365,7 @@ msgid ""
 msgstr ""
 
 msgid "Search for IPA services."
-msgstr ""
+msgstr "IPA სერვისების ძებნა."
 
 msgid "Results should contain primary key attribute only (\"principal\")"
 msgstr ""
@@ -11006,13 +11006,13 @@ msgid "Original TTL"
 msgstr ""
 
 msgid "RRSIG Signature Expiration"
-msgstr ""
+msgstr "RRSIG ხელმოწერის ვადა"
 
 msgid "Signature Expiration"
 msgstr "ხელმოწერის ვადა"
 
 msgid "RRSIG Signature Inception"
-msgstr ""
+msgstr "RRSIG ხელმოწერის შემოჭრა"
 
 msgid "Signature Inception"
 msgstr "ხელმოწერის შემოჭრა"
@@ -13261,7 +13261,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted profile \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა პროფილი \"%(value)s\""
 
 #, python-format
 msgid "Predefined profile '%(profile_id)s' cannot be deleted"
@@ -13528,7 +13528,7 @@ msgstr ""
 
 #, python-format
 msgid "Added group \"%(value)s\""
-msgstr ""
+msgstr "დაემატა ჯგუფი \"%(value)s\""
 
 msgid "gid cannot be set for external group"
 msgstr ""
@@ -13538,7 +13538,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა ჯგუფი \"%(value)s\""
 
 msgid "privileged group"
 msgstr "პრივილეგიის მქონე ჯგუფი"
@@ -13624,11 +13624,11 @@ msgstr "დაემატა HBAC სერვისი \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა HBAC სერვისი \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა HBAC სერვისი \"%(value)s\""
 
 #, python-format
 msgid "%(count)d HBAC service matched"
@@ -13650,7 +13650,7 @@ msgstr "HBAC სერვისის ჯგუფი"
 
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "დაემატა HBAC სერვისის ჯგუფი \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
@@ -14517,11 +14517,11 @@ msgstr "დაემატა როლი \"%(value)s\""
 
 #, python-format
 msgid "Deleted role \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა როლი \"%(value)s\""
 
 #, python-format
 msgid "Modified role \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა როლი \"%(value)s\""
 
 #, python-format
 msgid "%(count)d role matched"
@@ -14547,11 +14547,11 @@ msgstr "დაემატა თვითმომსახურება \"%(
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა თვითსერვისი \"%(value)s\""
 
 #, python-format
 msgid "Modified selfservice \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა თვითსერვისი \"%(value)s\""
 
 #, python-format
 msgid "%(count)d selfservice matched"
@@ -15177,11 +15177,11 @@ msgstr "დაემატა სეგმენტი \"%(value)s\""
 
 #, python-format
 msgid "Deleted segment \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა სეგმენტი \"%(value)s\""
 
 #, python-format
 msgid "Modified segment \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა სეგმენტი \"%(value)s\""
 
 #, python-format
 msgid "%(value)s"
@@ -15556,7 +15556,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა ACI \"%(value)s\""
 
 #, python-format
 msgid "Modified ACI \"%(value)s\""
@@ -16517,7 +16517,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified privilege \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა პრივილეგია \"%(value)s\""
 
 #, python-format
 msgid "%(count)d privilege matched"
@@ -16923,7 +16923,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted trust \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა ნდობა \"%(value)s\""
 
 msgid ""
 "\n"
@@ -17277,7 +17277,7 @@ msgid "vaultcontainer"
 msgstr "vaultcontainer"
 
 msgid "vaultcontainers"
-msgstr "საცავის კონტეინერები"
+msgstr "საცავისკონტეინერები"
 
 msgid "Vault Containers"
 msgstr "საცავის კონტეინერები"
@@ -17327,11 +17327,11 @@ msgstr "საცავის დამატება."
 
 #, python-format
 msgid "Added vault \"%(value)s\""
-msgstr ""
+msgstr "დაემატა საცავი \"%(value)s\""
 
 #, python-format
 msgid "Deleted vault \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა საცავი \"%(value)s\""
 
 #, python-format
 msgid "%(count)d vault matched"
@@ -18770,7 +18770,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted record \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა ჩანაწერი \"%(value)s\""
 
 #, python-format
 msgid "Zone record '%s' cannot be deleted"
@@ -18858,7 +18858,7 @@ msgstr "HBAC წესები"
 
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
-msgstr ""
+msgstr "დაემატა HBAC წესი \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC rule \"%(value)s\""
@@ -19018,11 +19018,11 @@ msgstr ""
 
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr ""
+msgstr "დაემატა ჰოსტი \"%(value)s\""
 
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა ჰოსტი \"%(value)s\""
 
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr ""
@@ -22442,7 +22442,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Disabled service \"%(value)s\""
-msgstr ""
+msgstr "გაითიშა სერვისი \"%(value)s\""
 
 #, python-format
 msgid "Added certificates to service principal \"%(value)s\""
@@ -22934,7 +22934,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted CA \"%(value)s\""
-msgstr ""
+msgstr "წაიშალა CA \"%(value)s\""
 
 msgid "Insufficient privilege to delete a CA."
 msgstr ""
@@ -23545,7 +23545,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr ""
+msgstr "შეიცვალა მომხმარებელი \"%(value)s\""
 
 #, python-format
 msgid "Undeleted user account \"%(value)s\""
