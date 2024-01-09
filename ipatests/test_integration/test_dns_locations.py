@@ -534,6 +534,9 @@ class TestDNSLocations(IntegrationTest):
 
         expected_servers = (self.master.ip, self.replicas[1].ip)
 
+        ldap = self.master.ldap_connect()
+        tasks.wait_for_replication(ldap)
+
         for ip in (self.master.ip, self.replicas[0].ip, self.replicas[1].ip):
             self._test_A_rec_against_server(ip, self.domain, expected_servers)
 
@@ -556,6 +559,9 @@ class TestDNSLocations(IntegrationTest):
         expected_servers = (
             (self.PRIO_HIGH, self.WEIGHT, DNSName(self.master.hostname)),
         )
+
+        ldap = self.master.ldap_connect()
+        tasks.wait_for_replication(ldap)
 
         for ip in (self.master.ip, self.replicas[0].ip, self.replicas[1].ip):
             self._test_SRV_rec_against_server(
