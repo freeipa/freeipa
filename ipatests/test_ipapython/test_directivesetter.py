@@ -18,6 +18,10 @@ WHITESPACE_CONFIG = [
     'foobar\t2\n',
 ]
 
+SUBSTRING_CONFIG = [
+    'foobar=2\n',
+]
+
 
 class test_set_directive_lines:
     def test_remove_directive(self):
@@ -88,6 +92,7 @@ class test_set_directive:
 
 class test_get_directive:
     def test_get_directive(self, tmpdir):
+        """Test retrieving known values from a config file"""
         configfile = tmpdir.join('config')
         configfile.write(''.join(EXAMPLE_CONFIG))
 
@@ -97,6 +102,34 @@ class test_get_directive:
         assert '2' == directivesetter.get_directive(str(configfile),
                                                     'foobar',
                                                     separator='=')
+        assert None is directivesetter.get_directive(str(configfile),
+                                                     'notfound',
+                                                     separator='=')
+
+    def test_get_directive_substring(self, tmpdir):
+        """Test retrieving values from a config file where there is
+           a similar substring that is not present.
+        """
+        configfile = tmpdir.join('config')
+        configfile.write(''.join(SUBSTRING_CONFIG))
+
+        assert None is directivesetter.get_directive(str(configfile),
+                                                     'foo',
+                                                     separator='=')
+        assert '2' == directivesetter.get_directive(str(configfile),
+                                                    'foobar',
+                                                    separator='=')
+
+    def test_get_directive_none(self, tmpdir):
+        """Test retrieving a value from a config file where the
+           directive is None. i.e. don't fail.
+        """
+        configfile = tmpdir.join('config')
+        configfile.write(''.join(EXAMPLE_CONFIG))
+
+        assert None is directivesetter.get_directive(str(configfile),
+                                                     None,
+                                                     separator='=')
 
 
 class test_get_directive_whitespace:
