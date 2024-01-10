@@ -182,6 +182,9 @@ def get_directive(filename, directive, separator=' '):
     if separator == ' ':
         separator = '[ \t]+'
 
+    if directive is None:
+        return None
+
     result = None
     with open(filename, "r") as fd:
         for line in fd:
@@ -193,7 +196,7 @@ def get_directive(filename, directive, separator=' '):
                 if match:
                     value = match.group(1)
                 else:
-                    raise ValueError("Malformed directive: {}".format(line))
+                    continue
 
                 result = unquote_directive_value(value.strip(), '"')
                 result = result.strip(' ')
