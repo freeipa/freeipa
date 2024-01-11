@@ -12,3 +12,4 @@ ipatests == @VERSION@
 # keep pylint version in sync with current Fedora release
 # F37 has 2.15.5
 pylint ~= 2.15.5
+netaddr == 0.8.0
