@@ -946,6 +946,7 @@ This package contains tests that verify IPA functionality under Python 3.
 
 %prep
 %setup -n freeipa-%{version} -q
+autoreconf -if
 %if 0%{?with_python3}
 # Workaround: We want to build Python things twice. To be sure we do not mess
 # up something, do two separate builds in separate directories.
