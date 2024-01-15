@@ -158,6 +158,72 @@ In case of explicit allocation, ID range associated with the trusted forest
 Active Directory root domain must have ID range type of `ipa-ad-trust-posix`,
 as well as all other domains visible through the trust link.
 
+## ID range allocation
+
+During deployment FreeIPA takes a random ID range slice from `(1,10000)` and
+multiplies the base offset by 200000. This base becomes a starting point for
+the deployment's ID range.
+
+Both starting point and size of the range can be overridden by an administrator
+who deploys the initial server. The minimal value for the initial ID range
+start cannot be less than `UID_MAX` or `GID_MAX` from `/etc/login.defs`. This
+range is then used by all systems enrolled into the domain managed by this
+initial server.
+
+Thus, a default range that FreeIPA chooses the deployment ID range from is
+200000...2000000000. If this is a single domain and amount of users in it is
+not going to be above 200K, then FreeIPA administrators may never need to
+allocate another ID range within 200000...2000000000 and that original ID range
+stays fixed forever.
+
+There are two other use cases:
+
+ - trusting another IPA or AD deployment, and
+
+ - migrating pre-existing deployment not based on IPA.
+
+When there are multiple organizational domains around and they need to
+interoperate (establish trust between them), additional ID ranges get added on
+the consuming side to represent trusted domain(s). For a trusted domain that is
+an Active Directory, there would be two possibilities, managed within SSSD and
+IPA:
+
+ - an ID range is implicit, defined through a murmurhash3 hash of the domain
+   SID,
+
+ - an ID range is explicit, defined by the admin as UID/GID values stored in AD
+   LDAP user entries for each user. The explicitly defined ID ranges most
+   likely are part of a legacy setup and most likely are within `UID_MAX` and
+   `GID_MAX` values from `/etc/login.defs`. There are exceptions, of course.
+
+An implicit ID range derivation by SSSD is described in `sssd-ad(5)`, section 'ID
+Mapping'. Samba has own way to derive similar ID ranges based on different
+properties of the domain SID, handled by individual `idmap` modules but
+conceptually it is similar: a rule is chosen to map those properties to POSIX
+IDs and a map is maintained, algorithmically or based on a stored mapping in
+Samba's own ID database.
+
+With Active Directory environments all domain objects have their own unique
+identifier, in the form of a SID. RID value of the SID is never reused when
+objects get deleted and added. This means that for a company with an Active
+Directory domain of ~20-25 years and large churn of employees over that time it
+is not uncommon to see RIDs above 200K. For such deployments an ID range
+SSSD and IPA would need to synthesize on Linux side would have size larger than
+200K.
+
+Thus ID range landscape is 'dynamic'. At a given time SSSD on the client will
+be able to see all the ID ranges defined within the domain they enrolled into.
+When a new trust is established and a new ID range for that trusted domain is
+added, SSSD on the client will see this new ID range and will be able to derive
+user/group IDs automatically for them. Most likely there are no existing files
+on the client with ownership for these IDs yet -- except networking file
+systems but for those to be usable at least one system should be able to create
+those files with those POSIX IDs on a compatible client.
+
+Existing ranges never change, LDAP plugins provided by FreeIPA prevent
+modifying existing ranges in IPA or delete them if there are users/groups
+with IDs assigned from those ID ranges.
+
 ## Automated identifier assignment through LDAP
 
 When algorithmic ID range is used, SSSD only maps existing users and groups
