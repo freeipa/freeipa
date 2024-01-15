@@ -1129,7 +1129,8 @@ def promote_check(installer):
                 installer._remote_api = remote_api
                 conn = remote_api.Backend.ldap2
                 conn.connect(ccache=installer._ccache)
-                config.kra_host_name = kra_host
+            config.kra_host_name = kra_host
+            if options.setup_kra:  # only reset ca_host if KRA is requested
                 config.ca_host_name = kra_host
             kra_enabled = True  # There is a KRA somewhere in the topology
             if options.setup_kra and options.server and \
@@ -1358,7 +1359,7 @@ def install(installer):
     custodia = custodiainstance.get_custodia_instance(config, mode)
     custodia.create_instance()
 
-    if ca_enabled:
+    if options.setup_ca and ca_enabled:
         options.realm_name = config.realm_name
         options.domain_name = config.domain_name
         options.host_name = config.host_name
@@ -1374,7 +1375,7 @@ def install(installer):
     service.print_msg("Finalize replication settings")
     ds.finalize_replica_config()
 
-    if kra_enabled:
+    if options.setup_kra and kra_enabled:
         kra.install(api, config, options, custodia=custodia)
 
     service.print_msg("Restarting the KDC")
