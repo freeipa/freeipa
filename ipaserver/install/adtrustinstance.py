@@ -189,6 +189,8 @@ class ADTRUSTInstance(service.Service):
         self.fqdn = self.fqdn or api.env.host
         self.host_netbios_name = make_netbios_name(self.fqdn)
         self.realm = self.realm or api.env.realm
+        if not self.netbios_name:
+            self.netbios_name = make_netbios_name(self.realm)
 
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
