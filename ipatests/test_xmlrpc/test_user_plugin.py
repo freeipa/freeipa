@@ -968,6 +968,19 @@ class TestUserWithUPGDisabled(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestManagers(XMLRPC_test):
+    def test_create_user_with_manager(self, user):
+        """ Create user using user-add with manager option set """
+        user.ensure_exists()
+        user_w_manager = UserTracker(
+            name='user_w_manager', givenname=u'Test', sn=u'User1',
+            manager=user.uid
+        )
+        user_w_manager.track_create()
+        command = user_w_manager.make_create_command()
+        result = command()
+        user_w_manager.check_create(result)
+        user_w_manager.delete()
+
     def test_assign_nonexistent_manager(self, user, user2):
         """ Try to assign user a non-existent manager """
         user.ensure_exists()
