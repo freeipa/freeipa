@@ -47,6 +47,9 @@ DEFAULT_OUTPUT_DICT = {
     "domain_level": MAX_DOMAIN_LEVEL,
     "log_journal_since": "-1h",
     "fips_mode": False,
+    "token_name": None,
+    "token_password": None,
+    "token_library": None,
 }
 
 DEFAULT_OUTPUT_ENV = {
