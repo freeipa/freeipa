@@ -1020,7 +1020,9 @@ class PKIIniLoader:
             # for softhsm2 testing
             softhsm2_so=paths.LIBSOFTHSM2_SO,
             # Configure a more secure AJP password by default
-            ipa_ajp_secret=ipautil.ipa_generate_password(special=None)
+            ipa_ajp_secret=ipautil.ipa_generate_password(special=None),
+            # in FIPS mode use RSA-OAEP wrapping padding algo as default
+            fips_use_oaep_rsa_keywrap=tasks.is_fips_enabled()
         )
 
     @classmethod
