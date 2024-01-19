@@ -284,6 +284,18 @@ class KRAInstance(DogtagInstance):
 
         # A restart is required
 
+    def enable_oaep_wrap_algo(self):
+        """
+        Enable KRA OAEP key wrap algorithm
+        """
+        with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
+            directivesetter.set_directive(
+                self.config,
+                'keyWrap.useOAEP',
+                'true', quotes=False, separator='=')
+
+        # A restart is required
+
     def update_cert_config(self, nickname, cert):
         """
         When renewing a KRA subsystem certificate the configuration file
