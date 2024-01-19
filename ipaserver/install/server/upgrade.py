@@ -1794,6 +1794,18 @@ def upgrade_configuration():
             else:
                 logger.info('ephemeralRequest is already enabled')
 
+            if tasks.is_fips_enabled():
+                logger.info('[Ensuring KRA OAEP wrap algo is enabled in FIPS]')
+                value = directivesetter.get_directive(
+                    paths.KRA_CS_CFG_PATH,
+                    'keyWrap.useOAEP',
+                    separator='=')
+                if value is None or value.lower() != 'true':
+                    logger.info('Use the OAEP key wrap algo')
+                    kra.enable_oaep_wrap_algo()
+                else:
+                    logger.info('OAEP key wrap algo is already enabled')
+
     # several upgrade steps require running CA.  If CA is configured,
     # always run ca.start() because we need to wait until CA is really ready
     # by checking status using http
