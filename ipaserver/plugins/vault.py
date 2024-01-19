@@ -45,6 +45,7 @@ if api.env.in_server:
     import pki.key
     from pki.crypto import DES_EDE3_CBC_OID
     from pki.crypto import AES_128_CBC_OID
+    from pki import PKIException
 
 if six.PY3:
     unicode = str
@@ -1096,16 +1097,21 @@ class vault_archive_internal(PKQuery):
                     pki.key.KeyClient.KEY_STATUS_INACTIVE)
 
             # forward wrapped data to KRA
-            kra_client.keys.archive_encrypted_data(
-                client_key_id,
-                pki.key.KeyClient.PASS_PHRASE_TYPE,
-                wrapped_vault_data,
-                wrapped_session_key,
-                algorithm_oid=algorithm_oid,
-                nonce_iv=nonce,
-            )
-
-            kra_account.logout()
+            try:
+                kra_client.keys.archive_encrypted_data(
+                    client_key_id,
+                    pki.key.KeyClient.PASS_PHRASE_TYPE,
+                    wrapped_vault_data,
+                    wrapped_session_key,
+                    algorithm_oid=algorithm_oid,
+                    nonce_iv=nonce,
+                )
+            except PKIException as e:
+                kra_account.logout()
+                raise errors.EncodingError(
+                    message=_("Unable to archive key: %s") % e)
+            finally:
+                kra_account.logout()
 
         response = {
             'value': args[-1],
@@ -1176,11 +1182,17 @@ class vault_retrieve_internal(PKQuery):
             kra_client.keys.encrypt_alg_oid = algorithm_oid
 
             # retrieve encrypted data from KRA
-            key = kra_client.keys.retrieve_key(
-                key_info.get_key_id(),
-                wrapped_session_key)
+            try:
 
-            kra_account.logout()
+                key = kra_client.keys.retrieve_key(
+                    key_info.get_key_id(),
+                    wrapped_session_key)
+            except PKIException as e:
+                kra_account.logout()
+                raise errors.EncodingError(
+                    message=_("Unable to retrieve key: %s") % e)
+            finally:
+                kra_account.logout()
 
         response = {
             'value': args[-1],
