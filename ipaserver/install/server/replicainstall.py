@@ -1359,11 +1359,13 @@ def install(installer):
     custodia = custodiainstance.get_custodia_instance(config, mode)
     custodia.create_instance()
 
-    if options.setup_ca and ca_enabled:
+    if ca_enabled:
         options.realm_name = config.realm_name
         options.domain_name = config.domain_name
         options.host_name = config.host_name
         options.dm_password = config.dirman_password
+        # Always call ca.install() if there is a CA in the topology
+        # to ensure the RA agent is present.
         ca.install(False, config, options, custodia=custodia)
 
     # configure PKINIT now that all required services are in place
@@ -1375,7 +1377,8 @@ def install(installer):
     service.print_msg("Finalize replication settings")
     ds.finalize_replica_config()
 
-    if options.setup_kra and kra_enabled:
+    if kra_enabled:
+        # The KRA installer checks for itself the status of setup_kra
         kra.install(api, config, options, custodia=custodia)
 
     service.print_msg("Restarting the KDC")
