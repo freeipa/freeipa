@@ -387,9 +387,10 @@ def install_step_0(standalone, replica_config, options, custodia):
         promote = False
     else:
         cafile = os.path.join(replica_config.dir, 'cacert.p12')
-        custodia.get_ca_keys(
-            cafile,
-            replica_config.dirman_password)
+        if replica_config.setup_ca:
+            custodia.get_ca_keys(
+                cafile,
+                replica_config.dirman_password)
 
         ca_signing_algorithm = None
         ca_type = None
