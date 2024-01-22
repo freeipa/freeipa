@@ -5,7 +5,7 @@
 # from the environment for the first two.
 PYTHON        ?= python3
 VENVDIR       = ./.venv
-SPHINXOPTS    ?= -W --keep-going -j auto
+SPHINXOPTS    ?= -W --keep-going -j 1
 SPHINXBUILD   ?= PATH=$(VENVDIR)/bin:$$PATH sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
