@@ -188,10 +188,18 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
 #if KRB5_KDB_DAL_MAJOR_VERSION <= 8
 #  ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
     krb5_error_code kerr;
+    bool supported;
 
-    kerr = ipadb_check_for_bronze_bit_attack(context, request, NULL, status);
+    kerr = ipadb_check_for_bronze_bit_attack(context, request, supported, NULL,
+                                             status);
     if (kerr)
         return KRB5KDC_ERR_POLICY;
+
+    if (!supported)
+        krb5_klog_syslog(LOG_WARNING, "MS-PAC not available. This makes "
+                         "FreeIPA vulnerable to the Bronze-Bit exploit "
+                         "(CVE-2020-17049). Please generate SIDs to enable "
+                         "PAC support.");
 #  else
 #    warning Support for Kerberos PAC extended KDC signature is missing.\
              This makes FreeIPA vulnerable to the Bronze-Bit exploit (CVE-2020-17049).

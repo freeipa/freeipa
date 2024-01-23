@@ -3303,11 +3303,14 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 #  ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
 krb5_error_code
 ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
-                                  bool *detected, const char **status)
+                                  bool *supported, bool *detected,
+                                  const char **status)
 {
     krb5_error_code kerr;
     const char *st = NULL;
     size_t i, j;
+    bool in_supported = true, in_detected = false;
+    struct ipadb_context *ipactx;
     krb5_ticket *evidence_tkt;
     krb5_authdata **authdata, **ifrel = NULL;
     krb5_pac pac = NULL;
@@ -3323,6 +3326,21 @@ ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
     /* If no additional ticket, this is not a constrained delegateion request.
      * Skip checks. */
     if (!(request->kdc_options & KDC_OPT_CNAME_IN_ADDL_TKT)) {
+        kerr = 0;
+        goto end;
+    }
+
+    ipactx = ipadb_get_context(context);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto end;
+    }
+
+    /* Handle the case where the domain is not able to generate PACs (probably
+     * because SIDs are not set). In this case, we just skip the Bronze-Bit
+     * check. */
+    if (!ipactx->mspac) {
+        in_supported = false;
         kerr = 0;
         goto end;
     }
@@ -3451,8 +3469,7 @@ ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
             /* This evidence ticket cannot be forwardable given the privileges
              * of the proxy principal.
              * This is a Bronze Bit attack. */
-            if (detected)
-                *detected = true;
+            in_detected = true;
             st = "S4U2PROXY_BRONZE_BIT_ATTACK_DETECTED";
             kerr = EBADE;
             goto end;
@@ -3464,6 +3481,10 @@ ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
 end:
     if (st && status)
         *status = st;
+    if (supported)
+        *supported = in_supported;
+    if (detected)
+        *detected = in_detected;
 
     krb5_free_authdata(context, ifrel);
     krb5_pac_free(context, pac);
