@@ -370,17 +370,21 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 #if KRB5_KDB_DAL_MAJOR_VERSION <= 8
 #  ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
 /* Try to detect a Bronze-Bit attack based on the content of the request and
- * data from the KDB.
+ * data from the KDB. This check will work only if the domain supports MS-PAC.
  *
  *   context     krb5 context
  *   request     KDB request
- *   detected    Set to "true" if a bronze bit attack is detected and the
- *               pointer is not NULL. Remains unset otherwise.
+ *   supported   If not NULL, set to "false" in case the Bronze-Bit exploit
+ *               detection process silently failed to complete because the
+ *               domain does not meet requirements. Set to "true" otherwise.
+ *   detected    If not NULL, set to "true" if a Bronze-Bit attack is detected.
+ *               Set to "false" otherwise.
  *   status      If the call fails and the pointer is not NULL, set it with a
  *               message describing the cause of the failure. */
 krb5_error_code
 ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
-                                  bool *detected, const char **status);
+                                  bool *supported, bool *detected,
+                                  const char **status);
 #  endif
 #endif
 
