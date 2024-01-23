@@ -106,3 +106,6 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
                             const char *base_dn,
                             const char *dom_sid,
                             struct range_info **ranges);
+
+int sidgen_task_init(Slapi_PBlock *pb);
+int ipa_sidgen_init(Slapi_PBlock *pb);
