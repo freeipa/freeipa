@@ -312,8 +312,12 @@ def get_data(princ_name, key):
                 checkcreds = krb5_creds()
                 # the next function will throw an error and break out of the
                 # while loop when we try to access past the last cred
-                krb5_cc_next_cred(context, ccache, ctypes.byref(cursor),
-                                  ctypes.byref(checkcreds))
+                try:
+                    krb5_cc_next_cred(context, ccache, ctypes.byref(cursor),
+                                      ctypes.byref(checkcreds))
+                except KRB5Error:
+                    break
+
                 if (krb5_principal_compare(context, principal,
                                           checkcreds.client) == 1 and
                     krb5_principal_compare(context, srv_princ,
@@ -328,8 +332,6 @@ def get_data(princ_name, key):
                 else:
                     krb5_free_cred_contents(context,
                                             ctypes.byref(checkcreds))
-        except KRB5Error:
-            pass
         finally:
             krb5_cc_end_seq_get(context, ccache, ctypes.byref(cursor))
 
