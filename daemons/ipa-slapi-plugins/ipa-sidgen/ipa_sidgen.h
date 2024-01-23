@@ -45,6 +45,8 @@
 #define UID_NUMBER "uidnumber"
 #define GID_NUMBER "gidnumber"
 #define IPA_SID "ipantsecurityidentifier"
+#define IPA_UNIQUEID "ipauniqueid"
+#define IPA_UNIQUEID_AUTOGENERATE "autogenerate"
 #define DOM_ATTRS_FILTER OBJECTCLASS"=ipantdomainattrs"
 #define DOMAIN_ID_RANGE_FILTER OBJECTCLASS"=ipadomainidrange"
 #define POSIX_ACCOUNT "posixaccount"
