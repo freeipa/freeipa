@@ -200,8 +200,7 @@ krb5_cc_end_seq_get.errcheck = krb5_errcheck
 
 krb5_free_cred_contents = LIBKRB5.krb5_free_cred_contents
 krb5_free_cred_contents.argtypes = (krb5_context, ctypes.POINTER(krb5_creds))
-krb5_free_cred_contents.restype = krb5_error
-krb5_free_cred_contents.errcheck = krb5_errcheck
+krb5_free_cred_contents.restype = None
 
 krb5_principal_compare = LIBKRB5.krb5_principal_compare
 krb5_principal_compare.argtypes = (krb5_context, krb5_principal,
