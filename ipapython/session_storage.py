@@ -111,7 +111,7 @@ class KRB5Error(Exception):
 
 
 def krb5_errcheck(result, func, arguments):
-    """Error checker for krb5_error return value"""
+    """Error checker for krb5_error_code return value"""
     if result != 0:
         raise KRB5Error(result, func.__name__, arguments)
 
@@ -119,14 +119,13 @@ def krb5_errcheck(result, func, arguments):
 krb5_context = ctypes.POINTER(_krb5_context)
 krb5_ccache = ctypes.POINTER(_krb5_ccache)
 krb5_data_p = ctypes.POINTER(_krb5_data)
-krb5_error = ctypes.c_int32
 krb5_creds = _krb5_creds
 krb5_pointer = ctypes.c_void_p
 krb5_cc_cursor = krb5_pointer
 
 krb5_init_context = LIBKRB5.krb5_init_context
 krb5_init_context.argtypes = (ctypes.POINTER(krb5_context), )
-krb5_init_context.restype = krb5_error
+krb5_init_context.restype = krb5_error_code
 krb5_init_context.errcheck = krb5_errcheck
 
 krb5_free_context = LIBKRB5.krb5_free_context
@@ -143,30 +142,30 @@ krb5_free_data_contents.restype = None
 
 krb5_cc_default = LIBKRB5.krb5_cc_default
 krb5_cc_default.argtypes = (krb5_context, ctypes.POINTER(krb5_ccache), )
-krb5_cc_default.restype = krb5_error
+krb5_cc_default.restype = krb5_error_code
 krb5_cc_default.errcheck = krb5_errcheck
 
 krb5_cc_close = LIBKRB5.krb5_cc_close
 krb5_cc_close.argtypes = (krb5_context, krb5_ccache, )
-krb5_cc_close.restype = krb5_error
+krb5_cc_close.restype = krb5_error_code
 krb5_cc_close.errcheck = krb5_errcheck
 
 krb5_parse_name = LIBKRB5.krb5_parse_name
 krb5_parse_name.argtypes = (krb5_context, ctypes.c_char_p,
                             ctypes.POINTER(krb5_principal), )
-krb5_parse_name.restype = krb5_error
+krb5_parse_name.restype = krb5_error_code
 krb5_parse_name.errcheck = krb5_errcheck
 
 krb5_cc_set_config = LIBKRB5.krb5_cc_set_config
 krb5_cc_set_config.argtypes = (krb5_context, krb5_ccache, krb5_principal,
                                ctypes.c_char_p, krb5_data_p, )
-krb5_cc_set_config.restype = krb5_error
+krb5_cc_set_config.restype = krb5_error_code
 krb5_cc_set_config.errcheck = krb5_errcheck
 
 krb5_cc_get_principal = LIBKRB5.krb5_cc_get_principal
 krb5_cc_get_principal.argtypes = (krb5_context, krb5_ccache,
                                   ctypes.POINTER(krb5_principal), )
-krb5_cc_get_principal.restype = krb5_error
+krb5_cc_get_principal.restype = krb5_error_code
 krb5_cc_get_principal.errcheck = krb5_errcheck
 
 # krb5_build_principal is a variadic function but that can't be expressed
@@ -177,26 +176,26 @@ krb5_build_principal.argtypes = (krb5_context, ctypes.POINTER(krb5_principal),
                                  ctypes.c_uint, ctypes.c_char_p,
                                  ctypes.c_char_p, ctypes.c_char_p,
                                  ctypes.c_char_p, ctypes.c_char_p, )
-krb5_build_principal.restype = krb5_error
+krb5_build_principal.restype = krb5_error_code
 krb5_build_principal.errcheck = krb5_errcheck
 
 krb5_cc_start_seq_get = LIBKRB5.krb5_cc_start_seq_get
 krb5_cc_start_seq_get.argtypes = (krb5_context, krb5_ccache,
                                   ctypes.POINTER(krb5_cc_cursor), )
-krb5_cc_start_seq_get.restype = krb5_error
+krb5_cc_start_seq_get.restype = krb5_error_code
 krb5_cc_start_seq_get.errcheck = krb5_errcheck
 
 krb5_cc_next_cred = LIBKRB5.krb5_cc_next_cred
 krb5_cc_next_cred.argtypes = (krb5_context, krb5_ccache,
                               ctypes.POINTER(krb5_cc_cursor),
                               ctypes.POINTER(krb5_creds), )
-krb5_cc_next_cred.restype = krb5_error
+krb5_cc_next_cred.restype = krb5_error_code
 krb5_cc_next_cred.errcheck = krb5_errcheck
 
 krb5_cc_end_seq_get = LIBKRB5.krb5_cc_end_seq_get
 krb5_cc_end_seq_get.argtypes = (krb5_context, krb5_ccache,
                                 ctypes.POINTER(krb5_cc_cursor), )
-krb5_cc_end_seq_get.restype = krb5_error
+krb5_cc_end_seq_get.restype = krb5_error_code
 krb5_cc_end_seq_get.errcheck = krb5_errcheck
 
 krb5_free_cred_contents = LIBKRB5.krb5_free_cred_contents
@@ -212,7 +211,7 @@ krb5_principal_compare.restype = krb5_boolean
 krb5_unparse_name = LIBKRB5.krb5_unparse_name
 krb5_unparse_name.argtypes = (krb5_context, krb5_principal,
                               ctypes.POINTER(ctypes.c_char_p), )
-krb5_unparse_name.restype = krb5_error
+krb5_unparse_name.restype = krb5_error_code
 krb5_unparse_name.errcheck = krb5_errcheck
 
 krb5_free_unparsed_name = LIBKRB5.krb5_free_unparsed_name
