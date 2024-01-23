@@ -454,6 +454,7 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
     uint32_t id;
     char *sid = NULL;
     char **objectclasses = NULL;
+    char *uniqueid = NULL;
     Slapi_PBlock *mod_pb = NULL;
     Slapi_Mods *smods = NULL;
     int result;
@@ -475,6 +476,16 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
 
     if (uid_number == 0 && gid_number == 0) {
         LOG("[%s] does not have Posix IDs, nothing to do.\n", dn_str);
+        ret = 0;
+        goto done;
+    }
+
+    uniqueid = slapi_entry_attr_get_charptr(entry, IPA_UNIQUEID);
+    if (uniqueid != NULL &&
+        strncmp(IPA_UNIQUEID_AUTOGENERATE, uniqueid,
+                sizeof(IPA_UNIQUEID_AUTOGENERATE)) == 0) {
+        LOG("Staged entry [%s] does not have Posix IDs, nothing to do.\n",
+            dn_str);
         ret = 0;
         goto done;
     }
@@ -554,6 +565,7 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
     }
 
 done:
+    slapi_ch_free_string(&uniqueid);
     slapi_ch_free_string(&sid);
     slapi_pblock_destroy(mod_pb);
     slapi_mods_free(&smods);
