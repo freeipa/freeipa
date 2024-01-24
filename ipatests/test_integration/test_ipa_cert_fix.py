@@ -92,7 +92,7 @@ def get_cert_expiry(host, nssdb_path, cert_nick):
     ])
     data = host.get_file_contents('/root/cert.pem')
     cert = x509.load_pem_x509_certificate(data, backend=default_backend())
-    return cert.not_valid_after
+    return cert.not_valid_after_utc
 
 
 @pytest.fixture

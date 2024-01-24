@@ -486,9 +486,9 @@ class BaseCertObject(Object):
             obj['serial_number'] = str(cert.serial_number)
             obj['serial_number_hex'] = '0x%X' % cert.serial_number
             obj['valid_not_before'] = x509.format_datetime(
-                    cert.not_valid_before)
+                cert.not_valid_before_utc)
             obj['valid_not_after'] = x509.format_datetime(
-                    cert.not_valid_after)
+                cert.not_valid_after_utc)
             if full:
                 obj['sha1_fingerprint'] = x509.to_hex_with_colons(
                     cert.fingerprint(hashes.SHA1()))

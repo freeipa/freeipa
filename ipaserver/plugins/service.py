@@ -303,8 +303,9 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['serial_number_hex'] = u'0x%X' % cert.serial_number
     entry_attrs['issuer'] = unicode(DN(cert.issuer))
     entry_attrs['valid_not_before'] = x509.format_datetime(
-            cert.not_valid_before)
-    entry_attrs['valid_not_after'] = x509.format_datetime(cert.not_valid_after)
+        cert.not_valid_before_utc)
+    entry_attrs['valid_not_after'] = x509.format_datetime(
+        cert.not_valid_after_utc)
     entry_attrs['sha1_fingerprint'] = x509.to_hex_with_colons(
         cert.fingerprint(hashes.SHA1()))
     entry_attrs['sha256_fingerprint'] = x509.to_hex_with_colons(
