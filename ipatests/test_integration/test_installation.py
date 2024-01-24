@@ -1565,7 +1565,7 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
         certs = x509.load_certificate_list(cmd.stdout_text.encode('utf-8'))
 
         # get expiry date of agent cert
-        cert_expiry = certs[0].not_valid_after
+        cert_expiry = certs[0].not_valid_after_utc
 
         # move date to grace period so that certs get renewed
         self.master.run_command(['systemctl', 'stop', 'chronyd'])

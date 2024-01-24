@@ -670,7 +670,7 @@ class TestACMERenew(IntegrationTest):
             f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
         )
         cert = x509.load_pem_x509_certificate(data, backend=default_backend())
-        initial_expiry = cert.not_valid_after
+        initial_expiry = cert.not_valid_after_utc
 
         self.clients[0].run_command(['certbot', 'renew'])
 
@@ -678,7 +678,7 @@ class TestACMERenew(IntegrationTest):
             f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
         )
         cert = x509.load_pem_x509_certificate(data, backend=default_backend())
-        renewed_expiry = cert.not_valid_after
+        renewed_expiry = cert.not_valid_after_utc
 
         assert initial_expiry != renewed_expiry
 

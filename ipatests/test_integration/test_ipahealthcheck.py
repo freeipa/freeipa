@@ -1595,7 +1595,7 @@ class TestIpaHealthCheck(IntegrationTest):
         # Pick a cert to find the upcoming expiration
         certfile = self.master.get_file_contents(paths.RA_AGENT_PEM)
         cert = x509.load_certificate_list(certfile)
-        cert_expiry = cert[0].not_valid_after
+        cert_expiry = cert[0].not_valid_after_utc
 
         # Stop chronyd so it doesn't freak out with time so off
         restart_service(self.master, 'chronyd')
