@@ -558,7 +558,7 @@ class CACertManage(admintool.AdminTool):
 
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         for ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
-            if ca_cert.not_valid_after < now:
+            if ca_cert.not_valid_after_utc < now:
                 expired_certs.append(ca_nickname)
 
 

@@ -246,6 +246,8 @@ class test_x509:
         assert cert.serial_number == 1093
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
+        assert cert.not_valid_before_utc == not_before
+        assert cert.not_valid_after_utc == not_after
         assert cert.san_general_names == []
         assert cert.san_a_label_dns_names == []
         assert cert.extended_key_usage == {'1.3.6.1.5.5.7.3.1'}
@@ -277,6 +279,8 @@ class test_x509:
         # ensure the timezone doesn't mess with not_before and not_after
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
+        assert cert.not_valid_before_utc == not_before
+        assert cert.not_valid_after_utc == not_after
 
     def test_load_pkcs7_pem(self):
         certlist = x509.pkcs7_to_certs(good_pkcs7, datatype=x509.PEM)
@@ -312,6 +316,8 @@ class test_x509:
                                       datetime.timezone.utc)
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
+        assert cert.not_valid_before_utc == not_before
+        assert cert.not_valid_after_utc == not_after
         assert cert.san_general_names == [DNSName('ipa.demo1.freeipa.org')]
         assert cert.san_a_label_dns_names == ['ipa.demo1.freeipa.org']
         assert cert.extended_key_usage == {

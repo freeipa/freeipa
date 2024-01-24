@@ -944,19 +944,20 @@ class NSSDatabase:
         """Common checks for cert validity
         """
         utcnow = datetime.datetime.now(tz=datetime.timezone.utc)
-        if cert.not_valid_before > utcnow:
+        if cert.not_valid_before_utc > utcnow:
             raise ValueError(
-                f"not valid before {cert.not_valid_before} UTC is in the "
-                "future."
+                f"not valid before {cert.not_valid_before_utc} UTC is in "
+                "the future."
             )
-        if cert.not_valid_after < utcnow:
+        if cert.not_valid_after_utc < utcnow:
             raise ValueError(
-                f"has expired {cert.not_valid_after} UTC"
+                f"has expired {cert.not_valid_after_utc} UTC"
             )
         # make sure the cert does not expire during installation
-        if cert.not_valid_after + datetime.timedelta(hours=1) < utcnow:
+        if cert.not_valid_after_utc + datetime.timedelta(hours=1) < utcnow:
             raise ValueError(
-                f"expires in less than one hour ({cert.not_valid_after} UTC)"
+                f"expires in less than one hour ({cert.not_valid_after_utc} "
+                "UTC)"
             )
 
     def verify_server_cert_validity(self, nickname, hostname):

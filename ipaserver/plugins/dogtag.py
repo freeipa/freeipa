@@ -1475,14 +1475,14 @@ class ra(rabase.rabase, RestClient):
             if issuer_dn:
                 response_request['issuer'] = issuer_dn
 
-            not_valid_before = cert.get('NotValidBefore')
-            if not_valid_before:
+            not_valid_before_utc = cert.get('NotValidBefore')
+            if not_valid_before_utc:
                 response_request['valid_not_before'] = (
-                    not_valid_before)
+                    not_valid_before_utc)
 
-            not_valid_after = cert.get('NotValidAfter')
-            if not_valid_after:
-                response_request['valid_not_after'] = (not_valid_after)
+            not_valid_after_utc = cert.get('NotValidAfter')
+            if not_valid_after_utc:
+                response_request['valid_not_after'] = (not_valid_after_utc)
 
             status = cert.get('Status')
             if status:
