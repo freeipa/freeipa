@@ -2316,6 +2316,7 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
     size_t i;
     struct dom_sid *requester_sid = NULL;
     struct dom_sid req_sid;
+    TALLOC_CTX *tmpctx = NULL;
 
     if (signing_krbtgt != NULL &&
         ipadb_is_cross_realm_krbtgt(signing_krbtgt->princ)) {
@@ -2371,6 +2372,12 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
         goto done;
     }
 
+    tmpctx = talloc_new(NULL);
+    if (tmpctx == NULL) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
     for (i = 0; i < num_buffers; i++) {
         if (types[i] == KRB5_PAC_SERVER_CHECKSUM ||
             types[i] == KRB5_PAC_PRIVSVR_CHECKSUM ||
@@ -2395,32 +2402,21 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
             DATA_BLOB pac_attrs_data;
             krb5_boolean pac_requested;
 
-            TALLOC_CTX *tmpctx = talloc_new(NULL);
-            if (tmpctx == NULL) {
-                kerr = ENOMEM;
-                goto done;
-            }
-
             kerr = ipadb_client_requested_pac(context, old_pac, tmpctx, &pac_requested);
-            if (kerr != 0) {
-                talloc_free(tmpctx);
+            if (kerr)
                 goto done;
-            }
 
             kerr = ipadb_get_pac_attrs_blob(tmpctx, &pac_requested, &pac_attrs_data);
-            if (kerr) {
-                talloc_free(tmpctx);
+            if (kerr)
                 goto done;
-            }
+
             data.magic = KV5M_DATA;
             data.data = (char *)pac_attrs_data.data;
             data.length = pac_attrs_data.length;
 
             kerr = krb5_pac_add_buffer(context, new_pac, PAC_TYPE_ATTRIBUTES_INFO, &data);
-            if (kerr) {
-                talloc_free(tmpctx);
+            if (kerr)
                 goto done;
-            }
 
             continue;
         }
@@ -2467,6 +2463,8 @@ done:
     if (kerr != 0 && (new_pac != *pac)) {
         krb5_pac_free(context, new_pac);
     }
+    if (tmpctx)
+        talloc_free(tmpctx);
     krb5_free_data_contents(context, &pac_blob);
     free(types);
     return kerr;
