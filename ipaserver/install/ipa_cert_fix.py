@@ -208,7 +208,7 @@ def expired_dogtag_certs(now):
         except RuntimeError:
             pass  # unfortunately certdb doesn't give us a better exception
         else:
-            if cert.not_valid_after <= now:
+            if cert.not_valid_after_utc <= now:
                 certs.append((certid, cert))
 
     return certs
@@ -226,12 +226,12 @@ def expired_ipa_certs(now):
 
     # IPA RA
     cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
-    if cert.not_valid_after <= now:
+    if cert.not_valid_after_utc <= now:
         certs.append((IPACertType.IPARA, cert))
 
     # Apache HTTPD
     cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
-    if cert.not_valid_after <= now:
+    if cert.not_valid_after_utc <= now:
         if not is_ipa_issued_cert(api, cert):
             non_renewed.append((IPACertType.HTTPS, cert))
         else:
@@ -244,7 +244,7 @@ def expired_ipa_certs(now):
     ds_nickname = ds.get_server_cert_nickname(serverid)
     db = NSSDatabase(nssdir=ds_dbdir)
     cert = db.get_cert(ds_nickname)
-    if cert.not_valid_after <= now:
+    if cert.not_valid_after_utc <= now:
         if not is_ipa_issued_cert(api, cert):
             non_renewed.append((IPACertType.LDAPS, cert))
         else:
@@ -252,7 +252,7 @@ def expired_ipa_certs(now):
 
     # KDC
     cert = x509.load_certificate_from_file(paths.KDC_CERT)
-    if cert.not_valid_after <= now:
+    if cert.not_valid_after_utc <= now:
         if not is_ipa_issued_cert(api, cert):
             non_renewed.append((IPACertType.HTTPS, cert))
         else:
@@ -286,7 +286,7 @@ def print_cert_info(context, desc, cert):
     print("{} {} certificate:".format(context, desc))
     print("  Subject: {}".format(DN(cert.subject)))
     print("  Serial:  {}".format(cert.serial_number))
-    print("  Expires: {}".format(cert.not_valid_after))
+    print("  Expires: {}".format(cert.not_valid_after_utc))
     print()
 
 

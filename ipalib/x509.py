@@ -272,6 +272,28 @@ class IPACertificate(crypto_x509.Certificate):
     def not_valid_after(self):
         return self._cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
 
+    if hasattr(crypto_x509.Certificate, "not_valid_before_utc"):
+        # added in python-cryptography 42.0.0
+        @property
+        def not_valid_before_utc(self):
+            return self._cert.not_valid_before_utc
+
+        @property
+        def not_valid_after_utc(self):
+            return self._cert.not_valid_after_utc
+    else:
+        @property
+        def not_valid_before_utc(self):
+            return self._cert.not_valid_before.replace(
+                tzinfo=datetime.timezone.utc
+            )
+
+        @property
+        def not_valid_after_utc(self):
+            return self._cert.not_valid_after.replace(
+                tzinfo=datetime.timezone.utc
+            )
+
     @property
     def tbs_certificate_bytes(self):
         return self._cert.tbs_certificate_bytes
