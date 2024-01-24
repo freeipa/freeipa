@@ -1728,8 +1728,8 @@ def cert_summary(msg, certs, indent='    '):
     for cert in certs:
         s += '%sSubject:     %s\n' % (indent, DN(cert.subject))
         s += '%sIssuer:      %s\n' % (indent, DN(cert.issuer))
-        s += '%sValid From:  %s\n' % (indent, cert.not_valid_before)
-        s += '%sValid Until: %s\n' % (indent, cert.not_valid_after)
+        s += '%sValid From:  %s\n' % (indent, cert.not_valid_before_utc)
+        s += '%sValid Until: %s\n' % (indent, cert.not_valid_after_utc)
         s += '\n'
     s = s[:-1]
 
