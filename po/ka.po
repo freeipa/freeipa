@@ -7,9 +7,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-01-20 19:36+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-01-26 07:36+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
 "Language: ka\n"
@@ -1283,13 +1282,13 @@ msgid ""
 msgstr ""
 
 msgid "Kerberos Service Principal Name"
-msgstr ""
+msgstr "Kerberos-ის სერვისის პრინციპალის სახელი"
 
 msgid "The keytab file to remove the principcal(s) from"
 msgstr ""
 
 msgid "Keytab File Name"
-msgstr ""
+msgstr "გასაღებების ცხრილის ფაილის სახელი"
 
 msgid "Remove all principals in this realm"
 msgstr ""
@@ -1311,19 +1310,19 @@ msgstr ""
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "Kerberos-ის კონტექსტის ინიციალიზაცია ჩავარდა: %1$s (%2$d)\n"
 
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr ""
+msgstr "ვერ დავამუშავე პრინციპალი: %1$s (%2$d)\n"
 
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "KDC-მა გასაღებები არ მიიღო\n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "LDAP ბიბლიოთეკის ინიციალიზაციის შეცდომა!\n"
 
 msgid "Simple bind failed\n"
 msgstr ""
@@ -1333,15 +1332,15 @@ msgstr ""
 
 #, c-format
 msgid "Operation failed: %s\n"
-msgstr ""
+msgstr "ოპერაცია ჩავარდა: %s\n"
 
 #, c-format
 msgid "Failed to get result: %s\n"
-msgstr ""
+msgstr "ვერ მივიღე შედეგი: %s\n"
 
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "მოლოდინის ვადა გადაცილებულია."
 
 #, c-format
 msgid "Failed to parse extended result: %s\n"
@@ -1389,18 +1388,18 @@ msgstr ""
 
 #, c-format
 msgid "Failed to retrieve any keys"
-msgstr ""
+msgstr "ყველა გასაღების მიღება ჩავარდა"
 
 msgid "Failed to decode control reply!\n"
 msgstr ""
 
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "კონფიგურაციის ფაილის გახსნის შეცდომა: %s\n"
 
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "კონფიგურაციის ფაილის (%s) დამუშავების შეცდომა\n"
 
 msgid "Failed to resolve symlink to keytab.\n"
 msgstr ""
@@ -1409,16 +1408,16 @@ msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
 
 msgid "Print as little as possible"
-msgstr ""
+msgstr "რაც შეიძლება ნაკლები ინფორმაციის გამოტანა"
 
 msgid "Output only on errors"
-msgstr ""
+msgstr "მხოლოდ შეცდომების ჩვენება"
 
 msgid "Output debug info"
-msgstr ""
+msgstr "გამართვის ინფორმაციის გამოტანა"
 
 msgid "Contact this specific KDC Server"
-msgstr ""
+msgstr "მითითებულ KDC სერვერთან დაკავშირება"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
@@ -1429,7 +1428,7 @@ msgid ""
 msgstr ""
 
 msgid "Encryption types to request"
-msgstr ""
+msgstr "გამოსათხოვი დაშიფვრის ტიპები"
 
 msgid "Comma separated encryption types list"
 msgstr ""
@@ -1438,7 +1437,7 @@ msgid "Show the list of permitted encryption types and exit"
 msgstr ""
 
 msgid "Permitted Encryption Types"
-msgstr ""
+msgstr "დაშვებული დაშიფვრის ტიპები"
 
 msgid "Asks for a non-random password to use for the principal"
 msgstr ""
@@ -1513,11 +1512,11 @@ msgstr ""
 
 #, c-format
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "DNS აღმოჩენა ჩავარდა\n"
 
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "ვიყენებ სერვერს კონფიგურაციიდან %s\n"
 
 #, c-format
 msgid "Server name not provided and unavailable\n"
@@ -1525,7 +1524,7 @@ msgstr ""
 
 #, c-format
 msgid "Using provided server %s\n"
-msgstr ""
+msgstr "ვიყენებ მოწოდებულ სერვერს %s\n"
 
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
@@ -1660,10 +1659,12 @@ msgid ""
 "JSON-RPC request:\n"
 "%s\n"
 msgstr ""
+"JSON-RPC მოთხოვნა:\n"
+"%s\n"
 
 #, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr ""
+msgstr "JSON-RPC გამოძახება ჩავარდა: %s\n"
 
 #, c-format
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
@@ -1779,7 +1780,7 @@ msgid "Unenroll this host from IPA server"
 msgstr ""
 
 msgid "Hostname of this server"
-msgstr ""
+msgstr "ამ სერვერის ჰოსტის სახელი"
 
 msgid "IPA Server to use"
 msgstr "გამოსაყენებელი IPA სერვერი"
@@ -1835,7 +1836,7 @@ msgid "The most common types for this type of zone are: %s\n"
 msgstr ""
 
 msgid "DNS resource record type"
-msgstr ""
+msgstr "DNS რესურსის ჩანაწერის ტიპი"
 
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
@@ -1947,10 +1948,10 @@ msgid "Import automount files for a specific location."
 msgstr ""
 
 msgid "Master file"
-msgstr ""
+msgstr "ძირითადი ფაილი"
 
 msgid "Automount master file."
-msgstr ""
+msgstr "ძირითადი ფაილის ავტომიმაგრება."
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
@@ -2020,7 +2021,7 @@ msgid "First Code"
 msgstr "პირველი კოდი"
 
 msgid "Second Code"
-msgstr ""
+msgstr "მეორე კოდი"
 
 msgid "Token ID"
 msgstr "კოდის ID"
@@ -2032,6 +2033,8 @@ msgid ""
 "\n"
 "YubiKey Tokens\n"
 msgstr ""
+"\n"
+"YubiKey კოდები\n"
 
 msgid ""
 "\n"
@@ -2061,7 +2064,7 @@ msgid "Add a new YubiKey OTP token."
 msgstr ""
 
 msgid "YubiKey slot"
-msgstr ""
+msgstr "YubiKey სლოტი"
 
 msgid "No free YubiKey slot!"
 msgstr ""
@@ -2109,7 +2112,7 @@ msgid "Invalid or unsupported vault public key: %s"
 msgstr ""
 
 msgid "Modify a vault."
-msgstr ""
+msgstr "საცავის შეცვლა."
 
 msgid "Old vault password"
 msgstr "ძველი საცავის პაროლი"
@@ -2152,7 +2155,7 @@ msgid "File containing data to archive"
 msgstr ""
 
 msgid "Override existing password"
-msgstr ""
+msgstr "არსებული პაროლის გადაფარვა"
 
 msgid "Input data specified multiple times"
 msgstr ""
@@ -2163,7 +2166,7 @@ msgid ""
 msgstr ""
 
 msgid "Invalid vault type"
-msgstr ""
+msgstr "არასწორი საცავის ტიპი"
 
 msgid "Retrieve a data from a vault."
 msgstr ""
@@ -2172,7 +2175,7 @@ msgid "File to store retrieved data"
 msgstr ""
 
 msgid "Vault private key"
-msgstr ""
+msgstr "საცავის პირადი გასაღები"
 
 msgid "File containing the vault private key"
 msgstr ""
@@ -2366,7 +2369,7 @@ msgid "Create new ACI."
 msgstr ""
 
 msgid "ACI prefix"
-msgstr ""
+msgstr "ACI პრეფიქსი"
 
 msgid ""
 "Prefix used to distinguish ACI types (permission, delegation, selfservice, "
@@ -4202,7 +4205,7 @@ msgid "force NS record creation even if its hostname is not in DNS"
 msgstr ""
 
 msgid "Structured"
-msgstr ""
+msgstr "სტრუქტურირებული"
 
 msgid "Parse all raw DNS records and return them in a structured way"
 msgstr ""
@@ -5169,7 +5172,7 @@ msgid "Indirect Member of host-group"
 msgstr ""
 
 msgid "Keytab"
-msgstr ""
+msgstr "გასაღებების ცხრილი"
 
 msgid "Managed by"
 msgstr "მმართველი"
@@ -5668,7 +5671,7 @@ msgid "User ID Number"
 msgstr "მომხმარებლის ID ნომერი"
 
 msgid "GECOS"
-msgstr ""
+msgstr "GECOS"
 
 msgid "Login shell"
 msgstr ""
@@ -6410,7 +6413,7 @@ msgid "Add a new OTP token."
 msgstr "ახალი OTP კოდის დამატება."
 
 msgid "(deprecated)"
-msgstr ""
+msgstr "(მოძველებულია)"
 
 msgid "Do not display QR code"
 msgstr ""
@@ -9837,7 +9840,7 @@ msgid "Vault type"
 msgstr ""
 
 msgid "Salt"
-msgstr ""
+msgstr "მარილი"
 
 msgid "Vault salt"
 msgstr ""
@@ -9903,7 +9906,7 @@ msgid "Vault data encrypted with session key"
 msgstr ""
 
 msgid "Nonce"
-msgstr ""
+msgstr "სპეციალური"
 
 msgid "Delete a vault."
 msgstr "საცავის წაშლა."
@@ -12448,7 +12451,7 @@ msgstr ""
 
 #, python-format
 msgid "%(info)s"
-msgstr ""
+msgstr "%(info)s"
 
 msgid "modifying primary key is not allowed"
 msgstr ""
@@ -12633,7 +12636,7 @@ msgstr ""
 
 #, python-format
 msgid "%(line)s"
-msgstr ""
+msgstr "%(line)s"
 
 #, python-format
 msgid "Search result has been truncated: %(reason)s"
@@ -13293,7 +13296,7 @@ msgid "Delegation"
 msgstr "დელეგაცია"
 
 msgid "ACI"
-msgstr ""
+msgstr "ACI"
 
 #, python-format
 msgid "Added delegation \"%(value)s\""
@@ -14253,7 +14256,7 @@ msgid "Added OTP token \"%(value)s\""
 msgstr ""
 
 msgid "cannot be empty"
-msgstr ""
+msgstr "ცარიელი ვერ იქნება"
 
 #, python-format
 msgid "Deleted OTP token \"%(value)s\""
@@ -14325,10 +14328,10 @@ msgid ""
 msgstr ""
 
 msgid "pkinit"
-msgstr ""
+msgstr "pkinit"
 
 msgid "PKINIT"
-msgstr ""
+msgstr "PKINIT"
 
 msgid "PKINIT status"
 msgstr ""
@@ -15205,7 +15208,7 @@ msgid "Stopping of replication refresh for segment: \"%(pkey)s\" requested."
 msgstr ""
 
 msgid "suffixes"
-msgstr ""
+msgstr "სუფიქსები"
 
 msgid "Topology suffixes"
 msgstr "ტოპოლოგიის სუფიქსები"
@@ -15551,7 +15554,7 @@ msgid "ACI object."
 msgstr ""
 
 msgid "ACIs"
-msgstr ""
+msgstr "ACI-ები"
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
@@ -15917,7 +15920,7 @@ msgid "Task DN = '%s'"
 msgstr ""
 
 msgid "Automember"
-msgstr ""
+msgstr "ავტოწევრი"
 
 msgid ""
 "\n"
@@ -16970,7 +16973,7 @@ msgid "Modified \"%(value)s\" trust configuration"
 msgstr "შეიცვალა \"%(value)s\"-ის ნდობის კონფიგურაცია"
 
 msgid "sidgen_was_run"
-msgstr ""
+msgstr "sidgen_was_run"
 
 msgid ""
 "This command relies on the existence of the \"editors\" group, but this "
@@ -17035,6 +17038,8 @@ msgid ""
 "\n"
 "Vaults\n"
 msgstr ""
+"\n"
+"საცავები\n"
 
 msgid ""
 "\n"
@@ -18589,7 +18594,7 @@ msgid "Cannot create reverse record for \"%(value)s\": %(exc)s"
 msgstr ""
 
 msgid "Exchanger"
-msgstr ""
+msgstr "გადამცვლელი"
 
 msgid ""
 "format must be specified as\n"
@@ -19327,7 +19332,7 @@ msgid "Two factor authentication (password + OTP)"
 msgstr ""
 
 msgid "RADIUS"
-msgstr ""
+msgstr "RADIUS"
 
 msgid "Hardened Password (by SPAKE or FAST)"
 msgstr ""
