@@ -5,13 +5,12 @@
 """
 Module provides tests for ipa-cert-fix CLI.
 """
-from cryptography.hazmat.backends import default_backend
-from cryptography import x509
 from datetime import datetime, date
 import pytest
 import time
 
 import logging
+from ipalib import x509
 from ipaplatform.paths import paths
 from ipapython.ipaldap import realm_to_serverid
 from ipatests.pytest_ipa.integration import tasks
@@ -91,7 +90,7 @@ def get_cert_expiry(host, nssdb_path, cert_nick):
         '-o', '/root/cert.pem'
     ])
     data = host.get_file_contents('/root/cert.pem')
-    cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+    cert = x509.load_pem_x509_certificate(data)
     return cert.not_valid_after_utc
 
 
