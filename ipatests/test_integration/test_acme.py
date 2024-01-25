@@ -4,11 +4,10 @@
 
 import time
 
-from cryptography.hazmat.backends import default_backend
-from cryptography import x509
 import pytest
 
 from ipalib.constants import IPA_CA_RECORD
+from ipalib import x509
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration import tasks
@@ -278,7 +277,7 @@ class TestACME(CALessBase):
         cert_path = \
             f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
         data = self.clients[0].get_file_contents(cert_path)
-        cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+        cert = x509.load_pem_x509_certificate(data)
 
         # revoke cert via ACME
         self.clients[0].run_command(
@@ -669,7 +668,7 @@ class TestACMERenew(IntegrationTest):
         data = self.clients[0].get_file_contents(
             f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
         )
-        cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+        cert = x509.load_pem_x509_certificate(data)
         initial_expiry = cert.not_valid_after_utc
 
         self.clients[0].run_command(['certbot', 'renew'])
@@ -677,7 +676,7 @@ class TestACMERenew(IntegrationTest):
         data = self.clients[0].get_file_contents(
             f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
         )
-        cert = x509.load_pem_x509_certificate(data, backend=default_backend())
+        cert = x509.load_pem_x509_certificate(data)
         renewed_expiry = cert.not_valid_after_utc
 
         assert initial_expiry != renewed_expiry
