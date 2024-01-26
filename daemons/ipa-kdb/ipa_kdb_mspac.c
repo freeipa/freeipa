@@ -496,8 +496,16 @@ static krb5_error_code ipadb_fill_info3(struct ipadb_context *ipactx,
         ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                      "krbCanonicalName", &strres);
         if (ret) {
-            /* krbCanonicalName is mandatory for services */
-            return ret;
+            /* krbCanonicalName is mandatory for services but IPA services
+             * created before commit e6ff83e (FreeIPA 4.4.0, ~2016) had no
+             * normalization to set krbCanonicalName; services created after
+             * that version were upgraded to do have krbCanonicalName.
+             *
+             * Accept krbPrincipalName alone since they have no alias either */
+            ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
+                                         "krbPrincipalName", &strres);
+            if (ret)
+                return ret;
         }
 
         ret = krb5_parse_name(ipactx->kcontext, strres, &princ);
