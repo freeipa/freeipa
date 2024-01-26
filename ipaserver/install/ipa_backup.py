@@ -41,6 +41,7 @@ from ipaserver.install import installutils
 from ipapython import ipaldap
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
+from lib389.cli_ctl.dblib import run_dbscan
 
 # pylint: disable=import-error
 if six.PY3:
@@ -337,8 +338,11 @@ class Backup(admintool.AdminTool):
             instance = ipaldap.realm_to_serverid(api.env.realm)
             if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
                               instance):
-                if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
-                                  (instance, 'ipaca')):
+                # Check existence of ipaca backend
+                dbpath = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
+                          (instance, ""))
+                output = run_dbscan(['-L', dbpath])
+                if 'ipaca/' in output:
                     self.db2ldif(instance, 'ipaca', online=options.online)
                 self.db2ldif(instance, 'userRoot', online=options.online)
                 self.db2bak(instance, online=options.online)
