@@ -507,6 +507,11 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase checks behaviour of check DogtagCertsConfigCheck in
         ipahealthcheck.dogtag.ca when tomcat config file is removed
         """
+        version = tasks.get_pki_version(self.master)
+        if version >= parse_version("11.5"):
+            pytest.skip("Skipping test for 11.5 pki version, since the "
+                        "check CADogtagCertsConfigCheck itself is skipped "
+                        "See ipa-healthcheck ticket 317")
         returncode, data = run_healthcheck(
             self.master,
             "ipahealthcheck.dogtag.ca",
@@ -1453,13 +1458,21 @@ class TestIpaHealthCheck(IntegrationTest):
         This testcase checks that CADogtagCertsConfigCheck can handle
         cert renewal, when there can be two certs with the same nickname
         """
-        if (tasks.get_pki_version(self.master) < tasks.parse_version('11.4.0')):
+        if (tasks.get_pki_version(
+                self.master) < tasks.parse_version('11.4.0')):
             raise pytest.skip("PKI known issue #2022561")
-        self.master.run_command(['ipa-cacert-manage', 'renew', '--self-signed'])
+        elif (tasks.get_pki_version(
+                self.master) >= tasks.parse_version('11.5.0')):
+            raise pytest.skip("Skipping test for 11.5 pki version, since "
+                              "check CADogtagCertsConfigCheck is "
+                              "not present in source "
+                              "pki.server.healthcheck.meta.csconfig")
+        self.master.run_command(
+            ['ipa-cacert-manage', 'renew', '--self-signed']
+        )
         returncode, data = run_healthcheck(
-            self.master,
-            "pki.server.healthcheck.meta.csconfig",
-            "CADogtagCertsConfigCheck",
+            self.master, "pki.server.healthcheck.meta.csconfig",
+            "CADogtagCertsConfigCheck"
         )
         assert returncode == 0
         for check in data:
