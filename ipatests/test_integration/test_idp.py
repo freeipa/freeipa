@@ -217,7 +217,7 @@ class TestIDPKeycloak(IntegrationTest):
             assert "User keycloakuser may run the following commands" in test
             assert "/usr/bin/yum" in test
             kinit_idp(self.client, 'keycloakuser', self.client)
-            test_sudo = 'su -c "sudo yum list wget" keycloakuser'
+            test_sudo = 'su -c "sudo yum list yum" keycloakuser'
             self.client.run_command(test_sudo)
             list_fail = self.master.run_command(cmd).stdout_text
             assert "User keycloakuser is not allowed to run sudo" in list_fail
