@@ -182,6 +182,14 @@ AC_CHECK_LIB([smbldap],[smbldap_set_bind_callback],
              [AC_DEFINE([HAVE_SMBLDAP_SET_BIND_CALLBACK], [1], [struct smbldap_state is opaque])],
              [AC_MSG_WARN([libsmbldap is not opaque, not using smbldap_set_bind_callback])],
              [$SAMBA40EXTRA_LIBPATH])
+AC_CHECK_LIB([samba-security-private-samba],[dom_sid_string],
+             [SAMBA_SECURITY_LIBS=samba-security-private-samba],
+             [AC_CHECK_LIB([samba-security-samba4],[dom_sid_string],
+                           [SAMBA_SECURITY_LIBS=samba-security-samba4],
+                           [AC_MSG_ERROR([Cannot find private samba-security library])],
+                           [$SAMBA40EXTRA_LIBPATH])],
+             [$SAMBA40EXTRA_LIBPATH])
+AC_SUBST(SAMBA_SECURITY_LIBS)
 
 dnl ---------------------------------------------------------------------------
 dnl Check for libunistring
