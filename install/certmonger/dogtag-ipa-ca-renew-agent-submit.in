@@ -42,7 +42,7 @@ import six
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipalib import api, errors, x509
+from ipalib import api, errors, x509, sysrestore
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import ca, cainstance, dsinstance, certs
@@ -383,7 +383,20 @@ def retrieve_cert_continuous(reuse_existing, **kwargs):
         return result
 
     new_cert = x509.load_pem_x509_certificate(result[1].encode('ascii'))
+    nickname = get_nickname()
     if new_cert == old_cert:
+        sstore = sysrestore.StateFile(paths.SYSRESTORE)
+        if (
+            sstore.get_state('pki_hsm', 'enabled')
+            and sstore.get_state('pki_hsm', 'token_name')
+            and nickname != 'ipaCert'
+        ):
+            # HSMs must be networked so the cert is already present
+            # exception of the RA Agent certificate.
+            return (
+                ISSUED,
+                new_cert.public_bytes(x509.Encoding.PEM).decode("ascii"),
+            )
         syslog.syslog(syslog.LOG_INFO, "Updated certificate not available")
         # No cert available yet, tell certmonger to wait another 8 hours
         return (WAIT_WITH_DELAY, 8 * 60 * 60, '')
