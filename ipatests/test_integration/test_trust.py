@@ -1155,7 +1155,8 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
                                      ):
             self.mod_idrange_auto_private_group(type)
             sssd_version = tasks.get_sssd_version(self.clients[0])
-            bad_version = sssd_version >= tasks.parse_version("2.8.2")
+            bad_version = (tasks.parse_version("2.8.2") <= sssd_version
+                           < tasks.parse_version("2.9.4"))
             cond = (type == 'hybrid') and bad_version
             with xfail_context(condition=cond,
                                reason="https://pagure.io/freeipa/issue/9295"):
@@ -1237,7 +1238,9 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
         self.mod_idrange_auto_private_group(type)
         if type == "true":
             sssd_version = tasks.get_sssd_version(self.clients[0])
-            with xfail_context(sssd_version >= tasks.parse_version("2.8.2"),
+            bad_version = (tasks.parse_version("2.8.2") <= sssd_version
+                           < tasks.parse_version("2.9.4"))
+            with xfail_context(bad_version,
                  "https://pagure.io/freeipa/issue/9295"):
                 (uid, gid) = self.get_user_id(self.clients[0], posixuser)
                 assert uid == gid
