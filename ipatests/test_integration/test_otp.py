@@ -21,6 +21,9 @@ from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipapython.dn import DN
 
+from ldap.controls.simple import BooleanControl
+
+from ipalib import errors
 
 PASSWORD = "DummyPassword123"
 USER = "opttestuser"
@@ -450,3 +453,46 @@ class TestOTPToken(IntegrationTest):
             assert "ipa-otpd" not in failed_services.stdout_text
         finally:
             del_otptoken(self.master, otpuid)
+
+    def test_totp_ldap(self):
+        master = self.master
+        basedn = master.domain.basedn
+        USER1 = 'user-forced-otp'
+        binddn = DN(f"uid={USER1},cn=users,cn=accounts,{basedn}")
+
+        tasks.create_active_user(master, USER1, PASSWORD)
+        tasks.kinit_admin(master)
+        # Enforce use of OTP token for this user
+        master.run_command(['ipa', 'user-mod', USER1,
+                            '--user-auth-type=otp'])
+        try:
+            conn = master.ldap_connect()
+            # First, attempt authenticating with a password but without LDAP
+            # control to enforce OTP presence and without server-side
+            # enforcement of the OTP presence check.
+            conn.simple_bind(binddn, f"{PASSWORD}")
+            # Add an OTP token now
+            otpuid, totp = add_otptoken(master, USER1, otptype="totp")
+            # Next, enforce Password+OTP for a user with OTP token
+            master.run_command(['ipa', 'config-mod', '--addattr',
+                                'ipaconfigstring=EnforceLDAPOTP'])
+            # Next, authenticate with Password+OTP and with the LDAP control
+            # this operation should succeed
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
+                             client_controls=[
+                                 BooleanControl(
+                                     controlType="2.16.840.1.113730.3.8.10.7",
+                                     booleanValue=True)])
+            # Remove token
+            del_otptoken(self.master, otpuid)
+            # Now, try to authenticate without otp and without control
+            # this operation should fail
+            try:
+                conn.simple_bind(binddn, f"{PASSWORD}")
+            except errors.ACIError:
+                pass
+            master.run_command(['ipa', 'config-mod', '--delattr',
+                                'ipaconfigstring=EnforceLDAPOTP'])
+        finally:
+            master.run_command(['ipa', 'user-del', USER1])
