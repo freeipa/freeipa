@@ -70,6 +70,7 @@
 
 #define IPAPWD_CHECK_CONN_SECURE    0x00000001
 #define IPAPWD_CHECK_DN             0x00000002
+#define IPAPWD_CHECK_ONLY_CONFIG    0x00000004
 
 #define IPA_CHANGETYPE_NORMAL 0
 #define IPA_CHANGETYPE_ADMIN 1
@@ -109,6 +110,7 @@ struct ipapwd_krbcfg {
     char **passsync_mgrs;
     int num_passsync_mgrs;
     bool allow_nt_hash;
+    bool enforce_ldap_otp;
 };
 
 int ipapwd_entry_checks(Slapi_PBlock *pb, struct slapi_entry *e,
