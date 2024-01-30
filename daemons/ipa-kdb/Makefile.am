@@ -116,7 +116,7 @@ ipa_kdb_tests_LDADD =          \
        $(top_builddir)/util/libutil.la	\
        -lkdb5                  \
        -lsss_idmap             \
-       -lsamba-security-samba4 \
+       -l$(SAMBA_SECURITY_LIBS)\
        -lsamba-errors          \
        $(NULL)
 
