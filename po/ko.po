@@ -7,8 +7,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-01-01 12:36+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"PO-Revision-Date: 2024-02-04 13:36+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
 "Language: ko\n"
@@ -2375,7 +2376,7 @@ msgid "Number of conditions removed"
 msgstr "제거된 상태의 수"
 
 msgid "Display information about an automember rule."
-msgstr ""
+msgstr "자동 구성원 규칙에 대해 정보를 표시합니다."
 
 #: ipaserver/plugins/automount.py:41
 msgid ""
@@ -3272,7 +3273,7 @@ msgstr "위임을 수정합니다."
 
 #: ipaserver/plugins/delegation.py:211
 msgid "Display information about a delegation."
-msgstr ""
+msgstr "위임에 대한 정보를 표시합니다."
 
 msgid ""
 "\n"
@@ -5074,7 +5075,7 @@ msgstr ""
 #: ipaserver/plugins/certmap.py:273 ipaserver/plugins/hbacrule.py:207
 #: ipaserver/plugins/selinuxusermap.py:239 ipaserver/plugins/sudorule.py:242
 msgid "Rule name"
-msgstr ""
+msgstr "규칙 이름"
 
 #: ipaserver/plugins/hbacrule.py:213
 msgid "Rule type"
@@ -6447,7 +6448,7 @@ msgstr "그룹 ID 재정의 대상의 이름을 변경합니다"
 
 #: ipaserver/plugins/idviews.py:1322
 msgid "Display information about an Group ID override."
-msgstr ""
+msgstr "그룹 ID 재정의에 대해 정보를 표시합니다."
 
 #: ipaserver/plugins/idviews.py:1189
 msgid "Add a new User ID override."
@@ -7093,16 +7094,16 @@ msgid "Search for netgroups without these member netgroups."
 msgstr "이들 구성원 넷그룹이 없는 넷그룹을 위한 검색."
 
 msgid "Search for netgroups with these member users."
-msgstr ""
+msgstr "이들 구성원 사용자와 함께 넷그룹을 검색."
 
 msgid "Search for netgroups without these member users."
-msgstr ""
+msgstr "이들 구성원 사용자가 없는 넷그룹을 검색."
 
 msgid "Search for netgroups with these member groups."
 msgstr "이들 구성원 그룹과과 함께 넷그룹을 위한 검색."
 
 msgid "Search for netgroups with these member hosts."
-msgstr ""
+msgstr "이들 구성원 호스트와 함께 넷그룹을 검색."
 
 msgid "Search for netgroups without these member hosts."
 msgstr "이들 구성원 호스트가 없는 넷그룹을 위한 검색."
@@ -7405,7 +7406,7 @@ msgid ""
 msgstr ""
 
 msgid "Set a user's password."
-msgstr ""
+msgstr "사용자 비밀번호를 설정합니다."
 
 #: ipaserver/plugins/internal.py:1709
 msgid "New Password"
@@ -8146,7 +8147,7 @@ msgstr ""
 
 #: ipaserver/plugins/serverrole.py:64 ipaserver/plugins/serverrole.py:191
 msgid "Role name"
-msgstr ""
+msgstr "역할 이름"
 
 msgid "A description of this role-group"
 msgstr "이와 같은 역할-그룹의 설명"
@@ -10091,7 +10092,7 @@ msgid ""
 msgstr ""
 
 msgid "ACL name"
-msgstr ""
+msgstr "ACL 이름"
 
 msgid "Profile category"
 msgstr "프로파일 분류"
@@ -15559,7 +15560,7 @@ msgstr "DNS 서버"
 
 #: ipaserver/plugins/dnsserver.py:71
 msgid "DNS Servers"
-msgstr ""
+msgstr "DNS 서버"
 
 #: ipaserver/plugins/dnsserver.py:72
 msgid "DNS Server"
@@ -16497,7 +16498,7 @@ msgstr "IPA 위치 이름"
 
 #: ipaserver/plugins/location.py:112
 msgid "IPA Location description"
-msgstr ""
+msgstr "IPA 위치 설명"
 
 #: ipaserver/plugins/location.py:116
 msgid "Servers"
@@ -20036,7 +20037,7 @@ msgstr[1] ""
 
 #: ipaserver/plugins/trust.py:1235
 msgid "trust configuration"
-msgstr ""
+msgstr "신뢰 구성"
 
 #: ipaserver/plugins/trust.py:1241 ipaserver/plugins/trust.py:1242
 msgid "Global Trust Configuration"
@@ -23177,7 +23178,7 @@ msgstr "삭제"
 
 #: ipaserver/plugins/internal.py:229 ipaserver/plugins/internal.py:685
 msgid "Remove hold"
-msgstr ""
+msgstr "보류 제거"
 
 #: ipaserver/plugins/internal.py:230
 msgid "Reset"
@@ -23185,7 +23186,7 @@ msgstr "초기화"
 
 #: ipaserver/plugins/internal.py:231 ipaserver/plugins/internal.py:1732
 msgid "Reset Password"
-msgstr ""
+msgstr "비밀번호 재설정"
 
 #: ipaserver/plugins/internal.py:232
 msgid "Reset Password and Log in"
@@ -23314,7 +23315,7 @@ msgstr "세부 정보 숨기기"
 #: ipaserver/plugins/internal.py:274
 #, python-brace-format
 msgid "${product}, version: ${version}"
-msgstr ""
+msgstr "${product}, 버전: ${version}"
 
 #: ipaserver/plugins/internal.py:275
 msgid "Prospective"
@@ -23375,7 +23376,7 @@ msgstr "오류가 발생했습니다 (${error})"
 
 #: ipaserver/plugins/internal.py:295
 msgid "HTTP Error"
-msgstr ""
+msgstr "HTTP 오류"
 
 #: ipaserver/plugins/internal.py:296
 msgid "Internal Error"
@@ -24396,11 +24397,11 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:734
 msgid "Group Options"
-msgstr ""
+msgstr "그룹 옵션"
 
 #: ipaserver/plugins/internal.py:735
 msgid "Search Options"
-msgstr ""
+msgstr "검색 옵션"
 
 #: ipaserver/plugins/internal.py:736
 msgid "SELinux Options"
@@ -24867,7 +24868,7 @@ msgstr "비활성화 포함"
 
 #: ipaserver/plugins/internal.py:962
 msgid "Include Enabled"
-msgstr ""
+msgstr "활성화 포함"
 
 #: ipaserver/plugins/internal.py:963
 msgid "HBAC Test"
@@ -24938,7 +24939,7 @@ msgstr "sudo 규칙에 호스트 '${primary_key}'를 추가합니다"
 
 #: ipaserver/plugins/internal.py:992
 msgid "Host Certificate"
-msgstr ""
+msgstr "호스트 인증서"
 
 #: ipaserver/plugins/internal.py:993 ipaserver/plugins/internal.py:1333
 msgid "Host Name"
