@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
-"POT-Creation-Date: 2023-08-21 14:51+0200\n"
+"POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2022-10-05 16:19+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
@@ -34,6 +34,99 @@ msgstr "메모리 부족\n"
 #, c-format
 msgid "read error\n"
 msgstr "읽기 오류\n"
+
+#, c-format
+msgid "Unable to parse principal name\n"
+msgstr "주요 이름을 구문 분석 할 수 없습니다\n"
+
+#, c-format
+msgid "krb5_parse_name %1$d: %2$s\n"
+msgstr "krb5_parse_name %1$d: %2$s\n"
+
+#, c-format
+msgid "Removing principal %s\n"
+msgstr "주체 %s를 제거하기\n"
+
+#, c-format
+msgid "Failed to open keytab\n"
+msgstr "키탭을 가져오는데 실패함\n"
+
+#, c-format
+msgid "principal not found\n"
+msgstr "주체를 찾을 수 없음\n"
+
+#, c-format
+msgid "krb5_kt_get_entry %1$d: %2$s\n"
+msgstr "krb5_kt_get_entry %1$d: %2$s\n"
+
+#, c-format
+msgid "Unable to remove entry\n"
+msgstr "항목을 제거 할 수 없음\n"
+
+#, c-format
+msgid "kvno %d\n"
+msgstr "kvno %d\n"
+
+#, c-format
+msgid "krb5_kt_remove_entry %1$d: %2$s\n"
+msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
+
+#, c-format
+msgid "Failed to set cursor '%1$s'\n"
+msgstr "커서 '%1$s' 설정에 실패함\n"
+
+#, c-format
+msgid "Unable to parse principal\n"
+msgstr "주체를 구문 분석 할 수 없습니다\n"
+
+#, c-format
+msgid "krb5_unparse_name %1$d: %2$s\n"
+msgstr "krb5_unparse_name %1$d: %2$s\n"
+
+#, c-format
+msgid "realm not found\n"
+msgstr "realm을 찾을 수 없음\n"
+
+msgid "Print debugging information"
+msgstr "디버깅 정보 인쇄"
+
+msgid "Debugging output"
+msgstr "디버깅 출력"
+
+msgid ""
+"The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
+msgstr "keytab에서 제거 할 주체 (예제: ftp/ftp.example.com@EXAMPLE.COM)"
+
+msgid "Kerberos Service Principal Name"
+msgstr "커버러스 서비스 주체 이름"
+
+msgid "The keytab file to remove the principcal(s) from"
+msgstr "주체를 제거하는 키탭 파일"
+
+msgid "Keytab File Name"
+msgstr "키탭 파일 이름"
+
+msgid "Remove all principals in this realm"
+msgstr "이와 같은 영역에서 모든 주체를 제거합니다"
+
+msgid "Realm name"
+msgstr "영역 이름"
+
+#, c-format
+msgid "Kerberos context initialization failed\n"
+msgstr "커버러스 문맥 초기화에 실패함\n"
+
+#, c-format
+msgid "Failed to open keytab '%1$s': %2$s\n"
+msgstr "키탭을 여는데 실패함 '%1$s': %2$s\n"
+
+#, c-format
+msgid "Closing keytab failed\n"
+msgstr "키탭을 닫는데 실패함\n"
+
+#, c-format
+msgid "krb5_kt_close %1$d: %2$s\n"
+msgstr "krb5_kt_close %1$d: %2$s\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
@@ -152,9 +245,6 @@ msgstr "가능한 작게 출력합니다"
 msgid "Output only on errors"
 msgstr "오류에서만 출력"
 
-msgid "Print debugging information"
-msgstr "디버깅 정보 인쇄"
-
 msgid "Output debug info"
 msgstr ""
 
@@ -167,16 +257,10 @@ msgstr "서버 이름"
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr "(예제: ftp/ftp.example.com@EXAMPLE.COM)를 위해 키탭에서 가져올 주체"
 
-msgid "Kerberos Service Principal Name"
-msgstr "커버러스 서비스 주체 이름"
-
 msgid ""
 "The keytab file to append the new key to (will be created if it does not "
 "exist)."
 msgstr "신규 키를 (만약 존재 한다면 생성 될 것임)로 확장하는 키탭 파일."
-
-msgid "Keytab File Name"
-msgstr "키탭 파일 이름"
 
 msgid "Encryption types to request"
 msgstr "요청하는 암호화 유형"
@@ -228,10 +312,6 @@ msgstr ""
 
 msgid "Retrieve current keys without changing them"
 msgstr "변경하지 않고 현재 키를 검색합니다"
-
-#, c-format
-msgid "Kerberos context initialization failed\n"
-msgstr "커버러스 문맥 초기화에 실패함\n"
 
 #, c-format
 msgid "No system preferred enctypes ?!\n"
@@ -353,86 +433,6 @@ msgstr "키탭을 닫는데 실패함\n"
 #, c-format
 msgid "Keytab successfully retrieved and stored in: %s\n"
 msgstr "키탭은 성공적으로 검색되었고 저장됨: %s\n"
-
-#, c-format
-msgid "Unable to parse principal name\n"
-msgstr "주요 이름을 구문 분석 할 수 없습니다\n"
-
-#, c-format
-msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr "krb5_parse_name %1$d: %2$s\n"
-
-#, c-format
-msgid "Removing principal %s\n"
-msgstr "주체 %s를 제거하기\n"
-
-#, c-format
-msgid "Failed to open keytab\n"
-msgstr "키탭을 가져오는데 실패함\n"
-
-#, c-format
-msgid "principal not found\n"
-msgstr "주체를 찾을 수 없음\n"
-
-#, c-format
-msgid "krb5_kt_get_entry %1$d: %2$s\n"
-msgstr "krb5_kt_get_entry %1$d: %2$s\n"
-
-#, c-format
-msgid "Unable to remove entry\n"
-msgstr "항목을 제거 할 수 없음\n"
-
-#, c-format
-msgid "kvno %d\n"
-msgstr "kvno %d\n"
-
-#, c-format
-msgid "krb5_kt_remove_entry %1$d: %2$s\n"
-msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
-
-#, c-format
-msgid "Failed to set cursor '%1$s'\n"
-msgstr "커서 '%1$s' 설정에 실패함\n"
-
-#, c-format
-msgid "Unable to parse principal\n"
-msgstr "주체를 구문 분석 할 수 없습니다\n"
-
-#, c-format
-msgid "krb5_unparse_name %1$d: %2$s\n"
-msgstr "krb5_unparse_name %1$d: %2$s\n"
-
-#, c-format
-msgid "realm not found\n"
-msgstr "realm을 찾을 수 없음\n"
-
-msgid "Debugging output"
-msgstr "디버깅 출력"
-
-msgid ""
-"The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr "keytab에서 제거 할 주체 (예제: ftp/ftp.example.com@EXAMPLE.COM)"
-
-msgid "The keytab file to remove the principcal(s) from"
-msgstr "주체를 제거하는 키탭 파일"
-
-msgid "Remove all principals in this realm"
-msgstr "이와 같은 영역에서 모든 주체를 제거합니다"
-
-msgid "Realm name"
-msgstr "영역 이름"
-
-#, c-format
-msgid "Failed to open keytab '%1$s': %2$s\n"
-msgstr "키탭을 여는데 실패함 '%1$s': %2$s\n"
-
-#, c-format
-msgid "Closing keytab failed\n"
-msgstr "키탭을 닫는데 실패함\n"
-
-#, c-format
-msgid "krb5_kt_close %1$d: %2$s\n"
-msgstr "krb5_kt_close %1$d: %2$s\n"
 
 #, c-format
 msgid "Out of memory!\n"
@@ -824,28 +824,44 @@ msgstr ""
 msgid "file to store DNS records in nsupdate format"
 msgstr ""
 
-#, python-format
-msgid "Enabled Sudo Rule \"%s\""
-msgstr ""
-
-#, python-format
-msgid "Disabled Sudo Rule \"%s\""
-msgstr ""
-
-#, python-format
-msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr ""
-
-#, python-format
-msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
-msgstr ""
-
 msgid "Failed to add"
 msgstr ""
 
 msgid ""
 "IMPORTANT: In case of a high number of users, hosts or groups, the operation "
 "may require high CPU usage."
+msgstr ""
+
+msgid ""
+"Unable to display QR code using the configured output encoding. Please use "
+"the token URI to configure your OTP device"
+msgstr ""
+
+msgid ""
+"QR code width is greater than that of the output tty. Please resize your "
+"terminal."
+msgstr ""
+
+msgid "Synchronize an OTP token."
+msgstr ""
+
+msgid "User ID"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "First Code"
+msgstr ""
+
+msgid "Second Code"
+msgstr ""
+
+msgid "Token ID"
+msgstr ""
+
+#, python-format
+msgid "Unable to synchronize token: %s"
 msgstr ""
 
 msgid "maps not connected to /etc/auto.master:"
@@ -933,38 +949,6 @@ msgid ""
 "register"
 msgstr ""
 
-msgid ""
-"Unable to display QR code using the configured output encoding. Please use "
-"the token URI to configure your OTP device"
-msgstr ""
-
-msgid ""
-"QR code width is greater than that of the output tty. Please resize your "
-"terminal."
-msgstr ""
-
-msgid "Synchronize an OTP token."
-msgstr ""
-
-msgid "User ID"
-msgstr ""
-
-msgid "Password"
-msgstr ""
-
-msgid "First Code"
-msgstr ""
-
-msgid "Second Code"
-msgstr ""
-
-msgid "Token ID"
-msgstr ""
-
-#, python-format
-msgid "Unable to synchronize token: %s"
-msgstr ""
-
 msgid "python-yubico is not installed."
 msgstr ""
 
@@ -1005,6 +989,22 @@ msgid "No free YubiKey slot!"
 msgstr ""
 
 msgid "Add one or more passkey mappings to the user entry."
+msgstr ""
+
+#, python-format
+msgid "Enabled Sudo Rule \"%s\""
+msgstr ""
+
+#, python-format
+msgid "Disabled Sudo Rule \"%s\""
+msgstr ""
+
+#, python-format
+msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
+msgstr ""
+
+#, python-format
+msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr ""
 
 msgid "Delete a user, keeping the entry available for future use"
@@ -11937,16 +11937,6 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Results are truncated, try a more specific search"
-msgstr ""
-
-#, python-format
-msgid "Unknown option: %(option)s"
-msgstr ""
-
-msgid "Client version. Used to determine if server will accept request."
-msgstr ""
-
 msgid "Additional instructions:"
 msgstr ""
 
@@ -12106,6 +12096,16 @@ msgstr ""
 
 #, python-format
 msgid "The permission has %(right)s rights but no attributes are set."
+msgstr ""
+
+msgid "Results are truncated, try a more specific search"
+msgstr ""
+
+#, python-format
+msgid "Unknown option: %(option)s"
+msgstr ""
+
+msgid "Client version. Used to determine if server will accept request."
 msgstr ""
 
 msgid "incorrect type"
@@ -12386,14 +12386,14 @@ msgid "objectclass %s not found"
 msgstr ""
 
 #, python-format
+msgid "Replication agreement for %(hostname)s not found"
+msgstr ""
+
+#, python-format
 msgid "Unable to communicate with CMS (status %d)"
 msgstr ""
 
 msgid "Failed to authenticate to CA REST API"
-msgstr ""
-
-#, python-format
-msgid "Replication agreement for %(hostname)s not found"
 msgstr ""
 
 msgid "delegation"
@@ -13479,198 +13479,6 @@ msgid "Make multiple ipa calls via one remote procedure call"
 msgstr ""
 
 msgid "must contain a tuple (list, dict)"
-msgstr ""
-
-msgid ""
-"\n"
-"Manage Certificate Authorities\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Subordinate Certificate Authorities (Sub-CAs) can be added for scoped "
-"issuance\n"
-"of X.509 certificates.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"CAs are enabled on creation, but their use is subject to CA ACLs unless the\n"
-"operator has permission to bypass CA ACLs.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"All CAs except the 'IPA' CA can be disabled or re-enabled.  Disabling a CA\n"
-"prevents it from issuing certificates but does not affect the validity of "
-"its\n"
-"certificate.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"CAs (all except the 'IPA' CA) can be deleted.  Deleting a CA causes its "
-"signing\n"
-"certificate to be revoked and its private key deleted.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"  Create new CA, subordinate to the IPA CA (requires permission\n"
-"  \"System: Add CA\"):\n"
-"\n"
-"    ipa ca-add puppet --desc \"Puppet\" \\\n"
-"        --subject \"CN=Puppet CA,O=EXAMPLE.COM\"\n"
-msgstr ""
-
-msgid ""
-"\n"
-"  Disable a CA (requires permission \"System: Modify CA\"):\n"
-"\n"
-"    ipa ca-disable puppet\n"
-msgstr ""
-
-msgid ""
-"\n"
-"  Re-enable a CA (requires permission \"System: Modify CA\"):\n"
-"\n"
-"    ipa ca-enable puppet\n"
-msgstr ""
-
-msgid ""
-"\n"
-"  Delete a CA (requires permission \"System: Delete CA\"; also requires\n"
-"  CA to be disabled first):\n"
-"\n"
-"    ipa ca-del puppet\n"
-msgstr ""
-
-msgid "Certificate Authority"
-msgstr ""
-
-msgid "Certificate Authorities"
-msgstr ""
-
-msgid "Name"
-msgstr ""
-
-msgid "Name for referencing the CA"
-msgstr ""
-
-msgid "Description of the purpose of the CA"
-msgstr ""
-
-msgid "Authority ID"
-msgstr ""
-
-msgid "Dogtag Authority ID"
-msgstr ""
-
-msgid "Subject DN"
-msgstr ""
-
-msgid "Subject Distinguished Name"
-msgstr ""
-
-msgid "Issuer DN"
-msgstr ""
-
-msgid "Issuer Distinguished Name"
-msgstr ""
-
-msgid "Base-64 encoded certificate."
-msgstr ""
-
-msgid "Certificate chain"
-msgstr ""
-
-msgid "X.509 certificate chain"
-msgstr ""
-
-msgid "RSN Version"
-msgstr ""
-
-msgid "Random Serial Number Version"
-msgstr ""
-
-msgid "Search for CAs."
-msgstr ""
-
-#, python-format
-msgid "%(count)d CA matched"
-msgid_plural "%(count)d CAs matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Include certificate chain in output"
-msgstr ""
-
-msgid "Display the properties of a CA."
-msgstr ""
-
-msgid "Create a CA."
-msgstr ""
-
-#, python-format
-msgid "Created CA \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Insufficient 'add' privilege for entry '%s'."
-msgstr ""
-
-#, python-format
-msgid "Unrecognized attributes: %(attrs)s"
-msgstr ""
-
-#, python-format
-msgid "Subject DN is already used by CA '%s'"
-msgstr ""
-
-msgid "Delete a CA (must be disabled first)."
-msgstr ""
-
-#, python-format
-msgid "Deleted CA \"%(value)s\""
-msgstr ""
-
-msgid "Insufficient privilege to delete a CA."
-msgstr ""
-
-msgid "CA"
-msgstr ""
-
-msgid "IPA CA cannot be deleted"
-msgstr ""
-
-msgid "Must be disabled first"
-msgstr ""
-
-msgid "Modify CA configuration."
-msgstr ""
-
-#, python-format
-msgid "Modified CA \"%(value)s\""
-msgstr ""
-
-msgid "Insufficient privilege to modify a CA."
-msgstr ""
-
-msgid "Disable a CA."
-msgstr ""
-
-#, python-format
-msgid "Disabled CA \"%(value)s\""
-msgstr ""
-
-msgid "IPA CA cannot be disabled"
-msgstr ""
-
-msgid "Enable a CA."
-msgstr ""
-
-#, python-format
-msgid "Enabled CA \"%(value)s\""
 msgstr ""
 
 msgid ""
@@ -15698,122 +15506,6 @@ msgstr ""
 msgid "No such virtual command"
 msgstr ""
 
-msgid "automount location"
-msgstr ""
-
-msgid "automount locations"
-msgstr ""
-
-msgid "Automount Locations"
-msgstr ""
-
-msgid "Automount Location"
-msgstr ""
-
-#, python-format
-msgid "Added automount location \"%(value)s\""
-msgstr "추가된 자동적재 위치 \"%(value)s\""
-
-#, python-format
-msgid "Deleted automount location \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d automount location matched"
-msgid_plural "%(count)d automount locations matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "automount map"
-msgstr ""
-
-msgid "automount maps"
-msgstr ""
-
-msgid "Automount Maps"
-msgstr ""
-
-msgid "Automount Map"
-msgstr ""
-
-#, python-format
-msgid "Added automount map \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Deleted automount map \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Modified automount map \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d automount map matched"
-msgid_plural "%(count)d automount maps matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Automount key object."
-msgstr ""
-
-msgid "automount key"
-msgstr ""
-
-msgid "automount keys"
-msgstr ""
-
-msgid "Automount Keys"
-msgstr ""
-
-msgid "Automount Key"
-msgstr ""
-
-#, python-format
-msgid ""
-"The key,info pair must be unique. A key named %(key)s with info %(info)s "
-"already exists"
-msgstr ""
-
-#, python-format
-msgid "key named %(key)s already exists"
-msgstr ""
-
-#, python-format
-msgid "The automount key %(key)s with info %(info)s does not exist"
-msgstr ""
-
-#, python-format
-msgid ""
-"More than one entry with key %(key)s found, use --info to select specific "
-"entry."
-msgstr ""
-
-#, python-format
-msgid "Added automount key \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Added automount indirect map \"%(value)s\""
-msgstr ""
-
-msgid "mount point is relative to parent map, cannot begin with /"
-msgstr ""
-
-#, python-format
-msgid "Deleted automount key \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Modified automount key \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d automount key matched"
-msgid_plural "%(count)d automount keys matched"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "Member service groups"
 msgstr ""
 
@@ -15923,724 +15615,6 @@ msgid "removed attribute values from entry %(value)s"
 msgstr ""
 
 msgid "one or more values to remove"
-msgstr ""
-
-msgid ""
-"\n"
-"Baseuser\n"
-"\n"
-"This contains common definitions for user/stageuser\n"
-msgstr ""
-
-msgid "must be TRUE or FALSE"
-msgstr ""
-
-msgid ""
-"Object class ipaNTUserAttrs is missing, user entry cannot have SMB "
-"attributes."
-msgstr ""
-
-msgid "Principal alias"
-msgstr ""
-
-msgid "User password expiration"
-msgstr ""
-
-msgid "SSH public key fingerprint"
-msgstr "SSH 공유 키 지문"
-
-msgid "External IdP configuration"
-msgstr ""
-
-msgid "External IdP user identifier"
-msgstr ""
-
-msgid "A string that identifies the user at external IdP"
-msgstr ""
-
-msgid "Certificate mapping data"
-msgstr ""
-
-msgid "SMB logon script path"
-msgstr ""
-
-msgid "SMB profile path"
-msgstr ""
-
-msgid "SMB Home Directory"
-msgstr ""
-
-msgid "SMB Home Directory Drive"
-msgstr ""
-
-msgid "Passkey mapping"
-msgstr ""
-
-#, python-format
-msgid "invalid e-mail format: %(email)s"
-msgstr ""
-
-#, python-format
-msgid "manager %(manager)s not found"
-msgstr ""
-
-#, python-format
-msgid "can be at most %(len)d characters"
-msgstr ""
-
-msgid "Issuer"
-msgstr ""
-
-msgid "Issuer of the certificate"
-msgstr ""
-
-msgid "Subject"
-msgstr ""
-
-msgid "Subject of the certificate"
-msgstr ""
-
-msgid "cannot have an empty subject"
-msgstr ""
-
-msgid "cannot specify both subject/issuer and certificate"
-msgstr ""
-
-msgid "cannot specify both subject/issuer and ipacertmapdata"
-msgstr ""
-
-msgid "Add one or more certificate mappings to the user entry."
-msgstr ""
-
-#, python-format
-msgid "Added certificate mappings to user \"%(value)s\""
-msgstr ""
-
-msgid "Remove one or more certificate mappings from the user entry."
-msgstr ""
-
-#, python-format
-msgid "Removed certificate mappings from user \"%(value)s\""
-msgstr ""
-
-#, fuzzy, python-format
-#| msgid "Added automount location \"%(value)s\""
-msgid "Added passkey mappings to user \"%(value)s\""
-msgstr "추가된 자동적재 위치 \"%(value)s\""
-
-msgid "Remove one or more passkey mappings from the user entry."
-msgstr ""
-
-#, python-format
-msgid "Removed passkey mappings from user \"%(value)s\""
-msgstr ""
-
-msgid ""
-"\n"
-"IPA certificate operations\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Implements a set of commands for managing server SSL certificates.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Certificate requests exist in the form of a Certificate Signing Request "
-"(CSR)\n"
-"in PEM format.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"The dogtag CA uses just the CN value of the CSR and forces the rest of the\n"
-"subject to values configured in the server.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"A certificate is stored with a service principal and a service principal\n"
-"needs a host.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"In order to request a certificate:\n"
-msgstr ""
-
-msgid ""
-"\n"
-"* The host must exist\n"
-"* The service must exist (or you use the --add option to automatically add "
-"it)\n"
-msgstr ""
-
-msgid ""
-"\n"
-"SEARCHING:\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Certificates may be searched on by certificate subject, serial number,\n"
-"revocation reason, validity dates and the issued date.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"When searching on dates the _from date does a >= search and the _to date\n"
-"does a <= search. When combined these are done as an AND.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Dates are treated as GMT to match the dates in the certificates.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"The date format is YYYY-mm-dd.\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Request a new certificate and add the principal:\n"
-"   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Retrieve an existing certificate:\n"
-"   ipa cert-show 1032\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Revoke a certificate (see RFC 5280 for reason details):\n"
-"   ipa cert-revoke --revocation-reason=6 1032\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Remove a certificate from revocation hold status:\n"
-"   ipa cert-remove-hold 1032\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Check the status of a signing request:\n"
-"   ipa cert-status 10\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Search for certificates by hostname:\n"
-"   ipa cert-find --subject=ipaserver.example.com\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Search for revoked certificates by reason:\n"
-"   ipa cert-find --revocation-reason=5\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Search for certificates based on issuance date\n"
-"   ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Search for certificates owned by a specific user:\n"
-"   ipa cert-find --user=user\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Examine a certificate:\n"
-"   ipa cert-find --file=cert.pem --all\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Verify that a certificate is owned by a specific user:\n"
-"   ipa cert-find --file=cert.pem --user=user\n"
-msgstr ""
-
-msgid ""
-"\n"
-"IPA currently immediately issues (or declines) all certificate requests so\n"
-"the status of a request is not normally useful. This is for future use\n"
-"or the case where a CA does not immediately issue a certificate.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"The following revocation reasons are supported:\n"
-"\n"
-msgstr ""
-
-msgid "    * 0 - unspecified\n"
-msgstr ""
-
-msgid "    * 1 - keyCompromise\n"
-msgstr ""
-
-msgid "    * 2 - cACompromise\n"
-msgstr ""
-
-msgid "    * 3 - affiliationChanged\n"
-msgstr ""
-
-msgid "    * 4 - superseded\n"
-msgstr ""
-
-msgid "    * 5 - cessationOfOperation\n"
-msgstr ""
-
-msgid "    * 6 - certificateHold\n"
-msgstr ""
-
-msgid "    * 8 - removeFromCRL\n"
-msgstr ""
-
-msgid "    * 9 - privilegeWithdrawn\n"
-msgstr ""
-
-msgid "    * 10 - aACompromise\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Note that reason code 7 is not used.  See RFC 5280 for more details:\n"
-msgstr ""
-
-msgid ""
-"\n"
-"http://www.ietf.org/rfc/rfc5280.txt\n"
-"\n"
-msgstr ""
-
-#, python-format
-msgid ""
-"Principal '%(principal)s' is not permitted to use CA '%(ca)s' with profile "
-"'%(profile_id)s' for certificate issuance."
-msgstr ""
-
-msgid "enabledService/configuredService not in ipaConfigString kdc entry"
-msgstr ""
-
-#, python-format
-msgid "Host '%(hostname)s' is not an active KDC"
-msgstr ""
-
-msgid "Issuing CA"
-msgstr ""
-
-msgid "Name of issuing CA"
-msgstr ""
-
-msgid "Subject email address"
-msgstr ""
-
-msgid "Subject DNS name"
-msgstr ""
-
-msgid "Subject X.400 address"
-msgstr ""
-
-msgid "Subject directory name"
-msgstr ""
-
-msgid "Subject EDI Party name"
-msgstr ""
-
-msgid "Subject URI"
-msgstr ""
-
-msgid "Subject IP Address"
-msgstr ""
-
-msgid "Subject OID"
-msgstr "대상 OID"
-
-msgid "Subject UPN"
-msgstr ""
-
-msgid "Subject Kerberos principal name"
-msgstr ""
-
-msgid "Subject Other Name"
-msgstr ""
-
-msgid "Not Before"
-msgstr ""
-
-msgid "Not After"
-msgstr ""
-
-msgid "Fingerprint (SHA1)"
-msgstr ""
-
-msgid "Fingerprint (SHA256)"
-msgstr ""
-
-msgid "Serial number (hex)"
-msgstr "일련 번호 (16 진수)"
-
-msgid "Request status"
-msgstr ""
-
-msgid ""
-"automatically add the principal if it doesn't exist (service principals only)"
-msgstr ""
-
-#, python-format
-msgid "krbtgt certs can use only the %s profile"
-msgstr ""
-
-msgid "No Common Name was found in subject of request."
-msgstr ""
-
-#, python-format
-msgid ""
-"hostname in subject of request '%(cn)s' does not match name or aliases of "
-"principal '%(principal)s'"
-msgstr ""
-
-#, python-format
-msgid ""
-"hostname in subject of request '%(cn)s' does not match principal hostname "
-"'%(hostname)s'"
-msgstr ""
-
-msgid "DN commonName does not match user's login"
-msgstr ""
-
-msgid "DN emailAddress does not match any of user's email addresses"
-msgstr ""
-
-#, python-format
-msgid ""
-"Insufficient 'write' privilege to the 'userCertificate' attribute of entry "
-"'%s'."
-msgstr ""
-
-#, python-format
-msgid "subject alt name type %s is forbidden for user principals"
-msgstr ""
-
-#, python-format
-msgid ""
-"The service principal for subject alt name %s in certificate request does "
-"not exist"
-msgstr ""
-
-#, python-format
-msgid ""
-"Insufficient privilege to create a certificate with subject alt name '%s'."
-msgstr ""
-
-#, python-format
-msgid "Principal '%s' in subject alt name does not match requested principal"
-msgstr ""
-
-msgid "RFC822Name does not match any of user's email addresses"
-msgstr ""
-
-#, python-format
-msgid "subject alt name type %s is forbidden for non-user principals"
-msgstr ""
-
-#, python-format
-msgid "Subject alt name type %s is forbidden"
-msgstr ""
-
-#, python-format
-msgid "CA '%s' is disabled"
-msgstr ""
-
-msgid "'add' option"
-msgstr ""
-
-msgid "The principal for this request doesn't exist."
-msgstr ""
-
-#, python-format
-msgid "IP address in subjectAltName (%s) unreachable from DNS names"
-msgstr ""
-
-#, python-format
-msgid "IP address in subjectAltName (%s) does not have PTR record"
-msgstr ""
-
-#, python-format
-msgid "PTR record for SAN IP (%s) does not match A/AAAA records"
-msgstr ""
-
-msgid "Status"
-msgstr ""
-
-msgid "Revoked"
-msgstr ""
-
-msgid "Revocation reason"
-msgstr ""
-
-msgid ""
-"Reason for revoking the certificate (0-10). Type \"ipa help cert\" for "
-"revocation reason details. "
-msgstr ""
-
-#, python-format
-msgid "Owner %s"
-msgstr ""
-
-#, python-format
-msgid ""
-"Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
-msgstr ""
-
-msgid "7 is not a valid revocation reason"
-msgstr ""
-
-msgid "Status of the certificate"
-msgstr ""
-
-msgid "Results should contain primary key attribute only (\"certificate\")"
-msgstr ""
-
-#, python-format
-msgid "%(count)d certificate matched"
-msgid_plural "%(count)d certificates matched"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "Search for certificates with these owner %s."
-msgstr ""
-
-#, python-format
-msgid "Search for certificates without these owner %s."
-msgstr ""
-
-msgid ""
-"\n"
-"Server configuration\n"
-"\n"
-"Manage the default values that IPA uses and some of its tuning parameters.\n"
-"\n"
-"NOTES:\n"
-"\n"
-"The password notification value (--pwdexpnotify) is stored here so it will\n"
-"be replicated. It is not currently used to notify users in advance of an\n"
-"expiring password.\n"
-"\n"
-"Some attributes are read-only, provided only for information purposes. "
-"These\n"
-"include:\n"
-"\n"
-"Certificate Subject base: the configured certificate subject base,\n"
-"  e.g. O=EXAMPLE.COM.  This is configurable only at install time.\n"
-"Password plug-in features: currently defines additional hashes that the\n"
-"  password will generate (there may be other conditions).\n"
-"\n"
-"When setting the order list for mapping SELinux users you may need to\n"
-"quote the value so it isn't interpreted by the shell.\n"
-"\n"
-"The maximum length of a hostname in Linux is controlled by\n"
-"MAXHOSTNAMELEN in the kernel and defaults to 64. Some other operating\n"
-"systems, Solaris for example, allows hostnames up to 255 characters.\n"
-"This option will allow flexibility in length but by default limiting\n"
-"to the Linux maximum length.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Show basic server configuration:\n"
-"   ipa config-show\n"
-"\n"
-" Show all configuration options:\n"
-"   ipa config-show --all\n"
-"\n"
-" Change maximum username length to 99 characters:\n"
-"   ipa config-mod --maxusername=99\n"
-"\n"
-" Change maximum host name length to 255 characters:\n"
-"   ipa config-mod --maxhostname=255\n"
-"\n"
-" Increase default time and size limits for maximum IPA server search:\n"
-"   ipa config-mod --searchtimelimit=10 --searchrecordslimit=2000\n"
-"\n"
-" Set default user e-mail domain:\n"
-"   ipa config-mod --emaildomain=example.com\n"
-"\n"
-" Enable migration mode to make \"ipa migrate-ds\" command operational:\n"
-"   ipa config-mod --enable-migration=TRUE\n"
-"\n"
-" Define SELinux user map order:\n"
-"   ipa config-mod --ipaselinuxusermaporder='guest_u:s0$xguest_u:s0$user_u:s0-"
-"s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023'\n"
-msgstr ""
-
-msgid "must be at least 10"
-msgstr ""
-
-msgid "configuration options"
-msgstr ""
-
-msgid "Configuration"
-msgstr ""
-
-msgid "Maximum hostname length"
-msgstr ""
-
-msgid "Enable adding subids to new users"
-msgstr ""
-
-msgid "IPA masters"
-msgstr ""
-
-msgid "List of all IPA masters"
-msgstr ""
-
-msgid "Hidden IPA masters"
-msgstr ""
-
-msgid "List of all hidden IPA masters"
-msgstr ""
-
-msgid "IPA master capable of PKINIT"
-msgstr ""
-
-msgid "IPA master which can process PKINIT requests"
-msgstr ""
-
-msgid "IPA CA servers"
-msgstr ""
-
-msgid "IPA servers configured as certificate authority"
-msgstr ""
-
-msgid "Hidden IPA CA servers"
-msgstr ""
-
-msgid "Hidden IPA servers configured as certificate authority"
-msgstr ""
-
-msgid "IPA CA renewal master"
-msgstr ""
-
-msgid "Renewal master for IPA certificate authority"
-msgstr ""
-
-msgid "IPA KRA servers"
-msgstr ""
-
-msgid "IPA servers configured as key recovery agent"
-msgstr ""
-
-msgid "Hidden IPA KRA servers"
-msgstr ""
-
-msgid "Hidden IPA servers configured as key recovery agent"
-msgstr ""
-
-msgid "Domain resolution order"
-msgstr ""
-
-msgid "colon-separated list of domains used for short name qualification"
-msgstr ""
-
-msgid "IPA DNS servers"
-msgstr ""
-
-msgid "IPA servers configured as domain name server"
-msgstr ""
-
-msgid "Hidden IPA DNS servers"
-msgstr ""
-
-msgid "Hidden IPA servers configured as domain name server"
-msgstr ""
-
-msgid "IPA DNSSec key master"
-msgstr ""
-
-msgid "DNSec key master"
-msgstr ""
-
-msgid "Setup SID configuration"
-msgstr ""
-
-msgid "New users and groups automatically get a SID assigned"
-msgstr ""
-
-msgid "Add SIDs"
-msgstr ""
-
-msgid "Add SIDs for existing users and groups"
-msgstr ""
-
-msgid "NetBIOS name of the IPA domain"
-msgstr ""
-
-msgid "Empty domain is not allowed"
-msgstr ""
-
-#, python-format
-msgid "Invalid domain name '%(domain)s': %(e)s"
-msgstr ""
-
-#, python-format
-msgid "Server has no information about domain '%(domain)s'"
-msgstr ""
-
-#, python-format
-msgid "Disabled domain '%(domain)s' is not allowed"
-msgstr ""
-
-msgid "not allowed to enable SID generation"
-msgstr ""
-
-msgid ""
-"Up to 15 characters and only uppercase ASCII letters, digits and dashes are "
-"allowed. Empty string is not allowed."
-msgstr ""
-
-msgid "Failed to call DBus"
-msgstr ""
-
-msgid "Configuration of SID failed. See details in the error log"
-msgstr ""
-
-msgid "The group doesn't exist"
-msgstr ""
-
-#, python-format
-msgid "attribute \"%s\" not allowed"
-msgstr ""
-
-msgid "May not be empty"
-msgstr ""
-
-#, python-format
-msgid "%(obj)s default attribute %(attr)s would not be allowed!"
-msgstr ""
-
-msgid "A list of SELinux users delimited by $ expected"
-msgstr ""
-
-#, python-format
-msgid "SELinux user '%(user)s' is not valid: %(error)s"
-msgstr ""
-
-msgid "SELinux user map default user not in order list"
-msgstr ""
-
-#, python-format
-msgid "You cannot specify %s without the --enable-sid option"
 msgstr ""
 
 msgid ""
@@ -17351,7 +16325,13 @@ msgstr ""
 msgid "IPA DNS version"
 msgstr ""
 
+msgid "IPA DNS servers"
+msgstr ""
+
 msgid "List of IPA masters configured as DNS servers"
+msgstr ""
+
+msgid "IPA DNSSec key master"
 msgstr ""
 
 msgid "IPA server configured as DNSSec key master"
@@ -17403,6 +16383,2515 @@ msgid "Dry run"
 msgstr ""
 
 msgid "Do not update records only return expected records"
+msgstr ""
+
+msgid "ID View"
+msgstr ""
+
+msgid "system ID View"
+msgstr ""
+
+msgid "ID Views"
+msgstr ""
+
+msgid "User object overrides"
+msgstr ""
+
+msgid "Group object overrides"
+msgstr ""
+
+msgid "Hosts the view applies to"
+msgstr ""
+
+msgid "Domain resolution order"
+msgstr ""
+
+msgid "colon-separated list of domains used for short name qualification"
+msgstr ""
+
+#, python-format
+msgid "Added ID View \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Deleted ID View \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Modified an ID View \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d ID View matched"
+msgid_plural "%(count)d ID Views matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Default Trust View cannot be applied on hosts"
+msgstr ""
+
+msgid "not found"
+msgstr ""
+
+msgid "ID View cannot be applied to IPA master"
+msgstr ""
+
+msgid "ID View already applied"
+msgstr ""
+
+msgid "value"
+msgstr ""
+
+#, python-format
+msgid "ID View applied to %i host."
+msgstr ""
+
+#, python-format
+msgid "ID View applied to %i hosts."
+msgstr ""
+
+#, python-format
+msgid "ID View cleared from %i host."
+msgstr ""
+
+#, python-format
+msgid "ID View cleared from %i hosts."
+msgstr ""
+
+msgid ""
+"You are trying to reference a magic private group which is not allowed to be "
+"overridden. Try overriding the GID attribute of the corresponding user "
+"instead."
+msgstr ""
+
+msgid "IPA object"
+msgstr ""
+
+msgid ""
+"system IPA objects (e.g. system groups, user private groups) cannot be "
+"overridden"
+msgstr ""
+
+#, python-format
+msgid "Anchor '%(anchor)s' could not be resolved."
+msgstr ""
+
+msgid "Default Trust View cannot contain IPA users"
+msgstr ""
+
+msgid "Add a new ID override."
+msgstr ""
+
+#, python-format
+msgid "Added ID override \"%(value)s\""
+msgstr ""
+
+msgid "Delete an ID override."
+msgstr ""
+
+#, python-format
+msgid "Deleted ID override \"%(value)s\""
+msgstr ""
+
+msgid "Modify an ID override."
+msgstr ""
+
+#, python-format
+msgid "Modified an ID override \"%(value)s\""
+msgstr ""
+
+msgid "ID override"
+msgstr ""
+
+msgid "ID overrides cannot be renamed"
+msgstr ""
+
+msgid "Search for an ID override."
+msgstr ""
+
+#, python-format
+msgid "%(count)d ID override matched"
+msgid_plural "%(count)d ID overrides matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Display information about an ID override."
+msgstr "ID 재정의에 대한 정보를 표시합니다."
+
+msgid "User ID override"
+msgstr ""
+
+msgid "User ID overrides"
+msgstr ""
+
+msgid "Group ID override"
+msgstr ""
+
+msgid "Group ID overrides"
+msgstr ""
+
+msgid "Add one or more certificates to the idoverrideuser entry"
+msgstr ""
+
+#, python-format
+msgid "Added certificates to idoverrideuser \"%(value)s\""
+msgstr ""
+
+msgid "Remove one or more certificates to the idoverrideuser entry"
+msgstr ""
+
+#, python-format
+msgid "Removed certificates from idoverrideuser \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Added User ID override \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Deleted User ID override \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Modified an User ID override \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d User ID override matched"
+msgid_plural "%(count)d User ID overrides matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "Added Group ID override \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Deleted Group ID override \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Modified an Group ID override \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d Group ID override matched"
+msgid_plural "%(count)d Group ID overrides matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"\n"
+"Permissions\n"
+msgstr ""
+
+msgid ""
+"\n"
+"A permission enables fine-grained delegation of rights. A permission is\n"
+"a human-readable wrapper around a 389-ds Access Control Rule,\n"
+"or instruction (ACI).\n"
+"A permission grants the right to perform a specific task such as adding a\n"
+"user, modifying a group, etc.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"A permission may not contain other permissions.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"* A permission grants access to read, write, add, delete, read, search,\n"
+"  or compare.\n"
+"* A privilege combines similar permissions (for example all the permissions\n"
+"  needed to add a user).\n"
+"* A role grants a set of privileges to users, groups, hosts or hostgroups.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"A permission is made up of a number of different parts:\n"
+"\n"
+"1. The name of the permission.\n"
+"2. The target of the permission.\n"
+"3. The rights granted by the permission.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Rights define what operations are allowed, and may be one or more\n"
+"of the following:\n"
+"1. write - write one or more attributes\n"
+"2. read - read one or more attributes\n"
+"3. search - search on one or more attributes\n"
+"4. compare - compare one or more attributes\n"
+"5. add - add a new entry to the tree\n"
+"6. delete - delete an existing entry\n"
+"7. all - all permissions are granted\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Note the distinction between attributes and entries. The permissions are\n"
+"independent, so being able to add a user does not mean that the user will\n"
+"be editable.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"There are a number of allowed targets:\n"
+"1. subtree: a DN; the permission applies to the subtree under this DN\n"
+"2. target filter: an LDAP filter\n"
+"3. target: DN with possible wildcards, specifies entries permission applies "
+"to\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Additionally, there are the following convenience options.\n"
+"Setting one of these options will set the corresponding attribute(s).\n"
+"1. type: a type of object (user, group, etc); sets subtree and target "
+"filter.\n"
+"2. memberof: apply to members of a group; sets target filter\n"
+"3. targetgroup: grant access to modify a specific group (such as granting\n"
+"   the rights to manage group membership); sets target.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Managed permissions\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Permissions that come with IPA by default can be so-called \"managed\"\n"
+"permissions. These have a default set of attributes they apply to,\n"
+"but the administrator can add/remove individual attributes to/from the set.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Deleting or renaming a managed permission, as well as changing its target,\n"
+"is not allowed.\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add a permission that grants the creation of users:\n"
+"   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add a permission that grants the ability to manage group membership:\n"
+"   ipa permission-add --attrs=member --permissions=write --type=group "
+"\"Manage Group Members\"\n"
+msgstr ""
+
+msgid "must be enclosed in parentheses"
+msgstr ""
+
+#, python-format
+msgid "\"%s\" is not an object type"
+msgstr ""
+
+#, python-format
+msgid "\"%s\" is not a valid permission type"
+msgstr ""
+
+#, python-format
+msgid "Deprecated; use %s"
+msgstr ""
+
+#, python-format
+msgid "Permission with unknown flag %s may not be modified or removed"
+msgstr ""
+
+msgid "A SYSTEM permission may not be modified or removed"
+msgstr ""
+
+#, python-format
+msgid "Entry %s not found"
+msgstr ""
+
+#, python-format
+msgid "The ACI for permission %(name)s was not found in %(dn)s "
+msgstr ""
+
+msgid ""
+"cannot specify full target filter and extra target filter simultaneously"
+msgstr ""
+
+#, python-format
+msgid "option was renamed; use %s"
+msgstr ""
+
+#, python-format
+msgid "Cannot use %(old_name)s with %(new_name)s"
+msgstr ""
+
+#, python-format
+msgid "%s: group not found"
+msgstr ""
+
+msgid "target and targetgroup are mutually exclusive"
+msgstr ""
+
+msgid "subtree and type are mutually exclusive"
+msgstr ""
+
+msgid "Bad search filter"
+msgstr ""
+
+#, python-format
+msgid "Entry %s does not exist"
+msgstr ""
+
+msgid ""
+"there must be at least one target entry specifier (e.g. target, "
+"targetfilter, attrs)"
+msgstr ""
+
+#, python-format
+msgid "Added permission \"%(value)s\""
+msgstr ""
+
+msgid "attrs and included attributes are mutually exclusive"
+msgstr ""
+
+#, python-format
+msgid "Cannot store permission ACI to %s"
+msgstr ""
+
+#, python-format
+msgid "Deleted permission \"%(value)s\""
+msgstr ""
+
+msgid "cannot delete managed permissions"
+msgstr ""
+
+#, python-format
+msgid "ACI of permission %s was not found"
+msgstr ""
+
+#, python-format
+msgid "Modified permission \"%(value)s\""
+msgstr ""
+
+msgid "cannot rename managed permissions"
+msgstr ""
+
+msgid "not modifiable on managed permissions"
+msgstr ""
+
+msgid "only available on managed permissions"
+msgstr ""
+
+msgid "attrs and included/excluded attributes are mutually exclusive"
+msgstr ""
+
+msgid "cannot set bindtype for a permission that is assigned to a privilege"
+msgstr ""
+
+#, python-format
+msgid "%(count)d permission matched"
+msgid_plural "%(count)d permissions matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"\n"
+"IPA servers\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Get information about installed IPA servers.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"  Find all servers:\n"
+"    ipa server-find\n"
+msgstr ""
+
+msgid ""
+"\n"
+"  Show specific server:\n"
+"    ipa server-show ipa.example.com\n"
+msgstr ""
+
+msgid "server"
+msgstr ""
+
+msgid "servers"
+msgstr ""
+
+msgid "IPA Servers"
+msgstr ""
+
+#, fuzzy
+#| msgid "Server Name"
+msgid "Server DNS location"
+msgstr "서버 이름"
+
+msgid "Service weight"
+msgstr ""
+
+msgid "Weight for server services"
+msgstr ""
+
+msgid "Service relative weight"
+msgstr ""
+
+msgid "Relative weight for server services (counts per location)"
+msgstr ""
+
+msgid "Enabled server roles"
+msgstr ""
+
+msgid "List of enabled roles"
+msgstr ""
+
+msgid "Modify information about an IPA server."
+msgstr ""
+
+#, python-format
+msgid "Modified IPA server \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d IPA server matched"
+msgid_plural "%(count)d IPA servers matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "Deleted IPA server \"%(value)s\""
+msgstr ""
+
+msgid "Ignore topology errors"
+msgstr ""
+
+msgid "Ignore topology connectivity problems after removal"
+msgstr ""
+
+msgid "Ignore check for last remaining CA or DNS server"
+msgstr ""
+
+msgid "Skip a check whether the last CA master or DNS server is removed"
+msgstr ""
+
+msgid "Force server removal"
+msgstr ""
+
+msgid "Force server removal even if it does not exist"
+msgstr ""
+
+msgid ""
+"Replica is active DNSSEC key master. Uninstall could break your DNS system. "
+"Please disable or replace DNSSEC key master first."
+msgstr ""
+
+msgid "Deleting this server will leave your installation without a DNS."
+msgstr ""
+
+msgid ""
+"Deleting this server is not allowed as it would leave your installation "
+"without a KRA."
+msgstr ""
+
+msgid ""
+"Deleting this server is not allowed as it would leave your installation "
+"without a CA."
+msgstr ""
+
+msgid "Ignoring these warnings and proceeding with removal"
+msgstr ""
+
+#, python-format
+msgid ""
+"Failed to clean memberPrincipal %(principal)s from s4u2proxy entry %(dn)s: "
+"%(err)s"
+msgstr ""
+
+#, python-format
+msgid "Failed to clean up DNA hostname entries for %(master)s: %(err)s"
+msgstr ""
+
+#, python-format
+msgid "Failed to remove server %(master)s from server list: %(err)s"
+msgstr ""
+
+#, python-format
+msgid "Failed to clean up Custodia keys for %(master)s: %(err)s"
+msgstr ""
+
+#, python-format
+msgid "Failed to cleanup server principals/keys: %(err)s"
+msgstr ""
+
+#, python-format
+msgid "Failed to cleanup %(hostname)s DNS entries: %(err)s"
+msgstr ""
+
+msgid "You may need to manually remove them from the tree"
+msgstr ""
+
+#, python-format
+msgid "Forcing removal of %(hostname)s"
+msgstr ""
+
+msgid "Ignoring topology connectivity errors."
+msgstr ""
+
+#, python-format
+msgid "Failed to remove server from security domain: %s"
+msgstr ""
+
+msgid "Server has already been deleted"
+msgstr ""
+
+msgid "Agreements deleted"
+msgstr ""
+
+msgid "Following segments were not deleted:"
+msgstr ""
+
+#, python-format
+msgid "must be \"%s\""
+msgstr ""
+
+msgid "not allowed to perform server connection check"
+msgstr ""
+
+msgid "Set enabled/hidden state of a server."
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Server state"
+msgstr ""
+
+#, python-format
+msgid "Changed server state of \"%(value)s\"."
+msgstr ""
+
+msgid "Cannot hide CA renewal master."
+msgstr ""
+
+msgid "Cannot hide DNSSec key master."
+msgstr ""
+
+#, python-format
+msgid "Cannot hide last enabled %(name)s server."
+msgstr ""
+
+msgid ""
+"\n"
+"Cross-realm trusts\n"
+"\n"
+"Manage trust relationship between IPA and Active Directory domains.\n"
+"\n"
+"In order to allow users from a remote domain to access resources in IPA "
+"domain,\n"
+"trust relationship needs to be established. Currently IPA supports only "
+"trusts\n"
+"between IPA and Active Directory domains under control of Windows Server "
+"2008\n"
+"or later, with functional level 2008 or later.\n"
+"\n"
+"Please note that DNS on both IPA and Active Directory domain sides should "
+"be\n"
+"configured properly to discover each other. Trust relationship relies on\n"
+"ability to discover special resources in the other domain via DNS records.\n"
+"\n"
+"Examples:\n"
+"\n"
+"1. Establish cross-realm trust with Active Directory using AD administrator\n"
+"   credentials:\n"
+"\n"
+"   ipa trust-add --type=ad <ad.domain> --admin <AD domain "
+"administrator>            --password\n"
+"\n"
+"2. List all existing trust relationships:\n"
+"\n"
+"   ipa trust-find\n"
+"\n"
+"3. Show details of the specific trust relationship:\n"
+"\n"
+"   ipa trust-show <ad.domain>\n"
+"\n"
+"4. Delete existing trust relationship:\n"
+"\n"
+"   ipa trust-del <ad.domain>\n"
+"\n"
+"Once trust relationship is established, remote users will need to be mapped\n"
+"to local POSIX groups in order to actually use IPA resources. The mapping\n"
+"should be done via use of external membership of non-POSIX group and then\n"
+"this group should be included into one of local POSIX groups.\n"
+"\n"
+"Example:\n"
+"\n"
+"1. Create group for the trusted domain admins' mapping and their local "
+"POSIX\n"
+"group:\n"
+"\n"
+"   ipa group-add --desc='<ad.domain> admins external map'            "
+"ad_admins_external --external\n"
+"   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
+"\n"
+"2. Add security identifier of Domain Admins of the <ad.domain> to the\n"
+"   ad_admins_external group:\n"
+"\n"
+"   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'\n"
+"\n"
+"3. Allow members of ad_admins_external group to be associated with\n"
+"   ad_admins POSIX group:\n"
+"\n"
+"   ipa group-add-member ad_admins --groups ad_admins_external\n"
+"\n"
+"4. List members of external members of ad_admins_external group to see\n"
+"   their SIDs:\n"
+"\n"
+"   ipa group-show ad_admins_external\n"
+"\n"
+"\n"
+"GLOBAL TRUST CONFIGURATION\n"
+"\n"
+"When IPA AD trust subpackage is installed and ipa-adtrust-install is run, a\n"
+"local domain configuration (SID, GUID, NetBIOS name) is generated. These\n"
+"identifiers are then used when communicating with a trusted domain of the\n"
+"particular type.\n"
+"\n"
+"1. Show global trust configuration for Active Directory type of trusts:\n"
+"\n"
+"   ipa trustconfig-show --type ad\n"
+"\n"
+"2. Modify global configuration for all trusts of Active Directory type and "
+"set\n"
+"   a different fallback primary group (fallback primary group GID is used as "
+"a\n"
+"   primary user GID if user authenticating to IPA domain does not have any\n"
+"   other primary GID already set):\n"
+"\n"
+"   ipa trustconfig-mod --type ad --fallback-primary-group \"another AD "
+"group\"\n"
+"\n"
+"3. Change primary fallback group back to default hidden group (any group "
+"with\n"
+"   posixGroup object class is allowed):\n"
+"\n"
+"   ipa trustconfig-mod --type ad --fallback-primary-group \"Default SMB "
+"Group\"\n"
+msgstr ""
+
+#, python-format
+msgid ""
+" Alternatively, following servers are capable of running this command: "
+"%(masters)s"
+msgstr ""
+
+msgid "AD Trust setup"
+msgstr ""
+
+msgid ""
+"Cannot perform the selected command without Samba 4 support installed. Make "
+"sure you have installed server-trust-ad sub-package of IPA."
+msgstr ""
+
+msgid ""
+"Cannot perform the selected command without Samba 4 instance configured on "
+"this machine. Make sure you have run ipa-adtrust-install on this server."
+msgstr ""
+
+msgid ""
+"Fetching domains from trusted forest failed. See details in the error_log"
+msgstr ""
+
+msgid "trust"
+msgstr ""
+
+msgid "trusts"
+msgstr ""
+
+msgid "Trusts"
+msgstr ""
+
+msgid "Trust"
+msgstr ""
+
+msgid "SID blocklist incoming"
+msgstr ""
+
+msgid "SID blocklist outgoing"
+msgstr ""
+
+msgid "Trust direction"
+msgstr ""
+
+msgid "Trust type"
+msgstr ""
+
+msgid "Trust status"
+msgstr ""
+
+msgid "UPN suffixes"
+msgstr ""
+
+#, python-brace-format
+msgid "invalid SID: {SID}"
+msgstr ""
+
+msgid ""
+"\n"
+"Add new trust to use.\n"
+"\n"
+"This command establishes trust relationship to another domain\n"
+"which becomes 'trusted'. As result, users of the trusted domain\n"
+"may access resources of this domain.\n"
+"\n"
+"Only trusts to Active Directory domains are supported right now.\n"
+"\n"
+"The command can be safely run multiple times against the same domain,\n"
+"this will cause change to trust relationship credentials on both\n"
+"sides.\n"
+"\n"
+"Note that if the command was previously run with a specific range type,\n"
+"or with automatic detection of the range type, and you want to configure a\n"
+"different range type, you may need to delete first the ID range using\n"
+"ipa idrange-del before retrying the command with the desired range type.\n"
+"    "
+msgstr ""
+
+msgid "Active Directory domain range"
+msgstr ""
+
+msgid "Active Directory trust range with POSIX attributes"
+msgstr ""
+
+msgid "Type of trusted domain ID range, one of allowed values"
+msgstr ""
+
+msgid "External trust"
+msgstr ""
+
+msgid ""
+"Establish external trust to a domain in another forest. The trust is not "
+"transitive beyond the domain."
+msgstr ""
+
+#, python-format
+msgid "Added Active Directory trust for realm \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Re-established trust to domain \"%(value)s\""
+msgstr ""
+
+msgid "missing base_id"
+msgstr ""
+
+msgid "pysss_murmur is not available on the server and no base-id is given."
+msgstr ""
+
+msgid "trust type"
+msgstr ""
+
+msgid "only \"ad\" is supported"
+msgstr ""
+
+msgid ""
+"Cannot establish a trust to AD deployed in the same domain as IPA. Such "
+"setup is not supported."
+msgstr ""
+
+msgid "Realm-domain mismatch"
+msgstr ""
+
+msgid ""
+"To establish trust with Active Directory, the domain name and the realm name "
+"of the IPA server must match"
+msgstr ""
+
+msgid ""
+"Cannot perform join operation without own domain configured. Make sure you "
+"have run ipa-adtrust-install on the IPA server first"
+msgstr ""
+
+#, python-format
+msgid ""
+"Trusted domain %(domain)s is included among IPA realm domains. It needs to "
+"be removed prior to establishing the trust. See the \"ipa realmdomains-mod --"
+"del-domain\" command."
+msgstr ""
+
+msgid "Trusted domain and administrator account use different realms"
+msgstr ""
+
+msgid "Realm administrator password should be specified"
+msgstr ""
+
+msgid "id range type"
+msgstr ""
+
+msgid ""
+"Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
+"type when adding an AD trust."
+msgstr ""
+
+msgid "id range"
+msgstr ""
+
+msgid ""
+"An id range already exists for this trust. You should either delete the old "
+"range, or exclude --base-id/--range-size options from the command."
+msgstr ""
+
+msgid "range exists"
+msgstr ""
+
+msgid ""
+"ID range with the same name but different domain SID already exists. The ID "
+"range for the new trusted domain must be created manually."
+msgstr ""
+
+msgid "range type change"
+msgstr ""
+
+msgid ""
+"ID range for the trusted domain already exists, but it has a different type. "
+"Please remove the old range manually, or do not enforce type via --range-"
+"type option."
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to resolve domain controller for {domain} domain. "
+msgstr ""
+
+msgid ""
+"Forward policy is defined for it in IPA DNS, perhaps forwarder points to "
+"incorrect host?"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"IPA manages DNS, please verify your DNS configuration and make sure that "
+"service records of the '{domain}' domain can be resolved. Examples how to "
+"configure DNS with CLI commands or the Web UI can be found in the "
+"documentation. "
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Since IPA does not manage DNS records, ensure DNS is configured to resolve "
+"'{domain}' domain from IPA hosts and back."
+msgstr ""
+
+msgid "Unable to verify write permissions to the AD"
+msgstr ""
+
+msgid "Not enough arguments specified to perform trust setup"
+msgstr ""
+
+#, python-format
+msgid "Deleted trust \"%(value)s\""
+msgstr ""
+
+msgid ""
+"\n"
+"    Modify a trust (for future use).\n"
+"\n"
+"    Currently only the default option to modify the LDAP attributes is\n"
+"    available. More specific options will be added in coming releases.\n"
+"    "
+msgstr ""
+
+#, python-format
+msgid "Modified trust \"%(value)s\" (change will be effective in 60 seconds)"
+msgstr ""
+
+#, python-format
+msgid "%(count)d trust matched"
+msgid_plural "%(count)d trusts matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "trust configuration"
+msgstr ""
+
+msgid "Global Trust Configuration"
+msgstr ""
+
+msgid "IPA AD trust agents"
+msgstr ""
+
+msgid "IPA servers configured as AD trust agents"
+msgstr ""
+
+msgid "IPA AD trust controllers"
+msgstr ""
+
+msgid "IPA servers configured as AD trust controllers"
+msgstr ""
+
+msgid "unsupported trust type"
+msgstr ""
+
+#, python-format
+msgid "Modified \"%(value)s\" trust configuration"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "SID"
+msgstr ""
+
+msgid "sidgen_was_run"
+msgstr ""
+
+msgid ""
+"This command relies on the existence of the \"editors\" group, but this "
+"group was not found."
+msgstr ""
+
+msgid "trust domain"
+msgstr ""
+
+msgid "trust domains"
+msgstr ""
+
+msgid "Trusted domains"
+msgstr ""
+
+msgid "Trusted domain"
+msgstr ""
+
+msgid "Domain enabled"
+msgstr ""
+
+#, python-format
+msgid "Removed information about the trusted domain \"%(value)s\""
+msgstr ""
+
+msgid ""
+"cannot delete root domain of the trust, use trust-del to delete the trust "
+"itself"
+msgstr ""
+
+msgid ""
+"List of trust domains successfully refreshed. Use trustdomain-find command "
+"to list them."
+msgstr ""
+
+msgid "Configure this server as a trust agent."
+msgstr ""
+
+msgid "Enable support for trusted domains for old clients"
+msgstr ""
+
+msgid "not allowed to remotely add agent"
+msgstr ""
+
+#, python-format
+msgid "Enabled trust domain \"%(value)s\""
+msgstr ""
+
+msgid "Root domain of the trust is always enabled for the existing trust"
+msgstr ""
+
+#, python-format
+msgid "Disabled trust domain \"%(value)s\""
+msgstr ""
+
+msgid ""
+"cannot disable root domain of the trust, use trust-del to delete the trust "
+"itself"
+msgstr ""
+
+msgid ""
+"\n"
+"Vaults\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Manage vaults.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Vault is a secure place to store a secret. One vault can only\n"
+"store one secret. When archiving a secret in a vault, the\n"
+"existing secret (if any) is overwritten.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Based on the ownership there are three vault categories:\n"
+"* user/private vault\n"
+"* service vault\n"
+"* shared vault\n"
+msgstr ""
+
+msgid ""
+"\n"
+"User vaults are vaults owned used by a particular user. Private\n"
+"vaults are vaults owned the current user. Service vaults are\n"
+"vaults owned by a service. Shared vaults are owned by the admin\n"
+"but they can be used by other users or services.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Based on the security mechanism there are three types of\n"
+"vaults:\n"
+"* standard vault\n"
+"* symmetric vault\n"
+"* asymmetric vault\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Standard vault uses a secure mechanism to transport and\n"
+"store the secret. The secret can only be retrieved by users\n"
+"that have access to the vault.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Symmetric vault is similar to the standard vault, but it\n"
+"pre-encrypts the secret using a password before transport.\n"
+"The secret can only be retrieved using the same password.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Asymmetric vault is similar to the standard vault, but it\n"
+"pre-encrypts the secret using a public key before transport.\n"
+"The secret can only be retrieved using the private key.\n"
+msgstr ""
+
+msgid ""
+"\n"
+" List vaults:\n"
+"   ipa vault-find\n"
+"       [--user <user>|--service <service>|--shared]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add a standard vault:\n"
+"   ipa vault-add <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --type standard\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add a symmetric vault:\n"
+"   ipa vault-add <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --type symmetric --password-file password.txt\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add an asymmetric vault:\n"
+"   ipa vault-add <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --type asymmetric --public-key-file public.pem\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Show a vault:\n"
+"   ipa vault-show <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Modify vault description:\n"
+"   ipa vault-mod <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --desc <description>\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Modify vault type:\n"
+"   ipa vault-mod <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --type <type>\n"
+"       [old password/private key]\n"
+"       [new password/public key]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Modify symmetric vault password:\n"
+"   ipa vault-mod <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --change-password\n"
+"   ipa vault-mod <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --old-password <old password>\n"
+"       --new-password <new password>\n"
+"   ipa vault-mod <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --old-password-file <old password file>\n"
+"       --new-password-file <new password file>\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Modify asymmetric vault keys:\n"
+"   ipa vault-mod <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --private-key-file <old private key file>\n"
+"       --public-key-file <new public key file>\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Delete a vault:\n"
+"   ipa vault-del <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Display vault configuration:\n"
+"   ipa vaultconfig-show\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Archive data into standard vault:\n"
+"   ipa vault-archive <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --in <input file>\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Archive data into symmetric vault:\n"
+"   ipa vault-archive <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --in <input file>\n"
+"       --password-file password.txt\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Archive data into asymmetric vault:\n"
+"   ipa vault-archive <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --in <input file>\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Retrieve data from standard vault:\n"
+"   ipa vault-retrieve <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --out <output file>\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Retrieve data from symmetric vault:\n"
+"   ipa vault-retrieve <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --out <output file>\n"
+"       --password-file password.txt\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Retrieve data from asymmetric vault:\n"
+"   ipa vault-retrieve <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       --out <output file> --private-key-file private.pem\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add vault owners:\n"
+"   ipa vault-add-owner <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       [--users <users>]  [--groups <groups>] [--services <services>]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Delete vault owners:\n"
+"   ipa vault-remove-owner <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       [--users <users>] [--groups <groups>] [--services <services>]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Add vault members:\n"
+"   ipa vault-add-member <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       [--users <users>] [--groups <groups>] [--services <services>]\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Delete vault members:\n"
+"   ipa vault-remove-member <name>\n"
+"       [--user <user>|--service <service>|--shared]\n"
+"       [--users <users>] [--groups <groups>] [--services <services>]\n"
+msgstr ""
+
+msgid ""
+"\n"
+"    Vault Container object.\n"
+"    "
+msgstr ""
+
+msgid "vaultcontainer"
+msgstr ""
+
+msgid "vaultcontainers"
+msgstr ""
+
+msgid "Vault Containers"
+msgstr ""
+
+msgid "Vault Container"
+msgstr ""
+
+msgid "Service, shared and user options cannot be specified simultaneously"
+msgstr ""
+
+msgid "Host is not supported"
+msgstr ""
+
+msgid "KRA service is not enabled"
+msgstr ""
+
+msgid "Deleted vault container"
+msgstr ""
+
+#, python-format
+msgid "owner %s"
+msgstr ""
+
+msgid ""
+"\n"
+"    Vault object.\n"
+"    "
+msgstr ""
+
+msgid "vault"
+msgstr ""
+
+msgid "vaults"
+msgstr ""
+
+msgid "Vaults"
+msgstr ""
+
+msgid "Vault"
+msgstr ""
+
+msgid "Service, shared, and user options cannot be specified simultaneously"
+msgstr ""
+
+msgid "Add a vault."
+msgstr ""
+
+#, python-format
+msgid "Added vault \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Deleted vault \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d vault matched"
+msgid_plural "%(count)d vaults matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"Service(s), shared, and user(s) options cannot be specified simultaneously"
+msgstr ""
+
+#, python-format
+msgid "Modified vault \"%(value)s\""
+msgstr ""
+
+msgid "Vault configuration"
+msgstr ""
+
+msgid "IPA KRA servers"
+msgstr ""
+
+msgid "IPA servers configured as key recovery agents"
+msgstr ""
+
+msgid "Key wrapping algorithm"
+msgstr ""
+
+#, python-format
+msgid "Archived data into vault \"%(value)s\""
+msgstr ""
+
+msgid "Retrieve data from a vault."
+msgstr ""
+
+#, python-format
+msgid "Retrieved data from vault \"%(value)s\""
+msgstr ""
+
+msgid "No archived data."
+msgstr ""
+
+msgid "Checks if any of the servers has the KRA service enabled"
+msgstr ""
+
+msgid ""
+"\n"
+"Password policy\n"
+"\n"
+"A password policy sets limitations on IPA passwords, including maximum\n"
+"lifetime, minimum lifetime, the number of passwords to save in\n"
+"history, the number of character classes required (for stronger passwords)\n"
+"and the minimum password length.\n"
+"\n"
+"By default there is a single, global policy for all users. You can also\n"
+"create a password policy to apply to a group. Each user is only subject\n"
+"to one password policy, either the group policy or the global policy. A\n"
+"group policy stands alone; it is not a super-set of the global policy plus\n"
+"custom settings.\n"
+"\n"
+"Each group password policy requires a unique priority setting. If a user\n"
+"is in multiple groups that have password policies, this priority determines\n"
+"which password policy is applied. A lower value indicates a higher priority\n"
+"policy.\n"
+"\n"
+"Group password policies are automatically removed when the groups they\n"
+"are associated with are removed.\n"
+"\n"
+"Grace period defines the number of LDAP logins allowed after expiration.\n"
+"-1 means do not enforce expiration to match previous behavior. 0 allows\n"
+"no additional logins after expiration.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Modify the global policy:\n"
+"   ipa pwpolicy-mod --minlength=10\n"
+"\n"
+" Add a new group password policy:\n"
+"   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 --"
+"minlength=8 --priority=10 localadmins\n"
+"\n"
+" Display the global password policy:\n"
+"   ipa pwpolicy-show\n"
+"\n"
+" Display a group password policy:\n"
+"   ipa pwpolicy-show localadmins\n"
+"\n"
+" Display the policy that would be applied to a given user:\n"
+"   ipa pwpolicy-show --user=tuser1\n"
+"\n"
+" Modify a group password policy:\n"
+"   ipa pwpolicy-mod --minclasses=2 localadmins\n"
+msgstr ""
+
+msgid "Class of Service object used for linking policies with groups"
+msgstr ""
+
+#, python-format
+msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
+msgstr ""
+
+msgid "Add Class of Service entry"
+msgstr ""
+
+msgid "Delete Class of Service entry"
+msgstr ""
+
+msgid "Modify Class of Service entry"
+msgstr ""
+
+msgid "Display Class of Service entry"
+msgstr ""
+
+msgid "Search for Class of Service entry"
+msgstr ""
+
+msgid "password policy"
+msgstr ""
+
+msgid "password policies"
+msgstr ""
+
+msgid "Password Policies"
+msgstr ""
+
+msgid "Password Policy"
+msgstr ""
+
+msgid "Max repeat"
+msgstr ""
+
+msgid "Maximum number of same consecutive characters"
+msgstr ""
+
+msgid "Max sequence"
+msgstr ""
+
+msgid "The max. length of monotonic character sequences (abcd)"
+msgstr ""
+
+msgid "Dictionary check"
+msgstr ""
+
+msgid "Check if the password is a dictionary word"
+msgstr ""
+
+msgid "User check"
+msgstr ""
+
+msgid "Check if the password contains the username"
+msgstr ""
+
+msgid "Grace login limit"
+msgstr ""
+
+msgid "Number of LDAP authentications allowed after expiration"
+msgstr ""
+
+msgid ""
+"Minimum length must be >= 6 if maxrepeat, maxsequence, dictcheck or "
+"usercheck are defined"
+msgstr ""
+
+msgid "Maximum password life must be equal to or greater than the minimum."
+msgstr ""
+
+msgid "cannot delete global password policy"
+msgstr ""
+
+msgid "priority cannot be set on global policy"
+msgstr ""
+
+msgid "automount location"
+msgstr ""
+
+msgid "automount locations"
+msgstr ""
+
+msgid "Automount Locations"
+msgstr ""
+
+msgid "Automount Location"
+msgstr ""
+
+#, python-format
+msgid "Added automount location \"%(value)s\""
+msgstr "추가된 자동적재 위치 \"%(value)s\""
+
+#, python-format
+msgid "Deleted automount location \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d automount location matched"
+msgid_plural "%(count)d automount locations matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "automount map"
+msgstr ""
+
+msgid "automount maps"
+msgstr ""
+
+msgid "Automount Maps"
+msgstr ""
+
+msgid "Automount Map"
+msgstr ""
+
+#, python-format
+msgid "Added automount map \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Deleted automount map \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Modified automount map \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d automount map matched"
+msgid_plural "%(count)d automount maps matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Automount key object."
+msgstr ""
+
+msgid "automount key"
+msgstr ""
+
+msgid "automount keys"
+msgstr ""
+
+msgid "Automount Keys"
+msgstr ""
+
+msgid "Automount Key"
+msgstr ""
+
+#, python-format
+msgid ""
+"The key,info pair must be unique. A key named %(key)s with info %(info)s "
+"already exists"
+msgstr ""
+
+#, python-format
+msgid "key named %(key)s already exists"
+msgstr ""
+
+#, python-format
+msgid "The automount key %(key)s with info %(info)s does not exist"
+msgstr ""
+
+#, python-format
+msgid ""
+"More than one entry with key %(key)s found, use --info to select specific "
+"entry."
+msgstr ""
+
+#, python-format
+msgid "Added automount key \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Added automount indirect map \"%(value)s\""
+msgstr ""
+
+msgid "mount point is relative to parent map, cannot begin with /"
+msgstr ""
+
+#, python-format
+msgid "Deleted automount key \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Modified automount key \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "%(count)d automount key matched"
+msgid_plural "%(count)d automount keys matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid ""
+"\n"
+"Baseuser\n"
+"\n"
+"This contains common definitions for user/stageuser\n"
+msgstr ""
+
+msgid "must be TRUE or FALSE"
+msgstr ""
+
+msgid ""
+"Object class ipaNTUserAttrs is missing, user entry cannot have SMB "
+"attributes."
+msgstr ""
+
+msgid "Principal alias"
+msgstr ""
+
+msgid "User password expiration"
+msgstr ""
+
+msgid "SSH public key fingerprint"
+msgstr "SSH 공유 키 지문"
+
+msgid "External IdP configuration"
+msgstr ""
+
+msgid "External IdP user identifier"
+msgstr ""
+
+msgid "A string that identifies the user at external IdP"
+msgstr ""
+
+msgid "Certificate mapping data"
+msgstr ""
+
+msgid "SMB logon script path"
+msgstr ""
+
+msgid "SMB profile path"
+msgstr ""
+
+msgid "SMB Home Directory"
+msgstr ""
+
+msgid "SMB Home Directory Drive"
+msgstr ""
+
+msgid "Passkey mapping"
+msgstr ""
+
+#, python-format
+msgid "invalid e-mail format: %(email)s"
+msgstr ""
+
+#, python-format
+msgid "manager %(manager)s not found"
+msgstr ""
+
+#, python-format
+msgid "can be at most %(len)d characters"
+msgstr ""
+
+msgid "Issuer"
+msgstr ""
+
+msgid "Issuer of the certificate"
+msgstr ""
+
+msgid "Subject"
+msgstr ""
+
+msgid "Subject of the certificate"
+msgstr ""
+
+msgid "cannot have an empty subject"
+msgstr ""
+
+msgid "cannot specify both subject/issuer and certificate"
+msgstr ""
+
+msgid "cannot specify both subject/issuer and ipacertmapdata"
+msgstr ""
+
+msgid "Add one or more certificate mappings to the user entry."
+msgstr ""
+
+#, python-format
+msgid "Added certificate mappings to user \"%(value)s\""
+msgstr ""
+
+msgid "Remove one or more certificate mappings from the user entry."
+msgstr ""
+
+#, python-format
+msgid "Removed certificate mappings from user \"%(value)s\""
+msgstr ""
+
+#, fuzzy, python-format
+#| msgid "Added automount location \"%(value)s\""
+msgid "Added passkey mappings to user \"%(value)s\""
+msgstr "추가된 자동적재 위치 \"%(value)s\""
+
+msgid "Remove one or more passkey mappings from the user entry."
+msgstr ""
+
+#, python-format
+msgid "Removed passkey mappings from user \"%(value)s\""
+msgstr ""
+
+msgid ""
+"\n"
+"Manage Certificate Authorities\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Subordinate Certificate Authorities (Sub-CAs) can be added for scoped "
+"issuance\n"
+"of X.509 certificates.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"CAs are enabled on creation, but their use is subject to CA ACLs unless the\n"
+"operator has permission to bypass CA ACLs.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"All CAs except the 'IPA' CA can be disabled or re-enabled.  Disabling a CA\n"
+"prevents it from issuing certificates but does not affect the validity of "
+"its\n"
+"certificate.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"CAs (all except the 'IPA' CA) can be deleted.  Deleting a CA causes its "
+"signing\n"
+"certificate to be revoked and its private key deleted.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"  Create new CA, subordinate to the IPA CA (requires permission\n"
+"  \"System: Add CA\"):\n"
+"\n"
+"    ipa ca-add puppet --desc \"Puppet\" \\\n"
+"        --subject \"CN=Puppet CA,O=EXAMPLE.COM\"\n"
+msgstr ""
+
+msgid ""
+"\n"
+"  Disable a CA (requires permission \"System: Modify CA\"):\n"
+"\n"
+"    ipa ca-disable puppet\n"
+msgstr ""
+
+msgid ""
+"\n"
+"  Re-enable a CA (requires permission \"System: Modify CA\"):\n"
+"\n"
+"    ipa ca-enable puppet\n"
+msgstr ""
+
+msgid ""
+"\n"
+"  Delete a CA (requires permission \"System: Delete CA\"; also requires\n"
+"  CA to be disabled first):\n"
+"\n"
+"    ipa ca-del puppet\n"
+msgstr ""
+
+msgid "Certificate Authority"
+msgstr ""
+
+msgid "Certificate Authorities"
+msgstr ""
+
+msgid "Name for referencing the CA"
+msgstr ""
+
+msgid "Description of the purpose of the CA"
+msgstr ""
+
+msgid "Authority ID"
+msgstr ""
+
+msgid "Dogtag Authority ID"
+msgstr ""
+
+msgid "Subject DN"
+msgstr ""
+
+msgid "Subject Distinguished Name"
+msgstr ""
+
+msgid "Issuer DN"
+msgstr ""
+
+msgid "Issuer Distinguished Name"
+msgstr ""
+
+msgid "Base-64 encoded certificate."
+msgstr ""
+
+msgid "Certificate chain"
+msgstr ""
+
+msgid "X.509 certificate chain"
+msgstr ""
+
+msgid "RSN Version"
+msgstr ""
+
+msgid "Random Serial Number Version"
+msgstr ""
+
+msgid "Search for CAs."
+msgstr ""
+
+#, python-format
+msgid "%(count)d CA matched"
+msgid_plural "%(count)d CAs matched"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Include certificate chain in output"
+msgstr ""
+
+msgid "Display the properties of a CA."
+msgstr ""
+
+msgid "Create a CA."
+msgstr ""
+
+#, python-format
+msgid "Created CA \"%(value)s\""
+msgstr ""
+
+#, python-format
+msgid "Insufficient 'add' privilege for entry '%s'."
+msgstr ""
+
+#, python-format
+msgid "Unrecognized attributes: %(attrs)s"
+msgstr ""
+
+#, python-format
+msgid "Subject DN is already used by CA '%s'"
+msgstr ""
+
+msgid "Delete a CA (must be disabled first)."
+msgstr ""
+
+#, python-format
+msgid "Deleted CA \"%(value)s\""
+msgstr ""
+
+msgid "Insufficient privilege to delete a CA."
+msgstr ""
+
+msgid "CA"
+msgstr ""
+
+msgid "IPA CA cannot be deleted"
+msgstr ""
+
+msgid "Must be disabled first"
+msgstr ""
+
+msgid "Modify CA configuration."
+msgstr ""
+
+#, python-format
+msgid "Modified CA \"%(value)s\""
+msgstr ""
+
+msgid "Insufficient privilege to modify a CA."
+msgstr ""
+
+msgid "Disable a CA."
+msgstr ""
+
+#, python-format
+msgid "Disabled CA \"%(value)s\""
+msgstr ""
+
+msgid "IPA CA cannot be disabled"
+msgstr ""
+
+msgid "Enable a CA."
+msgstr ""
+
+#, python-format
+msgid "Enabled CA \"%(value)s\""
+msgstr ""
+
+msgid ""
+"\n"
+"IPA certificate operations\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Implements a set of commands for managing server SSL certificates.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Certificate requests exist in the form of a Certificate Signing Request "
+"(CSR)\n"
+"in PEM format.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"The dogtag CA uses just the CN value of the CSR and forces the rest of the\n"
+"subject to values configured in the server.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"A certificate is stored with a service principal and a service principal\n"
+"needs a host.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"In order to request a certificate:\n"
+msgstr ""
+
+msgid ""
+"\n"
+"* The host must exist\n"
+"* The service must exist (or you use the --add option to automatically add "
+"it)\n"
+msgstr ""
+
+msgid ""
+"\n"
+"SEARCHING:\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Certificates may be searched on by certificate subject, serial number,\n"
+"revocation reason, validity dates and the issued date.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"When searching on dates the _from date does a >= search and the _to date\n"
+"does a <= search. When combined these are done as an AND.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Dates are treated as GMT to match the dates in the certificates.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"The date format is YYYY-mm-dd.\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Request a new certificate and add the principal:\n"
+"   ipa cert-request --add --principal=HTTP/lion.example.com example.csr\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Retrieve an existing certificate:\n"
+"   ipa cert-show 1032\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Revoke a certificate (see RFC 5280 for reason details):\n"
+"   ipa cert-revoke --revocation-reason=6 1032\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Remove a certificate from revocation hold status:\n"
+"   ipa cert-remove-hold 1032\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Check the status of a signing request:\n"
+"   ipa cert-status 10\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Search for certificates by hostname:\n"
+"   ipa cert-find --subject=ipaserver.example.com\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Search for revoked certificates by reason:\n"
+"   ipa cert-find --revocation-reason=5\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Search for certificates based on issuance date\n"
+"   ipa cert-find --issuedon-from=2013-02-01 --issuedon-to=2013-02-07\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Search for certificates owned by a specific user:\n"
+"   ipa cert-find --user=user\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Examine a certificate:\n"
+"   ipa cert-find --file=cert.pem --all\n"
+msgstr ""
+
+msgid ""
+"\n"
+" Verify that a certificate is owned by a specific user:\n"
+"   ipa cert-find --file=cert.pem --user=user\n"
+msgstr ""
+
+msgid ""
+"\n"
+"IPA currently immediately issues (or declines) all certificate requests so\n"
+"the status of a request is not normally useful. This is for future use\n"
+"or the case where a CA does not immediately issue a certificate.\n"
+msgstr ""
+
+msgid ""
+"\n"
+"The following revocation reasons are supported:\n"
+"\n"
+msgstr ""
+
+msgid "    * 0 - unspecified\n"
+msgstr ""
+
+msgid "    * 1 - keyCompromise\n"
+msgstr ""
+
+msgid "    * 2 - cACompromise\n"
+msgstr ""
+
+msgid "    * 3 - affiliationChanged\n"
+msgstr ""
+
+msgid "    * 4 - superseded\n"
+msgstr ""
+
+msgid "    * 5 - cessationOfOperation\n"
+msgstr ""
+
+msgid "    * 6 - certificateHold\n"
+msgstr ""
+
+msgid "    * 8 - removeFromCRL\n"
+msgstr ""
+
+msgid "    * 9 - privilegeWithdrawn\n"
+msgstr ""
+
+msgid "    * 10 - aACompromise\n"
+msgstr ""
+
+msgid ""
+"\n"
+"Note that reason code 7 is not used.  See RFC 5280 for more details:\n"
+msgstr ""
+
+msgid ""
+"\n"
+"http://www.ietf.org/rfc/rfc5280.txt\n"
+"\n"
+msgstr ""
+
+#, python-format
+msgid ""
+"Principal '%(principal)s' is not permitted to use CA '%(ca)s' with profile "
+"'%(profile_id)s' for certificate issuance."
+msgstr ""
+
+msgid "enabledService/configuredService not in ipaConfigString kdc entry"
+msgstr ""
+
+#, python-format
+msgid "Host '%(hostname)s' is not an active KDC"
+msgstr ""
+
+msgid "Issuing CA"
+msgstr ""
+
+msgid "Name of issuing CA"
+msgstr ""
+
+msgid "Subject email address"
+msgstr ""
+
+msgid "Subject DNS name"
+msgstr ""
+
+msgid "Subject X.400 address"
+msgstr ""
+
+msgid "Subject directory name"
+msgstr ""
+
+msgid "Subject EDI Party name"
+msgstr ""
+
+msgid "Subject URI"
+msgstr ""
+
+msgid "Subject IP Address"
+msgstr ""
+
+msgid "Subject OID"
+msgstr "대상 OID"
+
+msgid "Subject UPN"
+msgstr ""
+
+msgid "Subject Kerberos principal name"
+msgstr ""
+
+msgid "Subject Other Name"
+msgstr ""
+
+msgid "Not Before"
+msgstr ""
+
+msgid "Not After"
+msgstr ""
+
+msgid "Fingerprint (SHA1)"
+msgstr ""
+
+msgid "Fingerprint (SHA256)"
+msgstr ""
+
+msgid "Serial number (hex)"
+msgstr "일련 번호 (16 진수)"
+
+msgid "Request status"
+msgstr ""
+
+msgid ""
+"automatically add the principal if it doesn't exist (service principals only)"
+msgstr ""
+
+#, python-format
+msgid "krbtgt certs can use only the %s profile"
+msgstr ""
+
+msgid "No Common Name was found in subject of request."
+msgstr ""
+
+#, python-format
+msgid ""
+"hostname in subject of request '%(cn)s' does not match name or aliases of "
+"principal '%(principal)s'"
+msgstr ""
+
+#, python-format
+msgid ""
+"hostname in subject of request '%(cn)s' does not match principal hostname "
+"'%(hostname)s'"
+msgstr ""
+
+msgid "DN commonName does not match user's login"
+msgstr ""
+
+msgid "DN emailAddress does not match any of user's email addresses"
+msgstr ""
+
+#, python-format
+msgid ""
+"Insufficient 'write' privilege to the 'userCertificate' attribute of entry "
+"'%s'."
+msgstr ""
+
+#, python-format
+msgid "subject alt name type %s is forbidden for user principals"
+msgstr ""
+
+#, python-format
+msgid ""
+"The service principal for subject alt name %s in certificate request does "
+"not exist"
+msgstr ""
+
+#, python-format
+msgid ""
+"Insufficient privilege to create a certificate with subject alt name '%s'."
+msgstr ""
+
+#, python-format
+msgid "Principal '%s' in subject alt name does not match requested principal"
+msgstr ""
+
+msgid "RFC822Name does not match any of user's email addresses"
+msgstr ""
+
+#, python-format
+msgid "subject alt name type %s is forbidden for non-user principals"
+msgstr ""
+
+#, python-format
+msgid "Subject alt name type %s is forbidden"
+msgstr ""
+
+#, python-format
+msgid "CA '%s' is disabled"
+msgstr ""
+
+msgid "'add' option"
+msgstr ""
+
+msgid "The principal for this request doesn't exist."
+msgstr ""
+
+#, python-format
+msgid "IP address in subjectAltName (%s) unreachable from DNS names"
+msgstr ""
+
+#, python-format
+msgid "IP address in subjectAltName (%s) does not have PTR record"
+msgstr ""
+
+#, python-format
+msgid "PTR record for SAN IP (%s) does not match A/AAAA records"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Revoked"
+msgstr ""
+
+msgid "Revocation reason"
+msgstr ""
+
+msgid ""
+"Reason for revoking the certificate (0-10). Type \"ipa help cert\" for "
+"revocation reason details. "
+msgstr ""
+
+#, python-format
+msgid "Owner %s"
+msgstr ""
+
+#, python-format
+msgid ""
+"Certificate with serial number %(serial)s issued by CA '%(ca)s' not found"
+msgstr ""
+
+msgid "7 is not a valid revocation reason"
+msgstr ""
+
+msgid "Status of the certificate"
+msgstr ""
+
+msgid "Results should contain primary key attribute only (\"certificate\")"
+msgstr ""
+
+#, python-format
+msgid "%(count)d certificate matched"
+msgid_plural "%(count)d certificates matched"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "Search for certificates with these owner %s."
+msgstr ""
+
+#, python-format
+msgid "Search for certificates without these owner %s."
+msgstr ""
+
+msgid ""
+"\n"
+"Server configuration\n"
+"\n"
+"Manage the default values that IPA uses and some of its tuning parameters.\n"
+"\n"
+"NOTES:\n"
+"\n"
+"The password notification value (--pwdexpnotify) is stored here so it will\n"
+"be replicated. It is not currently used to notify users in advance of an\n"
+"expiring password.\n"
+"\n"
+"Some attributes are read-only, provided only for information purposes. "
+"These\n"
+"include:\n"
+"\n"
+"Certificate Subject base: the configured certificate subject base,\n"
+"  e.g. O=EXAMPLE.COM.  This is configurable only at install time.\n"
+"Password plug-in features: currently defines additional hashes that the\n"
+"  password will generate (there may be other conditions).\n"
+"\n"
+"When setting the order list for mapping SELinux users you may need to\n"
+"quote the value so it isn't interpreted by the shell.\n"
+"\n"
+"The maximum length of a hostname in Linux is controlled by\n"
+"MAXHOSTNAMELEN in the kernel and defaults to 64. Some other operating\n"
+"systems, Solaris for example, allows hostnames up to 255 characters.\n"
+"This option will allow flexibility in length but by default limiting\n"
+"to the Linux maximum length.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Show basic server configuration:\n"
+"   ipa config-show\n"
+"\n"
+" Show all configuration options:\n"
+"   ipa config-show --all\n"
+"\n"
+" Change maximum username length to 99 characters:\n"
+"   ipa config-mod --maxusername=99\n"
+"\n"
+" Change maximum host name length to 255 characters:\n"
+"   ipa config-mod --maxhostname=255\n"
+"\n"
+" Increase default time and size limits for maximum IPA server search:\n"
+"   ipa config-mod --searchtimelimit=10 --searchrecordslimit=2000\n"
+"\n"
+" Set default user e-mail domain:\n"
+"   ipa config-mod --emaildomain=example.com\n"
+"\n"
+" Enable migration mode to make \"ipa migrate-ds\" command operational:\n"
+"   ipa config-mod --enable-migration=TRUE\n"
+"\n"
+" Define SELinux user map order:\n"
+"   ipa config-mod --ipaselinuxusermaporder='guest_u:s0$xguest_u:s0$user_u:s0-"
+"s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023'\n"
+msgstr ""
+
+msgid "must be at least 10"
+msgstr ""
+
+msgid "configuration options"
+msgstr ""
+
+msgid "Configuration"
+msgstr ""
+
+msgid "Maximum hostname length"
+msgstr ""
+
+msgid "Enable adding subids to new users"
+msgstr ""
+
+msgid "IPA masters"
+msgstr ""
+
+msgid "List of all IPA masters"
+msgstr ""
+
+msgid "Hidden IPA masters"
+msgstr ""
+
+msgid "List of all hidden IPA masters"
+msgstr ""
+
+msgid "IPA master capable of PKINIT"
+msgstr ""
+
+msgid "IPA master which can process PKINIT requests"
+msgstr ""
+
+msgid "IPA CA servers"
+msgstr ""
+
+msgid "IPA servers configured as certificate authority"
+msgstr ""
+
+msgid "Hidden IPA CA servers"
+msgstr ""
+
+msgid "Hidden IPA servers configured as certificate authority"
+msgstr ""
+
+msgid "IPA CA renewal master"
+msgstr ""
+
+msgid "Renewal master for IPA certificate authority"
+msgstr ""
+
+msgid "IPA servers configured as key recovery agent"
+msgstr ""
+
+msgid "Hidden IPA KRA servers"
+msgstr ""
+
+msgid "Hidden IPA servers configured as key recovery agent"
+msgstr ""
+
+msgid "IPA servers configured as domain name server"
+msgstr ""
+
+msgid "Hidden IPA DNS servers"
+msgstr ""
+
+msgid "Hidden IPA servers configured as domain name server"
+msgstr ""
+
+msgid "DNSec key master"
+msgstr ""
+
+msgid "Setup SID configuration"
+msgstr ""
+
+msgid "New users and groups automatically get a SID assigned"
+msgstr ""
+
+msgid "Add SIDs"
+msgstr ""
+
+msgid "Add SIDs for existing users and groups"
+msgstr ""
+
+msgid "NetBIOS name of the IPA domain"
+msgstr ""
+
+msgid "Empty domain is not allowed"
+msgstr ""
+
+#, python-format
+msgid "Invalid domain name '%(domain)s': %(e)s"
+msgstr ""
+
+#, python-format
+msgid "Server has no information about domain '%(domain)s'"
+msgstr ""
+
+#, python-format
+msgid "Disabled domain '%(domain)s' is not allowed"
+msgstr ""
+
+msgid "not allowed to enable SID generation"
+msgstr ""
+
+msgid ""
+"Up to 15 characters and only uppercase ASCII letters, digits and dashes are "
+"allowed. Empty string is not allowed."
+msgstr ""
+
+msgid "Failed to call DBus"
+msgstr ""
+
+msgid "Configuration of SID failed. See details in the error log"
+msgstr ""
+
+msgid "The group doesn't exist"
+msgstr ""
+
+#, python-format
+msgid "attribute \"%s\" not allowed"
+msgstr ""
+
+msgid "May not be empty"
+msgstr ""
+
+#, python-format
+msgid "%(obj)s default attribute %(attr)s would not be allowed!"
+msgstr ""
+
+msgid "A list of SELinux users delimited by $ expected"
+msgstr ""
+
+#, python-format
+msgid "SELinux user '%(user)s' is not valid: %(error)s"
+msgstr ""
+
+msgid "SELinux user map default user not in order list"
+msgstr ""
+
+#, python-format
+msgid "You cannot specify %s without the --enable-sid option"
 msgstr ""
 
 msgid "REST API is not logged in."
@@ -17571,11 +19060,6 @@ msgid "%(count)d group matched"
 msgid_plural "%(count)d groups matched"
 msgstr[0] ""
 msgstr[1] ""
-
-msgid ""
-"Cannot perform join operation without own domain configured. Make sure you "
-"have run ipa-adtrust-install on the IPA server first"
-msgstr ""
 
 #, python-format
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
@@ -18178,12 +19662,6 @@ msgstr ""
 msgid "local domain range"
 msgstr ""
 
-msgid "Active Directory domain range"
-msgstr ""
-
-msgid "Active Directory trust range with POSIX attributes"
-msgstr ""
-
 msgid "ID range type, one of allowed values"
 msgstr ""
 
@@ -18318,195 +19796,6 @@ msgstr ""
 
 msgid "Options dom-sid and rid-base must be used together"
 msgstr ""
-
-msgid "ID View"
-msgstr ""
-
-msgid "system ID View"
-msgstr ""
-
-msgid "ID Views"
-msgstr ""
-
-msgid "User object overrides"
-msgstr ""
-
-msgid "Group object overrides"
-msgstr ""
-
-msgid "Hosts the view applies to"
-msgstr ""
-
-#, python-format
-msgid "Added ID View \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Deleted ID View \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Modified an ID View \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d ID View matched"
-msgid_plural "%(count)d ID Views matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Default Trust View cannot be applied on hosts"
-msgstr ""
-
-msgid "not found"
-msgstr ""
-
-msgid "ID View cannot be applied to IPA master"
-msgstr ""
-
-msgid "ID View already applied"
-msgstr ""
-
-msgid "value"
-msgstr ""
-
-#, python-format
-msgid "ID View applied to %i host."
-msgstr ""
-
-#, python-format
-msgid "ID View applied to %i hosts."
-msgstr ""
-
-#, python-format
-msgid "ID View cleared from %i host."
-msgstr ""
-
-#, python-format
-msgid "ID View cleared from %i hosts."
-msgstr ""
-
-msgid ""
-"You are trying to reference a magic private group which is not allowed to be "
-"overridden. Try overriding the GID attribute of the corresponding user "
-"instead."
-msgstr ""
-
-msgid "IPA object"
-msgstr ""
-
-msgid ""
-"system IPA objects (e.g. system groups, user private groups) cannot be "
-"overridden"
-msgstr ""
-
-#, python-format
-msgid "Anchor '%(anchor)s' could not be resolved."
-msgstr ""
-
-msgid "Default Trust View cannot contain IPA users"
-msgstr ""
-
-msgid "Add a new ID override."
-msgstr ""
-
-#, python-format
-msgid "Added ID override \"%(value)s\""
-msgstr ""
-
-msgid "Delete an ID override."
-msgstr ""
-
-#, python-format
-msgid "Deleted ID override \"%(value)s\""
-msgstr ""
-
-msgid "Modify an ID override."
-msgstr ""
-
-#, python-format
-msgid "Modified an ID override \"%(value)s\""
-msgstr ""
-
-msgid "ID override"
-msgstr ""
-
-msgid "ID overrides cannot be renamed"
-msgstr ""
-
-msgid "Search for an ID override."
-msgstr ""
-
-#, python-format
-msgid "%(count)d ID override matched"
-msgid_plural "%(count)d ID overrides matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Display information about an ID override."
-msgstr "ID 재정의에 대한 정보를 표시합니다."
-
-msgid "User ID override"
-msgstr ""
-
-msgid "User ID overrides"
-msgstr ""
-
-msgid "Group ID override"
-msgstr ""
-
-msgid "Group ID overrides"
-msgstr ""
-
-msgid "Add one or more certificates to the idoverrideuser entry"
-msgstr ""
-
-#, python-format
-msgid "Added certificates to idoverrideuser \"%(value)s\""
-msgstr ""
-
-msgid "Remove one or more certificates to the idoverrideuser entry"
-msgstr ""
-
-#, python-format
-msgid "Removed certificates from idoverrideuser \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Added User ID override \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Deleted User ID override \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Modified an User ID override \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d User ID override matched"
-msgid_plural "%(count)d User ID overrides matched"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "Added Group ID override \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Deleted Group ID override \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Modified an Group ID override \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d Group ID override matched"
-msgid_plural "%(count)d Group ID overrides matched"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "Internationalization messages"
 msgstr ""
@@ -20508,9 +21797,6 @@ msgstr ""
 msgid "Add password policy"
 msgstr ""
 
-msgid "Password Policy"
-msgstr ""
-
 msgid "Remove password policies"
 msgstr ""
 
@@ -20975,15 +22261,6 @@ msgid "Remove trusts"
 msgstr ""
 
 msgid "Remove domains"
-msgstr ""
-
-msgid "Trust direction"
-msgstr ""
-
-msgid "Trust status"
-msgstr ""
-
-msgid "Trust type"
 msgstr ""
 
 msgid "Alternative UPN suffixes"
@@ -21527,9 +22804,6 @@ msgstr ""
 msgid "Topology"
 msgstr ""
 
-msgid "Trusts"
-msgstr ""
-
 msgid "True"
 msgstr ""
 
@@ -21774,349 +23048,6 @@ msgstr ""
 
 msgid ""
 "\n"
-"Permissions\n"
-msgstr ""
-
-msgid ""
-"\n"
-"A permission enables fine-grained delegation of rights. A permission is\n"
-"a human-readable wrapper around a 389-ds Access Control Rule,\n"
-"or instruction (ACI).\n"
-"A permission grants the right to perform a specific task such as adding a\n"
-"user, modifying a group, etc.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"A permission may not contain other permissions.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"* A permission grants access to read, write, add, delete, read, search,\n"
-"  or compare.\n"
-"* A privilege combines similar permissions (for example all the permissions\n"
-"  needed to add a user).\n"
-"* A role grants a set of privileges to users, groups, hosts or hostgroups.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"A permission is made up of a number of different parts:\n"
-"\n"
-"1. The name of the permission.\n"
-"2. The target of the permission.\n"
-"3. The rights granted by the permission.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Rights define what operations are allowed, and may be one or more\n"
-"of the following:\n"
-"1. write - write one or more attributes\n"
-"2. read - read one or more attributes\n"
-"3. search - search on one or more attributes\n"
-"4. compare - compare one or more attributes\n"
-"5. add - add a new entry to the tree\n"
-"6. delete - delete an existing entry\n"
-"7. all - all permissions are granted\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Note the distinction between attributes and entries. The permissions are\n"
-"independent, so being able to add a user does not mean that the user will\n"
-"be editable.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"There are a number of allowed targets:\n"
-"1. subtree: a DN; the permission applies to the subtree under this DN\n"
-"2. target filter: an LDAP filter\n"
-"3. target: DN with possible wildcards, specifies entries permission applies "
-"to\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Additionally, there are the following convenience options.\n"
-"Setting one of these options will set the corresponding attribute(s).\n"
-"1. type: a type of object (user, group, etc); sets subtree and target "
-"filter.\n"
-"2. memberof: apply to members of a group; sets target filter\n"
-"3. targetgroup: grant access to modify a specific group (such as granting\n"
-"   the rights to manage group membership); sets target.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Managed permissions\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Permissions that come with IPA by default can be so-called \"managed\"\n"
-"permissions. These have a default set of attributes they apply to,\n"
-"but the administrator can add/remove individual attributes to/from the set.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Deleting or renaming a managed permission, as well as changing its target,\n"
-"is not allowed.\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add a permission that grants the creation of users:\n"
-"   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add a permission that grants the ability to manage group membership:\n"
-"   ipa permission-add --attrs=member --permissions=write --type=group "
-"\"Manage Group Members\"\n"
-msgstr ""
-
-msgid "must be enclosed in parentheses"
-msgstr ""
-
-#, python-format
-msgid "\"%s\" is not an object type"
-msgstr ""
-
-#, python-format
-msgid "\"%s\" is not a valid permission type"
-msgstr ""
-
-#, python-format
-msgid "Deprecated; use %s"
-msgstr ""
-
-#, python-format
-msgid "Permission with unknown flag %s may not be modified or removed"
-msgstr ""
-
-msgid "A SYSTEM permission may not be modified or removed"
-msgstr ""
-
-#, python-format
-msgid "Entry %s not found"
-msgstr ""
-
-#, python-format
-msgid "The ACI for permission %(name)s was not found in %(dn)s "
-msgstr ""
-
-msgid ""
-"cannot specify full target filter and extra target filter simultaneously"
-msgstr ""
-
-#, python-format
-msgid "option was renamed; use %s"
-msgstr ""
-
-#, python-format
-msgid "Cannot use %(old_name)s with %(new_name)s"
-msgstr ""
-
-#, python-format
-msgid "%s: group not found"
-msgstr ""
-
-msgid "target and targetgroup are mutually exclusive"
-msgstr ""
-
-msgid "subtree and type are mutually exclusive"
-msgstr ""
-
-msgid "Bad search filter"
-msgstr ""
-
-#, python-format
-msgid "Entry %s does not exist"
-msgstr ""
-
-msgid ""
-"there must be at least one target entry specifier (e.g. target, "
-"targetfilter, attrs)"
-msgstr ""
-
-#, python-format
-msgid "Added permission \"%(value)s\""
-msgstr ""
-
-msgid "attrs and included attributes are mutually exclusive"
-msgstr ""
-
-#, python-format
-msgid "Cannot store permission ACI to %s"
-msgstr ""
-
-#, python-format
-msgid "Deleted permission \"%(value)s\""
-msgstr ""
-
-msgid "cannot delete managed permissions"
-msgstr ""
-
-#, python-format
-msgid "ACI of permission %s was not found"
-msgstr ""
-
-#, python-format
-msgid "Modified permission \"%(value)s\""
-msgstr ""
-
-msgid "cannot rename managed permissions"
-msgstr ""
-
-msgid "not modifiable on managed permissions"
-msgstr ""
-
-msgid "only available on managed permissions"
-msgstr ""
-
-msgid "attrs and included/excluded attributes are mutually exclusive"
-msgstr ""
-
-msgid "cannot set bindtype for a permission that is assigned to a privilege"
-msgstr ""
-
-#, python-format
-msgid "%(count)d permission matched"
-msgid_plural "%(count)d permissions matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid ""
-"\n"
-"Password policy\n"
-"\n"
-"A password policy sets limitations on IPA passwords, including maximum\n"
-"lifetime, minimum lifetime, the number of passwords to save in\n"
-"history, the number of character classes required (for stronger passwords)\n"
-"and the minimum password length.\n"
-"\n"
-"By default there is a single, global policy for all users. You can also\n"
-"create a password policy to apply to a group. Each user is only subject\n"
-"to one password policy, either the group policy or the global policy. A\n"
-"group policy stands alone; it is not a super-set of the global policy plus\n"
-"custom settings.\n"
-"\n"
-"Each group password policy requires a unique priority setting. If a user\n"
-"is in multiple groups that have password policies, this priority determines\n"
-"which password policy is applied. A lower value indicates a higher priority\n"
-"policy.\n"
-"\n"
-"Group password policies are automatically removed when the groups they\n"
-"are associated with are removed.\n"
-"\n"
-"Grace period defines the number of LDAP logins allowed after expiration.\n"
-"-1 means do not enforce expiration to match previous behavior. 0 allows\n"
-"no additional logins after expiration.\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Modify the global policy:\n"
-"   ipa pwpolicy-mod --minlength=10\n"
-"\n"
-" Add a new group password policy:\n"
-"   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 --"
-"minlength=8 --priority=10 localadmins\n"
-"\n"
-" Display the global password policy:\n"
-"   ipa pwpolicy-show\n"
-"\n"
-" Display a group password policy:\n"
-"   ipa pwpolicy-show localadmins\n"
-"\n"
-" Display the policy that would be applied to a given user:\n"
-"   ipa pwpolicy-show --user=tuser1\n"
-"\n"
-" Modify a group password policy:\n"
-"   ipa pwpolicy-mod --minclasses=2 localadmins\n"
-msgstr ""
-
-msgid "Class of Service object used for linking policies with groups"
-msgstr ""
-
-#, python-format
-msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
-msgstr ""
-
-msgid "Add Class of Service entry"
-msgstr ""
-
-msgid "Delete Class of Service entry"
-msgstr ""
-
-msgid "Modify Class of Service entry"
-msgstr ""
-
-msgid "Display Class of Service entry"
-msgstr ""
-
-msgid "Search for Class of Service entry"
-msgstr ""
-
-msgid "password policy"
-msgstr ""
-
-msgid "password policies"
-msgstr ""
-
-msgid "Password Policies"
-msgstr ""
-
-msgid "Max repeat"
-msgstr ""
-
-msgid "Maximum number of same consecutive characters"
-msgstr ""
-
-msgid "Max sequence"
-msgstr ""
-
-msgid "The max. length of monotonic character sequences (abcd)"
-msgstr ""
-
-msgid "Dictionary check"
-msgstr ""
-
-msgid "Check if the password is a dictionary word"
-msgstr ""
-
-msgid "User check"
-msgstr ""
-
-msgid "Check if the password contains the username"
-msgstr ""
-
-msgid "Grace login limit"
-msgstr ""
-
-msgid "Number of LDAP authentications allowed after expiration"
-msgstr ""
-
-msgid ""
-"Minimum length must be >= 6 if maxrepeat, maxsequence, dictcheck or "
-"usercheck are defined"
-msgstr ""
-
-msgid "Maximum password life must be equal to or greater than the minimum."
-msgstr ""
-
-msgid "cannot delete global password policy"
-msgstr ""
-
-msgid "priority cannot be set on global policy"
-msgstr ""
-
-msgid ""
-"\n"
 "API Schema\n"
 msgstr ""
 
@@ -22246,195 +23177,6 @@ msgid "Store and provide schema for commands and topics"
 msgstr ""
 
 msgid "Fingerprint of schema cached by client"
-msgstr ""
-
-msgid ""
-"\n"
-"IPA servers\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Get information about installed IPA servers.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"  Find all servers:\n"
-"    ipa server-find\n"
-msgstr ""
-
-msgid ""
-"\n"
-"  Show specific server:\n"
-"    ipa server-show ipa.example.com\n"
-msgstr ""
-
-msgid "server"
-msgstr ""
-
-msgid "servers"
-msgstr ""
-
-msgid "IPA Servers"
-msgstr ""
-
-#, fuzzy
-#| msgid "Server Name"
-msgid "Server DNS location"
-msgstr "서버 이름"
-
-msgid "Service weight"
-msgstr ""
-
-msgid "Weight for server services"
-msgstr ""
-
-msgid "Service relative weight"
-msgstr ""
-
-msgid "Relative weight for server services (counts per location)"
-msgstr ""
-
-msgid "Enabled server roles"
-msgstr ""
-
-msgid "List of enabled roles"
-msgstr ""
-
-msgid "Modify information about an IPA server."
-msgstr ""
-
-#, python-format
-msgid "Modified IPA server \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d IPA server matched"
-msgid_plural "%(count)d IPA servers matched"
-msgstr[0] ""
-msgstr[1] ""
-
-#, python-format
-msgid "Deleted IPA server \"%(value)s\""
-msgstr ""
-
-msgid "Ignore topology errors"
-msgstr ""
-
-msgid "Ignore topology connectivity problems after removal"
-msgstr ""
-
-msgid "Ignore check for last remaining CA or DNS server"
-msgstr ""
-
-msgid "Skip a check whether the last CA master or DNS server is removed"
-msgstr ""
-
-msgid "Force server removal"
-msgstr ""
-
-msgid "Force server removal even if it does not exist"
-msgstr ""
-
-msgid ""
-"Replica is active DNSSEC key master. Uninstall could break your DNS system. "
-"Please disable or replace DNSSEC key master first."
-msgstr ""
-
-msgid "Deleting this server will leave your installation without a DNS."
-msgstr ""
-
-msgid ""
-"Deleting this server is not allowed as it would leave your installation "
-"without a KRA."
-msgstr ""
-
-msgid ""
-"Deleting this server is not allowed as it would leave your installation "
-"without a CA."
-msgstr ""
-
-msgid "Ignoring these warnings and proceeding with removal"
-msgstr ""
-
-#, python-format
-msgid ""
-"Failed to clean memberPrincipal %(principal)s from s4u2proxy entry %(dn)s: "
-"%(err)s"
-msgstr ""
-
-#, python-format
-msgid "Failed to clean up DNA hostname entries for %(master)s: %(err)s"
-msgstr ""
-
-#, python-format
-msgid "Failed to remove server %(master)s from server list: %(err)s"
-msgstr ""
-
-#, python-format
-msgid "Failed to clean up Custodia keys for %(master)s: %(err)s"
-msgstr ""
-
-#, python-format
-msgid "Failed to cleanup server principals/keys: %(err)s"
-msgstr ""
-
-#, python-format
-msgid "Failed to cleanup %(hostname)s DNS entries: %(err)s"
-msgstr ""
-
-msgid "You may need to manually remove them from the tree"
-msgstr ""
-
-#, python-format
-msgid "Forcing removal of %(hostname)s"
-msgstr ""
-
-msgid "Ignoring topology connectivity errors."
-msgstr ""
-
-#, python-format
-msgid "Failed to remove server from security domain: %s"
-msgstr ""
-
-msgid "Server has already been deleted"
-msgstr ""
-
-msgid "Agreements deleted"
-msgstr ""
-
-msgid "Following segments were not deleted:"
-msgstr ""
-
-#, python-format
-msgid "must be \"%s\""
-msgstr ""
-
-msgid "not allowed to perform server connection check"
-msgstr ""
-
-msgid "Set enabled/hidden state of a server."
-msgstr ""
-
-msgid "State"
-msgstr ""
-
-msgid "Server state"
-msgstr ""
-
-#, python-format
-msgid "Changed server state of \"%(value)s\"."
-msgstr ""
-
-msgid "Cannot hide CA renewal master."
-msgstr ""
-
-msgid "Cannot hide DNSSec key master."
-msgstr ""
-
-#, python-format
-msgid "Cannot hide last enabled %(name)s server."
 msgstr ""
 
 msgid ""
@@ -22980,403 +23722,6 @@ msgstr ""
 
 msgid ""
 "\n"
-"Cross-realm trusts\n"
-"\n"
-"Manage trust relationship between IPA and Active Directory domains.\n"
-"\n"
-"In order to allow users from a remote domain to access resources in IPA "
-"domain,\n"
-"trust relationship needs to be established. Currently IPA supports only "
-"trusts\n"
-"between IPA and Active Directory domains under control of Windows Server "
-"2008\n"
-"or later, with functional level 2008 or later.\n"
-"\n"
-"Please note that DNS on both IPA and Active Directory domain sides should "
-"be\n"
-"configured properly to discover each other. Trust relationship relies on\n"
-"ability to discover special resources in the other domain via DNS records.\n"
-"\n"
-"Examples:\n"
-"\n"
-"1. Establish cross-realm trust with Active Directory using AD administrator\n"
-"   credentials:\n"
-"\n"
-"   ipa trust-add --type=ad <ad.domain> --admin <AD domain "
-"administrator>            --password\n"
-"\n"
-"2. List all existing trust relationships:\n"
-"\n"
-"   ipa trust-find\n"
-"\n"
-"3. Show details of the specific trust relationship:\n"
-"\n"
-"   ipa trust-show <ad.domain>\n"
-"\n"
-"4. Delete existing trust relationship:\n"
-"\n"
-"   ipa trust-del <ad.domain>\n"
-"\n"
-"Once trust relationship is established, remote users will need to be mapped\n"
-"to local POSIX groups in order to actually use IPA resources. The mapping\n"
-"should be done via use of external membership of non-POSIX group and then\n"
-"this group should be included into one of local POSIX groups.\n"
-"\n"
-"Example:\n"
-"\n"
-"1. Create group for the trusted domain admins' mapping and their local "
-"POSIX\n"
-"group:\n"
-"\n"
-"   ipa group-add --desc='<ad.domain> admins external map'            "
-"ad_admins_external --external\n"
-"   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
-"\n"
-"2. Add security identifier of Domain Admins of the <ad.domain> to the\n"
-"   ad_admins_external group:\n"
-"\n"
-"   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'\n"
-"\n"
-"3. Allow members of ad_admins_external group to be associated with\n"
-"   ad_admins POSIX group:\n"
-"\n"
-"   ipa group-add-member ad_admins --groups ad_admins_external\n"
-"\n"
-"4. List members of external members of ad_admins_external group to see\n"
-"   their SIDs:\n"
-"\n"
-"   ipa group-show ad_admins_external\n"
-"\n"
-"\n"
-"GLOBAL TRUST CONFIGURATION\n"
-"\n"
-"When IPA AD trust subpackage is installed and ipa-adtrust-install is run, a\n"
-"local domain configuration (SID, GUID, NetBIOS name) is generated. These\n"
-"identifiers are then used when communicating with a trusted domain of the\n"
-"particular type.\n"
-"\n"
-"1. Show global trust configuration for Active Directory type of trusts:\n"
-"\n"
-"   ipa trustconfig-show --type ad\n"
-"\n"
-"2. Modify global configuration for all trusts of Active Directory type and "
-"set\n"
-"   a different fallback primary group (fallback primary group GID is used as "
-"a\n"
-"   primary user GID if user authenticating to IPA domain does not have any\n"
-"   other primary GID already set):\n"
-"\n"
-"   ipa trustconfig-mod --type ad --fallback-primary-group \"another AD "
-"group\"\n"
-"\n"
-"3. Change primary fallback group back to default hidden group (any group "
-"with\n"
-"   posixGroup object class is allowed):\n"
-"\n"
-"   ipa trustconfig-mod --type ad --fallback-primary-group \"Default SMB "
-"Group\"\n"
-msgstr ""
-
-#, python-format
-msgid ""
-" Alternatively, following servers are capable of running this command: "
-"%(masters)s"
-msgstr ""
-
-msgid "AD Trust setup"
-msgstr ""
-
-msgid ""
-"Cannot perform the selected command without Samba 4 support installed. Make "
-"sure you have installed server-trust-ad sub-package of IPA."
-msgstr ""
-
-msgid ""
-"Cannot perform the selected command without Samba 4 instance configured on "
-"this machine. Make sure you have run ipa-adtrust-install on this server."
-msgstr ""
-
-msgid ""
-"Fetching domains from trusted forest failed. See details in the error_log"
-msgstr ""
-
-msgid "trust"
-msgstr ""
-
-msgid "trusts"
-msgstr ""
-
-msgid "Trust"
-msgstr ""
-
-msgid "SID blocklist incoming"
-msgstr ""
-
-msgid "SID blocklist outgoing"
-msgstr ""
-
-msgid "UPN suffixes"
-msgstr ""
-
-#, python-brace-format
-msgid "invalid SID: {SID}"
-msgstr ""
-
-msgid ""
-"\n"
-"Add new trust to use.\n"
-"\n"
-"This command establishes trust relationship to another domain\n"
-"which becomes 'trusted'. As result, users of the trusted domain\n"
-"may access resources of this domain.\n"
-"\n"
-"Only trusts to Active Directory domains are supported right now.\n"
-"\n"
-"The command can be safely run multiple times against the same domain,\n"
-"this will cause change to trust relationship credentials on both\n"
-"sides.\n"
-"\n"
-"Note that if the command was previously run with a specific range type,\n"
-"or with automatic detection of the range type, and you want to configure a\n"
-"different range type, you may need to delete first the ID range using\n"
-"ipa idrange-del before retrying the command with the desired range type.\n"
-"    "
-msgstr ""
-
-msgid "Type of trusted domain ID range, one of allowed values"
-msgstr ""
-
-msgid "External trust"
-msgstr ""
-
-msgid ""
-"Establish external trust to a domain in another forest. The trust is not "
-"transitive beyond the domain."
-msgstr ""
-
-#, python-format
-msgid "Added Active Directory trust for realm \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Re-established trust to domain \"%(value)s\""
-msgstr ""
-
-msgid "missing base_id"
-msgstr ""
-
-msgid "pysss_murmur is not available on the server and no base-id is given."
-msgstr ""
-
-msgid "trust type"
-msgstr ""
-
-msgid "only \"ad\" is supported"
-msgstr ""
-
-msgid ""
-"Cannot establish a trust to AD deployed in the same domain as IPA. Such "
-"setup is not supported."
-msgstr ""
-
-msgid "Realm-domain mismatch"
-msgstr ""
-
-msgid ""
-"To establish trust with Active Directory, the domain name and the realm name "
-"of the IPA server must match"
-msgstr ""
-
-#, python-format
-msgid ""
-"Trusted domain %(domain)s is included among IPA realm domains. It needs to "
-"be removed prior to establishing the trust. See the \"ipa realmdomains-mod --"
-"del-domain\" command."
-msgstr ""
-
-msgid "Trusted domain and administrator account use different realms"
-msgstr ""
-
-msgid "Realm administrator password should be specified"
-msgstr ""
-
-msgid "id range type"
-msgstr ""
-
-msgid ""
-"Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
-"type when adding an AD trust."
-msgstr ""
-
-msgid "id range"
-msgstr ""
-
-msgid ""
-"An id range already exists for this trust. You should either delete the old "
-"range, or exclude --base-id/--range-size options from the command."
-msgstr ""
-
-msgid "range exists"
-msgstr ""
-
-msgid ""
-"ID range with the same name but different domain SID already exists. The ID "
-"range for the new trusted domain must be created manually."
-msgstr ""
-
-msgid "range type change"
-msgstr ""
-
-msgid ""
-"ID range for the trusted domain already exists, but it has a different type. "
-"Please remove the old range manually, or do not enforce type via --range-"
-"type option."
-msgstr ""
-
-#, python-brace-format
-msgid "Unable to resolve domain controller for {domain} domain. "
-msgstr ""
-
-msgid ""
-"Forward policy is defined for it in IPA DNS, perhaps forwarder points to "
-"incorrect host?"
-msgstr ""
-
-#, python-brace-format
-msgid ""
-"IPA manages DNS, please verify your DNS configuration and make sure that "
-"service records of the '{domain}' domain can be resolved. Examples how to "
-"configure DNS with CLI commands or the Web UI can be found in the "
-"documentation. "
-msgstr ""
-
-#, python-brace-format
-msgid ""
-"Since IPA does not manage DNS records, ensure DNS is configured to resolve "
-"'{domain}' domain from IPA hosts and back."
-msgstr ""
-
-msgid "Unable to verify write permissions to the AD"
-msgstr ""
-
-msgid "Not enough arguments specified to perform trust setup"
-msgstr ""
-
-#, python-format
-msgid "Deleted trust \"%(value)s\""
-msgstr ""
-
-msgid ""
-"\n"
-"    Modify a trust (for future use).\n"
-"\n"
-"    Currently only the default option to modify the LDAP attributes is\n"
-"    available. More specific options will be added in coming releases.\n"
-"    "
-msgstr ""
-
-#, python-format
-msgid "Modified trust \"%(value)s\" (change will be effective in 60 seconds)"
-msgstr ""
-
-#, python-format
-msgid "%(count)d trust matched"
-msgid_plural "%(count)d trusts matched"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "trust configuration"
-msgstr ""
-
-msgid "Global Trust Configuration"
-msgstr ""
-
-msgid "IPA AD trust agents"
-msgstr ""
-
-msgid "IPA servers configured as AD trust agents"
-msgstr ""
-
-msgid "IPA AD trust controllers"
-msgstr ""
-
-msgid "IPA servers configured as AD trust controllers"
-msgstr ""
-
-msgid "unsupported trust type"
-msgstr ""
-
-#, python-format
-msgid "Modified \"%(value)s\" trust configuration"
-msgstr ""
-
-msgid "SID"
-msgstr ""
-
-msgid "sidgen_was_run"
-msgstr ""
-
-msgid ""
-"This command relies on the existence of the \"editors\" group, but this "
-"group was not found."
-msgstr ""
-
-msgid "trust domain"
-msgstr ""
-
-msgid "trust domains"
-msgstr ""
-
-msgid "Trusted domains"
-msgstr ""
-
-msgid "Trusted domain"
-msgstr ""
-
-msgid "Domain enabled"
-msgstr ""
-
-#, python-format
-msgid "Removed information about the trusted domain \"%(value)s\""
-msgstr ""
-
-msgid ""
-"cannot delete root domain of the trust, use trust-del to delete the trust "
-"itself"
-msgstr ""
-
-msgid ""
-"List of trust domains successfully refreshed. Use trustdomain-find command "
-"to list them."
-msgstr ""
-
-msgid "Configure this server as a trust agent."
-msgstr ""
-
-msgid "Enable support for trusted domains for old clients"
-msgstr ""
-
-msgid "not allowed to remotely add agent"
-msgstr ""
-
-#, python-format
-msgid "Enabled trust domain \"%(value)s\""
-msgstr ""
-
-msgid "Root domain of the trust is always enabled for the existing trust"
-msgstr ""
-
-#, python-format
-msgid "Disabled trust domain \"%(value)s\""
-msgstr ""
-
-msgid ""
-"cannot disable root domain of the trust, use trust-del to delete the trust "
-"itself"
-msgstr ""
-
-msgid ""
-"\n"
 "Users\n"
 "\n"
 "Manage user entries. All users are POSIX users.\n"
@@ -23564,349 +23909,62 @@ msgstr ""
 msgid "Removed aliases from user \"%(value)s\""
 msgstr ""
 
-msgid ""
-"\n"
-"Vaults\n"
+msgid "Trusting forest"
+msgstr ""
+
+msgid "Trusted forest"
+msgstr ""
+
+msgid "Established and verified"
+msgstr ""
+
+msgid "Waiting for confirmation by remote side"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Non-Active Directory domain"
+msgstr ""
+
+msgid "RFC4120-compliant Kerberos realm"
 msgstr ""
 
 msgid ""
-"\n"
-"Manage vaults.\n"
+"Non-transitive external trust to a domain in another Active Directory forest"
 msgstr ""
 
-msgid ""
-"\n"
-"Vault is a secure place to store a secret. One vault can only\n"
-"store one secret. When archiving a secret in a vault, the\n"
-"existing secret (if any) is overwritten.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Based on the ownership there are three vault categories:\n"
-"* user/private vault\n"
-"* service vault\n"
-"* shared vault\n"
-msgstr ""
-
-msgid ""
-"\n"
-"User vaults are vaults owned used by a particular user. Private\n"
-"vaults are vaults owned the current user. Service vaults are\n"
-"vaults owned by a service. Shared vaults are owned by the admin\n"
-"but they can be used by other users or services.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Based on the security mechanism there are three types of\n"
-"vaults:\n"
-"* standard vault\n"
-"* symmetric vault\n"
-"* asymmetric vault\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Standard vault uses a secure mechanism to transport and\n"
-"store the secret. The secret can only be retrieved by users\n"
-"that have access to the vault.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Symmetric vault is similar to the standard vault, but it\n"
-"pre-encrypts the secret using a password before transport.\n"
-"The secret can only be retrieved using the same password.\n"
-msgstr ""
-
-msgid ""
-"\n"
-"Asymmetric vault is similar to the standard vault, but it\n"
-"pre-encrypts the secret using a public key before transport.\n"
-"The secret can only be retrieved using the private key.\n"
-msgstr ""
-
-msgid ""
-"\n"
-" List vaults:\n"
-"   ipa vault-find\n"
-"       [--user <user>|--service <service>|--shared]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add a standard vault:\n"
-"   ipa vault-add <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --type standard\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add a symmetric vault:\n"
-"   ipa vault-add <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --type symmetric --password-file password.txt\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add an asymmetric vault:\n"
-"   ipa vault-add <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --type asymmetric --public-key-file public.pem\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Show a vault:\n"
-"   ipa vault-show <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Modify vault description:\n"
-"   ipa vault-mod <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --desc <description>\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Modify vault type:\n"
-"   ipa vault-mod <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --type <type>\n"
-"       [old password/private key]\n"
-"       [new password/public key]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Modify symmetric vault password:\n"
-"   ipa vault-mod <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --change-password\n"
-"   ipa vault-mod <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --old-password <old password>\n"
-"       --new-password <new password>\n"
-"   ipa vault-mod <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --old-password-file <old password file>\n"
-"       --new-password-file <new password file>\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Modify asymmetric vault keys:\n"
-"   ipa vault-mod <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --private-key-file <old private key file>\n"
-"       --public-key-file <new public key file>\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Delete a vault:\n"
-"   ipa vault-del <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Display vault configuration:\n"
-"   ipa vaultconfig-show\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Archive data into standard vault:\n"
-"   ipa vault-archive <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --in <input file>\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Archive data into symmetric vault:\n"
-"   ipa vault-archive <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --in <input file>\n"
-"       --password-file password.txt\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Archive data into asymmetric vault:\n"
-"   ipa vault-archive <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --in <input file>\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Retrieve data from standard vault:\n"
-"   ipa vault-retrieve <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --out <output file>\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Retrieve data from symmetric vault:\n"
-"   ipa vault-retrieve <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --out <output file>\n"
-"       --password-file password.txt\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Retrieve data from asymmetric vault:\n"
-"   ipa vault-retrieve <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       --out <output file> --private-key-file private.pem\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add vault owners:\n"
-"   ipa vault-add-owner <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       [--users <users>]  [--groups <groups>] [--services <services>]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Delete vault owners:\n"
-"   ipa vault-remove-owner <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       [--users <users>] [--groups <groups>] [--services <services>]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Add vault members:\n"
-"   ipa vault-add-member <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       [--users <users>] [--groups <groups>] [--services <services>]\n"
-msgstr ""
-
-msgid ""
-"\n"
-" Delete vault members:\n"
-"   ipa vault-remove-member <name>\n"
-"       [--user <user>|--service <service>|--shared]\n"
-"       [--users <users>] [--groups <groups>] [--services <services>]\n"
-msgstr ""
-
-msgid ""
-"\n"
-"    Vault Container object.\n"
-"    "
-msgstr ""
-
-msgid "vaultcontainer"
-msgstr ""
-
-msgid "vaultcontainers"
-msgstr ""
-
-msgid "Vault Containers"
-msgstr ""
-
-msgid "Vault Container"
-msgstr ""
-
-msgid "Service, shared and user options cannot be specified simultaneously"
-msgstr ""
-
-msgid "Host is not supported"
-msgstr ""
-
-msgid "KRA service is not enabled"
-msgstr ""
-
-msgid "Deleted vault container"
+msgid "Non-transitive external trust to an RFC4120-compliant Kerberos realm"
 msgstr ""
 
 #, python-format
-msgid "owner %s"
+msgid "all masters must have %(role)s role enabled"
 msgstr ""
 
+#, python-format
+msgid "must have %(role)s role enabled"
+msgstr ""
+
+msgid "must be enabled only on a single master"
+msgstr ""
+
+#, python-format
 msgid ""
 "\n"
-"    Vault object.\n"
-"    "
-msgstr ""
-
-msgid "vault"
-msgstr ""
-
-msgid "vaults"
-msgstr ""
-
-msgid "Vaults"
-msgstr ""
-
-msgid "Vault"
-msgstr ""
-
-msgid "Service, shared, and user options cannot be specified simultaneously"
-msgstr ""
-
-msgid "Add a vault."
+"Replication topology in suffix '%(suffix)s' is disconnected:\n"
+"%(errors)s"
 msgstr ""
 
 #, python-format
-msgid "Added vault \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "Deleted vault \"%(value)s\""
-msgstr ""
-
-#, python-format
-msgid "%(count)d vault matched"
-msgid_plural "%(count)d vaults matched"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid ""
-"Service(s), shared, and user(s) options cannot be specified simultaneously"
+"\n"
+"Removal of '%(hostname)s' leads to disconnected topology in suffix "
+"'%(suffix)s':\n"
+"%(errors)s"
 msgstr ""
 
 #, python-format
-msgid "Modified vault \"%(value)s\""
-msgstr ""
-
-msgid "Vault configuration"
-msgstr ""
-
-msgid "IPA servers configured as key recovery agents"
-msgstr ""
-
-msgid "Key wrapping algorithm"
-msgstr ""
-
-#, python-format
-msgid "Archived data into vault \"%(value)s\""
-msgstr ""
-
-msgid "Retrieve data from a vault."
-msgstr ""
-
-#, python-format
-msgid "Retrieved data from vault \"%(value)s\""
-msgstr ""
-
-msgid "No archived data."
-msgstr ""
-
-msgid "Checks if any of the servers has the KRA service enabled"
+msgid "Topology does not allow server %(server)s to replicate with servers:"
 msgstr ""
 
 msgid ""
@@ -24047,64 +24105,6 @@ msgstr ""
 msgid ""
 "Non-Kerberos user name was specified, please provide user@REALM variant "
 "instead"
-msgstr ""
-
-msgid "Trusting forest"
-msgstr ""
-
-msgid "Trusted forest"
-msgstr ""
-
-msgid "Established and verified"
-msgstr ""
-
-msgid "Waiting for confirmation by remote side"
-msgstr ""
-
-msgid "Unknown"
-msgstr ""
-
-msgid "Non-Active Directory domain"
-msgstr ""
-
-msgid "RFC4120-compliant Kerberos realm"
-msgstr ""
-
-msgid ""
-"Non-transitive external trust to a domain in another Active Directory forest"
-msgstr ""
-
-msgid "Non-transitive external trust to an RFC4120-compliant Kerberos realm"
-msgstr ""
-
-#, python-format
-msgid "all masters must have %(role)s role enabled"
-msgstr ""
-
-#, python-format
-msgid "must have %(role)s role enabled"
-msgstr ""
-
-msgid "must be enabled only on a single master"
-msgstr ""
-
-#, python-format
-msgid ""
-"\n"
-"Replication topology in suffix '%(suffix)s' is disconnected:\n"
-"%(errors)s"
-msgstr ""
-
-#, python-format
-msgid ""
-"\n"
-"Removal of '%(hostname)s' leads to disconnected topology in suffix "
-"'%(suffix)s':\n"
-"%(errors)s"
-msgstr ""
-
-#, python-format
-msgid "Topology does not allow server %(server)s to replicate with servers:"
 msgstr ""
 
 msgid "Request must be a dict"
