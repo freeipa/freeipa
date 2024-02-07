@@ -1135,10 +1135,6 @@ class login_password(Backend, KerberosSession):
                 canonicalize=True,
                 lifetime=self.api.env.kinit_lifetime)
 
-            if armor_path:
-                logger.debug('Cleanup the armor ccache')
-                ipautil.run([paths.KDESTROY, '-A', '-c', armor_path],
-                            env={'KRB5CCNAME': armor_path}, raiseonerr=False)
         except RuntimeError as e:
             if ('kinit: Cannot read password while '
                     'getting initial credentials') in str(e):
@@ -1156,6 +1152,11 @@ class login_password(Backend, KerberosSession):
                 raise KrbPrincipalWrongFAST(principal=principal)
             raise InvalidSessionPassword(principal=principal,
                                          message=unicode(e))
+        finally:
+            if armor_path:
+                logger.debug('Cleanup the armor ccache')
+                ipautil.run([paths.KDESTROY, '-A', '-c', armor_path],
+                            env={'KRB5CCNAME': armor_path}, raiseonerr=False)
 
 
 class change_password(Backend, HTTP_Status):

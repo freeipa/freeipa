@@ -2351,3 +2351,18 @@ jobs:
         template: *ci-master-latest
         timeout: 10800
         topology: *master_1repl
+
+  testing-fedora/test_ipalib_install:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_ipalib_install/test_kinit.py
+        template: *ci-master-latest
+        timeout: 600
+        topology: *master_1repl
