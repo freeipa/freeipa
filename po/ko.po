@@ -8,7 +8,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
 "PO-Revision-Date: 2024-02-07 12:14+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
 "Language: ko\n"
@@ -26449,7 +26450,7 @@ msgstr "두 번째 OTP"
 
 #: ipaserver/plugins/internal.py:1736
 msgid "Verify Password"
-msgstr ""
+msgstr "비밀번호를 확인합니다"
 
 #: ipaserver/plugins/internal.py:1746
 msgid "Are you sure you want to delete selected entries?"
@@ -27206,15 +27207,15 @@ msgstr "서비스 항목의 등급을 검색합니다"
 
 #: ipaserver/plugins/pwpolicy.py:241
 msgid "password policy"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:242
 msgid "password policies"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:301
 msgid "Password Policies"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/pwpolicy.py:374
 msgid "Max repeat"
@@ -29338,7 +29339,7 @@ msgstr "무작위 키 생성에 실패함!\n"
 #: util/ipa_krb5.c:1017 util/ipa_krb5.c:1035 util/ipa_krb5.c:1043
 #: util/ipa_krb5.c:1083
 msgid "Failed to create key!\n"
-msgstr ""
+msgstr "키 생성에 실패함!\n"
 
 #: util/ipa_krb5.c:1069
 msgid "Bad or unsupported salt type.\n"
