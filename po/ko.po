@@ -7,8 +7,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-06 17:09+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"PO-Revision-Date: 2024-02-07 12:04+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
 "Language: ko\n"
@@ -25028,17 +25029,17 @@ msgstr "호스트 '${primary_key}'를 관리하는 호스트를 제거합니다"
 #: ipaserver/plugins/internal.py:1017
 #, python-brace-format
 msgid "Remove host '${primary_key}' from host groups"
-msgstr ""
+msgstr "호스트 그룹에서 호스트 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1020
 #, python-brace-format
 msgid "Remove host '${primary_key}' from netgroups"
-msgstr ""
+msgstr "넷그룹에서 호스트 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1023
 #, python-brace-format
 msgid "Remove host '${primary_key}' from roles"
-msgstr ""
+msgstr "역할에서 호스트 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1026
 #, python-brace-format
@@ -25344,7 +25345,7 @@ msgstr "넷그룹 '${primary_key}'에 호스트 그룹을 추가합니다"
 #: ipaserver/plugins/internal.py:1167
 #, python-brace-format
 msgid "Add users into netgroup '${primary_key}'"
-msgstr ""
+msgstr "넷그룹 '${primary_key}'에 사용자를 추가합니다"
 
 #: ipaserver/plugins/internal.py:1175
 msgid "Netgroup Settings"
@@ -25357,7 +25358,7 @@ msgstr "넷그룹 제거"
 #: ipaserver/plugins/internal.py:1179
 #, python-brace-format
 msgid "Remove netgroup '${primary_key}' from netgroups"
-msgstr ""
+msgstr "넷그룹에서 넷그룹 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1182
 #, python-brace-format
@@ -25497,7 +25498,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1244 ipaserver/plugins/pwpolicy.py:302
 msgid "Password Policy"
-msgstr ""
+msgstr "비밀번호 정책"
 
 #: ipaserver/plugins/internal.py:1245
 msgid "Remove password policies"
@@ -25647,7 +25648,7 @@ msgstr ""
 
 #: ipaserver/plugins/internal.py:1319
 msgid "Delete Server"
-msgstr ""
+msgstr "서버 삭제"
 
 #: ipaserver/plugins/internal.py:1320
 msgid ""
@@ -26217,7 +26218,7 @@ msgstr "사용자 제거"
 #: ipaserver/plugins/internal.py:1615
 #, python-brace-format
 msgid "Remove user '${primary_key}' from user groups"
-msgstr ""
+msgstr "사용자 그룹에서 사용자 그룹 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1618
 #, python-brace-format
