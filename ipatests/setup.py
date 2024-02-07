@@ -41,6 +41,7 @@ if __name__ == '__main__':
             "ipatests.test_integration",
             "ipatests.test_ipaclient",
             "ipatests.test_ipalib",
+            "ipatests.test_ipalib_install",
             "ipatests.test_ipaplatform",
             "ipatests.test_ipapython",
             "ipatests.test_ipaserver",
