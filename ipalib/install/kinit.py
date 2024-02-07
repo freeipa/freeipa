@@ -6,12 +6,16 @@ from __future__ import absolute_import
 
 import logging
 import os
+import re
 import time
 
 import gssapi
 
 from ipaplatform.paths import paths
 from ipapython.ipautil import run
+from ipalib.constants import PATTERN_GROUPUSER_NAME
+from ipalib.util import validate_hostname
+from ipalib import api
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +25,40 @@ KRB5_KDC_UNREACH = 2529639068
 # A service is not available that s required to process the request
 KRB5KDC_ERR_SVC_UNAVAILABLE = 2529638941
 
+PATTERN_REALM = '@?([a-zA-Z0-9.-]*)$'
+PATTERN_PRINCIPAL = '(' + PATTERN_GROUPUSER_NAME[:-1] + ')' + PATTERN_REALM
+PATTERN_SERVICE = '([a-zA-Z0-9.-]+)/([a-zA-Z0-9.-]+)' + PATTERN_REALM
+
+user_pattern = re.compile(PATTERN_PRINCIPAL)
+service_pattern = re.compile(PATTERN_SERVICE)
+
+
+def validate_principal(principal):
+    if not isinstance(principal, str):
+        raise RuntimeError('Invalid principal: not a string')
+    if ('/' in principal) and (' ' in principal):
+        raise RuntimeError('Invalid principal: bad spacing')
+    else:
+        realm = None
+        match = user_pattern.match(principal)
+        if match is None:
+            match = service_pattern.match(principal)
+            if match is None:
+                raise RuntimeError('Invalid principal: cannot parse')
+            else:
+                # service = match[1]
+                hostname = match[2]
+                realm = match[3]
+                try:
+                    validate_hostname(hostname)
+                except ValueError as e:
+                    raise RuntimeError(str(e))
+        else:  # user match, validate realm
+            # username = match[1]
+            realm = match[2]
+        if realm and 'realm' in api.env and realm != api.env.realm:
+            raise RuntimeError('Invalid principal: realm mismatch')
+
 
 def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
     """
@@ -29,6 +67,7 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
     The optional parameter 'attempts' specifies how many times the credential
     initialization should be attempted in case of non-responsive KDC.
     """
+    validate_principal(principal)
     errors_to_retry = {KRB5KDC_ERR_SVC_UNAVAILABLE,
                        KRB5_KDC_UNREACH}
     logger.debug("Initializing principal %s using keytab %s",
@@ -65,6 +104,7 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
 
         return None
 
+
 def kinit_password(principal, password, ccache_name, config=None,
                    armor_ccache_name=None, canonicalize=False,
                    enterprise=False, lifetime=None):
@@ -73,8 +113,9 @@ def kinit_password(principal, password, ccache_name, config=None,
     web-based authentication, use armor_ccache_path to specify http service
     ccache.
     """
+    validate_principal(principal)
     logger.debug("Initializing principal %s using password", principal)
-    args = [paths.KINIT, principal, '-c', ccache_name]
+    args = [paths.KINIT, '-c', ccache_name]
     if armor_ccache_name is not None:
         logger.debug("Using armor ccache %s for FAST webauth",
                      armor_ccache_name)
@@ -91,6 +132,7 @@ def kinit_password(principal, password, ccache_name, config=None,
         logger.debug("Using enterprise principal")
         args.append('-E')
 
+    args.extend(['--', principal])
     env = {'LC_ALL': 'C'}
     if config is not None:
         env['KRB5_CONFIG'] = config
@@ -154,6 +196,7 @@ def kinit_pkinit(
 
     :raises: CalledProcessError if PKINIT fails
     """
+    validate_principal(principal)
     logger.debug(
         "Initializing principal %s using PKINIT %s", principal, user_identity
     )
@@ -168,7 +211,7 @@ def kinit_pkinit(
             assert pkinit_anchor.startswith(("FILE:", "DIR:", "ENV:"))
             args.extend(["-X", f"X509_anchors={pkinit_anchor}"])
     args.extend(["-X", f"X509_user_identity={user_identity}"])
-    args.append(principal)
+    args.extend(['--', principal])
 
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication

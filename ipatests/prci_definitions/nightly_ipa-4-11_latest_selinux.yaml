@@ -2048,3 +2048,16 @@ jobs:
         template: *ci-ipa-4-11-latest
         timeout: 10800
         topology: *master_1repl
+
+  fedora-latest-ipa-4-11/test_ipalib_install:
+    requires: [fedora-latest-ipa-4-11/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-ipa-4-11/build_url}'
+        selinux_enforcing: True
+        test_suite: test_ipalib_install/test_kinit.py
+        template: *ci-ipa-4-11-latest
+        timeout: 600
+        topology: *master_1repl
