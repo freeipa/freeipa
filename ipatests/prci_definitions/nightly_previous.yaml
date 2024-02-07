@@ -1897,3 +1897,15 @@ jobs:
         template: *ci-master-previous
         timeout: 10800
         topology: *master_1repl
+
+  fedora-previous/test_ipalib_install:
+    requires: [fedora-previous/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous/build_url}'
+        test_suite: test_ipalib_install/test_kinit.py
+        template: *ci-master-previous
+        timeout: 600
+        topology: *master_1repl
