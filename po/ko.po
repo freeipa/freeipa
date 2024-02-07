@@ -8,8 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
 "PO-Revision-Date: 2024-02-07 12:04+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
 "Language: ko\n"
@@ -26218,7 +26217,7 @@ msgstr "사용자 제거"
 #: ipaserver/plugins/internal.py:1615
 #, python-brace-format
 msgid "Remove user '${primary_key}' from user groups"
-msgstr "사용자 그룹에서 사용자 그룹 '${primary_key}'를 제거합니다"
+msgstr "사용자 그룹에서 사용자 '${primary_key}'를 제거합니다"
 
 #: ipaserver/plugins/internal.py:1618
 #, python-brace-format
