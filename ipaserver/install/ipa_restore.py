@@ -50,6 +50,8 @@ from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
 
+from lib389.cli_ctl.dblib import run_dbscan
+
 try:
     from ipaserver.install import adtrustinstance
 except ImportError:
@@ -64,6 +66,29 @@ else:
 # pylint: enable=import-error
 
 logger = logging.getLogger(__name__)
+
+backends = []  # global to save running dbscan multiple times
+
+
+def get_backends(db_dir):
+    """Retrieve the set of backends directly from the current database"""
+    global backends
+
+    if backends:
+        return backends
+
+    output = run_dbscan(['-L', db_dir])
+    output = output.replace(db_dir + '/', '')
+    output = output.split('\n')
+    for line in output:
+        if '/' not in line:
+            continue
+        backends.append(line.split('/')[0].strip().lower())
+    backends = set(backends)
+    if 'changelog' in backends:
+        backends.remove('changelog')
+
+    return backends
 
 
 def recursive_chown(path, uid, gid):
@@ -295,8 +320,9 @@ class Restore(admintool.AdminTool):
             if options.backend:
                 for instance in self.instances:
                     db_dir = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
-                              (instance, options.backend))
-                    if os.path.exists(db_dir):
+                              (instance, ""))
+                    backends = get_backends(db_dir)
+                    if options.backend.lower() in backends:
                         break
                 else:
                     raise admintool.ScriptError(
@@ -304,15 +330,20 @@ class Restore(admintool.AdminTool):
 
                 self.backends = [options.backend]
 
+            missing_backends = []
             for instance, backend in itertools.product(self.instances,
                                                        self.backends):
                 db_dir = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
-                          (instance, backend))
-                if os.path.exists(db_dir):
-                    break
-            else:
+                          (instance, ""))
+                backends = get_backends(db_dir)
+                if backend.lower() not in backends:
+                    missing_backends.append(backend)
+
+            if missing_backends:
                 raise admintool.ScriptError(
-                    "Cannot restore a data backup into an empty system")
+                    "Cannot restore a data backup into an empty system. "
+                    "Missing backend(s) %s" % ', '.join(missing_backends)
+                )
 
         logger.info("Performing %s restore from %s backup",
                     restore_type, self.backup_type)
@@ -381,6 +412,10 @@ class Restore(admintool.AdminTool):
                     ldiffile = os.path.join(self.dir, '%s-%s.ldif' % database)
                     if os.path.exists(ldiffile):
                         databases.append(database)
+                    else:
+                        logger.warning(
+                            "LDIF file '%s-%s.ldif' not found in backup",
+                            instance, backend)
 
             if options.instance:
                 for instance, backend in databases:
