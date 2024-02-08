@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
-# 김인수 <simmon@nplob.com>, 2022.
+# 김인수 <simmon@nplob.com>, 2022, 2024.
 # Alexander Bokovoy <abokovoy@redhat.com>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2022-10-05 16:19+0000\n"
+"PO-Revision-Date: 2024-02-08 12:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.14.1\n"
+"X-Generator: Weblate 5.3.1\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -246,7 +246,7 @@ msgid "Output only on errors"
 msgstr "오류에서만 출력"
 
 msgid "Output debug info"
-msgstr ""
+msgstr "디버그 정보 출력"
 
 msgid "Contact this specific KDC Server"
 msgstr "이와 같은 지정된 KDC 서버와 연락합니다"
@@ -17831,16 +17831,16 @@ msgid "Search for Class of Service entry"
 msgstr ""
 
 msgid "password policy"
-msgstr ""
+msgstr "비밀번호 정책"
 
 msgid "password policies"
-msgstr ""
+msgstr "비밀번호 정책"
 
 msgid "Password Policies"
-msgstr ""
+msgstr "비밀번호 정책"
 
 msgid "Password Policy"
-msgstr ""
+msgstr "비밀번호 정책"
 
 msgid "Max repeat"
 msgstr ""
@@ -21417,15 +21417,15 @@ msgstr ""
 
 #, python-brace-format
 msgid "Remove host '${primary_key}' from host groups"
-msgstr ""
+msgstr "호스트 그룹에서 호스트 '${primary_key}'를 제거합니다"
 
 #, python-brace-format
 msgid "Remove host '${primary_key}' from netgroups"
-msgstr ""
+msgstr "넷그룹에서 호스트 '${primary_key}'를 제거합니다"
 
 #, python-brace-format
 msgid "Remove host '${primary_key}' from roles"
-msgstr ""
+msgstr "역할에서 호스트 '${primary_key}'를 제거합니다"
 
 #, python-brace-format
 msgid "Remove host '${primary_key}' from HBAC rules"
@@ -21662,7 +21662,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Add users into netgroup '${primary_key}'"
-msgstr ""
+msgstr "넷그룹 '${primary_key}'에 사용자를 추가합니다"
 
 msgid "Netgroup Settings"
 msgstr ""
@@ -21672,7 +21672,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Remove netgroup '${primary_key}' from netgroups"
-msgstr ""
+msgstr "넷그룹에서 넷그룹 '${primary_key}'를 제거합니다"
 
 #, python-brace-format
 msgid "Remove user groups from netgroup '${primary_key}'"
@@ -21913,7 +21913,7 @@ msgid ""
 msgstr ""
 
 msgid "Delete Server"
-msgstr ""
+msgstr "서버 삭제"
 
 msgid ""
 "Deleting a server removes it permanently from the topology. Note that this "
@@ -22356,7 +22356,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Remove user '${primary_key}' from user groups"
-msgstr ""
+msgstr "사용자 그룹에서 사용자 '${primary_key}'를 제거합니다"
 
 #, python-brace-format
 msgid "Remove user '${primary_key}' from netgroups"
@@ -22547,7 +22547,7 @@ msgid "Second OTP"
 msgstr ""
 
 msgid "Verify Password"
-msgstr ""
+msgstr "비밀번호를 확인합니다"
 
 msgid "Are you sure you want to delete selected entries?"
 msgstr ""
@@ -24168,7 +24168,7 @@ msgid "Failed to create random key!\n"
 msgstr ""
 
 msgid "Failed to create key!\n"
-msgstr ""
+msgstr "키 생성에 실패함!\n"
 
 msgid "Bad or unsupported salt type.\n"
 msgstr ""
