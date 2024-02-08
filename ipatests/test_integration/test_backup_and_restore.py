@@ -210,6 +210,40 @@ class TestBackupAndRestore(IntegrationTest):
                                            '"%a %G:%U"', log_path])
             assert "770 dirsrv:dirsrv" in cmd.stdout_text
 
+    def test_data_backup_and_restore(self):
+        """backup data only then restore"""
+        with restore_checker(self.master):
+            backup_path = tasks.get_backup_dir(self.master, data_only=True)
+
+            self.master.run_command(['ipa', 'user-add', 'testuser',
+                                     '--first', 'test',
+                                     '--last', 'user'])
+
+            tasks.ipa_restore(self.master, backup_path)
+
+            # the user added in the interim should now be gone
+            result = self.master.run_command(
+                ['ipa', 'user-show', 'test-user'], raiseonerr=False
+            )
+            assert 'user not found' in result.stderr_text
+
+    def test_data_backup_and_restore_backend(self):
+        """backup data only then restore"""
+        with restore_checker(self.master):
+            backup_path = tasks.get_backup_dir(self.master, data_only=True)
+
+            self.master.run_command(['ipa', 'user-add', 'testuser',
+                                     '--first', 'test',
+                                     '--last', 'user'])
+
+            tasks.ipa_restore(self.master, backup_path, backend='userRoot')
+
+            # the user added in the interim should now be gone
+            result = self.master.run_command(
+                ['ipa', 'user-show', 'test-user'], raiseonerr=False
+            )
+            assert 'user not found' in result.stderr_text
+
     def test_full_backup_and_restore_with_removed_users(self):
         """regression test for https://fedorahosted.org/freeipa/ticket/3866"""
         with restore_checker(self.master):
