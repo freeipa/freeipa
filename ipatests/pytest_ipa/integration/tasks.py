@@ -1617,12 +1617,15 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
     raise errors.DNSResolverError(exception=ValueError("Record not found"))
 
 
-def ipa_backup(host, disable_role_check=False, raiseonerr=True):
+def ipa_backup(host, disable_role_check=False, data_only=False,
+               raiseonerr=True):
     """Run backup on host and return the run_command result.
     """
     cmd = ['ipa-backup', '-v']
     if disable_role_check:
         cmd.append('--disable-role-check')
+    if data_only:
+        cmd.append('--data')
     result = host.run_command(cmd, raiseonerr=raiseonerr)
 
     # Test for ticket 7632: check that services are restarted
@@ -1652,10 +1655,10 @@ def ipa_epn(
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
-def get_backup_dir(host, raiseonerr=True):
+def get_backup_dir(host, data_only=False, raiseonerr=True):
     """Wrapper around ipa_backup: returns the backup directory.
     """
-    result = ipa_backup(host, raiseonerr)
+    result = ipa_backup(host, data_only=data_only, raiseonerr=raiseonerr)
 
     # Get the backup location from the command's output
     for line in result.stderr_text.splitlines():
@@ -1671,10 +1674,13 @@ def get_backup_dir(host, raiseonerr=True):
             return None
 
 
-def ipa_restore(master, backup_path):
-    master.run_command(["ipa-restore", "-U",
-                        "-p", master.config.dirman_password,
-                        backup_path])
+def ipa_restore(master, backup_path, backend=None):
+    cmd = ["ipa-restore", "-U",
+           "-p", master.config.dirman_password,
+           backup_path]
+    if backend:
+        cmd.extend(["--data", "--backend", backend])
+    master.run_command(cmd)
 
 
 def install_kra(host, domain_level=None,
