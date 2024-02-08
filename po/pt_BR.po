@@ -1,12 +1,12 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
-# Rafael Fontenelle <rafaelff@gnome.org>, 2020, 2021.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2020, 2021, 2024.
 # Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2021-03-08 03:01+0000\n"
+"PO-Revision-Date: 2024-02-08 12:36+0000\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/master/pt_BR/>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 5.3.1\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -35,7 +35,7 @@ msgstr ""
 
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr "Incapaz de analisar o nome principal\n"
+msgstr "Não foi possível analisar o nome principal\n"
 
 #, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
