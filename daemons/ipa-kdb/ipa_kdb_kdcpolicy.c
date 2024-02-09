@@ -190,7 +190,7 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
     krb5_error_code kerr;
     bool supported;
 
-    kerr = ipadb_check_for_bronze_bit_attack(context, request, supported, NULL,
+    kerr = ipadb_check_for_bronze_bit_attack(context, request, &supported, NULL,
                                              status);
     if (kerr)
         return KRB5KDC_ERR_POLICY;
