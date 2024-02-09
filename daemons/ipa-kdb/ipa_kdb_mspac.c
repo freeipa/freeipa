@@ -3308,13 +3308,14 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 #if KRB5_KDB_DAL_MAJOR_VERSION <= 8
 #  ifdef HAVE_KRB5_PAC_FULL_SIGN_COMPAT
 krb5_error_code
-ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
+ipadb_check_for_bronze_bit_attack(krb5_context context,
+                                  const krb5_kdc_req *request,
                                   bool *supported, bool *detected,
                                   const char **status)
 {
     krb5_error_code kerr;
     const char *st = NULL;
-    size_t i, j;
+    size_t i, j = 0;
     bool in_supported = true, in_detected = false;
     struct ipadb_context *ipactx;
     krb5_ticket *evidence_tkt;

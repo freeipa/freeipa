@@ -382,7 +382,8 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
  *   status      If the call fails and the pointer is not NULL, set it with a
  *               message describing the cause of the failure. */
 krb5_error_code
-ipadb_check_for_bronze_bit_attack(krb5_context context, krb5_kdc_req *request,
+ipadb_check_for_bronze_bit_attack(krb5_context context,
+                                  const krb5_kdc_req *request,
                                   bool *supported, bool *detected,
                                   const char **status);
 #  endif
