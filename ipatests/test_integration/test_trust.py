@@ -1164,8 +1164,12 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
                 assert (uid == self.uid_override and gid == self.gid_override)
             test_group = self.clients[0].run_command(
                 ["id", nonposixuser]).stdout_text
-            with xfail_context(type == "hybrid",
-                               'https://github.com/SSSD/sssd/issues/5989'):
+            cond2 = ((type == 'false'
+                      and sssd_version >= tasks.parse_version("2.9.4"))
+                     or type == 'hybrid')
+            with xfail_context(cond2,
+                               'https://github.com/SSSD/sssd/issues/5989 '
+                               'and 7169'):
                 assert "domain users@{0}".format(self.ad_domain) in test_group
 
     @pytest.mark.parametrize('type', ['hybrid', 'true', "false"])
@@ -1287,5 +1291,9 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
             assert(uid == self.uid_override
                    and gid == self.gid_override)
             result = self.clients[0].run_command(['id', posixuser])
-            assert "10047(testgroup@{0})".format(
-                self.ad_domain) in result.stdout_text
+            sssd_version = tasks.get_sssd_version(self.clients[0])
+            bad_version = sssd_version >= tasks.parse_version("2.9.4")
+            with xfail_context(bad_version and type in ('false', 'hybrid'),
+                 "https://github.com/SSSD/sssd/issues/7169"):
+                assert "10047(testgroup@{0})".format(
+                    self.ad_domain) in result.stdout_text
