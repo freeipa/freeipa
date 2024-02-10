@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-08 12:36+0000\n"
+"PO-Revision-Date: 2024-02-09 19:36+0000\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/master/pt_BR/>\n"
@@ -19,19 +19,19 @@ msgstr ""
 
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr ""
+msgstr "não é possível abrir o arquivo de configuração %s\n"
 
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "não é possível fazer stat() no arquivo de configuração %s\n"
 
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "memória insuficiente\n"
 
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "erro de leitura\n"
 
 #, c-format
 msgid "Unable to parse principal name\n"
