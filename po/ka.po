@@ -2,13 +2,15 @@
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
 # Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022, 2023, 2024.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-10 06:35+0000\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
 "Language: ka\n"
@@ -97,13 +99,13 @@ msgid ""
 msgstr ""
 
 msgid "Kerberos Service Principal Name"
-msgstr ""
+msgstr "Kerberos-ის სერვისის პრინციპალის სახელი"
 
 msgid "The keytab file to remove the principcal(s) from"
 msgstr ""
 
 msgid "Keytab File Name"
-msgstr ""
+msgstr "გასაღებების ცხრილის ფაილის სახელი"
 
 msgid "Remove all principals in this realm"
 msgstr ""
@@ -129,15 +131,15 @@ msgstr "krb5_kt_close %1$d: %2$s\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "Kerberos-ის კონტექსტის ინიციალიზაცია ჩავარდა: %1$s (%2$d)\n"
 
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr ""
+msgstr "ვერ დავამუშავე პრინციპალი: %1$s (%2$d)\n"
 
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "KDC-მა გასაღებები არ მიიღო\n"
 
 #, c-format
 msgid "Out of memory \n"
@@ -145,7 +147,7 @@ msgstr "არასაკმარისი მეხსიერება! \n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "LDAP ბიბლიოთეკის ინიციალიზაციის შეცდომა!\n"
 
 msgid "Simple bind failed\n"
 msgstr ""
