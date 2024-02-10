@@ -8,9 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-10 06:35+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-02-10 07:24+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
 "Language: ka\n"
@@ -157,15 +156,15 @@ msgstr ""
 
 #, c-format
 msgid "Operation failed: %s\n"
-msgstr ""
+msgstr "ოპერაცია ჩავარდა: %s\n"
 
 #, c-format
 msgid "Failed to get result: %s\n"
-msgstr ""
+msgstr "ვერ მივიღე შედეგი: %s\n"
 
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "მოლოდინის ვადა გადაცილებულია."
 
 #, c-format
 msgid "Failed to parse extended result: %s\n"
@@ -201,11 +200,11 @@ msgstr "შეცდომა keytab-ის მიღებისას\n"
 
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
-msgstr ""
+msgstr "ber_init() ჩავარდა. არასწორი კონტროლი ?!\n"
 
 #, c-format
 msgid "ber_scanf() failed, unable to find kvno ?!\n"
-msgstr ""
+msgstr "ber_scanf() ჩავარდა. ვერ ვიპოვე kvno ?!\n"
 
 #, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
@@ -217,7 +216,7 @@ msgstr ""
 
 #, c-format
 msgid "Failed to retrieve any keys"
-msgstr ""
+msgstr "ყველა გასაღების მიღება ჩავარდა"
 
 msgid "Failed to decode control reply!\n"
 msgstr ""
@@ -228,11 +227,11 @@ msgstr "პაროლები არ ემთხვევა!\n"
 
 #, c-format
 msgid "Failed to open config file %s\n"
-msgstr ""
+msgstr "კონფიგურაციის ფაილის გახსნის შეცდომა: %s\n"
 
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "კონფიგურაციის ფაილის (%s) დამუშავების შეცდომა\n"
 
 msgid "Failed to resolve symlink to keytab.\n"
 msgstr ""
@@ -241,7 +240,7 @@ msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
 
 msgid "Print as little as possible"
-msgstr ""
+msgstr "რაც შეიძლება ნაკლები ინფორმაციის გამოტანა"
 
 msgid "Output only on errors"
 msgstr ""
@@ -250,7 +249,7 @@ msgid "Output debug info"
 msgstr "გამართვის ინფორმაციის გამოტანა"
 
 msgid "Contact this specific KDC Server"
-msgstr ""
+msgstr "მითითებულ KDC სერვერთან დაკავშირება"
 
 msgid "Server Name"
 msgstr "სერვერის სახელი"
@@ -264,7 +263,7 @@ msgid ""
 msgstr ""
 
 msgid "Encryption types to request"
-msgstr ""
+msgstr "გამოსათხოვი დაშიფვრის ტიპები"
 
 msgid "Comma separated encryption types list"
 msgstr ""
@@ -273,7 +272,7 @@ msgid "Show the list of permitted encryption types and exit"
 msgstr ""
 
 msgid "Permitted Encryption Types"
-msgstr ""
+msgstr "დაშვებული დაშიფვრის ტიპები"
 
 msgid "Asks for a non-random password to use for the principal"
 msgstr ""
@@ -363,11 +362,11 @@ msgstr ""
 
 #, c-format
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "DNS აღმოჩენა ჩავარდა\n"
 
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "ვიყენებ სერვერს კონფიგურაციიდან %s\n"
 
 #, c-format
 msgid "Server name not provided and unavailable\n"
@@ -375,7 +374,7 @@ msgstr ""
 
 #, c-format
 msgid "Using provided server %s\n"
-msgstr ""
+msgstr "ვიყენებ მოწოდებულ სერვერს %s\n"
 
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
@@ -491,11 +490,11 @@ msgstr ""
 
 #, c-format
 msgid "curl_slist_append() failed for value: '%s'\n"
-msgstr ""
+msgstr "curl_slist_append() ჩავარდა მნიშვნელობისთვის: '%s'\n"
 
 #, c-format
 msgid "curl_easy_setopt() failed\n"
-msgstr ""
+msgstr "curl_easy_setopt() ჩავარდა\n"
 
 #, c-format
 msgid "Expanding buffer in jsonrpc_handle_response failed"
@@ -503,11 +502,11 @@ msgstr ""
 
 #, c-format
 msgid "curl_global_init() failed\n"
-msgstr ""
+msgstr "curl_global_init() ჩავარდა\n"
 
 #, c-format
 msgid "curl_easy_init() failed\n"
-msgstr ""
+msgstr "curl_easy_init() ჩავარდა\n"
 
 #, c-format
 msgid "json_dumps() failed\n"
@@ -518,10 +517,12 @@ msgid ""
 "JSON-RPC request:\n"
 "%s\n"
 msgstr ""
+"JSON-RPC მოთხოვნა:\n"
+"%s\n"
 
 #, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr ""
+msgstr "JSON-RPC გამოძახება ჩავარდა: %s\n"
 
 #, c-format
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
@@ -641,7 +642,7 @@ msgid "Unenroll this host from IPA server"
 msgstr ""
 
 msgid "Hostname of this server"
-msgstr ""
+msgstr "ამ სერვერის ჰოსტის სახელი"
 
 msgid "hostname"
 msgstr "ჰოსტის სახელი"
@@ -770,7 +771,7 @@ msgid "The most common types for this type of zone are: %s\n"
 msgstr ""
 
 msgid "DNS resource record type"
-msgstr ""
+msgstr "DNS რესურსის ჩანაწერის ტიპი"
 
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
@@ -854,10 +855,10 @@ msgid "First Code"
 msgstr "პირველი კოდი"
 
 msgid "Second Code"
-msgstr ""
+msgstr "მეორე კოდი"
 
 msgid "Token ID"
-msgstr ""
+msgstr "კოდის ID"
 
 #, python-format
 msgid "Unable to synchronize token: %s"
@@ -870,10 +871,10 @@ msgid "Import automount files for a specific location."
 msgstr ""
 
 msgid "Master file"
-msgstr ""
+msgstr "ძირითადი ფაილი"
 
 msgid "Automount master file."
-msgstr ""
+msgstr "ძირითადი ფაილის ავტომიმაგრება."
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
@@ -955,6 +956,8 @@ msgid ""
 "\n"
 "YubiKey Tokens\n"
 msgstr ""
+"\n"
+"YubiKey კოდები\n"
 
 msgid ""
 "\n"
@@ -982,7 +985,7 @@ msgid "Add a new YubiKey OTP token."
 msgstr ""
 
 msgid "YubiKey slot"
-msgstr ""
+msgstr "YubiKey სლოტი"
 
 msgid "No free YubiKey slot!"
 msgstr ""
@@ -1058,7 +1061,7 @@ msgid "Invalid or unsupported vault public key: %s"
 msgstr ""
 
 msgid "Modify a vault."
-msgstr ""
+msgstr "საცავის შეცვლა."
 
 msgid "Change password"
 msgstr "პაროლის შეცვლა"
@@ -1104,7 +1107,7 @@ msgid "File containing data to archive"
 msgstr ""
 
 msgid "Override existing password"
-msgstr ""
+msgstr "არსებული პაროლის გადაფარვა"
 
 msgid "Input data specified multiple times"
 msgstr ""
@@ -1115,7 +1118,7 @@ msgid ""
 msgstr ""
 
 msgid "Invalid vault type"
-msgstr ""
+msgstr "არასწორი საცავის ტიპი"
 
 msgid "Retrieve a data from a vault."
 msgstr ""
@@ -1124,7 +1127,7 @@ msgid "File to store retrieved data"
 msgstr ""
 
 msgid "Vault private key"
-msgstr ""
+msgstr "საცავის პირადი გასაღები"
 
 msgid "File containing the vault private key"
 msgstr ""
@@ -1326,7 +1329,7 @@ msgid "Create new ACI."
 msgstr ""
 
 msgid "ACI prefix"
-msgstr ""
+msgstr "ACI პრეფიქსი"
 
 msgid ""
 "Prefix used to distinguish ACI types (permission, delegation, selfservice, "
@@ -1573,7 +1576,7 @@ msgid "Time limit of search in seconds"
 msgstr ""
 
 msgid "Size Limit"
-msgstr ""
+msgstr "ზომის ლიმიტი"
 
 msgid "Maximum number of entries returned"
 msgstr ""
@@ -1896,10 +1899,8 @@ msgstr ""
 msgid "Add a new delegation."
 msgstr "ახალი დელეგაციის დამატება."
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a delegation."
-msgstr "მომხმარებლის წაშლა."
+msgstr "დელეგაციის წაშლა."
 
 msgid "Search for delegations."
 msgstr ""
@@ -2187,10 +2188,8 @@ msgstr ""
 msgid "Zone refresh interval"
 msgstr ""
 
-#, fuzzy
-#| msgid "Role name"
 msgid "Zone name"
-msgstr "როლის სახელი"
+msgstr "ზონის სახელი"
 
 msgid "Zone name (FQDN)"
 msgstr ""
@@ -2201,10 +2200,8 @@ msgstr ""
 msgid "IP network to create reverse zone name from"
 msgstr ""
 
-#, fuzzy
-#| msgid "Actions"
 msgid "Active zone"
-msgstr "ქმედებები"
+msgstr "აქტიური ზონა"
 
 msgid "Is zone active?"
 msgstr ""
@@ -2223,26 +2220,20 @@ msgid ""
 "forwarders are disregarded."
 msgstr ""
 
-#, fuzzy
-#| msgid "Record Type"
 msgid "Record name"
-msgstr "ჩანაწერის ტიპი"
+msgstr "ჩანაწერის სახელი"
 
 msgid "Time to live"
 msgstr ""
 
-#, fuzzy
-#| msgid "Record Type"
 msgid "Records"
-msgstr "ჩანაწერის ტიპი"
+msgstr "ჩანაწერები"
 
 msgid "Record type"
 msgstr "ჩანაწერის ტიპი"
 
-#, fuzzy
-#| msgid "Record type"
 msgid "Record data"
-msgstr "ჩანაწერის ტიპი"
+msgstr "ჩანაწერის მონაცემები"
 
 msgid "A record"
 msgstr ""
@@ -2256,10 +2247,8 @@ msgstr "IP მისამართი"
 msgid "IP Address"
 msgstr "IP მისამართი"
 
-#, fuzzy
-#| msgid "IPA CA servers"
 msgid "A Create reverse"
-msgstr "IPCA CA სერვერები"
+msgstr "უკუჩანაწერის შექმნა"
 
 msgid "Create reverse record for this IP Address"
 msgstr ""
@@ -2270,10 +2259,8 @@ msgstr ""
 msgid "Raw AAAA records"
 msgstr ""
 
-#, fuzzy
-#| msgid "A IP Address"
 msgid "AAAA IP Address"
-msgstr "IP მისამართი"
+msgstr "AAAA IP მისამართი"
 
 msgid "AAAA Create reverse"
 msgstr ""
@@ -2284,10 +2271,8 @@ msgstr ""
 msgid "Raw A6 records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Record type"
 msgid "A6 Record data"
-msgstr "ჩანაწერის ტიპი"
+msgstr "A6 ჩანაწერის მონაცემები"
 
 msgid "AFSDB record"
 msgstr ""
@@ -2295,18 +2280,14 @@ msgstr ""
 msgid "Raw AFSDB records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Subtype"
 msgid "AFSDB Subtype"
-msgstr "ქვეტიპი"
+msgstr "AFSDB ქვეტიპი"
 
 msgid "Subtype"
 msgstr "ქვეტიპი"
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "AFSDB Hostname"
-msgstr "ჰოსტის სახელი"
+msgstr "AFSDB ჰოსტის სახელი"
 
 msgid "Hostname"
 msgstr "ჰოსტის სახელი"
@@ -2323,10 +2304,8 @@ msgstr ""
 msgid "Raw CERT records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Type"
 msgid "CERT Certificate Type"
-msgstr "სერტიფიკატის ტიპი"
+msgstr "CERT სერტიფიკატის ტიპი"
 
 msgid "Certificate Type"
 msgstr "სერტიფიკატის ტიპი"
@@ -2337,23 +2316,17 @@ msgstr ""
 msgid "Key Tag"
 msgstr ""
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "CERT Algorithm"
-msgstr "ალგორითმი"
+msgstr "CERT ალგორითმი"
 
 msgid "Algorithm"
 msgstr "ალგორითმი"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "CERT Certificate/CRL"
-msgstr "სერტიფიკატი"
+msgstr "CERT სერტიფიკატი/CRL"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "Certificate/CRL"
-msgstr "სერტიფიკატი"
+msgstr "სერტიფიკატი/CRL"
 
 msgid "CNAME record"
 msgstr ""
@@ -2382,23 +2355,17 @@ msgstr ""
 msgid "DLV Key Tag"
 msgstr ""
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "DLV Algorithm"
-msgstr "ალგორითმი"
+msgstr "DLV ალგორითმი"
 
 msgid "DLV Digest Type"
 msgstr ""
 
-#, fuzzy
-#| msgid "Digest"
 msgid "Digest Type"
-msgstr "დაიჯესტი"
+msgstr "დაიჯესტის ტიპი"
 
-#, fuzzy
-#| msgid "Digest"
 msgid "DLV Digest"
-msgstr "დაიჯესტი"
+msgstr "DLV დაიჯესტი"
 
 msgid "Digest"
 msgstr "დაიჯესტი"
@@ -2409,10 +2376,8 @@ msgstr ""
 msgid "Raw DNAME records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Target"
 msgid "DNAME Target"
-msgstr "სამიზნე"
+msgstr "DNAME სამიზნე"
 
 msgid "Target"
 msgstr "სამიზნე"
@@ -2432,20 +2397,14 @@ msgstr ""
 msgid "DS Key Tag"
 msgstr ""
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "DS Algorithm"
-msgstr "ალგორითმი"
+msgstr "DS ალგორითმი"
 
-#, fuzzy
-#| msgid "Digest"
 msgid "DS Digest Type"
-msgstr "დაიჯესტი"
+msgstr "DS დაიჯესტის ტიპი"
 
-#, fuzzy
-#| msgid "Digest"
 msgid "DS Digest"
-msgstr "დაიჯესტი"
+msgstr "DS დაიჯესტი"
 
 msgid "HIP record"
 msgstr ""
@@ -2471,10 +2430,8 @@ msgstr ""
 msgid "Raw KX records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Preference"
 msgid "KX Preference"
-msgstr "მორგება"
+msgstr "KX პრიორიტეტი"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
@@ -2539,18 +2496,14 @@ msgstr ""
 msgid "Direction Longitude"
 msgstr ""
 
-#, fuzzy
-#| msgid "Altitude"
 msgid "LOC Altitude"
-msgstr "სიმაღლე"
+msgstr "LOC სიმაღლე"
 
 msgid "Altitude"
 msgstr "სიმაღლე"
 
-#, fuzzy
-#| msgid "Size"
 msgid "LOC Size"
-msgstr "ზომა"
+msgstr "LOC-ის ზომა"
 
 msgid "Size"
 msgstr "ზომა"
@@ -2573,10 +2526,8 @@ msgstr ""
 msgid "Raw MX records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Preference"
 msgid "MX Preference"
-msgstr "მორგება"
+msgstr "MX პრიორიტეტი"
 
 msgid "MX Exchanger"
 msgstr ""
@@ -2590,50 +2541,38 @@ msgstr ""
 msgid "Raw NAPTR records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Order"
 msgid "NAPTR Order"
-msgstr "დალაგება"
+msgstr "NAPTR მიმდევრობა"
 
 msgid "Order"
 msgstr "დალაგება"
 
-#, fuzzy
-#| msgid "Preference"
 msgid "NAPTR Preference"
-msgstr "მორგება"
+msgstr "NAPTR პრიორიტეტი"
 
 msgid "Preference"
 msgstr "მორგება"
 
-#, fuzzy
-#| msgid "Flags"
 msgid "NAPTR Flags"
-msgstr "ალმები"
+msgstr "NAPTR ალმები"
 
 msgid "Flags"
 msgstr "ალმები"
 
-#, fuzzy
-#| msgid "Any Service"
 msgid "NAPTR Service"
-msgstr "ნებისმიერი სერვისი"
+msgstr "NAPTR სერვისი"
 
 msgid "Service"
 msgstr "სერვისი"
 
-#, fuzzy
-#| msgid "Regular Expression"
 msgid "NAPTR Regular Expression"
-msgstr "რეგულარული ექსპრესია"
+msgstr "NAPTR რეგულარული გამოსახულება"
 
 msgid "Regular Expression"
 msgstr "რეგულარული ექსპრესია"
 
-#, fuzzy
-#| msgid "Replacement"
 msgid "NAPTR Replacement"
-msgstr "შემცვლელი"
+msgstr "NAPTR შემცვლელი"
 
 msgid "Replacement"
 msgstr "შემცვლელი"
@@ -2644,10 +2583,8 @@ msgstr ""
 msgid "Raw NS records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "NS Hostname"
-msgstr "ჰოსტის სახელი"
+msgstr "NS ჰოსტის სახელი"
 
 msgid "NSEC record"
 msgstr ""
@@ -2667,10 +2604,8 @@ msgstr ""
 msgid "Raw PTR records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "PTR Hostname"
-msgstr "ჰოსტის სახელი"
+msgstr "PTR ჰოსტის სახელი"
 
 msgid "The hostname this reverse record points to"
 msgstr ""
@@ -2681,10 +2616,8 @@ msgstr ""
 msgid "Raw RRSIG records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Record Type"
 msgid "RP record"
-msgstr "ჩანაწერის ტიპი"
+msgstr "RP ჩანაწერი"
 
 msgid "Raw RP records"
 msgstr ""
@@ -2707,34 +2640,26 @@ msgstr ""
 msgid "Raw SRV records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Priority"
 msgid "SRV Priority"
-msgstr "პრიორიტეტი"
+msgstr "SRV პრიორიტეტი"
 
 msgid "Priority"
 msgstr "პრიორიტეტი"
 
-#, fuzzy
-#| msgid "Weight"
 msgid "SRV Weight"
-msgstr "სიმძიმე"
+msgstr "SRV სიმძიმე"
 
 msgid "Weight"
 msgstr "სიმძიმე"
 
-#, fuzzy
-#| msgid "Port"
 msgid "SRV Port"
-msgstr "პორტი"
+msgstr "SRV პორტი"
 
 msgid "Port"
 msgstr "პორტი"
 
-#, fuzzy
-#| msgid "Target"
 msgid "SRV Target"
-msgstr "სამიზნე"
+msgstr "SRV სამიზნე"
 
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
@@ -2747,25 +2672,17 @@ msgstr ""
 msgid "Raw SSHFP records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "SSHFP Algorithm"
-msgstr "ალგორითმი"
+msgstr "SSHFP ალგორითმი"
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "SSHFP Fingerprint Type"
-msgstr "ანაბეჭდი"
+msgstr "SSHFP ანაბეჭდის ტიპი"
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "Fingerprint Type"
-msgstr "ანაბეჭდი"
+msgstr "თითის ანაბეჭდის ტიპი"
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "SSHFP Fingerprint"
-msgstr "ანაბეჭდი"
+msgstr "SSHFP ანაბეჭდის"
 
 msgid "Fingerprint"
 msgstr "ანაბეჭდი"
@@ -2782,41 +2699,29 @@ msgstr ""
 msgid "Raw TLSA records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificates"
 msgid "TLSA Certificate Usage"
-msgstr "სერტიფიკატები"
+msgstr "TLSA სერტიფიკატის გამოყენება"
 
-#, fuzzy
-#| msgid "Certificates"
 msgid "Certificate Usage"
-msgstr "სერტიფიკატები"
+msgstr "სერტიფიკატის გამოყენება"
 
 msgid "TLSA Selector"
 msgstr ""
 
-#, fuzzy
-#| msgid "Select All"
 msgid "Selector"
-msgstr "ყველას მონიშვნა"
+msgstr "ამრჩევი"
 
 msgid "TLSA Matching Type"
 msgstr ""
 
-#, fuzzy
-#| msgid "Matched"
 msgid "Matching Type"
-msgstr "ემთხვევა"
+msgstr "ტიპი, რომელიც ემთხვევა"
 
-#, fuzzy
-#| msgid "Certificate Authorities"
 msgid "TLSA Certificate Association Data"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "TLSA სერტიფიკატის ასოცირების მონაცემები"
 
-#, fuzzy
-#| msgid "Certificate Authorities"
 msgid "Certificate Association Data"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "სერტიფიკატის ასოცირების მონაცემები"
 
 msgid "TKEY record"
 msgstr ""
@@ -2839,10 +2744,8 @@ msgstr ""
 msgid "TXT Text Data"
 msgstr ""
 
-#, fuzzy
-#| msgid "Data"
 msgid "Text Data"
-msgstr "მონაცემები"
+msgstr "ტექსტური მონაცემები"
 
 msgid "Authoritative nameserver"
 msgstr ""
@@ -2853,20 +2756,14 @@ msgstr ""
 msgid "Administrator e-mail address"
 msgstr ""
 
-#, fuzzy
-#| msgid "Serial"
 msgid "SOA serial"
-msgstr "სერიული"
+msgstr "SOA სერიული"
 
-#, fuzzy
-#| msgid "Serial number"
 msgid "SOA record serial number"
-msgstr "სერიული ნომერი"
+msgstr "SOA ჩანაწერის სერიული ნომერი"
 
-#, fuzzy
-#| msgid "Refresh"
 msgid "SOA refresh"
-msgstr "განახლება"
+msgstr "SOA განახლება"
 
 msgid "SOA record refresh time"
 msgstr ""
@@ -2901,10 +2798,8 @@ msgstr ""
 msgid "Allow dynamic updates."
 msgstr ""
 
-#, fuzzy
-#| msgid "Allow"
 msgid "Allow query"
-msgstr "დაშვება"
+msgstr "მოთხოვნის დაშვება"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
@@ -2955,10 +2850,8 @@ msgstr ""
 msgid "Add a permission for per-forward zone access delegation."
 msgstr ""
 
-#, fuzzy
-#| msgid "Permission"
 msgid "Permission value"
-msgstr "წვდომა"
+msgstr "წვდომის მნიშვნელობა"
 
 msgid "Delete DNS forward zone."
 msgstr ""
@@ -3106,39 +2999,29 @@ msgid ""
 "   ipa hbacrule-del allow_server\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Role name"
 msgid "Rule name"
 msgstr "როლის სახელი"
 
-#, fuzzy
-#| msgid "Record type"
 msgid "Rule type"
-msgstr "ჩანაწერის ტიპი"
+msgstr "წესის ტიპი"
 
 msgid "Rule type (allow)"
 msgstr ""
 
-#, fuzzy
-#| msgid "User name"
 msgid "User category"
-msgstr "მომხმარებლის სახელი"
+msgstr "მომხმარებლის კატეგორია"
 
 msgid "User category the rule applies to"
 msgstr ""
 
-#, fuzzy
-#| msgid "Host Name"
 msgid "Host category"
-msgstr "ჰოსტი"
+msgstr "ჰოსტის კატეგორია"
 
 msgid "Host category the rule applies to"
 msgstr ""
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Service category"
-msgstr "სერვისის მორგება"
+msgstr "სერვისის კატეგორია"
 
 msgid "Service category the rule applies to"
 msgstr ""
@@ -3161,15 +3044,11 @@ msgstr "ჰოსტის ჯგუფები"
 msgid "Services"
 msgstr "სერვისები"
 
-#, fuzzy
-#| msgid "Services"
 msgid "Service Groups"
-msgstr "სერვისები"
+msgstr "სერვისის ჯგუფები"
 
-#, fuzzy
-#| msgid "External"
 msgid "External host"
-msgstr "გარე"
+msgstr "გარე ჰოსტი"
 
 msgid "Create a new HBAC rule."
 msgstr ""
@@ -3180,23 +3059,19 @@ msgstr ""
 msgid "Add target hosts and hostgroups to an HBAC rule."
 msgstr ""
 
-#, fuzzy
-#| msgid "Member of"
 msgid "member host"
-msgstr "წარმოადგენს წევრს"
+msgstr "წევრი ჰოსტი"
 
 msgid "hosts to add"
 msgstr ""
 
-#, fuzzy
-#| msgid "host group"
 msgid "member host group"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "წევრი ჰოსტების ჯგუფი"
 
-#, fuzzy
-#| msgid "host groups"
 msgid "host groups to add"
-msgstr "ჰოსტის ჯგუფები"
+msgstr ""
+"დასამატებელი ჰოსტის \n"
+"ჯგუფები"
 
 msgid "Members that could not be added"
 msgstr ""
@@ -3207,10 +3082,8 @@ msgstr ""
 msgid "Add services to an HBAC rule."
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "member HBAC service"
-msgstr "სერვისების წაშლა"
+msgstr "წევრის HBAC სერვისი"
 
 msgid "HBAC services to add"
 msgstr ""
@@ -3224,30 +3097,20 @@ msgstr ""
 msgid "Add users and groups to an HBAC rule."
 msgstr ""
 
-#, fuzzy
-#| msgid "Members"
 msgid "member user"
-msgstr "წევრები"
+msgstr "წევრი მომხმარებელი"
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "users to add"
-msgstr "დამატების შეცდომა"
+msgstr "დასამატებელი მომხმარებლები"
 
-#, fuzzy
-#| msgid "User group"
 msgid "member group"
 msgstr "მომხმარებლების ჯგუფი"
 
-#, fuzzy
-#| msgid "groups"
 msgid "groups to add"
-msgstr "ჯგუფები"
+msgstr "დასამატებელი ჯგუფები"
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an HBAC rule."
-msgstr "მომხმარებლის წაშლა."
+msgstr "HBAC წესის წაშლა."
 
 msgid "Disable an HBAC rule."
 msgstr ""
@@ -3267,10 +3130,10 @@ msgstr ""
 msgid "hosts to remove"
 msgstr ""
 
-#, fuzzy
-#| msgid "host groups"
 msgid "host groups to remove"
-msgstr "ჰოსტის ჯგუფები"
+msgstr ""
+"წასაშლელი \n"
+"ჰოსტის ჯგუფები"
 
 msgid "Members that could not be removed"
 msgstr ""
@@ -3322,20 +3185,14 @@ msgid ""
 "   ipa hbacsvc-del tftp\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server name"
 msgid "Service name"
-msgstr "სერვერი სახელი"
+msgstr "სერვისის სახელი"
 
-#, fuzzy
-#| msgid "Add service"
 msgid "HBAC service"
 msgstr "სერვისის დამატება"
 
-#, fuzzy
-#| msgid "Privilege description"
 msgid "HBAC service description"
-msgstr "პრივილეგიის აღწერა"
+msgstr "HBAC სერვისის აღწერა"
 
 msgid "Member of HBAC service groups"
 msgstr ""
@@ -3380,18 +3237,12 @@ msgid ""
 "   ipa hbacsvcgroup-del login\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server name"
 msgid "Service group name"
-msgstr "სერვერი სახელი"
+msgstr "სერვისის ჯგუფის სახელი"
 
-#, fuzzy
-#| msgid "Privilege description"
 msgid "HBAC service group description"
-msgstr "პრივილეგიის აღწერა"
+msgstr "HBAC სერვისი ჯგუფის აღწერა"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Member HBAC service"
 msgstr "სერვისების წაშლა"
 
@@ -3401,10 +3252,8 @@ msgstr ""
 msgid "Add members to an HBAC service group."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an HBAC service group."
-msgstr "მომხმარებლის წაშლა."
+msgstr "HBAC სერვისის ჯგუფის წაშლა."
 
 msgid "Search for an HBAC service group."
 msgstr ""
@@ -3509,10 +3358,8 @@ msgstr "ოპერაციული სისტემა"
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
 msgstr ""
 
-#, fuzzy
-#| msgid "password"
 msgid "User password"
-msgstr "პაროლი"
+msgstr "მომხმარებლის პაროლი"
 
 msgid "Password used in bulk enrollment"
 msgstr ""
@@ -3520,10 +3367,8 @@ msgstr ""
 msgid "Generate a random password to be used in bulk enrollment"
 msgstr ""
 
-#, fuzzy
-#| msgid "Change password"
 msgid "Random password"
-msgstr "პაროლის შეცვლა"
+msgstr "შემთხვევითი პაროლი"
 
 msgid "Certificate"
 msgstr "სერტიფიკატი"
@@ -3531,8 +3376,6 @@ msgstr "სერტიფიკატი"
 msgid "Base-64 encoded server certificate"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display name"
 msgid "Principal name"
 msgstr "ნაჩვენები სახელი"
 
@@ -3556,10 +3399,8 @@ msgstr ""
 msgid "Assigned ID View"
 msgstr ""
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Requires pre-authentication"
-msgstr "ავთენტიკაცია"
+msgstr "ითხოვს პრე-ავთენტიკაციას"
 
 msgid "Pre-authentication is required for the service"
 msgstr ""
@@ -3570,28 +3411,20 @@ msgstr ""
 msgid "Client credentials may be delegated to the service"
 msgstr ""
 
-#, fuzzy
-#| msgid "hostgroups"
 msgid "Member of host-groups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ჰოსტის ჯგუფის წევრები"
 
 msgid "Roles"
 msgstr "როლები"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member of netgroups"
-msgstr "წარმოადგენს წევრს"
+msgstr "ქსელური ჯგუფების წევრი"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member of Sudo rule"
-msgstr "წარმოადგენს წევრს"
+msgstr "Sudo წესის წევრი"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member of HBAC rule"
-msgstr "წარმოადგენს წევრს"
+msgstr "HBAC წესის წევრი"
 
 msgid "Indirect Member of netgroup"
 msgstr ""
@@ -3611,13 +3444,9 @@ msgstr ""
 msgid "Keytab"
 msgstr ""
 
-#, fuzzy
-#| msgid "Manager"
 msgid "Managed by"
 msgstr "მმართველი"
 
-#, fuzzy
-#| msgid "Manager"
 msgid "Managing"
 msgstr "მმართველი"
 
@@ -3668,15 +3497,11 @@ msgid ""
 "Allow users, groups, hosts or host groups to retrieve a keytab of this host."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a host."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ჰოსტის წაშლა."
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove entries from DNS"
-msgstr "სერვისების წაშლა"
+msgstr "DNS-დან ჩანაწერების წაშლა"
 
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
@@ -3705,10 +3530,8 @@ msgstr ""
 msgid "Search for hosts without these member of host groups."
 msgstr ""
 
-#, fuzzy
-#| msgid "group"
 msgid "netgroup"
-msgstr "ჯგუფი"
+msgstr "ქსელური ჯგუფი"
 
 msgid "Search for hosts with these member of netgroups."
 msgstr ""
@@ -3725,10 +3548,8 @@ msgstr ""
 msgid "Search for hosts without these member of roles."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "HBAC rule"
-msgstr "წესის დამატება"
+msgstr "HBAC წესი"
 
 msgid "Search for hosts with these member of HBAC rules."
 msgstr ""
@@ -3736,10 +3557,8 @@ msgstr ""
 msgid "Search for hosts without these member of HBAC rules."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "sudo rule"
-msgstr "წესის დამატება"
+msgstr "sudo წესი"
 
 msgid "Search for hosts with these member of sudo rules."
 msgstr ""
@@ -3823,23 +3642,17 @@ msgstr ""
 msgid "Host-group"
 msgstr "ჰოსტების ჯგუფი"
 
-#, fuzzy
-#| msgid "hostgroup"
 msgid "Name of host-group"
 msgstr "ჰოსტების ჯგუფი"
 
 msgid "A description of this host-group"
 msgstr ""
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member hosts"
-msgstr "წარმოადგენს წევრს"
+msgstr "წევრი ჰოსტები"
 
-#, fuzzy
-#| msgid "hostgroups"
 msgid "Member host-groups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "წევრი ჰოსტის ჯგუფები"
 
 msgid "Indirect Member hosts"
 msgstr ""
@@ -3847,18 +3660,14 @@ msgstr ""
 msgid "Indirect Member host-groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new hostgroup."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი ჰოსტების ჯგუფის დამატება."
 
 msgid "Add members to a hostgroup."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a hostgroup."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ჰოსტის ჯგუფის წაშლა."
 
 msgid "Search for hostgroups."
 msgstr "ჰოსტის ჯგუფების ძებნა."
@@ -3933,10 +3742,8 @@ msgstr "ჯგუფის სახელი"
 msgid "GID"
 msgstr "GID"
 
-#, fuzzy
-#| msgid "Group name"
 msgid "Group ID Number"
-msgstr "ჯგუფის სახელი"
+msgstr "ჯგუფის ID ნომერი"
 
 msgid "User login"
 msgstr "მომხმარებლის შესვლა"
@@ -3944,10 +3751,8 @@ msgstr "მომხმარებლის შესვლა"
 msgid "UID"
 msgstr "UID"
 
-#, fuzzy
-#| msgid "Serial Number"
 msgid "User ID Number"
-msgstr "სერიული ნომერი"
+msgstr "მომხმარებლის ID ნომერი"
 
 msgid "GECOS"
 msgstr ""
@@ -3964,10 +3769,8 @@ msgstr ""
 msgid "Add a new Group ID override."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an Group ID override."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ჯგუფის ID-ის გადაფარვის წაშლა."
 
 msgid "Search for an Group ID override."
 msgstr ""
@@ -3987,10 +3790,8 @@ msgstr ""
 msgid "Add a new User ID override."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an User ID override."
-msgstr "მომხმარებლის წაშლა."
+msgstr "მომხმარებლის ID-ის გადაფარვის წაშლა."
 
 msgid "Search for an User ID override."
 msgstr ""
@@ -4004,10 +3805,8 @@ msgstr ""
 msgid "Display information about an User ID override."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new ID View."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი ID ხედის დამატება."
 
 msgid ""
 "Applies ID View to specified hosts or current members of specified "
@@ -4038,10 +3837,8 @@ msgstr ""
 msgid "Number of hosts the ID View was applied to:"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an ID View."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ID-ის ხედის წაშლა."
 
 msgid "Search for an ID View."
 msgstr ""
@@ -4293,18 +4090,14 @@ msgstr ""
 msgid "Migrate users and groups from DS to IPA."
 msgstr ""
 
-#, fuzzy
-#| msgid "LDAP DN"
 msgid "LDAP URI"
 msgstr "LDAP DN"
 
 msgid "LDAP URI of DS server to migrate from"
 msgstr ""
 
-#, fuzzy
-#| msgid "password"
 msgid "bind password"
-msgstr "პაროლი"
+msgstr "მიმაგრების პაროლი"
 
 msgid "Bind DN"
 msgstr ""
@@ -4315,10 +4108,8 @@ msgstr "მომხმარებლის კონტეინერი"
 msgid "DN of container for users in DS relative to base DN"
 msgstr ""
 
-#, fuzzy
-#| msgid "Group name"
 msgid "Group container"
-msgstr "ჯგუფის სახელი"
+msgstr "ჯგუფის კონტეინერი"
 
 msgid "DN of container for groups in DS relative to base DN"
 msgstr ""
@@ -4341,10 +4132,8 @@ msgstr ""
 msgid "Objectclasses to be ignored for user entries in DS"
 msgstr ""
 
-#, fuzzy
-#| msgid "Included attributes"
 msgid "Ignore user attribute"
-msgstr "ჩასმული ატრიბუტები"
+msgstr "მომხმარებლის ატრიბუტის იგნორი"
 
 msgid "Attributes to be ignored for user entries in DS"
 msgstr ""
@@ -4355,10 +4144,8 @@ msgstr ""
 msgid "Objectclasses to be ignored for group entries in DS"
 msgstr ""
 
-#, fuzzy
-#| msgid "Included attributes"
 msgid "Ignore group attribute"
-msgstr "ჩასმული ატრიბუტები"
+msgstr "ჯგუფის ატრიბუტის იგნორი"
 
 msgid "Attributes to be ignored for group entries in DS"
 msgstr ""
@@ -4371,10 +4158,8 @@ msgid ""
 "GID and report as success"
 msgstr ""
 
-#, fuzzy
-#| msgid "LDAP basedn"
 msgid "LDAP schema"
-msgstr "LDAP basedn"
+msgstr "LDAP-ის სქემა"
 
 msgid ""
 "The schema used on the LDAP server. Supported values are RFC2307 and "
@@ -4482,72 +4267,50 @@ msgid ""
 "   ipa netgroup-del admins\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Group name"
 msgid "Netgroup name"
-msgstr "ჯგუფის სახელი"
+msgstr "ქსელური ჯგუფის სახელი"
 
-#, fuzzy
-#| msgid "Profile description"
 msgid "Netgroup description"
-msgstr "პროფილის აღწერა"
+msgstr "ქსელური ჯგუფის აღწერა"
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "NIS domain name"
-msgstr "დომენის სახელი"
+msgstr "NIS დომენის სახელი"
 
 msgid "IPA unique ID"
 msgstr ""
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member netgroups"
-msgstr "წარმოადგენს წევრს"
+msgstr "წევრი ქსელური ჯგუფები"
 
 msgid "Indirect Member netgroups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Members"
 msgid "Member User"
-msgstr "წევრები"
+msgstr "წევრი მომხმარებელი"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member Group"
-msgstr "წარმოადგენს წევრს"
+msgstr "წევრი ჯგუფი"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member Host"
 msgstr "წარმოადგენს წევრს"
 
-#, fuzzy
-#| msgid "Host-group"
 msgid "Member Hostgroup"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "წევრი ჰოსტების ჯგუფი"
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new netgroup."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი ქსელურ ჯგუფის დამატება."
 
 msgid "Add members to a netgroup."
 msgstr ""
 
-#, fuzzy
-#| msgid "User group"
 msgid "member netgroup"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლების ქსელური ჯგუფი"
 
 msgid "netgroups to add"
 msgstr "დასამატებელი ქსელური ჯგუფები"
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a netgroup."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ქსელური ჯგუფის წაშლა."
 
 msgid "Search for a netgroup."
 msgstr ""
@@ -4633,34 +4396,26 @@ msgid ""
 "   ipa hotpconfig-mod --hotp-sync-window=50\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "TOTP authentication Window"
-msgstr "ავთენტიკაცია"
+msgstr "TOTP ავთენტიკაციის ფანჯარა"
 
 msgid "TOTP authentication time variance (seconds)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Synchronizing"
 msgid "TOTP Synchronization Window"
-msgstr "სინქრონიზაცია"
+msgstr "TOTP სინქრონიზაციის ფანჯარა"
 
 msgid "TOTP synchronization time variance (seconds)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "HOTP Authentication Window"
-msgstr "ავთენტიკაცია"
+msgstr "HOTP ავთენტიკაციის ფანჯარა"
 
 msgid "HOTP authentication skip-ahead"
 msgstr ""
 
-#, fuzzy
-#| msgid "Synchronizing"
 msgid "HOTP Synchronization Window"
-msgstr "სინქრონიზაცია"
+msgstr "HOTP სინქრონიზაციის ფანჯარა"
 
 msgid "HOTP synchronization skip-ahead"
 msgstr ""
@@ -4718,8 +4473,6 @@ msgstr "მიმდინარე პაროლი"
 msgid "OTP"
 msgstr "OTP"
 
-#, fuzzy
-#| msgid "One-Time Password"
 msgid "One Time Password"
 msgstr "ერთჯერადი პაროლი"
 
@@ -4794,10 +4547,8 @@ msgid ""
 "\"Manage Group Members\"\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Permission"
 msgid "Permission name"
-msgstr "წვდომა"
+msgstr "წვდომის სახელი"
 
 msgid "Granted rights"
 msgstr ""
@@ -4805,10 +4556,8 @@ msgstr ""
 msgid "Rights to grant (read, search, compare, write, add, delete, all)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Excluded attributes"
 msgid "Effective attributes"
-msgstr "გაფართოებული ატრიბუტები"
+msgstr "ეფექტური ატრიბუტები"
 
 msgid "All attributes to which the permission applies"
 msgstr ""
@@ -4826,10 +4575,8 @@ msgid ""
 "User-specified attributes to which the permission explicitly does not apply"
 msgstr ""
 
-#, fuzzy
-#| msgid "Excluded attributes"
 msgid "Default attributes"
-msgstr "გაფართოებული ატრიბუტები"
+msgstr "ნაგულისხმევი ატრიბუტები"
 
 msgid "Attributes to which the permission applies by default"
 msgstr ""
@@ -4849,20 +4596,16 @@ msgstr ""
 msgid "All target filters, including those implied by type and memberof"
 msgstr ""
 
-#, fuzzy
-#| msgid "Target"
 msgid "Target DN"
-msgstr "სამიზნე"
+msgstr "სამიზნის DN"
 
 msgid ""
 "Optional DN to apply the permission to (must be in the subtree, but may not "
 "yet exist)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member of group"
-msgstr "წარმოადგენს წევრს"
+msgstr "ჯგუფის წევრი"
 
 msgid "Target members of a group (sets memberOf targetfilter)"
 msgstr ""
@@ -4882,44 +4625,32 @@ msgstr ""
 msgid "Deprecated; use ipapermright"
 msgstr ""
 
-#, fuzzy
-#| msgid "Privilege"
 msgid "Granted to Privilege"
-msgstr "პრივილეგიები"
+msgstr "მინიჭებულია პრივილეგიებზე"
 
 msgid "Indirect Member of roles"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new permission."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი წვდომის დამატება."
 
 msgid "Add members to a permission."
 msgstr ""
 
-#, fuzzy
-#| msgid "privilege"
 msgid "member privilege"
-msgstr "პრივილეგიები"
+msgstr "წევრის პრივილეგია"
 
-#, fuzzy
-#| msgid "privileges"
 msgid "privileges to add"
-msgstr "პრივილეგიები"
+msgstr "დასამატებელი პრივილეგიები"
 
 msgid "Add a system permission without an ACI (internal command)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Permissions"
 msgid "Permission flags"
-msgstr "წვდომები"
+msgstr "წვდომის ალმები"
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a permission."
-msgstr "მომხმარებლის წაშლა."
+msgstr "წვდომის წაშლა."
 
 msgid "force delete of SYSTEM permissions"
 msgstr ""
@@ -4936,10 +4667,8 @@ msgstr ""
 msgid "Remove members from a permission."
 msgstr ""
 
-#, fuzzy
-#| msgid "privileges"
 msgid "privileges to remove"
-msgstr "პრივილეგიები"
+msgstr "წასაშლელი პრივილეგიები"
 
 msgid "Display information about a permission."
 msgstr ""
@@ -5022,10 +4751,8 @@ msgid ""
 "See role and permission for additional information.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Privilege"
 msgid "Privilege name"
-msgstr "პრივილეგიები"
+msgstr "პრივილეგიის სახელი"
 
 msgid "Privilege description"
 msgstr "პრივილეგიის აღწერა"
@@ -5033,23 +4760,17 @@ msgstr "პრივილეგიის აღწერა"
 msgid "Granting privilege to roles"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new privilege."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი პრივილეგიის დამატება."
 
 msgid "Add members to a privilege."
 msgstr ""
 
-#, fuzzy
-#| msgid "Member of"
 msgid "member role"
-msgstr "წარმოადგენს წევრს"
+msgstr "წევრი როლი"
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "roles to add"
-msgstr "დამატების შეცდომა"
+msgstr "დასამატებელი როლები"
 
 msgid "Add permissions to a privilege."
 msgstr ""
@@ -5063,10 +4784,8 @@ msgstr "წვდომები"
 msgid "Number of permissions added"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a privilege."
-msgstr "მომხმარებლის წაშლა."
+msgstr "პრივილეგიის წაშლა."
 
 msgid "Search for privileges."
 msgstr "პრივილეგიების ძებნა."
@@ -5158,10 +4877,8 @@ msgstr ""
 msgid "History size"
 msgstr ""
 
-#, fuzzy
-#| msgid "Password expiration"
 msgid "Password history size"
-msgstr "პაროლის ვადა"
+msgstr "პაროლის ისტორიის ზომა"
 
 msgid "Character classes"
 msgstr ""
@@ -5170,7 +4887,7 @@ msgid "Minimum number of character classes"
 msgstr ""
 
 msgid "Min length"
-msgstr ""
+msgstr "მინ. სიგრძე"
 
 msgid "Minimum length of password"
 msgstr "პაროლის მინიმალური სიგრძე"
@@ -5190,10 +4907,8 @@ msgstr ""
 msgid "Period after which failure count will be reset (seconds)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Location"
 msgid "Lockout duration"
-msgstr "მდებარეობა"
+msgstr "დაბლოკვის ხანგრძლივობა"
 
 msgid "Period for which lockout is enforced (seconds)"
 msgstr ""
@@ -5253,10 +4968,8 @@ msgid ""
 "   ipa radiusproxy-del MyRADIUS\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server name"
 msgid "RADIUS proxy server name"
-msgstr "სერვერი სახელი"
+msgstr "RADIUS-ის პროქსი სერვერის სახელი"
 
 msgid "A description of this RADIUS proxy server"
 msgstr ""
@@ -5285,8 +4998,6 @@ msgstr "თავიდან ცდები"
 msgid "The number of times to retry authentication"
 msgstr ""
 
-#, fuzzy
-#| msgid "Attribute"
 msgid "User attribute"
 msgstr "ატრიბუტი"
 
@@ -5296,10 +5007,8 @@ msgstr ""
 msgid "Add a new RADIUS proxy server."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a RADIUS proxy server."
-msgstr "მომხმარებლის წაშლა."
+msgstr "RADIUS-ის პროქსი სერვერის წაშლა."
 
 msgid "Search for RADIUS proxy servers."
 msgstr ""
@@ -5338,8 +5047,6 @@ msgstr ""
 msgid "Domain"
 msgstr "დომენი"
 
-#, fuzzy
-#| msgid "domain"
 msgid "Add domain"
 msgstr "დომენი"
 
@@ -5399,41 +5106,29 @@ msgstr "როლის სახელი"
 msgid "A description of this role-group"
 msgstr ""
 
-#, fuzzy
-#| msgid "Members"
 msgid "Member users"
-msgstr "წევრები"
+msgstr "წევრი მომხმარებლები"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member groups"
-msgstr "წარმოადგენს წევრს"
+msgstr "წევრი ჯგუფები"
 
 msgid "Privileges"
 msgstr "პრივილეგიები"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Member services"
-msgstr "სერვისების წაშლა"
+msgstr "წევრის სერვისები"
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new role."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი როლის დამატება."
 
 msgid "Add members to a role."
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "member service"
-msgstr "სერვისების წაშლა"
+msgstr "წევრი სერვისი"
 
-#, fuzzy
-#| msgid "services"
 msgid "services to add"
-msgstr "სერვისები"
+msgstr "დასამატებელი სერვისები"
 
 msgid "Add privileges to a role."
 msgstr ""
@@ -5447,10 +5142,8 @@ msgstr "პრივილეგიები"
 msgid "Number of privileges added"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a role."
-msgstr "მომხმარებლის წაშლა."
+msgstr "როლის წაშლა."
 
 msgid "Search for roles."
 msgstr ""
@@ -5464,10 +5157,8 @@ msgstr ""
 msgid "Remove members from a role."
 msgstr ""
 
-#, fuzzy
-#| msgid "services"
 msgid "services to remove"
-msgstr "სერვისები"
+msgstr "წასაშლელი სერვისები"
 
 msgid "Remove privileges from a role."
 msgstr ""
@@ -5510,10 +5201,8 @@ msgid ""
 "   ipa selfservice-del \"Users manage their own address\"\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server name"
 msgid "Self-service name"
-msgstr "სერვერი სახელი"
+msgstr "თვითმომსახურების სახელი"
 
 msgid "Attributes to which the permission applies."
 msgstr ""
@@ -5601,10 +5290,8 @@ msgstr ""
 msgid "Add users and groups to an SELinux User Map rule."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a SELinux User Map."
-msgstr "მომხმარებლის წაშლა."
+msgstr "SELinux -ის მომხმარებლის რუკის წაშლა."
 
 msgid "Disable an SELinux User Map rule."
 msgstr ""
@@ -5692,12 +5379,10 @@ msgid ""
 msgstr ""
 
 msgid "Principal"
-msgstr ""
+msgstr "პრინციპალი"
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Service principal"
-msgstr "სერვისის მორგება"
+msgstr "სერვისის პრინციპალი"
 
 msgid "PAC type"
 msgstr ""
@@ -5725,10 +5410,8 @@ msgid ""
 "service."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an IPA service."
-msgstr "მომხმარებლის წაშლა."
+msgstr "IPA სერვისის წაშლა."
 
 msgid "Disable the Kerberos key and SSL certificate of a service."
 msgstr ""
@@ -6377,18 +6060,14 @@ msgid ""
 "   ipa sudocmd-del /usr/bin/less\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Command"
-msgstr "ბრძანებების გაშვება"
+msgstr "ბრძანება Sudo"
 
 msgid "A description of this command"
 msgstr ""
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Command Groups"
-msgstr "ბრძანებების გაშვება"
+msgstr "'sudo' ბრძანების ჯგუფები"
 
 msgid "Create new Sudo Command."
 msgstr ""
@@ -6436,10 +6115,8 @@ msgstr ""
 msgid "Sudo Command Group"
 msgstr "'sudo' ბრძანების ჯგუფი"
 
-#, fuzzy
-#| msgid "description"
 msgid "Group description"
-msgstr "აღწერა"
+msgstr "ჯგუფის აღწერა"
 
 msgid "Commands"
 msgstr "ბრძანებები"
@@ -6574,20 +6251,14 @@ msgstr "ZIP"
 msgid "Telephone Number"
 msgstr "ტელეფონის ნომერი"
 
-#, fuzzy
-#| msgid "Telephone Number"
 msgid "Mobile Telephone Number"
-msgstr "ტელეფონის ნომერი"
+msgstr "მობილური ტელეფონის ნომერი"
 
-#, fuzzy
-#| msgid "Serial Number"
 msgid "Pager Number"
-msgstr "სერიული ნომერი"
+msgstr "პეიჯერის ნომერი"
 
-#, fuzzy
-#| msgid "Serial Number"
 msgid "Fax Number"
-msgstr "სერიული ნომერი"
+msgstr "ფაქსის ნომერი"
 
 msgid "Org. Unit"
 msgstr ""
@@ -6601,15 +6272,11 @@ msgstr "მმართველი"
 msgid "Car License"
 msgstr ""
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Account disabled"
-msgstr "ანგარიშის მორგება"
+msgstr "ანგარიში გათიშულია"
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "User authentication types"
-msgstr "ავთენტიკაცია"
+msgstr "მომხმარებლის ავთენტიკაციის ტიპები"
 
 msgid "Types of supported user authentication"
 msgstr ""
@@ -6619,36 +6286,26 @@ msgid ""
 "interpretation)"
 msgstr ""
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "RADIUS proxy configuration"
-msgstr "ნდობის მორგება"
+msgstr "RADIUS-ის პროქსი სერვერის მორგება"
 
 msgid "RADIUS proxy username"
 msgstr ""
 
-#, fuzzy
-#| msgid "Telephone Number"
 msgid "Department Number"
-msgstr "ტელეფონის ნომერი"
+msgstr "განყოფილების ნომერი"
 
-#, fuzzy
-#| msgid "Telephone Number"
 msgid "Employee Number"
-msgstr "ტელეფონის ნომერი"
+msgstr "თანამშრომლის ნომერი"
 
 msgid "Employee Type"
 msgstr ""
 
-#, fuzzy
-#| msgid "Preference"
 msgid "Preferred Language"
-msgstr "მორგება"
+msgstr "სასურველი ენა"
 
-#, fuzzy
-#| msgid "Member of"
 msgid "Member of groups"
-msgstr "წარმოადგენს წევრს"
+msgstr "ჯგუფების წევრი"
 
 msgid "Indirect Member of group"
 msgstr ""
@@ -6656,10 +6313,8 @@ msgstr ""
 msgid "Kerberos keys available"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new user."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი მომხმარებლის დამატება."
 
 msgid "Don't create user private group"
 msgstr ""
@@ -6887,10 +6542,8 @@ msgstr ""
 msgid "Automember Rule"
 msgstr ""
 
-#, fuzzy
-#| msgid "Group name"
 msgid "Grouping Type"
-msgstr "ჯგუფის სახელი"
+msgstr "დაჯგუფების ტიპი"
 
 msgid "Grouping to which the rule applies"
 msgstr ""
@@ -6901,15 +6554,11 @@ msgstr ""
 msgid "Inclusive Regex"
 msgstr ""
 
-#, fuzzy
-#| msgid "Exclusive"
 msgid "Exclusive Regex"
-msgstr "ექსკლუზიური"
+msgstr "ექსკლუზიური რეგგამოსი"
 
-#, fuzzy
-#| msgid "Attribute"
 msgid "Attribute Key"
-msgstr "ატრიბუტი"
+msgstr "ატრიბუტის გასაღები"
 
 msgid ""
 "Attribute to filter via regex. For example fqdn for a host, or manager for a "
@@ -6934,10 +6583,8 @@ msgstr ""
 msgid "Display information about the default (fallback) automember groups."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an automember rule."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ავტოწევრის წესის წაშლა."
 
 msgid "Search for automember rules."
 msgstr ""
@@ -7072,15 +6719,11 @@ msgstr "მიზეზი"
 msgid "Reason for revoking the certificate (0-10)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Serial number"
 msgid "minimum serial number"
-msgstr "სერიული ნომერი"
+msgstr "მინიმალური სერიული ნომერი"
 
-#, fuzzy
-#| msgid "Serial number"
 msgid "maximum serial number"
-msgstr "სერიული ნომერი"
+msgstr "მაქსიმალური სერიული ნომერი"
 
 msgid "match the common name exactly"
 msgstr ""
@@ -7148,8 +6791,6 @@ msgstr ""
 msgid "Check the status of a certificate signing request."
 msgstr ""
 
-#, fuzzy
-#| msgid "Required"
 msgid "Request id"
 msgstr "საჭიროა"
 
@@ -7265,18 +6906,14 @@ msgstr ""
 msgid "Add members to a group."
 msgstr ""
 
-#, fuzzy
-#| msgid "External"
 msgid "External member"
-msgstr "გარე"
+msgstr "გარე წევრი"
 
 msgid "Members of a trusted domain in DOM\\name or name@domain form"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete group."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ჯგუფის წაშლა."
 
 msgid "Detach a managed group from a user."
 msgstr ""
@@ -7561,10 +7198,8 @@ msgstr ""
 msgid "Simulate use of Host-based access controls"
 msgstr ""
 
-#, fuzzy
-#| msgid "Target"
 msgid "Target host"
-msgstr "სამიზნე"
+msgstr "სამიზნე ჰოსტი"
 
 msgid "Rules to test. If not specified, --enabled is assumed"
 msgstr ""
@@ -7584,10 +7219,8 @@ msgstr ""
 msgid "Warning"
 msgstr "ყურადღება"
 
-#, fuzzy
-#| msgid "Matched"
 msgid "Matched rules"
-msgstr "ემთხვევა"
+msgstr "წესები, რომლებიც ემთხვევა"
 
 msgid "Not matched rules"
 msgstr ""
@@ -7595,10 +7228,8 @@ msgstr ""
 msgid "Non-existent or invalid rules"
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Result of simulation"
-msgstr "საცავის მორგება"
+msgstr "სიმულაციის შედეგი"
 
 msgid ""
 "\n"
@@ -7747,10 +7378,8 @@ msgid ""
 "modified to match the new range.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Rename"
 msgid "Range name"
-msgstr "გადარქმევა"
+msgstr "დიაპაზონის სახელი"
 
 msgid "First Posix ID of the range"
 msgstr ""
@@ -7770,10 +7399,8 @@ msgstr ""
 msgid "Name of the trusted domain"
 msgstr ""
 
-#, fuzzy
-#| msgid "Record type"
 msgid "Range type"
-msgstr "ჩანაწერის ტიპი"
+msgstr "დიაპაზონის ტიპი"
 
 msgid "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 msgstr ""
@@ -7817,10 +7444,8 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an ID range."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ID-ის დიაპაზონის წაშლა."
 
 msgid "Search for ranges."
 msgstr ""
@@ -7857,7 +7482,7 @@ msgid ""
 msgstr ""
 
 msgid "Unique ID"
-msgstr ""
+msgstr "უნიკალური ID"
 
 msgid "Type of the token"
 msgstr ""
@@ -7880,18 +7505,14 @@ msgstr "გამორთულია"
 msgid "Mark the token as disabled (default: false)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Validity"
 msgid "Validity start"
-msgstr "სისწორე"
+msgstr "სისწორე იწყება"
 
 msgid "First date/time the token can be used"
 msgstr ""
 
-#, fuzzy
-#| msgid "Validity"
 msgid "Validity end"
-msgstr "სისწორე"
+msgstr "სისწორე სრულდება"
 
 msgid "Last date/time the token can be used"
 msgstr ""
@@ -7921,7 +7542,7 @@ msgid "Token hash algorithm"
 msgstr ""
 
 msgid "Digits"
-msgstr ""
+msgstr "ციფრები"
 
 msgid "Number of digits each token code will have"
 msgstr ""
@@ -7939,15 +7560,13 @@ msgid "Length of TOTP token code validity"
 msgstr ""
 
 msgid "Counter"
-msgstr ""
+msgstr "მთვლელი"
 
 msgid "Initial counter for the HOTP token"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new OTP token."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი OTP კოდის დამატება."
 
 msgid "(deprecated)"
 msgstr ""
@@ -7958,10 +7577,8 @@ msgstr ""
 msgid "Add users that can manage this token."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an OTP token."
-msgstr "მომხმარებლის წაშლა."
+msgstr "OTP კოდის წაშლა."
 
 msgid "Search for OTP token."
 msgstr ""
@@ -8056,41 +7673,29 @@ msgstr ""
 msgid "integer to order the Sudo rules"
 msgstr ""
 
-#, fuzzy
-#| msgid "External"
 msgid "External User"
-msgstr "გარე"
+msgstr "გარე მომხმარებელი"
 
 msgid "External User the rule applies to (sudorule-find only)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Hosts"
 msgid "Host Masks"
-msgstr "ჰოსტები"
+msgstr "ჰოსტის ნიღბები"
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Allow Commands"
-msgstr "ბრძანებების გაშვება"
+msgstr "Sudo ბრძანებების დაშვება"
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Deny Commands"
-msgstr "ბრძანებების გაშვება"
+msgstr "Sudo ბრძანებების აკრძალვა"
 
 msgid "Sudo Allow Command Groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Deny Command Groups"
-msgstr "ბრძანებების გაშვება"
+msgstr "Sudo ბრძანებების ჯგუფის აკრძალვა"
 
-#, fuzzy
-#| msgid "Users"
 msgid "RunAs Users"
-msgstr "მომხმარებლები"
+msgstr "გავუშვაროგორც მომხმარებლები"
 
 msgid "Run as a user"
 msgstr ""
@@ -8113,26 +7718,20 @@ msgstr ""
 msgid "External Groups of users that the command can run as"
 msgstr ""
 
-#, fuzzy
-#| msgid "Host Groups"
 msgid "RunAs Groups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "გავუშვაროგორც ჯგუფები"
 
 msgid "Run with the gid of a specified POSIX group"
 msgstr ""
 
-#, fuzzy
-#| msgid "User Group"
 msgid "RunAs External Group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "გავუშვათ როგორც-ის გარე ჯგუფი"
 
 msgid "External Group the commands can run as (sudorule-find only)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Options"
 msgid "Sudo Option"
-msgstr "მორგება"
+msgstr "Sudo-ის პარამეტრი"
 
 msgid "Create new Sudo Rule."
 msgstr ""
@@ -8164,10 +7763,8 @@ msgstr ""
 msgid "Add users and groups affected by Sudo Rule."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete Sudo Rule."
-msgstr "მომხმარებლის წაშლა."
+msgstr "Sudo წესის წაშლა."
 
 msgid "Disable a Sudo Rule."
 msgstr ""
@@ -8308,10 +7905,8 @@ msgid ""
 "Group\"\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "Domain NetBIOS name"
-msgstr "დომენის სახელი"
+msgstr "დომენის NETBIOS სახელი"
 
 msgid "Domain Security Identifier"
 msgstr ""
@@ -8370,15 +7965,11 @@ msgstr ""
 msgid "Trust type (ad for Active Directory, default)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Active Directory domain"
 msgid "Active Directory domain administrator"
-msgstr "Active Directory-ის დომენი"
+msgstr "Active Directory-ის დომენის ადმინისტრატორი"
 
-#, fuzzy
-#| msgid "Active Directory domain"
 msgid "Active Directory domain administrator's password"
-msgstr "Active Directory-ის დომენი"
+msgstr "Active Directory-ის დომენის ადმინისტრატორის პაროლი"
 
 msgid "Domain controller for the Active Directory domain (optional)"
 msgstr ""
@@ -8396,10 +7987,8 @@ msgid ""
 "Type of trusted domain ID range, one of ipa-ad-trust-posix, ipa-ad-trust"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a trust."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ნდობის წაშლა."
 
 msgid "Refresh list of the domains associated with the trust"
 msgstr ""
@@ -8496,15 +8085,11 @@ msgid ""
 "    ipa caacl-del test\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Last name"
 msgid "ACL name"
-msgstr "გვარი"
+msgstr "ACL-ის სახელი"
 
-#, fuzzy
-#| msgid "Profile description"
 msgid "Profile category"
-msgstr "პროფილის აღწერა"
+msgstr "პროფილის კატეგორია"
 
 msgid "Profile category the ACL applies to"
 msgstr ""
@@ -8530,15 +8115,11 @@ msgstr ""
 msgid "Add profiles to a CA ACL."
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "member Certificate Profile"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "წევრის სერტიფიკატის პროფილი"
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Profiles to add"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "დასამატებელი სერტიფიკატის პროფილები"
 
 msgid "Add services to a CA ACL."
 msgstr "CA ACL-სთვის სერვისების დამატება."
@@ -8546,10 +8127,8 @@ msgstr "CA ACL-სთვის სერვისების დამატე
 msgid "Add users and groups to a CA ACL."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a CA ACL."
-msgstr "მომხმარებლის წაშლა."
+msgstr "CA ACL-ის წაშლა."
 
 msgid "Disable a CA ACL."
 msgstr ""
@@ -8569,10 +8148,8 @@ msgstr ""
 msgid "Remove profiles from a CA ACL."
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Profiles to remove"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "წასაშლელი სერტიფიკატის პროფილები"
 
 msgid "Remove services from a CA ACL."
 msgstr "CA ACL-დან სერვისების წაშლა."
@@ -8603,15 +8180,11 @@ msgstr ""
 msgid "Change current Domain Level."
 msgstr ""
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "Domain Level"
-msgstr "დომენის სახელი"
+msgstr "დომენის დონე"
 
-#, fuzzy
-#| msgid "Certificate Authority"
 msgid "Add certificates to host entry"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "ჰოსტის ჩანაწერში სერტიფიკატების დამატება"
 
 msgid "Remove certificates from host entry"
 msgstr ""
@@ -8635,8 +8208,6 @@ msgstr ""
 msgid "Add migrated users without a group to a default group (default: true)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Search"
 msgid "Search scope"
 msgstr "ძებნა"
 
@@ -8679,10 +8250,8 @@ msgstr ""
 msgid "Server name"
 msgstr "სერვერი სახელი"
 
-#, fuzzy
-#| msgid "IPA CA servers"
 msgid "IPA server hostname"
-msgstr "IPCA CA სერვერები"
+msgstr "IPA სერვერის ჰოსტის სახელი"
 
 msgid "Managed suffix"
 msgstr ""
@@ -8699,10 +8268,8 @@ msgstr ""
 msgid "Maximum domain level"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete IPA server."
-msgstr "მომხმარებლის წაშლა."
+msgstr "IPA სერვერის წაშლა."
 
 msgid "Search for IPA servers."
 msgstr ""
@@ -8777,10 +8344,8 @@ msgid ""
 "to delegate, causing the framework to stop functioning.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Target"
 msgid "Allowed Target"
-msgstr "სამიზნე"
+msgstr "დაშვებული სამიზნე"
 
 msgid "Create a new service delegation rule."
 msgstr ""
@@ -8791,10 +8356,8 @@ msgstr ""
 msgid "member principal"
 msgstr ""
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "principal to add"
-msgstr "დამატების შეცდომა"
+msgstr "დასამატებელი პრინციპალი"
 
 msgid "Add target to a named service delegation rule."
 msgstr ""
@@ -8897,18 +8460,14 @@ msgstr ""
 msgid "Activate a stage user."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new stage user."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი დროებითი მომხმარებლის დამატება."
 
 msgid "Create Stage user in from a delete user"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a stage user."
-msgstr "მომხმარებლის წაშლა."
+msgstr "დროებითი მომხმარებლის წაშლა."
 
 msgid "Search for stage users."
 msgstr ""
@@ -8961,10 +8520,8 @@ msgid ""
 "Requires minimum domain level 1.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server name"
 msgid "Segment name"
-msgstr "სერვერი სახელი"
+msgstr "სეგმენტის სახელი"
 
 msgid "Arbitrary string identifying the segment"
 msgstr ""
@@ -8975,10 +8532,8 @@ msgstr ""
 msgid "Left replication node - an IPA server"
 msgstr ""
 
-#, fuzzy
-#| msgid "Rights"
 msgid "Right node"
-msgstr "უფლებები"
+msgstr "მარჯვენა კვანძი"
 
 msgid "Right replication node - an IPA server"
 msgstr ""
@@ -8989,20 +8544,16 @@ msgstr "დაკავშირება"
 msgid "Direction of replication between left and right replication node"
 msgstr ""
 
-#, fuzzy
-#| msgid "Attributes"
 msgid "Attributes to strip"
-msgstr "ატრიბუტები"
+msgstr "მოსაცილებელი ატრიბუტები"
 
 msgid ""
 "A space separated list of attributes which are removed from replication "
 "updates."
 msgstr ""
 
-#, fuzzy
-#| msgid "Attributes"
 msgid "Attributes to replicate"
-msgstr "ატრიბუტები"
+msgstr "ატრიბუტები რეპლიკაციისთვის"
 
 msgid ""
 "Attributes that are not replicated to a consumer server during a fractional "
@@ -9033,23 +8584,17 @@ msgid ""
 "occurring per that agreement"
 msgstr ""
 
-#, fuzzy
-#| msgid "filename"
 msgid "Suffix name"
-msgstr "ფაილის სახელი"
+msgstr "სუფიქსის სახელი"
 
 msgid "LDAP suffix to be managed"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new segment."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი სეგმენტის დამატება."
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a segment."
-msgstr "მომხმარებლის წაშლა."
+msgstr "სეგმენტის წაშლა."
 
 msgid "Search for topology segments."
 msgstr ""
@@ -9101,10 +8646,8 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy
-#| msgid "preserve"
 msgid "Preserved user"
-msgstr "შენარჩუნება"
+msgstr "დაცული მომხმარებელი"
 
 msgid "Add one or more certificates to the user entry"
 msgstr ""
@@ -9270,15 +8813,11 @@ msgid ""
 "       [--users <users>] [--groups <groups>] [--services <services>]\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Last name"
 msgid "Vault name"
-msgstr "გვარი"
+msgstr "საცავის სახელი"
 
-#, fuzzy
-#| msgid "description"
 msgid "Vault description"
-msgstr "აღწერა"
+msgstr "საცავის აღწერა"
 
 msgid "Vault type"
 msgstr ""
@@ -9292,50 +8831,32 @@ msgstr ""
 msgid "Public key"
 msgstr "საჯარო გასაღები"
 
-#, fuzzy
-#| msgid "Set public key"
 msgid "Vault public key"
-msgstr "საჯარო გასაღების დაყენება"
+msgstr "საცავის საჯარო გასაღები"
 
-#, fuzzy
-#| msgid "Owners"
 msgid "Owner users"
-msgstr "მფლობელები"
+msgstr "მფლობელის მომხმარებლები"
 
-#, fuzzy
-#| msgid "User group"
 msgid "Owner groups"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მფლობლის ჯგუფები"
 
-#, fuzzy
-#| msgid "services"
 msgid "Owner services"
-msgstr "სერვისები"
+msgstr "მფლობლის სერვისები"
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed owners"
-msgstr "დამატების შეცდომა"
+msgstr "ჩავარდნილი მფლობელები"
 
-#, fuzzy
-#| msgid "service"
 msgid "Vault service"
-msgstr "სერვისი"
+msgstr "საცავის სერვისი"
 
-#, fuzzy
-#| msgid "Shared"
 msgid "Shared vault"
-msgstr "გაზიარებული"
+msgstr "გაზიარებული საცავი"
 
-#, fuzzy
-#| msgid "Delete a user"
 msgid "Vault user"
-msgstr "მომხმარებლის წაშლა"
+msgstr "საცავის მომხმარებელი"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "Transport Certificate"
-msgstr "სერტიფიკატი"
+msgstr "ტრანსპორტის სერტიფიკატი"
 
 msgid "Service name of the service vault"
 msgstr ""
@@ -9349,20 +8870,14 @@ msgstr ""
 msgid "Add owners to a vault."
 msgstr ""
 
-#, fuzzy
-#| msgid "Owners"
 msgid "owner user"
-msgstr "მფლობელები"
+msgstr "მფლობელის მომხმარებელი"
 
-#, fuzzy
-#| msgid "User group"
 msgid "owner group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლის ჯგუფი"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "owner service"
-msgstr "სერვისების წაშლა"
+msgstr "მფლობელი სერვისი"
 
 msgid "Owners that could not be added"
 msgstr ""
@@ -9379,10 +8894,8 @@ msgstr ""
 msgid "Nonce"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a vault."
-msgstr "მომხმარებლის წაშლა."
+msgstr "საცავის წაშლა."
 
 msgid "Search for vaults."
 msgstr ""
@@ -9417,10 +8930,8 @@ msgstr ""
 msgid "Add owners to a vault container."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a vault container."
-msgstr "მომხმარებლის წაშლა."
+msgstr "საცავის კონტეინერის წაშლა."
 
 msgid "Remove owners from a vault container."
 msgstr ""
@@ -9434,10 +8945,8 @@ msgstr ""
 msgid "Profile ID"
 msgstr "პროფილის ID"
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Profile to use"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "გამოსაყენებელი სერტიფიკატის პროფილები"
 
 msgid ""
 "\n"
@@ -9504,10 +9013,8 @@ msgstr "პროფილის აღწერა"
 msgid "Brief description of this profile"
 msgstr ""
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "Store issued certificates"
-msgstr "CA სერტიფიკატი"
+msgstr "გამოცემული სერტიფიკატის დამახსოვრება"
 
 msgid "Whether to store certs issued using this profile"
 msgstr ""
@@ -9761,10 +9268,8 @@ msgstr ""
 msgid "Resolve a host name in DNS. (Deprecated)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "Hostname (FQDN)"
-msgstr "ჰოსტის სახელი"
+msgstr "ჰოსტის სახელი (FQDN)"
 
 msgid "Force DNS zone creation even if it will overlap with an existing zone."
 msgstr ""
@@ -10069,16 +9574,14 @@ msgstr ""
 msgid "Check connection to remote IPA server."
 msgstr ""
 
-#, fuzzy
-#| msgid "Server name"
 msgid "Remote server name"
-msgstr "სერვერი სახელი"
+msgstr "დაშორებული სერვერის სახელი"
 
 msgid "Remote IPA server hostname"
 msgstr ""
 
 msgid "suffix"
-msgstr ""
+msgstr "სუფიქსი"
 
 msgid "Search for servers with these managed suffixes."
 msgstr ""
@@ -10700,10 +10203,8 @@ msgstr ""
 msgid "An interval between regular polls of the name server for new DNS zones"
 msgstr ""
 
-#, fuzzy
-#| msgid "DNS servers"
 msgid "DNS class"
-msgstr "DNS სერვერები"
+msgstr "DNS კლასი"
 
 msgid "Comma-separated list of raw A records"
 msgstr ""
@@ -10750,28 +10251,20 @@ msgstr ""
 msgid "Comma-separated list of raw KEY records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Flags"
 msgid "KEY Flags"
-msgstr "ალმები"
+msgstr "KEY ალმები"
 
-#, fuzzy
-#| msgid "Protocol"
 msgid "KEY Protocol"
-msgstr "პროტოკოლი"
+msgstr "KEY პროტოკოლი"
 
 msgid "Protocol"
 msgstr "პროტოკოლი"
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "KEY Algorithm"
-msgstr "ალგორითმი"
+msgstr "KEY ალგორითმი"
 
-#, fuzzy
-#| msgid "Public Key"
 msgid "KEY Public Key"
-msgstr "საჯარო გასაღები"
+msgstr "KEY საჯარო გასაღები"
 
 msgid "Public Key"
 msgstr "საჯარო გასაღები"
@@ -10794,23 +10287,17 @@ msgstr ""
 msgid "Comma-separated list of raw NSEC records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "NSEC Next Domain Name"
-msgstr "დომენის სახელი"
+msgstr "NSEC შემდეგი დომენის სახელი"
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "Next Domain Name"
-msgstr "დომენის სახელი"
+msgstr "შემდეგი დომენის სახელი"
 
 msgid "NSEC Type Map"
 msgstr ""
 
-#, fuzzy
-#| msgid "Type"
 msgid "Type Map"
-msgstr "ტიპი"
+msgstr "ტიპის რუკა"
 
 msgid "Comma-separated list of raw NSEC3 records"
 msgstr ""
@@ -10830,15 +10317,11 @@ msgstr ""
 msgid "Type Covered"
 msgstr ""
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "RRSIG Algorithm"
-msgstr "ალგორითმი"
+msgstr "RRSIG ალგორითმი"
 
-#, fuzzy
-#| msgid "Labels"
 msgid "RRSIG Labels"
-msgstr "ჭდეები"
+msgstr "RRSIG ჭდეები"
 
 msgid "Labels"
 msgstr "ჭდეები"
@@ -10852,18 +10335,14 @@ msgstr ""
 msgid "RRSIG Signature Expiration"
 msgstr ""
 
-#, fuzzy
-#| msgid "Signature"
 msgid "Signature Expiration"
-msgstr "ხელმოწერა"
+msgstr "ხელმოწერის ვადა"
 
 msgid "RRSIG Signature Inception"
 msgstr ""
 
-#, fuzzy
-#| msgid "Signature"
 msgid "Signature Inception"
-msgstr "ხელმოწერა"
+msgstr "ხელმოწერის შემოჭრა"
 
 msgid "RRSIG Key Tag"
 msgstr ""
@@ -10871,15 +10350,11 @@ msgstr ""
 msgid "RRSIG Signer's Name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server Name"
 msgid "Signer's Name"
-msgstr "სერვერის სახელი"
+msgstr "ხელმომწერის სახელი"
 
-#, fuzzy
-#| msgid "Signature"
 msgid "RRSIG Signature"
-msgstr "ხელმოწერა"
+msgstr "RRSIG ხელმოწერა"
 
 msgid "Signature"
 msgstr "ხელმოწერა"
@@ -10893,15 +10368,11 @@ msgstr ""
 msgid "SIG Type Covered"
 msgstr ""
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "SIG Algorithm"
-msgstr "ალგორითმი"
+msgstr "SIG ალგორითმი"
 
-#, fuzzy
-#| msgid "Labels"
 msgid "SIG Labels"
-msgstr "ჭდეები"
+msgstr "SIG ჭდეები"
 
 msgid "SIG Original TTL"
 msgstr ""
@@ -10918,10 +10389,8 @@ msgstr ""
 msgid "SIG Signer's Name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Signature"
 msgid "SIG Signature"
-msgstr "ხელმოწერა"
+msgstr "SIG ხელმოწერა"
 
 msgid "Comma-separated list of raw SPF records"
 msgstr ""
@@ -11030,10 +10499,8 @@ msgstr "მომხმარებელი"
 msgid "Enrollment UUID (not implemented)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Change password"
 msgid "Registration password"
-msgstr "პაროლის შეცვლა"
+msgstr "რეგისტრაციის პაროლი"
 
 msgid "Display current entitlements."
 msgstr ""
@@ -11199,10 +10666,8 @@ msgid ""
 "   ipa hbacrule-del allow_server\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Source host"
 msgid "Source host category"
-msgstr "საწყისი ჰოსტი"
+msgstr "საწყისი ჰოსტის კატეგორია"
 
 msgid "Source host category the rule applies to"
 msgstr ""
@@ -11210,10 +10675,8 @@ msgstr ""
 msgid "Source Hosts"
 msgstr "საწყისი ჰოსტები"
 
-#, fuzzy
-#| msgid "Source Hosts"
 msgid "Source Host Groups"
-msgstr "საწყისი ჰოსტები"
+msgstr "საწყისი ჰოსტის ჯგუფები"
 
 msgid "comma-separated list of hosts to add"
 msgstr ""
@@ -11617,10 +11080,8 @@ msgstr ""
 msgid "Add a system permission without an ACI"
 msgstr ""
 
-#, fuzzy
-#| msgid "Permission"
 msgid "Permission type"
-msgstr "წვდომა"
+msgstr "წვდომის ტიპი"
 
 msgid "comma-separated list of privileges to remove"
 msgstr ""
@@ -11788,8 +11249,6 @@ msgstr ""
 msgid "comma-separated list of sudo commands to remove"
 msgstr ""
 
-#, fuzzy
-#| msgid "Active Directory domain"
 msgid "Active directory domain administrator's password"
 msgstr "Active Directory-ის დომენი"
 
@@ -12029,10 +11488,8 @@ msgstr ""
 msgid "Failed source hosts/hostgroups"
 msgstr ""
 
-#, fuzzy
-#| msgid "hostgroups"
 msgid "Failed hosts/hostgroups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ჩავარდნილი ჰოსტები/ჰოსტის ჯგუფები"
 
 msgid "Failed users/groups"
 msgstr ""
@@ -12040,10 +11497,8 @@ msgstr ""
 msgid "Failed service/service groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed to remove"
-msgstr "დამატების შეცდომა"
+msgstr "წაშლის შეცდომა"
 
 msgid "Failed RunAs"
 msgstr ""
@@ -12051,23 +11506,17 @@ msgstr ""
 msgid "Failed RunAsGroup"
 msgstr ""
 
-#, fuzzy
-#| msgid "Profiles"
 msgid "Failed profiles"
-msgstr "პროფილები"
+msgstr "ჩავარდნილი პროფილები"
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed CAs"
-msgstr "დამატების შეცდომა"
+msgstr "ჩავარდნილი CA-ები"
 
 msgid "Failed member manager"
 msgstr ""
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed managedby"
-msgstr "დამატების შეცდომა"
+msgstr "ჩავარდნილი managedby"
 
 msgid "Failed allowed to retrieve keytab"
 msgstr ""
@@ -12075,10 +11524,8 @@ msgstr ""
 msgid "Failed allowed to create keytab"
 msgstr ""
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed targets"
-msgstr "დამატების შეცდომა"
+msgstr "ჩავარდნილი სამიზნეები"
 
 msgid "A dictionary representing an LDAP entry"
 msgstr ""
@@ -12099,10 +11546,8 @@ msgstr "პაროლები არ ემთხვევა!"
 msgid "No matching entries found"
 msgstr ""
 
-#, fuzzy
-#| msgid "command"
 msgid "Topic or Command"
-msgstr "ბრძანება"
+msgstr "თემა ან ბრძანება"
 
 msgid "The topic or command name."
 msgstr ""
@@ -12116,10 +11561,8 @@ msgstr ""
 msgid "  ipa <command> --help"
 msgstr ""
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "Command name"
-msgstr "დომენის სახელი"
+msgstr "ბრძანების სახელი"
 
 msgid "Positional arguments"
 msgstr "პოზიციური არგუმენტები"
@@ -12128,15 +11571,11 @@ msgstr "პოზიციური არგუმენტები"
 msgid "Same as --%s"
 msgstr ""
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Deprecated options"
-msgstr "სერვისის მორგება"
+msgstr "მოძველებული პარამეტრები"
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "No file to read"
-msgstr "დამატების შეცდომა"
+msgstr "საწაკითხი ფაილის გარეშე"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -12195,24 +11634,22 @@ msgid "Service '%(service)s' not found in Kerberos database"
 msgstr ""
 
 msgid "No credentials cache found"
-msgstr ""
+msgstr "ავტორიზაციის დეტალების ქეში არ არსებობს"
 
 msgid "Ticket expired"
-msgstr ""
+msgstr "ბილეთი ვადაგასულია"
 
 msgid "Credentials cache permissions incorrect"
-msgstr ""
+msgstr "ავტორიზაციის დეტალების ქეშის წვდომები არასწორია"
 
 msgid "Bad format in credentials cache"
-msgstr ""
+msgstr "არასწორი ფორმატი ავტორიზაციის დეტალების კეშში"
 
 msgid "Cannot resolve KDC for requested realm"
 msgstr ""
 
-#, fuzzy
-#| msgid "Validation error"
 msgid "Session error"
-msgstr "შემოწმების შეცდომა"
+msgstr "სესიის შეცდომა"
 
 #, python-format
 msgid "Principal %(principal)s cannot be authenticated: %(message)s"
@@ -12426,10 +11863,8 @@ msgstr ""
 msgid "Not allowed on non-leaf entry"
 msgstr ""
 
-#, fuzzy
-#| msgid "Timeout"
 msgid "LDAP timeout"
-msgstr "დროის ამოწურვა"
+msgstr "LDAP-ის მოლოდინის დრო"
 
 #, python-format
 msgid "%(task)s LDAP task timeout, Task DN: '%(task_dn)s'"
@@ -12679,10 +12114,8 @@ msgstr ""
 msgid "Client version. Used to determine if server will accept request."
 msgstr ""
 
-#, fuzzy
-#| msgid "Record type"
 msgid "incorrect type"
-msgstr "ჩანაწერის ტიპი"
+msgstr "არასწორი ტიპი"
 
 msgid "Only one value is allowed"
 msgstr ""
@@ -12693,10 +12126,8 @@ msgstr ""
 msgid "must be True or False"
 msgstr ""
 
-#, fuzzy
-#| msgid "Must be a positive number"
 msgid "must be an integer"
-msgstr "უნდა წარმოადგენდეს დადებით რიცხვს"
+msgstr "უნდა წარმოადგენდეს მთელ რიცხვს"
 
 #, python-format
 msgid "must be at least %(minvalue)d"
@@ -12706,10 +12137,8 @@ msgstr ""
 msgid "can be at most %(maxvalue)d"
 msgstr ""
 
-#, fuzzy
-#| msgid "Must be a positive number"
 msgid "must be a decimal number"
-msgstr "უნდა წარმოადგენდეს დადებით რიცხვს"
+msgstr "უნდა წარმოადგენდეს ათობით რიცხვს"
 
 #, python-format
 msgid "must be at least %(minvalue)s"
@@ -12744,10 +12173,8 @@ msgstr ""
 msgid "must be exactly %(length)d bytes"
 msgstr ""
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "must be a certificate"
-msgstr "CA სერტიფიკატი"
+msgstr "სერტიფიკატი უნდა იყოს"
 
 msgid "must be a certificate signing request"
 msgstr ""
@@ -12804,10 +12231,8 @@ msgstr ""
 msgid "must be relative"
 msgstr ""
 
-#, fuzzy
-#| msgid "Home directory"
 msgid "must be dictionary"
-msgstr "საწყისი საქაღალდე"
+msgstr "უნდა იყოს ლექსიკონი"
 
 msgid "must be Kerberos principal"
 msgstr ""
@@ -12825,10 +12250,8 @@ msgstr ""
 msgid "invalid valid hex"
 msgstr ""
 
-#, fuzzy
-#| msgid "invalid port number"
 msgid "invalid serial number 0"
-msgstr "პორტის არასწორი ნომერი"
+msgstr "არასწორი სერიული ნომერი 0"
 
 #, python-format
 msgid "%(filename)s: file not found"
@@ -12878,18 +12301,14 @@ msgstr ""
 msgid "not fully qualified"
 msgstr ""
 
-#, fuzzy
-#| msgid "SSH public key"
 msgid "invalid SSH public key"
-msgstr "SSH საჯარო გასაღები"
+msgstr "არასწორი SSH საჯარო გასაღები"
 
 msgid "options are not allowed"
 msgstr ""
 
-#, fuzzy
-#| msgid "invalid port number"
 msgid "invalid hostmask"
-msgstr "პორტის არასწორი ნომერი"
+msgstr "არასწორი ჰოსტის ნიღაბი"
 
 #, python-format
 msgid "query '%(owner)s %(rtype)s': %(error)s"
@@ -12912,18 +12331,14 @@ msgstr ""
 msgid "invalid escape code in domain name"
 msgstr ""
 
-#, fuzzy
-#| msgid "DNS label cannot be longer than 63 characters"
 msgid "domain name cannot be longer than 255 characters"
-msgstr "DNS-ის ჭდე 64 სიმბოლოზე გრძელი არ შეიძლება იყოს"
+msgstr "დომენის სახელი, არ შეიძლება, 255 სიმბოლოზე გრძელი იყოს"
 
 msgid "DNS label cannot be longer than 63 characters"
 msgstr "DNS-ის ჭდე 64 სიმბოლოზე გრძელი არ შეიძლება იყოს"
 
-#, fuzzy
-#| msgid "invalid port number"
 msgid "invalid domain name"
-msgstr "პორტის არასწორი ნომერი"
+msgstr "არასწორი დომენის სახელი"
 
 #, python-format
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
@@ -12987,23 +12402,15 @@ msgstr "CMS-თან დაკავშირება შეუძლებე
 msgid "Failed to authenticate to CA REST API"
 msgstr ""
 
-#, fuzzy
-#| msgid "location"
 msgid "delegation"
-msgstr "მდებარეობა"
+msgstr "დელეგაცია"
 
-#, fuzzy
-#| msgid "locations"
 msgid "delegations"
-msgstr "მდებარეობები"
+msgstr "დელეგაციები"
 
-#, fuzzy
-#| msgid "locations"
 msgid "Delegations"
 msgstr "მდებარეობები"
 
-#, fuzzy
-#| msgid "location"
 msgid "Delegation"
 msgstr "მდებარეობა"
 
@@ -13066,10 +12473,8 @@ msgstr "DNS სერვერები"
 msgid "DNS Server"
 msgstr "DNS სერვერი"
 
-#, fuzzy
-#| msgid "Server name"
 msgid "DNS Server name"
-msgstr "სერვერი სახელი"
+msgstr "DNS სერვერის სახელი"
 
 msgid "SOA mname override"
 msgstr ""
@@ -13078,7 +12483,7 @@ msgid "SOA mname (authoritative server) override"
 msgstr ""
 
 msgid "Forwarders"
-msgstr ""
+msgstr "გადამმისამართებლები"
 
 msgid ""
 "Per-server forwarders. A custom port can be specified for each forwarder "
@@ -13094,10 +12499,8 @@ msgstr ""
 msgid "DNS is not configured"
 msgstr ""
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "Modify DNS server configuration"
-msgstr "ნდობის მორგება"
+msgstr "DNS სერვერის კონფიგურაციის შეცვლა"
 
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
@@ -13112,10 +12515,8 @@ msgid_plural "%(count)d DNS servers matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA DNS Server is not installed"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA DNS სერვერი დაყენებული არააა"
 
 msgid "Display configuration of a DNS server."
 msgstr ""
@@ -13127,8 +12528,6 @@ msgstr "ახალი DNS სერვერის დამატება."
 msgid "Added new DNS server \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user"
 msgid "Delete a DNS server"
 msgstr "მომხმარებლის წაშლა"
 
@@ -13163,20 +12562,14 @@ msgid ""
 "\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "services"
 msgid "HBAC services"
-msgstr "სერვისები"
+msgstr "HBAC სერვისები"
 
-#, fuzzy
-#| msgid "Services"
 msgid "HBAC Services"
 msgstr "სერვისები"
 
-#, fuzzy
-#| msgid "Any Service"
 msgid "HBAC Service"
-msgstr "ნებისმიერი სერვისი"
+msgstr "HBAC სერვისი"
 
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
@@ -13196,23 +12589,15 @@ msgid_plural "%(count)d HBAC services matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "User group"
 msgid "HBAC service group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "HBAC სერვისის ჯგუფი"
 
-#, fuzzy
-#| msgid "User group"
 msgid "HBAC service groups"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "HBAC სერვისის ჯგუფები"
 
-#, fuzzy
-#| msgid "Any Service"
 msgid "HBAC Service Groups"
 msgstr "ნებისმიერი სერვისი"
 
-#, fuzzy
-#| msgid "Any Service"
 msgid "HBAC Service Group"
 msgstr "ნებისმიერი სერვისი"
 
@@ -13234,20 +12619,14 @@ msgid_plural "%(count)d HBAC service groups matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "groups"
 msgid "netgroups"
-msgstr "ჯგუფები"
+msgstr "ქსელური ჯგუფები"
 
-#, fuzzy
-#| msgid "groups"
 msgid "Netgroups"
 msgstr "ჯგუფები"
 
-#, fuzzy
-#| msgid "group"
 msgid "Netgroup"
-msgstr "ჯგუფი"
+msgstr "ქსელური ჯგუფი"
 
 #, python-format
 msgid "Added netgroup \"%(value)s\""
@@ -13279,15 +12658,11 @@ msgid_plural "%(count)d netgroups matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "One-Time Password"
 msgid "One time password commands"
-msgstr "ერთჯერადი პაროლი"
+msgstr "ერთჯერადი პაროლის ბრძანებები"
 
-#, fuzzy
-#| msgid "OTP Configuration"
 msgid "OTP configuration options"
-msgstr "OTP-ის მორგება"
+msgstr "OTP-ის მორგების პარამეტრები"
 
 msgid "OTP Configuration"
 msgstr "OTP-ის მორგება"
@@ -13389,25 +12764,17 @@ msgstr "არასწორი ატრიბუტის სახელი"
 msgid "invalid port number"
 msgstr "პორტის არასწორი ნომერი"
 
-#, fuzzy
-#| msgid "DNS server"
 msgid "RADIUS proxy server"
-msgstr "DNS სერვერი"
+msgstr "RADIUS-ის პროქსი სერვერი"
 
-#, fuzzy
-#| msgid "DNS servers"
 msgid "RADIUS proxy servers"
-msgstr "DNS სერვერები"
+msgstr "RADIUS პროქსი სერვერები"
 
-#, fuzzy
-#| msgid "DNS Servers"
 msgid "RADIUS Servers"
-msgstr "DNS სერვერები"
+msgstr "RADIUS სერვერები"
 
-#, fuzzy
-#| msgid "DNS Server"
 msgid "RADIUS Server"
-msgstr "DNS სერვერი"
+msgstr "RADIUS სერვერი"
 
 #, python-format
 msgid "Added RADIUS proxy server \"%(value)s\""
@@ -13427,25 +12794,17 @@ msgid_plural "%(count)d RADIUS proxy servers matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "permission"
 msgid "self service permission"
-msgstr "წვდომა"
+msgstr "თვითმომსახურების წვდომა"
 
-#, fuzzy
-#| msgid "permissions"
 msgid "self service permissions"
-msgstr "წვდომები"
+msgstr "თვითმომსახურების წვდომები"
 
-#, fuzzy
-#| msgid "Permissions"
 msgid "Self Service Permissions"
-msgstr "წვდომები"
+msgstr "თვითმომსახურების წვდომები"
 
-#, fuzzy
-#| msgid "Permission"
 msgid "Self Service Permission"
-msgstr "წვდომა"
+msgstr "თვითმომსახურების წვდომა"
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
@@ -13507,33 +12866,23 @@ msgid ""
 "    ipa server-role-find --include-master\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "server"
 msgid "server role"
-msgstr "სერვერი"
+msgstr "სერვერის როლი"
 
 msgid "server roles"
 msgstr "სერვერის როლები"
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA Server Roles"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA სერვერის როლები"
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA Server Role"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA სერვერის როლი"
 
-#, fuzzy
-#| msgid "Server name"
 msgid "IPA server role name"
-msgstr "სერვერი სახელი"
+msgstr "IPA სერვერის როლის სახელი"
 
-#, fuzzy
-#| msgid "Roles"
 msgid "Role status"
-msgstr "როლები"
+msgstr "როლის სტატუსი"
 
 msgid "Status of the role"
 msgstr ""
@@ -13550,18 +12899,14 @@ msgid_plural "%(count)s server roles matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "Included attributes"
 msgid "Include IPA master entries"
-msgstr "ჩასმული ატრიბუტები"
+msgstr "IPA-ის მთავარი ჩანაწერების ჩასმა"
 
 msgid "roles"
 msgstr "როლები"
 
-#, fuzzy
-#| msgid "Role name"
 msgid "IPA role name"
-msgstr "როლის სახელი"
+msgstr "IPA როლის სახელი"
 
 msgid "commands for controlling sudo configuration"
 msgstr ""
@@ -13694,10 +13039,8 @@ msgstr ""
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
 msgstr ""
 
-#, fuzzy
-#| msgid "is required"
 msgid "ACI prefix is required"
-msgstr "აუცილებელია"
+msgstr "ACI პრეფიქსი აუცილებელია"
 
 msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
@@ -13717,10 +13060,8 @@ msgstr ""
 msgid "Group '%s' does not exist"
 msgstr "ჯგუფი '%s' არ არსებობს"
 
-#, fuzzy
-#| msgid "Input file"
 msgid "empty filter"
-msgstr "შეყვანის ფაილი"
+msgstr "ცარიელი ფილტრი"
 
 #, python-format
 msgid "Syntax Error: %(error)s"
@@ -14225,10 +13566,8 @@ msgstr ""
 msgid "CA category the ACL applies to"
 msgstr ""
 
-#, fuzzy
-#| msgid "CA"
 msgid "CAs"
-msgstr "CA"
+msgstr "CA-ები"
 
 #, python-format
 msgid "Added CA ACL \"%(value)s\""
@@ -14484,15 +13823,11 @@ msgstr ""
 msgid "Show the current Certificate Identity Mapping configuration."
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Authorities"
 msgid "Certificate Identity Mapping Rules"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "სერტიფიკატის იდენტიფიკაციის ასახვის წესები"
 
-#, fuzzy
-#| msgid "Certificate Type"
 msgid "Certificate Identity Mapping Rule"
-msgstr "სერტიფიკატის ტიპი"
+msgstr "სერტიფიკატის იდენტიფიკაციის ასახვის წესი"
 
 msgid "Certificate Identity Mapping Rule name"
 msgstr ""
@@ -14506,10 +13841,8 @@ msgstr ""
 msgid "Rule used to map the certificate with a user entry"
 msgstr ""
 
-#, fuzzy
-#| msgid "Matched"
 msgid "Matching rule"
-msgstr "ემთხვევა"
+msgstr "წესი, რომელიც ემთხვევა"
 
 msgid "Rule used to check if a certificate can be used for authentication"
 msgstr ""
@@ -14656,25 +13989,17 @@ msgstr ""
 msgid "CA is not configured"
 msgstr ""
 
-#, fuzzy
-#| msgid "Profile ID"
 msgid "invalid Profile ID"
-msgstr "პროფილის ID"
+msgstr "არასწორი პროფილის ID"
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Profile"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "სერტიფიკატის პროფილი"
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Profiles"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "სერტიფიკატის პროფილები"
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Profile configuration"
-msgstr "საცავის მორგება"
+msgstr "პროფილის კონფიგურაცია"
 
 #, python-format
 msgid "%(count)d profile matched"
@@ -14731,15 +14056,11 @@ msgstr ""
 msgid "The deny type has been deprecated."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "HBAC rules"
 msgstr "წესის დამატება"
 
-#, fuzzy
-#| msgid "Rules"
 msgid "HBAC Rules"
-msgstr "წესები"
+msgstr "HBAC წესები"
 
 #, python-format
 msgid "Added HBAC rule \"%(value)s\""
@@ -14767,10 +14088,8 @@ msgstr ""
 msgid "Disabled HBAC rule \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "Access Denied"
 msgid "Access time"
-msgstr "წვდომა აკრძალულია"
+msgstr "წვდომის დრო"
 
 msgid "Add source hosts and hostgroups to an HBAC rule."
 msgstr ""
@@ -15053,10 +14372,8 @@ msgstr ""
 msgid "hostgroup"
 msgstr "ჰოსტების ჯგუფი"
 
-#, fuzzy
-#| msgid "privileges"
 msgid "privileged hostgroup"
-msgstr "პრივილეგიები"
+msgstr "პრივილეგიის მქონე ჰოსტების ჯგუფი"
 
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
@@ -15125,30 +14442,20 @@ msgstr "მდებარეობა"
 msgid "locations"
 msgstr "მდებარეობები"
 
-#, fuzzy
-#| msgid "Location"
 msgid "IPA Locations"
-msgstr "მდებარეობა"
+msgstr "IPA მდებარეობები"
 
-#, fuzzy
-#| msgid "Location"
 msgid "IPA Location"
-msgstr "მდებარეობა"
+msgstr "IPA მდებარეობა"
 
-#, fuzzy
-#| msgid "Location"
 msgid "Location name"
-msgstr "მდებარეობა"
+msgstr "მდებარეობის სახელი"
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "IPA location name"
-msgstr "დომენის სახელი"
+msgstr "IPA მდებარეობის სახელი"
 
-#, fuzzy
-#| msgid "Profile description"
 msgid "IPA Location description"
-msgstr "პროფილის აღწერა"
+msgstr "IPA მდებარეობის აღწერა"
 
 msgid "Servers"
 msgstr "სერვერები"
@@ -15162,10 +14469,8 @@ msgstr ""
 msgid "List of servers which advertise the given location"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new IPA location."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი IPA მდებარეობის დამატება."
 
 #, python-format
 msgid "Added IPA location \"%(value)s\""
@@ -15178,10 +14483,8 @@ msgstr ""
 msgid "Deleted IPA location \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA Server"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA სერვერი"
 
 msgid "Modify information about an IPA location."
 msgstr ""
@@ -15202,10 +14505,8 @@ msgstr[1] ""
 msgid "Display information about an IPA location."
 msgstr ""
 
-#, fuzzy
-#| msgid "Server Options"
 msgid "Servers in location"
-msgstr "სერვერის პარამეტრები"
+msgstr "მდებარეობაზე არსებული სერვერები"
 
 msgid ""
 "\n"
@@ -15418,7 +14719,7 @@ msgid "Added OTP token \"%(value)s\""
 msgstr ""
 
 msgid "cannot be empty"
-msgstr ""
+msgstr "ცარიელი ვერ იქნება"
 
 #, python-format
 msgid "Deleted OTP token \"%(value)s\""
@@ -15528,13 +14829,9 @@ msgid ""
 "   ipa realmdomains-mod --del-domain=olddomain.com\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "domain"
 msgid "Realm domains"
-msgstr "დომენი"
+msgstr "რეალმის დომენები"
 
-#, fuzzy
-#| msgid "Domain"
 msgid "Realm Domains"
 msgstr "დომენი"
 
@@ -15628,15 +14925,11 @@ msgstr ""
 msgid "SELinux user %(user)s not found in ordering list (in config)"
 msgstr ""
 
-#, fuzzy
-#| msgid "SELinux User"
 msgid "SELinux User Map rule"
-msgstr "SELinux-ის მომხმარებელი"
+msgstr "SELinux -ის მომხმარებლის რუკის წესი"
 
-#, fuzzy
-#| msgid "SELinux User"
 msgid "SELinux User Map rules"
-msgstr "SELinux-ის მომხმარებელი"
+msgstr "SELinux -ის მომხმარებლის რუკის წესები"
 
 msgid "SELinux User Maps"
 msgstr "SELinux-ის მომხმარებლის ასახვები"
@@ -15777,20 +15070,14 @@ msgstr ""
 msgid "service delegation rule"
 msgstr ""
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "service delegation rules"
-msgstr "სერვისის მორგება"
+msgstr "სერვისის დელეგაციის წესები"
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Service delegation rules"
 msgstr "სერვისის მორგება"
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Service delegation rule"
-msgstr "სერვისის მორგება"
+msgstr "სერვისის დელეგაციის წესი"
 
 #, python-format
 msgid "Added service delegation rule \"%(value)s\""
@@ -15812,20 +15099,14 @@ msgstr[1] ""
 msgid "service delegation target"
 msgstr ""
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "service delegation targets"
-msgstr "სერვერის მორგება"
+msgstr "სერვისის დელეგაციის სამიზნეები"
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "Service delegation targets"
 msgstr "სერვერის მორგება"
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "Service delegation target"
-msgstr "სერვერის მორგება"
+msgstr "სერვისის დელეგაციის სამიზნე"
 
 #, python-format
 msgid "Added service delegation target \"%(value)s\""
@@ -15876,10 +15157,8 @@ msgstr ""
 msgid "Subordinate ids"
 msgstr ""
 
-#, fuzzy
-#| msgid "Profile description"
 msgid "Subordinate id description"
-msgstr "პროფილის აღწერა"
+msgstr "დამხმარე ID-ის აღწერა"
 
 msgid "Owning user of subordinate id entry"
 msgstr ""
@@ -15920,19 +15199,15 @@ msgstr ""
 msgid "subgidnumber must be equal to subuidnumber"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new subordinate id."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი დამხმარე ID-ის დამატება."
 
 #, python-format
 msgid "Added subordinate id \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete a subordinate id."
-msgstr "მომხმარებლის წაშლა."
+msgstr "დამხმარის ID-ის წაშლა."
 
 #, python-format
 msgid "Deleted subordinate id \"%(value)s\""
@@ -15996,20 +15271,14 @@ msgstr ""
 msgid "must not contain trailing dot: %s"
 msgstr ""
 
-#, fuzzy
-#| msgid "command"
 msgid "sudo command"
-msgstr "ბრძანება"
+msgstr "ბრძანება sudo"
 
-#, fuzzy
-#| msgid "commands"
 msgid "sudo commands"
-msgstr "ბრძანებები"
+msgstr "sudo ბრძანებები"
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Commands"
-msgstr "ბრძანებების გაშვება"
+msgstr "Sudo ბრძანებები"
 
 #, python-format
 msgid "Added Sudo Command \"%(value)s\""
@@ -16141,20 +15410,16 @@ msgid "Topology management requires minimum domain level {0} "
 msgstr ""
 
 msgid "segment"
-msgstr ""
+msgstr "სეგმენტი"
 
 msgid "segments"
 msgstr ""
 
-#, fuzzy
-#| msgid "Topology"
 msgid "Topology Segments"
-msgstr "ტოპოლოგია"
+msgstr "ტოპოლოგიის სეგმენტები"
 
-#, fuzzy
-#| msgid "Topology"
 msgid "Topology Segment"
-msgstr "ტოპოლოგია"
+msgstr "ტოპოლოგიის სეგმენტი"
 
 #, python-format
 msgid "left node is not a topology node: %(leftnode)s"
@@ -16214,10 +15479,8 @@ msgstr ""
 msgid "suffixes"
 msgstr ""
 
-#, fuzzy
-#| msgid "Topology"
 msgid "Topology suffixes"
-msgstr "ტოპოლოგია"
+msgstr "ტოპოლოგიის სუფიქსები"
 
 msgid "Topology suffix"
 msgstr "ტოპოლოგიის სუფიქსი"
@@ -16261,10 +15524,8 @@ msgstr ""
 msgid "No such virtual command"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Member service groups"
-msgstr "სერვისების წაშლა"
+msgstr "წევრი სერვისის ჯგუფები"
 
 msgid "Member HBAC service groups"
 msgstr ""
@@ -16323,10 +15584,8 @@ msgstr ""
 msgid "these attributes are not allowed: %(attrs)s"
 msgstr ""
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "attribute is not configurable"
-msgstr "ნდობის მორგება"
+msgstr "ატრიბუტი მორგებადი არაა"
 
 msgid "No such attribute on this entry"
 msgstr ""
@@ -16894,10 +16153,8 @@ msgstr ""
 msgid "flags must be one of \"S\", \"A\", \"U\", or \"P\""
 msgstr ""
 
-#, fuzzy
-#| msgid "Priority"
 msgid "Priority (order)"
-msgstr "პრიორიტეტი"
+msgstr "პრიორიტეტი (მიმდევრობა)"
 
 msgid ""
 "Lower number means higher priority. Clients will attempt to contact the "
@@ -16925,10 +16182,8 @@ msgstr ""
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
 
-#, fuzzy
-#| msgid "permission"
 msgid "Managedby permission"
-msgstr "წვდომა"
+msgstr "Managedby წვდომა"
 
 msgid "cannot be used when a zone is specified"
 msgstr ""
@@ -16949,17 +16204,13 @@ msgid "Removed system permission \"%(value)s\""
 msgstr ""
 
 msgid "DNS zone"
-msgstr ""
+msgstr "DNS ზონა"
 
-#, fuzzy
-#| msgid "DNS Servers"
 msgid "DNS zones"
-msgstr "DNS სერვერები"
+msgstr "DNS ზონები"
 
-#, fuzzy
-#| msgid "DNS Servers"
 msgid "DNS Zones"
-msgstr "DNS სერვერები"
+msgstr "DNS ზონები"
 
 msgid "DNS Zone"
 msgstr ""
@@ -16979,10 +16230,8 @@ msgstr ""
 msgid "NS record(s) can be edited in zone apex - '@'. "
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "<all IPA DNS servers>"
-msgstr "IPA DNS სერვერები"
+msgstr "<ყველა IPA DNS სერვერი>"
 
 msgid "Nameserver for reverse zone cannot be a relative DNS name"
 msgstr ""
@@ -17002,15 +16251,11 @@ msgstr ""
 msgid "Enabled DNS zone \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "DNS server"
 msgid "DNS resource record"
-msgstr "DNS სერვერი"
+msgstr "DNS რესურსის ჩანაწერი"
 
-#, fuzzy
-#| msgid "DNS servers"
 msgid "DNS resource records"
-msgstr "DNS სერვერები"
+msgstr "DNS რესურსის ჩანაწერები"
 
 msgid "DNS Resource Records"
 msgstr ""
@@ -17089,20 +16334,14 @@ msgstr ""
 msgid "Host '%(host)s' not found"
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "DNS configuration options"
-msgstr "საცავის მორგება"
+msgstr "DNS-ის კონფიგურაციის პარამეტრები"
 
-#, fuzzy
-#| msgid "Configuration"
 msgid "DNS Global Configuration"
-msgstr "მორგება"
+msgstr "DNS-ის გლობალური კონფიგურაცია"
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA DNS version"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA DNS-ის ვერსია"
 
 msgid "IPA DNS servers"
 msgstr "IPA DNS სერვერები"
@@ -17110,18 +16349,14 @@ msgstr "IPA DNS სერვერები"
 msgid "List of IPA masters configured as DNS servers"
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA DNSSec key master"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA DNSSec გასაღების მთავარი სერვერი"
 
 msgid "IPA server configured as DNSSec key master"
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Global DNS configuration is empty"
-msgstr "საცავის მორგება"
+msgstr "გლობალური DNS-ის კონფიგურაცია ცარიელია"
 
 msgid "DNS forward zone"
 msgstr ""
@@ -17150,15 +16385,11 @@ msgstr ""
 msgid "Enabled DNS forward zone \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA DNS records"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA DNS-ის ჩანაწერები"
 
-#, fuzzy
-#| msgid "locations"
 msgid "IPA location records"
-msgstr "მდებარეობები"
+msgstr "IPA მდებარეობის ჩანაწერები"
 
 msgid "Update location and IPA server DNS records"
 msgstr ""
@@ -17172,18 +16403,14 @@ msgstr ""
 msgid "Do not update records only return expected records"
 msgstr ""
 
-#, fuzzy
-#| msgid "View"
 msgid "ID View"
-msgstr "ხედი"
+msgstr "ID ხედი"
 
 msgid "system ID View"
 msgstr ""
 
-#, fuzzy
-#| msgid "View"
 msgid "ID Views"
-msgstr "ხედი"
+msgstr "ID ხედები"
 
 msgid "User object overrides"
 msgstr ""
@@ -17270,19 +16497,15 @@ msgstr ""
 msgid "Default Trust View cannot contain IPA users"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add a new host."
 msgid "Add a new ID override."
-msgstr "ახალი ჰოსტის დამატება."
+msgstr "ახალი ID-ის გადაფარვის დამატება."
 
 #, python-format
 msgid "Added ID override \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user."
 msgid "Delete an ID override."
-msgstr "მომხმარებლის წაშლა."
+msgstr "ID-ის გადაფარვის წაშლა."
 
 #, python-format
 msgid "Deleted ID override \"%(value)s\""
@@ -17313,10 +16536,8 @@ msgstr[1] ""
 msgid "Display information about an ID override."
 msgstr ""
 
-#, fuzzy
-#| msgid "User ID"
 msgid "User ID override"
-msgstr "მომხმარებლის ID"
+msgstr "მომხმარებლის ID-ის გადაფარვა"
 
 msgid "User ID overrides"
 msgstr ""
@@ -17456,16 +16677,12 @@ msgid ""
 "   the rights to manage group membership); sets target.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Permissions\n"
 msgid ""
 "\n"
 "Managed permissions\n"
 msgstr ""
 "\n"
-"წვდომები\n"
+"მართული წვდომები\n"
 
 msgid ""
 "\n"
@@ -17634,30 +16851,20 @@ msgstr "სერვერი"
 msgid "servers"
 msgstr "სერვერები"
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "IPA Servers"
-msgstr "IPA DNS სერვერები"
+msgstr "IPA სერვერები"
 
-#, fuzzy
-#| msgid "Server Options"
 msgid "Server DNS location"
-msgstr "სერვერის პარამეტრები"
+msgstr "სერვერის DNS მდებარეობა"
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "Service weight"
-msgstr "სერვერის მორგება"
+msgstr "სერვისის წონა"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Weight for server services"
-msgstr "სერვისების წაშლა"
+msgstr "სერვერის სერვისების წონა"
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "Service relative weight"
-msgstr "სერვერის მორგება"
+msgstr "სერვისის შედარებითი წონა"
 
 msgid "Relative weight for server services (counts per location)"
 msgstr ""
@@ -17786,10 +16993,8 @@ msgstr ""
 msgid "State"
 msgstr "მდგომარეობა"
 
-#, fuzzy
-#| msgid "Server Name"
 msgid "Server state"
-msgstr "სერვერის სახელი"
+msgstr "სერვერის მდგომარეობა"
 
 #, python-format
 msgid "Changed server state of \"%(value)s\"."
@@ -17910,10 +17115,8 @@ msgid ""
 "%(masters)s"
 msgstr ""
 
-#, fuzzy
-#| msgid "Trusts"
 msgid "AD Trust setup"
-msgstr "ნდობები"
+msgstr "AD ნდობის მორგება"
 
 msgid ""
 "Cannot perform the selected command without Samba 4 support installed. Make "
@@ -17947,20 +17150,14 @@ msgstr ""
 msgid "SID blocklist outgoing"
 msgstr ""
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "Trust direction"
-msgstr "ნდობის მორგება"
+msgstr "ნდობის მიმართულება"
 
-#, fuzzy
-#| msgid "Trust"
 msgid "Trust type"
-msgstr "ნდობა"
+msgstr "ნდობის ტიპი"
 
-#, fuzzy
-#| msgid "Trusts"
 msgid "Trust status"
-msgstr "ნდობები"
+msgstr "ნდობის სტატუსი"
 
 msgid "UPN suffixes"
 msgstr ""
@@ -17999,10 +17196,8 @@ msgstr ""
 msgid "Type of trusted domain ID range, one of allowed values"
 msgstr ""
 
-#, fuzzy
-#| msgid "External"
 msgid "External trust"
-msgstr "გარე"
+msgstr "გარე ნდობა"
 
 msgid ""
 "Establish external trust to a domain in another forest. The trust is not "
@@ -18023,8 +17218,6 @@ msgstr ""
 msgid "pysss_murmur is not available on the server and no base-id is given."
 msgstr ""
 
-#, fuzzy
-#| msgid "trust"
 msgid "trust type"
 msgstr "ნდობა"
 
@@ -18150,10 +17343,8 @@ msgstr[1] ""
 msgid "trust configuration"
 msgstr "ნდობის მორგება"
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "Global Trust Configuration"
-msgstr "ნდობის მორგება"
+msgstr "გლობალური ნდობის მორგება"
 
 msgid "IPA AD trust agents"
 msgstr ""
@@ -18188,28 +17379,20 @@ msgid ""
 "group was not found."
 msgstr ""
 
-#, fuzzy
-#| msgid "domain"
 msgid "trust domain"
-msgstr "დომენი"
+msgstr "ნდობის დომენი"
 
-#, fuzzy
-#| msgid "domain"
 msgid "trust domains"
-msgstr "დომენი"
+msgstr "ნდობის დომენები"
 
 msgid "Trusted domains"
 msgstr ""
 
-#, fuzzy
-#| msgid "domain"
 msgid "Trusted domain"
-msgstr "დომენი"
+msgstr "სანდო დომენი"
 
-#, fuzzy
-#| msgid "Domain name"
 msgid "Domain enabled"
-msgstr "დომენის სახელი"
+msgstr "დომენის ჩართულია"
 
 #, python-format
 msgid "Removed information about the trusted domain \"%(value)s\""
@@ -18495,23 +17678,17 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "vaultcontainer"
 msgstr "საცავის მორგება"
 
 msgid "vaultcontainers"
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Vault Containers"
-msgstr "საცავის მორგება"
+msgstr "საცავის კონტეინერები"
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Vault Container"
-msgstr "საცავის მორგება"
+msgstr "საცავის კონტეინერი"
 
 msgid "Service, shared and user options cannot be specified simultaneously"
 msgstr ""
@@ -18522,10 +17699,8 @@ msgstr ""
 msgid "KRA service is not enabled"
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete a user"
 msgid "Deleted vault container"
-msgstr "მომხმარებლის წაშლა"
+msgstr "საცავის კონტეინერი წაიშალა"
 
 #, python-format
 msgid "owner %s"
@@ -18537,25 +17712,17 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy
-#| msgid "Default"
 msgid "vault"
 msgstr "ნაგულისხმები"
 
-#, fuzzy
-#| msgid "Default"
 msgid "vaults"
 msgstr "ნაგულისხმები"
 
-#, fuzzy
-#| msgid "Default"
 msgid "Vaults"
-msgstr "ნაგულისხმები"
+msgstr "საცავები"
 
-#, fuzzy
-#| msgid "Default"
 msgid "Vault"
-msgstr "ნაგულისხმები"
+msgstr "საცავი"
 
 msgid "Service, shared, and user options cannot be specified simultaneously"
 msgstr ""
@@ -18685,25 +17852,17 @@ msgstr ""
 msgid "Search for Class of Service entry"
 msgstr ""
 
-#, fuzzy
-#| msgid "password"
 msgid "password policy"
 msgstr "პაროლი"
 
-#, fuzzy
-#| msgid "password"
 msgid "password policies"
-msgstr "პაროლი"
+msgstr "პაროლის პოლიტიკები"
 
-#, fuzzy
-#| msgid "Password"
 msgid "Password Policies"
 msgstr "პაროლი"
 
-#, fuzzy
-#| msgid "Password"
 msgid "Password Policy"
-msgstr "პაროლი"
+msgstr "პაროლის პოლიტიკა"
 
 msgid "Max repeat"
 msgstr ""
@@ -18723,10 +17882,8 @@ msgstr ""
 msgid "Check if the password is a dictionary word"
 msgstr ""
 
-#, fuzzy
-#| msgid "User name"
 msgid "User check"
-msgstr "მომხმარებლის სახელი"
+msgstr "მომხმარებლის შემოწმება"
 
 msgid "Check if the password contains the username"
 msgstr ""
@@ -18751,23 +17908,15 @@ msgstr ""
 msgid "priority cannot be set on global policy"
 msgstr ""
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "automount location"
-msgstr "ავთენტიკაცია"
+msgstr "ავტომიმაგრების მდებარეობა"
 
-#, fuzzy
-#| msgid "locations"
 msgid "automount locations"
 msgstr "მდებარეობები"
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Automount Locations"
-msgstr "ავთენტიკაცია"
+msgstr "ავტომიმაგრების მდებარეობები"
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Automount Location"
 msgstr "ავთენტიკაცია"
 
@@ -18893,20 +18042,14 @@ msgstr ""
 msgid "Principal alias"
 msgstr ""
 
-#, fuzzy
-#| msgid "Password expiration"
 msgid "User password expiration"
-msgstr "პაროლის ვადა"
+msgstr "მომხმარებლის პაროლის ვადის ამოწურვა"
 
-#, fuzzy
-#| msgid "SSH public key"
 msgid "SSH public key fingerprint"
-msgstr "SSH საჯარო გასაღები"
+msgstr "SSH საჯარო გასაღების ანაბეჭდი"
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "External IdP configuration"
-msgstr "საცავის მორგება"
+msgstr "გარე IdP-ის მორგება"
 
 msgid "External IdP user identifier"
 msgstr ""
@@ -18914,10 +18057,8 @@ msgstr ""
 msgid "A string that identifies the user at external IdP"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate mapping data"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "სერტიფიკატის ის ასახვის მონაცემები"
 
 msgid "SMB logon script path"
 msgstr ""
@@ -18925,15 +18066,11 @@ msgstr ""
 msgid "SMB profile path"
 msgstr ""
 
-#, fuzzy
-#| msgid "Home directory"
 msgid "SMB Home Directory"
-msgstr "საწყისი საქაღალდე"
+msgstr "SMB-ის საწყისი საქაღალდე"
 
-#, fuzzy
-#| msgid "Home directory"
 msgid "SMB Home Directory Drive"
-msgstr "საწყისი საქაღალდე"
+msgstr "SMB-ის საწყისი საქაღალდის დისკი"
 
 msgid "Passkey mapping"
 msgstr ""
@@ -18953,18 +18090,14 @@ msgstr "არ შეიძლება %(len)d სიმბოლოზე გ�
 msgid "Issuer"
 msgstr "გამომცემელი"
 
-#, fuzzy
-#| msgid "IPA CA certificate"
 msgid "Issuer of the certificate"
 msgstr "IPA CA სერტიფიკატი"
 
 msgid "Subject"
 msgstr "თემა"
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "Subject of the certificate"
-msgstr "CA სერტიფიკატი"
+msgstr "სერტიფიკატის სუბიექტი"
 
 msgid "cannot have an empty subject"
 msgstr ""
@@ -19081,23 +18214,17 @@ msgstr ""
 msgid "Authority ID"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Authority"
 msgid "Dogtag Authority ID"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "Dogtag ავტორიტეტის ID"
 
-#, fuzzy
-#| msgid "Subject"
 msgid "Subject DN"
-msgstr "თემა"
+msgstr "სუბიექტის DN"
 
 msgid "Subject Distinguished Name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Issuer"
 msgid "Issuer DN"
-msgstr "გამომცემელი"
+msgstr "გამომცემლის DN"
 
 msgid "Issuer Distinguished Name"
 msgstr ""
@@ -19108,20 +18235,14 @@ msgstr ""
 msgid "Certificate chain"
 msgstr "სერტიფიკატების ჯაჭვი"
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "X.509 certificate chain"
-msgstr "CA სერტიფიკატი"
+msgstr "X.509 სერტიფიკატების ჯაჭვი"
 
-#, fuzzy
-#| msgid "Version"
 msgid "RSN Version"
-msgstr "ვერსია"
+msgstr "RSN-ის ვერსია"
 
-#, fuzzy
-#| msgid "Serial Number"
 msgid "Random Serial Number Version"
-msgstr "სერიული ნომერი"
+msgstr "შემთხვევითი სერიული ნომრის ვერსია"
 
 msgid "Search for CAs."
 msgstr ""
@@ -19412,76 +18533,56 @@ msgstr ""
 msgid "Name of issuing CA"
 msgstr ""
 
-#, fuzzy
-#| msgid "Email address"
 msgid "Subject email address"
-msgstr "ელფოსტის მისამართი"
+msgstr "თემის ელფოსტის მისამართი"
 
-#, fuzzy
-#| msgid "Subject"
 msgid "Subject DNS name"
-msgstr "თემა"
+msgstr "სუბიექტის DNS სახელი"
 
-#, fuzzy
-#| msgid "Street address"
 msgid "Subject X.400 address"
-msgstr "ქუჩის მისამართი"
+msgstr "სუბიექტის X.400 მისამართი"
 
-#, fuzzy
-#| msgid "Home directory"
 msgid "Subject directory name"
-msgstr "საწყისი საქაღალდე"
+msgstr "სუბიექტის საქაღალდის სახელი"
 
 msgid "Subject EDI Party name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Subject"
 msgid "Subject URI"
-msgstr "თემა"
+msgstr "სუბიექტის URI"
 
-#, fuzzy
-#| msgid "A IP Address"
 msgid "Subject IP Address"
-msgstr "IP მისამართი"
+msgstr "სუბიექტის IP მისამართი"
 
 msgid "Subject OID"
 msgstr "სუბიექტის OID"
 
-#, fuzzy
-#| msgid "Subject"
 msgid "Subject UPN"
-msgstr "თემა"
+msgstr "სუბიექტის UPN"
 
 msgid "Subject Kerberos principal name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server Name"
 msgid "Subject Other Name"
-msgstr "სერვერის სახელი"
+msgstr "სუბიეტქის სხვა სახელი"
 
 msgid "Not Before"
-msgstr ""
+msgstr "არა თარიღამდე"
 
 msgid "Not After"
-msgstr ""
+msgstr "არა შემდეგ"
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "Fingerprint (SHA1)"
-msgstr "ანაბეჭდი"
+msgstr "ანაბეჭდი (SHA1)"
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "Fingerprint (SHA256)"
-msgstr "ანაბეჭდი"
+msgstr "ანაბეჭდი (SHA256)"
 
 msgid "Serial number (hex)"
 msgstr "სერიული ნომერი (თექვსმეტობითში)"
 
 msgid "Request status"
-msgstr ""
+msgstr "სტატუსის გამოთხოვა"
 
 msgid ""
 "automatically add the principal if it doesn't exist (service principals only)"
@@ -19576,8 +18677,6 @@ msgstr "სტატუსი"
 msgid "Revoked"
 msgstr "ამოღებული"
 
-#, fuzzy
-#| msgid "locations"
 msgid "Revocation reason"
 msgstr "მდებარეობები"
 
@@ -19598,10 +18697,8 @@ msgstr ""
 msgid "7 is not a valid revocation reason"
 msgstr ""
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "Status of the certificate"
-msgstr "CA სერტიფიკატი"
+msgstr "სერტიფიკატის სტატუსი"
 
 msgid "Results should contain primary key attribute only (\"certificate\")"
 msgstr ""
@@ -19681,10 +18778,8 @@ msgstr ""
 msgid "must be at least 10"
 msgstr ""
 
-#, fuzzy
-#| msgid "Configuration"
 msgid "configuration options"
-msgstr "მორგება"
+msgstr "კონფიგურაციის პარამეტრები"
 
 msgid "Configuration"
 msgstr "მორგება"
@@ -19695,10 +18790,8 @@ msgstr ""
 msgid "Enable adding subids to new users"
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA CA servers"
 msgid "IPA masters"
-msgstr "IPCA CA სერვერები"
+msgstr "IPA ძირითადი სერვერები"
 
 msgid "List of all IPA masters"
 msgstr ""
@@ -19721,10 +18814,8 @@ msgstr "IPCA CA სერვერები"
 msgid "IPA servers configured as certificate authority"
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA CA servers"
 msgid "Hidden IPA CA servers"
-msgstr "IPCA CA სერვერები"
+msgstr "დამალული IPA CA სერვერები"
 
 msgid "Hidden IPA servers configured as certificate authority"
 msgstr ""
@@ -19738,10 +18829,8 @@ msgstr ""
 msgid "IPA servers configured as key recovery agent"
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA KRA servers"
 msgid "Hidden IPA KRA servers"
-msgstr "IPA KRA სერვერები"
+msgstr "დამალული IPA KRA სერვერები"
 
 msgid "Hidden IPA servers configured as key recovery agent"
 msgstr ""
@@ -19749,10 +18838,8 @@ msgstr ""
 msgid "IPA servers configured as domain name server"
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "Hidden IPA DNS servers"
-msgstr "IPA DNS სერვერები"
+msgstr "დამალული IPA DNS სერვერები"
 
 msgid "Hidden IPA servers configured as domain name server"
 msgstr ""
@@ -19760,18 +18847,14 @@ msgstr ""
 msgid "DNSec key master"
 msgstr ""
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "Setup SID configuration"
-msgstr "ნდობის მორგება"
+msgstr "SID-ის კონფიგურაციის მორგება"
 
 msgid "New users and groups automatically get a SID assigned"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add user"
 msgid "Add SIDs"
-msgstr "მომხმარებლის დამატება"
+msgstr "SID-ების დამატება"
 
 msgid "Add SIDs for existing users and groups"
 msgstr ""
@@ -19802,10 +18885,8 @@ msgid ""
 "allowed. Empty string is not allowed."
 msgstr ""
 
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed to call DBus"
-msgstr "დამატების შეცდომა"
+msgstr "DBus-ის გამოძახება ჩავარდა"
 
 msgid "Configuration of SID failed. See details in the error log"
 msgstr ""
@@ -19989,10 +19070,8 @@ msgstr ""
 msgid "Deleted group \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "privilege"
 msgid "privileged group"
-msgstr "პრივილეგიები"
+msgstr "პრივილეგიის მქონე ჯგუფი"
 
 #, python-format
 msgid "Modified group \"%(value)s\""
@@ -20145,18 +19224,14 @@ msgstr ""
 msgid "Serial Number"
 msgstr "სერიული ნომერი"
 
-#, fuzzy
-#| msgid "Serial Number"
 msgid "Serial Number (hex)"
-msgstr "სერიული ნომერი"
+msgstr "სერიული ნომერი (თექვსმ)"
 
 msgid "Delegation principal"
 msgstr ""
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Authentication Indicators"
-msgstr "ავთენტიკაცია"
+msgstr "ავთენტიკაციის ინდიკატორები"
 
 msgid ""
 "Defines an allow list for Authentication Indicators. Use 'otp' to allow OTP-"
@@ -20320,10 +19395,8 @@ msgstr ""
 msgid "Identity Provider reference name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Customization"
 msgid "Authorization URI"
-msgstr "ხელით შეტანილი ცვლილებები"
+msgstr "ავტორიზაციის URI"
 
 msgid "OAuth 2.0 authorization endpoint"
 msgstr ""
@@ -20337,15 +19410,11 @@ msgstr ""
 msgid "Token URI"
 msgstr ""
 
-#, fuzzy
-#| msgid "Mount point"
 msgid "Token endpoint"
-msgstr "მიმაგრების წერტილი"
+msgstr "კოდის ბოლოწერტილი"
 
-#, fuzzy
-#| msgid "User Login"
 msgid "User info URI"
-msgstr "მომხმარებლის შესვლა"
+msgstr "მომხმარებლის ინფორმაციის URI"
 
 msgid "User information endpoint"
 msgstr ""
@@ -20612,10 +19681,8 @@ msgstr ""
 msgid "ID range type, one of allowed values"
 msgstr ""
 
-#, fuzzy
-#| msgid "host groups"
 msgid "Auto private groups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ავტომატური პირადი ჯგუფები"
 
 msgid "Auto creation of private groups, one of allowed values"
 msgstr ""
@@ -20812,20 +19879,14 @@ msgstr "წაშლა"
 msgid "${count} item(s) removed"
 msgstr ""
 
-#, fuzzy
-#| msgid "Result"
 msgid "Show Results"
-msgstr "შედეგი"
+msgstr "შედეგების ჩვენება"
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Authentication indicators"
 msgstr "ავთენტიკაცია"
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Authentication indicator"
-msgstr "ავთენტიკაცია"
+msgstr "ავთენტიკაციის ინდიკატორი"
 
 msgid ""
 "<p>Implicit method (password) will be used if no method is chosen.</"
@@ -20955,10 +20016,8 @@ msgstr "ქმედების შეჩერების გაუქმე�
 msgid "Reset"
 msgstr "საწყის მნიშვნელობებზე დაბრუნება"
 
-#, fuzzy
-#| msgid "New Password"
 msgid "Reset Password"
-msgstr "ახალი პაროლი"
+msgstr "პაროლის ჩამოყრა"
 
 msgid "Reset Password and Log in"
 msgstr ""
@@ -21008,15 +20067,11 @@ msgstr "ყველას ამოკეცვა"
 msgid "General"
 msgstr "ზოგადი"
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Identity Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "იდენტიფიკაციის მორგება"
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Record Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "ჩანაწერის პარამეტრები"
 
 #, python-brace-format
 msgid "${entity} ${primary_key} Settings"
@@ -21033,10 +20088,8 @@ msgstr ""
 msgid "${entity} successfully added"
 msgstr ""
 
-#, fuzzy
-#| msgid "Custom value"
 msgid "Add custom value"
-msgstr "მითითებული მნიშვნელობა"
+msgstr "მომხმარებლის მნიშვნელობის დამატება"
 
 msgid "Available"
 msgstr "ხელმისაწვდომია"
@@ -21044,10 +20097,8 @@ msgstr "ხელმისაწვდომია"
 msgid "Some operations failed."
 msgstr ""
 
-#, fuzzy
-#| msgid "Validation error"
 msgid "Operations Error"
-msgstr "შემოწმების შეცდომა"
+msgstr "ოპერაციის შეცდომა"
 
 msgid "Confirmation"
 msgstr "დასტური"
@@ -21115,21 +20166,17 @@ msgstr ""
 msgid "An error has occurred (${error})"
 msgstr ""
 
-#, fuzzy
-#| msgid "Error"
 msgid "HTTP Error"
 msgstr "შეცდომა"
 
 msgid "Internal Error"
 msgstr "შიდა შეცდომა"
 
-#, fuzzy
-#| msgid "Error"
 msgid "IPA Error"
-msgstr "შეცდომა"
+msgstr "IPA შეცდომა"
 
 msgid "No response"
-msgstr ""
+msgstr "პასუხის გარეშე"
 
 msgid "Unknown Error"
 msgstr "უცნობი შეცდომა"
@@ -21245,10 +20292,8 @@ msgstr "Kerberos_ის მეტსახელის წაშლა"
 msgid "Do you want to remove kerberos alias ${alias}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "trust configuration"
 msgid "Inherited from server configuration"
-msgstr "ნდობის მორგება"
+msgstr "მემკვიდრეობით სერვერის კონფიგურაციიდან"
 
 msgid "MS-PAC"
 msgstr ""
@@ -21302,18 +20347,14 @@ msgstr "ჩატვირთვა"
 msgid "Kerberos Principal you entered is expired"
 msgstr ""
 
-#, fuzzy
-#| msgid "Loading"
 msgid "Loading data"
-msgstr "ჩატვირთვა"
+msgstr "მონაცემების ჩატვირთვა"
 
 msgid "Log in"
 msgstr "შესვლა"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "Log In Using Certificate"
-msgstr "სერტიფიკატი"
+msgstr "სერტიფიკატით შესვლა"
 
 msgid "Log in using personal certificate"
 msgstr ""
@@ -21321,15 +20362,11 @@ msgstr ""
 msgid "Log out"
 msgstr "გასვლა"
 
-#, fuzzy
-#| msgid "Log out"
 msgid "Log out error"
-msgstr "გასვლა"
+msgstr "გასვლის შეცდომა"
 
-#, fuzzy
-#| msgid "One-Time Password"
 msgid "Password or Password+One-Time Password"
-msgstr "ერთჯერადი პაროლი"
+msgstr "პაროლი თუ პაროლი+ერთჯერადი პაროლი"
 
 #, python-brace-format
 msgid "You will be redirected in ${count}s"
@@ -21344,10 +20381,8 @@ msgstr "სინქრონიზაცია"
 msgid "The user account you entered is locked"
 msgstr ""
 
-#, fuzzy
-#| msgid "Minimum length of password"
 msgid "number of passwords"
-msgstr "პაროლის მინიმალური სიგრძე"
+msgstr "პაროლების რაოდენობა"
 
 msgid "seconds"
 msgstr "წამი"
@@ -21372,10 +20407,8 @@ msgstr ""
 msgid "The password or username you entered is incorrect"
 msgstr ""
 
-#, fuzzy
-#| msgid "Password expiration"
 msgid "Password migration was successful"
-msgstr "პაროლის ვადა"
+msgstr "პაროლის მიგრაცია წარმატებით დასრულდა"
 
 msgid "Attribute"
 msgstr "ატრიბუტი"
@@ -21383,33 +20416,25 @@ msgstr "ატრიბუტი"
 msgid "Add delegation"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove delegations"
-msgstr "სერვისების წაშლა"
+msgstr "დელეგაციების წაშლა"
 
-#, fuzzy
-#| msgid "permission"
 msgid "Add permission"
-msgstr "წვდომა"
+msgstr "წვდომის დამატება"
 
 #, python-brace-format
 msgid "Add privileges into permission '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "permissions"
 msgid "Remove permissions"
-msgstr "წვდომები"
+msgstr "წვდომების წაშლა"
 
 #, python-brace-format
 msgid "Remove privileges from permission '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "privilege"
 msgid "Add privilege"
-msgstr "პრივილეგიები"
+msgstr "პრივილეგიის დამატება"
 
 #, python-brace-format
 msgid "Add privilege '${primary_key}' into permissions"
@@ -21419,10 +20444,8 @@ msgstr ""
 msgid "Add roles into privilege '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove privileges"
-msgstr "სერვისების წაშლა"
+msgstr "პრივილეგიების წაშლა"
 
 #, python-brace-format
 msgid "Remove privilege '${primary_key}' from permissions"
@@ -21432,10 +20455,8 @@ msgstr ""
 msgid "Remove roles from privilege '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Settings"
 msgid "Role Settings"
-msgstr "მორგება"
+msgstr "როლის მორგება"
 
 msgid "Add role"
 msgstr "როლის დამატება"
@@ -21464,10 +20485,8 @@ msgstr ""
 msgid "Add users into role '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hold"
 msgid "Remove roles"
-msgstr "ქმედების შეჩერების გაუქმება"
+msgstr "როლების წაშლა"
 
 #, python-brace-format
 msgid "Remove role '${primary_key}' from privileges"
@@ -21496,10 +20515,8 @@ msgstr ""
 msgid "Add self service permission"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove self service permissions"
-msgstr "სერვისების წაშლა"
+msgstr "თვითმომსახურების წვდომების წაშლა"
 
 msgid "Add rule"
 msgstr "წესის დამატება"
@@ -21515,15 +20532,11 @@ msgstr ""
 msgid "Are you sure you want to change default group?"
 msgstr ""
 
-#, fuzzy
-#| msgid "host group"
 msgid "Default host group"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "ნაგულისხმევი ჰოსტების ჯგუფი"
 
-#, fuzzy
-#| msgid "User group"
 msgid "Default user group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "ნაგულისხმევი მომხმარებლის ჯგუფი"
 
 msgid "Exclusive"
 msgstr "ექსკლუზიური"
@@ -21531,20 +20544,14 @@ msgstr "ექსკლუზიური"
 msgid "Expression"
 msgstr "გამოსახულება"
 
-#, fuzzy
-#| msgid "host group"
 msgid "Host group rule"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "ჰოსტების ჯგუფის წესი"
 
-#, fuzzy
-#| msgid "host groups"
 msgid "Host group rules"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ჰოსტების ჯგუფის წესები"
 
-#, fuzzy
-#| msgid "Exclusive"
 msgid "Inclusive"
-msgstr "ექსკლუზიური"
+msgstr "ჩათვლით"
 
 msgid "Remove auto membership rules"
 msgstr ""
@@ -21557,33 +20564,23 @@ msgstr ""
 msgid "Remove inclusive conditions from rule '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "User group"
 msgid "User group rule"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლების ჯგუფის წესი"
 
-#, fuzzy
-#| msgid "User group"
 msgid "User group rules"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლების ჯგუფის წესები"
 
 msgid "Add automount key"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove automount keys"
-msgstr "ჰოსტის წაშლა"
+msgstr "ავტომიმაგრების გასაღებების წაშლა"
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Add automount location"
-msgstr "ავთენტიკაცია"
+msgstr "ავტომიმაგრების მდებარეობის დამატება"
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Automount Location Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "ავტომიმაგრების მდებარეობის მორგება"
 
 msgid "Remove automount locations"
 msgstr ""
@@ -21591,10 +20588,8 @@ msgstr ""
 msgid "Add automount map"
 msgstr ""
 
-#, fuzzy
-#| msgid "Type"
 msgid "Map Type"
-msgstr "ტიპი"
+msgstr "რუკის ტიპი"
 
 msgid "Direct"
 msgstr "პირდაპირი"
@@ -21602,20 +20597,14 @@ msgstr "პირდაპირი"
 msgid "Indirect"
 msgstr "არაპირდაპირი"
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove automount maps"
-msgstr "ჰოსტის წაშლა"
+msgstr "ავტომიმაგრების რუკების წაშლა"
 
-#, fuzzy
-#| msgid "Certificate Authority"
 msgid "Add certificate authority"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "სერტიფიკატების გამომცემლის დამატება"
 
-#, fuzzy
-#| msgid "Certificate Authorities"
 msgid "Remove certificate authorities"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "სერტიფიკატების გამომცემლის წაშლა"
 
 msgid "Add CA ACL"
 msgstr ""
@@ -21654,34 +20643,26 @@ msgstr "ყველა"
 msgid "Any CA"
 msgstr ""
 
-#, fuzzy
-#| msgid "Host"
 msgid "Any Host"
 msgstr "ჰოსტი"
 
 msgid "Any Service"
 msgstr "ნებისმიერი სერვისი"
 
-#, fuzzy
-#| msgid "Profile"
 msgid "Any Profile"
-msgstr "პროფილი"
+msgstr "ნებისმიერი პროფილი"
 
 msgid "Anyone"
-msgstr ""
+msgstr "ყველა"
 
-#, fuzzy
-#| msgid "Rules"
 msgid "Rule status"
-msgstr "წესები"
+msgstr "წესის სტატუსი"
 
 msgid "If no CAs are specified, requests to the default CA are allowed."
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove CA ACLs"
-msgstr "ჰოსტის წაშლა"
+msgstr "CA ACL-ების წაშლა"
 
 #, python-brace-format
 msgid "Remove Certificate Authorities from CA ACL '${primary_key}'"
@@ -21711,18 +20692,14 @@ msgstr ""
 msgid "Remove users from CA ACL '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Unspecified"
 msgid "Specified CAs"
-msgstr "მიუთითებელი"
+msgstr "მითითებული CA-ები"
 
 msgid "Specified Hosts and Groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Profiles"
 msgid "Specified Profiles"
-msgstr "პროფილები"
+msgstr "მითითებული პროფილები"
 
 msgid "Specified Services and Groups"
 msgstr ""
@@ -21733,22 +20710,20 @@ msgstr ""
 msgid "Permitted to have certificates issued"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove certificate profiles"
-msgstr "სერვისების წაშლა"
+msgstr "სერტიფიკატის პროფილების წაშლა"
 
 msgid "AA Compromise"
-msgstr ""
+msgstr "AA კომპრომისი"
 
 msgid "Add principal"
 msgstr ""
 
 msgid "Affiliation Changed"
-msgstr ""
+msgstr "დაქვემდებარება შეიცვალა"
 
 msgid "CA Compromise"
-msgstr ""
+msgstr "CA-ის კომპრომისი"
 
 msgid "Certificates"
 msgstr "სერტიფიკატები"
@@ -21757,7 +20732,7 @@ msgid "Certificate Hold"
 msgstr "სერტიფიკატის შეჩერება"
 
 msgid "Cessation of Operation"
-msgstr ""
+msgstr "ოპერაცის დასრულება"
 
 msgid "Common Name"
 msgstr "სახელი"
@@ -21766,57 +20741,37 @@ msgid "the certificate with serial number "
 msgstr ""
 
 msgid "Expires On"
-msgstr ""
+msgstr "ვადა იწურება"
 
-#, fuzzy
-#| msgid "Issued On"
 msgid "Issued on from"
-msgstr "გამოცემის თარიღი"
+msgstr "გამოცემულია ვისგან"
 
-#, fuzzy
-#| msgid "Issued On"
 msgid "Issued on to"
-msgstr "გამოცემის თარიღი"
+msgstr "გამოცემულია ვისთვის"
 
-#, fuzzy
-#| msgid "Serial number"
 msgid "Maximum serial number"
 msgstr "სერიული ნომერი"
 
-#, fuzzy
-#| msgid "Serial number"
 msgid "Minimum serial number"
 msgstr "სერიული ნომერი"
 
-#, fuzzy
-#| msgid "Revoked"
 msgid "Revoked on from"
-msgstr "ამოღებული"
+msgstr "გაუქმებულია ვისგან"
 
-#, fuzzy
-#| msgid "Revoked"
 msgid "Revoked on to"
-msgstr "ამოღებული"
+msgstr "გაუქმებულია ვისთვის"
 
-#, fuzzy
-#| msgid "Valid from"
 msgid "Valid not after from"
-msgstr "Ძალაშია"
+msgstr "არასწორია თარიღიდან დასაწყისი"
 
-#, fuzzy
-#| msgid "Valid from"
 msgid "Valid not after to"
-msgstr "Ძალაშია"
+msgstr "არასწორია თარიღიდან დასასრული"
 
-#, fuzzy
-#| msgid "Valid from"
 msgid "Valid not before from"
-msgstr "Ძალაშია"
+msgstr "არასწორია თარიღამდე დასაწყისი"
 
-#, fuzzy
-#| msgid "Valid from"
 msgid "Valid not before to"
-msgstr "Ძალაშია"
+msgstr "არასწორია თარიღამდე დასასრული"
 
 msgid "Fingerprints"
 msgstr "თითის ანაბეჭდები"
@@ -21824,10 +20779,8 @@ msgstr "თითის ანაბეჭდები"
 msgid "Get Certificate"
 msgstr "სერტიფიკატის მიღება"
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Hold Removed"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "სერტიფიკატის შეჩერება გაუქმდა"
 
 #, python-brace-format
 msgid "Issue new certificate for host '${primary_key}'"
@@ -21841,36 +20794,26 @@ msgstr ""
 msgid "Issue new certificate for user '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "IPA CA certificate"
 msgid "Issue new certificate"
-msgstr "IPA CA სერტიფიკატი"
+msgstr "ახალი სერტიფიკატის გამოცემა"
 
-#, fuzzy
-#| msgid "Issued On"
 msgid "Issued By"
-msgstr "გამოცემის თარიღი"
+msgstr "გამომცემელი"
 
 msgid "Issued On"
 msgstr "გამოცემის თარიღი"
 
-#, fuzzy
-#| msgid "Issued On"
 msgid "Issued To"
-msgstr "გამოცემის თარიღი"
+msgstr "ვისთვისაა გამოცემული"
 
 msgid "Key Compromise"
-msgstr ""
+msgstr "გასაღების კომპრომისი"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "No Valid Certificate"
-msgstr "სერტიფიკატი"
+msgstr "სწორი სერტიფიკატის გარეშე"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "New Certificate"
-msgstr "სერტიფიკატი"
+msgstr "ახალი სერტიფიკატი"
 
 msgid "Certificate in base64 or PEM format"
 msgstr ""
@@ -21891,18 +20834,14 @@ msgstr "პრივილეგია მოცილებულია"
 msgid "Reason for Revocation"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Remove certificate hold"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "სერტიფიკატის შეჩერების გაუქმება"
 
 msgid "Do you want to remove the certificate hold?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hold"
 msgid "Remove from CRL"
-msgstr "ქმედების შეჩერების გაუქმება"
+msgstr "CRL-დან წაშლა"
 
 #, python-brace-format
 msgid ""
@@ -21920,13 +20859,9 @@ msgstr ""
 msgid " -8 '${cn}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificates"
 msgid "Certificate requested"
-msgstr "სერტიფიკატები"
+msgstr "სერტიფიკატი მოთხოვნილია"
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "Revoke certificate"
 msgstr "CA სერტიფიკატი"
 
@@ -21935,42 +20870,32 @@ msgid ""
 "list."
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate Hold"
 msgid "Certificate Revoked"
-msgstr "სერტიფიკატის შეჩერება"
+msgstr "სერტიფიკატი გაუქმდა"
 
 msgid "REVOKED"
 msgstr ""
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "SHA1 Fingerprint"
-msgstr "ანაბეჭდი"
+msgstr "SHA1 ანაბეჭდი"
 
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "SHA256 Fingerprint"
-msgstr "ანაბეჭდი"
+msgstr "SHA256 ანაბეჭდი"
 
 msgid "Superseded"
-msgstr ""
+msgstr "გადაფარულა"
 
 msgid "Unspecified"
 msgstr "მიუთითებელი"
 
-#, fuzzy
-#| msgid "Certificates"
 msgid "Valid Certificate Present"
-msgstr "სერტიფიკატები"
+msgstr "სწორი სერტიფიკატი არსებობს"
 
 msgid "Valid from"
 msgstr "Ძალაშია"
 
-#, fuzzy
-#| msgid "Valid from"
 msgid "Valid to"
-msgstr "Ძალაშია"
+msgstr "მართებულობის ვადა"
 
 msgid "Validity"
 msgstr "სისწორე"
@@ -21979,30 +20904,20 @@ msgstr "სისწორე"
 msgid "Certificate for ${entity} ${primary_key}"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "View Certificate"
 msgstr "სერტიფიკატი"
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "Certificate Data"
-msgstr "სერტიფიკატი"
+msgstr "სერტიფიკატის მონაცემები"
 
-#, fuzzy
-#| msgid "Certificate Authority"
 msgid "Certificate For Match"
-msgstr "სერტიფიკატების გამომცემელი"
+msgstr "სერტიფიკატების დამთხვევისთვის"
 
-#, fuzzy
-#| msgid "Certificate Type"
 msgid "Certificate Mapping Match"
-msgstr "სერტიფიკატის ტიპი"
+msgstr "სერტიფიკატის ასახვა ემთხვევა"
 
-#, fuzzy
-#| msgid "Matched"
 msgid "Matched Users"
-msgstr "ემთხვევა"
+msgstr "მომხმარებლები, რომლებიც ემთხვევა"
 
 msgid "User Login"
 msgstr "მომხმარებლის შესვლა"
@@ -22010,15 +20925,11 @@ msgstr "მომხმარებლის შესვლა"
 msgid "Add certificate identity mapping rule"
 msgstr ""
 
-#, fuzzy
-#| msgid "CA certificate"
 msgid "Add certificate mapping data"
-msgstr "CA სერტიფიკატი"
+msgstr "სერტიფიკატის ასახვის მონაცემების დამატება"
 
-#, fuzzy
-#| msgid "Configuration"
 msgid "Configuration string"
-msgstr "მორგება"
+msgstr "კონფიგურაციის სტრიქონი"
 
 #, python-brace-format
 msgid "Do you want to remove certificate mapping data ${data}?"
@@ -22036,20 +20947,14 @@ msgstr ""
 msgid "Version"
 msgstr "ვერსია"
 
-#, fuzzy
-#| msgid "User Options"
 msgid "Group Options"
-msgstr "მომხმარებლის პარამეტრები"
+msgstr "ჯგუფის პარამეტრები"
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Search Options"
-msgstr "სერვისის მორგება"
+msgstr "პარამეტრების ძებნა"
 
-#, fuzzy
-#| msgid "SELinux User"
 msgid "SELinux Options"
-msgstr "SELinux-ის მომხმარებელი"
+msgstr "SELinux-ის მორგება"
 
 msgid "Server Options"
 msgstr "სერვერის პარამეტრები"
@@ -22093,10 +20998,8 @@ msgstr ""
 msgid "DNS record was deleted because it contained no data."
 msgstr ""
 
-#, fuzzy
-#| msgid "Record Type"
 msgid "Other Record Types"
-msgstr "ჩანაწერის ტიპი"
+msgstr "სხვა ჩანაწერის ტიპები"
 
 msgid "Address not valid, can't redirect"
 msgstr ""
@@ -22138,10 +21041,8 @@ msgstr ""
 msgid "Remove DNS resource records"
 msgstr ""
 
-#, fuzzy
-#| msgid "Record Type"
 msgid "Standard Record Types"
-msgstr "ჩანაწერის ტიპი"
+msgstr "სტანდარტული ჩანაწერის ტიპები"
 
 msgid "Records for DNS Zone"
 msgstr ""
@@ -22149,27 +21050,21 @@ msgstr ""
 msgid "Record Type"
 msgstr "ჩანაწერის ტიპი"
 
-#, fuzzy
-#| msgid "Add role"
 msgid "Add DNS zone"
-msgstr "როლის დამატება"
+msgstr "DNS-ის ზონის დამატება"
 
 #, python-brace-format
 msgid "Are you sure you want to add permission for DNS Zone ${object}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "DNS Zone Settings"
-msgstr "სერვერის მორგება"
+msgstr "DNS-ის ზონის მორგება"
 
 msgid "Remove DNS zones"
 msgstr "DNS ზონების წაშლა"
 
-#, fuzzy
-#| msgid "Permission"
 msgid "Remove Permission"
-msgstr "წვდომა"
+msgstr "წვდომის წაშლა"
 
 #, python-brace-format
 msgid "Are you sure you want to remove permission for DNS Zone ${object}?"
@@ -22193,10 +21088,8 @@ msgstr "დონე"
 msgid "Set Domain Level"
 msgstr ""
 
-#, fuzzy
-#| msgid "User group"
 msgid "Add user group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლის ჯგუფის დამატება"
 
 #, python-brace-format
 msgid "Add user groups into user group '${primary_key}'"
@@ -22250,10 +21143,8 @@ msgstr ""
 msgid "Add user ID override into user group '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Group Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "ჯგუფის პარამეტრები"
 
 msgid "External"
 msgstr "გარე"
@@ -22261,10 +21152,8 @@ msgstr "გარე"
 msgid "Groups"
 msgstr "ჯგუფები"
 
-#, fuzzy
-#| msgid "Group name"
 msgid "Group categories"
-msgstr "ჯგუფის სახელი"
+msgstr "ჯგუფის კატეგორიები"
 
 msgid "Change to external group"
 msgstr ""
@@ -22278,10 +21167,8 @@ msgstr ""
 msgid "POSIX"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove user groups"
-msgstr "სერვისების წაშლა"
+msgstr "მომხმარებლის ჯგუფების წაშლა"
 
 #, python-brace-format
 msgid "Remove user group '${primary_key}' from user groups"
@@ -22319,15 +21206,11 @@ msgstr ""
 msgid "Remove user ID overrides from user group '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Group name"
 msgid "Group Type"
-msgstr "ჯგუფის სახელი"
+msgstr "ჯგუფის ტიპი"
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "Add HBAC rule"
-msgstr "წესის დამატება"
+msgstr "HBAC წესის დამატება"
 
 #, python-brace-format
 msgid "Add user groups into HBAC rule '${primary_key}'"
@@ -22353,15 +21236,11 @@ msgstr ""
 msgid "Add users into HBAC rule '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Access Denied"
 msgid "Accessing"
-msgstr "წვდომა აკრძალულია"
+msgstr "წვდომა"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove HBAC rules"
-msgstr "სერვისების წაშლა"
+msgstr "HBAC წესების წაშლა"
 
 #, python-brace-format
 msgid "Remove user groups from HBAC rule '${primary_key}'"
@@ -22387,45 +21266,35 @@ msgstr ""
 msgid "Remove users from HBAC rule '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Service"
 msgid "Via Service"
-msgstr "სერვისი"
+msgstr "გაივლის სერვისს"
 
 msgid "Who"
-msgstr ""
+msgstr "ვინ"
 
-#, fuzzy
-#| msgid "Add service"
 msgid "Add HBAC service"
-msgstr "სერვისის დამატება"
+msgstr "HBAC სერვისის დამატება"
 
 #, python-brace-format
 msgid "Add HBAC service '${primary_key}' into HBAC service groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove HBAC services"
-msgstr "სერვისების წაშლა"
+msgstr "HBAC სერვისების წაშლა"
 
 #, python-brace-format
 msgid "Remove HBAC service '${primary_key}' from HBAC service groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add service"
 msgid "Add HBAC service group"
-msgstr "სერვისის დამატება"
+msgstr "HBAC სერვისის ჯგუფის დამატება"
 
 #, python-brace-format
 msgid "Add HBAC services into HBAC service group '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove HBAC service groups"
-msgstr "სერვისების წაშლა"
+msgstr "HBAC სერვისის ჯგუფების წაშლა"
 
 #, python-brace-format
 msgid "Remove HBAC services from HBAC service group '${primary_key}'"
@@ -22434,20 +21303,14 @@ msgstr ""
 msgid "Access Denied"
 msgstr "წვდომა აკრძალულია"
 
-#, fuzzy
-#| msgid "Access Denied"
 msgid "Access Granted"
-msgstr "წვდომა აკრძალულია"
+msgstr "წვდომა გაცემულია"
 
-#, fuzzy
-#| msgid "Disabled"
 msgid "Include Disabled"
-msgstr "გამორთულია"
+msgstr "გამორთულების ჩათვლით"
 
-#, fuzzy
-#| msgid "Included attributes"
 msgid "Include Enabled"
-msgstr "ჩასმული ატრიბუტები"
+msgstr "ჩასმა ჩართულია"
 
 msgid "HBAC Test"
 msgstr ""
@@ -22471,10 +21334,8 @@ msgstr ""
 msgid "Specify external ${entity}"
 msgstr ""
 
-#, fuzzy
-#| msgid "Matched"
 msgid "Unmatched"
-msgstr "ემთხვევა"
+msgstr "არ ემთხვევა"
 
 msgid "Add host"
 msgstr "ჰოსტის დამატება"
@@ -22503,10 +21364,8 @@ msgstr ""
 msgid "Add host '${primary_key}' into sudo rules"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "Host Certificate"
-msgstr "სერტიფიკატი"
+msgstr "ჰოსტის სერტიფიკატი"
 
 msgid "Host Name"
 msgstr "ჰოსტი"
@@ -22514,10 +21373,8 @@ msgstr "ჰოსტი"
 msgid "Delete Key, Unprovision"
 msgstr ""
 
-#, fuzzy
-#| msgid "Settings"
 msgid "Host Settings"
-msgstr "მორგება"
+msgstr "ჰოსტის მორგება"
 
 msgid "Enrolled"
 msgstr ""
@@ -22528,15 +21385,11 @@ msgstr ""
 msgid "Fully Qualified Host Name"
 msgstr ""
 
-#, fuzzy
-#| msgid "General"
 msgid "Generate OTP"
-msgstr "ზოგადი"
+msgstr "OTP-ის გენერაცია"
 
-#, fuzzy
-#| msgid "General"
 msgid "Generated OTP"
-msgstr "ზოგადი"
+msgstr "გენერირებული OTP"
 
 msgid "Kerberos Key"
 msgstr ""
@@ -22550,20 +21403,14 @@ msgstr ""
 msgid "One-Time Password"
 msgstr "ერთჯერადი პაროლი"
 
-#, fuzzy
-#| msgid "One-Time Password"
 msgid "One-Time Password Not Present"
-msgstr "ერთჯერადი პაროლი"
+msgstr "ერთჯერადი პაროლი არ არსებობს"
 
-#, fuzzy
-#| msgid "One-Time Password"
 msgid "One-Time Password Present"
-msgstr "ერთჯერადი პაროლი"
+msgstr "ერთჯერადი პაროლი არსებობს"
 
-#, fuzzy
-#| msgid "Reset"
 msgid "Reset OTP"
-msgstr "საწყის მნიშვნელობებზე დაბრუნება"
+msgstr "ITP-ის საწყის მნიშვნელობებზე დაბრუნება"
 
 msgid "Reset One-Time Password"
 msgstr "ერთჯერადი პაროლის თავიდან დაყენება"
@@ -22604,26 +21451,20 @@ msgstr ""
 msgid "Remove host '${primary_key}' from sudo rules"
 msgstr ""
 
-#, fuzzy
-#| msgid "Provisioning"
 msgid "Unprovision"
-msgstr "მუშაობისთვის მომზადება"
+msgstr "მუშაობისთვის მომზადების გაუქმება"
 
 msgid "Are you sure you want to unprovision this host?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Provisioning"
 msgid "Unprovisioning host"
-msgstr "მუშაობისთვის მომზადება"
+msgstr "ჰოსტის მუშაობისთვის მომზადების გაუქმება"
 
 msgid "Host unprovisioned"
 msgstr ""
 
-#, fuzzy
-#| msgid "host group"
 msgid "Add host group"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "ჰოსტების ჯგუფის დამატება"
 
 #, python-brace-format
 msgid "Add hosts into host group '${primary_key}'"
@@ -22665,15 +21506,11 @@ msgstr ""
 msgid "Remove users from member managers for host group '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Host Groups"
 msgid "Host Group Settings"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ჰოსტების ჯგუფის მორგება"
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove host groups"
-msgstr "ჰოსტის წაშლა"
+msgstr "ჰოსტის ჯგუფების წაშლა"
 
 #, python-brace-format
 msgid "Remove host group '${primary_key}' from host groups"
@@ -22706,7 +21543,7 @@ msgid "Google"
 msgstr "Google"
 
 msgid "Github"
-msgstr ""
+msgstr "Github"
 
 msgid "Microsoft or Azure"
 msgstr ""
@@ -22748,18 +21585,14 @@ msgstr ""
 msgid "Enter trusted group name."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add service"
 msgid "Add ID view"
-msgstr "სერვისის დამატება"
+msgstr "ID ხედის დამატება"
 
 msgid "Add group ID override"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add service"
 msgid "Add user ID override"
-msgstr "სერვისის დამატება"
+msgstr "ID-ის გადაფარვის დამატება"
 
 #, python-brace-format
 msgid "${primary_key} applies to:"
@@ -22768,10 +21601,8 @@ msgstr ""
 msgid "Applied to hosts"
 msgstr ""
 
-#, fuzzy
-#| msgid "host groups"
 msgid "Apply to host groups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ჰოსტების ჯგუფზე გადატარება"
 
 #, python-brace-format
 msgid "Apply ID view '${primary_key}' on hosts of host groups"
@@ -22788,33 +21619,23 @@ msgstr ""
 msgid "${primary_key} overrides:"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove ID views"
-msgstr "სერვისების წაშლა"
+msgstr "ID ხედების წაშლა"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove user ID overrides"
-msgstr "სერვისების წაშლა"
+msgstr "მომხმარებლის ID-ის გადაფარვების წაშლა"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove group ID overrides"
-msgstr "სერვისების წაშლა"
+msgstr "ჯგუფის ID-ის გადაფარვების წაშლა"
 
-#, fuzzy
-#| msgid "host groups"
 msgid "Un-apply from host groups"
-msgstr "ჰოსტის ჯგუფები"
+msgstr "ჰოსტების ჯგუფზე გადატარების გაუქმება"
 
 msgid "Un-apply ID Views from hosts of hostgroups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Apply"
 msgid "Un-apply"
-msgstr "გამოყენება"
+msgstr "გადატარების გაუქმება"
 
 msgid "Un-apply from hosts"
 msgstr ""
@@ -22832,10 +21653,8 @@ msgstr ""
 msgid "Kerberos Ticket Policy"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add role"
 msgid "Add netgroup"
-msgstr "როლის დამატება"
+msgstr "ქსელურ ჯგუფის დამატება"
 
 #, python-brace-format
 msgid "Add netgroup '${primary_key}' into netgroups"
@@ -22861,15 +21680,11 @@ msgstr ""
 msgid "Add users into netgroup '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Netgroup Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "ქსელური ჯგუფის მორგება"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove netgroups"
-msgstr "სერვისების წაშლა"
+msgstr "ქსელური ჯგუფების წაშლა"
 
 #, python-brace-format
 msgid "Remove netgroup '${primary_key}' from netgroups"
@@ -22908,35 +21723,25 @@ msgid ""
 "OTP token application."
 msgstr ""
 
-#, fuzzy
-#| msgid "Configuration"
 msgid "Configure your token"
-msgstr "მორგება"
+msgstr "მოირგეთ თქვენი კოდი"
 
 msgid ""
 "Configure your token by scanning the QR code below. Click on the QR code if "
 "you see this on the device you want to configure."
 msgstr ""
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "OTP Token Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "OTP კოდის მორგება"
 
-#, fuzzy
-#| msgid "Disable"
 msgid "Disable token"
-msgstr "გამორთვა"
+msgstr "კოდის გამორთვა"
 
-#, fuzzy
-#| msgid "Enable"
 msgid "Enable token"
-msgstr "ჩართვა"
+msgstr "კოდის ჩართვა"
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove OTP tokens"
-msgstr "ჰოსტის წაშლა"
+msgstr "OTP კოდების წაშლა"
 
 #, python-brace-format
 msgid "Remove users managing OTP token '${primary_key}'"
@@ -22945,10 +21750,8 @@ msgstr ""
 msgid "Show QR code"
 msgstr "QR კოდის ჩვენება"
 
-#, fuzzy
-#| msgid "Configuration"
 msgid "Show configuration uri"
-msgstr "მორგება"
+msgstr "კონფიგურაციის URI-ის ჩვენება"
 
 msgid "Counter-based (HOTP)"
 msgstr ""
@@ -22956,19 +21759,15 @@ msgstr ""
 msgid "Time-based (TOTP)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add user"
 msgid "Add Passkey"
-msgstr "მომხმარებლის დამატება"
+msgstr "საკვანძო სიტყვის დამატება"
 
 #, python-brace-format
 msgid "Do you want to remove passkey ${passkey}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove Passkey"
-msgstr "ჰოსტის წაშლა"
+msgstr "საკვანძო გასაღების წაშლა"
 
 msgid "(discoverable) "
 msgstr ""
@@ -22976,25 +21775,17 @@ msgstr ""
 msgid "(server-side) "
 msgstr "(სერვერის-მხარეს) "
 
-#, fuzzy
-#| msgid "Attribute"
 msgid "Add Custom Attribute"
-msgstr "ატრიბუტი"
+msgstr "მომხმარებლის ატრიბუტის დამატება"
 
-#, fuzzy
-#| msgid "Permissions"
 msgid "Permission settings"
-msgstr "წვდომები"
+msgstr "წვდომების მორგება"
 
-#, fuzzy
-#| msgid "Attribute"
 msgid "Attribute breakdown"
-msgstr "ატრიბუტი"
+msgstr "ატრიბუტის დაშლა"
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "Privilege Settings"
-msgstr "სერვერის მორგება"
+msgstr "პრივილეგიების მორგება"
 
 msgid "Public key:"
 msgstr "საჯარო გასაღები:"
@@ -23017,30 +21808,20 @@ msgstr ""
 msgid "New: key set"
 msgstr ""
 
-#, fuzzy
-#| msgid "LDAP password"
 msgid "Add password policy"
-msgstr "LDAP პაროლი"
+msgstr "პაროლის პოლიტიკის დამატება"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove password policies"
-msgstr "სერვისების წაშლა"
+msgstr "პაროლის პოლიტიკების წაშლა"
 
-#, fuzzy
-#| msgid "Add role"
 msgid "Add ID range"
-msgstr "როლის დამატება"
+msgstr "ID-ის დიაპაზონის დამატება"
 
-#, fuzzy
-#| msgid "Settings"
 msgid "Range Settings"
-msgstr "მორგება"
+msgstr "დიაპაზონის მორგება"
 
-#, fuzzy
-#| msgid "Base DN"
 msgid "Base ID"
-msgstr "საბაზისო DN"
+msgstr "საბაზისო ID"
 
 msgid "Primary RID base"
 msgstr ""
@@ -23054,51 +21835,35 @@ msgstr "დომენის SID"
 msgid "Secondary RID base"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove ID ranges"
-msgstr "სერვისების წაშლა"
+msgstr "ID-ის დიაპაზონების წაშლა"
 
 msgid "Active Directory domain"
 msgstr "Active Directory-ის დომენი"
 
-#, fuzzy
-#| msgid "Active Directory domain"
 msgid "Active Directory domain with POSIX attributes"
-msgstr "Active Directory-ის დომენი"
+msgstr "Active Directory-ის დომენი POSIX ატრიბუტებით"
 
 msgid "Detect"
 msgstr "დადგენა"
 
-#, fuzzy
-#| msgid "domain"
 msgid "Local domain"
-msgstr "დომენი"
+msgstr "ლოკალური დომენი"
 
-#, fuzzy
-#| msgid "trust"
 msgid "IPA trust"
-msgstr "ნდობა"
+msgstr "IPA ნდობა"
 
-#, fuzzy
-#| msgid "Active Directory domain"
 msgid "Active Directory winsync"
-msgstr "Active Directory-ის დომენი"
+msgstr "Active Directory-ის winsync"
 
-#, fuzzy
-#| msgid "IPA DNS servers"
 msgid "Add RADIUS server"
-msgstr "IPA DNS სერვერები"
+msgstr "RADIUS სერვერის დამატება"
 
-#, fuzzy
-#| msgid "Service Settings"
 msgid "RADIUS Proxy Server Settings"
-msgstr "სერვერის მორგება"
+msgstr "RADIUS-ის პროქსი სერვერის მორგება"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove RADIUS servers"
-msgstr "სერვისების წაშლა"
+msgstr "RADIUS სერვერების წაშლა"
 
 msgid "Check DNS"
 msgstr ""
@@ -23106,15 +21871,11 @@ msgstr ""
 msgid "Do you also want to perform DNS check?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Update"
 msgid "Force Update"
-msgstr "განახლება"
+msgstr "ნაძალადევი განახლება"
 
-#, fuzzy
-#| msgid "SELinux User"
 msgid "Add SELinux user map"
-msgstr "SELinux-ის მომხმარებელი"
+msgstr "SELinux-ის მომხმარებლის რუკის წესის დამატება"
 
 #, python-brace-format
 msgid "Add user groups into SELinux user map '${primary_key}'"
@@ -23132,10 +21893,8 @@ msgstr ""
 msgid "Add users into SELinux user map '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove selinux user maps"
-msgstr "სერვისების წაშლა"
+msgstr "SELinux-ის მომხმარებლის რუკების წაშლა"
 
 #, python-brace-format
 msgid "Remove user groups from SELinux user map '${primary_key}'"
@@ -23153,13 +21912,9 @@ msgstr ""
 msgid "Remove users from SELinux user map '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Servers"
 msgid "Server Roles"
-msgstr "სერვერები"
+msgstr "სერვერის როლები"
 
-#, fuzzy
-#| msgid "Server Name"
 msgid "Server Role"
 msgstr "სერვერის სახელი"
 
@@ -23171,10 +21926,8 @@ msgid ""
 "than one server:"
 msgstr ""
 
-#, fuzzy
-#| msgid "DNS Server"
 msgid "Delete Server"
-msgstr "DNS სერვერი"
+msgstr "სერვერის წაშლა"
 
 msgid ""
 "Deleting a server removes it permanently from the topology. Note that this "
@@ -23192,10 +21945,8 @@ msgstr ""
 msgid "Add service '${primary_key}' into roles"
 msgstr ""
 
-#, fuzzy
-#| msgid "Certificate"
 msgid "Service Certificate"
-msgstr "სერტიფიკატი"
+msgstr "სერვისის სერტიფიკატი"
 
 msgid "Service Settings"
 msgstr "სერვერის მორგება"
@@ -23217,15 +21968,11 @@ msgstr ""
 msgid "Are you sure you want to unprovision this service?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Provisioning"
 msgid "Unprovisioning service"
-msgstr "მუშაობისთვის მომზადება"
+msgstr "სერვისის მუშაობისთვის მომზადების გაუქმება"
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Service unprovisioned"
-msgstr "სერვისის მორგება"
+msgstr "სერვისის სამუშაოდ მომზადება გაუქმდა"
 
 msgid "Kerberos Key Present, Service Provisioned"
 msgstr ""
@@ -23250,30 +21997,20 @@ msgstr ""
 msgid "${count} user(s) activated"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add user"
 msgid "Add stage user"
-msgstr "მომხმარებლის დამატება"
+msgstr "დროებითი მომხმარებლის დამატება"
 
-#, fuzzy
-#| msgid "Stage"
 msgid "Stage users"
 msgstr "ნაბიჯი"
 
-#, fuzzy
-#| msgid "servers"
 msgid "Preserved users"
-msgstr "სერვერები"
+msgstr "დაცული მომხმარებლები"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove preserved users"
-msgstr "სერვისების წაშლა"
+msgstr "დაცული მომხმარებლების წაშლა"
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove stage users"
-msgstr "სერვისების წაშლა"
+msgstr "დროებითი მომხმარებლების წაშლა"
 
 msgid "Are you sure you want to stage selected users?"
 msgstr ""
@@ -23297,10 +22034,8 @@ msgstr ""
 msgid "${count} user(s) restored"
 msgstr ""
 
-#, fuzzy
-#| msgid "User logins"
 msgid "User categories"
-msgstr "მომხმარებლის სახელები"
+msgstr "მომხმარებლის კატეგორიები"
 
 msgid "Add subid"
 msgstr "ქვეID-ის დამატება"
@@ -23317,19 +22052,15 @@ msgstr ""
 msgid "Subordinate ID Statistics"
 msgstr ""
 
-#, fuzzy
-#| msgid "command"
 msgid "Add sudo command"
-msgstr "ბრძანება"
+msgstr "'sudo' ბრძანების დამატება"
 
 #, python-brace-format
 msgid "Add sudo command '${primary_key}' into sudo command groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Remove sudo commands"
-msgstr "ბრძანებების გაშვება"
+msgstr "Sudo ბრძანებების წაშლა"
 
 #, python-brace-format
 msgid "Remove sudo command '${primary_key}' from sudo command groups"
@@ -23349,10 +22080,8 @@ msgstr ""
 msgid "Remove sudo commands from sudo command group '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "Add sudo rule"
-msgstr "წესის დამატება"
+msgstr "Sudo წესის დამატება"
 
 msgid "Add sudo option"
 msgstr ""
@@ -23404,15 +22133,11 @@ msgstr ""
 msgid "Allow"
 msgstr "დაშვება"
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Any Command"
-msgstr "ბრძანებების გაშვება"
+msgstr "ნებისმიერი ბრძანება"
 
-#, fuzzy
-#| msgid "Group"
 msgid "Any Group"
-msgstr "ჯგუფი"
+msgstr "ნებისმიერი ჯგუფი"
 
 msgid "Run Commands"
 msgstr "ბრძანებების გაშვება"
@@ -23423,19 +22148,15 @@ msgstr "უარყოფა"
 msgid "Access this host"
 msgstr ""
 
-#, fuzzy
-#| msgid "Options"
 msgid "Option added"
-msgstr "მორგება"
+msgstr "პარამეტრი დაემატა"
 
 #, python-brace-format
 msgid "${count} option(s) removed"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove services"
 msgid "Remove sudo rules"
-msgstr "სერვისების წაშლა"
+msgstr "Sudo-ის წესების წაშლა"
 
 #, python-brace-format
 msgid "Remove allow sudo commands from sudo rule '${primary_key}'"
@@ -23490,41 +22211,31 @@ msgstr ""
 msgid "Specified Groups"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove sudo options"
-msgstr "ჰოსტის წაშლა"
+msgstr "Sudo პარამეტრების წაშლა"
 
 msgid "Autogenerated"
 msgstr ""
 
-#, fuzzy
-#| msgid "Hide details"
 msgid "Segment details"
-msgstr "დეტალების დამალვა"
+msgstr "სეგმენტის დეტალები"
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Replication configuration"
-msgstr "საცავის მორგება"
+msgstr "რეპლიკაციის მორგება"
 
 #, python-brace-format
 msgid "Managed topology requires minimal domain level ${domainlevel}"
 msgstr ""
 
-#, fuzzy
-#| msgid "location"
 msgid "Add IPA location"
-msgstr "მდებარეობა"
+msgstr "IPA მდებარეობის დამატება"
 
 #, python-brace-format
 msgid "Add IPA server into IPA location '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove IPA locations"
-msgstr "ჰოსტის წაშლა"
+msgstr "IPA მდებარეობების წაშლა"
 
 #, python-brace-format
 msgid "Remove IPA servers from IPA location '${primary_key}'"
@@ -23533,18 +22244,14 @@ msgstr ""
 msgid "Add topology segment"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove topology segments"
-msgstr "ჰოსტის წაშლა"
+msgstr "ტოპოლოგიის სეგმენტების წაშლა"
 
 msgid "Account"
 msgstr "ანგარიში"
 
-#, fuzzy
-#| msgid "trust"
 msgid "Add trust"
-msgstr "ნდობა"
+msgstr "ნდობის დამატება"
 
 msgid "Administrative account"
 msgstr "ადმინისტრატიული წვდომა"
@@ -23552,33 +22259,23 @@ msgstr "ადმინისტრატიული წვდომა"
 msgid "SID blocklists"
 msgstr ""
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Trust Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "ნდობის მორგება"
 
 msgid "Establish using"
 msgstr ""
 
-#, fuzzy
-#| msgid "domain"
 msgid "Fetch domains"
-msgstr "დომენი"
+msgstr "დომენების გამოთხოვა"
 
-#, fuzzy
-#| msgid "Change password"
 msgid "Pre-shared password"
-msgstr "პაროლის შეცვლა"
+msgstr "წინასწარ გაზიარებული პაროლი"
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove trusts"
-msgstr "ჰოსტის წაშლა"
+msgstr "ნდობების წაშლა"
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove domains"
-msgstr "ჰოსტის წაშლა"
+msgstr "დომენების წაშლა"
 
 msgid "Alternative UPN suffixes"
 msgstr ""
@@ -23601,15 +22298,11 @@ msgstr ""
 msgid "Account Settings"
 msgstr "ანგარიშის მორგება"
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Account Status"
-msgstr "ანგარიშის მორგება"
+msgstr "ანგარიშის სტატუსი"
 
-#, fuzzy
-#| msgid "Activate"
 msgid "Active users"
-msgstr "აქტივაცია"
+msgstr "აქტიური მომხმარებლები"
 
 msgid "Add user"
 msgstr "მომხმარებლის დამატება"
@@ -23642,20 +22335,14 @@ msgid ""
 "Are you sure you want to auto-assign a subordinate id to user ${object}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Account Settings"
 msgid "Contact Settings"
-msgstr "ანგარიშის მორგება"
+msgstr "კონტაქტის მორგება"
 
-#, fuzzy
-#| msgid "Delete"
 msgid "Delete mode"
-msgstr "წაშლა"
+msgstr "რეჟიმის წაშლა"
 
-#, fuzzy
-#| msgid "Confirmation"
 msgid "Employee Information"
-msgstr "დასტური"
+msgstr "თანამშრომლის ინფორმაცია"
 
 msgid "Error changing account status"
 msgstr ""
@@ -23663,15 +22350,11 @@ msgstr ""
 msgid "Password expiration"
 msgstr "პაროლის ვადა"
 
-#, fuzzy
-#| msgid "Email address"
 msgid "Mailing Address"
-msgstr "ელფოსტის მისამართი"
+msgstr "ფოსტის მისამართი"
 
-#, fuzzy
-#| msgid "Confirmation"
 msgid "Misc. Information"
-msgstr "დასტური"
+msgstr "სხვადასხვა ინფორმაცია"
 
 msgid "delete"
 msgstr "წაშლა"
@@ -23679,10 +22362,8 @@ msgstr "წაშლა"
 msgid "preserve"
 msgstr "შენარჩუნება"
 
-#, fuzzy
-#| msgid "host group"
 msgid "No private group"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "ჰოსტების ჯგუფის გარეშე"
 
 msgid "Remove users"
 msgstr "მომხმარებლების წაშლა"
@@ -23724,10 +22405,8 @@ msgstr "განბლოკვა"
 msgid "Are you sure you want to unlock user ${object}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "Add vault"
-msgstr "წესის დამატება"
+msgstr "საცავის დამატება"
 
 #, python-brace-format
 msgid "Add user groups into members of vault '${primary_key}'"
@@ -23764,10 +22443,8 @@ msgid ""
 msgstr ""
 
 msgid "Asymmetric"
-msgstr ""
+msgstr "ასიმეტრიული"
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Vaults Config"
 msgstr "საცავის მორგება"
 
@@ -23780,10 +22457,8 @@ msgstr ""
 msgid "Owners"
 msgstr "მფლობელები"
 
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove vaults"
-msgstr "ჰოსტის წაშლა"
+msgstr "საცავების წაშლა"
 
 #, python-brace-format
 msgid "Remove user groups from members of vault '${primary_key}'"
@@ -23809,24 +22484,20 @@ msgstr ""
 msgid "Remove users from owners of vault '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Services"
 msgid "Service Vaults"
-msgstr "სერვისები"
+msgstr "სერვისის საცავები"
 
 msgid "Shared"
 msgstr "გაზიარებული"
 
-#, fuzzy
-#| msgid "Shared"
 msgid "Shared Vaults"
-msgstr "გაზიარებული"
+msgstr "გაზიარებული საცავები"
 
 msgid "Standard"
 msgstr "სტანდარტული"
 
 msgid "Symmetric"
-msgstr ""
+msgstr "სიმეტრიული"
 
 msgid "Vault Type"
 msgstr ""
@@ -23836,27 +22507,19 @@ msgid ""
 "vaults."
 msgstr ""
 
-#, fuzzy
-#| msgid "User Groups"
 msgid "User Vaults"
-msgstr "მომხმარებლის ჯგუფები"
+msgstr "მომხმარებლის საცავები"
 
-#, fuzzy
-#| msgid "Current Password"
 msgid "Current password is required"
-msgstr "მიმდინარე პაროლი"
+msgstr "აუცილებელია მიმდინარე პაროლი"
 
 #, python-brace-format
 msgid "Your password expires in ${days} days."
 msgstr ""
 
-#, fuzzy
-#| msgid "First"
 msgid "First OTP"
-msgstr "პირველი"
+msgstr "პირველი OTP"
 
-#, fuzzy
-#| msgid "is required"
 msgid "New password is required"
 msgstr "აუცილებელია"
 
@@ -23882,10 +22545,8 @@ msgstr ""
 msgid "Password change complete"
 msgstr ""
 
-#, fuzzy
-#| msgid "Your session has expired. Please log in again."
 msgid "Your password has expired. Please enter a new password."
-msgstr "სესიის ვადა გასულია. თავიდან შედით."
+msgstr "თქვენს პაროლს ვადა გაუვიდა. შეიყვანეთ ახალი პაროლი."
 
 msgid "Passwords must match"
 msgstr "პაროლები არ ემთხვევა"
@@ -23899,10 +22560,8 @@ msgstr ""
 msgid "Second OTP"
 msgstr ""
 
-#, fuzzy
-#| msgid "New Password"
 msgid "Verify Password"
-msgstr "ახალი პაროლი"
+msgstr "პაროლის გადამოწმება"
 
 msgid "Are you sure you want to delete selected entries?"
 msgstr ""
@@ -23940,10 +22599,8 @@ msgid ""
 "first ${counter} results."
 msgstr ""
 
-#, fuzzy
-#| msgid "Select All"
 msgid "Unselect All"
-msgstr "ყველას მონიშვნა"
+msgstr "მონიშვნის ყველაფერზე მოხსნა"
 
 msgid ""
 "<h1>Browser Kerberos Setup</h1>\n"
@@ -24131,10 +22788,8 @@ msgstr "აუდიტი"
 msgid "Authentication"
 msgstr "ავთენტიკაცია"
 
-#, fuzzy
-#| msgid "Account"
 msgid "Automount"
-msgstr "ანგარიში"
+msgstr "ავტომატური მიმაგრება"
 
 msgid "DNS"
 msgstr "DNS"
@@ -24158,7 +22813,7 @@ msgid "Subordinate IDs"
 msgstr ""
 
 msgid "Sudo"
-msgstr ""
+msgstr "Sudo"
 
 msgid "Topology"
 msgstr "ტოპოლოგია"
@@ -24185,7 +22840,7 @@ msgid ""
 msgstr ""
 
 msgid "API Browser"
-msgstr ""
+msgstr "API-ის ბრაუზერი"
 
 msgid "First"
 msgstr "პირველი"
@@ -24208,10 +22863,8 @@ msgstr "დაბრუნება"
 msgid "Undo this change."
 msgstr ""
 
-#, fuzzy
-#| msgid "Expand All"
 msgid "Undo All"
-msgstr "ყველას ამოკეცვა"
+msgstr "ყველას გაუქმება"
 
 msgid "Undo all changes in this field."
 msgstr ""
@@ -24222,16 +22875,12 @@ msgstr ""
 msgid "Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"
 msgstr ""
 
-#, fuzzy
-#| msgid "Must be a positive number"
 msgid "Must be a decimal number"
 msgstr "უნდა წარმოადგენდეს დადებით რიცხვს"
 
 msgid "Format error"
 msgstr "ფორმატის შეცდომა"
 
-#, fuzzy
-#| msgid "Must be a positive number"
 msgid "Must be an integer"
 msgstr "უნდა წარმოადგენდეს დადებით რიცხვს"
 
@@ -24265,10 +22914,8 @@ msgstr "უნდა წარმოადგენდეს დადები�
 msgid "'${port}' is not a valid port"
 msgstr ""
 
-#, fuzzy
-#| msgid "Required"
 msgid "Required field"
-msgstr "საჭიროა"
+msgstr "ველი აუცილებელია"
 
 msgid "Unsupported value"
 msgstr "მხარდაუჭერელი მნიშვნელობა"
@@ -24393,15 +23040,11 @@ msgid ""
 "   ipa passkeyconfig-mod --require-user-verification=TRUE\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "Passkey configuration options"
-msgstr "საცავის მორგება"
+msgstr "საკვანძო სიტყვის პარამეტრების მორგება"
 
-#, fuzzy
-#| msgid "OTP Configuration"
 msgid "Passkey Configuration"
-msgstr "OTP-ის მორგება"
+msgstr "საკვანძო სიტყვის პარამეტრები"
 
 msgid "Require user verification"
 msgstr ""
@@ -24440,15 +23083,11 @@ msgstr ""
 msgid "Documentation"
 msgstr "დოკუმენტაცია"
 
-#, fuzzy
-#| msgid "Valid from"
 msgid "Exclude from"
-msgstr "Ძალაშია"
+msgstr "ამოღება"
 
-#, fuzzy
-#| msgid "Included attributes"
 msgid "Include in"
-msgstr "ჩასმული ატრიბუტები"
+msgstr "რაში ჩასმა"
 
 msgid "Help topic"
 msgstr ""
@@ -24459,10 +23098,8 @@ msgstr "პარამეტრები"
 msgid "Method of"
 msgstr ""
 
-#, fuzzy
-#| msgid "hostname"
 msgid "Method name"
-msgstr "ჰოსტის სახელი"
+msgstr "მეთოდის სახელი"
 
 msgid "Display information about a command."
 msgstr ""
@@ -24470,10 +23107,8 @@ msgstr ""
 msgid "Search for commands."
 msgstr ""
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Return command defaults"
-msgstr "ბრძანებების გაშვება"
+msgstr "ბრძანების ნაგულისხმევი არგუმენტების დაბრუნება"
 
 #, python-brace-format
 msgid "{oname}: {command_name} not found"
@@ -24494,10 +23129,8 @@ msgstr ""
 msgid "Required"
 msgstr "საჭიროა"
 
-#, fuzzy
-#| msgid "value"
 msgid "Multi-value"
-msgstr "მნიშვნელობა"
+msgstr "ერთზე მეტი მნიშვნელობა"
 
 msgid "Always ask"
 msgstr "ყოველთვის კითხვა"
@@ -24505,10 +23138,8 @@ msgstr "ყოველთვის კითხვა"
 msgid "CLI metavar"
 msgstr ""
 
-#, fuzzy
-#| msgid "Last name"
 msgid "CLI name"
-msgstr "გვარი"
+msgstr "CLI-ის სახელი"
 
 msgid "Confirm (password)"
 msgstr "დადასტურება (პაროლი)"
@@ -24525,13 +23156,11 @@ msgstr "ჭდე"
 msgid "Convert on server"
 msgstr ""
 
-#, fuzzy
-#| msgid "host group"
 msgid "Option group"
-msgstr "ჰოსტების ჯგუფი"
+msgstr "პარამეტრების ჯგუფი"
 
 msgid "Sensitive"
-msgstr ""
+msgstr "მგრძნობიარე"
 
 msgid "Positional argument"
 msgstr "პოზიციური არგუმენტები"
@@ -24655,10 +23284,8 @@ msgstr "სერვისი"
 msgid "services"
 msgstr "სერვისები"
 
-#, fuzzy
-#| msgid "Service Options"
 msgid "Service principal alias"
-msgstr "სერვისის მორგება"
+msgstr "სერვისის პრინციპალის ფსევდონიმი"
 
 msgid "Base-64 encoded service certificate"
 msgstr ""
@@ -24823,39 +23450,27 @@ msgid ""
 "\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Stage"
 msgid "Stage Users"
 msgstr "ნაბიჯი"
 
-#, fuzzy
-#| msgid "Stage"
 msgid "Stage User"
 msgstr "ნაბიჯი"
 
-#, fuzzy
-#| msgid "Delete a user"
 msgid "stage user"
-msgstr "მომხმარებლის წაშლა"
+msgstr "დროებითი მომხმარებელი"
 
-#, fuzzy
-#| msgid "users"
 msgid "stage users"
-msgstr "მომხმარებლები"
+msgstr "დროებითი მომხმარებლები"
 
 #, python-format
 msgid "Added stage user \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "is required"
 msgid "givenname is required"
-msgstr "აუცილებელია"
+msgstr "givenname აუცილებელია"
 
-#, fuzzy
-#| msgid "is required"
 msgid "sn is required"
-msgstr "აუცილებელია"
+msgstr "sn აუცილებელია"
 
 #, python-format
 msgid "Deleted stage user \"%(value)s\""
@@ -25042,15 +23657,11 @@ msgstr ""
 msgid "this option has been deprecated."
 msgstr ""
 
-#, fuzzy
-#| msgid "Add rule"
 msgid "sudo rules"
-msgstr "წესის დამატება"
+msgstr "sudo-ის წესები"
 
-#, fuzzy
-#| msgid "Rules"
 msgid "Sudo Rules"
-msgstr "წესები"
+msgstr "Sudo-ის წესები"
 
 msgid "Sudo Rule"
 msgstr ""
@@ -25088,18 +23699,12 @@ msgstr "ბრძანებები"
 msgid "runAs user"
 msgstr "გაშვება სხვა მომხმარებლით"
 
-#, fuzzy
-#| msgid "Add user"
 msgid "runAs users"
 msgstr "მომხმარებლის დამატება"
 
-#, fuzzy
-#| msgid "groups"
 msgid "group runAs"
-msgstr "ჯგუფები"
+msgstr "ჯგუფი გავუშვაროგორც"
 
-#, fuzzy
-#| msgid "host groups"
 msgid "runAs groups"
 msgstr "ჰოსტის ჯგუფები"
 
@@ -25178,10 +23783,8 @@ msgid ""
 "   ipa user-del tuser1\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "privileges"
 msgid "privileged user"
-msgstr "პრივილეგიები"
+msgstr "პრივილეგიის მქონე მომხმარებელი"
 
 #, python-format
 msgid "Added user \"%(value)s\""
@@ -25241,28 +23844,20 @@ msgstr ""
 msgid "Unlocked account \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "User logins"
 msgid "Failed logins"
-msgstr "მომხმარებლის სახელები"
+msgstr "ჩავარდნილი შესვლები"
 
 msgid "Last successful authentication"
 msgstr ""
 
-#, fuzzy
-#| msgid "Authentication"
 msgid "Last failed authentication"
-msgstr "ავთენტიკაცია"
+msgstr "ბოლო ჩავარდნილი ავთენტიკაცია"
 
-#, fuzzy
-#| msgid "Timeout"
 msgid "Time now"
-msgstr "დროის ამოწურვა"
+msgstr "დრო ახლა"
 
-#, fuzzy
-#| msgid "Password expiration"
 msgid "Password grace count"
-msgstr "პაროლის ვადა"
+msgstr "პაროლის ნების დართვის რაოდენობა"
 
 msgid ""
 "\n"
@@ -25329,10 +23924,8 @@ msgstr ""
 msgid "Trusting forest"
 msgstr ""
 
-#, fuzzy
-#| msgid "Trusts"
 msgid "Trusted forest"
-msgstr "ნდობები"
+msgstr "სანდო ტყე"
 
 msgid "Established and verified"
 msgstr ""
@@ -25403,10 +23996,8 @@ msgstr ""
 msgid "AD domain controller"
 msgstr ""
 
-#, fuzzy
-#| msgid "Unsupported value"
 msgid "unsupported functional level"
-msgstr "მხარდაუჭერელი მნიშვნელობა"
+msgstr "მხარდაუჭერელი ფუნქციონალის დონე"
 
 msgid ""
 "AD domain controller complains about communication sequence. It may mean "
@@ -25445,10 +24036,8 @@ msgstr ""
 msgid "SID does not match any trusted domain"
 msgstr ""
 
-#, fuzzy
-#| msgid "Trusts"
 msgid "Trust setup"
-msgstr "ნდობები"
+msgstr "ნდობის მორგება"
 
 msgid "Our domain is not configured"
 msgstr ""
@@ -25489,10 +24078,8 @@ msgstr ""
 msgid "Cannot retrieve trusted domain GC list"
 msgstr ""
 
-#, fuzzy
-#| msgid "Credentials"
 msgid "CIFS credentials object"
-msgstr "მომხმ/პაროლი"
+msgstr "CIFS ავტორიზაციის დეტალის ობიექტი"
 
 #, python-format
 msgid "CIFS server %(host)s denied your credentials"
@@ -25535,15 +24122,11 @@ msgstr ""
 msgid "Request must be a dict"
 msgstr ""
 
-#, fuzzy
-#| msgid "value is missing"
 msgid "Request is missing \"method\""
-msgstr "აკლია მნიშვნელობა"
+msgstr "მოთხოვნას აკლია \"method\""
 
-#, fuzzy
-#| msgid "value is missing"
 msgid "Request is missing \"params\""
-msgstr "აკლია მნიშვნელობა"
+msgstr "მოთხოვნას აკლია \"params\""
 
 msgid "params must be a list"
 msgstr ""
@@ -25590,10 +24173,8 @@ msgstr "არასაკმარისი მეხსიერება!\n"
 msgid "Enctype comparison failed!\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match!\n"
 msgid "Password is too long!\n"
-msgstr "პაროლები არ ემთხვევა!\n"
+msgstr "პაროლი ძალიან გრძელია!\n"
 
 msgid "Failed to create random key!\n"
 msgstr ""
