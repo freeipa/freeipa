@@ -9,8 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-11 11:53+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
 "Language: ka\n"
@@ -1275,7 +1274,7 @@ msgid "Permission ACI grants access to"
 msgstr ""
 
 msgid "User group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლის ჯგუფი"
 
 msgid "User group ACI grants access to"
 msgstr ""
@@ -2685,7 +2684,7 @@ msgid "Fingerprint Type"
 msgstr "თითის ანაბეჭდის ტიპი"
 
 msgid "SSHFP Fingerprint"
-msgstr "SSHFP ანაბეჭდის"
+msgstr "SSHFP ანაბეჭდი"
 
 msgid "Fingerprint"
 msgstr "ანაბეჭდი"
@@ -3003,7 +3002,7 @@ msgid ""
 msgstr ""
 
 msgid "Rule name"
-msgstr "როლის სახელი"
+msgstr "წესის სახელი"
 
 msgid "Rule type"
 msgstr "წესის ტიპი"
@@ -3331,7 +3330,7 @@ msgid ""
 msgstr ""
 
 msgid "Host name"
-msgstr "ჰოსტი"
+msgstr "ჰოსტის სახელი"
 
 msgid "A description of this host"
 msgstr ""
@@ -3813,7 +3812,7 @@ msgid ""
 msgstr ""
 
 msgid "hosts"
-msgstr "ჰოსტი"
+msgstr "ჰოსტები"
 
 msgid "Hosts to apply the ID View to"
 msgstr ""
@@ -6066,7 +6065,7 @@ msgid "A description of this command"
 msgstr ""
 
 msgid "Sudo Command Groups"
-msgstr "'sudo' ბრძანების ჯგუფები"
+msgstr "Sudo ბრძანების ჯგუფები"
 
 msgid "Create new Sudo Command."
 msgstr ""
@@ -6112,7 +6111,7 @@ msgid ""
 msgstr ""
 
 msgid "Sudo Command Group"
-msgstr "'sudo' ბრძანების ჯგუფი"
+msgstr "Sudo ბრძანების ჯგუფი"
 
 msgid "Group description"
 msgstr "ჯგუფის აღწერა"
@@ -8873,7 +8872,7 @@ msgid "owner user"
 msgstr "მფლობელის მომხმარებელი"
 
 msgid "owner group"
-msgstr "მომხმარებლის ჯგუფი"
+msgstr "მფლობელის ჯგუფი"
 
 msgid "owner service"
 msgstr "მფლობელი სერვისი"
@@ -19058,7 +19057,7 @@ msgid "groups"
 msgstr "ჯგუფები"
 
 msgid "User Group"
-msgstr "მომხმარებლების ჯგუფი"
+msgstr "მომხმარებლის ჯგუფი"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -20048,7 +20047,7 @@ msgid "Show"
 msgstr "ჩვენება"
 
 msgid "Stage"
-msgstr "ნაბიჯი"
+msgstr "დაუდასტურებლად მონიშვნა"
 
 msgid "Update"
 msgstr "განახლება"
@@ -20952,7 +20951,7 @@ msgid "Version"
 msgstr "ვერსია"
 
 msgid "Group Options"
-msgstr "ჯგუფის პარამეტრები"
+msgstr "ჯგუფის მორგება"
 
 msgid "Search Options"
 msgstr "ძებნის მორგება"
@@ -21372,7 +21371,7 @@ msgid "Host Certificate"
 msgstr "ჰოსტის სერტიფიკატი"
 
 msgid "Host Name"
-msgstr "ჰოსტი"
+msgstr "ჰოსტის სახელი"
 
 msgid "Delete Key, Unprovision"
 msgstr ""
@@ -22450,7 +22449,7 @@ msgid "Asymmetric"
 msgstr "ასიმეტრიული"
 
 msgid "Vaults Config"
-msgstr "საცავის მორგება"
+msgstr "საცავების მორგება"
 
 msgid "Members"
 msgstr "წევრები"
@@ -23149,7 +23148,7 @@ msgid "Confirm (password)"
 msgstr "დადასტურება (პაროლი)"
 
 msgid "Default"
-msgstr "ნაგულისხმები"
+msgstr "ნაგულისხმევი"
 
 msgid "Default from"
 msgstr "ნაგულისხმევს წყარო"
