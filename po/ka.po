@@ -1,13 +1,13 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
-# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022, 2023.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022, 2023, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2023-09-17 05:37+0000\n"
+"PO-Revision-Date: 2024-02-10 06:35+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.2\n"
+"X-Generator: Weblate 5.3.1\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -245,7 +245,7 @@ msgid "Output only on errors"
 msgstr ""
 
 msgid "Output debug info"
-msgstr ""
+msgstr "გამართვის ინფორმაციის გამოტანა"
 
 msgid "Contact this specific KDC Server"
 msgstr ""
@@ -4540,7 +4540,7 @@ msgid "member netgroup"
 msgstr "მომხმარებლების ჯგუფი"
 
 msgid "netgroups to add"
-msgstr ""
+msgstr "დასამატებელი ქსელური ჯგუფები"
 
 #, fuzzy
 #| msgid "Delete a user."
@@ -4714,7 +4714,7 @@ msgid "Current Password"
 msgstr "მიმდინარე პაროლი"
 
 msgid "OTP"
-msgstr ""
+msgstr "OTP"
 
 #, fuzzy
 #| msgid "One-Time Password"
@@ -6431,10 +6431,8 @@ msgid ""
 "   ipa group-show localadmins\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Run Commands"
 msgid "Sudo Command Group"
-msgstr "ბრძანებების გაშვება"
+msgstr "'sudo' ბრძანების ჯგუფი"
 
 #, fuzzy
 #| msgid "description"
@@ -13008,7 +13006,7 @@ msgid "Delegation"
 msgstr "მდებარეობა"
 
 msgid "ACI"
-msgstr ""
+msgstr "ACI"
 
 #, python-format
 msgid "Added delegation \"%(value)s\""
@@ -21359,7 +21357,7 @@ msgid "There was a problem with your request. Please, try again later."
 msgstr ""
 
 msgid "Password migration was not successful"
-msgstr ""
+msgstr "პაროლის მიგრაცია წარუმატებელია"
 
 msgid ""
 "<h1>Password Migration</h1><p>If you have been sent here by your "
