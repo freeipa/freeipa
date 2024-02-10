@@ -9,7 +9,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-10 07:24+0000\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
 "Language: ka\n"
@@ -243,7 +244,7 @@ msgid "Print as little as possible"
 msgstr "რაც შეიძლება ნაკლები ინფორმაციის გამოტანა"
 
 msgid "Output only on errors"
-msgstr ""
+msgstr "მხოლოდ შეცდომების ჩვენება"
 
 msgid "Output debug info"
 msgstr "გამართვის ინფორმაციის გამოტანა"
@@ -384,7 +385,7 @@ msgid "New Principal Password"
 msgstr "ახალი პრინციპალის პაროლი"
 
 msgid "Verify Principal Password"
-msgstr ""
+msgstr "პრინციპალის პაროლის გადამოწმება"
 
 #, c-format
 msgid ""
@@ -974,6 +975,8 @@ msgid ""
 "\n"
 "EXAMPLES:\n"
 msgstr ""
+"\n"
+"მაგალითები\n"
 
 msgid ""
 "\n"
@@ -1643,7 +1646,7 @@ msgid "Name of parent automount map (default: auto.master)."
 msgstr ""
 
 msgid "Delete an automount map."
-msgstr ""
+msgstr "ავტომიმაგრების რუკის წაშლა."
 
 msgid "Search for an automount map."
 msgstr ""
@@ -1655,7 +1658,7 @@ msgid "Modify an automount map."
 msgstr ""
 
 msgid "Display an automount map."
-msgstr ""
+msgstr "ავტომიმაგრების რუკის ჩვენება."
 
 msgid ""
 "\n"
@@ -1847,7 +1850,7 @@ msgid "Default types of supported user authentication"
 msgstr ""
 
 msgid "Modify configuration options."
-msgstr ""
+msgstr "კონფიგურაციის პარამეტრების შეცვლა."
 
 msgid "Show the current configuration."
 msgstr "მიმდინარე კონფიგურაციის ჩვენება."
