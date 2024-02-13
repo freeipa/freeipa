@@ -1520,7 +1520,7 @@ def wait_for_replication(ldap, timeout=30,
         statuses = [entry.single_value[status_attr] for entry in entries]
         wrong_statuses = [s for s in statuses
                           if not re.match(target_status_re, s)]
-        if any(e.single_value[progress_attr] == 'TRUE' for e in entries):
+        if any(e.single_value[progress_attr] for e in entries):
             msg = 'Replication not finished'
             logger.debug(msg)
         elif wrong_statuses:
