@@ -636,15 +636,9 @@ class TestSubCAkeyReplication(IntegrationTest):
         # ipa ca-show returns 0 even if the cert cannot be found locally.
         if "ipa: ERROR:" in result.stderr_text:
             return False
-        tasks.run_certutil(
-            host, ['-L', '-n', cert_nick], paths.PKI_TOMCAT_ALIAS_DIR
-        )
-        host.run_command([
-            paths.CERTUTIL, '-d', paths.PKI_TOMCAT_ALIAS_DIR,
-            '-f', paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
-            '-K', '-n', cert_nick
-        ])
-        return True
+
+        certs, keys = self.get_certinfo(host)
+        return cert_nick in certs and cert_nick in keys
 
     def get_certinfo(self, host):
         result = tasks.run_certutil(
