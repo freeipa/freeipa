@@ -449,6 +449,7 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     struct timeval tv = { 5, 0 };
     LDAPMessage *res = NULL;
     LDAPMessage *first;
+    const char *stmsg;
     int ret;
     int v3;
 
@@ -528,16 +529,9 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
     }
 
     /* get adtrust options using default refresh interval */
-    ret = ipadb_reinit_mspac(ipactx, false);
-    if (ret && ret != ENOENT) {
-        /* TODO: log that there is an issue with adtrust settings */
-        if (ipactx->lcontext == NULL) {
-            /* for some reason ldap connection was reset in ipadb_reinit_mspac
-             * and is no longer established => failure of ipadb_get_connection
-             */
-            goto done;
-        }
-    }
+    ret = ipadb_reinit_mspac(ipactx, false, &stmsg);
+    if (ret && stmsg)
+        krb5_klog_syslog(LOG_WARNING, "MS-PAC generator: %s", stmsg);
 
     ret = 0;
 
