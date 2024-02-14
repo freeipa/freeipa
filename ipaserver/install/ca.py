@@ -351,7 +351,7 @@ def install_check(standalone, replica_config, options):
         (token_name, token_library_path) = lookup_hsm_configuration(_api)
         # IPA version and dependency checking should prevent this but
         # better to be safe and avoid a failed install.
-        if token_name:
+        if replica_config.setup_ca and token_name:
             try:
                 hsm_validator(
                     True,
@@ -364,6 +364,19 @@ def install_check(standalone, replica_config, options):
                 raise ScriptError(str(e))
             if not options.token_library_path:
                 options.token_library_path = token_library_path
+            if (
+                not options.token_password_file
+                and not options.token_password
+            ):
+                if options.unattended:
+                    raise ScriptError("HSM token password required")
+                token_password = installutils.read_password(
+                    f"{token_name}", confirm=False
+                )
+                if token_password is None:
+                    raise ScriptError("HSM token password required")
+                else:
+                    options.token_password = token_password
 
     if replica_config is not None and not replica_config.setup_ca:
         return
