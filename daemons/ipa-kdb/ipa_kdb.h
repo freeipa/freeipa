@@ -371,7 +371,9 @@ krb5_error_code ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
                                    krb5_data ***auth_indicators);
 #endif
 
-krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit);
+krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx,
+                                   bool force_reinit,
+                                   const char **stmsg);
 
 void ipadb_mspac_struct_free(struct ipadb_mspac **mspac);
 krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,

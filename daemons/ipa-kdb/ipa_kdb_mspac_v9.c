@@ -46,6 +46,7 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
     bool with_pad;
     krb5_error_code kerr = 0;
     bool is_as_req = flags & CLIENT_REFERRALS_FLAGS;
+    const char *stmsg = NULL;
 
     if (is_as_req) {
         get_authz_data_types(context, client, &with_pac, &with_pad);
@@ -110,12 +111,19 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
                     force_reinit_mspac = TRUE;
                 }
             }
-            (void)ipadb_reinit_mspac(ipactx, force_reinit_mspac);
 
-            /* MS-PAC needs proper configuration and if it is missing, we simply skip issuing one */
-            if (ipactx->mspac->flat_server_name == NULL) {
+            /* MS-PAC generator has to be initalized */
+            kerr = ipadb_reinit_mspac(ipactx, force_reinit_mspac, &stmsg);
+            if (kerr && stmsg)
+                krb5_klog_syslog(LOG_ERR, "MS-PAC generator: %s", stmsg);
+
+            /* Continue even if initilization of PAC generator failed.
+             * It may caused by the trust objects part only. */
+
+            /* At least the core part of the PAC generator is required. */
+            if (!ipactx->mspac)
                 return KRB5_PLUGIN_OP_NOTSUPP;
-            }
+
             kerr = ipadb_get_pac(context, flags,
                                  client, server, replaced_reply_key,
                                  authtime, &new_pac);
