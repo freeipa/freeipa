@@ -233,6 +233,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     krb5_db_entry *client_entry = NULL;
     krb5_boolean is_equal;
     bool force_reinit_mspac = false;
+    const char *stmsg = NULL;
 
 
     is_as_req = ((flags & KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY) != 0);
@@ -309,7 +310,9 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
             force_reinit_mspac = true;
         }
 
-        (void)ipadb_reinit_mspac(ipactx, force_reinit_mspac);
+        kerr = ipadb_reinit_mspac(ipactx, force_reinit_mspac, &stmsg);
+        if (kerr && stmsg)
+            krb5_klog_syslog(LOG_WARNING, "MS-PAC generator: %s", stmsg);
 
         kerr = ipadb_get_pac(context, flags, client, server, NULL, authtime, &pac);
         if (kerr != 0 && kerr != ENOENT) {
