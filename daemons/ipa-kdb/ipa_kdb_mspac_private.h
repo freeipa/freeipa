@@ -31,7 +31,7 @@ struct ipadb_mspac {
     char *fallback_group;
     uint32_t fallback_rid;
 
-    int num_trusts;
+    size_t num_trusts;
     struct ipadb_adtrusts *trusts;
     time_t last_update;
 };
