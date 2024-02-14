@@ -1598,6 +1598,7 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
         -1,
     };
     size_t i = 0;
+    const char *stmsg = NULL;
 
     /* For TGS-REQ server principal lookup, KDC asks with KRB5_KDB_FLAG_REFERRAL_OK
      * and client usually asks for an KRB5_NT_PRINCIPAL type principal. */
@@ -1685,8 +1686,11 @@ static krb5_error_code dbget_alias(krb5_context kcontext,
     if (kerr == KRB5_KDB_NOENTRY) {
         /* If no trusted realm found, refresh trusted domain data and try again
          * because it might be a freshly added trust to AD */
-        kerr = ipadb_reinit_mspac(ipactx, false);
+        kerr = ipadb_reinit_mspac(ipactx, false, &stmsg);
         if (kerr != 0) {
+            if (stmsg)
+                krb5_klog_syslog(LOG_WARNING, "MS-PAC generator: %s",
+                                 stmsg);
             kerr = KRB5_KDB_NOENTRY;
             goto done;
         }
