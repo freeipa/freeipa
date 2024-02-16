@@ -9,8 +9,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-16 13:20+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"PO-Revision-Date: 2024-02-16 13:26+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -375,7 +376,7 @@ msgstr "서버 이름은 제공되지 않으며 사용 할 수 없습니다\n"
 
 #, c-format
 msgid "Using provided server %s\n"
-msgstr ""
+msgstr "제공된 서버 %s 사용하기\n"
 
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
@@ -501,11 +502,11 @@ msgstr "curl_easy_setopt()가 실패했습니다\n"
 
 #, c-format
 msgid "Expanding buffer in jsonrpc_handle_response failed"
-msgstr ""
+msgstr "jsonrpc_handle_response에서 버퍼 확장이 실패했습니다"
 
 #, c-format
 msgid "curl_global_init() failed\n"
-msgstr ""
+msgstr "curl_global_init() 가 실패했습니다\n"
 
 #, c-format
 msgid "curl_easy_init() failed\n"
