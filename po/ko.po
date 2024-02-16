@@ -7,9 +7,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-07 12:14+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-02-16 23:35+0000\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
 "Language: ko\n"
@@ -17,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.3.1\n"
+"X-Generator: Weblate 5.4\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:72
 msgid "Add a new YubiKey OTP token."
@@ -700,7 +699,7 @@ msgstr "DNS 검색 실패함\n"
 #: client/ipa-getkeytab.c:1133
 #, c-format
 msgid "Using server from config %s\n"
-msgstr "구성 %s에서 서버 사용하기\n"
+msgstr "config %s에서 서버 사용하기\n"
 
 #: client/ipa-getkeytab.c:1136
 #, c-format
@@ -862,17 +861,17 @@ msgstr "jsonrpc_handle_response에서 버퍼 확장이 실패했습니다"
 #: client/ipa-join.c:680
 #, c-format
 msgid "curl_global_init() failed\n"
-msgstr "curl_global_init() 가 실패했습니다\n"
+msgstr "curl_global_init() 가 실패함\n"
 
 #: client/ipa-join.c:687
 #, c-format
 msgid "curl_easy_init() failed\n"
-msgstr "curl_easy_init()가 실패했습니다\n"
+msgstr "curl_easy_init()가 실패함\n"
 
 #: client/ipa-join.c:736
 #, c-format
 msgid "json_dumps() failed\n"
-msgstr "json_dumps()가 실패했습니다\n"
+msgstr "json_dumps()가 실패함\n"
 
 #: client/ipa-join.c:743
 #, c-format
@@ -886,7 +885,7 @@ msgstr ""
 #: client/ipa-join.c:749
 #, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr "JSON-RPC 호출이 실패했습니다: %s\n"
+msgstr "JSON-RPC 호출이 실패함: %s\n"
 
 #: client/ipa-join.c:760
 #, c-format
@@ -910,12 +909,12 @@ msgstr ""
 #: client/ipa-join.c:804
 #, c-format
 msgid "Extracting the error from the JSON-RPC response failed: %s\n"
-msgstr "JSON-RPC 응답에서 오류 추출이 실패하였습니다: %s\n"
+msgstr "JSON-RPC 응답에서 오류 추출이 실패함: %s\n"
 
 #: client/ipa-join.c:837
 #, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr "JSON-RPC 응답 구문 분석이 실패하였습니다: %s\n"
+msgstr "JSON-RPC 응답 구문분석이 실패함: %s\n"
 
 #: client/ipa-join.c:852
 #, c-format
