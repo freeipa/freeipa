@@ -9,9 +9,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-16 13:26+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-02-16 13:27+0000\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -506,7 +505,7 @@ msgstr "jsonrpc_handle_response에서 버퍼 확장이 실패했습니다"
 
 #, c-format
 msgid "curl_global_init() failed\n"
-msgstr "curl_global_init() 가 실패했습니다\n"
+msgstr "curl_global_init() 가 실패함\n"
 
 #, c-format
 msgid "curl_easy_init() failed\n"
