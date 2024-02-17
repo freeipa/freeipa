@@ -10,8 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-17 13:49+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -621,86 +620,86 @@ msgstr "키탭 해석 오류: %s.\n"
 
 #, c-format
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr "기본값 커버러스 realm을 가져오는데 오류가 발생합니다: %s.\n"
+msgstr "기본 커버러스 realm을 가져오는 중 오류: %s.\n"
 
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr ""
+msgstr "구문 분석 중 오류 \"%1$s\": %2$s.\n"
 
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr ""
+msgstr "초기 인증서를 획득 중 오류: %s.\n"
 
 #, c-format
 msgid "Unable to generate Kerberos Credential Cache\n"
-msgstr ""
+msgstr "커버러스 인증서 캐쉬를 생성 할 수 없음\n"
 
 #, c-format
 msgid "Error storing creds in credential cache: %s.\n"
-msgstr ""
+msgstr "인증서 캐쉬에서 인증서 저장 중 오류: %s.\n"
 
 msgid "Print the raw XML-RPC output in GSSAPI mode"
-msgstr ""
+msgstr "GSSAPI 방식에서 단순 XML-RPC 표준출력을 인쇄합니다"
 
 msgid "Quiet mode. Only errors are displayed."
-msgstr ""
+msgstr "정숙 방식. 단지 오류만 표시됩니다."
 
 msgid "Unenroll this host from IPA server"
-msgstr ""
+msgstr "IPA 서버에서 이 호스트를 등록 취소합니다"
 
 msgid "Hostname of this server"
-msgstr ""
+msgstr "이 서버의 호스트 이름"
 
 msgid "hostname"
-msgstr ""
+msgstr "호스트 이름"
 
 msgid "IPA Server to use"
-msgstr ""
+msgstr "사용하려는 IPA 서버"
 
 msgid "Specifies where to store keytab information."
-msgstr ""
+msgstr "키탭 정보를 저장하려는 장소를 지정합니다."
 
 msgid "filename"
-msgstr ""
+msgstr "파일이름"
 
 msgid "Force the host join. Rejoin even if already joined."
-msgstr ""
+msgstr "호스트 참여를 강제합니다. 만약 이미 참여 중이라 할지라도 다시 참여합니다."
 
 msgid "LDAP password (if not using Kerberos)"
-msgstr ""
+msgstr "LDAP 비밀번호 (만약 커버로스를 사용 중이 아니라면)"
 
 msgid "password"
-msgstr ""
+msgstr "비밀번호"
 
 msgid "LDAP basedn"
-msgstr ""
+msgstr "LDAP basedn"
 
 msgid "basedn"
-msgstr ""
+msgstr "basedn"
 
 #, c-format
 msgid "Cannot get host's FQDN!\n"
-msgstr ""
+msgstr "호스트의 FQDN을 가져 올 수 없습니다!\n"
 
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
-msgstr ""
+msgstr "호스트 이름은 완전하게-검증되어야 합니다: %s\n"
 
 #, c-format
 msgid "The hostname must not be: %s\n"
-msgstr ""
+msgstr "호스트 이름이 아니어야 합니다: %s\n"
 
 msgid "Write certificate (chain if --chain used) to file"
-msgstr ""
+msgstr "파일에 인증서 쓰기 (만약 --chain이 사용된 경우 체인)"
 
 msgid "Input file"
-msgstr ""
+msgstr "입력 파일"
 
 msgid "File to load the certificate from"
-msgstr ""
+msgstr "해당 인증서에 적재 할 파일"
 
 msgid "cannot specify both raw certificate and file"
-msgstr ""
+msgstr "단순 인증서와 파일 모두 상세화 할 수 없습니다"
 
 #, python-format
 msgid "Profile configuration stored in file '%(file)s'"
