@@ -9,8 +9,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-17 13:49+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"PO-Revision-Date: 2024-02-18 06:43+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -17434,7 +17435,7 @@ msgid "Realm administrator password should be specified"
 msgstr ""
 
 msgid "id range type"
-msgstr ""
+msgstr "id 범위 유형"
 
 msgid ""
 "Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
@@ -20021,7 +20022,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Are you sure you want to disable ${object}?"
-msgstr ""
+msgstr "${object} 비활성화 할까요?"
 
 #, python-brace-format
 msgid "Are you sure you want to enable ${object}?"
@@ -23220,10 +23221,8 @@ msgid ""
 "   ipa passkeyconfig-mod --require-user-verification=TRUE\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "cannot open configuration file %s\n"
 msgid "Passkey configuration options"
-msgstr "구성 파일 %s를 열 수 없습니다\n"
+msgstr "통과키 구성 옵션"
 
 #, fuzzy
 #| msgid "Confirmation"
