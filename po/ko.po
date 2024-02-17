@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-16 23:35+0000\n"
+"PO-Revision-Date: 2024-02-18 13:35+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -935,7 +935,7 @@ msgstr "json_pack_ex() 실패함: %s\n"
 #: client/ipa-join.c:1021 client/ipa-join.c:1098
 #, c-format
 msgid "Unenrollment failed.\n"
-msgstr "등록 취소 실패.\n"
+msgstr "등록 취소 실패함.\n"
 
 #: client/ipa-join.c:1103
 #, c-format
@@ -999,17 +999,17 @@ msgstr "키탭 해석 오류: %s.\n"
 #: client/ipa-join.c:1312
 #, c-format
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr "기본값 커버러스 realm을 가져오는데 오류가 발생합니다: %s.\n"
+msgstr "기본 커버러스 realm을 가져오는 중 오류: %s.\n"
 
 #: client/ipa-join.c:1322
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr "구문 분석하는데 오류 \"%1$s\": %2$s.\n"
+msgstr "구문 분석 중 오류 \"%1$s\": %2$s.\n"
 
 #: client/ipa-join.c:1340
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
-msgstr "초기 인증서를 획득하는데 오류: %s.\n"
+msgstr "초기 인증서를 획득 중 오류: %s.\n"
 
 #: client/ipa-join.c:1351 client/ipa-join.c:1358
 #, c-format
@@ -1019,11 +1019,11 @@ msgstr "커버러스 인증서 캐쉬를 생성 할 수 없음\n"
 #: client/ipa-join.c:1366
 #, c-format
 msgid "Error storing creds in credential cache: %s.\n"
-msgstr "인증서 캐쉬에서 인증서 저장하는데 오류: %s.\n"
+msgstr "인증서 캐쉬에서 인증서 저장 중 오류: %s.\n"
 
 #: client/ipa-join.c:1422
 msgid "Print the raw XML-RPC output in GSSAPI mode"
-msgstr "GSSAPI 방법에서 원시 XML-RPC 출력을 인쇄합니다"
+msgstr "GSSAPI 방식에서 단순 XML-RPC 표준출력을 인쇄합니다"
 
 #: client/ipa-join.c:1424
 msgid "Quiet mode. Only errors are displayed."
@@ -1087,7 +1087,7 @@ msgstr "호스트 이름은 완전하게-검증되어야 합니다: %s\n"
 #: client/ipa-join.c:1480
 #, c-format
 msgid "The hostname must not be: %s\n"
-msgstr "호스트이름은 아니어야 합니다: %s\n"
+msgstr "호스트 이름이 아니어야 합니다: %s\n"
 
 #: ipaclient/plugins/automember.py:33 ipaserver/plugins/automember.py:342
 msgid "Failed to add"
@@ -1095,7 +1095,7 @@ msgstr "추가에 실패함"
 
 #: ipaclient/plugins/ca.py:19 ipaclient/plugins/cert.py:39
 msgid "Write certificate (chain if --chain used) to file"
-msgstr "파일에 인증서 쓰기(만약 --chain이 사용된 경우 체인)"
+msgstr "파일에 인증서 쓰기 (만약 --chain이 사용된 경우 체인)"
 
 #: ipaclient/plugins/cert.py:107
 msgid "Unrevoked"
@@ -1115,7 +1115,7 @@ msgstr "해당 인증서에 적재 할 파일."
 
 #: ipaclient/plugins/cert.py:130 ipaclient/plugins/certmap.py:41
 msgid "cannot specify both raw certificate and file"
-msgstr "원시 인증서와 파일 모두 상세화 할 수 없습니다"
+msgstr "단순 인증서와 파일 모두 상세화 할 수 없습니다"
 
 #: ipaclient/plugins/certmap.py:19
 msgid "Input file"
@@ -1132,7 +1132,7 @@ msgstr "파일 '%(file)s'에서 저장된 프로파일 구성"
 
 #: ipaclient/plugins/dns.py:237
 msgid "Please choose a type of DNS resource record to be added"
-msgstr "추가 해야 할 DNS 리소스 레코드의 유형을 선택하세요"
+msgstr "추가 되는 DNS 자원 레코드의 유형을 선택하세요"
 
 #: ipaclient/plugins/dns.py:238
 #, python-format
@@ -1227,9 +1227,8 @@ msgid ""
 "Migration mode is disabled.\n"
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
-"이전 방식은 사용 할 수 없습니다.\n"
-"이를 활성화 하기 위하여 'ipa config-mod --enable-migration=TRUE'를 사용하세"
-"요."
+"이전 방식(migration mode)이 비활성화 되었습니다.\n"
+"이를 활성화 하도록 'ipa config-mod --enable-migration=TRUE'를 사용하세요."
 
 #: ipaclient/plugins/migration.py:41
 msgid ""
@@ -1240,8 +1239,8 @@ msgid ""
 "can use their Kerberos accounts."
 msgstr ""
 "비밀번호는 사전-해시된 형식으로 이전되었습니다.\n"
-"IPA는 일반 텍스트 암호로 제공되지 않는 한 커버러스 키를\n"
-"생성 할 수 없습니다. 모든 이전된 사용자는 자신의 커버러스\n"
+"IPA는 일반 텍스트 비밀번호로 제공되지 않는 한 커버러스 키를\n"
+"생성 할 수 없습니다. 모든 이전된 사용자는 이들 커버러스\n"
 "계정을 사용하기 전에 https://your.domain/ipa/migration/에\n"
 "로그인 해야 합니다."
 
@@ -1262,7 +1261,7 @@ msgstr "접미사 \"%(suffix)s\"의 복제 형상은 오류를 포함합니다."
 
 #: ipaclient/plugins/topology.py:33
 msgid "Topology is disconnected"
-msgstr "형상 연결이 끊어졌습니다"
+msgstr "형상이 끊어졌습니다"
 
 #: ipaclient/plugins/topology.py:35
 #, python-format
@@ -22956,7 +22955,7 @@ msgstr "${object} 삭제를 할까요?"
 #: ipaserver/plugins/internal.py:167
 #, python-brace-format
 msgid "Are you sure you want to disable ${object}?"
-msgstr "${object} 비활성화 할까요?"
+msgstr "${object}를 비활성화할까요?"
 
 #: ipaserver/plugins/internal.py:168
 #, python-brace-format
@@ -25892,7 +25891,7 @@ msgstr "sudo 규칙'${primary_key}'에 RunAS 사용자를 추가합니다"
 #: ipaserver/plugins/internal.py:1450
 #, python-brace-format
 msgid "Add RunAs user groups into sudo rule '${primary_key}'"
-msgstr "sudo 규칙'${primary_key}'에 RunAS 사용자 그룹을 추가합니다"
+msgstr "sudo 규칙 '${primary_key}'에 RunAS 사용자 그룹을 추가합니다"
 
 #: ipaserver/plugins/internal.py:1453
 #, python-brace-format
