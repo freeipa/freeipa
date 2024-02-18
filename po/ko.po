@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-18 06:46+0000\n"
+"PO-Revision-Date: 2024-02-19 07:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -22311,7 +22311,7 @@ msgstr "sudo 규칙'${primary_key}'애 RunAS 사용자를 추가합니다"
 
 #, python-brace-format
 msgid "Add RunAs user groups into sudo rule '${primary_key}'"
-msgstr "sudo 규칙'${primary_key}'에 RunAS 사용자 그룹을 추가합니다"
+msgstr "sudo 규칙 '${primary_key}'에 RunAS 사용자 그룹을 추가합니다"
 
 #, python-brace-format
 msgid "Add RunAs groups into sudo rule '${primary_key}'"
