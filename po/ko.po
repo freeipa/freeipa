@@ -10,8 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-18 06:43+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -704,19 +703,21 @@ msgstr "단순 인증서와 파일 모두 상세화 할 수 없습니다"
 
 #, python-format
 msgid "Profile configuration stored in file '%(file)s'"
-msgstr ""
+msgstr "파일 '%(file)s'에서 저장된 프로파일 구성"
 
 #, python-format
 msgid "Certificate(s) stored in file '%(file)s'"
-msgstr ""
+msgstr "파일 '%(file)s'에서 저장된 인증서"
 
 msgid "Servers details:"
-msgstr ""
+msgstr "서버 상세:"
 
 msgid ""
 "Migration mode is disabled.\n"
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
+"이전 방식(migration mode)이 비활성화 되었습니다.\n"
+"이를 활성화 하도록 'ipa config-mod --enable-migration=TRUE'를 사용하세요."
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
@@ -725,53 +726,58 @@ msgid ""
 "login at https://your.domain/ipa/migration/ before they\n"
 "can use their Kerberos accounts."
 msgstr ""
+"비밀번호는 사전-해시된 형식으로 이전되었습니다.\n"
+"IPA는 일반 텍스트 비밀번호로 제공되지 않는 한 커버러스 키를\n"
+"생성 할 수 없습니다. 모든 이전된 사용자는 이들 커버러스\n"
+"계정을 사용하기 전에 https://your.domain/ipa/migration/에\n"
+"로그인 해야 합니다."
 
 #, python-format
 msgid "Removing %(servers)s from replication topology, please wait..."
-msgstr ""
+msgstr "복제된 형상에서 %(servers)s를 제거하는 중임. 잠시 기다려 주세요..."
 
 #, python-format
 msgid "Replication topology of suffix \"%(suffix)s\" is in order."
-msgstr ""
+msgstr "접미사 \"%(suffix)s\"의 복제 형상 순서입니다."
 
 #, python-format
 msgid "Replication topology of suffix \"%(suffix)s\" contains errors."
-msgstr ""
+msgstr "접미사 \"%(suffix)s\"의 복제 형상은 오류를 포함합니다."
 
 msgid "Topology is disconnected"
-msgstr ""
+msgstr "형상이 끊어졌습니다"
 
 #, python-format
 msgid "Server %(srv)s can't contact servers: %(replicas)s"
-msgstr ""
+msgstr "서버 %(srv)s는 서버와 연락 할 수 없습니다: %(replicas)s"
 
 msgid "Recommended maximum number of agreements per replica exceeded"
-msgstr ""
+msgstr "복제본당 추천되는 최대 계약 수를 초과했습니다"
 
 msgid "Maximum number of agreements per replica"
-msgstr ""
+msgstr "복제본당 계약의 최대 수"
 
 #, python-format
 msgid "Server \"%(srv)s\" has %(n)d agreements with servers:"
-msgstr ""
+msgstr "서버 \"%(srv)s\"는 서버 %(n)d 계약을 갖고 있습니다:"
 
 msgid "Unrevoked"
-msgstr ""
+msgstr "취소되지 않음"
 
 msgid "Error"
-msgstr ""
+msgstr "오류"
 
 msgid "Input filename"
-msgstr ""
+msgstr "파일이름 입력"
 
 msgid "File to load the certificate from."
-msgstr ""
+msgstr "해당 인증서에 적재 할 파일."
 
 msgid "Split DNS record to parts"
 msgstr "DNS 레코드를 부분으로 분할"
 
 msgid "Please choose a type of DNS resource record to be added"
-msgstr ""
+msgstr "추가 되는 DNS 자원 레코드의 유형을 선택하세요"
 
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
@@ -17520,7 +17526,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "trust configuration"
-msgstr ""
+msgstr "신뢰 구성"
 
 msgid "Global Trust Configuration"
 msgstr ""
