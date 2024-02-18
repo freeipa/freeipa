@@ -9,8 +9,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-18 06:43+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"PO-Revision-Date: 2024-02-18 06:46+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -20200,13 +20201,13 @@ msgid "Delete"
 msgstr ""
 
 msgid "Remove hold"
-msgstr ""
+msgstr "보류 제거"
 
 msgid "Reset"
 msgstr ""
 
 msgid "Reset Password"
-msgstr ""
+msgstr "비밀번호 재설정"
 
 msgid "Reset Password and Log in"
 msgstr ""
@@ -20310,7 +20311,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "${product}, version: ${version}"
-msgstr ""
+msgstr "${product}, 버전: ${version}"
 
 msgid "Prospective"
 msgstr ""
@@ -20356,7 +20357,7 @@ msgid "An error has occurred (${error})"
 msgstr ""
 
 msgid "HTTP Error"
-msgstr ""
+msgstr "HTTP 오류"
 
 msgid "Internal Error"
 msgstr ""
@@ -20824,7 +20825,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Add users into CA ACL '${primary_key}'"
-msgstr ""
+msgstr "CA ACL '${primary_key}'에 사용자를 추가합니다"
 
 msgid "All"
 msgstr ""
@@ -21137,10 +21138,10 @@ msgid "Version"
 msgstr ""
 
 msgid "Group Options"
-msgstr ""
+msgstr "그룹 옵션"
 
 msgid "Search Options"
-msgstr ""
+msgstr "검색 옵션"
 
 msgid "SELinux Options"
 msgstr ""
@@ -21499,7 +21500,7 @@ msgid "Include Disabled"
 msgstr ""
 
 msgid "Include Enabled"
-msgstr ""
+msgstr "활성화 포함"
 
 msgid "HBAC Test"
 msgstr ""
@@ -21554,7 +21555,7 @@ msgid "Add host '${primary_key}' into sudo rules"
 msgstr ""
 
 msgid "Host Certificate"
-msgstr ""
+msgstr "호스트 인증서"
 
 msgid "Host Name"
 msgstr ""
@@ -22311,7 +22312,7 @@ msgstr "sudo 규칙'${primary_key}'애 RunAS 사용자를 추가합니다"
 
 #, python-brace-format
 msgid "Add RunAs user groups into sudo rule '${primary_key}'"
-msgstr ""
+msgstr "sudo 규칙'${primary_key}'에 RunAS 사용자 그룹을 추가합니다"
 
 #, python-brace-format
 msgid "Add RunAs groups into sudo rule '${primary_key}'"
