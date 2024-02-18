@@ -10,8 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-18 06:46+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -20029,7 +20028,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Are you sure you want to disable ${object}?"
-msgstr "${object} 비활성화 할까요?"
+msgstr "${object}를 비활성화할까요?"
 
 #, python-brace-format
 msgid "Are you sure you want to enable ${object}?"
