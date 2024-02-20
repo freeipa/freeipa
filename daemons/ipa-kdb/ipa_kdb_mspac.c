@@ -3084,6 +3084,7 @@ ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit,
     }
 
     free(resstr);
+    resstr = NULL;
 
     flat_server_name = get_server_netbios_name(ipactx);
     if (!flat_server_name) {
