@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-19 07:36+0000\n"
+"PO-Revision-Date: 2024-02-22 14:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -781,24 +781,24 @@ msgstr "추가 되는 DNS 자원 레코드의 유형을 선택하세요"
 
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
-msgstr ""
+msgstr "이 유형의 zone을 위해 가장 일반적인 유형은 다음과 같습니다: %s\n"
 
 msgid "DNS resource record type"
-msgstr ""
+msgstr "DNS 리소스 레코드 유형"
 
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
-msgstr ""
+msgstr "잘못되거나 지원되지 않는 유형. 허용된 값은 다음과 같습니다: %s"
 
 msgid "No option to modify specific record provided."
-msgstr ""
+msgstr "제공된 특정 레코드를 수정하는 옵션이 없습니다."
 
 msgid "Current DNS record contents:\n"
-msgstr ""
+msgstr "현재 DNS 레코드 내용:\n"
 
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr ""
+msgstr "%(name)s '%(value)s' 수정할까요?"
 
 #, python-format
 msgid ""
@@ -814,31 +814,33 @@ msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
+"--del-all 또는 특정한 레코드를 삭제하는 선택이 제공되지 않았습니다.\n"
+"명령 도움말은 지원되는 모든 레코드 유형을 위해 참조 할 수 있습니다."
 
 msgid "No option to delete specific record provided."
-msgstr ""
+msgstr "제공된 특정 레코드를 삭제하는 옵션이 없습니다."
 
 msgid "Delete all?"
-msgstr ""
+msgstr "모두 삭제?"
 
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
-msgstr ""
+msgstr "%(name)s '%(value)s' 삭제할까요?"
 
 msgid "Server will check DNS forwarder(s)."
-msgstr ""
+msgstr "서버는 DNS 전달자(s)를 점검합니다."
 
 msgid "This may take some time, please wait ..."
-msgstr ""
+msgstr "시간이 걸립니다, 잠시만 기다려주세요..."
 
 msgid "DNS forwarder"
-msgstr ""
+msgstr "DNS 전달자"
 
 msgid "file to store DNS records in nsupdate format"
-msgstr ""
+msgstr "nsupdate 형식에서 DNS 레코드를 저장하는 파일"
 
 msgid "Failed to add"
-msgstr ""
+msgstr "추가하는데 실패함"
 
 msgid ""
 "IMPORTANT: In case of a high number of users, hosts or groups, the operation "
