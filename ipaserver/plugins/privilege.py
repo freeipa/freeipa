@@ -86,12 +86,32 @@ def validate_permission_to_privilege(api, permission):
 def principal_has_privilege(api, principal, privilege):
     privilege_dn = api.Object.privilege.get_dn(privilege)
     ldap = api.Backend.ldap2
+
+    # First try: Check if there is a principal that has the needed
+    # privilege.
     filter = ldap.make_filter({
         'krbprincipalname': principal,
         'memberof': privilege_dn},
         rules=ldap.MATCH_ALL)
     try:
         ldap.find_entries(base_dn=api.env.basedn, filter=filter)
+        return True
+    except errors.NotFound:
+        pass
+
+    # Second try: Check if there is an idoverride for the principal as
+    # ipaOriginalUid that has the needed privilege.
+    filter = ldap.make_filter(
+        {
+            'objectClass': ['ipaOverrideAnchor', 'nsmemberof'],
+            'ipaOriginalUid': principal,
+            'memberOf': privilege_dn
+        },
+        rules=ldap.MATCH_ALL)
+    _dn = DN(('cn', api.packages[0].idviews.DEFAULT_TRUST_VIEW_NAME),
+             api.env.container_views + api.env.basedn)
+    try:
+        ldap.find_entries(base_dn=_dn, filter=filter)
     except errors.NotFound:
         return False
     return True
