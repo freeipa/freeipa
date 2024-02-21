@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-18 13:35+0000\n"
+"PO-Revision-Date: 2024-02-22 13:52+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -1091,7 +1091,7 @@ msgstr "호스트 이름이 아니어야 합니다: %s\n"
 
 #: ipaclient/plugins/automember.py:33 ipaserver/plugins/automember.py:342
 msgid "Failed to add"
-msgstr "추가에 실패함"
+msgstr "추가하는데 실패함"
 
 #: ipaclient/plugins/ca.py:19 ipaclient/plugins/cert.py:39
 msgid "Write certificate (chain if --chain used) to file"
@@ -1192,7 +1192,7 @@ msgstr "모두 삭제?"
 #: ipaclient/plugins/dns.py:376
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
-msgstr "%(name)s '%(value)s' 삭제 할까요?"
+msgstr "%(name)s '%(value)s' 삭제할까요?"
 
 #: ipaclient/plugins/dns.py:392 ipaclient/plugins/dns.py:409
 #: ipaclient/plugins/dns.py:421
