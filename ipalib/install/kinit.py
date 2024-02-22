@@ -33,7 +33,7 @@ user_pattern = re.compile(PATTERN_PRINCIPAL)
 service_pattern = re.compile(PATTERN_SERVICE)
 
 
-def validate_principal(principal):
+def validate_principal(principal, validate_realm=True):
     if not isinstance(principal, str):
         raise RuntimeError('Invalid principal: not a string')
     if ('/' in principal) and (' ' in principal):
@@ -56,18 +56,22 @@ def validate_principal(principal):
         else:  # user match, validate realm
             # username = match[1]
             realm = match[2]
-        if realm and 'realm' in api.env and realm != api.env.realm:
+        if (
+            validate_realm and realm and 'realm' in api.env
+            and realm != api.env.realm
+        ):
             raise RuntimeError('Invalid principal: realm mismatch')
 
 
-def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
+def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1,
+                 validate_realm=True):
     """
     Given a ccache_path, keytab file and a principal kinit as that user.
 
     The optional parameter 'attempts' specifies how many times the credential
     initialization should be attempted in case of non-responsive KDC.
     """
-    validate_principal(principal)
+    validate_principal(principal, validate_realm)
     errors_to_retry = {KRB5KDC_ERR_SVC_UNAVAILABLE,
                        KRB5_KDC_UNREACH}
     logger.debug("Initializing principal %s using keytab %s",
@@ -107,13 +111,13 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
 
 def kinit_password(principal, password, ccache_name, config=None,
                    armor_ccache_name=None, canonicalize=False,
-                   enterprise=False, lifetime=None):
+                   enterprise=False, lifetime=None, validate_realm=True):
     """
     perform interactive kinit as principal using password. If using FAST for
     web-based authentication, use armor_ccache_path to specify http service
     ccache.
     """
-    validate_principal(principal)
+    validate_principal(principal, validate_realm)
     logger.debug("Initializing principal %s using password", principal)
     args = [paths.KINIT, '-c', ccache_name]
     if armor_ccache_name is not None:

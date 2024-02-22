@@ -222,6 +222,7 @@ with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
                     oneway_principal,
                     oneway_keytab_name,
                     oneway_ccache_name,
+                    validate_realm=False,
                 )
                 if cred.lifetime > 0:
                     have_ccache = True
@@ -234,6 +235,7 @@ with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
                     oneway_principal,
                     oneway_keytab_name,
                     oneway_ccache_name,
+                    validate_realm=False,
                 )
         except (gssapi.exceptions.GSSError, gssapi.raw.misc.GSSError):
             # If there was failure on using keytab, assume it is stale and retrieve again
@@ -244,6 +246,7 @@ with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
                 oneway_principal,
                 oneway_keytab_name,
                 oneway_ccache_name,
+                validate_realm=False,
             )
     else:
         cred = kinit_password(
@@ -252,6 +255,7 @@ with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
             oneway_ccache_name,
             canonicalize=True,
             enterprise=True,
+            validate_realm=False,
         )
 
     if cred and cred.lifetime > 0:
