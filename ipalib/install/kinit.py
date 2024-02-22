@@ -15,7 +15,6 @@ from ipaplatform.paths import paths
 from ipapython.ipautil import run
 from ipalib.constants import PATTERN_GROUPUSER_NAME
 from ipalib.util import validate_hostname
-from ipalib import api
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,9 @@ def validate_principal(principal):
     if ('/' in principal) and (' ' in principal):
         raise RuntimeError('Invalid principal: bad spacing')
     else:
-        realm = None
+        # For a user match in the regex
+        # username = match[1]
+        # realm = match[2]
         match = user_pattern.match(principal)
         if match is None:
             match = service_pattern.match(principal)
@@ -48,16 +49,11 @@ def validate_principal(principal):
             else:
                 # service = match[1]
                 hostname = match[2]
-                realm = match[3]
+                # realm = match[3]
                 try:
                     validate_hostname(hostname)
                 except ValueError as e:
                     raise RuntimeError(str(e))
-        else:  # user match, validate realm
-            # username = match[1]
-            realm = match[2]
-        if realm and 'realm' in api.env and realm != api.env.realm:
-            raise RuntimeError('Invalid principal: realm mismatch')
 
 
 def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
