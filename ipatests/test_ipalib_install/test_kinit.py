@@ -17,13 +17,16 @@ from ipalib.install.kinit import validate_principal
     ('test/ipa.example.test@EXAMPLE.TEST', None),
     ('test/ipa@EXAMPLE.TEST', RuntimeError),
     ('test/-ipa.example.test@EXAMPLE.TEST', RuntimeError),
-    ('test/ipa.1example.test@EXAMPLE.TEST', RuntimeError),
+    ('test/ipa.1example.test@EXAMPLE.TEST', None),
     ('test /ipa.example,test', RuntimeError),
-    ('testuser@OTHER.TEST', RuntimeError),
-    ('test/ipa.example.test@OTHER.TEST', RuntimeError),
+    ('testuser@OTHER.TEST', None),
+    ('test/ipa.example.test@OTHER.TEST', None)
 ])
 def test_validate_principal(principal, exception):
     try:
         validate_principal(principal)
     except Exception as e:
         assert e.__class__ == exception
+    else:
+        if exception is not None:
+            raise RuntimeError('Test should have failed')
