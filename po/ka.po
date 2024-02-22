@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-16 13:20+0000\n"
+"PO-Revision-Date: 2024-02-22 14:36+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17776,7 +17776,7 @@ msgid "Archived data into vault \"%(value)s\""
 msgstr ""
 
 msgid "Retrieve data from a vault."
-msgstr ""
+msgstr "მონაცემების მიღება საცავიდან."
 
 #, python-format
 msgid "Retrieved data from vault \"%(value)s\""
