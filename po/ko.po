@@ -10,8 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
 "PO-Revision-Date: 2024-02-24 04:36+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -851,50 +850,52 @@ msgstr ""
 msgid ""
 "Unable to display QR code using the configured output encoding. Please use "
 "the token URI to configure your OTP device"
-msgstr ""
+msgstr "구성된 출력 인코딩을 사용하여 QR 코드를 표시 할 수 없습니다. 자신의 OTP "
+"장치를 구성하려면 토큰 URI를 사용하세요"
 
 msgid ""
 "QR code width is greater than that of the output tty. Please resize your "
 "terminal."
-msgstr ""
+msgstr "QR 코드 폭이 출력 tty의 너비보다 큽니다. 사용하고 있는 터미널 크기를 "
+"조정하세요."
 
 msgid "Synchronize an OTP token."
-msgstr ""
+msgstr "OTP 토큰을 동기화합니다."
 
 msgid "User ID"
-msgstr ""
+msgstr "사용자 ID"
 
 msgid "Password"
-msgstr ""
+msgstr "비밀번호"
 
 msgid "First Code"
-msgstr ""
+msgstr "첫 번째 코드"
 
 msgid "Second Code"
-msgstr ""
+msgstr "두 번째 코드"
 
 msgid "Token ID"
-msgstr ""
+msgstr "토큰 ID"
 
 #, python-format
 msgid "Unable to synchronize token: %s"
 msgstr ""
 
 msgid "maps not connected to /etc/auto.master:"
-msgstr ""
+msgstr "/etc/auto.master로 연결되지 않은 맵:"
 
 msgid "Import automount files for a specific location."
-msgstr ""
+msgstr "지정된 위치로 자동 적재 파일을 가져옵니다."
 
 msgid "Master file"
-msgstr ""
+msgstr "마스터 파일"
 
 msgid "Automount master file."
-msgstr ""
+msgstr "자동적재 마스터 파일."
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
-msgstr ""
+msgstr "연속 동작 방식. 오류는 보고 되지만 처리는 계속됩니다."
 
 #, python-format
 msgid "File %(file)s not found"
@@ -902,35 +903,35 @@ msgstr "파일 %(file)s을 찾을 수 없음"
 
 #, python-format
 msgid "key %(key)s already exists"
-msgstr ""
+msgstr "키 %(key)s가 이미 존재합니다"
 
 #, python-format
 msgid "map %(map)s already exists"
-msgstr ""
+msgstr "맵 %(map)s이 이미 존재합니다"
 
 msgid "Imported maps:"
-msgstr ""
+msgstr "가져온 맵:"
 
 #, python-format
 msgid "Added %(map)s"
-msgstr ""
+msgstr "추가된 %(map)s"
 
 msgid "Imported keys:"
-msgstr ""
+msgstr "가져온 키:"
 
 #, python-format
 msgid "Added %(src)s to %(dst)s"
-msgstr ""
+msgstr "%(src)s를 %(dst)s으로 추가함"
 
 msgid "Ignored keys:"
-msgstr ""
+msgstr "무시된 키:"
 
 #, python-format
 msgid "Ignored %(src)s to %(dst)s"
-msgstr ""
+msgstr "%(src)s에서 %(dst)s까지 무시함"
 
 msgid "Duplicate maps skipped:"
-msgstr ""
+msgstr "중복된 맵 건너띄기:"
 
 #, python-format
 msgid "Skipped %(map)s"
@@ -1027,10 +1028,10 @@ msgid "Delete a user, keeping the entry available for future use"
 msgstr ""
 
 msgid "Delete a user"
-msgstr ""
+msgstr "사용자 삭제"
 
 msgid "preserve and no-preserve cannot be both set"
-msgstr ""
+msgstr "보존과 보존-없음을 둘 다 설정 할 수 없습니다"
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
@@ -4181,13 +4182,13 @@ msgstr ""
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues"
-msgstr ""
+msgstr "연속 동작 방식. 오류는 보고 되지만 처리는 계속됩니다"
 
 msgid "Base DN"
-msgstr ""
+msgstr "기본 DN"
 
 msgid "Base DN on remote LDAP server"
-msgstr ""
+msgstr "원격 LDAP 서버에서 기본 DN"
 
 msgid "Ignore compat plugin"
 msgstr ""
