@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-22 13:52+0000\n"
+"PO-Revision-Date: 2024-02-24 15:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -1358,7 +1358,7 @@ msgstr "%(src)s에서 %(dst)s까지 무시함"
 
 #: ipaclient/plugins/automount.py:292
 msgid "Duplicate maps skipped:"
-msgstr "중복된 맵 건너 뛰기:"
+msgstr "중복된 맵 건너띄기:"
 
 #: ipaclient/plugins/automount.py:295
 #, python-format
@@ -1378,16 +1378,15 @@ msgstr "%(key)s 건너뛰기"
 msgid ""
 "Unable to display QR code using the configured output encoding. Please use "
 "the token URI to configure your OTP device"
-msgstr ""
-"구성된 출력 인코딩을 사용하여 QR 코드를 표시 할 수 없습니다. 토큰 URI를 사용"
-"하여 자신의 OTP 장치를 구성하세요"
+msgstr "구성된 출력 인코딩을 사용하여 QR 코드를 표시 할 수 없습니다. 자신의 OTP "
+"장치를 구성하려면 토큰 URI를 사용하세요"
 
 #: ipaclient/plugins/otptoken.py:82
 msgid ""
 "QR code width is greater than that of the output tty. Please resize your "
 "terminal."
-msgstr ""
-"QR 코드 폭이 출력 tty의 너비보다 큽니다. 자신의 터미널 크기를 조정하세요."
+msgstr "QR 코드 폭이 출력 tty의 너비보다 큽니다. 사용하고 있는 터미널 크기를 "
+"조정하세요."
 
 #: ipaclient/plugins/otptoken.py:136
 msgid "Synchronize an OTP token."
@@ -1418,7 +1417,7 @@ msgstr "토큰 ID"
 
 #: ipaclient/plugins/otptoken_yubikey.py:35
 msgid "python-yubico is not installed."
-msgstr "python-yubico는 설치되지 않습니다."
+msgstr "python-yubico은 설치되지 않습니다."
 
 #: ipaclient/plugins/otptoken_yubikey.py:40
 msgid ""
@@ -1483,12 +1482,12 @@ msgstr "Yubikey 슬롯은 무료가 아닙니다!"
 #: ipaclient/plugins/vault.py:68 ipaclient/plugins/vault.py:874
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
-msgstr "파일 '%(filename)s': %(exc)s을 읽을 수 없습니다"
+msgstr "파일을 읽을 수 없습니다 '%(filename)s': %(exc)s"
 
 #: ipaclient/plugins/vault.py:75
 #, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
-msgstr "파일 '%(filename)s': %(exc)s을 디코드 할 수 없습니다"
+msgstr "파일을 디코드 할 수 없습니다 '%(filename)s': %(exc)s"
 
 #: ipaclient/plugins/vault.py:145 ipaclient/plugins/vault.py:164
 #: ipaserver/plugins/passwd.py:149
@@ -5914,29 +5913,33 @@ msgstr "이 호스트를 관리 할 수 있는 호스트를 추가합니다."
 
 msgid ""
 "Allow users, groups, hosts or host groups to create a keytab of this host."
-msgstr ""
+msgstr "사용자, 그룹, 호스트 또는 호스트 그룹이 이 호스트의 키탭을 생성하도록 "
+"허용합니다."
 
 msgid ""
 "Allow users, groups, hosts or host groups to retrieve a keytab of this host."
-msgstr ""
+msgstr "사용자, 그룹, 호스트 또는 호스트 그룹이 이 호스트의 키탭을 검색하도록 "
+"허용합니다."
 
 msgid "Delete a host."
-msgstr ""
+msgstr "호스트 삭제."
 
 msgid "Remove entries from DNS"
 msgstr "DNS에서 항목 제거"
 
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
-msgstr ""
+msgstr "커버러스 키, SSL 인증서 및 호스트의 모든 서비스를 비활성화."
 
 msgid ""
 "Disallow users, groups, hosts or host groups to create a keytab of this host."
-msgstr ""
+msgstr "사용자, 그룹, 호스트 또는 호스트 그룹을 이 호스트의 키탭을 생성하도록 "
+"허용하지 않습니다."
 
 msgid ""
 "Disallow users, groups, hosts or host groups to retrieve a keytab of this "
 "host."
-msgstr ""
+msgstr "사용자, 그룹, 또는 호스트 그룹을 이 호스트의 키탭을 검색하도록 허용하지 "
+"않습니다."
 
 msgid "Search for hosts."
 msgstr "호스트를 위한 검색."
@@ -5976,10 +5979,10 @@ msgid "Search for hosts without these member of sudo rules."
 msgstr "sudo 규칙의 이들 구성원이 없이 호스트를 위한 검색."
 
 msgid "Search for hosts with these enrolled by users."
-msgstr ""
+msgstr "사용자에 의해 등록된 호스트를 검색합니다."
 
 msgid "Search for hosts without these enrolled by users."
-msgstr ""
+msgstr "사용자에 의해 등록되지 않은 호스트를 위한 검색."
 
 #: ipaserver/plugins/cert.py:1025 ipaserver/plugins/sudorule.py:447
 msgid "host"
@@ -5992,7 +5995,7 @@ msgid "Search for hosts without these managed by hosts."
 msgstr "호스트에 의해 관리하지 않는 호스트를 위한 검색 ."
 
 msgid "Search for hosts with these managing hosts."
-msgstr ""
+msgstr "이들 관리 호스트가 있는 호스트를 검색."
 
 msgid "Search for hosts without these managing hosts."
 msgstr "이들 관리하는 호스트가 없는 호스트를 위한 검색 ."
@@ -6001,20 +6004,20 @@ msgid "Modify information about a host."
 msgstr "호스트에 대해 정보를 수정합니다."
 
 msgid "Kerberos principal name for this host"
-msgstr ""
+msgstr "이 호스트를 위한 커버러스 주체 이름"
 
 msgid "Update DNS entries"
-msgstr ""
+msgstr "DNS 항목 최신화"
 
 msgid "Remove hosts that can manage this host."
-msgstr ""
+msgstr "이 호스트를 관리 할 수 있는 호스트를 제거합니다."
 
 msgid "Display information about a host."
 msgstr "호스트에 대해 정보를 표시합니다."
 
 #: ipaserver/plugins/service.py:987 ipaserver/plugins/user.py:940
 msgid "file to store certificate in"
-msgstr ""
+msgstr "인증서를 저장하려는 파일"
 
 msgid ""
 "\n"
@@ -6046,6 +6049,34 @@ msgid ""
 " Delete a hostgroup:\n"
 "   ipa hostgroup-del baltimore\n"
 msgstr ""
+"\n"
+"호스트 그룹.\n"
+"\n"
+"Manage groups of hosts. This is useful for applying access control to a\n"
+"number of hosts by using Host-based Access Control.\n"
+"\n"
+"예제:\n"
+"\n"
+" Add a new host group:\n"
+"   ipa hostgroup-add --desc=\"Baltimore hosts\" baltimore\n"
+"\n"
+" Add another new host group:\n"
+"   ipa hostgroup-add --desc=\"Maryland hosts\" maryland\n"
+"\n"
+" Add members to the hostgroup (using Bash brace expansion):\n"
+"   ipa hostgroup-add-member --hosts={box1,box2,box3} baltimore\n"
+"\n"
+" Add a hostgroup as a member of another hostgroup:\n"
+"   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
+"\n"
+" Remove a host from the hostgroup:\n"
+"   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
+"\n"
+" Display a host group:\n"
+"   ipa hostgroup-show baltimore\n"
+"\n"
+" Delete a hostgroup:\n"
+"   ipa hostgroup-del baltimore\n"
 
 #: ipaserver/plugins/hostgroup.py:186
 msgid "Host-group"
@@ -6053,7 +6084,7 @@ msgstr "호스트-그룹"
 
 #: ipaserver/plugins/hostgroup.py:187
 msgid "Name of host-group"
-msgstr ""
+msgstr "호스트-그룹의 이름"
 
 #: ipaserver/plugins/hostgroup.py:194
 msgid "A description of this host-group"
@@ -6895,15 +6926,15 @@ msgstr "진행"
 #: ipaserver/plugins/migration.py:619
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues"
-msgstr "연동 동작 방식. 오류는 보고 되지만 처리는 계속됩니다"
+msgstr "연속 동작 방식. 오류는 보고 되지만 처리는 계속됩니다"
 
 #: ipaserver/plugins/migration.py:624
 msgid "Base DN"
-msgstr ""
+msgstr "기본 DN"
 
 #: ipaserver/plugins/migration.py:625
 msgid "Base DN on remote LDAP server"
-msgstr ""
+msgstr "원격 LDAP 서버에서 기본 DN"
 
 #: ipaserver/plugins/migration.py:629
 msgid "Ignore compat plugin"
