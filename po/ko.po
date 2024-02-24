@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-02-24 04:36+0000\n"
+"PO-Revision-Date: 2024-02-24 23:20+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
@@ -935,14 +935,14 @@ msgstr "중복된 맵 건너띄기:"
 
 #, python-format
 msgid "Skipped %(map)s"
-msgstr ""
+msgstr "%(map)s 건너뛰기"
 
 msgid "Duplicate keys skipped:"
-msgstr ""
+msgstr "중복된 키 건너뛰기:"
 
 #, python-format
 msgid "Skipped %(key)s"
-msgstr ""
+msgstr "%(key)s 건너뛰기"
 
 msgid "Register the passkey"
 msgstr ""
@@ -967,65 +967,77 @@ msgid ""
 msgstr ""
 
 msgid "python-yubico is not installed."
-msgstr ""
+msgstr "python-yubico은 설치되지 않습니다."
 
 msgid ""
 "\n"
 "YubiKey Tokens\n"
 msgstr ""
+"\n"
+"YubiKey 토큰\n"
 
 msgid ""
 "\n"
 "Manage YubiKey tokens.\n"
 msgstr ""
+"\n"
+"YubiKey 토큰 관리.\n"
 
 msgid ""
 "\n"
 "This code is an extension to the otptoken plugin and provides support for\n"
 "reading/writing YubiKey tokens directly.\n"
 msgstr ""
+"\n"
+"이 코드는 otptoken 플러그인의 확장과 YubiKey 토큰을 직접\n"
+"읽고/쓸 수 있도록 지원합니다.\n"
 
 msgid ""
 "\n"
 "EXAMPLES:\n"
 msgstr ""
+"\n"
+"예제:\n"
 
 msgid ""
 "\n"
 " Add a new token:\n"
 "   ipa otptoken-add-yubikey --owner=jdoe --desc=\"My YubiKey\"\n"
 msgstr ""
+"\n"
+" 신규 토큰 추가:\n"
+"   ipa otptoken-add-yubikey --owner=jdoe --desc=\"My YubiKey\"\n"
 
 msgid "Add a new YubiKey OTP token."
 msgstr "신규 Yubikey OTP 토큰 추가."
 
 msgid "YubiKey slot"
-msgstr ""
+msgstr "YubiKey 슬롯"
 
 msgid "No free YubiKey slot!"
-msgstr ""
+msgstr "Yubikey 슬롯은 무료가 아닙니다!"
 
 msgid "Add one or more passkey mappings to the user entry."
 msgstr ""
 
 #, python-format
 msgid "Enabled Sudo Rule \"%s\""
-msgstr ""
+msgstr "활성화된 sudo 규칙 \"%s\""
 
 #, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr ""
+msgstr "비활성화된 suo 규칙 \"%s\""
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr ""
+msgstr "옵션 \"%(option)s\"이 추가됨 (sudo 규칙 \"%(rule)s\"에)"
 
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
-msgstr ""
+msgstr "제거된 option \"%(option)s\" (sudo 규칙 \"%(rule)s\"에서)"
 
 msgid "Delete a user, keeping the entry available for future use"
-msgstr ""
+msgstr "사용자를 삭제하고, 다음에 사용 할 수 있도록 항목을 유지하기"
 
 msgid "Delete a user"
 msgstr "사용자 삭제"
@@ -1035,35 +1047,35 @@ msgstr "보존과 보존-없음을 둘 다 설정 할 수 없습니다"
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
-msgstr ""
+msgstr "파일을 읽을 수 없습니다 '%(filename)s': %(exc)s"
 
 #, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
-msgstr ""
+msgstr "파일을 디코드 할 수 없습니다 '%(filename)s': %(exc)s"
 
 msgid "Invalid credentials"
-msgstr ""
+msgstr "잘못된 인증 정보"
 
 msgid "Create a new vault."
-msgstr ""
+msgstr "새로운 저장소를 생성합니다."
 
 msgid "Vault password"
 msgstr ""
 
 msgid "File containing the vault password"
-msgstr ""
+msgstr "저장소 비밀번호를 포함하는 파일"
 
 msgid "File containing the vault public key"
-msgstr ""
+msgstr "저장소 공용 키를 포함하는 파일"
 
 msgid "Password can be specified only for symmetric vault"
-msgstr ""
+msgstr "비밀번호는 대칭 저장소를 위해서만 지정 될 수 있습니다"
 
 msgid "Public key can be specified only for asymmetric vault"
-msgstr ""
+msgstr "공용 키는 비대칭 저장소에서만 지정 될 수 있습니다"
 
 msgid "Password specified multiple times"
-msgstr ""
+msgstr "비밀번호는 여러 번 지정됩니다"
 
 msgid "Public key specified multiple times"
 msgstr ""
@@ -1154,7 +1166,7 @@ msgid "Private key specified multiple times"
 msgstr ""
 
 msgid "Missing vault private key"
-msgstr ""
+msgstr "저장소 개인 키가 누락됨"
 
 msgid ""
 "\n"
@@ -3502,29 +3514,33 @@ msgstr "이 호스트를 관리 할 수 있는 호스트를 추가합니다."
 
 msgid ""
 "Allow users, groups, hosts or host groups to create a keytab of this host."
-msgstr ""
+msgstr "사용자, 그룹, 호스트 또는 호스트 그룹이 이 호스트의 키탭을 생성하도록 "
+"허용합니다."
 
 msgid ""
 "Allow users, groups, hosts or host groups to retrieve a keytab of this host."
-msgstr ""
+msgstr "사용자, 그룹, 호스트 또는 호스트 그룹이 이 호스트의 키탭을 검색하도록 "
+"허용합니다."
 
 msgid "Delete a host."
-msgstr ""
+msgstr "호스트 삭제."
 
 msgid "Remove entries from DNS"
 msgstr ""
 
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
-msgstr ""
+msgstr "커버러스 키, SSL 인증서 및 호스트의 모든 서비스를 비활성화."
 
 msgid ""
 "Disallow users, groups, hosts or host groups to create a keytab of this host."
-msgstr ""
+msgstr "사용자, 그룹, 호스트 또는 호스트 그룹을 이 호스트의 키탭을 생성하도록 "
+"허용하지 않습니다."
 
 msgid ""
 "Disallow users, groups, hosts or host groups to retrieve a keytab of this "
 "host."
-msgstr ""
+msgstr "사용자, 그룹, 또는 호스트 그룹을 이 호스트의 키탭을 검색하도록 허용하지 "
+"않습니다."
 
 msgid "Search for hosts."
 msgstr ""
@@ -3581,10 +3597,10 @@ msgid "user"
 msgstr ""
 
 msgid "Search for hosts with these enrolled by users."
-msgstr ""
+msgstr "사용자에 의해 등록된 호스트를 검색합니다."
 
 msgid "Search for hosts without these enrolled by users."
-msgstr ""
+msgstr "사용자에 의해 등록되지 않은 호스트를 위한 검색."
 
 msgid "host"
 msgstr ""
@@ -3596,7 +3612,7 @@ msgid "Search for hosts without these managed by hosts."
 msgstr ""
 
 msgid "Search for hosts with these managing hosts."
-msgstr ""
+msgstr "이들 관리 호스트가 있는 호스트를 검색."
 
 msgid "Search for hosts without these managing hosts."
 msgstr ""
@@ -3605,19 +3621,19 @@ msgid "Modify information about a host."
 msgstr ""
 
 msgid "Kerberos principal name for this host"
-msgstr ""
+msgstr "이 호스트를 위한 커버러스 주체 이름"
 
 msgid "Update DNS entries"
-msgstr ""
+msgstr "DNS 항목 최신화"
 
 msgid "Remove hosts that can manage this host."
-msgstr ""
+msgstr "이 호스트를 관리 할 수 있는 호스트를 제거합니다."
 
 msgid "Display information about a host."
 msgstr ""
 
 msgid "file to store certificate in"
-msgstr ""
+msgstr "인증서를 저장하려는 파일"
 
 msgid ""
 "\n"
@@ -3649,12 +3665,40 @@ msgid ""
 " Delete a hostgroup:\n"
 "   ipa hostgroup-del baltimore\n"
 msgstr ""
+"\n"
+"호스트 그룹.\n"
+"\n"
+"Manage groups of hosts. This is useful for applying access control to a\n"
+"number of hosts by using Host-based Access Control.\n"
+"\n"
+"예제:\n"
+"\n"
+" Add a new host group:\n"
+"   ipa hostgroup-add --desc=\"Baltimore hosts\" baltimore\n"
+"\n"
+" Add another new host group:\n"
+"   ipa hostgroup-add --desc=\"Maryland hosts\" maryland\n"
+"\n"
+" Add members to the hostgroup (using Bash brace expansion):\n"
+"   ipa hostgroup-add-member --hosts={box1,box2,box3} baltimore\n"
+"\n"
+" Add a hostgroup as a member of another hostgroup:\n"
+"   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
+"\n"
+" Remove a host from the hostgroup:\n"
+"   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
+"\n"
+" Display a host group:\n"
+"   ipa hostgroup-show baltimore\n"
+"\n"
+" Delete a hostgroup:\n"
+"   ipa hostgroup-del baltimore\n"
 
 msgid "Host-group"
 msgstr ""
 
 msgid "Name of host-group"
-msgstr ""
+msgstr "호스트-그룹의 이름"
 
 msgid "A description of this host-group"
 msgstr ""
