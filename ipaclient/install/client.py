@@ -1145,7 +1145,21 @@ def configure_ssh_config(fstore, options):
 def modify_ssh_config(options):
     changes = {'PubkeyAuthentication': 'yes'}
 
-    if options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTSPROXY):
+    # sss_ssh_knownhostsproxy is deprecated in favor of sss_ssh_knownhosts
+    # use sss_ssh_knownhosts when possible
+    enableknownhosts = bool(
+        options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTS)
+    )
+
+    enableproxy = bool(
+        options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTSPROXY)
+        and not enableknownhosts
+    )
+
+    if options.sssd and enableknownhosts:
+        changes[
+            'KnownHostsCommand'] = '%s %%H' % paths.SSS_SSH_KNOWNHOSTS
+    if options.sssd and enableproxy:
         changes[
             'ProxyCommand'] = '%s -p %%p %%h' % paths.SSS_SSH_KNOWNHOSTSPROXY
         changes['GlobalKnownHostsFile'] = paths.SSSD_PUBCONF_KNOWN_HOSTS
@@ -1157,14 +1171,23 @@ def modify_ssh_config(options):
 
 def create_ssh_ipa_config(options):
     """Add the IPA snippet for ssh"""
+    # sss_ssh_knownhostsproxy is deprecated in favor of sss_ssh_knownhosts
+    # use sss_ssh_knownhosts when possible
+    enableknownhosts = bool(
+        options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTS)
+    )
+
     enableproxy = bool(
         options.sssd and os.path.isfile(paths.SSS_SSH_KNOWNHOSTSPROXY)
+        and not enableknownhosts
     )
 
     ipautil.copy_template_file(
         os.path.join(paths.SSH_IPA_CONFIG_TEMPLATE),
         paths.SSH_IPA_CONFIG,
         dict(
+            ENABLEKNOWNHOSTS='' if enableknownhosts else '#',
+            KNOWNHOSTSCOMMAND=paths.SSS_SSH_KNOWNHOSTS,
             ENABLEPROXY='' if enableproxy else '#',
             KNOWNHOSTSPROXY=paths.SSS_SSH_KNOWNHOSTSPROXY,
             KNOWNHOSTS=paths.SSSD_PUBCONF_KNOWN_HOSTS,
