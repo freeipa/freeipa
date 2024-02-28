@@ -1,12 +1,10 @@
 # IPA Migration
 
-## Overview
+## Overview of the old plugin-based migration
 
-IPA has had a plugin-based migration for remote LDAP servers since
-version 2.0.0. It will only migrate users and groups.
+IPA has had a plugin-based migration for remote LDAP servers since version 2.0.0. It will only migrate users and groups.
 
-It has some powerful capabilities for working around eccentricities in
-the remote server including:
+It has some powerful capabilities for working around eccentricities in the remote server including:
 
 * it is idempotent
 * support for both RFC2307 and 2307bis
@@ -18,198 +16,272 @@ This is insufficient for the following reasons:
 
 * It severely limits IPA-to-IPA migration as all other entry types are lost
 * User-private groups are not maintained
-* Syntax errors can cause migration to fail with the only resolution
-  being to skip broken entries or fix the remote LDAP server
-* It is executed as a server-side plugin and if it runs long enough the
-  client may disconnect
+* Syntax errors can cause migration to fail with the only resolution being to skip broken entries or fix the remote LDAP server
+* It is executed as a server-side plugin and if it runs long enough the client may disconnect
 * There is no feedback during the migration beyond watching the logs
 * There is no migration-specific log
 
 The basic operation includes:
 
 * loop through the remote user and group containers examining each entry
-* if it looks like a user or group (based on objectclass) try to
-  migrate it
+* if it looks like a user or group (based on objectclass) try to migrate it
 * convert group membership from the detected or provided RFC
 * retain passwords if the provider LDAP bind user can read them
 * drop conflicting attributes (like kerberos)
 * skip duplicates so it can be rerun multiple times
 * convert groups to IPA POSIX groups
 
-## Use Cases
+### Use cases for a new IPA to IPA migration tool
 
-There are two use-cases driving a re-implementation (or extension) of
-migration:
+There are two use-cases driving a re-implementation (or extension) of migration:
 
 1. Addressing bugs in current LDAP-only migration code
 
 2. Adding IPA-to-IPA migration including all entry types.
 
-## Migration basics
+## IPA to IPA migration
 
-### General considerations
+### Terminology
 
-LDAP stores information in a tree structure known as the Directory
-Information Tree (DIT). Each node in the tree is an entry and each
-entry contains information in an attribute=value form. It is a very
-different storage model than a relational database as there is no
-"join" capability between entries (among other things).
+In the following sections we will describe the IPA server that has the data we are pulling the migration data from as the **remote server**, and the **local server** is the new IPA server that will receive this data.  So the **local server** is the new server and also the server where the migration tool will be run from.  In other words the migration tool pulls from the remote server and applies it to the local server.
 
-The organization of the entries depends on schema which defines which
-object types (objectclasses) and attributes (attributetypes) are
-allowed. https://ldap.com/ has a pretty decent introduction to LDAP,
-schemas, etc. The important thing to understand is that in order for
-an attribute to be in an entry, there must be a corresponding
-objectclass which allows it, either as a MUST or MAY. The schema defines
-a syntax for that attribute which defines what type of data may be
-stored in it. Some LDAP servers do a better job than others at enforcing
-this syntax.
+### Prerequisites
 
-### pure LDAP migration
+You must install IPA on the new system (local server), and the domain/suffix must be the final expected values. The remote data will be converted to match the new local server. Typically it is expected that this installation be bare.  The tool was not designed to merge two different installations (although it might work).
 
-While it is easy to see a remote LDAP migration as a subset of IPA to
-IPA it is better to keep them as separate for the following reasons:
+### IPA to IPA migration design
 
-1. It represents a small subset of a typical IPA installation: only
-   users and groups.
-2. The remote schema and DIT are unknown and different for each migration so it will require more care.
-3. The quality of the data is unknown. 389-ds, used by IPA, enforces proper syntax where other servers may not.
+- IPA-to-IPA migration will be implemented as an *AdminTool* standalone client tool:  **/usr/sbin/ipa-migrate**
+- Migration will consist of three areas:
+    - Schema - the LDAP schema (objectclasses and attributes)
+    - Config - the LDAP configuration under **cn=config** (dse.ldif)
+    - Database - the main LDAP database
+- Allow online (LDAP over the network) or offline (LDIF file) migration. You can mix and match
+LDIF (offline) with LDAP (online)
 
-### IPA to IPA migration
+### Online migration
 
-For an IPA to IPA migration it is possible to make certain assumptions
-that aren't possible in a pure LDAP migration including:
+Online migration consists of contacting the remote server over the network and pulling in all the required information.  With very large databases this could impact the tool's performance
 
-1. The DIT is understood and consistent
-2. Unique UID/GID/login/group name(s) so additional checking is not necessary
-3. A consistent schema (perhaps variability for users and groups)
+### Offline migration
 
-## Design
+Offline migration consists of using LDIF files from the remote server
+- Config - the DS config file: **/etc/dirsrv/slapd-YOUR_LDAP_INSTANCE/dse.ldif**
+- Schema - all the schema files found under **/etc/dirsrv/schema/** and **/etc/dirsrv/slapd-YOUR_LDAP_INSTANCE/schema/**
+- Database - You need to export the **userroot** database to an ldif file
 
-### IPA to IPA migration
+Then copy these LDIF files to the new **local server**
 
-It would be risky to hardcode the data to pull in. It is far simpler to
-iterate the things you *don't* want to migrate. This should also improve
-the chances for future-proofing and preventing bugs like not migrating
-some new feature area. It will require that versions only migrate up or
-sideways and not backwards.
+### Mixing online and offline methods
 
-IPA-to-IPA migration will be implemented as an AdminTool standalone
-client.
+You are allowed to mix and match both approaches.  The most advantageous reason to mix and match these approaches would be if you have a very large database.  You can do the config and schema migration online and then use a database LDIF from the remote server for the database migration.  This will perform faster than reading and comparing thousands of entries over the network.  It will also be more stable.  You won't have to worry about network issues breaking the process mid-migration.
 
-#### Prerequisites
+### Dry-run migrations
 
-A migration should only be done to a single IPA server. This will greatly
-simplify certain things, particularly performance. We may want an option
-to allow this and deny it by default.
+You can also do a dry-run of the migration to see what would be migrated to the new local server.  In addition to a dry-run you can also record to an LDIF file what LDAP operation would be performed during the migration.  This LDIF file can be inspected to see fine grained details about what the migration would do, "replayed" to perform the migration at later date, or to reuse a common deployment on multiple IPA servers.
 
-If DNS is enabled on the remote server it will need to be enabled in
-the local one in order to migrate DNS data. It would need to be determined
-if the DNS DIT exists in a migrated server would allow bind to be
-configured (I suspect it will) but we don't want to get into a situation
-where the migrated DNS data is unusable.
+### Migration modes
 
-#### Retain REALM/domain
+As of right now there are two migration modes, but in the future there could be more.  Migration modes allow for easier use of the tool.  the mode will define what is migrated and what is not.
 
-It will be optional to retain the same REALM and domain. This will make the
-use-cases of staging and development server migration possible.
+#### Production mode
 
-#### Retain ranges
+In production mode basically everything is brought over. It is assumed that the *remote server* is/was fully functional and the database and entry states are valid.  This means things like DNA ranges, IDs, and SIDs (ipantsecurityidentifier) will be migrated as is.
 
-This is TBD. I don't know of a reason why a user wouldn't want to retain the
-ranges as it would affect owned files, etc, but *someone* may want to make a
-clean break. I don't believe it would be difficult to deal with as we would
-just set the magic values for DNA generation.
+#### Staging mode
 
-In order to retain the range then the remote and local ranges would need to
-be compared and the migration rejected if they do not overlap (perhaps allowed
-with --force).
+In this mode it is assumed that the remote server was in a staging environment and that things like the DNA ranges and ID attributes (uidNumber, gidNumber, etc) should **not** be migrated as is. The DNA entry attributes will be reset to the *magic regen* value.
 
-As for DNA, if the range remains some effort will need to be made to set the
-local DNS configuration to match what is available remotely.
+### Migration content
 
-This may not be ideal. The basic process would be:
+This section will describe how various entries & attributes will be migrated to the local server.
 
-  * connect to all servers in the remote IPA installation
-  * collect the DNA and on-deck ranges
-  * determine the starting point
-  * set the local DNA range to this starting point + the range end - 1
+#### REALM/Domain
 
-This could well leave huge holes of allocated values within the range but the
-DNA plugin should be able to handle that.
+For realm/domain/suffixes all the remote data will be converted to match the the new local server.  This will apply to all the entries and subtrees.  This is an automatic process and can not be adjusted or disabled.  This is why it's important when you install the new local server that you set the realm/domain/database suffix to the expected production values.
 
-subids TBD. It may be fine to just straight migrate the range and records.
+#### ID ranges
 
-#### Discovery of IPA objects
+The migration mode (production or staging) will determine if the ID ranges are migrated or not.  You can still skip the ID range migration in production mode using a CLI option and the tool will reset the DNA attributes (uidNumber, gidNumber, etc) to the magic regeneration value.
 
-The objects to migrate can be determined by examining the local API.
-It can be iterated to discover the available class objects which contain
-the container_dn and other useful information. Not all objects need
-to be migrated either because they are internal objects, represent
-schema or represent commands that have no underlying storage.
-Initialize the API and iterate over Object:
+#### Skipped attributes
 
-    api.bootstrap(in_server=True, context='migrate')
-    api.finalize()
+When adding new entries to the local server the following attributes are skipped ...
 
-    for obj in api.Object:
-       work()
+Operational attributes
+- modifiersname
+- modifytimestamp
+- creatorsname
+- createtimestamp
+- nsuniqueid
+- dsentrydn
+- entryuuid
 
-This gives us an alphabetized list of objects. An implicit relationship
-can be determined by examining the member* values in `obj.attribute_members`
-if it is present.
+Standard attributes
+- krbextradata
+- krblastfailedauth
+- krblastpwdchange
+- krbloginfailedcount
+- krbticketflags
+- krbmkey
+- ipasshpubkey  -->  We do keep the public key for users
+- mepmanagedentry
+- memberof
+- krbprincipalkey
+- memberofindirect
+- memberindirect
+- memberofindirect
+- memberindirect
+- userCertificate  --> if issued by the remote IPA server
 
-Using this list we know which are "leaf" entries which have no dependencies.
-These are migrated first. Then the list is iterated again looking for
-those with dependencies that are already satisfied and those are migrated.
-And so on.
+#### Ignored attributes
 
-So for example users and hosts are migrated. Then groups, which has a dependency on
-users. Then hostgroups can then be migrated.
+When comparing entries (not when adding entries) the following attributes are ignored and the value that exists on the local server will remain intact
 
-Some objects, like hostgroups, can be nested. These will need to be deferred until
-all of their members are added. If a running list of objects that have been migrated
-is maintained then it can be easily calculated which are ready for migration and
-which are not without having to refer to LDAP.
+- description
+- ipasshpubkey
+- ipantsecurityidentifier --> except in production mode
+- ipantflatname
+- ipamigrationenabled
+- ipauniqueid
+- serverhostname
+- krbpasswordexpiration
+- krblastadminunlock
 
-#### Objects to ignore
+#### DNS records
 
-The IPA API object list includes an number of internal-only objects and
-some classes that represent informational commands so they can be skipped
-for migration.
+By default all DNS entries are migrated, but you can skip the DNS records via a CLI option.
 
-| Object |	Reason |
-| --- | ----- |
-| certreq | no storage |
-| class | schema |
-| command | internal |
-| cosentry | migration not needed |
-| dns_system_records | no storage |
-| metaobject | schema |
-| param | internal |
-| pkinit | no storage |
-| topic | internal |
-| userstatus | no storage |
+#### Limited migration
 
-#### Objects TBD
+If there are cases where you don't want to migrate the configuration or schema there are CLI options to skip each of these areas.
 
-Each DNS record type is represented as a separate class. It is probably safe
-to just bulk import all dns records as there isn't any IPA-specific information in them.
+#### Non-IPA content
 
-So basically add them to the ignore list.
+Some Administrators store non-IPA content in the database tree. In order for this content to be migrated it must be specified via a CLI option.
 
-#### Other Containers
+### Configuration migration design
 
-Not all data in IPA can be manipulated with the API.
+The following sections of the Directory Server configuration will be migrated
 
-cn=certificates,cn=ipa,cn=etc,$SUFFIX contains any user-provided certificates.
-I think we can skip this and require that any necessary certificates be
-re-added. Otherwise, to be safe, we should validatate the trust and expiration
-dates on all of them.
+#### Core configuration (cn=config)
 
-DNA ranges. Depending on the local ranges we could try to recover them.
+The core configuration attributes will be migrated to the core server.  Things like performance tuning, security settings, and log rotation settings.
 
-#### Items to NOT be migrated
+#### Database settings
+
+The various look through limits, ID scan limits, import cache size, backend indexes, and encrypted attributes are migrated.
+
+#### Plugins
+
+The following plugins are migrated
+
+- Attribute Uniqueness plugins
+- DNA Plugins
+- MemberOf plugin
+- Referential integrity plugin
+- Retro Changelog plugin
+- SASL Mapping plugins
+- IPA DNS plugin
+- IPA Enrollment plugin
+- IPA Extdom plugin
+- IPA Graceperiod plugin
+- IPA Lockout plugin
+- IPA Password Policy plugin
+- IPA Topology plugin
+- IPA Unique ID plugins
+- IPA Winsync plugin
+- Schema Compatibility plugin
+- Slapi NIS plugin
+
+### Schema migration design
+
+By default any *missing* objectclasses and attributes are migrated.  There is also a CLI option to completely overwrite the existing schema on the local server with the remote server's schema.
+
+### Database migration design
+
+The following subtrees and entries are migrated.  Any missing entries will be added, and any existing entries will be compared and any differences will be merged into the new local server
+
+#### Plugin entries
+
+- Automember Definitions (subtree of ```cn=automember,cn=etc,$SUFFIX```)
+- DNA Ranges (subtree of ```cn=ranges,cn=etc,$SUFFIX```)
+- DNA Posix IDs (```cn=automember,cn=etc,$SUFFIX```)
+- DNA SubIDs (```cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX```)
+- MEP Templates (subtree of ```cn=templates,cn=managed entries,cn=etc,$SUFFIX```)
+- MEP Definitions (subtree of ```cn=definitions,cn=managed entries,cn=etc,$SUFFIX```)
+
+#### Etc entries
+
+- Anonymous Limits (```cn=anonymous-limits,cn=etc,$SUFFIX```)
+- CA (```cn=ca,$SUFFIX```)
+- IPA Config (```cn=ipaconfig,cn=etc,$SUFFIX```)
+- Sys Accounts (subtree of ```cn=sysaccounts,cn=etc,$SUFFIX```)
+- Topology (subtree of ```cn=topology,cn=ipa,cn=etc,$SUFFIX```)
+- Certmap (```cn=certmap,$SUFFIX```) 
+- Certmap Rules (subtree of ```cn=certmaprules,cn=certmap,$SUFFIX```)
+- s4u2proxy (subtree of ```cn=s4u2proxy,cn=etc,$SUFFIX```)
+- Passkey Config (```cn=passkeyconfig,cn=etc,$SUFFIX```)
+- Desktop Profile (```cn=desktop-profile,$SUFFIX```)
+- OTP (```cn=otp,cn=etc,$SUFFIX``)
+- Realm (subtree of ```cn=realm domains,cn=ipa,cn=etc,$SUFFIX```)
+- AD (subtree of ```cn=ad,cn=etc,$SUFFIX```)
+- Master Configurations (subtree of ```cn=masters,cn=ipa,cn=etc,$SUFFIX```)
+- Domain Configuration (```cn=domain level,cn=ipa,cn=etc,$SUFFIX```)
+
+#### Accounts
+
+- Computers (subtree of ```cn=computers,cn=accounts,$SUFFIX```)
+- Administrator (uid=admin,cn=users,cn=accounts,$SUFFIX)
+- Users (subtree of ```cn=users,cn=accounts,$SUFFIX```)
+- Groups (subtree of ```cn=groups,cn=accounts,$SUFFIX```)
+- Roles (subtree of ```cn=roles,cn=accounts,$SUFFIX```)
+- Host Groups (subtree of ```cn=hostgroups,cn=accounts,$SUFFIX```)
+- Services (subtree of ```cn=services,cn=accounts,$SUFFIX```)
+- Views (subtree of ```cn=views,cn=accounts,$SUFFIX```)
+- IP Services (subtree of ```cn=ipservices,cn=accounts,$SUFFIX```)
+- Sub IDs (subtree of ```cn=subids,cn=accounts,$SUFFIX```)
+
+#### HBAC & PBAC
+
+- HBAC Services (subtree of ```cn=hbacservices,cn=hbac,$SUFFIX```)
+- HBAC Service Groups (subtree of ```cn=hbacservicegroups,cn=hbac,$SUFFIX```)
+- PBAC Privileges (subtree of ```cn=privileges,cn=pbac,$SUFFIX```)
+- PBAC Permissions (subtree of ```cn=permissions,cn=pbac,$SUFFIX```)
+
+#### Sudo
+
+- Sudo Rules (subtree of ```cn=sudorules,cn=sudo,$SUFFIX```)
+- Sudo Commands (subtree of ```cn=sudocmds,cn=sudo,$SUFFIX```)
+- Sudo Command Groups (subtree of ```cn=sudocmdgroups,cn=sudo,$SUFFIX```)
+
+#### DNS
+
+- DNS Records (subtree of ```cn=dns,$SUFFIX```)
+- DNS Servers (subtree of ```cn=servers,cn=dns,$SUFFIX```)
+
+#### Kerberos
+
+- Kerberos Realm & Policy (subtree of ```cn=kerberos,$SUFFIX```)
+- Kerberos Password Policy (```cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX```)
+- Kerberos Default Password Policy (```cn=default kerberos service password policy,cn=$REALM,cn=kerberos,$SUFFIX```)
+
+#### Misc
+
+- Automounts & Automount Maps (subtree of ```cn=automount,$SUFFIX```)
+- Trusts (subtree of ```cn=trusts,$SUFFIX```)
+- Provisioning (subtree of ```cn=accounts,cn=provisioning,$SUFFIX```)
+- SELinux Usermaps (subtree of ```cn=usermap,cn=selinux,$SUFFIX```)
+- DUA Config Profiles (subtree of ```ou=profile,$SUFFIX```)
+- CA Certificates (subtree of ```cn=certificates,cn=ipa,cn=etc,$SUFFIX```)
+
+#### Excluded Subtrees
+
+- All Class Of Service (COS) entries
+- ```cn=sec,cn=dns,$SUFFIX```
+- ```cn=custodia,cn=ipa,cn=etc,$SUFFIX```
+
+#### Entries NOT be to migrated
 
 We will not have migrate existing keys from the remote IPA server so the
 following will not be migrated:
@@ -221,127 +293,11 @@ following will not be migrated:
 * DNSSEC keys
 * admin password
 * DM password
-* Basically anything in Custodia
+* Anything in Custodia
 
-#### Migrating conflicting data
+### Migration steps
 
-For new entries (users, groups, hosts, etc) we can do a straight LDAP
-ADD after massaging necessary attributes (see Attributes to not migrate).
-
-That is the easy part.
-
-There are some parts of IPA that are default and will exist in both servers
-such as the configuration (config commands), allow_all HBAC rule,
-permissions, privileges, roles, selinux mappings, ipaservers hostgroup and more.
-
-The strategy for this will be use the existing entry comparison in ldap2 and
-modify the new IPA instation to match the original minus some specific things like
-the CA subject base in the config. So in most cases we favor the remote IPA
-installation except for things which are installation-dependent.
-
-The downside of this is that it could interpret "fresher" defaults in the
-new IPA server with stale ones from the old. We will need good logging around
-these types of entries.
-
-Standard boilerplate will not be evaluated, things like cosTemplates. These are not
-user-modifiable and if a user decides to mess with them, they can correct it
-after migration.
-
-#### Migrating cn=config
-
-A number of plugins are optional in IPA: nis, compat, ACME.
-
-These will be enabled in the new IPA server if enabled in the remote at
-the end of migration:
-
-* cn=Schema Compatibility, cn=plugins, cn=config
-* cn=NIS Server, cn=plugins, cn=config
-
-Schema compatibility will be disabled during migration as it can cause
-performance issues and we don't want to try to migrate anything in
-cn=compat since it is generated data.
-
-ACME is a feature of the CA. We should be able to import ipa_acme_manage
-and call enable/disable within the migration if it is remotely enabled.
-
-#### Configuration to not migrate
-
-These will not be migrated:
-
-* AD Trusts
-* Winsync configuration (though the entries will)
-* CA, KRA
-* DNSSEC
-
-#### Special migration
-
-cn=kerberos contains the Kerberos master key as well as the default
-ticket policy. Only the policy can be migrated.
-
-#### Attributes to not migrate
-
-Some attributes we will need to completely drop because they contain key or
-server-specific information for the remote IPA server. This may also
-include objectClasses that may need to be dropped if the last attribute
-is removed.
-
-* krbPrincipalKey (will require dropping objectclasses)
-* krbExtraData
-* ipaNTSecurityIdentifier
-* memberOf (will be reconstructed after the migration)
-* userCertificate if issued by the remote IPA server
-
-#### Attributes to update to new REALM
-
-If a REALM change is part of migration then these will need to be updated
-to reflect the new installation.
-
-* krbPrincipalKey
-* krbCanonicalName
-
-#### Attributes to change basedn
-
-Prior to writing a new value any DN syntax attributes will need to be
-examined to see if they contain the remote baseDN if it is different. If
-so then the following need to be updated:
-
-* mepManagedEntry
-* mepManagedBy
-
-#### Migrating custom schema
-
-Schema is stored in LDAP so we *should* be able to use our ldap library
-to discover differences. We probably want to do only ADD and bail if we
-determine something will be a MOD or DEL.
-
-#### Excluding specific entries
-
-The ignore user/group options of migrate-ds were introduced so that non-compliant
-entries could be skipped to not block the migration. We can ignore these for now.
-
-#### Performance considerations
-
-Some benefits would be likely if common entry types were added in
-batches rather than individually. This would not easily allow for a
-"stop on failure" approach but could be considerably faster.
-
-The basic idea is that added entries of the same type (user, group, etc)
-would be accumulated and added together. The result would be iterated
-through and logged.
-
-The memberOf plugin should be disabled. A fixup task can be run post-migration
-to calculate the memberships.
-
-#### Idempotency
-
-The migrate-ds plugin manages idempotency because it skips over entries
-that already have been migrated (or exist). This new migration will handle
-it by merging the remote and local entries. This may not be desirable in
-all cases.
-
-#### Migration steps
-
-A simplistic view of the steps
+A simplistic view of the steps (the following might be outdated/unnecessary - TODO)
 
 Set migration mode=True
 Disable compat
@@ -377,31 +333,23 @@ All references to replicas in the existing deployment will not be migrated. Ther
 
 The Kerberos master key will not be migrated. Kerberos principals are retained but the keys are not.
 
-**IDs**
-
-Ideally all uid, gid, SID, etc. will be maintained in migration so that it is seamless. No mass changing ownership and group of files should be required.
-
 **Certificates**
 
-The existing CA will be abandonded in favor of a CA on the new installation.
+The existing CA will be abandoned in favor of a CA on the new installation.
 
 If the realm, domain and CA subject base (default is O=REALM) are identical between the two installations then there is no way, other than the CA private key, to distinguish between the original CA and the new CA. Therefore no certificates will be maintained in the migration. All certificates other than those already present in the new IPA server as part of installation will need to be re-issued.
 
 If one of these doesn't match then the certificates will be retained but the backing PKI will be lost so there will be no possibility of renewals or revocation (no OCSP or CRL).
 
-**DNS**
 
-The DNS entries will be migrated. Whether this will be maintained is a decision for the end-user. From an IPA perspective these are just data.
+##### Scenario 1 - Production to new production
 
-If DNS is not enabled in the new installation (--setup-dns) then the service will not be configured/available but the data should still be available at least via direct LDAP calls (IPA in some places checks to see if DNS is configured and will skip lookups if it is not).
-
-##### Production to new production
 Preconditions:
 * There is a existing production IPA server (or servers)
 * There is a new IPA server installation with the same realm and domain
 
 Optional:
-* If desired the realm and domain may be changed. The migrated data will accomodate these changes but this will require reconfiguration of all clients, etc. beyond just re-enrollment.
+* If desired the realm and domain may be changed. The migrated data will accommodate these changes but this will require reconfiguration of all clients, etc. beyond just re-enrollment.
 
 Result:
 * All valid IPA entries will be migrated
@@ -410,7 +358,8 @@ Result:
 * All clients must re-enroll to the new deployment
 * Users will have to migrate their passwords to generate Kerberos and other keys
 
-##### Production to new staging
+##### Scenario 2 - Production to new staging
+
 Preconditions:
 * There is an existing production IPA server (or servers)
 * There is a new IPA server installation with a different realm and domain (e.g. staging.example.test)
@@ -422,15 +371,26 @@ Result:
 * Given this is a new staging deployment there will be no enrolled clients. The host entries from the production deployment will exist but all keys are dropped.
 * Users will have to migrate their passwords to generate Kerberos and other keys
 
-##### From IPA backup
+##### Scenario 3 - Staging to new production
+
+Preconditions:
+* There is an existing production IPA server (or servers)
+* There is a new IPA server installation with a different realm and domain (e.g. staging.example.test)
+
+Result:
+* All valid IPA entries will be migrated
+* All ids (uid, gid, SID, etc) will be re-generated
+* All certificates from the previous CA will be removed
+* Users will have to migrate their passwords to generate Kerberos and other keys
+
+
+##### Scenario 4 - From IPA backup
+
 The migration tool will have the capability to do offline migration using an LDIF file. An IPA backup is a tar ball that contains the IPA data in EXAMPLE-TEST-userRoot.ldif
 
 Preconditions:
 * A backup from an existing IPA installation exists
 * There is a new IPA server installation with the same realm and domain
-
-Optional:
-* If desired the realm and domain may be changed. The migrated data will accomodate these changes but this will require reconfiguration of all clients, etc. beyond just re-enrollment.
 
 Result:
 * All valid IPA entries will be migrated
@@ -439,44 +399,82 @@ Result:
 * All clients must re-enroll to the new deployment
 * Users will have to migrate their passwords to generate Kerberos and other keys
 
-### pure LDAP migration
-
-The current code generally works minus a few bugs and RFEs, some of which are resolved
-by doing an IPA-to-IPA migration instead. It should be maintained for now and migrated
-to the standalone client in the future.
-
-These bugs should be considered for the existing plugin.
-
-* https://pagure.io/freeipa/issue/3096 - error when migrating unknown schema
-* https://pagure.io/freeipa/issue/3100 - Check for userPassword in migration
-* https://pagure.io/freeipa/issue/4738 - [RFE] ipa migrate-ds should provide option for creating UPG from posixGroup objectClass
-* https://pagure.io/freeipa/issue/5020 - migrate-ds: does not show migrated users if an error happened during group migration
-* https://pagure.io/freeipa/issue/5693 - Passwords become "expired" when migrating from directory server to IPA
-* https://pagure.io/freeipa/issue/6105 - migrate-ds is not completely ignoring attributes.
-* https://pagure.io/freeipa/issue/6360 - ipa migrate-ds does not rename uniquemember/member attributes properly
-* https://pagure.io/freeipa/issue/6380 - ipa migrate-ds should print warning for referrals
-* https://pagure.io/freeipa/issue/7368 - ipa migrate-ds converts groupofuniquenames objects to groupofnames, but leaves groupofuniquenames objectclass present
-* https://pagure.io/freeipa/issue/7749 - `ipa migrate-ds` fails to migrate user and group data from directory server to IDM.
-
 ## Logging
 
 By default the log file will be /var/log/ipa-migrate.log and will be appended to
 and not overwritten. This is so it can reflect multiple runs if they are required.
 
-At least the DN of all entries written should be logged (pkey may be sufficient).
+### Standard logging
 
-Logging by object type could be handy and should natural since this is how the
-objects will be sorted.
+Here is an example of the standard logging
 
-DEBUG logging may want to show gory details, particularly when merging entries.
+```
+024-02-27T17:10:03Z DEBUG ================================================================================
+2024-02-27T17:10:03Z INFO IPA to IPA migration starting ...
+2024-02-27T17:10:03Z DEBUG Migration options:
+2024-02-27T17:10:03Z DEBUG --mode=prod-mode
+2024-02-27T17:10:03Z DEBUG --hostname=hpe-dl385gen8-01.hpe2.lab.eng.bos.redhat.com
+2024-02-27T17:10:03Z DEBUG --verbose=False
+2024-02-27T17:10:03Z DEBUG --bind-dn=cn=directory manager
+2024-02-27T17:10:03Z DEBUG --bind-pw-file=None
+2024-02-27T17:10:03Z DEBUG --cacertfile=None
+2024-02-27T17:10:03Z DEBUG --subtree=[]
+2024-02-27T17:10:03Z DEBUG --log-file=/var/log/ipa-migrate.log
+2024-02-27T17:10:03Z DEBUG --skip-schema=False
+2024-02-27T17:10:03Z DEBUG --skip-config=False
+2024-02-27T17:10:03Z DEBUG --skip-dns=False
+2024-02-27T17:10:03Z DEBUG --dryrun=True
+2024-02-27T17:10:03Z DEBUG --dryrun-record=None
+2024-02-27T17:10:03Z DEBUG --force=False
+2024-02-27T17:10:03Z DEBUG --version=False
+2024-02-27T17:10:03Z DEBUG --quiet=False
+2024-02-27T17:10:03Z DEBUG --schema-overwrite=False
+2024-02-27T17:10:03Z DEBUG --reset-range=False
+2024-02-27T17:10:03Z DEBUG --db-ldif=None
+2024-02-27T17:10:03Z DEBUG --schema-ldif=None
+2024-02-27T17:10:03Z DEBUG --config-ldif=None
+2024-02-27T17:10:03Z DEBUG --no-prompt=False
+2024-02-27T17:10:03Z DEBUG flushing ldapi://%2Frun%2Fslapd-HPE2-LAB-ENG-BOS-REDHAT-COM.socket from SchemaCache
+2024-02-27T17:10:03Z DEBUG retrieving schema for SchemaCache url=ldapi://%2Frun%2Fslapd-HPE2-LAB-ENG-BOS-REDHAT-COM.socket conn=<ldap.ldapobject.SimpleLDAPObject object at 0x7f5a1eb68210>
+2024-02-27T17:10:03Z DEBUG retrieving schema for SchemaCache url=ldap://hpe-dl385gen8-01.hpe2.lab.eng.bos.redhat.com conn=<ldap.ldapobject.SimpleLDAPObject object at 0x7f5a1e7eba10>
+2024-02-27T17:10:04Z DEBUG Found realm from remote server: HPE2.LAB.ENG.BOS.REDHAT.COM
+2024-02-27T17:10:04Z INFO Migrating schema ...
+2024-02-27T17:10:04Z DEBUG Getting schema from the remote server ...
+2024-02-27T17:10:04Z DEBUG Retrieved 1556 attributes and 349 objectClasses
+2024-02-27T17:10:07Z DEBUG Migrated 0 attributes and 0 objectClasses
+2024-02-27T17:10:07Z DEBUG Skipped 1556 attributes and 349 objectClasses
+2024-02-27T17:10:07Z INFO Migrating configuration ...
+2024-02-27T17:10:07Z DEBUG Getting config from the remote server ...
+2024-02-27T17:10:08Z DEBUG flushing ldapi://%2Frun%2Fslapd-HPE2-LAB-ENG-BOS-REDHAT-COM.socket from SchemaCache
+2024-02-27T17:10:08Z DEBUG retrieving schema for SchemaCache url=ldapi://%2Frun%2Fslapd-HPE2-LAB-ENG-BOS-REDHAT-COM.socket conn=<ldap.ldapobject.SimpleLDAPObject object at 0x7f5a1eb68210>
+2024-02-27T17:10:09Z INFO Migrating database ... (this make take a while)
+2024-02-27T17:10:11Z DEBUG Removed IPA issued userCertificate from: krbprincipalname=ldap/hpe-dl385gen8-01.hpe2.lab.eng.bos.redhat.com@HPE2.LAB.ENG.BOS.REDHAT.COM,cn=services,cn=accounts,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com
+2024-02-27T17:10:11Z DEBUG Skipping remote certificate entry: 'cn=HPE2.LAB.ENG.BOS.REDHAT.COM IPA CA,cn=certificates,cn=ipa,cn=etc,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com' Issuer: CN=Certificate Authority,O=HPE2.LAB.ENG.BOS.REDHAT.COM
+2024-02-27T17:10:11Z DEBUG Removed IPA issued userCertificate from: krbprincipalname=HTTP/hpe-dl385gen8-01.hpe2.lab.eng.bos.redhat.com@HPE2.LAB.ENG.BOS.REDHAT.COM,cn=services,cn=accounts,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com
+2024-02-27T17:10:16Z INFO Running ipa-server-upgrade ... (this make take a while)
+2024-02-27T17:10:16Z INFO Skipping ipa-server-upgrade in dryrun mode.
+2024-02-27T17:10:16Z INFO Running SIDGEN task ...
+2024-02-27T17:10:16Z INFO Skipping SIDGEN task in dryrun mode.
+2024-02-27T17:10:16Z INFO Migration complete!
+```
 
-## Implementation
+### Verbose logging
 
-The command will be named ipa-migrate. It must determine whether the remote server is
-actually an IPA server or not. ipaclient/discovery.py::ipacheckldap may be re-usable.
+If get the verbose logging you simply just use the **--verbose, -v** CLI option. Here you will see the exact operations there were performed.  Here is an example showing the additional information that is logged.
 
-The standalone client should use a unique context, migration. This will
-allow for a separate configuration file.
+
+```
+...
+...
+2024-02-28T15:30:53Z INFO Migrating database ... (this make take a while)
+2024-02-28T15:30:53Z INFO Entry is different and will be updated: 'uid=admin,cn=users,cn=accounts,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com' attribute 'ipaNTSecurityIdentifier' replaced with val 'S-1-5-21-404865364-1326736403-3398440945-501' old value: ['S-1-5-21-404865364-1326736403-3398440945-500']
+2024-02-28T15:30:53Z INFO Add db entry 'uid=mark,cn=users,cn=accounts,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com - users'
+2024-02-28T15:30:53Z INFO Entry is different and will be updated: 'cn=HPE2.LAB.ENG.BOS.REDHAT.COM_id_range,cn=ranges,cn=etc,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com' attribute 'ipaBaseID' replaced with val '9000999' old value: ['90000000']
+2024-02-28T15:30:53Z INFO Entry is different and will be updated: 'cn=HPE2.LAB.ENG.BOS.REDHAT.COM_subid_range,cn=ranges,cn=etc,dc=hpe2,dc=lab,dc=eng,dc=bos,dc=redhat,dc=com' attribute 'ipaIDRangeSize' replaced with val '2147352575' old value: ['2147352576']
+...
+...
+```
+
 
 ## Feature Management
 
@@ -486,51 +484,55 @@ No UI option will be provided. This is command-line client only.
 
 ### CLI
 
-Overview of the CLI commands.
+Overview of the CLI usage
 
-#### IPA to IPA
-
-Advance knowledge of the DIT substantially reduces the number of options
-necessary for migration.
+    ipa-migrate <prod-mode|stage-mode> <HOSTNAME> [options]
 
 | Option | Description |
 | --- | --- |
-| --dry-run | try the migration without writing data |
-| --force | ignore errors and keep going |
-| --version | version of the tool |
-| --quiet | output only errors |
-| --log-file | log to the given file |
-| --help | this message |
+| --bind-dn, -D | The bind DN to use for authentication to the remote IPA server (default is "cn=directory manager") |
+| --bind-pw, -w | The password for the bind DN |
+| --bind-pw-file, -j | A file that contains the password |
+| --cacertfile, -Z | The CA cert file |
+| --skip-schema, -S | Do not migrate the schema |
+| --skip-config, -C | Do not migrate the DS configuration |
+| --schema-overwrite, -O | Completely overwrite schema |
+| --reset-range, -r | Reset all the DNA attributes (uidNumber, etc) to the magic regen value (-1)  |
+| --db-ldif, -f | An LDIF file containing the export of the userRoot database |
+| --schema-ldif, -m | An LDIF file containing the schema from the remote server |
+| --config-ldif, -g | The DS config file dse.ldif |
+| --skip-dns, -B | Do not migrate the DNS records in the database |
+| --subtree, -s | Non standard IPA subtree to include in the migration |
+| --dryrun, -x | try the migration without writing data |
+| --dryrun-record, -o | Perform dryrun but record all the LDAP changes to a LDIF file |
+| --force. -F | ignore errors and keep going |
+| --version, -V | version of the tool |
+| --quiet, -q | output only errors |
+| --no-prompt, -n | Do not do a confirmation prompt about starting the migration |
+| --log-file, -l | log to the given file |
+| --verbose, -v | Display verbose output |
+| --help, -h | this message |
 
-The DM password will be prompted for interactively.
+If the DM password is not provided then you will be prompted for it.
 
-| Argument | Description |
-| url | ldap url for remote IPA server |
+#### Examples
 
-#### pure LDAP
+    # ipa-migrate prod-mode remote.server.com
+   
+    # ipa-migrate prod-mode remote.server.com --dryrun
+    
+    # ipa-migrate prod-mode remote.server.com -D "cn=directory manager" -j ./passwd.txt
+   
+    # ipa-migrate prod-mode remote.server.com --db-ldif=/tmp/remote-userroot.ldif
+   
+    # ipa-migrate prod-mode remote.server.com --skip-config --skip-schema
+   
+    # ipa-migrate stage-mode remote.server.com --dryrun-record=/tmp/dryrun-ops.ldif
+   
+    # ipa-migrate stage-mode remote.server.com --config-ldif=/tmp/dse.ldif --schema-ldif=/tmp/schema.ldif --db-ldif=/tmp/remote-userroot.ldif
 
-Will remain unchanged unless one of the bug fixes requires it (perhaps for the UPG
-ticket).
+    # ipa-migrate stage-mode remote.server.com --subtree="ou=my own data,dc=ipa,dc=com"
 
-### Configuration
-
-N/A
-
-## Upgrade
-
-N/A
-
-## Test plan
-
-There are currently no tests for migration.
-
-Some simplisitic approaches for starting testing might include:
-* Count the number of entries that will be migrated and ensure they were migrated, by type (hosts, groups, etc).
-* Verify that the services enabled on the remote side are enabled after migration (NIS, ACME, etc).
-* Double-check, perhaps spot-checking, memberOf
-* Migrate a password to ensure it was imported properly
-
-We have a data generation script in freeipa-tools that may be leveraged to generate the data but it currently generates a LOT of entries which is likely too much for automation.
 
 ## Troubleshooting and debugging
 
