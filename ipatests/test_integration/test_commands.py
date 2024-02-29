@@ -1575,6 +1575,17 @@ class TestIPACommand(IntegrationTest):
         # upload script and run with Python executable
         script = "/tmp/example_cli.py"
         host.put_file_contents(script, contents)
+        # Important: this test is date-sensitive and may fail if executed
+        # around Feb 28 or Feb 29 on a leap year.
+        # The previous tests are playing with the date by jumping in the
+        # future and back to the (expected) current date but calling
+        # date -s +15Years and then date -s -15Years doesn't
+        # bring the date back to the original value if called around Feb 29.
+        # As a consequence, client and server are not synchronized any more
+        # and client API authentication may fail with the following error:
+        # ipalib.errors.KerberosError:
+        # No valid Negotiate header in server response
+        # If you see this failure, just ignore and relaunch on March 1.
         result = host.run_command([sys.executable, script])
 
         # script prints admin account

@@ -391,6 +391,17 @@ class TestCertFixReplica(IntegrationTest):
         tasks.install_master(
             mh.master, setup_dns=False, extra_args=['--no-ntp']
         )
+        # Important: this test is date-sensitive and may fail if executed
+        # around Feb 28 or Feb 29 on a leap year.
+        # The previous tests are playing with the date by jumping in the
+        # future and back to the (expected) current date but calling
+        # date -s +3Years+1day and then date -s -3Years-1day doesn't
+        # bring the date back to the original value if called around Feb 29.
+        # As a consequence, client and server are not synchronized any more
+        # and client installation may fail with the following error:
+        # Joining realm failed: JSON-RPC call failed:
+        # SSL peer certificate or SSH remote key was not OK
+        # If you see this failure, just ignore and relaunch on March 1.
         tasks.install_replica(
             mh.master, mh.replicas[0],
             setup_dns=False, extra_args=['--no-ntp']
