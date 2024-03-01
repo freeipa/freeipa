@@ -9,9 +9,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-03-01 08:01+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-03-02 03:34+0000\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -3245,343 +3244,345 @@ msgid "The hostname this reverse record points to"
 msgstr "이 역(reverse) 레코드가 지시하는 호스트이름"
 
 msgid "RRSIG record"
-msgstr ""
+msgstr "RRSIG 레코드"
 
 msgid "Raw RRSIG records"
-msgstr ""
+msgstr "단순 RRSIG 레코드"
 
 msgid "RP record"
-msgstr ""
+msgstr "RP 레코드"
 
 msgid "Raw RP records"
-msgstr ""
+msgstr "단순 RP 레코드"
 
 msgid "SIG record"
-msgstr ""
+msgstr "SIG 레코드"
 
 msgid "Raw SIG records"
-msgstr ""
+msgstr "단순 SIG 레코드"
 
 msgid "SPF record"
-msgstr ""
+msgstr "SPF 레코드"
 
 msgid "Raw SPF records"
-msgstr ""
+msgstr "단순 SPF 레코드"
 
 msgid "SRV record"
-msgstr ""
+msgstr "SRV 레코드"
 
 msgid "Raw SRV records"
-msgstr ""
+msgstr "단순 SRV 레코드"
 
 msgid "SRV Priority"
-msgstr ""
+msgstr "SRV 우선순위"
 
 msgid "Priority"
-msgstr ""
+msgstr "우선순위"
 
 msgid "SRV Weight"
-msgstr ""
+msgstr "SRV 무게"
 
 msgid "Weight"
-msgstr ""
+msgstr "무게"
 
 msgid "SRV Port"
-msgstr ""
+msgstr "SRV 포트"
 
 msgid "Port"
-msgstr ""
+msgstr "포트"
 
 msgid "SRV Target"
-msgstr ""
+msgstr "SRV 대상"
 
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
 "available at this domain"
-msgstr ""
+msgstr "만약 서비스가 이와 같은 도메인에서 사용 할 수 없다고 판단되는 대상 호스트 "
+"또는 '.'의 도메인 이름"
 
 msgid "SSHFP record"
-msgstr ""
+msgstr "SSHFP 레코드"
 
 msgid "Raw SSHFP records"
-msgstr ""
+msgstr "단순 SSHFP 레코드"
 
 msgid "SSHFP Algorithm"
-msgstr ""
+msgstr "SSHFP 알고리즘"
 
 msgid "SSHFP Fingerprint Type"
-msgstr ""
+msgstr "SSHFP 지문 유형"
 
 msgid "Fingerprint Type"
-msgstr ""
+msgstr "지문 유형"
 
 msgid "SSHFP Fingerprint"
-msgstr ""
+msgstr "SSHFP 지문"
 
 msgid "Fingerprint"
-msgstr ""
+msgstr "지문"
 
 msgid "TA record"
-msgstr ""
+msgstr "TA 레코드"
 
 msgid "Raw TA records"
-msgstr ""
+msgstr "단순 TA 레코드"
 
 msgid "TLSA record"
-msgstr ""
+msgstr "TLSA 레코드"
 
 msgid "Raw TLSA records"
-msgstr ""
+msgstr "단순 TLSA 레코드"
 
 msgid "TLSA Certificate Usage"
-msgstr ""
+msgstr "TLSA 인증 사용법"
 
 msgid "Certificate Usage"
-msgstr ""
+msgstr "인증 사용법"
 
 msgid "TLSA Selector"
-msgstr ""
+msgstr "TLSA 선택기"
 
 msgid "Selector"
-msgstr ""
+msgstr "선택기"
 
 msgid "TLSA Matching Type"
-msgstr ""
+msgstr "TLSA 일치 유형"
 
 msgid "Matching Type"
-msgstr ""
+msgstr "일치 유형"
 
 msgid "TLSA Certificate Association Data"
-msgstr ""
+msgstr "TLSA 인증 연관 자료"
 
 msgid "Certificate Association Data"
-msgstr ""
+msgstr "인증 연관 자료"
 
 msgid "TKEY record"
-msgstr ""
+msgstr "TKEY 레코드"
 
 msgid "Raw TKEY records"
-msgstr ""
+msgstr "단순 TKEY 레코드"
 
 msgid "TSIG record"
-msgstr ""
+msgstr "TSIG 레코드"
 
 msgid "Raw TSIG records"
-msgstr ""
+msgstr "단순 TSIG 레코드"
 
 msgid "TXT record"
-msgstr ""
+msgstr "TXT 레코드"
 
 msgid "Raw TXT records"
-msgstr ""
+msgstr "단순 TXT 레코드"
 
 msgid "TXT Text Data"
-msgstr ""
+msgstr "TXT 텍스트 자료"
 
 msgid "Text Data"
-msgstr ""
+msgstr "텍스트 자료"
 
 msgid "Authoritative nameserver"
-msgstr ""
+msgstr "권한 있는 네임서버"
 
 msgid "Authoritative nameserver domain name"
-msgstr ""
+msgstr "권한 있는 네임서버 도메인 이름"
 
 msgid "Administrator e-mail address"
 msgstr "관리자 전자우편 주소"
 
 msgid "SOA serial"
-msgstr ""
+msgstr "SOA 일련번호"
 
 msgid "SOA record serial number"
-msgstr ""
+msgstr "SOA 레코드 일련 번호"
 
 msgid "SOA refresh"
-msgstr ""
+msgstr "SOA 새로고침"
 
 msgid "SOA record refresh time"
-msgstr ""
+msgstr "SOA 레코드 갱신 시간"
 
 msgid "SOA retry"
-msgstr ""
+msgstr "SOA 재시도"
 
 msgid "SOA record retry time"
-msgstr ""
+msgstr "SOA 레코드 재시도 시간"
 
 msgid "SOA expire"
-msgstr ""
+msgstr "SOA 만료"
 
 msgid "SOA record expire time"
-msgstr ""
+msgstr "SOA 레코드 만료 시간"
 
 msgid "SOA minimum"
-msgstr ""
+msgstr "SOA 최소"
 
 msgid "How long should negative responses be cached"
-msgstr ""
+msgstr "부정적인 응답을 캐쉬 해야 하는 시간"
 
 msgid "Time to live for records at zone apex"
-msgstr ""
+msgstr "영역 정점(zone apex)에서 레코드를 위한 유효시간(TTL)"
 
 msgid "BIND update policy"
-msgstr ""
+msgstr "BIND 최신화 정책"
 
 msgid "Dynamic update"
-msgstr ""
+msgstr "동적 최신화"
 
 msgid "Allow dynamic updates."
-msgstr ""
+msgstr "동적 최신화 허용."
 
 msgid "Allow query"
-msgstr ""
+msgstr "질의 허용"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "issue queries"
-msgstr ""
+msgstr "질의를 실행 할 수 있는 IP 주소 또는 네트워크의 쌍반점(;)으로 구분된 목록"
 
 msgid "Allow transfer"
-msgstr ""
+msgstr "전송 허용"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "transfer the zone"
-msgstr ""
+msgstr "영역(zone)을 전송 할 수 있는 IP 주소 또는 네트워크의 쌍반점(;)으로 구분된 "
+"목록"
 
 msgid ""
 "Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the "
 "zone"
-msgstr ""
+msgstr "영역(zone)에서 순방향(A, AAAA)와 역방향(PTR)의 동기화를 허용"
 
 msgid "Allow in-line DNSSEC signing"
-msgstr ""
+msgstr "인-라인 DNSSEC 서명 허용"
 
 msgid "Allow inline DNSSEC signing of records in the zone"
-msgstr ""
+msgstr "영역(zone)에서 레코드의 인라인 DNSSEC 서명 허용"
 
 msgid "NSEC3PARAM record"
-msgstr ""
+msgstr "NSEC3PARAM 레코드"
 
 msgid ""
 "NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
-msgstr ""
+msgstr "형식에서 영역(zone)을 위한 NSEC3PARAM 레코드: hash_algorithm 플래그 반복 솔트"
 
 msgid "Checks if any of the servers has the DNS service enabled."
-msgstr ""
+msgstr "DNS 서비스가 활성화된 서버가 있는지 확인합니다."
 
 msgid "Resolve a host name in DNS."
-msgstr ""
+msgstr "DNS에서 호스트 이름을 확인합니다."
 
 msgid "Modify global DNS configuration."
-msgstr ""
+msgstr "전역 DNS 구성을 수정합니다."
 
 msgid "Show the current global DNS configuration."
-msgstr ""
+msgstr "현재 전역 DNS 구성을 보여줍니다."
 
 msgid "Create new DNS forward zone."
-msgstr ""
+msgstr "신규 DNS 전달 영역(zone)을 생성합니다."
 
 msgid "Add a permission for per-forward zone access delegation."
-msgstr ""
+msgstr "전달 영역(zone)별 접근 위임을 위한 권한을 추가합니다."
 
 msgid "Permission value"
-msgstr ""
+msgstr "권한 값"
 
 msgid "Delete DNS forward zone."
-msgstr ""
+msgstr "DNS 전달 영역(zone) 삭제."
 
 msgid "Disable DNS Forward Zone."
-msgstr ""
+msgstr "DNS 전달 영역(zone) 비활성화."
 
 msgid "Enable DNS Forward Zone."
-msgstr ""
+msgstr "DNS 전달 영역(zone) 활성화."
 
 msgid "Search for DNS forward zones."
-msgstr ""
+msgstr "DNS 전달 영역(zones)을 위한 검색."
 
 msgid "Modify DNS forward zone."
-msgstr ""
+msgstr "DNS 전달 영역(zone)을 수정합니다."
 
 msgid "Remove a permission for per-forward zone access delegation."
-msgstr ""
+msgstr "전달 영역(zone)별 접근 위임을 위한 권한을 제거합니다."
 
 msgid "Display information about a DNS forward zone."
 msgstr ""
 
 msgid "Add new DNS resource record."
-msgstr ""
+msgstr "신규 DNS 리소스 레코드를 추가합니다."
 
 msgid "Force"
-msgstr ""
+msgstr "강제"
 
 msgid "force NS record creation even if its hostname is not in DNS"
-msgstr ""
+msgstr "만약 호스트 이름이 DNS에 없는 경우에도 강제 NS 레코드 생성"
 
 msgid "Structured"
-msgstr ""
+msgstr "구조화"
 
 msgid "Parse all raw DNS records and return them in a structured way"
-msgstr ""
+msgstr "모든 단순 DNS 레코드 구문분석과 구조화된 방식에서 이를 반환"
 
 msgid "Delete DNS resource record."
-msgstr ""
+msgstr "DNS 리소스 레코드 삭제."
 
 msgid "Delete all associated records"
-msgstr ""
+msgstr "모든 연관 레코드를 삭제"
 
 msgid "Delete DNS record entry."
-msgstr ""
+msgstr "DNS 레코드 항목 삭제."
 
 msgid "Search for DNS resources."
-msgstr ""
+msgstr "DNS 리소스를 위한 검색."
 
 msgid "Modify a DNS resource record."
-msgstr ""
+msgstr "DNS 리소스 레코드를 수정합니다."
 
 msgid "Rename the DNS resource record object"
-msgstr ""
+msgstr "DNS 리소스 레코드 객체 이름을 재지정합니다"
 
 msgid "Display DNS resource."
-msgstr ""
+msgstr "DNS 리소스 표시."
 
 msgid "Create new DNS zone (SOA record)."
-msgstr ""
+msgstr "신규 DNS 영역(zone) 생성 (SOA 레코드)."
 
 msgid "Force DNS zone creation even if nameserver is not resolvable."
-msgstr ""
+msgstr "만약 네임서버를 확인 할 수 없는 경우에도 DNS 영역(zone) 생성을 강제합니다."
 
 msgid "Add a permission for per-zone access delegation."
-msgstr ""
+msgstr "영역(zone)별 접근 위임을 위한 권한을 추가합니다."
 
 msgid "Delete DNS zone (SOA record)."
-msgstr ""
+msgstr "DNS 영역(zone) 삭제 (SOA 레코드)."
 
 msgid "Disable DNS Zone."
-msgstr ""
+msgstr "DNS 영역(zone) 비활성화."
 
 msgid "Enable DNS Zone."
-msgstr ""
+msgstr "DNS 영역(zone) 활성화."
 
 msgid "Search for DNS zones (SOA records)."
 msgstr "DNS 존을 위한 검사 (SOA 레코드)."
 
 msgid "Forward zones only"
-msgstr ""
+msgstr "전달 영역(zone) 전용"
 
 msgid "Search for forward zones only"
-msgstr ""
+msgstr "전달 영역(zone)만을 위한 검색"
 
 msgid "Modify DNS zone (SOA record)."
-msgstr ""
+msgstr "DNS 영역(zone) 수정 (SOA 레코드)."
 
 msgid "Force nameserver change even if nameserver not in DNS"
-msgstr ""
+msgstr "만약 네임서버가 DNS가 아니라면 네임서버 변경 강제"
 
 msgid "Remove a permission for per-zone access delegation."
-msgstr ""
+msgstr "영역(zone)별 접근 위임을 위한 권한을 제거."
 
 msgid "Display information about a DNS zone (SOA record)."
-msgstr ""
+msgstr "DNS 영역(zone)에 대하여 정보를 표시 (SOA 레코드)."
 
 msgid ""
 "\n"
@@ -3632,165 +3633,212 @@ msgid ""
 " Remove a named HBAC rule:\n"
 "   ipa hbacrule-del allow_server\n"
 msgstr ""
+"\n"
+"호스트-기반 접근 제어\n"
+"\n"
+"Control who can access what services on what hosts. You\n"
+"can use HBAC to control which users or groups can\n"
+"access a service, or group of services, on a target host.\n"
+"\n"
+"You can also specify a category of users and target hosts.\n"
+"This is currently limited to \"all\", but might be expanded in the\n"
+"future.\n"
+"\n"
+"Target hosts in HBAC rules must be hosts managed by IPA.\n"
+"\n"
+"The available services and groups of services are controlled by the\n"
+"hbacsvc and hbacsvcgroup plug-ins respectively.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Create a rule, \"test1\", that grants all users access to the host \"server"
+"\" from\n"
+" anywhere:\n"
+"   ipa hbacrule-add --usercat=all test1\n"
+"   ipa hbacrule-add-host --hosts=server.example.com test1\n"
+"\n"
+" Display the properties of a named HBAC rule:\n"
+"   ipa hbacrule-show test1\n"
+"\n"
+" Create a rule for a specific service. This lets the user john access\n"
+" the sshd service on any machine from any machine:\n"
+"   ipa hbacrule-add --hostcat=all john_sshd\n"
+"   ipa hbacrule-add-user --users=john john_sshd\n"
+"   ipa hbacrule-add-service --hbacsvcs=sshd john_sshd\n"
+"\n"
+" Create a rule for a new service group. This lets the user john access\n"
+" the FTP service on any machine from any machine:\n"
+"   ipa hbacsvcgroup-add ftpers\n"
+"   ipa hbacsvc-add sftp\n"
+"   ipa hbacsvcgroup-add-member --hbacsvcs=ftp --hbacsvcs=sftp ftpers\n"
+"   ipa hbacrule-add --hostcat=all john_ftp\n"
+"   ipa hbacrule-add-user --users=john john_ftp\n"
+"   ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp\n"
+"\n"
+" Disable a named HBAC rule:\n"
+"   ipa hbacrule-disable test1\n"
+"\n"
+" Remove a named HBAC rule:\n"
+"   ipa hbacrule-del allow_server\n"
 
 msgid "Rule name"
 msgstr "규칙 이름"
 
 msgid "Rule type"
-msgstr ""
+msgstr "규칙 유형"
 
 msgid "Rule type (allow)"
-msgstr ""
+msgstr "규칙 유형 (허용)"
 
 msgid "User category"
-msgstr ""
+msgstr "사용자 범주"
 
 msgid "User category the rule applies to"
-msgstr ""
+msgstr "사용자 범주 규칙을 적용합니다"
 
 msgid "Host category"
-msgstr ""
+msgstr "호스트 범주"
 
 msgid "Host category the rule applies to"
-msgstr ""
+msgstr "호스트 범주를 규칙에 적용합니다"
 
 msgid "Service category"
-msgstr ""
+msgstr "서비스 종류"
 
 msgid "Service category the rule applies to"
-msgstr ""
+msgstr "서비스 범주를 규칙에 적용합니다"
 
 msgid "Enabled"
-msgstr ""
+msgstr "활성화됨"
 
 msgid "Users"
-msgstr ""
+msgstr "사용자"
 
 msgid "User Groups"
-msgstr ""
+msgstr "사용자 그룹"
 
 msgid "Hosts"
-msgstr ""
+msgstr "호스트"
 
 msgid "Host Groups"
-msgstr ""
+msgstr "호스트 그룹"
 
 msgid "Services"
-msgstr ""
+msgstr "서비스"
 
 msgid "Service Groups"
-msgstr ""
+msgstr "서비스 그룹"
 
 msgid "External host"
-msgstr ""
+msgstr "외부 호스트"
 
 msgid "Create a new HBAC rule."
-msgstr ""
+msgstr "새로운 HBAC 규칙을 생성합니다."
 
 msgid "Suppress processing of membership attributes."
-msgstr ""
+msgstr "멤버쉽 속성의 처리를 억제합니다."
 
 msgid "Add target hosts and hostgroups to an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에 대상 호스트와 호스트그룹을 추가합니다."
 
 msgid "member host"
-msgstr ""
+msgstr "구성원 호스트"
 
 msgid "hosts to add"
-msgstr ""
+msgstr "추가하려는 호스트"
 
 msgid "member host group"
-msgstr ""
+msgstr "호스트 그룹 구성원"
 
 msgid "host groups to add"
-msgstr ""
+msgstr "추가하려는 호스트 그룹"
 
 msgid "Members that could not be added"
-msgstr ""
+msgstr "추가 할 수 없는 구성원"
 
 msgid "Number of members added"
-msgstr ""
+msgstr "추가된 구성원의 수"
 
 msgid "Add services to an HBAC rule."
-msgstr ""
+msgstr "서비스를 HBAC 규칙에 추가."
 
 msgid "member HBAC service"
-msgstr ""
+msgstr "구성원 HBAC 서비스"
 
 msgid "HBAC services to add"
-msgstr ""
+msgstr "추가하려는 HBAC 서비스"
 
 msgid "member HBAC service group"
-msgstr ""
+msgstr "HBAC 서비스 그룹의 구성원"
 
 msgid "HBAC service groups to add"
-msgstr ""
+msgstr "추가하려는 HBAC 서비스 그룹"
 
 msgid "Add users and groups to an HBAC rule."
-msgstr ""
+msgstr "사용자와 그룹을 HBAC 규칙에 추가."
 
 msgid "member user"
-msgstr ""
+msgstr "구성원 사용자"
 
 msgid "users to add"
-msgstr ""
+msgstr "추가하려는 사용자"
 
 msgid "member group"
-msgstr ""
+msgstr "구성원 그룹"
 
 msgid "groups to add"
-msgstr ""
+msgstr "추가하려는 그룹"
 
 msgid "Delete an HBAC rule."
 msgstr "HBAC 규칙을 삭제합니다."
 
 msgid "Disable an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙을 비활성화합니다."
 
 msgid "Enable an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙을 활성화합니다."
 
 msgid "Search for HBAC rules."
-msgstr ""
+msgstr "HBAC 규칙을 검색."
 
 msgid "Modify an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙을 수정합니다."
 
 msgid "Remove target hosts and hostgroups from an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에서 대상 호스트와 호스트그룹을 제거합니다."
 
 msgid "hosts to remove"
-msgstr ""
+msgstr "제거하려는 호스트"
 
 msgid "host groups to remove"
-msgstr ""
+msgstr "제거하려는 호스트 그룹"
 
 msgid "Members that could not be removed"
-msgstr ""
+msgstr "제거 할 수 없는 구성원"
 
 msgid "Number of members removed"
-msgstr ""
+msgstr "제거된 구성원의 수"
 
 msgid "Remove service and service groups from an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙에서 서비스와 그룹을 제거."
 
 msgid "HBAC services to remove"
-msgstr ""
+msgstr "제거하려는 HBAC 서비스"
 
 msgid "HBAC service groups to remove"
-msgstr ""
+msgstr "제거하려는 HBAC 서비스 그룹"
 
 msgid "Remove users and groups from an HBAC rule."
-msgstr ""
+msgstr "HABC 규칙에서 사용자와 그룹을 제거합니다."
 
 msgid "users to remove"
-msgstr ""
+msgstr "제거하려는 사용자"
 
 msgid "groups to remove"
-msgstr ""
+msgstr "제거하려는 그룹"
 
 msgid "Display the properties of an HBAC rule."
-msgstr ""
+msgstr "HBAC 규칙의 속성을 표시합니다."
 
 msgid ""
 "\n"
@@ -3814,33 +3862,53 @@ msgid ""
 " Delete an HBAC service:\n"
 "   ipa hbacsvc-del tftp\n"
 msgstr ""
+"\n"
+"HBAC 서비스\n"
+"\n"
+"The PAM services that HBAC can control access to. The name used here\n"
+"must match the service name that PAM is evaluating.\n"
+"\n"
+"예제:\n"
+"\n"
+" Add a new HBAC service:\n"
+"   ipa hbacsvc-add tftp\n"
+"\n"
+" Modify an existing HBAC service:\n"
+"   ipa hbacsvc-mod --desc=\"TFTP service\" tftp\n"
+"\n"
+" Search for HBAC services. This example will return two results, the FTP\n"
+" service and the newly-added tftp service:\n"
+"   ipa hbacsvc-find ftp\n"
+"\n"
+" Delete an HBAC service:\n"
+"   ipa hbacsvc-del tftp\n"
 
 msgid "Service name"
-msgstr ""
+msgstr "서비스 이름"
 
 msgid "HBAC service"
-msgstr ""
+msgstr "HBAC 서비스"
 
 msgid "HBAC service description"
-msgstr ""
+msgstr "HBAC 서비스 설명"
 
 msgid "Member of HBAC service groups"
-msgstr ""
+msgstr "HBAC 서비스 그룹의 구성원"
 
 msgid "Add a new HBAC service."
-msgstr ""
+msgstr "신규 HBAC 서비스 추가."
 
 msgid "Delete an existing HBAC service."
-msgstr ""
+msgstr "기존 HBAC 서비스를 삭제."
 
 msgid "Search for HBAC services."
-msgstr ""
+msgstr "HBAC 서비스를 검색."
 
 msgid "Results should contain primary key attribute only (\"service\")"
-msgstr ""
+msgstr "결과는 기본 키 속성(\"서비스\")만 포함되어야 합니다"
 
 msgid "Modify an HBAC service."
-msgstr ""
+msgstr "HBAC 서비스를 수정합니다."
 
 msgid "Display information about an HBAC service."
 msgstr ""
@@ -3866,21 +3934,40 @@ msgid ""
 " Delete an HBAC service group:\n"
 "   ipa hbacsvcgroup-del login\n"
 msgstr ""
+"\n"
+"HBAC 서비스 그룹\n"
+"\n"
+"HBAC service groups can contain any number of individual services,\n"
+"or \"members\". Every group must have a description.\n"
+"\n"
+"예제:\n"
+"\n"
+" Add a new HBAC service group:\n"
+"   ipa hbacsvcgroup-add --desc=\"login services\" login\n"
+"\n"
+" Add members to an HBAC service group:\n"
+"   ipa hbacsvcgroup-add-member --hbacsvcs=sshd --hbacsvcs=login login\n"
+"\n"
+" Display information about a named group:\n"
+"   ipa hbacsvcgroup-show login\n"
+"\n"
+" Delete an HBAC service group:\n"
+"   ipa hbacsvcgroup-del login\n"
 
 msgid "Service group name"
-msgstr ""
+msgstr "서비스 그룹 이름"
 
 msgid "HBAC service group description"
-msgstr ""
+msgstr "HBAC 서비스 그룹 설명"
 
 msgid "Member HBAC service"
-msgstr ""
+msgstr "구성원 HBAC 서비스"
 
 msgid "Add a new HBAC service group."
-msgstr ""
+msgstr "신규 HBAC 서비스를 추가합니다."
 
 msgid "Add members to an HBAC service group."
-msgstr ""
+msgstr "구성원을 HBAC 서비스 그룹에 추가합니다."
 
 msgid "Delete an HBAC service group."
 msgstr ""
@@ -17692,10 +17779,8 @@ msgstr ""
 msgid "IPA Servers"
 msgstr ""
 
-#, fuzzy
-#| msgid "Server Name"
 msgid "Server DNS location"
-msgstr "서버 이름"
+msgstr "서버 DNS 위치"
 
 msgid "Service weight"
 msgstr ""
@@ -18962,10 +19047,9 @@ msgstr ""
 msgid "Removed certificate mappings from user \"%(value)s\""
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added automount location \"%(value)s\""
+#, python-format
 msgid "Added passkey mappings to user \"%(value)s\""
-msgstr "추가된 자동적재 위치 \"%(value)s\""
+msgstr "사용자 \"%(value)s\"에게 통과키 대응이 추가됨"
 
 msgid "Remove one or more passkey mappings from the user entry."
 msgstr ""
@@ -20043,15 +20127,11 @@ msgstr ""
 msgid "Groups allowed to add resource delegation"
 msgstr ""
 
-#, fuzzy
-#| msgid "Hosts allowed to create keytab"
 msgid "Hosts allowed to add resource delegation"
-msgstr "키탭을 생성하는데 허용된 호스트"
+msgstr "리소스 위임을 추가하도록 허용된 호스트"
 
-#, fuzzy
-#| msgid "Hosts allowed to create keytab"
 msgid "Host Groups allowed to add resource delegation"
-msgstr "키탭을 생성하는데 허용된 호스트"
+msgstr "리소스 위임을 추가하도록 허용된 호스트 그룹"
 
 msgid "Host"
 msgstr ""
@@ -20143,10 +20223,9 @@ msgstr ""
 msgid "Add new resource delegation to a host"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added automount location \"%(value)s\""
+#, python-format
 msgid "Added new resource delegation to the host \"%(value)s\""
-msgstr "추가된 자동적재 위치 \"%(value)s\""
+msgstr "신규 리소스 위임을 호스트 \"%(value)s\"로 추가됨"
 
 msgid "Remove resource delegation from a host"
 msgstr ""
@@ -20338,10 +20417,9 @@ msgstr ""
 msgid "Modify an Identity Provider reference."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Modified netgroup \"%(value)s\""
+#, python-format
 msgid "Modified Identity Provider reference \"%(value)s\""
-msgstr "넷그룹 \"%(value)s\"가 수정됨"
+msgstr "수정된 식별 공급자 참조 \"%(value)s\""
 
 msgid "Search for Identity Provider references."
 msgstr ""
@@ -20351,10 +20429,8 @@ msgid "%(count)d Identity Provider reference matched"
 msgid_plural "%(count)d Identity Provider references matched"
 msgstr[0] ""
 
-#, fuzzy
-#| msgid "Display information about an ID override."
 msgid "Display information about an Identity Provider reference."
-msgstr "ID 재정의에 대한 정보를 표시합니다."
+msgstr "식별 공급자 참조에 대한 정보를 표시합니다."
 
 msgid ""
 "-------\n"
@@ -22610,10 +22686,8 @@ msgstr ""
 msgid "Do you want to remove passkey ${passkey}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove vaults"
 msgid "Remove Passkey"
-msgstr "저장소 제거"
+msgstr "통과키 제거"
 
 msgid "(discoverable) "
 msgstr ""
@@ -23885,10 +23959,8 @@ msgstr ""
 msgid "Passkey configuration options"
 msgstr "통과키 구성 옵션"
 
-#, fuzzy
-#| msgid "Confirmation"
 msgid "Passkey Configuration"
-msgstr "확인"
+msgstr "통과키(passkey) 구성"
 
 msgid "Require user verification"
 msgstr ""
@@ -23896,10 +23968,8 @@ msgstr ""
 msgid "Require user verification during authentication"
 msgstr ""
 
-#, fuzzy
-#| msgid "Modify global trust configuration."
 msgid "Modify Passkey configuration."
-msgstr "전역 신뢰 구성을 수정합니다."
+msgstr "통과키(passkey) 구성을 수정합니다."
 
 msgid "Show the current Passkey configuration."
 msgstr ""
