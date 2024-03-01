@@ -9,9 +9,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-11-20 14:44+0100\n"
-"PO-Revision-Date: 2024-03-01 07:20+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-03-01 08:01+0000\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ko/>\n"
 "Language: ko\n"
@@ -3065,49 +3064,49 @@ msgid "Raw KX records"
 msgstr "단순 KX 기록"
 
 msgid "KX Preference"
-msgstr ""
+msgstr "KX 기본설정"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr "이와 같은 교환기에 주어진 우선권. 낮은 값이 더 선호됩니다"
 
 msgid "KX Exchanger"
-msgstr ""
+msgstr "KX 교환기"
 
 msgid "A host willing to act as a key exchanger"
-msgstr ""
+msgstr "키 교환기와 같은 역할을 하고자 하는 호스트"
 
 msgid "LOC record"
-msgstr ""
+msgstr "LOC 레코드"
 
 msgid "Raw LOC records"
-msgstr ""
+msgstr "단순 LOC 레코드"
 
 msgid "LOC Degrees Latitude"
-msgstr ""
+msgstr "LOC 도 위도"
 
 msgid "Degrees Latitude"
-msgstr ""
+msgstr "도 위도"
 
 msgid "LOC Minutes Latitude"
-msgstr ""
+msgstr "LOC 분 위도"
 
 msgid "Minutes Latitude"
-msgstr ""
+msgstr "분 위도"
 
 msgid "LOC Seconds Latitude"
-msgstr ""
+msgstr "LOC 초 위도"
 
 msgid "Seconds Latitude"
-msgstr ""
+msgstr "초 위도"
 
 msgid "LOC Direction Latitude"
-msgstr ""
+msgstr "LOC 방향 위도"
 
 msgid "Direction Latitude"
-msgstr ""
+msgstr "방향 위도"
 
 msgid "LOC Degrees Longitude"
-msgstr ""
+msgstr "LOC 도 위도"
 
 msgid "Degrees Longitude"
 msgstr "도 위도"
@@ -3116,133 +3115,133 @@ msgid "LOC Minutes Longitude"
 msgstr "LOC 분 위도"
 
 msgid "Minutes Longitude"
-msgstr ""
+msgstr "분 위도"
 
 msgid "LOC Seconds Longitude"
-msgstr ""
+msgstr "LOC 초 위도"
 
 msgid "Seconds Longitude"
-msgstr ""
+msgstr "초 위도"
 
 msgid "LOC Direction Longitude"
-msgstr ""
+msgstr "LOC 방향 위도"
 
 msgid "Direction Longitude"
-msgstr ""
+msgstr "방향 위도"
 
 msgid "LOC Altitude"
-msgstr ""
+msgstr "LOC 고도"
 
 msgid "Altitude"
-msgstr ""
+msgstr "고도"
 
 msgid "LOC Size"
-msgstr ""
+msgstr "LOC 크기"
 
 msgid "Size"
-msgstr ""
+msgstr "크기"
 
 msgid "LOC Horizontal Precision"
-msgstr ""
+msgstr "LOC 수평 정밀도"
 
 msgid "Horizontal Precision"
-msgstr ""
+msgstr "수평 정밀도"
 
 msgid "LOC Vertical Precision"
-msgstr ""
+msgstr "LOC 수직 정밀도"
 
 msgid "Vertical Precision"
-msgstr ""
+msgstr "수직 정밀도"
 
 msgid "MX record"
-msgstr ""
+msgstr "MX 레코드"
 
 msgid "Raw MX records"
-msgstr ""
+msgstr "단순 MX 레코드"
 
 msgid "MX Preference"
-msgstr ""
+msgstr "MX 기본설정"
 
 msgid "MX Exchanger"
-msgstr ""
+msgstr "MX 교환기"
 
 msgid "A host willing to act as a mail exchanger"
-msgstr ""
+msgstr "전자우편 교환기로 동작하고자 하는 호스트"
 
 msgid "NAPTR record"
-msgstr ""
+msgstr "NAPTR 레코드"
 
 msgid "Raw NAPTR records"
-msgstr ""
+msgstr "단순 NAPTR 레코드"
 
 msgid "NAPTR Order"
-msgstr ""
+msgstr "NAPTR 순서"
 
 msgid "Order"
-msgstr ""
+msgstr "순서"
 
 msgid "NAPTR Preference"
-msgstr ""
+msgstr "NAPTR 환경설정"
 
 msgid "Preference"
-msgstr ""
+msgstr "환경설정"
 
 msgid "NAPTR Flags"
-msgstr ""
+msgstr "NAPTR 플래그"
 
 msgid "Flags"
-msgstr ""
+msgstr "플래그"
 
 msgid "NAPTR Service"
-msgstr ""
+msgstr "NAPTR 서비스"
 
 msgid "Service"
-msgstr ""
+msgstr "서비스"
 
 msgid "NAPTR Regular Expression"
-msgstr ""
+msgstr "NAPTR 정규 표현"
 
 msgid "Regular Expression"
-msgstr ""
+msgstr "정규 표현"
 
 msgid "NAPTR Replacement"
-msgstr ""
+msgstr "NAPTR 교체"
 
 msgid "Replacement"
-msgstr ""
+msgstr "교체"
 
 msgid "NS record"
-msgstr ""
+msgstr "NS 레코드"
 
 msgid "Raw NS records"
-msgstr ""
+msgstr "단순 NS 레코드"
 
 msgid "NS Hostname"
 msgstr ""
 
 msgid "NSEC record"
-msgstr ""
+msgstr "NSEC 레코드"
 
 msgid "Raw NSEC records"
-msgstr ""
+msgstr "단순 NSEC 레코드"
 
 msgid "NSEC3 record"
-msgstr ""
+msgstr "NSEC3 레코드"
 
 msgid "Raw NSEC3 records"
-msgstr ""
+msgstr "단순 NSEC3 레코드"
 
 msgid "PTR record"
-msgstr ""
+msgstr "PTR 레코드"
 
 msgid "Raw PTR records"
-msgstr ""
+msgstr "단순 PTR 레코드"
 
 msgid "PTR Hostname"
-msgstr ""
+msgstr "PTR 호스트이름"
 
 msgid "The hostname this reverse record points to"
-msgstr ""
+msgstr "이 역(reverse) 레코드가 지시하는 호스트이름"
 
 msgid "RRSIG record"
 msgstr ""
