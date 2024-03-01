@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-27 09:36+0000\n"
+"PO-Revision-Date: 2024-03-02 05:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -3779,35 +3779,33 @@ msgstr "전역 전달자"
 msgid ""
 "Global forwarders. A custom port can be specified for each forwarder using a "
 "standard format \"IP_ADDRESS port PORT\""
-msgstr ""
-"전역 전달자. 사용자 지정 포트는 표준 형식 \"IP_주소 포트용 포트\"를 사용하여 "
-"각각의 전달자를 위해 지정 될 수 있습니다"
+msgstr "전역 전달자. 사용자 지정 포트는 표준 형식 \"IP_주소 포트용 포트\"를 사용하여 "
+"각각의 전달자에 대해 지정 할 수 있습니다"
 
 #: ipaserver/plugins/dns.py:2049 ipaserver/plugins/dns.py:4124
 msgid "Forward policy"
-msgstr "전달 정책"
+msgstr "포워드 정책"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
 "forwarders."
-msgstr ""
-"전역 전달 정책. 구성된 전역 전달자를 비활성 하려면 \"없음\"으로 설정합니다."
+msgstr "전역 포워딩 정책. 구성된 전역 전달자를 비활성하려면 \"없음\"으로 설정합니다."
 
 #: ipaserver/plugins/dns.py:4131
 msgid "Allow PTR sync"
 msgstr "PTR sync 허용"
 
 msgid "Allow synchronization of forward (A, AAAA) and reverse (PTR) records"
-msgstr "전달(A,AAAA)와 역(PTR) 레코드의 동기화를 허용"
+msgstr "포워드(A, AAAA)와 역(PTR) 레코드의 동기화를 허용"
 
 msgid "Zone refresh interval"
-msgstr "영역 갱신 간격"
+msgstr "영역(zone) 갱신 간격"
 
 msgid "Zone name"
-msgstr "존 이름"
+msgstr "영역(zone) 이름"
 
 msgid "Zone name (FQDN)"
-msgstr "영역 이름(FQDN)"
+msgstr "영역(zone) 이름(FQDN)"
 
 msgid "Reverse zone IP network"
 msgstr "역방향 영역 IP 네트워크"
@@ -3819,26 +3817,26 @@ msgid "Active zone"
 msgstr "활성 영역"
 
 msgid "Is zone active?"
-msgstr "영역이 활성화 되었나요?"
+msgstr "영역(zone)이 활성화 되었나요?"
 
 msgid "Zone forwarders"
-msgstr "영역 전달자"
+msgstr "영역(zone) 전달자"
 
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
 "a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
-"영역별-전달자. 사용자 지정 포트를 표준 형식 \"IP_주소 포트용 포트\"를 사용하"
-"여 각각의 전달자에 대해 지정 할 수 있습니다"
+"영역(zone)별 전달자. 사용자 지정 포트는 표준 형식 \"IP_주소 포트용 포트\"를 "
+"사용하여 각각의 전달자에 대해 지정 할 수 있습니다"
 
 msgid ""
 "Per-zone conditional forwarding policy. Set to \"none\" to disable "
 "forwarding to global forwarder for this zone. In that case, conditional zone "
 "forwarders are disregarded."
 msgstr ""
-"영역-별 상태에 따른 전달 정책. 이와 같은 영역에 대해 전역 전달자로의 전달을 "
-"비활성화 하려면 \"없음\"으로 설정합니다. 이와 같은 경우에, 상태에 따른 영역 "
-"전달자는 무시됩니다."
+"영역(zone) 별 상태에 따른 전달 정책. 이와 같은 영역에 대해 전역 전달자로의 "
+"전달을 비활성화하려면 \"없음\"으로 설정합니다. 이와 같은 경우에, 상태에 따른 "
+"영역 전달자는 무시됩니다."
 
 #: ipaserver/plugins/dns.py:3059
 msgid "Record name"
@@ -3865,7 +3863,7 @@ msgid "Raw A records"
 msgstr "단순 A 레코드"
 
 msgid "A IP Address"
-msgstr "A IP 주소"
+msgstr "IP 주소"
 
 #: ipaserver/plugins/dns.py:983 ipaserver/plugins/host.py:682
 msgid "IP Address"
@@ -3931,7 +3929,7 @@ msgid "CERT Certificate Type"
 msgstr "CERT 인증 유형"
 
 msgid "Certificate Type"
-msgstr "인증서 유형"
+msgstr "인증 유형"
 
 msgid "CERT Key Tag"
 msgstr "CERT 키 태그"
@@ -3977,16 +3975,16 @@ msgid "DLV Algorithm"
 msgstr "DLV 알고리즘"
 
 msgid "DLV Digest Type"
-msgstr "DLV 요약 유형"
+msgstr "DLV 다이제스트 유형"
 
 msgid "Digest Type"
-msgstr "요약 유형"
+msgstr "다이제스트 유형"
 
 msgid "DLV Digest"
-msgstr "DLV 요약"
+msgstr "DLV 다이제스트"
 
 msgid "Digest"
-msgstr "요약"
+msgstr "다이제스트"
 
 msgid "DNAME record"
 msgstr "DNAME 레코드"
@@ -4020,10 +4018,10 @@ msgid "DS Algorithm"
 msgstr "DS 알고리즘"
 
 msgid "DS Digest Type"
-msgstr "DS 요약 유형"
+msgstr "DS 다이제스트 유형"
 
 msgid "DS Digest"
-msgstr "DS 요약"
+msgstr "DS 다이제스트"
 
 msgid "HIP record"
 msgstr "HIP 레코드"
@@ -4041,13 +4039,13 @@ msgid "KEY record"
 msgstr "키 레코드"
 
 msgid "Raw KEY records"
-msgstr "단순 키 기록"
+msgstr "단순 키 레코드"
 
 msgid "KX record"
 msgstr "KX 레코드"
 
 msgid "Raw KX records"
-msgstr "단순 KX 레코드"
+msgstr "단순 KX 기록"
 
 msgid "KX Preference"
 msgstr "KX 기본설정"
@@ -4089,22 +4087,22 @@ msgid "Direction Latitude"
 msgstr "방향 위도"
 
 msgid "LOC Degrees Longitude"
-msgstr "LOC 도 경도"
+msgstr "LOC 도 위도"
 
 msgid "Minutes Longitude"
-msgstr "분 경도"
+msgstr "분 위도"
 
 msgid "LOC Seconds Longitude"
-msgstr "LOC 초 경도"
+msgstr "LOC 초 위도"
 
 msgid "Seconds Longitude"
-msgstr "초 경도"
+msgstr "초 위도"
 
 msgid "LOC Direction Longitude"
-msgstr "LOC 방향 경도"
+msgstr "LOC 방향 위도"
 
 msgid "Direction Longitude"
-msgstr "방향 경도"
+msgstr "방향 위도"
 
 msgid "LOC Altitude"
 msgstr "LOC 고도"
@@ -4134,10 +4132,10 @@ msgid "MX record"
 msgstr "MX 레코드"
 
 msgid "Raw MX records"
-msgstr "단순 KX 레코드"
+msgstr "단순 MX 레코드"
 
 msgid "MX Preference"
-msgstr "MX 기본 설정"
+msgstr "MX 기본설정"
 
 msgid "MX Exchanger"
 msgstr "MX 교환기"
@@ -4158,11 +4156,11 @@ msgid "Order"
 msgstr "순서"
 
 msgid "NAPTR Preference"
-msgstr "NAPTR 환경 설정"
+msgstr "NAPTR 환경설정"
 
 #: ipaserver/plugins/dns.py:1266 ipaserver/plugins/dns.py:1314
 msgid "Preference"
-msgstr "환경 설정"
+msgstr "환경설정"
 
 msgid "NAPTR Flags"
 msgstr "NAPTR 플래그"
@@ -4219,10 +4217,10 @@ msgid "Raw PTR records"
 msgstr "단순 PTR 레코드"
 
 msgid "PTR Hostname"
-msgstr "PTR 호스트 이름"
+msgstr "PTR 호스트이름"
 
 msgid "The hostname this reverse record points to"
-msgstr "이 반대의 레코드가 가리키는 호스트 이름"
+msgstr "이 역(reverse) 레코드가 지시하는 호스트이름"
 
 msgid "RRSIG record"
 msgstr "RRSIG 레코드"
@@ -4259,7 +4257,7 @@ msgstr "SRV 우선순위"
 
 #: ipaserver/plugins/certmap.py:304 ipaserver/plugins/pwpolicy.py:345
 msgid "Priority"
-msgstr "우선 순위"
+msgstr "우선순위"
 
 msgid "SRV Weight"
 msgstr "SRV 무게"
@@ -4318,10 +4316,10 @@ msgid "Raw TLSA records"
 msgstr "단순 TLSA 레코드"
 
 msgid "TLSA Certificate Usage"
-msgstr "TLSA 인증서 사용법"
+msgstr "TLSA 인증 사용법"
 
 msgid "Certificate Usage"
-msgstr "인증서 사용법"
+msgstr "인증 사용법"
 
 msgid "TLSA Selector"
 msgstr "TLSA 선택기"
@@ -4336,22 +4334,22 @@ msgid "Matching Type"
 msgstr "일치 유형"
 
 msgid "TLSA Certificate Association Data"
-msgstr "TLSA 인증서 연결 자료"
+msgstr "TLSA 인증 연관 자료"
 
 msgid "Certificate Association Data"
-msgstr "인증서 연결 자료"
+msgstr "인증 연관 자료"
 
 msgid "TKEY record"
-msgstr "T키 레코드"
+msgstr "TKEY 레코드"
 
 msgid "Raw TKEY records"
-msgstr "단순 T키 레코드"
+msgstr "단순 TKEY 레코드"
 
 msgid "TSIG record"
 msgstr "TSIG 레코드"
 
 msgid "Raw TSIG records"
-msgstr "단순 SIG 레코드"
+msgstr "단순 TSIG 레코드"
 
 msgid "TXT record"
 msgstr "TXT 레코드"
@@ -4372,13 +4370,13 @@ msgid "Authoritative nameserver domain name"
 msgstr "권한 있는 네임서버 도메인 이름"
 
 msgid "SOA serial"
-msgstr "SOA 시리얼"
+msgstr "SOA 일련번호"
 
 msgid "SOA record serial number"
 msgstr "SOA 레코드 일련 번호"
 
 msgid "SOA refresh"
-msgstr "SOA 갱신"
+msgstr "SOA 새로고침"
 
 msgid "SOA record refresh time"
 msgstr "SOA 레코드 갱신 시간"
@@ -4402,7 +4400,7 @@ msgid "How long should negative responses be cached"
 msgstr "부정적인 응답을 캐쉬 해야 하는 시간"
 
 msgid "Time to live for records at zone apex"
-msgstr "영역 정점에서 레코드를 위한 유효시간(TTL)"
+msgstr "영역 정점(zone apex)에서 레코드를 위한 유효시간(TTL)"
 
 #: ipaserver/plugins/dns.py:2504
 msgid "BIND update policy"
@@ -4429,26 +4427,26 @@ msgstr "전송 허용"
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
 "transfer the zone"
-msgstr ""
-"영역을 전송 할 수 있는 IP 주소 또는 네트워크의 쌍반점(;)으로 구분된 목록"
+msgstr "영역(zone)을 전송 할 수 있는 IP 주소 또는 네트워크의 쌍반점(;)으로 구분된 "
+"목록"
 
 msgid ""
 "Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the "
 "zone"
-msgstr "영역에서 순방향(A, AAA)과 역방향(PTR)의 동기화를 허용"
+msgstr "영역(zone)에서 순방향(A, AAAA)와 역방향(PTR)의 동기화를 허용"
 
 msgid "Allow in-line DNSSEC signing"
 msgstr "인-라인 DNSSEC 서명 허용"
 
 msgid "Allow inline DNSSEC signing of records in the zone"
-msgstr "영역에서 레코드의 인라인 DNSSEC 서명 허용"
+msgstr "영역(zone)에서 레코드의 인라인 DNSSEC 서명 허용"
 
 msgid "NSEC3PARAM record"
 msgstr "NSEC3PARAM 레코드"
 
 msgid ""
 "NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
-msgstr "형식에서 영역을 위한 NSEC3PARAM 레코드: 해쉬_알고리즘 플래그 반복 솔트"
+msgstr "형식에서 영역(zone)을 위한 NSEC3PARAM 레코드: hash_algorithm 플래그 반복 솔트"
 
 msgid "Checks if any of the servers has the DNS service enabled."
 msgstr "DNS 서비스가 활성화된 서버가 있는지 확인합니다."
@@ -4463,37 +4461,37 @@ msgid "Show the current global DNS configuration."
 msgstr "현재 전역 DNS 구성을 보여줍니다."
 
 msgid "Create new DNS forward zone."
-msgstr "신규 DNS 전달 영역을 생성합니다."
+msgstr "신규 DNS 전달 영역(zone)을 생성합니다."
 
 msgid "Add a permission for per-forward zone access delegation."
-msgstr "전달 영역-당 접근 위임을 위한 권한을 추가합니다."
+msgstr "전달 영역(zone)별 접근 위임을 위한 권한을 추가합니다."
 
 msgid "Permission value"
 msgstr "권한 값"
 
 msgid "Delete DNS forward zone."
-msgstr "DNS 전달 영역 삭제."
+msgstr "DNS 전달 영역(zone) 삭제."
 
 msgid "Disable DNS Forward Zone."
-msgstr "DNS 전달 영역 비활성화."
+msgstr "DNS 전달 영역(zone) 비활성화."
 
 msgid "Enable DNS Forward Zone."
-msgstr "DNS 전달 영역 활성화."
+msgstr "DNS 전달 영역(zone) 활성화."
 
 msgid "Search for DNS forward zones."
-msgstr "DNS 전달 영역을 위한 검색."
+msgstr "DNS 전달 영역(zones)을 위한 검색."
 
 msgid "Modify DNS forward zone."
-msgstr "DNS 전달 영역을 수정합니다."
+msgstr "DNS 전달 영역(zone)을 수정합니다."
 
 msgid "Remove a permission for per-forward zone access delegation."
-msgstr "전달 영역-당 접근 위임을 위한 권한을 제거합니다."
+msgstr "전달 영역(zone)별 접근 위임을 위한 권한을 제거합니다."
 
 msgid "Display information about a DNS forward zone."
 msgstr "DNS 전달 영역에 대하여 정보를 표시합니다."
 
 msgid "Add new DNS resource record."
-msgstr "신규 DNS 자원 레코드를 추가합니다."
+msgstr "신규 DNS 리소스 레코드를 추가합니다."
 
 #: ipaserver/plugins/realmdomains.py:151 ipaserver/plugins/permission.py:1061
 #: ipaserver/plugins/dns.py:2898 ipaserver/plugins/dns.py:3597
@@ -4511,7 +4509,7 @@ msgid "Parse all raw DNS records and return them in a structured way"
 msgstr "모든 단순 DNS 레코드 구문분석과 구조화된 방식에서 이를 반환"
 
 msgid "Delete DNS resource record."
-msgstr "DNS 자원 레코드 삭제."
+msgstr "DNS 리소스 레코드 삭제."
 
 msgid "Delete all associated records"
 msgstr "모든 연관 레코드를 삭제"
@@ -4520,52 +4518,52 @@ msgid "Delete DNS record entry."
 msgstr "DNS 레코드 항목 삭제."
 
 msgid "Search for DNS resources."
-msgstr "DNS 자원을 위한 검색."
+msgstr "DNS 리소스를 위한 검색."
 
 msgid "Modify a DNS resource record."
-msgstr "DNS 자원 레코드를 수정."
+msgstr "DNS 리소스 레코드를 수정합니다."
 
 msgid "Rename the DNS resource record object"
-msgstr "DNS 자원 레코드 객체 이름을 재지정합니다"
+msgstr "DNS 리소스 레코드 객체 이름을 재지정합니다"
 
 msgid "Display DNS resource."
-msgstr "DNS 자원 표시."
+msgstr "DNS 리소스 표시."
 
 msgid "Create new DNS zone (SOA record)."
-msgstr "신규 DNS 존 생성 (SOA 레코드)."
+msgstr "신규 DNS 영역(zone) 생성 (SOA 레코드)."
 
 msgid "Force DNS zone creation even if nameserver is not resolvable."
-msgstr "만약 네임서버를 확인 할 수 없는 경우에도 DNS 존 생성을 강제합니다."
+msgstr "만약 네임서버를 확인 할 수 없는 경우에도 DNS 영역(zone) 생성을 강제합니다."
 
 msgid "Add a permission for per-zone access delegation."
-msgstr "영역-별 접근 위임을 위한 권한을 추가합니다."
+msgstr "영역(zone)별 접근 위임을 위한 권한을 추가합니다."
 
 msgid "Delete DNS zone (SOA record)."
-msgstr "DNS 존 삭제 (SOA 레코드)."
+msgstr "DNS 영역(zone) 삭제 (SOA 레코드)."
 
 msgid "Disable DNS Zone."
-msgstr "DNS 영역 비활성화."
+msgstr "DNS 영역(zone) 비활성화."
 
 msgid "Enable DNS Zone."
-msgstr "DNS 영역 활성화."
+msgstr "DNS 영역(zone) 활성화."
 
 msgid "Forward zones only"
-msgstr "전달 영역 전용"
+msgstr "전달 영역(zone) 전용"
 
 msgid "Search for forward zones only"
-msgstr "전달 영역 전용을 위한 검색"
+msgstr "전달 영역(zone)만을 위한 검색"
 
 msgid "Modify DNS zone (SOA record)."
-msgstr "DNS 영역 수정 (SOA 레코드)."
+msgstr "DNS 영역(zone) 수정 (SOA 레코드)."
 
 msgid "Force nameserver change even if nameserver not in DNS"
 msgstr "만약 네임서버가 DNS가 아니라면 네임서버 변경 강제"
 
 msgid "Remove a permission for per-zone access delegation."
-msgstr "영역-별 접근 위임을 위한 권한을 제거."
+msgstr "영역(zone)별 접근 위임을 위한 권한을 제거."
 
 msgid "Display information about a DNS zone (SOA record)."
-msgstr "DNS 영역에 대하여 정보를 표시 (SOA 레코드)."
+msgstr "DNS 영역(zone)에 대하여 정보를 표시 (SOA 레코드)."
 
 msgid ""
 "\n"
@@ -4831,7 +4829,7 @@ msgid "member user"
 msgstr "구성원 사용자"
 
 msgid "users to add"
-msgstr "추가 할 사용자"
+msgstr "추가하려는 사용자"
 
 msgid "member group"
 msgstr "구성원 그룹"
@@ -4958,7 +4956,7 @@ msgid "users to remove"
 msgstr "제거하려는 사용자"
 
 msgid "groups to remove"
-msgstr "제거 하려는 그룹"
+msgstr "제거하려는 그룹"
 
 #: ipaserver/plugins/baseldap.py:1868 ipaserver/plugins/baseldap.py:2356
 msgid "Members that could not be removed"
@@ -5086,7 +5084,7 @@ msgstr "규칙 유형 (허용)"
 #: ipaserver/plugins/hbacrule.py:223 ipaserver/plugins/selinuxusermap.py:253
 #: ipaserver/plugins/sudorule.py:255
 msgid "User category"
-msgstr "사용자 종류"
+msgstr "사용자 범주"
 
 #: ipaserver/plugins/netgroup.py:228 ipaserver/plugins/hbacrule.py:224
 #: ipaserver/plugins/selinuxusermap.py:254 ipaserver/plugins/sudorule.py:256
@@ -5097,7 +5095,7 @@ msgstr "사용자 범주 규칙을 적용합니다"
 #: ipaserver/plugins/hbacrule.py:229 ipaserver/plugins/selinuxusermap.py:259
 #: ipaserver/plugins/sudorule.py:261
 msgid "Host category"
-msgstr "호스트 종류"
+msgstr "호스트 범주"
 
 #: ipaserver/plugins/netgroup.py:234 ipaserver/plugins/hbacrule.py:230
 #: ipaserver/plugins/selinuxusermap.py:260 ipaserver/plugins/sudorule.py:262
@@ -5148,7 +5146,7 @@ msgstr "새로운 HBAC 규칙을 생성합니다."
 
 #: ipaserver/plugins/hbacrule.py:534
 msgid "Add target hosts and hostgroups to an HBAC rule."
-msgstr "대상 호스트와 호스트그룹을 HBAC 규칙에 추가합니다."
+msgstr "HBAC 규칙에 대상 호스트와 호스트그룹을 추가합니다."
 
 msgid "member host"
 msgstr "구성원 호스트"
@@ -5184,7 +5182,7 @@ msgstr "사용자와 그룹을 HBAC 규칙에 추가."
 
 #: ipaserver/plugins/hbacrule.py:411
 msgid "Disable an HBAC rule."
-msgstr "HBAC 규칙을 비활성화 합니다."
+msgstr "HBAC 규칙을 비활성화합니다."
 
 #: ipaserver/plugins/hbacrule.py:381
 msgid "Enable an HBAC rule."
@@ -5206,7 +5204,7 @@ msgid "hosts to remove"
 msgstr "제거하려는 호스트"
 
 msgid "host groups to remove"
-msgstr "제거 하려는 호스트 그룹"
+msgstr "제거하려는 호스트 그룹"
 
 #: ipaserver/plugins/hbacrule.py:613
 msgid "Remove service and service groups from an HBAC rule."
