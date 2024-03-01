@@ -755,8 +755,12 @@ class ModVaultData(Local):
         Calls the internal counterpart of the command.
         """
         # try call with cached transport certificate
-        result = self._do_internal(algo, transport_cert, False,
-                                   False, *args, **options)
+        try:
+            result = self._do_internal(algo, transport_cert, False,
+                                       False, *args, **options)
+        except errors.EncodingError:
+            result = self._do_internal(algo, transport_cert, False,
+                                       True, *args, **options)
         if result is not None:
             return result
 
