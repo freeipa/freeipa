@@ -31,6 +31,14 @@ PKG_CHECK_MODULES([DIRSRV], [dirsrv  >= 1.3.0])
 # slapi-plugin.h includes nspr.h
 DIRSRV_CFLAGS="$DIRSRV_CFLAGS $NSPR_CFLAGS"
 
+bck_cflags="$CFLAGS"
+CFLAGS="$CFLAGS $DIRSRV_CFLAGS"
+AC_CHECK_DECL([SLAPI_OP_NOTE_MFA_AUTH], [
+    AC_DEFINE(USE_OP_NOTE_MFA_AUTH,1,
+              [Use LDAP operation note for multi-factor LDAP BIND])],
+    [], [[#include <dirsrv/slapi-plugin.h>]])
+CFLAGS="$bck_cflags"
+
 dnl -- sss_idmap is needed by the extdom exop --
 PKG_CHECK_MODULES([SSSIDMAP], [sss_idmap])
 PKG_CHECK_MODULES([SSSNSSIDMAP], [sss_nss_idmap >= 1.15.2])

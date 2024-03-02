@@ -1551,6 +1551,16 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* Attempt to write out kerberos keys for the user. */
     ipapwd_write_krb_keys(pb, discard_const(dn), entry, credentials);
 
+#ifdef USE_OP_NOTE_MFA_AUTH
+    /* If it was a successful authentication with OTP required, mark it
+     * for access log to notice multi-factor authentication has happened
+     * https://www.port389.org/docs/389ds/design/mfa-operation-note-design.html
+     */
+    if (!syncreq && otpreq) {
+        slapi_pblock_set_flag_operation_notes(pb, SLAPI_OP_NOTE_MFA_AUTH);
+    }
+#endif
+
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
     return 0;
