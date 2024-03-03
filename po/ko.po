@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202206291425+git9a97f9b40\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-03-02 05:36+0000\n"
+"PO-Revision-Date: 2024-03-04 05:36+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
@@ -5699,7 +5699,7 @@ msgid ""
 "   ipa host-allow-create-keytab test2 --users=tuser1\n"
 msgstr ""
 "\n"
-"호스트/장비\n"
+"호스트/장비(machines)\n"
 "\n"
 "A host represents a machine. It can be used in a number of contexts:\n"
 "- service entries are associated with a host\n"
@@ -5768,10 +5768,10 @@ msgid "A description of this host"
 msgstr "이와 같은 호스트의 설명"
 
 msgid "Locality"
-msgstr "로컬러티"
+msgstr "지역"
 
 msgid "Host locality (e.g. \"Baltimore, MD\")"
-msgstr "호스트 로컬러티 (예: \"Baltimore, MD\")"
+msgstr "호스트 지역 (예: \"메릴랜드주 볼티모어\")"
 
 msgid "Host location (e.g. \"Lab 2\")"
 msgstr "호스트 위치 (예: \" Lab 2\")"
@@ -5783,7 +5783,7 @@ msgid "Host hardware platform (e.g. \"Lenovo T61\")"
 msgstr "호스트 하드웨어 기술환경 (예: \"레노버 T61\")"
 
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
-msgstr "호스트 운영 체계 및 버전 (예: \"페도라 9\")"
+msgstr "호스트 운영 체제 및 버전 (예: \"페도라 9\")"
 
 msgid "User password"
 msgstr "사용자 비밀번호"
@@ -5804,7 +5804,7 @@ msgstr "임의 비밀번호"
 #: ipaserver/plugins/service.py:519 ipaserver/plugins/idviews.py:1060
 #: ipaserver/plugins/ca.py:114 ipaserver/plugins/cert.py:353
 msgid "Certificate"
-msgstr "인증서"
+msgstr "인증"
 
 #: ipaserver/plugins/host.py:555 ipaserver/plugins/service.py:501
 msgid "Principal name"
