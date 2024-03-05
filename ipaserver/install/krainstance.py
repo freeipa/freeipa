@@ -35,7 +35,10 @@ from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install.dogtaginstance import DogtagInstance
-from ipaserver.install.ca import lookup_random_serial_number_version
+from ipaserver.install.ca import (
+    lookup_random_serial_number_version,
+    lookup_hsm_configuration
+)
 
 
 logger = logging.getLogger(__name__)
@@ -190,6 +193,11 @@ class KRAInstance(DogtagInstance):
             cfg['pki_token_name'] = ca.token_name
             cfg['pki_token_password'] = self.token_password
             cfg['pki_sslserver_token'] = 'internal'
+            # Require OAEP for nfast devices as they do not support
+            # PKCS1v15.
+            (_unused, token_library_path) = lookup_hsm_configuration(api)
+            if 'nfast' in token_library_path:
+                cfg['pki_use_oaep_rsa_keywrap'] = True
 
         p12_tmpfile_name = None
 
