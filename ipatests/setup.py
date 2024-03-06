@@ -56,7 +56,7 @@ if __name__ == '__main__':
             'ipatests': ['prci_definitions/*'],
             'ipatests.test_custodia': ['*.conf', 'empty.conf.d/*.conf'],
             'ipatests.test_install': ['*.update'],
-            'ipatests.test_integration': ['scripts/*'],
+            'ipatests.test_integration': ['scripts/*', 'data/*'],
             'ipatests.test_ipaclient': ['data/*/*/*'],
             'ipatests.test_ipalib': ['data/*'],
             'ipatests.test_ipaplatform': ['data/*'],
@@ -77,6 +77,7 @@ if __name__ == '__main__':
             "python-ldap",
             "six",
             "pexpect",
+            "gcc",
         ],
         extras_require={
             "integration": ["dbus-python", "pyyaml", "ipaserver"],
