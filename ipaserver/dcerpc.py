@@ -1103,6 +1103,7 @@ class TrustDomainInstance:
 
         info.count = len(ftinfo_records)
         info.entries = ftinfo_records
+        another_domain.ftinfo_data = info
         return info
 
     def clear_ftinfo_conflict(self, another_domain, cinfo):
@@ -1778,6 +1779,7 @@ class TrustDomainJoins:
             return
 
         self.local_domain.ftinfo_records = []
+        self.local_domain.ftinfo_data = None
 
         realm_domains = self.api.Command.realmdomains_show()['result']
         # Use realmdomains' modification timestamp
