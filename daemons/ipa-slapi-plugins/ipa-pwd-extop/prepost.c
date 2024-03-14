@@ -1414,6 +1414,11 @@ done:
 }
 
 
+#ifdef USE_OP_NOTE_MFA_AUTH
+/* defined in ldap/servers/slapd/pblock.c in 389-ds but not exposed via slapi-plugin.h */
+extern void slapi_pblock_set_flag_operation_notes(Slapi_PBlock *pb, uint32_t opflag);
+#endif
+
 /* PRE BIND Operation
  *
  * Used for:
