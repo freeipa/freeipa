@@ -19,6 +19,8 @@ default: dnaThreshold: eval($SUBID_DNA_THRESHOLD)
 default: dnaSharedCfgDN: cn=subordinate-ids,cn=dna,cn=ipa,cn=etc,$SUFFIX
 default: dnaExcludeScope: cn=provisioning,$SUFFIX
 default: dnaInterval: eval($SUBID_COUNT)
+default: dnaRemoteBindMethod: SASL/GSSAPI
+default: dnaRemoteConnProtocol: LDAP
 add: aci: (targetattr = "dnaNextRange || dnaNextValue || dnaMaxValue")(version 3.0;acl "permission:Modify DNA Range";allow (write) groupdn = "ldap:///cn=Modify DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
 add: aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass")(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
 
