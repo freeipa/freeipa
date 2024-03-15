@@ -39,3 +39,7 @@ default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
 add:aci: (targetattr = "ipamaxdomainlevel || ipamindomainlevel")(version 3.0;acl "permission:Read domain level";allow (read, search, compare) groupdn = "ldap:///cn=Read domain level,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
+default: dnaRemoteBindMethod: SASL/GSSAPI
+default: dnaRemoteConnProtocol: LDAP
