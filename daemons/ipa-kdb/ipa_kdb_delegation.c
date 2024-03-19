@@ -99,120 +99,110 @@ static bool ipadb_match_member(char *princ, LDAPDerefRes *dres)
     return false;
 }
 
-static krb5_error_code ipadb_match_acl(krb5_context kcontext,
-                                       LDAPMessage *results,
-                                       krb5_const_principal client,
-                                       krb5_const_principal target)
+#if KRB5_KDB_DAL_MAJOR_VERSION >= 9
+static krb5_error_code
+ipadb_has_acl(krb5_context kcontext, LDAPMessage *ldap_acl, bool *res)
 {
     struct ipadb_context *ipactx;
-    krb5_error_code kerr;
-    LDAPMessage *lentry;
-    LDAPDerefRes *deref_results;
-    LDAPDerefRes *dres;
-    char *client_princ = NULL;
-    char *target_princ = NULL;
-    bool client_missing;
-    bool client_found;
-    bool target_found;
-    bool is_constraint_delegation = false;
-    size_t nrules = 0;
-    int ret;
+    bool in_res = false;
+    krb5_error_code kerr = 0;
 
     ipactx = ipadb_get_context(kcontext);
-    if (!ipactx) {
+    if (!ipactx)
         return KRB5_KDB_DBNOTINITED;
+
+    switch (ldap_count_entries(ipactx->lcontext, ldap_acl)) {
+    case 0:
+        break;
+    case -1:
+        kerr = EINVAL;
+        goto end;
+    default:
+        in_res = true;
+        goto end;
     }
 
-    if ((client != NULL) && (target != NULL)) {
-        kerr = krb5_unparse_name(kcontext, client, &client_princ);
-        if (kerr != 0) {
-            goto done;
-        }
-        kerr = krb5_unparse_name(kcontext, target, &target_princ);
-        if (kerr != 0) {
-            goto done;
-        }
-    } else {
-        is_constraint_delegation = true;
-    }
+end:
+    if (res)
+        *res = in_res;
 
-    lentry = ldap_first_entry(ipactx->lcontext, results);
-    if (!lentry) {
-        kerr = ENOENT;
-        goto done;
-    }
+    return kerr;
+}
+#endif
+
+static krb5_error_code
+ipadb_match_acl(krb5_context kcontext, LDAPMessage *ldap_acl,
+                krb5_const_principal client, krb5_const_principal target)
+{
+    struct ipadb_context *ipactx;
+    LDAPMessage *rule;
+    LDAPDerefRes *acis, *aci;
+    char *client_princ = NULL, *target_princ= NULL;
+    bool client_missing, client_found, target_found;
+    int lerr;
+    krb5_error_code kerr;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx)
+        return KRB5_KDB_DBNOTINITED;
+
+    kerr = krb5_unparse_name(kcontext, client, &client_princ);
+    if (kerr)
+        goto end;
+
+    kerr = krb5_unparse_name(kcontext, target, &target_princ);
+    if (kerr)
+        goto end;
 
     /* the default is that we fail */
-    kerr = ENOENT;
+    kerr = KRB5KDC_ERR_BADOPTION;
 
-    while (lentry) {
+    for (rule = ldap_first_entry(ipactx->lcontext, ldap_acl);
+         rule;
+         rule = ldap_next_entry(ipactx->lcontext, rule))
+    {
         /* both client and target must be found in the same ACI */
         client_missing = true;
         client_found = false;
         target_found = false;
 
-        ret = ipadb_ldap_deref_results(ipactx->lcontext, lentry,
-                                       &deref_results);
-        switch (ret) {
+        lerr = ipadb_ldap_deref_results(ipactx->lcontext, rule, &acis);
+        switch (lerr) {
         case 0:
-            for (dres = deref_results; dres; dres = dres->next) {
-                nrules++;
-                if (is_constraint_delegation) {
-                    /*
-                        Microsoft revised the S4U2Proxy rules for forwardable
-                        tickets.  All S4U2Proxy operations require forwardable
-                        evidence tickets, but S4U2Self should issue a
-                        forwardable ticket if the requesting service has no
-                        ok-to-auth-as-delegate bit but also no constrained
-                        delegation privileges for traditional S4U2Proxy.
-                        Implement these rules, extending the
-                        check_allowed_to_delegate() DAL method so that the KDC
-                        can ask if a principal has any delegation privileges.
-
-                        Since target principal is NULL and client principal is
-                        NULL in this case, we simply calculate number of rules associated
-                        with the server principal to decide whether to deny forwardable bit
-                    */
-                    continue;
-                }
-                if (client_found == false &&
-                    strcasecmp(dres->derefAttr, "ipaAllowToImpersonate") == 0) {
+            for (aci = acis; aci; aci = aci->next) {
+                if (!client_found &&
+                    0 == strcasecmp(aci->derefAttr, "ipaAllowToImpersonate"))
+                {
                     /* NOTE: client_missing is used to signal that the
                      * attribute was completely missing. This signals that
                      * ANY client is allowed to be impersonated.
                      * This logic is valid only for clients, not for targets */
                     client_missing = false;
-                    client_found = ipadb_match_member(client_princ, dres);
+                    client_found = ipadb_match_member(client_princ, aci);
                 }
-                if (target_found == false &&
-                    strcasecmp(dres->derefAttr, "ipaAllowedTarget") == 0) {
-                    target_found = ipadb_match_member(target_princ, dres);
+                if (!target_found &&
+                    0 == strcasecmp(aci->derefAttr, "ipaAllowedTarget"))
+                {
+                    target_found = ipadb_match_member(target_princ, aci);
                 }
             }
 
-            ldap_derefresponse_free(deref_results);
+            ldap_derefresponse_free(acis);
             break;
         case ENOENT:
             break;
         default:
-            kerr = ret;
-            goto done;
+            kerr = lerr;
+            goto end;
         }
 
-        if ((client_found == true || client_missing == true) &&
-            target_found == true) {
+        if ((client_found || client_missing) && target_found) {
             kerr = 0;
-            goto done;
+            goto end;
         }
-
-        lentry = ldap_next_entry(ipactx->lcontext, lentry);
     }
 
-    if (nrules > 0) {
-        kerr = 0;
-    }
-
-done:
+end:
     krb5_free_unparsed_name(kcontext, client_princ);
     krb5_free_unparsed_name(kcontext, target_princ);
     return kerr;
@@ -231,7 +221,7 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
     char *srv_principal = NULL;
     krb5_db_entry *proxy_entry = NULL;
     struct ipadb_e_data *ied_server, *ied_proxy;
-    LDAPMessage *res = NULL;
+    LDAPMessage *ldap_gcd_acl = NULL;
 
     if (proxy != NULL) {
         /* Handle the case where server == proxy, this is allowed in S4U */
@@ -269,27 +259,54 @@ krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_get_delegation_acl(kcontext, srv_principal, &res);
+    /* Load general constrained delegation rules */
+    kerr = ipadb_get_delegation_acl(kcontext, srv_principal, &ldap_gcd_acl);
     if (kerr) {
         goto done;
     }
 
-    kerr = ipadb_match_acl(kcontext, res, client, proxy);
-    if (kerr) {
-        goto done;
+#if KRB5_KDB_DAL_MAJOR_VERSION >= 9
+    /*
+     * Microsoft revised the S4U2Proxy rules for forwardable tickets.  All
+     * S4U2Proxy operations require forwardable evidence tickets, but
+     * S4U2Self should issue a forwardable ticket if the requesting service
+     * has no ok-to-auth-as-delegate bit but also no constrained delegation
+     * privileges for traditional S4U2Proxy.  Implement these rules,
+     * extending the check_allowed_to_delegate() DAL method so that the KDC
+     * can ask if a principal has any delegation privileges.
+     *
+     * If target service principal is NULL, and the impersonating service has
+     * at least one GCD rule, then succeed.
+     */
+    if (!proxy) {
+        bool has_gcd_rules;
+
+        kerr = ipadb_has_acl(kcontext, ldap_gcd_acl, &has_gcd_rules);
+        if (!kerr)
+            kerr = has_gcd_rules ? 0 : KRB5KDC_ERR_BADOPTION;
+    } else if (client) {
+#else
+    if (client && proxy) {
+#endif
+        kerr = ipadb_match_acl(kcontext, ldap_gcd_acl, client, proxy);
+    } else {
+        /* client and/or proxy is missing */
+        kerr = KRB5KDC_ERR_BADOPTION;
     }
+    if (kerr)
+        goto done;
 
 done:
     if (kerr) {
-#if KRB5_KDB_DAL_MAJOR_VERSION < 9
-        kerr = KRB5KDC_ERR_POLICY;
-#else
+#if KRB5_KDB_DAL_MAJOR_VERSION >= 9
         kerr = KRB5KDC_ERR_BADOPTION;
+#else
+        kerr = KRB5KDC_ERR_POLICY;
 #endif
     }
     ipadb_free_principal(kcontext, proxy_entry);
     krb5_free_unparsed_name(kcontext, srv_principal);
-    ldap_msgfree(res);
+    ldap_msgfree(ldap_gcd_acl);
     return kerr;
 }
 
