@@ -12,9 +12,7 @@ much more easily managed.
 
 The grouping mechanism has been built so that lookup is highly optimized
 and is basically reduced to a single search that uses the derefernce
-control. Speed is very important in this case because KDC operations
-time out very quickly and unless we add a caching layer in ipa-kdb we
-must keep the number of searches down to avoid client timeouts.
+control.
 
 The grouping mechanism is very simple a groupOfPrincipals object is
 introduced, this Auxiliary class have a single optional attribute called
@@ -112,8 +110,7 @@ kinit -kt /etc/httpd/conf/ipa.keytab HTTP/ipaserver.example.com
 kvno -U admin HTTP/ipaserver.example.com
 
 # Perform S4U2Proxy
-kvno -k /etc/httpd/conf/ipa.keytab -U admin -P HTTP/ipaserver.example.com
-ldap/ipaserver.example.com
+kvno -U admin -P ldap/ipaserver.example.com
 
 
 If this works it means you successfully impersonated the admin user with
@@ -123,6 +120,18 @@ Cleanup by removing the self-impersonation flag:
 modprinc -ok_to_auth_as_delegate HTTP/ipaserver.example.com
 
 Simo.
+
+
+If IPA is compiled with krb5 1.20 and newer (KDB DAL >= 9), then the
+behavior of S4U2Self changes: S4U2Self TGS-REQs produce forwardable
+tickets for all requesters, except if the requester principal is set as
+the proxy (impersonating service) in at least one `servicedelegation`
+rule. In this case, even if the rule has no target, the KDC will
+response to S4U2Self requests with a non-forwardable ticket. Hence,
+granting the `ok_to_auth_as_delegate` permission to the proxy service
+remains the only way for this service to obtain the evidence ticket
+required for general constrained delegation requests if this ticket is
+not provided by the client.
 
 
 [1]
