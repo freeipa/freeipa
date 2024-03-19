@@ -173,6 +173,7 @@ any user. However, to make it usable for S4U2Proxy (constrained delegation),
 the service ticket must be forwardable. In such case the Kerberos service would
 be able to impersonate user and requires an explicit administrative permission.
 
+
 IPA API provides a way to record this permission in both host and service
 command families. The following commands have option
 `--ok-to-auth-as-delegate=BOOL`:
@@ -182,6 +183,23 @@ command families. The following commands have option
 
 This flag is equivalent to MS-SFU's `TrustedToAuthenticationForDelegation`
 boolean setting.
+
+The behavior of FreeIPA regarding S4U2Self-granted tickets differs depending of
+the krb5 version that was used to compile:
+
+* **krb5 1.20+**: KDC will always respond to S4U2Self TGS-REQ with forwardable
+  tickets, except if the requester principal is set as impersonator service in
+  at least one general constrained delegation rule (even if the rule has no
+  target set)
+* **krb5 1.19-**: KDC will respond to all S4U2Self TGS-REQs with non-forwardable
+  tickets
+
+In both cases, granting the `ok-to-auth-as-delegate` permission to a principal
+will override this default behavior and allow it to obtain forwardable tickets
+to itself. In practice, it means the `ok-to-auth-as-delegate` permission is
+required if you want to grant a service the special privilege to impersonate
+any user against services configured as targets in a general constrained
+delegation rule.
 
 ### General constrained delegation design
 
