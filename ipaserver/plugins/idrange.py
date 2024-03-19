@@ -552,6 +552,12 @@ class idrange_add(LDAPCreate):
         self.obj.handle_ipabaserid(entry_attrs, options)
         self.obj.handle_iparangetype(entry_attrs, options,
                                      keep_objectclass=True)
+        self.add_message(
+            messages.ServiceRestartRequired(
+                service=services.knownservices.dirsrv.service_instance(""),
+                server=_('<all IPA servers>')
+            )
+        )
         return dn
 
 

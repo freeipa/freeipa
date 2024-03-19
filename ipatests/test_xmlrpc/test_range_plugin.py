@@ -372,6 +372,8 @@ IPA_LOCAL_RANGE_MOD_ERR = (
     "domain. Run `ipa help idrange` for more information"
 )
 
+dirsrv_instance = services.knownservices.dirsrv.service_instance("")
+
 
 @pytest.mark.tier1
 class test_range(Declarative):
@@ -464,6 +466,11 @@ class test_range(Declarative):
                 ),
                 value=testrange1,
                 summary=u'Added ID range "%s"' % (testrange1),
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=dirsrv_instance,
+                        server='<all IPA servers>').to_dict(),
+                ),
             ),
         ),
 
@@ -633,6 +640,11 @@ class test_range(Declarative):
                 ),
                 value=testrange2,
                 summary=u'Added ID range "%s"' % (testrange2),
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=dirsrv_instance,
+                        server='<all IPA servers>').to_dict(),
+                ),
             ),
         ),
 
@@ -792,6 +804,11 @@ class test_range(Declarative):
                 ),
                 value=unicode(domain7range1),
                 summary=u'Added ID range "%s"' % (domain7range1),
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=dirsrv_instance,
+                        server='<all IPA servers>').to_dict(),
+                ),
             ),
         ),
 
@@ -1079,6 +1096,11 @@ class test_range(Declarative):
                 ),
                 value=testrange9,
                 summary=u'Added ID range "%s"' % (testrange9),
+                messages=(
+                    messages.ServiceRestartRequired(
+                        service=dirsrv_instance,
+                        server='<all IPA servers>').to_dict(),
+                ),
             ),
         ),
 
