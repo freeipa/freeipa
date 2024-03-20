@@ -2753,17 +2753,18 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         Fixture to remove Server cert and revert the change.
         """
         instance = realm_to_serverid(self.master.domain.realm)
+        instance_dir = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
         self.master.run_command(
             [
                 "certutil",
                 "-L",
                 "-d",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                instance_dir,
                 "-n",
                 "Server-Cert",
                 "-a",
                 "-o",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                instance_dir
                 + "/Server-Cert.pem",
             ]
         )
@@ -2782,15 +2783,15 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
             [
                 "certutil",
                 "-d",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance,
+                instance_dir,
                 "-A",
                 "-i",
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                instance_dir
                 + "/Server-Cert.pem",
                 "-t",
                 "u,u,u",
                 "-f",
-                paths.IPA_NSSDB_PWDFILE_TXT,
+                "%s/pwdfile.txt" % instance_dir,
                 "-n",
                 "Server-Cert",
             ]
