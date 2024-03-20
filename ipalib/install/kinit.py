@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import logging
 import os
 import re
+import six
 import time
 
 import gssapi
@@ -33,7 +34,7 @@ service_pattern = re.compile(PATTERN_SERVICE)
 
 
 def validate_principal(principal):
-    if not isinstance(principal, str):
+    if not isinstance(principal, six.string_types):
         raise RuntimeError('Invalid principal: not a string')
     if ('/' in principal) and (' ' in principal):
         raise RuntimeError('Invalid principal: bad spacing')
@@ -47,9 +48,9 @@ def validate_principal(principal):
             if match is None:
                 raise RuntimeError('Invalid principal: cannot parse')
             else:
-                # service = match[1]
-                hostname = match[2]
-                # realm = match[3]
+                # service = match.groups()[0]
+                hostname = match.groups()[1]
+                # realm = match.groups()[2]
                 try:
                     validate_hostname(hostname)
                 except ValueError as e:
