@@ -26,7 +26,8 @@ import six
 from ipalib import api, errors, messages
 from ipalib import constants
 from ipaplatform import services
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, fuzzy_uuid, Fuzzy, fuzzy_sequence_of)
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
 from ipapython.dn import DN
@@ -374,6 +375,8 @@ IPA_LOCAL_RANGE_MOD_ERR = (
 
 dirsrv_instance = services.knownservices.dirsrv.service_instance("")
 
+fuzzy_restart_messages = fuzzy_sequence_of(Fuzzy(type=dict))
+
 
 @pytest.mark.tier1
 class test_range(Declarative):
@@ -610,7 +613,8 @@ class test_range(Declarative):
             desc='Delete ID range %r' % testrange1,
             command=('idrange_del', [testrange1], {}),
             expected=dict(
-                result=dict(failed=[]),
+                result=dict(failed=[],
+                            messages=fuzzy_restart_messages),
                 value=[testrange1],
                 summary=u'Deleted ID range "%s"' % testrange1,
             ),
@@ -714,7 +718,8 @@ class test_range(Declarative):
             desc='Delete ID range %r' % testrange2,
             command=('idrange_del', [testrange2], {}),
             expected=dict(
-                result=dict(failed=[]),
+                result=dict(failed=[],
+                            messages=fuzzy_restart_messages),
                 value=[testrange2],
                 summary=u'Deleted ID range "%s"' % testrange2,
             ),
