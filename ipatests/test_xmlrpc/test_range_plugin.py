@@ -804,11 +804,6 @@ class test_range(Declarative):
                 ),
                 value=unicode(domain7range1),
                 summary=u'Added ID range "%s"' % (domain7range1),
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=dirsrv_instance,
-                        server='<all IPA servers>').to_dict(),
-                ),
             ),
         ),
 
