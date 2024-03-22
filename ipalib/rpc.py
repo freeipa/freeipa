@@ -65,7 +65,7 @@ from ipalib.text import _
 from ipalib.util import create_https_connection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
-                             KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
+                             KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal, kinit
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -1014,6 +1014,8 @@ class RPCClient(Connectible):
 
         rpc_uri = self.env[self.env_rpc_uri_key]
         try:
+            if 'principal' in self.api.env and 'password' in self.api.env:
+                kinit(self.api.env.principal, self.api.env.password)
             principal = get_principal(ccache_name=ccache)
             stored_principal = getattr(context, 'principal', None)
             if principal != stored_principal:

@@ -184,6 +184,17 @@ def get_principal(ccache_name=None):
     except gssapi.exceptions.GSSError as e:
         raise errors.CCacheError(message=str(e))
 
+def kinit(principal, password, ccache_name=None):
+    name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+    acquire_credentials = gssapi.raw.acquire_cred_with_password(name, password.encode('utf-8'))
+    credentials = acquire_credentials.creds
+    # Store credentials in the cache
+    if not ccache_name:
+        gssapi.raw.store_cred(credentials, usage='initiate', overwrite=True, set_default=True)
+    else:
+        store = {'ccache': ccache_name}
+        gssapi.raw.store_cred_into(store, credentials, usage='initiate', overwrite=True)
+
 def get_credentials_if_valid(name=None, ccache_name=None):
     '''
     Obtains GSSAPI credentials with principal name from ccache. When no
