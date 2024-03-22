@@ -43,7 +43,7 @@ from ipaclient.install.client import (
 )
 from ipalib import api, errors
 from ipalib.install import sysrestore
-from ipalib.install.kinit import kinit_keytab
+from ipalib.kinit import kinit_keytab
 from ipalib.util import check_client_configuration
 from ipapython import ipautil
 from ipapython.ipa_log_manager import standard_logging_setup

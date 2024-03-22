@@ -38,16 +38,11 @@ import six
 
 import ipalib
 from ipalib import api
+from ipalib.kinit import kinit_keytab, kinit_password
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
 from ipapython.ipautil import run
-
-try:
-    # not available with client-only wheel packages
-    from ipalib.install.kinit import kinit_keytab, kinit_password
-except ImportError:
-    kinit_keytab = kinit_password = None
 
 try:
     # not available with client-only wheel packages
