@@ -12,7 +12,7 @@ import logging
 import os
 
 from ipalib import api
-from ipalib.install.kinit import kinit_keytab
+from ipalib.kinit import kinit_keytab
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import ipautil

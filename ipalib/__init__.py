@@ -955,12 +955,19 @@ class API(plugable.API):
 
             import os
             import ipalib
+            try:
+                from ipalib import kinit
+            except ImportError:
+                from ipalib.install import kinit
+
+            # set a custom ccache to isolate from the environment
+            ccache_name = "FILE:/path/to/tmp/service.ccache"
+            os.environ["KRB5CCNAME"] = ccache_name
 
             # optional: automatic authentication with a KRB5 keytab
-            os.environ.update(
-                KRB5_CLIENT_KTNAME="/path/to/service.keytab",
-                KRB5RCACHENAME="FILE:/path/to/tmp/service.ccache",
-            )
+            os.environ["KRB5_CLIENT_KTNAME"] = "/path/to/service.keytab"
+            # or with password
+            kinit.kinit_passwd("username", "password", ccache_name)
 
             # optional: override settings (once per process)
             overrides = {}

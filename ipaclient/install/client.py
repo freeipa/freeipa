@@ -40,7 +40,7 @@ from ipalib.constants import FQDN, IPAAPI_USER, MAXHOSTNAMELEN
 from ipalib.install import certmonger, certstore, service
 from ipalib.install import hostname as hostname_
 from ipalib.facts import is_ipa_client_configured, is_ipa_configured
-from ipalib.install.kinit import kinit_keytab, kinit_password, kinit_pkinit
+from ipalib.kinit import kinit_keytab, kinit_password, kinit_pkinit
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.rpc import delete_persistent_client_session_data
 from ipalib.util import (

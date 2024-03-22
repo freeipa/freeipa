@@ -34,6 +34,10 @@ KRB5KRB_AP_ERR_TKT_EXPIRED      = 2529638944 # Ticket expired
 KRB5_FCC_PERM                   = 2529639106 # Credentials cache permissions incorrect
 KRB5_CC_FORMAT                  = 2529639111 # Bad format in credentials cache
 KRB5_REALM_CANT_RESOLVE         = 2529639132 # Cannot resolve network address for KDC in requested realm
+# Cannot contact any KDC for requested realm
+KRB5_KDC_UNREACH = 2529639068
+# A service is not available that s required to process the request
+KRB5KDC_ERR_SVC_UNAVAILABLE = 2529638941
 
 # mechglue/gss_plugin.c: #define MAP_ERROR_BASE 0x04200000
 GSSPROXY_MAP_ERROR_BASE = 69206016
