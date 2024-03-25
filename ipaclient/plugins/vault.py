@@ -25,11 +25,12 @@ import io
 import json
 import logging
 import os
+import ssl
 import tempfile
 
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -39,7 +40,7 @@ from cryptography.hazmat.primitives.serialization import (
 
 from ipaclient.frontend import MethodOverride
 from ipalib import x509
-from ipalib.constants import USER_CACHE_PATH
+from ipalib import constants
 from ipalib.frontend import Local, Method, Object
 from ipalib.util import classproperty
 from ipalib import api, errors
@@ -113,8 +114,8 @@ def encrypt(data, symmetric_key=None, public_key=None):
         return public_key_obj.encrypt(
             data,
             padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA1()),
-                algorithm=hashes.SHA1(),
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
                 label=None
             )
         )
@@ -144,8 +145,8 @@ def decrypt(data, symmetric_key=None, private_key=None):
             return private_key_obj.decrypt(
                 data,
                 padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA1()),
-                    algorithm=hashes.SHA1(),
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
                     label=None
                 )
             )
@@ -537,41 +538,48 @@ class vault_mod(Local):
         return response
 
 
-class _TransportCertCache(object):
+class _KraConfigCache:
+    """The KRA config cache stores vaultconfig-show result.
+    """
     def __init__(self):
         self._dirname = os.path.join(
-                USER_CACHE_PATH, 'ipa', 'kra-transport-certs'
+            constants.USER_CACHE_PATH, 'ipa', 'kra-config'
         )
 
     def _get_filename(self, domain):
-        basename = DNSName(domain).ToASCII() + '.pem'
+        basename = DNSName(domain).ToASCII() + '.json'
         return os.path.join(self._dirname, basename)
 
-    def load_cert(self, domain):
-        """Load cert from cache
+    def load(self, domain):
+        """Load config from cache
 
         :param domain: IPA domain
-        :return: cryptography.x509.Certificate or None
+        :return: dict or None
         """
         filename = self._get_filename(domain)
         try:
             try:
-                return x509.load_certificate_from_file(filename)
-            except EnvironmentError as e:
+                with open(filename) as f:
+                    return json.load(f)
+            except IOError as e:
                 if e.errno != errno.ENOENT:
                     raise
         except Exception:
             logger.warning("Failed to load %s", filename, exc_info=True)
 
-    def store_cert(self, domain, transport_cert):
-        """Store a new cert or override existing cert
+    def store(self, domain, response):
+        """Store config in cache
 
         :param domain: IPA domain
-        :param transport_cert: cryptography.x509.Certificate
-        :return: True if cert was stored successfully
+        :param config: ipa vaultconfig-show response
+        :return: True if config was stored successfully
         """
+        config = response['result'].copy()
+        # store certificate as PEM-encoded ASCII
+        config['transport_cert'] = ssl.DER_cert_to_PEM_cert(
+            config['transport_cert']
+        )
         filename = self._get_filename(domain)
-        pem = transport_cert.public_bytes(serialization.Encoding.PEM)
         try:
             try:
                 os.makedirs(self._dirname)
@@ -579,9 +587,9 @@ class _TransportCertCache(object):
                 if e.errno != errno.EEXIST:
                     raise
             with tempfile.NamedTemporaryFile(dir=self._dirname, delete=False,
-                                             mode='wb') as f:
+                                             mode='w') as f:
                 try:
-                    f.write(pem)
+                    json.dump(config, f)
                     f.flush()
                     os.fsync(f.fileno())
                     f.close()
@@ -595,8 +603,8 @@ class _TransportCertCache(object):
         else:
             return True
 
-    def remove_cert(self, domain):
-        """Remove a cert from cache, ignores errors
+    def remove(self, domain):
+        """Remove a config from cache, ignores errors
 
         :param domain: IPA domain
         :return: True if cert was found and removed
@@ -612,7 +620,7 @@ class _TransportCertCache(object):
             return True
 
 
-_transport_cert_cache = _TransportCertCache()
+_kra_config_cache = _KraConfigCache()
 
 
 @register(override=True, no_fail=True)
@@ -627,13 +635,8 @@ class vaultconfig_show(MethodOverride):
 
         response = super(vaultconfig_show, self).forward(*args, **options)
 
-        # cache transport certificate
-        transport_cert = x509.load_der_x509_certificate(
-                response['result']['transport_cert'])
-
-        _transport_cert_cache.store_cert(
-            self.api.env.domain, transport_cert
-        )
+        # cache config
+        _kra_config_cache.store(self.api.env.domain, response)
 
         if file:
             with open(file, 'wb') as f:
@@ -643,20 +646,89 @@ class vaultconfig_show(MethodOverride):
 
 
 class ModVaultData(Local):
-    def _generate_session_key(self):
-        key_length = max(algorithms.TripleDES.key_sizes)
-        algo = algorithms.TripleDES(os.urandom(key_length // 8))
-        return algo
+    def _generate_session_key(self, name):
+        if name not in constants.VAULT_WRAPPING_SUPPORTED_ALGOS:
+            msg = _("{algo} is not a supported vault wrapping algorithm")
+            raise errors.ValidationError(msg.format(algo=repr(name)))
+        if name == constants.VAULT_WRAPPING_AES128_CBC:
+            return algorithms.AES(os.urandom(128 // 8))
+        elif name == constants.VAULT_WRAPPING_3DES:
+            return algorithms.TripleDES(os.urandom(196 // 8))
+        else:
+            # unreachable
+            raise ValueError(name)
+
+    def _get_vaultconfig(self, force_refresh=False):
+        config = None
+        if not force_refresh:
+            config = _kra_config_cache.load(self.api.env.domain)
+        if config is None:
+            # vaultconfig_show also caches data
+            response = self.api.Command.vaultconfig_show()
+            config = response['result']
+            transport_cert = x509.load_der_x509_certificate(
+                config['transport_cert']
+            )
+        else:
+            # cached JSON uses PEM-encoded ASCII string
+            transport_cert = x509.load_pem_x509_certificate(
+                config['transport_cert'].encode('ascii')
+            )
+
+        default_algo = config.get('wrapping_default_algorithm')
+        if default_algo is None:
+            # old server
+            wrapping_algo = constants.VAULT_WRAPPING_3DES
+        elif default_algo in constants.VAULT_WRAPPING_SUPPORTED_ALGOS:
+            # try to use server default
+            wrapping_algo = default_algo
+        else:
+            # prefer server's sorting order
+            for algo in config['wrapping_supported_algorithms']:
+                if algo in constants.VAULT_WRAPPING_SUPPORTED_ALGOS:
+                    wrapping_algo = algo
+                    break
+            else:
+                raise errors.ValidationError(
+                    "No overlapping wrapping algorithm between server and "
+                    "client."
+                )
+        return transport_cert, wrapping_algo
 
     def _do_internal(self, algo, transport_cert, raise_unexpected,
-                     *args, **options):
+                     use_oaep=False, *args, **options):
         public_key = transport_cert.public_key()
 
         # wrap session key with transport certificate
-        wrapped_session_key = public_key.encrypt(
-            algo.key,
-            padding.PKCS1v15()
-        )
+        # KRA may be configured using either the default PKCS1v15 or RSA-OAEP.
+        # there is no way to query this info using the REST interface.
+        if not use_oaep:
+            # PKCS1v15() causes an OpenSSL exception when FIPS is enabled
+            # if so, we fallback to RSA-OAEP
+            try:
+                wrapped_session_key = public_key.encrypt(
+                    algo.key,
+                    padding.PKCS1v15()
+                )
+            except ValueError:
+                wrapped_session_key = public_key.encrypt(
+                    algo.key,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                        algorithm=hashes.SHA256(),
+                        label=None
+                    )
+                )
+        else:
+            wrapped_session_key = public_key.encrypt(
+                algo.key,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None
+                )
+            )
+
         options['session_key'] = wrapped_session_key
 
         name = self.name + '_internal'
@@ -666,31 +738,33 @@ class ModVaultData(Local):
         except (errors.InternalError,
                 errors.ExecutionError,
                 errors.GenericError):
-            _transport_cert_cache.remove_cert(self.api.env.domain)
-            if raise_unexpected:
+            _kra_config_cache.remove(self.api.env.domain)
+            if raise_unexpected and use_oaep:
                 raise
 
-    def internal(self, algo, *args, **options):
+    def internal(self, algo, transport_cert, *args, **options):
         """
         Calls the internal counterpart of the command.
         """
-        domain = self.api.env.domain
-
         # try call with cached transport certificate
-        transport_cert = _transport_cert_cache.load_cert(domain)
-        if transport_cert is not None:
-            result = self._do_internal(algo, transport_cert, False,
-                                       *args, **options)
-            if result is not None:
-                return result
+        result = self._do_internal(algo, transport_cert, False,
+                                   False, *args, **options)
+        if result is not None:
+            return result
 
         # retrieve transport certificate (cached by vaultconfig_show)
-        response = self.api.Command.vaultconfig_show()
-        transport_cert = x509.load_der_x509_certificate(
-            response['result']['transport_cert'])
+        transport_cert = self._get_vaultconfig(force_refresh=True)[0]
+
         # call with the retrieved transport certificate
+        result = self._do_internal(algo, transport_cert, True,
+                                   False, *args, **options)
+
+        if result is not None:
+            return result
+
+        # call and use_oaep this time, last attempt
         return self._do_internal(algo, transport_cert, True,
-                                 *args, **options)
+                                 True, *args, **options)
 
 
 @register(no_fail=True)
@@ -750,7 +824,8 @@ class vault_archive(ModVaultData):
             if option.name not in ('nonce',
                                    'session_key',
                                    'vault_data',
-                                   'version'):
+                                   'version',
+                                   'wrapping_algo'):
                 yield option
         for option in super(vault_archive, self).get_options():
             yield option
@@ -767,7 +842,7 @@ class vault_archive(ModVaultData):
     def _wrap_data(self, algo, json_vault_data):
         """Encrypt data with wrapped session key and transport cert
 
-        :param bytes algo: wrapping algorithm instance
+        :param algo: wrapping algorithm instance
         :param bytes json_vault_data: dumped vault data
         :return:
         """
@@ -919,15 +994,24 @@ class vault_archive(ModVaultData):
 
         json_vault_data = json.dumps(vault_data).encode('utf-8')
 
+        # get config
+        transport_cert, wrapping_algo = self._get_vaultconfig()
+        # let options override wrapping algo
+        # For backwards compatibility do not send old legacy wrapping algo
+        # to server. Only send the option when non-3DES is used.
+        wrapping_algo = options.pop('wrapping_algo', wrapping_algo)
+        if wrapping_algo != constants.VAULT_WRAPPING_3DES:
+            options['wrapping_algo'] = wrapping_algo
+
         # generate session key
-        algo = self._generate_session_key()
+        algo = self._generate_session_key(wrapping_algo)
         # wrap vault data
         nonce, wrapped_vault_data = self._wrap_data(algo, json_vault_data)
         options.update(
             nonce=nonce,
             vault_data=wrapped_vault_data
         )
-        return self.internal(algo, *args, **options)
+        return self.internal(algo, transport_cert, *args, **options)
 
 
 @register(no_fail=True)
@@ -993,7 +1077,7 @@ class vault_retrieve(ModVaultData):
 
     def get_options(self):
         for option in self.api.Command.vault_retrieve_internal.options():
-            if option.name not in ('session_key', 'version'):
+            if option.name not in ('session_key', 'version', 'wrapping_algo'):
                 yield option
         for option in super(vault_retrieve, self).get_options():
             yield option
@@ -1051,10 +1135,19 @@ class vault_retrieve(ModVaultData):
         vault = self.api.Command.vault_show(*args, **options)['result']
         vault_type = vault['ipavaulttype'][0]
 
+        # get config
+        transport_cert, wrapping_algo = self._get_vaultconfig()
+        # let options override wrapping algo
+        # For backwards compatibility do not send old legacy wrapping algo
+        # to server. Only send the option when non-3DES is used.
+        wrapping_algo = options.pop('wrapping_algo', wrapping_algo)
+        if wrapping_algo != constants.VAULT_WRAPPING_3DES:
+            options['wrapping_algo'] = wrapping_algo
+
         # generate session key
-        algo = self._generate_session_key()
+        algo = self._generate_session_key(wrapping_algo)
         # send retrieval request to server
-        response = self.internal(algo, *args, **options)
+        response = self.internal(algo, transport_cert, *args, **options)
         # unwrap data with session key
         vault_data = self._unwrap_response(
             algo,

@@ -23,6 +23,10 @@ from ipalib.frontend import Command, Object
 from ipalib import api, errors
 from ipalib import Bytes, Flag, Str, StrEnum
 from ipalib import output
+from ipalib.constants import (
+    VAULT_WRAPPING_SUPPORTED_ALGOS, VAULT_WRAPPING_DEFAULT_ALGO,
+    VAULT_WRAPPING_3DES, VAULT_WRAPPING_AES128_CBC,
+)
 from ipalib.crud import PKQuery, Retrieve
 from ipalib.parameters import Principal
 from ipalib.plugable import Registry
@@ -39,14 +43,9 @@ from ipaserver.masters import is_service_enabled
 if api.env.in_server:
     import pki.account
     import pki.key
-    # pylint: disable=no-member
-    try:
-        # pki >= 10.4.0
-        from pki.crypto import DES_EDE3_CBC_OID
-    except ImportError:
-        DES_EDE3_CBC_OID = pki.key.KeyClient.DES_EDE3_CBC_OID
-    # pylint: enable=no-member
-
+    from pki.crypto import DES_EDE3_CBC_OID
+    from pki.crypto import AES_128_CBC_OID
+    from pki import PKIException
 
 if six.PY3:
     unicode = str
@@ -654,6 +653,20 @@ class vault(LDAPObject):
         ),
     )
 
+    def _translate_algorithm(self, name):
+        if name is None:
+            name = VAULT_WRAPPING_DEFAULT_ALGO
+        if name not in VAULT_WRAPPING_SUPPORTED_ALGOS:
+            msg = _("{algo} is not a supported vault wrapping algorithm")
+            raise errors.ValidationError(msg.format(algo=name))
+        if name == VAULT_WRAPPING_3DES:
+            return DES_EDE3_CBC_OID
+        elif name == VAULT_WRAPPING_AES128_CBC:
+            return AES_128_CBC_OID
+        else:
+            # unreachable
+            raise ValueError(name)
+
     def get_dn(self, *keys, **options):
         """
         Generates vault DN from parameters.
@@ -992,14 +1005,18 @@ class vaultconfig_show(Retrieve):
     )
 
     def execute(self, *args, **options):
-
         if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
+        config = dict(
+            wrapping_supported_algorithms=VAULT_WRAPPING_SUPPORTED_ALGOS,
+            wrapping_default_algorithm=VAULT_WRAPPING_DEFAULT_ALGO,
+        )
+
         with self.api.Backend.kra.get_client() as kra_client:
             transport_cert = kra_client.system_certs.get_transport_cert()
-            config = {'transport_cert': transport_cert.binary}
+            config['transport_cert'] = transport_cert.binary
 
         self.api.Object.config.show_servroles_attributes(
             config, "KRA server", **options)
@@ -1028,6 +1045,13 @@ class vault_archive_internal(PKQuery):
             'nonce',
             doc=_('Nonce'),
         ),
+        StrEnum(
+            'wrapping_algo?',
+            doc=_('Key wrapping algorithm'),
+            values=VAULT_WRAPPING_SUPPORTED_ALGOS,
+            default=VAULT_WRAPPING_3DES,
+            autofill=True,
+        ),
     )
 
     has_output = output.standard_entry
@@ -1043,6 +1067,9 @@ class vault_archive_internal(PKQuery):
         wrapped_vault_data = options.pop('vault_data')
         nonce = options.pop('nonce')
         wrapped_session_key = options.pop('session_key')
+
+        wrapping_algo = options.pop('wrapping_algo', None)
+        algorithm_oid = self.obj._translate_algorithm(wrapping_algo)
 
         # retrieve vault info
         vault = self.api.Command.vault_show(*args, **options)['result']
@@ -1065,16 +1092,21 @@ class vault_archive_internal(PKQuery):
                     pki.key.KeyClient.KEY_STATUS_INACTIVE)
 
             # forward wrapped data to KRA
-            kra_client.keys.archive_encrypted_data(
-                client_key_id,
-                pki.key.KeyClient.PASS_PHRASE_TYPE,
-                wrapped_vault_data,
-                wrapped_session_key,
-                algorithm_oid=DES_EDE3_CBC_OID,
-                nonce_iv=nonce,
-            )
-
-            kra_account.logout()
+            try:
+                kra_client.keys.archive_encrypted_data(
+                    client_key_id,
+                    pki.key.KeyClient.PASS_PHRASE_TYPE,
+                    wrapped_vault_data,
+                    wrapped_session_key,
+                    algorithm_oid=algorithm_oid,
+                    nonce_iv=nonce,
+                )
+            except PKIException as e:
+                kra_account.logout()
+                raise errors.EncodingError(
+                    message=_("Unable to archive key: %s") % e)
+            finally:
+                kra_account.logout()
 
         response = {
             'value': args[-1],
@@ -1096,6 +1128,13 @@ class vault_retrieve_internal(PKQuery):
             'session_key',
             doc=_('Session key wrapped with transport certificate'),
         ),
+        StrEnum(
+            'wrapping_algo?',
+            doc=_('Key wrapping algorithm'),
+            values=VAULT_WRAPPING_SUPPORTED_ALGOS,
+            default=VAULT_WRAPPING_3DES,
+            autofill=True,
+        ),
     )
 
     has_output = output.standard_entry
@@ -1109,6 +1148,9 @@ class vault_retrieve_internal(PKQuery):
                 format=_('KRA service is not enabled'))
 
         wrapped_session_key = options.pop('session_key')
+
+        wrapping_algo = options.pop('wrapping_algo', None)
+        algorithm_oid = self.obj._translate_algorithm(wrapping_algo)
 
         # retrieve vault info
         vault = self.api.Command.vault_show(*args, **options)['result']
@@ -1130,12 +1172,21 @@ class vault_retrieve_internal(PKQuery):
 
             key_info = response.key_infos[0]
 
-            # retrieve encrypted data from KRA
-            key = kra_client.keys.retrieve_key(
-                key_info.get_key_id(),
-                wrapped_session_key)
+            # XXX hack
+            kra_client.keys.encrypt_alg_oid = algorithm_oid
 
-            kra_account.logout()
+            # retrieve encrypted data from KRA
+            try:
+
+                key = kra_client.keys.retrieve_key(
+                    key_info.get_key_id(),
+                    wrapped_session_key)
+            except PKIException as e:
+                kra_account.logout()
+                raise errors.EncodingError(
+                    message=_("Unable to retrieve key: %s") % e)
+            finally:
+                kra_account.logout()
 
         response = {
             'value': args[-1],

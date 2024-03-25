@@ -23,9 +23,12 @@ All constants centralised in one file.
 """
 
 import os
+import string
 import socket
 from ipapython.dn import DN
 from ipapython.version import VERSION, API_VERSION
+from cryptography.hazmat.primitives.ciphers import algorithms, modes
+from cryptography.hazmat.backends.openssl.backend import backend
 
 try:
     FQDN = socket.getfqdn()
@@ -340,3 +343,17 @@ USER_CACHE_PATH = (
 )
 
 SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
+
+# vault data wrapping algorithms
+VAULT_WRAPPING_3DES = u'des-ede3-cbc'
+VAULT_WRAPPING_AES128_CBC = u'aes-128-cbc'
+VAULT_WRAPPING_SUPPORTED_ALGOS = (
+    # new default and supported since pki-kra >= 10.4
+    VAULT_WRAPPING_AES128_CBC,
+)
+VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_AES128_CBC
+
+# Add 3DES for backwards compatibility if supported
+if backend.cipher_supported(algorithms.TripleDES(b"\x00" * 8),
+                            modes.CBC(b"\x00" * 8)):
+    VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
