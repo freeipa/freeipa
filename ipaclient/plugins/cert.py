@@ -43,25 +43,24 @@ class CertRetrieveOverride(MethodOverride):
     )
 
     def forward(self, *args, **options):
+        filename = None
         if 'certificate_out' in options:
-            certificate_out = options.pop('certificate_out')
-            try:
-                util.check_writable_file(certificate_out)
-            except errors.FileError as e:
-                raise errors.ValidationError(name='certificate-out',
-                                             error=str(e))
-        else:
-            certificate_out = None
+            filename = options.pop('certificate_out')
 
         result = super(CertRetrieveOverride, self).forward(*args, **options)
 
-        if certificate_out is not None:
+        if filename is not None:
+            try:
+                util.check_writable_file(filename)
+            except errors.FileError as e:
+                raise errors.ValidationError(name='certificate-out',
+                                             error=str(e))
             if options.get('chain', False):
                 certs = result['result']['certificate_chain']
             else:
                 certs = [base64.b64decode(result['result']['certificate'])]
             certs = (x509.load_der_x509_certificate(cert) for cert in certs)
-            x509.write_certificate_list(certs, certificate_out)
+            x509.write_certificate_list(certs, filename)
 
         return result
 
