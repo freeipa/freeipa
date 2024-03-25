@@ -38,6 +38,12 @@ const char *ipapwd_password_max_len_errmsg = \
     TOSTR(IPAPWD_PASSWORD_MAX_LEN) \
     " chars)!";
 
+/* Case-insensitive string values to by parsed as boolean true */
+static const char *const conf_yes[] = {
+    "y", "yes", "true", "t", "1", "on",
+    NULL,
+};
+
 /* Salt types */
 #define KRB5P_SALT_SIZE 16
 
@@ -1236,4 +1242,16 @@ done:
         free(buf);
     }
     return ret;
+}
+
+bool ipa_krb5_parse_bool(const char *str)
+{
+    const char *const *p;
+
+    for (p = conf_yes; *p; p++) {
+        if (!strcasecmp(*p, str))
+            return true;
+    }
+
+    return false;
 }
