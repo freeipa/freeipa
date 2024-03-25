@@ -765,9 +765,12 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                  "krbTicketFlags", &result);
     if (ret == 0) {
         entry->attributes = result;
-    } else {
-        *polmask |= TKTFLAGS_BIT;
     }
+    /* Since principal, global policy, and virtual ticket flags are combined,
+     * they must always be resolved, except if we are in IPA setup mode (because
+     * ticket policies and virtual ticket flags are irrelevant in this case). */
+    if (!ipactx->override_restrictions)
+        *polmask |= TKTFLAGS_BIT;
 
     ret = ipadb_ldap_attr_to_int(lcontext, lentry,
                                  "krbMaxTicketLife", &result);
@@ -971,7 +974,12 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         goto done;
     }
     if (ret == 0) {
-        ied->ipa_user = true;
+        if (1 == krb5_princ_size(kcontext, entry->princ)) {
+            /* A principal must be a POSIX account AND have only one element to
+             * be considered a user (this is to filter out CIFS principals). */
+            ied->ipa_user = true;
+        }
+
         ret = ipadb_ldap_attr_to_str(lcontext, lentry,
                                      "uid", &uidstring);
         if (ret != 0 && ret != ENOENT) {
@@ -1339,23 +1347,150 @@ done:
     return ret;
 }
 
-static krb5_flags maybe_require_preauth(struct ipadb_context *ipactx,
-                                        krb5_db_entry *entry)
+static krb5_error_code
+are_final_tktflags(struct ipadb_context *ipactx, krb5_db_entry *entry,
+                   bool *final_tktflags)
 {
-    const struct ipadb_global_config *config;
+    krb5_error_code kerr;
     struct ipadb_e_data *ied;
+    char *str = NULL;
+    bool in_final_tktflags = false;
 
-    config = ipadb_get_global_config(ipactx);
-    if (config && config->disable_preauth_for_spns) {
-        ied = (struct ipadb_e_data *)entry->e_data;
-        if (ied && ied->ipa_user != true) {
-            /* not a user, assume SPN */
-            return 0;
-        }
+    kerr = ipadb_get_edata(entry, &ied);
+    if (kerr)
+        goto end;
+
+    if (!ied->ipa_user) {
+        kerr = 0;
+        goto end;
     }
 
-    /* By default require preauth for all principals */
-    return KRB5_KDB_REQUIRES_PRE_AUTH;
+    kerr = krb5_dbe_get_string(ipactx->kcontext, entry,
+                               IPA_KDB_STRATTR_FINAL_USER_TKTFLAGS, &str);
+    if (kerr)
+        goto end;
+
+    in_final_tktflags = str && ipa_krb5_parse_bool(str);
+
+end:
+    if (final_tktflags)
+        *final_tktflags = in_final_tktflags;
+
+    krb5_dbe_free_string(ipactx->kcontext, str);
+    return kerr;
+}
+
+static krb5_error_code
+add_virtual_static_tktflags(struct ipadb_context *ipactx, krb5_db_entry *entry,
+                            krb5_flags *tktflags)
+{
+    krb5_error_code kerr;
+    krb5_flags vsflg;
+    bool final_tktflags;
+    const struct ipadb_global_config *gcfg;
+    struct ipadb_e_data *ied;
+
+    vsflg = IPA_KDB_TKTFLAGS_VIRTUAL_STATIC_MANDATORY;
+
+    kerr = ipadb_get_edata(entry, &ied);
+    if (kerr)
+        goto end;
+
+    kerr = are_final_tktflags(ipactx, entry, &final_tktflags);
+    if (kerr)
+        goto end;
+
+    /* In practice, principal ticket flags cannot be final for SPNs. */
+    if (!final_tktflags)
+        vsflg |= ied->ipa_user ? IPA_KDB_TKTFLAGS_VIRTUAL_STATIC_DEFAULTS_USER
+                               : IPA_KDB_TKTFLAGS_VIRTUAL_STATIC_DEFAULTS_SPN;
+
+    if (!ied->ipa_user) {
+        gcfg = ipadb_get_global_config(ipactx);
+        if (gcfg && gcfg->disable_preauth_for_spns)
+            vsflg &= ~KRB5_KDB_REQUIRES_PRE_AUTH;
+    }
+
+    if (tktflags)
+        *tktflags |= vsflg;
+
+end:
+    return kerr;
+}
+
+static krb5_error_code
+get_virtual_static_tktflags_mask(struct ipadb_context *ipactx,
+                                 krb5_db_entry *entry, krb5_flags *mask)
+{
+    krb5_error_code kerr;
+    krb5_flags flags = IPA_KDB_TKTFLAGS_VIRTUAL_MANAGED_ALL;
+
+    kerr = add_virtual_static_tktflags(ipactx, entry, &flags);
+    if (kerr)
+        goto end;
+
+    if (mask)
+        *mask = ~flags;
+
+    kerr = 0;
+
+end:
+    return kerr;
+}
+
+/* Add ticket flags from the global ticket policy if it exists, otherwise
+ * succeed. If the global ticket policy is set, the "exists" parameter is set to
+ * true. */
+static krb5_error_code
+add_global_ticket_policy_flags(struct ipadb_context *ipactx,
+                               bool *gtpol_exists, krb5_flags *tktflags)
+{
+    krb5_error_code kerr;
+    char *policy_dn;
+    char *tktflags_attr[] = { "krbticketflags", NULL };
+    LDAPMessage *res = NULL, *first;
+    int ec, ldap_tktflags;
+    bool in_gtpol_exists = false;
+
+    ec = asprintf(&policy_dn, "cn=%s,cn=kerberos,%s", ipactx->realm,
+                  ipactx->base);
+    if (-1 == ec) {
+        kerr = ENOMEM;
+        goto end;
+    }
+
+    kerr = ipadb_simple_search(ipactx, policy_dn, LDAP_SCOPE_BASE,
+                               "(objectclass=krbticketpolicyaux)",
+                               tktflags_attr, &res);
+    if (kerr) {
+        if (KRB5_KDB_NOENTRY == kerr)
+            kerr = 0;
+        goto end;
+    }
+
+    first = ldap_first_entry(ipactx->lcontext, res);
+    if (!first) {
+        kerr = 0;
+        goto end;
+    }
+
+    in_gtpol_exists = true;
+
+    ec = ipadb_ldap_attr_to_int(ipactx->lcontext, first, "krbticketflags",
+                                &ldap_tktflags);
+    if (0 == ec && tktflags) {
+        *tktflags |= (krb5_flags)ldap_tktflags;
+    }
+
+    kerr = 0;
+
+end:
+    if (gtpol_exists)
+        *gtpol_exists = in_gtpol_exists;
+
+    ldap_msgfree(res);
+    free(policy_dn);
+    return kerr;
 }
 
 static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
@@ -1368,6 +1503,7 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
     char *policy_dn = NULL;
     LDAPMessage *res = NULL;
     LDAPMessage *first;
+    bool final_tktflags, has_local_tktpolicy = true;
     int result;
     int ret;
 
@@ -1376,12 +1512,18 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
+    kerr = are_final_tktflags(ipactx, entry, &final_tktflags);
+    if (kerr)
+        goto done;
+
     ret = ipadb_ldap_attr_to_str(ipactx->lcontext, lentry,
                                  "krbticketpolicyreference", &policy_dn);
     switch (ret) {
     case 0:
         break;
     case ENOENT:
+        /* If no principal ticket policy, fallback to the global one. */
+        has_local_tktpolicy = false;
         ret = asprintf(&policy_dn, "cn=%s,cn=kerberos,%s",
                                    ipactx->realm, ipactx->base);
         if (ret == -1) {
@@ -1425,12 +1567,13 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
                 }
             }
             if (polmask & TKTFLAGS_BIT) {
-                ret = ipadb_ldap_attr_to_int(ipactx->lcontext, first,
-                                             "krbticketflags", &result);
-                if (ret == 0) {
-                    entry->attributes |= result;
-                } else {
-                    entry->attributes |= maybe_require_preauth(ipactx, entry);
+                /* If global ticket policy is being applied, set flags only if
+                 * user principal ticket flags are not final. */
+                if (has_local_tktpolicy || !final_tktflags) {
+                    ret = ipadb_ldap_attr_to_int(ipactx->lcontext, first,
+                                                 "krbticketflags", &result);
+                    if (ret == 0)
+                        entry->attributes |= result;
                 }
             }
 
@@ -1454,11 +1597,25 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
         if (polmask & MAXRENEWABLEAGE_BIT) {
             entry->max_renewable_life = 604800;
         }
-        if (polmask & TKTFLAGS_BIT) {
-            entry->attributes |= maybe_require_preauth(ipactx, entry);
-        }
 
         kerr = 0;
+    }
+
+    if (polmask & TKTFLAGS_BIT) {
+        /* If the principal ticket flags were applied, then flags from the
+         * global ticket policy has to be applied atop of them if user principal
+         * ticket flags are not final. */
+        if (has_local_tktpolicy && !final_tktflags) {
+            kerr = add_global_ticket_policy_flags(ipactx, NULL,
+                                                  &entry->attributes);
+            if (kerr)
+            goto done;
+        }
+
+        /* Virtual static ticket flags are set regardless of database content */
+        kerr = add_virtual_static_tktflags(ipactx, entry, &entry->attributes);
+        if (kerr)
+            goto done;
     }
 
 done:
@@ -2048,6 +2205,36 @@ static void ipadb_mods_free_tip(struct ipadb_mods *imods)
     imods->tip--;
 }
 
+/* Use LDAP REPLACE operation to remove an attribute.
+ * Contrary to the DELETE operation, it will not fail if the attribute does not
+ * exist. */
+static krb5_error_code
+ipadb_ldap_replace_remove(struct ipadb_mods *imods, char *attribute)
+{
+    krb5_error_code kerr;
+    LDAPMod *m = NULL;
+
+    kerr = ipadb_mods_new(imods, &m);
+    if (kerr)
+        return kerr;
+
+    m->mod_op = LDAP_MOD_REPLACE;
+    m->mod_type = strdup(attribute);
+    if (!m->mod_type) {
+        kerr = ENOMEM;
+        goto end;
+    }
+
+    m->mod_values = NULL;
+
+    kerr = 0;
+
+end:
+    if (kerr)
+        ipadb_mods_free_tip(imods);
+    return kerr;
+}
+
 static krb5_error_code ipadb_get_ldap_mod_str(struct ipadb_mods *imods,
                                               char *attribute, char *value,
                                               int mod_op)
@@ -2464,6 +2651,93 @@ static krb5_error_code ipadb_get_ldap_mod_auth_ind(krb5_context kcontext,
     return ret;
 }
 
+static krb5_error_code
+update_tktflags(krb5_context kcontext, struct ipadb_mods *imods,
+                krb5_db_entry *entry, int mod_op)
+{
+    krb5_error_code kerr;
+    struct ipadb_context *ipactx;
+    struct ipadb_e_data *ied;
+    bool final_tktflags;
+    krb5_flags tktflags_mask;
+    int tktflags;
+
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto end;
+    }
+
+    if (ipactx->override_restrictions) {
+        /* In IPA setup mode, IPA edata might not be available. In this mode,
+         * ticket flags are written as they are provided. */
+        tktflags = (int)entry->attributes;
+    } else {
+        kerr = ipadb_get_edata(entry, &ied);
+        if (kerr)
+            goto end;
+
+        kerr = get_virtual_static_tktflags_mask(ipactx, entry, &tktflags_mask);
+        if (kerr)
+            goto end;
+
+        kerr = are_final_tktflags(ipactx, entry, &final_tktflags);
+        if (kerr)
+            goto end;
+
+        /* Flags from the global ticket policy are filtered out only if the user
+         * principal flags are not final. */
+        if (!final_tktflags) {
+            krb5_flags gbl_tktflags = 0;
+
+            kerr = add_global_ticket_policy_flags(ipactx, NULL, &gbl_tktflags);
+            if (kerr)
+                goto end;
+
+            tktflags_mask &= ~gbl_tktflags;
+        }
+
+        tktflags = (int)(entry->attributes & tktflags_mask);
+
+        if (LDAP_MOD_REPLACE == mod_op && ied && !ied->has_tktpolaux) {
+            if (0 == tktflags) {
+                /* No point initializing principal ticket policy if there are no
+                 * flags left after filtering out virtual and global ticket
+                 * policy ones. */
+                kerr = 0;
+                goto end;
+            }
+
+            /* if the object does not have the krbTicketPolicyAux class
+             * we need to add it or this will fail, only for modifications.
+             * We always add this objectclass by default when doing an add
+             * from scratch. */
+            kerr = ipadb_get_ldap_mod_str(imods, "objectclass",
+                                          "krbTicketPolicyAux", LDAP_MOD_ADD);
+            if (kerr)
+                goto end;
+        }
+    }
+
+    if (tktflags != 0) {
+        kerr = ipadb_get_ldap_mod_int(imods, "krbTicketFlags", tktflags,
+                                      mod_op);
+        if (kerr)
+            goto end;
+    } else if (LDAP_MOD_REPLACE == mod_op) {
+        /* If the principal is not being created, and there are no custom ticket
+         * flags to be set, remove the "krbTicketFlags" attribute. */
+        kerr = ipadb_ldap_replace_remove(imods, "krbTicketFlags");
+        if (kerr)
+            goto end;
+    }
+
+    kerr = 0;
+
+end:
+    return kerr;
+}
+
 static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
                                            struct ipadb_mods *imods,
                                            krb5_db_entry *entry,
@@ -2539,36 +2813,9 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
 
     /* KADM5_ATTRIBUTES */
     if (entry->mask & KMASK_ATTRIBUTES) {
-        /* if the object does not have the krbTicketPolicyAux class
-         * we need to add it or this will fail, only for modifications.
-         * We always add this objectclass by default when doing an add
-         * from scratch. */
-        if ((mod_op == LDAP_MOD_REPLACE) && entry->e_data) {
-            struct ipadb_e_data *ied;
-
-            ied = (struct ipadb_e_data *)entry->e_data;
-            if (ied->magic != IPA_E_DATA_MAGIC) {
-                kerr = EINVAL;
-                goto done;
-            }
-
-            if (!ied->has_tktpolaux) {
-                kerr = ipadb_get_ldap_mod_str(imods, "objectclass",
-                                              "krbTicketPolicyAux",
-                                              LDAP_MOD_ADD);
-                if (kerr) {
-                    goto done;
-                }
-            }
-        }
-
-        kerr = ipadb_get_ldap_mod_int(imods,
-                                      "krbTicketFlags",
-                                      (int)entry->attributes,
-                                      mod_op);
-        if (kerr) {
+        kerr = update_tktflags(kcontext, imods, entry, mod_op);
+        if (kerr)
             goto done;
-        }
     }
 
     /* KADM5_MAX_LIFE */
