@@ -4,6 +4,7 @@
 #include <krb5/krb5.h>
 #include <kdb.h>
 #include <syslog.h>
+#include <stdbool.h>
 
 struct krb_key_salt {
     krb5_enctype enctype;
@@ -86,3 +87,7 @@ int create_keys(krb5_context krbctx,
                 char **err_msg);
 
 int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str);
+
+/* Implement boolean string parsing function from MIT krb5:
+ * src/lib/krb5/krb/libdef_parse.c:_krb5_conf_boolean() */
+bool ipa_krb5_parse_bool(const char *str);
