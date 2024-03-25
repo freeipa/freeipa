@@ -26,15 +26,16 @@ class WithCertOutArgs(MethodOverride):
         filename = None
         if 'certificate_out' in options:
             filename = options.pop('certificate_out')
+
+        result = super(WithCertOutArgs, self).forward(*keys, **options)
+
+        if filename:
             try:
                 util.check_writable_file(filename)
             except errors.FileError as e:
                 raise errors.ValidationError(name='certificate-out',
                                              error=str(e))
 
-        result = super(WithCertOutArgs, self).forward(*keys, **options)
-
-        if filename:
             # if result certificate / certificate_chain not present in result,
             # it means Dogtag did not provide it (probably due to LWCA key
             # replication lag or failure.  The server transmits a warning
