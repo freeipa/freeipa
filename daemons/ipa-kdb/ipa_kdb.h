@@ -94,6 +94,34 @@
 #define IPA_KRB_AUTHZ_DATA_ATTR "ipaKrbAuthzData"
 #define IPA_USER_AUTH_TYPE "ipaUserAuthType"
 
+/* Virtual managed ticket flags like "-allow_tix", are always controlled by the
+ * "nsAccountLock" attribute, such flags should never be set in the database.
+ * The following expression combine all of them, and is used to filter them
+ * out. */
+#define IPA_KDB_TKTFLAGS_VIRTUAL_MANAGED_ALL          (KRB5_KDB_DISALLOW_ALL_TIX)
+
+/* Virtual static ticket flags are hard-coded in the KDB driver. */
+/*   Virtual static mandatory flags are set systematically and implicitly for all
+ *   principals. They are filtered out from database ticket flags updates.
+ *   (However, "KRB5_KDB_REQUIRES_PRE_AUTH" can still be unset by the
+ *   "KDC:Disable Default Preauth for SPNs" global setting) */
+#define IPA_KDB_TKTFLAGS_VIRTUAL_STATIC_MANDATORY     (KRB5_KDB_REQUIRES_PRE_AUTH)
+/*   Virtual static default ticket flags are implicitly set for user and non-user
+ *   (SPN) principals, and not stored in the database.
+ *   (Except if the "IPA_KDB_STRATTR_FINAL_TKTFLAGS" string attribute is "true"
+ *   the principal) */
+/*     Virtual static default user ticket flags are set for users only. The
+ *     "-allow_svr" flag is set to protect them from CVE-2024-3183. */
+#define IPA_KDB_TKTFLAGS_VIRTUAL_STATIC_DEFAULTS_USER (KRB5_KDB_DISALLOW_SVR)
+#define IPA_KDB_TKTFLAGS_VIRTUAL_STATIC_DEFAULTS_SPN  (0)
+
+/* If this string attribute is set to "true", then only the virtual managed and
+ * virtual static mandatory ticket flags are applied and filtered out from
+ * database read and write operations for the concerned user principal.
+ * Configurable principal ticket flags are applied, but not the configurable
+ * global ticket policy flags. */
+#define IPA_KDB_STRATTR_FINAL_USER_TKTFLAGS "final_user_tkt_flags"
+
 struct ipadb_mspac;
 struct dom_sid;
 
@@ -186,6 +214,21 @@ struct ipadb_e_data {
     bool has_sid;
     struct dom_sid *sid;
 };
+
+inline static krb5_error_code
+ipadb_get_edata(krb5_db_entry *entry, struct ipadb_e_data **ied)
+{
+    struct ipadb_e_data *in_ied;
+
+    in_ied = (struct ipadb_e_data *)entry->e_data;
+    if (!in_ied || in_ied->magic != IPA_E_DATA_MAGIC)
+        return EINVAL;
+
+    if (ied)
+        *ied = in_ied;
+
+    return 0;
+}
 
 struct ipadb_context *ipadb_get_context(krb5_context kcontext);
 int ipadb_get_connection(struct ipadb_context *ipactx);

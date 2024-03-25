@@ -174,3 +174,7 @@ static inline bool
 krb5_ts_after(krb5_timestamp a, krb5_timestamp b) {
     return (uint32_t)a > (uint32_t)b;
 }
+
+/* Implement boolean string parsing function from MIT krb5:
+ * src/lib/krb5/krb/libdef_parse.c:_krb5_conf_boolean() */
+bool ipa_krb5_parse_bool(const char *str);
