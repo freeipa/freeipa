@@ -558,6 +558,6 @@ class test_cert_remove_hold(BaseCert):
 
     def test_remove_hold_nonexistent_cert(self):
         # remove hold must print 'Certificate ID xx not found'
-        with pytest.raises(errors.CertificateOperationError,
+        with pytest.raises(errors.NotFound,
                            match=r'Certificate ID 0x.* not found'):
             api.Command['cert_remove_hold'](9999)
