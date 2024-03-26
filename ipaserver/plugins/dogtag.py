@@ -689,7 +689,7 @@ class ra(rabase.rabase, RestClient):
         :param err_msg:   diagnostic error message, if not supplied it will be
                           'Unable to communicate with CMS'
         :param detail:    extra information that will be appended to err_msg
-                          inside a parenthesis
+                          inside a parenthesis. This may be an HTTP status msg
 
         Raise a CertificateOperationError and log the error message.
         """
@@ -701,6 +701,8 @@ class ra(rabase.rabase, RestClient):
             err_msg = u'%s (%s)' % (err_msg, detail)
 
         logger.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
+        if detail == 404:
+            raise errors.NotFound(reason=err_msg)
         raise errors.CertificateOperationError(error=err_msg)
 
     def _request(self, url, port, **kw):
