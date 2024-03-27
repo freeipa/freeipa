@@ -229,6 +229,7 @@ class BasePathNamespace:
     SOFTHSM2_UTIL = "/usr/bin/softhsm2-util"
     SSLGET = "/usr/bin/sslget"
     SSS_SSH_AUTHORIZEDKEYS = "/usr/bin/sss_ssh_authorizedkeys"
+    SSS_SSH_KNOWNHOSTS = "/usr/bin/sss_ssh_knownhosts"
     SSS_SSH_KNOWNHOSTSPROXY = "/usr/bin/sss_ssh_knownhostsproxy"
     BIN_TIMEOUT = "/usr/bin/timeout"
     UPDATE_CA_TRUST = "/usr/bin/update-ca-trust"
