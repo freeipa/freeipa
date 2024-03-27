@@ -39,6 +39,7 @@ dist_noinst_DATA =		\
 	ipa-pki-wait-running.in	\
 	ipa-acme-manage.in	\
 	ipa-subids.in	\
+	ipa-migrate.in	\
 	$(NULL)
 
 nodist_sbin_SCRIPTS =		\
@@ -68,6 +69,7 @@ nodist_sbin_SCRIPTS =		\
 	ipa-crlgen-manage	\
 	ipa-cert-fix		\
 	ipa-acme-manage		\
+	ipa-migrate	\
 	$(NULL)
 
 appdir = $(libexecdir)/ipa/
