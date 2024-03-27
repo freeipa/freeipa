@@ -748,6 +748,27 @@ class TestIPACommand(IntegrationTest):
 
             self.master.run_command(['rm', '-f', filename])
 
+        # Ensure that ca/cert-show doesn't leave an empty file when
+        # the requested ca/cert does not exist.
+        commands = [
+            ['ipa', 'cert-show', '0xdeadbeef', '--certificate-out'],
+            ['ipa', 'ca-show', 'notfound', '--certificate-out'],
+        ]
+
+        for command in commands:
+            cmd = self.master.run_command(['mktemp', '--dry-run'])
+            filename = cmd.stdout_text.strip()
+
+            result = self.master.run_command(command + [filename],
+                                             raiseonerr=False)
+            assert result.returncode == 2
+
+            result = self.master.run_command(
+                ['stat', filename],
+                raiseonerr=False
+            )
+            assert result.returncode == 1
+
     def test_sssd_ifp_access_ipaapi(self):
         # check that ipaapi is allowed to access sssd-ifp for smartcard auth
         # https://pagure.io/freeipa/issue/7751
