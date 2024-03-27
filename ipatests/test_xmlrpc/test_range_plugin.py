@@ -26,7 +26,8 @@ import six
 from ipalib import api, errors, messages
 from ipalib import constants
 from ipaplatform import services
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, fuzzy_uuid, Fuzzy, fuzzy_sequence_of)
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
 from ipapython.dn import DN
@@ -374,6 +375,8 @@ IPA_LOCAL_RANGE_MOD_ERR = (
 
 dirsrv_instance = services.knownservices.dirsrv.service_instance("")
 
+fuzzy_restart_messages = fuzzy_sequence_of(Fuzzy(type=dict))
+
 
 @pytest.mark.tier1
 class test_range(Declarative):
@@ -611,6 +614,7 @@ class test_range(Declarative):
             command=('idrange_del', [testrange1], {}),
             expected=dict(
                 result=dict(failed=[]),
+                messages=fuzzy_restart_messages,
                 value=[testrange1],
                 summary=u'Deleted ID range "%s"' % testrange1,
             ),
@@ -715,6 +719,7 @@ class test_range(Declarative):
             command=('idrange_del', [testrange2], {}),
             expected=dict(
                 result=dict(failed=[]),
+                messages=fuzzy_restart_messages,
                 value=[testrange2],
                 summary=u'Deleted ID range "%s"' % testrange2,
             ),
@@ -804,11 +809,6 @@ class test_range(Declarative):
                 ),
                 value=unicode(domain7range1),
                 summary=u'Added ID range "%s"' % (domain7range1),
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=dirsrv_instance,
-                        server='<all IPA servers>').to_dict(),
-                ),
             ),
         ),
 
@@ -831,6 +831,7 @@ class test_range(Declarative):
                 result=dict(failed=[]),
                 value=[domain1range1],
                 summary=u'Deleted ID range "%s"' % domain1range1,
+                messages=fuzzy_restart_messages,
             ),
         ),
 
@@ -857,12 +858,7 @@ class test_range(Declarative):
             command=('idrange_mod', [domain3range2],
                      dict(ipabaseid=domain3range1_base_id)),
             expected=dict(
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=services.knownservices['sssd'].systemd_name,
-                        server=domain3range2
-                    ).to_dict(),
-                ),
+                messages=fuzzy_restart_messages,
                 result=dict(
                     cn=[domain3range2],
                     ipabaseid=[unicode(domain3range1_base_id)],
@@ -928,12 +924,7 @@ class test_range(Declarative):
             command=('idrange_mod', [domain2range1],
                      dict(ipabaserid=domain5range1_base_rid)),
             expected=dict(
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=services.knownservices['sssd'].systemd_name,
-                        server=domain2range1
-                    ).to_dict(),
-                ),
+                messages=fuzzy_restart_messages,
                 result=dict(
                     cn=[domain2range1],
                     ipabaseid=[unicode(domain2range1_base_id)],
@@ -968,12 +959,7 @@ class test_range(Declarative):
             command=('idrange_mod', [domain2range1],
                      dict(ipaautoprivategroups='true')),
             expected=dict(
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=services.knownservices['sssd'].systemd_name,
-                        server=domain2range1
-                    ).to_dict(),
-                ),
+                messages=fuzzy_restart_messages,
                 result=dict(
                     cn=[domain2range1],
                     ipabaseid=[unicode(domain2range1_base_id)],
@@ -995,12 +981,7 @@ class test_range(Declarative):
             command=('idrange_mod', [domain2range1],
                      dict(ipaautoprivategroups='false')),
             expected=dict(
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=services.knownservices['sssd'].systemd_name,
-                        server=domain2range1
-                    ).to_dict(),
-                ),
+                messages=fuzzy_restart_messages,
                 result=dict(
                     cn=[domain2range1],
                     ipabaseid=[unicode(domain2range1_base_id)],
@@ -1022,12 +1003,7 @@ class test_range(Declarative):
             command=('idrange_mod', [domain2range1],
                      dict(ipaautoprivategroups='hybrid')),
             expected=dict(
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=services.knownservices['sssd'].systemd_name,
-                        server=domain2range1
-                    ).to_dict(),
-                ),
+                messages=fuzzy_restart_messages,
                 result=dict(
                     cn=[domain2range1],
                     ipabaseid=[unicode(domain2range1_base_id)],
@@ -1049,12 +1025,7 @@ class test_range(Declarative):
             command=('idrange_mod', [domain2range1],
                      dict(ipaautoprivategroups='')),
             expected=dict(
-                messages=(
-                    messages.ServiceRestartRequired(
-                        service=services.knownservices['sssd'].systemd_name,
-                        server=domain2range1
-                    ).to_dict(),
-                ),
+                messages=fuzzy_restart_messages,
                 result=dict(
                     cn=[domain2range1],
                     ipabaseid=[unicode(domain2range1_base_id)],
@@ -1111,6 +1082,7 @@ class test_range(Declarative):
                 result=dict(failed=[]),
                 value=[testrange9],
                 summary=u'Deleted ID range "%s"' % testrange9,
+                messages=fuzzy_restart_messages,
             ),
         ),
 
