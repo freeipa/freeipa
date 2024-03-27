@@ -491,8 +491,8 @@ class KerbTransport(SSLTransport):
         else:
             raise errors.KerberosError(message=unicode(e))
 
-    def _get_host(self):
-        return self._connection[0]
+    def _get_service(self):
+        return self.service + "@" + self._connection[0].split(':')[0]
 
     def _remove_extra_header(self, name):
         for (h, v) in self._extra_headers:
@@ -517,8 +517,7 @@ class KerbTransport(SSLTransport):
                 return
 
         # Set the remote host principal
-        host = self._get_host()
-        service = self.service + "@" + host.split(':')[0]
+        service = self._get_service()
 
         try:
             creds = None
