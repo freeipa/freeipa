@@ -1,0 +1,23 @@
+policy_module(ipa-nfast, 1.0.0)
+
+#
+# A transition can't be used here because it would apply to all
+# certmonger processes and it really just needs access to
+# /opt/nfast/kmdata/local/world to read the private key material.
+#
+
+require {
+    type certmonger_t;
+    type pki_common_t;
+    type initrc_t;
+    class file { create rename unlink write execute getattr open read map };
+    class dir { getattr open read search add_name remove_name write };
+    class sock_file write;
+    class unix_stream_socket connectto;
+}
+
+allow certmonger_t initrc_t:unix_stream_socket connectto;
+allow certmonger_t pki_common_t:dir { getattr open read search add_name remove_name write };
+allow certmonger_t pki_common_t:file { create rename unlink write execute getattr open read };
+allow certmonger_t pki_common_t:file map;
+allow certmonger_t pki_common_t:sock_file write;

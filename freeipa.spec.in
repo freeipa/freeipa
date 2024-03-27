@@ -994,6 +994,26 @@ Requires(post):      selinux-policy-%{selinuxtype}
 
 %description selinux
 Custom SELinux policy module for FreeIPA
+
+%package selinux-nfast
+Summary:             FreeIPA SELinux policy for nCipher nfast HSMs
+BuildArch:           noarch
+Requires:            selinux-policy-%{selinuxtype}
+Requires(post):      selinux-policy-%{selinuxtype}
+%{?selinux_requires}
+
+%description selinux-nfast
+Custom SELinux policy module for nCipher nfast HSMs
+
+%package selinux-luna
+Summary:             FreeIPA SELinux policy for Thales Luna HSMs
+BuildArch:           noarch
+Requires:            selinux-policy-%{selinuxtype}
+Requires(post):      selinux-policy-%{selinuxtype}
+%{?selinux_requires}
+
+%description selinux-luna
+Custom SELinux policy module for Thales Luna HSMs
 # with selinux
 %endif
 
@@ -1301,11 +1321,26 @@ fi
 semodule -d ipa_custodia &> /dev/null || true;
 %selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.bz2
 
+%post selinux-nfast
+%selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}-nfast.pp.bz2
+
+%post selinux-luna
+%selinux_modules_install -s %{selinuxtype} %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}-luna.pp.bz2
+
 %postun selinux
 if [ $1 -eq 0 ]; then
     %selinux_modules_uninstall -s %{selinuxtype} %{modulename}
     semodule -e ipa_custodia &> /dev/null || true;
 fi
+
+%postun selinux-nfast
+if [ $1 -eq 0 ]; then
+    %selinux_modules_uninstall -s %{selinuxtype} %{modulename}-nfast
+fi
+
+%postun selinux-luna
+if [ $1 -eq 0 ]; then
+    %selinux_modules_uninstall -s %{selinuxtype} %{modulename}-luna
 
 %posttrans selinux
 %selinux_relabel_post -s %{selinuxtype}
@@ -1758,6 +1793,14 @@ fi
 %files selinux
 %{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}.pp.*
 %ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}
+
+%files selinux-nfast
+%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}-nfast.pp.*
+%ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}-nfast
+
+%files selinux-luna
+%{_datadir}/selinux/packages/%{selinuxtype}/%{modulename}-luna.pp.*
+%ghost %verify(not md5 size mode mtime) %{_sharedstatedir}/selinux/%{selinuxtype}/active/modules/200/%{modulename}-luna
 # with selinux
 %endif
 

@@ -35,7 +35,10 @@ from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install.dogtaginstance import DogtagInstance
-from ipaserver.install.ca import lookup_random_serial_number_version
+from ipaserver.install.ca import (
+    lookup_random_serial_number_version,
+    lookup_hsm_configuration
+)
 
 
 logger = logging.getLogger(__name__)
@@ -79,7 +82,8 @@ class KRAInstance(DogtagInstance):
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, pkcs12_info=None, master_host=None,
                            subject_base=None, ca_subject=None,
-                           promote=False, pki_config_override=None):
+                           promote=False, pki_config_override=None,
+                           token_password=None):
         """Create a KRA instance.
 
            To create a clone, pass in pkcs12_info.
@@ -93,6 +97,8 @@ class KRAInstance(DogtagInstance):
             self.clone = True
         self.master_host = master_host
         self.pki_config_override = pki_config_override
+        # The remaining token values are available via sysrestore
+        self.token_password = token_password
 
         self.subject_base = \
             subject_base or installutils.default_subject_base(realm_name)
@@ -181,12 +187,28 @@ class KRAInstance(DogtagInstance):
         else:
             pki_pin = None
 
-        _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(dir=paths.TMP)
+        ca = cainstance.CAInstance(self.realm)
+        if ca.hsm_enabled:
+            cfg['pki_hsm_enable'] = True
+            cfg['pki_token_name'] = ca.token_name
+            cfg['pki_token_password'] = self.token_password
+            cfg['pki_sslserver_token'] = 'internal'
+            # Require OAEP for nfast devices as they do not support
+            # PKCS1v15.
+            (_unused, token_library_path) = lookup_hsm_configuration(api)
+            if 'nfast' in token_library_path:
+                cfg['pki_use_oaep_rsa_keywrap'] = True
+
+        p12_tmpfile_name = None
 
         if self.clone:
             krafile = self.pkcs12_info[0]
-            shutil.copy(krafile, p12_tmpfile_name)
-            self.service_user.chown(p12_tmpfile_name)
+            if krafile:
+                _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(
+                    dir=paths.TMP
+                )
+                shutil.copy(krafile, p12_tmpfile_name)
+                self.service_user.chown(p12_tmpfile_name)
 
             self._configure_clone(
                 cfg,
@@ -225,11 +247,15 @@ class KRAInstance(DogtagInstance):
                 nolog_list=nolog_list
             )
         finally:
-            os.remove(p12_tmpfile_name)
+            if p12_tmpfile_name:
+                os.remove(p12_tmpfile_name)
             os.remove(cfg_file)
             os.remove(admin_p12_file)
 
-        shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
+        if config.getboolean(
+            self.subsystem, 'pki_backup_keys', fallback=True
+        ):
+            shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
         logger.debug("completed creating KRA instance")
 
     def __create_kra_agent(self):

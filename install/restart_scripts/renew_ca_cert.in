@@ -36,7 +36,7 @@ from ipaserver.install import certs, cainstance
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
-from ipapython.certdb import TrustFlags
+from ipapython.certdb import TrustFlags, get_ca_nickname
 
 
 def _main():
@@ -48,6 +48,8 @@ def _main():
     api.finalize()
 
     dogtag_service = services.knownservices['pki_tomcatd']
+
+    ca = cainstance.CAInstance(host_name=api.env.host)
 
     # dogtag opens its NSS database in read/write mode so we need it
     # shut down so certmonger can open it read/write mode. This avoids
@@ -82,13 +84,15 @@ def _main():
 
         api.Backend.ldap2.connect()
 
-        ca = cainstance.CAInstance(host_name=api.env.host)
         ca.update_cert_config(nickname, cert)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)
             cainstance.update_authority_entry(cert)
 
-        if nickname == 'auditSigningCert cert-pki-ca':
+        if nickname in (
+            'auditSigningCert cert-pki-ca',
+            'auditSigningCert cert-pki-kra',
+        ):
             # Fix trust on the audit cert
             try:
                 db.run_certutil(['-M',
@@ -106,7 +110,7 @@ def _main():
         elif nickname == 'caSigningCert cert-pki-ca':
             # Remove old external CA certificates
             for ca_nick, ca_flags in db.list_certs():
-                if ca_flags.has_key:
+                if ca_flags.has_key or not ca_flags.ca:
                     continue
                 # Delete *all* certificates that use the nickname
                 while True:
@@ -150,8 +154,11 @@ def _main():
                         "%s" % e)
                     ca_certs = []
 
+                realm_nickname = get_ca_nickname(api.env.realm)
                 for ca_cert, ca_nick, ca_flags in ca_certs:
                     try:
+                        if ca_nick == realm_nickname:
+                            ca_nick = 'caSigningCert cert-pki-ca'
                         db.add_cert(ca_cert, ca_nick, ca_flags)
                     except ipautil.CalledProcessError as e:
                         syslog.syslog(

@@ -510,6 +510,10 @@ class DogtagInstance(service.Service):
     def configure_renewal(self):
         """ Configure certmonger to renew system certs """
 
+        if self.hsm_enabled:
+            nss_user = constants.PKI_USER
+        else:
+            nss_user = None
         for nickname, profile in self.tracking_reqs.items():
             token_name = self.get_token_name(nickname)
             pin = self.__get_pin(token_name)
@@ -523,6 +527,7 @@ class DogtagInstance(service.Service):
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
                     profile=profile,
+                    nss_user=nss_user,
                 )
             except RuntimeError as e:
                 logger.error(
@@ -902,8 +907,6 @@ class DogtagInstance(service.Service):
             pki_security_domain_password=self.admin_password,
             # Clone
             pki_clone=True,
-            pki_clone_pkcs12_path=clone_pkcs12_path,
-            pki_clone_pkcs12_password=self.dm_password,
             pki_clone_replication_security="TLS",
             pki_clone_replication_master_port=self.master_replication_port,
             pki_clone_replication_clone_port=389,
@@ -911,6 +914,11 @@ class DogtagInstance(service.Service):
             pki_clone_uri="https://%s" % ipautil.format_netloc(
                 self.master_host, 443),
         )
+        if clone_pkcs12_path:
+            subsystem_config.update(
+                pki_clone_pkcs12_path=clone_pkcs12_path,
+                pki_clone_pkcs12_password=self.dm_password,
+            )
 
     def _create_spawn_config(self, subsystem_config):
         loader = PKIIniLoader(

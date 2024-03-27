@@ -173,6 +173,20 @@ The subject base for certificates issued by IPA (default O=REALM.NAME). RDNs are
 \fB\-\-ca\-signing\-algorithm\fR=\fIALGORITHM\fR
 Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SHA256withRSA, SHA384withRSA, SHA512withRSA. Default value is SHA256withRSA. Use this option with --external-ca if the external CA does not support the default signing algorithm.
 
+.SS "HSM OPTIONS"
+.TP
+\fB\-\-token\-name\fR=\fITOKEN_NAME\fR
+The PKCS#11 token name if using an HSM to store and generate private keys.
+.TP
+\fB\-\-token\-library\-path\fR=\fITOKEN_LIBRARY_PATH\fR
+The full path to the PKCS#11 shared library needed to access the HSM device.
+.TP
+\fB\-\-token\-password\fR=\fITOKEN_PASSWORD\fR
+The PKCS#11 token password for the HSM.
+.TP
+\fB\-\-token\-password\-file\fR=\fITOKEN_PASSWORD_FILE\fR
+The full path to a file containing the PKCS#11 token password.
+
 .SS "SECRET MANAGEMENT OPTIONS"
 .TP
 \fB\-\-setup\-kra\fR

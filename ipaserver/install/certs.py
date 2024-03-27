@@ -161,8 +161,8 @@ class CertDB:
     def __init__(self, realm, nssdir, fstore=None,
                  host_name=None, subject_base=None, ca_subject=None,
                  user=None, group=None, mode=None, create=False,
-                 dbtype='auto'):
-        self.nssdb = NSSDatabase(nssdir, dbtype=dbtype)
+                 dbtype='auto', pwd_file=None):
+        self.nssdb = NSSDatabase(nssdir, dbtype=dbtype, pwd_file=pwd_file)
 
         self.realm = realm
 
@@ -377,8 +377,14 @@ class CertDB:
         """
         Retrieve a certificate from the current NSS database for nickname.
         """
+        if ':' in nickname:
+            token = nickname.split(':', 1)[0]
+        else:
+            token = None
         try:
             args = ["-L", "-n", nickname, "-a"]
+            if token:
+                args.extend(['-h', token])
             result = self.run_certutil(args, capture_output=True)
             return x509.load_pem_x509_certificate(result.raw_output)
         except ipautil.CalledProcessError:

@@ -36,6 +36,8 @@ SUBDIRS = \
         po \
         pypi \
         selinux \
+        selinux/nfast \
+        selinux/luna \
         $(PYTHON_SUBDIRS) \
         $(SERVER_SUBDIRS) \
         $(NULL)
