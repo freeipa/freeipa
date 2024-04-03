@@ -16,7 +16,7 @@ from ipapython.dnsutil import DNSName
 if six.PY3:
     unicode = str
 
-__doc__ = _("""
+__doc__ = _(r"""
 Groups of users
 
 Manage groups of users. By default, new groups are POSIX groups. You
