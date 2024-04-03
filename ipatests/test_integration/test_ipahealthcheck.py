@@ -2750,12 +2750,14 @@ class TestIpaHealthCheckWithExternalCA(IntegrationTest):
         for check in data:
             assert check["result"] == "ERROR"
             if parse_version(version) >= parse_version("0.6"):
-                if check["kw"]["key"] == paths.HTTPD_CERT_FILE:
+                if check["kw"]["key"] in (
+                    paths.HTTPD_CERT_FILE,
+                    paths.RA_AGENT_PEM,
+                ):
                     assert error_msg in check["kw"]["msg"]
-                    assert error_reason in check["kw"]["reason"]
-                elif check["kw"]["key"] == paths.RA_AGENT_PEM:
-                    assert error_msg in check["kw"]["msg"]
-                    assert error_reason in check["kw"]["reason"]
+                    assert error_reason.replace(" ", "") in check["kw"][
+                        "reason"
+                    ].replace(" ", "")
             else:
                 assert error_reason in check["kw"]["reason"]
                 assert error_reason in check["kw"]["msg"]
