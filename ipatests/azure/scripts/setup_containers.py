@@ -125,7 +125,7 @@ class ContainersGroup:
         # initialize containers
         self.containers = [
             Container(
-                name=f"{self.prefix}_{self.role}_{c}",
+                name=f"{self.prefix}-{self.role}-{c}",
                 hostname=f"{self.role}{c}.{self.domain}",
                 network=f"{IPA_TESTS_ENV_ID}_{IPA_NETWORK}",
             )
