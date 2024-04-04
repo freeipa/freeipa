@@ -422,7 +422,7 @@ Here is an example of the standard logging
 2024-02-27T17:10:03Z DEBUG --log-file=/var/log/ipa-migrate.log
 2024-02-27T17:10:03Z DEBUG --skip-schema=False
 2024-02-27T17:10:03Z DEBUG --skip-config=False
-2024-02-27T17:10:03Z DEBUG --skip-dns=False
+2024-02-27T17:10:03Z DEBUG --migrate-dns=False
 2024-02-27T17:10:03Z DEBUG --dryrun=True
 2024-02-27T17:10:03Z DEBUG --dryrun-record=None
 2024-02-27T17:10:03Z DEBUG --force=False
@@ -501,7 +501,7 @@ Overview of the CLI usage
 | --db-ldif, -f | An LDIF file containing the export of the userRoot database |
 | --schema-ldif, -m | An LDIF file containing the schema from the remote server |
 | --config-ldif, -g | The DS config file dse.ldif |
-| --skip-dns, -B | Do not migrate the DNS records in the database |
+| --migrate-dns, -B | Migrate the DNS records in the database |
 | --subtree, -s | Non standard IPA subtree to include in the migration |
 | --dryrun, -x | try the migration without writing data |
 | --dryrun-record, -o | Perform dryrun but record all the LDAP changes to a LDIF file |
