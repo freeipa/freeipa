@@ -1498,29 +1498,6 @@ class TestIPACommand(IntegrationTest):
             assert 'This account is currently not available' in \
                 result.stdout_text
 
-    def test_ipa_cacert_manage_prune(self):
-        """Test for ipa-cacert-manage prune"""
-
-        certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
-        self.master.put_file_contents(certfile, isrgrootx1)
-        result = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'install', certfile])
-
-        certs_before_prune = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'list'], raiseonerr=False
-        ).stdout_text
-
-        assert isrgrootx1_nick in certs_before_prune
-
-        # Jump in time to make sure the cert is expired
-        self.master.run_command(['date', '-s', '+15Years'])
-        result = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'prune'], raiseonerr=False
-        ).stdout_text
-        self.master.run_command(['date', '-s', '-15Years'])
-
-        assert isrgrootx1_nick in result
-
     def test_ipa_getkeytab_server(self):
         """
         Exercise the ipa-getkeytab server options
@@ -1617,6 +1594,54 @@ class TestIPACommand(IntegrationTest):
         host_princ = f"host/{host.hostname}@{host.domain.realm}"
         result = host.run_command([paths.KLIST])
         assert host_princ in result.stdout_text
+
+    def test_delete_last_enabled_admin(self):
+        """
+        The admin user may be disabled. Don't allow all other
+        members of admins to be removed if the admin user is
+        disabled which would leave the install with no
+        usable admins users
+        """
+        user = 'adminuser2'
+        passwd = 'Secret123'
+        tasks.create_active_user(self.master, user, passwd)
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'group-add-member', 'admins',
+                                '--users', user])
+        tasks.kinit_user(self.master, user, passwd)
+        self.master.run_command(['ipa', 'user-disable', 'admin'])
+        result = self.master.run_command(
+            ['ipa', 'user-del', user],
+            raiseonerr=False
+        )
+        self.master.run_command(['ipa', 'user-enable', 'admin'])
+        tasks.kdestroy_all(self.master)
+
+        assert result.returncode == 1
+        assert 'cannot be deleted or disabled' in result.stderr_text
+
+    def test_ipa_cacert_manage_prune(self):
+        """Test for ipa-cacert-manage prune"""
+
+        certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
+        self.master.put_file_contents(certfile, isrgrootx1)
+        result = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'install', certfile])
+
+        certs_before_prune = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'list'], raiseonerr=False
+        ).stdout_text
+
+        assert isrgrootx1_nick in certs_before_prune
+
+        # Jump in time to make sure the cert is expired
+        self.master.run_command(['date', '-s', '+15Years'])
+        result = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'prune'], raiseonerr=False
+        ).stdout_text
+        self.master.run_command(['date', '-s', '-15Years'])
+
+        assert isrgrootx1_nick in result
 
 
 class TestIPACommandWithoutReplica(IntegrationTest):
