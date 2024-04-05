@@ -1216,7 +1216,7 @@ class IPAMigrate():
 
         # Reset the remote attribute name to match the same case as the local
         # attributes.
-        for remote_attr in remote_attrs:
+        for remote_attr in list(remote_attrs):
             for local_attr in local_entry:
                 if local_attr.lower() == remote_attr.lower() and \
                    local_attr != remote_attr:
@@ -1499,7 +1499,7 @@ class IPAMigrate():
                 str(self.remote_suffix),
                 ldap.SCOPE_SUBTREE,
                 db_filter,
-                ['*'],
+                ['*', 'nsaccountlock'],
                 serverctrls=controls)
         except ldap.LDAPError as e:
             self.log_error(f"Failed to get remote entries: {str(e)}")
@@ -1539,7 +1539,7 @@ class IPAMigrate():
                         str(self.remote_suffix),
                         ldap.SCOPE_SUBTREE,
                         db_filter,
-                        ['*'],
+                        ['*', 'nsaccountlock'],
                         serverctrls=controls)
                 except ldap.LDAPError as e:
                     self.handle_error("Problem searching the remote server: "
