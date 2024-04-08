@@ -61,6 +61,16 @@ def check_crlgen_status(host, rc=0, msg=None, enabled=True, check_crl=False):
                         ext.value.crl_number)
                     assert number_msg in result.stdout_text
 
+        try:
+            value = get_CS_cfg_value(host, 'ca.certStatusUpdateInterval')
+        except IOError:
+            return
+
+        if enabled:
+            assert value is None
+        else:
+            assert value == '0'
+
 
 def check_crlgen_enable(host, rc=0, msg=None, check_crl=False):
     """Check ipa-crlgen-manage enable command
@@ -123,6 +133,23 @@ def break_crlgen_with_CS_cfg(host):
     host.put_file_contents(paths.CA_CS_CFG_PATH, '\n'.join(new_lines))
 
     check_crlgen_status(host, rc=1, msg="Configuration is inconsistent")
+
+
+def get_CS_cfg_value(host, directive):
+    """Retrieve and return the a directive from the CA CS.cfg
+
+       This returns None if the directives is not found.
+    """
+    content = host.get_file_contents(paths.CA_CS_CFG_PATH,
+                                     encoding='utf-8')
+    value = None
+    for line in content.split('\n'):
+        l = line.lower()
+
+        if l.startswith(directive.lower()):
+            value = line.split('=', 1)[1]
+
+    return value
 
 
 class TestCRLGenManage(IntegrationTest):
@@ -196,6 +223,9 @@ class TestCRLGenManage(IntegrationTest):
 
         Install a CA clone and enable CRLgen"""
         tasks.install_ca(self.replicas[0])
+        value = get_CS_cfg_value(self.replicas[0],
+                                 'ca.certStatusUpdateInterval')
+        assert value == '0'
         check_crlgen_enable(
             self.replicas[0], rc=0,
             msg="make sure to have only a single CRL generation master",
