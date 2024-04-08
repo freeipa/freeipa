@@ -1354,6 +1354,8 @@ class CAInstance(DogtagInstance):
         generation master:
         - in CS.cfg ca.crl.MasterCRL.enableCRLCache=true
         - in CS.cfg ca.crl.MasterCRL.enableCRLUpdates=true
+        - in CS.cfg ca.listenToCloneModifications=true
+        - in CS.cfg ca.certStatusUpdateInterval != 0
         - in /etc/httpd/conf.d/ipa-pki-proxy.conf the RewriteRule
         ^/ipa/crl/MasterCRL.bin is disabled (commented or removed)
 
@@ -1369,14 +1371,29 @@ class CAInstance(DogtagInstance):
             updates = directivesetter.get_directive(
                 self.config, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
             enableCRLUpdates = updates.lower() == 'true'
+            listen = directivesetter.get_directive(
+                self.config, 'ca.listenToCloneModifications', '=')
+            enableToClone = listen.lower() == 'true'
+            updateinterval = directivesetter.get_directive(
+                self.config, 'ca.certStatusUpdateInterval', '=')
 
             # If the values are different, the config is inconsistent
-            if enableCRLCache != enableCRLUpdates:
+            if not (enableCRLCache == enableCRLUpdates == enableToClone):
                 raise InconsistentCRLGenConfigException(
                     "Configuration is inconsistent, please check "
-                    "ca.crl.MasterCRL.enableCRLCache and "
-                    "ca.crl.MasterCRL.enableCRLUpdates in {} and "
+                    "ca.crl.MasterCRL.enableCRLCache, "
+                    "ca.crl.MasterCRL.enableCRLUpdates and "
+                    "ca.listenToCloneModifications in {} and "
                     "run ipa-crlgen-manage [enable|disable] to repair".format(
+                        self.config))
+            # If they are the same then we are the CRL renewal master. Ensure
+            # the update task is configured.
+            if enableCRLCache and updateinterval == '0':
+                raise InconsistentCRLGenConfigException(
+                    "Configuration is inconsistent, please check "
+                    "ca.certStatusUpdateInterval in {}. It should "
+                    "be either not present or not zero. Run "
+                    "ipa-crlgen-manage [enable|disable] to repair".format(
                         self.config))
         except IOError:
             raise RuntimeError(
@@ -1434,6 +1451,11 @@ class CAInstance(DogtagInstance):
             str_value = str(setup_crlgen).lower()
             ds.set('ca.crl.MasterCRL.enableCRLCache', str_value)
             ds.set('ca.crl.MasterCRL.enableCRLUpdates', str_value)
+            ds.set('ca.listenToCloneModifications', str_value)
+            if setup_crlgen:
+                ds.set('ca.certStatusUpdateInterval', None)
+            else:
+                ds.set('ca.certStatusUpdateInterval', '0')
 
         # Start pki-tomcat
         logger.info("Starting %s", self.service_name)
