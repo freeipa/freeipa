@@ -1733,7 +1733,7 @@ class i18n_messages(Command):
             "otp_reset_info":
                 _("<i class=\"fa fa-info-circle\"></i> <strong>"
                   "OTP (One-Time Password):</strong>"
-                  "Leave blank if you are not using OTP tokens"
+                  "Leave blank if you are not using OTP tokens "
                   "for authentication."),
             "otp_long": _("One-Time Password"),
             "otp_sync_fail": _("Token synchronization failed"),
