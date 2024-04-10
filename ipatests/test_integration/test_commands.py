@@ -1530,6 +1530,30 @@ class TestIPACommand(IntegrationTest):
 
         assert 'Discovered server %s' % self.master.hostname in result
 
+    def test_delete_last_enabled_admin(self):
+        """
+        The admin user may be disabled. Don't allow all other
+        members of admins to be removed if the admin user is
+        disabled which would leave the install with no
+        usable admins users
+        """
+        user = 'adminuser2'
+        passwd = 'Secret123'
+        tasks.create_active_user(self.master, user, passwd)
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'group-add-member', 'admins',
+                                '--users', user])
+        tasks.kinit_user(self.master, user, passwd)
+        self.master.run_command(['ipa', 'user-disable', 'admin'])
+        result = self.master.run_command(
+            ['ipa', 'user-del', user],
+            raiseonerr=False
+        )
+        self.master.run_command(['ipa', 'user-enable', 'admin'])
+        tasks.kdestroy_all(self.master)
+        assert result.returncode == 1
+        assert 'cannot be deleted or disabled' in result.stderr_text
+
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
