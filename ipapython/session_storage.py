@@ -25,6 +25,7 @@ krb5_enctype = krb5_int32
 krb5_octet = ctypes.c_uint8
 krb5_timestamp = krb5_int32
 
+
 class _krb5_context(ctypes.Structure):  # noqa
     """krb5/krb5.h struct _krb5_context"""
     _fields_ = []
@@ -319,7 +320,7 @@ def get_data(princ_name, key):
                     break
 
                 if (krb5_principal_compare(context, principal,
-                                          checkcreds.client) == 1 and
+                                           checkcreds.client) == 1 and
                     krb5_principal_compare(context, srv_princ,
                                            checkcreds.server) == 1):
                     if got_creds:
@@ -388,6 +389,6 @@ def remove_data(princ_name, key):
         if principal:
             krb5_free_principal(context, principal)
         if ccache:
-          krb5_cc_close(context, ccache)
+            krb5_cc_close(context, ccache)
         if context:
             krb5_free_context(context)
