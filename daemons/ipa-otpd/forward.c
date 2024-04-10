@@ -43,10 +43,14 @@ static void forward_cb(krb5_error_code retval, const krad_packet *request,
                                           NULL, item->req, &item->rsp);
     }
 
-    otpd_log_req(item->req, "forward end: %s",
-            retval == 0
-                ? krad_code_num2name(code)
-                : krb5_get_error_message(ctx.kctx, retval));
+    if (retval == 0) {
+        otpd_log_req(item->req, "forward end: %s", krad_code_num2name(code));
+    } else {
+        const char *err_msg = krb5_get_error_message(ctx.kctx, retval);
+        otpd_log_req(item->req, "forward end: %s",
+                     krb5_get_error_message(ctx.kctx, retval));
+        krb5_free_error_message(ctx.kctx, err_msg);
+    }
 
     otpd_queue_push(&ctx.stdio.responses, item);
     verto_set_flags(ctx.stdio.writer, VERTO_EV_FLAG_PERSIST |
@@ -117,8 +121,10 @@ krb5_error_code otpd_forward(struct otpd_queue_item **item)
         *item = NULL;
 
 error:
-    if (retval != 0)
-        otpd_log_req((*item)->req, "forward end: %s",
-                krb5_get_error_message(ctx.kctx, retval));
+    if (retval != 0) {
+        const char *err_msg = krb5_get_error_message(ctx.kctx, retval);
+        otpd_log_req((*item)->req, "forward end: %s", err_msg);
+        krb5_free_error_message(ctx.kctx, err_msg);
+    }
     return retval;
 }

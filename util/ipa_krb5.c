@@ -904,6 +904,7 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
         ksdata = calloc(n + 1, sizeof(struct krb_key_salt));
         if (NULL == ksdata) {
             *err_msg = _("Out of memory!?\n");
+            ipa_krb5_free_ktypes(krbctx, ktypes);
             return 0;
         }
 
