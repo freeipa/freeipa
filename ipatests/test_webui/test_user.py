@@ -50,6 +50,8 @@ INV_FIRSTNAME = ("invalid 'first': Leading and trailing spaces are "
 FIELD_REQ = 'Required field'
 ERR_INCLUDE = 'may only include letters, numbers, _, -, . and $'
 ERR_MISMATCH = 'Passwords must match'
+ERR_ADMIN_DISABLE = ('admin cannot be deleted or disabled because '
+                     'it is the last member of group admins')
 ERR_ADMIN_DEL = ('user admin cannot be deleted/modified: privileged user')
 USR_EXIST = 'user with name "{}" already exists'
 ENTRY_EXIST = 'This entry already exists'
@@ -548,7 +550,7 @@ class test_user(user_tasks):
         self.select_record('admin')
         self.facet_button_click('disable')
         self.dialog_button_click('ok')
-        self.assert_last_error_dialog(ERR_ADMIN_DEL, details=True)
+        self.assert_last_error_dialog(ERR_ADMIN_DISABLE, details=True)
         self.dialog_button_click('ok')
         self.assert_record('admin')
 
