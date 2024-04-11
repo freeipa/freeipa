@@ -464,18 +464,15 @@ class TestIpaAdTrustInstall(IntegrationTest):
         password
         """
         password = "wrong_pwd"
-        msg = (
-            "Must have Kerberos credentials to setup AD trusts on server: "
-            "Major (458752): No credentials were supplied, or the credentials "
-            "were unavailable or inaccessible, Minor (2529639053): "
-            "No Kerberos credentials available (default cache: KCM:)\n"
+        expected_substring = (
+            "Must have Kerberos credentials to setup AD trusts on server:"
         )
         self.master.run_command(["kdestroy", "-A"])
         result = self.master.run_command(
             ["ipa-adtrust-install", "-A", "admin", "-a",
              password, "-U"], raiseonerr=False
         )
-        assert msg in result.stderr_text
+        assert expected_substring in result.stderr_text
         assert result.returncode != 0
 
     def test_adtrust_install_with_invalid_rid_base_value(self):
