@@ -418,3 +418,242 @@ krb5_unparse_name.errcheck = krb5_errcheck
 krb5_free_unparsed_name = LIBKRB5.krb5_free_unparsed_name
 krb5_free_unparsed_name.argtypes = (krb5_context, ctypes.c_char_p, )
 krb5_free_unparsed_name.restype = None
+
+krb5_deltat = krb5_int32
+krb5_preauthtype = krb5_int32
+
+
+class _krb5_get_init_creds_opt(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct krb5_get_init_creds_opt"""
+    _fields_ = [
+        ("flags", krb5_flags),
+        ("tkt_life", krb5_deltat),
+        ("renew_life", krb5_deltat),
+        ("forwardable", ctypes.c_uint),
+        ("proxiable", ctypes.c_uint),
+        ("etype_list", ctypes.POINTER(krb5_enctype)),
+        ("etype_list_length", ctypes.c_uint),
+        ("address_list", ctypes.POINTER(krb5_address_p)),
+        ("preauth_list", ctypes.POINTER(krb5_preauthtype)),
+        ("preauth_list_length", ctypes.c_uint),
+        ("salt", ctypes.POINTER(krb5_data))]
+
+
+krb5_get_init_creds_opt_p = ctypes.POINTER(_krb5_get_init_creds_opt)
+
+krb5_get_init_creds_opt_alloc = LIBKRB5.krb5_get_init_creds_opt_alloc
+krb5_get_init_creds_opt_alloc.argtypes = (krb5_context,
+                                          ctypes.POINTER(
+                                              krb5_get_init_creds_opt_p))
+krb5_get_init_creds_opt_alloc.restype = krb5_error_code
+
+krb5_get_init_creds_opt_free = LIBKRB5.krb5_get_init_creds_opt_free
+krb5_get_init_creds_opt_free.argtypes = (krb5_context,
+                                         krb5_get_init_creds_opt_p)
+krb5_get_init_creds_opt_free.restype = krb5_error_code
+
+krb5_get_init_creds_opt_set_tkt_life = (
+    LIBKRB5.krb5_get_init_creds_opt_set_tkt_life)
+krb5_get_init_creds_opt_set_tkt_life.argtypes = (krb5_get_init_creds_opt_p,
+                                                 krb5_deltat)
+krb5_get_init_creds_opt_set_tkt_life.restype = None
+
+krb5_get_init_creds_opt_set_renew_life = (
+    LIBKRB5.krb5_get_init_creds_opt_set_renew_life)
+krb5_get_init_creds_opt_set_renew_life.argtypes = (krb5_get_init_creds_opt_p,
+                                                   krb5_deltat)
+krb5_get_init_creds_opt_set_renew_life.restype = None
+
+krb5_get_init_creds_opt_set_forwardable = (
+    LIBKRB5.krb5_get_init_creds_opt_set_forwardable)
+krb5_get_init_creds_opt_set_forwardable.argtypes = (krb5_get_init_creds_opt_p,
+                                                    ctypes.c_int)
+krb5_get_init_creds_opt_set_forwardable.restype = None
+
+krb5_get_init_creds_opt_set_proxiable = (
+    LIBKRB5.krb5_get_init_creds_opt_set_proxiable)
+krb5_get_init_creds_opt_set_proxiable.argtypes = (krb5_get_init_creds_opt_p,
+                                                  ctypes.c_int)
+krb5_get_init_creds_opt_set_proxiable.restype = None
+
+krb5_get_init_creds_opt_set_anonymous = (
+    LIBKRB5.krb5_get_init_creds_opt_set_anonymous)
+krb5_get_init_creds_opt_set_anonymous.argtypes = (krb5_get_init_creds_opt_p,
+                                                  ctypes.c_int)
+krb5_get_init_creds_opt_set_anonymous.restype = None
+
+krb5_get_init_creds_opt_set_canonicalize = (
+    LIBKRB5.krb5_get_init_creds_opt_set_anonymous)
+krb5_get_init_creds_opt_set_canonicalize.argtypes = (krb5_get_init_creds_opt_p,
+                                                     ctypes.c_int)
+krb5_get_init_creds_opt_set_canonicalize.restype = None
+
+krb5_get_init_creds_opt_set_etype_list = (
+    LIBKRB5.krb5_get_init_creds_opt_set_etype_list)
+krb5_get_init_creds_opt_set_etype_list.argtypes = (
+    krb5_get_init_creds_opt_p,
+    ctypes.POINTER(krb5_enctype),
+    ctypes.c_uint)
+krb5_get_init_creds_opt_set_etype_list.restype = None
+
+krb5_get_init_creds_opt_set_address_list = (
+    LIBKRB5.krb5_get_init_creds_opt_set_address_list)
+krb5_get_init_creds_opt_set_address_list.argtypes = (
+    krb5_get_init_creds_opt_p,
+    ctypes.POINTER(krb5_address_p))
+krb5_get_init_creds_opt_set_address_list.restype = None
+
+krb5_get_init_creds_opt_set_fast_ccache_name = (
+    LIBKRB5.krb5_get_init_creds_opt_set_fast_ccache_name)
+krb5_get_init_creds_opt_set_fast_ccache_name.argtypes = (
+    krb5_context, krb5_get_init_creds_opt_p, ctypes.c_char_p)
+krb5_get_init_creds_opt_set_fast_ccache_name.restype = None
+
+krb5_get_init_creds_opt_set_out_ccache = (
+    LIBKRB5.krb5_get_init_creds_opt_set_out_ccache)
+krb5_get_init_creds_opt_set_out_ccache.argtypes = (
+    krb5_context, krb5_get_init_creds_opt_p, krb5_ccache)
+krb5_get_init_creds_opt_set_out_ccache.restype = None
+
+
+class _krb5_data_prompt(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_data"""
+    _fields_ = [
+        ("magic", krb5_magic),
+        ("length", ctypes.c_uint),
+        ("data", ctypes.c_void_p),
+    ]
+
+
+class krb5_prompt(ctypes.Structure):
+    _fields_ = [
+        ("prompt", ctypes.c_char_p),
+        ("hidden", krb5_boolean),
+        ("reply", ctypes.POINTER(_krb5_data_prompt))]
+
+
+krb5_prompt_p = ctypes.POINTER(krb5_prompt)
+
+krb5_prompter_fct = ctypes.CFUNCTYPE(
+    krb5_error_code,
+    krb5_context,
+    krb5_pointer,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_int,
+    krb5_prompt_p,
+)
+
+krb5_get_init_creds_password = (
+    LIBKRB5.krb5_get_init_creds_password)
+krb5_get_init_creds_password.argtypes = (
+    krb5_context, ctypes.POINTER(krb5_creds),
+    krb5_principal, ctypes.c_char_p,
+    krb5_prompter_fct, krb5_pointer,
+    krb5_deltat, ctypes.c_char_p,
+    krb5_get_init_creds_opt_p)
+krb5_get_init_creds_password.restype = krb5_error_code
+
+
+def _kinit_get_init_options(context, **flags):
+    koptions = krb5_get_init_creds_opt_p()
+    krb5_get_init_creds_opt_alloc(context, ctypes.byref(koptions))
+    if 'lifetime' in flags:
+        krb5_get_init_creds_opt_set_tkt_life(
+            koptions, krb5_deltat(flags["lifetime"]))
+
+    if 'renew_life' in flags:
+        krb5_get_init_creds_opt_set_renew_life(
+            koptions, krb5_deltat(flags["renew_life"]))
+
+    if 'forwardable' in flags:
+        krb5_get_init_creds_opt_set_forwardable(koptions, 1)
+
+    if 'not_forwardable' in flags:
+        krb5_get_init_creds_opt_set_forwardable(koptions, 0)
+
+    if 'proxiable' in flags:
+        krb5_get_init_creds_opt_set_proxiable(koptions, 1)
+
+    if 'not_proxiable' in flags:
+        krb5_get_init_creds_opt_set_proxiable(koptions, 0)
+
+    if 'canonicalize' in flags:
+        krb5_get_init_creds_opt_set_canonicalize(koptions, 1)
+
+    if 'anonymous' in flags:
+        krb5_get_init_creds_opt_set_anonymous(koptions, 1)
+
+    if 'addresses' in flags:
+        address_list = krb5_address_p * (flags['addresses'])
+        idx = 0
+        for ad in flags['addresses']:
+            address_list[idx] = ad
+            idx = idx + 1
+        krb5_get_init_creds_opt_set_address_list(
+            koptions, ctypes.byref(address_list)
+        )
+
+    if 'armor_ccache' in flags:
+        armor_ccache = flags['armor_ccache']
+        if not isinstance(armor_ccache, bytes):
+            armor_ccache = armor_ccache.encode('utf-8')
+        krb5_get_init_creds_opt_set_fast_ccache_name(
+            context, koptions, ctypes.c_char_p(armor_ccache))
+    return koptions
+
+
+def kinit_with_cb(princ_name, cb, **flags):
+    if not isinstance(princ_name, bytes):
+        princ_name = princ_name.encode('utf-8')
+
+    context = krb5_context()
+    principal = krb5_principal()
+    ccache = krb5_ccache()
+    pname_princ = krb5_principal()
+    pname = ctypes.c_char_p()
+    mycreds = krb5_creds()
+
+    try:
+        krb5_init_context(ctypes.byref(context))
+        koptions = _kinit_get_init_options(context, **flags)
+
+        krb5_cc_default(context, ctypes.byref(ccache))
+        try:
+            krb5_cc_get_principal(context, ccache, ctypes.byref(principal))
+        except KRB5Error as e:
+            print(f'Error: {e}')
+
+        # We need to parse and then unparse the name in case the pric_name
+        # passed in comes w/o a realm attached
+        krb5_parse_name(context, ctypes.c_char_p(princ_name),
+                        ctypes.byref(pname_princ))
+        krb5_unparse_name(context, pname_princ, ctypes.byref(pname))
+
+        krb5_get_init_creds_opt_set_out_ccache(context, koptions, ccache)
+
+        krb5_get_init_creds_password(
+            context,
+            ctypes.byref(mycreds),
+            pname_princ,
+            None,
+            cb,
+            None,
+            0,
+            None,
+            koptions,
+        )
+
+    finally:
+        if principal:
+            krb5_free_principal(context, principal)
+        if pname_princ:
+            krb5_free_principal(context, pname_princ)
+        if pname:
+            krb5_free_unparsed_name(context, pname)
+        if koptions:
+            krb5_get_init_creds_opt_free(context, koptions)
+        if ccache:
+            krb5_cc_close(context, ccache)
+        if context:
+            krb5_free_context(context)
