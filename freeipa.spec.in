@@ -1082,12 +1082,14 @@ rm -f %{buildroot}%{_usr}/share/ipa/ui/images/product-name.png
 %endif
 # RHEL spec file only: END
 
-# Register CLI tools for bash completion
+%if 0%{?fedora} >= 38
+# Register CLI tools for bash completion (fedora only)
 for clitool in ipa-migrate
 do
     register-python-argcomplete "${clitool}" > "${clitool}"
     install -p -m 0644 -D -t '%{buildroot}%{bash_completions_dir}' "${clitool}"
 done
+%endif
 
 %find_lang %{gettext_domain}
 
@@ -1420,7 +1422,9 @@ fi
 %{_sbindir}/ipa-cert-fix
 %{_sbindir}/ipa-acme-manage
 %{_sbindir}/ipa-migrate
+%if 0%{?fedora} >= 38
 %{bash_completions_dir}/ipa-migrate
+%endif
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
 %dir %{_libexecdir}/ipa
