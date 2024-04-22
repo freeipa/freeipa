@@ -1310,13 +1310,21 @@ if [ $1 -gt 1 ] ; then
             cp /etc/ipa/ca.crt /var/lib/ipa-client/pki/kdc-ca-bundle.pem
             cp /etc/ipa/ca.crt /var/lib/ipa-client/pki/ca-bundle.pem
         fi
-
         %{__python3} -c 'from ipaclient.install.client import configure_krb5_snippet; configure_krb5_snippet()' >>/var/log/ipaupgrade.log 2>&1
         %{__python3} -c 'from ipaclient.install.client import update_ipa_nssdb; update_ipa_nssdb()' >>/var/log/ipaupgrade.log 2>&1
         chmod 0600 /var/log/ipaupgrade.log
         SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
         if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
             sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' "$SSH_CLIENT_SYSTEM_CONF"
+            # https://pagure.io/freeipa/issue/9536
+            # replace sss_ssh_knownhostsproxy with sss_ssh_knownhosts
+            if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
+                if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
+                    SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config.d/04-ipa.conf"
+                fi
+                sed -E --in-place=.orig 's/^(GlobalKnownHostsFile \/var\/lib\/sss\/pubconf\/known_hosts)$/# disabled by ipa-client update\n# \1/' $SSH_CLIENT_SYSTEM_CONF
+                sed -E --in-place=.orig 's/(ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h)/# replaced by ipa-client update\n    KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H/' $SSH_CLIENT_SYSTEM_CONF
+            fi
         fi
     fi
 fi
@@ -1358,6 +1366,49 @@ if [ $1 -eq 0 ]; then
 # with_selinux
 %endif
 
+%triggerin client -- sssd-common < 2.10
+# Has the client been configured?
+restore=0
+test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
+
+if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
+    SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
+    if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
+        # https://pagure.io/freeipa/issue/9536
+        # downgrade sss_ssh_knownhosts with sss_ssh_knownhostsproxy
+        if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
+            if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
+                SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config.d/04-ipa.conf"
+            fi
+            GLOBALKNOWNHOSTFILE="GlobalKnownHostsFile /var/lib/sss/pubconf/known_hosts/"
+            grep -qF '$GLOBALKNOWNHOSTFILE' $SSH_CLIENT_SYSTEM_CONF
+            if [ $? -ne 0 ]; then
+                sed -E --in-place=.orig '/(# IPA-related configuration changes to ssh_config)/a # added by ipa-client update\n'"$GLOBALKNOWNHOSTFILE"'' $SSH_CLIENT_SYSTEM_CONF
+            fi
+            sed -E --in-place=.orig 's/(KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H)/ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h/' $SSH_CLIENT_SYSTEM_CONF
+        fi
+    fi
+fi
+
+%triggerin client -- sssd-common >= 2.10
+# Has the client been configured?
+restore=0
+test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
+
+if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
+    SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
+    if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
+        # https://pagure.io/freeipa/issue/9536
+        # upgrade sss_ssh_knownhostsproxy with sss_ssh_knownhosts
+        if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
+            if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
+                SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config.d/04-ipa.conf"
+            fi
+            sed -E --in-place=.orig 's/^(GlobalKnownHostsFile \/var\/lib\/sss\/pubconf\/known_hosts)$/# disabled by ipa-client update\n# \1/' $SSH_CLIENT_SYSTEM_CONF
+            sed -E --in-place=.orig 's/(ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h)/# replaced by ipa-client update\n    KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H/' $SSH_CLIENT_SYSTEM_CONF
+        fi
+    fi
+fi
 
 %triggerin client -- openssh-server < 8.2
 # Has the client been configured?
