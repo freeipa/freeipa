@@ -162,6 +162,7 @@ class batch(Command):
         for arg in (methods or []):
             params = dict()
             name = None
+            principal = getattr(context, 'principal', 'UNKNOWN')
             try:
                 self._validate_request(arg)
                 name = arg['method']
@@ -174,7 +175,7 @@ class batch(Command):
                 result = api.Command[name](*a, **newkw)
                 logger.info(
                     '%s: batch: %s(%s): SUCCESS',
-                    getattr(context, 'principal', 'UNKNOWN'),
+                    principal,
                     name,
                     ', '.join(api.Command[name]._repr_iter(**params))
                 )
@@ -185,13 +186,13 @@ class batch(Command):
                         isinstance(e, errors.ConversionError)):
                     logger.info(
                         '%s: batch: %s',
-                        context.principal,
+                        principal,
                         e.__class__.__name__
                     )
                 else:
                     logger.info(
                         '%s: batch: %s(%s): %s',
-                        context.principal, name,
+                        principal, name,
                         ', '.join(api.Command[name]._repr_iter(**params)),
                         e.__class__.__name__
                     )
