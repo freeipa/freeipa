@@ -13,7 +13,6 @@ extension-pkg-allow-list=
     _ldap,
     cryptography,
     gssapi,
-    netifaces,
     lxml.etree,
     pysss_murmur,
 

@@ -48,9 +48,9 @@ import six
 from six.moves import input
 
 try:
-    import netifaces
+    import ifaddr
 except ImportError:
-    netifaces = None
+    ifaddr = None
 
 from ipapython.dn import DN
 from ipaplatform.paths import paths
@@ -203,42 +203,37 @@ class CheckedIPAddress(UnsafeIPAddress):
         :return: InterfaceDetails named tuple or None if no interface has
         this address
         """
-        if netifaces is None:
-            raise ImportError("netifaces")
+        if ifaddr is None:
+            raise ImportError("ifaddr")
         logger.debug("Searching for an interface of IP address: %s", self)
+
         if self.version == 4:
-            family = netifaces.AF_INET
+            family_ips = (
+                (ip.ip, ip.network_prefix, ip.nice_name)
+                for ips in [a.ips for a in ifaddr.get_adapters()]
+                for ip in ips if not isinstance(ip.ip, tuple)
+            )
         elif self.version == 6:
-            family = netifaces.AF_INET6
+            family_ips = (
+                (ip.ip[0], ip.network_prefix, ip.nice_name)
+                for ips in [a.ips for a in ifaddr.get_adapters()]
+                for ip in ips if isinstance(ip.ip, tuple)
+            )
         else:
             raise ValueError(
                 "Unsupported address family ({})".format(self.version)
             )
 
-        for interface in netifaces.interfaces():
-            for ifdata in netifaces.ifaddresses(interface).get(family, []):
+        for ip, prefix, ifname in family_ips:
+            ifaddrmask = "{ip}/{prefix}".format(ip=ip, prefix=prefix)
+            logger.debug(
+                "Testing local IP address: %s (interface: %s)",
+                ifaddrmask, ifname)
+            ifnet = netaddr.IPNetwork(ifaddrmask)
 
-                # link-local addresses contain '%suffix' that causes parse
-                # errors in IPNetwork
-                ifaddr = ifdata['addr'].split(u'%', 1)[0]
+            if ifnet.ip == self:
+                return InterfaceDetails(ifname, ifnet)
 
-                # newer versions of netifaces provide IPv6 netmask in format
-                # 'ffff:ffff:ffff:ffff::/64'. We have to split and use prefix
-                # or the netmask with older versions
-                ifmask = ifdata['netmask'].split(u'/')[-1]
-
-                ifaddrmask = '{addr}/{netmask}'.format(
-                    addr=ifaddr,
-                    netmask=ifmask
-                )
-                logger.debug(
-                    "Testing local IP address: %s (interface: %s)",
-                    ifaddrmask, interface)
-
-                ifnet = netaddr.IPNetwork(ifaddrmask)
-
-                if ifnet.ip == self:
-                    return InterfaceDetails(interface, ifnet)
         return None
 
     def set_ip_net(self, ifnet):

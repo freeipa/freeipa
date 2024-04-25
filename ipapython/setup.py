@@ -48,6 +48,6 @@ if __name__ == '__main__':
         extras_require={
             "ldap": ["python-ldap"],  # ipapython.ipaldap
             # CheckedIPAddress.get_matching_interface
-            "netifaces": ["netifaces"],
+            "ifaddr": ["ifaddr"],
         },
     )
