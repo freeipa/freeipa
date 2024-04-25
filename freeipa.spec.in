@@ -403,7 +403,7 @@ BuildRequires:  python3-libipa_hbac
 BuildRequires:  python3-libsss_nss_idmap
 BuildRequires:  python3-lxml
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
-BuildRequires:  python3-netifaces
+BuildRequires:  python3-ifaddr
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
 BuildRequires:  python3-pyasn1
@@ -885,7 +885,7 @@ Requires: python3-gssapi >= 1.2.0
 Requires: python3-jwcrypto >= 0.4.2
 Requires: python3-libipa_hbac
 Requires: python3-netaddr >= %{python_netaddr_version}
-Requires: python3-netifaces >= 0.10.4
+Requires: python3-ifaddr
 Requires: python3-pyasn1 >= 0.3.2-2
 Requires: python3-pyasn1-modules >= 0.3.2-2
 Requires: python3-pyusb

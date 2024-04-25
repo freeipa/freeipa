@@ -11,6 +11,7 @@ m2r2
 ## ipa dependencies
 dnspython
 jwcrypto
+ifaddr
 netaddr
 qrcode
 six

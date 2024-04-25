@@ -18,7 +18,7 @@ import logging
 import dns
 import getpass
 import gssapi
-import netifaces
+import ifaddr
 import os
 import re
 import SSSDConfig
@@ -1351,31 +1351,36 @@ def unconfigure_nisdomain(statestore):
 
 
 def get_iface_from_ip(ip_addr):
-    for interface in netifaces.interfaces():
-        if_addrs = netifaces.ifaddresses(interface)
-        for family in [netifaces.AF_INET, netifaces.AF_INET6]:
-            for ip in if_addrs.get(family, []):
-                if ip['addr'] == ip_addr:
-                    return interface
+    for adapter in ifaddr.get_adapters():
+        for ips in adapter.ips:
+            # IPv6 is reported as a tuple, IPv4 is reported as str
+            if ip_addr in (ips.ip[0], ips.ip):
+                return adapter.name
     raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
 
 
-def get_local_ipaddresses(iface=None):
+def __get_ifaddr_adapters(iface=None):
     if iface:
-        interfaces = [iface]
+        interfaces = set(iface if isinstance(iface, (list, tuple)) else [iface])
     else:
-        interfaces = netifaces.interfaces()
+        interfaces = set(adapter.name for adapter in ifaddr.get_adapters())
+    return [
+        adapter
+        for adapter in ifaddr.get_adapters()
+        if adapter.name in interfaces or adapter.nice_name in interfaces
+    ]
 
+
+def get_local_ipaddresses(iface=None):
     ips = []
-    for interface in interfaces:
-        if_addrs = netifaces.ifaddresses(interface)
-        for family in [netifaces.AF_INET, netifaces.AF_INET6]:
-            for ip in if_addrs.get(family, []):
-                try:
-                    ips.append(ipautil.CheckedIPAddress(ip['addr']))
-                    logger.debug('IP check successful: %s', ip['addr'])
-                except ValueError as e:
-                    logger.debug('IP check failed: %s', e)
+    for adapter in __get_ifaddr_adapters(iface):
+        for ifip in adapter.ips:
+            try:
+                ip_addr = ifip.ip[0] if isinstance(ifip.ip, tuple) else ifip.ip
+                ips.append(ipautil.CheckedIPAddress(ip_addr))
+                logger.debug('IP check successful: %s', ip_addr)
+            except ValueError as e:
+                logger.debug('IP check failed: %s', e)
     return ips
 
 

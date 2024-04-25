@@ -120,7 +120,7 @@ extraction:
         - lxml
         - gssapi
         - netaddr
-        - netifaces
+        - ifaddr
         - polib
         - requests
         - python-augeas

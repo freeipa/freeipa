@@ -75,7 +75,7 @@ PACKAGE_VERSION = {
     'ipaserver': 'ipaserver == {}'.format(VERSION),
     'jwcrypto': 'jwcrypto >= 0.4.2',
     'kdcproxy': 'kdcproxy >= 0.3',
-    'netifaces': 'netifaces >= 0.10.4',
+    'ifaddr': 'ifaddr >= 0.1.7',
     'python-ldap': 'python-ldap >= 3.0.0',
     'python-yubico': 'python-yubico >= 1.2.3',
     'qrcode': 'qrcode >= 5.0',
