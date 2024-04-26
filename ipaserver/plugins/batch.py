@@ -159,6 +159,7 @@ class batch(Command):
 
     def execute(self, methods=None, **options):
         results = []
+        op_account = getattr(context, 'principal', '[autobind]')
         for arg in (methods or []):
             params = dict()
             name = None
@@ -174,7 +175,7 @@ class batch(Command):
                 result = api.Command[name](*a, **newkw)
                 logger.info(
                     '%s: batch: %s(%s): SUCCESS',
-                    getattr(context, 'principal', 'UNKNOWN'),
+                    op_account,
                     name,
                     ', '.join(api.Command[name]._repr_iter(**params))
                 )
@@ -185,13 +186,13 @@ class batch(Command):
                         isinstance(e, errors.ConversionError)):
                     logger.info(
                         '%s: batch: %s',
-                        context.principal,
+                        op_account,
                         e.__class__.__name__
                     )
                 else:
                     logger.info(
                         '%s: batch: %s(%s): %s',
-                        context.principal, name,
+                        op_account, name,
                         ', '.join(api.Command[name]._repr_iter(**params)),
                         e.__class__.__name__
                     )
