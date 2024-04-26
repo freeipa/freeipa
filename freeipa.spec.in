@@ -174,7 +174,7 @@
 %endif
 
 # RHEL 8.3+, F32+ has 0.79.13
-%global certmonger_version 0.79.7-3
+%global certmonger_version 0.79.17-1
 
 # RHEL 8.2+, F32+ has 3.58
 %global nss_version 3.44.0-4
