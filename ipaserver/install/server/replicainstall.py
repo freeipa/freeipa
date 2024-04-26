@@ -9,6 +9,7 @@ import logging
 
 import dns.exception as dnsexception
 import dns.name as dnsname
+import itertools
 import os
 import shutil
 import socket
@@ -37,9 +38,12 @@ from ipalib.config import Env
 from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import no_matching_interface_for_ip_address_warning
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
+from ipaserver.install.dogtaginstance import INTERNAL_TOKEN
 from ipaserver.install import (
-    adtrust, bindinstance, ca, dns, dsinstance, httpinstance,
-    installutils, kra, krbinstance, otpdinstance, custodiainstance, service)
+    adtrust, bindinstance, ca, cainstance, dns, dsinstance, httpinstance,
+    installutils, kra, krainstance, krbinstance, otpdinstance,
+    custodiainstance, service,)
+from ipaserver.install import certs
 from ipaserver.install.installutils import (
     ReplicaConfig, load_pkcs12, validate_mask)
 from ipaserver.install.replication import (
@@ -763,6 +767,77 @@ def promotion_check_host_principal_auth_ind(conn, hostdn):
         )
 
 
+def clean_up_hsm_nicknames(api):
+    """Ensure that all of the nicknames on the token are visible on
+       the NSS softoken.
+    """
+    # Hardcode the token names. NSS tooling does not provide a
+    # public way to determine it other than scraping modutil
+    # output.
+    if tasks.is_fips_enabled():
+        dbname = 'NSS FIPS 140-2 Certificate DB'
+    else:
+        dbname = 'NSS Certificate DB'
+
+    api.Backend.ldap2.connect()
+    (token_name, _unused) = ca.lookup_hsm_configuration(api)
+    api.Backend.ldap2.disconnect()
+    if not token_name:
+        return
+
+    cai = cainstance.CAInstance(api.env.realm, host_name=api.env.host)
+    dogtag_reqs = cai.tracking_reqs.items()
+    kra = krainstance.KRAInstance(api.env.realm)
+    if kra.is_installed():
+        dogtag_reqs = itertools.chain(dogtag_reqs,
+                                      kra.tracking_reqs.items())
+
+    try:
+        tmpdir = tempfile.mkdtemp(prefix="tmp-")
+        pwd_file = os.path.join(tmpdir, "pwd_file")
+        with open(pwd_file, "w") as pwd:
+            with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as fd:
+                for line in fd:
+                    (token, pin) = line.split('=', 1)
+                    if token.startswith('hardware-'):
+                        token = token.replace('hardware-', '')
+                        pwd.write(f'{token}:{pin}')
+                    elif token == INTERNAL_TOKEN:
+                        pwd.write(f'{dbname}:{pin}')
+            pwd.flush()
+            db = certs.CertDB(api.env.realm,
+                              nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                              pwd_file=pwd_file)
+            for (nickname, _unused) in dogtag_reqs:
+                try:
+                    if nickname in (
+                        'caSigningCert cert-pki-ca',
+                        'Server-Cert cert-pki-ca'
+                    ):
+                        continue
+                    if nickname in (
+                        'auditSigningCert cert-pki-ca',
+                        'auditSigningCert cert-pki-kra',
+                    ):
+                        trust = ',,P'
+                    else:
+                        trust = ',,'
+                    db.run_certutil(['-M',
+                                     '-n', f"{token_name}:{nickname}",
+                                     '-t', trust])
+                except CalledProcessError as e:
+                    logger.debug("Modifying trust on %s failed: %s",
+                                 nickname, e)
+
+            if db.has_nickname('Directory Server CA certificate'):
+                db.run_certutil(['--rename',
+                                 '-n', 'Directory Server CA certificate',
+                                 '--new-n', 'caSigningCert cert-pki-ca'],
+                                raiseonerr=False)
+    finally:
+        shutil.rmtree(tmpdir)
+
+
 def remote_connection(config):
     logger.debug("Creating LDAP connection to %s", config.master_host_name)
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
@@ -1427,6 +1502,9 @@ def install(installer):
             Run ipa-ca-install(1) on another master to accomplish this.
         '''.format(ca_servers[0]))
         print(msg, file=sys.stderr)
+
+    if options.setup_ca:
+        clean_up_hsm_nicknames(api)
 
 
 def init(installer):
