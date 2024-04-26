@@ -241,6 +241,7 @@ def verify_samba_component_presence(ldap, api):
         )
 
     # We're ok in this case, bail out
+    # pylint: disable-next=used-before-assignment
     if adtrust_present and _bindings_installed:
         return
 
