@@ -934,7 +934,8 @@ class server_conncheck(crud.PKQuery):
 
         # the user must have the Replication Administrators privilege
         privilege = u'Replication Administrators'
-        if not principal_has_privilege(self.api, context.principal, privilege):
+        op_account = getattr(context, 'principal', None)
+        if not principal_has_privilege(self.api, op_account, privilege):
             raise errors.ACIError(
                 info=_("not allowed to perform server connection check"))
 
