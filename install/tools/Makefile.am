@@ -19,7 +19,6 @@ dist_noinst_DATA =		\
 	ipa-server-upgrade.in	\
 	ipactl.in			\
 	ipa-compat-manage.in	\
-	ipa-nis-manage.in		\
 	ipa-managed-entries.in     \
 	ipa-ldap-updater.in	\
 	ipa-otptoken-import.in	\
@@ -56,7 +55,6 @@ nodist_sbin_SCRIPTS =		\
 	ipa-server-upgrade	\
 	ipactl			\
 	ipa-compat-manage	\
-	ipa-nis-manage		\
 	ipa-managed-entries     \
 	ipa-ldap-updater	\
 	ipa-otptoken-import	\
