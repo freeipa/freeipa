@@ -1,0 +1,7 @@
+server:
+    tls-cert-bundle: $TLS_CERT_BUNDLE_PATH
+    interface: 127.0.0.55
+forward-zone:
+    name: "."
+    forward-tls-upstream: yes
+    $FORWARD_ADDRS

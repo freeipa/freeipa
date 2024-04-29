@@ -20,9 +20,10 @@ from subprocess import CalledProcessError
 from ipalib import api
 from ipalib import errors
 from ipalib import util
-from ipalib.install import hostname, sysrestore
+from ipalib.install import hostname, sysrestore, certmonger
 from ipalib.install.service import enroll_only, prepare_only
 from ipalib.install import dnsforwarders
+from ipalib.constants import FQDN
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
 from ipaplatform import services
@@ -37,6 +38,7 @@ from ipapython.ipautil import user_input
 from ipaserver.install.installutils import get_server_ip_address
 from ipaserver.install.installutils import read_dns_forwarders
 from ipaserver.install.installutils import update_hosts_file
+from ipaserver.install.installutils import default_subject_base
 from ipaserver.install import bindinstance
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import odsexporterinstance
@@ -106,6 +108,39 @@ def _disable_dnssec():
         if opendnssecinstance.KEYMASTER in ipa_config:
             ipa_config.remove(opendnssecinstance.KEYMASTER)
             conn.update_entry(entry)
+
+
+def _setup_dns_over_tls(options):
+    if os.path.isfile(paths.IPA_CA_CRT):
+        # request certificate for DoT, using IPA CA
+        cert = paths.BIND_DNS_OVER_TLS_CRT
+        key = paths.BIND_DNS_OVER_TLS_KEY
+        certmonger.request_and_wait_for_cert(
+            certpath=(cert, key),
+            principal='DNS/%s@%s' % (FQDN, api.env.realm),
+            subject=str(DN(('CN', FQDN), default_subject_base(api.env.realm))),
+            storage="FILE"
+        )
+        constants.NAMED_USER.chown(cert, gid=constants.NAMED_GROUP.gid)
+        constants.NAMED_USER.chown(key, gid=constants.NAMED_GROUP.gid)
+
+    # setup and enable Unbound as resolver
+    forward_addrs = ["forward-addr: %s" % fw for fw in options.dot_forwarders]
+    ipautil.copy_template_file(
+        paths.UNBOUND_CONF_SRC,
+        paths.UNBOUND_CONF,
+        dict(
+            TLS_CERT_BUNDLE_PATH=os.path.join(
+                paths.OPENSSL_CERTS_DIR, "ca-bundle.crt"),
+            FORWARD_ADDRS="\n".join(forward_addrs)
+        )
+    )
+    services.knownservices.unbound.enable()
+    services.knownservices.unbound.restart()
+    api.Command.dnsserver_mod(
+        FQDN,
+        idnsforwarders="127.0.0.55"
+    )
 
 
 def package_check(exception):
@@ -330,11 +365,26 @@ def install(standalone, replica, options, api=api):
         # otherwise this is done by server/replica installer
         update_hosts_file(ip_addresses, api.env.host, fstore)
 
+    if os.path.isfile(paths.IPA_CA_CRT):
+        dot_cert = paths.BIND_DNS_OVER_TLS_CRT
+        dot_key = paths.BIND_DNS_OVER_TLS_KEY
+    elif options.dns_over_tls_cert and options.dns_over_tls_key:
+        dot_cert = options.dns_over_tls_cert
+        dot_key = options.dns_over_tls_key
+    else:
+        raise RuntimeError(
+            "Certificate for DNS over TLS not specified "
+            "and IPA CA is not present."
+        )
+
     bind = bindinstance.BindInstance(fstore, api=api)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
                options.forwarders, options.forward_policy,
                reverse_zones, zonemgr=options.zonemgr,
-               no_dnssec_validation=options.no_dnssec_validation)
+               no_dnssec_validation=options.no_dnssec_validation,
+               dns_over_tls=options.dns_over_tls,
+               dns_over_tls_cert=dot_cert,
+               dns_over_tls_key=dot_key)
 
     if standalone and not options.unattended:
         print("")
@@ -343,6 +393,11 @@ def install(standalone, replica, options, api=api):
         print("")
 
     bind.create_instance()
+
+    if options.dns_over_tls:
+        print("Setting up DNS over TLS")
+        _setup_dns_over_tls(options)
+
     print("Restarting the web server to pick up resolv.conf changes")
     services.knownservices.httpd.restart(capture_output=True)
 
@@ -370,6 +425,7 @@ def install(standalone, replica, options, api=api):
     bind.update_system_records()
 
     if standalone:
+        dns_port = "853" if options.dns_over_tls else "53"
         print("==============================================================================")
         print("Setup complete")
         print("")
@@ -378,9 +434,9 @@ def install(standalone, replica, options, api=api):
         print("")
         print("\tYou must make sure these network ports are open:")
         print("\t\tTCP Ports:")
-        print("\t\t  * 53: bind")
+        print(f"\t\t  * {dns_port}: bind")
         print("\t\tUDP Ports:")
-        print("\t\t  * 53: bind")
+        print(f"\t\t  * {dns_port}: bind")
     elif not standalone and replica:
         print("")
         bind.check_global_configuration()
@@ -535,6 +591,34 @@ class DNSInstallInterface(hostname.HostNameInstallInterface):
         description="Disable DNSSEC validation",
     )
     no_dnssec_validation = enroll_only(no_dnssec_validation)
+
+    dns_over_tls = knob(
+        None,
+        description="Configure DNS over TLS",
+    )
+    dns_over_tls = enroll_only(dns_over_tls)
+
+    dot_forwarders = knob(
+        typing.List[ipautil.IPAddressDoTForwarder], None,
+        description=("Add a DNS over TLS forwarder. "
+                     "This option can be used multiple times"),
+        cli_names='--dot-forwarder',
+    )
+    dot_forwarders = enroll_only(dot_forwarders)
+
+    dns_over_tls_cert = knob(
+        str, None,
+        description=("Certificate to use for DNS over TLS. "
+                     "If empty, a new certificate will be "
+                     "requested from IPA CA"),
+    )
+    dns_over_tls_cert = enroll_only(dns_over_tls_cert)
+
+    dns_over_tls_key = knob(
+        str, None,
+        description="Key for certificate specified in --dns-over-tls-cert",
+    )
+    dns_over_tls_key = enroll_only(dns_over_tls_key)
 
     dnssec_master = False
     disable_dnssec_master = False

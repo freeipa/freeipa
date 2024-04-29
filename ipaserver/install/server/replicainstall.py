@@ -721,6 +721,9 @@ def ensure_enrolled(installer):
             args.extend(("--ntp-server", server))
     if installer.ntp_pool:
         args.extend(("--ntp-pool", installer.ntp_pool))
+    if installer.dns_over_tls:
+        args.append("--dns-over-tls")
+        print("DNS OVER TLS ENABLED IN CLIENT!!!!!!!")
 
     try:
         # Call client install script
