@@ -43,6 +43,20 @@ There are a few basic rules:
 
 ### Installation
 
+
+#### SELinux
+
+The two supported hardware HSMs require additional SELinux permissions
+so that IPA and certmonger have access to the tokens. There is a
+separate module for each one: {free}ipa-selinux-nfast and
+{free}ipa-selinux-luna. These are NOT installed by default and
+the user must install the appropriate one manually.
+
+During HSM validation early in the installation a check is made to
+ensure that the correct module is installed but this is a best
+effort and will not cause the installation to fail if the module
+is not available.
+
 #### CA
 
 The token name, module name and shared library must be provided to the
