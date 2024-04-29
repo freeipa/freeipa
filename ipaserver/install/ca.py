@@ -171,19 +171,17 @@ def lookup_hsm_configuration(api):
     return (token_name, token_library_path)
 
 
-def hsm_version(enabled):
+def hsm_version():
     """Return True if PKI supports working HSM code
 
        The caller is responsible for raising the exception.
     """
-    if not enabled:
-        return None, None
     pki_version = pki.util.Version(pki.specification_version())
-    return pki_version >= pki.util.Version("11.3.0"), pki_version
+    return pki_version >= pki.util.Version("11.5.0"), pki_version
 
 
-def hsm_validator(enabled, token_name, token_library):
-    val, pki_version = hsm_version(enabled)
+def hsm_validator(token_name, token_library, token_password):
+    val, pki_version = hsm_version()
     if val is False:
         raise ValueError(
             "HSM is not supported in PKI version %s" % pki_version
@@ -231,6 +229,23 @@ def hsm_validator(enabled, token_name, token_library):
             raise ValueError(
                 "Token named '%s' was not found" % token_name
             )
+        pwdfile = ipautil.write_tmp_file(token_password)
+        args = [
+            paths.CERTUTIL,
+            "-d", '{}:{}'.format(tempnssdb.dbtype, tempnssdb.secdir),
+            "-K",
+            "-h", token_name,
+            "-f", pwdfile.name,
+        ]
+        result = ipautil.run(args, cwd=tempnssdb.secdir,
+                             capture_error=True, raiseonerr=False)
+        if result.returncode != 0 and len(result.error_output):
+            if 'SEC_ERROR_BAD_PASSWORD' in result.error_output:
+                raise ValueError('Invalid HSM token password')
+            else:
+                raise ValueError(
+                    "Validating HSM password failed: %s" % result.error_output
+                )
 
 
 def set_subject_base_in_config(subject_base):
@@ -320,7 +335,8 @@ def install_check(standalone, replica_config, options):
         if options.token_name:
             try:
                 hsm_validator(
-                    True, options.token_name, options.token_library_path)
+                    options.token_name, options.token_library_path,
+                    options.token_password)
             except ValueError as e:
                 raise ScriptError(str(e))
         options._subject_base = options.subject_base
@@ -352,16 +368,6 @@ def install_check(standalone, replica_config, options):
         # IPA version and dependency checking should prevent this but
         # better to be safe and avoid a failed install.
         if replica_config.setup_ca and token_name:
-            try:
-                hsm_validator(
-                    True,
-                    token_name,
-                    options.token_library_path
-                    if options.token_library_path
-                    else token_library_path,
-                )
-            except ValueError as e:
-                raise ScriptError(str(e))
             if not options.token_library_path:
                 options.token_library_path = token_library_path
             if (
@@ -371,12 +377,26 @@ def install_check(standalone, replica_config, options):
                 if options.unattended:
                     raise ScriptError("HSM token password required")
                 token_password = installutils.read_password(
-                    f"{token_name}", confirm=False
+                    f"HSM token '{token_name}'", confirm=False
                 )
                 if token_password is None:
                     raise ScriptError("HSM token password required")
                 else:
                     options.token_password = token_password
+
+            if options.token_password_file:
+                with open(options.token_password_file, "r") as fd:
+                    options.token_password = fd.readline().strip()
+            try:
+                hsm_validator(
+                    token_name,
+                    options.token_library_path
+                    if options.token_library_path
+                    else token_library_path,
+                    options.token_password,
+                )
+            except ValueError as e:
+                raise ScriptError(str(e))
 
     if replica_config is not None and not replica_config.setup_ca:
         return
@@ -492,12 +512,6 @@ def install_step_0(standalone, replica_config, options, custodia):
     subject_base = options._subject_base
     external_ca_profile = None
 
-    if options.token_password_file:
-        with open(options.token_password_file, "r") as fd:
-            token_password = fd.readline().strip()
-    else:
-        token_password = options.token_password
-
     if replica_config is None:
         ca_signing_algorithm = options.ca_signing_algorithm
         if options.external_ca:
@@ -582,7 +596,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         random_serial_numbers=options._random_serial_numbers,
         token_name=token_name,
         token_library_path=options.token_library_path,
-        token_password=token_password,
+        token_password=options.token_password,
     )
 
 
