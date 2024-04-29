@@ -18,7 +18,6 @@ dist_man1_MANS = 			\
 	ipa-kra-install.1		\
 	ipa-ldap-updater.1		\
 	ipa-compat-manage.1		\
-	ipa-nis-manage.1		\
 	ipa-managed-entries.1		\
 	ipa-backup.1			\
 	ipa-restore.1			\

@@ -31,7 +31,7 @@ from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.install.ipa_migrate_constants import (
     DS_CONFIG, DB_OBJECTS, DS_INDEXES, BIND_DN, LOG_FILE_NAME,
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
-    DNA_REGEN_VAL, DNA_REGEN_ATTRS, NIS_PLUGIN, IGNORE_ATTRS,
+    DNA_REGEN_VAL, DNA_REGEN_ATTRS, IGNORE_ATTRS,
     DB_EXCLUDE_TREES
 )
 
@@ -718,8 +718,7 @@ class IPAMigrate():
         self.log_info(title)
         self.log_info('-' * (len(title) - 1))
         logged_something = self.log_stats(DS_CONFIG)
-        if self.args.verbose or NIS_PLUGIN['count'] > 0:
-            self.log_info(f" - NIS Server Plugin:       {NIS_PLUGIN['count']}")
+        if self.args.verbose:
             logged_something = True
         if not self.log_stats(DS_INDEXES) and not logged_something:
             self.log_info(" - No updates")
@@ -1846,28 +1845,6 @@ class IPAMigrate():
                         entry['dn'], entry['attrs'], dse,
                         add_missing=True)
                     stats['config_processed'] += 1
-
-            # Slapi NIS Plugin
-            if DN(NIS_PLUGIN['dn']) == DN(entry['dn']):
-                # Parent plugin entry
-                self.process_config_entry(
-                    entry['dn'], entry['attrs'], NIS_PLUGIN,
-                    add_missing=True)
-                stats['config_processed'] += 1
-            elif DN(NIS_PLUGIN['dn']) in DN(entry['dn']):
-                # Child NIS plugin entry
-                nis_dn = entry['dn']
-                lc_remote_realm = self.remote_realm.lower()
-                lc_realm = self.realm.lower()
-                nis_dn = nis_dn.replace(lc_remote_realm, lc_realm)
-                if 'nis-domain' in entry['attrs']:
-                    value = entry['attrs']['nis-domain'][0]
-                    value = value.replace(lc_remote_realm, lc_realm)
-                    entry['attrs']['nis-domain'][0] = value
-                # Process the entry
-                self.process_config_entry(nis_dn, entry['attrs'], NIS_PLUGIN,
-                                          add_missing=True)
-                stats['config_processed'] += 1
 
     #
     # Migration
