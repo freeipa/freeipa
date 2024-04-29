@@ -67,8 +67,6 @@ dist_app_DATA =				\
 	master-entry.ldif		\
 	memberof-task.ldif		\
 	memberof-conf.ldif		\
-	nis.uldif			\
-	nis-update.uldif			\
 	opendnssec_conf.template	\
 	opendnssec_kasp.template	\
 	unique-attributes.ldif		\

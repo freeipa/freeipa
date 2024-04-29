@@ -385,7 +385,6 @@ IPA_CLIENT_NOT_CONFIGURED = b'IPA client is not configured on this system'
           '/usr/share/ipa/updates/05-pre_upgrade_plugins.update'],
          2, None, IPA_NOT_CONFIGURED),
         (['ipa-managed-entries'], 2, None, IPA_NOT_CONFIGURED),
-        (['ipa-nis-manage'], 2, None, IPA_NOT_CONFIGURED),
         (['ipa-pkinit-manage'], 2, None, IPA_NOT_CONFIGURED),
         (['ipa-replica-manage', 'list'], 1, IPA_NOT_CONFIGURED, None),
         (['ipa-server-certinstall'], 2, None, IPA_NOT_CONFIGURED),

@@ -503,30 +503,6 @@ DS_CONFIG = {
 }
 
 #
-# Slpai NIS is an optional plugin.  It requires special handling
-#
-NIS_PLUGIN = {
-    'dn': 'cn=NIS Server,cn=plugins,cn=config',
-    'attrs': [
-        'nis-domain',
-        'nis-base',
-        'nis-map',
-        'nis-filter',
-        'nis-key-format:',
-        'nis-values-format:',
-        'nis-secure',
-        'nis-disallowed-chars',
-        # Parent plugin entry
-        'nsslapd-pluginarg0',
-        'nsslapd-pluginenabled'
-    ],
-    'multivalued': [],
-    'label': 'NIS Server Plugin',
-    'mode': 'all',
-    'count': 0,
-}
-
-#
 # This mapping is simliar to above but it handles container entries
 # This could be built into the above mapping using the "comma" approach
 #

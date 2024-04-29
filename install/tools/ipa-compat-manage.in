@@ -26,6 +26,7 @@ from ipaplatform.paths import paths
 try:
     from optparse import OptionParser  # pylint: disable=deprecated-module
     from ipapython import ipautil, config
+    from ipapython.ipaldap import realm_to_serverid
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate
     from ipalib import api, errors
@@ -150,9 +151,19 @@ def main():
         try:
             entry = get_entry(nis_config_dn)
             # We can't disable schema compat if the NIS plugin is enabled
-            if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                print("The NIS plugin is configured, cannot disable compatibility.", file=sys.stderr)
-                print("Run 'ipa-nis-manage disable' first.", file=sys.stderr)
+            if (
+                entry is not None
+                and entry.get("nsslapd-pluginenabled", [""])[0].lower() == "on"
+            ):
+                instance = realm_to_serverid(api.env.realm)
+                print(
+                    "The NIS plugin is configured, cannot "
+                    "disable compatibility.", file=sys.stderr,
+                )
+                print(
+                    f"Run \"dsconf {instance} plugin set --enabled off "
+                    "'NIS Server'\" first.", file=sys.stderr,
+                )
                 retval = 2
         except errors.ExecutionError as lde:
             print("An error occurred while talking to the server.")
