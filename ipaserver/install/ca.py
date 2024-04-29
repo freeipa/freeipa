@@ -246,6 +246,23 @@ def hsm_validator(token_name, token_library, token_password):
                 raise ValueError(
                     "Validating HSM password failed: %s" % result.error_output
                 )
+        # validate that the appropriate SELinux module is installed
+        # Only warn in case the expected paths don't match.
+        if 'nfast' in token_library:
+            module = 'ipa-selinux-nfast'
+        elif 'luna' in token_library:
+            module = 'ipa-selinux-nfast'
+        else:
+            module = None
+        if module:
+            args = [paths.SEMODULE, "-l"]
+            result = ipautil.run(args, cwd=tempnssdb.secdir,
+                                 capture_output=True, raiseonerr=False)
+            if module not in result.output:
+                logger.info('\nWARNING: The associated SELinux module ,%s, '
+                            'for this HSM was not detected.\nVerify '
+                            'that the appropriate subpackage is installed '
+                            'for this HSM\n', module)
 
 
 def set_subject_base_in_config(subject_base):
