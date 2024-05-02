@@ -141,7 +141,7 @@ class passwd(Command):
             DN(api.env.container_user, api.env.basedn)
         )
 
-        if principal == getattr(context, 'principal') and \
+        if principal == getattr(context, 'principal', None) and \
             current_password == MAGIC_VALUE:
             # No cheating
             logger.warning('User attempted to change password using magic '
