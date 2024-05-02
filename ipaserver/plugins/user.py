@@ -938,8 +938,13 @@ class user_find(baseuser_find):
                                  *keys, **options)
 
         if options.get('whoami'):
+            op_account = getattr(context, 'principal', None)
+            if op_account is None:
+                new_base_dn = DN(ldap.conn.whoami_s()[4:])
+                return ("(objectclass=posixaccount)", new_base_dn, scope)
+
             return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
-                        getattr(context, 'principal'), base_dn, scope)
+                    op_account, base_dn, scope)
 
         preserved = options.get('preserved', False)
         if preserved is None:
