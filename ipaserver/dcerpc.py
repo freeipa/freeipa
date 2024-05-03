@@ -382,7 +382,7 @@ class DomainValidator:
             # Our domain is configured but no trusted domains are configured
             raise errors.ValidationError(name=_('Trust setup'),
                                          error=_('No trusted domain is '
-                                                 'not configured'))
+                                                 'configured'))
 
         entries = None
         if domain is not None:
