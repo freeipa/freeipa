@@ -716,7 +716,7 @@ Requires: oddjob-mkhomedir
 Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
-Requires: nfs-utils
+Requires: (nfs-utils or nfsv4-client-utils)
 Requires: sssd-tools >= %{sssd_version}
 Requires(post): policycoreutils
 
