@@ -1,6 +1,5 @@
 [sssd]
 services = nss, pam
-config_file_version = 2
 domains = default
 re_expression = (?P<name>.+)
 
