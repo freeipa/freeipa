@@ -30,15 +30,21 @@ from ipalib.base import NameSpace
 from ipalib.plugable import Plugin, APINameSpace
 from ipalib.parameters import create_param, Param, Str, Flag
 from ipalib.parameters import create_signature
-from ipalib.parameters import Password  # pylint: disable=unused-import
 from ipalib.output import Output, Entry, ListOfEntries
 from ipalib.text import _
-from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
-    VersionError, OptionError,
-    ValidationError, ConversionError)
+from ipalib.errors import (
+    ZeroArgumentError,
+    MaxArgumentError,
+    OverlapError,
+    VersionError,
+    OptionError,
+    ValidationError,
+    ConversionError,
+)
 from ipalib import errors, messages
 from ipalib.request import context, context_frame
 from ipalib.util import classproperty, classobjectproperty, json_serialize
+from ipalib.constants import SD_IPA_API_MESSAGE_ID
 
 if six.PY3:
     unicode = str
@@ -470,6 +476,41 @@ class Command(HasParam):
             self.context.principal = getattr(context, 'principal', None)
             return self.__do_call(*args, **options)
 
+    def __audit_to_journal(self, func, params, result):
+        if getattr(context, 'audit_action', None) != func:
+            return
+        setattr(context, 'audit_action', None)
+
+        from systemd import journal
+        from ipalib.ipajson import json_encode_binary
+        args_opts = dict([*self._safe_args_and_params(**params)])
+        json_encoded = json_encode_binary(args_opts, API_VERSION,
+                                          pretty_print=False)
+        actor = self.context.principal or "[autobind]"
+        conn = getattr(self.api.Backend, 'ldap2', None)
+        if conn is not None:
+            conn_id = conn.id
+        else:
+            conn_id = '[no_connection_id]'
+        journal.send(
+            "[%s] %s: %s: %s [%s] %s"
+            % (
+                "IPA.API",
+                actor,
+                func,
+                result,
+                conn_id,
+                json_encoded
+            ),
+            PRIORITY=journal.LOG_NOTICE,
+            SYSLOG_IDENTIFIER=self.api.env.script,
+            MESSAGE_ID=SD_IPA_API_MESSAGE_ID,
+            IPA_API_COMMAND=func,
+            IPA_API_PARAMS=json_encoded,
+            IPA_API_RESULT=result,
+            IPA_API_ACTOR=actor
+        )
+
     def __do_call(self, *args, **options):
         self.context.__messages = []
         if 'version' in options:
@@ -495,8 +536,17 @@ class Command(HasParam):
         )
         if self.api.env.in_server:
             self.validate(**params)
+            if all([self.name != "console",
+                    not getattr(context, "audit_action", None)]):
+                setattr(context, "audit_action", self.name)
         (args, options) = self.params_2_args_options(**params)
-        ret = self.run(*args, **options)
+        try:
+            ret = self.run(*args, **options)
+        except Exception as e:
+            if self.api.env.in_server:
+                self.__audit_to_journal(self.name, params, type(e).__name__)
+            raise
+
         if isinstance(ret, dict):
             for message in self.context.__messages:
                 messages.add_message(options['version'], ret, message)
@@ -508,10 +558,29 @@ class Command(HasParam):
             ret['summary'] = self.get_summary_default(ret)
         if self.use_output_validation and (self.output or ret is not None):
             self.validate_output(ret, options['version'])
+        if self.api.env.in_server:
+            self.__audit_to_journal(self.name, params, 'SUCCESS')
         return ret
 
     def add_message(self, message):
         self.context.__messages.append(message)
+
+    def _safe_args_and_params(self, **params):
+        """
+        Iterate through *safe* values of args and options
+
+        This method uses `parameters.Param.safe_value()` to mask
+        passwords when logging. It yields tuples of (name, value)
+        of the arguments and options.
+        """
+        for arg in self.args():
+            value = params.get(arg.name, None)
+            yield (arg.name, arg.safe_value(value))
+        for option in self.options():
+            if option.name not in params:
+                continue
+            value = params[option.name]
+            yield (option.name, option.safe_value(value))
 
     def _repr_iter(self, **params):
         """
