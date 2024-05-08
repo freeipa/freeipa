@@ -957,6 +957,17 @@ class IPACompleter(rlcompleter.Completer):
         return super()._callable_postfix(val, word)
 
 
+class InteractiveConsole(code.InteractiveConsole):
+    def showtraceback(self):
+        ei = sys.exc_info()
+        e = ei[1]
+        if isinstance(e, PublicError):
+            self.write('IPA public error exception: %s: %s\n' %
+                       (e.__class__.__name__, str(e)))
+        else:
+            super().showtraceback()
+
+
 class console(frontend.Command):
     """Start the IPA interactive Python console, or run a script.
 
@@ -1018,13 +1029,14 @@ class console(frontend.Command):
         else:
             if readline is not None:
                 self._setup_tab_completion(local)
-            code.interact(
+            cons = InteractiveConsole(local)
+            cons.interact(
                 "\n".join((
                     "(Custom IPA interactive Python console)",
                     "    api: IPA API object",
                     "    pp: pretty printer",
                 )),
-                local=local
+                exitmsg=None
             )
 
 
