@@ -1,0 +1,58 @@
+#
+#
+#
+-- 6d70f1b493df36478bc3499257cd3b17
+Subject: IPA API command was executed and result of its execution was audited
+Defined-by: FreeIPA
+Support: https://lists.fedorahosted.org/archives/list/freeipa-users@lists.fedorahosted.org/
+Documentation: man:ipa(1)
+Documentation: https://freeipa.readthedocs.io/en/latest/api/index.html
+Documentation: https://freeipa.readthedocs.io/en/latest/api/@IPA_API_COMMAND@.html
+
+FreeIPA provides an extensive API that allows to manage all aspects of IPA deployments.
+
+The following information about the API command executed is available:
+
+@MESSAGE@
+
+The command was executed by '@SYSLOG_IDENTIFIER@' utility. If the utility name
+is '/mod_wsgi`, then this API command came from a remote source through the IPA
+API end-point.
+
+The message includes following fields:
+
+  - executable name and PID ('/mod_wsgi' for HTTP end-point; in this case it
+    was '@SYSLOG_IDENTIFIER@' command)
+
+  - '[IPA.API]' marker to allow searches with 'journalctl -g IPA.API'
+
+  - authenticated Kerberos principal or '[autobind]' marker for LDAPI-based
+    access as root. In this case it was '@IPA_API_ACTOR@'
+
+  - name of the command executed, in this case '@IPA_API_COMMAND@'
+
+  - result of execution: `SUCCESS` or an exception name. In this case it was
+    '@IPA_API_RESULT@'
+
+  - LDAP backend instance identifier. The identifier will be the same for all
+    operations performed under the same request. This allows to identify operations
+    which were executed as a part of the same API request instance. For API
+    operations that didn't result in LDAP access, there will be
+    '[no_connection_id]' marker.
+
+  - finally, a list of arguments and options passed to the command is provided
+    in JSON format.
+
+---------
+The following list of arguments and options were passed to the command
+'@IPA_API_COMMAND@' by the '@IPA_API_ACTOR@' actor:
+
+@IPA_API_PARAMS@
+---------
+
+A detailed information about FreeIPA API can be found at upstream documentation API reference:
+https://freeipa.readthedocs.io/en/latest/api/index.html
+
+For details on the IPA API command '@IPA_API_COMMAND@' see
+https://freeipa.readthedocs.io/en/latest/api/@IPA_API_COMMAND@.html
+

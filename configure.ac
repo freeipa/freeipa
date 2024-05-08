@@ -267,6 +267,13 @@ AC_ARG_WITH([systemdtmpfilesdir],
         [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
 AC_SUBST([systemdtmpfilesdir])
 
+AC_ARG_WITH([systemdcatalogdir],
+            AS_HELP_STRING([--with-systemdcatalogdir=DIR],
+               [Directory for systemd journal catalog files]),
+            [systemdcatalogdir=$with_systemdcatalogdir],
+        [systemdcatalogdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=catalogdir systemd)])
+AC_SUBST([systemdcatalogdir])
+
 dnl ---------------------------------------------------------------------------
 dnl - Server-only configuration
 dnl ---------------------------------------------------------------------------

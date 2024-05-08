@@ -24,6 +24,7 @@ All constants centralised in one file.
 
 import os
 import string
+import uuid
 
 from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
@@ -54,6 +55,8 @@ TLS_VERSION_MINIMAL = "tls1.2"
 TLS_VERSION_MAXIMAL = "tls1.3"
 TLS_VERSION_DEFAULT_MIN = None
 TLS_VERSION_DEFAULT_MAX = None
+
+SD_IPA_API_MESSAGE_ID = uuid.uuid3(uuid.NAMESPACE_DNS, 'IPA.API')
 
 # regular expression NameSpace member names must match:
 NAME_REGEX = r'^[a-z][_a-z0-9]*[a-z0-9]$|^[a-z]$'
