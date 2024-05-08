@@ -903,6 +903,7 @@ Requires: python3-urllib3 >= 1.24.2-3
 # For urllib3.util.ssl_match_hostname
 Requires: python3-urllib3 >= 1.25.8
 %endif
+Requires: python3-systemd
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -1143,6 +1144,10 @@ fi
 /bin/systemctl reload-or-try-restart oddjobd
 
 %tmpfiles_create ipa.conf
+%journal_catalog_update
+
+%postun server
+%journal_catalog_update
 
 %posttrans server
 # don't execute upgrade and restart of IPA when server is not installed
@@ -1493,6 +1498,7 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-otpd@.service
 %attr(644,root,root) %{_unitdir}/ipa-ccache-sweep.service
 %attr(644,root,root) %{_unitdir}/ipa-ccache-sweep.timer
+%attr(644,root,root) %{_journalcatalogdir}/ipa.catalog
 # END
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
 %attr(755,root,root) %{plugin_dir}/libipa_enrollment_extop.so
