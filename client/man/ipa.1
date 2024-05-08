@@ -132,6 +132,56 @@ c \- compare\p
 W \- self\-write\p
 O \- self\-obliterate
 
+.SH "AUDIT AND LOGGING"
+
+The IPA API logs audit messages to systemd journal about each command executed
+through IPA API on the IPA server. These messages can be found by grepping
+systemd journal with \fBjournalctl -g IPA.API\fR command. The message includes
+following information:
+
+May 21 11:31:33 master1.ipa1.test /usr/bin/ipa[247422]: [IPA.API] [autobind]: user_del: SUCCESS [ldap2_140328582446688] {"uid": ["foobar"], "continue": false, "version": "2.253"}
+
+.TP
+\fB/usr/bin/ipa[247422]\fR
+executable name and PID (`/mod_wsgi` for HTTP end-point)
+.TP
+\fB[IPA.API]\fR
+marker to allow searches with \fBjournalctl -g IPA.API\R
+.TP
+\fBusername@REALM\fR
+authenticated Kerberos principal or \fB[autobind]\fR marker for LDAP-based operations done as root
+.TP
+\fBuser_del\fR
+name of the command executed
+.TP
+\fBSUCCESS\fR
+result of execution: \fBSUCCESS\fR or an exception name
+.TP
+\fB[ldap2_140328582446688]\fR
+LDAP backend connection instance identifier. The identifier will be the same for all
+operations performed under the same request. This allows to identify operations
+which were executed using the same LDAP connection. For API operations that
+didn't result in LDAP access, there will be \fB[no_connection_id]\fR marker.
+.TP
+\fB{"uid": ["foobar"], "continue": false, "version": "2.253"}\fR
+a list of arguments and options passed to the IPA API command, provided in JSON
+format. Credentials are filtered out.
+
+.LP
+All explicitly requested operations logged. Internal operations, initiated as
+part of execution of the explicitly requested IPA API calls, aren't logged. For
+HTTP end-point operations will be logged as performed by the '/mod_wsgi'
+executable binary.  Remaining details can be inspected through the systemd
+journal as journald records execution context. See systemd.journal\-fields(7)
+for details.
+
+The details of the individual logged messages can be explained with the help of
+'\fBjournalctl -x\fR' command, while full set of logged properties can be
+retrieved with '\fBjournalctl -o json-pretty\fR'. See journalctl(1) for details
+on the systemd journal viewer.
+
+For the sample message above, an explanation could be requested with '\fBjournalctl -x -g ldap2_140328582446688\fR' where LDAP backend connection instance identifier can be used to uniquely fetch that individual message.
+
 .SH "EXAMPLES"
 .TP
 \fBipa help commands\fR
@@ -206,4 +256,5 @@ IPA default configuration file.
 ipa\-client\-install(1), ipa\-compat\-manage(1), ipactl(1), ipa\-dns\-install(1),
 ipa\-getcert(1), ipa\-getkeytab(1), ipa\-join(1), ipa\-ldap\-updater(1),
 ipa\-nis\-manage(1), ipa\-replica\-install(1), ipa\-replica\-manage(1), ipa\-replica\-prepare(1),
-ipa\-rmkeytab(1), ipa\-server\-certinstall(2), ipa\-server\-install(1), ipa\-server\-upgrade(1)
+ipa\-rmkeytab(1), ipa\-server\-certinstall(2), ipa\-server\-install(1), ipa\-server\-upgrade(1),
+systemd.journal\-fields(7), journalctl(1)

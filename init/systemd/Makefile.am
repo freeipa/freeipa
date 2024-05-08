@@ -18,6 +18,10 @@ systemdsystemunit_DATA = 	\
 	ipa-ccache-sweep.timer	\
 	$(NULL)
 
+dist_systemdcatalog_DATA =		\
+	ipa.catalog			\
+	$(NULL)
+
 CLEANFILES = $(systemdsystemunit_DATA)
 
 %: %.in Makefile
