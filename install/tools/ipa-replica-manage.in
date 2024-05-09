@@ -26,7 +26,6 @@ import os
 import re
 import socket
 import traceback
-from urllib.parse import urlparse
 from xmlrpc.client import MAXINT
 
 import ldap
@@ -358,9 +357,14 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     return True
 
-def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
+
+def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False,
+            strict=True):
     """
     Return the RUV entries as a list of tuples: (hostname, rid)
+
+    If strict is True then the RUV must contain the ldap url, otherwise it is
+    ok to proceed with just the rid
     """
 
     if not nolookup:
@@ -371,10 +375,9 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
             thisrepl = replication.get_cs_replication_manager(realm, host, dirman_passwd)
         else:
             thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
-    except Exception as e:
+    except Exception as ex:
         logger.debug("%s", traceback.format_exc())
-        raise RuntimeError("Failed to connect to server {host}: {err}"
-                           .format(host=host, err=e))
+        raise RuntimeError(f"Failed to connect to server {host}: {ex}")
 
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
     try:
@@ -386,27 +389,42 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
         raise NoRUVsFound("No RUV records found.")
 
     servers = []
-    for e in entries:
-        for ruv in e['nsds50ruv']:
+    for entry in entries:
+        for ruv in entry['nsds50ruv']:
             if ruv.startswith('{replicageneration'):
                 continue
-            data = re.match(
-                r'\{replica (\d+) (ldap://.*:\d+)\}(\s+\w+\s+\w*){0,1}',
+
+            # Get the RID, this is required in all cases
+            rid_data = re.match(
+                r'\{replica (\d+)',
                 ruv
             )
-            if data:
-                rid = data.group(1)
-                (
-                    _scheme, netloc, _path, _params, _query, _fragment
-                ) = urlparse(data.group(2))
-                servers.append((netloc, rid))
+            if rid_data:
+                rid = rid_data.group(1)
             else:
-                print("unable to decode: %s" % ruv)
+                print(f"unable to decode: {ruv} --> missing replica ID")
+                continue
+
+            # Attempt to extract ldap url from ruv (it's not always present)
+            netloc = "unknown host"
+            host_data = re.match(
+                r'(\{\w+\s+\d+\s+)ldap://(\w+)',
+                ruv
+            )
+            if host_data:
+                netloc = host_data.group(2)
+            elif strict:
+                print(f"unable to decode: {ruv} --> missing LDAP url")
+                continue
+
+            # Ok update server list
+            servers.append((netloc, rid))
 
     return servers
 
 
-def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False):
+def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False,
+                          strict=True):
     """
     Get RUVs for both domain and ipaca suffixes
     """
@@ -414,19 +432,20 @@ def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False):
     fail_gracefully = True
 
     try:
-        ruvs['ca'] = get_ruv(realm, host, dirman_passwd, nolookup, True)
+        ruvs['ca'] = get_ruv(realm, host, dirman_passwd, nolookup, True,
+                             strict)
     except (NoRUVsFound, RuntimeError) as e:
-        err = "Failed to get CS-RUVs from {host}: {err}".format(host=host,
-                                                                err=e)
+        err = f"Failed to get CS-RUVs from {host}: {e}"
         if isinstance(e, RuntimeError):
             fail_gracefully = False
             if verbose:
                 print(err)
         logger.debug('%s', err)
     try:
-        ruvs['domain'] = get_ruv(realm, host, dirman_passwd, nolookup)
+        ruvs['domain'] = get_ruv(realm, host, dirman_passwd, nolookup, False,
+                                 strict)
     except (NoRUVsFound, RuntimeError) as e:
-        err = "Failed to get RUVs from {host}: {err}".format(host=host, err=e)
+        err = f"Failed to get RUVs from {host}: {e}"
         if isinstance(e, RuntimeError):
             if not fail_gracefully:
                 raise
@@ -498,7 +517,8 @@ def clean_ruv(realm, ruv, options):
         servers = get_ruv_both_suffixes(realm, options.host,
                                         options.dirman_passwd,
                                         options.verbose,
-                                        options.nolookup)
+                                        options.nolookup,
+                                        strict=False)
     except (NoRUVsFound, RuntimeError) as e:
         print(e)
         sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
@@ -554,7 +574,8 @@ def abort_clean_ruv(realm, ruv, options):
         servers = get_ruv_both_suffixes(realm, options.host,
                                         options.dirman_passwd,
                                         options.verbose,
-                                        options.nolookup)
+                                        options.nolookup,
+                                        strict=False)
     except (NoRUVsFound, RuntimeError) as e:
         print(e)
         sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
@@ -713,7 +734,8 @@ def clean_dangling_ruvs(realm, host, options):
                 ruv_dict = get_ruv_both_suffixes(realm, master_cn,
                                                  options.dirman_passwd,
                                                  options.verbose,
-                                                 options.nolookup)
+                                                 options.nolookup,
+                                                 strict=False)
             except (RuntimeError, NoRUVsFound):
                 continue
 
