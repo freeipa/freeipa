@@ -181,6 +181,18 @@ def hsm_version():
 
 
 def hsm_validator(token_name, token_library, token_password):
+    """Do some basic validation of the HSM information provided.
+
+       - The local PKI server supports IPA HSM
+       - The token library exists
+       - The token name doesn't have a colon or semi-colon in it
+       - The token name exists after loading the library
+       - The token password works
+       - Super-simple test to see if the SELinux module is loaded
+    """
+    if not token_name:
+        logger.debug("No token name, assuming not an HSM install")
+        return
     val, pki_version = hsm_version()
     if val is False:
         raise ValueError(
