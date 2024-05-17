@@ -560,8 +560,7 @@ class BaseCertMethod(Method):
     def get_options(self):
         yield self.obj.params['cacn'].clone(query=True)
 
-        for option in super(BaseCertMethod, self).get_options():
-            yield option
+        yield from super(BaseCertMethod, self).get_options()
 
 
 @register()
@@ -1342,8 +1341,7 @@ class cert(BaseCertObject):
 
 class CertMethod(BaseCertMethod):
     def get_options(self):
-        for option in super(CertMethod, self).get_options():
-            yield option
+        yield from super(CertMethod, self).get_options()
 
         for o in self.has_output:
             if isinstance(o, (output.Entry, output.ListOfEntries)):
@@ -1443,8 +1441,7 @@ class cert_revoke(PKQuery, CertMethod, VirtualCommand):
             autofill=True,
         )
 
-        for option in super(cert_revoke, self).get_options():
-            yield option
+        yield from super(cert_revoke, self).get_options()
 
     def execute(self, serial_number, **kw):
         ca_enabled_check(self.api)
