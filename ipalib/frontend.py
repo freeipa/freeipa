@@ -920,8 +920,7 @@ class Command(HasParam):
         determined.  For an example of why this can be useful, see the
         `ipalib.crud.Create` subclass.
         """
-        for arg in self._get_param_iterable('args'):
-            yield arg
+        yield from self._get_param_iterable('args')
 
     def check_args(self, args):
         """
@@ -960,8 +959,7 @@ class Command(HasParam):
         determined.  For an example of why this can be useful, see the
         `ipalib.crud.Create` subclass.
         """
-        for option in self._get_param_iterable('options'):
-            yield option
+        yield from self._get_param_iterable('options')
         for o in self.has_output:
             if isinstance(o, (Entry, ListOfEntries)):
                 yield Flag('all',
@@ -1015,8 +1013,7 @@ class Command(HasParam):
                 o.validate(self, value, version)
 
     def get_output_params(self):
-        for param in self._get_param_iterable('output_params', verb='has'):
-            yield param
+        yield from self._get_param_iterable('output_params', verb='has')
 
     def get_summary_default(self, output):
         if self.msg_summary:
@@ -1454,8 +1451,7 @@ class Method(Attribute, Command):
                 if 'no_output' in param.flags:
                     continue
                 yield param
-        for param in super(Method, self).get_output_params():
-            yield param
+        yield from super(Method, self).get_output_params()
 
 
 class Updater(Plugin):
