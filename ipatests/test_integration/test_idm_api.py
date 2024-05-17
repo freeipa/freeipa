@@ -524,9 +524,17 @@ class TestAPIScenario(IntegrationTest):
     for i in range(5):
         user_id = "user%i" % i
         args = [user_id]
-        kw = {{'givenname' : user_id, 'sn' : user_id}}
-        batch_args.append({{'method' : 'user_add', 'params' : [args, kw]}})
-    api.Command["batch"](*batch_args)
+        kw = dict(givenname=user_id, sn=user_id, random=True)
+        batch_args.append(dict(method='user_add', params=[args, kw]))
+
+    batch_args.append(dict(method='ping', params=[(), dict()]))
+    keeponly=('dn', 'uid', 'randompassword')
+    batch = api.Command["batch"](methods=batch_args, keeponly=keeponly)
+    # Make sure only the attributes from keeponly returned in result dict
+    # The ping() test above will have no attributes returned
+    for r in batch['results']:
+        if r.get('result', None):
+            assert set(keeponly) >= set(r['result'].keys())
         """
         )
         self.create_and_run_script(
