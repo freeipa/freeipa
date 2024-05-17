@@ -155,6 +155,18 @@ jobs:
         timeout: 3600
         topology: *master_1repl_1client
 
+  fedora-latest-ipa-4-11/test_idm_api:
+    requires: [fedora-latest-ipa-4-11/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-ipa-4-11/build_url}'
+        test_suite: test_integration/test_idm_api.py
+        template: *ci-ipa-4-11-latest
+        timeout: 3600
+        topology: *master_1repl_1client
+
   fedora-latest-ipa-4-11/test_forced_client_enrolment:
     requires: [fedora-latest-ipa-4-11/build]
     priority: 100

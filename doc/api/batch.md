@@ -8,6 +8,7 @@ Make multiple ipa calls via one remote procedure call
 |methods|:ref:`Dict<Dict>`|False
 
 ### Options
+* keeponly : :ref:`Str<Str>`
 * version : :ref:`Str<Str>`
 
 ### Output

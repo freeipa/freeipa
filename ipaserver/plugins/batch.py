@@ -30,7 +30,6 @@ from ipalib.output import Output
 from ipalib.text import _
 from ipalib.request import context
 from ipalib.plugable import Registry
-from ipapython.version import API_VERSION
 
 __doc__ = _("""
 Plugin to make multiple ipa calls via one remote procedure call
@@ -77,14 +76,10 @@ class batch(Command):
         ),
     )
 
-    take_options = (
-        Str('version',
-            cli_name='version',
-            doc=_('Client version. Used to determine if server will accept request.'),
-            exclude='webui',
-            flags=['no_option', 'no_output'],
-            default=API_VERSION,
-            autofill=True,
+    takes_options = (
+        Str('keeponly*',
+            doc=_('Keep specified attributes in the output, '
+                  'remove everything else.'),
         ),
     )
 
@@ -160,6 +155,7 @@ class batch(Command):
     def execute(self, methods=None, **options):
         results = []
         op_account = getattr(context, 'principal', '[autobind]')
+        keeponly = options.get("keeponly", None)
         for arg in (methods or []):
             params = dict()
             name = None
@@ -179,7 +175,12 @@ class batch(Command):
                     name,
                     ', '.join(api.Command[name]._repr_iter(**params))
                 )
-                result['error']=None
+                result['error'] = None
+                res = result.get('result', None)
+                if keeponly is not None and isinstance(res, dict):
+                    result["result"] = dict(
+                        filter(lambda x: x[0] in keeponly, res.items())
+                    )
             except Exception as e:
                 if (isinstance(e, errors.RequirementError) or
                         isinstance(e, errors.CommandError) or
