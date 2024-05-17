@@ -104,6 +104,7 @@ class topologysegment(LDAPObject):
     object_name = _('segment')
     object_name_plural = _('segments')
     object_class = ['iparepltoposegment']
+    permission_filter_objectclasses = ['iparepltoposegment']
     default_attributes = [
         'cn',
         'ipaReplTopoSegmentdirection', 'ipaReplTopoSegmentrightNode',
@@ -115,6 +116,38 @@ class topologysegment(LDAPObject):
         'cn', 'ipaReplTopoSegmentdirection', 'ipaReplTopoSegmentrightNode',
         'ipaReplTopoSegmentLeftNode'
     ]
+    managed_permissions = {
+        'System: Read Topology Segments': {
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass',
+                'ipaReplTopoSegmentdirection', 'ipaReplTopoSegmentrightNode',
+                'ipaReplTopoSegmentLeftNode', 'ipaReplTopoConfRoot',
+                'ipaReplTopoSegmentStatus','nsds5replicastripattrs',
+                'nsds5replicatedattributelist',
+                'nsds5replicatedattributelisttotal',
+            },
+            'default_privileges': {'Replication Administrators'},
+        },
+        'System: Add Topology Segments': {
+            'ipapermright': {'add'},
+            'default_privileges': {'Replication Administrators'},
+        },
+        'System: Remove Topology Segments': {
+            'ipapermright': {'delete'},
+            'default_privileges': {'Replication Administrators'},
+        },
+        'System: Modify Topology Segments': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'ipaReplTopoSegmentdirection', 'ipaReplTopoSegmentrightNode',
+                'ipaReplTopoSegmentLeftNode', 'nsds5replicastripattrs',
+                'nsds5replicatedattributelist',
+                'nsds5replicatedattributelisttotal',
+            },
+            'default_privileges': {'Replication Administrators'},
+        },
+    }
 
     label = _('Topology Segments')
     label_singular = _('Topology Segment')
