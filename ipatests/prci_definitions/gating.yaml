@@ -143,6 +143,18 @@ jobs:
         timeout: 5400
         topology: *master_1repl_1client
 
+  fedora-latest/test_idm_api:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_idm_api.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
+
   fedora-latest/test_kerberos_flags:
     requires: [fedora-latest/build]
     priority: 100
