@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: add passkey support
-define(IPA_API_VERSION_MINOR, 253)
+# Last change: add keeponly option to batch command
+define(IPA_API_VERSION_MINOR, 254)
 
 ########################################################
 # Following values are auto-generated from values above
