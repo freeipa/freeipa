@@ -54,8 +54,8 @@ from ipalib.errors import (
     ExecutionError, PasswordExpired, KrbPrincipalExpired, KrbPrincipalWrongFAST,
     UserLocked)
 from ipalib.request import context, destroy_context
-from ipalib.rpc import (xml_dumps, xml_loads,
-    json_encode_binary, json_decode_binary)
+from ipalib.rpc import xml_dumps, xml_loads
+from ipalib.ipajson import json_encode_binary, json_decode_binary
 from ipapython.dn import DN
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib.backend import Backend
