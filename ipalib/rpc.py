@@ -63,9 +63,16 @@ from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName, query_srv
 from ipalib.text import _
 from ipalib.util import create_https_connection
-from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
-                             KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
-                             KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
+from ipalib.krb_utils import (
+    KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN,
+    KRB5KRB_AP_ERR_TKT_EXPIRED,
+    KRB5_FCC_PERM,
+    KRB5_FCC_NOFILE,
+    KRB5_CC_FORMAT,
+    KRB5_REALM_CANT_RESOLVE,
+    KRB5_CC_NOTFOUND,
+    get_principal,
+)
 from ipapython.dn import DN
 from ipapython.kerberos import Principal
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -75,11 +82,31 @@ from ipalib.ipajson import json_encode_binary, json_decode_binary
 # The XMLRPC client is in  "six.moves.xmlrpc_client", but pylint
 # cannot handle that
 try:
-    from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
-            Transport, ProtocolError, MININT, MAXINT)
+    from xmlrpclib import (
+        Binary,
+        Fault,
+        DateTime,
+        dumps,
+        loads,
+        ServerProxy,
+        Transport,
+        ProtocolError,
+        MININT,
+        MAXINT,
+    )
 except ImportError:
-    from xmlrpc.client import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
-            Transport, ProtocolError, MININT, MAXINT)
+    from xmlrpc.client import (
+        Binary,
+        Fault,
+        DateTime,
+        dumps,
+        loads,
+        ServerProxy,
+        Transport,
+        ProtocolError,
+        MININT,
+        MAXINT,
+    )
 
 # pylint: disable=import-error
 if six.PY3:
@@ -111,6 +138,7 @@ def update_persistent_client_session_data(principal, data):
     except Exception as e:
         raise ValueError(str(e))
 
+
 def read_persistent_client_session_data(principal):
     '''
     Given a principal return the stored session data for that
@@ -123,6 +151,7 @@ def read_persistent_client_session_data(principal):
         return session_storage.get_data(principal, CCACHE_COOKIE_KEY)
     except Exception as e:
         raise ValueError(str(e))
+
 
 def delete_persistent_client_session_data(principal):
     '''
@@ -137,12 +166,13 @@ def delete_persistent_client_session_data(principal):
     except Exception as e:
         raise ValueError(str(e))
 
+
 def xml_wrap(value, version):
     """
     Wrap all ``str`` in ``xmlrpc.client.Binary``.
 
-    Because ``xmlrpc.client.dumps()`` will itself convert all ``unicode`` instances
-    into UTF-8 encoded ``str`` instances, we don't do it here.
+    Because ``xmlrpc.client.dumps()`` will itself convert all ``unicode``
+    instances into UTF-8 encoded ``str`` instances, we don't do it here.
 
     So in total, when encoding data for an XML-RPC packet, the following
     transformations occur:
@@ -251,8 +281,8 @@ def xml_dumps(params, version, methodname=None, methodresponse=False,
     Encode an XML-RPC data packet, transparently wraping ``params``.
 
     This function will wrap ``params`` using `xml_wrap()` and will
-    then encode the XML-RPC data packet using ``xmlrpc.client.dumps()`` (from the
-    Python standard library).
+    then encode the XML-RPC data packet using ``xmlrpc.client.dumps()``
+    (from the Python standard library).
 
     For documentation on the ``xmlrpc.client.dumps()`` function, see:
 
@@ -269,7 +299,8 @@ def xml_dumps(params, version, methodname=None, methodresponse=False,
         params = xml_wrap(params, version)
     else:
         assert isinstance(params, Fault)
-    return dumps(params,
+    return dumps(
+        params,
         methodname=methodname,
         methodresponse=methodresponse,
         encoding=encoding,
@@ -327,6 +358,7 @@ class DummyParser:
 
 class MultiProtocolTransport(Transport):
     """Transport that handles both XML-RPC and JSON"""
+
     def __init__(self, *args, **kwargs):
         Transport.__init__(self)
         self.protocol = kwargs.get('protocol', None)
@@ -353,6 +385,7 @@ class MultiProtocolTransport(Transport):
 
 class LanguageAwareTransport(MultiProtocolTransport):
     """Transport sending Accept-Language header"""
+
     def get_host_info(self, host):
         host, extra_headers, x509 = MultiProtocolTransport.get_host_info(
             self, host)
@@ -380,6 +413,7 @@ class LanguageAwareTransport(MultiProtocolTransport):
 
 class SSLTransport(LanguageAwareTransport):
     """Handles an HTTPS transaction to an XML-RPC server."""
+
     def make_connection(self, host):
         host, self._extra_headers, _x509 = self.get_host_info(host)
 
@@ -481,7 +515,10 @@ class KerbTransport(SSLTransport):
 
         if token:
             self._extra_headers.append(
-                ('Authorization', 'negotiate %s' % base64.b64encode(token).decode('ascii'))
+                (
+                    "Authorization",
+                    "negotiate %s" % base64.b64encode(token).decode("ascii"),
+                )
             )
 
     def _auth_complete(self, response):
@@ -534,7 +571,8 @@ class KerbTransport(SSLTransport):
                     self.send_content(h, request_body)
                     response = h.getresponse(buffering=True)
                 else:
-                    self.__send_request(h, host, handler, request_body, verbose)
+                    self.__send_request(h, host, handler,
+                                        request_body, verbose)
                     response = h.getresponse()
 
                 if response.status != 200:
@@ -578,13 +616,15 @@ class KerbTransport(SSLTransport):
     # pylint: enable=inconsistent-return-statements
 
     if six.PY3:
-        def __send_request(self, connection, host, handler, request_body, debug):
+        def __send_request(self, connection, host, handler,
+                           request_body, debug):
             # Based on xmlrpc.client.Transport.send_request
             headers = self._extra_headers[:]
             if debug:
                 connection.set_debuglevel(1)
             if self.accept_gzip_encoding and gzip:
-                connection.putrequest("POST", handler, skip_accept_encoding=True)
+                connection.putrequest("POST", handler,
+                                      skip_accept_encoding=True)
                 connection.putheader("Accept-Encoding", "gzip")
                 headers.append(("Accept-Encoding", "gzip"))
             else:
@@ -706,8 +746,8 @@ class RPCClient(Connectible):
         Create a list of urls consisting of the available IPA servers.
         """
         # the configured URL defines what we use for the discovered servers
-        (_scheme, _netloc, path, _params, _query, _fragment
-            ) = urllib.parse.urlparse(rpc_uri)
+        (_scheme, _netloc, path, _params,
+         _query, _fragment) = urllib.parse.urlparse(rpc_uri)
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
 
@@ -718,7 +758,8 @@ class RPCClient(Connectible):
 
         for answer in answers:
             server = str(answer.target).rstrip(".")
-            servers.append('https://%s%s' % (ipautil.format_netloc(server), path))
+            servers.append('https://%s%s' % (
+                ipautil.format_netloc(server), path))
 
         # make sure the configured master server is there just once and
         # it is the first one.
@@ -786,7 +827,8 @@ class RPCClient(Connectible):
         original_url = url
         principal = getattr(context, 'principal', None)
 
-        session_cookie = self.get_session_cookie_from_persistent_storage(principal)
+        session_cookie = self.get_session_cookie_from_persistent_storage(
+            principal)
         if session_cookie is None:
             logger.debug("failed to find session_cookie in persistent storage "
                          "for principal '%s'",
@@ -815,16 +857,19 @@ class RPCClient(Connectible):
             logger.error("not sending session cookie, unknown error: %s", e)
             return original_url
 
-        # O.K. session_cookie is valid to be returned, stash it away where it will will
-        # get included in a HTTP Cookie headed sent to the server.
+        # O.K. session_cookie is valid to be returned, stash it away where it
+        # will get included in a HTTP Cookie headed sent to the server.
         logger.debug("setting session_cookie into context '%s'",
                      session_cookie.http_cookie())
         setattr(context, 'session_cookie', session_cookie.http_cookie())
 
-        # Form the session URL by substituting the session path into the original URL
-        scheme, netloc, path, params, query, fragment = urllib.parse.urlparse(original_url)
+        # Form the session URL by substituting the session path
+        # into the original URL
+        scheme, netloc, path, params, query, fragment = urllib.parse.urlparse(
+            original_url)
         path = self.session_path
-        session_url = urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment))
+        session_url = urllib.parse.urlunparse((scheme, netloc, path,
+                                               params, query, fragment))
 
         return session_url
 
@@ -1048,8 +1093,8 @@ class JSONServerProxy:
         self.__verbose = verbose
 
         # FIXME: Some of our code requires ServerProxy internals.
-        # But, xmlrpc.client.ServerProxy's _ServerProxy__transport can be accessed
-        # by calling serverproxy('transport')
+        # But, xmlrpc.client.ServerProxy's _ServerProxy__transport can be
+        # accessed by calling serverproxy('transport')
         self._ServerProxy__transport = transport
 
     def __request(self, name, args):
