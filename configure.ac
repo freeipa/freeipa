@@ -477,9 +477,9 @@ dnl ---------------------------------------------------------------------------
 selinux_makefile=/usr/share/selinux/devel/Makefile
 AC_SUBST([selinux_makefile])
 
-AC_CHECK_FILE([$selinux_makefile],
-              [build_selinux=yes],
-              [build_selinux=no])
+AS_IF([test -f "$selinux_makefile"],
+      [build_selinux=yes],
+      [build_selinux=no])
 
 AM_CONDITIONAL(BUILD_SELINUX_POLICY, test x$build_selinux = xyes)
 
