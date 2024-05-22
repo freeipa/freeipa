@@ -747,4 +747,11 @@ AM_COND_IF([WITH_IPA_JOIN_XML], [
     echo "\
         ipa-join RPC mode:        JSON-RPC"
 ])
+AM_COND_IF([BUILD_SELINUX_POLICY], [
+    echo "\
+        build SELinux policy:     yes"
+], [
+    echo "\
+        build SELinux policy:     no"
+])
 
