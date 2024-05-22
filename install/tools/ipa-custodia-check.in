@@ -192,10 +192,10 @@ class IPACustodiaTester:
                 usage, IPA_CUSTODIA_KEYFILE
             ))
 
-        if pkey.key_id != self.host_spn:
+        if pkey.get('kid') != self.host_spn:
             raise self.error(  # pylint: disable=raising-bad-type, #4772
                 "KID '{}' != host service principal name '{}' "
-                "(usage: {})".format(pkey.key_id, self.host_spn, usage),
+                "(usage: {})".format(pkey.get('kid'), self.host_spn, usage),
                 fatal=True
             )
         else:

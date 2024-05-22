@@ -85,7 +85,7 @@ class KEMKeysStore(SimplePathAuthz):
         if self._alg is None:
             alg = self.config.get('signing_algorithm', None)
             if alg is None:
-                ktype = self.server_keys[KEY_USAGE_SIG].key_type
+                ktype = self.server_keys[KEY_USAGE_SIG]['kty']
                 if ktype == 'RSA':
                     alg = 'RS256'
                 elif ktype == 'EC':
@@ -125,9 +125,9 @@ class KEMHandler(MessageHandler):
         if 'kid' not in header:
             raise InvalidMessage("Missing key identifier")
 
-        key = self.kkstore.find_key(header['kid'], usage)
+        key = self.kkstore.find_key(header.get('kid'), usage)
         if key is None:
-            raise UnknownPublicKey('Key found [kid:%s]' % header['kid'])
+            raise UnknownPublicKey('Key found [kid:%s]' % header.get('kid'))
         return json_decode(key)
 
     def parse(self, msg, name):
@@ -179,14 +179,14 @@ class KEMHandler(MessageHandler):
         self.msg_type = 'kem'
 
         return {'type': self.msg_type,
-                'value': {'kid': self.client_keys[KEY_USAGE_ENC].key_id,
+                'value': {'kid': self.client_keys[KEY_USAGE_ENC].get('kid'),
                           'claims': claims}}
 
     def reply(self, output):
         if self.client_keys is None:
             raise UnknownPublicKey("Peer key not defined")
 
-        ktype = self.client_keys[KEY_USAGE_ENC].key_type
+        ktype = self.client_keys[KEY_USAGE_ENC]['kty']
         if ktype == 'RSA':
             enc = ('RSA-OAEP', 'A256CBC-HS512')
         else:
@@ -224,7 +224,7 @@ class KEMClient:
 
 
 def make_sig_kem(name, value, key, alg):
-    header = {'kid': key.key_id, 'alg': alg}
+    header = {'kid': key.get('kid'), 'alg': alg}
     claims = {'sub': name, 'exp': int(time.time() + (5 * 60))}
     if value is not None:
         claims['value'] = value
@@ -235,7 +235,7 @@ def make_sig_kem(name, value, key, alg):
 
 def make_enc_kem(name, value, sig_key, alg, enc_key, enc):
     plaintext = make_sig_kem(name, value, sig_key, alg)
-    eprot = {'kid': enc_key.key_id, 'alg': enc[0], 'enc': enc[1]}
+    eprot = {'kid': enc_key.get('kid'), 'alg': enc[0], 'enc': enc[1]}
     jwe = JWE(plaintext, json_encode(eprot))
     jwe.add_recipient(enc_key)
     return jwe.serialize(compact=True)
