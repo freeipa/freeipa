@@ -16,7 +16,8 @@ extension-pkg-whitelist=
     _ldap,
     cryptography,
     gssapi,
-    netifaces
+    netifaces,
+    systemd
 
 [CLASSES]
 
