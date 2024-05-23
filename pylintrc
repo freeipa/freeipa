@@ -16,6 +16,7 @@ extension-pkg-allow-list=
     netifaces,
     lxml.etree,
     pysss_murmur,
+    systemd
 
 [CLASSES]
 
