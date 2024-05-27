@@ -474,14 +474,25 @@ dnl ---------------------------------------------------------------------------
 dnl - Check for SELinux policy devel
 dnl ---------------------------------------------------------------------------
 
-selinux_makefile=/usr/share/selinux/devel/Makefile
-AC_SUBST([selinux_makefile])
+AC_ARG_ENABLE([selinux],
+    [AC_HELP_STRING([--enable-selinux], [Disable SELinux support])],
+    [case "${enableval}" in
+         yes) enable_selinux=yes ;;
+          no) enable_selinux=no ;;
+           *) AC_MSG_ERROR([bad value ${enableval} for --enable-selinux]) ;;
+     esac],
+    [enable_selinux=])
 
-AS_IF([test -f "$selinux_makefile"],
-      [build_selinux=yes],
-      [build_selinux=no])
+if test "x$enable_selinux" = "x" ; then
+        selinux_makefile=/usr/share/selinux/devel/Makefile
+        AC_SUBST([selinux_makefile])
 
-AM_CONDITIONAL(BUILD_SELINUX_POLICY, test x$build_selinux = xyes)
+        AS_IF([test -f "$selinux_makefile"],
+              [enable_selinux=yes],
+              [enable_selinux=no])
+fi
+
+AM_CONDITIONAL([BUILD_SELINUX_POLICY], [test "x$enable_selinux" = xyes])
 
 dnl ---------------------------------------------------------------------------
 dnl Finish
