@@ -408,7 +408,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False,
             # Attempt to extract ldap url from ruv (it's not always present)
             netloc = "unknown host"
             host_data = re.match(
-                r'(\{\w+\s+\d+\s+)ldap://(\w+)',
+                r'(\{\w+\s+\d+\s+)ldap://(.+:\d+)',
                 ruv
             )
             if host_data:
