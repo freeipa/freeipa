@@ -4,6 +4,7 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
+	007hacky007
 	Abhijeet
 	Abhijeet Kasurde
 	Adam Misnyovszki
@@ -127,6 +128,7 @@ Developers:
 	Martin Bašti
 	Martin Košek
 	Martin Nagy
+	Masahiro Matsuya
 	Matt Rogers
 	Matthew Davis
 	mbhalodi
@@ -220,12 +222,14 @@ Developers:
 	Vit Mojzis
 	W. Michael Petullo
 	Weblate
+	Weblate Translation Memory
 	William Brown
 	William Jon McCann
 	Xiao-Long Chen
 	Yuri Chornoivan
 	Zdenek Pytela
 	zdover
+	zoedong
 	김인수
 
 Documentation:
