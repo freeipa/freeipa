@@ -501,7 +501,8 @@ class Backup(admintool.AdminTool):
         '''
         logger.info('Backing up %s in %s to LDIF', backend, instance)
 
-        cn = time.strftime('export_%Y_%m_%d_%H_%M_%S')
+        cn = 'export_{}_{}'.format(
+            backend, time.strftime('%Y_%m_%d_%H_%M_%S'))
         dn = DN(('cn', cn), ('cn', 'export'), ('cn', 'tasks'), ('cn', 'config'))
 
         ldifname = '%s-%s.ldif' % (instance, backend)
