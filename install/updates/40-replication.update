@@ -28,3 +28,14 @@ default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 dn: cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config
 remove:aci: (targetattr=cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass)(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
 add:aci: (targetattr = "cn || dnaMaxValue || dnaNextRange || dnaNextValue  || dnaThreshold || dnaType || objectclass")(version 3.0;acl "permission:Read DNA Range";allow (read, search, compare) groupdn = "ldap:///cn=Read DNA Range,cn=permissions,cn=pbac,$SUFFIX";)
+
+dn: cn=Read domain level,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Read domain level
+default:ipapermissiontype: SYSTEM
+default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
+add:aci: (targetattr = "ipamaxdomainlevel || ipamindomainlevel")(version 3.0;acl "permission:Read domain level";allow (read, search, compare) groupdn = "ldap:///cn=Read domain level,cn=permissions,cn=pbac,$SUFFIX";)
