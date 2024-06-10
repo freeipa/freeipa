@@ -104,7 +104,7 @@ class topologysegment(LDAPObject):
     object_name = _('segment')
     object_name_plural = _('segments')
     object_class = ['iparepltoposegment']
-    permission_filter_objectclasses = ['iparepltoposegment']
+    permission_filter_objectclasses = ['iparepltoposegment', 'iparepltopoconf']
     default_attributes = [
         'cn',
         'ipaReplTopoSegmentdirection', 'ipaReplTopoSegmentrightNode',
