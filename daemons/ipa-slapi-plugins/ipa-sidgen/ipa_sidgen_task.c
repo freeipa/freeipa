@@ -89,7 +89,7 @@ static void free_pblock(void *arg)
 static int do_work(struct worker_ctx *worker_ctx)
 {
     Slapi_PBlock *pb;
-    int ret;
+    int ret, failures = 0;
     size_t c;
     char *filter = NULL;
     char *attrs[] = { OBJECTCLASS, UID_NUMBER, GID_NUMBER, NULL };
@@ -151,8 +151,7 @@ static int do_work(struct worker_ctx *worker_ctx)
                                       worker_ctx->base_dn, worker_ctx->dom_sid,
                                       worker_ctx->ranges);
         if (ret != 0) {
-            LOG_FATAL("Cannot add SID to existing entry.\n");
-            goto done;
+            failures++;
         }
 
         if (worker_ctx->delay != 0) {
@@ -161,6 +160,12 @@ static int do_work(struct worker_ctx *worker_ctx)
             nanosleep(&ts, NULL);
         }
     };
+
+    ret = failures;
+    if (ret > 0) {
+        LOG_FATAL("Finished with %d failures, please check the log.\n",
+                  failures);
+    }
 
 done:
     slapi_ch_free_string(&filter);
