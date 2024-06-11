@@ -491,7 +491,7 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
     }
 
     if (uid_number >= UINT32_MAX || gid_number >= UINT32_MAX) {
-        LOG_FATAL("ID value too large.\n");
+        LOG_FATAL("ID value too large on entry [%s].\n", dn_str);
         ret = LDAP_CONSTRAINT_VIOLATION;
         goto done;
     }
@@ -508,7 +508,7 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
                                                &has_posix_group,
                                                &has_ipa_id_object);
     if (ret != 0) {
-        LOG_FATAL("Cannot determine objectclasses.\n");
+        LOG_FATAL("Cannot determine objectclasses on entry [%s].\n", dn_str);
         goto done;
     }
 
@@ -522,15 +522,16 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
         id = (uid_number != 0) ? uid_number : gid_number;
         objectclass_to_add = NULL;
     } else {
-        LOG_FATAL("Inconsistent objectclasses and attributes, nothing to do.\n");
+        LOG_FATAL("Inconsistent objectclasses and attributes on entry "
+                  "[%s], nothing to do.\n", dn_str);
         ret = 0;
         goto done;
     }
 
     ret = find_sid_for_id(id, plugin_id, base_dn, dom_sid, ranges, &sid);
     if (ret != 0) {
-        LOG_FATAL("Cannot convert Posix ID [%lu] into an unused SID.\n",
-                  (unsigned long) id);
+        LOG_FATAL("Cannot convert Posix ID [%lu] into an unused SID on "
+                  "entry [%s].\n", (unsigned long) id, dn_str);
         goto done;
     }
 
