@@ -25,6 +25,7 @@ from pkg_resources import parse_version
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.util import xfail_context
 
 DEFAULT_RA_AGENT_SUBMITTED_VAL = '19700101000000'
 
@@ -555,7 +556,11 @@ class TestCAShowErrorHandling(IntegrationTest):
         )
         error_msg = 'ipa: ERROR: The certificate for ' \
                     '{} is not available on this server.'.format(lwca)
-        assert error_msg in result.stderr_text
+        bad_version = (tasks.get_pki_version(self.master)
+                       >= tasks.parse_version('11.5.0'))
+        with xfail_context(bad_version,
+                           reason="https://pagure.io/freeipa/issue/9606"):
+            assert error_msg in result.stderr_text
 
     def test_certmonger_empty_cert_not_segfault(self):
         """Test empty cert request doesn't force certmonger to segfault
