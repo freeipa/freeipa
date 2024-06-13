@@ -215,9 +215,14 @@ class TestHSMInstall(BaseHSMTest):
     num_replicas = 3
     num_clients = 1
     topology = 'star'
+    token_password_file = '/tmp/token_password'
 
     def test_hsm_install_replica0_ca_less_install(self):
         check_version(self.master)
+
+        self.master.put_file_contents(
+            self.token_password_file, self.token_password
+        )
         tasks.install_replica(
             self.master, self.replicas[0], setup_ca=False,
             setup_dns=True,
@@ -306,6 +311,45 @@ class TestHSMInstall(BaseHSMTest):
         )
         assert returncode == 0
         assert output == "No issues found."
+
+    def test_hsm_install_server_password_file(self):
+        check_version(self.master)
+        # cleanup before fresh install with password file
+        for client in self.clients:
+            tasks.uninstall_client(client)
+
+        for replica in self.replicas:
+            tasks.uninstall_master(replica)
+
+        tasks.uninstall_master(self.master)
+
+        delete_hsm_token([self.master] + self.replicas, self.token_name)
+
+        tasks.install_master(
+            self.master, setup_dns=self.master_with_dns,
+            setup_kra=self.master_with_kra,
+            setup_adtrust=self.master_with_ad,
+            extra_args=(
+                '--token-name', self.token_name,
+                '--token-library-path', hsm_lib_path,
+                '--token-password-file', self.token_password_file
+            )
+        )
+        self.sync_tokens(self.master)
+
+    def test_hsm_install_replica0_password_file(self):
+        check_version(self.master)
+        tasks.install_replica(
+            self.master, self.replicas[0], setup_ca=True,
+            extra_args=('--token-password-file', self.token_password_file,)
+        )
+
+    def test_hsm_install_replica0_kra_password_file(self):
+        check_version(self.master)
+        tasks.install_kra(
+            self.replicas[0],
+            extra_args=('--token-password-file', self.token_password_file,)
+        )
 
 
 class TestHSMInstallADTrustBase(BaseHSMTest):
@@ -792,7 +836,6 @@ class TestHSMNegative(IntegrationTest):
                 '--token-password', self.token_password
             )
         )
-        # assert 'error message non existing token name' in result.stderr_text
         assert result.returncode != 0
 
         # wrong token password
@@ -804,7 +847,6 @@ class TestHSMNegative(IntegrationTest):
                 '--token-password', 'token_passwd'
             )
         )
-        # assert 'error message wrong  passwd' in result.stderr_text
         assert result.returncode != 0
 
         # wrong token lib
@@ -816,7 +858,6 @@ class TestHSMNegative(IntegrationTest):
                 '--token-password', self.token_password
             )
         )
-        # assert 'error message non existing token lib' in result.stderr_text
         assert result.returncode != 0
 
     def test_hsm_negative_special_char_token_name(self):
@@ -842,7 +883,28 @@ class TestHSMNegative(IntegrationTest):
                 '--token-password', token_passwd
             )
         )
-        # assert 'error message non existing token lib' in result.stderr_text
+        assert result.returncode != 0
+
+    def test_hsm_negative_token_password_and_file(self):
+        """Test token-password and token-password-file at same time
+
+        Test if command fails when --token-password and --token-password-file
+        provided at the same time results into command failure.
+        """
+        check_version(self.master)
+        token_password_file = '/tmp/token_passwd'
+        self.master.put_file_contents(
+            token_password_file, self.token_password
+        )
+        result = tasks.install_master(
+            self.master, raiseonerr=False,
+            extra_args=(
+                '--token-name', self.token_name,
+                '--token-library-path', hsm_lib_path,
+                '--token-password', self.token_password,
+                '--token-password-file', token_password_file
+            )
+        )
         assert result.returncode != 0
 
 
