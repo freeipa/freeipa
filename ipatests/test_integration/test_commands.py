@@ -639,6 +639,11 @@ class TestIPACommand(IntegrationTest):
         # change private key permission to comply with SS rules
         os.chmod(first_priv_key_path, 0o600)
 
+        # Make sure that / has rwxr-xr-x permissions on the master
+        # otherwise sshd will deny login using private key
+        # https://access.redhat.com/solutions/6798261
+        self.master.run_command(['chmod', '755', '/'])
+
         # start to look at logs a bit before "now"
         # https://pagure.io/freeipa/issue/8432
         since = time.strftime(
