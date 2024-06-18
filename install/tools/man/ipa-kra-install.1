@@ -54,6 +54,15 @@ Log to the given file
 .TP
 \fB\-\-pki\-config\-override\fR=\fIFILE\fR
 File containing overrides for KRA installation.
+.SS "HSM OPTIONS"
+The token name and library path are retrieved from the existing
+installation.
+.TP 
+\fB\-\-token\-password\fR=\fITOKEN_PASSWORD\fR
+The PKCS#11 token password for the HSM.
+.TP 
+\fB\-\-token\-password\-file\fR=\fITOKEN_PASSWORD_FILE\fR
+The full path to a file containing the PKCS#11 token password.
 .SH "EXIT STATUS"
 0 if the command was successful
 
