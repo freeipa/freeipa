@@ -1320,7 +1320,9 @@ if [ $1 -gt 1 ] ; then
         chmod 0600 /var/log/ipaupgrade.log
         SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
         if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
-            sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' "$SSH_CLIENT_SYSTEM_CONF"
+            if grep -E -q '^HostKeyAlgorithms ssh-rsa,ssh-dss' $SSH_CLIENT_SYSTEM_CONF 2>/dev/null; then
+                sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' "$SSH_CLIENT_SYSTEM_CONF"
+            fi
             # https://pagure.io/freeipa/issue/9536
             # replace sss_ssh_knownhostsproxy with sss_ssh_knownhosts
             if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
