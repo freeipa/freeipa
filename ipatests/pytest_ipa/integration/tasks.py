@@ -2550,6 +2550,21 @@ def install_packages(host, pkgs):
     host.run_command(install_cmd + pkgs)
 
 
+def reinstall_packages(host, pkgs):
+    """Install packages on a remote host.
+    :param host: the host where the installation takes place
+    :param pkgs: packages to install, provided as a list of strings
+    """
+    platform = get_platform(host)
+    if platform in {'rhel', 'fedora'}:
+        install_cmd = ['/usr/bin/dnf', 'reinstall', '-y']
+    elif platform in {'debian', 'ubuntu'}:
+        install_cmd = ['apt-get', '--reinstall', 'install', '-y']
+    else:
+        raise ValueError('install_packages: unknown platform %s' % platform)
+    host.run_command(install_cmd + pkgs)
+
+
 def download_packages(host, pkgs):
     """Download packages on a remote host.
     :param host: the host where the download takes place
