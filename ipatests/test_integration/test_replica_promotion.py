@@ -26,6 +26,7 @@ from ipalib.constants import (
 )
 from ipaplatform.paths import paths
 from ipapython import certdb
+from ipatests.test_integration.test_cert import get_certmonger_fs_id
 from ipatests.test_integration.test_dns_locations import (
     resolve_records_from_server, IPA_DEFAULT_MASTER_SRV_REC
 )
@@ -1240,6 +1241,23 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         result = self.replicas[0].run_command([
             'ipa-crlgen-manage', 'status'])
         assert "CRL generation: enabled" in result.stdout_text
+
+    def test_hidden_replica_renew_pkinit_cert(self):
+        """Renew the PKINIT cert on a hidden replica.
+
+        Test for https://pagure.io/freeipa/issue/9611
+        """
+        # Get Request ID
+        cmd = ['getcert', 'list', '-f', paths.KDC_CERT]
+        result = self.replicas[0].run_command(cmd)
+        req_id = get_certmonger_fs_id(result.stdout_text)
+
+        self.replicas[0].run_command([
+            'getcert', 'resubmit', '-f', paths.KDC_CERT
+        ])
+        tasks.wait_for_certmonger_status(
+            self.replicas[0], ('MONITORING'), req_id, timeout=600
+        )
 
 
 class TestHiddenReplicaKRA(IntegrationTest):
