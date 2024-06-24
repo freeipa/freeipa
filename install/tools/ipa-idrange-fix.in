@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+#
+# Copyright (C) 2024  FreeIPA Contributors see COPYING for license
+#
+
+from ipaserver.install.ipa_idrange_fix import IPAIDRangeFix
+
+IPAIDRangeFix.run_cli()
