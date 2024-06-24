@@ -28,6 +28,7 @@ dist_man1_MANS = 			\
 	ipa-pkinit-manage.1		\
 	ipa-crlgen-manage.1		\
 	ipa-cert-fix.1			\
+	ipa-idrange-fix.1		\
 	ipa-acme-manage.1		\
 	ipa-migrate.1			\
 	$(NULL)

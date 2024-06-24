@@ -30,6 +30,7 @@ dist_noinst_DATA =		\
 	ipa-pkinit-manage.in	\
 	ipa-crlgen-manage.in	\
 	ipa-cert-fix.in		\
+	ipa-idrange-fix.in  \
 	ipa-custodia.in		\
 	ipa-custodia-check.in	\
 	ipa-httpd-kdcproxy.in	\
@@ -66,6 +67,7 @@ nodist_sbin_SCRIPTS =		\
 	ipa-pkinit-manage	\
 	ipa-crlgen-manage	\
 	ipa-cert-fix		\
+	ipa-idrange-fix		\
 	ipa-acme-manage		\
 	ipa-migrate	\
 	$(NULL)

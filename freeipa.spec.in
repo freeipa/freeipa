@@ -1516,6 +1516,7 @@ fi
 %{_sbindir}/ipa-pkinit-manage
 %{_sbindir}/ipa-crlgen-manage
 %{_sbindir}/ipa-cert-fix
+%{_sbindir}/ipa-idrange-fix
 %{_sbindir}/ipa-acme-manage
 %{_sbindir}/ipa-migrate
 %if 0%{?fedora} >= 38
@@ -1594,6 +1595,7 @@ fi
 %{_mandir}/man1/ipa-pkinit-manage.1*
 %{_mandir}/man1/ipa-crlgen-manage.1*
 %{_mandir}/man1/ipa-cert-fix.1*
+%{_mandir}/man1/ipa-idrange-fix.1*
 %{_mandir}/man1/ipa-acme-manage.1*
 %{_mandir}/man1/ipa-migrate.1*
 
