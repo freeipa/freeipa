@@ -1318,3 +1318,49 @@ class TestHiddenReplicaKRA(IntegrationTest):
             self.replicas[0].hostname, '--state=hidden'
         ])
         assert result.returncode == 0
+
+
+class TestReplicaConn(IntegrationTest):
+    num_replicas = 1
+    num_ad_domains = 1
+
+    @classmethod
+    def install(cls, mh):
+        cls.replica = cls.replicas[0]
+        cls.ad = cls.ads[0]
+        ad_domain = cls.ad.domain.name
+        cls.ad_admin = 'Administrator@{}'.format(ad_domain.upper())
+        cls.adview = 'Default Trust View'
+        tasks.install_master(cls.master, setup_adtrust=True)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+        tasks.install_client(cls.master, cls.replica)
+
+    def test_replica_conncheck_ad_admin(self):
+        """
+        Test to verify that replica installation is not failing for
+        replica connection check when AD administrator
+        Administrator@AD.EXAMPLE.COM is used for the deployment
+        or promotion of a replica.
+
+        Related : https://pagure.io/freeipa/issue/9542
+        """
+        self.master.run_command(
+            ['ipa', 'idoverrideuser-add', self.adview, self.ad_admin]
+        )
+        self.master.run_command(
+            ["ipa", "group-add-member", "admins", "--idoverrideusers",
+             self.ad_admin]
+        )
+        tasks.clear_sssd_cache(self.master)
+
+        self.replica.run_command(
+            ["ipa-replica-install", "--setup-ca", "-U", "--ip-address",
+             self.replica.ip, "--realm", self.replica.domain.realm,
+             "--domain", self.replica.domain.name,
+             "--principal={0}".format(self.ad_admin),
+             "--password", self.master.config.ad_admin_password]
+        )
+        logs = self.replica.get_file_contents(paths.IPAREPLICA_CONNCHECK_LOG)
+        error = "not allowed to perform server connection check"
+        assert error.encode() not in logs
