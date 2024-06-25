@@ -458,41 +458,81 @@ class TestOTPToken(IntegrationTest):
         master = self.master
         basedn = master.domain.basedn
         USER1 = 'user-forced-otp'
+        TMP_PASSWORD = 'Secret1234509'
         binddn = DN(f"uid={USER1},cn=users,cn=accounts,{basedn}")
 
-        tasks.create_active_user(master, USER1, PASSWORD)
         tasks.kinit_admin(master)
+        master.run_command(['ipa', 'pwpolicy-mod', '--minlife', '0'])
+        tasks.user_add(master, USER1, password=TMP_PASSWORD)
         # Enforce use of OTP token for this user
         master.run_command(['ipa', 'user-mod', USER1,
                             '--user-auth-type=otp'])
         try:
+            # Change initial password through the IPA endpoint
+            url = f'https://{master.hostname}/ipa/session/change_password'
+            master.run_command(['curl', '-d', f'user={USER1}',
+                                '-d', f'old_password={TMP_PASSWORD}',
+                                '-d', f'new_password={PASSWORD}',
+                                '--referer', f'https://{master.hostname}/ipa',
+                                url])
             conn = master.ldap_connect()
             # First, attempt authenticating with a password but without LDAP
             # control to enforce OTP presence and without server-side
             # enforcement of the OTP presence check.
             conn.simple_bind(binddn, f"{PASSWORD}")
-            # Add an OTP token now
-            otpuid, totp = add_otptoken(master, USER1, otptype="totp")
             # Next, enforce Password+OTP for a user with OTP token
             master.run_command(['ipa', 'config-mod', '--addattr',
                                 'ipaconfigstring=EnforceLDAPOTP'])
+            # Try to bind without OTP because there is no OTP token yet,
+            # the operation should succeed because OTP enforcement is implicit
+            # and there is no token yet, so it is allowed.
+            conn.simple_bind(binddn, f"{PASSWORD}")
+            conn.unbind()
+            # Add an OTP token now
+            otpuid, totp = add_otptoken(master, USER1, otptype="totp")
             # Next, authenticate with Password+OTP and with the LDAP control
             # this operation should succeed
             otpvalue = totp.generate(int(time.time())).decode("ascii")
+            conn = master.ldap_connect()
             conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
                              client_controls=[
                                  BooleanControl(
                                      controlType="2.16.840.1.113730.3.8.10.7",
                                      booleanValue=True)])
-            # Remove token
-            del_otptoken(self.master, otpuid)
+            conn.unbind()
+            # Sleep to make sure we are going to use a different token value
+            time.sleep(45)
+            # Use OTP token again, without LDAP control, should succeed
+            # because OTP enforcement is implicit
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            conn = master.ldap_connect()
+            conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}")
+            conn.unbind()
             # Now, try to authenticate without otp and without control
-            # this operation should fail
+            # this operation should fail because we have OTP token associated
+            # with the user account
             try:
+                conn = master.ldap_connect()
                 conn.simple_bind(binddn, f"{PASSWORD}")
+                conn.unbind()
             except errors.ACIError:
                 pass
+            # Sleep to make sure we are going to use a different token value
+            time.sleep(45)
+            # Use OTP token again, without LDAP control, should succeed
+            # because OTP enforcement is implicit
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            # Finally, change password again, now that otp is present
+            master.run_command(['curl', '-d', f'user={USER1}',
+                                '-d', f'old_password={PASSWORD}',
+                                '-d', f'new_password={TMP_PASSWORD}0',
+                                '-d', f'otp={otpvalue}',
+                                '--referer', f'https://{master.hostname}/ipa',
+                                url])
+            # Remove token
+            del_otptoken(self.master, otpuid)
             master.run_command(['ipa', 'config-mod', '--delattr',
                                 'ipaconfigstring=EnforceLDAPOTP'])
         finally:
+            master.run_command(['ipa', 'pwpolicy-mod', '--minlife', '1'])
             master.run_command(['ipa', 'user-del', USER1])
