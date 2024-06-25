@@ -1212,13 +1212,20 @@ done:
  *       value at the end. This leaves only the password in creds for later
  *       validation.
  */
+typedef enum {
+    OTP_IS_NOT_REQUIRED = 0,
+    OTP_IS_REQUIRED_EXPLICITLY,
+    OTP_IS_REQUIRED_IMPLICITLY
+} otp_req_enum;
 static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
-                                struct berval *creds, bool otpreq)
+                                struct berval *creds, otp_req_enum otpreq,
+                                bool *notokens)
 {
     uint32_t auth_types;
 
     /* Get the configured authentication types. */
     auth_types = otp_config_auth_types(otp_config, entry);
+    *notokens = false;
 
     /*
      * IMPORTANT SECTION!
@@ -1248,7 +1255,11 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
         /* With no tokens, succeed if tokens aren't required. */
         if (tokens[0] == NULL) {
             otp_token_free_array(tokens);
-            return !otpreq;
+            *notokens = true;
+            if (otpreq != OTP_IS_NOT_REQUIRED)
+                /* DENY: OTP is required, either explicitly or implicitly */
+                return false;
+            return true;
         }
 
         if (otp_token_validate_berval(tokens, creds, NULL)) {
@@ -1259,7 +1270,8 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
         otp_token_free_array(tokens);
     }
 
-    return (auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD) && !otpreq;
+    return (auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD) &&
+           (otpreq == OTP_IS_NOT_REQUIRED);
 }
 
 static int ipapwd_authenticate(const char *dn, Slapi_Entry *entry,
@@ -1452,6 +1464,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     struct tm expire_tm;
     int rc = LDAP_INVALID_CREDENTIALS;
     char *errMesg = NULL;
+    bool notokens = false;
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &target_sdn);
@@ -1510,8 +1523,9 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 
     /* Try to do OTP first. */
     syncreq = otpctrl_present(pb, OTP_SYNC_REQUEST_OID);
-    otpreq = otpctrl_present(pb, OTP_REQUIRED_OID);
-    if (!syncreq && !otpreq) {
+    otpreq = otpctrl_present(pb, OTP_REQUIRED_OID) ?
+                OTP_IS_REQUIRED_EXPLICITLY : OTP_IS_NOT_REQUIRED;
+    if (!syncreq && (otpreq == OTP_IS_NOT_REQUIRED)) {
         ret = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_ONLY_CONFIG);
         if (ret != 0) {
             LOG_FATAL("ipapwd_gen_checks failed!?\n");
@@ -1520,11 +1534,17 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
             return 0;
         }
         if (krbcfg->enforce_ldap_otp) {
-            otpreq = true;
+            otpreq = OTP_IS_REQUIRED_IMPLICITLY;
         }
     }
-    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials, otpreq))
-        goto invalid_creds;
+    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry,
+                                         credentials, otpreq, &notokens)) {
+        /* We got here because ipapwd_pre_bind_otp() returned false,
+         * it means that either token verification failed or
+         * a rule for empty tokens failed current policy. */
+        if (!(notokens || (otpreq == OTP_IS_NOT_REQUIRED)))
+            goto invalid_creds;
+    }
 
     /* Ensure that there is a password. */
     if (credentials->bv_len == 0) {
@@ -1561,7 +1581,8 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
      * for access log to notice multi-factor authentication has happened
      * https://www.port389.org/docs/389ds/design/mfa-operation-note-design.html
      */
-    if (!syncreq && otpreq) {
+    if (!syncreq &&
+        ((otpreq != OTP_IS_NOT_REQUIRED) && !notokens)) {
         slapi_pblock_set_flag_operation_notes(pb, SLAPI_OP_NOTE_MFA_AUTH);
     }
 #endif
