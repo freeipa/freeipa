@@ -425,6 +425,7 @@ class BasePathNamespace:
     IPA_CUSTODIA_HANDLER = "/usr/libexec/ipa/custodia"
     IPA_CUSTODIA_CHECK = "/usr/libexec/ipa/ipa-custodia-check"
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
+    IPA_MIGRATE_LOG = '/var/log/ipa-migrate.log'
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
     KRB5CC_HTTPD = '/tmp/krb5cc-httpd'
