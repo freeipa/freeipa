@@ -672,6 +672,10 @@ class TestNestedMembers(IntegrationTest):
 
         clear_sssd_cache(client)
 
+        # Workaround for https://pagure.io/freeipa/issue/9615
+        # Make sure that / on the client has expected permissions
+        client.run_command(['chmod', '755', '/'])
+
         cmd = ['ssh', '-i', '/tmp/user_ssh_priv_key',
                '-q', '{}@{}'.format(self.username, client.hostname),
                'groups']
