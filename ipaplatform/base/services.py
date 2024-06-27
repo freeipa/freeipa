@@ -290,6 +290,10 @@ class SystemdService(PlatformService):
         # https://bugzilla.redhat.com/show_bug.cgi?id=973331#c11
         if instance == "ipa-otpd.socket":
             args.append("--ignore-dependencies")
+        # ipa-ods-exporter is socket-activated, both the service and the
+        # socket have to be stopped
+        if instance == "ipa-ods-exporter.service":
+            args.append("ipa-ods-exporter.socket")
 
         ipautil.run(args, skip_output=not capture_output)
 
