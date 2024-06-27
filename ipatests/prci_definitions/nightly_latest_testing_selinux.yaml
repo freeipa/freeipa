@@ -2221,6 +2221,21 @@ jobs:
         timeout: 10800
         topology: *master_1repl
 
+  testing-fedora/test_idrange_fix:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_ipa_idrange_fix.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *ipaserver
+
   testing-fedora/test_subids:
     requires: [testing-fedora/build]
     priority: 50
