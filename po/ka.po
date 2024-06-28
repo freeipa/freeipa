@@ -7,9 +7,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-02-22 13:52+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2024-06-29 08:36+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
 "Language: ka\n"
@@ -17,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.4\n"
+"X-Generator: Weblate 5.5.5\n"
 
 msgid ""
 "\n"
@@ -1383,11 +1382,11 @@ msgstr "ber_scanf() ჩავარდა. ვერ ვიპოვე kvno ?!\
 
 #, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
-msgstr ""
+msgstr "ჩავარდა მიღება დაშიფრვის ტიპისთვის #%d\n"
 
 #, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
-msgstr ""
+msgstr "ჩავარდა მიღება დაშიფვრის ტიპისთვის: %1$s (#%2$d)\n"
 
 #, c-format
 msgid "Failed to retrieve any keys"
@@ -1675,7 +1674,7 @@ msgstr ""
 
 #, c-format
 msgid "JSON-RPC call failed with status code: %li\n"
-msgstr ""
+msgstr "JSON-RPC გამოძახება ჩავარდა სტატუსის კოდით: %li\n"
 
 #, c-format
 msgid ""
@@ -1691,7 +1690,7 @@ msgstr ""
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "JSON-RPC პასუხის დამუშავება ჩავარდა: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
