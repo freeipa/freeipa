@@ -3,20 +3,22 @@
 # Jérôme Fenal <jfenal@gmail.com>, 2016. #zanata
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
+# Léane GRASSER <leane.grasser@proton.me>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2019-11-11 10:25+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: French\n"
+"PO-Revision-Date: 2024-06-27 10:36+0000\n"
+"Last-Translator: Léane GRASSER <leane.grasser@proton.me>\n"
+"Language-Team: French <https://translate.fedoraproject.org/projects/freeipa/"
+"master/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
-"X-Generator: Zanata 4.6.2\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.5.5\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -55,12 +57,10 @@ msgid "Unable to initialize ldap library!\n"
 msgstr "Impossible d'initialiser la bibliothèque LDAP !\n"
 
 msgid "Simple bind failed\n"
-msgstr "Échec de la connexion simple\n"
+msgstr "Liaison simple échouée\n"
 
-#, fuzzy
-#| msgid "Simple bind failed\n"
 msgid "SASL Bind failed\n"
-msgstr "Échec de la connexion simple\n"
+msgstr "Liaison SASL échouée\n"
 
 #, c-format
 msgid "Operation failed: %s\n"
@@ -100,7 +100,7 @@ msgstr "Échec à la création du contrôle !\n"
 
 #, c-format
 msgid "Failed to bind to server!\n"
-msgstr "La liaison au serveur a échoué !\n"
+msgstr "Échec de la liaison au serveur !\n"
 
 #, c-format
 msgid "Failed to get keytab!\n"
@@ -203,7 +203,7 @@ msgid "LDAP DN"
 msgstr "DN LDAP"
 
 msgid "DN to bind as if not using kerberos"
-msgstr "DN à utiliser pour la connexion en cas de non-utilisation de Kerberos"
+msgstr "DN à utiliser pour la liaison lorsque Kerberos n'est pas utilisé"
 
 msgid "LDAP password"
 msgstr "Mot de passe LDAP"
@@ -236,6 +236,8 @@ msgstr ""
 
 msgid "LDAP SASL bind mechanism if no bindd/bindpw"
 msgstr ""
+"Mécanisme de liaison SASL pour LDAP lorsque bindd ou bindpw ne sont pas "
+"utilisés"
 
 msgid "GSSAPI|EXTERNAL"
 msgstr ""
@@ -261,7 +263,7 @@ msgstr "Avertissement : échec de conversion de type (#%d)\n"
 
 #, c-format
 msgid "Bind password already provided (-w).\n"
-msgstr ""
+msgstr "Mot de passe de liaison déjà fourni (-w).\n"
 
 #, fuzzy
 #| msgid "LDAP password"
@@ -271,14 +273,18 @@ msgstr "Mot de passe LDAP"
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
 msgstr ""
+"Mot de passe de liaison requis lors de l'utilisation d'un DN de liaison (-w "
+"ou -W).\n"
 
 #, c-format
 msgid "Cannot specify both SASL mechanism and bind DN simultaneously.\n"
 msgstr ""
+"Impossible de spécifier simultanément un mécanisme SASL et un DN de liaison."
+"\n"
 
 #, c-format
 msgid "Invalid SASL bind mechanism\n"
-msgstr ""
+msgstr "Mécanisme de liaison SASL invalide\n"
 
 #, fuzzy, c-format
 #| msgid ""
@@ -4849,10 +4855,10 @@ msgid "LDAP URI of DS server to migrate from"
 msgstr "URI LDAP du serveur DS depuis lequel effectuer la migration"
 
 msgid "bind password"
-msgstr "mot de passe de connexion"
+msgstr "mot de passe de liaison"
 
 msgid "Bind DN"
-msgstr "DN de connexion"
+msgstr "DN de liaison"
 
 msgid "User container"
 msgstr "Conteneur d'utilisateur"
@@ -5432,7 +5438,7 @@ msgid "Attributes to which the permission applies by default"
 msgstr "Attributs auxquels la permission s'applique par défaut"
 
 msgid "Bind rule type"
-msgstr "Type de règle liée"
+msgstr "Type de règle de liaison"
 
 msgid "Subtree to apply permissions to"
 msgstr "Branche à laquelle appliquer les permissions"
@@ -19786,7 +19792,8 @@ msgstr "Nombre de parties invalide !"
 #, python-format
 msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
 msgstr ""
-"Le type DNS RR « %s » n'est pas pris en charge par le greffon bind-dyndb-ldap"
+"Le type d'enregistrement DNS \"%s\" n'est pas pris en charge par le plugin "
+"bind-dyndb-ldap"
 
 #, python-format
 msgid "format must be specified as \"%(format)s\" %(rfcs)s"
@@ -22568,8 +22575,8 @@ msgstr "« attrs » et attributs inclus/exclus s'excluent mutuellement"
 
 msgid "cannot set bindtype for a permission that is assigned to a privilege"
 msgstr ""
-"impossible de définir le type de liaison d'une permission assignée à un "
-"privilège"
+"impossible de définir le type de liaison d'une autorisation qui est assignée "
+"à un privilège"
 
 #, python-format
 msgid "%(count)d permission matched"
@@ -23934,7 +23941,7 @@ msgid ""
 "uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
 msgstr ""
 "\n"
-"IPA permet la désignation d'un « binddn » à utiliser avec sudo situé à :\n"
+"IPA permet la désignation d'un DN de liaison à utiliser avec sudo situé à :\n"
 "uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
 
 msgid ""
@@ -23945,10 +23952,11 @@ msgid ""
 "dc=example,dc=com\n"
 msgstr ""
 "\n"
-"Pour activer « binddn », exécuter la commande pour fixer le mot de passe :\n"
-"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -H ldap://ipa."
-"example.com -ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,"
-"dc=example,dc=com\n"
+"Pour activer le DN de liaison, exécutez la commande suivante pour définir le "
+"mot de passe :\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -H ldap://"
+"ipa.example.com -ZZ -D \"cn=Directory Manager\" "
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
 
 msgid ""
 "\n"
@@ -29966,8 +29974,8 @@ msgid ""
 "cannot add permission \"%(perm)s\" with bindtype \"%(bindtype)s\" to a "
 "privilege"
 msgstr ""
-"impossible d'ajouter la permission « %(perm)s » avec le type de liaison "
-"« %(bindtype)s » à un privilège"
+"impossible d'ajouter à un privilège l'autorisation \"%(perm)s\" ayant pour "
+"type de liaison \"%(bindtype)s\""
 
 msgid "Privilege"
 msgstr "Privilège"
