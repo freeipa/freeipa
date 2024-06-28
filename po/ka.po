@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-02-22 14:36+0000\n"
+"PO-Revision-Date: 2024-06-28 17:22+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.4\n"
+"X-Generator: Weblate 5.5.5\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -113,15 +113,13 @@ msgstr "ber_init() ჩავარდა. არასწორი კონტ�
 msgid "ber_scanf() failed, unable to find kvno ?!\n"
 msgstr "ber_scanf() ჩავარდა. ვერ ვიპოვე kvno ?!\n"
 
-#, fuzzy, c-format
-#| msgid "Failed to retrieve any keys"
+#, c-format
 msgid "Failed to retrieve encryption type type #%d\n"
-msgstr "ყველა გასაღების მიღება ჩავარდა"
+msgstr "ჩავარდა მიღება დაშიფრვის ტიპისთვის #%d\n"
 
-#, fuzzy, c-format
-#| msgid "Unable to parse principal: %1$s (%2$d)\n"
+#, c-format
 msgid "Failed to retrieve encryption type %1$s (#%2$d)\n"
-msgstr "ვერ დავამუშავე პრინციპალი: %1$s (%2$d)\n"
+msgstr "ჩავარდა მიღება დაშიფვრის ტიპისთვის: %1$s (#%2$d)\n"
 
 #, c-format
 msgid "Failed to retrieve any keys"
@@ -468,10 +466,9 @@ msgstr "JSON-RPC გამოძახება ჩავარდა: %s\n"
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "JSON-RPC call failed: %s\n"
+#, c-format
 msgid "JSON-RPC call failed with status code: %li\n"
-msgstr "JSON-RPC გამოძახება ჩავარდა: %s\n"
+msgstr "JSON-RPC გამოძახება ჩავარდა სტატუსის კოდით: %li\n"
 
 #, c-format
 msgid ""
@@ -485,14 +482,9 @@ msgstr ""
 msgid "Extracting the error from the JSON-RPC response failed: %s\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid ""
-#| "JSON-RPC response:\n"
-#| "%s\n"
+#, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr ""
-"JSON-RPC პასუხი:\n"
-"%s\n"
+msgstr "JSON-RPC პასუხის დამუშავება ჩავარდა: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
