@@ -163,6 +163,7 @@ class BaseHSMTest(IntegrationTest):
     master_extra_args = []
     token_password = None
     token_name = None
+    token_password_file = '/tmp/token_password'
     random_serial = False
 
     @classmethod
@@ -191,7 +192,7 @@ class BaseHSMTest(IntegrationTest):
         delete_hsm_token([cls.master] + cls.replicas, cls.token_name)
 
     @classmethod
-    def sync_tokens(cls, source):
+    def sync_tokens(cls, source, token_name=None):
         """Synchronize non-networked HSM tokens between machines
            source: source host for the token data
         """
@@ -207,7 +208,8 @@ class BaseHSMTest(IntegrationTest):
         for host in [cls.master] + cls.replicas:
             if host == source:
                 continue
-            copy_token_files(source, [host], cls.token_name)
+            copy_token_files(source, [host],
+                             token_name if token_name else cls.token_name)
 
 
 class TestHSMInstall(BaseHSMTest):
@@ -215,7 +217,6 @@ class TestHSMInstall(BaseHSMTest):
     num_replicas = 3
     num_clients = 1
     topology = 'star'
-    token_password_file = '/tmp/token_password'
 
     def test_hsm_install_replica0_ca_less_install(self):
         check_version(self.master)
@@ -324,6 +325,11 @@ class TestHSMInstall(BaseHSMTest):
         tasks.uninstall_master(self.master)
 
         delete_hsm_token([self.master] + self.replicas, self.token_name)
+        self.token_name, self.token_password = get_hsm_token(self.master)
+        self.master.put_file_contents(self.token_password_file,
+                                      self.token_password)
+        self.replicas[0].put_file_contents(self.token_password_file,
+                                           self.token_password)
 
         tasks.install_master(
             self.master, setup_dns=self.master_with_dns,
@@ -335,7 +341,7 @@ class TestHSMInstall(BaseHSMTest):
                 '--token-password-file', self.token_password_file
             )
         )
-        self.sync_tokens(self.master)
+        self.sync_tokens(self.master, token_name=self.token_name)
 
     def test_hsm_install_replica0_password_file(self):
         check_version(self.master)
@@ -365,7 +371,7 @@ class TestHSMInstallADTrustBase(BaseHSMTest):
         check_version(self.master)
         tasks.install_replica(
             self.master, self.replicas[0], setup_ca=True,
-            setup_adtrust=True, setup_kra=True, setup_dns=True,
+            setup_adtrust=False, setup_kra=True, setup_dns=True,
             nameservers='master' if self.master_with_dns else None,
             extra_args=('--token-password', self.token_password,)
         )
@@ -400,7 +406,8 @@ class TestHSMcertRenewal(BaseHSMTest):
             'auditSigningCert cert-pki-ca': 'caauditSigningCert'
         }
         CA_TRACKING_REQS.update(KRA_TRACKING_REQS)
-        self.master.put_file_contents('/tmp/token_passwd', self.token_password)
+        self.master.put_file_contents(self.token_password_file,
+                                      self.token_password)
         for nickname in CA_TRACKING_REQS:
             cert = tasks.certutil_fetch_cert(
                 self.master,
@@ -816,6 +823,7 @@ class TestHSMcertFixReplica(BaseHSMTest):
 class TestHSMNegative(IntegrationTest):
 
     master_with_dns = False
+    token_password_file = '/tmp/token_password'
 
     @classmethod
     def install(cls, mh):
@@ -892,9 +900,8 @@ class TestHSMNegative(IntegrationTest):
         provided at the same time results into command failure.
         """
         check_version(self.master)
-        token_password_file = '/tmp/token_passwd'
         self.master.put_file_contents(
-            token_password_file, self.token_password
+            self.token_password_file, self.token_password
         )
         result = tasks.install_master(
             self.master, raiseonerr=False,
@@ -902,7 +909,7 @@ class TestHSMNegative(IntegrationTest):
                 '--token-name', self.token_name,
                 '--token-library-path', hsm_lib_path,
                 '--token-password', self.token_password,
-                '--token-password-file', token_password_file
+                '--token-password-file', self.token_password_file
             )
         )
         assert result.returncode != 0
