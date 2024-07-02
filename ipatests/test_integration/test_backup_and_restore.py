@@ -903,6 +903,7 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
         master.run_command(['ipa-restore', backup_path],
                            stdin_text=dirman_password + '\nyes')
 
+        tasks.kinit_admin(master)
         # re-initialize topology after restore.
         for topo_suffix in 'domain', 'ca':
             topo_name = find_segment(master, replica1, topo_suffix)
