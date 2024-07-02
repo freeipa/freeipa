@@ -193,6 +193,8 @@ def hsm_validator(token_name, token_library, token_password):
     if not token_name:
         logger.debug("No token name, assuming not an HSM install")
         return
+    if not token_password:
+        raise ValueError("No token password provided")
     val, pki_version = hsm_version()
     if val is False:
         raise ValueError(
@@ -361,17 +363,16 @@ def install_check(standalone, replica_config, options):
     host_name = options.host_name
 
     if replica_config is None:
-        if options.token_name:
-            try:
-                hsm_validator(
-                    options.token_name, options.token_library_path,
-                    options.token_password)
-            except ValueError as e:
-                raise ScriptError(str(e))
         options._subject_base = options.subject_base
         options._ca_subject = options.ca_subject
         options._random_serial_numbers = options.random_serial_numbers
         token_name = options.token_name
+        token_library_path = options.token_library_path
+        if "setup_ca" in options.__dict__:
+            setup_ca = options.setup_ca
+        else:
+            # We got here through ipa-ca-install
+            setup_ca = True
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
@@ -399,33 +400,36 @@ def install_check(standalone, replica_config, options):
         if replica_config.setup_ca and token_name:
             if not options.token_library_path:
                 options.token_library_path = token_library_path
-            if (
-                not options.token_password_file
-                and not options.token_password
-            ):
-                if options.unattended:
-                    raise ScriptError("HSM token password required")
-                token_password = installutils.read_password(
-                    f"HSM token '{token_name}'", confirm=False
-                )
-                if token_password is None:
-                    raise ScriptError("HSM token password required")
-                else:
-                    options.token_password = token_password
+        setup_ca = replica_config.setup_ca
 
-            if options.token_password_file:
-                with open(options.token_password_file, "r") as fd:
-                    options.token_password = fd.readline().strip()
-            try:
-                hsm_validator(
-                    token_name,
-                    options.token_library_path
-                    if options.token_library_path
-                    else token_library_path,
-                    options.token_password,
-                )
-            except ValueError as e:
-                raise ScriptError(str(e))
+    if setup_ca and token_name:
+        if (options.token_password_file and options.token_password):
+            raise ScriptError(
+                "token-password and token-password-file are mutually exclusive"
+            )
+        if options.token_password_file:
+            with open(options.token_password_file, "r") as fd:
+                options.token_password = fd.readline().strip()
+        if (
+            not options.token_password_file
+            and not options.token_password
+        ):
+            if options.unattended:
+                raise ScriptError("HSM token password required")
+            token_password = installutils.read_password(
+                f"HSM token '{token_name}'", confirm=False
+            )
+            if token_password is None:
+                raise ScriptError("HSM token password required")
+            else:
+                options.token_password = token_password
+
+        try:
+            hsm_validator(
+                token_name, token_library_path,
+                options.token_password)
+        except ValueError as e:
+            raise ScriptError(str(e))
 
     if replica_config is not None and not replica_config.setup_ca:
         return
