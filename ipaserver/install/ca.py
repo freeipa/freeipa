@@ -368,7 +368,11 @@ def install_check(standalone, replica_config, options):
         options._random_serial_numbers = options.random_serial_numbers
         token_name = options.token_name
         token_library_path = options.token_library_path
-        setup_ca = options.setup_ca
+        if "setup_ca" in options.__dict__:
+            setup_ca = options.setup_ca
+        else:
+            # We got here through ipa-ca-install
+            setup_ca = True
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
