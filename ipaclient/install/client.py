@@ -3601,6 +3601,12 @@ def uninstall(options):
 
         remove_file(paths.SSSD_LDB)
         remove_file(paths.SSSD_CONFIG_LDB)
+        # Stop sssd-kcm.service before removing the KCM ccaches database
+        # it is socket-activated and will be restarted whenever needed
+        try:
+            services.service('sssd-kcm', api).stop()
+        except Exception as e:
+            logger.warning("Failed to stop sssd-kcm: %s", e)
         remove_file(paths.SSSD_SECRETS)
 
         sssd_timestamps = "timestamps_" + ipa_domain + ".ldb"
