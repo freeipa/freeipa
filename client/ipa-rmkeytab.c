@@ -29,6 +29,11 @@
 #include "ipa-client-common.h"
 #include "config.h"
 
+int remove_principal(krb5_context context, krb5_keytab ktid,
+                     const char *principal, int debug);
+int remove_realm(krb5_context context, krb5_keytab ktid,
+                 const char *realm, int debug);
+
 #define KERBEROS_ERROR	1
 #define OOM_ERROR		2
 #define KEYTAB_ERROR	3
@@ -171,7 +176,8 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
     }
 
 done:
-
+    krb5_kt_end_seq_get(context, ktid, &kt_cursor);
+    krb5_free_unparsed_name(context, entry_princ_s);
     return rval;
 }
 

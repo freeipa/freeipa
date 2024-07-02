@@ -2066,6 +2066,7 @@ void ipadb_free_principal(krb5_context kcontext, krb5_db_entry *entry)
                 for (i = 0; (acl_list != NULL) && (acl_list[i] != NULL); i++) {
                     free(acl_list[i]);
                 }
+                free(acl_list);
             }
             free(prev->tl_data_contents);
             free(prev);
