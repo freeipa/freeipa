@@ -555,12 +555,15 @@ class EPN(admintool.AdminTool):
                 mail_from = "noreply@%s" % self.default_email_domain
             while self._expiring_password_user_list:
                 entry = self._expiring_password_user_list.pop()
+                expiration_datetime=datetime.strptime(entry["krbpasswordexpiration"], "%Y-%m-%d %H:%M:%S")
                 body = template.render(
                     uid=entry["uid"],
                     first=entry["givenname"],
                     last=entry["sn"],
                     fullname=entry["cn"],
                     expiration=entry["krbpasswordexpiration"],
+                    expiration_datetime=expiration_datetime,
+                    expiration_count=expiration_datetime - datetime.now(),
                 )
                 self._mailer.send_message(
                     mail_subject=api.env.msg_subject,
