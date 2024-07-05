@@ -663,6 +663,8 @@ def install_check(installer):
             options.token_name is not None
         )
     ):
+        if options.unattended:
+            raise ScriptError("HSM token password required")
         token_password = read_password(
             f"HSM token '{options.token_name}'" , confirm=False)
         if token_password is None:
