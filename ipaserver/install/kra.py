@@ -16,10 +16,12 @@ from ipalib.kinit import kinit_keytab
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import ipautil
+from ipapython.admintool import ScriptError
 from ipapython.install.core import group
 from ipaserver.install import ca, cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
+from ipaserver.install import installutils
 from ipaserver.install import service as _service
 
 from . import dogtag
@@ -58,13 +60,61 @@ def install_check(api, replica_config, options):
             "KRA can not be installed when 'ca_host' is overriden in "
             "IPA configuration file.")
 
+    # There are three scenarios for installing a KRA
+    #   1. At install time of the initial server
+    #   2. Using ipa-kra-install
+    #   3. At install time of a replica
+    #
+    # These tests are done in reverse order. If we are doing a
+    # replica install we can check the remote CA.
+    #
+    # If we are running ipa-kra-install then there must be a CA
+    # use that.
+    #
+    # If initial install we either have the token options or we don't.
+
+    cai = cainstance.CAInstance()
+    if replica_config is not None:
+        (token_name, token_library_path) = ca.lookup_hsm_configuration(api)
+    elif cai.is_configured() and cai.hsm_enabled:
+        (token_name, token_library_path) = ca.lookup_hsm_configuration(api)
+    elif 'token_name' in options.__dict__:
+        token_name = options.token_name
+        token_library_path = options.token_library_path
+    else:
+        token_name = None
+
+    if replica_config is not None:
+        if (
+            token_name
+            and options.token_password_file
+            and options.token_password
+        ):
+            raise ScriptError(
+                "token-password and token-password-file are mutually exclusive"
+            )
+
     if options.token_password_file:
         with open(options.token_password_file, "r") as fd:
             options.token_password = fd.readline().strip()
 
-    if replica_config is not None:
-        (token_name, token_library) = ca.lookup_hsm_configuration(api)
-        ca.hsm_validator(token_name, token_library, options.token_password)
+    if (
+        token_name
+        and not options.token_password_file
+        and not options.token_password
+    ):
+        if options.unattended:
+            raise ScriptError("HSM token password required")
+        token_password = installutils.read_password(
+            f"HSM token '{token_name}'", confirm=False
+        )
+        if token_password is None:
+            raise ScriptError("HSM token password required")
+        else:
+            options.token_password = token_password
+
+    if token_name:
+        ca.hsm_validator(token_name, token_library_path, options.token_password)
 
 
 def install(api, replica_config, options, custodia):
