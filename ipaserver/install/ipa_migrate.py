@@ -389,9 +389,6 @@ class IPAMigrate():
         parser.add_argument('-F', '--force',
                             help='Ignore errors and continue with migration',
                             action='store_true', default=False)
-        parser.add_argument('-V', '--version',
-                            help='Display verison of the migration tool',
-                            action='store_true', default=False)
         parser.add_argument('-q', '--quiet',
                             help='Only display errors during the migration',
                             action='store_true', default=False)
