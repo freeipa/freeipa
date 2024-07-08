@@ -1322,6 +1322,9 @@ class IPAMigrate():
                             self.args.reset_range
                             or self.mode == "stage-mode"
                         ) and attr.lower() in DNA_REGEN_ATTRS:
+                            # Skip dna attributes from managed entries
+                            if 'mepManagedBy' in local_entry:
+                                break
                             # Ok, set the magic regen value
                             local_entry[attr] = [DNA_REGEN_VAL]
                             self.log_debug("Resetting the DNA range for: "
@@ -1816,6 +1819,9 @@ class IPAMigrate():
         # processing the entries
         for entry in remote_dse:
             for dse_item in DS_CONFIG.items():
+                if dse_item[0] == "dna" and self.mode == "stage-mode":
+                    # Do not migrate DNA ranges in staging mode
+                    continue
                 dse = dse_item[1]
                 for dn in dse['dn']:
                     if DN(dn) == DN(entry['dn']):
