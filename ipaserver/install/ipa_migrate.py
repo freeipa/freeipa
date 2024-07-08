@@ -27,7 +27,6 @@ from ipalib.x509 import IPACertificate
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient, LDAPEntry, realm_to_ldapi_uri
-from ipapython.ipautil import write_tmp_file
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.install.ipa_migrate_constants import (
     DS_CONFIG, DB_OBJECTS, DS_INDEXES, BIND_DN, LOG_FILE_NAME,
@@ -758,13 +757,19 @@ class IPAMigrate():
         insecure_bind = False
 
         if self.args.cacertfile is not None:
-            # Store CA cert into file
-            tmp_ca_cert_f = write_tmp_file(self.args.cacertfile)
-            cacert = tmp_ca_cert_f.name
-
             # Start TLS connection (START_TLS)
-            ds_conn = LDAPClient(ldapuri, cacert=cacert, start_tls=True)
-            tmp_ca_cert_f.close()
+            try:
+                ds_conn = LDAPClient(ldapuri, cacert=self.args.cacertfile,
+                                     start_tls=True)
+            except (
+                ldap.LDAPError,
+                errors.NetworkError,
+                errors.DatabaseError,
+                IOError
+            ) as e:
+                self.handle_error(
+                    f"Failed to connect to remote server: {str(e)}"
+                )
         else:
             # LDAP (insecure)
             ds_conn = LDAPClient(ldapuri)
@@ -773,7 +778,11 @@ class IPAMigrate():
         try:
             ds_conn.simple_bind(DN(self.args.bind_dn), self.bindpw,
                                 insecure_bind=insecure_bind)
-        except (errors.NetworkError, errors.ACIError) as e:
+        except (
+            errors.NetworkError,
+            errors.ACIError,
+            errors.DatabaseError
+        ) as e:
             self.handle_error(f"Failed to bind to remote server: {str(e)}")
 
         # All set, stash the remote connection
