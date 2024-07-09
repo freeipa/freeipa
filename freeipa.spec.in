@@ -1367,6 +1367,7 @@ fi
 %postun selinux-luna
 if [ $1 -eq 0 ]; then
     %selinux_modules_uninstall -s %{selinuxtype} %{modulename}-luna
+fi
 
 %posttrans selinux
 %selinux_relabel_post -s %{selinuxtype}
