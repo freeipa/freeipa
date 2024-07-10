@@ -833,6 +833,13 @@ class TestHSMNegative(IntegrationTest):
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
 
+    @classmethod
+    def uninstall(cls, mh):
+        cls.master.run_command(
+            ['softhsm2-util', '--delete-token', '--token', cls.token_name],
+            raiseonerr=False
+        )
+
     def test_hsm_negative_wrong_token_details(self):
         check_version(self.master)
         # wrong token name
@@ -867,6 +874,51 @@ class TestHSMNegative(IntegrationTest):
             )
         )
         assert result.returncode != 0
+
+    def test_hsm_negative_bad_token_dir_permissions(self):
+        """Create an unreadable softhsm2 token and install should fail.
+
+           This is most often seen on replicas where the pkiuser is not
+           a member of the ods group.
+        """
+        check_version(self.master)
+        token_name = 'bad_perms'
+        token_passwd = 'Secret123'
+        self.master.run_command(
+            ['softhsm2-util', '--delete-token', '--token', token_name],
+            raiseonerr=False
+        )
+        self.master.run_command(
+            ['usermod', 'pkiuser', '-a', '-G', 'ods']
+        )
+        self.master.run_command(
+            ['softhsm2-util', '--init-token',
+             '--free', '--pin', token_passwd, '--so-pin', token_passwd,
+             '--label', token_name]
+        )
+        self.master.run_command(
+            ['usermod', 'pkiuser', '-r', '-G', 'ods']
+        )
+        result = tasks.install_master(
+            self.master, raiseonerr=False,
+            extra_args=(
+                '--token-name', token_name,
+                '--token-library-path', hsm_lib_path,
+                '--token-password', token_passwd
+            )
+        )
+        self.master.run_command(
+            ['usermod', 'pkiuser', '-a', '-G', 'ods']
+        )
+        self.master.run_command(
+            ['softhsm2-util', '--delete-token', '--token', token_name],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+        assert (
+            f"Token named '{token_name}' was not found"
+            in result.stderr_text
+        )
 
     def test_hsm_negative_special_char_token_name(self):
         check_version(self.master)
@@ -912,6 +964,11 @@ class TestHSMNegative(IntegrationTest):
                 '--token-password-file', self.token_password_file
             )
         )
+        self.master.run_command(
+            ['softhsm2-util', '--delete-token', '--token', self.token_name],
+            raiseonerr=False
+        )
+        # assert 'error message non existing token lib' in result.stderr_text
         assert result.returncode != 0
 
 
