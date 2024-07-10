@@ -18,6 +18,7 @@ import six
 from ipalib.constants import IPA_CA_CN
 from ipalib.install import certstore
 from ipalib.install.service import enroll_only, master_install_only, replica_install_only
+from ipaplatform.constants import constants
 from ipaserver.install import sysupgrade
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
@@ -208,8 +209,15 @@ def hsm_validator(token_name, token_library, token_password):
         raise ValueError(
             "Token library path '%s' does not exist" % token_library
         )
+    pkiuser = constants.PKI_USER
+    pkigroup = constants.PKI_GROUP
+    if 'libsofthsm' in token_library:
+        import grp
+        group = grp.getgrnam(constants.ODS_GROUP)
+        if str(constants.PKI_USER) in group.gr_mem:
+            pkigroup = constants.ODS_GROUP
     with certdb.NSSDatabase() as tempnssdb:
-        tempnssdb.create_db()
+        tempnssdb.create_db(user=str(pkiuser), group=str(pkigroup))
         # Try adding the token library to the temporary database in
         # case it isn't already available. Ignore all errors.
         command = [
@@ -223,6 +231,7 @@ def hsm_validator(token_name, token_library, token_password):
         # It may fail if p11-kit has already registered the library, that's
         # ok.
         ipautil.run(command, stdin='\n', cwd=tempnssdb.secdir,
+                    runas=pkiuser, suplementary_groups=[pkigroup],
                     raiseonerr=False)
 
         command = [
@@ -232,7 +241,8 @@ def hsm_validator(token_name, token_library, token_password):
             '-force'
         ]
         lines = ipautil.run(
-            command, cwd=tempnssdb.secdir, capture_output=True).output
+            command, cwd=tempnssdb.secdir, capture_output=True,
+            runas=pkiuser, suplementary_groups=[pkigroup]).output
         found = False
         token_line = f'token: {token_name}'
         for line in lines.split('\n'):
@@ -241,9 +251,11 @@ def hsm_validator(token_name, token_library, token_password):
                 break
         if not found:
             raise ValueError(
-                "Token named '%s' was not found" % token_name
+                "Token named '%s' was not found. Check permissions"
+                % token_name
             )
         pwdfile = ipautil.write_tmp_file(token_password)
+        os.fchown(pwdfile.fileno(), pkiuser.uid, pkigroup.gid)
         args = [
             paths.CERTUTIL,
             "-d", '{}:{}'.format(tempnssdb.dbtype, tempnssdb.secdir),
@@ -252,6 +264,8 @@ def hsm_validator(token_name, token_library, token_password):
             "-f", pwdfile.name,
         ]
         result = ipautil.run(args, cwd=tempnssdb.secdir,
+                             runas=pkiuser,
+                             suplementary_groups=[pkigroup],
                              capture_error=True, raiseonerr=False)
         if result.returncode != 0 and len(result.error_output):
             if 'SEC_ERROR_BAD_PASSWORD' in result.error_output:
