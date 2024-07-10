@@ -664,6 +664,10 @@ class KerberosSession(HTTP_Status):
         headers = []
         response = b''
 
+        logout_cookie = getattr(context, 'logout_cookie', None)
+        if logout_cookie is not None:
+            headers.append(('IPASESSION', logout_cookie))
+
         logger.debug('%s need login', status)
 
         start_response(status, headers)
@@ -689,6 +693,7 @@ class KerberosSession(HTTP_Status):
         creds = get_credentials_if_valid(name=gss_name,
                                          ccache_name=ccache_name)
         if not creds:
+            setattr(context, 'logout_cookie', 'MagBearerToken=')
             logger.debug(
                 'ccache expired or invalid, deleting session, need login')
             return None
