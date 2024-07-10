@@ -451,7 +451,7 @@ class IpaAdvise(admintool.AdminTool):
 
     @classmethod
     def add_options(cls, parser):
-        super(IpaAdvise, cls).add_options(parser)
+        super(IpaAdvise, cls).add_options(parser, debug_option=True)
 
     def validate_options(self):
         super(IpaAdvise, self).validate_options(needs_root=False)
