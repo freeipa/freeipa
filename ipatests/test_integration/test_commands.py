@@ -1267,7 +1267,7 @@ class TestIPACommand(IntegrationTest):
 
     def get_dirsrv_id(self):
         serverid = realm_to_serverid(self.master.domain.realm)
-        return("dirsrv@%s.service" % serverid)
+        return ("dirsrv@%s.service" % serverid)
 
     def test_ipa_nis_manage_enable(self):
         """
@@ -1769,7 +1769,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             api.bootstrap_with_global_options(context='server')
             api.finalize()
             api.Backend.ldap2.connect()
-            
+
             api.Command["group_add"]("testgroup1", external=True)
             api.Command["group_add"]("testgroup2", external=False)
             result1 = api.Command["group_show"]("testgroup1", all=True)["result"] # noqa: E501
@@ -1813,6 +1813,75 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         result = self.master.run_command(['python3',
                                           '/tmp/reproducer2_code.py'])
         assert "missing attribute" not in result.stdout_text
+
+    def test_sidgen_task_continue_on_error(self):
+        """Verify that SIDgen task continue even if it fails to assign sid
+        scenario:
+            - add a user with no uid (it will be auto-assigned inside
+              the range)
+            - add a user with uid 2000
+            - add a user with no uid (it will be auto-assigned inside
+              the range)
+            - edit the first and 3rd users, remove the objectclass
+              ipaNTUserAttrs and the attribute ipaNTSecurityIdentifier
+            - run the sidgen task
+            - verify that user1 and user3 have a ipaNTSecurityIdentifier
+            - verify that old error message is not seen in dirsrv error log
+            - verify that new error message is seen in dirsrv error log
+
+        related: https://pagure.io/freeipa/issue/9618
+        """
+        test_user1 = 'test_user1'
+        test_user2 = 'test_user2'
+        test_user2000 = 'test_user2000'
+        base_dn = str(self.master.domain.basedn)
+        old_err_msg = 'Cannot add SID to existing entry'
+        new_err_msg = r'Finished with [0-9]+ failures, please check the log'
+
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, test_user1)
+        self.master.run_command(
+            ['ipa', 'user-add', test_user2000,
+             '--first', 'test', '--last', 'user',
+             '--uid', '2000']
+        )
+        tasks.user_add(self.master, test_user2)
+
+        for user in (test_user1, test_user2):
+            entry_ldif = textwrap.dedent("""
+                dn: uid={user},cn=users,cn=accounts,{base_dn}
+                changetype: modify
+                delete: ipaNTSecurityIdentifier
+                -
+                delete: objectclass
+                objectclass: ipaNTUserAttrs
+            """).format(
+                user=user,
+                base_dn=base_dn)
+            tasks.ldapmodify_dm(self.master, entry_ldif)
+
+        # run sidgen task
+        self.master.run_command(
+            ['ipa', 'config-mod', '--add-sids', '--enable-sid']
+        )
+
+        # ensure that sidgen have added the attr removed above
+        for user in (test_user1, test_user2):
+            result = tasks.ldapsearch_dm(
+                self.master,
+                'uid={user},cn=users,cn=accounts,{base_dn}'.format(
+                    user=user, base_dn=base_dn),
+                ['ipaNTSecurityIdentifier']
+            )
+            assert 'ipaNTSecurityIdentifier' in result.stdout_text
+
+        dashed_domain = self.master.domain.realm.replace(".", '-')
+        dirsrv_error_log = self.master.get_file_contents(
+            paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % (dashed_domain),
+            encoding='utf-8'
+        )
+        assert old_err_msg not in dirsrv_error_log
+        assert re.search(new_err_msg, dirsrv_error_log)
 
 
 class TestIPAautomount(IntegrationTest):
