@@ -308,7 +308,7 @@ class TestIPAMigrateScenario1(IntegrationTest):
         This test installs IPA server instead of replica on
         system under test with the same realm and domain name.
         """
-        tasks.install_master(self.replicas[0], setup_dns=True, setup_kra=True)
+        tasks.install_master(self.replicas[0], setup_dns=False, setup_kra=True)
 
     def test_ipa_migrate_without_kinit_as_admin(self):
         """
