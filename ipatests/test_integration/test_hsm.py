@@ -173,6 +173,9 @@ class BaseHSMTest(IntegrationTest):
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
+        cls.master.put_file_contents(
+            cls.token_password_file, cls.token_password
+        )
         tasks.install_master(
             cls.master, setup_dns=cls.master_with_dns,
             setup_kra=cls.master_with_kra,
@@ -220,10 +223,6 @@ class TestHSMInstall(BaseHSMTest):
 
     def test_hsm_install_replica0_ca_less_install(self):
         check_version(self.master)
-
-        self.master.put_file_contents(
-            self.token_password_file, self.token_password
-        )
         tasks.install_replica(
             self.master, self.replicas[0], setup_ca=False,
             setup_dns=True,
@@ -412,7 +411,7 @@ class TestHSMcertRenewal(BaseHSMTest):
             cert = tasks.certutil_fetch_cert(
                 self.master,
                 paths.PKI_TOMCAT_ALIAS_DIR,
-                '/tmp/token_passwd',
+                self.token_password_file,
                 nickname,
                 token_name=self.token_name,
             )
@@ -428,13 +427,14 @@ class TestHSMcertRenewal(BaseHSMTest):
             status = tasks.wait_for_request(self.master, request_id[0], 120)
             assert status == "MONITORING"
 
-            args = ['-L', '-h', self.token_name, '-f', '/tmp/token_passwd']
+            args = ['-L', '-h', self.token_name, '-f',
+                    self.token_password_file,]
             tasks.run_certutil(self.master, args, paths.PKI_TOMCAT_ALIAS_DIR)
 
             cert = tasks.certutil_fetch_cert(
                 self.master,
                 paths.PKI_TOMCAT_ALIAS_DIR,
-                '/tmp/token_passwd',
+                self.token_password_file,
                 nickname,
                 token_name=self.token_name,
             )
