@@ -54,4 +54,4 @@ add:aci: (target="ldap:///krbprincipalname=cifs/($$dn),cn=services,cn=accounts,$
 
 # Add the default PAC type to configuration
 dn: cn=ipaConfig,cn=etc,$SUFFIX
-addifnew: ipaKrbAuthzData: MS-PAC
+add: ipaKrbAuthzData: MS-PAC
