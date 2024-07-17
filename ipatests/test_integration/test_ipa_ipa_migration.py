@@ -846,20 +846,18 @@ class TestIPAMigrateScenario1(IntegrationTest):
         assert DNS_LOG2 in install_msg
         assert DNS_LOG3 in install_msg
 
-    @pytest.mark.xfail(reason="https://issues.redhat.com/browse/RHEL-46003",
-                       strict=True)
     def test_ipa_migrate_version_option(self):
         """
-        This testcase checks the version of
-        the ipa-migrate tool using -v option
+        The -V option has been removed.
         """
         CONSOLE_LOG = (
             "ipa-migrate: error: the following arguments are "
             "required: mode, hostname"
         )
-        result = self.master.run_command(["ipa-migrate", "-V"])
-        assert result.returncode == 0
-        assert CONSOLE_LOG not in result.stderr_text
+        result = self.master.run_command(["ipa-migrate", "-V"],
+                                         raiseonerr=False)
+        assert result.returncode == 2
+        assert CONSOLE_LOG in result.stderr_text
 
     def test_ipa_migrate_with_log_file_option(self):
         """
