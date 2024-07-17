@@ -600,9 +600,6 @@ class TestIPAMigrateScenario1(IntegrationTest):
         )
         assert SCHEMA_OVERRIDE_LOG in install_msg
 
-    @pytest.mark.xfail(
-        reason="https://issues.redhat.com/browse/RHEL-45463", strict=True
-    )
     def test_ipa_migrate_stage_mode(self, empty_log_file):
         """
         This test checks that ipa-migrate is successful
