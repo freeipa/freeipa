@@ -7,3 +7,5 @@ add: krbSupportedEncSaltTypes: aes128-sha2:normal
 add: krbSupportedEncSaltTypes: aes128-sha2:special
 add: krbSupportedEncSaltTypes: aes256-sha2:normal
 add: krbSupportedEncSaltTypes: aes256-sha2:special
+remove: krbDefaultEncSaltTypes: des3-hmac-sha1:special
+remove: krbDefaultEncSaltTypes: arcfour-hmac:special
