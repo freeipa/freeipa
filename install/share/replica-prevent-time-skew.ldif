@@ -1,4 +1,0 @@
-dn: cn=config
-changetype: modify
-replace: nsslapd-ignore-time-skew
-nsslapd-ignore-time-skew: $SKEWVALUE
