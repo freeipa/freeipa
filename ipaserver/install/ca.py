@@ -265,7 +265,7 @@ def hsm_validator(token_name, token_library, token_password):
         if 'nfast' in token_library:
             module = 'ipa-selinux-nfast'
         elif 'luna' in token_library:
-            module = 'ipa-selinux-nfast'
+            module = 'ipa-selinux-luna'
         else:
             module = None
         if module:
