@@ -416,7 +416,11 @@ class CAInstance(DogtagInstance):
             if promote:
                 # Setup Database
                 self.step("creating certificate server db", self.__create_ds_db)
+                self.step("ignore time skew for initial replication",
+                          self.replica_ignore_initial_time_skew)
                 self.step("setting up initial replication", self.__setup_replication)
+                self.step("revert time skew after initial replication",
+                          self.replica_revert_time_skew)
                 self.step("creating ACIs for admin", self.add_ipaca_aci)
                 self.step("creating installation admin user", self.setup_admin)
             self.step("configuring certificate server instance",

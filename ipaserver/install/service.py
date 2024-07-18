@@ -862,6 +862,31 @@ class Service:
         self.run_getkeytab(self.api.env.ldap_uri, self.keytab, self.principal)
         self.set_keytab_owner()
 
+    def replica_ignore_initial_time_skew(self):
+        """
+        Set nsslapd-ignore-time-skew = on if not already set
+        and store the initial value in order to restore it later.
+
+        The on value allows replica initialization even if there
+        are excessive time skews.
+        """
+        dn = DN(('cn', 'config'))
+        entry_attrs = api.Backend.ldap2.get_entry(dn)
+        self.original_time_skew = entry_attrs['nsslapd-ignore-time-skew'][0]
+        if self.original_time_skew != 'on':
+            entry_attrs['nsslapd-ignore-time-skew'] = 'on'
+            api.Backend.ldap2.update_entry(entry_attrs)
+
+    def replica_revert_time_skew(self):
+        """
+        Revert nsslapd-ignore-time-skew to its previous value.
+        """
+        dn = DN(('cn', 'config'))
+        entry_attrs = api.Backend.ldap2.get_entry(dn)
+        if self.original_time_skew != 'on':
+            entry_attrs['nsslapd-ignore-time-skew'] = self.original_time_skew
+            api.Backend.ldap2.update_entry(entry_attrs)
+
 
 class SimpleServiceInstance(Service):
     def create_instance(self, gensvc_name=None, fqdn=None, ldap_suffix=None,
