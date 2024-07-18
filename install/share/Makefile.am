@@ -38,7 +38,6 @@ dist_app_DATA =				\
 	default-trust-view.ldif		\
 	delegation.ldif			\
 	replica-acis.ldif		\
-	replica-prevent-time-skew.ldif  \
 	ds-nfiles.ldif			\
 	ds-ipa-env.conf.template	\
 	dns.ldif			\
