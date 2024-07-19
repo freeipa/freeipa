@@ -65,8 +65,8 @@ and re-run ipa-adtrust-instal again afterwards.
 def check_inst():
     for smbfile in [paths.SMBD, paths.NET]:
         if not os.path.exists(smbfile):
-            print("%s was not found on this system" % smbfile)
-            print("Please install the 'samba' packages and " \
+            logger.error("%s was not found on this system", smbfile)
+            logger.error("Please install the 'samba' packages and "
                   "start the installation again")
             return False
 
@@ -74,9 +74,10 @@ def check_inst():
     # by looking for the file /usr/share/ipa/smb.conf.empty
     if not os.path.exists(os.path.join(paths.USR_SHARE_IPA_DIR,
                                        "smb.conf.empty")):
-        print("AD Trust requires the '%s' package" %
+        logger.error("AD Trust requires the '%s' package",
               constants.IPA_ADTRUST_PACKAGE_NAME)
-        print("Please install the package and start the installation again")
+        logger.error(
+            "Please install the package and start the installation again")
         return False
 
     #TODO: Add check for needed samba4 libraries
