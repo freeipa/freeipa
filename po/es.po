@@ -9,16 +9,16 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-08-21 14:51+0200\n"
-"PO-Revision-Date: 2021-04-26 19:02+0000\n"
-"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
+"PO-Revision-Date: 2024-07-22 01:38+0000\n"
+"Last-Translator: N M <nm@users.noreply.translate.fedoraproject.org>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
-"master/es/>\n"
+"ipa-4-11/es/>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.6\n"
+"X-Generator: Weblate 5.6.2\n"
 
 msgid ""
 "\n"
@@ -3823,7 +3823,7 @@ msgid ""
 "Plugins not accessible directly through the CLI, commands used internally\n"
 msgstr ""
 "\n"
-"Los plugins no son accesibles a través d CLI,  comandos usados internamente\n"
+"Los plugins no son accesibles a través d CLI, comandos usados internamente\n"
 
 msgid ""
 "\n"
@@ -5362,7 +5362,7 @@ msgstr "%(name)s certificado no válido"
 
 #, python-format
 msgid "%(oname)s with name \"%(pkey)s\" already exists"
-msgstr " %(oname)s  con el nombre \"%(pkey)s\" ya existe"
+msgstr "%(oname)s con el nombre \"%(pkey)s\" ya existe"
 
 #, python-format
 msgid "%(operation)s is not supported for %(principal_type)s principals"
@@ -5787,7 +5787,7 @@ msgid "Add a permission for per-zone access delegation."
 msgstr "Añade un permiso para una delegación de acceso por zona."
 
 msgid "Add a system permission without an ACI"
-msgstr "Añadir un  permiso al sistema sin un ACI"
+msgstr "Añadir un permiso al sistema sin un ACI"
 
 msgid "Add a system permission without an ACI (internal command)"
 msgstr "Añadir un permiso de sistema sin un ACI (comando interno)"
@@ -6443,7 +6443,7 @@ msgid "Automount Maps"
 msgstr "Mapas de montaje automático"
 
 msgid "Automount key name."
-msgstr "    Nombre de clave de montaje automático"
+msgstr "Nombre de clave de montaje automático"
 
 msgid "Automount key object."
 msgstr "Objeto clave de automontaje"
@@ -6452,10 +6452,10 @@ msgid "Automount location name."
 msgstr "Nombre de la ubicación de montaje automático."
 
 msgid "Automount map name."
-msgstr "  Nombre del mapa automount."
+msgstr "Nombre del mapa automount."
 
 msgid "Automount master file."
-msgstr "    Archivo maestro automount."
+msgstr "Archivo maestro automount."
 
 msgid "Available"
 msgstr "Disponible"
@@ -6890,7 +6890,7 @@ msgstr ""
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
 msgstr ""
-"    Modo de funcionamiento continuo. Reporta los errores, pero el proceso "
+"Modo de funcionamiento continuo. Reporta los errores, pero el proceso "
 "continúa."
 
 #, python-format
@@ -6934,7 +6934,7 @@ msgid "Create a new vault."
 msgstr "Crear una nueva bóveda."
 
 msgid "Create as a non-POSIX group"
-msgstr "  Crear como un grupo no POSIX"
+msgstr "Crear como un grupo no POSIX"
 
 msgid "Create dns record"
 msgstr "Crear registro DNS"
@@ -7420,7 +7420,7 @@ msgstr "Suprimido el servicio HBAC \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr "    Suprimido el servicio HBAC grupo \"%(value)s\""
+msgstr "Suprimido el servicio HBAC grupo \"%(value)s\""
 
 #, python-format
 msgid "Deleted ID range \"%(value)s\""
@@ -7602,7 +7602,7 @@ msgid "Dict of JSON encoded IPA Commands"
 msgstr "Dict de JSON comandos codificados IPA"
 
 msgid "Dict of JSON encoded IPA Methods"
-msgstr "Métodos IPA  codificados de Dict de JSON "
+msgstr "Métodos IPA codificados de Dict de JSON"
 
 msgid "Dict of JSON encoded IPA Objects"
 msgstr "El dict de JSON ha codificado objetos IPA"
@@ -7693,7 +7693,7 @@ msgstr "Zona de DNS desactivada \"%(value)s\" "
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr "\"%(value)s\" regla HBAC desactivada    "
+msgstr "Regla HBAC \"%(value)s\" desactivada"
 
 #, python-format
 msgid "Disabled SELinux User Map \"%(value)s\""
@@ -8255,7 +8255,7 @@ msgid ""
 "manually."
 msgstr ""
 "Falló al intenatar agregar al usuario al grupo predeterminado. Utilice 'ipa "
-"group-add-member' para agregarlo manualmente.  "
+"group-add-member' para agregarlo manualmente."
 
 msgid "Failed to authenticate to CA REST API"
 msgstr "Falló al autenticarse a CA REST API"
@@ -9178,9 +9178,7 @@ msgid "Indirect Member of roles"
 msgstr "Roles de miembros indirectos"
 
 msgid "Indirect Member permissions"
-msgstr ""
-"\\n\n"
-"Permisos indirectos de miembro "
+msgstr "Permisos indirectos de miembro"
 
 msgid "Indirect Member users"
 msgstr "Usuarios indirectos miembros"
@@ -9351,7 +9349,7 @@ msgstr "Inicialización del contexto Kerberos falló: %1$s (%2$d)\n"
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr "Error de kerberos:  %(major)s/%(minor)s"
+msgstr "Error de kerberos: %(major)s/%(minor)s"
 
 msgid "Kerberos keys available"
 msgstr "Claves Kerberos disponibles"
@@ -9589,7 +9587,7 @@ msgid "Mark the token as disabled (default: false)"
 msgstr "Marcar la ficha como deshabilitada (predeterminado: false)"
 
 msgid "Master file"
-msgstr "    Archivo maestro"
+msgstr "Archivo maestro"
 
 msgid "Match"
 msgstr "Emparejar"
@@ -9686,7 +9684,7 @@ msgid "Member hosts"
 msgstr "Equipos miembro"
 
 msgid "Member netgroups"
-msgstr " Miembros de netgroups"
+msgstr "Miembros de netgroups"
 
 msgid "Member of"
 msgstr "Miembro de"
@@ -9830,7 +9828,7 @@ msgstr "Modificada regla HBAC \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr "    Servicio modificado HBAC \"%(value)s\""
+msgstr "Servicio modificado HBAC \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service group \"%(value)s\""
@@ -9939,7 +9937,7 @@ msgstr "Ha sido modificado el usuario \"%(value)s\""
 
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr "Modificar  %(name)s '%(value)s'?"
+msgstr "Modificar %(name)s '%(value)s'?"
 
 msgid "Modify ACI."
 msgstr "Modificar ACI."
@@ -10152,7 +10150,7 @@ msgstr "Nombre del dominio de confianza"
 #, python-format
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
-"El servidor de nombre '%(host)s' no tiene su correspondiente registro  A/AAAA"
+"El servidor de nombre '%(host)s' no tiene su correspondiente registro A/AAAA"
 
 msgid "Nameserver for reverse zone cannot be a relative DNS name"
 msgstr ""
@@ -10190,7 +10188,7 @@ msgid "Netgroups"
 msgstr "Grupos de red"
 
 msgid "New ACI name"
-msgstr "     Nuevo nombre de ACI"
+msgstr "Nuevo nombre de ACI"
 
 msgid "New Certificate"
 msgstr "Un nuevo certificado"
@@ -10260,7 +10258,7 @@ msgid "No matching entries found"
 msgstr "No se encontraron entradas coincidentes"
 
 msgid "No option to delete specific record provided."
-msgstr "Ninguna opción para  borrar un registro en concreto especificado."
+msgstr "Ninguna opción para borrar un registro en concreto especificado."
 
 msgid "No option to modify specific record provided."
 msgstr "No hay opción para modificar registro específico proporcionado."
@@ -10849,15 +10847,13 @@ msgid "Privilege Withdrawn"
 msgstr "Retirada de privilegios"
 
 msgid "Privilege description"
-msgstr ""
-"    \n"
-"    Eliminar un servicio de la IPA."
+msgstr "Eliminar un servicio de la IPA."
 
 msgid "Privilege name"
-msgstr "    Añadir un nuevo servicio de la nueva IPA."
+msgstr "Añadir un nuevo servicio de la nueva IPA."
 
 msgid "Privileges"
-msgstr "    Objeto de servicio."
+msgstr "Privilegios"
 
 msgid "Profile ID"
 msgstr "ID del Perfil"
@@ -11275,7 +11271,7 @@ msgstr "Renombrar un ACI."
 
 #, python-format
 msgid "Rename the %(ldap_obj_name)s object"
-msgstr "Cambie el nombre del %(ldap_obj_name)s  objeto"
+msgstr "Cambie el nombre del objeto %(ldap_obj_name)s"
 
 msgid "Rename the permission object"
 msgstr "Renombrar el permiso del objeto"
@@ -11499,7 +11495,7 @@ msgid "Role status"
 msgstr "Estado rol"
 
 msgid "Roles"
-msgstr "  Roles"
+msgstr "Roles"
 
 msgid "Root domain of the trust is always enabled for the existing trust"
 msgstr ""
@@ -11969,27 +11965,27 @@ msgid "Service Certificate"
 msgstr "Certificado de servicio"
 
 msgid "Service Groups"
-msgstr "    Búsqueda de servicios HBAC."
+msgstr "Búsqueda de servicios HBAC."
 
 msgid "Service Settings"
 msgstr "Configuración del servicio"
 
 msgid "Service category"
-msgstr "   Añadir servicios a una regla de HBAC"
+msgstr "Añadir servicios a una regla de HBAC"
 
 msgid "Service category the rule applies to"
 msgstr "Categoría de servicio a la que se aplica la regla"
 
 msgid "Service group name"
 msgstr ""
-"    Desactivar la tecla de Kerberos, certificado SSL y todos los servicios "
-"de un host."
+"Desactivar la tecla de Kerberos, certificado SSL y todos los servicios de un "
+"host."
 
 msgid "Service name"
 msgstr "% (Count) d HBAC servicios encontrados"
 
 msgid "Service principal"
-msgstr "    Búsqueda de servicios IPA"
+msgstr "Principal del servicio"
 
 msgid "Service principal alias"
 msgstr "Alias principal del servicio"
@@ -12122,7 +12118,7 @@ msgstr "Salta la comprobación de host"
 
 #, python-format
 msgid "Skipped %(key)s"
-msgstr "%(key)s  omitida"
+msgstr "%(key)s omitida"
 
 #, python-format
 msgid "Skipped %(map)s"
@@ -12388,7 +12384,7 @@ msgid ""
 "This can happen if the zone is not managed by IPA. Please remove the record "
 "manually."
 msgstr ""
-"El registro  _kerberos TXT del dominio %(domain)s podría no ser quitado "
+"El registro _kerberos TXT del dominio %(domain)s podría no ser quitado "
 "(%(error)s).\n"
 "Esto puede suceder si la zona no está manejada por IPA. Por favor quite el "
 "registro manualmente."
@@ -12466,8 +12462,8 @@ msgid ""
 "The key,info pair must be unique. A key named %(key)s with info %(info)s "
 "already exists"
 msgstr ""
-"El par de claves, la información debe ser único. Un nombre clave %(key)s  "
-"con información %(info)s ya existe"
+"El par de claves, la información debe ser único. Un nombre clave %(key)s con "
+"información %(info)s ya existe"
 
 msgid ""
 "The keytab file to append the new key to (will be created if it does not "
@@ -12594,13 +12590,13 @@ msgid "This group already allows external members"
 msgstr "Este grupo ya acepta miembros externos"
 
 msgid "This group cannot be posix because it is external"
-msgstr "Este grupo  o puede ser posix porque es externo"
+msgstr "Este grupo no puede ser posix porque es externo"
 
 msgid "This is already a posix group"
 msgstr "Este ya es un grupo posix"
 
 msgid "This is already a posix group and cannot be converted to external one"
-msgstr "Esto es ya un grupo posix y  no puede ser convertido en uno externo"
+msgstr "Esto ya es un grupo posix y no puede ser convertido en uno externo"
 
 msgid "This may take some time, please wait ..."
 msgstr "Esto puede tomar un poco mas de tiempo. Por favor espere ..."
@@ -12843,7 +12839,7 @@ msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
 msgstr ""
-"No se puede unir host: principal de usuario  no se encuentra y contraseña de "
+"No se puede unir host: principal de usuario no se encuentra y contraseña de "
 "host no se proporciona.\n"
 
 #, c-format
@@ -13327,7 +13323,7 @@ msgstr ""
 
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr "no se puede abrir archivo de configuración %s\\n\n"
+msgstr "no se puede abrir archivo de configuración %s\n"
 
 msgid "cannot rename managed permissions"
 msgstr "no puede renombrar permisos gestionados"
@@ -14149,10 +14145,8 @@ msgstr "resultado no se encuentra en respuesta XML-RPC\n"
 msgid ""
 "retrieve and print all attributes from the server. Affects command output."
 msgstr ""
-"    Determinar si la ACI es un autoservicio de ACI  y   hacer una excepción "
-"si\n"
-"     no lo es.\n"
-"    Devolver el resultado si se trata de un autoservicio   de ACI."
+"recuperar e imprimir todos los atributos del servidor. Afecta salida del "
+"comando."
 
 msgid "role"
 msgstr "rol"
