@@ -4,13 +4,14 @@
 # Emilio Herrera <ehespinosa57@gmail.com>, 2018. #zanata, 2020, 2021, 2024.
 # Emilio Herrera <ehespinosa57@gmail.com>, 2019. #zanata, 2020, 2021, 2024.
 # Emilio Herrera <ehespinosa57@gmail.com>, 2020. #zanata, 2021, 2024.
+# N M <nm@users.noreply.translate.fedoraproject.org>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-02-08 12:36+0000\n"
-"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
+"PO-Revision-Date: 2024-07-22 01:38+0000\n"
+"Last-Translator: N M <nm@users.noreply.translate.fedoraproject.org>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/es/>\n"
 "Language: es\n"
@@ -18,11 +19,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.3.1\n"
+"X-Generator: Weblate 5.6.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr "no se puede abrir archivo de configuración %s\\n\n"
+msgstr "no se puede abrir archivo de configuración %s\n"
 
 #, c-format
 msgid "cannot stat() configuration file %s\n"
@@ -531,7 +532,7 @@ msgid ""
 "Unable to join host: Kerberos User Principal not found and host password not "
 "provided.\n"
 msgstr ""
-"No se puede unir host: principal de usuario  no se encuentra y contraseña de "
+"No se puede unir host: principal de usuario no se encuentra y contraseña de "
 "host no se proporciona.\n"
 
 #, c-format
@@ -847,15 +848,15 @@ msgid "Import automount files for a specific location."
 msgstr "Importar ficheros de automontaje para una localización específica."
 
 msgid "Master file"
-msgstr "    Archivo maestro"
+msgstr "Archivo maestro"
 
 msgid "Automount master file."
-msgstr "    Archivo maestro automount."
+msgstr "Archivo maestro automount."
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
 msgstr ""
-"    Modo de funcionamiento continuo. Reporta los errores, pero el proceso "
+"Modo de funcionamiento continuo. Reporta los errores, pero el proceso "
 "continúa."
 
 #, python-format
@@ -903,7 +904,7 @@ msgstr "Llaves duplicadas omitidas"
 
 #, python-format
 msgid "Skipped %(key)s"
-msgstr "%(key)s  omitida"
+msgstr "%(key)s omitida"
 
 #, fuzzy
 #| msgid "Registration password"
@@ -957,7 +958,7 @@ msgstr "Contenidos actuales del registro DNS:\n"
 
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr "Modificar  %(name)s '%(value)s'?"
+msgstr "Modificar %(name)s '%(value)s'?"
 
 #, python-format
 msgid ""
@@ -983,7 +984,7 @@ msgstr ""
 "soportados."
 
 msgid "No option to delete specific record provided."
-msgstr "Ninguna opción para  borrar un registro en concreto especificado."
+msgstr "Ninguna opción para borrar un registro en concreto especificado."
 
 msgid "Delete all?"
 msgstr "¿Borrar todos?"
@@ -1654,7 +1655,7 @@ msgid "Rename an ACI."
 msgstr "Renombrar un ACI."
 
 msgid "New ACI name"
-msgstr "     Nuevo nombre de ACI"
+msgstr "Nuevo nombre de ACI"
 
 msgid "Display a single ACI given an ACI name."
 msgstr "Muestra un único ACI dando un nombre de ACI."
@@ -1887,7 +1888,7 @@ msgid "Key"
 msgstr "Llave"
 
 msgid "Automount key name."
-msgstr "    Nombre de clave de montaje automático"
+msgstr "Nombre de clave de montaje automático"
 
 msgid "Mount information"
 msgstr "Información de montaje"
@@ -1905,7 +1906,7 @@ msgid "Map"
 msgstr "Mapa"
 
 msgid "Automount map name."
-msgstr "  Nombre del mapa automount."
+msgstr "Nombre del mapa automount."
 
 msgid "Description"
 msgstr "Descripción"
@@ -3735,7 +3736,7 @@ msgid "Host category the rule applies to"
 msgstr "Categoría del equipo al que se aplica la regla"
 
 msgid "Service category"
-msgstr "   Añadir servicios a una regla de HBAC"
+msgstr "Añadir servicios a una regla de HBAC"
 
 msgid "Service category the rule applies to"
 msgstr "Categoría de servicio a la que se aplica la regla"
@@ -3759,7 +3760,7 @@ msgid "Services"
 msgstr "Sevicios HBAC"
 
 msgid "Service Groups"
-msgstr "    Búsqueda de servicios HBAC."
+msgstr "Búsqueda de servicios HBAC."
 
 msgid "External host"
 msgstr "Equipo externo"
@@ -4028,8 +4029,8 @@ msgstr ""
 
 msgid "Service group name"
 msgstr ""
-"    Desactivar la tecla de Kerberos, certificado SSL y todos los servicios "
-"de un host."
+"Desactivar la tecla de Kerberos, certificado SSL y todos los servicios de un "
+"host."
 
 msgid "HBAC service group description"
 msgstr "Servicios y grupos especificados"
@@ -4209,7 +4210,7 @@ msgid "Member of host-groups"
 msgstr "Miembro de los grupos de equipo"
 
 msgid "Roles"
-msgstr "  Roles"
+msgstr "Roles"
 
 msgid "Member of netgroups"
 msgstr "Miembros de netgroups"
@@ -4819,7 +4820,7 @@ msgid ""
 "Plugins not accessible directly through the CLI, commands used internally\n"
 msgstr ""
 "\n"
-"Los plugins no son accesibles a través d CLI,  comandos usados internamente\n"
+"Los plugins no son accesibles a través d CLI, comandos usados internamente\n"
 
 msgid "Dict of I18N messages"
 msgstr "Dictado de los mensajes regionales"
@@ -4840,7 +4841,7 @@ msgid "Dict of JSON encoded IPA Objects"
 msgstr "El dict de JSON ha codificado objetos IPA"
 
 msgid "Dict of JSON encoded IPA Methods"
-msgstr "Métodos IPA  codificados de Dict de JSON "
+msgstr "Métodos IPA codificados de Dict de JSON"
 
 msgid "Dict of JSON encoded IPA Commands"
 msgstr "Dict de JSON comandos codificados IPA"
@@ -5426,10 +5427,8 @@ msgstr "Reenvía al servidor en lugar de ejecutarse localmente"
 msgid ""
 "retrieve and print all attributes from the server. Affects command output."
 msgstr ""
-"    Determinar si la ACI es un autoservicio de ACI  y   hacer una excepción "
-"si\n"
-"     no lo es.\n"
-"    Devolver el resultado si se trata de un autoservicio   de ACI."
+"recuperar e imprimir todos los atributos del servidor. Afecta salida del "
+"comando."
 
 msgid "Dictionary mapping variable name to value"
 msgstr "Nombre de la variable de mapeo de dicionario a valorizar "
@@ -5511,7 +5510,7 @@ msgid "IPA unique ID"
 msgstr "ID unico de IPA"
 
 msgid "Member netgroups"
-msgstr " Miembros de netgroups"
+msgstr "Miembros de netgroups"
 
 msgid "Indirect Member netgroups"
 msgstr "Miembros indirectos netgroups"
@@ -5540,10 +5539,8 @@ msgstr "Añadir un nuevo grupo de red."
 msgid "Add members to a netgroup."
 msgstr "Añadir miembros a un grupo de red."
 
-#, fuzzy
-#| msgid "Member netgroups"
 msgid "member netgroup"
-msgstr " Miembros de netgroups"
+msgstr "miembro de netgroup"
 
 #, fuzzy
 #| msgid "netgroups"
@@ -6274,12 +6271,10 @@ msgstr ""
 "\n"
 
 msgid "Privilege name"
-msgstr "    Añadir un nuevo servicio de la nueva IPA."
+msgstr "Añadir un nuevo servicio de la nueva IPA."
 
 msgid "Privilege description"
-msgstr ""
-"    \n"
-"    Eliminar un servicio de la IPA."
+msgstr "Eliminar un servicio de la IPA."
 
 msgid "Granting privilege to roles"
 msgstr "Concesión de privilegios a los roles"
@@ -6771,7 +6766,7 @@ msgid "Member groups"
 msgstr "Grupos de miembros"
 
 msgid "Privileges"
-msgstr "    Objeto de servicio."
+msgstr "Privilegios"
 
 msgid "Member services"
 msgstr "Servicios de miembros"
@@ -7259,7 +7254,7 @@ msgid "Principal"
 msgstr "Principal"
 
 msgid "Service principal"
-msgstr "    Búsqueda de servicios IPA"
+msgstr "Principal del servicio"
 
 msgid "PAC type"
 msgstr "Tipo PAC"
@@ -8698,16 +8693,8 @@ msgstr "Grupo de usuarios predeterminado"
 msgid "Default group for entries to land"
 msgstr "Grupo predeterminado para nuevos usuarios no encontrado"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Add an automember rule.\n"
-#| "    "
 msgid "Add an automember rule."
-msgstr ""
-"\n"
-"    Añadir una regla automiembro.\n"
-"    "
+msgstr "Añadir una regla automiembro."
 
 msgid "Automember Rule"
 msgstr "Regla Automiembro"
@@ -8718,16 +8705,8 @@ msgstr "Tipo de Agrupamiento"
 msgid "Grouping to which the rule applies"
 msgstr "Agrupamiento al cual se aplican las reglas"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Add conditions to an automember rule.\n"
-#| "    "
 msgid "Add conditions to an automember rule."
-msgstr ""
-"\n"
-"    Añadir condiciones a una regla automiembro.\n"
-"    "
+msgstr "Añadir condiciones a una regla automiembro."
 
 msgid "Inclusive Regex"
 msgstr "Regex inclusivo"
@@ -8767,38 +8746,14 @@ msgstr "Grupo predeterminado para nuevos usuarios no encontrado"
 msgid "Display information about the default (fallback) automember groups."
 msgstr "Mostrar información sobre un grupo denominado."
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Delete an automember rule.\n"
-#| "    "
 msgid "Delete an automember rule."
-msgstr ""
-"\n"
-"    Borra una regla automiembro.\n"
-"    "
+msgstr "Borra una regla automiembro."
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Search for automember rules.\n"
-#| "    "
 msgid "Search for automember rules."
-msgstr ""
-"\n"
-"    Búsqueda reglas automiembro.\n"
-"    "
+msgstr "Búsqueda reglas automiembro."
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Modify an automember rule.\n"
-#| "    "
 msgid "Modify an automember rule."
-msgstr ""
-"\n"
-"    Modificar una regla automiembro.\n"
-"    "
+msgstr "Modificar una regla automiembro."
 
 #, fuzzy
 #| msgid "Rebuild auto membership"
@@ -8820,16 +8775,8 @@ msgstr ""
 msgid "Don't wait for rebuilding membership"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Remove conditions from an automember rule.\n"
-#| "    "
 msgid "Remove conditions from an automember rule."
-msgstr ""
-"\n"
-"    Borrar condiciones de una regla automiembro.\n"
-"    "
+msgstr "Borrar condiciones de una regla automiembro."
 
 msgid "Conditions that could not be removed"
 msgstr "Condiciones que no pueden ser eliminadas"
@@ -8837,16 +8784,8 @@ msgstr "Condiciones que no pueden ser eliminadas"
 msgid "Number of conditions removed"
 msgstr "Número de condiciones eliminadas"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Display information about an automember rule.\n"
-#| "    "
 msgid "Display information about an automember rule."
-msgstr ""
-"\n"
-"    Muestra información sobre una regla automiembro.\n"
-"    "
+msgstr "Muestra información sobre una regla automiembro."
 
 msgid ""
 "\n"
@@ -9138,7 +9077,7 @@ msgid "Create a new group."
 msgstr "Crear un grupo nuevo."
 
 msgid "Create as a non-POSIX group"
-msgstr "  Crear como un grupo no POSIX"
+msgstr "Crear como un grupo no POSIX"
 
 msgid "Allow adding external non-IPA members from trusted domains"
 msgstr ""
@@ -10828,10 +10767,8 @@ msgstr ""
 msgid "ACL name"
 msgstr "Nombre de ACI"
 
-#, fuzzy
-#| msgid "Service category"
 msgid "Profile category"
-msgstr "   Añadir servicios a una regla de HBAC"
+msgstr "Categoría del perfil"
 
 #, fuzzy
 #| msgid "Service category the rule applies to"
@@ -11867,10 +11804,8 @@ msgstr "Borrar una confianza."
 msgid "Search for vaults."
 msgstr "Búsqueda de confianzas."
 
-#, fuzzy
-#| msgid "Disabled service \"%(value)s\""
 msgid "List all service vaults"
-msgstr "Servicio  inhabilitado \"%(value)s\""
+msgstr "Listar todas bóvedas del servicio"
 
 #, fuzzy
 #| msgid "Disable a user account."
@@ -14528,7 +14463,7 @@ msgid "comma-separated list of privileges to add"
 msgstr "lista separada por comas de privilegios a añadir"
 
 msgid "Add a system permission without an ACI"
-msgstr "Añadir un  permiso al sistema sin un ACI"
+msgstr "Añadir un permiso al sistema sin un ACI"
 
 msgid "Permission type"
 msgstr "Tipo de permiso"
@@ -15491,7 +15426,7 @@ msgstr ""
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
-msgstr "Error de kerberos:  %(major)s/%(minor)s"
+msgstr "Error de kerberos: %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "no se ha recibido ninguna credencial de Kerberos"
@@ -15674,10 +15609,10 @@ msgid "This group already allows external members"
 msgstr "Este grupo ya acepta miembros externos"
 
 msgid "This group cannot be posix because it is external"
-msgstr "Este grupo  o puede ser posix porque es externo"
+msgstr "Este grupo no puede ser posix porque es externo"
 
 msgid "This is already a posix group and cannot be converted to external one"
-msgstr "Esto es ya un grupo posix y  no puede ser convertido en uno externo"
+msgstr "Esto ya es un grupo posix y no puede ser convertido en uno externo"
 
 #, python-format
 msgid "Server removal aborted: %(reason)s."
@@ -15920,7 +15855,7 @@ msgid ""
 "This can happen if the zone is not managed by IPA. Please remove the record "
 "manually."
 msgstr ""
-"El registro  _kerberos TXT del dominio %(domain)s podría no ser quitado "
+"El registro _kerberos TXT del dominio %(domain)s podría no ser quitado "
 "(%(error)s).\n"
 "Esto puede suceder si la zona no está manejada por IPA. Por favor quite el "
 "registro manualmente."
@@ -16665,7 +16600,7 @@ msgstr "Suprimido el servicio HBAC \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service \"%(value)s\""
-msgstr "    Servicio modificado HBAC \"%(value)s\""
+msgstr "Servicio modificado HBAC \"%(value)s\""
 
 #, python-format
 msgid "%(count)d HBAC service matched"
@@ -16691,7 +16626,7 @@ msgstr "Agregado servicio de grupo HBAC \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
-msgstr "    Suprimido el servicio HBAC grupo \"%(value)s\""
+msgstr "Suprimido el servicio HBAC grupo \"%(value)s\""
 
 #, python-format
 msgid "Modified HBAC service group \"%(value)s\""
@@ -17817,16 +17752,8 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Remove conditions from an automember rule.\n"
-#| "    "
 msgid "Remove orphan automember rules"
-msgstr ""
-"\n"
-"    Borrar condiciones de una regla automiembro.\n"
-"    "
+msgstr "Borrar condiciones de una regla automiembro."
 
 msgid "automount location"
 msgstr "localización automontaje"
@@ -17904,8 +17831,8 @@ msgid ""
 "The key,info pair must be unique. A key named %(key)s with info %(info)s "
 "already exists"
 msgstr ""
-"El par de claves, la información debe ser único. Un nombre clave %(key)s  "
-"con información %(info)s ya existe"
+"El par de claves, la información debe ser único. Un nombre clave %(key)s con "
+"información %(info)s ya existe"
 
 #, python-format
 msgid "key named %(key)s already exists"
@@ -17965,9 +17892,7 @@ msgid "Indirect Member ID user overrides"
 msgstr "Usuarios indirectos miembros"
 
 msgid "Indirect Member permissions"
-msgstr ""
-"\\n\n"
-"Permisos indirectos de miembro "
+msgstr "Permisos indirectos de miembro"
 
 msgid "Indirect Member HBAC service"
 msgstr "Servicio HBAC de miembro indirecto"
@@ -18006,7 +17931,7 @@ msgstr "%(pkey)s: no se encuentra %(oname)s"
 
 #, python-format
 msgid "%(oname)s with name \"%(pkey)s\" already exists"
-msgstr " %(oname)s  con el nombre \"%(pkey)s\" ya existe"
+msgstr "%(oname)s con el nombre \"%(pkey)s\" ya existe"
 
 #, fuzzy, python-format
 #| msgid "attribute \"%s\" not allowed"
@@ -18030,7 +17955,7 @@ msgstr "El atributo username sobre el objeto usuario"
 
 #, python-format
 msgid "Rename the %(ldap_obj_name)s object"
-msgstr "Cambie el nombre del %(ldap_obj_name)s  objeto"
+msgstr "Cambie el nombre del objeto %(ldap_obj_name)s"
 
 msgid "the entry was deleted while being modified"
 msgstr "la entrada fue eliminada mientras estaba siendo modificada"
@@ -19782,7 +19707,7 @@ msgstr "Identificador Uniforme de Recursos Objetivo de acuerdo al RFC 3986"
 #, python-format
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
-"El servidor de nombre '%(host)s' no tiene su correspondiente registro  A/AAAA"
+"El servidor de nombre '%(host)s' no tiene su correspondiente registro A/AAAA"
 
 msgid "Managedby permission"
 msgstr "Gestionado con permiso"
@@ -20268,7 +20193,7 @@ msgstr "Habilitada regla HBAC \"%(value)s\""
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""
-msgstr "\"%(value)s\" regla HBAC desactivada    "
+msgstr "Regla HBAC \"%(value)s\" desactivada"
 
 msgid "Access time"
 msgstr "Hora de acceso"
@@ -21324,7 +21249,7 @@ msgid ""
 "manually."
 msgstr ""
 "Falló al intenatar agregar al usuario al grupo predeterminado. Utilice 'ipa "
-"group-add-member' para agregarlo manualmente.  "
+"group-add-member' para agregarlo manualmente."
 
 msgid "Migration of LDAP search reference is not supported."
 msgstr "Migración de búsqueda de referencia LDAP no está soportada."
