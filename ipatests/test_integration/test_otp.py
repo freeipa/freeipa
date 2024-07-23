@@ -5,26 +5,27 @@
 """
 import base64
 import logging
-import pytest
 import re
-import time
+import tempfile
 import textwrap
-from urllib.parse import urlparse, parse_qs
-from paramiko import AuthenticationException
+import time
+from urllib.parse import parse_qs, urlparse
 
+import pytest
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.twofactor.hotp import HOTP
 from cryptography.hazmat.primitives.twofactor.totp import TOTP
-
-from ipatests.test_integration.base import IntegrationTest
-from ipaplatform.paths import paths
-from ipatests.pytest_ipa.integration import tasks
-from ipapython.dn import DN
-
 from ldap.controls.simple import BooleanControl
+from paramiko import AuthenticationException
 
 from ipalib import errors
+from ipaplatform.osinfo import osinfo
+from ipaplatform.paths import paths
+from ipapython.dn import DN
+from ipatests.pytest_ipa.integration import tasks
+from ipatests.test_integration.base import IntegrationTest
+from ipatests.util import xfail_context
 
 PASSWORD = "DummyPassword123"
 USER = "opttestuser"
@@ -84,6 +85,65 @@ def kinit_otp(host, user, *, password, otp, success=True):
     )
 
 
+def ssh_2fa_with_cmd(host, hostname, username, password, otpvalue,
+                     command="exit 0"):
+    """ ssh to user and in same session pass the command to check tgt of user
+    :param host: host to ssh
+    :param hostname: hostname to ssh
+    :param str username: The name of user
+    :param str password: password, usually the first factor
+    :param str otpvalue: generated pin of user
+    :param str command: command to execute in same session,
+     by deafult set to "exit 0"
+    :return: object class of expect command run
+    """
+    temp_conf = tempfile.NamedTemporaryFile(suffix='.exp', delete=False)
+    with open(temp_conf.name, 'w') as tfile:
+        tfile.write('proc exitmsg { msg code } {\n')
+        tfile.write('\t# Close spawned program, if we are in the prompt\n')
+        tfile.write('\tcatch close\n\n')
+        tfile.write('\t# Wait for the exit code\n')
+        tfile.write('\tlassign [wait] pid spawnid os_error_flag rc\n\n')
+        tfile.write('\tputs ""\n')
+        tfile.write('\tputs "expect result: $msg"\n')
+        tfile.write('\tputs "expect exit code: $code"\n')
+        tfile.write('\tputs "expect spawn exit code: $rc"\n')
+        tfile.write('\texit $code\n')
+        tfile.write('}\n')
+        tfile.write('set timeout 60\n')
+        tfile.write('set prompt ".*\\[#\\$>\\] $"\n')
+        tfile.write(f'set password "{password}"\n')
+        tfile.write(f'set otpvalue "{otpvalue}"\n')
+        tfile.write(f'spawn ssh -o NumberOfPasswordPrompts=1 -o '
+                    f'StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+                    f' -l {username} {hostname} {command}\n')
+        tfile.write('expect {\n')
+        tfile.write('"Enter first factor:*" {send -- "$password\r"}\n')
+        tfile.write('timeout {exitmsg "Unexpected output" 201}\n')
+        tfile.write('eof {exitmsg "Unexpected end of file" 202}\n')
+        tfile.write('}\n')
+        tfile.write('expect {\n')
+        tfile.write('"Enter second factor:*" {send -- "$otpvalue\r"}\n')
+        tfile.write('timeout {exitmsg "Unexpected output" 201}\n')
+        tfile.write('eof {exitmsg "Unexpected end of file" 202}\n')
+        tfile.write('}\n')
+        tfile.write('expect {\n')
+        tfile.write('"Authentication failure" '
+                    '{exitmsg "Authentication failure" 1}\n')
+        tfile.write('eof {exitmsg "Authentication successful" 0}\n')
+        tfile.write('timeout {exitmsg "Unexpected output" 201}\n')
+        tfile.write('}\n')
+        tfile.write('expect {\n')
+        tfile.write('exitmsg "Unexpected code path" 203\n')
+        tfile.write('EOF\n')
+        tfile.write('}')
+    host.transport.put_file(temp_conf.name, '/tmp/ssh.exp')
+    tasks.clear_sssd_cache(host)
+    expect_cmd = 'expect -f /tmp/ssh.exp'
+    cmd = host.run_command(expect_cmd, raiseonerr=False)
+    return cmd
+
+
 def ssh_2f(hostname, username, answers_dict, port=22, unwanted_prompt=""):
     """
     :param hostname: hostname
@@ -91,6 +151,7 @@ def ssh_2f(hostname, username, answers_dict, port=22, unwanted_prompt=""):
     :param answers_dict: dictionary of options with prompt_message and value.
     :param port: port for ssh
     """
+
     # Handler for server questions
     def answer_handler(title, instructions, prompt_list):
         resp = []
@@ -131,8 +192,9 @@ class TestOTPToken(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        super(TestOTPToken, cls).install(mh)
         master = cls.master
+        tasks.install_packages(master, ['expect'])
+        super(TestOTPToken, cls).install(mh)
 
         tasks.kinit_admin(master)
         # create service with OTP auth indicator
@@ -395,6 +457,114 @@ class TestOTPToken(IntegrationTest):
             assert USER2 in cmd.stdout_text
         finally:
             master.run_command(['ipa', 'user-del', USER2])
+            self.master.run_command(['semanage', 'login', '-D'])
+            sssd_conf_backup.restore()
+
+    def test_2fa_only_with_password(self):
+        """Test ssh with 2FA only with the password(first factor) when
+        user-auth-type is opt and password.
+
+        Test for :  https://github.com/SSSD/sssd/pull/7500
+
+        Add the IPA user and user-auth-type set to opt and password.
+        Authenticate the user only with password, just press enter
+        at `Second factor`
+        """
+        master = self.master
+        USER3 = 'sshuser3'
+        sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
+        first_prompt = 'Enter first factor:'
+        second_prompt = 'Enter second factor:'
+        add_contents = textwrap.dedent('''
+            [prompting/2fa/sshd]
+            single_prompt = False
+            first_prompt = {0}
+            second_prompt = {1}
+            ''').format(first_prompt, second_prompt)
+        set_sssd_conf(master, add_contents)
+        tasks.create_active_user(master, USER3, PASSWORD)
+        tasks.kinit_admin(master)
+        master.run_command(['ipa', 'user-mod', USER3, '--user-auth-type=otp',
+                            '--user-auth-type=password'])
+        try:
+            otpuid, totp = add_otptoken(master, USER3, otptype='totp')
+            master.run_command(['ipa', 'otptoken-show', otpuid])
+            totp.generate(int(time.time())).decode('ascii')
+            otpvalue = "\n"
+            tasks.clear_sssd_cache(self.master)
+            github_ticket = "https://github.com/SSSD/sssd/pull/7500"
+            sssd_version = tasks.get_sssd_version(master)
+            rhel_fail = (
+                osinfo.id == 'rhel'
+                and sssd_version < tasks.parse_version("2.9.5")
+            )
+            fedora_fail = (
+                osinfo.id == 'fedora'
+                and sssd_version == tasks.parse_version("2.9.5")
+            )
+            with xfail_context(rhel_fail or fedora_fail, reason=github_ticket):
+                result = ssh_2fa_with_cmd(master,
+                                          self.master.external_hostname,
+                                          USER3, PASSWORD, otpvalue=otpvalue,
+                                          command="klist")
+                print(result.stdout_text)
+                assert ('Authentication successful') in result.stdout_text
+                assert USER3 in result.stdout_text
+                assert (f'Default principal: '
+                        f'{USER3}@{self.master.domain.realm}' in
+                        result.stdout_text)
+                cmd = self.master.run_command(['semanage', 'login', '-l'])
+                assert USER3 in cmd.stdout_text
+        finally:
+            master.run_command(['ipa', 'user-del', USER3])
+            self.master.run_command(['semanage', 'login', '-D'])
+            sssd_conf_backup.restore()
+
+    def test_2fa_with_otp_password(self):
+        """Test ssh with 2FA only with password and otpvalue when
+        user-auth-type is opt and password.
+
+        Test for :  https://github.com/SSSD/sssd/pull/7500
+
+        Add the IPA user and user-auth-type set to opt and password.
+        Authenticate the user only with password and otpvalue.
+        """
+        master = self.master
+        USER4 = 'sshuser4'
+        sssd_conf_backup = tasks.FileBackup(master, paths.SSSD_CONF)
+        first_prompt = 'Enter first factor:'
+        second_prompt = 'Enter second factor:'
+        add_contents = textwrap.dedent('''
+            [prompting/2fa/sshd]
+            single_prompt = False
+            first_prompt = {0}
+            second_prompt = {1}
+            ''').format(first_prompt, second_prompt)
+        set_sssd_conf(master, add_contents)
+        tasks.create_active_user(master, USER4, PASSWORD)
+        tasks.kinit_admin(master)
+
+        master.run_command(['ipa', 'user-mod', USER4, '--user-auth-type=otp',
+                            '--user-auth-type=password'])
+        try:
+            otpuid, totp = add_otptoken(master, USER4, otptype='totp')
+            master.run_command(['ipa', 'otptoken-show', otpuid])
+            otpvalue = totp.generate(int(time.time())).decode('ascii')
+            tasks.clear_sssd_cache(self.master)
+            result = ssh_2fa_with_cmd(master,
+                                      self.master.external_hostname,
+                                      USER4, PASSWORD, otpvalue=otpvalue,
+                                      command="klist")
+            print(result.stdout_text)
+            cmd = self.master.run_command(['semanage', 'login', '-l'])
+            # check the output
+            assert ('Authentication successful') in result.stdout_text
+            assert USER4 in result.stdout_text
+            assert (f'Default principal: {USER4}@'
+                    f'{self.master.domain.realm}' in result.stdout_text)
+            assert USER4 in cmd.stdout_text
+        finally:
+            master.run_command(['ipa', 'user-del', USER4])
             self.master.run_command(['semanage', 'login', '-D'])
             sssd_conf_backup.restore()
 
