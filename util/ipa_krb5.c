@@ -394,6 +394,13 @@ int ber_encode_krb5_key_data(krb5_key_data *data,
 
     for (i = 0; i < numk; i++) {
 
+        /* All keys must have the same KVNO, because there is only one attribute
+         * for all of them. */
+        if (data[i].key_data_kvno != data[0].key_data_kvno) {
+            ret = EINVAL;
+            goto done;
+        }
+
         ret = ber_printf(be, "{");
         if (ret == -1) {
             ret = EFAULT;
