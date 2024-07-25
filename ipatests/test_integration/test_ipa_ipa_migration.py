@@ -872,3 +872,51 @@ class TestIPAMigrateScenario1(IntegrationTest):
             extra_args=params,
         )
         assert self.replicas[0].transport.file_exists(custom_log_file)
+
+    def test_ipa_migrate_stage_mode_with_cert(self):
+        """
+        This testcase checks that ipa-migrate command
+        works without the 'ValuerError'
+        when -Z <cert> option is used with valid cert
+        """
+        cert_file = '/tmp/ipa.crt'
+        remote_server_cert = self.master.get_file_contents(
+            paths.IPA_CA_CRT, encoding="utf-8"
+        )
+        self.replicas[0].put_file_contents(cert_file, remote_server_cert)
+        params = ['-x', '-n', '-Z', cert_file]
+        result = run_migrate(
+            self.replicas[0],
+            "stage-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=params,
+        )
+        assert result.returncode == 0
+
+    def test_ipa_migrate_stage_mode_with_invalid_cert(self):
+        """
+        This test checks ipa-migrate tool throws
+        error when invalid cert is specified with
+        -Z option
+        """
+        cert_file = '/tmp/invaid_cert.crt'
+        invalid_cert = (
+            b'-----BEGIN CERTIFICATE-----\n'
+            b'MIIFazCCDQYJKoZIhvcNAQELBQAw\n'
+            b'-----END CERTIFICATE-----\n'
+        )
+        ERR_MSG = "Failed to connect to remote server: "
+        params = ['-x', '-n', '-Z', cert_file]
+        self.replicas[0].put_file_contents(cert_file, invalid_cert)
+        result = run_migrate(
+            self.replicas[0],
+            "stage-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=params,
+        )
+        assert result.returncode == 1
+        assert ERR_MSG in result.stderr_text
