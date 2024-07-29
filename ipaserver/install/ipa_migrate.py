@@ -761,6 +761,12 @@ class IPAMigrate():
             try:
                 ds_conn = LDAPClient(ldapuri, cacert=self.args.cacertfile,
                                      start_tls=True)
+            except ValueError:
+                # Most likely invalid certificate
+                self.handle_error(
+                    "Failed to connect to remote server: "
+                    "CA certificate is invalid"
+                )
             except (
                 ldap.LDAPError,
                 errors.NetworkError,
