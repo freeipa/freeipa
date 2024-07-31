@@ -294,6 +294,15 @@ class IPACertificate(crypto_x509.Certificate):
                 tzinfo=datetime.timezone.utc
             )
 
+    if hasattr(crypto_x509.Certificate, "public_key_algorithm_oid"):
+        # added in python-cryptography 43.0.0
+        @property
+        def public_key_algorithm_oid(self):
+            """
+            Returns the ObjectIdentifier of the public key.
+            """
+            return self._cert.public_key_algorithm_oid()
+
     @property
     def tbs_certificate_bytes(self):
         return self._cert.tbs_certificate_bytes
