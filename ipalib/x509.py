@@ -60,9 +60,6 @@ except ImportError:
 from ipalib import errors
 from ipapython.dnsutil import DNSName
 
-if six.PY3:
-    unicode = str
-
 PEM = 0
 DER = 1
 
@@ -371,13 +368,14 @@ class IPACertificate(crypto_x509.Certificate):
         gns = self.__pyasn1_get_san_general_names()
 
         GENERAL_NAME_CONSTRUCTORS = {
-            'rfc822Name': lambda x: crypto_x509.RFC822Name(unicode(x)),
-            'dNSName': lambda x: crypto_x509.DNSName(unicode(x)),
+            'rfc822Name': lambda x: crypto_x509.RFC822Name(str(x)),
+            'dNSName': lambda x: crypto_x509.DNSName(str(x)),
             'directoryName': _pyasn1_to_cryptography_directoryname,
             'registeredID': _pyasn1_to_cryptography_registeredid,
             'iPAddress': _pyasn1_to_cryptography_ipaddress,
             'uniformResourceIdentifier':
-                lambda x: crypto_x509.UniformResourceIdentifier(unicode(x)),
+                lambda x: crypto_x509.UniformResourceIdentifier(
+                    str(x)),
             'otherName': _pyasn1_to_cryptography_othername,
         }
 
@@ -415,7 +413,7 @@ class IPACertificate(crypto_x509.Certificate):
 
         for gn in gns:
             if gn.getName() == 'dNSName':
-                result.append(unicode(gn.getComponent()))
+                result.append(str(gn.getComponent()))
 
         return result
 
@@ -688,10 +686,10 @@ class _KRB5PrincipalName(univ.Sequence):
 
 def _decode_krb5principalname(data):
     principal = decoder.decode(data, asn1Spec=_KRB5PrincipalName())[0]
-    realm = (unicode(principal['realm']).replace('\\', '\\\\')
+    realm = (str(principal['realm']).replace('\\', '\\\\')
                                         .replace('@', '\\@'))
     name = principal['principalName']['name-string']
-    name = u'/'.join(unicode(n).replace('\\', '\\\\')
+    name = u'/'.join(str(n).replace('\\', '\\\\')
                                .replace('/', '\\/')
                                .replace('@', '\\@') for n in name)
     name = u'%s@%s' % (name, realm)
@@ -707,7 +705,7 @@ class KRB5PrincipalName(crypto_x509.general_name.OtherName):
 class UPN(crypto_x509.general_name.OtherName):
     def __init__(self, type_id, value):
         super(UPN, self).__init__(type_id, value)
-        self.name = unicode(
+        self.name = str(
             decoder.decode(value, asn1Spec=char.UTF8String())[0])
 
 
@@ -741,7 +739,7 @@ def _pyasn1_to_cryptography_directoryname(dn):
         for ava in rdn:
             attr = crypto_x509.NameAttribute(
                 _pyasn1_to_cryptography_oid(ava['type']),
-                unicode(decoder.decode(ava['value'])[0])
+                str(decoder.decode(ava['value'])[0])
             )
             attrs.append(attr)
 
@@ -806,7 +804,7 @@ class UTC(datetime.tzinfo):
 def format_datetime(t):
     if t.tzinfo is None:
         t = t.replace(tzinfo=UTC())
-    return unicode(t.strftime("%a %b %d %H:%M:%S %Y %Z"))
+    return str(t.strftime("%a %b %d %H:%M:%S %Y %Z"))
 
 
 class ExternalCAType(enum.Enum):
