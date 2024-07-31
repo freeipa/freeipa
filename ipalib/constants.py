@@ -381,6 +381,7 @@ VAULT_WRAPPING_SUPPORTED_ALGOS = (
 VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_AES128_CBC
 
 # Add 3DES for backwards compatibility if supported
-if backend.cipher_supported(algorithms.TripleDES(b"\x00" * 8),
-                            modes.CBC(b"\x00" * 8)):
-    VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
+if getattr(algorithms, 'TripleDES', None):
+    if backend.cipher_supported(algorithms.TripleDES(
+                                b"\x00" * 8), modes.CBC(b"\x00" * 8)):
+        VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
