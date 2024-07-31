@@ -42,6 +42,7 @@ from cryptography.hazmat.backends import default_backend
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipalib import api, errors
+from ipalib.constants import VAULT_WRAPPING_SUPPORTED_ALGOS, VAULT_WRAPPING_3DES
 from ipaserver.plugins.ldap2 import AUTOBIND_DISABLED
 
 if six.PY3:
@@ -144,15 +145,13 @@ def convertHMACType(value):
 def convertAlgorithm(value):
     "Converts encryption URI to (mech, ivlen)."
 
-    return {
+    supported_algs = {
         "http://www.w3.org/2001/04/xmlenc#aes128-cbc": (
             algorithms.AES, modes.CBC, 128),
         "http://www.w3.org/2001/04/xmlenc#aes192-cbc": (
             algorithms.AES, modes.CBC, 192),
         "http://www.w3.org/2001/04/xmlenc#aes256-cbc": (
             algorithms.AES, modes.CBC, 256),
-        "http://www.w3.org/2001/04/xmlenc#tripledes-cbc": (
-            algorithms.TripleDES, modes.CBC, 64),
         "http://www.w3.org/2001/04/xmldsig-more#camellia128": (
             algorithms.Camellia, modes.CBC, 128),
         "http://www.w3.org/2001/04/xmldsig-more#camellia192": (
@@ -168,7 +167,15 @@ def convertAlgorithm(value):
         # "http://www.w3.org/2001/04/xmldsig-more#kw-camellia128": "kw-camellia128",
         # "http://www.w3.org/2001/04/xmldsig-more#kw-camellia192": "kw-camellia192",
         # "http://www.w3.org/2001/04/xmldsig-more#kw-camellia256": "kw-camellia256",
-    }.get(value.lower(), (None, None, None))
+    }
+
+    # We don't deal with VAULT here but if VAULT_WRAPPING_3DES is not present
+    # in the list of the vault wrapping algorithms, we cannot use 3DES anywhere
+    if VAULT_WRAPPING_3DES in VAULT_WRAPPING_SUPPORTED_ALGOS:
+        supported_algs["http://www.w3.org/2001/04/xmlenc#tripledes-cbc"] = (
+            algorithms.TripleDES, modes.CBC, 64)
+
+    return supported_algs.get(value.lower(), (None, None, None))
 
 
 def convertEncrypted(value, decryptor=None, pconv=base64.b64decode, econv=lambda x: x):
