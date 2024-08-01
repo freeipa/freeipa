@@ -65,29 +65,7 @@ def prepare_ipa_server(master):
             "--secondary-rid-base=400000",
         ]
     )
-
-    # Add Automount locations and maps
-    master.run_command(["ipa", "automountlocation-add", "baltimore"])
-    master.run_command(["ipa", "automountmap-add", "baltimore", "auto.share"])
-    master.run_command(
-        [
-            "ipa",
-            "automountmap-add-indirect",
-            "baltimore",
-            "--parentmap=auto.share",
-            "--mount=sub auto.man",
-        ]
-    )
-    master.run_command(
-        [
-            "ipa",
-            "automountkey-add",
-            "baltimore",
-            "auto.master",
-            "--key=/share",
-            "--info=auto.share",
-        ]
-    )
+    master.run_command(["ipactl", "restart"])
 
     # Run ipa-adtrust-install
     master.run_command(["dnf", "install", "-y", "ipa-server-trust-ad"])
@@ -244,6 +222,7 @@ def prepare_ipa_server(master):
             "vault1234",
             "--type",
             "symmetric",
+            "testvault",
         ]
     )
 
@@ -288,15 +267,27 @@ def run_migrate(
     return result
 
 
-class TestIPAMigrateScenario1(IntegrationTest):
+@pytest.fixture()
+def empty_log_file(request):
     """
-    Tier-1 tests for ipa-migrate tool with DNS enabled on
-    local and remote server
+    This fixture empties the log file before ipa-migrate tool
+    is run since the log is appended everytime the tool is run.
     """
+    request.cls.replicas[0].run_command(
+        ["truncate", "-s", "0", paths.IPA_MIGRATE_LOG]
+    )
+    yield
 
+
+class TestIPAMigrateCLIOptions(IntegrationTest):
+    """
+    Tests to check CLI options for ipa-migrate tool with
+    DNS enabled on local and remote server.
+    """
     num_replicas = 1
     num_clients = 1
     topology = "line"
+
 
     @classmethod
     def install(cls, mh):
@@ -427,21 +418,10 @@ class TestIPAMigrateScenario1(IntegrationTest):
         )
         assert self.replicas[0].transport.file_exists("/tmp/test.ldif")
 
-    @pytest.fixture()
-    def empty_log_file(self):
-        """
-        This fixture empties the log file before ipa-migrate tool
-        is run since the log is appended everytime the tool is run.
-        """
-        self.replicas[0].run_command(
-            ["truncate", "-s", "0", paths.IPA_MIGRATE_LOG]
-        )
-        yield
-
     def test_ipa_sigden_plugin_fail_error(self, empty_log_file):
         """
         This testcase checks that sidgen plugin fail error is
-        not seen during migrate prod-mode
+        not seen during migrate stage-mode
         """
         SIDGEN_ERR_MSG = "SIDGEN task failed: \n"
         run_migrate(
@@ -464,7 +444,9 @@ class TestIPAMigrateScenario1(IntegrationTest):
         tasks.kinit_admin(self.master)
         tasks.kinit_admin(self.replicas[0])
         IPA_MIGRATE_STAGE_DRY_RUN_LOG = "--dryrun=True\n"
-        IPA_SERVER_UPRGADE_LOG = "Skipping ipa-server-upgrade in dryrun mode.\n"
+        IPA_SERVER_UPRGADE_LOG = (
+            "Skipping ipa-server-upgrade in dryrun mode.\n"
+        )
         IPA_SKIP_SIDGEN_LOG = "Skipping SIDGEN task in dryrun mode."
         result = run_migrate(
             self.replicas[0],
@@ -509,7 +491,7 @@ class TestIPAMigrateScenario1(IntegrationTest):
         assert IPA_SERVER_UPRGADE_LOG in install_msg
         assert IPA_SIDGEN_LOG in install_msg
 
-    def test_ipa_migrate_with_skip_schema_option_dry_run(self, empty_log_file):
+    def test_ipa_migrate_skip_schema_dry_run(self, empty_log_file):
         """
         This test checks that ipa-migrate tool works
         with -S(schema) options in stage mode
@@ -532,7 +514,7 @@ class TestIPAMigrateScenario1(IntegrationTest):
         )
         assert SKIP_SCHEMA_MSG_LOG in install_msg
 
-    def test_ipa_migrate_with_skip_config_option_dry_run(self, empty_log_file):
+    def test_ipa_migrate_skip_config_dry_run(self, empty_log_file):
         """
         This test checks that ipa-migrate tool works
         with -C(config) options in stage mode
@@ -579,7 +561,7 @@ class TestIPAMigrateScenario1(IntegrationTest):
         )
         assert RESET_RANGE_LOG in install_msg
 
-    def test_ipa_migrate_stage_mode_dry_override_schema(self, empty_log_file):
+    def test_ipa_migrate_stage_mode_override_schema(self, empty_log_file):
         """
         This test checks that -O option (override schema) works
         in dry mode
@@ -600,70 +582,6 @@ class TestIPAMigrateScenario1(IntegrationTest):
             paths.IPA_MIGRATE_LOG, encoding="utf-8"
         )
         assert SCHEMA_OVERRIDE_LOG in install_msg
-
-    def test_ipa_migrate_stage_mode(self, empty_log_file):
-        """
-        This test checks that ipa-migrate is successful
-        in dry run mode
-        """
-        tasks.kinit_admin(self.master)
-        tasks.kinit_admin(self.replicas[0])
-        MIGRATION_SCHEMA_LOG_MSG = "Migrating schema ...\n"
-        MIGRATION_CONFIG_LOG_MSG = "Migrating configuration ...\n"
-        IPA_UPGRADE_LOG_MSG = (
-            "Running ipa-server-upgrade ... (this may take a while)\n"
-        )
-        SIDGEN_TASK_LOG_MSG = "Running SIDGEN task ...\n"
-        MIGRATION_COMPLETE_LOG_MSG = "Migration complete!\n"
-        result = run_migrate(
-            self.replicas[0],
-            "stage-mode",
-            self.master.hostname,
-            "cn=Directory Manager",
-            self.master.config.admin_password,
-            extra_args=['-n'],
-        )
-        install_msg = self.replicas[0].get_file_contents(
-            paths.IPA_MIGRATE_LOG, encoding="utf-8"
-        )
-        assert result.returncode == 0
-        assert MIGRATION_SCHEMA_LOG_MSG in install_msg
-        assert MIGRATION_CONFIG_LOG_MSG in install_msg
-        assert IPA_UPGRADE_LOG_MSG in install_msg
-        assert SIDGEN_TASK_LOG_MSG in install_msg
-        assert MIGRATION_COMPLETE_LOG_MSG in install_msg
-
-    def test_ipa_migrate_prod_mode(self, empty_log_file):
-        """
-        This test checks that ipa-migrate is successful
-        in prod run mode
-        """
-        tasks.kinit_admin(self.master)
-        tasks.kinit_admin(self.replicas[0])
-        MIGRATION_SCHEMA_LOG_MSG = "Migrating schema ...\n"
-        MIGRATION_DATABASE_LOG_MSG = (
-            "Migrating database ... (this may take a while)\n"
-        )
-        IPA_UPGRADE_LOG_MSG = (
-            "Running ipa-server-upgrade ... (this may take a while)\n"
-        )
-        SIDGEN_TASK_LOG_MSG = "Running SIDGEN task ...\n"
-        result = run_migrate(
-            self.replicas[0],
-            "prod-mode",
-            self.master.hostname,
-            "cn=Directory Manager",
-            self.master.config.admin_password,
-            extra_args=['-n'],
-        )
-        install_msg = self.replicas[0].get_file_contents(
-            paths.IPA_MIGRATE_LOG, encoding="utf-8"
-        )
-        assert result.returncode == 0
-        assert MIGRATION_SCHEMA_LOG_MSG in install_msg
-        assert MIGRATION_DATABASE_LOG_MSG in install_msg
-        assert IPA_UPGRADE_LOG_MSG in install_msg
-        assert SIDGEN_TASK_LOG_MSG in install_msg
 
     def test_ipa_migrate_with_bind_pwd_file_option(self, empty_log_file):
         """
@@ -801,6 +719,9 @@ class TestIPAMigrateScenario1(IntegrationTest):
 
     @pytest.fixture()
     def modify_dns_zone(self):
+        """
+        This fixture adds dnszone and then removes the zone.
+        """
         zone_name = 'ipatest.test'
         self.master.run_command(
             ["ipa", "dnszone-add", zone_name, "--force"]
@@ -922,6 +843,28 @@ class TestIPAMigrateScenario1(IntegrationTest):
         assert result.returncode == 1
         assert ERR_MSG in result.stderr_text
 
+    def test_ipa_migrate_subids(self, empty_log_file):
+        """
+        This testcase checks that subids for users are migrated
+        to the local server from the remote server
+        """
+        user_name = 'admin'
+        CMD_MSG = "1 subordinate id matched"
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        cmd = self.replicas[0].run_command(
+            ['ipa', 'subid-find',
+             '--owner', user_name]
+        )
+        assert cmd.returncode == 0
+        assert CMD_MSG in cmd.stdout_text
+
     def test_ipa_hbac_rule_duplication(self):
         """
         This testcase checks that default hbac rules
@@ -946,3 +889,429 @@ class TestIPAMigrateScenario1(IntegrationTest):
         count = Counter(line)
         assert count.get('Rule name: allow_all') < 2
         assert count.get('Rule name: allow_systemd-user') < 2
+
+    def test_ipa_migrate_check_service_status(self):
+        """
+        This testscase checks that ipactl and sssd
+        services are running post ipa-migrate tool
+        successful runs completed
+        """
+        cmd1 = self.replicas[0].run_command([
+            "ipactl", "status"
+        ])
+        assert cmd1.returncode == 0
+        cmd2 = self.replicas[0].run_command([
+            "systemctl", "status", "sssd"
+        ])
+        assert cmd2.returncode == 0
+
+    def test_custom_idrange_is_migrated(self, empty_log_file):
+        """
+        This testcase checks that custom idrange is migrated
+        from remote server to local server in production
+        mode.
+        """
+        range_name = "testrange"
+        CMD_OUTPUT = (
+            "---------------\n"
+            "1 range matched\n"
+            "---------------\n"
+            "  Range name: testrange\n"
+            "  First Posix ID of the range: 10000\n"
+            "  Number of IDs in the range: 10000\n"
+            "  First RID of the corresponding RID range: 300000\n"
+            "  First RID of the secondary RID range: 400000\n"
+            "  Range type: local domain range\n"
+            "----------------------------\n"
+            "Number of entries returned 1\n"
+            "----------------------------\n"
+        )
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        cmd = self.replicas[0].run_command(
+            ["ipa", "idrange-find", range_name])
+        assert CMD_OUTPUT in cmd.stdout_text
+
+    @pytest.fixture
+    def add_automount(self):
+        self.master.run_command(
+            ["ipa", "automountlocation-add", "baltimore"]
+        )
+        self.master.run_command(
+            ["ipa", "automountmap-add", "baltimore",
+             "auto.share"]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "automountmap-add-indirect",
+                "baltimore",
+                "--parentmap=auto.share",
+                "--mount=sub",
+                "auto.man",
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "automountkey-add",
+                "baltimore",
+                "auto.master",
+                "--key=/share",
+                "--info=auto.share",
+            ]
+        )
+
+        yield
+
+        self.master.run_command(
+            ["ipa", "automountlocation-del", "baltimore"]
+        )
+
+    def test_automountlocation_is_migrated(self, add_automount):
+        """
+        This testcase checks that automount location/maps
+        and keys are migrated.
+        """
+        base_dn = str(self.master.domain.basedn)
+        automount_cn = "automount"
+        loc_name = "baltimore"
+        auto_map_name = "auto.share"
+        DEBUG_LOG = (
+            "Added entry: cn={},cn={},{}\n"
+        ).format(loc_name, automount_cn, base_dn)
+        CMD1_OUTPUT = (
+            "  Location: baltimore\n"
+        )
+        CMD2_OUTPUT = (
+            "  Map: auto.share\n"
+        )
+        CMD3_OUTPUT = (
+            "-----------------------\n"
+            "1 automount key matched\n"
+            "-----------------------\n"
+            "  Key: sub\n"
+            "  Mount information: -fstype=autofs ldap:auto.man\n"
+        )
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        cmd1 = self.replicas[0].run_command(
+            ["ipa", "automountlocation-show", loc_name])
+        cmd2 = self.replicas[0].run_command(
+            ["ipa", "automountmap-find", loc_name])
+        cmd3 = self.replicas[0].run_command(
+            ["ipa", "automountkey-find", loc_name, auto_map_name]
+        )
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert CMD1_OUTPUT in cmd1.stdout_text
+        assert CMD2_OUTPUT in cmd2.stdout_text
+        assert CMD3_OUTPUT in cmd3.stdout_text
+        assert DEBUG_LOG in install_msg
+
+    def test_check_vault_is_migrated(self):
+        """
+        This testcase checks that vault is
+        not migrated
+        """
+        vault_name = "testvault"
+        CMD_OUTPUT = (
+            "----------------\n"
+            "0 vaults matched"
+            "----------------\n"
+            "----------------------------\n"
+            "Number of entries returned 0\n"
+            "----------------------------"
+        )
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        cmd = self.replicas[0].run_command(
+            ["ipa", "vault-find", vault_name], raiseonerr=False)
+        assert cmd.returncode != 0
+        assert CMD_OUTPUT not in cmd.stdout_text
+
+
+class TestIPAMigrationStageMode(IntegrationTest):
+    """
+    Tests for ipa-migrate tool in stage mode
+    """
+    topology = "line"
+    num_replicas = 1
+    num_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        prepare_ipa_server(cls.master)
+        tasks.install_client(cls.master, cls.clients[0], nameservers=None)
+
+    def test_remote_server(self):
+        """
+        This test installs IPA server instead of replica on
+        system under test with the same realm and domain name.
+        """
+        tasks.install_master(self.replicas[0], setup_dns=True, setup_kra=True)
+
+    def test_ipa_migrate_stage_mode(self, empty_log_file):
+        """
+        This test checks that ipa-migrate is successful
+        in dry run mode
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        MIGRATION_SCHEMA_LOG_MSG = "Migrating schema ...\n"
+        MIGRATION_CONFIG_LOG_MSG = "Migrating configuration ...\n"
+        IPA_UPGRADE_LOG_MSG = (
+            "Running ipa-server-upgrade ... (this may take a while)\n"
+        )
+        SIDGEN_TASK_LOG_MSG = "Running SIDGEN task ...\n"
+        MIGRATION_COMPLETE_LOG_MSG = "Migration complete!\n"
+        result = run_migrate(
+            self.replicas[0],
+            "stage-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n'],
+        )
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert result.returncode == 0
+        assert MIGRATION_SCHEMA_LOG_MSG in install_msg
+        assert MIGRATION_CONFIG_LOG_MSG in install_msg
+        assert IPA_UPGRADE_LOG_MSG in install_msg
+        assert SIDGEN_TASK_LOG_MSG in install_msg
+        assert MIGRATION_COMPLETE_LOG_MSG in install_msg
+
+    def test_ipa_migrate_stage_mode_new_user(self):
+        """
+        This testcase checks that when a new user is added and
+        ipa-migrate is run in stage-mode, uid/gid of the
+        migrated user is not preserved i.e we have different
+        uid/gid for user on remote and local IPA server.
+        """
+        username = 'stageuser1'
+        original_passwd = 'Secret123'
+        base_dn = str(self.master.domain.basedn)
+        LOG_MSG1 = (
+            "DEBUG Resetting the DNA range for new entry: "
+            "uid={},cn=users,cn=accounts,{}\n"
+        ).format(username, base_dn)
+        tasks.user_add(self.master, username, password=original_passwd)
+        run_migrate(
+            self.replicas[0],
+            "stage-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert LOG_MSG1 not in install_msg
+        tasks.clear_sssd_cache(self.master)
+        self.master.run_command(['ipa', 'user-show', username])
+        cmd1 = self.master.run_command(['id', username])
+        tasks.clear_sssd_cache(self.replicas[0])
+        self.replicas[0].run_command(['ipa', 'user-show', username])
+        cmd2 = self.replicas[0].run_command(['id', username])
+        assert cmd1.stdout_text != cmd2.stdout_text
+
+
+class TestIPAMigrationProdMode(IntegrationTest):
+    """
+    Tests for ipa-migrate tool in prod mode
+    """
+    topology = "line"
+    num_replicas = 1
+    num_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        prepare_ipa_server(cls.master)
+        tasks.install_client(cls.master, cls.clients[0], nameservers=None)
+
+    def test_remote_server(self):
+        """
+        This test installs IPA server instead of replica on
+        system under test with the same realm and domain name.
+        """
+        tasks.install_master(self.replicas[0], setup_dns=True, setup_kra=True)
+
+    def test_ipa_migrate_prod_mode(self, empty_log_file):
+        """
+        This test checks that ipa-migrate is successful
+        in prod run mode
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        MIGRATION_SCHEMA_LOG_MSG = "Migrating schema ...\n"
+        MIGRATION_DATABASE_LOG_MSG = (
+            "Migrating database ... (this may take a while)\n"
+        )
+        IPA_UPGRADE_LOG_MSG = (
+            "Running ipa-server-upgrade ... (this may take a while)\n"
+        )
+        SIDGEN_TASK_LOG_MSG = "Running SIDGEN task ...\n"
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n'],
+        )
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert result.returncode == 0
+        assert MIGRATION_SCHEMA_LOG_MSG in install_msg
+        assert MIGRATION_DATABASE_LOG_MSG in install_msg
+        assert IPA_UPGRADE_LOG_MSG in install_msg
+        assert SIDGEN_TASK_LOG_MSG in install_msg
+
+    def test_ipa_migrate_prod_mode_hbac_rule(self, empty_log_file):
+        """
+        This testcase checks that hbac rule is migrated from
+        remote server to local server in prod mode.
+        """
+        hbac_rule_name1 = 'test1'
+        hbac_rule_name2 = 'testuser_sshd'
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        tasks.kinit_admin(self.replicas[0])
+        cmd1 = self.replicas[0].run_command(
+            ["ipa", "hbacrule-find", hbac_rule_name1])
+        cmd2 = self.replicas[0].run_command(
+            ["ipa", "hbacrule-find", hbac_rule_name2])
+        assert hbac_rule_name1 in cmd1.stdout_text
+        assert hbac_rule_name2 in cmd2.stdout_text
+
+    def test_ipa_migrate_prod_mode_sudo_rule(self, empty_log_file):
+        """
+        This testcase checks that sudo cmd and rules are
+        migrated from remote server to local server in prod mode.
+        """
+        sudorule = 'readfiles'
+        sudocmd = '/usr/bin/less'
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        tasks.kinit_admin(self.replicas[0])
+        cmd1 = self.replicas[0].run_command(
+            ["ipa", "sudorule-find", sudorule])
+        cmd2 = self.replicas[0].run_command(
+            ["ipa", "sudocmd-find", sudocmd])
+        assert 'Rule name: readfiles\n' in cmd1.stdout_text
+        assert 'Sudo Command: /usr/bin/less\n' in cmd2.stdout_text
+
+    def test_ipa_migrate_prod_mode_new_user_sid(self):
+        """
+        This testcase checks that in prod-mode uid/gid of the
+        migrated user is preserved i.e we have same
+        uid/gid for user on remote and local IPA server.
+        """
+        username = 'produser1'
+        original_passwd = 'Secret123'
+        tasks.user_add(self.master, username, password=original_passwd)
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        tasks.clear_sssd_cache(self.master)
+        result1 = self.master.run_command(['id', username])
+        tasks.clear_sssd_cache(self.replicas[0])
+        result2 = self.replicas[0].run_command(['id', username])
+        assert result1.stdout_text == result2.stdout_text
+
+
+class TestIPAMigrationWithADtrust(IntegrationTest):
+    """
+    Test for ipa-migrate tool with IPA Master having trust setup
+    with Windows AD.
+    """
+    topology = "line"
+    num_ad_domains = 1
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(
+            cls.master, setup_dns=True, extra_args=['--no-dnssec-validation']
+        )
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+
+    def test_install_local_server(self):
+        """
+        This test installs local IPA Server() i.e new IPA server with
+        the same realm and domain name that will receive the migration data.
+        """
+        tasks.install_master(self.replicas[0], setup_dns=True, setup_kra=True)
+
+    def test_check_ad_attributes_migrate_prod_mode(self):
+        """
+        This test checks that IPA-AD trust related attributes
+        are migrated to local server.
+        """
+        base_dn = str(self.master.domain.basedn)
+        TRUST_LOG = (
+            "Added entry: cn={},cn=ad,cn=trusts,{}"
+        ).format(self.ad_domain, base_dn)
+        CMD_LOG = "Trust direction: Trusting forest"
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        cmd = self.replicas[0].run_command(
+            ['ipa', 'trust-show', self.ad_domain]
+        )
+        assert CMD_LOG in cmd.stdout_text
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert TRUST_LOG in install_msg
