@@ -88,6 +88,8 @@ CLASS_LOGFILES = [
     paths.VAR_LOG_AUDIT,
     # sssd
     paths.VAR_LOG_SSSD_DIR,
+    # ipa-ipa-migration logs
+    paths.IPA_MIGRATE_LOG,
     # system
     paths.RESOLV_CONF,
     paths.HOSTS,
