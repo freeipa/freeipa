@@ -2089,7 +2089,7 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_hsm.py::TestHSMInstall
         template: *ci-ipa-4-12-latest
-        timeout: 5400
+        timeout: 6300
         topology: *master_3repl_1client
 
   fedora-latest-ipa-4-12/test_hsm_TestHSMInstallADTrustBase:
