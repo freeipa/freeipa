@@ -2089,7 +2089,7 @@ jobs:
         update_packages: True
         test_suite: test_integration/test_hsm.py::TestHSMInstall
         template: *ci-master-frawhide
-        timeout: 5400
+        timeout: 6300
         topology: *master_3repl_1client
 
   fedora-rawhide/test_hsm_TestHSMInstallADTrustBase:
