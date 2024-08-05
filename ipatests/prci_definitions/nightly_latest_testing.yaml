@@ -2244,7 +2244,7 @@ jobs:
         enable_testing_repo: True
         test_suite: test_integration/test_hsm.py::TestHSMInstall
         template: *ci-master-latest
-        timeout: 5400
+        timeout: 6300
         topology: *master_3repl_1client
 
   testing-fedora/test_hsm_TestHSMInstallADTrustBase:

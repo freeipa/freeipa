@@ -1116,7 +1116,7 @@ jobs:
         copr: '@pki/master'
         test_suite: test_integration/test_hsm.py::TestHSMInstall
         template: *ci-master-latest
-        timeout: 10800
+        timeout: 6300
         topology: *master_3repl_1client
 
   pki-fedora/test_hsm_TestHSMInstallADTrustBase:
