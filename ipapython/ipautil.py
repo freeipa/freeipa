@@ -119,7 +119,10 @@ class UnsafeIPAddress(netaddr.IPAddress):
                 if addr.version != 6:
                     raise
         except ValueError:
-            self._net = netaddr.IPNetwork(addr, flags=self.netaddr_ip_flags)
+            # netaddr.IPNetwork doesn't support netaddr.IPAddress flags in
+            # modern releases of netaddr older than 1.0.0 version.
+            flags = self.netaddr_ip_flags if netaddr.VERSION < (1, 0, 0) else 0
+            self._net = netaddr.IPNetwork(addr, flags=flags)
             addr = self._net.ip
         super(UnsafeIPAddress, self).__init__(addr,
                                               flags=self.netaddr_ip_flags)
