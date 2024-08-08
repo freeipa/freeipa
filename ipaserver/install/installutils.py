@@ -898,7 +898,8 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
 
         if ca_cert_files:
             try:
-                nssdb.import_files(ca_cert_files)
+                nssdb.import_files(ca_cert_files,
+                                   trust_flags=EXTERNAL_CA_TRUST_FLAGS)
             except RuntimeError as e:
                 raise ScriptError(str(e))
 
