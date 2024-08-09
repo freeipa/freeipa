@@ -79,6 +79,7 @@ static void on_bind_readable(verto_ctx *vctx, verto_ev *ev)
     struct otpd_queue_item *item = NULL;
     int i, rslt;
     (void)vctx;
+    int kerr = 0;
 
     rslt = ldap_result(verto_get_private(ev), LDAP_RES_ANY, 0, NULL, &results);
     if (rslt != LDAP_RES_BIND) {
@@ -118,6 +119,7 @@ static void on_bind_readable(verto_ctx *vctx, verto_ev *ev)
                                  krad_code_name2num("Access-Accept"),
                                  NULL, item->req, &item->rsp);
     if (i != 0) {
+        kerr = 1;
         errstr = krb5_get_error_message(ctx.kctx, i);
         goto error;
     }
@@ -126,6 +128,10 @@ error:
     if (item != NULL)
         otpd_log_req(item->req, "bind end: %s",
                 item->rsp != NULL ? "success" : errstr);
+
+    if (kerr) {
+        krb5_free_error_message(ctx.kctx, errstr);
+    }
 
     ldap_msgfree(results);
     otpd_queue_push(&ctx.stdio.responses, item);

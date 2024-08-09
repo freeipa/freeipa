@@ -266,6 +266,7 @@ static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *s
                                 error_message(krberr), krberr);
 				in->result = NULL;
 				in->len = 0;
+				krb5_free_context(krbctx);
 				ret = LDAP_LOCAL_ERROR;
 				break;
 			}
