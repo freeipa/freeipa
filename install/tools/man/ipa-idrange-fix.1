@@ -1,0 +1,111 @@
+.\"
+.\" Copyright (C) 2024  FreeIPA Contributors see COPYING for license
+.\"
+.TH "ipa-idrange-fix" "1" "May 26 2024" "IPA" "IPA Manual Pages"
+.SH "NAME"
+ipa\-idrange\-fix \- Analyse and fix IPA ID ranges
+.SH "SYNOPSIS"
+ipa\-idrange\-fix [options]
+.SH "DESCRIPTION"
+
+\fIipa-idrange-fix\fR is a tool for analysis of existing IPA ranges, users and 
+groups outside of those ranges, and functionality to propose and apply 
+remediations to make sure as many users and groups as possible end up in the 
+IPA-managed ranges. Before any changes are applied, a full backup of the system
+is \fBSTRONGLY RECOMMENDED\fR.
+
+Do not use this program in unattended mode unless you are absolutely sure
+you are consenting to the tool's proposals.
+
+You can apply the proposals manually via \fIipa idrange(1)\fR commands.
+
+This tool requires it to be run as \fBroot\fR and does not require a kerberos
+ticket. The directory server needs to be running.
+
+\fIipa-idrange-fix\fR will read current ranges from LDAP, then check their
+basic constraints, RID bases, etc. If it finds critical issues with ranges,
+manual adjustment will be required.
+
+After analyzing existing ranges, the tool will search for users and groups that
+are outside of ipa-local ranges. Then it will attempt to propose new ipa-local
+ranges in order to cover users and groups found.
+
+Finally, the tool will summarize the analysis, and, if there are proposed
+changes, will ask if the user wants to apply those. Please read the
+proposals carefully before proceeding with changes!
+
+Important note: By default, \fIipa-idrange-fix\fR will not cover the users and 
+groups that have IDs under 1000 as these IDs are reserved for system and
+service users and groups. We \fBdon't recommend\fR using IDs under 1000 for
+IPA users and groups as they can possibly overlap with local ones. Please
+consider moving those users out of the range 1..1000, unless they are
+absolutely needed.
+
+.SH "OPTIONS"
+.TP
+\fB\-\-version\fR
+Show the program's version and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show the help for this program.
+.TP
+\fB\-\-ridoffset \fIINT\fR
+An offset for newly proposed base RIDs for ranges. We introduce offset in order
+to have an ability to increase ranges in the future, increase to more than
+offset will result in RID bases overlapping, and will be denied. If set to 0,
+there will be no offset, proposed RID ranges will start directly one after
+another.
+
+Default - \fI100000\fR, allowed values - from \fI0\fR to \fI2^31\fR.
+.TP
+\fB\-\-rangegap \fIINT\fR
+A number of IDs between out of ranges IDs to be considered too big to be inside 
+a proposed range. If the gap is bigger than this attribute, a new range will be 
+started. If set to 0, every entity will get its own range, if allowed by 
+\fI--minrange\fR.
+
+Default - \fI200000\fR, allowed values - from \fI0\fR to \fI2^31\fR.
+.TP
+\fB\-\-minrange \fIINT\fR
+A minimal amount of IDs the tool considers to be a valid range. All IDs that
+would form a range with less than this number will be considered outliers, not 
+worth creating an IDrange for, and will be listed explicitly to be moved 
+manually. If set to 1, a range will be proposed for every entity, even if the 
+entity is single in the middle of an empty space.
+
+Default - \fI10\fR, allowed values - from \fI1\fR to \fI2^31\fR.
+.TP
+\fB\-\-allowunder1000\fR
+A flag to allow proposing ranges that start with IDs lower than \fI1000\fR. 
+Remember, this is not recommended - IDs under 1000 are reserved for system and 
+service users and groups. IDranges with these low IDs may result with 
+overlapping of IPA and system local users and groups, which can be a serious 
+security issue and generally produce a lot of issues around these entities' 
+resolution.
+.TP
+\fB\-\-norounding\fR
+A flag to turn off idrange starting id and size rounding - e.g. if we find 
+ID 1234, and the size 567, it will stay that way, the proposed range will 
+start at ID 1234, and have a 567 size. If not specified, basic rounding to 
+outer margins will be applied. Rounding will be 10^size of the proposed range.
+.TP
+\fB\-\-unattended\fR
+Run the tool in unattended mode, if any changes would be proposed, they will
+be applied automatically.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Print debugging information.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors (output from child processes may still be shown).
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
+
+.SH "SEE ALSO"
+.BR ipa\ idrange-mod(1)
+.BR ipa\ idrange-add(1)
