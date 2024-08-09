@@ -40,6 +40,7 @@ from .baseldap import (
     LDAPObject,
     LDAPQuery)
 from .dns import dns_container_exists
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix
 from ipalib import api, Str, StrEnum, Password, Bool, _, ngettext, Int, Flag
@@ -972,7 +973,12 @@ ipa idrange-del before retrying the command with the desired range type.
             self.realm_admin,
             self.realm_passwd
         )
-        dom_sid = self.trustinstance.remote_domain.info['sid']
+
+        dom_sid = self.trustinstance.remote_domain.info.get('sid', None)
+        if dom_sid is None:
+            raise errors.RemoteRetrieveError(
+                reason=_('Unable to read domain information, check {}'
+                         ).format(paths.VAR_LOG_HTTPD_ERROR))
 
         if old_range:
             old_dom_sid = old_range['result']['ipanttrusteddomainsid'][0]
