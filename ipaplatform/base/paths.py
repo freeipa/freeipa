@@ -295,8 +295,6 @@ class BasePathNamespace:
     KRB_CON = "/usr/share/ipa/html/krb.con"
     HTML_KRB5_INI = "/usr/share/ipa/html/krb5.ini"
     HTML_KRBREALM_CON = "/usr/share/ipa/html/krbrealm.con"
-    NIS_ULDIF = "/usr/share/ipa/nis.uldif"
-    NIS_UPDATE_ULDIF = "/usr/share/ipa/nis-update.uldif"
     SCHEMA_COMPAT_ULDIF = "/usr/share/ipa/updates/91-schema_compat.update"
     SCHEMA_COMPAT_POST_ULDIF = "/usr/share/ipa/schema_compat_post.uldif"
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
