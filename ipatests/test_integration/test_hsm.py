@@ -835,6 +835,7 @@ class TestHSMNegative(IntegrationTest):
 
     @classmethod
     def uninstall(cls, mh):
+        check_version(cls.master)
         cls.master.run_command(
             ['softhsm2-util', '--delete-token', '--token', cls.token_name],
             raiseonerr=False
