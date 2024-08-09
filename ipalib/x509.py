@@ -298,7 +298,7 @@ class IPACertificate(crypto_x509.Certificate):
             """
             Returns the ObjectIdentifier of the public key.
             """
-            return self._cert.public_key_algorithm_oid()
+            return self._cert.public_key_algorithm_oid
 
     @property
     def tbs_certificate_bytes(self):

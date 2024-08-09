@@ -25,6 +25,14 @@ All constants centralised in one file.
 import os
 import string
 import uuid
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    "TripleDES has been moved to "
+    "cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and "
+    "will be removed from this module in 48.0.0",
+    category=UserWarning)
 
 from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
