@@ -1067,8 +1067,13 @@ class TestTrust(BaseTestTrust):
                 raiseonerr=False,
                 stdin_text=self.master.config.ad_admin_password)
             assert result.returncode == 1
+            assert 'Unable to read domain information' in result.stderr_text
+            httpd_error_log = self.master.get_file_contents(
+                paths.VAR_LOG_HTTPD_ERROR,
+                encoding='utf-8'
+            )
             assert 'CIFS server communication error: code "3221225653", ' \
-                   'message "{Device Timeout}' in result.stderr_text
+                   'message "{Device Timeout}' in httpd_error_log
 
             # Check that trust is successfully established with --server option
             tasks.establish_trust_with_ad(
