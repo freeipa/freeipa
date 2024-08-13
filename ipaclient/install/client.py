@@ -974,6 +974,8 @@ def configure_sssd_conf(
 
     sssd_enable_service(sssdconfig, 'nss')
     sssd_enable_service(sssdconfig, 'pam')
+    if options.conf_ssh:
+        sssd_enable_service(sssdconfig, 'ssh')
 
     domain.set_option('ipa_domain', cli_domain)
     domain.set_option('ipa_hostname', client_hostname)
