@@ -898,7 +898,7 @@ class TestHSMNegative(IntegrationTest):
              '--label', token_name]
         )
         self.master.run_command(
-            ['usermod', 'pkiuser', '-r', '-G', 'ods']
+            ['gpasswd', '-d', 'pkiuser', 'ods']
         )
         result = tasks.install_master(
             self.master, raiseonerr=False,
