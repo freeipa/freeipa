@@ -277,9 +277,9 @@ def hsm_validator(token_name, token_library, token_password):
         # validate that the appropriate SELinux module is installed
         # Only warn in case the expected paths don't match.
         if 'nfast' in token_library:
-            module = 'ipa-selinux-nfast'
+            module = 'ipa-nfast'
         elif 'luna' in token_library:
-            module = 'ipa-selinux-luna'
+            module = 'ipa-luna'
         else:
             module = None
         if module:
