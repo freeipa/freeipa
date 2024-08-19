@@ -2261,6 +2261,20 @@ jobs:
         timeout: 6300
         topology: *master_3repl_1client
 
+  testing-fedora/test_hsm_TestHSMInstallPasswordFile:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_hsm.py::TestHSMInstallPasswordFile
+        template: *ci-master-latest
+        timeout: 6300
+        topology: *master_1repl
+
   testing-fedora/test_hsm_TestHSMInstallADTrustBase:
     requires: [testing-fedora/build]
     priority: 50
