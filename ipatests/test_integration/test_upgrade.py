@@ -165,7 +165,6 @@ class TestUpgrade(IntegrationTest):
                 ldap.update_entry(location_krb_rec)
 
         yield _setup_locations
-
         ldap = self.master.ldap_connect()
 
         modified = False
@@ -491,3 +490,28 @@ class TestUpgrade(IntegrationTest):
         tasks.reinstall_packages(self.master, ['*ipa-client'])
         assert not self.master.transport.file_exists(
             paths.SSH_CONFIG + ".orig")
+
+    def test_mspac_attribute_set(self):
+        """
+        This testcase deletes the already existing attribute
+        'ipaKrbAuthzData: MS-PAC'.
+        The test then runs ipa-server-upgrade and checks that
+        the attribute 'ipaKrbAuthzData: MS-PAC' is added again.
+        """
+        base_dn = str(self.master.domain.basedn)
+        dn = DN(
+            ("cn", "ipaConfig"),
+            ("cn", "etc"),
+            base_dn
+        )
+        ldif = textwrap.dedent("""
+             dn: cn=ipaConfig,cn=etc,{}
+             changetype: modify
+             delete: ipaKrbAuthzData
+        """).format(base_dn)
+        tasks.ldapmodify_dm(self.master, ldif)
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa-server-upgrade'])
+        result = tasks.ldapsearch_dm(self.master, str(dn),
+                                     ["ipaKrbAuthzData"])
+        assert 'ipaKrbAuthzData: MS-PAC' in result.stdout_text
