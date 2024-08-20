@@ -1190,6 +1190,21 @@ class TestInstallMaster(IntegrationTest):
                 expected_stdout=f'href="https://{self.master.hostname}/'
             )
 
+    def test_pac_configuration_enabled(self):
+        """
+        This testcase checks that the default PAC type
+        is added to configuration.
+        """
+        base_dn = str(self.master.domain.basedn)
+        dn = DN(
+            ("cn", "ipaConfig"),
+            ("cn", "etc"),
+            base_dn
+        )
+        result = tasks.ldapsearch_dm(self.master, str(dn),
+                                     ["ipaKrbAuthzData"])
+        assert 'ipaKrbAuthzData: MS-PAC' in result.stdout_text
+
     def test_hostname_parameter(self, server_cleanup):
         """
         Test that --hostname parameter is respected in interactive mode.
