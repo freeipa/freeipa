@@ -32,7 +32,10 @@ from pytest_sourceorder import ordered
 class IntegrationTest:
     num_replicas = 0
     num_clients = 0
+    num_trusted_replicas = 0
+    num_trusted_clients = 0
     num_ad_domains = 0
+    num_trusted_domains = 0
     num_ad_subdomains = 0
     num_ad_treedomains = 0
     required_extra_roles = []

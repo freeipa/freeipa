@@ -73,6 +73,7 @@ classes:
   - "RunPytest3"
   - "RunWebuiTests"
   - "RunADTests"
+  - "RunMultiDomainPytest"
 
 # (Optional) Definition files that should contain the same number of jobs
 fixed_n_jobs:
@@ -182,7 +183,7 @@ $ python3 ipatests/prci_definitions/prci_checker.py -f ipatests/prci_definitions
 BEGINNING PRCI JOB DEFINITIONS CHECKS
 [File] gating [Jobs] 24
 ERROR: In job 'fedora-latest/test_installation_TestInstallMaster':
-  'class' field should be defined with one of the supported: ['RunPytest', 'RunPytest2', 'RunPytest3', 'RunWebuiTests', 'RunADTests']
+  'class' field should be defined with one of the supported: ['RunPytest', 'RunPytest2', 'RunPytest3', 'RunWebuiTests', 'RunADTests', 'RunMultiDomainPytest']
 CHECKS FINISHED WITH ERRORS
 ```
 
