@@ -33,6 +33,7 @@ class IntegrationTest:
     num_replicas = 0
     num_clients = 0
     num_ad_domains = 0
+    num_trusted_domains = 0
     num_ad_subdomains = 0
     num_ad_treedomains = 0
     required_extra_roles = []
@@ -95,6 +96,7 @@ class IntegrationTest:
                                cls.clients, domain_level,
                                random_serial=cls.random_serial,
                                extra_args=extra_args,)
+
     @classmethod
     def uninstall(cls, mh):
         for replica in cls.replicas:
@@ -112,3 +114,49 @@ class IntegrationTest:
             tasks.uninstall_client(client)
         if cls.fips_mode:
             cls.disable_fips_mode()
+
+
+@ordered
+@pytest.mark.usefixtures('mh')
+@pytest.mark.usefixtures('integration_logs')
+class MultiDomainIntegrationTest(IntegrationTest):
+    num_trusted_domains = 1
+    num_trusted_replicas = 0
+    num_trusted_clients = 0
+
+    @classmethod
+    def get_domains(cls):
+        return super(MultiDomainIntegrationTest, cls
+                     ).get_domains() + cls.trusted_domains
+
+    @classmethod
+    def install(cls, mh):
+        super(MultiDomainIntegrationTest, cls).install(mh)
+        extra_args = []
+        if cls.topology is None:
+            return
+        else:
+            if cls.token_password:
+                extra_args.extend(('--token-password', cls.token_password,))
+            tasks.install_topo(cls.topology,
+                               cls.trusted_master, cls.trusted_replicas,
+                               cls.trusted_clients, 1,
+                               random_serial=cls.random_serial,
+                               extra_args=extra_args,)
+
+    @classmethod
+    def uninstall(cls, mh):
+        super(MultiDomainIntegrationTest, cls).uninstall(mh)
+        for trustedreplica in cls.trusted_replicas:
+            try:
+                tasks.run_server_del(
+                    cls.trusted_master, trustedreplica.hostname, force=True,
+                    ignore_topology_disconnect=True, ignore_last_of_role=True)
+            except subprocess.CalledProcessError:
+                # If the master has already been uninstalled,
+                # this call may fail
+                pass
+            tasks.uninstall_master(trustedreplica)
+        tasks.uninstall_master(cls.trusted_master)
+        for client in cls.trusted_clients:
+            tasks.uninstall_client(client)
