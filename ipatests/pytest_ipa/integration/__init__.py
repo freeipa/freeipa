@@ -413,6 +413,16 @@ def mh(request, class_integration_logs):
             'type': 'AD_TREEDOMAIN',
             'hosts': {'ad_treedomain': 1}
         })
+    for _i in range(cls.num_trusted_domains):
+        domain_descriptions.append({
+            'type': 'TRUSTED_IPA',
+            'hosts':
+            {
+                'master': 1,
+                'replica': cls.num_trusted_replicas,
+                'client': cls.num_trusted_clients,
+            }
+        })
 
     mh = make_multihost_fixture(
         request,
@@ -421,10 +431,20 @@ def mh(request, class_integration_logs):
         _config=get_global_config(),
     )
 
-    mh.domain = mh.config.domains[0]
+    for domain in mh.config.domains:
+        if domain.type == 'IPA':
+            mh.domain = domain
+        elif domain.type == 'TRUSTED_IPA':
+            mh.trusted_domain = domain
+
     [mh.master] = mh.domain.hosts_by_role('master')
     mh.replicas = mh.domain.hosts_by_role('replica')
     mh.clients = mh.domain.hosts_by_role('client')
+    if mh.config.trusted_domains:
+        [mh.trusted_master] = mh.trusted_domain.hosts_by_role('master')
+        mh.trusted_replicas = mh.trusted_domain.hosts_by_role('replica')
+        mh.trusted_clients = mh.trusted_domain.hosts_by_role('client')
+
     ad_domains = mh.config.ad_domains
     if ad_domains:
         mh.ads = []
@@ -487,6 +507,12 @@ def add_compat_attrs(cls, mh):
         cls.ad_subdomains = mh.ad_subdomains
         cls.ad_treedomains = mh.ad_treedomains
 
+    cls.trusted_domains = mh.config.trusted_domains
+    if cls.trusted_domains:
+        cls.trusted_master = mh.trusted_master
+        cls.trusted_replicas = mh.trusted_replicas
+        cls.trusted_clients = mh.trusted_clients
+
 
 def del_compat_attrs(cls):
     """Remove convenience attributes from the test class
@@ -503,6 +529,12 @@ def del_compat_attrs(cls):
         del cls.ad_subdomains
         del cls.ad_treedomains
     del cls.ad_domains
+
+    if cls.trusted_domains:
+        del cls.trusted_master
+        del cls.trusted_replicas
+        del cls.trusted_clients
+    del cls.trusted_domains
 
 
 def skip_if_fips(reason='Not supported in FIPS mode', host='master'):
