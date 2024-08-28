@@ -24,7 +24,26 @@
 
 /var/log/ipa(/.*)?              gen_context(system_u:object_r:ipa_log_t,s0)
 
-/var/log/ipareplica-conncheck.log.*	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipabackup.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclient-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclient-uninstall.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclientsamba-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaclientsamba-uninstall.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipareplica-ca-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipareplica-conncheck.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipareplica-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/iparestore.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-enable-sid.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-adtrust-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-dns-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-kra-install.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaserver-uninstall.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaupgrade.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipatrust-enable-agent.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipaepn.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipa-migrate.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
+/var/log/ipa-migrate-conflict.ldif	--	gen_context(system_u:object_r:ipa_log_t,s0)
 
 /var/run/ipa(/.*)?              gen_context(system_u:object_r:ipa_var_run_t,s0)
 
