@@ -853,6 +853,8 @@ class TestIpaAdTrustInstall(IntegrationTest):
              self.master.config.admin_password,
              "-U"]
         )
+        # Wait for SSSD to become online before doing any other check
+        tasks.wait_for_sssd_domain_status_online(self.master)
         self.master.run_command(["mkdir", "/freeipa4234"])
         self.master.run_command(
             ["chcon", "-t", "samba_share_t",
