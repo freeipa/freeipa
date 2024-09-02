@@ -72,7 +72,7 @@ class TestIpaIdrangeFix(IntegrationTest):
             "idrange_reversed",
             "--base-id", '50000',
             "--range-size", '20000',
-            "--rid-base", '100300000'
+            "--rid-base", '100300000',
             "--secondary-rid-base", '301000'
         ])
 
