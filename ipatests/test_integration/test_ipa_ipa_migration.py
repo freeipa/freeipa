@@ -610,7 +610,7 @@ class TestIPAMigrateScenario1(IntegrationTest):
         MIGRATION_SCHEMA_LOG_MSG = "Migrating schema ...\n"
         MIGRATION_CONFIG_LOG_MSG = "Migrating configuration ...\n"
         IPA_UPGRADE_LOG_MSG = (
-            "Running ipa-server-upgrade ... (this make take a while)\n"
+            "Running ipa-server-upgrade ... (this may take a while)\n"
         )
         SIDGEN_TASK_LOG_MSG = "Running SIDGEN task ...\n"
         MIGRATION_COMPLETE_LOG_MSG = "Migration complete!\n"
@@ -641,10 +641,10 @@ class TestIPAMigrateScenario1(IntegrationTest):
         tasks.kinit_admin(self.replicas[0])
         MIGRATION_SCHEMA_LOG_MSG = "Migrating schema ...\n"
         MIGRATION_DATABASE_LOG_MSG = (
-            "Migrating database ... (this make take a while)\n"
+            "Migrating database ... (this may take a while)\n"
         )
         IPA_UPGRADE_LOG_MSG = (
-            "Running ipa-server-upgrade ... (this make take a while)\n"
+            "Running ipa-server-upgrade ... (this may take a while)\n"
         )
         SIDGEN_TASK_LOG_MSG = "Running SIDGEN task ...\n"
         result = run_migrate(
