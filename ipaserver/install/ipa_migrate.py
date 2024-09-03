@@ -1486,13 +1486,13 @@ class IPAMigrate():
         # For entries with alternate identifying needs we need to rebuild the
         # local dn. Typically this is for entries that use ipaUniqueId as the
         # RDN attr
-        if 'alt_id' in DB_OBJECTS[entry_type]:
+        if entry_type != "custom" and 'alt_id' in DB_OBJECTS[entry_type]:
             attr = DB_OBJECTS[entry_type]['alt_id']['attr']
             base = DB_OBJECTS[entry_type]['alt_id']['base']
-            srch_filter = f'{attr}={entry_attrs[attr][0]}'
+            srch_filter = f'({attr}={entry_attrs[attr][0]})'
             if DB_OBJECTS[entry_type]['alt_id']['isDN'] is True:
                 # Convert the filter to match the local suffix
-                srch_filter = self.replace_suffix(srch_filter)
+                srch_filter = self.replace_suffix_value(srch_filter)
             srch_base = base + str(self.local_suffix)
 
             try:
@@ -1539,14 +1539,20 @@ class IPAMigrate():
 
             if self.dryrun:
                 self.write_update_to_ldif(local_entry)
-                DB_OBJECTS[entry_type]['count'] += 1
+                if entry_type == "custom":
+                    stats['custom'] += 1
+                else:
+                    DB_OBJECTS[entry_type]['count'] += 1
                 stats['total_db_migrated'] += 1
                 return
 
             # Update the local entry
             try:
                 self.local_conn.update_entry(local_entry)
-                DB_OBJECTS[entry_type]['count'] += 1
+                if entry_type == "custom":
+                    stats['custom'] += 1
+                else:
+                    DB_OBJECTS[entry_type]['count'] += 1
             except errors.ExecutionError as e:
                 self.log_error(f'Failed to update "{local_dn}" error: '
                                f'{str(e)}')
