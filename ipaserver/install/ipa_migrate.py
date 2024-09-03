@@ -1490,10 +1490,10 @@ class IPAMigrate():
         if entry_type != "custom" and 'alt_id' in DB_OBJECTS[entry_type]:
             attr = DB_OBJECTS[entry_type]['alt_id']['attr']
             base = DB_OBJECTS[entry_type]['alt_id']['base']
-            srch_filter = f'{attr}={entry_attrs[attr][0]}'
+            srch_filter = f'({attr}={entry_attrs[attr][0]})'
             if DB_OBJECTS[entry_type]['alt_id']['isDN'] is True:
                 # Convert the filter to match the local suffix
-                srch_filter = self.replace_suffix(srch_filter)
+                srch_filter = self.replace_suffix_value(srch_filter)
             srch_base = base + str(self.local_suffix)
 
             try:
