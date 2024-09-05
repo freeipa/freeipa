@@ -8,6 +8,7 @@ import json
 import os
 
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipapython import ipautil
 from . import common
 
@@ -25,7 +26,7 @@ def export_key(args, tmpdir):
         f.write(password)
 
     # OpenSSL does not support pkcs12 export of a cert without key
-    ipautil.run([
+    cmd = [
         paths.OPENSSL, 'pkcs12', '-export',
         '-in', args.certfile,
         '-out', pk12file,
@@ -34,7 +35,13 @@ def export_key(args, tmpdir):
         '-keypbe', 'AES-256-CBC',
         '-certpbe', 'AES-256-CBC',
         '-macalg', 'sha384',
-    ])
+    ]
+
+    fips_enabled = tasks.is_fips_enabled()
+    if fips_enabled:
+        cmd.append('-nomac')
+
+    ipautil.run(cmd)
 
     with open(pk12file, 'rb') as f:
         p12data = f.read()
@@ -69,6 +76,11 @@ def import_key(args, tmpdir):
         '-out', args.certfile,
         '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile),
     ]
+
+    fips_enabled = tasks.is_fips_enabled()
+    if fips_enabled:
+        cmd.append('-nomacver')
+
     ipautil.run(cmd, umask=0o027)
 
     # get the private key from the file
@@ -79,6 +91,10 @@ def import_key(args, tmpdir):
         '-out', args.keyfile,
         '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile),
     ]
+
+    if fips_enabled:
+        cmd.append('-nomacver')
+
     ipautil.run(cmd, umask=0o027)
 
 
