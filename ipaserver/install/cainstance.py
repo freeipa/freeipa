@@ -259,6 +259,18 @@ def is_ca_installed_locally():
     return os.path.exists(paths.CA_CS_CFG_PATH)
 
 
+def lookup_ldap_backend(api):
+    """Look up the LDAP backend database value and return it"""
+    dn = DN("cn=config,cn=ldbm database,cn=plugins,cn=config")
+    try:
+        entry = api.Backend.ldap2.get_entry(dn)
+    except errors.NotFound:
+        ldap_backend = 'bdb'
+    else:
+        ldap_backend = entry.get('nsslapd-backend-implement', ['bdb'])[0]
+    return ldap_backend
+
+
 class InconsistentCRLGenConfigException(Exception):
     pass
 
@@ -388,6 +400,15 @@ class CAInstance(DogtagInstance):
             self.ca_type = x509.ExternalCAType.GENERIC.value
         self.external_ca_profile = external_ca_profile
         self.random_serial_numbers = random_serial_numbers
+        ldap_backend = lookup_ldap_backend(api)
+
+        if ldap_backend != 'bdb' and not random_serial_numbers:
+            # override selection for lmdb due to VLV performance issues.
+            logger.info(
+                'Forcing random serial numbers to be enabled for the %s '
+                'backend', ldap_backend
+            )
+            self.random_serial_numbers = True
 
         self.no_db_setup = promote
         self.use_ldaps = use_ldaps
@@ -507,6 +528,9 @@ class CAInstance(DogtagInstance):
 
                 self.step("configuring certmonger renewal for lightweight CAs",
                           self.add_lightweight_ca_tracking_requests)
+                if self.clone and self.random_serial_numbers:
+                    self.step("Recording random serial number state",
+                              self.__store_random_serial_number_state)
                 if minimum_acme_support():
                     self.step("deploying ACME service", self.setup_acme)
 
@@ -1650,6 +1674,11 @@ class CAInstance(DogtagInstance):
         dn = DN(('cn', ipalib.constants.IPA_CA_CN), api.env.container_ca,
                 api.env.basedn)
         entry_attrs = api.Backend.ldap2.get_entry(dn)
+        version = entry_attrs.single_value.get(
+            "ipaCaRandomSerialNumberVersion", "0"
+        )
+        if str(version) == str(value):
+            return
         entry_attrs['ipaCaRandomSerialNumberVersion'] = value
         api.Backend.ldap2.update_entry(entry_attrs)
 
