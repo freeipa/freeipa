@@ -83,7 +83,7 @@ Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SH
 Do not use DNS for hostname lookup during installation
 .TP
 \fB\-\-random\-serial\-numbers\fR
-Enable Random Serial Numbers. Random serial numbers cannot be used in a mixed environment. Either all CA's have it enabled or none do.
+Enable Random Serial Numbers (RSN) and certificate pruning. This option is enabled by default if the system is installed with a 389-ds version that supports LMDB or if another CA in the topology is configured with Random Serial Numbers. This option remains present to avoid issues with automation. In mixed environments where existing CA servers are configured with sequential numbers, it is recommended to replace the sequential servers as soon as reasonably possible.
 .TP
 \fB\-\-token\-name\fR=\fITOKEN_NAME\fR
 The PKCS#11 token name if using an HSM to store and generate private keys.
