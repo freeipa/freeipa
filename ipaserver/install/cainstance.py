@@ -471,6 +471,8 @@ class CAInstance(DogtagInstance):
             self.step(
                 "Ensuring backward compatibility",
                 self.__dogtag10_migration)
+            if self.random_serial_numbers:
+                self.step("enable certificate pruning", self.enable_pruning)
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
@@ -789,6 +791,17 @@ class CAInstance(DogtagInstance):
         directivesetter.set_directive(paths.SYSCONFIG_PKI_TOMCAT,
                                    'NSS_ENABLE_PKIX_VERIFY', '1',
                                    quotes=False, separator='=')
+
+    def enable_pruning(self):
+        directivesetter.set_directive(paths.CA_CS_CFG_PATH,
+                                      'jobsScheduler.enabled', 'true',
+                                      quotes=False, separator='=')
+        directivesetter.set_directive(paths.CA_CS_CFG_PATH,
+                                      'jobsScheduler.job.pruning.enabled',
+                                      'true', quotes=False, separator='=')
+        directivesetter.set_directive(paths.CA_CS_CFG_PATH,
+                                      'jobsScheduler.job.pruning.owner',
+                                      'ipara', quotes=False, separator='=')
 
     def __import_ra_cert(self):
         """
