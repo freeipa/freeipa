@@ -301,7 +301,11 @@ def install(safe_options, options):
             install_master(safe_options, options)
         else:
             if options.random_serial_numbers:
-                if ca.lookup_random_serial_number_version(api) == 0:
+                ldap_backend = cainstance.lookup_ldap_backend(api)
+                if (
+                    ca.lookup_random_serial_number_version(api) == 0
+                    and ldap_backend == "bdb"
+                ):
                     sys.exit(
                         "\nRandom serial numbers cannot be enabled in an "
                         "existing CA installation.\n")
