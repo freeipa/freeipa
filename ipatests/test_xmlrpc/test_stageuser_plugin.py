@@ -121,12 +121,6 @@ def stageduser3(request, xmlrpc_setup):
 
 
 @pytest.fixture(scope='class')
-def stageduser4(request, xmlrpc_setup):
-    tracker = StageUserTracker(u'tuser', u'test', u'user')
-    return tracker.make_fixture(request)
-
-
-@pytest.fixture(scope='class')
 def stageduser_notposix(request, xmlrpc_setup):
     tracker = StageUserTracker(u'notposix', u'notposix', u'notposix')
     return tracker.make_fixture(request)
@@ -158,18 +152,6 @@ def user2(request, xmlrpc_setup):
 @pytest.fixture(scope='class')
 def user3(request, xmlrpc_setup):
     tracker = UserTracker(u'auser2', u'active', u'user')
-    return tracker.make_fixture(request)
-
-
-@pytest.fixture(scope='class')
-def user4(request, xmlrpc_setup):
-    tracker = UserTracker(u'tuser', u'test', u'user')
-    return tracker.make_fixture(request)
-
-
-@pytest.fixture(scope='class')
-def user5(request, xmlrpc_setup):
-    tracker = UserTracker(u'tuser', u'test', u'user')
     return tracker.make_fixture(request)
 
 
@@ -724,52 +706,50 @@ class TestManagers(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestDuplicates(XMLRPC_test):
-    def test_active_same_as_preserved(self, user4, user5):
-        user4.ensure_missing()
-        user5.make_preserved_user()
-        command = user4.make_create_command()
+    @pytest.fixture
+    def user(self, request, xmlrpc_setup):
+        tracker = UserTracker("tuser", "test", "user")
+        return tracker.make_fixture(request)
+
+    @pytest.fixture
+    def stageduser(self, request, xmlrpc_setup):
+        tracker = StageUserTracker("tuser", "test", "user")
+        return tracker.make_fixture(request)
+
+    def test_active_same_as_preserved(self, user):
+        user.make_preserved_user()
+        command = user.make_create_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'user with name "%s" already exists' % user4.uid)):
+                message=u'user with name "%s" already exists' % user.uid)):
             command()
-        user5.delete()
 
-    def test_staged_same_as_active(self, user4, stageduser4):
-        user4.ensure_exists()
-        stageduser4.create()  # can be created
+    def test_staged_same_as_active(self, user, stageduser):
+        user.create()
+        stageduser.create()  # can be created
 
-        command = stageduser4.make_activate_command()
+        command = stageduser.make_activate_command()
         with raises_exact(errors.DuplicateEntry(
                 message=u'active user with name "%s" already exists' %
-                user4.uid)):
+                user.uid)):
             command()  # cannot be activated
 
-        user4.delete()
-        stageduser4.delete()
+    def test_staged_same_as_preserved(self, user, stageduser):
+        user.make_preserved_user()
+        stageduser.create()  # can be created
 
-    def test_staged_same_as_preserved(self, user5, stageduser4):
-        user5.make_preserved_user()
-        stageduser4.create()  # can be created
-
-        command = stageduser4.make_activate_command()
+        command = stageduser.make_activate_command()
         with raises_exact(errors.DuplicateEntry(
                 message=u'This entry already exists')):
             command()  # cannot be activated
 
-        user5.delete()
-        stageduser4.delete()
+    def test_active_same_as_staged(self, user, stageduser):
+        stageduser.create()
+        user.create()  # can be created
 
-    def test_active_same_as_staged(self, user4, stageduser4):
-        user4.ensure_missing()
-        stageduser4.ensure_exists()
-        command = user4.make_create_command()
-        result = command()
-        user4.track_create()
-        user4.check_create(result)  # can be created
-
-        command = stageduser4.make_activate_command()
+        command = stageduser.make_activate_command()
         with raises_exact(errors.DuplicateEntry(
                 message=u'active user with name "%s" already exists' %
-                user4.uid)):
+                user.uid)):
             command()  # cannot be activated
 
 
