@@ -17,13 +17,13 @@ steps:
     sudo modprobe {nfs,nfsd}
   displayName: Configure NFS to allow NFS server/client within containers
 
-- task: DownloadPipelineArtifact@0
+- task: DownloadPipelineArtifact@2
   displayName: Download prebuilt packages '$(IPA_PACKAGES_ARTIFACT)'
   inputs:
     artifactName: $(IPA_PACKAGES_ARTIFACT)
     targetPath: $(Build.Repository.LocalPath)/dist
 
-- task: DownloadPipelineArtifact@0
+- task: DownloadPipelineArtifact@2
   displayName: Download pre-built container '$(IPA_IMAGE_ARTIFACT)'
   inputs:
     artifactName: $(IPA_IMAGE_ARTIFACT)
