@@ -119,7 +119,7 @@ class UnsafeIPAddress(netaddr.IPAddress):
                 if addr.version != 6:
                     raise
         except ValueError:
-            self._net = netaddr.IPNetwork(addr, flags=self.netaddr_ip_flags)
+            self._net = netaddr.IPNetwork(addr, flags=0)
             addr = self._net.ip
         super(UnsafeIPAddress, self).__init__(addr,
                                               flags=self.netaddr_ip_flags)
