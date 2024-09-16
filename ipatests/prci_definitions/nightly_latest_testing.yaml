@@ -2200,9 +2200,11 @@ jobs:
         build_url: '{testing-fedora/build_url}'
         update_packages: True
         enable_testing_repo: True
-        test_suite: test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+        test_suite: >-
+            test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+            test_integration/test_random_serial_numbers.py::TestInstall_RSN_MDB
         template: *ci-master-latest
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
   testing-fedora/test_random_serial_numbers_TestRSNPKIConfig:

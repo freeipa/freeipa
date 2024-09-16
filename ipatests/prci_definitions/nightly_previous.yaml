@@ -1897,9 +1897,11 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-previous/build_url}'
-        test_suite: test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+        test_suite: >-
+            test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+            test_integration/test_random_serial_numbers.py::TestInstall_RSN_MDB
         template: *ci-master-previous
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
   fedora-previous/test_random_serial_numbers_TestRSNPKIConfig:
