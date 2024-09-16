@@ -1,0 +1,1302 @@
+topologies:
+  build: &build
+    name: build
+    cpu: 2
+    memory: 3800
+  master_1repl: &master_1repl
+    name: master_1repl
+    cpu: 4
+    memory: 6750
+  master_1repl_1client: &master_1repl_1client
+    name: master_1repl_1client
+    cpu: 4
+    memory: 8000
+  ipaserver: &ipaserver
+    name: ipaserver
+    cpu: 2
+    memory: 2750
+  master_2repl_1client: &master_2repl_1client
+    name: master_2repl_1client
+    cpu: 5
+    memory: 10750
+  master_3repl_1client: &master_3repl_1client
+    name: master_3repl_1client
+    cpu: 6
+    memory: 13500
+  ad_master: &ad_master
+    name: ad_master
+    cpu: 4
+    memory: 8096
+  ad_master_1repl_1client: &ad_master_1repl_1client
+    name: ad_master_1repl_1client
+    cpu: 6
+    memory: 12096
+
+jobs:
+  edns-fedora/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        copr: '@antorres/freeipa-unbound-dns'
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-latest
+          name: freeipa/ci-master-f40
+          version: 0.0.1
+        timeout: 1800
+        topology: *build
+
+  edns-fedora/simple_replication:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_simple_replication.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_external_ca_TestExternalCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_external_ca.py::TestExternalCA
+        template: *ci-master-latest
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  edns-fedora/test_external_ca_TestSelfExternalSelf:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/external_ca_templates:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_vault:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_vault.py
+        template: *ci-master-latest
+        timeout: 6300
+        topology: *master_1repl
+
+  edns-fedora/test_forced_client_enrolment:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_forced_client_reenrollment.py
+        template: *ci-master-latest
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA1:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA1
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA2:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA2
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallCA
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA_KRA1:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA1
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA_KRA2:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA2
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA_DNS1:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS1
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA_DNS2:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS2
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA_DNS3:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS3
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallWithCA_DNS4:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_DNS4
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallWithCA_KRA_DNS1:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS1
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallWithCA_KRA_DNS2:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallWithCA_KRA_DNS2
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_installation_TestInstallMaster:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallMaster
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallMasterKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallMasterKRA
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallMasterDNS:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallMasterDNS
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallMasterDNSRepeatedly:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallMasterDNSRepeatedly
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallMasterReservedIPasForwarder:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallMasterReservedIPasForwarder
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_installation_TestInstallwithSHA384withRSA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_installation.py::TestInstallwithSHA384withRSA
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestServerInstall:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestServerInstall
+        template: *ci-master-latest
+        timeout: 12000
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestReplicaInstall:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestReplicaInstall
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestClientInstall:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestClientInstall
+        template: *ci-master-latest
+        timeout: 5400
+        # actually master_1client
+        topology: *master_1repl_1client
+
+  edns-fedora/test_caless_TestIPACommands:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestIPACommands
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestCertInstall:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestCertInstall
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestPKINIT:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestPKINIT
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestServerReplicaCALessToCAFull:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestReplicaCALessToCAFull:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestReplicaCALessToCAFull
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_caless_TestServerCALessToExternalCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_caless.py::TestServerCALessToExternalCA
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_backup_and_restore_TestBackupAndRestoreWithKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithKRA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_backup_and_restore_TestBackupReinstallRestoreWithKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupReinstallRestoreWithKRA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_backup_and_restore_TestBackupAndRestoreWithReplica:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_backup_and_restore.py::TestBackupAndRestoreWithReplica
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  edns-fedora/test_backup_and_restore_TestReplicaInstallAfterRestore:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_backup_and_restore.py::TestReplicaInstallAfterRestore
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  edns-fedora/test_replica_promotion_TestReplicaPromotionLevel1:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaPromotionLevel1
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_replica_promotion_TestRenewalMaster:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replica_promotion.py::TestRenewalMaster
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_replica_promotion_TestSubCAkeyReplication:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_replica_promotion_TestReplicaInstallCustodia:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replica_promotion.py::TestReplicaInstallCustodia
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_2repl_1client
+
+  edns-fedora/test_upgrade:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_upgrade.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_topology_TestCASpecificRUVs:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_topology.py::TestCASpecificRUVs
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestLineTopologyWithoutCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithoutCA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestLineTopologyWithCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCA
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestLineTopologyWithCAKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestLineTopologyWithCAKRA
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts.py_TestStarTopologyWithoutCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithoutCA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestStarTopologyWithCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestStarTopologyWithCAKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestStarTopologyWithCAKRA
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestCompleteTopologyWithoutCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithoutCA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestCompleteTopologyWithCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_replication_layouts_TestCompleteTopologyWithCAKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_replication_layouts.py::TestCompleteTopologyWithCAKRA
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3repl_1client
+
+  edns-fedora/test_client_uninstallation:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_uninstallation.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl_1client
+
+  edns-fedora/test_webui_cert:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_webui/test_cert.py
+        template: *ci-master-latest
+        timeout: 2400
+        topology: *ipaserver
+
+  edns-fedora/test_webui_identity:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunWebuiTests
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: >-
+          test_webui/test_automember.py
+          test_webui/test_idviews.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *ipaserver
+
+  edns-fedora/dns_locations:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_dns_locations.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_2repl_1client
+
+  edns-fedora/external_ca_TestExternalCAdirsrvStop:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_external_ca.py::TestExternalCAdirsrvStop
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/external_ca_TestExternalCAInvalidCert:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_external_ca.py::TestExternalCAInvalidCert
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/external_ca_TestMultipleExternalCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_external_ca.py::TestMultipleExternalCA
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_ipahealthcheck:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
+        template: *ci-master-latest
+        timeout: 6300
+        topology: *master_1repl_1client
+
+  edns-fedora/test_ipahealthcheck_nodns_extca_file:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithoutDNS test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithExternalCA test_integration/test_ipahealthcheck.py::TestIpaHealthCheckFileCheck
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_pkinit_install:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_pkinit_install.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  edns-fedora/test_pkinit_manage:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_pkinit_manage.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_crlgen_manage:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_crlgen_manage.py
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_ca_custom_sdn:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_ca_custom_sdn.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
+  edns-fedora/test_fips:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_fips.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl_1client
+
+  edns-fedora/test_acme:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: >-
+            test_integration/test_acme.py::TestACME
+            test_integration/test_acme.py::TestACMECALess
+            test_integration/test_acme.py::TestACMEwithExternalCA
+            test_integration/test_acme.py::TestACMERenew
+        template: *ci-master-latest
+        timeout: 8100
+        topology: *master_1repl_1client
+
+  edns-fedora/test_acme_prune:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_acme.py::TestACMEPrune
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  edns-fedora/test_cert_fix:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_ipa_cert_fix.py
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_external_idp:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_idp.py
+        template: *ci-master-latest
+        timeout: 5000
+        topology: *master_2repl_1client
+
+  edns-fedora/test_random_serial_numbers_TestInstallWithCA_DNS1_RSN:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_random_serial_numbers.py::TestInstallWithCA_DNS1_RSN
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_random_serial_numbers_TestInstallWithCA_KRA1_RSN:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_random_serial_numbers.py::TestInstallWithCA_KRA1_RSN
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_random_serial_numbers_test_commands_RSN:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_random_serial_numbers.py::TestIPACommand_RSN::test_certificate_out_write_to_file
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl_1client
+
+  edns-fedora/test_caless_TestServerCALessToExternalCA_RSN:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_random_serial_numbers_TestRSNPKIConfig:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_random_serial_numbers.py::TestRSNPKIConfig
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_3repl_1client
+
+  edns-fedora/test_random_serial_numbers_TestRSNVault:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_random_serial_numbers.py::TestRSNVault
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMInstall:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMInstall
+        template: *ci-master-latest
+        timeout: 6300
+        topology: *master_3repl_1client
+
+  edns-fedora/test_hsm_TestHSMInstallADTrustBase:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMInstallADTrustBase
+        template: *ci-master-latest
+        timeout: 5400
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestADTrustInstallWithDNS_KRA_ADTrust:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestADTrustInstallWithDNS_KRA_ADTrust
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMcertRenewal:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMcertRenewal
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMCALessToExternalToSelfSignedCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMCALessToExternalToSelfSignedCA
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMExternalToSelfSignedCA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMExternalToSelfSignedCA
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMcertFix:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMcertFix
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMcertFixKRA:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMcertFixKRA
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMcertFixReplica:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMcertFixReplica
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMNegative:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMNegative
+        template: *ci-master-latest
+        timeout: 1800
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMACME:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMACME
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  edns-fedora/test_hsm_TestHSMBackupRestore:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMBackupRestore
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
+
+  edns-fedora/test_hsm_TestHSMACMEPrune:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMACMEPrune
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
+
+  edns-fedora/test_hsm_TestHSMVault:
+    requires: [edns-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{edns-fedora/build_url}'
+        update_packages: True
+        copr: '@antorres/freeipa-unbound-dns'
+        test_suite: test_integration/test_hsm.py::TestHSMVault
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl_1client
