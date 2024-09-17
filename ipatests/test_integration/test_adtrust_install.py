@@ -873,17 +873,25 @@ class TestIpaAdTrustInstall(IntegrationTest):
              "path", "/freeipa4234"])
         self.master.run_command(["touch", "before"])
         self.master.run_command(["touch", "after"])
-        self.master.run_command(
-            ["smbclient", "--use-kerberos=desired",
-             "-c=put before", "//{}/share".format(
-                 self.master.hostname)]
-        )
+        # Find cache for the admin user
+        cache_args = []
+        cache = tasks.get_credential_cache(self.master)
+        if cache:
+            cache_args = ["--use-krb5-ccache", cache]
+
+        cmd_args = ["smbclient", "--use-kerberos=desired"]
+        cmd_args.extend(cache_args)
+        cmd_args.extend([
+            "-c=put before", "//{}/share".format(self.master.hostname)
+        ])
+        self.master.run_command(cmd_args)
         self.master.run_command(
             ["net", "conf", "setparm", "share",
              "valid users", "@admins"])
-        result = self.master.run_command(
-            ["smbclient", "--use-kerberos=desired",
-             "-c=put after", "//{}/share".format(
-                 self.master.hostname)]
-        )
+        cmd_args = ["smbclient", "--use-kerberos=desired"]
+        cmd_args.extend(cache_args)
+        cmd_args.extend([
+            "-c=put after", "//{}/share".format(self.master.hostname)
+        ])
+        result = self.master.run_command(cmd_args)
         assert msg not in result.stdout_text
