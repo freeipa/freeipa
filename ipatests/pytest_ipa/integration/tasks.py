@@ -795,15 +795,22 @@ def remove_trust_info_from_ad(master, ad_domain, ad_hostname):
     kinit_as_user(master,
                   'Administrator@{}'.format(ad_domain.upper()),
                   master.config.ad_admin_password)
+    # Find cache for the user
+    cache_args = []
+    cache = get_credential_cache(master)
+    if cache:
+        cache_args = ["--use-krb5-ccache", cache]
+
     # Detect whether rpcclient supports -k or --use-kerberos option
     res = master.run_command(['rpcclient', '-h'], raiseonerr=False)
     if "--use-kerberos" in res.stderr_text:
         rpcclient_krb5_knob = "--use-kerberos=desired"
     else:
         rpcclient_krb5_knob = "-k"
-    master.run_command(['rpcclient', rpcclient_krb5_knob, ad_hostname,
-                        '-c', 'deletetrustdom {}'.format(master.domain.name)],
-                       raiseonerr=False)
+    cmd_args = ['rpcclient', rpcclient_krb5_knob, ad_hostname]
+    cmd_args.extend(cache_args)
+    cmd_args.extend(['-c', 'deletetrustdom {}'.format(master.domain.name)])
+    master.run_command(cmd_args, raiseonerr=False)
 
 
 def configure_auth_to_local_rule(master, ad):
@@ -1084,6 +1091,16 @@ def kinit_user(host, user, password, raiseonerr=True):
 def kinit_admin(host, raiseonerr=True):
     return kinit_user(host, 'admin', host.config.admin_password,
                       raiseonerr=raiseonerr)
+
+
+def get_credential_cache(host):
+    # Return the credential cache currently in use on host or None
+    result = host.run_command(["klist"]).stdout_text
+    pattern = re.compile(r'Ticket cache: (?P<cache>.*)\n')
+    res = pattern.search(result)
+    if res:
+        return res['cache']
+    return None
 
 
 def uninstall_master(host, ignore_topology_disconnect=True,
