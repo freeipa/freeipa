@@ -176,11 +176,11 @@ journal as journald records execution context. See systemd.journal\-fields(7)
 for details.
 
 The details of the individual logged messages can be explained with the help of
-'\fBjournalctl -x\fR' command, while full set of logged properties can be
-retrieved with '\fBjournalctl -o json-pretty\fR'. See journalctl(1) for details
+\fBjournalctl -x\fR command, while full set of logged properties can be
+retrieved with \fBjournalctl -o json-pretty\fR. See journalctl(1) for details
 on the systemd journal viewer.
 
-For the sample message above, an explanation could be requested with '\fBjournalctl -x -g ldap2_140328582446688\fR' where LDAP backend connection instance identifier can be used to uniquely fetch that individual message.
+For the sample message above, an explanation could be requested with \fBjournalctl -x -g ldap2_140328582446688\fR where LDAP backend connection instance identifier can be used to uniquely fetch that individual message.
 
 .SH "EXAMPLES"
 .TP
