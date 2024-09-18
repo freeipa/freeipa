@@ -360,7 +360,9 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         args.extend([
             '--setup-dns',
             '--forwarder', host.config.dns_forwarder,
-            '--auto-reverse'
+            '--auto-reverse',
+            '--dns-over-tls',
+            '--dot-forwarder', "1.1.1.1#cloudflare-dns.com"
         ])
         fw_services.append("dns")
     if setup_kra:
@@ -511,7 +513,9 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if setup_dns:
         args.extend([
             '--setup-dns',
-            '--forwarder', replica.config.dns_forwarder
+            '--forwarder', replica.config.dns_forwarder,
+            '--dns-over-tls',
+            '--dot-forwarder', "1.1.1.1#cloudflare-dns.com"
         ])
         fw_services.append("dns")
     if setup_adtrust:
