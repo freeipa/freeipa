@@ -1219,6 +1219,9 @@ class TestIpaHealthCheck(IntegrationTest):
         This testcase checks that when ClonesConnectivyAndDataCheck
         is run it doesn't display source not found error
         """
+        if (tasks.get_pki_version(
+                self.master) >= tasks.parse_version('11.5.5')):
+            raise pytest.skip("PKI dropped ClonesConnectivyAndDataCheck")
         error_msg = (
             "Source 'pki.server.healthcheck.clones.connectivity_and_data' "
             "not found"
