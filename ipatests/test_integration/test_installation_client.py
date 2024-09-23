@@ -94,6 +94,16 @@ class TestInstallClient(IntegrationTest):
         ).encode() not in krb5_cfg
         tasks.uninstall_client(self.clients[0])
 
+    def test_check_ssh_service_is_activated(self):
+        """
+        This test checks all default services are activated
+        in sssd.conf including ssh
+        """
+        tasks.install_client(self.master, self.clients[0])
+        sssd_cfg = self.clients[0].get_file_contents(paths.SSSD_CONF)
+        assert 'services = nss, pam, ssh, sudo' in sssd_cfg.decode()
+        tasks.uninstall_client(self.clients[0])
+
     def test_install_with_automount(self):
         """Test that installation with automount is successful"""
         tasks.install_client(self.master, self.clients[0],
