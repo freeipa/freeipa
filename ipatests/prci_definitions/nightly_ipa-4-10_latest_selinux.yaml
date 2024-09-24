@@ -2078,3 +2078,16 @@ jobs:
         template: *ci-ipa-4-10-latest
         timeout: 600
         topology: *master_1repl
+
+  fedora-latest-ipa-4-10/test_idrange_fix:
+    requires: [fedora-latest-ipa-4-10/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-ipa-4-10/build_url}'
+        selinux_enforcing: True
+        test_suite: test_integration/test_ipa_idrange_fix.py
+        template: *ci-ipa-4-10-latest
+        timeout: 3600
+        topology: *master_1repl
