@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class TestIpaIdrangeFix(IntegrationTest):
+
+    topology = 'line'
+
     @classmethod
     def install(cls, mh):
         super(TestIpaIdrangeFix, cls).install(mh)
