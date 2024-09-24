@@ -8,8 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
 "PO-Revision-Date: 2024-09-24 05:45+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/ko/>\n"
 "Language: ko\n"
@@ -1364,16 +1363,16 @@ msgstr "중복된 맵 건너띄기:"
 #: ipaclient/plugins/automount.py:295
 #, python-format
 msgid "Skipped %(map)s"
-msgstr "%(map)s 건너뛰기"
+msgstr "%(map)s 건너뜀"
 
 #: ipaclient/plugins/automount.py:301
 msgid "Duplicate keys skipped:"
-msgstr "중복된 키 건너뛰기:"
+msgstr "중복된 키 건너뜀:"
 
 #: ipaclient/plugins/automount.py:304
 #, python-format
 msgid "Skipped %(key)s"
-msgstr "%(key)s 건너뛰기"
+msgstr "%(key)s 건너뜀"
 
 #: ipaclient/plugins/otptoken.py:66
 msgid ""
@@ -14950,7 +14949,7 @@ msgstr "DNS 이름표는 63 자를 초과 할 수 없습니다"
 
 #: ipalib/util.py:950
 msgid "invalid domain name"
-msgstr ""
+msgstr "잘못된 도메인 이름"
 
 #: ipalib/util.py:963
 #, python-format
