@@ -1118,6 +1118,7 @@ class CAInstance(DogtagInstance):
 
         ipautil.remove_file(paths.DOGTAG_ADMIN_P12)
         ipautil.remove_file(paths.CACERT_P12)
+        ipautil.remove_file(paths.ADMIN_CERT_PATH)
 
     def unconfigure_certmonger_renewal_guard(self):
         if not self.is_configured():
