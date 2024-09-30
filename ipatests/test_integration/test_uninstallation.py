@@ -197,6 +197,7 @@ class TestUninstallCleanup(IntegrationTest):
             '/var/lib/sss/pubconf/krb5.include.d/localauth_plugin',
             '/var/named/dynamic/managed-keys.bind',
             '/var/named/dynamic/managed-keys.bind.jnl',
+            '/var/lib/systemd/coredump/',
         ]
 
         leftovers = []
@@ -217,3 +218,23 @@ class TestUninstallCleanup(IntegrationTest):
                 leftovers.append(line)
 
         assert len(leftovers) == 0
+
+
+class TestUninstallReinstall(IntegrationTest):
+    """Test install, uninstall, re-install.
+
+       Reinstall with PKI 11.6.0 was failing
+       https://pagure.io/freeipa/issue/9673
+    """
+
+    num_replicas = 0
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+
+    def test_uninstall_server(self):
+        tasks.uninstall_master(self.master)
+
+    def test_reinstall_server(self):
+        tasks.install_master(self.master, setup_dns=False)

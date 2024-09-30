@@ -304,21 +304,37 @@ class DogtagInstance(service.Service):
         if self.is_installed():
             self.print_msg("Unconfiguring %s" % self.subsystem)
 
-        args = [paths.PKIDESTROY,
-                "-i", "pki-tomcat", "--force",
-                "-s", self.subsystem]
-
-        # specify --log-file <path> on PKI 11.0.0 or later
-
+        args = []
         pki_version = pki.util.Version(pki.specification_version())
-        if pki_version >= pki.util.Version("11.0.0"):
-            timestamp = time.strftime(
-                "%Y%m%d%H%M%S",
-                time.localtime(time.time()))
-            log_file = os.path.join(
-                paths.VAR_LOG_PKI_DIR,
-                "pki-%s-destroy.%s.log" % (self.subsystem.lower(), timestamp))
-            args.extend(["--log-file", log_file])
+        if self.subsystem == "ACME":
+            if pki_version < pki.util.Version("11.0.0"):
+                return
+            elif (
+                pki.util.Version("11.0.0") <= pki_version
+                <= pki.util.Version("11.5.0")
+            ):
+                args = ['pki-server', 'acme-remove']
+            else:
+                # fall through for PKI >= 11.6.0
+                pass
+        if not args:
+            args = [paths.PKIDESTROY,
+                    "-i", "pki-tomcat", "--force",
+                    "-s", self.subsystem]
+
+            # specify --log-file <path> on PKI 11.0.0 or later
+
+            if pki_version >= pki.util.Version("11.0.0"):
+                timestamp = time.strftime(
+                    "%Y%m%d%H%M%S",
+                    time.localtime(time.time()))
+                log_file = os.path.join(
+                    paths.VAR_LOG_PKI_DIR,
+                    "pki-%s-destroy.%s.log" %
+                    (self.subsystem.lower(), timestamp))
+                args.extend(["--log-file", log_file])
+            if pki_version >= pki.util.Version("11.6.0"):
+                args.extend(["--remove-conf", "--remove-logs"])
 
         try:
             ipautil.run(args)
