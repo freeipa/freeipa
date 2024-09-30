@@ -22,7 +22,7 @@ from ipaplatform.constants import constants
 from ipaserver.install import sysupgrade
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
-from ipaserver.install import cainstance, bindinstance, dsinstance
+from ipaserver.install import acmeinstance, cainstance, bindinstance, dsinstance
 from ipapython import ipautil, certdb
 from ipapython import ipaldap
 from ipapython.admintool import ScriptError
@@ -715,6 +715,9 @@ def install_step_1(standalone, replica_config, options, custodia):
 
 
 def uninstall():
+    acme = acmeinstance.ACMEInstance(api.env.realm)
+    acme.uninstall()
+
     ca_instance = cainstance.CAInstance(api.env.realm)
     ca_instance.stop_tracking_certificates()
     ipautil.remove_file(paths.RA_AGENT_PEM)
