@@ -155,6 +155,7 @@ interface(`ipa_manage_log',`
 ########################################
 ## <summary>
 ##	Allow domain to manage ipa lib files/dirs.
+##      This includes reading ipa_http_keytab_t files.
 ## </summary>
 ## <param name="domain">
 ##	<summary>
@@ -164,10 +165,33 @@ interface(`ipa_manage_log',`
 #
 interface(`ipa_read_lib',`
 	gen_require(`
+		type ipa_http_keytab_t;
 		type ipa_var_lib_t;
 	')
 
     read_files_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    read_files_pattern($1, ipa_http_keytab_t, ipa_http_keytab_t)
+    list_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+')
+
+########################################
+## <summary>
+##	Allow domain to manage ipa HTTP keytab file.
+##      This includes reading ipa_var_lib_t directories.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_read_http_keytab',`
+	gen_require(`
+		type ipa_http_keytab_t;
+		type ipa_var_lib_t;
+	')
+
+    read_files_pattern($1, ipa_http_keytab_t, ipa_http_keytab_t)
     list_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
 ')
 
