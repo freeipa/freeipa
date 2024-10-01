@@ -43,6 +43,9 @@ logging_log_file(ipa_log_t)
 type ipa_var_lib_t;
 files_type(ipa_var_lib_t)
 
+type ipa_http_keytab_t;
+files_type(ipa_http_keytab_t)
+
 type ipa_var_run_t;
 files_pid_file(ipa_var_run_t)
 
@@ -515,4 +518,20 @@ optional_policy(`
         class file read;
     ')
     allow certmonger_t pki_tomcat_etc_rw_t:file { getattr ioctl open read };
+')
+
+# gssproxy needs to read http keytab
+optional_policy(`
+    gen_require(`
+        type gssproxy_t;
+    ')
+    ipa_read_http_keytab(gssproxy_t)
+')
+
+# Allow Cockpit to use HTTP keytab on IPA servers for GSSAPI authentication
+optional_policy(`
+    gen_require(`
+        type cockpit_session_t;
+    ')
+    ipa_read_http_keytab(cockpit_session_t)
 ')
