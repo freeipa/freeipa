@@ -22,6 +22,8 @@
 
 /var/lib/ipa(/.*)?              gen_context(system_u:object_r:ipa_var_lib_t,s0)
 
+/var/lib/ipa/gssproxy/http.keytab -- gen_context(system_u:object_r:ipa_http_keytab_t,s0)
+
 /var/log/ipa(/.*)?              gen_context(system_u:object_r:ipa_log_t,s0)
 
 /var/log/ipabackup.log	--	gen_context(system_u:object_r:ipa_log_t,s0)
