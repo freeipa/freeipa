@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
+from collections import Counter
 
 import pytest
 import textwrap
@@ -920,3 +921,28 @@ class TestIPAMigrateScenario1(IntegrationTest):
         )
         assert result.returncode == 1
         assert ERR_MSG in result.stderr_text
+
+    def test_ipa_hbac_rule_duplication(self):
+        """
+        This testcase checks that default hbac rules
+        are not duplicated on the local server when
+        ipa-migrate command is run.
+        """
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=['-n']
+        )
+        result = self.replicas[0].run_command(
+            ['ipa', 'hbacrule-find']
+        )
+        lines = result.stdout_text.splitlines()
+        line = []
+        for i in lines:
+            line.append(i.strip())
+        count = Counter(line)
+        assert count.get('Rule name: allow_all') < 2
+        assert count.get('Rule name: allow_systemd-user') < 2
