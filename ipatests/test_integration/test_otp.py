@@ -10,6 +10,7 @@ import re
 import time
 import textwrap
 from urllib.parse import urlparse, parse_qs
+from paramiko import AuthenticationException
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -83,7 +84,7 @@ def kinit_otp(host, user, *, password, otp, success=True):
     )
 
 
-def ssh_2f(hostname, username, answers_dict, port=22):
+def ssh_2f(hostname, username, answers_dict, port=22, unwanted_prompt=""):
     """
     :param hostname: hostname
     :param username: username
@@ -103,6 +104,10 @@ def ssh_2f(hostname, username, answers_dict, port=22):
             logger.info("Prompt is: '%s'", prmpt_str)
             logger.info(
                 "Answer to ssh prompt is: '%s'", answers_dict[prmpt_str])
+            if unwanted_prompt and prmpt_str == unwanted_prompt:
+                # We should not see this prompt
+                raise ValueError("We got an unwanted prompt: "
+                                 + answers_dict[prmpt_str])
         return resp
 
     import paramiko
@@ -193,7 +198,8 @@ class TestOTPToken(IntegrationTest):
 
         # skipping too many OTP fails
         otp1 = hotp.generate(10).decode("ascii")
-        kinit_otp(self.master, USER, password=PASSWORD, otp=otp1, success=False)
+        kinit_otp(self.master, USER, password=PASSWORD, otp=otp1,
+                  success=False)
         # Now the token is desynchronized
         yield (otpuid, hotp)
 
@@ -533,6 +539,90 @@ class TestOTPToken(IntegrationTest):
             del_otptoken(self.master, otpuid)
             master.run_command(['ipa', 'config-mod', '--delattr',
                                 'ipaconfigstring=EnforceLDAPOTP'])
+        finally:
+            master.run_command(['ipa', 'pwpolicy-mod', '--minlife', '1'])
+            master.run_command(['ipa', 'user-del', USER1])
+
+    def test_totp_expired_ldap(self):
+        master = self.master
+        basedn = master.domain.basedn
+        USER1 = 'user-expired-otp'
+        TMP_PASSWORD = 'Secret1234509'
+        binddn = DN(f"uid={USER1},cn=users,cn=accounts,{basedn}")
+        controls = [
+            BooleanControl(
+                controlType="2.16.840.1.113730.3.8.10.7",
+                booleanValue=True)
+        ]
+
+        tasks.kinit_admin(master)
+        master.run_command(['ipa', 'pwpolicy-mod', '--minlife', '0'])
+        tasks.user_add(master, USER1, password=TMP_PASSWORD)
+        # Enforce use of OTP token for this user
+        master.run_command(['ipa', 'user-mod', USER1,
+                            '--user-auth-type=otp'])
+        try:
+            # Change initial password through the IPA endpoint
+            url = f'https://{master.hostname}/ipa/session/change_password'
+            master.run_command(['curl', '-d', f'user={USER1}',
+                                '-d', f'old_password={TMP_PASSWORD}',
+                                '-d', f'new_password={PASSWORD}',
+                                '--referer', f'https://{master.hostname}/ipa',
+                                url])
+            conn = master.ldap_connect()
+            # First, attempt authenticating with a password but without LDAP
+            # control to enforce OTP presence and without server-side
+            # enforcement of the OTP presence check.
+            conn.simple_bind(binddn, f"{PASSWORD}")
+
+            # Add an OTP token and then modify it to be expired
+            otpuid, totp = add_otptoken(master, USER1, otptype="totp")
+
+            # Make sure OTP auth is working
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            conn = master.ldap_connect()
+            conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
+                             client_controls=controls)
+            conn.unbind()
+
+            # Modfy token so that is now expired
+            args = [
+                "ipa",
+                "otptoken-mod",
+                otpuid,
+                "--not-after",
+                "20241001010000Z",
+            ]
+            master.run_command(args)
+
+            # Next, authenticate with Password+OTP again and with the LDAP
+            # control this operation should now fail
+            time.sleep(45)
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+
+            conn = master.ldap_connect()
+            with pytest.raises(errors.ACIError):
+                conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
+                                 client_controls=controls)
+
+            # Sleep to make sure we are going to use a different token value
+            time.sleep(45)
+
+            # Use OTP token again but authenticate over ssh and make sure it
+            # doesn't fallthrough to asking for a password
+            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            answers = {
+                'Enter first factor:': PASSWORD,
+                'Enter second factor:': otpvalue
+            }
+            with pytest.raises(AuthenticationException):
+                # ssh should fail and NOT ask for a password
+                ssh_2f(master.hostname, USER1, answers,
+                       unwanted_prompt="Password:")
+
+            # Remove token
+            del_otptoken(self.master, otpuid)
+
         finally:
             master.run_command(['ipa', 'pwpolicy-mod', '--minlife', '1'])
             master.run_command(['ipa', 'user-del', USER1])
