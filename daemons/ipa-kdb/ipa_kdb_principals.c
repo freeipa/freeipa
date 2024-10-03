@@ -107,7 +107,6 @@ static char *std_principal_obj_classes[] = {
     "krbprincipal",
     "krbprincipalaux",
     "krbTicketPolicyAux",
-
     NULL
 };
 
@@ -338,14 +337,16 @@ static void ipadb_validate_otp(struct ipadb_context *ipactx,
     if (dn == NULL)
         return;
     count = asprintf(&filter, ftmpl, dn, datetime, datetime);
-    ldap_memfree(dn);
-    if (count < 0)
+    if (count < 0) {
+        ldap_memfree(dn);
         return;
+    }
 
     /* Fetch the active token list. */
     kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
                                filter, (char**) attrs, &res);
     free(filter);
+    filter = NULL;
     if (kerr != 0 || res == NULL)
         return;
 
@@ -353,10 +354,60 @@ static void ipadb_validate_otp(struct ipadb_context *ipactx,
     count = ldap_count_entries(ipactx->lcontext, res);
     ldap_msgfree(res);
 
-    /* If the user is configured for OTP, but has no active tokens, remove
-     * OTP from the list since the user obviously can't log in this way. */
-    if (count == 0)
+    /*
+     * If there are no valid tokens then we need to remove the OTP flag,
+     * unless OTP is the only auth type allowed...
+     */
+    if (count == 0) {
+        /* Remove the OTP flag for now */
         *ua &= ~IPADB_USER_AUTH_OTP;
+
+        if (*ua == 0) {
+            /*
+             * Ok, we "only" allow OTP, so if there is an expired/disabled
+             * token then add back the OTP flag as the server will double
+             * check the validity and reject the entire bind. Otherwise, this
+             * is the first time the user is authenticating and the user
+             * should be allowed to bind using its password
+             */
+            static const char *expired_ftmpl = "(&"
+                "(objectClass=ipaToken)(ipatokenOwner=%s)"
+                "(|(ipatokenNotAfter<=%s)(!(ipatokenNotAfter=*))"
+                "(ipatokenDisabled=True))"
+            ")";
+            if (asprintf(&filter, expired_ftmpl, dn, datetime) < 0) {
+                ldap_memfree(dn);
+                return;
+            }
+
+            krb5_klog_syslog(LOG_INFO,
+                "Entry (%s) does not have a valid token and only OTP "
+                "authentication is supported, checking for expired tokens...",
+                dn);
+
+            kerr = ipadb_simple_search(ipactx, ipactx->base, LDAP_SCOPE_SUBTREE,
+                                       filter, (char**) attrs, &res);
+            free(filter);
+            if (kerr != 0 || res == NULL) {
+                ldap_memfree(dn);
+                return;
+            }
+
+            if (ldap_count_entries(ipactx->lcontext, res) > 0) {
+                /*
+                 * Ok we only allow OTP, and there are expired/disabled tokens
+                 * so add the OTP flag back, and the server will reject the
+                 * bind
+                 */
+                krb5_klog_syslog(LOG_INFO,
+                    "Entry (%s) does have an expired/disabled token so this "
+                    "user can not fall through to password auth", dn);
+                *ua |= IPADB_USER_AUTH_OTP;
+            }
+            ldap_msgfree(res);
+        }
+    }
+    ldap_memfree(dn);
 }
 
 static void ipadb_validate_radius(struct ipadb_context *ipactx,
