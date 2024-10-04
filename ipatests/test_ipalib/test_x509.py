@@ -275,7 +275,7 @@ class test_x509:
         if tz:
             os.environ['TZ'] = tz
         else:
-            del os.environ['TZ']
+            os.environ.pop('TZ', None)
         # ensure the timezone doesn't mess with not_before and not_after
         assert cert.not_valid_before == not_before
         assert cert.not_valid_after == not_after
