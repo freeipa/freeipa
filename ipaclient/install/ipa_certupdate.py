@@ -70,7 +70,7 @@ class CertUpdate(admintool.AdminTool):
             raise
         finally:
             if old_krb5ccname is None:
-                del os.environ['KRB5CCNAME']
+                os.environ.pop('KRB5CCNAME', None)
             else:
                 os.environ['KRB5CCNAME'] = old_krb5ccname
 
