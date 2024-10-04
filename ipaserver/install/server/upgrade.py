@@ -2061,7 +2061,7 @@ def empty_ccache():
         if old_path:
             os.environ['KRB5CCNAME'] = old_path
         else:
-            del os.environ['KRB5CCNAME']
+            os.environ.pop('KRB5CCNAME', None)
         shutil.rmtree(kpath_dir)
 
 
