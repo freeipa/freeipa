@@ -312,24 +312,26 @@ class TestHSMInstall(BaseHSMTest):
         assert returncode == 0
         assert output == "No issues found."
 
+
+class TestHSMInstallPasswordFile(BaseHSMTest):
+
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        check_version(cls.master)
+        # Enable pkiuser to read softhsm tokens
+        cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
+        cls.token_name, cls.token_password = get_hsm_token(cls.master)
+        cls.master.put_file_contents(
+            cls.token_password_file, cls.token_password
+        )
+        cls.replicas[0].put_file_contents(
+            cls.token_password_file, cls.token_password
+        )
+
     def test_hsm_install_server_password_file(self):
         check_version(self.master)
-        # cleanup before fresh install with password file
-        for client in self.clients:
-            tasks.uninstall_client(client)
-
-        for replica in self.replicas:
-            tasks.uninstall_master(replica)
-
-        tasks.uninstall_master(self.master)
-
-        delete_hsm_token([self.master] + self.replicas, self.token_name)
-        self.token_name, self.token_password = get_hsm_token(self.master)
-        self.master.put_file_contents(self.token_password_file,
-                                      self.token_password)
-        self.replicas[0].put_file_contents(self.token_password_file,
-                                           self.token_password)
-
         tasks.install_master(
             self.master, setup_dns=self.master_with_dns,
             setup_kra=self.master_with_kra,

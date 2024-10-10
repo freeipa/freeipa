@@ -2105,6 +2105,19 @@ jobs:
         timeout: 6300
         topology: *master_3repl_1client
 
+  fedora-rawhide/test_hsm_TestHSMInstallPasswordFile:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_hsm.py::TestHSMInstallPasswordFile
+        template: *ci-master-frawhide
+        timeout: 6300
+        topology: *master_1repl
+
   fedora-rawhide/test_hsm_TestHSMInstallADTrustBase:
     requires: [fedora-rawhide/build]
     priority: 50
