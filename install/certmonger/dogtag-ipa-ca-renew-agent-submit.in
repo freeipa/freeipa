@@ -475,7 +475,7 @@ def renew_ca_cert(reuse_existing, force_self_signed, **kwargs):
         if profile is not None:
             os.environ['CERTMONGER_CA_PROFILE'] = profile
         else:
-            del os.environ['CERTMONGER_CA_PROFILE']
+            os.environ.pop('CERTMONGER_CA_PROFILE', None)
 
     if result[0] == WAIT:
         return (result[0], '%s:%s' % (state, result[1]))

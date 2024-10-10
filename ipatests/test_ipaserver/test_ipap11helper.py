@@ -84,7 +84,7 @@ def p11(request, token_path):
                 [SOFTHSM2_UTIL, '--delete-token', '--label', 'test'],
                 cwd=token_path
             )
-            del os.environ['SOFTHSM2_CONF']
+            os.environ.pop('SOFTHSM2_CONF', None)
 
     request.addfinalizer(fin)
 
