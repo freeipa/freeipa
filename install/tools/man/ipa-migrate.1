@@ -5,11 +5,11 @@
 .SH "NAME"
 ipa\-migrate \- Migrate an IPA server from one machine to another
 .SH "SYNOPSIS"
-ipa\-migrate
+\fBipa\-migrate\fR [OPTIONS] \fBprod\-mode\fR|\fBstage\-mode\fR \fIhostname\fR
 .SH "DESCRIPTION"
 
 Use the \fIipa-migrate\fR command to migrate one
-IPA server to an existing local IPA server installation.
+IPA server \fIhostname\fR to an existing local IPA server installation.
 
 Migrate IPA schema, configuration, and database to a local IPA server.  This
 migration can be done online, where the tool will query the remote server. Or,
@@ -19,7 +19,6 @@ and then use an exported LDIF file for the database migration portion (this
 might be more useful for very large databases as you don't need to worry about
 network interruptions)
 
-.SH POSITIONAL ARGUMENTS
 .TP
 \fBprod\-mode\fR
 In this mode everything will be migrated including the current user SIDs and
@@ -28,13 +27,10 @@ DNA ranges
 \fBstage\-mode\fR
 In this mode, SIDs & DNA ranges are not migrated, and DNA attributes are reset
 
-.SH "COMMANDS"
+.SH "OPTIONS"
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
-Use verbose output while running the migration tool.
-.TP
-\fB\-e\fR, \fB\-\-hostname=HOSTNAME\fR
-The host name of the remote IPA server that is being migrated from.
+Use verbose output while running the migration tool
 .TP
 \fB\-D\fR, \fB\-\-bind\-dn=BIND_DN\fR
 The Bind DN (Distinguished Name) or an LDAP entry to bind to the remote IPA server with.
@@ -43,10 +39,10 @@ access to read the userPassword attribute.  If ommitted the default is "cn=direc
 .TP
 \fB\-w\fR, \fB\-\-bind\-pw=PASSWORD\fR
 The password for the Bind DN that is authenticating against the remote IPA server.  If
-a password is not provided then the tool with prompt for the password if needed.
+a password is not provided then the tool with prompt for the password if needed
 .TP
-\fB\-Just\fR, \fB\-\-bind\-pw\-file=FILE_PATH\fR
-Path to a file containing the password for the Bind DN.
+\fB\-j\fR, \fB\-\-bind\-pw\-file=FILE_PATH\fR
+Path to a file containing the password for the Bind DN
 .TP
 \fB\-Z\fR, \fB\-\-cacertfile=FILE_PATH\fR
 Path to a file containing a CA Certificate that the remote server trusts
@@ -55,23 +51,23 @@ Path to a file containing a CA Certificate that the remote server trusts
 Path to a file containing the migration log.  By default the tool will use \fI/var/log/ipa-migrate.log\fR
 .TP
 \fB\-x\fR, \fB\-\-dryrun\fR
-Go through the migration process but do not write and data to the new IPA server.
+Go through the migration process but do not write any data to the new IPA server
 .TP
 \fB\-o\fR, \fB\-\-dryrun\-record=FILE_PATH\fR
 Go through the migration process but do not write any data to the new IPA server. However, write the
-migration operations to an LDIF file which can be applied later or reused for multiple migrations.
+migration operations to an LDIF file which can be applied later or reused for multiple migrations
 .TP
 \fB\-r\fR, \fB\-\-reset\-range\fR
 Reset the ID range for migrated users/groups. In "stage-mode" this is done automatically
 .TP
 \fB\-F\fR, \fB\-\-force\fR
-Ignore any errors and continue to proceed with migration effort.
+Ignore any errors and continue to proceed with migration effort
 .TP
 \fB\-q\fR, \fB\-\-quiet\fR
-Only log errors during the migration process.
+Only log errors during the migration process
 .TP
 \fB\-B\fR, \fB\-\-migrate\-dns\fR
-Migrate thr DNS records
+Migrate the DNS records
 .TP
 \fB\-S\fR, \fB\-\-skip\-schema\fR
 Do not migrate the database schema
@@ -80,21 +76,21 @@ Do not migrate the database schema
 Do not migrate the database configuration (dse.ldif/cn=config)
 .TP
 \fB\-O\fR, \fB\-\-schema\-overwrite\fR
-Overwrite existing schema definitions.  By default duplicate schema is skipped.
+Overwrite existing schema definitions.  By default duplicate schema is skipped
 .TP
 \fB\-s\fR, \fB\-\-subtree=DN\fR
 Specifies a custom database subtree that should be included in the migration.
 This is only needed if non-default subtrees/branches were added to the database
-outside of IPA.
+outside of IPA
 .TP
 \fB\-f\fR, \fB\-\-db\-ldif=FILE_PATH\fR
-LDIF file containing the entire backend. If omitted the tool will query the remote IPA server.
+LDIF file containing the entire backend. If omitted the tool will query the remote IPA server
 .TP
 \fB\-m\fR, \fB\-\-schema\-ldif=FILE_PATH\fR
-LDIF file containing the schema. If omitted the tool will query the remote IPA server.
+LDIF file containing the schema. If omitted the tool will query the remote IPA server
 .TP
 \fB\-g\fR, \fB\-\-config\-ldif=FILE_PATH\fR
-LDIF file containing the entire "cn=config" DIT. If omitted the tool will query the remote IPA server.
+LDIF file containing the entire "cn=config" DIT. If omitted the tool will query the remote IPA server
 .TP
 \fB\-n\fR, \fB\-\-no\-prompt\fR
 Do not prompt for confirmation before starting migration.  Use at your own risk!
