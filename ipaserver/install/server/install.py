@@ -1018,6 +1018,10 @@ def install(installer):
 
     if options.setup_dns:
         dns.install(False, False, options)
+    elif options.dns_over_tls:
+        service.print_msg("Warning: --dns-over-tls option "
+                          "specified without --setup-dns, ignoring")
+        options.dns_over_tls = False
 
     # Always call adtrust installer to configure SID generation
     # if --setup-adtrust is not specified, only the SID part is executed
@@ -1084,12 +1088,11 @@ def install(installer):
     print("\t\t  * 80, 443: HTTP/HTTPS")
     print("\t\t  * 389, 636: LDAP/LDAPS")
     print("\t\t  * 88, 464: kerberos")
-    if options.setup_dns:
-        print("\t\t  * 53: bind")
+    dns_port = "853" if options.dns_over_tls else "53"
+    print(f"\t\t  * {dns_port}: bind")
     print("\t\tUDP Ports:")
     print("\t\t  * 88, 464: kerberos")
-    if options.setup_dns:
-        print("\t\t  * 53: bind")
+    print(f"\t\t  * {dns_port}: bind")
     if not options.no_ntp:
         print("\t\t  * 123: ntp")
     print("")
