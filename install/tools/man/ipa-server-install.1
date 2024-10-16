@@ -126,7 +126,7 @@ If no template is specified, the template name "SubCA" is used.
 File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.
 .TP
 \fB\-\-random\-serial\-numbers\fR
-Enable Random Serial Numbers. Random serial numbers cannot be used in a mixed environment. Either all CA's have it enabled or none do.
+Enable Random Serial Numbers (RSN) and certificate pruning. This option is enabled by default if the system is installed with a 389-ds version that supports LMDB or if another CA in the topology is configured with Random Serial Numbers. This option remains present to avoid issues with automation. In mixed environments where existing CA servers are configured with sequential numbers, it is recommended to replace the sequential servers as soon as reasonably possible.
 .TP
 \fB\-\-no\-pkinit\fR
 Disables pkinit setup steps.
