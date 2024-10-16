@@ -61,6 +61,7 @@ jobs:
     job:
       class: Build
       args:
+        copr: 'abbra/wip-ipa-trust'
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
@@ -76,6 +77,8 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
+        update_packages: True
+        copr: 'abbra/wip-ipa-trust'
         test_suite: test_integration/test_multidomain_ipa.py
         trusted_domain: True
         template: *ci-master-latest
