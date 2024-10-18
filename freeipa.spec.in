@@ -613,6 +613,7 @@ If you are installing an IPA server, you need to install this package.
 Summary: IPA integrated DNS server with support for automatic DNSSEC signing
 BuildArch: noarch
 Requires: %{name}-server = %{version}-%{release}
+Requires: unbound
 Requires: bind-dyndb-ldap >= 11.2-2
 Requires: bind >= %{bind_version}
 Requires: bind-utils >= %{bind_version}
@@ -721,6 +722,7 @@ Requires: autofs
 Requires: libnfsidmap
 Requires: (nfs-utils or nfsv4-client-utils)
 Requires: sssd-tools >= %{sssd_version}
+Requires: unbound
 Requires(post): policycoreutils
 
 # https://pagure.io/freeipa/issue/8530
@@ -1754,6 +1756,7 @@ fi
 %{_mandir}/man1/ipa-join.1*
 %dir %{_libexecdir}/ipa/acme
 %{_libexecdir}/ipa/acme/certbot-dns-ipa
+%{_usr}/share/ipa/unbound.conf.template
 
 %files client-samba
 %doc README.md Contributors.txt
