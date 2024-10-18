@@ -72,7 +72,19 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigrateCLIOptions test_integration/test_ipa_ipa_migration.py::TestIPAMigrationStageMode test_integration/test_ipa_ipa_migration.py::TestIPAMigrationProdMode
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 9000
         topology: *master_1repl_1client
+
+  fedora-latest/temp_commit_windows:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigrationWithADtrust
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_1repl_1client
