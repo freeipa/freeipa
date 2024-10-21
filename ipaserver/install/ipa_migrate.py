@@ -622,7 +622,7 @@ class IPAMigrate():
                 else:
                     action = "replace"
                 ldif_entry += f"{action}: {attr}\n"
-                for val in vals:
+                for val in list(vals or []):
                     ldif_entry += get_ldif_attr_val(attr, val)
                 ldif_entry += "-\n"
             ldif_entry += "\n"
