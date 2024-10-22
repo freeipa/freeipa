@@ -969,7 +969,7 @@ DB_OBJECTS = {
         'count': 0,
     },
     'dns_records': {
-        'oc': ['idnsrecord', 'idnszone'],
+        'oc': ['idnsrecord', 'idnszone', 'idnsforwardzone'],
         'subtree': ',cn=dns,$SUFFIX',
         'label': 'DNS Records',
         'mode': 'all',
