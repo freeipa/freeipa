@@ -72,7 +72,33 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_edns.py
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 10800
         topology: *master_1repl_1client
+
+  fedora-latest/test_dns:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_dns.py
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_1repl
+
+
+  fedora-latest/test_dnssec:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        selinux_enforcing: True
+        test_suite: test_integration/test_dnssec.py
+        template: *ci-master-latest
+        timeout: 10800
+        topology: *master_2repl_1client
