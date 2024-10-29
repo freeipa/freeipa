@@ -41,7 +41,7 @@ idp.templates = [
       fields: ['ipaidporg']},
     { value: 'okta',
       label: text.get('@i18n:objects.idp.template_okta'),
-      fields: ['ipaidporg', 'ipaidpbaseurl']}
+      fields: ['ipaidpbaseurl']}
 ];
 
 
