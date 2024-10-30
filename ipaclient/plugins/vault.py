@@ -37,6 +37,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key, load_pem_private_key)
+from cryptography.exceptions import InternalError as CryptographyInternalError
 
 from ipaclient.frontend import MethodOverride
 from ipalib import x509
@@ -717,7 +718,7 @@ class ModVaultData(Local):
                     algo.key,
                     padding.PKCS1v15()
                 )
-            except ValueError:
+            except (ValueError, CryptographyInternalError):
                 wrapped_session_key = public_key.encrypt(
                     algo.key,
                     padding.OAEP(
