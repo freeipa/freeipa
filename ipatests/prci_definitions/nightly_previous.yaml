@@ -2140,7 +2140,7 @@ jobs:
         test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigrationWithADtrust
         template: *ci-master-previous
         timeout: 7200
-        topology: *master_1repl_1client
+        topology: *ad_master_1repl_1client
 
   fedora-previous/test_cockpit:
     requires: [fedora-previous/build]
