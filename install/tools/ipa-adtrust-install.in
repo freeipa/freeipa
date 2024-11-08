@@ -35,7 +35,7 @@ from ipaserver.install.installutils import (
     read_password,
     check_server_configuration,
     run_script)
-from ipapython.admintool import ScriptError
+from ipapython.admintool import ScriptError, admin_cleanup_global_argv
 from ipapython import version
 from ipapython import ipautil
 from ipalib import api, errors, krb_utils
@@ -93,6 +93,7 @@ def parse_options():
 
     options, _args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
+    admin_cleanup_global_argv(parser, options, sys.argv)
 
     return safe_options, options
 
