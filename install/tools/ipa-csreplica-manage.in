@@ -32,8 +32,8 @@ from ipaserver.install import (replication, installutils, bindinstance,
 from ipalib import api, errors
 from ipalib.constants import FQDN
 from ipalib.util import has_managed_topology, print_replication_status
-from ipapython import ipautil, ipaldap, version
-from ipapython.admintool import ScriptError
+from ipapython import ipautil, ipaldap, version, config
+from ipapython.admintool import admin_cleanup_global_argv, ScriptError
 from ipapython.dn import DN
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -54,11 +54,10 @@ commands = {
 
 
 def parse_options():
-    from optparse import OptionParser  # pylint: disable=deprecated-module
-
-    parser = OptionParser(version=version.VERSION)
+    parser = config.IPAOptionParser(version=version.VERSION)
     parser.add_option("-H", "--host", dest="host", help="starting host")
-    parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
+    parser.add_option("-p", "--password", dest="dirman_passwd", sensitive=True,
+                      help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                       help="provide additional information")
     parser.add_option("-f", "--force", dest="force", action="store_true", default=False,
@@ -66,6 +65,7 @@ def parse_options():
     parser.add_option("--from", dest="fromhost", help="Host to get data from")
 
     options, args = parser.parse_args()
+    admin_cleanup_global_argv(parser, options, sys.argv)
 
     valid_syntax = False
 
