@@ -43,6 +43,7 @@ from ipalib.util import (
     print_replication_status,
     verify_host_resolvable,
 )
+from ipapython.admintool import admin_cleanup_global_argv
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
@@ -84,7 +85,8 @@ class NoRUVsFound(Exception):
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-H", "--host", dest="host", help="starting host")
-    parser.add_option("-p", "--password", dest="dirman_passwd", help="Directory Manager password")
+    parser.add_option("-p", "--password", dest="dirman_passwd", sensitive=True,
+                      help="Directory Manager password")
     parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,
                       help="provide additional information")
     parser.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
@@ -95,7 +97,7 @@ def parse_options():
                       help="DANGER: clean up references to a ghost master")
     parser.add_option("--binddn", dest="binddn", default=None, type="dn",
                       help="Bind DN to use with remote server")
-    parser.add_option("--bindpw", dest="bindpw", default=None,
+    parser.add_option("--bindpw", dest="bindpw", default=None, sensitive=True,
                       help="Password for Bind DN to use with remote server")
     parser.add_option("--winsync", dest="winsync", action="store_true", default=False,
                       help="This is a Windows Sync Agreement")
@@ -103,13 +105,15 @@ def parse_options():
                       help="Full path and filename of CA certificate to use with TLS/SSL to the remote server")
     parser.add_option("--win-subtree", dest="win_subtree", default=None,
                       help="DN of Windows subtree containing the users you want to sync (default cn=Users,<domain suffix)")
-    parser.add_option("--passsync", dest="passsync", default=None,
+    parser.add_option("--passsync", dest="passsync",
+                      default=None, sensitive=True,
                       help="Password for the IPA system user used by the Windows PassSync plugin to synchronize passwords")
     parser.add_option("--from", dest="fromhost", help="Host to get data from")
     parser.add_option("--no-lookup", dest="nolookup", action="store_true", default=False,
                       help="do not perform DNS lookup checks")
 
     options, args = parser.parse_args()
+    admin_cleanup_global_argv(parser, options, sys.argv)
 
     valid_syntax = False
 

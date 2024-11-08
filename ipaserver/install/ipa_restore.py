@@ -160,7 +160,7 @@ class Restore(admintool.AdminTool):
         super(Restore, cls).add_options(parser, debug_option=True)
 
         parser.add_option(
-            "-p", "--password", dest="password",
+            "-p", "--password", dest="password", sensitive=True,
             help="Directory Manager password")
         parser.add_option(
             "--gpg-keyring", dest="gpg_keyring",

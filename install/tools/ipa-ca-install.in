@@ -42,6 +42,7 @@ from ipalib.constants import DOMAIN_LEVEL_1
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipaplatform.paths import paths
+from ipapython.admintool import admin_cleanup_global_argv
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -112,6 +113,7 @@ def parse_options():
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
+    admin_cleanup_global_argv(parser, options, sys.argv)
 
     if args:
         parser.error("Too many arguments provided")
