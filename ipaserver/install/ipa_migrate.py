@@ -28,6 +28,7 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient, LDAPEntry, realm_to_ldapi_uri
 from ipapython.ipa_log_manager import standard_logging_setup
+from ipapython.admintool import admin_cleanup_global_argv
 from ipaserver.install.ipa_migrate_constants import (
     DS_CONFIG, DB_OBJECTS, DS_INDEXES, BIND_DN, LOG_FILE_NAME,
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
@@ -284,6 +285,18 @@ class LDIFParser(ldif.LDIFParser):
             self.mc.process_db_entry(entry_dn=dn, entry_attrs=entry_attrs)
 
 
+class SensitiveStoreAction(argparse._StoreAction):
+    def __init__(self, *, sensitive, **options):
+        super(SensitiveStoreAction, self).__init__(**options)
+        self.sensitive = sensitive
+
+    def _get_kwargs(self):
+        names = super(SensitiveStoreAction, self)._get_kwargs()
+        sensitive_name = 'sensitive'
+        names.extend((sensitive_name, getattr(self, sensitive_name)))
+        return names
+
+
 #
 # Migrate IPA to IPA Class
 #
@@ -344,7 +357,8 @@ class IPAMigrate():
                             help='Password for the Bind DN.  If a password '
                                  'is not provided then the user will be '
                                  'prompted to enter it',
-                            default=None)
+                            default=None, sensitive=True,
+                            action=SensitiveStoreAction)
         parser.add_argument('-j', '--bind-pw-file',
                             help='A text file containing the clear text '
                                  'password for the Bind DN', default=None)
@@ -2023,6 +2037,7 @@ class IPAMigrate():
         parser = argparse.ArgumentParser(description=desc, allow_abbrev=True)
         self.add_options(parser)
         self.validate_options()
+        admin_cleanup_global_argv(parser, self.args, sys.argv)
 
         # Check for dryrun mode
         if self.args.dryrun or self.args.dryrun_record is not None:

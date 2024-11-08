@@ -72,7 +72,7 @@ class ServerCertInstall(admintool.AdminTool):
             help="Name of the certificate to install")
         parser.add_option(
             "-p", "--dirman-password",
-            dest="dirman_password",
+            dest="dirman_password", sensitive=True,
             help="Directory Manager password")
 
     def validate_options(self):
