@@ -15,6 +15,7 @@ import six
 import gssapi
 
 from ipalib.install.kinit import kinit_keytab, kinit_password
+from ipapython.admintool import admin_cleanup_global_argv
 
 if six.PY3:
     unicode = str
@@ -52,11 +53,13 @@ def parse_options():
         "--password",
         action="store",
         dest="password",
-        help="Display debugging information",
+        help="Password for Active Directory administrator",
+        sensitive=True
     )
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
+    admin_cleanup_global_argv(parser, options, sys.argv)
 
     # We only use first argument of the passed args but as D-BUS interface
     # in oddjobd cannot expose optional, we fill in empty slots from IPA side

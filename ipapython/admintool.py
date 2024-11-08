@@ -39,6 +39,45 @@ SERVER_NOT_CONFIGURED = 2
 logger = logging.getLogger(__name__)
 
 
+def admin_cleanup_global_argv(option_parser, options, argv):
+    """Takes option parser and generated options and scrubs sensitive arguments
+    from the global program arguments. Note that this only works for GNU GLIBC
+    as Python has no generic way to get access to the original argv values to
+    modify them in place.
+
+    The code assumes Python behavior, e.g. there are two additional args in the
+    list (/path/to/python -I ...) than what's passed as 'argv' here.
+    """
+    import ctypes
+    import ctypes.util
+    try:
+        _c = ctypes.CDLL(ctypes.util.find_library("c"))
+        if _c._name is None:
+            return
+        _argv = ctypes.POINTER(ctypes.c_voidp).in_dll(_c, "_dl_argv")
+        # since we run as 'python -I <executable> ...', add two args
+        _argc = len(argv) + 2
+        all_options = []
+        if '_get_all_options' in dir(option_parser):
+            # OptParse parser
+            all_options = option_parser._get_all_options()
+        elif '_actions' in dir(option_parser):
+            # ArgParse parser
+            all_options = option_parser._actions
+
+        for opt in all_options:
+            if getattr(opt, 'sensitive', False):
+                v = getattr(options, opt.dest)
+                for i in range(0, _argc):
+                    vi = ctypes.cast(_argv[i],
+                                     ctypes.c_char_p
+                                     ).value.decode('utf-8')
+                    if vi == v:
+                        ctypes.memset(_argv[i], ord('X'), len(v))
+    except Exception:
+        pass
+
+
 class ScriptError(Exception):
     """An exception that records an error message and a return value
     """
@@ -148,6 +187,7 @@ class AdminTool:
             cls._option_parsers[cls] = cls.option_parser
 
         options, args = cls.option_parser.parse_args(argv[1:])
+        admin_cleanup_global_argv(cls.option_parser, options, argv)
 
         command_class = cls.get_command_class(options, args)
         command = command_class(options, args)

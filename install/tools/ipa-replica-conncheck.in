@@ -23,15 +23,15 @@ from __future__ import print_function
 import logging
 
 from ipapython import ipachangeconf
-from ipapython.config import IPAOptionParser
+from ipapython.config import (IPAOptionParser, OptionGroup,
+                              OptionValueError)
+from ipapython.admintool import admin_cleanup_global_argv
 from ipapython.dn import DN
 from ipapython import version
 from ipapython import ipautil, certdb
 from ipalib import api, errors, x509
 from ipalib.constants import FQDN
 from ipaserver.install import installutils
-# pylint: disable=deprecated-module
-from optparse import OptionGroup, OptionValueError
 # pylint: enable=deprecated-module
 from ipapython.ipa_log_manager import standard_logging_setup
 import copy
@@ -189,6 +189,7 @@ def parse_options():
 
     options, _args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
+    admin_cleanup_global_argv(parser, options, sys.argv)
 
     if options.master and options.replica:
         parser.error("on-master and on-replica options are mutually exclusive!")
