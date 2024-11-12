@@ -345,7 +345,8 @@ class MigrationTest(IntegrationTest):
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
         prepare_ipa_server(cls.master)
         tasks.install_client(cls.master, cls.clients[0], nameservers=None)
-        tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True)
+        tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True,
+                             extra_args=['--allow-zone-overlap'])
 
 
 class TestIPAMigrateCLIOptions(MigrationTest):
@@ -1211,7 +1212,7 @@ class TestIPAMigrationWithADtrust(IntegrationTest):
         """
         tasks.install_master(
             self.replicas[0], setup_dns=True,
-            extra_args=['--no-dnssec-validation']
+            extra_args=['--no-dnssec-validation', '--allow-zone-overlap']
         )
         tasks.install_adtrust(self.replicas[0])
 
