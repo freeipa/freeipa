@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora-toolbox:40
+FROM registry.fedoraproject.org/fedora-toolbox:42
 MAINTAINER [FreeIPA Developers freeipa-devel@lists.fedorahosted.org]
 ENV container=docker LANG=en_US.utf8 LANGUAGE=en_US.utf8 LC_ALL=en_US.utf8
 
@@ -22,6 +22,7 @@ RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf clean all && rm -rf /root/rpms /root/srpms \
     && sed -i 's/.*PermitRootLogin .*/#&/g' /etc/ssh/sshd_config \
     && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \
+    && sed -i -e 's@^\(session.*required.*pam_loginuid\)@#\1@' /etc/pam.d/sshd \
     && systemctl enable sshd \
     && for i in /usr/lib/systemd/system/*-domainname.service; \
     do sed -i 's#^ExecStart=/#ExecStart=-/#' $i ; done \
