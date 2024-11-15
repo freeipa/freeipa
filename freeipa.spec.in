@@ -1070,8 +1070,6 @@ popd
 %endif
 %autopatch %{autopatch_options}
 
-
-
 %build
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
 export PATH=/usr/bin:/usr/sbin:$PATH
