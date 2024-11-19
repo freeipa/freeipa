@@ -55,9 +55,13 @@ from samba import ntstatus
 import samba
 
 try:
-    from samba.trust_utils import CreateTrustedDomainRelax
+    from samba.lsa_utils import CreateTrustedDomainRelax
 except ImportError:
-    CreateTrustedDomainRelax = None
+    try:
+        from samba.trust_utils import CreateTrustedDomainRelax
+    except ImportError:
+        CreateTrustedDomainRelax = None
+
 try:
     from samba import arcfour_encrypt
 except ImportError:
