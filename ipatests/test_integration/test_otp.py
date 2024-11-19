@@ -402,7 +402,7 @@ class TestOTPToken(IntegrationTest):
             otpvalue = totp.generate(int(time.time())).decode('ascii')
             password = '{0}{1}'.format(PASSWORD, otpvalue)
             tasks.run_ssh_cmd(
-                to_host=self.master.external_hostname, username=USER1,
+                to_host=self.master.hostname, username=USER1,
                 auth_method="password", password=password
             )
             # check if user listed in output
@@ -504,7 +504,7 @@ class TestOTPToken(IntegrationTest):
             )
             with xfail_context(rhel_fail or fedora_fail, reason=github_ticket):
                 result = ssh_2fa_with_cmd(master,
-                                          self.master.external_hostname,
+                                          self.master.hostname,
                                           USER3, PASSWORD, otpvalue=otpvalue,
                                           command="klist")
                 print(result.stdout_text)
@@ -552,7 +552,7 @@ class TestOTPToken(IntegrationTest):
             otpvalue = totp.generate(int(time.time())).decode('ascii')
             tasks.clear_sssd_cache(self.master)
             result = ssh_2fa_with_cmd(master,
-                                      self.master.external_hostname,
+                                      self.master.hostname,
                                       USER4, PASSWORD, otpvalue=otpvalue,
                                       command="klist")
             print(result.stdout_text)
