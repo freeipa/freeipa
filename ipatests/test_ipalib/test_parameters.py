@@ -1720,9 +1720,14 @@ class test_CertificateSigningRequest(ClassChecker):
         b'\xed\r\x96\xfb\x1b\x8dN\xac\x89gz9\x98\xd9\xd6\x9e\x7fW}\xf4\x97;'
         b'\xad\xfe\xad\xc276\x80qmE\xc7|\x0b\xb1^R],'
     )
-    malformed_csr = (
+    malformed_csr = (  # value not a CSR
         b'-----BEGIN CERTIFICATE REQUEST-----\n'
         b'VGhpcyBpcyBhbiBpbnZhbGlkIENTUg==\n'
+        b'-----END CERTIFICATE REQUEST-----\n'
+    )
+    malformed_csr_2 = (  # invalid input
+        b'-----BEGIN CERTIFICATE REQUEST-----\n'
+        b'123\n'
         b'-----END CERTIFICATE REQUEST-----\n'
     )
 
@@ -1752,14 +1757,18 @@ class test_CertificateSigningRequest(ClassChecker):
                     self.sample_csr)
 
         # test that we fail the same with malformed CSR as bytes or str
-        for prep_input in (
-            lambda x: x,
-            lambda x: x.decode('utf-8'),
+        for input in (
+            self.malformed_csr,
+            self.malformed_csr_2
         ):
-            # test that malformed CSRs won't be accepted
-            raises(errors.CertificateOperationError,
-                   o.convert,
-                   prep_input(self.malformed_csr))
+            for prep_input in (
+                lambda x: x,
+                lambda x: x.decode('utf-8'),
+            ):
+                # test that malformed CSRs won't be accepted
+                raises(errors.CertificateOperationError,
+                       o.convert,
+                       prep_input(input))
 
         # test DER as an input to the convert method
         csr_object = o.convert(self.sample_der_csr)
