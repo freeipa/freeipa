@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 import six
+from lib389.utils import get_default_db_lib
 
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.base import Tracker, EnableTracker
@@ -84,6 +85,10 @@ class CATracker(Tracker, EnableTracker):
         )
         if self.description == 'IPA CA':
             self.attrs['ipacarandomserialnumberversion'] = ('0',)
+            if get_default_db_lib() == 'bdb':
+                self.attrs['ipacarandomserialnumberversion'] = ('0',)
+            else:
+                self.attrs['ipacarandomserialnumberversion'] = ('3',)
         self.exists = True
 
     def make_disable_command(self):

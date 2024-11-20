@@ -345,7 +345,7 @@ class CAInstance(DogtagInstance):
                            ra_p12=None, ra_only=False,
                            promote=False, use_ldaps=False,
                            pki_config_override=None,
-                           random_serial_numbers=False,
+                           random_serial_numbers=True,
                            token_name=None, token_library_path=None,
                            token_password=None):
         """Create a CA instance.
@@ -387,7 +387,7 @@ class CAInstance(DogtagInstance):
         else:
             self.ca_type = x509.ExternalCAType.GENERIC.value
         self.external_ca_profile = external_ca_profile
-        self.random_serial_numbers = random_serial_numbers
+        self.random_serial_numbers = True
 
         self.no_db_setup = promote
         self.use_ldaps = use_ldaps
@@ -549,7 +549,7 @@ class CAInstance(DogtagInstance):
         if self.ca_signing_algorithm is not None:
             cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
 
-        cfg['pki_random_serial_numbers_enable'] = self.random_serial_numbers
+        cfg['pki_random_serial_numbers_enable'] = True
         if self.random_serial_numbers:
             cfg['pki_request_id_generator'] = 'random'
             cfg['pki_cert_id_generator'] = 'random'
