@@ -1721,7 +1721,8 @@ class cert_find(Search, CertMethod):
             try:
                 ca_obj = ca_objs[issuer]
             except KeyError:
-                continue
+                # A deleted LWCA? Return the issuer DN as a string
+                ca_obj = {'cn': [str(issuer)]}
 
             if pkey_only:
                 obj = {'serial_number': serial_number}
@@ -1905,8 +1906,16 @@ class cert_find(Search, CertMethod):
                     try:
                         ca_obj = ca_objs[cacn]
                     except KeyError:
-                        ca_obj = ca_objs[cacn] = (
-                            self.api.Command.ca_show(cacn, all=True)['result'])
+                        try:
+                            ca_obj = ca_objs[cacn] = (
+                                self.api.Command.ca_show(
+                                    cacn, all=True)['result'])
+                        except errors.NotFound:
+                            # If we have inserted a CA DN because the
+                            # LWCA was deleted then ca-show of it will
+                            # fail as NotFound. There is no chain to
+                            # retrieve.
+                            ca_obj = []
 
                     obj.update(
                         ra.get_certificate(serial_number)
