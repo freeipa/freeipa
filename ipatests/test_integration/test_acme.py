@@ -17,6 +17,7 @@ from ipatests.test_integration.test_random_serial_numbers import (
 )
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
     install_server_external_ca_step2,
@@ -142,6 +143,15 @@ def certbot_standalone_cert(host, acme_server, no_of_cert=1):
                 '--force-renewal'
             ]
         )
+
+
+def get_389ds_backend(host):
+    """ Return the backend type used by 389ds (either 'bdb' or 'lmdb')"""
+    conn = host.ldap_connect()
+    entry = conn.get_entry(
+        DN('cn=config,cn=ldbm database,cn=plugins,cn=config'))
+    backend = entry.single_value.get('nsslapd-backend-implement')
+    return backend
 
 
 class TestACME(CALessBase):
@@ -397,21 +407,22 @@ class TestACME(CALessBase):
         assert status == 'disabled'
 
     def test_acme_pruning_no_random_serial(self):
-        """This ACME install is configured without random serial
+        """BDB install is configured without random serial
            numbers. Verify that we can't enable pruning on it.
-
-           This test is located here because by default installs
-           don't enable RSNv3.
         """
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('11.3.0')):
             raise pytest.skip("Certificate pruning is not available")
         self.master.run_command(['ipa-acme-manage', 'enable'])
-        result = self.master.run_command(
-            ['ipa-acme-manage', 'pruning', '--enable'],
-            raiseonerr=False)
-        assert result.returncode == 1
-        assert "requires random serial numbers" in result.stderr_text
+
+        # This test is only relevant with BDB backend
+        # as with LMDB, the installer now enable RSNv3 and cert pruning
+        if get_389ds_backend(self.master) == 'bdb':
+            result = self.master.run_command(
+                ['ipa-acme-manage', 'pruning', '--enable'],
+                raiseonerr=False)
+            assert result.returncode == 1
+            assert "requires random serial numbers" in result.stderr_text
 
     @server_install_teardown
     def test_third_party_certs(self):
@@ -707,10 +718,12 @@ class TestACMEPrune(IntegrationTest):
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('11.3.0')):
             raise pytest.skip("Certificate pruning is not available")
-        cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
-        assert "jobsScheduler.job.pruning.enabled=false".encode() in cs_cfg
 
-        self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
+        # Pruning is enabled by default when the host supports lmdb
+        if get_389ds_backend(self.master) == 'bdb':
+            cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
+            assert "jobsScheduler.job.pruning.enabled=false".encode() in cs_cfg
+            self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
 
         cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
         assert "jobsScheduler.enabled=true".encode() in cs_cfg
