@@ -93,6 +93,14 @@ class test_cert(UI_driver):
         csr = generate_csr(hostname)
 
         self.navigate_to_entity(ENTITY)
+
+        # Save the existing cert serials before the new one is added
+        # the test will compare before/after in order to find the serial
+        # of the newly generated certificate
+        result = self.execute_api_from_ui('cert_find', [], {})
+        certs = result['result']['result']
+        before = [cert["serial_number"] for cert in certs]
+
         self.facet_button_click('request_cert')
         self.fill_textbox('principal', 'HTTP/{}'.format(hostname))
         self.check_option('add', 'checked')
@@ -100,8 +108,17 @@ class test_cert(UI_driver):
         self.dialog_button_click('issue')
         self.assert_notification(assert_text='Certificate requested')
         self.navigate_to_entity(ENTITY)
+
+        # Save the existing cert serials after the new one is added
+        result = self.execute_api_from_ui('cert_find', [], {})
+        certs = result['result']['result']
+        after = [cert["serial_number"] for cert in certs]
+        new_serial = [serial for serial in after if serial not in before]
+        # Find the cert that was jsut generated
+        index = after.index(new_serial[0])
+
         rows = self.get_rows()
-        cert = rows[-1]
+        cert = rows[index]
 
         self.navigate_to_row_record(cert)
         self.action_list_action('revoke_cert', False)
@@ -212,10 +229,18 @@ class test_cert(UI_driver):
         # try searching using -1
         check_minimum_serial(self, '-1', 'min_serial_number')
 
+        # Find the highest serial number and add 1 to be sure there is no
+        # cert with a higher serial number
+        result = self.execute_api_from_ui('cert_find', [], {})
+        certs = result['result']['result']
+        serials = [int(cert["serial_number_hex"], 0) for cert in certs]
+        serials.sort()
+        highest_serial = str(serials[-1] + 1)
+
         # try using higher value than no. of certs present
         self.navigate_to_entity(ENTITY)
         self.select('select[name=search_option]', 'min_serial_number')
-        search_pkey(self, '99')
+        search_pkey(self, highest_serial)
         rows = self.get_rows()
         assert len(rows) == 0
 
@@ -226,8 +251,16 @@ class test_cert(UI_driver):
         """
         self.init_app()
         self.navigate_to_entity(ENTITY)
+
+        # Find the second lowest serial number
+        result = self.execute_api_from_ui('cert_find', [], {})
+        certs = result['result']['result']
+        serials = [int(cert["serial_number_hex"], 0) for cert in certs]
+        serials.sort()
+        second_serial = str(serials[1])
+
         self.select('select[name=search_option]', 'max_serial_number')
-        search_pkey(self, '2')
+        search_pkey(self, second_serial)
         rows = self.get_rows()
         assert len(rows) == 2
 
