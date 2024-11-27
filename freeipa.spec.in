@@ -1044,7 +1044,14 @@ for i in *.po ; do
 done
 popd
 
-%autopatch -p1
+%if 0%{?fedora}>=41
+    %global autopatch_options -q -p1
+%else
+    %global autopatch_options -p1
+%endif
+%autopatch %{autopatch_options}
+
+
 
 %build
 # PATH is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1005235
