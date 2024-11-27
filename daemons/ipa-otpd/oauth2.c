@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/random.h>
+#include <sys/uio.h>
 
 #include "internal.h"
 
@@ -93,6 +94,7 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
     (void)vctx; /* Unused */
     ssize_t io;
     struct child_ctx *child_ctx;
+    struct iovec iov[3];
 
     child_ctx = verto_get_private(ev);
     if (child_ctx == NULL) {
@@ -102,15 +104,18 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
     }
 
     if (child_ctx->oauth2_state == OAUTH2_GET_DEVICE_CODE) {
-        /* no input needed */
-        verto_del(ev);
-        return;
+        io = write(verto_get_fd(ev), child_ctx->item->idp.ipaidpClientSecret,
+                   strlen(child_ctx->item->idp.ipaidpClientSecret));
+    } else {
+        iov[0].iov_base = child_ctx->item->idp.ipaidpClientSecret;
+        iov[0].iov_len = strlen(child_ctx->item->idp.ipaidpClientSecret);
+        iov[1].iov_base = "\n";
+        iov[1].iov_len = 1;
+        iov[2].iov_base = child_ctx->saved_item->oauth2.device_code_reply;
+        iov[2].iov_len = strlen(child_ctx->saved_item->oauth2.device_code_reply);
+
+        io = writev(verto_get_fd(ev), iov, 3);
     }
-
-
-    io = write(verto_get_fd(ev),
-               child_ctx->saved_item->oauth2.device_code_reply,
-               strlen(child_ctx->saved_item->oauth2.device_code_reply));
     otpd_queue_item_free(child_ctx->saved_item);
 
     if (io < 0) {
@@ -504,8 +509,7 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
     args[args_idx++] = (*item)->idp.ipaidpClientID;
 
     if ((*item)->idp.ipaidpClientSecret) {
-        args[args_idx++] = "--client-secret";
-        args[args_idx++] = (*item)->idp.ipaidpClientSecret;
+        args[args_idx++] = "--client-secret-stdin";
     }
 
     if ((*item)->idp.ipaidpScope) {
