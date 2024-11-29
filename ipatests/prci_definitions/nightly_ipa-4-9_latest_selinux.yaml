@@ -1917,7 +1917,7 @@ jobs:
         test_suite: test_integration/test_ipa_idrange_fix.py
         template: *ci-ipa-4-9-latest
         timeout: 3600
-        topology: *ipaserver
+        topology: *master_1repl
 
   fedora-latest-ipa-4-9/test_subids:
     requires: [fedora-latest-ipa-4-9/build]
