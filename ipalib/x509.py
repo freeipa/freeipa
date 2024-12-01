@@ -88,7 +88,7 @@ SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
 SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
 
 
-class IPACertificate(crypto_x509.Certificate):
+class IPACertificate:
     """
     A proxy class wrapping a python-cryptography certificate representation for
     IPA purposes
@@ -204,6 +204,10 @@ class IPACertificate(crypto_x509.Certificate):
         Counts fingerprint of the wrapped cryptography.Certificate
         """
         return self._cert.fingerprint(algorithm)
+
+    @property
+    def cert(self):
+        return self._cert
 
     @property
     def serial_number(self):
@@ -457,6 +461,8 @@ def load_pem_x509_certificate(data):
     :returns: a ``IPACertificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
     """
+    if isinstance(data, IPACertificate):
+        return data
     return IPACertificate(
         crypto_x509.load_pem_x509_certificate(data, backend=default_backend())
     )
@@ -469,6 +475,8 @@ def load_der_x509_certificate(data):
     :returns: a ``IPACertificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
     """
+    if isinstance(data, IPACertificate):
+        return data
     return IPACertificate(
         crypto_x509.load_der_x509_certificate(data, backend=default_backend())
     )
