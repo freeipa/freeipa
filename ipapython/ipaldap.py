@@ -33,7 +33,6 @@ import warnings
 
 from collections import OrderedDict
 
-from cryptography import x509 as crypto_x509
 from cryptography.hazmat.primitives import serialization
 
 import ldap
@@ -748,10 +747,10 @@ class LDAPClient:
         'dnszoneidnsname': DNSName,
         'krbcanonicalname': Principal,
         'krbprincipalname': Principal,
-        'usercertificate': crypto_x509.Certificate,
-        'usercertificate;binary': crypto_x509.Certificate,
-        'cACertificate': crypto_x509.Certificate,
-        'cACertificate;binary': crypto_x509.Certificate,
+        'usercertificate': x509.IPACertificate,
+        'usercertificate;binary': x509.IPACertificate,
+        'cACertificate': x509.IPACertificate,
+        'cACertificate;binary': x509.IPACertificate,
         'nsds5replicalastupdatestart': unicode,
         'nsds5replicalastupdateend': unicode,
         'nsds5replicalastinitstart': unicode,
@@ -1000,7 +999,7 @@ class LDAPClient:
             return dct
         elif isinstance(val, datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT).encode('utf-8')
-        elif isinstance(val, crypto_x509.Certificate):
+        elif isinstance(val, x509.IPACertificate):
             return val.public_bytes(x509.Encoding.DER)
         elif val is None:
             return None
@@ -1027,7 +1026,7 @@ class LDAPClient:
                     return DNSName.from_text(val.decode('utf-8'))
                 elif target_type in (DN, Principal):
                     return target_type(val.decode('utf-8'))
-                elif target_type is crypto_x509.Certificate:
+                elif target_type is x509.IPACertificate:
                     return x509.load_der_x509_certificate(val)
                 else:
                     return target_type(val)
@@ -1381,7 +1380,7 @@ class LDAPClient:
             ]
             return cls.combine_filters(flts, rules)
         elif value is not None:
-            if isinstance(value, crypto_x509.Certificate):
+            if isinstance(value, x509.IPACertificate):
                 value = value.public_bytes(serialization.Encoding.DER)
             if isinstance(value, bytes):
                 value = binascii.hexlify(value).decode('ascii')
