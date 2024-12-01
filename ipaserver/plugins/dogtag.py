@@ -1581,7 +1581,8 @@ class kra(Backend):
 
         crypto = cryptoutil.CryptographyCryptoProvider(
             transport_cert_nick="ra_agent",
-            transport_cert=x509.load_certificate_from_file(paths.RA_AGENT_PEM)
+            transport_cert=x509.load_certificate_from_file(
+                paths.RA_AGENT_PEM).cert
         )
 
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
