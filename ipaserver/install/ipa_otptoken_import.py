@@ -37,6 +37,12 @@ from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.kdf import pbkdf2
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+try:
+    # cryptography>=43.0.0
+    from cryptography.hazmat.decrepit.ciphers.algorithms import TripleDES
+except ImportError:
+    # will be removed from this module in cryptography 48.0.0
+    from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
 from cryptography.hazmat.backends import default_backend
 
 from ipaplatform.paths import paths
@@ -169,7 +175,7 @@ def convertAlgorithm(value):
     # in the list of the vault wrapping algorithms, we cannot use 3DES anywhere
     if VAULT_WRAPPING_3DES in VAULT_WRAPPING_SUPPORTED_ALGOS:
         supported_algs["http://www.w3.org/2001/04/xmlenc#tripledes-cbc"] = (
-            algorithms.TripleDES, modes.CBC, 64)
+            TripleDES, modes.CBC, 64)
 
     return supported_algs.get(value.lower(), (None, None, None))
 

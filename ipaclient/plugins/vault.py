@@ -34,6 +34,12 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+try:
+    # cryptography>=43.0.0
+    from cryptography.hazmat.decrepit.ciphers.algorithms import TripleDES
+except ImportError:
+    # will be removed from this module in cryptography 48.0.0
+    from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key, load_pem_private_key)
@@ -661,7 +667,7 @@ class ModVaultData(Local):
         if name == constants.VAULT_WRAPPING_AES128_CBC:
             return algorithms.AES(os.urandom(128 // 8))
         elif name == constants.VAULT_WRAPPING_3DES:
-            return algorithms.TripleDES(os.urandom(196 // 8))
+            return TripleDES(os.urandom(196 // 8))
         else:
             # unreachable
             raise ValueError(name)
