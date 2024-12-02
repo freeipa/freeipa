@@ -1124,6 +1124,7 @@ def update_http_keytab(http):
                 paths.OLD_IPA_KEYTAB, e
             )
     http.keytab_user.chown(http.keytab)
+    tasks.restore_context(http.keytab)
 
 
 def ds_enable_sidgen_extdom_plugins(ds):
@@ -2060,7 +2061,7 @@ def empty_ccache():
         if old_path:
             os.environ['KRB5CCNAME'] = old_path
         else:
-            del os.environ['KRB5CCNAME']
+            os.environ.pop('KRB5CCNAME', None)
         shutil.rmtree(kpath_dir)
 
 

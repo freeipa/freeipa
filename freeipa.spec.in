@@ -127,6 +127,10 @@
 # version supporting LMDB and lib389.cli_ctl.dblib.run_dbscan utility
 %if 0%{?fedora} < 34
 %global ds_version 1.4.4.16-1
+%elif 0%{?fedora} == 40
+%global ds_version 3.0.4-3
+%elif 0%{?fedora} >= 41
+%global ds_version 3.1.1-3
 %else
 %global ds_version 2.1.0
 %endif
@@ -308,10 +312,10 @@ BuildRequires:  libpwquality-devel
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
-%if 0%{?fedora} >= 41
+%if 0%{?fedora} >= 41 || 0%{?rhel} >= 10
 # Do not use nodejs22 on fedora < 41, https://pagure.io/freeipa/issue/9643
 BuildRequires: nodejs(abi)
-%elif 0%{?fedora} >= 39 || 0%{?rhel} >= 10
+%elif 0%{?fedora} >= 39
 # Do not use nodejs20 on fedora < 39, https://pagure.io/freeipa/issue/9374
 BuildRequires:  nodejs(abi) < 127
 %else

@@ -1528,7 +1528,8 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     if (!syncreq && (otpreq == OTP_IS_NOT_REQUIRED)) {
         ret = ipapwd_gen_checks(pb, &errMesg, &krbcfg, IPAPWD_CHECK_ONLY_CONFIG);
         if (ret != 0) {
-            LOG_FATAL("ipapwd_gen_checks failed!?\n");
+            LOG_FATAL("ipapwd_gen_checks failed for '%s': %s\n",
+                      slapi_sdn_get_dn(sdn), errMesg);
             slapi_entry_free(entry);
             slapi_sdn_free(&sdn);
             return 0;

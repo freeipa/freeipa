@@ -311,7 +311,7 @@ class DogtagInstance(service.Service):
                 return
             elif (
                 pki.util.Version("11.0.0") <= pki_version
-                <= pki.util.Version("11.5.0")
+                < pki.util.Version("11.6.0")
             ):
                 args = ['pki-server', 'acme-remove']
             else:

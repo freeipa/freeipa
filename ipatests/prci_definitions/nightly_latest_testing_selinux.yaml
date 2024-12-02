@@ -55,7 +55,7 @@ jobs:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
-          name: freeipa/ci-master-f40
+          name: freeipa/ci-master-f41
           version: 0.0.1
         timeout: 1800
         topology: *build
@@ -2234,7 +2234,7 @@ jobs:
         test_suite: test_integration/test_ipa_idrange_fix.py
         template: *ci-master-latest
         timeout: 3600
-        topology: *ipaserver
+        topology: *master_1repl
 
   testing-fedora/test_subids:
     requires: [testing-fedora/build]
@@ -2351,9 +2351,11 @@ jobs:
         update_packages: True
         selinux_enforcing: True
         enable_testing_repo: True
-        test_suite: test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+        test_suite: >-
+            test_integration/test_random_serial_numbers.py::TestServerCALessToExternalCA_RSN
+            test_integration/test_random_serial_numbers.py::TestInstall_RSN_MDB
         template: *ci-master-latest
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl
 
   testing-fedora/test_random_serial_numbers_TestRSNPKIConfig:
@@ -2415,6 +2417,21 @@ jobs:
         template: *ci-master-latest
         timeout: 6300
         topology: *master_3repl_1client
+
+  testing-fedora/test_hsm_TestHSMInstallPasswordFile:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_hsm.py::TestHSMInstallPasswordFile
+        template: *ci-master-latest
+        timeout: 6300
+        topology: *master_1repl
 
   testing-fedora/test_hsm_TestHSMInstallADTrustBase:
     requires: [testing-fedora/build]
@@ -2621,7 +2638,37 @@ jobs:
         update_packages: True
         selinux_enforcing: True
         enable_testing_repo: True
-        test_suite: test_integration/test_ipa_ipa_migration.py
+        test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigrateCLIOptions test_integration/test_ipa_ipa_migration.py::TestIPAMigrationStageMode test_integration/test_ipa_ipa_migration.py::TestIPAMigrationProdMode
+        template: *ci-master-latest
+        timeout: 9000
+        topology: *master_1repl_1client
+
+  testing-fedora/test_IPAMigrateADTrust:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigrationWithADtrust
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_1repl_1client
+
+  testing-fedora/test_cockpit:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_cockpit.py
         template: *ci-master-latest
         timeout: 3600
-        topology: *master_1repl_1client
+        topology: *master_1repl
