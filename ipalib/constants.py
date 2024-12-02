@@ -25,20 +25,19 @@ All constants centralised in one file.
 import os
 import string
 import uuid
-import warnings
-
-warnings.filterwarnings(
-    "ignore",
-    "TripleDES has been moved to "
-    "cryptography.hazmat.decrepit.ciphers.algorithms.TripleDES and "
-    "will be removed from this module in 48.0.0",
-    category=UserWarning)
 
 from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
 from ipapython.fqdn import gethostfqdn
 from ipapython.version import VERSION, API_VERSION
-from cryptography.hazmat.primitives.ciphers import algorithms, modes
+from cryptography.hazmat.primitives.ciphers import modes
+try:
+    # cryptography>=43.0.0
+    from cryptography.hazmat.decrepit.ciphers.algorithms import TripleDES
+except ImportError:
+    # will be removed from this module in cryptography 48.0.0
+    from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
+
 from cryptography.hazmat.backends.openssl.backend import backend
 
 
@@ -389,7 +388,6 @@ VAULT_WRAPPING_SUPPORTED_ALGOS = (
 VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_AES128_CBC
 
 # Add 3DES for backwards compatibility if supported
-if getattr(algorithms, 'TripleDES', None):
-    if backend.cipher_supported(algorithms.TripleDES(
-                                b"\x00" * 8), modes.CBC(b"\x00" * 8)):
-        VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
+if backend.cipher_supported(TripleDES(
+                            b"\x00" * 8), modes.CBC(b"\x00" * 8)):
+    VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
