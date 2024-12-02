@@ -21,7 +21,7 @@ requests
 
 ## C libraries with binary wheels
 cffi
-cryptography < 44.0.0
+cryptography
 lxml
 
 ## C libraries without binaries wheels
