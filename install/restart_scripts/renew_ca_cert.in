@@ -33,6 +33,7 @@ from ipalib import api, errors
 from ipalib import x509
 from ipalib.install.kinit import kinit_keytab
 from ipaserver.install import certs, cainstance
+from ipaserver.install.dogtaginstance import INTERNAL_TOKEN
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -68,15 +69,24 @@ def _main():
             syslog.syslog(
                 syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
 
-    # Fetch the new certificate
-    db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
-    cert = db.get_cert_from_db(nickname)
-    if not cert:
-        syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
-        sys.exit(1)
-
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
+        # If we are using HSM, create a pwd file with the password for
+        # the internal token + HSM
+        token_name = ca.get_token_name(nickname)
+        if token_name != INTERNAL_TOKEN:
+            pwd_file = ca.get_token_pwd_file(tmpdir)
+        else:
+            # Use the default pwd file
+            pwd_file = None
+        # Fetch the new certificate
+        db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                          pwd_file=pwd_file)
+        cert = db.get_cert_from_db(nickname)
+        if not cert:
+            syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
+            sys.exit(1)
+
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
         ccache_filename = os.path.join(tmpdir, 'ccache')
         kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
@@ -95,9 +105,12 @@ def _main():
         ):
             # Fix trust on the audit cert
             try:
-                db.run_certutil(['-M',
-                                 '-n', nickname,
-                                 '-t', 'u,u,Pu'])
+                cmd_args = ['-M', '-t', 'u,u,Pu']
+                if token_name != INTERNAL_TOKEN:
+                    cmd_args.extend(['-n', token_name + ":" + nickname])
+                else:
+                    cmd_args.extend(['-n', token_name])
+                db.run_certutil(cmd_args)
                 syslog.syslog(
                     syslog.LOG_NOTICE,
                     "Updated trust on certificate %s in %s" %
