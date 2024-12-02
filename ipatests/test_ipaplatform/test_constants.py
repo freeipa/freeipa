@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2020  FreeIPA Contributors see COPYING for license
 #
+import grp
 import pytest
 
 from ipaplatform.base.constants import User, Group
@@ -38,6 +39,16 @@ def test_group():
 
     assert Group(group) is group
     assert Group(str(group)) is not group
+
+
+def test_numeric_group():
+    g = grp.getgrnam('apache')
+    group = Group(g.gr_gid)
+    assert group.gid == g.gr_gid
+    assert type(str(group)) is str
+    assert repr(group) == '<Group "%d">' % g.gr_gid
+    assert group.gid == g.gr_gid
+    assert group.entity.gr_gid == g.gr_gid
 
 
 def test_group_invalid():
