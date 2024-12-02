@@ -211,11 +211,7 @@ def hsm_validator(token_name, token_library, token_password):
         )
     pkiuser = constants.PKI_USER
     pkigroup = constants.PKI_GROUP
-    if 'libsofthsm' in token_library:
-        import grp
-        group = grp.getgrnam(constants.ODS_GROUP)
-        if str(constants.PKI_USER) in group.gr_mem:
-            pkigroup = constants.ODS_GROUP
+    group_list = os.getgrouplist(pkiuser, pkigroup.gid)
     with certdb.NSSDatabase() as tempnssdb:
         tempnssdb.create_db(user=str(pkiuser), group=str(pkigroup))
         # Try adding the token library to the temporary database in
@@ -231,7 +227,7 @@ def hsm_validator(token_name, token_library, token_password):
         # It may fail if p11-kit has already registered the library, that's
         # ok.
         ipautil.run(command, stdin='\n', cwd=tempnssdb.secdir,
-                    runas=pkiuser, suplementary_groups=[pkigroup],
+                    runas=pkiuser, suplementary_groups=group_list,
                     raiseonerr=False)
 
         command = [
@@ -242,7 +238,7 @@ def hsm_validator(token_name, token_library, token_password):
         ]
         lines = ipautil.run(
             command, cwd=tempnssdb.secdir, capture_output=True,
-            runas=pkiuser, suplementary_groups=[pkigroup]).output
+            runas=pkiuser, suplementary_groups=group_list).output
         found = False
         token_line = f'token: {token_name}'
         for line in lines.split('\n'):
@@ -265,7 +261,7 @@ def hsm_validator(token_name, token_library, token_password):
         ]
         result = ipautil.run(args, cwd=tempnssdb.secdir,
                              runas=pkiuser,
-                             suplementary_groups=[pkigroup],
+                             suplementary_groups=group_list,
                              capture_error=True, raiseonerr=False)
         if result.returncode != 0 and len(result.error_output):
             if 'SEC_ERROR_BAD_PASSWORD' in result.error_output:
