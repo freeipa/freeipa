@@ -86,7 +86,10 @@ class Group(_Entity):
             try:
                 self._entity = entity = grp.getgrnam(self)
             except KeyError:
-                raise ValueError(f"group '{self!s}' not found") from None
+                try:
+                    self._entity = entity = grp.getgrgid(int(self))
+                except (TypeError, ValueError):
+                    raise ValueError(f"group '{self!s}' not found") from None
         return entity
 
     @property
