@@ -1219,12 +1219,10 @@ typedef enum {
 } otp_req_enum;
 static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
                                 struct berval *creds, otp_req_enum otpreq,
-                                bool *notokens)
+                                bool *notokens, uint32_t *auth_types)
 {
-    uint32_t auth_types;
-
     /* Get the configured authentication types. */
-    auth_types = otp_config_auth_types(otp_config, entry);
+    *auth_types = otp_config_auth_types(otp_config, entry);
     *notokens = false;
 
     /*
@@ -1237,7 +1235,8 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
      * 2. If PWD is enabled or OTP succeeded, fall through to PWD validation.
      */
 
-    if (auth_types & OTP_CONFIG_AUTH_TYPE_OTP) {
+    if ((*auth_types & OTP_CONFIG_AUTH_TYPE_OTP) ||
+        (otpreq != OTP_IS_NOT_REQUIRED)) {
         struct otp_token **tokens = NULL;
 
         LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
@@ -1270,7 +1269,7 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
         otp_token_free_array(tokens);
     }
 
-    return (auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD) &&
+    return (*auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD) &&
            (otpreq == OTP_IS_NOT_REQUIRED);
 }
 
@@ -1451,6 +1450,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     struct ipapwd_krbcfg *krbcfg = NULL;
     struct berval *credentials = NULL;
     Slapi_Entry *entry = NULL;
+    Slapi_Value *objectclass = NULL;
     Slapi_DN *target_sdn = NULL;
     Slapi_DN *sdn = NULL;
     const char *dn = NULL;
@@ -1465,6 +1465,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     int rc = LDAP_INVALID_CREDENTIALS;
     char *errMesg = NULL;
     bool notokens = false;
+    uint32_t auth_types = 0;
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET_SDN, &target_sdn);
@@ -1538,12 +1539,33 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
             otpreq = OTP_IS_REQUIRED_IMPLICITLY;
         }
     }
+    /* we only apply OTP policy to Kerberos principals */
+    objectclass = slapi_value_new_string("krbprincipalaux");
+    if (objectclass == NULL) {
+        goto invalid_creds;
+    }
+    if (!slapi_entry_attr_has_syntax_value(entry, SLAPI_ATTR_OBJECTCLASS,
+                                           objectclass)) {
+      otpreq = OTP_IS_NOT_REQUIRED;
+    }
+    slapi_value_free(&objectclass);
+
     if (!syncreq && !ipapwd_pre_bind_otp(dn, entry,
-                                         credentials, otpreq, &notokens)) {
+                                         credentials, otpreq,
+                                         &notokens, &auth_types)) {
         /* We got here because ipapwd_pre_bind_otp() returned false,
          * it means that either token verification failed or
          * a rule for empty tokens failed current policy. */
-        if (!(notokens || (otpreq == OTP_IS_NOT_REQUIRED)))
+
+	/* Check if there were any tokens associated, thus
+         * OTP token verification has really failed */
+	if (notokens == false)
+            goto invalid_creds;
+
+	/* No tokens, check if auth type does not include OTP but OTP is
+         * enforced by the current policy */
+        if (!(auth_types & OTP_CONFIG_AUTH_TYPE_OTP) &&
+            (otpreq != OTP_IS_NOT_REQUIRED))
             goto invalid_creds;
     }
 
