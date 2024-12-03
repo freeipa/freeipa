@@ -129,6 +129,33 @@ class DogtagInstance(service.Service):
         """Look up token name for nickname."""
         return self.token_names.get(nickname, self.token_name)
 
+    def get_token_pwd_file(self, dir):
+        """
+        Create a temp password file in the provided directory.
+
+        The file contains the password for the internal token and
+        for the HSM.
+        The directory dir must already exist, and the caller must
+        delete the file after use.
+        """
+        if tasks.is_fips_enabled():
+            dbname = 'NSS FIPS 140-2 Certificate DB'
+        else:
+            dbname = 'NSS Certificate DB'
+        pwd_file = os.path.join(dir, "pwd_file")
+        with open(pwd_file, "w") as pwd:
+            with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as fd:
+                for line in fd:
+                    (token, pin) = line.split('=', 1)
+                    if token.startswith('hardware-'):
+                        token = token.replace('hardware-', '')
+                        pwd.write(f'{token}:{pin}')
+                    elif token == INTERNAL_TOKEN:
+                        pwd.write(f'{dbname}:{pin}')
+            pwd.flush()
+            os.fchmod(pwd.fileno(), 0o600)
+        return pwd_file
+
     groups_aci = (
         b'(targetfilter="(objectClass=groupOfUniqueNames)")'
         b'(targetattr="cn || description || objectclass || uniquemember")'
