@@ -29,7 +29,7 @@ from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname
 from ipaserver.install.installutils import ScriptError
 from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
-from ipalib import api, errors
+from ipalib import api, errors, sysrestore
 from ipalib.facts import is_ipa_configured
 from ipapython.ipaldap import LDAPClient, realm_to_serverid
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
@@ -197,6 +197,19 @@ def version_check():
         raise IpactlError("Aborting ipactl")
 
 
+def fips_check():
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    fips_state = sstore.get_state("installation", "fips")
+
+    if fips_state is None:
+        emit_err("Unable to identify FIPS installation state")
+        return
+
+    if tasks.is_fips_enabled() != fips_state:
+        emit_err("FIPS is not in the same state as at installation")
+        raise IpactlError("Aborting ipactl")
+
+
 def get_config(dirsrv):
     base = DN(
         ("cn", api.env.host),
@@ -359,6 +372,7 @@ def stop_dirsrv(dirsrv):
 
 
 def ipa_start(options):
+    fips_check()
 
     if not options.skip_version_check:
         version_check()
@@ -471,6 +485,8 @@ def ipa_stop(options):
 
 
 def ipa_restart(options):
+    fips_check()
+
     if not options.skip_version_check:
         try:
             version_check()

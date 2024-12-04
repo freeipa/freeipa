@@ -1320,6 +1320,8 @@ def install(installer):
     # Be clear that the installation process is beginning but not done
     sstore.backup_state('installation', 'complete', False)
 
+    sstore.backup_state('installation', 'fips', tasks.is_fips_enabled())
+
     if tasks.configure_pkcs11_modules(fstore):
         print("Disabled p11-kit-proxy")
 
