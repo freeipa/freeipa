@@ -705,7 +705,8 @@ class update_tdo_to_new_layout(Updater):
                 self.set_krb_principal([tgt_principal, nbt_principal],
                                        passwd_incoming,
                                        t_dn,
-                                       flags=self.KRB_PRINC_CREATE_DEFAULT)
+                                       flags=self.KRB_PRINC_CREATE_DEFAULT
+                                       | self.KRB_PRINC_CREATE_AGENT_PERMISSION)
 
             # 3. INBOUND: krbtgt/<OUR REALM>@<REMOTE REALM> must exist
             trust_principal = self.tgt_principal_template.format(
