@@ -1,11 +1,3 @@
-dn: cn=PGPServerInfo,cn=config
-changetype: add
-objectclass: pgpServerInfo
-cn: PGPServerInfo
-pgpBaseKeySpaceDN: ou=GPG Keys,$SUFFIX
-pgpSoftware: GPG
-pgpVersion: 2
-
 dn: ou=GPG Keys,$SUFFIX
 objectclass: organizationalUnit
 objectclass: organizationalPerson
