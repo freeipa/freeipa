@@ -38,7 +38,6 @@ from ipalib.config import Env
 from ipalib.facts import is_ipa_configured, is_ipa_client_configured
 from ipalib.util import no_matching_interface_for_ip_address_warning
 from ipaclient.install.client import configure_krb5_conf, purge_host_keytab
-from ipaserver.install.dogtaginstance import INTERNAL_TOKEN
 from ipaserver.install import (
     adtrust, bindinstance, ca, cainstance, dns, dsinstance, httpinstance,
     installutils, kra, krainstance, krbinstance, otpdinstance,
@@ -633,9 +632,11 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
 
     try:
         installer._enrollment_performed = True
+        # pylint: disable=E0606
         host_result = remote_api.Command.host_add(
             unicode(config.host_name), force=installer.no_host_dns
         )['result']
+        # pylint: enable=E0606
 
         host_princ = unicode(host_result['krbcanonicalname'][0])
         purge_host_keytab(config.realm_name)
@@ -774,11 +775,6 @@ def clean_up_hsm_nicknames(api):
     # Hardcode the token names. NSS tooling does not provide a
     # public way to determine it other than scraping modutil
     # output.
-    if tasks.is_fips_enabled():
-        dbname = 'NSS FIPS 140-2 Certificate DB'
-    else:
-        dbname = 'NSS Certificate DB'
-
     api.Backend.ldap2.connect()
     (token_name, _unused) = ca.lookup_hsm_configuration(api)
     api.Backend.ldap2.disconnect()
@@ -794,46 +790,36 @@ def clean_up_hsm_nicknames(api):
 
     try:
         tmpdir = tempfile.mkdtemp(prefix="tmp-")
-        pwd_file = os.path.join(tmpdir, "pwd_file")
-        with open(pwd_file, "w") as pwd:
-            with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as fd:
-                for line in fd:
-                    (token, pin) = line.split('=', 1)
-                    if token.startswith('hardware-'):
-                        token = token.replace('hardware-', '')
-                        pwd.write(f'{token}:{pin}')
-                    elif token == INTERNAL_TOKEN:
-                        pwd.write(f'{dbname}:{pin}')
-            pwd.flush()
-            db = certs.CertDB(api.env.realm,
-                              nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
-                              pwd_file=pwd_file)
-            for (nickname, _unused) in dogtag_reqs:
-                try:
-                    if nickname in (
-                        'caSigningCert cert-pki-ca',
-                        'Server-Cert cert-pki-ca'
-                    ):
-                        continue
-                    if nickname in (
-                        'auditSigningCert cert-pki-ca',
-                        'auditSigningCert cert-pki-kra',
-                    ):
-                        trust = ',,P'
-                    else:
-                        trust = ',,'
-                    db.run_certutil(['-M',
-                                     '-n', f"{token_name}:{nickname}",
-                                     '-t', trust])
-                except CalledProcessError as e:
-                    logger.debug("Modifying trust on %s failed: %s",
-                                 nickname, e)
+        pwd_file = cai.get_token_pwd_file(tmpdir)
+        db = certs.CertDB(api.env.realm,
+                          nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                          pwd_file=pwd_file)
+        for (nickname, _unused) in dogtag_reqs:
+            try:
+                if nickname in (
+                    'caSigningCert cert-pki-ca',
+                    'Server-Cert cert-pki-ca'
+                ):
+                    continue
+                if nickname in (
+                    'auditSigningCert cert-pki-ca',
+                    'auditSigningCert cert-pki-kra',
+                ):
+                    trust = ',,P'
+                else:
+                    trust = ',,'
+                db.run_certutil(['-M',
+                                 '-n', f"{token_name}:{nickname}",
+                                 '-t', trust])
+            except CalledProcessError as e:
+                logger.debug("Modifying trust on %s failed: %s",
+                             nickname, e)
 
-            if db.has_nickname('Directory Server CA certificate'):
-                db.run_certutil(['--rename',
-                                 '-n', 'Directory Server CA certificate',
-                                 '--new-n', 'caSigningCert cert-pki-ca'],
-                                raiseonerr=False)
+        if db.has_nickname('Directory Server CA certificate'):
+            db.run_certutil(['--rename',
+                             '-n', 'Directory Server CA certificate',
+                             '--new-n', 'caSigningCert cert-pki-ca'],
+                            raiseonerr=False)
     finally:
         shutil.rmtree(tmpdir)
 
