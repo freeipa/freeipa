@@ -862,7 +862,7 @@ DB_OBJECTS = {
     'pbac_priv': {
         'oc': ['groupofnames'],
         'subtree': ',cn=privileges,cn=pbac,$SUFFIX',
-        'label': 'Privledges',
+        'label': 'Privileges',
         'mode': 'all',
         'count': 0,
     },
