@@ -20,7 +20,12 @@ from augeas import Augeas
 from pkg_resources import parse_version
 
 from ipalib import api, x509
-from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE, IPA_CA_RECORD
+from ipalib.constants import (
+    RENEWAL_CA_NAME,
+    RA_AGENT_PROFILE,
+    IPA_CA_RECORD,
+    IPA_CA_NICKNAME,
+)
 from ipalib.install import certmonger
 from ipalib import sysrestore
 from ipalib.facts import is_ipa_configured
@@ -1641,6 +1646,74 @@ def ca_update_acme_configuration(ca, fqdn):
                                   template_name))
 
 
+def store_fips_state(ca_configured):
+    """If the FIPS installation state is not yet recorded determine
+       it based on the NSS token name being used.
+
+       If the certmonger tracking is using 'NSS Certificate DB'
+       as the token name then it is not using FIPS.
+
+       Use this in conjunction with tasks.is_fips_enabled() to
+       determine the state.
+
+       We only care about FIPS when we use our own CA so this should
+       only be called if ca.is_configured().
+
+       This will not detect if a user has installed without FIPS
+       enabled and switched later. It should store the FIPS state
+       as False in that case.
+    """
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    fips_state = sstore.get_state("installation", "fips")
+
+    if fips_state is not None:
+        logger.debug("FIPS state set to %s", fips_state)
+        return
+
+    if ca_configured:
+        criteria = {'cert-storage': 'NSSDB', 'key-storage': 'NSSDB',
+                    'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
+                    'key-database': paths.PKI_TOMCAT_ALIAS_DIR,
+                    'key-nickname': IPA_CA_NICKNAME,}
+    else:
+        serverid = ipaldap.realm_to_serverid(api.env.realm)
+        ds_dir = dsinstance.config_dirname(serverid)
+        criteria = {'cert-storage': 'NSSDB', 'key-storage': 'NSSDB',
+                    'cert-database': ds_dir,
+                    'key-database': ds_dir,
+                    'key-nickname': 'Server-Cert',}
+
+    requests = certmonger._get_requests(criteria)
+
+    reqids = []
+    for request in requests:
+        reqids.append(request.prop_if.Get(
+            certmonger.DBUS_CM_REQUEST_IF, 'nickname')
+        )
+
+    if len(reqids) != 1:
+        logger.warning(
+            "WARN: Cannot find certmonger requestid for %s",
+            criteria
+        )
+        return
+    reqid = str(reqids[0])
+
+    token_name = str(certmonger.get_request_value(reqid, 'key-token'))
+
+    # This order is intentioanl If the token is 'NSS Certificate DB' then
+    # the server was installed outside of FIPS mode. Mark it as such.
+    # Otherwise rely on the FIPS task output.
+    if token_name == 'NSS Certificate DB':
+        logger.debug("certmonger token is 'NSS Certificate DB'")
+        fips_state = False
+    else:
+        fips_state = tasks.is_fips_enabled()
+
+    logger.debug("FIPS state now set to %s", fips_state)
+    sstore.backup_state('installation', 'fips', fips_state)
+
+
 def set_default_grace_time():
     dn = DN(
         ('cn', 'global_policy'), ('cn', api.env.realm),
@@ -1958,6 +2031,8 @@ def upgrade_configuration():
         ca_update_acme_configuration(ca, fqdn)
         ca_initialize_hsm_state(ca)
         add_agent_to_security_domain_admins()
+
+    store_fips_state(ca.is_configured())
 
     migrate_to_authselect()
     add_systemd_user_hbac()
