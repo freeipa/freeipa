@@ -437,10 +437,8 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         """
         hostname = "server.invalid.host"
         ERR_MSG = (
-            "IPA to IPA migration starting ...\n"
             "Failed to bind to remote server: cannot connect to "
-            "'ldap://"
-            "{}': \n".format(hostname)
+            "'ldap://{}':".format(hostname)
         )
         result = run_migrate(
             self.replicas[0],
