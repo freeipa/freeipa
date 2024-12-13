@@ -22,7 +22,6 @@ from __future__ import print_function
 
 # WARNING: Do not import ipa modules, this is also used as a
 # stand-alone script (invoked from po Makefile).
-import optparse  # pylint: disable=deprecated-module
 import sys
 import gettext
 import re
@@ -30,6 +29,7 @@ import os
 import traceback
 import polib
 from collections import namedtuple
+from ipapython import config
 
 import six
 
@@ -722,9 +722,9 @@ usage ='''
 def main():
     global verbose, print_traceback, pedantic, show_strings
 
-    parser = optparse.OptionParser(usage=usage)
+    parser = config.IPAOptionParser(usage=usage)
 
-    mode_group = optparse.OptionGroup(parser, 'Operational Mode',
+    mode_group = config.OptionGroup(parser, 'Operational Mode',
                                       'You must select one these modes to run in')
 
     mode_group.add_option('-g', '--test-gettext', action='store_const', const='test_gettext', dest='mode',
@@ -748,7 +748,7 @@ def main():
     parser.add_option('--traceback', action='store_true', dest='print_traceback', default=False,
                       help='print the traceback when an exception occurs')
 
-    param_group = optparse.OptionGroup(parser, 'Run Time Parameters',
+    param_group = config.OptionGroup(parser, 'Run Time Parameters',
                                        'These may be used to modify the run time defaults')
 
     param_group.add_option('--test-lang', action='store', dest='test_lang', default='test',

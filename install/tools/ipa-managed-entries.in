@@ -39,7 +39,8 @@ logger = logging.getLogger(os.path.basename(__file__))
 def parse_options():
     usage = "%prog [options] <status|enable|disable>\n"
     usage += "%prog [options]\n"
-    parser = OptionParser(usage=usage, formatter=config.IPAFormatter())
+    parser = config.IPAOptionParser(usage=usage,
+                                    formatter=config.IPAFormatter())
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="Display debugging information about the update(s)")
