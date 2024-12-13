@@ -18,9 +18,9 @@
 #
 from __future__ import absolute_import
 
-# pylint: disable=deprecated-module
-from optparse import (
-    Option, Values, OptionParser, IndentedHelpFormatter, OptionValueError)
+# pylint: disable=deprecated-module, disable=unused-import
+from optparse import (Option, Values, OptionGroup, OptionParser, SUPPRESS_HELP,
+                      IndentedHelpFormatter, OptionValueError, make_option)
 # pylint: enable=deprecated-module
 from copy import copy
 from configparser import ConfigParser as SafeConfigParser
@@ -113,10 +113,14 @@ class IPAOptionParser(OptionParser):
                  description=None,
                  formatter=None,
                  add_help_option=True,
-                 prog=None):
-        OptionParser.__init__(self, usage, option_list, option_class,
-                              version, conflict_handler, description,
-                              formatter, add_help_option, prog)
+                 prog=None,
+                 epilog=None):
+        OptionParser.__init__(self, usage=usage, option_list=option_list,
+                              option_class=option_class, version=version,
+                              conflict_handler=conflict_handler,
+                              description=description, formatter=formatter,
+                              add_help_option=add_help_option, prog=prog,
+                              epilog=epilog)
 
     def get_safe_opts(self, opts):
         """
