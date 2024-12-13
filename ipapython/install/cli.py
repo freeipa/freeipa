@@ -9,12 +9,11 @@ Command line support.
 import collections
 import enum
 import logging
-import optparse  # pylint: disable=deprecated-module
 import signal
 
 import six
 
-from ipapython import admintool
+from ipapython import admintool, config
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipapython.ipautil import (CheckedIPAddress, CheckedIPAddressLoopback,
                                private_ccache)
@@ -158,7 +157,7 @@ class ConfigureTool(admintool.AdminTool):
             try:
                 opt_group = groups[group_cls]
             except KeyError:
-                opt_group = groups[group_cls] = optparse.OptionGroup(
+                opt_group = groups[group_cls] = config.OptionGroup(
                         parser, "{0} options".format(group_cls.description))
                 parser.add_option_group(opt_group)
 
@@ -232,7 +231,7 @@ class ConfigureTool(admintool.AdminTool):
                 if not hidden:
                     help = knob_cls.description
                 else:
-                    help = optparse.SUPPRESS_HELP
+                    help = config.SUPPRESS_HELP
 
                 opt_group.add_option(
                     *opt_strs,
@@ -256,7 +255,7 @@ class ConfigureTool(admintool.AdminTool):
 
         # fake option parser to parse positional arguments
         # (because optparse does not support positional argument parsing)
-        fake_option_parser = optparse.OptionParser()
+        fake_option_parser = config.IPAOptionParser()
         self.add_options(fake_option_parser, True)
 
         fake_option_map = {option.dest: option
