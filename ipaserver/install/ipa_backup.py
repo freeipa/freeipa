@@ -20,7 +20,6 @@
 from __future__ import absolute_import, print_function
 
 import logging
-import optparse  # pylint: disable=deprecated-module
 import os
 import shutil
 import sys
@@ -32,7 +31,7 @@ import six
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipalib import api, errors
-from ipapython import version
+from ipapython import version, config
 from ipapython.ipautil import run, write_tmp_file
 from ipapython import admintool, certdb
 from ipapython.dn import DN
@@ -244,7 +243,7 @@ class Backup(admintool.AdminTool):
 
         parser.add_option(
             "--gpg-keyring", dest="gpg_keyring",
-            help=optparse.SUPPRESS_HELP)
+            help=config.SUPPRESS_HELP)
         parser.add_option(
             "--gpg", dest="gpg", action="store_true",
             default=False, help="Encrypt the backup")

@@ -33,7 +33,6 @@ import sys
 import threading
 import os
 from os import path
-import optparse  # pylint: disable=deprecated-module
 import textwrap
 import collections
 import importlib
@@ -47,6 +46,7 @@ from ipalib.util import classproperty
 from ipalib.base import ReadOnly, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython import ipa_log_manager, ipautil
+from ipapython.config import IPAOptionParser, IPAFormatter
 from ipapython.ipa_log_manager import (
     LOGGING_FORMAT_FILE,
     LOGGING_FORMAT_STDERR)
@@ -526,7 +526,7 @@ class API(ReadOnly):
 
     def build_global_parser(self, parser=None, context=None):
         """
-        Add global options to an optparse.OptionParser instance.
+        Add global options to an IPAOptionParser instance.
         """
         def config_file_callback(option, opt, value, parser):
             if not os.path.isfile(value):
@@ -536,7 +536,7 @@ class API(ReadOnly):
             parser.values.conf = value
 
         if parser is None:
-            parser = optparse.OptionParser(
+            parser = IPAOptionParser(
                 add_help_option=False,
                 formatter=IPAHelpFormatter(),
                 usage='%prog [global-options] COMMAND [command-options]',
@@ -821,7 +821,7 @@ class API(ReadOnly):
         return self.__next[plugin]
 
 
-class IPAHelpFormatter(optparse.IndentedHelpFormatter):
+class IPAHelpFormatter(IPAFormatter):
     def format_epilog(self, epilog):
         text_width = self.width - self.current_indent
         indent = " " * self.current_indent

@@ -34,7 +34,6 @@ import SSSDConfig
 
 from six.moves.urllib.parse import urlsplit
 
-from optparse import OptionParser  # pylint: disable=deprecated-module
 from ipapython import ipachangeconf
 from ipaclient import discovery
 from ipaclient.install.client import (
@@ -52,6 +51,7 @@ from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython.admintool import ScriptError
+from ipapython.config import IPAOptionParser
 
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -59,7 +59,7 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 def parse_options():
     usage = "%prog [options]\n"
-    parser = OptionParser(usage=usage)
+    parser = IPAOptionParser(usage=usage)
     parser.add_option("--server", dest="server", help="FQDN of IPA server")
     parser.add_option(
         "--location",

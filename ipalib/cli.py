@@ -30,7 +30,6 @@ import textwrap
 import sys
 import getpass
 import code
-import optparse  # pylint: disable=deprecated-module
 import os
 import pprint
 import fcntl
@@ -71,6 +70,8 @@ from ipalib.text import _
 from ipalib import api
 from ipapython.dnsutil import DNSName
 from ipapython.admintool import ScriptError
+from ipapython.config import (IPAOptionParser, IPAFormatter,
+                              OptionGroup, make_option)
 
 import datetime
 
@@ -1121,7 +1122,8 @@ class Collector:
     def __todict__(self):
         return dict(self.__options)
 
-class CLIOptionParserFormatter(optparse.IndentedHelpFormatter):
+
+class CLIOptionParserFormatter(IPAFormatter):
     def format_argument(self, name, help_string):
         result = []
         opt_width = self.help_position - self.current_indent - 2
@@ -1141,7 +1143,8 @@ class CLIOptionParserFormatter(optparse.IndentedHelpFormatter):
             result.append("\n")
         return "".join(result)
 
-class CLIOptionParser(optparse.OptionParser):
+
+class CLIOptionParser(IPAOptionParser):
     """
     This OptionParser subclass adds an ability to print positional
     arguments in CLI help. Custom formatter is used to format the argument
@@ -1151,13 +1154,13 @@ class CLIOptionParser(optparse.OptionParser):
         self._arguments = []
         if 'formatter' not in kwargs:
             kwargs['formatter'] = CLIOptionParserFormatter()
-        optparse.OptionParser.__init__(self, *args, **kwargs)
+        IPAOptionParser.__init__(self, *args, **kwargs)
 
     def format_option_help(self, formatter=None):
         """
         Prepend argument help to standard OptionParser's option help
         """
-        option_help = optparse.OptionParser.format_option_help(self, formatter)
+        option_help = IPAOptionParser.format_option_help(self, formatter)
 
         if isinstance(formatter, CLIOptionParserFormatter):
             heading = unicode(_("Positional arguments"))
@@ -1272,7 +1275,7 @@ class cli(backend.Executioner):
             """Get or create an option group for the given name"""
             option_group = option_groups.get(group_name)
             if option_group is None:
-                option_group = optparse.OptionGroup(parser, group_name)
+                option_group = OptionGroup(parser, group_name)
                 parser.add_option_group(option_group)
                 option_groups[group_name] = option_group
             return option_group
@@ -1298,7 +1301,7 @@ class cli(backend.Executioner):
             option_names = ['--%s' % cli_name]
             if option.cli_short_name:
                 option_names.append('-%s' % option.cli_short_name)
-            opt = optparse.make_option(*option_names, **kw)
+            opt = make_option(*option_names, **kw)
             if option.option_group is None:
                 parser.add_option(opt)
             else:
@@ -1312,7 +1315,7 @@ class cli(backend.Executioner):
                 group = _get_option_group(unicode(_('Deprecated options')))
                 for alias in option.deprecated_cli_aliases:
                     name = '--%s' % alias
-                    group.add_option(optparse.make_option(name, **new_kw))
+                    group.add_option(make_option(name, **new_kw))
 
         for arg in cmd.args():
             name = self.__get_arg_name(arg, format_name=False)
@@ -1442,7 +1445,7 @@ class cli(backend.Executioner):
                     )
 
 
-class IPAHelpFormatter(optparse.IndentedHelpFormatter):
+class IPAHelpFormatter(IPAFormatter):
     """Formatter suitable for printing IPA command help
 
     The default help formatter reflows text to fit the terminal, but it

@@ -7,14 +7,12 @@ import enum
 import pki.util
 import logging
 
-from optparse import OptionGroup  # pylint: disable=deprecated-module
-
 from ipalib import api, errors, x509
 from ipalib import _
 from ipalib.facts import is_ipa_configured
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
-from ipapython import cookie, dogtag
+from ipapython import cookie, dogtag, config
 from ipapython.ipautil import run
 from ipapython.certdb import NSSDatabase, EXTERNAL_CA_TRUST_FLAGS
 from ipaserver.install import cainstance
@@ -143,7 +141,7 @@ class IPAACMEManage(AdminTool):
     @classmethod
     def add_options(cls, parser):
 
-        group = OptionGroup(parser, 'Pruning')
+        group = config.OptionGroup(parser, 'Pruning')
         group.add_option(
             "--enable", dest="enable", action="store_true",
             default=False, help="Enable certificate pruning")

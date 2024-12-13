@@ -26,7 +26,6 @@ import logging
 import sys
 import os
 import traceback
-from optparse import OptionGroup  # pylint: disable=deprecated-module
 
 from ipaplatform.osinfo import osinfo
 from ipapython import version
@@ -113,7 +112,7 @@ class AdminTool:
         :param parser: The parser to add options to
         :param debug_option: Add a --debug option as an alias to --verbose
         """
-        group = OptionGroup(parser, "Logging and output options")
+        group = config.OptionGroup(parser, "Logging and output options")
         group.add_option("-v", "--verbose", dest="verbose", default=False,
             action="store_true", help="print debugging information")
         if debug_option:
