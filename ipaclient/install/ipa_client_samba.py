@@ -9,7 +9,6 @@ import logging
 import os
 import gssapi
 from urllib.parse import urlsplit
-from optparse import OptionParser  # pylint: disable=deprecated-module
 from contextlib import contextmanager
 
 from ipaclient import discovery
@@ -31,6 +30,7 @@ from ipaplatform.constants import constants
 from ipaplatform import services
 from ipapython.admintool import ScriptError
 from samba import generate_random_password
+from ipapython.config import IPAOptionParser
 
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.DEBUG)
@@ -68,7 +68,7 @@ def use_api_as_principal(principal, keytab):
 
 def parse_options():
     usage = "%prog [options]\n"
-    parser = OptionParser(usage=usage)
+    parser = IPAOptionParser(usage=usage)
     parser.add_option(
         "--server",
         dest="server",

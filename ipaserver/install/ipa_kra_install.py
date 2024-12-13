@@ -22,13 +22,12 @@ from __future__ import print_function, absolute_import
 import logging
 import sys
 import tempfile
-from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
 
 from textwrap import dedent
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_1
 from ipaplatform.paths import paths
-from ipapython import admintool
+from ipapython import admintool, config
 from ipaserver.install import service
 from ipaserver.install import cainstance
 from ipaserver.install import custodiainstance
@@ -73,7 +72,7 @@ class KRAInstall(admintool.AdminTool):
         parser.add_option(
             "--uninstall",
             dest="uninstall", action="store_true", default=False,
-            help=SUPPRESS_HELP)
+            help=config.SUPPRESS_HELP)
 
         parser.add_option(
             "--pki-config-override", dest="pki_config_override",

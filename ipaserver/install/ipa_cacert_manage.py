@@ -22,14 +22,13 @@ from __future__ import print_function, absolute_import
 import datetime
 import logging
 import os
-from optparse import OptionGroup  # pylint: disable=deprecated-module
 import gssapi
 
 from ipalib.constants import (
     RENEWAL_CA_NAME, RENEWAL_REUSE_CA_NAME, RENEWAL_SELFSIGNED_CA_NAME,
     IPA_CA_CN)
 from ipalib.install import certmonger, certstore
-from ipapython import admintool, ipautil
+from ipapython import admintool, ipautil, config
 from ipapython.certdb import (EMPTY_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags,
@@ -61,7 +60,7 @@ class CACertManage(admintool.AdminTool):
             "-p", "--password", dest='password',
             help="Directory Manager password")
 
-        renew_group = OptionGroup(parser, "Renew options")
+        renew_group = config.OptionGroup(parser, "Renew options")
         renew_group.add_option(
             "--self-signed", dest='self_signed',
             action='store_true',
@@ -89,7 +88,7 @@ class CACertManage(admintool.AdminTool):
                  "certificate chain")
         parser.add_option_group(renew_group)
 
-        install_group = OptionGroup(parser, "Install options")
+        install_group = config.OptionGroup(parser, "Install options")
         install_group.add_option(
             "-n", "--nickname", dest='nickname',
             help="Nickname for the certificate")
@@ -98,7 +97,7 @@ class CACertManage(admintool.AdminTool):
             help="Trust flags for the certificate in certutil format")
         parser.add_option_group(install_group)
 
-        delete_group = OptionGroup(parser, "Delete options")
+        delete_group = config.OptionGroup(parser, "Delete options")
         delete_group.add_option(
             "-f", "--force", action='store_true',
             help="Force removing the CA even if chain validation fails")

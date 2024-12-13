@@ -22,12 +22,11 @@ from __future__ import print_function, absolute_import
 import os
 import os.path
 import tempfile
-import optparse  # pylint: disable=deprecated-module
 
 from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
-from ipapython import admintool, dogtag
+from ipapython import admintool, dogtag, config
 from ipapython.certdb import NSSDatabase, get_ca_nickname
 from ipapython.dn import DN
 from ipapython import ipaldap
@@ -65,8 +64,8 @@ class ServerCertInstall(admintool.AdminTool):
             help="The password of the PKCS#12 file")
         parser.add_option(
             "--dirsrv_pin", "--http_pin",
-            dest="pin",
-            help=optparse.SUPPRESS_HELP)
+            dest="pin", sensitive=True,
+            help=config.SUPPRESS_HELP)
         parser.add_option(
             "--cert-name",
             dest="cert_name", metavar="NAME",

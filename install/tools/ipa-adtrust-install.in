@@ -29,8 +29,6 @@ import sys
 
 import six
 
-from optparse import SUPPRESS_HELP  # pylint: disable=deprecated-module
-
 from ipalib.install import sysrestore
 from ipaserver.install import adtrust, service
 from ipaserver.install.installutils import (
@@ -41,7 +39,7 @@ from ipapython.admintool import ScriptError
 from ipapython import version
 from ipapython import ipautil
 from ipalib import api, errors, krb_utils
-from ipapython.config import IPAOptionParser
+from ipapython.config import IPAOptionParser, SUPPRESS_HELP
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import standard_logging_setup
 
