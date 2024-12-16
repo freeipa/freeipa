@@ -6,10 +6,10 @@ from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 
 
-def setup_keycloakserver(host, version='17.0.0'):
+def setup_keycloakserver(host, version='25.0.4'):
     dir = "/opt/keycloak"
     password = host.config.admin_password
-    tasks.install_packages(host, ["unzip", "java-11-openjdk-headless",
+    tasks.install_packages(host, ["unzip", "java-17-openjdk-headless",
                                   "openssl", "maven", "wget",
                                   "firefox", "xorg-x11-server-Xvfb"])
     #  add keycloak system user/group and folder
