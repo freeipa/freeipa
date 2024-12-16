@@ -865,6 +865,8 @@ def install(installer):
     # Be clear that the installation process is beginning but not done
     sstore.backup_state('installation', 'complete', False)
 
+    sstore.backup_state('installation', 'fips', tasks.is_fips_enabled())
+
     if installer.interactive:
         print("")
         print("The following operations may take some minutes to complete.")
