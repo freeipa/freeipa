@@ -2,14 +2,16 @@
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
 # Jan Kuparinen <copper_fin@hotmail.com>, 2021, 2022.
-# Ricky Tigg <ricky.tigg@gmail.com>, 2021, 2022.
+# Ricky Tigg <ricky.tigg@gmail.com>, 2021, 2022, 2024.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2022-07-19 19:18+0000\n"
-"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"PO-Revision-Date: 2024-12-19 12:38+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -17,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.13\n"
+"X-Generator: Weblate 5.9.1\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -316,10 +318,8 @@ msgstr ""
 msgid "New Principal Password"
 msgstr "Uusi pääsalasana"
 
-#, fuzzy
-#| msgid "New Principal Password"
 msgid "Verify Principal Password"
-msgstr "Uusi pääsalasana"
+msgstr "Tarkista pääsalasana"
 
 #, c-format
 msgid ""
@@ -673,10 +673,9 @@ msgstr "Kohdistimen '%1$s' asettaminen epäonnistui\n"
 msgid "Unable to parse principal\n"
 msgstr "Ensisijaista ei voi jäsentää\n"
 
-#, fuzzy, c-format
-#| msgid "krb5_parse_name %1$d: %2$s\n"
+#, c-format
 msgid "krb5_unparse_name %1$d: %2$s\n"
-msgstr "krb5_parse_name %1$d: %2$s\n"
+msgstr "krb5_unparse_nimi %1$d: %2$s\n"
 
 #, c-format
 msgid "realm not found\n"
@@ -1087,10 +1086,8 @@ msgstr "Virheelliset tunnistautumistiedot"
 msgid "Create a new vault."
 msgstr "Poista holvi."
 
-#, fuzzy
-#| msgid "New vault password"
 msgid "Vault password"
-msgstr "Uusi holvin salasana"
+msgstr "Holvin salasana"
 
 #, fuzzy
 #| msgid "New vault password"
@@ -13558,10 +13555,8 @@ msgid ""
 "   ipa radiusproxy-del MyRADIUS\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "invalid port number"
 msgid "invalid attribute name"
-msgstr "virheellinen porttinumero"
+msgstr "virheellinen määritteen nimi"
 
 msgid "invalid port number"
 msgstr "virheellinen porttinumero"
@@ -16770,10 +16765,8 @@ msgstr ""
 msgid "Token URI"
 msgstr "Token-tunniste"
 
-#, fuzzy
-#| msgid "Mount point"
 msgid "Token endpoint"
-msgstr "Liitospiste"
+msgstr "Poletin päätepiste"
 
 #, fuzzy
 #| msgid "User Login"
@@ -16880,7 +16873,7 @@ msgid "Modified Identity Provider reference \"%(value)s\""
 msgstr "Muokattu palvelua \"%(value)s\""
 
 msgid "Search for Identity Provider references."
-msgstr ""
+msgstr "Etsi identiteetin tarjoajan viitteitä."
 
 #, fuzzy, python-format
 #| msgid "%(count)d subordinate id matched"
@@ -17026,10 +17019,8 @@ msgstr ""
 msgid "location"
 msgstr "sijainti"
 
-#, fuzzy
-#| msgid "location"
 msgid "locations"
-msgstr "sijainti"
+msgstr "sijainnit"
 
 msgid "IPA Locations"
 msgstr "IPA sijainnit"
@@ -17426,10 +17417,8 @@ msgstr "Vaatii ennakkotunnistautumisen"
 msgid "Modify Passkey configuration."
 msgstr "Muokkaa CA-asetuksia."
 
-#, fuzzy
-#| msgid "Show the current OTP configuration."
 msgid "Show the current Passkey configuration."
-msgstr "Näytä nykyiset kertakäyttöisen salasanan määritykset."
+msgstr "Näytä nykyinen sala-avaimen kokoonpano."
 
 msgid ""
 "\n"
@@ -18070,10 +18059,8 @@ msgstr "Omistajaryhmät"
 msgid "Sensitive"
 msgstr ""
 
-#, fuzzy
-#| msgid "Positional arguments"
 msgid "Positional argument"
-msgstr "Sijainnilliset parametrit"
+msgstr "Sijainnillinen argumentti"
 
 #, python-format
 msgid "%(metaobject)s: %(oname)s not found"
@@ -18281,18 +18268,14 @@ msgstr ""
 msgid "service delegation rule"
 msgstr "Palveluvalinnat"
 
-#, fuzzy
-#| msgid "Service delegation rules"
 msgid "service delegation rules"
-msgstr "Palveluvalinnat"
+msgstr "palvelun delegointisäännöt"
 
 msgid "Service delegation rules"
 msgstr "Palveluvalinnat"
 
-#, fuzzy
-#| msgid "Service delegation rules"
 msgid "Service delegation rule"
-msgstr "Palveluvalinnat"
+msgstr "Palvelun delegointisääntö"
 
 #, fuzzy, python-format
 #| msgid "Added service \"%(value)s\""
@@ -18326,10 +18309,8 @@ msgstr "Palveluvalinnat"
 msgid "service delegation targets"
 msgstr "Palveluvalinnat"
 
-#, fuzzy
-#| msgid "Service delegation rules"
 msgid "Service delegation targets"
-msgstr "Palveluvalinnat"
+msgstr "Palvelun delegoinnin kohtteet"
 
 #, fuzzy
 #| msgid "Service delegation rules"
@@ -20255,7 +20236,7 @@ msgid "ID Ranges"
 msgstr ""
 
 msgid "ID Range"
-msgstr ""
+msgstr "ID-alue"
 
 #, fuzzy
 #| msgid "NIS domain name"
