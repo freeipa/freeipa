@@ -3,13 +3,15 @@
 # This file is distributed under the same license as the freeipa package.
 # Jan Kuparinen <copper_fin@hotmail.com>, 2021, 2022.
 # Ricky Tigg <ricky.tigg@gmail.com>, 2021, 2022, 2024.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2024-12-19 12:38+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -1084,10 +1086,8 @@ msgstr "Virheelliset tunnistautumistiedot"
 msgid "Create a new vault."
 msgstr "Poista holvi."
 
-#, fuzzy
-#| msgid "New vault password"
 msgid "Vault password"
-msgstr "Uusi holvin salasana"
+msgstr "Holvin salasana"
 
 #, fuzzy
 #| msgid "New vault password"
