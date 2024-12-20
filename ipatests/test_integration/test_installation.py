@@ -1322,7 +1322,7 @@ class TestInstallMaster(IntegrationTest):
 
 class TestInstallMasterKRA(IntegrationTest):
 
-    num_replicas = 0
+    num_replicas = 1
 
     @classmethod
     def install(cls, mh):
@@ -1378,6 +1378,14 @@ class TestInstallMasterKRA(IntegrationTest):
                 nickname
             )
             assert starting_serial != int(cert.serial_number)
+
+    def test_install_replica_after_kracert_renewal(self):
+        """
+        Test replica installation with CA after the KRA certs renewal
+        """
+        tasks.install_replica(self.master, self.replicas[0],
+                              setup_ca=True)
+        tasks.install_kra(self.replicas[0])
 
 
 class TestInstallMasterDNS(IntegrationTest):
