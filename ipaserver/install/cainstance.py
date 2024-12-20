@@ -1262,11 +1262,14 @@ class CAInstance(DogtagInstance):
         """
 
         # The cert directive to update per nickname
-        directives = {'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
-                      'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
-                      'caSigningCert cert-pki-ca': 'ca.signing.cert',
-                      'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
-                      'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
+        directives = {
+            'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
+            'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
+            'caSigningCert cert-pki-ca': 'ca.signing.cert',
+            'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
+            'Server-Cert cert-pki-ca': 'ca.sslserver.cert',
+            'transportCert cert-pki-kra': 'ca.connector.KRA.transportCert'
+        }
 
         try:
             self.backup_config()
