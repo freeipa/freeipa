@@ -477,7 +477,7 @@ def request_cert(
         request_parameters['cert-perms'] = perms[0]
         request_parameters['key-perms'] = perms[1]
 
-    result = cm.obj_if.add_request(request_parameters)
+    result = cm.obj_if.add_request(request_parameters, timeout=30)
     try:
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
@@ -581,7 +581,7 @@ def start_tracking(
     if nss_user:
         params['nss-user'] = nss_user
 
-    result = cm.obj_if.add_request(params)
+    result = cm.obj_if.add_request(params, timeout=30)
     try:
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
