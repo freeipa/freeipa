@@ -321,7 +321,6 @@ class TestACME(CALessBase):
             '--domain', self.clients[0].hostname,
             '--preferred-challenges', 'dns',
             '--manual',
-            '--manual-public-ip-logging-ok',
             '--manual-auth-hook', CERTBOT_DNS_IPA_SCRIPT,
             '--manual-cleanup-hook', CERTBOT_DNS_IPA_SCRIPT,
             '--key-type', 'rsa',
