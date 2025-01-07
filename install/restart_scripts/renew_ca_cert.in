@@ -32,7 +32,7 @@ from ipapython import ipautil
 from ipalib import api, errors
 from ipalib import x509
 from ipalib.install.kinit import kinit_keytab
-from ipaserver.install import certs, cainstance
+from ipaserver.install import certs, cainstance, krainstance
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -83,7 +83,9 @@ def _main():
         api.Backend.ldap2.connect()
 
         ca = cainstance.CAInstance(host_name=api.env.host)
+        kra = krainstance.KRAInstance(api.env.realm)
         ca.update_cert_config(nickname, cert)
+        kra.update_cert_config(nickname, cert)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)
             cainstance.update_authority_entry(cert)
