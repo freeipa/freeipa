@@ -500,6 +500,13 @@ optional_policy(`
 
 optional_policy(`
     gen_require(` #selint-disable:S-001
+        type certmonger_t;
+    ')
+	  pki_manage_tomcat_etc_rw(certmonger_t)
+')
+
+optional_policy(`
+    gen_require(` #selint-disable:S-001
         type oddjob_t;
     ')
 	ipa_helper_noatsecure(oddjob_t)
