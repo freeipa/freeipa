@@ -332,6 +332,8 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
                                      '--uninstall',
                                      '-U'])
 
+            version = tasks.get_package_version_and_release(
+                self.master, '*ipa-server-dns')
             tasks.uninstall_packages(self.master, ['*ipa-server-dns'])
 
             dirman_password = self.master.config.dirman_password
@@ -341,7 +343,7 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
                 raiseonerr=False)
             assert 'Please install the package' in result.stderr_text
 
-            tasks.install_packages(self.master, ['*ipa-server-dns'])
+            tasks.install_packages(self.master, ['*ipa-server-dns-' + version])
             if reinstall:
                 tasks.install_master(self.master, setup_dns=True)
             self.master.run_command(['ipa-restore', backup_path],
@@ -945,6 +947,8 @@ class TestBackupAndRestoreTrust(IntegrationTest):
                                      '--uninstall',
                                      '-U'])
 
+            version = tasks.get_package_version_and_release(
+                self.master, '*ipa-server-trust-ad')
             tasks.uninstall_packages(self.master, ['*ipa-server-trust-ad'])
 
             dirman_password = self.master.config.dirman_password
@@ -954,7 +958,8 @@ class TestBackupAndRestoreTrust(IntegrationTest):
                 raiseonerr=False)
             assert 'Please install the package' in result.stderr_text
 
-            tasks.install_packages(self.master, ['*ipa-server-trust-ad'])
+            tasks.install_packages(
+                self.master, ['*ipa-server-trust-ad-' + version])
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
 
