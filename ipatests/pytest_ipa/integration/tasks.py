@@ -2699,6 +2699,28 @@ def get_package_version(host, pkgname):
     return get_package_version
 
 
+def get_package_version_and_release(host, pkgname):
+    """
+    Get package version-release on remote host
+    """
+    platform = get_platform(host)
+    if platform in ("rhel", "fedora"):
+        cmd = host.run_command(
+            ["rpm", "-qa", "--qf", "%{VERSION}-%{RELEASE}", pkgname]
+        )
+        get_package_version = cmd.stdout_text
+        if not get_package_version:
+            raise ValueError(
+                "get_package_version: "
+                "pkgname package is not installed"
+            )
+    else:
+        raise ValueError(
+            "get_package_version: unknown platform %s" % platform
+        )
+    return get_package_version
+
+
 def get_openldap_client_version(host):
     """Get openldap-clients version on remote host"""
     return get_package_version(host, 'openldap-clients')
