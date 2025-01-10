@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 
-from ipalib import x509
+from ipalib import errors, x509
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipapython.certdb import NSS_SQL_FILES
@@ -1146,8 +1146,14 @@ class TestIpaHealthCheck(IntegrationTest):
         )
         entry = ldap.get_entry(dn)
         entry.single_value["nsslapd-logging-hr-timestamps-enabled"] = 'off'
-        ldap.update_entry(entry)
-
+        try:
+            ldap.update_entry(entry)
+        except errors.DatabaseError as e:
+            expected_msg = "Unknown attribute " \
+                           "nsslapd-logging-hr-timestamps-enabled"
+            if expected_msg in e.message:
+                pytest.skip(
+                    "389-ds removed nsslapd-logging-hr-timestamps-enabled")
         yield
 
         entry = ldap.get_entry(dn)
