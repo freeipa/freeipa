@@ -2,16 +2,15 @@
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
 # Jan Kuparinen <copper_fin@hotmail.com>, 2021, 2022.
-# Ricky Tigg <ricky.tigg@gmail.com>, 2021, 2022, 2024.
+# Ricky Tigg <ricky.tigg@gmail.com>, 2021, 2022, 2024, 2025.
 # Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-12-19 12:38+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2025-01-11 13:38+0000\n"
+"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
 "Language: fi\n"
@@ -19,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.1\n"
+"X-Generator: Weblate 5.9.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -172,10 +171,8 @@ msgstr "Palvelimen nimi"
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Unable to parse principal name\n"
 msgid "Kerberos Service Principal Name"
-msgstr "Prinsipaalinimen jäsentäminen ei onnistu\n"
+msgstr "Kerberos-palvelun päänimi"
 
 msgid ""
 "The keytab file to append the new key to (will be created if it does not "
@@ -188,18 +185,14 @@ msgstr ""
 msgid "Encryption types to request"
 msgstr ""
 
-#, fuzzy
-#| msgid "Supported encryption types:\n"
 msgid "Comma separated encryption types list"
-msgstr "Tuetut salaustyypit:\n"
+msgstr "Pilkuilla eroteltu salaustyyppien luettelo"
 
 msgid "Show the list of permitted encryption types and exit"
 msgstr ""
 
-#, fuzzy
-#| msgid "Supported encryption types:\n"
 msgid "Permitted Encryption Types"
-msgstr "Tuetut salaustyypit:\n"
+msgstr "Sallitut salaustyypit"
 
 msgid "Asks for a non-random password to use for the principal"
 msgstr ""
@@ -713,10 +706,8 @@ msgstr "krb5_parse_name %1$d: %2$s\n"
 msgid "Input file"
 msgstr "Syötetiedosto"
 
-#, fuzzy
-#| msgid "Failed to close the keytab\n"
 msgid "File to load the certificate from"
-msgstr "Keytabin sulkeminen epäonnistui!\n"
+msgstr "Tiedosto, josta varmenne ladataan"
 
 msgid "cannot specify both raw certificate and file"
 msgstr ""
@@ -815,14 +806,8 @@ msgstr ""
 msgid "Add a new YubiKey OTP token."
 msgstr "Lisää uusi YubiKey:n OTP-token."
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "YubiKey Tokens\n"
 msgid "YubiKey slot"
-msgstr ""
-"\n"
-"YubiKey Tokenit\n"
+msgstr "YubiKey-korttipaikka"
 
 msgid "No free YubiKey slot!"
 msgstr ""
@@ -853,10 +838,9 @@ msgid ""
 "Continuous operation mode. Errors are reported but the process continues."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "File %(file)s not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "Tiedostoa %(file)s ei löytynyt"
 
 #, python-format
 msgid "key %(key)s already exists"
@@ -869,10 +853,9 @@ msgstr ""
 msgid "Imported maps:"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added host \"%(value)s\""
+#, python-format
 msgid "Added %(map)s"
-msgstr "Lisätty isäntäkone \"%(value)s\""
+msgstr "%(map)s lisätty"
 
 msgid "Imported keys:"
 msgstr ""
@@ -949,10 +932,9 @@ msgstr ""
 msgid "Current DNS record contents:\n"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Modified stage user \"%(value)s\""
+#, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr "Muokattu stagen käyttäjää \"%(value)s\""
+msgstr "Muutetaanko %(name)s '%(value)s'?"
 
 #, python-format
 msgid ""
@@ -975,10 +957,9 @@ msgstr ""
 msgid "Delete all?"
 msgstr "Poista kaikki?"
 
-#, fuzzy, python-format
-#| msgid "Deleted host \"%(value)s\""
+#, python-format
 msgid "Delete %(name)s '%(value)s'?"
-msgstr "Poistettu isäntäkone \"%(value)s\""
+msgstr "Poistetaanko %(name)s '%(value)s'?"
 
 msgid "Server will check DNS forwarder(s)."
 msgstr ""
@@ -1027,20 +1008,17 @@ msgstr ""
 msgid "Add one or more passkey mappings to the user entry."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added Sudo Rule \"%(value)s\""
+#, python-format
 msgid "Enabled Sudo Rule \"%s\""
-msgstr "Lisätty sudosääntö \"%(value)s\""
+msgstr "Sudo-sääntö \"%s\" käytössä"
 
-#, fuzzy, python-format
-#| msgid "Display Sudo Rule."
+#, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr "Näytä Sudo-sääntö."
+msgstr "Sudo-sääntö \"%s\" poistettu käytöstä"
 
-#, fuzzy, python-format
-#| msgid "Added Sudo Rule \"%(value)s\""
+#, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr "Lisätty sudosääntö \"%(value)s\""
+msgstr "Lisätty vaihtoehto \"%(option)s\" Sudo-sääntöön \"%(rule)s\""
 
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
@@ -1112,10 +1090,9 @@ msgstr ""
 msgid "Missing vault public key"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Bad or unsupported salt type.\n"
+#, python-format
 msgid "Invalid or unsupported vault public key: %s"
-msgstr "Huono tai ei-tuettu suolatyyppi.\n"
+msgstr "Virheellinen tai tuettu holvin julkinen avain: %s"
 
 msgid "Modify a vault."
 msgstr "Muokkaa holvia."
@@ -6761,10 +6738,8 @@ msgstr "Näyttönimi"
 msgid "Initials"
 msgstr ""
 
-#, fuzzy
-#| msgid "Unable to parse principal\n"
 msgid "Kerberos principal"
-msgstr "Ensisijaista ei voi jäsentää\n"
+msgstr "Kerberos pääasiallinen"
 
 msgid "Kerberos principal expiration"
 msgstr ""
@@ -6847,14 +6822,8 @@ msgid ""
 "interpretation)"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "DNS server configuration\n"
 msgid "RADIUS proxy configuration"
-msgstr ""
-"\n"
-"DNS-palvelimen kokoonpano\n"
+msgstr "RADIUS-välityspalvelimen kokoonpano"
 
 msgid "RADIUS proxy username"
 msgstr ""
@@ -7404,10 +7373,8 @@ msgstr ""
 msgid "Output filename"
 msgstr "Vientitiedoston nimi"
 
-#, fuzzy
-#| msgid "Failed to close the keytab\n"
 msgid "File to store the certificate in."
-msgstr "Keytabin sulkeminen epäonnistui!\n"
+msgstr "Tiedosto, johon varmenne tallennetaan."
 
 msgid "Check the status of a certificate signing request."
 msgstr ""
@@ -8321,6 +8288,61 @@ msgid ""
 " Set a default Sudo option:\n"
 "   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 msgstr ""
+"\n"
+"Sudon säännöt\n"
+"\n"
+"Sudo (su \"do\") sallii järjestelmänvalvojan delegoida valtuudet antaa "
+"tietyille\n"
+"käyttäjille(tai käyttäjäryhmille) mahdollisuus suorittaa joitain (tai "
+"kaikkia)\n"
+"komentoja pääkäyttäjänä tai toisena käyttäjänä samalla kun se tarjoaa "
+"komennon\n"
+"ja niiden argumenttien kirjausketjun.\n"
+"\n"
+"IPA tarjoaa tavan määrittää Sudon eri osa-alueet:\n"
+" Käyttäjät: Käyttäjä(t)/ryhmä(t), joilla on oikeus kutsua Sudoa.\n"
+" Isännät: Isäntä(t)/isäntäryhmä(t), joissa käyttäjä voi kutsua Sudoa.\n"
+" Salli komento: tietyt komennot, jotka on sallittu Sudon kautta.\n"
+" Estä komento: Tietyt komennot, joiden suorittaminen Sudon kautta on "
+"kielletty.\n"
+" RunAsUser: käyttäjä(t) tai käyttäjäryhmä(t), joiden oikeuksilla Sudoa "
+"kutsutaan.\n"
+" RunAsGroup: Ryhmät, joiden gid-oikeuksilla Sudoa kutsutaan.\n"
+" Asetukset: Eri Sudoers-asetukset, jotka voivat muuttaa Sudon käyttäytymistä."
+"\n"
+"\n"
+"Sudoruleen voidaan lisätä järjestys, jolla ohjataan järjestystä, jossa ne\n"
+"arvioidaan(jos asiakas tukee sitä). Tämä järjestys on kokonaisluku ja sen\n"
+"on oltava yksilöllinen.\n"
+"\n"
+"IPA tarjoaa nimetyn binddn:n käytettäväksi Sudon kanssa sijainnissa:\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=esimerkki,dc=com\n"
+"\n"
+"Ota binddn käyttöön suorittamalla seuraava komento salasanan asettamiseksi:\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \\\n"
+" -H ldap://ipa.esimerkki.com -ZZ -D \"cn=Hakemistohallinta\" \\\n"
+" uid=sudo,cn=sysaccounts,cn=etc,dc=esimerkki,dc=com\n"
+"\n"
+"ESIMERKIT:\n"
+"\n"
+" Luo uusi sääntö:\n"
+"  ipa sudorule-add readfiles\n"
+"\n"
+" Lisää sudo-komentoobjekti ja lisää se sallittuna komennona sääntöön:\n"
+"  ipa sudocmd-add /usr/bin/less\n"
+"  ipa sudorule-add-allow-command readfies --sudocmds /usr/bin/less\n"
+"\n"
+" Lisää isäntä sääntöön:\n"
+"  ipa sudorule-add-host readfiles --hosts palvelin.esimerkki.com\n"
+"\n"
+" Lisää käyttäjä sääntöön:\n"
+"  ipa sudorule-add-user readfies --users smith\n"
+"\n"
+" Lisää erityinen Sudo-sääntö Sudo-palvelimen oletuskokoonpanoon:\n"
+"  ipa sudorule-add defaults\n"
+"\n"
+" Aseta oletusarvoinen Sudo-vaihtoehto:\n"
+"  ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 
 #, fuzzy
 #| msgid "Host category"
@@ -9145,10 +9167,8 @@ msgstr "Palveluvalinnat"
 msgid "member principal"
 msgstr "jäsenryhmä"
 
-#, fuzzy
-#| msgid "principal not found\n"
 msgid "principal to add"
-msgstr "toimeksiantajaa ei löydy\n"
+msgstr "pääasiallinen lisättävä"
 
 #, fuzzy
 #| msgid "Service delegation rules"
@@ -9937,10 +9957,8 @@ msgstr ""
 msgid "Display the properties of a Certificate Profile."
 msgstr ""
 
-#, fuzzy
-#| msgid "cannot open configuration file %s\n"
 msgid "Write profile configuration to file"
-msgstr "asetustiedostoa %s ei voi avata\n"
+msgstr "Kirjoita profiilin kokoonpano tiedostoon"
 
 msgid ""
 "\n"
@@ -11950,6 +11968,41 @@ msgid ""
 "\n"
 "For more information, see the IPA Documentation to Sudo.\n"
 msgstr ""
+"\n"
+"Sudon säännöt\n"
+"\n"
+"Sudo (su \"do\") sallii järjestelmänvalvojan delegoida valtuudet antaa "
+"tietyille\n"
+"käyttäjille (tai käyttäjäryhmille) mahdollisuus suorittaa joitain (tai "
+"kaikkia)\n"
+"komentoja pääkäyttäjänä tai toisena käyttäjänä samalla kun se tarjoaa\n"
+"komennon ja niiden argumenttien kirjausketjun.\n"
+"\n"
+"IPA tarjoaa tavan määrittää Sudon eri osa-alueet:\n"
+" Käyttäjät: Käyttäjä(t)/ryhmä(t), joilla on oikeus kutsua Sudoa.\n"
+" Isännät: Isäntä(t)/isäntäryhmä(t), joissa käyttäjä voi kutsua Sudoa.\n"
+" Salli komento: tietyt komennot, jotka on sallittu Sudon kautta.\n"
+" Estä komento: Tietyt komennot, joiden suorittaminen Sudon kautta on "
+"kielletty.\n"
+" RunAsUser: käyttäjä(t) tai käyttäjäryhmä(t), joiden oikeuksilla Sudoa "
+"kutsutaan.\n"
+" RunAsGroup: Ryhmät, joiden gid-oikeuksilla Sudoa kutsutaan.\n"
+" Asetukset: Eri Sudoers-asetukset, jotka voivat muuttaa Sudon käyttäytymistä."
+"\n"
+"\n"
+"Sudoruleen voidaan lisätä järjestys, jolla ohjataan järjestystä, jossa ne\n"
+"arvioidaan (jos asiakas tukee sitä). Tämä järjestys on kokonaisluku ja sen\n"
+"on oltava yksilöllinen.\n"
+"\n"
+"IPA tarjoaa määrätyn sidoksen käytettäväksi Sudon kanssa osoitteessa:\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=esimerkki,dc=com\n"
+"\n"
+"Ota binddn käyttöön suorittamalla seuraava komento salasanan asettamiseksi:\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \\\n"
+" -H ldap://ipa.esimerkki.com -ZZ -D \"cn=Hakemistohallinta\" \\\n"
+" uid=sudo,cn=sysaccounts,cn=etc,dc=esimerkki,dc=com\n"
+"\n"
+"Lisätietoja on Sudon IPA-dokumentaatiossa.\n"
 
 msgid "comma-separated list of sudo command groups to add"
 msgstr ""
@@ -12315,10 +12368,9 @@ msgstr ""
 msgid "'%(name)s' is required"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Invalid JSON-RPC request: %(error)s"
+#, python-format
 msgid "invalid '%(name)s': %(error)s"
-msgstr "Virheellinen JSON-RPC-pyyntö: %(error)s"
+msgstr "virheellinen '%(name)s': %(error)s"
 
 #, python-format
 msgid "api has no such namespace: '%(name)s'"
@@ -12780,10 +12832,9 @@ msgstr "Tulee olla positiivinen numero"
 msgid "must be at least %(minvalue)d"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d bytes"
+#, python-format
 msgid "can be at most %(maxvalue)d"
-msgstr "voi sisältää enintään %(maxlength)d tavua"
+msgstr "voi olla enintään %(maxvalue)d"
 
 #, fuzzy
 #| msgid "Must be a positive number"
@@ -12794,10 +12845,9 @@ msgstr "Tulee olla positiivinen numero"
 msgid "must be at least %(minvalue)s"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d bytes"
+#, python-format
 msgid "can be at most %(maxvalue)s"
-msgstr "voi sisältää enintään %(maxlength)d tavua"
+msgstr "voi olla enintään %(maxvalue)s"
 
 #, python-format
 msgid ""
@@ -12812,19 +12862,17 @@ msgstr ""
 msgid "must be binary data"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d bytes"
+#, python-format
 msgid "must be at least %(minlength)d bytes"
-msgstr "voi sisältää enintään %(maxlength)d tavua"
+msgstr "on oltava vähintään %(minlength)d tavua"
 
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
 msgstr "voi sisältää enintään %(maxlength)d tavua"
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d bytes"
+#, python-format
 msgid "must be exactly %(length)d bytes"
-msgstr "voi sisältää enintään %(maxlength)d tavua"
+msgstr "on oltava täsmälleen %(length)d tavua"
 
 msgid "must be a certificate"
 msgstr ""
@@ -12842,19 +12890,17 @@ msgstr ""
 msgid "Leading and trailing spaces are not allowed"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d characters"
+#, python-format
 msgid "must be at least %(minlength)d characters"
-msgstr "voi sisältää enintään %(maxlength)d merkkiä"
+msgstr "on oltava vähintään %(minlength)d merkkiä"
 
 #, python-format
 msgid "can be at most %(maxlength)d characters"
 msgstr "voi sisältää enintään %(maxlength)d merkkiä"
 
-#, fuzzy, python-format
-#| msgid "can be at most %(maxlength)d characters"
+#, python-format
 msgid "must be exactly %(length)d characters"
-msgstr "voi sisältää enintään %(maxlength)d merkkiä"
+msgstr "on oltava täsmälleen %(length)d merkkiä"
 
 #, python-format
 msgid "The character %(char)r is not allowed."
@@ -12865,10 +12911,9 @@ msgstr ""
 msgid "must be '%(value)s'"
 msgstr "%(value)s"
 
-#, fuzzy, python-format
-#| msgid "Deleted role \"%(value)s\""
+#, python-format
 msgid "must be one of %(values)s"
-msgstr "Poistettu rooli \"%(value)s\""
+msgstr "on oltava jokin seuraavista: %(values)s"
 
 msgid "must be datetime value"
 msgstr ""
@@ -12919,18 +12964,16 @@ msgstr "virheellinen porttinumero"
 msgid "%(filename)s: file not found"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Unable to parse principal\n"
+#, python-brace-format
 msgid "Unable to parse option {item}"
-msgstr "Ensisijaista ei voi jäsentää\n"
+msgstr "Vaihtoehtoa {item} ei voi jäsentää"
 
 msgid "Filename is empty"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Permission flags"
+#, python-format
 msgid "Permission denied: %(file)s"
-msgstr "Käyttöoikeusmerkinnät"
+msgstr "Lupa evätty: %(file)s"
 
 msgid "empty DNS label"
 msgstr ""
@@ -13047,15 +13090,11 @@ msgstr "Salasanat eivät täsmää!"
 msgid "No matching entries found"
 msgstr "Vastaavia tietueita ei löytynyt"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "Topic or Command"
-msgstr "Aiheen komennot:"
+msgstr "Aihe tai komento"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "The topic or command name."
-msgstr "Aiheen komennot:"
+msgstr "Aiheen tai komennon nimi."
 
 msgid "Topic commands:"
 msgstr "Aiheen komennot:"
@@ -13252,14 +13291,8 @@ msgstr ""
 msgid "DNS is not configured"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "DNS server configuration\n"
 msgid "Modify DNS server configuration"
-msgstr ""
-"\n"
-"DNS-palvelimen kokoonpano\n"
+msgstr "Muokkaa DNS-palvelimen kokoonpanoa"
 
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
@@ -13494,13 +13527,11 @@ msgstr "Tämä merkintä on jo poistettu käytöstä"
 msgid "Report PKINIT status on the IPA masters"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d subordinate id matched"
-#| msgid_plural "%(count)d subordinate ids matched"
+#, python-format
 msgid "%(count)s server matched"
 msgid_plural "%(count)s servers matched"
-msgstr[0] "%(count)d alisteinen tunnus löytyi"
-msgstr[1] "%(count)d alisteista tunnusta löytyi"
+msgstr[0] "%(count)s palvelin täsmäsi"
+msgstr[1] "%(count)s palvelinta täsmäsivät"
 
 #, fuzzy
 #| msgid ""
@@ -13830,14 +13861,8 @@ msgstr "Palvelinrooleja"
 msgid "IPA Server Role"
 msgstr "Palvelimen rooli"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "IPA server roles\n"
 msgid "IPA server role name"
-msgstr ""
-"\n"
-"IPA-palvelinroolit\n"
+msgstr "IPA-palvelimen roolin nimi"
 
 #, fuzzy
 #| msgid "Roles"
@@ -13853,13 +13878,11 @@ msgstr ""
 msgid "Find a server role on a server(s)"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d subordinate id matched"
-#| msgid_plural "%(count)d subordinate ids matched"
+#, python-format
 msgid "%(count)s server role matched"
 msgid_plural "%(count)s server roles matched"
-msgstr[0] "%(count)d alisteinen tunnus löytyi"
-msgstr[1] "%(count)d alisteista tunnusta löytyi"
+msgstr[0] "%(count)s palvelinrooli täsmäsi"
+msgstr[1] "%(count)s palvelinroolia täsmäsivät"
 
 #, fuzzy
 #| msgid "Included attributes"
@@ -14138,22 +14161,22 @@ msgstr ""
 msgid "Auto Membership Rule"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "%(otype)s \"%(oname)s\" not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "%(otype)s \"%(oname)s\" ei löytynyt"
 
 #, python-format
 msgid "%s is not a valid attribute."
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete an automember rule."
 msgid ""
 "\n"
 "    Add an automember rule.\n"
 "    "
-msgstr "Poista automember-sääntö."
+msgstr ""
+"\n"
+"    Lisää automember-sääntö.\n"
+"    "
 
 #, fuzzy, python-format
 #| msgid "Added Sudo Rule \"%(value)s\""
@@ -14174,10 +14197,9 @@ msgstr ""
 msgid "Added condition(s) to \"%(value)s\""
 msgstr "Lisätty isäntäkone \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "Auto member rule: %s not found!"
-msgstr "Kohtaa %s ei löydy"
+msgstr "Automaattinen jäsensääntö: %s:ta ei löytynyt!"
 
 msgid ""
 "\n"
@@ -14203,26 +14225,28 @@ msgid ""
 "        "
 msgstr ""
 
-#, fuzzy
-#| msgid "Delete an automember rule."
 msgid ""
 "\n"
 "    Modify an automember rule.\n"
 "    "
-msgstr "Poista automember-sääntö."
+msgstr ""
+"\n"
+"    Muokkaa automember-sääntöä.\n"
+"    "
 
 #, fuzzy, python-format
 #| msgid "Modified Sudo Rule \"%(value)s\""
 msgid "Modified automember rule \"%(value)s\""
 msgstr "Muokattu sudosääntöä \"%(value)s\""
 
-#, fuzzy
-#| msgid "Delete an automember rule."
 msgid ""
 "\n"
 "    Delete an automember rule.\n"
 "    "
-msgstr "Poista automember-sääntö."
+msgstr ""
+"\n"
+"    Poista automember-sääntö.\n"
+"    "
 
 #, fuzzy, python-format
 #| msgid "Deleted HBAC rule \"%(value)s\""
@@ -14520,15 +14544,13 @@ msgstr "Tietue"
 msgid "container entry (%(container)s) not found"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "%(parent)s: %(oname)s not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "%(parent)s: %(oname)s ei löytynyt"
 
-#, fuzzy, python-format
-#| msgid "%s: group not found"
+#, python-format
 msgid "%(pkey)s: %(oname)s not found"
-msgstr "%s: ryhmää ei löydy"
+msgstr "%(pkey)s: %(oname)s ei löytynyt"
 
 #, python-format
 msgid "%(oname)s with name \"%(pkey)s\" already exists"
@@ -14563,15 +14585,13 @@ msgstr "%s"
 msgid "member %s"
 msgstr "jäsen %s"
 
-#, fuzzy, python-format
-#| msgid "groups to add"
+#, python-format
 msgid "%s to add"
-msgstr "lisättävät ryhmät"
+msgstr "%s lisättävä"
 
-#, fuzzy, python-format
-#| msgid "Failed to remove"
+#, python-format
 msgid "%s to remove"
-msgstr "Poistaminen epäonnistui"
+msgstr "%s poistettava"
 
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
@@ -14666,10 +14686,9 @@ msgstr ""
 msgid "invalid e-mail format: %(email)s"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "manager %(manager)s not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "hallinnoijaa %(manager)s ei löytynyt"
 
 #, python-format
 msgid "can be at most %(len)d characters"
@@ -14864,15 +14883,13 @@ msgstr ""
 msgid "%i users or groups removed."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Search for hostgroups."
+#, python-format
 msgid "%i host or hostgroup added."
-msgstr "Etsi isäntäryhmiä."
+msgstr "%i isäntä tai isäntäryhmä lisätty."
 
-#, fuzzy, python-format
-#| msgid "Search for hostgroups."
+#, python-format
 msgid "%i hosts or hostgroups added."
-msgstr "Etsi isäntäryhmiä."
+msgstr "%i isäntää tai isäntäryhmää lisätty."
 
 msgid "hosts cannot be added when host category='all'"
 msgstr ""
@@ -14881,10 +14898,9 @@ msgstr ""
 msgid "%i host or hostgroup removed."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Search for hostgroups."
+#, python-format
 msgid "%i hosts or hostgroups removed."
-msgstr "Etsi isäntäryhmiä."
+msgstr "%i isäntää tai isäntäryhmää poistettu."
 
 #, python-format
 msgid "%i service added."
@@ -14951,10 +14967,9 @@ msgstr ""
 msgid "Remove CAs from a CA ACL."
 msgstr "Poista profiileita CA ACL:stä."
 
-#, fuzzy, python-format
-#| msgid "Failed to remove"
+#, python-format
 msgid "%i CA removed."
-msgstr "Poistaminen epäonnistui"
+msgstr "%i CA poistettu."
 
 #, python-format
 msgid "%i CAs removed."
@@ -15180,13 +15195,11 @@ msgid ""
 "    "
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(count)d SELinux User Map matched"
-#| msgid_plural "%(count)d SELinux User Maps matched"
+#, python-format
 msgid "%(count)s user matched"
 msgid_plural "%(count)s users matched"
-msgstr[0] "%(count)d SELinux-käyttäjäkartta löytyi"
-msgstr[1] "%(count)d SELinux-käyttäjäkarttoja löytyi"
+msgstr[0] "%(count)s käyttäjä täsmäsi"
+msgstr[1] "%(count)s käyttäjää täsmäsivät"
 
 msgid ""
 "\n"
@@ -15747,10 +15760,9 @@ msgid ""
 "server"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "DNS zone %(zone)s not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "DNS-vyöhykettä %(zone)s ei löytynyt"
 
 #, python-format
 msgid "IP address %(ip)s is already assigned in domain %(domain)s."
@@ -15854,14 +15866,8 @@ msgstr ""
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Managed permissions\n"
 msgid "Managedby permission"
-msgstr ""
-"\n"
-"Hallitut käyttöoikeudet\n"
+msgstr "Managedby-käyttöoikeus"
 
 msgid "cannot be used when a zone is specified"
 msgstr ""
@@ -16028,10 +16034,9 @@ msgstr ""
 msgid "Found '%(value)s'"
 msgstr "%(value)s"
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "Host '%(host)s' not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "Isäntää %(host)s ei löytynyt"
 
 #, fuzzy
 #| msgid "Modify configuration options."
@@ -16100,14 +16105,8 @@ msgstr "Otettu HBAC sääntö \"%(value)s\" käyttöön"
 msgid "IPA DNS records"
 msgstr "IPA:n DNS-palvelimet"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "IPA locations\n"
 msgid "IPA location records"
-msgstr ""
-"\n"
-"IPA sijainnit\n"
+msgstr "IPA-sijaintitietueet"
 
 msgid "Update location and IPA server DNS records"
 msgstr ""
@@ -16305,10 +16304,9 @@ msgid ""
 "have run ipa-adtrust-install on the IPA server first"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deleted stage user \"%(value)s\""
+#, python-format
 msgid "Detached group \"%(value)s\" from user \"%(value)s\""
-msgstr "Poistettu stagen käyttäjä \"%(value)s\""
+msgstr "Irrotettu ryhmä \"%(value)s\" käyttäjästä \"%(value)s\""
 
 #, fuzzy
 #| msgid "Hosts allowed to retrieve keytab"
@@ -17268,12 +17266,12 @@ msgstr ""
 "\n"
 "OTP-tunnukset\n"
 
-#, fuzzy
-#| msgid "Add a new OTP token."
 msgid ""
 "\n"
 "Manage OTP tokens.\n"
-msgstr "Lisää uusi OTP-tunnus."
+msgstr ""
+"\n"
+"Hallinnoi OTP-poletteja.\n"
 
 msgid ""
 "\n"
@@ -17543,10 +17541,9 @@ msgstr ""
 msgid "\"%s\" is not a valid permission type"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deleted user \"%(value)s\""
+#, python-format
 msgid "Deprecated; use %s"
-msgstr "Poistettu käyttäjä \"%(value)s\""
+msgstr "Käytöstä poistettu; käytä %s"
 
 #, python-format
 msgid "Permission with unknown flag %s may not be modified or removed"
@@ -17629,32 +17626,14 @@ msgstr ""
 msgid "Modified permission \"%(value)s\""
 msgstr "Muokattu roolia \"%(value)s\""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Managed permissions\n"
 msgid "cannot rename managed permissions"
-msgstr ""
-"\n"
-"Hallitut käyttöoikeudet\n"
+msgstr "hallinnoituja käyttöoikeuksia ei voi nimetä uudelleen"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Managed permissions\n"
 msgid "not modifiable on managed permissions"
-msgstr ""
-"\n"
-"Hallitut käyttöoikeudet\n"
+msgstr "ei voida muokata hallinnoiduilla käyttöoikeuksilla"
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Managed permissions\n"
 msgid "only available on managed permissions"
-msgstr ""
-"\n"
-"Hallitut käyttöoikeudet\n"
+msgstr "käytettävissä vain hallinnoiduilla käyttöoikeuksilla"
 
 msgid "attrs and included/excluded attributes are mutually exclusive"
 msgstr ""
@@ -17925,12 +17904,12 @@ msgid_plural "%(count)d roles matched"
 msgstr[0] "%(count)d alisteinen tunnus löytyi"
 msgstr[1] "%(count)d alisteista tunnusta löytyi"
 
-#, fuzzy
-#| msgid "LDAP schema"
 msgid ""
 "\n"
 "API Schema\n"
-msgstr "LDAP:in skeema"
+msgstr ""
+"\n"
+"API-malli\n"
 
 msgid ""
 "\n"
@@ -18129,10 +18108,9 @@ msgstr "SELinux-käyttäjäkartat"
 msgid "SELinux User Map"
 msgstr "SELinux-käyttäjäkartta"
 
-#, fuzzy, python-format
-#| msgid "Entry %s not found"
+#, python-format
 msgid "HBAC rule %(rule)s not found"
-msgstr "Kohtaa %s ei löydy"
+msgstr "HBAC-sääntöä %(rule)s ei löytynyt"
 
 #, python-format
 msgid "Added SELinux User Map \"%(value)s\""
@@ -18160,10 +18138,9 @@ msgstr "Otettu SELinux-käyttäjäkartta \"%(value)s\" käyttöön"
 msgid "Disabled SELinux User Map \"%(value)s\""
 msgstr "Poistettu SELinux-käyttäjäkartta \"%(value)s\" käytöstä"
 
-#, fuzzy, python-brace-format
-#| msgid "realm not found\n"
+#, python-brace-format
 msgid "{role}: role not found"
-msgstr "aluetta ei löydy\n"
+msgstr "{role}: Roolia ei löytynyt"
 
 #, python-brace-format
 msgid "{attr}: no such attribute"
@@ -18246,10 +18223,8 @@ msgstr ""
 msgid "Allowed to Impersonate"
 msgstr "Keytabin luominen sallittu"
 
-#, fuzzy
-#| msgid "Removing principal %s\n"
 msgid "Member principals"
-msgstr "Poistetaan ensisijaista %s\n"
+msgstr "Jäsenten pääasialliset"
 
 #, python-format
 msgid "Malformed principal: %(error)s"
@@ -18292,12 +18267,11 @@ msgstr "Poistettu palvelu \"%(value)s\""
 msgid "privileged service delegation rule"
 msgstr "Palveluvalinnat"
 
-#, fuzzy, python-format
-#| msgid "Service delegation rules"
+#, python-format
 msgid "%(count)d service delegation rule matched"
 msgid_plural "%(count)d service delegation rules matched"
-msgstr[0] "Palveluvalinnat"
-msgstr[1] "Palveluvalinnat"
+msgstr[0] "%(count)d palvelun delegointisääntö täsmääsi"
+msgstr[1] "%(count)d palvelun delegointisääntöä täsmääsivät"
 
 #, fuzzy
 #| msgid "Service delegation rules"
@@ -18735,6 +18709,18 @@ msgid ""
 "   RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.\n"
 "   Options: The various Sudoers Options that can modify Sudo's behavior.\n"
 msgstr ""
+"\n"
+"IPA tarjoaa tavan määrittää Sudon eri osa-alueet:\n"
+" Käyttäjät: Käyttäjä(t)/ryhmä(t), joilla on oikeus kutsua Sudoa.\n"
+" Isännät: Isäntä(t)/isäntäryhmä(t), joissa käyttäjä voi kutsua Sudoa.\n"
+" Salli komento: tietyt komennot, jotka on sallittu Sudon kautta.\n"
+" Estä komento: Tietyt komennot, joiden suorittaminen Sudon kautta on "
+"kielletty.\n"
+" RunAsUser: käyttäjä(t) tai käyttäjäryhmä(t), joiden oikeuksilla Sudoa "
+"kutsutaan.\n"
+" RunAsGroup: Ryhmät, joiden gid-oikeuksilla Sudoa kutsutaan.\n"
+" Asetukset: Eri Sudoers-asetukset, jotka voivat muuttaa Sudon käyttäytymistä."
+"\n"
 
 msgid ""
 "\n"
@@ -18893,11 +18879,11 @@ msgstr ""
 
 #, python-format
 msgid "RunAsUser does not accept '%(name)s' as a user name"
-msgstr ""
+msgstr "RunAsUser ei hyväksy '%(name)s' käyttäjänimeksi"
 
 #, python-format
 msgid "RunAsUser does not accept '%(name)s' as a group name"
-msgstr ""
+msgstr "RunAsUser ei hyväksy '%(name)s' ryhmän nimeksi"
 
 #, python-format
 msgid "RunAsGroup does not accept '%(name)s' as a group name"
@@ -19308,10 +19294,8 @@ msgid ""
 "\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Unspecified"
 msgid "    * 0 - unspecified\n"
-msgstr "Määrittämätön"
+msgstr "    * 0 - unspecified\n"
 
 msgid "    * 1 - keyCompromise\n"
 msgstr ""
@@ -19409,10 +19393,8 @@ msgstr "Aihe OID"
 msgid "Subject UPN"
 msgstr "Aihe"
 
-#, fuzzy
-#| msgid "Unable to parse principal name\n"
 msgid "Subject Kerberos principal name"
-msgstr "Prinsipaalinimen jäsentäminen ei onnistu\n"
+msgstr "Aihe Kerberos pääasiallinen nimi"
 
 #, fuzzy
 #| msgid "Subject OID"
@@ -19651,14 +19633,8 @@ msgstr ""
 msgid "Enable adding subids to new users"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "IPA servers\n"
 msgid "IPA masters"
-msgstr ""
-"\n"
-"IPA-palvelimet\n"
+msgstr "IPA-mestarit"
 
 msgid "List of all IPA masters"
 msgstr ""
@@ -20352,14 +20328,8 @@ msgid ""
 "adtrust-install has already been run."
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "IPA servers\n"
 msgid "<all IPA servers>"
-msgstr ""
-"\n"
-"IPA-palvelimet\n"
+msgstr "<kaikki IPA-palvelimet>"
 
 #, fuzzy, python-format
 #| msgid "Deleted role \"%(value)s\""
@@ -20628,10 +20598,9 @@ msgstr "Lisätty ryhmä \"%(value)s\""
 msgid "Deleted Group ID override \"%(value)s\""
 msgstr "Poistettu ryhmä \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "Modify an Group ID override."
+#, python-format
 msgid "Modified an Group ID override \"%(value)s\""
-msgstr "Muokkaa ryhmätunnuksen ohitusta."
+msgstr "Muokattu ryhmätunnuksen ohitus \"%(value)s\""
 
 #, fuzzy, python-format
 #| msgid "%(count)d subordinate id matched"
@@ -20972,10 +20941,8 @@ msgstr ""
 msgid "Edit ${entity}"
 msgstr "Muokkaa ${entity}"
 
-#, fuzzy
-#| msgid "Servers details:"
 msgid "Hide details"
-msgstr "Palvelimen yksityiskohdat:"
+msgstr "Piilota yksityiskohdat"
 
 #, python-brace-format
 msgid "${product}, version: ${version}"
@@ -20993,10 +20960,8 @@ msgstr ""
 msgid "Result"
 msgstr ""
 
-#, fuzzy
-#| msgid "Servers details:"
 msgid "Show details"
-msgstr "Palvelimen yksityiskohdat:"
+msgstr "Näytä yksityiskohdat"
 
 msgid "Success"
 msgstr "Onnistui"
@@ -21089,19 +21054,17 @@ msgstr ""
 msgid "Allow host groups to retrieve keytab of '${primary_key}'"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Allowed to create keytab"
+#, python-brace-format
 msgid "Allow hosts to create keytab of '${primary_key}'"
-msgstr "Keytabin luominen sallittu"
+msgstr "Salli isäntien luoda avainvälilehti '${primary_key}':sta"
 
 #, python-brace-format
 msgid "Allow hosts to retrieve keytab of '${primary_key}'"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Allowed to create keytab"
+#, python-brace-format
 msgid "Allow users to create keytab of '${primary_key}'"
-msgstr "Keytabin luominen sallittu"
+msgstr "Salli käyttäjien luoda avainvälilehti '${primary_key}':sta"
 
 #, python-brace-format
 msgid "Allow users to retrieve keytab of '${primary_key}'"
@@ -21143,10 +21106,9 @@ msgstr ""
 msgid "Disallow users to create keytab of '${primary_key}'"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Users allowed to retrieve keytab"
+#, python-brace-format
 msgid "Disallow users to retrieve keytab of '${primary_key}'"
-msgstr "Käyttäjät, joilla on oikeus noutaa avaintaulu"
+msgstr "Estä käyttäjiä noutamasta avainvälilehteä '${primary_key}':sta"
 
 #, fuzzy
 #| msgid "Remove Kerberos Alias"
@@ -21165,14 +21127,8 @@ msgstr "Poista Kerberos-alias"
 msgid "Do you want to remove kerberos alias ${alias}?"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "DNS server configuration\n"
 msgid "Inherited from server configuration"
-msgstr ""
-"\n"
-"DNS-palvelimen kokoonpano\n"
+msgstr "Peritty palvelimen kokoonpanosta"
 
 msgid "MS-PAC"
 msgstr ""
@@ -21405,10 +21361,9 @@ msgstr ""
 msgid "Remove host groups from role '${primary_key}'"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Remove services from a CA ACL."
+#, python-brace-format
 msgid "Remove services from role '${primary_key}'"
-msgstr "Poista palveluita CA ACL:stä."
+msgstr "Poista palvelut roolista ${primary_key}"
 
 #, python-brace-format
 msgid "Remove users from role '${primary_key}'"
@@ -21569,10 +21524,9 @@ msgstr ""
 msgid "Add certificate profiles into CA ACL '${primary_key}'"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Add services to a CA ACL."
+#, python-brace-format
 msgid "Add services into CA ACL '${primary_key}'"
-msgstr "Lisää palveluita CA ACL:ään."
+msgstr "Lisää palveluita CA ACL '${primary_key}':een"
 
 #, python-brace-format
 msgid "Add users into CA ACL '${primary_key}'"
@@ -21629,20 +21583,17 @@ msgstr ""
 msgid "Remove hosts from CA ACL '${primary_key}'"
 msgstr ""
 
-#, fuzzy, python-brace-format
-#| msgid "Remove profiles from a CA ACL."
+#, python-brace-format
 msgid "Remove certificate profiles from CA ACL '${primary_key}'"
-msgstr "Poista profiileita CA ACL:stä."
+msgstr "Poista varmenneprofiilit CA ACL '${primary_key}':sta"
 
-#, fuzzy, python-brace-format
-#| msgid "Remove services from a CA ACL."
+#, python-brace-format
 msgid "Remove services from CA ACL '${primary_key}'"
-msgstr "Poista palveluita CA ACL:stä."
+msgstr "Poista palvelut CA ACL '${primary_key}':sta"
 
-#, fuzzy, python-brace-format
-#| msgid "Remove services from a CA ACL."
+#, python-brace-format
 msgid "Remove users from CA ACL '${primary_key}'"
-msgstr "Poista palveluita CA ACL:stä."
+msgstr "Poista käyttäjät CA ACL '${primary_key}':sta"
 
 #, fuzzy
 #| msgid "Unspecified"
@@ -22357,10 +22308,8 @@ msgstr "HBAC-säännöt"
 msgid "Matched"
 msgstr ""
 
-#, fuzzy
-#| msgid "Permission value"
 msgid "Missing values: "
-msgstr "Käyttöoikeuden arvo"
+msgstr "Puuttuvat arvot: "
 
 msgid "New Test"
 msgstr ""
@@ -22891,10 +22840,8 @@ msgstr "Poista isännät"
 msgid "(discoverable) "
 msgstr ""
 
-#, fuzzy
-#| msgid "servers"
 msgid "(server-side) "
-msgstr "palvelimet"
+msgstr "(palvelinpuoli) "
 
 #, fuzzy
 #| msgid "Attribute"
@@ -23414,15 +23361,11 @@ msgstr "Poista isännät"
 msgid "Autogenerated"
 msgstr ""
 
-#, fuzzy
-#| msgid "Servers details:"
 msgid "Segment details"
-msgstr "Palvelimen yksityiskohdat:"
+msgstr "Segmentin yksityiskohdat"
 
-#, fuzzy
-#| msgid "cannot open configuration file %s\n"
 msgid "Replication configuration"
-msgstr "asetustiedostoa %s ei voi avata\n"
+msgstr "Replikoinnin kokoonpano"
 
 #, python-brace-format
 msgid "Managed topology requires minimal domain level ${domainlevel}"
@@ -23437,14 +23380,8 @@ msgstr "IPA-sijainti"
 msgid "Add IPA server into IPA location '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "IPA locations\n"
 msgid "Remove IPA locations"
-msgstr ""
-"\n"
-"IPA sijainnit\n"
+msgstr "Poista IPA-sijainnit"
 
 #, python-brace-format
 msgid "Remove IPA servers from IPA location '${primary_key}'"
@@ -24159,10 +24096,8 @@ msgstr ""
 msgid "Must be a decimal number"
 msgstr "Tulee olla positiivinen numero"
 
-#, fuzzy
-#| msgid "read error\n"
 msgid "Format error"
-msgstr "lukuvirhe\n"
+msgstr "Muotoiluvirhe"
 
 #, fuzzy
 #| msgid "Must be a positive number"
@@ -24563,10 +24498,8 @@ msgstr ""
 msgid "authentication indicators not allowed in service \"%s\""
 msgstr "Tunnistautumisviitteet eivät ole sallittuja palvelussa \"%s\""
 
-#, fuzzy
-#| msgid "Unable to parse principal\n"
 msgid "Malformed principal"
-msgstr "Ensisijaista ei voi jäsentää\n"
+msgstr "Väärin muotoiltu pääasiallinen"
 
 msgid "{} is required by the IPA master"
 msgstr ""
@@ -24577,10 +24510,8 @@ msgstr "palvelu"
 msgid "services"
 msgstr "palvelut"
 
-#, fuzzy
-#| msgid "Removing principal %s\n"
 msgid "Service principal alias"
-msgstr "Poistetaan ensisijaista %s\n"
+msgstr "Palvelun pääasiallinen"
 
 msgid "Base-64 encoded service certificate"
 msgstr ""
@@ -25427,10 +25358,9 @@ msgstr "Poistettu käyttäjä \"%(value)s\""
 msgid "Preserved user \"%(value)s\""
 msgstr "Poistettu käyttäjä \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "This entry is already enabled"
+#, python-format
 msgid "%s: user is already preserved"
-msgstr "Tämä merkintä on jo käytössä"
+msgstr "%s: käyttäjä on jo tallessa"
 
 #, python-format
 msgid "Modified user \"%(value)s\""
@@ -25441,10 +25371,9 @@ msgstr "Muokattu käyttäjää \"%(value)s\""
 msgid "Undeleted user account \"%(value)s\""
 msgstr "Poistettu käyttäjä \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "This entry is already enabled"
+#, python-format
 msgid "user \"%s\" is already active"
-msgstr "Tämä merkintä on jo käytössä"
+msgstr "käyttäjä \"%s\" on jo aktiivinen"
 
 #, fuzzy, python-format
 #| msgid "Deleted user \"%(value)s\""
@@ -25530,19 +25459,17 @@ msgid ""
 "    means that the user may attempt a login again. "
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(host)s failed"
+#, python-format
 msgid "%(host)s failed: %(error)s"
-msgstr "%(host)s epäonnistui"
+msgstr "%(host)s epäonnistui: %(error)s"
 
 #, python-format
 msgid "%(host)s failed"
 msgstr "%(host)s epäonnistui"
 
-#, fuzzy, python-format
-#| msgid "This entry is already disabled"
+#, python-format
 msgid "Account disabled: %(disabled)s"
-msgstr "Tämä merkintä on jo poistettu käytöstä"
+msgstr "Tili poistettu käytöstä: %(disabled)s"
 
 #, fuzzy, python-format
 #| msgid "Added stage user \"%(value)s\""
@@ -25925,10 +25852,9 @@ msgstr ""
 msgid "Archived data into vault \"%(value)s\""
 msgstr "Lisätty holvi \"%(value)s\""
 
-#, fuzzy, python-format
-#| msgid "Unable to remove entry\n"
+#, python-format
 msgid "Unable to archive key: %s"
-msgstr "Merkintää ei voi poistaa\n"
+msgstr "Avainta ei voi arkistoida: %s"
 
 msgid "Retrieve data from a vault."
 msgstr ""
@@ -25941,10 +25867,9 @@ msgstr "Poistettu holvi \"%(value)s\""
 msgid "No archived data."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Failed to retrieve any keys"
+#, python-format
 msgid "Unable to retrieve key: %s"
-msgstr "Yhtään avainta ei saatu"
+msgstr "Avainta ei voi noutaa: %s"
 
 msgid "Checks if any of the servers has the KRA service enabled"
 msgstr ""
@@ -26213,10 +26138,8 @@ msgstr "Huono tai ei-tuettu suolatyyppi.\n"
 msgid "Out of memory!?\n"
 msgstr "Muisti loppui!?\n"
 
-#, fuzzy
-#| msgid "Some operations failed."
 msgid "Enctype comparison failed!\n"
-msgstr "Jotkut toiminnot epäonnistuivat."
+msgstr "Enctype-vertailu epäonnistui!\n"
 
 #, fuzzy
 #| msgid "Passwords do not match!\n"
