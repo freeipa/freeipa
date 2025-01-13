@@ -3,12 +3,19 @@
 Unit 3: User management and Kerberos authentication
 =====================================================
 
-This unit introduces the ``ipa`` CLI program and the web
-interface.  We will perform some simple administrative tasks: adding
-groups and users and managing group membership.
+This unit introduces the ``ipa`` CLI program and the web interface.
+We will perform some simple administrative tasks: adding groups and
+users and managing group membership.
+
 
 Web UI
-------
+-------
+
+To be able to access the WebUI, you need to add a profile to your Firefox
+configuration, and run the browser with ``podman unshare --rootless-netns``.
+From the workshop folder run ``open-firefox.sh <URL>`` that it will take
+care of all the configuration. Once done, run ``open-firefox.sh -r`` to
+clean up the configuration.
 
 Visit ``https://server.ipademo.local/``.  You'll get a TLS
 *untrusted issuer* warning which you can dismiss (by adding a temporary
@@ -40,7 +47,7 @@ Most FreeIPA administrative actions can be carried out using the
   automember-default-group-show     Display information about the default (fallback) automember groups.
   ...
 
-Whoa!  There are nearly 400 commands!  We'll be using only a handful
+Whoa!  There are more than 450 commands!  We'll be using only a handful
 of these today.  Note that command completion is enabled in the
 shell, so you can type a partial command and press ``<TAB>`` a
 couple of times to see what commands are available, e.g. all the
@@ -57,7 +64,7 @@ You can read a general overview of a topic by running ``ipa help
 <topic>``, and specific information on a particular command by
 running ``ipa help <command>``.
 
-Add a user named ``bob`` from the CLI.  Use the CLI help to find the
+Add a user named ``bob`` from the CLI. Use the CLI help to find the
 right command (**hint**: the ``user`` plugin provides the command).
 
 
