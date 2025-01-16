@@ -1634,6 +1634,11 @@ class TestIpaHealthCheck(IntegrationTest):
             grace_date = datetime.strftime(grace_date, "%Y-%m-%d 00:00:01 Z")
             self.master.run_command(['date', '-s', grace_date])
 
+            # Restart dirsrv as it doesn't like time jumps
+            instance = realm_to_serverid(self.master.domain.realm)
+            cmd = ["systemctl", "restart", "dirsrv@{}".format(instance)]
+            self.master.run_command(cmd)
+
             for check in ("IPACertmongerExpirationCheck",
                           "IPACertfileExpirationCheck",):
                 execute_expiring_check(check)
