@@ -104,17 +104,26 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
     }
 
     if (child_ctx->oauth2_state == OAUTH2_GET_DEVICE_CODE) {
-        io = write(verto_get_fd(ev), child_ctx->item->idp.ipaidpClientSecret,
-                   strlen(child_ctx->item->idp.ipaidpClientSecret));
+        if (child_ctx->item->idp.ipaidpClientSecret != NULL) {
+            io = write(verto_get_fd(ev), child_ctx->item->idp.ipaidpClientSecret,
+                       strlen(child_ctx->item->idp.ipaidpClientSecret));
+        } else {
+            io = 0;
+        }
     } else {
-        iov[0].iov_base = child_ctx->item->idp.ipaidpClientSecret;
-        iov[0].iov_len = strlen(child_ctx->item->idp.ipaidpClientSecret);
-        iov[1].iov_base = "\n";
-        iov[1].iov_len = 1;
-        iov[2].iov_base = child_ctx->saved_item->oauth2.device_code_reply;
-        iov[2].iov_len = strlen(child_ctx->saved_item->oauth2.device_code_reply);
-
-        io = writev(verto_get_fd(ev), iov, 3);
+        int idx = 0;
+        if (child_ctx->item->idp.ipaidpClientSecret != NULL) {
+            iov[idx].iov_base = child_ctx->item->idp.ipaidpClientSecret;
+            iov[idx].iov_len = strlen(child_ctx->item->idp.ipaidpClientSecret);
+	    idx++;
+            iov[idx].iov_base = "\n";
+            iov[idx].iov_len = 1;
+	    idx++;
+        }
+        iov[idx].iov_base = child_ctx->saved_item->oauth2.device_code_reply;
+        iov[idx].iov_len = strlen(child_ctx->saved_item->oauth2.device_code_reply);
+        idx++;
+        io = writev(verto_get_fd(ev), iov, idx);
     }
     otpd_queue_item_free(child_ctx->saved_item);
 
