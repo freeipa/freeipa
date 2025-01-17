@@ -113,7 +113,7 @@ class TestIDPKeycloak(IntegrationTest):
         tasks.kinit_admin(self.master)
         cmd = ["ipa", "idp-add", "keycloakidp", "--provider=keycloak",
                "--client-id=ipa_oidc_client", "--org=master",
-               "--base-url={0}:8443/auth".format(self.client.hostname)]
+               "--base-url={0}:8443".format(self.client.hostname)]
         self.master.run_command(cmd, stdin_text="{0}\n{0}".format(
             self.client.config.admin_password))
         tasks.user_add(self.master, 'keycloakuser',
@@ -273,7 +273,7 @@ class TestIDPKeycloak(IntegrationTest):
         user = "backupuser"
         cmd = ["ipa", "idp-add", "testidp", "--provider=keycloak",
                "--client-id=ipa_oidc_client", "--org=master",
-               "--base-url={0}:8443/auth".format(self.client.hostname)]
+               "--base-url={0}:8443".format(self.client.hostname)]
         self.master.run_command(cmd, stdin_text="{0}\n{0}".format(
             self.client.config.admin_password))
 
