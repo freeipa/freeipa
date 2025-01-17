@@ -6,10 +6,10 @@ from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 
 
-def setup_keycloakserver(host, version='17.0.0'):
+def setup_keycloakserver(host, version='26.1.0'):
     dir = "/opt/keycloak"
     password = host.config.admin_password
-    tasks.install_packages(host, ["unzip", "java-11-openjdk-headless",
+    tasks.install_packages(host, ["unzip", "java-21-openjdk-headless",
                                   "openssl", "maven", "wget",
                                   "firefox", "xorg-x11-server-Xvfb"])
     #  add keycloak system user/group and folder
@@ -33,7 +33,7 @@ def setup_keycloakserver(host, version='17.0.0'):
 
     key = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.key")
     crt = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.crt")
-    keystore = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.store")
+    keystore = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.jks")
 
     host.run_command(["ipa-getcert", "request", "-K",
                       "HTTP/{0}".format(host.hostname),
@@ -49,14 +49,13 @@ def setup_keycloakserver(host, version='17.0.0'):
 
     # Setup keycloak service and config files
     contents = textwrap.dedent("""
-    KEYCLOAK_ADMIN=admin
-    KEYCLOAK_ADMIN_PASSWORD={admin_pswd}
-    KC_HOSTNAME={host}:8443
+    KC_BOOTSTRAP_ADMIN_USERNAME=admin
+    KC_BOOTSTRAP_ADMIN_PASSWORD={admin_pswd}
+    KC_HOSTNAME=https://{host}:8443/
     KC_HTTPS_CERTIFICATE_FILE={crt}
     KC_HTTPS_CERTIFICATE_KEY_FILE={key}
     KC_HTTPS_TRUST_STORE_FILE={store}
     KC_HTTPS_TRUST_STORE_PASSWORD={store_pswd}
-    KC_HTTP_RELATIVE_PATH=/auth
     """).format(admin_pswd=password, host=host.hostname, crt=crt, key=key,
                 store=keystore, store_pswd=password)
     host.put_file_contents("/etc/sysconfig/keycloak", contents)
@@ -84,14 +83,13 @@ def setup_keycloakserver(host, version='17.0.0'):
 
     # Run build stage first
     env_vars = textwrap.dedent("""
-    export KEYCLOAK_ADMIN=admin
-    export KC_HOSTNAME={hostname}:8443
+    export KC_BOOTSTRAP_ADMIN_USERNAME=admin
+    export KC_HOSTNAME=https://{hostname}:8443/
     export KC_HTTPS_CERTIFICATE_FILE=/etc/pki/tls/certs/keycloak.crt
     export KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/pki/tls/private/keycloak.key
-    export KC_HTTPS_TRUST_STORE_FILE=/etc/pki/tls/private/keycloak.store
+    export KC_HTTPS_TRUST_STORE_FILE=/etc/pki/tls/private/keycloak.jks
     export KC_HTTPS_TRUST_STORE_PASSWORD={STORE_PASS}
-    export KEYCLOAK_ADMIN_PASSWORD={ADMIN_PASS}
-    export KC_HTTP_RELATIVE_PATH=/auth
+    export KC_BOOTSTRAP_ADMIN_PASSWORD={ADMIN_PASS}
     """).format(hostname=host.hostname, STORE_PASS=password,
                 ADMIN_PASS=password)
 
@@ -112,7 +110,7 @@ def setup_keycloakserver(host, version='17.0.0'):
     host.run_command([kcadmin_sh, "config", "truststore",
                       "--trustpass", password, keystore])
     kcadmin = [kcadmin_sh, "config", "credentials", "--server",
-               "https://{0}:8443/auth/".format(host.hostname),
+               "https://{0}:8443/".format(host.hostname),
                "--realm", "master", "--user", "admin",
                "--password", password
                ]
@@ -133,7 +131,7 @@ def setup_keycloak_client(host):
     password = host.config.admin_password
     host.run_command(["/opt/keycloak/bin/kcreg.sh",
                       "config", "credentials", "--server",
-                      "https://{0}:8443/auth/".format(host.hostname),
+                      "https://{0}:8443/".format(host.hostname),
                       "--realm", "master", "--user", "admin",
                       "--password", password]
                      )
@@ -163,7 +161,7 @@ def setup_keycloak_client(host):
 def uninstall_keycloak(host):
     key = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.key")
     crt = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.crt")
-    keystore = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.store")
+    keystore = os.path.join(paths.OPENSSL_PRIVATE_DIR, "keycloak.jks")
 
     host.run_command(["systemctl", "stop", "keycloak"], raiseonerr=False)
     host.run_command(["getcert", "stop-tracking", "-k", key, "-f", crt],
