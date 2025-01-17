@@ -110,6 +110,10 @@ class TestIDPKeycloak(IntegrationTest):
                 "</dev/null &>/dev/null &")
         cls.replicas[0].run_command(xvfb)
 
+    @classmethod
+    def uninstall(cls, mh):
+        pass
+
     def test_auth_keycloak_idp(self):
         """
         Test case to check that OAuth 2.0 Device
