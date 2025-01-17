@@ -18,7 +18,7 @@ from selenium.webdriver.support import expected_conditions as EC
 options = Options()
 options.headless = True
 driver = webdriver.Firefox(executable_path="/opt/geckodriver", options=options)
-verification_uri = "https://{hostname}:8443/auth/realms/master/account/#/"
+verification_uri = "https://{hostname}:8443/realms/master/account/#/"
 driver.get(verification_uri)
 
 try:
@@ -60,7 +60,7 @@ def keycloak_add_user(host, kcadm_pass, username, password=None):
     domain = host.domain.name
     kcadmin_sh = "/opt/keycloak/bin/kcadm.sh"
     kcadmin = [kcadmin_sh, "config", "credentials", "--server",
-               f"https://{host.hostname}:8443/auth/",
+               f"https://{host.hostname}:8443",
                "--realm", "master", "--user", "admin",
                "--password", kcadm_pass]
 
