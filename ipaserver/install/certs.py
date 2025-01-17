@@ -34,13 +34,17 @@ import fcntl
 import time
 import datetime
 
+import pki.ca
+import pki.cert
+import pki.client
+
 from ipalib.install import certmonger, sysrestore
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
-from ipalib import x509, api
+from ipalib import x509, api, constants
 from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
 from ipalib.util import strip_csr_header
@@ -726,6 +730,141 @@ class CertDB:
         """Upgrade NSSDB to new file format
         """
         self.nssdb.convert_db()
+
+    def pki_issue_ra_certificate(self, csrfile, certfile, dm_password):
+        """Using a user-provided CSR submit it to the CA using its
+           python API.
+        """
+        nickname = 'ipa-ca-agent'
+
+        pk12pwfile = ipautil.write_tmp_file(dm_password)
+        agent_key = ipautil.write_tmp_file("")
+        agent_cert = ipautil.write_tmp_file("")
+        cmd = [
+            paths.OPENSSL, 'pkcs12',
+            '-in', paths.DOGTAG_ADMIN_P12,
+            '-out', agent_cert.name,
+            '-nokeys',
+            '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
+        ]
+        ipautil.run(cmd)
+
+        cmd = [
+            paths.OPENSSL, 'pkcs12',
+            '-in', paths.DOGTAG_ADMIN_P12,
+            '-out', agent_key.name,
+            '-nocerts',
+            '-noenc',
+            '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
+        ]
+        ipautil.run(cmd)
+
+        pki_client = pki.client.PKIClient(
+            url='https://localhost:8443', verify=False)
+        pki_client.set_client_auth(
+            client_cert=agent_cert.name,
+            client_key=agent_key.name,
+        )
+        ca_client = pki.ca.CAClient(pki_client)
+        cert_client = pki.cert.CertClient(ca_client)
+
+        inputs = dict()
+        inputs['cert_request_type'] = 'pkcs10'
+        with open(csrfile, 'r') as f:
+            inputs['cert_request'] = f.read()
+        result = cert_client.enroll_cert(constants.RA_AGENT_PROFILE, inputs)[0]
+
+        request_data = result.request
+        if request_data.request_status != "complete":
+            raise RuntimeError(
+                "The certificate submission is not complete")
+        if request_data.operation_result != "success":
+            raise RuntimeError(
+                "The certificate submission was not successful")
+
+        cert_data = result.cert
+        serial_number = cert_data.serial_number
+
+        c = cert_client.get_cert(cert_data.serial_number)
+        with open(certfile, "w") as fd:
+            fd.write(c.encoded)
+
+    def pki_issue_certificate(self, service, profile, keyfile, certfile,
+                              key_passwd_file=None, dns_2_san=''):
+        """Use openssl to generate a CSR and submit it using the pki
+           Python API, using the IPA RA certificate.
+        """
+        if service == "krbtgt":
+            host = api.env.realm
+        else:
+            host = api.env.host
+
+        template = os.path.join(
+            paths.USR_SHARE_IPA_DIR, "openssl_cnf.template")
+        sub_dict = dict(
+            REALM=api.env.realm,
+            FQDN=host,
+            NICKNAME="Server-Cert",
+            PROFILE=profile,
+            SERVICE=service,
+            DNS_2=dns_2_san,
+        )
+        conf = ipautil.template_file(template, sub_dict)
+        destfile = os.path.join(self.secdir, "openssl.cnf")
+        with open(destfile, 'w') as f:
+            os.fchmod(f.fileno(), 0o600)
+            f.write(conf)
+
+        # Generate a private key
+        if (keytype.lower() == 'rsa'):
+            args = ["openssl", "genrsa",
+                    "-out", keyfile]
+            if key_passwd_file:
+                args.extend(
+                    ["-aes256",
+                     "-passout", "file:{}".format(key_passwd_file)]
+                )
+            args.extend(["2048"])  # must be the last argument
+            result = ipautil.run(args, capture_output=True)
+
+        # Generate a CSR using the private key
+        args = ["openssl", "req", "-new",
+                "-key", keyfile,
+                "-out", os.path.join(self.secdir, "csr"),
+                "-config", destfile]
+        if key_passwd_file:
+            args.extend(
+                ["-passin", "file:{}".format(key_passwd_file)]
+            )
+        result = ipautil.run(args, capture_output=True)
+
+        # initialise PKIClient
+        pki_client = pki.client.PKIClient(
+            url='https://localhost:8443', verify=False)
+        pki_client.set_client_auth(
+            client_cert=paths.RA_AGENT_PEM,
+            client_key=paths.RA_AGENT_KEY)
+        ca_client = pki.ca.CAClient(pki_client)
+        cert_client = pki.cert.CertClient(ca_client)
+
+        inputs = dict()
+        inputs['cert_request_type'] = 'pkcs10'
+        with open(os.path.join(self.secdir, "csr"), 'r') as f:
+            inputs['cert_request'] = f.read()
+        result = cert_client.enroll_cert(profile, inputs)[0]
+
+        request_data = result.request
+        if request_data.operation_result != "success":
+            raise RuntimeError(
+                "The certificate submission was not successful")
+
+        cert_data = result.cert
+        serial_number = cert_data.serial_number
+
+        # FIXME: need error checking
+        c = cert_client.get_cert(cert_data.serial_number)
+        with open(certfile, "w") as fd:
+            fd.write(c.encoded)
 
 
 class _CrossProcessLock:
