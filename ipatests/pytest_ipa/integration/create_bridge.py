@@ -147,7 +147,7 @@ def setup_keycloak_scim_plugin(host, bridge_server):
     # Login to keycloak as admin
     kcadmin_sh = "/opt/keycloak/bin/kcadm.sh"
     kcadmin = [kcadmin_sh, "config", "credentials", "--server",
-               f"https://{host.hostname}:8443/auth/",
+               f"https://{host.hostname}:8443",
                "--realm", "master", "--user", "admin",
                "--password", password]
     tasks.run_repeatedly(host, kcadmin, timeout=60)
