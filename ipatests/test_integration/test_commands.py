@@ -39,6 +39,7 @@ from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
 from ipapython.ipautil import realm_to_suffix, ipa_generate_password
+from ipatests.test_integration.test_topology import find_segment
 from ipaserver.install.installutils import realm_to_serverid
 from pkg_resources import parse_version
 
@@ -1575,28 +1576,77 @@ class TestIPACommand(IntegrationTest):
         assert result.returncode == 1
         assert 'cannot be deleted or disabled' in result.stderr_text
 
-    def test_ipa_cacert_manage_prune(self):
-        """Test for ipa-cacert-manage prune"""
+    def test_ipa_systemd_journal(self):
+        """
+        This testcase checks that administrative user credentials
+        is not leaked to journald log
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        tasks.kinit_admin(self.clients[0])
+        cmds = [
+            ['/usr/sbin/ipa-adtrust-install', '-a',
+             self.master.config.admin_password, '-U'],
+            ['/usr/sbin/ipa-replica-manage', 'del',
+             f"dummyhost.{self.master.domain.name}", '-p',
+             self.master.config.dirman_password],
+            ['/usr/sbin/ipa-csreplica-manage', 'del',
+             f"dummyhost.{self.master.domain.name}", '-p',
+             self.master.config.dirman_password],
+            ['/usr/sbin/ipa-kra-install', '-p',
+             self.master.config.dirman_password, '-U'],
+            ['/usr/sbin/ipa-server-certinstall', '-k', '--pin',
+             self.master.config.dirman_password, '-p',
+             self.master.config.dirman_password, paths.KDC_CERT,
+             paths.KDC_KEY]
+        ]
+        for cmd in cmds:
+            self.master.run_command(cmd, raiseonerr=False)
+            tasks.check_journal_does_not_contain_secret(
+                self.master, cmd[0]
+            )
+        for cmd in cmds:
+            self.replicas[0].run_command(cmd, raiseonerr=False)
+            tasks.check_journal_does_not_contain_secret(
+                self.replicas[0], cmd[0]
+            )
+        tasks.check_journal_does_not_contain_secret(
+            self.clients[0], 'python3'
+        )
+        # Backup and restore IPA and check secrets are not leaked.
+        backup_path = tasks.get_backup_dir(self.master)
+        restore_cmd = (
+            ['/usr/sbin/ipa-restore', '-p',
+             self.master.config.dirman_password,
+             backup_path, '-U']
+        )
+        self.master.run_command(restore_cmd)
 
-        certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
-        self.master.put_file_contents(certfile, isrgrootx1)
-        result = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'install', certfile])
+        # re-initializing topology after restore
+        for topo_suffix in 'domain', 'ca':
+            topo_name = find_segment(self.master, self.replicas[0], topo_suffix)
+            arg = ['ipa', 'topologysegment-reinitialize',
+                   topo_suffix, topo_name]
+            if topo_name.split('-to-', maxsplit=1)[0] != self.master.hostname:
+                arg.append('--left')
+            else:
+                arg.append('--right')
+            self.replicas[0].run_command(arg)
 
-        certs_before_prune = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'list'], raiseonerr=False
-        ).stdout_text
+        # wait sometime for re-initialization
+        tasks.wait_for_replication(self.replicas[0].ldap_connect())
 
-        assert isrgrootx1_nick in certs_before_prune
-
-        # Jump in time to make sure the cert is expired
-        self.master.run_command(['date', '-s', '+15Years'])
-        result = self.master.run_command(
-            [paths.IPA_CACERT_MANAGE, 'prune'], raiseonerr=False
-        ).stdout_text
-        self.master.run_command(['date', '-s', '-15Years'])
-
-        assert isrgrootx1_nick in result
+        tasks.check_journal_does_not_contain_secret(
+            self.master, restore_cmd[0]
+        )
+        # Checking for secrets in IPA server install
+        tasks.check_journal_does_not_contain_secret(
+            self.master, '/usr/sbin/ipa-server-install'
+        )
+        # Checking for secrets in IPA replica install
+        tasks.check_journal_does_not_contain_secret(
+            self.replicas[0], '/usr/sbin/ipa-replica-install'
+        )
 
 
 class TestIPACommandWithoutReplica(IntegrationTest):
@@ -1632,10 +1682,9 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         self.master.run_command(['ipa', 'user-show', 'ipauser1'])
 
     def test_basesearch_compat_tree(self):
-        """Test ldapsearch against compat tree is working
-
+        """
+        Test ldapsearch against compat tree is working
         This to ensure that ldapsearch with base scope is not failing.
-
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1958909
         """
         version = self.master.run_command(
@@ -1832,6 +1881,29 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         )
         assert old_err_msg not in dirsrv_error_log
         assert re.search(new_err_msg, dirsrv_error_log)
+
+    def test_ipa_cacert_manage_prune(self):
+        """Test for ipa-cacert-manage prune"""
+
+        certfile = os.path.join(self.master.config.test_dir, 'cert.pem')
+        self.master.put_file_contents(certfile, isrgrootx1)
+        result = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'install', certfile])
+
+        certs_before_prune = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'list'], raiseonerr=False
+        ).stdout_text
+
+        assert isrgrootx1_nick in certs_before_prune
+
+        # Jump in time to make sure the cert is expired
+        self.master.run_command(['date', '-s', '+15Years'])
+        result = self.master.run_command(
+            [paths.IPA_CACERT_MANAGE, 'prune'], raiseonerr=False
+        ).stdout_text
+        self.master.run_command(['date', '-s', '-15Years'])
+
+        assert isrgrootx1_nick in result
 
 
 class TestIPAautomount(IntegrationTest):
