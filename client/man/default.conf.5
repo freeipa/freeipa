@@ -20,7 +20,7 @@
 .SH "NAME"
 default.conf \- IPA configuration file
 .SH "SYNOPSIS"
-/etc/ipa/default.conf, ~/.ipa/default.conf, /etc/ipa/server.conf, /etc/ipa/cli.conf
+/etc/ipa/default.conf, ~/.ipa/default.conf, /etc/ipa/server.conf, /etc/ipa/cli.conf, /etc/ipa/installer.conf, /etc/ipa/cli_installer.conf
 .SH "DESCRIPTION"
 The \fIdefault.conf \fRconfiguration file is used to set system\-wide defaults to be applied when running IPA clients and servers.
 
@@ -75,7 +75,7 @@ Specifies the hostname of the dogtag CA server. The default is the hostname of t
 Specifies the insecure CA end user port. The default is 8080.
 .TP
 .B certmonger_wait_timeout <seconds>
-The time to wait for a certmonger request to complete during installation. The default value is 300 seconds.
+The time to wait for a certmonger request to complete during installation. The default value is 300 seconds. To tune create/add to /etc/ipa/installer.conf.
 .TP
 .B context <context>
 Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli, server and dns. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.
@@ -263,6 +263,12 @@ system\-wide IPA client configuration file
 .TP
 .I /etc/ipa/server.conf
 system\-wide IPA server configuration file
+.TP
+.I /etc/ipa/installer.conf
+IPA configuration used while installing an IPA server or replica
+.TP
+.I /etc/ipa/cli_installer.conf
+IPA configuration used while installing an IPA client
 .SH "EXAMPLES"
 .TP
 An example of a context-specific configuration file is \fB/etc/ipa/dns.conf\fR to be used to increase debug output of the IPA DNSSEC daemons.

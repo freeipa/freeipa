@@ -477,7 +477,8 @@ def request_cert(
         request_parameters['cert-perms'] = perms[0]
         request_parameters['key-perms'] = perms[1]
 
-    result = cm.obj_if.add_request(request_parameters, timeout=30)
+    result = cm.obj_if.add_request(request_parameters,
+                                   timeout=api.env.certmonger_wait_timeout)
     try:
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
@@ -581,7 +582,9 @@ def start_tracking(
     if nss_user:
         params['nss-user'] = nss_user
 
-    result = cm.obj_if.add_request(params, timeout=30)
+    logger.debug("start tracking %s", params)
+    result = cm.obj_if.add_request(params,
+                                   timeout=api.env.certmonger_wait_timeout)
     try:
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,

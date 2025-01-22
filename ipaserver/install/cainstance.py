@@ -539,7 +539,10 @@ class CAInstance(DogtagInstance):
         if ra_only:
             runtime = None
         else:
-            runtime = 180
+            if self.tokenname:
+                runtime = "HSM dependent"
+            else:
+                runtime = 180
 
         try:
             self.start_creation(runtime=runtime)
