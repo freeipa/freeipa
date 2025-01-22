@@ -59,6 +59,8 @@ def print_msg(message, output_fd=sys.stdout):
 
 def format_seconds(seconds):
     """Format a number of seconds as an English minutes+seconds message"""
+    if type(seconds) is not int:
+        return seconds
     parts = []
     minutes, seconds = divmod(seconds, 60)
     if minutes:
@@ -660,7 +662,7 @@ class Service:
                 else:
                     end_message = "Done configuring %s." % self.service_desc
 
-        if runtime is not None and runtime > 0:
+        if runtime is not None or (type(runtime) is int and runtime > 0):
             self.print_msg('%s. Estimated time: %s' % (start_message,
                                                       format_seconds(runtime)))
         else:

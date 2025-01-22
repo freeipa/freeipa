@@ -575,6 +575,24 @@ class DogtagInstance(service.Service):
             except RuntimeError as e:
                 logger.error(
                     "certmonger failed to start tracking certificate: %s", e)
+            except dbus.exceptions.DBusException as e:
+                if e._dbus_error_name == "org.freedesktop.DBus.Error.NoReply":
+                    logger.error(
+                        "Timeout encountered starting tracking of '%s'."
+                        "This timeout can be tuned using "
+                        "certmonger_wait_timeout in /etc/ipa/installer.conf.",
+                        nickname
+                    )
+                if self.hsm_enabled:
+                    logger.error(
+                        "On an initial install failure this may leave "
+                        "certificates and keys on the HSM token. These "
+                        "need to be manually cleaned per your HSM-specific "
+                        "documentation before installing IPA again. On a "
+                        "replica install no clean-up should be done (it will "
+                        "destroy your installation."
+                    )
+                raise
 
     def stop_tracking_certificates(self):
         """
