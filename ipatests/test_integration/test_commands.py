@@ -1561,6 +1561,45 @@ class TestIPACommand(IntegrationTest):
 
         assert isrgrootx1_nick in result
 
+    def check_journal_does_not_contain_secret(self, host, cmd):
+        """
+        Helper to check journal logs doesnt reveal secrets
+        """
+        journalctl_cmd = ['journalctl', '-t', cmd, '-n1', '-o', 'json-pretty']
+        result = self.host.run_command(journalctl_cmd, raiseonerr=False)
+        assert (self.host.config.admin_password not in result.stdout_text)
+        assert (self.host.config.dirman_password not in result.stdout_text)
+
+    def test_ipa_systemd_journal(self):
+        """
+        This testcase checks that administrative user credentials
+        is not leaked to journald log
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        tasks.kinit_admin(self.clients[0])
+        cmds = [
+            ['ipa-adtrust-install', '-a',
+             self.master.config.admin_password, '-U'],
+            ['ipa-replica-manage', 'del', f"dummyhost.{self.master.domain.name}", '-p',
+             self.master.config.dirman_password],
+            ['ipa-csreplica-manage', 'del', f"dummyhost.{self.master.domain.name}", '-p',
+             self.master.config.dirman_password],
+            ['ipa-kra-install', '-p',
+             self.master.config.dirman_password, '-U']
+        ]
+        for cmd in cmds:
+            self.master.run_command(cmd)
+            tasks.check_journal_does_not_contain_secret(self.master, cmd[0])
+        for cmd in cmds:
+            self.replicas[0].run_command(cmd)
+            tasks.check_journal_does_not_contain_secret(self.replicas[0], cmd[0])
+        result = self.clients[0].run_command(
+            ['journalctl', '-t', 'python3', f'/usr/sbin/ipa-client-install',
+             '-n1', '-o', 'json-pretty'], raiseonerr=False)
+        assert self.clients[0].config.admin_password not in result.stdout_text
+        assert self.clients[0].config.dirman_password not in result.stdout_text
+
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
