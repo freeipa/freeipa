@@ -12,12 +12,20 @@ from ipatests.pytest_ipa.integration import tasks, create_keycloak
 user_code_script = textwrap.dedent("""
 from selenium import webdriver
 from datetime import datetime
+from os import path
 from pkg_resources import parse_version
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 options = Options()
+if path.exists(
+  "/var/lib/flatpak/app/org.mozilla.firefox/current/active/files/bin/firefox"):
+    options.binary_location = ("/var/lib/flatpak/app/org.mozilla.firefox/"
+                              "current/active/files/bin/firefox")
+else:
+    options.binary_location = "/usr/bin/firefox"
+
 if  parse_version(webdriver.__version__) < parse_version('4.10.0'):
     options.headless = True
     driver = webdriver.Firefox(executable_path="/opt/geckodriver",
