@@ -23,7 +23,6 @@ import logging
 import os
 import shutil
 import tempfile
-import base64
 
 from ipalib import api
 from ipalib import x509
@@ -230,10 +229,7 @@ class KRAInstance(DogtagInstance):
             parentdir = os.path.dirname(paths.ADMIN_CERT_PATH)
             if not os.path.exists(parentdir):
                 os.makedirs(parentdir)
-            with open(paths.ADMIN_CERT_PATH, "wb") as admin_path:
-                admin_path.write(
-                    base64.b64encode(cert.public_bytes(x509.Encoding.DER))
-                )
+            x509.write_certificate(cert, paths.ADMIN_CERT_PATH)
 
         # Generate configuration file
         config = self._create_spawn_config(cfg)
