@@ -336,6 +336,8 @@ class DogtagInstance(service.Service):
         if self.subsystem == "ACME":
             if pki_version < pki.util.Version("11.0.0"):
                 return
+            elif not os.path.exists(os.path.join(paths.PKI_TOMCAT, 'acme')):
+                return
             elif (
                 pki.util.Version("11.0.0") <= pki_version
                 < pki.util.Version("11.6.0")
@@ -365,7 +367,6 @@ class DogtagInstance(service.Service):
 
         try:
             ipautil.run(args)
-
         except ipautil.CalledProcessError as e:
             logger.critical("failed to uninstall %s instance %s",
                             self.subsystem, e)
