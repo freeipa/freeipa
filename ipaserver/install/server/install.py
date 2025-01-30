@@ -1072,7 +1072,12 @@ def install(installer):
     # Everything installed properly, activate ipa service.
     sstore.delete_state('installation', 'complete')
     sstore.backup_state('installation', 'complete', True)
+
+    service.print_msg("Enabling and restarting the IPA service")
+    start = time.time()
     services.knownservices.ipa.enable()
+    dur = time.time() - start
+    logger.debug("Service enablement duration: %0.3f", dur)
 
     print("======================================="
           "=======================================")
