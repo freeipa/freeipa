@@ -9,9 +9,13 @@ from ipatests.pytest_ipa.integration import tasks
 def setup_keycloakserver(host, version='26.1.0'):
     dir = "/opt/keycloak"
     password = host.config.admin_password
-    tasks.install_packages(host, ["unzip", "java-21-openjdk-headless",
-                                  "openssl", "maven", "wget",
-                                  "firefox", "xorg-x11-server-Xvfb"])
+    packages = ["unzip", "java-21-openjdk-headless", "openssl", "maven", "wget"]
+    # For RHEL 10 we don't install firefox as it is not shipped any more
+    # as a rpm. The infra handles the installation from a zip file
+    if not (tasks.get_platform(host) == "rhel"
+       and tasks.get_platform_version(host)[0] == 10):
+        packages.extend(["firefox", "xorg-x11-server-Xvfb"])
+    tasks.install_packages(host, packages)
     #  add keycloak system user/group and folder
     url = "https://github.com/keycloak/keycloak/releases/download/{0}/keycloak-{0}.zip".format(version)  # noqa: E501
     host.run_command(["wget", url, "-O", "{0}-{1}.zip".format(dir, version)])
