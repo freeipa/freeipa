@@ -85,7 +85,8 @@ def _main():
         ca = cainstance.CAInstance(host_name=api.env.host)
         kra = krainstance.KRAInstance(api.env.realm)
         ca.update_cert_config(nickname, cert)
-        kra.update_cert_config(nickname, cert)
+        if kra.is_installed():
+            kra.update_cert_config(nickname, cert)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)
             cainstance.update_authority_entry(cert)
