@@ -5,7 +5,6 @@
 """
 import pytest
 
-from ipaplatform.osinfo import osinfo
 from ipapython.dn import DN
 from ipapython.ipautil import ipa_generate_password, realm_to_suffix
 
@@ -21,9 +20,12 @@ from .test_dnssec import (
 )
 
 
-@pytest.mark.xfail(
-    osinfo.id == 'fedora' and osinfo.version_number > (35,),
-    reason='freeipa ticket 9002', strict=True)
+def check_version(host):
+    if tasks.get_pki_version(host) < tasks.parse_version('11.6.0'):
+        raise pytest.skip("PKI replica FIPS support is not available, "
+                          "https://github.com/dogtagpki/pki/issues/4847")
+
+
 class TestInstallFIPS(IntegrationTest):
     num_replicas = 1
     num_clients = 1
@@ -31,6 +33,7 @@ class TestInstallFIPS(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        check_version(cls.replicas[0])
         super(TestInstallFIPS, cls).install(mh)
         # sanity check
         for host in cls.get_all_hosts():
@@ -59,6 +62,11 @@ class TestInstallFIPS(IntegrationTest):
             setup_kra=True,
         )
         tasks.install_clients([cls.master] + cls.replicas, cls.clients)
+
+    @classmethod
+    def uninstall(cls, mh):
+        check_version(cls.replicas[0])
+        super(TestInstallFIPS, cls).uninstall(mh)
 
     def test_basic(self):
         client = self.clients[0]
