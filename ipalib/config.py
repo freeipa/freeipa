@@ -536,17 +536,20 @@ class Env:
 
             1. Call `Env._bootstrap()` if it hasn't already been called.
 
-            2. Merge-in variables from the configuration file ``self.conf``
+            2. If server is forced, derive URIs from it by calling
+               `Env._derive_uris()`.
+
+            3. Merge-in variables from the configuration file ``self.conf``
                (if it exists) by calling `Env._merge_from_file()`.
 
-            3. Merge-in variables from the defaults configuration file
+            4. Merge-in variables from the defaults configuration file
                ``self.conf_default`` (if it exists) by calling
                `Env._merge_from_file()`.
 
-            4. Intelligently fill-in the *in_server* , *logdir*, *log*, and
-               *jsonrpc_uri* variables if they haven't already been set.
+            5. Intelligently fill-in the *in_server* , *logdir*, *log*
+               variables and derive URIs if they haven't already been set.
 
-            5. Merge-in the variables in ``defaults`` by calling `Env._merge()`.
+            6. Merge-in the variables in ``defaults`` by calling `Env._merge()`.
                In normal circumstances ``defaults`` will simply be those
                specified in `constants.DEFAULT_CONFIG`.
 
@@ -564,6 +567,13 @@ class Env:
         """
         self.__doing('_finalize_core')
         self.__do_if_not_done('_bootstrap')
+
+        # If server is forced, set it up and derive URIs from it:
+        uris_derived = False
+        if 'forced_server' in self and 'server' not in self:
+            self.server = self["forced_server"]
+            self._derive_uris(**defaults)
+            uris_derived = True
 
         # Merge in context config file and then default config file:
         mode = self.__d.get('mode')  # pylint: disable=no-member
@@ -601,38 +611,9 @@ class Env:
         if 'basedn' not in self and 'domain' in self:
             self.basedn = DN(*(('dc', dc) for dc in self.domain.split('.')))
 
-        # Derive xmlrpc_uri from server
-        # (Note that this is done before deriving jsonrpc_uri from xmlrpc_uri
-        # and server from jsonrpc_uri so that when only server or xmlrpc_uri
-        # is specified, all 3 keys have a value.)
-        if 'xmlrpc_uri' not in self and 'server' in self:
-            self.xmlrpc_uri = 'https://{}/ipa/xml'.format(self.server)
-
-        # Derive ldap_uri from server
-        if 'ldap_uri' not in self and 'server' in self:
-            self.ldap_uri = 'ldap://{}'.format(self.server)
-
-        # Derive jsonrpc_uri from xmlrpc_uri
-        if 'jsonrpc_uri' not in self:
-            if 'xmlrpc_uri' in self:
-                xmlrpc_uri = self.xmlrpc_uri
-            else:
-                xmlrpc_uri = defaults.get('xmlrpc_uri')
-            if xmlrpc_uri:
-                (scheme, netloc, uripath, params, query, fragment
-                        ) = urlparse(xmlrpc_uri)
-                uripath = uripath.replace('/xml', '/json', 1)
-                self.jsonrpc_uri = urlunparse((
-                        scheme, netloc, uripath, params, query, fragment))
-
-        if 'server' not in self:
-            if 'jsonrpc_uri' in self:
-                jsonrpc_uri = self.jsonrpc_uri
-            else:
-                jsonrpc_uri = defaults.get('jsonrpc_uri')
-            if jsonrpc_uri:
-                parsed = urlparse(jsonrpc_uri)
-                self.server = parsed.netloc
+        # Derive URIs if not already done:
+        if not uris_derived:
+            self._derive_uris(**defaults)
 
         self._merge(**defaults)
 
@@ -665,6 +646,45 @@ class Env:
             raise errors.EnvironmentError(
                 "tls_version_min is set to a higher TLS version than "
                 "tls_version_max.")
+
+    def _derive_uris(self, **defaults):
+        """
+        Intelligently derive URIs from other variables
+        """
+        # Derive xmlrpc_uri from server
+        # (Note that this is done before deriving jsonrpc_uri from xmlrpc_uri
+        # and server from jsonrpc_uri so that when only server or xmlrpc_uri
+        # is specified, all 3 keys have a value.)
+        if 'xmlrpc_uri' not in self and 'server' in self:
+            self.xmlrpc_uri = 'https://{}/ipa/xml'.format(self.server)
+
+        # Derive ldap_uri from server
+        if 'ldap_uri' not in self and 'server' in self:
+            self.ldap_uri = 'ldap://{}'.format(self.server)
+
+        # Derive jsonrpc_uri from xmlrpc_uri
+        if 'jsonrpc_uri' not in self:
+            if 'xmlrpc_uri' in self:
+                xmlrpc_uri = self.xmlrpc_uri
+            else:
+                xmlrpc_uri = defaults.get('xmlrpc_uri')
+            if xmlrpc_uri:
+                (scheme, netloc, uripath, params, query, fragment) = urlparse(
+                    xmlrpc_uri
+                )
+                uripath = uripath.replace("/xml", "/json", 1)
+                self.jsonrpc_uri = urlunparse(
+                    (scheme, netloc, uripath, params, query, fragment)
+                )
+
+        if 'server' not in self:
+            if 'jsonrpc_uri' in self:
+                jsonrpc_uri = self.jsonrpc_uri
+            else:
+                jsonrpc_uri = defaults.get('jsonrpc_uri')
+            if jsonrpc_uri:
+                parsed = urlparse(jsonrpc_uri)
+                self.server = parsed.netloc
 
     def _finalize(self, **lastchance):
         """
