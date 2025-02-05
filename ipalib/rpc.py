@@ -427,7 +427,15 @@ class SSLTransport(LanguageAwareTransport):
             tls_version_min=api.env.tls_version_min,
             tls_version_max=api.env.tls_version_max)
 
-        conn.connect()
+        try:
+            conn.connect()
+        except socket.error as e:
+            # Network error, close connection and let transport
+            # handle reconnect for us.
+            self.close()
+            logger.debug("HTTP connection destroyed (%s)", host)
+            raise errors.NetworkError(message=unicode(e))
+
         logger.debug("New HTTP connection (%s)", host)
 
         self._connection = host, conn
