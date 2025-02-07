@@ -739,7 +739,12 @@ class CAInstance(DogtagInstance):
             f.write('[Service]\n')
             f.write('Environment=LC_ALL=C.UTF-8\n')
             f.write('ExecStartPost={}\n'.format(paths.IPA_PKI_WAIT_RUNNING))
+            f.write('TimeoutStartSec=%d\n' % api.env.startup_timeout)
         tasks.systemd_daemon_reload()
+        logger.info(
+            "Set start up timeout of pki-tomcatd service to %d seconds",
+            api.env.startup_timeout
+        )
 
     def safe_backup_config(self):
         """
@@ -2490,6 +2495,7 @@ def update_ipa_conf(ca_host=None):
     parser.set('global', 'enable_ra', 'True')
     parser.set('global', 'ra_plugin', 'dogtag')
     parser.set('global', 'dogtag_version', '10')
+    parser.set('global', 'startup_timeout', api.env.startup_timeout)
     if ca_host is None:
         parser.remove_option('global', 'ca_host')
     else:
