@@ -2495,6 +2495,7 @@ def update_ipa_conf(ca_host=None):
     parser.set('global', 'enable_ra', 'True')
     parser.set('global', 'ra_plugin', 'dogtag')
     parser.set('global', 'dogtag_version', '10')
+    parser.set('global', 'startup_timeout', api.env.startup_timeout)
     if ca_host is None:
         parser.remove_option('global', 'ca_host')
     else:
