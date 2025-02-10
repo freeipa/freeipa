@@ -453,6 +453,7 @@ class CAInstance(DogtagInstance):
             if promote:
                 self.step("destroying installation admin user",
                           self.teardown_admin)
+            self.step("updating IPA configuration", update_ipa_conf)
             # Materialize config changes and new ACLs
             self.step("starting certificate server instance",
                       self.start_instance)
@@ -480,7 +481,6 @@ class CAInstance(DogtagInstance):
                 self.step("configure certificate renewals", self.configure_renewal)
                 self.step("Configure HTTP to proxy connections",
                           self.http_proxy)
-                self.step("updating IPA configuration", update_ipa_conf)
                 self.step("enabling CA instance", self.__enable_instance)
                 if not promote:
                     if self.clone:
@@ -2453,6 +2453,7 @@ def update_ipa_conf(ca_host=None):
     parser.set('global', 'enable_ra', 'True')
     parser.set('global', 'ra_plugin', 'dogtag')
     parser.set('global', 'dogtag_version', '10')
+    parser.set('global', 'startup_timeout', api.env.startup_timeout)
     if ca_host is None:
         parser.remove_option('global', 'ca_host')
     else:
