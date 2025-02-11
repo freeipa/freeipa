@@ -47,8 +47,7 @@ static void forward_cb(krb5_error_code retval, const krad_packet *request,
         otpd_log_req(item->req, "forward end: %s", krad_code_num2name(code));
     } else {
         const char *err_msg = krb5_get_error_message(ctx.kctx, retval);
-        otpd_log_req(item->req, "forward end: %s",
-                     krb5_get_error_message(ctx.kctx, retval));
+        otpd_log_req(item->req, "forward end: %s", err_msg);
         krb5_free_error_message(ctx.kctx, err_msg);
     }
 
