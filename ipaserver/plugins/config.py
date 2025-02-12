@@ -36,6 +36,7 @@ from .selinuxusermap import validate_selinuxuser
 from ipalib import _
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
+from ipapython.ipavalidate import Email
 from ipaserver.plugins.privilege import principal_has_privilege
 from ipaserver.install.adtrust import set_and_check_netbios_name
 
@@ -116,6 +117,17 @@ def validate_search_records_limit(ugettext, value):
         return _('must be at least 10')
     return None
 
+
+def validate_emaildomain(ugettext, value):
+    """Do some basic e-mail domain validation.
+
+       Test using a sample user@domain.
+    """
+    test = "test@{}".format(value)
+    if not Email(test):
+        return _('Invalid e-mail domain')
+    return None
+
 @register()
 class config(LDAPObject):
     """
@@ -188,6 +200,7 @@ class config(LDAPObject):
             doc=_('Default group for new users'),
         ),
         Str('ipadefaultemaildomain?',
+            validate_emaildomain,
             cli_name='emaildomain',
             label=_('Default e-mail domain'),
             doc=_('Default e-mail domain'),
