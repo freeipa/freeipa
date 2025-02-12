@@ -689,6 +689,8 @@ class BindInstance(service.Service):
         self.forward_policy = forward_policy
         self.reverse_zones = reverse_zones
 
+        self.sstore.backup_state("dns_over_tls", "enabled", dns_over_tls)
+
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % normalize_zone(self.domain)
         else:
@@ -1377,10 +1379,11 @@ class BindInstance(service.Service):
 
         self.named_conflict.unmask()
 
-        certmonger.stop_tracking(certfile=paths.BIND_DNS_OVER_TLS_CRT)
-        certmonger.stop_tracking(certfile=paths.BIND_DNS_OVER_TLS_KEY)
-        services.knownservices.unbound.disable()
-        services.knownservices.unbound.stop()
+        if self.sstore.restore_state("dns_over_tls", "enabled"):
+            if not self.sstore.restore_state("dns_over_tls", "external_crt"):
+                certmonger.stop_tracking(certfile=paths.BIND_DNS_OVER_TLS_CRT)
+            services.knownservices["unbound"].disable()
+            services.knownservices["unbound"].stop()
 
         ipautil.remove_file(paths.NAMED_CONF_BAK)
         ipautil.remove_file(paths.NAMED_CUSTOM_CONF)
