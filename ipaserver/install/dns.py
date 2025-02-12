@@ -457,6 +457,9 @@ def install(standalone, replica, options, api=api):
 
     bind.create_instance()
 
+    bind.sstore.backup_state("dns_over_tls",
+                             "external_crt",
+                             bool(options.dns_over_tls_cert))
     if options.dns_over_tls:
         print("Setting up DNS over TLS")
         _setup_dns_over_tls(options)
