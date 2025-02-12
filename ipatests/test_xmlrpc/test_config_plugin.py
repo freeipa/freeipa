@@ -340,4 +340,61 @@ class test_config(Declarative):
             ),
             expected=errors.EmptyModlist(),
         ),
+
+        dict(
+            desc='Set invalid default e-mail domain, no TLD',
+            command=(
+                'config_mod', [], {'ipadefaultemaildomain': 'foo'},
+            ),
+            expected=errors.ValidationError(
+                name='emaildomain',
+                error='Invalid e-mail domain'),
+        ),
+
+        dict(
+            desc='Set invalid default e-mail domain, trailing dots',
+            command=(
+                'config_mod', [], {'ipadefaultemaildomain': 'foo.com...'},
+            ),
+            expected=errors.ValidationError(
+                name='emaildomain',
+                error='Invalid e-mail domain'),
+        ),
+
+        dict(
+            desc='Set invalid default e-mail domain, with an @',
+            command=(
+                'config_mod', [], {'ipadefaultemaildomain': '@foo.com'},
+            ),
+            expected=errors.ValidationError(
+                name='emaildomain',
+                error='Invalid e-mail domain'),
+        ),
+
+
+        dict(
+            desc='Set valid default e-mail domain',
+            command=(
+                'config_mod', [], {'ipadefaultemaildomain': 'foo.com'},
+            ),
+            expected={
+                'result': lambda d: d['ipadefaultemaildomain'] == ('foo.com',),
+                'summary': None,
+                'value': None,
+            },
+        ),
+
+        dict(
+            desc='Reset default e-mail domain',
+            command=(
+                'config_mod', [], {'ipadefaultemaildomain': api.env.domain},
+            ),
+            expected={
+                'result': lambda d: (
+                    d['ipadefaultemaildomain'] == (api.env.domain,),
+                ),
+                'summary': None,
+                'value': None,
+            },
+        ),
     ]
