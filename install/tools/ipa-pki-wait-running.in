@@ -55,25 +55,24 @@ def check_installed(subsystem):
         return False
 
 
-def get_conn(hostname, subsystem):
+def get_client(hostname):
     """Create a connection object
     """
     conn = PKIConnection(
         hostname=hostname,
-        subsystem=subsystem,
         cert_paths=paths.IPA_CA_CRT
     )
+    client = SystemStatusClient(conn, subsystem=SUBSYSTEM)
     logger.info(
-        "Created connection %s://%s:%s/%s",
-        conn.protocol, conn.hostname, conn.port, conn.subsystem
+        "Created connection %s%s",
+        client.connection.serverURI, client.get_status_url
     )
-    return conn
+    return client
 
 
-def get_status(conn, timeout):
+def get_status(client, timeout):
     """Get status from subsystem and return parsed (status, error)
     """
-    client = SystemStatusClient(conn)
     response = client.get_status(timeout=timeout)
     status = None
     error = None
@@ -102,11 +101,11 @@ def main():
     api.bootstrap(confdir=paths.ETC_IPA, log=None)
     timeout = api.env.startup_timeout
 
-    conn = get_conn(api.env.host, subsystem=SUBSYSTEM)
+    client = get_client(api.env.host)
     end = curtime() + timeout
     while curtime() < end:
         try:
-            status, error = get_status(conn, CONNECTION_TIMEOUT)
+            status, error = get_status(client, CONNECTION_TIMEOUT)
         except (ConnectionError, Timeout) as e:
             logger.info("Connection failed: %s", e)
         except RequestException as e:
