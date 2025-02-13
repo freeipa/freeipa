@@ -111,6 +111,9 @@ remove_principal(krb5_context context, krb5_keytab ktid, const char *principal, 
 
 done:
 
+    if (entry.principal)
+        krb5_free_principal(context, entry.principal);
+
     return rval;
 }
 
@@ -119,7 +122,7 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
 {
     krb5_error_code krberr;
     krb5_keytab_entry entry;
-    krb5_kt_cursor kt_cursor;
+    krb5_kt_cursor kt_cursor = NULL;
     char * entry_princ_s = NULL;
     int rval = 0;
     bool realm_found = false;
@@ -153,6 +156,7 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
             rval = CURSOR_ERROR;
             goto done;
         }
+        kt_cursor = NULL;
 
         if (strstr(entry_princ_s, realm) != NULL) {
             realm_found = true;
@@ -176,7 +180,8 @@ remove_realm(krb5_context context, krb5_keytab ktid, const char *realm, int debu
     }
 
 done:
-    krb5_kt_end_seq_get(context, ktid, &kt_cursor);
+    if (kt_cursor != NULL)
+        krb5_kt_end_seq_get(context, ktid, &kt_cursor);
     krb5_free_unparsed_name(context, entry_princ_s);
     return rval;
 }
