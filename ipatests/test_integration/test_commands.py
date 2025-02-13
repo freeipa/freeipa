@@ -1561,6 +1561,32 @@ class TestIPACommand(IntegrationTest):
 
         assert isrgrootx1_nick in result
 
+    def test_ipa_systemd_journal(self):
+        """
+        This testcase checks that administrative user credentials
+        is not leaked to journald log
+        """
+        admin_pwd = 'Secret123'
+        tasks.kinit_admin(self.master)
+        server_cmds = []
+        server_cmds.append(['ipa-adtrust-install', '-a', admin_pwd, '-U'])
+        server_cmds.append(['ipa-replica-manage', '-p', admin_pwd, 'list'])
+        server_cmds.append(['ipa-csreplica-manage', '-p', admin_pwd, 'list'])
+        server_cmds.append(['ipa-kra-install', '-p', admin_pwd, '-U'])
+        for cmd in server_cmds:
+            self.master.run_command(cmd, raiseonerr=False)
+            self.replicas[0].run_command(cmd, raiseonerr=False)
+        server_res = self.master.run_command(
+            ['journalctl', '-t', f'/usr/sbin/{cmd}',
+             '-n1', '-o', 'json-pretty'], raiseonerr=False)
+        assert self.master.config.admin_password not in server_res.stdout_text
+        assert self.master.config.dirman_password not in server_res.stdout_text
+        replica_res = self.replicas[0].run_command(
+            ['journalctl', '-t', f'/usr/sbin/{cmd}',
+             '-n1', '-o', 'json-pretty'], raiseonerr=False)
+        assert self.master.config.admin_password not in replica_res.stdout_text
+        assert self.master.config.dirman_password not in replica_res.stdout_text
+
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
