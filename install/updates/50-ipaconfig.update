@@ -8,3 +8,4 @@ remove:ipaConfigString:AllowLMhash
 add:objectClass: ipaUserAuthTypeClass
 add:objectClass: ipaNameResolutionData
 addifnew:ipamaxhostnamelength: 64
+addifnew:ipaservicekeytypesize: rsa:2048
