@@ -13,8 +13,6 @@ import logging
 import os.path
 import pki.util
 
-import six
-
 from ipalib.constants import IPA_CA_CN
 from ipalib.install import certstore
 from ipalib.install.service import enroll_only, master_install_only, replica_install_only
@@ -35,8 +33,6 @@ from ipapython.dn import DN
 
 from . import conncheck, dogtag, cainstance
 
-if six.PY3:
-    unicode = str
 
 VALID_SUBJECT_BASE_ATTRS = {
     'st', 'o', 'ou', 'dnqualifier', 'c', 'serialnumber', 'l', 'title', 'sn',
@@ -54,8 +50,8 @@ external_ca_file = None
 
 
 def subject_validator(valid_attrs, value):
-    if not isinstance(value, unicode):
-        v = unicode(value, 'utf-8')
+    if not isinstance(value, str):
+        v = str(value, 'utf-8')
     else:
         v = value
     if any(ord(c) < 0x20 for c in v):
