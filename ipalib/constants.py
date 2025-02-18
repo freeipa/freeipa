@@ -63,6 +63,8 @@ TLS_VERSION_MAXIMAL = "tls1.3"
 TLS_VERSION_DEFAULT_MIN = None
 TLS_VERSION_DEFAULT_MAX = None
 
+DEFAULT_KEY_TYPE_SIZE = "rsa:2048"
+
 SD_IPA_API_MESSAGE_ID = uuid.uuid3(uuid.NAMESPACE_DNS, 'IPA.API')
 
 # regular expression NameSpace member names must match:
@@ -250,6 +252,9 @@ DEFAULT_CONFIG = (
 
     # Ignore TTL. Perform schema call and download schema if not in cache.
     ('force_schema_check', False),
+
+    # Default key type and size for IPA certs (HTTP, DS, KDC and RA)
+    ('key_type_size', DEFAULT_KEY_TYPE_SIZE),
 
     # ********************************************************
     #  The remaining keys are never set from the values here!

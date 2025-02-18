@@ -475,6 +475,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.in_tree = False  # object
     api.env.interactive = True
     api.env.ipalib = ''  # object
+    api.env.key_type_size = 'rsa:2048'
     api.env.kinit_lifetime = None
     api.env.log = ''  # object
     api.env.logdir = ''  # object

@@ -728,8 +728,9 @@ class CertDB:
         self.nssdb.convert_db()
 
     def pki_issue_certificate(self, service, profile, subject,
-                              keyfile, certfile, key_passwd_file=None,
-                              dns_2_san='', use_admin=False):
+                              keyfile, certfile,
+                              key_passwd_file=None, dns_2_san='',
+                              use_admin=False):
         """Use openssl to generate a CSR and submit it using the pki
            cli tool.
 
@@ -794,14 +795,29 @@ class CertDB:
                 os.fchmod(f.fileno(), 0o600)
                 f.write(conf)
 
+            (keytype, keysize) = api.env.key_type_size.split(':', 1)
+
+            # Generate a private key
+            if (keytype.lower() == 'rsa'):
+                args = ["openssl", "genrsa",
+                        "-out", keyfile]
+                if key_passwd_file:
+                    args.extend(
+                        ["-aes256",
+                         "-passout", "file:{}".format(key_passwd_file)]
+                    )
+                args.extend([keysize])  # must be the last argument
+                result = ipautil.run(args, capture_output=True)
+
+            # Generate a CSR using the private key
             args = ["openssl", "req", "-new",
+                    "-key", keyfile,
                     "-out", os.path.join(self.secdir, "csr"),
-                    "-keyout", keyfile,
                     "-config", destfile]
             if key_passwd_file:
-                args.extend(["-passout", "file:{}".format(key_passwd_file)])
-            else:
-                args.extend(["-nodes"])
+                args.extend(
+                    ["-passin", "file:{}".format(key_passwd_file)]
+                )
             result = ipautil.run(args, capture_output=True)
             nickname = 'IPA RA'
 

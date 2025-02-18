@@ -1076,7 +1076,7 @@ args: 0,1,1
 option: Str('version?')
 output: Output('result')
 command: config_mod/1
-args: 0,32,3
+args: 0,33,3
 option: Flag('add_sids?', autofill=True, default=False)
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -1100,6 +1100,7 @@ option: Int('ipasearchrecordslimit?', autofill=False, cli_name='searchrecordslim
 option: Int('ipasearchtimelimit?', autofill=False, cli_name='searchtimelimit')
 option: Str('ipaselinuxusermapdefault?', autofill=False)
 option: Str('ipaselinuxusermaporder?', autofill=False)
+option: Str('ipaservicekeytypesize?', autofill=False, cli_name='key_type_size')
 option: StrEnum('ipauserauthtype*', autofill=False, cli_name='user_auth_type', values=[u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey', u'disabled'])
 option: Bool('ipauserdefaultsubordinateid?', autofill=False, cli_name='user_default_subid')
 option: Str('ipauserobjectclasses*', autofill=False, cli_name='userobjectclasses')

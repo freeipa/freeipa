@@ -681,6 +681,8 @@ def install_check(installer):
         # make sure host name specified by user is used instead of default
         host=host_name,
     )
+    if options.key_type_size:
+        cfg['key_type_size'] = options.key_type_size
     if setup_ca:
         # we have an IPA-integrated CA
         cfg['ca_host'] = host_name
