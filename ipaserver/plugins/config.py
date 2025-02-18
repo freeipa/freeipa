@@ -39,6 +39,7 @@ from ipapython.dn import DN
 from ipapython.ipavalidate import Email
 from ipaserver.plugins.privilege import principal_has_privilege
 from ipaserver.install.adtrust import set_and_check_netbios_name
+from ipaserver.install.installutils import validate_key_type_size
 
 logger = logging.getLogger(__name__)
 
@@ -128,6 +129,12 @@ def validate_emaildomain(ugettext, value):
         return _('Invalid e-mail domain')
     return None
 
+
+def validate_key_type_size_wrapper(ugettext, value):
+    """Do some basic validation of key type and size.
+    """
+    return validate_key_type_size(value)
+
 @register()
 class config(LDAPObject):
     """
@@ -142,7 +149,7 @@ class config(LDAPObject):
         'ipapwdexpadvnotify', 'ipaselinuxusermaporder',
         'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
         'ipauserauthtype', 'ipadomainresolutionorder', 'ipamaxhostnamelength',
-        'ipauserdefaultsubordinateid',
+        'ipauserdefaultsubordinateid', 'ipaservicekeytypesize',
     ]
     container_dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'))
     permission_filter_objectclasses = ['ipaguiconfig']
@@ -165,6 +172,7 @@ class config(LDAPObject):
                 'ipauserauthtype', 'ipauserobjectclasses',
                 'ipausersearchfields', 'ipacustomfields',
                 'ipamaxhostnamelength', 'ipauserdefaultsubordinateid',
+                'ipaservicekeytypesize',
             },
         },
     }
@@ -386,6 +394,13 @@ class config(LDAPObject):
             label=_('HSM token name'),
             doc=_('The HSM token name storing the CA private keys'),
             flags={'virtual_attribute', 'no_create', 'no_update'}
+        ),
+        Str(
+            'ipaservicekeytypesize?',
+            validate_key_type_size,
+            cli_name='key_type_size',
+            label=_('IPA Service key type:size'),
+            doc=_('IPA Service key type:size'),
         ),
     )
 
