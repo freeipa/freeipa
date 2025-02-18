@@ -377,21 +377,18 @@ class TestIpaHealthCheck(IntegrationTest):
                                             failures_only=False)
         assert returncode == 0
 
-        cmd = self.master.run_command(
-            [paths.FIPS_MODE_SETUP, "--is-enabled"], raiseonerr=False
-        )
-        returncode = cmd.returncode
+        is_fips_enabled = tasks.is_fips_enabled(self.master)
 
         assert "fips" in check[0]["kw"]
 
         if check[0]["kw"]["fips"] == "disabled":
-            assert returncode == 2
+            assert not is_fips_enabled
         elif check[0]["kw"]["fips"] == "enabled":
-            assert returncode == 0
-        elif check[0]["kw"]["fips"] == f"missing {paths.FIPS_MODE_SETUP}":
-            assert returncode == 127
+            assert is_fips_enabled
         else:
-            assert returncode == 1
+            raise ValueError("File %s doesn't exist or contains unexpected "
+                             "value, this is a kernel issue!"
+                             % paths.PROC_FIPS_ENABLED)
 
     def test_ipa_healthcheck_after_certupdate(self):
         """
