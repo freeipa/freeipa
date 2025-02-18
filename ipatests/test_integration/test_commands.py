@@ -1561,6 +1561,54 @@ class TestIPACommand(IntegrationTest):
 
         assert isrgrootx1_nick in result
 
+    def test_ipa_systemd_journal(self):
+        """
+        This testcase checks that administrative user credentials
+        is not leaked to journald log when ipa commands are run.
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        tasks.kinit_admin(self.clients[0])
+        cmds = [
+            ['ipa-adtrust-install', '-a',
+             self.master.config.admin_password, '-U'],
+            ['ipa-replica-manage', '-p',
+             self.master.config.dirman_password, 'list'],
+            ['ipa-csreplica-manage', '-p',
+             self.master.config.dirman_password, 'list'],
+            ['ipa-kra-install', '-p',
+             self.master.config.dirman_password, '-U']
+        ]
+        for host in (self.master, self.replicas[0]):
+            for cmd in cmds:
+                host.run_command(cmd, raiseonerr=False)
+                result = self.master.run_command(
+                    ['journalctl', '-t', f'/usr/sbin/{cmd[0]}',
+                     '-n1', '-o', 'json-pretty'], raiseonerr=False)
+                assert (
+                    self.master.config.admin_password not in result.stdout_text
+                )
+                assert (
+                    self.master.config.dirman_password not in result.stdout_text
+                )
+        result = self.master.run_command(
+            ['journalctl', '-t', f'/usr/sbin/ipa-server-install',
+             '-n1', '-o', 'json-pretty'], raiseonerr=False)
+        assert self.master.config.admin_password not in result.stdout_text
+        assert self.master.config.dirman_password not in result.stdout_text
+
+        result = self.replicas[0].run_command(
+            ['journalctl', '-t', f'/usr/sbin/ipa-replica-install',
+             '-n1', '-o', 'json-pretty'], raiseonerr=False)
+        assert self.replicas[0].config.admin_password not in result.stdout_text
+        assert self.replicas[0].config.dirman_password not in result.stdout_text
+
+        result = self.clients[0].run_command(
+            ['journalctl', '-t', f'/usr/sbin/ipa-client-install',
+             '-n1', '-o', 'json-pretty'], raiseonerr=False)
+        assert self.clients[0].config.admin_password not in result.stdout_text
+        assert self.clients[0].config.dirman_password not in result.stdout_text
+
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
