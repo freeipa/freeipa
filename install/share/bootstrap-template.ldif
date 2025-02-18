@@ -415,6 +415,7 @@ ipaDefaultPrimaryGroup: ipausers
 ipaMaxUsernameLength: 32
 ipaMaxHostnameLength: 64
 ipaPwdExpAdvNotify: 4
+ipaServiceKeyTypeSize: $DEFAULT_KEY_TYPE_SIZE
 ipaGroupObjectClasses: top
 ipaGroupObjectClasses: groupofnames
 ipaGroupObjectClasses: nestedgroup

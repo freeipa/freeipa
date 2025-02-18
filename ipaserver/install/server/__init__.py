@@ -23,6 +23,7 @@ from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
 from ipaplatform import services
 
+from ipaserver.install.installutils import validate_key_type_size
 from .install import validate_admin_password, validate_dm_password
 from .install import get_min_idstart
 from .install import init as master_init
@@ -137,6 +138,20 @@ class ServerCertificateInstallInterface(service.ServiceInstallInterface):
         cli_metavar='NAME',
     )
     pkinit_cert_name = prepare_only(pkinit_cert_name)
+
+    key_type_size = knob(
+        str, None,
+        description=("The key type and size for HTTP, LDAP, PKINIT and "
+                     "RA (if CA configured) certificates (default: "
+                     "rsa:2048)"),
+    )
+    key_type_size = master_install_only(key_type_size)
+
+    @key_type_size.validator
+    def key_type_size(self, value):
+        msg = validate_key_type_size(value)
+        if msg:
+            raise ValueError(msg)
 
 
 @group
