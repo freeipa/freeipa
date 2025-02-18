@@ -220,6 +220,9 @@ Specifies the URI of the JSON server for a client. This is used by IPA. If not g
 .B rpc_protocol <URI>
 Specifies the type of RPC calls IPA makes: 'jsonrpc' or 'xmlrpc'. Defaults to 'jsonrpc'.
 .TP
+.B key_type_size TYPE:SIZE
+Specifies the type and size of private keys for the Apache, LDAP, PKINIT and RA (if configuring the CA) certificates. The CA/KRA certificate sizes need to be specified using a pki-config-override file provided to the installer. Currently only supports the RSA key type. Valid type values are: rsa. This only applies during initial server installation. The value is stored in the IPA config. Changing it there will not change existing certificates. It will only apply when a new replica is added. The default is: rsa:2048.
+.TP
 The following define the containers for the IPA server. Containers define where in the DIT that objects can be found. The full location is the value of container + basedn.
   container_accounts: cn=accounts
   container_applications: cn=applications,cn=configs,cn=policies
