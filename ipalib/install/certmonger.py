@@ -352,7 +352,7 @@ def request_and_wait_for_cert(
         dns=None, ca='IPA', profile=None,
         pre_command=None, post_command=None, storage='NSSDB', perms=None,
         resubmit_timeout=0, stop_tracking_on_error=False,
-        nss_user=None):
+        nss_user=None, keytype=None, keysize=None):
     """Request certificate, wait and possibly resubmit failing requests
 
     Submit a cert request to certmonger and wait until the request has
@@ -367,7 +367,8 @@ def request_and_wait_for_cert(
     """
     req_id = request_cert(
         certpath, subject, principal, nickname, passwd_fname, dns, ca,
-        profile, pre_command, post_command, storage, perms, nss_user
+        profile, pre_command, post_command, storage, perms, nss_user,
+        keytype, keysize,
     )
     # Don't wait longer than resubmit timeout if it is configured
     certmonger_timeout = api.env.certmonger_wait_timeout
@@ -421,7 +422,7 @@ def request_cert(
         certpath, subject, principal, nickname=None, passwd_fname=None,
         dns=None, ca='IPA', profile=None,
         pre_command=None, post_command=None, storage='NSSDB', perms=None,
-        nss_user=None):
+        nss_user=None, keytype=None, keysize=None):
     """
     Execute certmonger to request a server certificate.
 
@@ -462,6 +463,10 @@ def request_cert(
         request_parameters['ca-profile'] = profile
     if nss_user:
         request_parameters['nss-user'] = nss_user
+    if keysize is None:
+        (keytype, keysize) = ("rsa", "2048")
+    request_parameters['key-type'] = keytype
+    request_parameters['key-size'] = int(keysize)
 
     certmonger_cmd_template = paths.CERTMONGER_COMMAND_TEMPLATE
     if pre_command:

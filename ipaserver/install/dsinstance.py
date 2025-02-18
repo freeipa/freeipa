@@ -882,6 +882,7 @@ class DsInstance(service.Service):
                         os.path.join(tmpdb.secdir, 'server.p12'), key_password
                     )
             else:
+                (keytype, keysize) = installutils.lookup_key_type(api)
                 cmd = 'restart_dirsrv %s' % self.serverid
                 certmonger.request_and_wait_for_cert(
                     certpath=dirname,
@@ -894,7 +895,9 @@ class DsInstance(service.Service):
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
                     post_command=cmd,
-                    resubmit_timeout=api.env.certmonger_wait_timeout
+                    resubmit_timeout=api.env.certmonger_wait_timeout,
+                    keytype=keytype,
+                    keysize=keysize,
                 )
 
             api.Backend.ldap2.disconnect()

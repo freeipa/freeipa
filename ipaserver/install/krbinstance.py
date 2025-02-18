@@ -506,6 +506,7 @@ class KrbInstance(service.Service):
                     certmonger_ca, helper
                 )
 
+            (keytype, keysize) = installutils.lookup_key_type(api)
             certmonger.request_and_wait_for_cert(
                 certpath=certpath,
                 subject=subject,
@@ -516,7 +517,9 @@ class KrbInstance(service.Service):
                 profile=KDC_PROFILE,
                 post_command='renew_kdc_cert',
                 perms=(0o644, 0o600),
-                resubmit_timeout=api.env.certmonger_wait_timeout
+                resubmit_timeout=api.env.certmonger_wait_timeout,
+                keytype=keytype,
+                keysize=keysize,
             )
         except dbus.DBusException as e:
             # if the certificate is already tracked, ignore the error

@@ -734,6 +734,9 @@ class CertDB:
     def pki_issue_ra_certificate(self, csrfile, certfile, dm_password):
         """Using a user-provided CSR submit it to the CA using its
            python API.
+
+        `csrfile` points to the CSR.  `certfile` is the path where we
+        write the issued certificate.
         """
         nickname = 'ipa-ca-agent'
 
@@ -784,7 +787,6 @@ class CertDB:
 
         cert_data = result.cert
         serial_number = cert_data.serial_number
-
         c = cert_client.get_cert(cert_data.serial_number)
         with open(certfile, "w") as fd:
             fd.write(c.encoded)
@@ -815,6 +817,8 @@ class CertDB:
             os.fchmod(f.fileno(), 0o600)
             f.write(conf)
 
+        (keytype, keysize) = api.env.key_type_size.split(':', 1)
+
         # Generate a private key
         if (keytype.lower() == 'rsa'):
             args = ["openssl", "genrsa",
@@ -824,8 +828,10 @@ class CertDB:
                     ["-aes256",
                      "-passout", "file:{}".format(key_passwd_file)]
                 )
-            args.extend(["2048"])  # must be the last argument
+            args.extend([keysize])  # must be the last argument
             result = ipautil.run(args, capture_output=True)
+        else:
+            raise RuntimeError(f"Key type not supported: {keytype}")
 
         # Generate a CSR using the private key
         args = ["openssl", "req", "-new",
@@ -860,8 +866,6 @@ class CertDB:
 
         cert_data = result.cert
         serial_number = cert_data.serial_number
-
-        # FIXME: need error checking
         c = cert_client.get_cert(cert_data.serial_number)
         with open(certfile, "w") as fd:
             fd.write(c.encoded)
