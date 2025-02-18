@@ -42,7 +42,6 @@ from configparser import NoOptionError
 from dns import rrset, rdatatype, rdataclass
 from dns.exception import DNSException
 import ldap
-import six
 
 from ipalib import facts
 from ipalib.install.kinit import kinit_password
@@ -61,8 +60,6 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +152,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         # make sure that the host name meets the requirements in ipalib
         validate_hostname(host_name, maxlen=MAXHOSTNAMELEN)
     except ValueError as e:
-        raise BadHostError("Invalid hostname '%s', %s" % (host_name, unicode(e)))
+        raise BadHostError("Invalid hostname '%s', %s" % (host_name, e))
 
     if local_hostname:
         try:
@@ -496,7 +493,7 @@ def resolve_rrsets_nss(fqdn):
             ipautil.CheckedIPAddress(ip_address)
         except ValueError as e:
             logger.warning("Invalid IP address %s for %s: %s",
-                           ip_address, fqdn, unicode(e))
+                           ip_address, fqdn, e)
             continue
         if ip_address.version == 4:
             ipv4.append(str(ip_address))
@@ -540,7 +537,7 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
                 ips.append(ipautil.CheckedIPAddress(ha))
             except ValueError as e:
                 logger.warning("Invalid IP address %s for %s: %s",
-                               ha, host_name, unicode(e))
+                               ha, host_name, e)
 
     if not ips and not ip_addresses:
         if not unattended:
