@@ -357,6 +357,7 @@ class HTTPInstance(service.Service):
                 # have codepaths to support the ipa-ca.$DOMAIN dnsName in HTTP
                 # cert.  Therefore if request fails, try again without the
                 # ipa-ca.$DOMAIN dnsName.
+                (keytype, keysize) = installutils.lookup_key_type(api)
                 args = dict(
                     certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
                     principal=self.principal,
@@ -369,6 +370,8 @@ class HTTPInstance(service.Service):
                     passwd_fname=key_passwd_file,
                     resubmit_timeout=api.env.certmonger_wait_timeout,
                     stop_tracking_on_error=True,
+                    keytype=keytype,
+                    keysize=keysize,
                 )
                 try:
                     certmonger.request_and_wait_for_cert(**args)
