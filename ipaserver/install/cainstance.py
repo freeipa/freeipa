@@ -961,11 +961,14 @@ class CAInstance(DogtagInstance):
             tmpdb.import_pkcs12(
                 paths.DOGTAG_ADMIN_P12, pkcs12_passwd=self.dm_password)
 
+            (_keytype, keysize) = api.env.key_type_size.split(':', 1)
+
             ipautil.run(
                 [paths.CERTUTIL,
                  "-d", tmpdb.secdir,
                  "-R", "-s", str(DN(('CN', 'IPA RA'), self.subject_base)),
-                 "-g", "2048",
+                 # eventually use -q curve-name for ECC
+                 "-g", keysize,
                  "-z", os.path.join(tmpdb.secdir, tmpdb.noise_fname),
                  "-f", tmpdb.passwd_fname,
                  "-o", os.path.join(tmpdb.secdir, "csr"),
