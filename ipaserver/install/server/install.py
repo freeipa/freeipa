@@ -680,6 +680,7 @@ def install_check(installer):
         in_server=True,
         # make sure host name specified by user is used instead of default
         host=host_name,
+        key_type_size=options.key_type_size,
     )
     if setup_ca:
         # we have an IPA-integrated CA
