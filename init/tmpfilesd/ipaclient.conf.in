@@ -1,0 +1,3 @@
+d @localstatedir@/lib/ipa-client 0755 root root
+d @localstatedir@/lib/ipa-client/pki 0755 root root
+d @localstatedir@/lib/ipa-client/sysrestore 0755 root root
