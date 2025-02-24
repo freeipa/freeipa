@@ -370,6 +370,16 @@ class TestIpaHealthCheck(IntegrationTest):
 
         https://pagure.io/freeipa/issue/8951
         """
+        healthcheck_version = tasks.get_healthcheck_version(self.master)
+        if (
+            parse_version(healthcheck_version) < parse_version("0.17")
+            and osinfo.id == 'rhel'
+            and osinfo.version_number == (10,0)
+        ):
+            # Patch: https://github.com/freeipa/freeipa-healthcheck/pull/349
+            pytest.xfail("Patch is unavailable for RHEL 10.0 and "
+                         "freeipa-healtheck version 0.16 or less")
+
         returncode, check = run_healthcheck(self.master,
                                             source="ipahealthcheck.meta.core",
                                             check="MetaCheck",
