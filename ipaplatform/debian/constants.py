@@ -29,5 +29,6 @@ class DebianConstantsNamespace(BaseConstantsNamespace):
     ODS_USER = User("opendnssec")
     ODS_GROUP = Group("opendnssec")
     SECURE_NFS_VAR = "NEED_GSSD"
+    NOBODY_GROUP = Group("nogroup")
 
 constants = DebianConstantsNamespace()
