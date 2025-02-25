@@ -124,6 +124,7 @@ class BaseConstantsNamespace:
     NAMED_OPTIONS_VAR = "OPTIONS"
     NAMED_OPENSSL_ENGINE = None
     NAMED_ZONE_COMMENT = ""
+    NOBODY_GROUP = Group("nobody")
     PKI_USER = User("pkiuser")
     PKI_GROUP = Group("pkiuser")
     # ntpd init variable used for daemon options
