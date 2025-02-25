@@ -1405,7 +1405,7 @@ class TestIpaHealthCheck(IntegrationTest):
         msg = "[plugin:ipa] collecting path '{}'".format(HEALTHCHECK_LOG)
         cmd = self.master.run_command(
             [
-                "sosreport",
+                "sos", "report",
                 "-o",
                 "ipa",
                 "--case-id",
@@ -1508,7 +1508,7 @@ class TestIpaHealthCheck(IntegrationTest):
         caseid = "123456"
         self.master.run_command(
             [
-                "sosreport",
+                "sos", "report",
                 "-o",
                 "ipa",
                 "--case-id",
