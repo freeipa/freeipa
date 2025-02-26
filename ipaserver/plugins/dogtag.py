@@ -1591,7 +1591,6 @@ class kra(Backend):
             'https',
             self.kra_host,
             str(self.kra_port),
-            'kra',
             cert_paths=paths.IPA_CA_CRT
         )
 
