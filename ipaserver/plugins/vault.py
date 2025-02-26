@@ -843,7 +843,8 @@ class vault_del(LDAPDelete):
 
         with self.api.Backend.kra.get_client() as kra_client:
             # pylint: disable=used-before-assignment
-            kra_account = pki.account.AccountClient(kra_client.connection)
+            kra_account = pki.account.AccountClient(kra_client.connection,
+                                                    subsystem='kra')
             # pylint: enable=used-before-assignment
             kra_account.login()
 
@@ -1081,7 +1082,8 @@ class vault_archive_internal(PKQuery):
 
         # connect to KRA
         with self.api.Backend.kra.get_client() as kra_client:
-            kra_account = pki.account.AccountClient(kra_client.connection)
+            kra_account = pki.account.AccountClient(kra_client.connection,
+                                                    subsystem='kra')
             kra_account.login()
 
             client_key_id = self.obj.get_key_id(vault['dn'])
@@ -1163,7 +1165,8 @@ class vault_retrieve_internal(PKQuery):
 
         # connect to KRA
         with self.api.Backend.kra.get_client() as kra_client:
-            kra_account = pki.account.AccountClient(kra_client.connection)
+            kra_account = pki.account.AccountClient(kra_client.connection,
+                                                    subsystem='kra')
             kra_account.login()
 
             client_key_id = self.obj.get_key_id(vault['dn'])
