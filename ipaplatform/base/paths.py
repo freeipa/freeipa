@@ -350,6 +350,7 @@ class BasePathNamespace:
     KRA_CS_CFG_PATH = "/var/lib/pki/pki-tomcat/conf/kra/CS.cfg"
     KRACERT_P12 = "/root/kracert.p12"
     SAMBA_DIR = "/var/lib/samba"
+    SAMBA_LOCKDIR = "/var/lib/samba/lock"
     SSSD_DB = "/var/lib/sss/db"
     SSSD_MC_GROUP = "/var/lib/sss/mc/group"
     SSSD_MC_PASSWD = "/var/lib/sss/mc/passwd"
