@@ -360,14 +360,9 @@ def install_check(standalone, api, replica, options, hostname):
 
     if options.no_forwarders:
         options.forwarders = []
-    elif (options.forwarders
-          or options.dot_forwarders or options.auto_forwarders):
+    elif options.forwarders or options.auto_forwarders:
         if not options.forwarders:
-            if options.dot_forwarders:
-                options.forwarders = [fw.split("#")[0]
-                                      for fw in options.dot_forwarders]
-            else:
-                options.forwarders = []
+            options.forwarders = []
         if options.auto_forwarders:
             options.forwarders.extend(dnsforwarders.get_nameservers())
     elif standalone or not replica:
@@ -435,9 +430,6 @@ def install(standalone, replica, options, api=api):
             "Certificate for DNS over TLS not specified "
             "and IPA CA is not present."
         )
-
-    if not options.forwarders and options.dot_forwarders:
-        options.forwaders = [fw.split("#")[0] for fw in options.dot_forwarders]
 
     bind = bindinstance.BindInstance(fstore, api=api)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
