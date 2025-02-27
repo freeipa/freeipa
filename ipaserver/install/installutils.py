@@ -42,9 +42,8 @@ from configparser import NoOptionError
 from dns import rrset, rdatatype, rdataclass
 from dns.exception import DNSException
 import ldap
-import six
 
-from ipalib import facts
+from ipalib import facts, _
 from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
@@ -61,8 +60,6 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +152,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         # make sure that the host name meets the requirements in ipalib
         validate_hostname(host_name, maxlen=MAXHOSTNAMELEN)
     except ValueError as e:
-        raise BadHostError("Invalid hostname '%s', %s" % (host_name, unicode(e)))
+        raise BadHostError("Invalid hostname '%s', %s" % (host_name, e))
 
     if local_hostname:
         try:
@@ -496,7 +493,7 @@ def resolve_rrsets_nss(fqdn):
             ipautil.CheckedIPAddress(ip_address)
         except ValueError as e:
             logger.warning("Invalid IP address %s for %s: %s",
-                           ip_address, fqdn, unicode(e))
+                           ip_address, fqdn, e)
             continue
         if ip_address.version == 4:
             ipv4.append(str(ip_address))
@@ -540,7 +537,7 @@ def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
                 ips.append(ipautil.CheckedIPAddress(ha))
             except ValueError as e:
                 logger.warning("Invalid IP address %s for %s: %s",
-                               ha, host_name, unicode(e))
+                               ha, host_name, e)
 
     if not ips and not ip_addresses:
         if not unattended:
@@ -1593,3 +1590,55 @@ def get_replication_plugin_name(dirsrv_get_entry):
                 'LDAP query returned unknown type for cn %s: %s' %
                 (cn, type(cn))
             )
+
+
+def validate_key_type_size(value):
+    """Do some basic validation of key type and size.
+
+       Returns None on success and an error string on failure.
+    """
+    types = {'rsa': (2048, 3072, 4096, 7168, 8192)}
+    if len(value.split(':', 1)) != 2:
+        return _('Must be of the form type:size')
+    (type, size) = value.split(':', 1)
+    type = type.strip()
+    size = size.strip()
+
+    if type not in types:
+        return _('Must be of one of %(types)s') % {'types': ','.join(types)}
+
+    if type == 'rsa':
+        try:
+            size = int(size)
+        except ValueError:
+            return _('Not an integer: %(size)s') % {'size': size}
+
+    if size not in types.get(type):
+        return _('Invalid size {}. Allowed {}').format(size, types.get(type))
+
+    return None
+
+
+def lookup_key_type(api):
+    """
+    Retrieve the key type and size configuration.
+
+    This can be used when installing a new replica to set the key
+    type and sizing.
+
+    Returns a tuple of (type, size) or (None, None)
+    """
+    try:
+        ret = api.Command['config_show']()
+    except errors.PublicError as e:
+        logger.error('Cannot retrieve key type/size %s', e)
+
+    keytype = None
+    keysize = None
+
+    if ret:
+        type_size = ret['result'].get('ipaservicekeytypesize')
+        if type_size:
+            (keytype, keysize) = type_size[0].split(':', 1)
+
+    return (keytype, keysize)
