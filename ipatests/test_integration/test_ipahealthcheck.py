@@ -370,6 +370,16 @@ class TestIpaHealthCheck(IntegrationTest):
 
         https://pagure.io/freeipa/issue/8951
         """
+        healthcheck_version = tasks.get_healthcheck_version(self.master)
+        if (
+            parse_version(healthcheck_version) < parse_version("0.17")
+            and osinfo.id == 'rhel'
+            and osinfo.version_number == (10,0)
+        ):
+            # Patch: https://github.com/freeipa/freeipa-healthcheck/pull/349
+            pytest.xfail("Patch is unavailable for RHEL 10.0 and "
+                         "freeipa-healtheck version 0.16 or less")
+
         returncode, check = run_healthcheck(self.master,
                                             source="ipahealthcheck.meta.core",
                                             check="MetaCheck",
@@ -377,21 +387,18 @@ class TestIpaHealthCheck(IntegrationTest):
                                             failures_only=False)
         assert returncode == 0
 
-        cmd = self.master.run_command(
-            [paths.FIPS_MODE_SETUP, "--is-enabled"], raiseonerr=False
-        )
-        returncode = cmd.returncode
+        is_fips_enabled = tasks.is_fips_enabled(self.master)
 
         assert "fips" in check[0]["kw"]
 
         if check[0]["kw"]["fips"] == "disabled":
-            assert returncode == 2
+            assert not is_fips_enabled
         elif check[0]["kw"]["fips"] == "enabled":
-            assert returncode == 0
-        elif check[0]["kw"]["fips"] == f"missing {paths.FIPS_MODE_SETUP}":
-            assert returncode == 127
+            assert is_fips_enabled
         else:
-            assert returncode == 1
+            raise ValueError("File %s doesn't exist or contains unexpected "
+                             "value, this is a kernel issue!"
+                             % paths.PROC_FIPS_ENABLED)
 
     def test_ipa_healthcheck_after_certupdate(self):
         """
