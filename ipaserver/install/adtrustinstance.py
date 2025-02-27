@@ -962,7 +962,7 @@ class ADTRUSTInstance(service.Service):
         # in /var/lib/samba and /var/lib/samba/private
         for smbpath in (paths.SAMBA_DIR,
                         os.path.join(paths.SAMBA_DIR, "private"),
-                        os.path.join(paths.SAMBA_DIR, "lock")):
+                        paths.SAMBA_LOCKDIR):
             if os.path.isdir(smbpath):
                 tdb_files = [
                     os.path.join(smbpath, tdb_file)
