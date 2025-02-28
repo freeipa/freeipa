@@ -64,6 +64,18 @@ and don't auto-map or auto-assign subordinate ids by default. Instead
 we give the admin several options to assign them manually, semi-manual,
 or automatically.
 
+For deployments where there is a need to consume IDs above 2^31 for normal UID
+and GID assignments, one has to disable subordinate ID feature. This should be
+done with `ipa config-mod --addattr ipaconfigstring=SubID:Disable` command.
+After it is done, subordinate ID range can be removed with `ipa idrange-del`
+command and on the IPA server one have to run `ipa-server-upgrade` command to
+make sure internal DNA plugin configuration is removed as well.
+Finally, a new local ID range can be added to cover required part of the
+2^31..2^32-1 space. The range must have RID bases to make sure FreeIPA will
+generate SIDs properly to users and groups created with IDs from this range.
+
+**NOTE**: Disabling subordinate ID feature can only be done if no subordinate
+IDs were already allocated.
 
 ### Revision 1 limitation
 
@@ -339,6 +351,16 @@ subordinate id entries for new users:
 ```text
 $ ipa config-mod --user-default-subid=true
 ```
+
+Subordinate ID feature can be disabled completely. This is done with `ipa
+config-mod --addattr ipaconfigstring=SubID:Disable` command. After it is done,
+subordinate ID range can be removed with `ipa idrange-del` command and on the
+IPA server one have to run `ipa-server-upgrade` command to make sure internal
+DNA plugin configuration is removed as well. Finally, a new local ID range can
+be added to cover the required part of the full 32-bit ID space.
+
+**NOTE**: Disabling subordinate ID feature can only be done if no subordinate
+IDs were already allocated.
 
 Subordinate ids are managed by a new plugin class. The ``subid-add``
 and ``subid-del`` commands are hidden from command line. New subordinate
