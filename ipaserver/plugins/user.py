@@ -718,7 +718,9 @@ class user_add(baseuser_add):
         default_subid = config.single_value.get(
             'ipaUserDefaultSubordinateId', False
         )
-        if default_subid:
+        subid_disabled = self.api.Object.config.is_config_option_present(
+            'SubID:Disable')
+        if default_subid and not subid_disabled:
             result = self.api.Command.subid_generate(
                 ipaowner=entry_attrs.single_value['uid'],
                 version=options['version']
