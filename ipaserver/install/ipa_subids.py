@@ -116,6 +116,11 @@ class IPASubids(AdminTool):
         api.finalize()
         api.Backend.ldap2.connect()
         self.ldap2 = api.Backend.ldap2
+
+        if api.Object.config.is_config_option_present('SubID:Disable'):
+            print("Support for subordinate IDs is disabled.")
+            return 2
+
         subid_generate = api.Command.subid_generate
 
         dry_run = self.safe_options.dry_run
