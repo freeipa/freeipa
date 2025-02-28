@@ -26,7 +26,7 @@ import six
 from ipalib import api, errors, constants
 from ipalib import (
     Flag, Int, Password, Str, Bool, StrEnum, DateTime, DNParam)
-from ipalib.parameters import Principal, Certificate
+from ipalib.parameters import Principal, Certificate, MAX_UINT32
 from ipalib.plugable import Registry
 from .baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
@@ -348,11 +348,13 @@ class baseuser(LDAPObject):
             label=_('UID'),
             doc=_('User ID Number (system will assign one if not provided)'),
             minvalue=1,
+            maxvalue=MAX_UINT32,
         ),
         Int('gidnumber?',
             label=_('GID'),
             doc=_('Group ID Number'),
             minvalue=1,
+            maxvalue=MAX_UINT32,
         ),
         Str('street?',
             cli_name='street',
