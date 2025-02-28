@@ -506,6 +506,19 @@ class MissingTargetAttributesinPermission(PublicMessage):
                "are set.")
 
 
+class ServerUpgradeRequired(PublicMessage):
+    """
+    **13033** Server upgrade required
+    """
+    errno = 13033
+    type = "warning"
+    format = _(
+        "Change of the state of '%(feature)s' feature requires to run "
+        "'ipa-server-upgrade' command on IPA server %(server)s "
+        "to apply configuration changes."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

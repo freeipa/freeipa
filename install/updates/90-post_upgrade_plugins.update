@@ -34,6 +34,7 @@ plugin: update_dnsforward_emptyzones
 plugin: update_managed_post
 plugin: update_managed_permissions
 plugin: update_read_replication_agreements_permission
+plugin: update_subid_support
 plugin: update_idrange_baserid
 plugin: update_passync_privilege_update
 plugin: update_dnsserver_configuration_into_ldap

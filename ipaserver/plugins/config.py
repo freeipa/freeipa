@@ -33,7 +33,7 @@ from .baseldap import (
     LDAPUpdate,
     LDAPRetrieve)
 from .selinuxusermap import validate_selinuxuser
-from ipalib import _
+from ipalib import _, messages
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.ipavalidate import Email
@@ -261,7 +261,7 @@ class config(LDAPObject):
             values=(u'AllowNThash',
                     u'KDC:Disable Last Success', u'KDC:Disable Lockout',
                     u'KDC:Disable Default Preauth for SPNs',
-                    u'EnforceLDAPOTP'),
+                    u'EnforceLDAPOTP', u'SubID:Disable'),
         ),
         Str('ipaselinuxusermaporder',
             label=_('SELinux user map order'),
@@ -521,6 +521,12 @@ class config(LDAPObject):
         for domain in submitted_domains:
             self._validate_single_domain(attr_name, domain, known_domains)
 
+    def is_config_option_present(self, option):
+        dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'), self.api.env.basedn)
+        configentry = self.api.Backend.ldap2.get_entry(dn, ['ipaconfigstring'])
+        configstring = configentry['ipaconfigstring']
+        return (option.lower() in map(str.lower, configstring))
+
 
 @register()
 class config_mod(LDAPUpdate):
@@ -694,6 +700,30 @@ class config_mod(LDAPUpdate):
             if defaultuser and defaultuser not in userlist:
                 raise errors.ValidationError(name=failedattr,
                     error=_('SELinux user map default user not in order list'))
+
+        if 'ipaconfigstring' in entry_attrs:
+            configstring = entry_attrs['ipaconfigstring']
+            if 'SubID:Disable'.lower() in map(str.lower, configstring):
+                # Check if SubIDs already allocated
+                try:
+                    result = self.api.Command.subid_stats()
+                    stats = result['result']
+                except errors.PublicError:
+                    stats = {'assigned_subids': 0}
+                if stats["assigned_subids"] > 0:
+                    error_message = _("Subordinate ID feature can not be "
+                                      "disabled when there are subIDs "
+                                      "already in use.")
+                    raise errors.ValidationError(name='configuration state',
+                                                 error=error_message)
+                # SubID:Disable enforces disabling default subid generation
+                entry_attrs['ipauserdefaultsubordinateid'] = False
+                self.add_message(
+                    messages.ServerUpgradeRequired(
+                        feature='Subordinate ID',
+                        server=_('<all IPA servers>')
+                    )
+                )
 
         if 'ca_renewal_master_server' in options:
             new_master = options['ca_renewal_master_server']

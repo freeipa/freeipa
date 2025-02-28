@@ -300,6 +300,7 @@ class BasePathNamespace:
     HTML_KRBREALM_CON = "/usr/share/ipa/html/krbrealm.con"
     SCHEMA_COMPAT_ULDIF = "/usr/share/ipa/updates/91-schema_compat.update"
     SCHEMA_COMPAT_POST_ULDIF = "/usr/share/ipa/schema_compat_post.uldif"
+    SUBID_GENERATORS_ULDIF = "/usr/share/ipa/subid-generators.uldif"
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
     UPDATES_DIR = "/usr/share/ipa/updates/"
     DICT_WORDS = "/usr/share/dict/words"

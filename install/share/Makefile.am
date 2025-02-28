@@ -88,6 +88,7 @@ dist_app_DATA =				\
 	vault.ldif			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
+	subid-generators.uldif		\
 	ipa-httpd.conf.template		\
 	ipa-httpd-wsgi.conf.template	\
 	gssapi.login			\
