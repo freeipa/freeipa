@@ -57,6 +57,12 @@ Important: this does not replace IPA CA but adds the provided certificate as a k
 Please do not forget to run ipa-certupdate on the master, all the replicas and all the clients after this command in order to update IPA certificates databases.
 .sp
 The supported formats for the certificate files are DER, PEM and PKCS#7 format.
+.sp
+CA certificates with the same subject but different private keys maybe installed simultaneously with the following restrictions from NSS:
+.IP \[bu]
+The certificates cannot have different NSS trust flags.
+.IP \[bu]
+The nickname is not configurable between different certificates of the same subject. It will always be the same (even if you try).
 .RE
 .TP
 \fBdelete\fR
@@ -153,6 +159,9 @@ p \- not trusted
 .TP
 \fB\-f\fR, \fB\-\-force\fR
 Force a CA certificate to be removed even if chain validation fails.
+.TP
+\fB\-s\fR \fISERIAL_NUMBER\fR, \fB\-\-serial\fR=\fISERIAL_NUMBER\fR
+Serial number of the certificate to delete (decimal). This is needed to determine which certificate to remove if there are multiple certificates stored with the same name.
 .SH "EXIT STATUS"
 0 if the command was successful
 
