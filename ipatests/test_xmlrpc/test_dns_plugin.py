@@ -3426,6 +3426,55 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc="Ensure --raw and --structure does not work "
+                 "for ipa dnsrecord-add",
+            command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
+            expected=errors.ValidationError(
+                name='structured',
+                error=u'cannot be used together with raw'
+            ),
+        ),
+
+        dict(
+            desc="Ensure --raw and --structure does not work "
+                 "for ipa dnsrecord-mod",
+            command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
+            expected=errors.ValidationError(
+                name='structured',
+                error=u'cannot be used together with raw'
+            ),
+        ),
+
+        dict(
+            desc="Ensure --raw and --structure does not work "
+                 "for ipa dnsrecord-del",
+            command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
+            expected=errors.ValidationError(
+                name='structured',
+                error=u'cannot be used together with raw'
+            ),
+        ),
+
+        dict(
+            desc="Ensure --raw and --structure does not work "
+                 "for ipa dnsrecord-show",
+            command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
+            expected=errors.ValidationError(
+                name='structured',
+                error=u'cannot be used together with raw'
+            ),
+        ),
+
+        dict(
+            desc="Ensure --raw and --structure does not work "
+                 "for ipa dnsrecord-find",
+            command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
+            expected=errors.ValidationError(
+                name='structured',
+                error=u'cannot be used together with raw'
+            ),
+        ),
     ]
 
 
