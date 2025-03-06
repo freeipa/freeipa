@@ -1072,8 +1072,18 @@ class TestTrust(BaseTestTrust):
                 paths.VAR_LOG_HTTPD_ERROR,
                 encoding='utf-8'
             )
-            assert 'CIFS server communication error: code "3221225653", ' \
-                   'message "{Device Timeout}' in httpd_error_log
+
+            # The error code and message changed in samba 4.22
+            old_msg = 'CIFS server communication error: code "3221225653", ' \
+                      'message "{Device Timeout}'
+            new_msg = 'CIFS server communication error: code "3221226021", ' \
+                      'message "The object was not found."'
+            result = self.master.run_command(["smbstatus", "-V"]).stdout_text
+            version = result.split()[1]
+            if tasks.parse_version(version) < tasks.parse_version('4.22.0rc4'):
+                assert old_msg in httpd_error_log
+            else:
+                assert new_msg in httpd_error_log
 
             # Check that trust is successfully established with --server option
             tasks.establish_trust_with_ad(
