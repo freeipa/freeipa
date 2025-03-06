@@ -3587,6 +3587,12 @@ class dnsrecord_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+
+        if options.get('structured') and options.get('raw'):
+            raise errors.MutuallyExclusiveError(
+                reason=_("cannot use structured together with raw")
+            )
+
         precallback_attrs = []
         processed_attrs = []
         for option, option_val in options.items():
@@ -3729,6 +3735,12 @@ class dnsrecord_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
         assert isinstance(dn, DN)
+
+        if options.get('structured') and options.get('raw'):
+            raise errors.MutuallyExclusiveError(
+                reason=_("cannot use structured together with raw")
+            )
+
         if options.get('rename') and self.obj.is_pkey_zone_record(*keys):
             # zone rename is not allowed
             raise errors.ValidationError(name='rename',
@@ -3883,6 +3895,7 @@ class dnsrecord_del(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+
         try:
             old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:
@@ -3983,6 +3996,16 @@ class dnsrecord_show(LDAPRetrieve):
         dnsrecord.structured_flag,
     )
 
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if options.get('structured') and options.get('raw'):
+            raise errors.MutuallyExclusiveError(
+                reason=_("cannot use structured together with raw")
+            )
+
+        return dn
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if self.obj.is_pkey_zone_record(*keys):
@@ -4012,6 +4035,11 @@ class dnsrecord_find(LDAPSearch):
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope,
                      dnszoneidnsname, *args, **options):
         assert isinstance(base_dn, DN)
+
+        if options.get('structured') and options.get('raw'):
+            raise errors.MutuallyExclusiveError(
+                reason=_("cannot use structured together with raw")
+            )
 
         # validate if zone is master zone
         self.obj.check_zone(dnszoneidnsname, **options)

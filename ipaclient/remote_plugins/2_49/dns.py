@@ -2233,7 +2233,8 @@ class dnsrecord_add(Method):
         parameters.Flag(
             'structured',
             label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a structured way'),
+            doc=_(u'Parse all raw DNS records and return them in a '
+                  u'structured way. Can not be used with --raw.'),
             default=False,
             autofill=True,
         ),
@@ -2594,7 +2595,8 @@ class dnsrecord_del(Method):
         parameters.Flag(
             'structured',
             label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a structured way'),
+            doc=_(u'Parse all raw DNS records and return them in a '
+                  u'structured way. Can not be used with --raw.'),
             default=False,
             autofill=True,
         ),
@@ -3013,7 +3015,8 @@ class dnsrecord_find(Method):
         parameters.Flag(
             'structured',
             label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a structured way'),
+            doc=_(u'Parse all raw DNS records and return them in a '
+                  u'structured way. Can not be used with --raw.'),
             default=False,
             autofill=True,
         ),
@@ -4025,7 +4028,8 @@ class dnsrecord_mod(Method):
         parameters.Flag(
             'structured',
             label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a structured way'),
+            doc=_(u'Parse all raw DNS records and return them in a '
+                  u'structured way. Can not be used with --raw.'),
             default=False,
             autofill=True,
         ),
@@ -4094,7 +4098,8 @@ class dnsrecord_show(Method):
         parameters.Flag(
             'structured',
             label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a structured way'),
+            doc=_(u'Parse all raw DNS records and return them in a '
+                  u'structured way. Can not be used with --raw.'),
             default=False,
             autofill=True,
         ),
