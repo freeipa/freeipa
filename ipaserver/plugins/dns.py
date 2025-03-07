@@ -3896,11 +3896,6 @@ class dnsrecord_del(LDAPUpdate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        if options.get('structured') and options.get('raw'):
-            raise errors.MutuallyExclusiveError(
-                reason=_("cannot use structured together with raw")
-            )
-
         try:
             old_entry = ldap.get_entry(dn, _record_attributes)
         except errors.NotFound:

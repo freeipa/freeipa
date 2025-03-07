@@ -3446,15 +3446,6 @@ class test_dns(Declarative):
 
         dict(
             desc="Ensure --raw and --structure does not work "
-                 "for ipa dnsrecord-del",
-            command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
-            expected=errors.MutuallyExclusiveError(
-                reason=u"cannot use structured together with raw"
-            ),
-        ),
-
-        dict(
-            desc="Ensure --raw and --structure does not work "
                  "for ipa dnsrecord-show",
             command=('dnrecord_add', [], {u'raw': True, u'structured': True}),
             expected=errors.MutuallyExclusiveError(

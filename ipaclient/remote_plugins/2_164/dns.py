@@ -2867,14 +2867,6 @@ class dnsrecord_del(Method):
             default=False,
             autofill=True,
         ),
-        parameters.Flag(
-            'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
-            default=False,
-            autofill=True,
-        ),
     )
     has_output = (
         output.Output(

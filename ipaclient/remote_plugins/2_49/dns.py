@@ -2593,14 +2593,6 @@ class dnsrecord_del(Method):
             autofill=True,
         ),
         parameters.Flag(
-            'structured',
-            label=_(u'Structured'),
-            doc=_(u'Parse all raw DNS records and return them in a '
-                  u'structured way. Can not be used with --raw.'),
-            default=False,
-            autofill=True,
-        ),
-        parameters.Flag(
             'all',
             doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
