@@ -1598,6 +1598,43 @@ class TestIPACommand(IntegrationTest):
 
         assert isrgrootx1_nick in result
 
+    def test_ipa_systemd_journal(self):
+        """
+        This testcase checks that administrative user credentials
+        is not leaked to journald log
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        tasks.kinit_admin(self.clients[0])
+        cmds = [
+            ['/usr/sbin/ipa-adtrust-install', '-a',
+             self.master.config.admin_password, '-U'],
+            ['/usr/sbin/ipa-replica-manage', 'del',
+             f"dummyhost.{self.master.domain.name}", '-p',
+             self.master.config.dirman_password],
+            ['/usr/sbin/ipa-csreplica-manage', 'del',
+             f"dummyhost.{self.master.domain.name}", '-p',
+             self.master.config.dirman_password],
+            ['/usr/sbin/ipa-kra-install', '-p',
+             self.master.config.dirman_password, '-U']
+        ]
+        for cmd in cmds:
+            self.master.run_command(cmd, raiseonerr=False)
+            tasks.check_journal_does_not_contain_secret(
+                self.master, cmd[0]
+            )
+        for cmd in cmds:
+            self.replicas[0].run_command(cmd, raiseonerr=False)
+            tasks.check_journal_does_not_contain_secret(
+                self.replicas[0], cmd[0]
+            )
+        self.clients[0].run_command(
+            ['journalctl', '-t', 'python3', '-n1', '-o',
+             'json-pretty'], raiseonerr=False)
+        tasks.check_journal_does_not_contain_secret(
+            self.clients[0], 'python3'
+        )
+
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
@@ -1632,10 +1669,9 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         self.master.run_command(['ipa', 'user-show', 'ipauser1'])
 
     def test_basesearch_compat_tree(self):
-        """Test ldapsearch against compat tree is working
-
+        """
+        Test ldapsearch against compat tree is working
         This to ensure that ldapsearch with base scope is not failing.
-
         related: https://bugzilla.redhat.com/show_bug.cgi?id=1958909
         """
         version = self.master.run_command(
