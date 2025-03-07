@@ -22,6 +22,7 @@
 
 #include "ipa_kdb.h"
 #include "ipa_krb5.h"
+#include <stdlib.h>
 #include <unicase.h>
 
 /*
@@ -279,22 +280,64 @@ done:
 static int ipadb_ldap_attr_to_key_data(LDAP *lcontext, LDAPMessage *le,
                                        char *attrname,
                                        krb5_key_data **result, int *num,
-                                       krb5_kvno *res_mkvno)
+                                       krb5_kvno *mkvno)
 {
-    struct berval **vals;
-    int mkvno;
+    struct berval **vals, **p;
+    krb5_key_data *cur_res = NULL, *fin_res = NULL, *tmp_res;
+    int fin_mkvno = 0, cur_mkvno, cur_num, fin_num = 0;
     int ret;
 
     vals = ldap_get_values_len(lcontext, le, attrname);
-    if (!vals) {
+    if (!vals)
         return ENOENT;
+
+    for (p = vals; *p; ++p) {
+        ret = ber_decode_krb5_key_data(*p, &cur_mkvno, &cur_num, &cur_res);
+        if (ret)
+            goto end;
+
+        /* All keys in a principal entry should be encrypted with the same
+         * master key. */
+        if (fin_mkvno == 0) {
+            fin_mkvno = cur_mkvno;
+        } else if (cur_mkvno != fin_mkvno) {
+            ret = EINVAL;
+            goto end;
+        }
+
+        if (!fin_res) {
+            fin_res = cur_res;
+        } else {
+            tmp_res = realloc(fin_res, (fin_num + cur_num) * sizeof(*fin_res));
+            if (!tmp_res) {
+                ret = ENOMEM;
+                goto end;
+            } else {
+                fin_res = tmp_res;
+            }
+
+            memcpy(fin_res + fin_num, cur_res, cur_num * sizeof(*fin_res));
+            free(cur_res);
+        }
+
+        cur_res = NULL;
+        fin_num += cur_num;
     }
 
-    ret = ber_decode_krb5_key_data(vals[0], &mkvno, num, result);
-    ldap_value_free_len(vals);
-    if (ret == 0) {
-        *res_mkvno = mkvno;
+    if (mkvno)
+        *mkvno = fin_mkvno;
+    if (num)
+        *num = fin_num;
+    if (result) {
+        *result = fin_res;
+    } else {
+        free(fin_res);
     }
+
+end:
+    ldap_value_free_len(vals);
+    if (cur_res && fin_res != cur_res)
+        free(cur_res);
     return ret;
 }
 
@@ -2532,15 +2575,26 @@ static krb5_error_code ipadb_get_mkvno_from_tl_data(krb5_tl_data *tl_data,
     return 0;
 }
 
+static int desc_key_data(const void *a, const void *b)
+{
+    const krb5_key_data *ka = a;
+    const krb5_key_data *kb = b;
+
+    return ka->key_data_kvno != kb->key_data_kvno
+        ? kb->key_data_kvno - ka->key_data_kvno
+        : kb->key_data_type[0] - ka->key_data_type[0];
+}
+
 static krb5_error_code ipadb_get_ldap_mod_key_data(struct ipadb_mods *imods,
                                                    krb5_key_data *key_data,
                                                    int n_key_data, int mkvno,
                                                    int mod_op)
 {
     krb5_error_code kerr;
-    struct berval *bval = NULL;
+    krb5_key_data *kvno_kdata;
+    struct berval **bvals = NULL;
     LDAPMod *mod;
-    int ret;
+    int i, j, begin, n_kvno;
 
     /* If the key data is empty, remove all keys. */
     if (n_key_data == 0 || key_data == NULL) {
@@ -2559,19 +2613,56 @@ static krb5_error_code ipadb_get_ldap_mod_key_data(struct ipadb_mods *imods,
         return 0;
     }
 
-    ret = ber_encode_krb5_key_data(key_data, n_key_data, mkvno, &bval);
-    if (ret != 0) {
-        kerr = ret;
+    /* Copy key list. */
+    kvno_kdata = calloc(n_key_data, sizeof(*kvno_kdata));
+    if (!kvno_kdata)
+        return ENOMEM;
+
+    memcpy(kvno_kdata, key_data, n_key_data * sizeof(*kvno_kdata));
+
+    /* Make sure the key list is sorted by KVNO and enctype. */
+    qsort(kvno_kdata, n_key_data, sizeof(*kvno_kdata), desc_key_data);
+
+    /* Count number of distinct KVNOs. */
+    for (i = 1, n_kvno = 1; i < n_key_data; ++i) {
+        if (kvno_kdata[i - 1].key_data_kvno != kvno_kdata[i].key_data_kvno)
+            ++n_kvno;
+    }
+
+    bvals = calloc(n_kvno, sizeof(*bvals));
+    if (!bvals) {
+        kerr = ENOMEM;
         goto done;
     }
 
-    kerr = ipadb_get_ldap_mod_bvalues(imods, "krbPrincipalKey",
-                                      &bval, 1, mod_op);
+    /* Add a "krbPrincipalKey" attribute for each KVNO. */
+    for (i = 0, j = 0, begin = 0; i < n_key_data; ++i) {
+        if (kvno_kdata[begin].key_data_kvno != kvno_kdata[i].key_data_kvno) {
+            kerr = ber_encode_krb5_key_data(kvno_kdata + begin, i - begin,
+                                            mkvno, bvals + j);
+            if (kerr)
+                goto done;
+
+            begin = i;
+            ++j;
+        }
+    }
+
+    kerr = ber_encode_krb5_key_data(kvno_kdata + begin, i - begin, mkvno,
+                                    bvals + j);
+    if (kerr)
+        goto done;
+
+    kerr = ipadb_get_ldap_mod_bvalues(imods, "krbPrincipalKey", bvals, n_kvno,
+                                      mod_op);
 
 done:
-    if (kerr) {
-        ber_bvfree(bval);
+    if (kerr && bvals) {
+        for (i = 0; i < n_kvno; ++i)
+            ber_bvfree(bvals[i]);
+        free(bvals);
     }
+    free(kvno_kdata);
     return kerr;
 }
 
