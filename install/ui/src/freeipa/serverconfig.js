@@ -47,7 +47,7 @@ return {
                     fields: [
                         {
                             name: 'ipasearchrecordslimit',
-                            tooltip: '@mc-opt:config_mod:ipasearchtimelimit:doc'
+                            tooltip: '@mc-opt:config_mod:ipasearchrecordslimit:doc'
                         },
                         {
                             name: 'ipasearchtimelimit',
