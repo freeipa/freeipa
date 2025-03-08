@@ -301,13 +301,20 @@ class TestIpaCertFix(IntegrationTest):
         valid. If CA cert expired, ipa-cert-fix won't work.
 
         related: https://pagure.io/freeipa/issue/8721
+
+        If CA cert is close to expiry, there's no reason to issue new certs
+        with short validity period. So, ipa-cert-fix should fail in this case.
+
+        related: https://pagure.io/freeipa/issue/
         """
+        expire_ca_cert(self.master)
         result = self.master.run_command(['ipa-cert-fix', '-v'],
                                          stdin_text='yes\n',
                                          raiseonerr=False)
         # check that pki-server cert-fix command fails
-        err_msg = ("ERROR: CalledProcessError(Command "
-                   "['pki-server', 'cert-fix'")
+        err_msg = ("The CA signing certificate is expired or close to being "
+                   "expired")
+        assert result.returncode == 1
         assert err_msg in result.stderr_text
 
 
