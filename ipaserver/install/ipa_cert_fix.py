@@ -69,6 +69,7 @@ logger = logging.getLogger(__name__)
 
 
 cert_nicknames = {
+    'ca_issuing': 'caSigningCert cert-pki-ca',
     'sslserver': 'Server-Cert cert-pki-ca',
     'subsystem': 'subsystemCert cert-pki-ca',
     'ca_ocsp_signing': 'ocspSigningCert cert-pki-ca',
@@ -134,6 +135,16 @@ class IPACertFix(AdminTool):
         if not certs and not extra_certs:
             print("Nothing to do.")
             return 0
+
+        if any(key == 'ca_issuing' for key, _ in certs):
+            logger.debug("CA signing cert is expired, exiting!")
+            print(
+                "The CA signing certificate is expired or will expire within "
+                "the next two weeks.\n\nipa-cert-fix cannot proceed, please "
+                "refer to the ipa-cacert-manage tool to renew the CA "
+                "certificate before proceeding."
+            )
+            return 1
 
         print(msg)
 
