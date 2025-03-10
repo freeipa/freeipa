@@ -265,6 +265,12 @@ class subid(LDAPObject):
 
     def handle_subordinate_ids(self, ldap, dn, entry_attrs):
         """Handle ipaSubordinateId object class"""
+
+        if self.api.Object.config.is_config_option_present('SubID:Disable'):
+            raise errors.ValidationError(
+                name="ipaconfigstring",
+                error=_("Support for subordinate IDs is disabled"))
+
         new_subuid = entry_attrs.single_value.get("ipasubuidnumber")
         new_subgid = entry_attrs.single_value.get("ipasubgidnumber")
 
