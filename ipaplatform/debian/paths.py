@@ -44,6 +44,7 @@ class DebianPathNamespace(BasePathNamespace):
     OPENSSL_DIR = "/usr/lib/ssl"
     OPENSSL_CERTS_DIR = "/usr/lib/ssl/certs"
     OPENSSL_PRIVATE_DIR = "/usr/lib/ssl/private"
+    SAMBA_LOCKDIR = "/run/samba"
     ETC_DEBIAN_VERSION = "/etc/debian_version"
     # Old versions of freeipa wrote all trusted certificates to a single
     # file, which is not supported by ca-certificates.
