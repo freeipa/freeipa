@@ -3004,3 +3004,13 @@ def copy_files(source_host, dest_host, filelist):
         dest_host.transport.mkdir_recursive(os.path.dirname(file))
         data = source_host.get_file_contents(file)
         dest_host.transport.put_file_contents(file, data)
+
+
+def check_journal_does_not_contain_secret(host, cmd):
+    """
+    Helper to check journal logs doesnt reveal secrets
+    """
+    journalctl_cmd = ['journalctl', '-t', cmd, '-n1', '-o', 'json-pretty']
+    result = host.run_command(journalctl_cmd, raiseonerr=False)
+    assert (host.config.admin_password not in result.stdout_text)
+    assert (host.config.dirman_password not in result.stdout_text)
