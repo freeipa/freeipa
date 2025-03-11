@@ -548,6 +548,8 @@ class TestCAShowErrorHandling(IntegrationTest):
             'ipa', 'ca-add', lwca, '--subject', 'CN=LWCA 1'
         ])
         assert 'Created CA "{}"'.format(lwca) in result.stdout_text
+        # wait for replication to propagate the change
+        tasks.wait_for_replication(self.replicas[0].ldap_connect())
         result = self.master.run_command(['ipa', 'ca-find'])
         assert 'Name: {}'.format(lwca) in result.stdout_text
         result = self.master.run_command(
