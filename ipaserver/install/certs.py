@@ -371,7 +371,7 @@ class CertDB:
             except RuntimeError:
                 break
 
-    def get_cert_from_db(self, nickname):
+    def get_cert_from_db(self, nickname, all=False):
         """
         Retrieve a certificate from the current NSS database for nickname.
         """
@@ -384,7 +384,10 @@ class CertDB:
             if token:
                 args.extend(['-h', token])
             result = self.run_certutil(args, capture_output=True)
-            return x509.load_pem_x509_certificate(result.raw_output)
+            if all:
+                return x509.load_certificate_list(result.raw_output)
+            else:
+                return x509.load_pem_x509_certificate(result.raw_output)
         except ipautil.CalledProcessError:
             return None
 
