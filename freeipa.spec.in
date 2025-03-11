@@ -1241,8 +1241,11 @@ if [ $1 = 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl --quiet stop ipa.service || :
     /bin/systemctl --quiet disable ipa.service || :
-    /bin/systemctl reload-or-try-restart dbus
-    /bin/systemctl reload-or-try-restart oddjobd
+    # Skip systemctl calls when leapp upgrade is in progress
+    if [ -z "$LEAPP_IPU_IN_PROGRESS" ] ; then
+        /bin/systemctl reload-or-try-restart dbus
+        /bin/systemctl reload-or-try-restart oddjobd
+    fi
 # END
 fi
 
@@ -1306,8 +1309,11 @@ fi
 %preun server-trust-ad
 if [ $1 -eq 0 ]; then
     %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
-    /bin/systemctl reload-or-try-restart dbus
-    /bin/systemctl reload-or-try-restart oddjobd
+    # Skip systemctl calls when leapp upgrade is in progress
+    if [ -z "$LEAPP_IPU_IN_PROGRESS" ] ; then
+        /bin/systemctl reload-or-try-restart dbus
+        /bin/systemctl reload-or-try-restart oddjobd
+    fi
 fi
 
 # ONLY_CLIENT
