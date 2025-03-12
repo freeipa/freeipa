@@ -49,7 +49,7 @@ class update_dna_shared_config(Updater):
         except errors.NotFound:
             logger.error("Could not find DNA config entry: %s",
                          dna_config_base)
-            return False, ()
+            return None
         else:
             logger.debug('Found DNA config %s', dna_config_base)
 
