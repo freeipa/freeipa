@@ -1,11 +1,2 @@
 dn: cn=$REALM,cn=kerberos,$SUFFIX
-${FIPS}add: krbSupportedEncSaltTypes: camellia128-cts-cmac:normal
-${FIPS}add: krbSupportedEncSaltTypes: camellia128-cts-cmac:special
-${FIPS}add: krbSupportedEncSaltTypes: camellia256-cts-cmac:normal
-${FIPS}add: krbSupportedEncSaltTypes: camellia256-cts-cmac:special
-add: krbSupportedEncSaltTypes: aes128-sha2:normal
-add: krbSupportedEncSaltTypes: aes128-sha2:special
-add: krbSupportedEncSaltTypes: aes256-sha2:normal
-add: krbSupportedEncSaltTypes: aes256-sha2:special
-remove: krbDefaultEncSaltTypes: des3-hmac-sha1:special
-remove: krbDefaultEncSaltTypes: arcfour-hmac:special
+${ADD_SUPPORTED_ENCTYPES}${ADD_DEFAULT_ENCTYPES}${REMOVE_SUPPORTED_ENCTYPES}${REMOVE_DEFAULT_ENCTYPES}
