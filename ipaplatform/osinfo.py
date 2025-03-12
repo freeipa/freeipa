@@ -190,6 +190,8 @@ class OSInfo(Mapping):
         env = os.environ.get("IPAPLATFORM_OVERRIDE")
         if env:
             platforms.append(env)
+            # TODO: REMOVE
+            return [env]
         # override from package definition
         if OVERRIDE is not None and OVERRIDE not in platforms:
             # allow RPM and Debian packages to override platform
