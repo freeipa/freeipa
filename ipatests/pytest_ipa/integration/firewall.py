@@ -239,6 +239,7 @@ class Firewall(FirewallBase):
         firewalls = {
             'rhel': FirewallD,
             'fedora': FirewallD,
+            'test_fedora_legacy': FirewallD,
             'debian': FirewallD,
             'ubuntu': FirewallD,
             'altlinux': NoOpFirewall,
