@@ -633,7 +633,7 @@ class NSSDatabase:
                 pkcs12_password_file.close()
 
     def import_files(self, files, import_keys=False, key_password=None,
-                     key_nickname=None):
+                     key_nickname=None, trust_flags=EMPTY_TRUST_FLAGS):
         """
         Import certificates and a single private key from multiple files
 
@@ -809,7 +809,7 @@ class NSSDatabase:
 
         for cert in extracted_certs:
             nickname = str(DN(cert.subject))
-            self.add_cert(cert, nickname, EMPTY_TRUST_FLAGS)
+            self.add_cert(cert, nickname, trust_flags)
 
         if extracted_key:
             with tempfile.NamedTemporaryFile() as in_file, \
@@ -866,6 +866,27 @@ class NSSDatabase:
             raise RuntimeError("Failed to get %s" % nickname)
         cert, _start = find_cert_from_txt(result.output, start=0)
         return cert
+
+    def get_all_certs(self, nickname):
+        """
+        :param nickname: nickname of the certificate in the NSS database
+        :returns: list of bytes of all certificates for the nickname
+        """
+        args = ['-L', '-n', nickname, '-a']
+        try:
+            result = self.run_certutil(args, capture_output=True)
+        except ipautil.CalledProcessError:
+            raise RuntimeError("Failed to get %s" % nickname)
+        certs = []
+
+        st = 0
+        while True:
+            try:
+                cert, st = find_cert_from_txt(result.output, start=st)
+            except RuntimeError:
+                break
+            certs.append(cert)
+        return certs
 
     def has_nickname(self, nickname):
         try:

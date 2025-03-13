@@ -416,6 +416,11 @@ class CACertManage(admintool.AdminTool):
                     "Nickname can only be used if only a single "
                     "certificate is loaded")
 
+            for nickname, trust_flags in imported:
+                if trust_flags.has_key:
+                    continue
+                tmpdb.trust_root_cert(nickname, EXTERNAL_CA_TRUST_FLAGS)
+
             # If a nickname was provided re-import the cert
             if options.nickname:
                 (nickname, trust_flags) = imported[0]
@@ -464,10 +469,11 @@ class CACertManage(admintool.AdminTool):
 
             for nickname, _trust_flags in imported:
                 try:
-                    cert = tmpdb.get_cert(nickname)
-                    certstore.put_ca_cert_nss(
-                        api.Backend.ldap2, api.env.basedn, cert, nickname,
-                        trust_flags)
+                    certlist = tmpdb.get_all_certs(nickname)
+                    for cert in certlist:
+                        certstore.put_ca_cert_nss(
+                            api.Backend.ldap2, api.env.basedn, cert, nickname,
+                            trust_flags)
                 except ValueError as e:
                     raise admintool.ScriptError(
                         "Failed to install the certificate: %s" % e)
