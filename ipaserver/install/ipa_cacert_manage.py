@@ -101,6 +101,9 @@ class CACertManage(admintool.AdminTool):
         delete_group.add_option(
             "-f", "--force", action='store_true',
             help="Force removing the CA even if chain validation fails")
+        delete_group.add_option(
+            "-s", "--serial",
+            help="Serial number of the certificate to delete (decimal)")
         parser.add_option_group(delete_group)
 
     def validate_options(self):
@@ -413,6 +416,11 @@ class CACertManage(admintool.AdminTool):
                     "Nickname can only be used if only a single "
                     "certificate is loaded")
 
+            for nickname, trust_flags in imported:
+                if trust_flags.has_key:
+                    continue
+                tmpdb.trust_root_cert(nickname, EXTERNAL_CA_TRUST_FLAGS)
+
             # If a nickname was provided re-import the cert
             if options.nickname:
                 (nickname, trust_flags) = imported[0]
@@ -421,7 +429,7 @@ class CACertManage(admintool.AdminTool):
                 tmpdb.add_cert(cert, options.nickname, EXTERNAL_CA_TRUST_FLAGS)
                 imported = tmpdb.list_certs()
 
-            for ca_cert, ca_nickname, ca_trust_flags in ca_certs:
+            for ca_cert, ca_nickname, ca_trust_flags, _serial in ca_certs:
                 tmpdb.add_cert(ca_cert, ca_nickname, ca_trust_flags)
 
             for nickname, trust_flags in imported:
@@ -461,10 +469,11 @@ class CACertManage(admintool.AdminTool):
 
             for nickname, _trust_flags in imported:
                 try:
-                    cert = tmpdb.get_cert(nickname)
-                    certstore.put_ca_cert_nss(
-                        api.Backend.ldap2, api.env.basedn, cert, nickname,
-                        trust_flags)
+                    certlist = tmpdb.get_all_certs(nickname)
+                    for cert in certlist:
+                        certstore.put_ca_cert_nss(
+                            api.Backend.ldap2, api.env.basedn, cert, nickname,
+                            trust_flags)
                 except ValueError as e:
                     raise admintool.ScriptError(
                         "Failed to install the certificate: %s" % e)
@@ -476,8 +485,8 @@ class CACertManage(admintool.AdminTool):
                                               api.env.basedn,
                                               api.env.realm,
                                               False)
-        for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
-            print(ca_nickname)
+        for _ca_cert, ca_nickname, _ca_trust_flags, serial in ca_certs:
+            print(f"{ca_nickname}  {serial}")
 
     def _delete_by_nickname(self, nicknames, options):
         conn = api.Backend.ldap2
@@ -489,9 +498,25 @@ class CACertManage(admintool.AdminTool):
 
         ipa_ca_nickname = get_ca_nickname(api.env.realm)
 
+        # Count the number of times the nickname appears in case we
+        # have a duplicate. If a serial number is provided we can skip
+        # this.
+        cert_count = 0
+        if not options.serial:
+            for nickname in nicknames:
+                for _ca_cert, ca_nickname, _ca_trust_flags, _serial in ca_certs:
+                    if ca_nickname == nickname:
+                        cert_count += 1
+            if cert_count > 1:
+                raise admintool.ScriptError(
+                    'Multiple matching certificates found (%d). Use the '
+                    '--serial option to specify which one to remove.' %
+                    cert_count
+                )
+
         for nickname in nicknames:
             found = False
-            for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+            for _ca_cert, ca_nickname, _ca_trust_flags, _serial in ca_certs:
                 if ca_nickname == nickname:
                     if ca_nickname == ipa_ca_nickname:
                         raise admintool.ScriptError(
@@ -508,13 +533,17 @@ class CACertManage(admintool.AdminTool):
 
         with certs.NSSDatabase() as tmpdb:
             tmpdb.create_db()
-            for ca_cert, ca_nickname, ca_trust_flags in ca_certs:
+            for ca_cert, ca_nickname, ca_trust_flags, serial in ca_certs:
+                if nickname == ca_nickname:
+                    if options.serial and options.serial == serial:
+                        continue
                 tmpdb.add_cert(ca_cert, ca_nickname, ca_trust_flags)
             loaded = tmpdb.list_certs()
             logger.debug("loaded raw certs '%s'", loaded)
 
-            for nickname in nicknames:
-                tmpdb.delete_cert(nickname)
+            if not options.serial:
+                for nickname in nicknames:
+                    tmpdb.delete_cert(nickname)
 
             for ca_nickname, _trust_flags in loaded:
                 if ca_nickname in nicknames:
@@ -526,8 +555,8 @@ class CACertManage(admintool.AdminTool):
                 try:
                     tmpdb.verify_ca_cert_validity(ca_nickname)
                 except ValueError as e:
-                    msg = "Verifying \'%s\' failed. Removing part of the " \
-                          "chain? %s" % (nickname, e)
+                    msg = "Verifying removal of \'%s\' failed. Removing " \
+                          "part of the chain? %s" % (nickname, e)
                     if options.force:
                         print(msg)
                         continue
@@ -535,14 +564,19 @@ class CACertManage(admintool.AdminTool):
                 else:
                     logger.debug("Verified %s", ca_nickname)
 
-        for _ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+        for ca_cert, ca_nickname, _ca_trust_flags, serial in ca_certs:
             if ca_nickname in nicknames:
-                container_dn = DN(('cn', 'certificates'), ('cn', 'ipa'),
-                                  ('cn', 'etc'), api.env.basedn)
-                dn = DN(('cn', nickname), container_dn)
+                if options.serial and options.serial != serial:
+                    continue
                 logger.debug("Deleting %s", ca_nickname)
-                conn.delete_entry(dn)
+                certstore.delete_ca_cert(conn, api.env.basedn, ca_cert)
+
                 return
+
+        raise admintool.ScriptError(
+            "Certificate with name %s and serial number %s not found"
+            % (ca_nickname, options.serial)
+        )
 
     def delete(self):
         nickname = self.args[1]
@@ -556,17 +590,17 @@ class CACertManage(admintool.AdminTool):
                                               False)
 
         now = datetime.datetime.now(tz=datetime.timezone.utc)
-        for ca_cert, ca_nickname, _ca_trust_flags in ca_certs:
+        for ca_cert, ca_nickname, _ca_trust_flags, _serial in ca_certs:
             if ca_cert.not_valid_after_utc < now:
                 expired_certs.append(ca_nickname)
 
-
+        del_options = self.options
+        del_options.force = True
         if expired_certs:
-            self._delete_by_nickname(expired_certs, self.options)
-
             print("Expired certificates deleted:")
-            for nickname in expired_certs:
-                print(nickname)
+            for ca_cert in expired_certs:
+                self._delete_by_nickname([ca_cert], del_options)
+                print(ca_cert)
             print("Run ipa-certupdate on enrolled machines to apply changes.")
         else:
             print("No certificates were deleted")
