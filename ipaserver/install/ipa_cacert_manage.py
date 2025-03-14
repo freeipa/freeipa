@@ -564,7 +564,6 @@ class CACertManage(admintool.AdminTool):
                 else:
                     logger.debug("Verified %s", ca_nickname)
 
-        removed = False
         for ca_cert, ca_nickname, _ca_trust_flags, serial in ca_certs:
             if ca_nickname in nicknames:
                 if options.serial and options.serial != serial:
@@ -574,11 +573,10 @@ class CACertManage(admintool.AdminTool):
 
                 return
 
-        if removed is False:
-            raise admintool.ScriptError(
-                "Certificate with name %s and serial number %s not found"
-                % (ca_nickname, options.serial)
-            )
+        raise admintool.ScriptError(
+            "Certificate with name %s and serial number %s not found"
+            % (ca_nickname, options.serial)
+        )
 
     def delete(self):
         nickname = self.args[1]
