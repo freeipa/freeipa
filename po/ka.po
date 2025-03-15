@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2024-06-29 08:36+0000\n"
+"PO-Revision-Date: 2025-03-15 01:10+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.5.5\n"
+"X-Generator: Weblate 5.10.2\n"
 
 msgid ""
 "\n"
@@ -2793,7 +2793,7 @@ msgid "Mount information"
 msgstr "მიმაგრების ინფორმაცია"
 
 msgid "Automount location name."
-msgstr ""
+msgstr "ავტომიმაგრების მდებარეობის სახელი."
 
 msgid "Automount map name."
 msgstr ""
@@ -3840,10 +3840,10 @@ msgid "LOC Degrees Longitude"
 msgstr ""
 
 msgid "Degrees Longitude"
-msgstr ""
+msgstr "გრძედი გრადუსებში"
 
 msgid "LOC Minutes Longitude"
-msgstr ""
+msgstr "LOC გრძედი წუთებში"
 
 msgid "Minutes Longitude"
 msgstr ""
@@ -7026,7 +7026,7 @@ msgid "Delete domain"
 msgstr "დომენის წაშლა"
 
 msgid "Modify realm domains."
-msgstr ""
+msgstr "რეალმის დომენების შეცვლა."
 
 msgid "Force adding domain even if not in DNS"
 msgstr ""
@@ -8021,7 +8021,7 @@ msgid "Create new Sudo Command."
 msgstr ""
 
 msgid "Delete Sudo Command."
-msgstr ""
+msgstr "Sudo ბრძანების წაშლა."
 
 msgid "Search for Sudo Commands."
 msgstr ""
@@ -8030,10 +8030,10 @@ msgid "Results should contain primary key attribute only (\"command\")"
 msgstr ""
 
 msgid "Modify Sudo Command."
-msgstr ""
+msgstr "Sudo ბრძანების შეცვლა."
 
 msgid "Display Sudo Command."
-msgstr ""
+msgstr "Sudo ბრძანების ჩვნეება."
 
 msgid ""
 "\n"
@@ -8980,7 +8980,7 @@ msgid "Query current Domain Level."
 msgstr ""
 
 msgid "Current domain level:"
-msgstr ""
+msgstr "მიმდინარე დომენის დონე:"
 
 msgid "Change current Domain Level."
 msgstr ""
@@ -9237,7 +9237,7 @@ msgid "Remove users that can manage this token."
 msgstr ""
 
 msgid "Target DN subtree"
-msgstr ""
+msgstr "სამიზნე DN ქვეხე"
 
 msgid ""
 "Optional DN subtree where an entry can be moved to (must be in the subtree, "
@@ -9544,7 +9544,7 @@ msgid "Arbitrary string identifying the segment"
 msgstr ""
 
 msgid "Left node"
-msgstr ""
+msgstr "მარცხენა კვანძი"
 
 msgid "Left replication node - an IPA server"
 msgstr ""
@@ -12448,7 +12448,7 @@ msgstr ""
 
 #, python-format
 msgid "%(desc)s: %(info)s"
-msgstr ""
+msgstr "%(desc)s: %(info)s"
 
 msgid "limits exceeded for this query"
 msgstr ""
@@ -12704,7 +12704,7 @@ msgstr ""
 
 #, python-format
 msgid "%(count)d variables"
-msgstr ""
+msgstr "%(count)d ცვლადი"
 
 #, python-format
 msgid "%(count)d plugin loaded"
@@ -12785,7 +12785,7 @@ msgstr ""
 
 #, python-format
 msgid "Permission denied: %(file)s"
-msgstr ""
+msgstr "წვდომა აკრძალულია: %(file)s"
 
 msgid "empty DNS label"
 msgstr ""
@@ -12850,7 +12850,7 @@ msgstr ""
 
 #, python-format
 msgid "invalid domain-name: %s"
-msgstr ""
+msgstr "არასწორი დომენის სახელი: %s"
 
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
@@ -13119,7 +13119,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Automount key object."
-msgstr ""
+msgstr "ავტომიმაგრების გასაღების ობიექტი."
 
 msgid "automount key"
 msgstr ""
@@ -13350,7 +13350,7 @@ msgid "DNS Server name"
 msgstr "DNS სერვერის სახელი"
 
 msgid "SOA mname override"
-msgstr ""
+msgstr "SOA mname-ის გადაფარვა"
 
 msgid "SOA mname (authoritative server) override"
 msgstr ""
@@ -14031,6 +14031,8 @@ msgid ""
 "Modify ID range.\n"
 "\n"
 msgstr ""
+"ID შუალედის შეცვლა.\n"
+"\n"
 
 #, python-format
 msgid "Modified ID range \"%(value)s\""
@@ -14113,7 +14115,7 @@ msgid "Servers that belongs to the IPA location"
 msgstr ""
 
 msgid "Advertised by servers"
-msgstr ""
+msgstr "შეტყობინება სერვერებიდან"
 
 msgid "List of servers which advertise the given location"
 msgstr ""
@@ -14206,11 +14208,15 @@ msgid ""
 "\n"
 "OTP Tokens\n"
 msgstr ""
+"\n"
+"OTP კოდები\n"
 
 msgid ""
 "\n"
 "Manage OTP tokens.\n"
 msgstr ""
+"\n"
+"OTP კოდების მართვა.\n"
 
 msgid ""
 "\n"
@@ -15250,7 +15256,7 @@ msgid ""
 msgstr ""
 
 msgid "operation not defined"
-msgstr ""
+msgstr "ოპერაცია აღწერილი არაა"
 
 #, python-format
 msgid "not allowed to perform operation: %s"
@@ -16006,7 +16012,7 @@ msgstr "დასამატებელი %s"
 
 #, python-format
 msgid "%s to remove"
-msgstr ""
+msgstr "%s წასაშლელია"
 
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
@@ -16413,7 +16419,7 @@ msgstr ""
 
 #, python-format
 msgid "Deprecated; use %s"
-msgstr ""
+msgstr "მოძველებულია. გამოიყენეთ %s"
 
 #, python-format
 msgid "Permission with unknown flag %s may not be modified or removed"
@@ -16539,6 +16545,8 @@ msgid ""
 "\n"
 "API Schema\n"
 msgstr ""
+"\n"
+"API-ის სქემა\n"
 
 msgid ""
 "\n"
@@ -16789,7 +16797,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "invalid SID: {SID}"
-msgstr ""
+msgstr "არასწორი SID: {SID}"
 
 msgid ""
 "\n"
@@ -16870,7 +16878,7 @@ msgid "Realm administrator password should be specified"
 msgstr ""
 
 msgid "id range type"
-msgstr ""
+msgstr "id-ის დიაპაზონის ტიპი"
 
 msgid ""
 "Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
@@ -17284,6 +17292,9 @@ msgid ""
 "    Vault Container object.\n"
 "    "
 msgstr ""
+"\n"
+"    საცავის კონტეინერის ობიექტი.\n"
+"    "
 
 msgid "vaultcontainer"
 msgstr "vaultcontainer"
@@ -17643,7 +17654,7 @@ msgstr ""
 
 #, python-format
 msgid "%i services removed."
-msgstr ""
+msgstr "%i სერვისი წაიშალა."
 
 #, python-format
 msgid "%i profile added."
@@ -17658,11 +17669,11 @@ msgstr ""
 
 #, python-format
 msgid "%i profile removed."
-msgstr ""
+msgstr "%i პროფილი წაიშალა."
 
 #, python-format
 msgid "%i profiles removed."
-msgstr ""
+msgstr "%i პროფილი წაიშალა."
 
 msgid "Add CAs to a CA ACL."
 msgstr ""
@@ -17683,7 +17694,7 @@ msgstr ""
 
 #, python-format
 msgid "%i CA removed."
-msgstr ""
+msgstr "%i CA წაიშალა."
 
 #, python-format
 msgid "%i CAs removed."
@@ -19944,7 +19955,7 @@ msgid "AA Compromise"
 msgstr "AA კომპრომისი"
 
 msgid "Add principal"
-msgstr ""
+msgstr "პრინციპალის დამატება"
 
 msgid "Affiliation Changed"
 msgstr "დაქვემდებარება შეიცვალა"
@@ -20187,7 +20198,7 @@ msgid "Create dns record"
 msgstr ""
 
 msgid "Creating record."
-msgstr ""
+msgstr "ჩანაწერის შექმნა."
 
 msgid "Record creation failed."
 msgstr ""
@@ -20480,7 +20491,7 @@ msgid "HBAC Test"
 msgstr ""
 
 msgid "Missing values: "
-msgstr ""
+msgstr "ნაკლული მნიშვნელობები: "
 
 msgid "New Test"
 msgstr ""
