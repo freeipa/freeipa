@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR FreeIPA Contributors
 # This file is distributed under the same license as the freeipa package.
-# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022, 2023, 2024.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022, 2023, 2024, 2025.
 # Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-06-28 17:22+0000\n"
+"PO-Revision-Date: 2025-03-15 01:10+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.5.5\n"
+"X-Generator: Weblate 5.10.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -1598,10 +1598,8 @@ msgstr "აღწერა"
 msgid "Location"
 msgstr "მდებარეობა"
 
-#, fuzzy
-#| msgid "automount location"
 msgid "Automount location name."
-msgstr "ავტომიმაგრების მდებარეობა"
+msgstr "ავტომიმაგრების მდებარეობის სახელი."
 
 msgid "Map"
 msgstr "რუკა"
@@ -2593,15 +2591,11 @@ msgstr "განედი წამებში"
 msgid "LOC Degrees Longitude"
 msgstr "LOC განედი გრადუსებში"
 
-#, fuzzy
-#| msgid "Degrees Latitude"
 msgid "Degrees Longitude"
-msgstr "განედი გრადუსებში"
+msgstr "გრძედი გრადუსებში"
 
-#, fuzzy
-#| msgid "LOC Minutes Latitude"
 msgid "LOC Minutes Longitude"
-msgstr "LOC განედი წუთებში"
+msgstr "LOC გრძედი წუთებში"
 
 #, fuzzy
 #| msgid "Minutes Latitude"
@@ -5447,10 +5441,8 @@ msgstr "დომენის დამატება"
 msgid "Delete domain"
 msgstr "დომენის წაშლა"
 
-#, fuzzy
-#| msgid "Realm domains"
 msgid "Modify realm domains."
-msgstr "რეალმის დომენები"
+msgstr "რეალმის დომენების შეცვლა."
 
 msgid "Force adding domain even if not in DNS"
 msgstr ""
@@ -6510,10 +6502,8 @@ msgstr "Sudo ბრძანების ჯგუფები"
 msgid "Create new Sudo Command."
 msgstr "ბრძანება Sudo"
 
-#, fuzzy
-#| msgid "Sudo Command"
 msgid "Delete Sudo Command."
-msgstr "ბრძანება Sudo"
+msgstr "Sudo ბრძანების წაშლა."
 
 #, fuzzy
 #| msgid "Sudo Commands"
@@ -6523,15 +6513,11 @@ msgstr "Sudo ბრძანებები"
 msgid "Results should contain primary key attribute only (\"command\")"
 msgstr ""
 
-#, fuzzy
-#| msgid "Sudo Command"
 msgid "Modify Sudo Command."
-msgstr "ბრძანება Sudo"
+msgstr "Sudo ბრძანების შეცვლა."
 
-#, fuzzy
-#| msgid "Sudo Command"
 msgid "Display Sudo Command."
-msgstr "ბრძანება Sudo"
+msgstr "Sudo ბრძანების ჩვნეება."
 
 msgid ""
 "\n"
@@ -8854,10 +8840,8 @@ msgstr ""
 msgid "Query current Domain Level."
 msgstr "დომენის დონე"
 
-#, fuzzy
-#| msgid "Domain Level"
 msgid "Current domain level:"
-msgstr "დომენის დონე"
+msgstr "მიმდინარე დომენის დონე:"
 
 #, fuzzy
 #| msgid "Domain Level"
@@ -8904,10 +8888,8 @@ msgid ""
 "to onelevel"
 msgstr ""
 
-#, fuzzy
-#| msgid "Target DN"
 msgid "Target DN subtree"
-msgstr "სამიზნის DN"
+msgstr "სამიზნე DN ქვეხე"
 
 msgid ""
 "Optional DN subtree where an entry can be moved to (must be in the subtree, "
@@ -9278,10 +9260,8 @@ msgstr "სეგმენტის სახელი"
 msgid "Arbitrary string identifying the segment"
 msgstr ""
 
-#, fuzzy
-#| msgid "Right node"
 msgid "Left node"
-msgstr "მარჯვენა კვანძი"
+msgstr "მარცხენა კვანძი"
 
 msgid "Left replication node - an IPA server"
 msgstr ""
@@ -12435,10 +12415,9 @@ msgstr ""
 msgid "no modifications to be performed"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(info)s"
+#, python-format
 msgid "%(desc)s: %(info)s"
-msgstr "%(info)s"
+msgstr "%(desc)s: %(info)s"
 
 msgid "limits exceeded for this query"
 msgstr ""
@@ -12697,10 +12676,9 @@ msgstr ""
 msgid "The permission has %(right)s rights but no attributes are set."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Account disabled"
+#, python-format
 msgid "%(count)d variables"
-msgstr "ანგარიში გათიშულია"
+msgstr "%(count)d ცვლადი"
 
 #, python-format
 msgid "%(count)d plugin loaded"
@@ -12893,10 +12871,9 @@ msgstr "პრინციპალის დამუშავება სე�
 msgid "Filename is empty"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Permission flags"
+#, python-format
 msgid "Permission denied: %(file)s"
-msgstr "წვდომის ალმები"
+msgstr "წვდომა აკრძალულია: %(file)s"
 
 msgid "empty DNS label"
 msgstr ""
@@ -12970,10 +12947,9 @@ msgstr "არასწორი დომენის სახელი"
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "invalid domain name"
+#, python-format
 msgid "invalid domain-name: %s"
-msgstr "არასწორი დომენის სახელი"
+msgstr "არასწორი დომენის სახელი: %s"
 
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
@@ -13167,10 +13143,8 @@ msgstr "DNS სერვერი"
 msgid "DNS Server name"
 msgstr "DNS სერვერის სახელი"
 
-#, fuzzy
-#| msgid "Add a new ID override."
 msgid "SOA mname override"
-msgstr "ახალი ID-ის გადაფარვის დამატება."
+msgstr "SOA mname-ის გადაფარვა"
 
 #, fuzzy
 #| msgid "Authoritative nameserver domain name"
@@ -14289,10 +14263,8 @@ msgid_plural "%(count)d automount maps matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "Automount Location"
 msgid "Automount key object."
-msgstr "ავტომიმაგრების მდებარეობა"
+msgstr "ავტომიმაგრების გასაღების ობიექტი."
 
 #, fuzzy
 #| msgid "Remove automount keys"
@@ -14464,10 +14436,9 @@ msgstr "წევრი %s"
 msgid "%s to add"
 msgstr "დასამატებელი %s"
 
-#, fuzzy, python-format
-#| msgid "hosts to remove"
+#, python-format
 msgid "%s to remove"
-msgstr "წასაშლელი ჰოსტები"
+msgstr "%s წასაშლელია"
 
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
@@ -14816,10 +14787,9 @@ msgstr ""
 msgid "%i service removed."
 msgstr "დაემატა %i სერვისი."
 
-#, fuzzy, python-format
-#| msgid "services to remove"
+#, python-format
 msgid "%i services removed."
-msgstr "წასაშლელი სერვისები"
+msgstr "%i სერვისი წაიშალა."
 
 #, fuzzy, python-format
 #| msgid "%i service added."
@@ -14834,15 +14804,13 @@ msgstr "დაემატა %i სერვისი."
 msgid "profiles cannot be added when profile category='all'"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "roles to remove"
+#, python-format
 msgid "%i profile removed."
-msgstr "წასაშლელი როლები"
+msgstr "%i პროფილი წაიშალა."
 
-#, fuzzy, python-format
-#| msgid "roles to remove"
+#, python-format
 msgid "%i profiles removed."
-msgstr "წასაშლელი როლები"
+msgstr "%i პროფილი წაიშალა."
 
 #, fuzzy
 #| msgid "Add services to a CA ACL."
@@ -14867,10 +14835,9 @@ msgstr ""
 msgid "Remove CAs from a CA ACL."
 msgstr "პროფილების წაშლა CA ACL-დან."
 
-#, fuzzy, python-format
-#| msgid "Failed to remove"
+#, python-format
 msgid "%i CA removed."
-msgstr "წაშლის შეცდომა"
+msgstr "%i CA წაიშალა."
 
 #, python-format
 msgid "%i CAs removed."
@@ -16977,10 +16944,8 @@ msgstr "სერვერები"
 msgid "Servers that belongs to the IPA location"
 msgstr "მდებარეობაზე არსებული სერვერები"
 
-#, fuzzy
-#| msgid "Discovered server %s\n"
 msgid "Advertised by servers"
-msgstr "აღმოჩენილია სერვერი %s\n"
+msgstr "შეტყობინება სერვერებიდან"
 
 msgid "List of servers which advertise the given location"
 msgstr ""
@@ -17190,19 +17155,19 @@ msgstr ""
 msgid "Default group for new users not found"
 msgstr "ნაგულისხმევი ჯგუფი ახალი მომხმარებლებისთვის"
 
-#, fuzzy
-#| msgid "OTP Token Settings"
 msgid ""
 "\n"
 "OTP Tokens\n"
-msgstr "OTP კოდის მორგება"
+msgstr ""
+"\n"
+"OTP კოდები\n"
 
-#, fuzzy
-#| msgid "Add a new OTP token."
 msgid ""
 "\n"
 "Manage OTP tokens.\n"
-msgstr "ახალი OTP კოდის დამატება."
+msgstr ""
+"\n"
+"OTP კოდების მართვა.\n"
 
 msgid ""
 "\n"
@@ -17467,10 +17432,9 @@ msgstr ""
 msgid "\"%s\" is not a valid permission type"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Deprecated options"
+#, python-format
 msgid "Deprecated; use %s"
-msgstr "მოძველებული პარამეტრები"
+msgstr "მოძველებულია. გამოიყენეთ %s"
 
 #, python-format
 msgid "Permission with unknown flag %s may not be modified or removed"
@@ -17841,12 +17805,12 @@ msgid_plural "%(count)d roles matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "LDAP schema"
 msgid ""
 "\n"
 "API Schema\n"
-msgstr "LDAP-ის სქემა"
+msgstr ""
+"\n"
+"API-ის სქემა\n"
 
 msgid ""
 "\n"
@@ -18805,10 +18769,8 @@ msgstr ""
 msgid "RunAsGroup does not accept '%(name)s' as a group name"
 msgstr ""
 
-#, fuzzy
-#| msgid "Operation failed: %s\n"
 msgid "operation not defined"
-msgstr "ოპერაცია ჩავარდა: %s\n"
+msgstr "ოპერაცია აღწერილი არაა"
 
 #, python-format
 msgid "not allowed to perform operation: %s"
@@ -20284,12 +20246,12 @@ msgid_plural "%(count)d ranges matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "Modify a role."
 msgid ""
 "Modify ID range.\n"
 "\n"
-msgstr "როლის შეცვლა."
+msgstr ""
+"ID შუალედის შეცვლა.\n"
+"\n"
 
 #, fuzzy, python-format
 #| msgid "Modified role \"%(value)s\""
@@ -21511,10 +21473,8 @@ msgstr "სერტიფიკატის პროფილების წ�
 msgid "AA Compromise"
 msgstr "AA კომპრომისი"
 
-#, fuzzy
-#| msgid "Principal"
 msgid "Add principal"
-msgstr "პრინციპალი"
+msgstr "პრინციპალის დამატება"
 
 msgid "Affiliation Changed"
 msgstr "დაქვემდებარება შეიცვალა"
@@ -21836,10 +21796,8 @@ msgstr ""
 msgid "Create dns record"
 msgstr "უკუჩანაწერის შექმნა"
 
-#, fuzzy
-#| msgid "LOC record"
 msgid "Creating record."
-msgstr "LOC ჩანაწერი"
+msgstr "ჩანაწერის შექმნა."
 
 #, fuzzy
 #| msgid "Operation failed: %s\n"
@@ -22176,10 +22134,8 @@ msgstr "HBAC წესები"
 msgid "Matched"
 msgstr "ემთხვევა"
 
-#, fuzzy
-#| msgid "Permission value"
 msgid "Missing values: "
-msgstr "წვდომის მნიშვნელობა"
+msgstr "ნაკლული მნიშვნელობები: "
 
 msgid "New Test"
 msgstr ""
@@ -24731,10 +24687,9 @@ msgstr ""
 msgid "UPN suffixes"
 msgstr "სუფიქსები"
 
-#, fuzzy, python-brace-format
-#| msgid "invalid Profile ID"
+#, python-brace-format
 msgid "invalid SID: {SID}"
-msgstr "არასწორი პროფილის ID"
+msgstr "არასწორი SID: {SID}"
 
 msgid ""
 "\n"
@@ -24820,10 +24775,8 @@ msgstr ""
 msgid "Realm administrator password should be specified"
 msgstr ""
 
-#, fuzzy
-#| msgid "Range type"
 msgid "id range type"
-msgstr "დიაპაზონის ტიპი"
+msgstr "id-ის დიაპაზონის ტიპი"
 
 msgid ""
 "Only the ipa-ad-trust and ipa-ad-trust-posix are allowed values for --range-"
@@ -25459,13 +25412,14 @@ msgid ""
 "       [--users <users>] [--groups <groups>] [--services <services>]\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Vault Container"
 msgid ""
 "\n"
 "    Vault Container object.\n"
 "    "
-msgstr "საცავის კონტეინერი"
+msgstr ""
+"\n"
+"    საცავის კონტეინერის ობიექტი.\n"
+"    "
 
 msgid "vaultcontainer"
 msgstr "vaultcontainer"
