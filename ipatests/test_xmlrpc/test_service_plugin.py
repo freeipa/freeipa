@@ -864,6 +864,32 @@ class test_service(Declarative):
             ),
         ),
 
+        dict(
+            desc=('Delete the current host (master?) %s dogtag service,'
+                  ' should be caught' % api.env.host),
+            command=('service_del', ['dogtag/%s' % api.env.host], {}),
+            expected=errors.ValidationError(
+                name='principal',
+                error='dogtag/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
+        ),
+
+        dict(
+            desc=('Delete the current host (master?) %s ipa-dnskeysyncd'
+                  ' service, should be caught' % api.env.host),
+            command=('service_del', ['ipa-dnskeysyncd/%s' % api.env.host], {}),
+            expected=errors.ValidationError(
+                name='principal',
+                error='ipa-dnskeysyncd/%s@%s is required by the IPA master' % (
+                    api.env.host,
+                    api.env.realm
+                )
+            ),
+        ),
+
 
         dict(
             desc='Disable the current host (master?) %s HTTP service, should be caught' % api.env.host,
