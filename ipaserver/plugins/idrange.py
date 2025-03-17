@@ -235,13 +235,13 @@ class idrange(LDAPObject):
         Int('ipabaserid?',
             cli_name='rid_base',
             label=_('First RID of the corresponding RID range'),
-            minvalue=1,
+            minvalue=0,
             maxvalue=Int.MAX_UINT32
         ),
         Int('ipasecondarybaserid?',
             cli_name='secondary_rid_base',
             label=_('First RID of the secondary RID range'),
-            minvalue=1,
+            minvalue=0,
             maxvalue=Int.MAX_UINT32
         ),
         Str('ipanttrusteddomainsid?',
