@@ -323,7 +323,7 @@ def check_required_principal(ldap, principal):
     try:
         host_is_master(ldap, principal.hostname)
     except errors.ValidationError:
-        service_types = {'http', 'ldap', 'dns', 'dogtagldap'}
+        service_types = {'http', 'ldap', 'dns', 'dogtag', 'ipa-dnskeysyncd'}
         if principal.service_name.lower() in service_types:
             raise errors.ValidationError(
                 name='principal',
