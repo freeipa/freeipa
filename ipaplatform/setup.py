@@ -36,6 +36,7 @@ if __name__ == '__main__':
             "ipaplatform.base",
             "ipaplatform.debian",
             "ipaplatform.fedora",
+            "ipaplatform.fedora_aes_sha1",
             "ipaplatform.fedora_container",
             "ipaplatform.nixos",
             "ipaplatform.redhat",
