@@ -306,3 +306,23 @@ default:objectClass: groupofnames
 default:objectClass: nestedgroup
 default:cn: External IdP server Administrators
 default:description: External IdP server Administrators
+
+dn: cn=Read System Accounts Managers Configuration,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Read System Accounts Managers Configuration
+default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:ipapermissiontype: SYSTEM
+
+dn: cn=Modify System Accounts Managers Configuration,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:objectClass: top
+default:cn: Modify System Accounts Managers Configuration
+default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:ipapermissiontype: SYSTEM
+
+dn: cn=config
+add:aci: (targetattr = "sysacctmanagersdns*")(target = "ldap:///cn=ipa_pwd_extop,cn=plugins,cn=config")(version 3.0;acl "permission:Modify System Accounts Managers Configuration";allow (read,search,write) groupdn = "ldap:///cn=Modify System Accounts Managers Configuration,cn=permissions,cn=pbac,$SUFFIX";)
+
