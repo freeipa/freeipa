@@ -125,6 +125,8 @@ global_output_params = (
         label='Subordinate ids',),
     Str('member_idoverrideuser?',
         label=_('Member ID user overrides'),),
+    Str('member_sysaccount?',
+        label=_('Member of system accounts'),),
     Str('memberindirect_idoverrideuser?',
         label=_('Indirect Member ID user overrides'),),
     Str('memberindirect_user?',
