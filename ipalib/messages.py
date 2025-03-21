@@ -531,6 +531,20 @@ class UidNumberOutOfLocalIDRange(PublicMessage):
     )
 
 
+class ServerPasssyncMgrUpdateRequired(PublicMessage):
+    """
+    **13035** An update of passsync required on other servers
+    """
+    errno = 13035
+    type = "warning"
+    format = _(
+        "Password reset permission is local to server %(server)s.\n"
+        "Restart the Directory Server services on it. Run the command "
+        "'ipa %(command)s' against each server you want to allow or "
+        "disable to reset passwords on."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
