@@ -276,8 +276,9 @@ class ServerCertInstall(admintool.AdminTool):
             # import all the CA certs from nssdb into the temp db
             for nickname, flags in nssdb.list_certs():
                 if not flags.has_key:
-                    cert = nssdb.get_cert_from_db(nickname)
-                    tempnssdb.add_cert(cert, nickname, flags)
+                    certs = nssdb.get_cert_from_db(nickname, all=True)
+                    for cert in certs:
+                        tempnssdb.add_cert(cert, nickname, flags)
 
             # now get the server certs from tempnssdb and check their validity
             try:

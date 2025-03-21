@@ -633,7 +633,7 @@ class NSSDatabase:
                 pkcs12_password_file.close()
 
     def import_files(self, files, import_keys=False, key_password=None,
-                     key_nickname=None):
+                     key_nickname=None, trust_flags=EMPTY_TRUST_FLAGS):
         """
         Import certificates and a single private key from multiple files
 
@@ -809,7 +809,7 @@ class NSSDatabase:
 
         for cert in extracted_certs:
             nickname = str(DN(cert.subject))
-            self.add_cert(cert, nickname, EMPTY_TRUST_FLAGS)
+            self.add_cert(cert, nickname, trust_flags)
 
         if extracted_key:
             with tempfile.NamedTemporaryFile() as in_file, \
@@ -866,6 +866,27 @@ class NSSDatabase:
             raise RuntimeError("Failed to get %s" % nickname)
         cert, _start = find_cert_from_txt(result.output, start=0)
         return cert
+
+    def get_all_certs(self, nickname):
+        """
+        :param nickname: nickname of the certificate in the NSS database
+        :returns: list of bytes of all certificates for the nickname
+        """
+        args = ['-L', '-n', nickname, '-a']
+        try:
+            result = self.run_certutil(args, capture_output=True)
+        except ipautil.CalledProcessError:
+            raise RuntimeError("Failed to get %s" % nickname)
+        certs = []
+
+        st = 0
+        while True:
+            try:
+                cert, st = find_cert_from_txt(result.output, start=st)
+            except RuntimeError:
+                break
+            certs.append(cert)
+        return certs
 
     def has_nickname(self, nickname):
         try:
@@ -990,53 +1011,58 @@ class NSSDatabase:
             raise ValueError('invalid for server %s' % hostname)
 
     def verify_ca_cert_validity(self, nickname, minpathlen=None):
-        cert = self.get_cert(nickname)
-        self._verify_cert_validity(cert)
+        def verify_ca_cert(cert, nickname, minpathlen):
+            self._verify_cert_validity(cert)
 
-        if not cert.subject:
-            raise ValueError("has empty subject")
+            if not cert.subject:
+                raise ValueError("has empty subject")
 
-        try:
-            bc = cert.extensions.get_extension_for_class(
+            try:
+                bc = cert.extensions.get_extension_for_class(
                     cryptography.x509.BasicConstraints)
-        except cryptography.x509.ExtensionNotFound:
-            raise ValueError("missing basic constraints")
+            except cryptography.x509.ExtensionNotFound:
+                raise ValueError("missing basic constraints")
 
-        if not bc.value.ca:
-            raise ValueError("not a CA certificate")
-        if minpathlen is not None:
-            # path_length is None means no limitation
-            pl = bc.value.path_length
-            if pl is not None and pl < minpathlen:
-                raise ValueError(
-                    "basic contraint pathlen {}, must be at least {}".format(
-                        pl, minpathlen
+            if not bc.value.ca:
+                raise ValueError("not a CA certificate")
+            if minpathlen is not None:
+                # path_length is None means no limitation
+                pl = bc.value.path_length
+                if pl is not None and pl < minpathlen:
+                    raise ValueError(
+                        "basic contraint pathlen {}, "
+                        "must be at least {}".format(
+                            pl, minpathlen
+                        )
                     )
-                )
 
-        try:
-            ski = cert.extensions.get_extension_for_class(
+            try:
+                ski = cert.extensions.get_extension_for_class(
                     cryptography.x509.SubjectKeyIdentifier)
-        except cryptography.x509.ExtensionNotFound:
-            raise ValueError("missing subject key identifier extension")
-        else:
-            if len(ski.value.digest) == 0:
-                raise ValueError("subject key identifier must not be empty")
+            except cryptography.x509.ExtensionNotFound:
+                raise ValueError("missing subject key identifier extension")
+            else:
+                if len(ski.value.digest) == 0:
+                    raise ValueError("subject key identifier must not be empty")
 
-        try:
-            self.run_certutil(
-                [
-                    '-V',       # check validity of cert and attrs
-                    '-n', nickname,
-                    '-u', 'L',  # usage; 'L' means "SSL CA"
-                    '-e',       # check signature(s); this checks
-                                # key sizes, sig algorithm, etc.
-                ],
-                capture_output=True)
-        except ipautil.CalledProcessError as e:
-            # certutil output in case of error is
-            # 'certutil: certificate is invalid: <ERROR_STRING>\n'
-            raise ValueError(e.output)
+            try:
+                self.run_certutil(
+                    [
+                        '-V',       # check validity of cert and attrs
+                        '-n', nickname,
+                        '-u', 'L',  # usage; 'L' means "SSL CA"
+                        '-e',       # check signature(s); this checks
+                                    # key sizes, sig algorithm, etc.
+                    ],
+                    capture_output=True)
+            except ipautil.CalledProcessError as e:
+                # certutil output in case of error is
+                # 'certutil: certificate is invalid: <ERROR_STRING>\n'
+                raise ValueError(e.output)
+
+        certlist = self.get_all_certs(nickname)
+        for cert in certlist:
+            verify_ca_cert(cert, nickname, minpathlen)
 
     def verify_kdc_cert_validity(self, nickname, realm):
         nicknames = self.get_trust_chain(nickname)
