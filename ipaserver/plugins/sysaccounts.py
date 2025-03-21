@@ -1,0 +1,413 @@
+
+# Copyright (C) 2025  Red Hat
+# see file 'COPYING' for use and warranty information
+
+import logging
+
+from ipalib import api, errors
+from ipalib import Str, Bool, Password, Flag
+from ipalib.plugable import Registry
+from ipalib.request import context
+from .baseldap import (
+    pkey_to_value,
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPRetrieve,
+    LDAPQuery)
+from ipalib import _, ngettext
+from ipalib import constants
+from ipalib import output
+from ipalib.messages import ServerPasssyncMgrUpdateRequired, SystemAccountUsage
+from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
+from ipapython.dn import DN
+
+__doc__ = _("""
+System accounts
+
+System accounts designed to allow applications to query LDAP database.
+Unlike IPA users, system accounts have no POSIX properties and cannot be
+resolved as 'users' in a POSIX environment.
+
+System accounts are stored in cn=sysaccounts,cn=etc LDAP subtree. Some of
+system accounts are special to IPA's own operations and cannot be removed.
+
+EXAMPLES:
+
+ Add a new system account, set random password:
+   ipa sysaccount-add my-app --random
+
+ Allow the system account to change user passwords without triggering a reset:
+   ipa sysaccount-mod my-app --update-without-reset=True
+
+The system account still needs to be permitted to modify user passwords through
+a role that includes a corresponding permission ('System: Change User
+password'), through the privilege system:
+    ipa privilege-add 'my-app password change privilege'
+    ipa privilege-add-permission 'my-app password change privilege' \
+                      --permission 'System: Change User password'
+    ipa role-add 'my-app role'
+    ipa role-add-privilege 'my-app role' \
+                           --privilege 'my-app password change privilege'
+    ipa role-add-member 'my role' --sysaccounts my-app
+
+ Delete a system account:
+   ipa sysaccount-del my-app
+
+ Find all system accounts:
+   ipa sysaccount-find
+
+ Disable the system account:
+   ipa sysaccount-disable my-app
+
+ Re-enable the system account:
+   ipa sysaccount-enable my-app
+
+""")
+
+logger = logging.getLogger(__name__)
+
+register = Registry()
+
+required_system_accounts = [
+    'passsync',
+    'sudo',
+]
+
+passsync_mgrs_dn = DN('cn=ipa_pwd_extop,cn=plugins,cn=config')
+
+update_without_reset = Bool(
+    'privileged?',
+    label=_('Privileged'),
+    doc=_('Allow password updates without reset'),
+)
+
+
+def check_userpassword(entry_attrs, **options):
+    if 'userpassword' not in entry_attrs and options.get('random'):
+        entry_attrs['userpassword'] = ipa_generate_password(
+            entropy_bits=TMP_PWD_ENTROPY_BITS)
+        # save the password so it can be displayed in post_callback
+        setattr(context, 'randompassword', entry_attrs['userpassword'])
+
+
+def fill_randompassword(entry_attrs, **options):
+    if options.get('random', False):
+        try:
+            entry_attrs['randompassword'] = getattr(context,
+                                                    'randompassword')
+        except AttributeError:
+            # if both randompassword and userpassword options were used
+            pass
+
+
+@register()
+class sysaccount(LDAPObject):
+    """
+    System account object.
+    """
+    container_dn = api.env.container_sysaccounts
+    object_name = _('system account')
+    object_name_plural = _('system accounts')
+    object_class = [
+        'account', 'simplesecurityobject'
+    ]
+    possible_objectclasses = ['ipaallowedoperations', 'nsmemberof']
+    permission_filter_objectclasses = ['simplesecurityobject']
+    search_attributes = ['uid']
+    default_attributes = [
+        'uid', 'memberof', 'ipaallowedtoperform']
+    uuid_attribute = ''
+    attribute_members = {
+        'memberof': ['role'],
+    }
+    password_attributes = [('userpassword', 'has_password')]
+    bindable = True
+    relationships = {
+        'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
+    }
+    password_attributes = [('userpassword', 'has_password')]
+    managed_permissions = {
+        'System: Read System Accounts': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass',
+                'uid', 'memberof'
+            },
+        },
+        'System: Check System Accounts passwords': {
+            'ipapermright': {'search'},
+            'ipapermdefaultattr': {'userpassword'},
+            'default_privileges': {'System Accounts Administrators'},
+        },
+        'System: Add System Accounts': {
+            'ipapermright': {'add'},
+            'default_privileges': {'System Accounts Administrators'},
+        },
+        'System: Modify System Accounts': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'userpassword'},
+            'default_privileges': {'System Accounts Administrators'},
+        },
+        'System: Remove System Accounts': {
+            'ipapermright': {'delete'},
+            'default_privileges': {'System Accounts Administrators'},
+        },
+    }
+
+    label = _('System Accounts')
+    label_singular = _('System Account')
+
+    takes_params = (
+        Str('uid',
+            pattern=constants.PATTERN_GROUPUSER_NAME,
+            pattern_errmsg=constants.ERRMSG_GROUPUSER_NAME.format('user'),
+            maxlength=255,
+            cli_name='login',
+            label=_('System account ID'),
+            primary_key=True,
+            normalizer=lambda value: value.lower()),
+        Password('userpassword?',
+                 cli_name='password',
+                 label=_('Password'),
+                 doc=_('Prompt to set the user password'),
+                 exclude='webui'),
+        Flag('random?',
+             doc=_('Generate a random user password'),
+             flags=('no_search', 'virtual_attribute'),
+             default=False),
+        Str('randompassword?',
+            label=_('Random password'),
+            flags=('no_create', 'no_update', 'no_search', 'virtual_attribute')),
+    )
+
+    def get_dn(self, *keys, **kwargs):
+        key = keys[0]
+
+        parent_dn = DN(self.container_dn, self.api.env.basedn)
+        true_rdn = 'uid'
+
+        return self.backend.make_dn_from_attr(
+            true_rdn, key, parent_dn
+        )
+
+    def get_primary_key_from_dn(self, dn):
+        """
+        If the entry has krbcanonicalname set return the value of the
+        attribute. If the attribute is not found, assume old-style entry which
+        should have only single value of krbprincipalname and return it.
+
+        Otherwise return input DN.
+        """
+        assert isinstance(dn, DN)
+
+        try:
+            entry_attrs = self.backend.get_entry(
+                dn, [self.primary_key.name]
+            )
+            try:
+                return entry_attrs[self.primary_key.name][0]
+            except (KeyError, IndexError):
+                return ''
+        except errors.NotFound:
+            pass
+
+        try:
+            return dn['krbprincipalname']
+        except KeyError:
+            return str(dn)
+
+    def handle_reset(self, cmd, next_cmd, ldap, dn, **options):
+        if 'privileged' in options:
+            # TODO: change the code to perform DBUS oddjob operation instead
+            # because cn=config changes require cn=Directory Manager permissions
+            # and then 389-ds needs a restart
+            add_to_passsync_mgrs = options.get('privileged', False)
+            try:
+                if add_to_passsync_mgrs:
+                    ldap.add_entry_to_group(
+                        dn, passsync_mgrs_dn,
+                        'passsyncmanagersdns')
+                else:
+                    ldap.remove_entry_from_group(
+                        dn, passsync_mgrs_dn,
+                        'passsyncmanagersdns')
+                if next_cmd:
+                    command_name = next_cmd.name.replace('_','-')
+                    cmd.add_message(ServerPasssyncMgrUpdateRequired(
+                        server=cmd.api.env.server,
+                        command=command_name))
+            except (errors.EmptyModlist, errors.NotGroupMember):
+                pass
+            del options['privileged']
+
+
+@register()
+class sysaccount_add(LDAPCreate):
+    __doc__ = _('Add a new IPA system account.')
+    msg_summary = _('Added system account "%(value)s"')
+
+    takes_options = LDAPCreate.takes_options + (update_without_reset,)
+    has_output_params = LDAPCreate.has_output_params + (update_without_reset,)
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+        if 'userpassword' not in entry_attrs and 'random' not in options:
+            raise errors.ValidationError(
+                name='password',
+                error=_('Either --password or --random is required')
+            )
+        check_userpassword(entry_attrs, **options)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        fill_randompassword(entry_attrs, **options)
+        self.obj.handle_reset(self, self.api.Command.sysaccount_manage_reset,
+                              ldap, dn, **options)
+        self.add_message(SystemAccountUsage(uid=keys[0], dn=dn))
+        return dn
+
+
+@register()
+class sysaccount_del(LDAPDelete):
+    __doc__ = _('Delete an IPA system account.')
+    msg_summary = _('Deleted system account "%(value)s"')
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
+
+        sysaccount = keys[-1]
+        if sysaccount.lower() in required_system_accounts:
+            raise errors.ValidationError(
+                name='system account',
+                error=_('{} is required by the IPA master').format(sysaccount)
+            )
+
+        # Make sure to remove the sysaccount entry from passsync_mgrs_dn
+        # don't error out if access is denied
+        try:
+            options['privileged'] = False
+            self.obj.handle_reset(self, None,
+                                  ldap, dn, **options)
+        except errors.ACIError:
+            pass
+
+        return dn
+
+
+@register()
+class sysaccount_mod(LDAPUpdate):
+    __doc__ = _('Modify an existing IPA system account.')
+
+    takes_options = LDAPUpdate.takes_options + (update_without_reset,)
+    has_output_params = LDAPUpdate.has_output_params + (update_without_reset,)
+
+    msg_summary = _('Modified service "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+        check_userpassword(entry_attrs, **options)
+        self.obj.handle_reset(self, self.api.Command.sysaccount_manage_reset,
+                              ldap, dn, **options)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        fill_randompassword(entry_attrs, **options)
+        return dn
+
+
+@register()
+class sysaccount_find(LDAPSearch):
+    __doc__ = _('Search for IPA system accounts.')
+
+    msg_summary = ngettext(
+        '%(count)d system account matched',
+        '%(count)d system accounts matched', 0
+    )
+    sort_result_entries = False
+
+    takes_options = LDAPSearch.takes_options
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return truncated
+        for entry_attrs in entries:
+            self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
+
+        return truncated
+
+
+@register()
+class sysaccount_show(LDAPRetrieve):
+    __doc__ = _('Display information about an IPA system account.')
+
+    member_attributes = ['memberof']
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+
+        return dn
+
+
+@register()
+class sysaccount_manage_reset(LDAPRetrieve):
+    __doc__ = _(
+        'Allow the system account to change user passwords without a reset.'
+    )
+
+    takes_options = LDAPRetrieve.takes_options + (update_without_reset,)
+    has_output_params = LDAPRetrieve.has_output_params + (update_without_reset,)
+
+    msg_summary = _(
+        'Modified system account "%(value)s" '
+        'right to change passwords without a reset')
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.handle_reset(self, self, ldap, dn, **options)
+        return dn
+
+
+@register()
+class sysaccount_disable(LDAPQuery):
+    __doc__ = _('Disable a system account.')
+
+    has_output = output.standard_value
+    msg_summary = _('Disabled system account "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn, _oc = self.obj.get_dn(*keys, **options)
+        ldap.deactivate_entry(dn)
+
+        return dict(
+            result=True,
+            value=pkey_to_value(keys[0], options),
+        )
+
+
+@register()
+class sysaccount_enable(LDAPQuery):
+    __doc__ = _('Enable a system account.')
+
+    has_output = output.standard_value
+    has_output_params = LDAPQuery.has_output_params
+    msg_summary = _('Enabled system account "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn, _oc = self.obj.get_dn(*keys, **options)
+
+        ldap.activate_entry(dn)
+
+        return dict(
+            result=True,
+            value=pkey_to_value(keys[0], options),
+        )
