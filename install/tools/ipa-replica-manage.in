@@ -30,7 +30,7 @@ from xmlrpc.client import MAXINT
 
 import ldap
 
-from ipaclient.install import ipadiscovery
+import ipaclient.discovery as ipadiscovery
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
 from ipaserver.install import bindinstance, cainstance
