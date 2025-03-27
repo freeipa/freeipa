@@ -501,8 +501,10 @@ optional_policy(`
 optional_policy(`
     gen_require(` #selint-disable:S-001
         type certmonger_t;
+        type pki_tomcat_var_lib_t;
     ')
-	  pki_manage_tomcat_etc_rw(certmonger_t)
+	  pki_manage_tomcat_etc_rw(certmonger_t);
+    allow certmonger_t pki_tomcat_var_lib_t:dir read;
 ')
 
 optional_policy(`
