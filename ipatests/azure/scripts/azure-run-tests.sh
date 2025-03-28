@@ -131,6 +131,13 @@ ln -sfr \
 # will be generated later in setup_containers.py
 touch "${project_dir}"/ipa-test-config.yaml
 
+# workaround for cgroupv2
+# Ubuntu 22.04 uses cgroupv2
+# launch any container with --groupns=host and without volume bindings
+# allow to mount group2 without the nsdelegate mount option
+docker run --rm --cgroupns host \
+    registry.fedoraproject.org/fedora-toolbox:40 echo done
+
 pushd "$project_dir"
 
 BUILD_REPOSITORY_LOCALPATH="$BUILD_REPOSITORY_LOCALPATH" \

@@ -11,7 +11,7 @@ services:
     mem_limit: "${IPA_TESTS_SERVER_MEM_LIMIT}"
     memswap_limit: "${IPA_TESTS_SERVER_MEMSWAP_LIMIT}"
     volumes:
-    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - /sys/fs/cgroup/freeipa.scope:/sys/fs/cgroup:rw
     - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}
 
@@ -29,7 +29,7 @@ services:
     mem_limit: "${IPA_TESTS_REPLICA_MEM_LIMIT}"
     memswap_limit: "${IPA_TESTS_REPLICA_MEMSWAP_LIMIT}"
     volumes:
-    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - /sys/fs/cgroup/freeipa.scope:/sys/fs/cgroup:rw
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
     networks:
     - ${IPA_NETWORK}
@@ -45,7 +45,7 @@ services:
     mem_limit: "${IPA_TESTS_CLIENT_MEM_LIMIT}"
     memswap_limit: "${IPA_TESTS_CLIENT_MEMSWAP_LIMIT}"
     volumes:
-    - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
+    - /sys/fs/cgroup/freeipa.scope:/sys/fs/cgroup:rw
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
     # nfs server
     - ./exports:/exports
