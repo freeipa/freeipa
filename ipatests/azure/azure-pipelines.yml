@@ -10,14 +10,22 @@ variables:
 # platform specific variables, links to
 - template: ${{ parameters.VARIABLES_FILE }}
 
+resources:
+  containers:
+  - container: 'builder'
+    image: $(DOCKER_BUILD_IMAGE)
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+
 jobs:
 - job: Build
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
+    - script: |
+        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
+      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
     - template: templates/${{ variables.BUILD_TEMPLATE }}
@@ -57,10 +65,12 @@ jobs:
 - job: Lint
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
+    - script: |
+        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
+      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_LINT_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
@@ -79,10 +89,12 @@ jobs:
 - job: Docs
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
+    - script: |
+        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
+      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
     - template: templates/${{ variables.BUILD_DOCS_TEMPLATE }}
@@ -95,10 +107,12 @@ jobs:
 - job: Tox
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
+    - script: |
+        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
+      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
     - script: |
@@ -118,10 +132,12 @@ jobs:
 - job: WebUI_Unit_Tests
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
+    - script: |
+        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
+      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
