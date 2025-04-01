@@ -1963,6 +1963,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             - add a user with no uid (it will be auto-assigned inside
               the range)
             - add a user with uid 2000
+            - add a user with uid 4,294,967,306 (uint32 overflow)
             - add a user with no uid (it will be auto-assigned inside
               the range)
             - edit the first and 3rd users, remove the objectclass
@@ -1977,9 +1978,11 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         test_user1 = 'test_user1'
         test_user2 = 'test_user2'
         test_user2000 = 'test_user2000'
+        test_useroverflow = 'test_useroverflow'
         base_dn = str(self.master.domain.basedn)
         old_err_msg = 'Cannot add SID to existing entry'
         new_err_msg = r'Finished with [0-9]+ failures, please check the log'
+        overflow_err_msg = 'ID value too large on entry'
 
         tasks.kinit_admin(self.master)
         tasks.user_add(self.master, test_user1)
@@ -1989,8 +1992,9 @@ class TestIPACommandWithoutReplica(IntegrationTest):
              '--uid', '2000']
         )
         tasks.user_add(self.master, test_user2)
+        tasks.user_add(self.master, test_useroverflow)
 
-        for user in (test_user1, test_user2):
+        for user in (test_user1, test_user2, test_useroverflow):
             entry_ldif = textwrap.dedent("""
                 dn: uid={user},cn=users,cn=accounts,{base_dn}
                 changetype: modify
@@ -2002,6 +2006,17 @@ class TestIPACommandWithoutReplica(IntegrationTest):
                 user=user,
                 base_dn=base_dn)
             tasks.ldapmodify_dm(self.master, entry_ldif)
+
+        # set uidNumber to 4,294,967,306 (uint32 overflow)
+        entry_ldif = textwrap.dedent("""
+            dn: uid={user},cn=users,cn=accounts,{base_dn}
+            changetype: modify
+            replace: uidNumber
+            uidNumber: 4294967306
+        """).format(
+            user=test_useroverflow,
+            base_dn=base_dn)
+        tasks.ldapmodify_dm(self.master, entry_ldif)
 
         # run sidgen task
         self.master.run_command(
@@ -2024,6 +2039,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             encoding='utf-8'
         )
         assert old_err_msg not in dirsrv_error_log
+        assert overflow_err_msg in dirsrv_error_log
         assert re.search(new_err_msg, dirsrv_error_log)
 
     @pytest.fixture
