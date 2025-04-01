@@ -149,7 +149,19 @@ class DNSKeySyncInstance(service.Service):
         if options:
             pattern = r"[ ]*-[a-zA-Z46]*E[ ]*(.*?)(?: |$)"
             engines = re.findall(pattern, options)
-            if engines and engines[-1] == constants.NAMED_OPENSSL_ENGINE:
+
+            # if no '-E <engine-name>' and we switched to the provider API,
+            # just exist, no named configuration to adjust
+            if len(engines) == 0 and constants.NAMED_OPENSSL_ENGINE is None:
+                return False
+
+            # Something is configured in '-E <engine-name>' but we don't have
+            # an engine name to compare because we already switched to the
+            # provider API, we only need to ensure old engine ref is removed.
+            if constants.NAMED_OPENSSL_ENGINE is None:
+                return True
+
+            if engines[-1] == constants.NAMED_OPENSSL_ENGINE:
                 return True
 
         return False
