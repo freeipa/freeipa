@@ -449,8 +449,8 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
 {
     int ret;
     const char *dn_str;
-    uint32_t uid_number;
-    uint32_t gid_number;
+    uint64_t uid_number;
+    uint64_t gid_number;
     uint32_t id;
     char *sid = NULL;
     char **objectclasses = NULL;
