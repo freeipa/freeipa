@@ -449,8 +449,8 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
 {
     int ret;
     const char *dn_str;
-    uint32_t uid_number;
-    uint32_t gid_number;
+    uint64_t uid_number;
+    uint64_t gid_number;
     uint32_t id;
     char *sid = NULL;
     char **objectclasses = NULL;
@@ -471,8 +471,8 @@ int find_sid_for_ldap_entry(struct slapi_entry *entry,
     }
     LOG("Trying to add SID for [%s].\n", dn_str);
 
-    uid_number = slapi_entry_attr_get_ulong(entry, UID_NUMBER);
-    gid_number = slapi_entry_attr_get_ulong(entry, GID_NUMBER);
+    uid_number = slapi_entry_attr_get_ulonglong(entry, UID_NUMBER);
+    gid_number = slapi_entry_attr_get_ulonglong(entry, GID_NUMBER);
 
     if (uid_number == 0 && gid_number == 0) {
         LOG("[%s] does not have Posix IDs, nothing to do.\n", dn_str);
