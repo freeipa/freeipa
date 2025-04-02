@@ -1,6 +1,7 @@
 steps:
 - script: |
     set -e
+    export DOCKER_HOST=unix://$(XDG_RUNTIME_DIR)/podman/podman.sock
     env | sort
   displayName: Print Host Enviroment
 
@@ -11,6 +12,7 @@ steps:
 
 - script: |
     set -e
+    sudo apt-get purge --auto-remove docker-ce-cli
     sudo apt-get update
     sudo apt-get install -y \
         apparmor-utils \
@@ -18,13 +20,19 @@ steps:
         moreutils \
         rng-tools \
         systemd-coredump \
-        python3-docker
+        podman podman-docker python3-pip python3-venv
+    sudo pip3 install podman-compose
   displayName: Install Host's tests requirements
 
 - script: |
     set -e
     sudo systemctl
   displayName: Show Host's systemd status
+
+- script: |
+    set -e
+    systemctl --user enable --now podman.socket ||:
+  displayName: Enable podman emulation of docker
 
 - script: |
     set -e
@@ -82,13 +90,27 @@ steps:
     sudo ps -auxf
   displayName: Show Host's processes
 
+- script: |
+    set -eu
+    id
+    cat /proc/$$/subuid_map ||:
+    cat /proc/$$/subgid_map ||:
+    cat /etc/subuid ||:
+    cat /etc/subgid ||:
+  displayName: Show Host's subuid settings
+
+- script: |
+    set -e
+    sudo mkdir -p /sys/fs/cgroup/systemd
+  displayName: Create /sys/fs/cgroup/systemd for the volume
+
 - template: run-test.yml
 
 - script: |
     set -eux
     free -m
-    cat /sys/fs/cgroup/memory/memory.memsw.max_usage_in_bytes
-    cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes
+    cat /sys/fs/cgroup/systemd/memory.swap.peak
+    cat /sys/fs/cgroup/systemd/memory.peak
     cat /proc/sys/vm/swappiness
   condition: succeededOrFailed()
   displayName: Host's memory statistics
@@ -150,20 +172,20 @@ steps:
     # continue in container
     HOST_JOURNAL="/var/log/host_journal"
     CONTAINER_COREDUMP="dump_cores"
-    docker create --privileged \
+    podman create --privileged \
         -v "$(realpath coredumpctl.time.mark)":/coredumpctl.time.mark:ro \
         -v /var/lib/systemd/coredump:/var/lib/systemd/coredump:ro \
         -v /var/log/journal:"$HOST_JOURNAL":ro \
         -v "${BUILD_REPOSITORY_LOCALPATH}":"${IPA_TESTS_REPO_PATH}" \
         --name "$CONTAINER_COREDUMP" freeipa-azure-builder
-    docker start "$CONTAINER_COREDUMP"
+    podman start "$CONTAINER_COREDUMP"
 
-    docker exec -t \
+    podman exec -t \
         "$CONTAINER_COREDUMP" \
         /bin/bash --noprofile --norc -eux \
             "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/wait-for-systemd.sh"
 
-    docker exec -t \
+    podman exec -t \
         --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
         --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
         --env IPA_PLATFORM="${IPA_PLATFORM}" \
@@ -171,7 +193,7 @@ steps:
         /bin/bash --noprofile --norc -eux \
             "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/install-debuginfo.sh"
 
-    docker exec -t \
+    podman exec -t \
         --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
         --env COREDUMPS_SUBDIR="$COREDUMPS_SUBDIR" \
         --env HOST_JOURNAL="$HOST_JOURNAL" \
