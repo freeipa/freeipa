@@ -12,7 +12,7 @@ from ipatests.pytest_ipa.integration import tasks, create_keycloak
 user_code_script = textwrap.dedent("""
 from selenium import webdriver
 from datetime import datetime
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait

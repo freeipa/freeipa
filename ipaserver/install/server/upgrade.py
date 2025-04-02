@@ -17,7 +17,7 @@ import sys
 import tempfile
 from contextlib import contextmanager
 from augeas import Augeas
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 from ipalib import api, x509
 from ipalib.constants import RENEWAL_CA_NAME, RA_AGENT_PROFILE, IPA_CA_RECORD
