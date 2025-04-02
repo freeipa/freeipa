@@ -1,8 +1,7 @@
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 
 import importlib
-
-import pkg_resources
+import importlib.metadata
 
 import pytest
 
@@ -45,4 +44,4 @@ def test_import(modname):
     'ipatests',
 ])
 def test_package_installed(pkgname):
-    pkg_resources.require(pkgname)
+    importlib.metadata.distribution(pkgname)
