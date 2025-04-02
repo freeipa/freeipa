@@ -41,7 +41,7 @@ steps:
     printf "AppArmor status\n"
     sudo aa-status
     printf "Disable AppArmor conflicting profiles\n"
-    sudo aa-disable /etc/apparmor.d/usr.sbin.chronyd
+    sudo aa-disable /etc/apparmor.d/usr.sbin.chronyd ||:
     printf "Recheck AppArmor status\n"
     sudo aa-status
   displayName: Disable AppArmor conflicting profiles on Host
@@ -74,7 +74,7 @@ steps:
 
 - script: |
     set -eu
-    sudo top -b -o +%MEM n 1
+    sudo top -b -o +%MEM -n 1
   displayName: Show Host's top
 
 - script: |
