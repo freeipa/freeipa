@@ -125,7 +125,7 @@ class ContainersGroup:
         # initialize containers
         self.containers = [
             Container(
-                name=f"{self.prefix}-{self.role}-{c}",
+                name=f"{self.prefix}_{self.role}_{c}",
                 hostname=f"{self.role}{c}.{self.domain}",
                 network=f"{IPA_TESTS_ENV_ID}_{IPA_NETWORK}",
             )
@@ -187,7 +187,7 @@ class ContainersGroup:
                     "127.0.0.1 localhost",
                     "::1 localhost",
                     f"{cont.ip} {cont.hostname}",
-                    f"{cont.ipv6} {cont.hostname}",
+                    # f"{cont.ipv6} {cont.hostname}",
                 ]
             )
             cmd = ["/bin/bash", "-c", f"echo -e '{hosts}' > /etc/hosts"]
@@ -218,7 +218,8 @@ class ContainersGroup:
         cmd = [
             "/bin/bash",
             "-c",
-            f"echo -e '{nameservers}' > /etc/resolv.conf",
+            f"echo -e '{nameservers}' > /etc/resolv.conf"
+            f"; chmod 0644 /etc/resolv.conf",
         ]
         self.execute_all(cmd)
 
@@ -363,7 +364,7 @@ class Controller(Container):
 
             for container in containers_group.containers:
                 hosts.append(f"{container.ip} {container.hostname}")
-                hosts.append(f"{container.ipv6} {container.hostname}")
+                # hosts.append(f"{container.ipv6} {container.hostname}")
 
         cmd = [
             "/bin/bash",
@@ -391,6 +392,9 @@ class Controller(Container):
             template = Template(f.read(), trim_blocks=True, lstrip_blocks=True)
 
         logging.info(template.render(config))
+        logging.info(
+            "Saving the test config in %s",
+            os.path.join(IPA_TESTS_ENV_DIR, IPA_TEST_CONFIG))
 
         with open(os.path.join(IPA_TESTS_ENV_DIR, IPA_TEST_CONFIG), "w") as f:
             f.write(template.render(config))
