@@ -24,7 +24,7 @@ from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
     clear_sssd_cache, get_host_ip_with_hostmask, remote_sssd_config,
-    FileBackup)
+    FileBackup, install_master, install_client)
 
 class TestSudo(IntegrationTest):
     """
@@ -32,11 +32,14 @@ class TestSudo(IntegrationTest):
     http://www.freeipa.org/page/V4/Sudo_Integration#Test_Plan
     """
     num_clients = 1
-    topology = 'line'
 
     @classmethod
     def install(cls, mh):
         super(TestSudo, cls).install(mh)
+
+        extra_args = ["--idstart=60001", "--idmax=65000"]
+        install_master(cls.master, setup_dns=True, extra_args=extra_args)
+        install_client(cls.master, cls.clients[0])
 
         cls.client = cls.clients[0]
         cls.clientname = cls.client.run_command(
