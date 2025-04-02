@@ -1,5 +1,11 @@
 steps:
 - script: |
+    CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
+    /usr/bin/docker exec $CONTAINERID bash -c "dnf reinstall -y shadow-utils; chmod a+r /etc/shadow"
+  target: host
+  displayName: Workaround unreadable /etc/shadow
+
+- script: |
     set -e
     sudo rm -rf /var/cache/dnf/*
     sudo dnf makecache || :
@@ -14,7 +20,7 @@ steps:
         git \
         automake \
         libtool \
-        docker \
+        podman \
         python3-paramiko \
         python3-pyyaml \
 
