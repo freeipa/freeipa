@@ -2,9 +2,8 @@
 from __future__ import absolute_import
 
 import importlib
+import importlib.metadata
 import os
-
-import pkg_resources
 
 import six
 
@@ -37,17 +36,13 @@ def _load_plugin_class(menu, name):
     Entry points are preferred over dotted import path.
     """
     group = 'custodia.{}'.format(menu)
-    eps = list(pkg_resources.iter_entry_points(group, name))
+    eps = importlib.metadata.entry_points(group=group, name=name)
     if len(eps) > 1:
         raise ValueError(
             "Multiple entry points for {} {}: {}".format(menu, name, eps))
     elif len(eps) == 1:
-        # backwards compatibility with old setuptools
-        ep = eps[0]
-        if hasattr(ep, 'resolve'):
-            return ep.resolve()
-        else:
-            return ep.load(require=False)
+        ep, *_ = eps
+        return ep.load(require=False)
     elif '.' in name:
         # fall back to old style dotted name
         module, classname = name.rsplit('.', 1)
