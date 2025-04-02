@@ -22,10 +22,6 @@ jobs:
     vmImage: $(VM_IMAGE)
   container: builder
   steps:
-    - script: |
-        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
-        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
-      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
     - template: templates/${{ variables.BUILD_TEMPLATE }}
@@ -41,8 +37,9 @@ jobs:
         cp -pr dist container/
         cp $(IPA_TESTS_DOCKERFILES)/$(DOCKER_DOCKERFILE) container/Dockerfile
         cd container
-        docker build -t freeipa-azure-builder .
-        docker save freeipa-azure-builder | gzip > '$(builddir)/freeipa-azure-builder-container.tar.gz'
+        podman build -t freeipa-azure-builder .
+        podman image save -o $(builddir)/freeipa-azure-builder-container.tar freeipa-azure-builder:latest
+        gzip $(builddir)/freeipa-azure-builder-container.tar
       displayName: Create container image for test
     - template: templates/publish-build.yml
       parameters:
@@ -67,10 +64,6 @@ jobs:
     vmImage: $(VM_IMAGE)
   container: builder
   steps:
-    - script: |
-        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
-        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
-      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_LINT_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
@@ -91,10 +84,6 @@ jobs:
     vmImage: $(VM_IMAGE)
   container: builder
   steps:
-    - script: |
-        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
-        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
-      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
     - template: templates/${{ variables.BUILD_DOCS_TEMPLATE }}
@@ -109,10 +98,6 @@ jobs:
     vmImage: $(VM_IMAGE)
   container: builder
   steps:
-    - script: |
-        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
-        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
-      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
     - script: |
@@ -134,10 +119,6 @@ jobs:
     vmImage: $(VM_IMAGE)
   container: builder
   steps:
-    - script: |
-        CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
-        /usr/bin/docker exec $CONTAINERID bash -c "chmod a+r /etc/shadow"
-      target: host
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
