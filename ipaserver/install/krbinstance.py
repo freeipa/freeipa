@@ -26,7 +26,7 @@ import socket
 import dbus
 
 import dns.name
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 from ipalib import x509
 from ipalib.install import certstore
