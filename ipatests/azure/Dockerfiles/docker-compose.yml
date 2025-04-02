@@ -4,7 +4,11 @@ services:
     image: ${IPA_DOCKER_IMAGE}
     build: .
     cap_add:
-    - ALL
+    - SYS_ADMIN
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    - NET_BROADCAST
+    - NET_RAW
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
@@ -12,17 +16,21 @@ services:
     memswap_limit: "${IPA_TESTS_SERVER_MEMSWAP_LIMIT}"
     volumes:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
-    - ./ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
+    - ${PROJECT_DIR}/ipa-test-config.yaml:/root/.ipa/ipa-test-config.yaml:ro
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}
-
     networks:
-    - ${IPA_NETWORK}
+      ipanet:
+        ipv4_address: 192.168.159.2
 
   replica:
     image: ${IPA_DOCKER_IMAGE}
     build: .
     cap_add:
-    - ALL
+    - SYS_ADMIN
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    - NET_BROADCAST
+    - NET_RAW
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
@@ -32,13 +40,18 @@ services:
     - /sys/fs/cgroup/systemd:/sys/fs/cgroup/systemd
     - ${BUILD_REPOSITORY_LOCALPATH}:${IPA_TESTS_REPO_PATH}:ro
     networks:
-    - ${IPA_NETWORK}
+      ipanet:
+        ipv4_address: 192.168.159.3
 
   client:
     image: ${IPA_DOCKER_IMAGE}
     build: .
     cap_add:
-    - ALL
+    - SYS_ADMIN
+    - DAC_READ_SEARCH
+    - NET_ADMIN
+    - NET_BROADCAST
+    - NET_RAW
     security_opt:
     - apparmor:unconfined
     - seccomp:./seccomp.json
@@ -51,14 +64,14 @@ services:
     - ./exports:/exports
     - /lib/modules:/lib/modules:ro
     networks:
-    - ${IPA_NETWORK}
+      ipanet:
+        ipv4_address: 192.168.159.4
 
 networks:
   ipanet:
     driver: bridge
-    enable_ipv6: true
     ipam:
       driver: default
       config:
-      - subnet: ${IPA_IPV6_SUBNET}
-    internal: ${IPA_NETWORK_INTERNAL}
+      - subnet: 192.168.159.0/24
+    internal: false
