@@ -274,7 +274,9 @@ class BaseTaskNamespace:
         :param version: textual version
         :return: object implementing proper __cmp__ method for version compare
         """
-        return parse_version(version)
+        version_object = parse_version(version)
+        version_object.version = version_object.base_version
+        return version_object
 
     def set_hostname(self, hostname):
         """

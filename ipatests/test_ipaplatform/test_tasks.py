@@ -25,7 +25,7 @@ def test_ipa_version():
     if hasattr(v4, '_rpmvercmp'):
         assert v4._rpmvercmp_func is not None
 
-    # pylint: disable=comparison-with-itself
+    # pylint: disable=comparison-with-itself,unnecessary-negation
     assert v3 < v4
     assert v3 <= v4
     assert v3 <= v3
