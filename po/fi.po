@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202103310611+git68a5fe822\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-01-11 13:38+0000\n"
+"PO-Revision-Date: 2025-04-03 15:21+0000\n"
 "Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fi/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.2\n"
+"X-Generator: Weblate 5.10.4\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -1046,7 +1046,7 @@ msgid "Input filename"
 msgstr "Syötetiedoston nimi"
 
 msgid "File to load the certificate from."
-msgstr ""
+msgstr "Tiedosto, josta varmenne ladataan."
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
@@ -2687,7 +2687,7 @@ msgid "NAPTR Flags"
 msgstr ""
 
 msgid "Flags"
-msgstr ""
+msgstr "Liput"
 
 msgid "NAPTR Service"
 msgstr "NAPTR-palvelu"
@@ -18273,15 +18273,11 @@ msgid_plural "%(count)d service delegation rules matched"
 msgstr[0] "%(count)d palvelun delegointisääntö täsmääsi"
 msgstr[1] "%(count)d palvelun delegointisääntöä täsmääsivät"
 
-#, fuzzy
-#| msgid "Service delegation rules"
 msgid "service delegation target"
-msgstr "Palveluvalinnat"
+msgstr "Palvelun delegoinnin kohde"
 
-#, fuzzy
-#| msgid "Service delegation rules"
 msgid "service delegation targets"
-msgstr "Palveluvalinnat"
+msgstr "Palvelun delegoinnin kohteet"
 
 msgid "Service delegation targets"
 msgstr "Palvelun delegoinnin kohtteet"
@@ -20899,7 +20895,7 @@ msgid "${entity} ${primary_key} Settings"
 msgstr ""
 
 msgid "Back to Top"
-msgstr ""
+msgstr "Takaisin yläosaan"
 
 #, python-brace-format
 msgid "${entity} ${primary_key} updated"
