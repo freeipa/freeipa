@@ -453,7 +453,6 @@ class KrbInstance(service.Service):
             tmpdb.create_from_cacert()
             tmpdb.pki_issue_certificate(
                 "krbtgt", KDC_PROFILE,
-                str(DN(('CN', self.fqdn), self.subject_base)),
                 paths.KDC_KEY, paths.KDC_CERT
             )
 
