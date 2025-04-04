@@ -81,7 +81,6 @@ static int ipa_sidgen_add_post_op(Slapi_PBlock *pb)
     const char *dn_str;
     Slapi_DN *dn = NULL;
     struct ipa_sidgen_ctx *ctx;
-    Slapi_PBlock *search_pb = NULL;
     char *errmsg = NULL;
 
     ret = slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op);
@@ -152,9 +151,8 @@ static int ipa_sidgen_add_post_op(Slapi_PBlock *pb)
 
     ret = 0;
 done:
-    slapi_free_search_results_internal(search_pb);
-    slapi_pblock_destroy(search_pb);
     slapi_sdn_free(&dn);
+    slapi_entry_free(entry);
 
     if (ret != 0) {
         if (errmsg == NULL) {
