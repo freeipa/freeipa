@@ -346,7 +346,6 @@ class HTTPInstance(service.Service):
                     dns_2 = f"DNS.2={IPA_CA_RECORD}.{api.env.domain}"
                     tmpdb.pki_issue_certificate(
                         "HTTP", dogtag.DEFAULT_PROFILE,
-                        str(DN(('CN', self.fqdn), self.subject_base)),
                         paths.HTTPD_KEY_FILE, paths.HTTPD_CERT_FILE,
                         key_passwd_file, dns_2_san=dns_2
                     )
