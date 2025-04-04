@@ -27,7 +27,7 @@ from ipaplatform.paths import paths
 from ipaplatform.osinfo import osinfo
 from ipaserver.install.installutils import resolve_ip_addresses_nss
 from ipatests.test_integration.base import IntegrationTest
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
