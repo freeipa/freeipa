@@ -862,7 +862,6 @@ class DsInstance(service.Service):
                     certfile = os.path.join(tmpdb.secdir, "cert.pem")
                     tmpdb.pki_issue_certificate(
                         "ldap", dogtag.DEFAULT_PROFILE,
-                        str(DN(('CN', self.fqdn), self.subject_base)),
                         keyfile, certfile
                     )
 
