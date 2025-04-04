@@ -34,6 +34,10 @@ import fcntl
 import time
 import datetime
 
+import pki.ca
+import pki.cert
+import pki.client
+
 from ipalib.install import certmonger, sysrestore
 from ipapython import dogtag
 from ipapython import ipautil
@@ -727,10 +731,10 @@ class CertDB:
         """
         self.nssdb.convert_db()
 
-    def pki_issue_certificate(self, service, profile, subject,
-                              keyfile, certfile,
-                              key_passwd_file=None, dns_2_san='',
-                              use_admin=False):
+    def pki_issue_ra_certificate(self, service, profile, subject,
+                                 keyfile, certfile,
+                                 key_passwd_file=None, dns_2_san='',
+                                 use_admin=False):
         """Use openssl to generate a CSR and submit it using the pki
            cli tool.
 
@@ -752,74 +756,7 @@ class CertDB:
                     "Unable to find %s in output" % key)
             return instring[start + len(key):].split()[0]
 
-        if use_admin:
-            nickname = 'ipa-ca-agent'
-        else:
-            ipautil.run(
-                [paths.OPENSSL, 'pkcs12', '-export',
-                 '-in', paths.RA_AGENT_PEM,
-                 '-out', os.path.join(self.secdir, 'agent.p12'),
-                 '-inkey', paths.RA_AGENT_KEY,
-                 '-name', 'IPA RA',
-                 '-password', 'file:{}'.format(self.passwd_fname),
-                 '-keypbe', 'AES-256-CBC',
-                 '-certpbe', 'AES-256-CBC',
-                 '-macalg', 'sha384',]
-            )
-
-            with open(self.passwd_fname, "r") as fd:
-                key_password = fd.read()
-            self.import_pkcs12(
-                os.path.join(self.secdir, 'agent.p12'),
-                pkcs12_passwd=key_password
-            )
-
-            if service == "krbtgt":
-                host = api.env.realm
-            else:
-                host = api.env.host
-
-            template = os.path.join(
-                paths.USR_SHARE_IPA_DIR, "openssl_cnf.template")
-            sub_dict = dict(
-                REALM=api.env.realm,
-                FQDN=host,
-                NICKNAME="Server-Cert",
-                PROFILE=profile,
-                SERVICE=service,
-                DNS_2=dns_2_san,
-            )
-            conf = ipautil.template_file(template, sub_dict)
-            destfile = os.path.join(self.secdir, "openssl.cnf")
-            with open(destfile, 'w') as f:
-                os.fchmod(f.fileno(), 0o600)
-                f.write(conf)
-
-            (keytype, keysize) = api.env.key_type_size.split(':', 1)
-
-            # Generate a private key
-            if (keytype.lower() == 'rsa'):
-                args = ["openssl", "genrsa",
-                        "-out", keyfile]
-                if key_passwd_file:
-                    args.extend(
-                        ["-aes256",
-                         "-passout", "file:{}".format(key_passwd_file)]
-                    )
-                args.extend([keysize])  # must be the last argument
-                result = ipautil.run(args, capture_output=True)
-
-            # Generate a CSR using the private key
-            args = ["openssl", "req", "-new",
-                    "-key", keyfile,
-                    "-out", os.path.join(self.secdir, "csr"),
-                    "-config", destfile]
-            if key_passwd_file:
-                args.extend(
-                    ["-passin", "file:{}".format(key_passwd_file)]
-                )
-            result = ipautil.run(args, capture_output=True)
-            nickname = 'IPA RA'
+        nickname = 'ipa-ca-agent'
 
         result = ipautil.run(
             ["pki", "-d", self.secdir,
@@ -830,25 +767,110 @@ class CertDB:
              "--subject", subject,
              "--csr", os.path.join(self.secdir, "csr")],
             capture_output=True)
-        if use_admin:
-            request_id = get_string(result.output, 'Request ID:')
-            status = get_string(result.output, 'Request Status:')
-            if status != "pending":
-                raise RuntimeError(
-                    "The certificate submission was not successful")
-            result = ipautil.run(
-                ["pki", "-C", self.passwd_fname,
-                 "-d", self.secdir,
-                 "-n", "ipa-ca-agent",
-                 "ca-cert-request-approve",
-                 "--force", request_id],
-                capture_output=True)
+
+        request_id = get_string(result.output, 'Request ID:')
+        status = get_string(result.output, 'Request Status:')
+        if status != "pending":
+            raise RuntimeError(
+                "The certificate submission was not successful")
+        result = ipautil.run(
+            ["pki", "-C", self.passwd_fname,
+             "-d", self.secdir,
+             "-n", "ipa-ca-agent",
+             "ca-cert-request-approve",
+             "--force", request_id],
+            capture_output=True)
 
         serial_number = get_string(result.output, 'Certificate ID:')
         status = get_string(result.output, 'Operation Result:')
         if status != "success":
             raise RuntimeError(
                 "The certificate submission was not successful")
+
+        # The profile auto-issues so no need to approve it
+        result = ipautil.run(
+            ["pki",
+             "-d", self.secdir,
+             "ca-cert-export",
+             "--output-file", certfile,
+             "--output-format", "pem",
+             serial_number],
+            capture_output=True)
+
+    def pki_issue_certificate(self, service, profile, subject,  # TODO subject not used
+                              keyfile, certfile,
+                              key_passwd_file=None, dns_2_san=''):
+        """Use openssl to generate a CSR and submit it using the pki
+           Python API, using the IPA RA certificate.
+        """
+        if service == "krbtgt":
+            host = api.env.realm
+        else:
+            host = api.env.host
+
+        template = os.path.join(
+            paths.USR_SHARE_IPA_DIR, "openssl_cnf.template")
+        sub_dict = dict(
+            REALM=api.env.realm,
+            FQDN=host,
+            NICKNAME="Server-Cert",
+            PROFILE=profile,
+            SERVICE=service,
+            DNS_2=dns_2_san,
+        )
+        conf = ipautil.template_file(template, sub_dict)
+        destfile = os.path.join(self.secdir, "openssl.cnf")
+        with open(destfile, 'w') as f:
+            os.fchmod(f.fileno(), 0o600)
+            f.write(conf)
+
+        (keytype, keysize) = api.env.key_type_size.split(':', 1)
+
+        # Generate a private key
+        if (keytype.lower() == 'rsa'):
+            args = ["openssl", "genrsa",
+                    "-out", keyfile]
+            if key_passwd_file:
+                args.extend(
+                    ["-aes256",
+                     "-passout", "file:{}".format(key_passwd_file)]
+                )
+            args.extend([keysize])  # must be the last argument
+            result = ipautil.run(args, capture_output=True)
+
+        # Generate a CSR using the private key
+        args = ["openssl", "req", "-new",
+                "-key", keyfile,
+                "-out", os.path.join(self.secdir, "csr"),
+                "-config", destfile]
+        if key_passwd_file:
+            args.extend(
+                ["-passin", "file:{}".format(key_passwd_file)]
+            )
+        result = ipautil.run(args, capture_output=True)
+
+        # initialise PKIClient
+        pki_client = pki.client.PKIClient(
+            url='https://localhost:8443', verify=False)
+        pki_client.set_client_auth(
+            client_cert=paths.RA_AGENT_PEM,
+            client_key=paths.RA_AGENT_KEY)
+        ca_client = pki.ca.CAClient(pki_client)
+        cert_client = pki.cert.CertClient(ca_client)
+
+        inputs = dict()
+        inputs['cert_request_type'] = 'pkcs10'
+        with open(os.path.join(self.secdir, "csr"), 'r') as f:
+            inputs['cert_request'] = f.read()
+        result = cert_client.enroll_cert(profile, inputs)[0]
+
+        request_data = result.request
+        if request_data.operation_result != "success":
+            raise RuntimeError(
+                "The certificate submission was not successful")
+
+        cert_data = result.cert
+        serial_number = cert_data.serial_number
 
         # The profile auto-issues so no need to approve it
         result = ipautil.run(
