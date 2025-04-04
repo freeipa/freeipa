@@ -975,7 +975,7 @@ class CAInstance(DogtagInstance):
                  "-a",]
             )
 
-            tmpdb.pki_issue_certificate(
+            tmpdb.pki_issue_ra_certificate(
                 service=None,
                 profile="caSubsystemCert",
                 subject="CN=IPA RA",
