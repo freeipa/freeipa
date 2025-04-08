@@ -776,7 +776,7 @@ class CertDB:
         result = cert_client.enroll_cert(constants.RA_AGENT_PROFILE, inputs)[0]
 
         request_data = result.request
-        if request_data.request_status != "complete":
+        if request_data.request_status != pki.cert.CertRequestStatus.COMPLETE:
             raise RuntimeError(
                 "The certificate submission is not complete")
         if request_data.operation_result != "success":
@@ -789,20 +789,27 @@ class CertDB:
             fd.write(c.encoded)
 
     def pki_issue_certificate(self, service, profile, keyfile, certfile,
-                              key_passwd_file=None, dns_2_san=''):
+                              key_passwd_file=None, dns_2_san='',
+                              othername_2_san=''):
         """Use openssl to generate a CSR and submit it using the pki
            Python API, using the IPA RA certificate.
         """
+        if service == 'krbtgt':
+            principal = api.env.realm
+        else:
+            principal = api.env.host
         template = os.path.join(
             paths.USR_SHARE_IPA_DIR, "openssl_cnf.template")
         sub_dict = dict(
             REALM=api.env.realm,
             DOMAIN=api.env.domain,
             FQDN=api.env.host,
+            PRINCIPAL=principal,
             NICKNAME="Server-Cert",
             PROFILE=profile,
             SERVICE=service,
             DNS_2=dns_2_san,
+            OTHERNAME_2=othername_2_san,
         )
         conf = ipautil.template_file(template, sub_dict)
         destfile = os.path.join(self.secdir, "openssl.cnf")

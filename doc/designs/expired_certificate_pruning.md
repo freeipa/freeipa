@@ -220,8 +220,9 @@ This is useful for testing the configuration or if the user wants to use the sys
 
 ## Implementation
 
-For online REST operations (login, run job) we will use the `ipaserver/plugins/dogtag.py::RestClient` class to manage the requests. This will take care of the authentication cookie, etc.
-The class uses dogtag.https_request() will can take PEM cert and key files as arguments. These will be used for authentication.
+For online REST operations (login, run job) we use the `pki` Python
+API.  The `PKIClient` class handles authentication (using IPA RA
+certificate).
 
 For the non-REST operations (configuration, cron settings) the tool will fork out to pki-server ca-config-set.
 
