@@ -776,7 +776,7 @@ class CertDB:
         result = cert_client.enroll_cert(constants.RA_AGENT_PROFILE, inputs)[0]
 
         request_data = result.request
-        if request_data.request_status != "complete":
+        if request_data.request_status != pki.cert.CertRequestStatus.COMPLETE:
             raise RuntimeError(
                 "The certificate submission is not complete")
         if request_data.operation_result != "success":
