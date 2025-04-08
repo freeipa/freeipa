@@ -981,8 +981,7 @@ class CAInstance(DogtagInstance):
                 subject="CN=IPA RA",
                 keyfile=None,
                 certfile=paths.RA_AGENT_PEM,
-                key_passwd_file=None,
-                use_admin=True)
+                dm_password=self.dm_password)
 
             self.ra_cert = x509.load_certificate_from_file(
                 paths.RA_AGENT_PEM)
