@@ -35,8 +35,8 @@ Overview of interacting with CMS:
 CMS stands for "Certificate Management System". It has been released under a
 variety of names, the open source version is called "dogtag".
 
-IPA now uses the REST API provided by dogtag, as documented at
-https://github.com/dogtagpki/pki/wiki/REST-API
+IPA now uses the python API provided by dogtag, as documented at
+https://github.com/dogtagpki/pki/wiki/Client-API
 
 The below is still relevant in places, particularly with data handling.
 This history of Javascript parsing and using the optional XML is left
@@ -85,29 +85,14 @@ data in the XML documents we're parsing.
 Parse Results vs. IPA command results:
 --------------------------------------
 
-CMS results can be parsed from either HTML or XML. CMS unfortunately is not
-consistent with how it names items or how it utilizes data types. IPA has strict
-rules about data types. Also IPA would like to see a more consistent view CMS
-data. Therefore we split the task of parsing CMS results out from the IPA
-command code. The parse functions normalize the result data by using a
-consistent set of names and data types. The IPA command only deals with the
-normalized parse results. This also allow us to use different parsers if need be
-(i.e. if we had to parse Javascript for some reason). The parse functions
-attempt to parse as must information from the CMS result as is possible. It puts
-the parse result into a dict whose normalized key/value pairs are easy to
-access. IPA commands do not need to return all the parsed results, it can pick
-and choose what it wants to return in the IPA command result from the parse
-result. It also rest assured the values in the parse result will be the correct
-data type. Thus the general sequence of steps for an IPA command talking to CMS
-are:
+CMS results will now always be python native objects, decoded from JSON.
 
-#. Receive IPA arguments from IPA command
-#. Formulate URL with arguments for CMS
-#. Make request to CMS server
-#. Extract XML document from HTML body returned by CMS
-#. Parse XML document using matching parse routine which returns response dict
-#. Extract relevant items from parse result and insert into command result
-#. Return command result
+There was a time where the data come from either HTML, XML or JSON
+and therefore some massaging of data was required. During the rewrite
+to use the python API the IPA API expectations generally remained the
+same and these classes were modified to return what it expected. This
+also ensures that an older IPA client or server will continue to work
+as well.
 
 Serial Numbers:
 ---------------
@@ -184,71 +169,11 @@ Basic rules on handling these values
 
        serial_number = int(serial_number)
 
-Xpath pattern matching on node names:
--------------------------------------
-
-There are many excellent tutorial on how to use xpath to find items in an XML
-document, as such there is no need to repeat this information here. However,
-most xpath tutorials make the assumption the node names you're searching for are
-fixed. For example:
-
-    doc.xpath('//book/chapter[*]/section[2]')
-
-Selects the second section of every chapter of the book. In this example the
-node names 'book', 'chapter', 'section' are fixed. But what if the XML document
-embedded the chapter number in the node name, for example 'chapter1',
-'chapter2', etc.? (If you're thinking this would be incredibly lame, you're
-right, but sadly people do things like this). Thus in this case you can't use
-the node name 'chapter' in the xpath location step because it's not fixed and
-hence won't match 'chapter1', 'chapter2', etc. The solution to this seems
-obvious, use some type of pattern matching on the node name. Unfortunately this
-advanced use of xpath is seldom discussed in tutorials and it's not obvious how
-to do it. Here are some hints.
-
-Use the built-in xpath string functions. Most of the examples illustrate the
-string function being passed the text *contents* of the node via '.' or
-string(.). However we don't want to pass the contents of the node, instead we
-want to pass the node name. To do this use the name() function. One way we could
-solve the chapter problem above is by using a predicate which says if the node
-name begins with 'chapter' it's a match. Here is how you can do that.
-
-        doc.xpath("//book/*[starts-with(name(), 'chapter')]/section[2]")
-
-The built-in starts-with() returns true if its first argument starts with its
-second argument. Thus the example above says if the node name of the second
-location step begins with 'chapter' consider it a match and the search
-proceeds to the next location step, which in this example is any node named
-'section'.
-
-But what if we would like to utilize the power of regular expressions to perform
-the test against the node name? In this case we can use the EXSLT regular
-expression extension. EXSLT extensions are accessed by using XML
-namespaces. The regular expression name space identifier is 're:' In lxml we
-need to pass a set of namespaces to XPath object constructor in order to allow
-it to bind to those namespaces during its evaluation. Then we just use the
-EXSLT regular expression match() function on the node name. Here is how this is
-done:
-
-        regexpNS = "http://exslt.org/regular-expressions"
-        find = etree.XPath("//book/*[re:match(name(), '^chapter(_\d+)$')]/section[2]",
-                           namespaces={'re':regexpNS}
-        find(doc)
-
-What is happening here is that etree.XPath() has returned us an evaluator
-function which we bind to the name 'find'. We've passed it a set of namespaces
-as a dict via the 'namespaces' keyword parameter of etree.XPath(). The predicate
-for the second location step uses the 're:' namespace to find the function name
-'match'. The re:match() takes a string to search as its first argument and a
-regular expression pattern as its second argument. In this example the string
-to search is the node name of the location step because we called the built-in
-node() function of XPath. The regular expression pattern we've passed says it's
-a match if the string begins with 'chapter' is followed by any number of
-digits and nothing else follows.
-
 '''
 
 from __future__ import absolute_import
 
+import base64
 import json
 import logging
 
@@ -260,12 +185,22 @@ import six
 
 from ipalib import Backend, api, x509
 from ipapython.dn import DN
-import ipapython.cookie
-from ipapython import dogtag, ipautil
+from ipapython import dogtag
 from ipaserver.masters import find_providing_server
 
+import requests.exceptions
+
 import pki
-from pki.client import PKIConnection
+import pki.authority
+import pki.ca
+import pki.cert
+import pki.client
+import pki.info
+import pki.profile
+import pki.subsystem
+import pki.system
+
+from pki.cert import CertRequestStatus
 import pki.crypto as cryptoutil
 from pki.kra import KRAClient
 
@@ -591,6 +526,9 @@ class RestClient(Backend):
 
     def __enter__(self):
         """Log into the REST API"""
+        # Refresh the ca_host property
+        object.__setattr__(self, '_ca_host', None)
+
         if self.cookie is not None:
             return None
 
@@ -677,14 +615,158 @@ class RestClient(Backend):
         return (status, resp_headers, resp_body)
 
 
+class APIClient(Backend):
+    """Simple Dogtag API client to be subclassed by other backends.
+
+    This class is a context manager.  Authenticated calls must be
+    executed in a ``with`` suite::
+
+        @register()
+        class ra_certprofile(APIClient):
+            path = 'profile'
+            ...
+
+        with api.Backend.ra_certprofile as profile_api:
+            # REST client is now logged in
+            profile_api.create_profile(...)
+
+    """
+    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
+    KDC_PROFILE = dogtag.KDC_PROFILE
+
+    def raise_certificate_operation_exception(self, func_name, exc):
+        """
+        :param func_name: function name where error occurred
+
+        :param exc:       the exception being raised
+
+        Raise an appropriate exception and log the error message.
+
+        This differs from the ra class raise_certificate_operation_error
+        in that it takes a raw exception instead of an error message and
+        attempts to return the correct exception type, which may not
+        be a CertificateOperationError
+        """
+
+        if exc is None:
+            err_msg = _('Unable to communicate with CMS')
+        elif hasattr(exc, 'message'):
+            err_msg = exc.message
+        else:
+            err_msg = str(exc)
+
+        logger.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
+        if type(exc) in (
+            pki.ProfileNotFoundException, pki.BadRequestException,
+            pki.ResourceNotFoundException,
+        ):
+            raise errors.NotFound(reason=err_msg)
+        raise errors.CertificateOperationError(error=err_msg)
+
+    def __init__(self, api):
+        self.pki_client = None
+        self._ca_host = None
+        self.override_port = None
+        if api.env.in_tree:
+            self.client_certfile = os.path.join(
+                api.env.dot_ipa, 'ra-agent.pem')
+
+            self.client_keyfile = os.path.join(
+                api.env.dot_ipa, 'ra-agent.key')
+        else:
+            self.client_certfile = paths.RA_AGENT_PEM
+            self.client_keyfile = paths.RA_AGENT_KEY
+        super(APIClient, self).__init__(api)
+        self.ca_cert = api.env.tls_ca_cert
+
+    @property
+    def ca_host(self):
+        if self._ca_host is not None:
+            return self._ca_host
+
+        preferred = [api.env.ca_host]
+        if api.env.host != api.env.ca_host:
+            preferred.append(api.env.host)
+        ca_host = find_providing_server(
+            'CA', conn=self.api.Backend.ldap2, preferred_hosts=preferred,
+            api=self.api
+        )
+        if ca_host is None:
+            # TODO: need during installation, CA is not yet set as enabled
+            ca_host = api.env.ca_host
+        self._ca_host = ca_host
+        return ca_host
+
+    def __enter__(self):
+        # Refresh the ca_host property
+        object.__setattr__(self, '_ca_host', None)
+        port = self.override_port or "443"
+
+        self.pki_client = pki.client.PKIClient(
+            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        self.pki_client.set_client_auth(
+            client_cert=paths.RA_AGENT_PEM,
+            client_key=paths.RA_AGENT_KEY)
+
+        try:
+            api_path = self.pki_client.get_api_path()
+        except requests.exceptions.RequestException as e:
+            raise errors.RemoteRetrieveError(reason=e.args[0])
+        path = '/ca/%s/account/login' % api_path
+
+        try:
+            response = self.pki_client.connection.get(path)
+        except requests.exceptions.HTTPError as e:
+            logger.debug("PKI API login failed %s", e)
+            if e.response.status_code == 401:
+                raise errors.RemoteRetrieveError(
+                    reason=_("PKI API login failed: invalid authentication"))
+            else:
+                raise errors.RemoteRetrieveError(reason=e.args[0])
+        except requests.exceptions.RequestException as e:
+            raise errors.RemoteRetrieveError(reason=e.args[0])
+
+        json_response = response.json()
+        logger.debug('Response:\n%s', json.dumps(json_response, indent=4))
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.pki_client is None:
+            return
+
+        api_path = self.pki_client.get_api_path()
+        path = '/ca/%s/account/logout' % api_path
+        try:
+            self.pki_client.connection.get(path)
+        except Exception as e:
+            # this shouldn't fail but it also shouldn't fail the call
+            logger.debug("ra_lightweight_ca: logout failed %s", e)
+
+
 @register()
-class ra(rabase.rabase, RestClient):
+class ra(rabase.rabase, APIClient):
     """
     Request Authority backend plugin.
     """
     DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
 
-    def raise_certificate_operation_error(self, func_name, err_msg=None, detail=None):
+    def __init__(self, api):
+        super(ra, self).__init__(api)
+        self.client = None
+
+    def get_client(self):
+        port = self.override_port or "443"
+        pki_client = pki.client.PKIClient(
+            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        pki_client.set_client_auth(
+            client_cert=paths.RA_AGENT_PEM,
+            client_key=paths.RA_AGENT_KEY)
+        ca_client = pki.ca.CAClient(pki_client)
+        self.client = pki.cert.CertClient(ca_client)
+
+    def raise_certificate_operation_error(
+        self, func_name, err_msg=None, detail=None
+    ):
         """
         :param func_name: function name where error occurred
 
@@ -707,64 +789,18 @@ class ra(rabase.rabase, RestClient):
             raise errors.NotFound(reason=err_msg)
         raise errors.CertificateOperationError(error=err_msg)
 
-    def _request(self, url, port, **kw):
-        """
-        :param url: The URL to post to.
-        :param kw: Keyword arguments to encode into POST body.
-        :return:   (http_status, http_headers, http_body)
-                   as (integer, dict, str)
-
-        Perform an HTTP request.
-        """
-        return dogtag.http_request(self.ca_host, port, url, **kw)
-
-    def _sslget(self, url, port, **kw):
-        """
-        :param url: The URL to post to.
-        :param kw:  Keyword arguments to encode into POST body.
-        :return:   (http_status, http_headers, http_body)
-                   as (integer, dict, str)
-
-        Perform an HTTPS request
-        """
-        return dogtag.https_request(
-            self.ca_host, port, url,
-            cafile=self.ca_cert,
-            client_certfile=self.client_certfile,
-            client_keyfile=self.client_keyfile,
-            **kw)
-
-    def get_parse_result_xml(self, xml_text, parse_func):
-        '''
-        :param xml_text:   The XML text to parse
-        :param parse_func: The XML parsing function to apply to the parsed DOM tree.
-        :return:           parsed result dict
-
-        Utility routine which parses the input text into an XML DOM tree
-        and then invokes the parsing function on the DOM tree in order
-        to get the parsing result as a dict of key/value pairs.
-        '''
-        parser = etree.XMLParser()
-        try:
-            doc = etree.fromstring(xml_text, parser)
-        except etree.XMLSyntaxError as e:
-            self.raise_certificate_operation_error('get_parse_result_xml',
-                                                   detail=str(e))
-        result = parse_func(doc)
-        logger.debug(
-            "%s() xml_text:\n%r\nparse_result:\n%r",
-            parse_func.__name__, xml_text, result)
-        return result
-
     def check_request_status(self, request_id):
         """
         :param request_id: request ID
 
         Check status of a certificate signing request.
 
-        The command returns a dict with these possible key/value pairs.
-        Some key/value pairs may be absent.
+        The command returns a pki.cert.CertRequestInfo object with
+        these attributes we care about.
 
+        Some values may not be present based on the status.
+
+        The function returns a simple dictionary consisting of:
         +-------------------+---------------+---------------+
         |result name        |result type    |comments       |
         +===================+===============+===============+
@@ -774,12 +810,14 @@ class ra(rabase.rabase, RestClient):
         +-------------------+---------------+---------------+
         |cert_request_status|unicode [2]_   |               |
         +-------------------+---------------+---------------+
+        |request_type       |unicode [3]_   |               |
+        +-------------------+---------------+---------------+
 
-        .. [1] The certID and requestId values are returned in
-               JSON as hex regardless of what the request contains.
+        .. [1] The certID and requestId values are returned as
+               string hex regardless of what the request contains.
                They are converted to decimal in the return value.
 
-        .. [2] cert_request_status, requestStatus, may be one of:
+        .. [2] request_status may be one of:
 
                - "begin"
                - "pending"
@@ -789,72 +827,48 @@ class ra(rabase.rabase, RestClient):
                - "rejected"
                - "complete"
 
-        The REST API responds with JSON in the form of:
-
-        {
-          "requestID": "0x3",
-          "requestType": "enrollment",
-          "requestStatus": "complete",
-          "requestURL": "https://ipa.example.test:8443/ca/rest/certrequests/3",
-          "certId": "0x3",
-          "certURL": "https://ipa.example.test:8443/ca/rest/certs/3",
-          "certRequestType": "pkcs10",
-          "operationResult": "success",
-          "requestId": "0x3"
-        }
-
+        .. [3] request_type is not necessarily an enrollment request.
+               If can, for example, be a revocation request. We don't
+               limit that here. It is the caller's responsibility.
         """
         logger.debug('%s.check_request_status()', type(self).__name__)
 
-        # Call CMS
-        path = 'certrequests/{}'.format(request_id)
+        # Convert serial number to integral type from string to properly handle
+        # radix issues. Note: the int object constructor will properly handle
+        # large magnitude integral values by returning a Python long type when
+        # necessary.
+        request_id = int(request_id, 0)
+
+        self.get_client()
         try:
-            http_status, _http_headers, http_body = self._ssldo(
-                'GET', path, use_session=False,
-                headers={
-                    'Accept': 'application/json',
-                },
-            )
-        except errors.HTTPRequestError as e:
+            request = self.client.get_request(request_id)
+        except pki.RequestNotFoundException:
+            raise errors.NotFound(
+                reason="Request ID %s not found" % hex(request_id))
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                raise errors.NotFound(
+                    reason="Request ID %s not found" % hex(request_id))
+            else:
+                self.raise_certificate_operation_error(
+                    'check_request_status',
+                    err_msg=e.args[0],
+                    detail=e.response.status_code
+                )
+
+        if request.operation_result != "success":
             self.raise_certificate_operation_error(
                 'check_request_status',
-                err_msg=e.msg,
-                detail=e.status  # pylint: disable=no-member
-            )
+                request.operation_result,
+                request.error_message)
 
-        # Parse and handle errors
-        if http_status != 200:
-            # Note: this is a bit of an API change in that the error
-            #       returned contains the hex value of the certificate
-            #       but it's embedded in the 404. I doubt anything relies
-            #       on it.
-            self.raise_certificate_operation_error('check_request_status',
-                                                   detail=http_status)
-
-        try:
-            parse_result = json.loads(ipautil.decode_json(http_body))
-        except ValueError:
-            logger.debug("Response from CA was not valid JSON: %s", e)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
-            )
-        operation_result = parse_result['operationResult']
-        if operation_result != "success":
-            self.raise_certificate_operation_error(
-                'check_request_status',
-                cms_request_status_to_string(operation_result),
-                parse_result.get('errorMessage'))
-
-        # Return command result
+        # reformat the response to what IPA expects
         cmd_result = {}
-        if 'certId' in parse_result:
-            cmd_result['serial_number'] = int(parse_result['certId'], 16)
-
-        if 'requestID' in parse_result:
-            cmd_result['request_id'] = int(parse_result['requestID'], 16)
-
-        if 'requestStatus' in parse_result:
-            cmd_result['cert_request_status'] = parse_result['requestStatus']
+        if request.cert_id:  # the cert may not have been issued
+            cmd_result['serial_number'] = int(request.cert_id, 16)
+        cmd_result['request_id'] = int(request.request_id)
+        cmd_result['cert_request_status'] = request.request_status
+        cmd_result['request_type'] = request.request_type
 
         return cmd_result
 
@@ -867,9 +881,14 @@ class ra(rabase.rabase, RestClient):
                               prefix.
 
 
-        The command returns a dict with these possible key/value pairs.
-        Some key/value pairs may be absent.
+        The call returns a pki.cert.CertData object with the
+        following attributes we care about:
 
+        Some key/value pairs may be absent. Not all available attributes
+        display by default due to overridden __repr__.
+
+
+        The function returns a simple dictionary consisting of:
         +-----------------+---------------+---------------+
         |result name      |result type    |comments       |
         +=================+===============+===============+
@@ -877,13 +896,14 @@ class ra(rabase.rabase, RestClient):
         +-----------------+---------------+---------------+
         |serial_number    |unicode [2]_   |               |
         +-----------------+---------------+---------------+
+        |serial_number_hex|unicode [2]_   |               |
+        +-----------------+---------------+---------------+
         |revocation_reason|int [3]_       |               |
         +-----------------+---------------+---------------+
 
-        .. [1] Base64 encoded
+        .. [1] PEM-encoded string
 
-        .. [2] Passed through RPC as decimal string. Can convert to
-               optimal integer type (int or long) via int(serial_number)
+        .. [2] Always a string hex value.
 
         .. [3] revocation reason may be one of:
 
@@ -898,54 +918,42 @@ class ra(rabase.rabase, RestClient):
                - 9 = PRIVILEGE_WITHDRAWN
                - 10 = AA_COMPROMISE
 
-
         """
         logger.debug('%s.get_certificate()', type(self).__name__)
+        if isinstance(serial_number, str):
+            serial_number = int(serial_number, 0)
 
-        # Call CMS
-        path = 'certs/{}'.format(serial_number)
+        self.get_client()
         try:
-            _http_status, _http_headers, http_body = self._ssldo(
-                'GET', path, use_session=False,
-                headers={
-                    'Accept': 'application/json',
-                },
-            )
-        except errors.HTTPRequestError as e:
+            cert = self.client.get_cert(serial_number)
+        except pki.CertNotFoundException:
+            raise errors.NotFound(
+                reason="Certificate ID %s not found" % hex(serial_number))
+        except Exception as e:
+            logger.debug("%s", e)
             self.raise_certificate_operation_error(
                 'get_certificate',
-                err_msg=e.msg,
-                detail=e.status  # pylint: disable=no-member
-            )
-
-        try:
-            resp = json.loads(ipautil.decode_json(http_body))
-        except ValueError:
-            logger.debug("Response from CA was not valid JSON: %s", e)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
+                detail="Failed to retrieve certificate: %s" % e
             )
 
         # Return command result
         cmd_result = {}
 
-        if 'Encoded' in resp:
-            s = resp['Encoded']
-            # The 'cert' plugin expects the result to be base64-encoded
-            # X.509 DER.  We expect the result to be PEM.  We have to
-            # strip the PEM headers and we use PEM_CERT_REGEX to do it.
-            match = x509.PEM_CERT_REGEX.search(s.encode('utf-8'))
-            if match:
-                s = match.group(2).decode('utf-8')
-            cmd_result['certificate'] = s.strip()
+        s = cert.encoded
+        # The 'cert' plugin expects the result to be base64-encoded
+        # X.509 DER. PKI returns the cert as PEM. We have to
+        # strip the PEM headers and we use PEM_CERT_REGEX to do it.
+        match = x509.PEM_CERT_REGEX.search(s.encode('utf-8'))
+        if match:
+            s = match.group(2).decode('utf-8')
+        cmd_result['certificate'] = s.strip()
 
-        if 'id' in resp:
-            serial = int(resp['id'], 0)
-            cmd_result['serial_number'] = unicode(serial)
-            cmd_result['serial_number_hex'] = u'0x%X' % serial
+        hex_value = cert.serial_number[2:]
+        cmd_result['serial_number'] = int(hex_value, 16)
+        cmd_result['serial_number_hex'] = cert.serial_number
 
-        if 'RevocationReason' in resp and resp['RevocationReason'] is not None:
-            cmd_result['revocation_reason'] = resp['RevocationReason']
+        if hasattr(cert, 'RevocationReason'):
+            cmd_result['revocation_reason'] = cert.RevocationReason
 
         return cmd_result
 
@@ -959,105 +967,61 @@ class ra(rabase.rabase, RestClient):
 
         Submit certificate signing request.
 
-        The command returns a dict with these key/value pairs:
+        The command returns a list of pki.cert.CertEnrollmentResult objects
+        with the following attributes we care about:
 
-        ``serial_number``
-            ``unicode``, decimal representation
-        ``serial_number_hex``
-            ``unicode``, hex representation with ``'0x'`` leader
-        ``certificate``
-            ``unicode``, base64-encoded DER
-        ``request_id``
-            ``unicode``, decimal representation
+        Some key/value pairs may be absent. Not all available attributes
+        display by default due to overridden __repr__.
+
+        For our purposes we only handle one CSR at a time so only
+        examine the first request.
+
+        The function returns a simple dictionary consisting of:
+        +-----------------+---------------+---------------+
+        |result name      |result type    |comments       |
+        +=================+===============+===============+
+        |certificate      |unicode [1]_   |               |
+        +-----------------+---------------+---------------+
+        |request_id       |unicode [2]_   |               |
+        +-----------------+---------------+---------------+
+
+        .. [1] base64-encoded value of the certificate
+
+        .. [2] The request_id
 
         """
         logger.debug('%s.request_certificate()', type(self).__name__)
 
-        # Call CMS
-        template = '''
-            {{
-              "ProfileID" : "{profile}",
-              "Renewal" : false,
-              "RemoteHost" : "",
-              "RemoteAddress" : "",
-              "Input" : [ {{
-                "id" : "i1",
-                "ClassID" : "certReqInputImpl",
-                "Name" : "Certificate Request Input",
-                "ConfigAttribute" : [ ],
-                "Attribute" : [ {{
-                  "name" : "cert_request_type",
-                  "Value" : "{req_type}",
-                  "Descriptor" : {{
-                    "Syntax" : "cert_request_type",
-                    "Description" : "Certificate Request Type"
-                  }}
-                }}, {{
-                  "name" : "cert_request",
-                  "Value" : "{req}",
-                  "Descriptor" : {{
-                    "Syntax" : "cert_request",
-                    "Description" : "Certificate Request"
-                  }}
-                }} ]
-              }} ],
-              "Output" : [ ],
-              "Attributes" : {{
-                "Attribute" : [ ]
-              }}
-            }}
-        '''
-        data = template.format(
-            profile=profile_id,
-            req_type=request_type,
-            req=csr,
-        )
-        data = data.replace('\n', '')
+        inputs = dict()
+        inputs['cert_request_type'] = 'pkcs10'
+        inputs['cert_request'] = csr
 
-        path = 'certrequests'
-        if ca_id:
-            path += '?issuer-id={}'.format(ca_id)
-
-        _http_status, _http_headers, http_body = self._ssldo(
-            'POST', path,
-            headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body=data,
-            use_session=False,
-        )
-
+        self.get_client()
         try:
-            resp_obj = json.loads(ipautil.decode_json(http_body))
-        except ValueError as e:
-            logger.debug("Response from CA was not valid JSON: %s", e)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
-            )
+            result = self.client.enroll_cert(profile_id, inputs, ca_id)
+        except pki.PKIException as e:
+            raise errors.CertificateOperationError(error=e.message)
+        except Exception as e:
+            raise errors.CertificateOperationError(error=e)
 
-        # Return command result
-        cmd_result = {}
-
-        entries = resp_obj.get('entries', [])
-
-        # ipa cert-request only handles a single PKCS #10 request so
-        # there's only one certinfo in the result.
-        if len(entries) < 1:
-            return cmd_result
-        certinfo = entries[0]
-
-        if certinfo['requestStatus'] != 'complete':
+        if len(result) != 1:
             raise errors.CertificateOperationError(
-                    error=certinfo.get('errorMessage'))
+                error="Expected one certificate and got %d" % len(result))
+        result = result[0]
 
-        if 'certId' in certinfo:
-            cmd_result = self.get_certificate(certinfo['certId'])
-            cert = ''.join(cmd_result['certificate'].splitlines())
-            cmd_result['certificate'] = cert
+        request_data = result.request
+        if request_data.request_status != CertRequestStatus.COMPLETE:
+            raise errors.CertificateOperationError(
+                error=request_data.error_messsage)
+        s = result.cert.encoded
+        match = x509.PEM_CERT_REGEX.search(s.encode('utf-8'))
+        if match:
+            s = match.group(2).decode('utf-8')
 
-        if 'requestURL' in certinfo:
-            cmd_result['request_id'] = certinfo['requestURL'].split('/')[-1]
+        cmd_result = {}
+        cmd_result['certificate'] = ''.join(s.splitlines())
+        cmd_result['request_id'] = result.request.request_id
+        cmd_result['cert_request_status'] = result.request.request_status
 
         return cmd_result
 
@@ -1065,41 +1029,25 @@ class ra(rabase.rabase, RestClient):
         """
         Retrieve the version of a remote PKI server.
 
-        The REST API request is a GET to the info URI:
-            GET /pki/rest/info HTTP/1.1
-
-        The response is: {"Version":"11.5.0","Attributes":{"Attribute":[]}}
+        Returns a version string like "11.6.0"
         """
-        path = "/pki/rest/info"
-        logger.debug('%s.get_pki_version()', type(self).__name__)
-        http_status, _http_headers, http_body = self._ssldo(
-            'GET', path,
-            headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            use_session=False,
-        )
-        if http_status != 200:
-            self.raise_certificate_operation_error('get_pki_version',
-                                                   detail=http_status)
+        port = self.override_port or "443"
+        pki_client = pki.client.PKIClient(
+            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        info_client = pki.info.InfoClient(pki_client)
 
         try:
-            response = json.loads(ipautil.decode_json(http_body))
-        except ValueError as e:
-            logger.debug("Response from CA was not valid JSON: %s", e)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
-            )
+            pki_version = str(info_client.get_version())
+        except Exception as e:
+            self.raise_certificate_operation_error('get_pki_version',
+                                                   detail=e)
 
-        return response.get('Version')
-
+        return pki_version
 
     def revoke_certificate(self, serial_number, revocation_reason=0):
         """
         :param serial_number: Certificate serial number. Must be a string value
-                              because serial numbers may be of any magnitude and
-                              XMLRPC cannot handle integers larger than 64-bit.
+                              because serial numbers may be of any magnitude
                               The string value should be decimal, but may
                               optionally be prefixed with a hex radix prefix
                               if the integral value is represented as
@@ -1109,34 +1057,15 @@ class ra(rabase.rabase, RestClient):
 
         Revoke a certificate.
 
-        The command returns a dict with these possible key/value pairs.
-        Some key/value pairs may be absent.
+        The command returns a CertRequestInfo object. This is used to
+        confirm that the revocation was successful.
 
+        The function returns a simple dictionary consisting of:
         +---------------+---------------+---------------+
         |result name    |result type    |comments       |
-        +===============+===============+===============+
+        +---------------+---------------+---------------+
         |revoked        |bool           |               |
         +---------------+---------------+---------------+
-
-        The REST API responds with JSON in the form of:
-
-        {
-          "requestID": "0x17",
-          "requestType": "revocation",
-          "requestStatus": "complete",
-          "requestURL": "https://ipa.example.test:8443/ca/rest/certrequests/23",
-          "certId": "0x12",
-          "certURL": "https://ipa.example.test:8443/ca/rest/certs/18",
-          "operationResult": "success",
-          "requestId": "0x17"
-        }
-
-        requestID appears to be deprecated in favor of requestId.
-
-        The Ids are in hex. IPA has traditionally returned these as
-        decimal. The REST API raises exceptions using hex which
-        will be a departure from previous behavior but unless we
-        scrape it out of the message there isn't much we can do.
         """
         reasons = ["Unspecified",
                    "Key_Compromise",
@@ -1160,56 +1089,28 @@ class ra(rabase.rabase, RestClient):
                 detail='7 is not a valid revocation reason'
             )
 
-        # dogtag changed the argument case for revocation from
-        # "reason" to "Reason" in PKI 11.4.0. Detect that change
-        # based on the remote version and pass the expected value
-        # in.
-        pki_version = pki.util.Version(self.get_pki_version())
-        if pki_version is None:
-            self.raise_certificate_operation_error('revoke_certificate',
-                                                   detail="Remove version not "
-                                                          "detected")
-        if pki_version < pki.util.Version("11.4.0"):
-            reason = "reason"
-        else:
-            reason = "Reason"
-
-        # Convert serial number to integral type from string to properly handle
-        # radix issues. Note: the int object constructor will properly handle
-        # large magnitude integral values by returning a Python long type
-        # when necessary.
-        serial_number = int(serial_number, 0)
-
-        path = 'agent/certs/{}/revoke'.format(serial_number)
-        data = '{{"{}":"{}"}}'.format(reason, reasons[revocation_reason])
-
-        http_status, _http_headers, http_body = self._ssldo(
-            'POST', path,
-            headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body=data,
-            use_session=False,
-        )
-        if http_status != 200:
-            self.raise_certificate_operation_error('revoke_certificate',
-                                                   detail=http_status)
-
+        self.get_client()
         try:
-            response = json.loads(ipautil.decode_json(http_body))
-        except ValueError as e:
-            logger.debug("Response from CA was not valid JSON: %s", e)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
+            result = self.client.revoke_cert(
+                serial_number,
+                revocation_reason=reasons[revocation_reason]
             )
+        except pki.BadRequestException as e:
+            # for some reason PKI returns with a # instead of a a hex:
+            # certificate #f5aa3399f725feb... has already been revoked
+            message = e.message.replace('#', '0x')
+            self.raise_certificate_operation_error('revoke_certificate',
+                                                   detail=message)
+        except Exception as e:
+            self.raise_certificate_operation_error('revoke_certificate',
+                                                   detail=str(e))
 
-        request_status = response['operationResult']
+        request_status = result.operation_result
         if request_status != 'success':
             self.raise_certificate_operation_error(
                 'revoke_certificate',
                 request_status,
-                response.get('errorMessage')
+                result.error_message
             )
 
         # Return command result
@@ -1225,9 +1126,8 @@ class ra(rabase.rabase, RestClient):
     def take_certificate_off_hold(self, serial_number):
         """
         :param serial_number: Certificate serial number. Must be a string value
-                              because serial numbers may be of any magnitude
-                              and XMLRPC cannot handle integers larger than
-                              64-bit. The string value should be decimal, but
+                              because serial numbers may be of any magnitude.
+                              The string value should be decimal, but
                               may optionally be prefixed with a hex radix
                               prefix if the integral value is represented as
                               hexadecimal. If no radix prefix is supplied
@@ -1241,34 +1141,10 @@ class ra(rabase.rabase, RestClient):
         +---------------+---------------+---------------+
         |result name    |result type    |comments       |
         +===============+===============+===============+
-        |requestStatus  |unicode        |               |
-        |errorMessage   |unicode        |               |
+        |unrevoked      |boolean        |               |
         +---------------+---------------+---------------+
-
-        The REST API responds with JSON in the form of:
-
-        {
-          "requestID":"0x19",
-          "requestType":"unrevocation",
-          "requestStatus":"complete",
-          "requestURL":"https://ipa.example.test:8443/ca/rest/certrequests/25",
-          "operationResult":"success",
-          "requestId":"0x19"
-        }
-
-        Being REST, some errors are returned as HTTP codes. Like
-        not being authenticated (401) or un-revoking a non-revoked
-        certificate (404).
-
-        For removing hold, unrevoking a non-revoked certificate will
-        return errorMessage.
-
-        requestID appears to be deprecated in favor of requestId.
-
-        The Ids are in hex. IPA has traditionally returned these as
-        decimal. The REST API raises exceptions using hex which
-        will be a departure from previous behavior but unless we
-        scrape it out of the message there isn't much we can do.
+        |error_string   |unicode        |               |
+        +---------------+---------------+---------------+
         """
 
         logger.debug('%s.take_certificate_off_hold()', type(self).__name__)
@@ -1279,41 +1155,29 @@ class ra(rabase.rabase, RestClient):
         # necessary.
         serial_number = int(serial_number, 0)
 
-        path = 'agent/certs/{}/unrevoke'.format(serial_number)
-
-        http_status, _http_headers, http_body = self._ssldo(
-            'POST', path,
-            headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            use_session=False,
-        )
-        if http_status != 200:
+        self.get_client()
+        try:
+            result = self.client.unrevoke_cert(serial_number)
+        except pki.CertNotFoundException:
+            raise errors.NotFound(
+                reason="Certificate ID %s not found" % hex(serial_number))
+        except Exception as e:
             self.raise_certificate_operation_error(
                 'take_certificate_off_hold',
-                detail=http_status)
+                e)
 
-        try:
-            response = json.loads(ipautil.decode_json(http_body))
-        except ValueError as e:
-            logger.debug("Response from CA was not valid JSON: %s", e)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
-            )
-
-        request_status = response['operationResult']
+        request_status = result.operation_result
         if request_status != 'success':
             self.raise_certificate_operation_error(
                 'take_certificate_off_hold',
-                request_status,
-                response.get('errorMessage'))
+                result.error_message
+            )
 
         # Return command result
         cmd_result = {}
 
-        if 'errorMessage' in response:
-            cmd_result['error_string'] = response['errorMessage']
+        if result.error_message:
+            cmd_result['error_string'] = result.error_message
 
         # We can assume the un-revocation was successful because if it failed
         # then REST will return a non-200 or operationalResult will not
@@ -1340,157 +1204,76 @@ class ra(rabase.rabase, RestClient):
 
         cert_search_request = dict()
 
-        # This matches the default configuration of the pki tool.
-        booloptions = {'serialNumberRangeInUse': True,
-                       'subjectInUse': False,
-                       'matchExactly': False,
-                       'revokedByInUse': False,
-                       'revokedOnInUse': False,
-                       'revocationReasonInUse': False,
-                       'issuedByInUse': False,
-                       'issuedOnInUse': False,
-                       'validNotBeforeInUse': False,
-                       'validNotAfterInUse': False,
-                       'validityLengthInUse': False,
-                       'certTypeInUse': False}
+        # option_types is a tuple that consists of:
+        #   1. attribute name passed from IPA API
+        #   2. attribute name used by PKI python API
 
-        if options.get('exactly', False):
-            booloptions['matchExactly'] = True
+        option_types = (
+            ('exactly', 'match_exactly'),
+            ('subject', 'common_name'),
+            ('issuer', 'issued_by'),
+            ('revocation_reason', 'revocation_reason'),
+            ('min_serial_number', 'serial_from'),
+            ('max_serial_number', 'serial_to'),
+            ('status', 'status'),
+        )
 
-        if 'subject' in options:
-            cert_search_request['commonName'] = options['subject']
-            booloptions['subjectInUse'] = True
-
-        if 'issuer' in options:
-            cert_search_request['issuerDN'] = options['issuer']
-
-        if 'revocation_reason' in options:
-            cert_search_request['revocationReason'] = unicode(
-                options['revocation_reason'])
-            booloptions['revocationReasonInUse'] = True
-
-        if 'min_serial_number' in options:
-            cert_search_request['serialFrom'] = unicode(
-                options['min_serial_number'])
-
-        if 'max_serial_number' in options:
-            cert_search_request['serialTo'] = unicode(
-                options['max_serial_number'])
-
-        if 'status' in options:
-            cert_search_request['status'] = options['status']
+        for (attr, dattr) in option_types:
+            if attr in options:
+                cert_search_request[dattr] = options[attr]
 
         # date_types is a tuple that consists of:
         #   1. attribute name passed from IPA API
-        #   2. attribute name used by REST API
-        #   3. boolean to set in the REST API
+        #   2. attribute name used by PKI python API
+        #   the date value is converted to a form that PKI wants
 
         date_types = (
-          ('validnotbefore_from', 'validNotBeforeFrom', 'validNotBeforeInUse'),
-          ('validnotbefore_to', 'validNotBeforeTo', 'validNotBeforeInUse'),
-          ('validnotafter_from', 'validNotAfterFrom', 'validNotAfterInUse'),
-          ('validnotafter_to', 'validNotAfterTo', 'validNotAfterInUse'),
-          ('issuedon_from', 'issuedOnFrom','issuedOnInUse'),
-          ('issuedon_to', 'issuedOnTo','issuedOnInUse'),
-          ('revokedon_from', 'revokedOnFrom','revokedOnInUse'),
-          ('revokedon_to', 'revokedOnTo','revokedOnInUse'),
+            ('validnotbefore_from', 'valid_not_before_from'),
+            ('validnotbefore_to', 'valid_not_before_to'),
+            ('validnotafter_from', 'valid_not_after_from'),
+            ('validnotafter_to', 'valid_not_after_to'),
+            ('issuedon_from', 'issued_on_from'),
+            ('issuedon_to', 'issued_on_to'),
+            ('revokedon_from', 'revoked_on_from'),
+            ('revokedon_to', 'revoked_on_to'),
         )
 
-        for (attr, dattr, battr) in date_types:
+        for (attr, dattr) in date_types:
             if attr in options:
                 epoch = convert_time(options[attr])
                 cert_search_request[dattr] = unicode(epoch)
-                booloptions[battr] = True
-
-        # Add the boolean options to our XML document
-        for opt, value in booloptions.items():
-            cert_search_request[opt] = str(value).lower()
 
         payload = json.dumps(cert_search_request, sort_keys=True)
         logger.debug('%s.find(): request: %s', type(self).__name__, payload)
 
-        url = '/ca/rest/certs/search?size=%d' % (
-            options.get('sizelimit', 0x7fffffff))
-        # pylint: disable=unused-variable
-        status, _, data = dogtag.https_request(
-            self.ca_host, 443,
-            url=url,
-            client_certfile=None,
-            client_keyfile=None,
-            cafile=self.ca_cert,
-            method='POST',
-            headers={'Accept-Encoding': 'gzip, deflate',
-                     'User-Agent': 'IPA',
-                     'Content-Type': 'application/json',
-                     'Accept': 'application/json'},
-            body=payload
-        )
-
-        if status != 200:
-            try:
-                response = json.loads(ipautil.decode_json(data))
-            except ValueError as e:
-                logger.debug("Response from CA was not valid JSON: %s", e)
-                self.raise_certificate_operation_error(
-                    'find',
-                    detail='Failed to parse error response')
-
-            # Try to parse out the returned error. If this fails then
-            # raise the generic certificate operations error.
-            try:
-                msg = response.get('Message')
-                msg = msg.split(':', 1)[0]
-            except etree.XMLSyntaxError as e:
-                self.raise_certificate_operation_error('find',
-                                                       detail=status)
-
-            # Message, at least in the case of search failing, consists
-            # of "<message>: <java stack trace>". Use just the first
-            # bit.
-            self.raise_certificate_operation_error('find',
-                                                   err_msg=msg,
-                                                   detail=status)
-
-        logger.debug('%s.find(): response: %s', type(self).__name__, data)
+        self.get_client()
+        sizelimit = options.get('sizelimit', 0)
+        if sizelimit == 0:
+            sizelimit = 0x7fffffff
         try:
-            data = json.loads(data)
-        except TypeError as e:
-            self.raise_certificate_operation_error('find',
-                                                   detail=str(e))
+            result = self.client.list_certs(
+                size=sizelimit,
+                **cert_search_request
+            )
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'find',
+                err_msg=str(e))
 
         # Grab all the certificates
-        certs = data['entries']
+        certs = result.cert_data_info_list
 
         results = []
 
         for cert in certs:
             response_request = {}
-            response_request['serial_number'] = int(
-                cert.get('id'), 16)  # parse as hex
-            response_request["serial_number_hex"] = (
-                "0x%X" % response_request["serial_number"]
-            )
-
-            dn = cert.get('SubjectDN')
-            if dn:
-                response_request['subject'] = dn
-
-            issuer_dn = cert.get('IssuerDN')
-            if issuer_dn:
-                response_request['issuer'] = issuer_dn
-
-            not_valid_before_utc = cert.get('NotValidBefore')
-            if not_valid_before_utc:
-                response_request['valid_not_before'] = (
-                    not_valid_before_utc)
-
-            not_valid_after_utc = cert.get('NotValidAfter')
-            if not_valid_after_utc:
-                response_request['valid_not_after'] = (not_valid_after_utc)
-
-            status = cert.get('Status')
-            if status:
-                response_request['status'] = status
+            response_request['serial_number'] = int(cert.serial_number, 16)
+            response_request["serial_number_hex"] = (cert.serial_number)
+            response_request['subject'] = cert.subject_dn
+            response_request['issuer'] = cert.issuer_dn
+            response_request['valid_not_before'] = cert.not_valid_before
+            response_request['valid_not_after'] = cert.not_valid_after
+            response_request['status'] = cert.status
             results.append(response_request)
 
         return results
@@ -1502,14 +1285,55 @@ class ra(rabase.rabase, RestClient):
         :param wait: if true, the call will be synchronous and return only
                      when the CRL has been generated
         """
+        def _sslget(url, port, **kw):
+            """
+            :param url: The URL to post to.
+            :param kw:  Keyword arguments to encode into POST body.
+            :return:   (http_status, http_headers, http_body)
+                       as (integer, dict, str)
+
+            Perform an HTTPS request
+            """
+            return dogtag.https_request(
+                self.ca_host, port, url,
+                cafile=self.ca_cert,
+                client_certfile=self.client_certfile,
+                client_keyfile=self.client_keyfile,
+                **kw)
+
+        def get_parse_result_xml(xml_text, parse_func):
+            '''
+            :param xml_text:   The XML text to parse
+            :param parse_func: The XML parsing function to apply to the
+                               parsed DOM tree.
+            :return:           parsed result dict
+
+            Utility routine which parses the input text into an XML DOM tree
+            and then invokes the parsing function on the DOM tree in order
+            to get the parsing result as a dict of key/value pairs.
+            '''
+            parser = etree.XMLParser()
+            try:
+                doc = etree.fromstring(xml_text, parser)
+            except etree.XMLSyntaxError as e:
+                self.raise_certificate_operation_error(
+                    'get_parse_result_xml',
+                    detail=str(e))
+            result = parse_func(doc)
+
+            logger.debug(
+                "%s() xml_text:\n%r\nparse_result:\n%r",
+                parse_func.__name__, xml_text, result)
+            return result
+
         logger.debug('%s.updateCRL()', type(self).__name__)
         # Call CMS
         http_status, _http_headers, http_body = (
-            self._sslget('/ca/agent/ca/updateCRL',
-                         self.override_port or self.env.ca_agent_port,
-                         crlIssuingPoint='MasterCRL',
-                         waitForUpdate=wait,
-                         xml='true')
+            _sslget('/ca/agent/ca/updateCRL',
+                    self.override_port or 443,
+                    crlIssuingPoint='MasterCRL',
+                    waitForUpdate=wait,
+                    xml='true')
         )
 
         # Parse and handle errors
@@ -1517,8 +1341,8 @@ class ra(rabase.rabase, RestClient):
             self.raise_certificate_operation_error('updateCRL',
                                                    detail=http_status)
 
-        parse_result = self.get_parse_result_xml(http_body,
-                                                 parse_updateCRL_xml)
+        parse_result = get_parse_result_xml(http_body,
+                                            parse_updateCRL_xml)
         request_status = parse_result['request_status']
         if request_status != CMS_STATUS_SUCCESS:
             self.raise_certificate_operation_error(
@@ -1589,83 +1413,123 @@ class kra(Backend):
 
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
         # https://fedorahosted.org/freeipa/ticket/4557
-        connection = PKIConnection(
-            'https',
-            self.kra_host,
-            str(self.kra_port),
-            cert_paths=paths.IPA_CA_CRT
-        )
-
-        connection.set_authentication_cert(paths.RA_AGENT_PEM,
-                                           paths.RA_AGENT_KEY)
-
-        yield KRAClient(connection, crypto)
+        pki_client = pki.client.PKIClient(
+            url=f'https://{self.kra_host}:{self.kra_port}',
+            ca_bundle=paths.IPA_CA_CRT)
+        pki_client.set_client_auth(
+            client_cert=paths.RA_AGENT_PEM,
+            client_key=paths.RA_AGENT_KEY)
+        yield KRAClient(pki_client.connection, crypto)
 
 
 @register()
-class ra_certprofile(RestClient):
+class ra_certprofile(APIClient):
     """
     Profile management backend plugin.
     """
-    path = 'profiles'
+    def __enter__(self):
+        super().__enter__()
+        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
+        self.client = pki.profile.ProfileClient(sub_client)
+
+        return self
 
     def create_profile(self, profile_data):
         """
         Import the profile into Dogtag
         """
-        self._ssldo('POST', 'raw',
-            headers={
-                'Content-type': 'application/xml',
-                'Accept': 'application/json',
-            },
-            body=profile_data
-        )
+        try:
+            self.client.create_profile(profile_data, raw=True)
+        except pki.ConflictingOperationException as e:
+            # profile exists
+            raise errors.RemoteRetrieveError(reason=str(e))
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'create_profile', e)
 
     def read_profile(self, profile_id):
         """
         Read the profile configuration from Dogtag
         """
-        _status, _resp_headers, resp_body = self._ssldo(
-            'GET', profile_id + '/raw')
-        return resp_body
+        try:
+            profile = self.client.get_profile(profile_id, raw=True)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'read_profile', e)
+        return profile.encode("utf-8")
 
     def update_profile(self, profile_id, profile_data):
         """
         Update the profile configuration in Dogtag
         """
-        self._ssldo('PUT', profile_id + '/raw',
-            headers={
-                'Content-type': 'application/xml',
-                'Accept': 'application/json',
-            },
-            body=profile_data
-        )
+        try:
+            self.client.modify_profile(profile_data)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'update_profile', e)
 
     def enable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
         """
-        self._ssldo('POST', profile_id + '?action=enable')
+        try:
+            self.client.enable_profile(profile_id)
+        except pki.ConflictingOperationException as e:
+            raise errors.RemoteRetrieveError(reason=str(e))
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'enable_profile', e)
 
     def disable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
         """
-        self._ssldo('POST', profile_id + '?action=disable')
+        try:
+            self.client.disable_profile(profile_id)
+        except pki.ConflictingOperationException as e:
+            raise errors.RemoteRetrieveError(reason=str(e))
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'disable_profile', e)
 
     def delete_profile(self, profile_id):
         """
         Delete the profile from Dogtag
         """
-        self._ssldo('DELETE', profile_id, headers={'Accept': 'application/json'})
+        try:
+            self.client.delete_profile(profile_id)
+        except pki.ProfileNotFoundException:
+            raise errors.NotFound(
+                reason="Profile ID %s not found" % profile_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'delete_profile', e)
+
+    def list_profiles(self):
+        profiles = self.client.list_profiles()
+
+        results = []
+        for profile in profiles:
+            response = {}
+            response['profile_id'] = profile.profile_id
+            response['profile_name'] = profile.profile_name
+            response['profile_enabled'] = str(profile.profileEnable)
+            results.append(response)
+
+        return results
 
 
 @register()
-class ra_lightweight_ca(RestClient):
+class ra_lightweight_ca(APIClient):
     """
     Lightweight CA management backend plugin.
     """
-    path = 'authorities'
+    def __enter__(self):
+        super().__enter__()
+        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
+        self.client = pki.authority.AuthorityClient(sub_client)
+
+        return self
 
     def create_ca(self, dn):
         """Create CA with the given DN.
@@ -1676,77 +1540,146 @@ class ra_lightweight_ca(RestClient):
         Return the (parsed) JSON response from server.
 
         """
-
         assert isinstance(dn, DN)
-        _status, _resp_headers, resp_body = self._ssldo(
-            'POST', None,
-            headers={
-                'Content-type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body=json.dumps({"parentID": "host-authority", "dn": unicode(dn)}),
-        )
-        try:
-            return json.loads(ipautil.decode_json(resp_body))
-        except Exception as e:
-            logger.debug('%s', e, exc_info=True)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON")
+
+        host_ca = None
+        authorities = self.client.list_cas()
+        for ca in authorities.ca_list:
+            if ca.is_host_authority:
+                host_ca = ca
+                break
+
+        if not host_ca:
+            logger.debug('No host ca found')
+            raise errors.NotFound(
+                reason=("No host ca found")
             )
 
-    def read_ca(self, ca_id):
-        _status, _resp_headers, resp_body = self._ssldo(
-            'GET', ca_id, headers={'Accept': 'application/json'})
+        authority_data = {
+            'dn': str(dn),
+            'description': str(dn),
+            'parent_aid': host_ca.aid
+        }
+        data = pki.authority.AuthorityData(**authority_data)
+
         try:
-            return json.loads(ipautil.decode_json(resp_body))
+            subca = self.client.create_ca(data)
         except Exception as e:
-            logger.debug('%s', e, exc_info=True)
-            raise errors.RemoteRetrieveError(
-                reason=_("Response from CA was not valid JSON"))
+            self.raise_certificate_operation_exception(
+                'create_ca', e)
+
+        newca = self.client.get_ca(subca.aid)
+        response = dict()
+        response['id'] = subca.aid
+        response['issuerDN'] = host_ca.dn
+        response['dn'] = newca.dn
+        return response
+
+    def read_ca(self, ca_id):
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'read_ca', e)
+
+        # reformat the response to what IPA expects
+        response = dict()
+        response['id'] = subca.aid
+        # Note that issuerDN is not present in the __repr__ class
+        response['issuerDN'] = subca.issuerDN  # pylint: disable=no-member
+        response['dn'] = subca.dn
+        response['enabled'] = subca.enabled
+
+        return response
 
     def read_ca_cert(self, ca_id):
-        _status, _resp_headers, resp_body = self._ssldo(
-            'GET', '{}/cert'.format(ca_id),
-            headers={'Accept': 'application/pkix-cert'})
-        return resp_body
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'read_ca_cert', e)
+        try:
+            cert = self.client.get_cert(subca.aid, "PEM")
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'read_ca_cert', e)
+        c = x509.load_pem_x509_certificate(cert.encode("utf-8"))
+        return c.public_bytes(x509.Encoding.DER)
 
     def read_ca_chain(self, ca_id):
-        _status, _resp_headers, resp_body = self._ssldo(
-            'GET', '{}/chain'.format(ca_id),
-            headers={'Accept': 'application/pkcs7-mime'})
-        return resp_body
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'read_ca_chain', e)
+        # The PKCS7 format from PKI doesn't seem to be correct. So
+        # retrieve it as PEM and decode it into DER here instead.
+        try:
+            chain = self.client.get_chain(subca.aid, "PEM")
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'read_ca_chain', e)
+        chain = chain.replace(r"----BEGIN PKCS7----", "")
+        chain = chain.replace(r"----END PKCS7----", "")
+        chain = base64.b64decode(chain)
+        return chain
 
     def disable_ca(self, ca_id):
-        self._ssldo(
-            'POST', ca_id + '/disable',
-            headers={'Accept': 'application/json'},
-        )
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'disable_ca', e)
+
+        try:
+            self.client.disable_ca(subca.aid)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'disable_ca', e)
 
     def enable_ca(self, ca_id):
-        self._ssldo(
-            'POST', ca_id + '/enable',
-            headers={'Accept': 'application/json'},
-        )
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'enable_ca', e)
+
+        try:
+            self.client.enable_ca(subca.aid)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'enable_ca', e)
 
     def delete_ca(self, ca_id):
-        self._ssldo('DELETE', ca_id)
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'enable_ca', e)
+        try:
+            self.client.delete_ca(subca.aid)
+        except Exception as e:
+            self.raise_certificate_operation_exception(
+                'enable_ca', e)
 
 
 @register()
-class ra_securitydomain(RestClient):
+class ra_securitydomain(APIClient):
     """
     Security domain management backend plugin.
 
     Dogtag handles the creation of securitydomain entries
     we need to clean them up when an IPA server is removed.
     """
-    path = 'securityDomain/hosts'
+    def __enter__(self):
+        super().__enter__()
+        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
+        self.client = pki.system.SecurityDomainClient(sub_client)
+
+        return self
 
     def delete_domain(self, hostname, type):
         """
         Delete a security domain
         """
-        self._ssldo(
-            'DELETE', f'{type}%20{hostname}%20443',
-            headers={'Accept': 'application/json'}
-        )
+        self.client.remove_host(hostname, type.lower(), '443')

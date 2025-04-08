@@ -448,22 +448,25 @@ class KrbInstance(service.Service):
             )
 
     def _get_certificate(self):
+        othername_2 = "otherName.2 = 1.3.6.1.5.2.2;SEQUENCE:princ_name"
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdb = certs.CertDB(api.env.realm, nssdir=tmpdir)
             tmpdb.create_from_cacert()
             tmpdb.pki_issue_certificate(
                 "krbtgt", KDC_PROFILE,
-                paths.KDC_KEY, paths.KDC_CERT
+                paths.KDC_KEY, paths.KDC_CERT,
+                othername_2_san=othername_2,
             )
 
             os.chmod(paths.KDC_CERT, 0o644)
             self.cert = x509.load_certificate_from_file(paths.KDC_CERT)
             certmonger.start_tracking(
                 certpath=(paths.KDC_CERT, paths.KDC_KEY),
-                post_command='renew_kdc_cert',
                 dns=[self.fqdn],
                 storage='FILE',
                 profile=KDC_PROFILE,
+                post_command='renew_kdc_cert',
+                perms=(0o644, 0o600),
             )
 
     def _call_certmonger(self, certmonger_ca='IPA'):
