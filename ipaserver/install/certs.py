@@ -732,70 +732,64 @@ class CertDB:
         self.nssdb.convert_db()
 
     def pki_issue_ra_certificate(self, service, profile, subject,
-                                 keyfile, certfile,
-                                 key_passwd_file=None, dns_2_san='',
-                                 use_admin=False):
-        """Use openssl to generate a CSR and submit it using the pki
-           cli tool.
-
-           There are effective two modes for this depending on the value
-           of use_admin. When use_admin is True we are issuing the RA
-           certificate using the CA admin certificate. When it is False
-           we are using the RA agent certificate to issue certificates for
-           services during installation.
-
-           use_admin = True
-              - service and profile can be None
-              - fetch the CA chain manually
-              - the request needs to be manually approved
+                                 keyfile, certfile, dm_password):
+        """Using a user-provided CSR submit it to the CA using its
+           python API.
         """
-        def get_string(instring, key):
-            start = instring.find(key)
-            if start == -1:
-                raise RuntimeError(
-                    "Unable to find %s in output" % key)
-            return instring[start + len(key):].split()[0]
-
         nickname = 'ipa-ca-agent'
 
-        result = ipautil.run(
-            ["pki", "-d", self.secdir,
-             "-C", self.passwd_fname,
-             "-n", nickname,
-             "ca-cert-request-submit",
-             "--profile", profile,
-             "--subject", subject,
-             "--csr", os.path.join(self.secdir, "csr")],
-            capture_output=True)
+        pk12pwfile = ipautil.write_tmp_file(dm_password)
+        agent_key = ipautil.write_tmp_file("")
+        agent_cert = ipautil.write_tmp_file("")
+        cmd = [
+            paths.OPENSSL, 'pkcs12',
+            '-in', paths.DOGTAG_ADMIN_P12, 
+            '-out', agent_cert.name,
+            '-nokeys',
+            '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
+        ]
+        ipautil.run(cmd)
 
-        request_id = get_string(result.output, 'Request ID:')
-        status = get_string(result.output, 'Request Status:')
-        if status != "pending":
+        cmd = [
+            paths.OPENSSL, 'pkcs12',
+            '-in', paths.DOGTAG_ADMIN_P12,
+            '-out', agent_key.name,
+            '-nocerts',
+            '-noenc',
+            '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
+        ]
+        ipautil.run(cmd)
+
+        pki_client = pki.client.PKIClient(
+            url='https://localhost:8443', verify=False)
+        pki_client.set_client_auth(
+            client_cert=agent_cert.name,
+            client_key=agent_key.name,
+        )
+        ca_client = pki.ca.CAClient(pki_client)
+        cert_client = pki.cert.CertClient(ca_client)
+
+        inputs = dict()
+        inputs['cert_request_type'] = 'pkcs10'
+        with open(os.path.join(self.secdir, "csr"), 'r') as f:
+            inputs['cert_request'] = f.read()
+        result = cert_client.enroll_cert(profile, inputs)[0]
+
+        request_data = result.request
+        if request_data.request_status != "complete":
+            raise RuntimeError(
+                "The certificate submission is not complete")
+        if request_data.operation_result != "success":
             raise RuntimeError(
                 "The certificate submission was not successful")
-        result = ipautil.run(
-            ["pki", "-C", self.passwd_fname,
-             "-d", self.secdir,
-             "-n", "ipa-ca-agent",
-             "ca-cert-request-approve",
-             "--force", request_id],
-            capture_output=True)
 
-        serial_number = get_string(result.output, 'Certificate ID:')
-        status = get_string(result.output, 'Operation Result:')
-        if status != "success":
-            raise RuntimeError(
-                "The certificate submission was not successful")
+        cert_data = result.cert
+        serial_number = cert_data.serial_number
 
-        # The profile auto-issues so no need to approve it
-        result = ipautil.run(
-            ["pki",
-             "-d", self.secdir,
-             "ca-cert-export",
-             "--output-file", certfile,
-             "--output-format", "pem",
-             serial_number],
-            capture_output=True)
+        # FIXME: need error checking
+        c = cert_client.get_cert(cert_data.serial_number)
+        with open(certfile, "w") as fd:
+            fd.write(c.encoded)
 
     def pki_issue_certificate(self, service, profile, subject,  # TODO subject not used
                               keyfile, certfile,
@@ -872,15 +866,10 @@ class CertDB:
         cert_data = result.cert
         serial_number = cert_data.serial_number
 
-        # The profile auto-issues so no need to approve it
-        result = ipautil.run(
-            ["pki",
-             "-d", self.secdir,
-             "ca-cert-export",
-             "--output-file", certfile,
-             "--output-format", "pem",
-             serial_number],
-            capture_output=True)
+        # FIXME: need error checking
+        c = cert_client.get_cert(cert_data.serial_number)
+        with open(certfile, "w") as fd:
+            fd.write(c.encoded)
 
 
 class _CrossProcessLock:
