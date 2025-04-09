@@ -1975,26 +1975,29 @@ class IPAMigrate():
                     stats['config_processed'] += 1
 
             # Slapi NIS Plugin
-            if DN(NIS_PLUGIN['dn']) == DN(entry['dn']):
-                # Parent plugin entry
-                self.process_config_entry(
-                    entry['dn'], entry['attrs'], NIS_PLUGIN,
-                    add_missing=True)
-                stats['config_processed'] += 1
-            elif DN(NIS_PLUGIN['dn']) in DN(entry['dn']):
-                # Child NIS plugin entry
-                nis_dn = entry['dn']
-                lc_remote_realm = self.remote_realm.lower()
-                lc_realm = self.realm.lower()
-                nis_dn = nis_dn.replace(lc_remote_realm, lc_realm)
-                if 'nis-domain' in entry['attrs']:
-                    value = entry['attrs']['nis-domain'][0]
-                    value = value.replace(lc_remote_realm, lc_realm)
-                    entry['attrs']['nis-domain'][0] = value
-                # Process the entry
-                self.process_config_entry(nis_dn, entry['attrs'], NIS_PLUGIN,
-                                          add_missing=True)
-                stats['config_processed'] += 1
+            # If the file nis-update.uldif does not exist, no support for NIS
+            if os.path.exists(paths.NIS_ULDIF):
+                if DN(NIS_PLUGIN['dn']) == DN(entry['dn']):
+                    # Parent plugin entry
+                    self.process_config_entry(
+                        entry['dn'], entry['attrs'], NIS_PLUGIN,
+                        add_missing=True)
+                    stats['config_processed'] += 1
+                elif DN(NIS_PLUGIN['dn']) in DN(entry['dn']):
+                    # Child NIS plugin entry
+                    nis_dn = entry['dn']
+                    lc_remote_realm = self.remote_realm.lower()
+                    lc_realm = self.realm.lower()
+                    nis_dn = nis_dn.replace(lc_remote_realm, lc_realm)
+                    if 'nis-domain' in entry['attrs']:
+                        value = entry['attrs']['nis-domain'][0]
+                        value = value.replace(lc_remote_realm, lc_realm)
+                        entry['attrs']['nis-domain'][0] = value
+                    # Process the entry
+                    self.process_config_entry(nis_dn, entry['attrs'],
+                                              NIS_PLUGIN,
+                                              add_missing=True)
+                    stats['config_processed'] += 1
 
     #
     # Migration

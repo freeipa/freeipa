@@ -110,6 +110,7 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         SELINUX_USERMAP_ORDER=platformconstants.SELINUX_USERMAP_ORDER,
         NAMED_UID=named_uid,
         NAMED_GID=named_gid,
+        NIS='' if os.path.exists(paths.NIS_ULDIF) else '#',
     )
 
 
