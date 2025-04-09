@@ -1265,3 +1265,51 @@ class TestIPAMigrationWithADtrust(IntegrationTest):
             ["ipa", "idrange-show", ad_domain_name + "_id_range"]
         )
         assert cmd1.stdout_text == cmd2.stdout_text
+
+
+class TestIPAMigratewithBackupRestore(IntegrationTest):
+    """
+    Tests for ipa-migrate tool with backup files.
+    """
+    num_replicas = 1
+    topology = "line"
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        prepare_ipa_server(cls.master)
+        tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True,
+                             extra_args=['--allow-zone-overlap'])
+
+    def test_ipa_migrate_stage_mode(self):
+        """
+        This test checks ipa-migrate with LDIF file
+        from backup of remote server is successful.
+        """
+        ERR_MSG = (
+            "error: change collided with another change"
+        )
+        dashed_domain_name = self.master.domain.realm.replace(
+            ".", '-'
+        )
+        user_root_ldif_file = '{}-userRoot.ldif'.format(
+            dashed_domain_name
+        )
+        param = ['-n','-f', user_root_ldif_file]
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        backup_path = tasks.get_backup_dir(self.replicas[0])
+        ipa_tar_file = backup_path + '/ipa-full.tar'
+        self.replicas[0].run_command(
+            ['/usr/bin/tar', '-xvf', ipa_tar_file]
+        )
+        result = run_migrate(
+            self.replicas[0],
+            "stage-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=param,
+        )
+        assert result.returncode == 0
+        assert ERR_MSG not in result.stderr_text
