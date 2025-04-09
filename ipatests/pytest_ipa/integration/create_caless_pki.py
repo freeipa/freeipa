@@ -26,7 +26,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import encoder as der_encoder
 from pyasn1.codec.native import decoder as native_decoder

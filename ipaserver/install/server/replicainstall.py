@@ -18,7 +18,7 @@ import tempfile
 import textwrap
 import traceback
 
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 import six
 
 from ipaclient.install.client import check_ldap_conf, sssd_enable_ifp
