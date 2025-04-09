@@ -10,13 +10,17 @@ variables:
 # platform specific variables, links to
 - template: ${{ parameters.VARIABLES_FILE }}
 
+resources:
+  containers:
+  - container: 'builder'
+    image: $(DOCKER_BUILD_IMAGE)
+    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+
 jobs:
 - job: Build
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
@@ -33,8 +37,9 @@ jobs:
         cp -pr dist container/
         cp $(IPA_TESTS_DOCKERFILES)/$(DOCKER_DOCKERFILE) container/Dockerfile
         cd container
-        docker build -t freeipa-azure-builder .
-        docker save freeipa-azure-builder | gzip > '$(builddir)/freeipa-azure-builder-container.tar.gz'
+        podman build -t freeipa-azure-builder .
+        podman image save -o $(builddir)/freeipa-azure-builder-container.tar freeipa-azure-builder:latest
+        gzip $(builddir)/freeipa-azure-builder-container.tar
       displayName: Create container image for test
     - template: templates/publish-build.yml
       parameters:
@@ -57,9 +62,7 @@ jobs:
 - job: Lint
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_LINT_TEMPLATE }}
@@ -79,9 +82,7 @@ jobs:
 - job: Docs
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.AUTOCONF_TEMPLATE }}
@@ -95,9 +96,7 @@ jobs:
 - job: Tox
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_TOX_TEMPLATE }}
@@ -118,9 +117,7 @@ jobs:
 - job: WebUI_Unit_Tests
   pool:
     vmImage: $(VM_IMAGE)
-  container:
-    image: $(DOCKER_BUILD_IMAGE)
-    options: --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --privileged --env container=docker
+  container: builder
   steps:
     - template: templates/${{ variables.PREPARE_BUILD_TEMPLATE }}
     - template: templates/${{ variables.PREPARE_WEBUI_TEMPLATE }}
