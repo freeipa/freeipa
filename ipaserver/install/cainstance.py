@@ -963,6 +963,7 @@ class CAInstance(DogtagInstance):
 
             (_keytype, keysize) = api.env.key_type_size.split(':', 1)
 
+            csrfile = os.path.join(tmpdb.secdir, "csr")
             ipautil.run(
                 [paths.CERTUTIL,
                  "-d", tmpdb.secdir,
@@ -971,15 +972,12 @@ class CAInstance(DogtagInstance):
                  "-g", keysize,
                  "-z", os.path.join(tmpdb.secdir, tmpdb.noise_fname),
                  "-f", tmpdb.passwd_fname,
-                 "-o", os.path.join(tmpdb.secdir, "csr"),
+                 "-o", csrfile,
                  "-a",]
             )
 
             tmpdb.pki_issue_ra_certificate(
-                service=None,
-                profile="caSubsystemCert",
-                subject="CN=IPA RA",
-                keyfile=None,
+                csrfile=csrfile,
                 certfile=paths.RA_AGENT_PEM,
                 dm_password=self.dm_password)
 
