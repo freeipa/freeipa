@@ -44,7 +44,7 @@ from ipapython import ipautil
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
-from ipalib import x509, api
+from ipalib import x509, api, constants
 from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
 from ipalib.util import strip_csr_header
@@ -731,10 +731,12 @@ class CertDB:
         """
         self.nssdb.convert_db()
 
-    def pki_issue_ra_certificate(self, service, profile, subject,
-                                 keyfile, certfile, dm_password):
+    def pki_issue_ra_certificate(self, csrfile, certfile, dm_password):
         """Using a user-provided CSR submit it to the CA using its
            python API.
+
+        `csrfile` points to the CSR.  `certfile` is the path where we
+        write the issued certificate.
         """
         nickname = 'ipa-ca-agent'
 
@@ -743,7 +745,7 @@ class CertDB:
         agent_cert = ipautil.write_tmp_file("")
         cmd = [
             paths.OPENSSL, 'pkcs12',
-            '-in', paths.DOGTAG_ADMIN_P12, 
+            '-in', paths.DOGTAG_ADMIN_P12,
             '-out', agent_cert.name,
             '-nokeys',
             '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
@@ -771,9 +773,9 @@ class CertDB:
 
         inputs = dict()
         inputs['cert_request_type'] = 'pkcs10'
-        with open(os.path.join(self.secdir, "csr"), 'r') as f:
+        with open(csrfile, 'r') as f:
             inputs['cert_request'] = f.read()
-        result = cert_client.enroll_cert(profile, inputs)[0]
+        result = cert_client.enroll_cert(constants.RA_AGENT_PROFILE, inputs)[0]
 
         request_data = result.request
         if request_data.request_status != "complete":
@@ -785,14 +787,11 @@ class CertDB:
 
         cert_data = result.cert
         serial_number = cert_data.serial_number
-
-        # FIXME: need error checking
         c = cert_client.get_cert(cert_data.serial_number)
         with open(certfile, "w") as fd:
             fd.write(c.encoded)
 
-    def pki_issue_certificate(self, service, profile, subject,  # TODO subject not used
-                              keyfile, certfile,
+    def pki_issue_certificate(self, service, profile, keyfile, certfile,
                               key_passwd_file=None, dns_2_san=''):
         """Use openssl to generate a CSR and submit it using the pki
            Python API, using the IPA RA certificate.
@@ -831,6 +830,8 @@ class CertDB:
                 )
             args.extend([keysize])  # must be the last argument
             result = ipautil.run(args, capture_output=True)
+        else:
+            raise RuntimeError(f"Key type not supported: {keytype}")
 
         # Generate a CSR using the private key
         args = ["openssl", "req", "-new",
@@ -865,8 +866,6 @@ class CertDB:
 
         cert_data = result.cert
         serial_number = cert_data.serial_number
-
-        # FIXME: need error checking
         c = cert_client.get_cert(cert_data.serial_number)
         with open(certfile, "w") as fd:
             fd.write(c.encoded)
