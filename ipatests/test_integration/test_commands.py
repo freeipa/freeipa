@@ -26,6 +26,7 @@ from datetime import datetime, timedelta
 from ipalib.constants import IPAAPI_USER
 from ipalib.errors import DatabaseError
 
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 
 from ipapython.dn import DN
@@ -1353,6 +1354,9 @@ class TestIPACommand(IntegrationTest):
         serverid = realm_to_serverid(self.master.domain.realm)
         return ("dirsrv@%s.service" % serverid)
 
+    @pytest.mark.skipif((osinfo.id == 'fedora'
+                        and osinfo.version_number > (41,)),
+                        reason="NIS server support removed")
     def test_ipa_nis_manage_enable(self):
         """
         This testcase checks if ipa-nis-manage enable
@@ -1389,6 +1393,9 @@ class TestIPACommand(IntegrationTest):
         )
         assert status_msg in result.stdout_text
 
+    @pytest.mark.skipif((osinfo.id == 'fedora'
+                        and osinfo.version_number > (41,)),
+                        reason="NIS server support removed")
     def test_ipa_nis_manage_disable(self):
         """
         This testcase checks if ipa-nis-manage disable
@@ -1424,6 +1431,9 @@ class TestIPACommand(IntegrationTest):
         assert result.returncode == 4
         assert status_msg in result.stdout_text
 
+    @pytest.mark.skipif((osinfo.id == 'fedora'
+                        and osinfo.version_number > (41,)),
+                        reason="NIS server support removed")
     def test_ipa_nis_manage_enable_incorrect_password(self):
         """
         This testcase checks if ipa-nis-manage enable

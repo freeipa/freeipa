@@ -63,6 +63,11 @@
     %global modulename ipa
 %endif
 
+# Remove NIS support for f42+
+%if 0%{?fedora} <= 41
+    %global with_nis 1
+%endif
+
 %if 0%{?rhel}
 %global package_name ipa
 %global alt_name freeipa
@@ -1191,6 +1196,15 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 # ONLY_CLIENT
 %endif
 
+%if ! %{with nis}
+rm %{buildroot}/%{_sbindir}/ipa-nis-manage
+rm %{buildroot}/%{_mandir}/man1/ipa-nis-manage.1*
+rm %{buildroot}%{python3_sitelib}/ipaserver/install/plugins/update_nis.py
+rm %{buildroot}%{_usr}/share/ipa/nis.uldif
+rm %{buildroot}%{_usr}/share/ipa/nis-update.uldif
+rm %{buildroot}%{_usr}/share/ipa/updates/50-nis.update
+%endif
+
 %if ! %{ONLY_CLIENT}
 
 %post server
@@ -1540,7 +1554,9 @@ fi
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-otptoken-import
 %{_sbindir}/ipa-compat-manage
+%if %{with nis}
 %{_sbindir}/ipa-nis-manage
+%endif
 %{_sbindir}/ipa-managed-entries
 %{_sbindir}/ipactl
 %{_sbindir}/ipa-advise
@@ -1616,7 +1632,9 @@ fi
 %{_mandir}/man1/ipa-ca-install.1*
 %{_mandir}/man1/ipa-kra-install.1*
 %{_mandir}/man1/ipa-compat-manage.1*
+%if %{with nis}
 %{_mandir}/man1/ipa-nis-manage.1*
+%endif
 %{_mandir}/man1/ipa-managed-entries.1*
 %{_mandir}/man1/ipa-ldap-updater.1*
 %{_mandir}/man8/ipactl.8*

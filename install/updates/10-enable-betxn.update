@@ -46,4 +46,4 @@ dn: cn=Schema Compatibility, cn=plugins, cn=config
 onlyifexist: nsslapd-pluginbetxn: on
 
 dn: cn=NIS Server, cn=plugins, cn=config
-onlyifexist: nsslapd-pluginbetxn: on
+${NIS}onlyifexist: nsslapd-pluginbetxn: on
