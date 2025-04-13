@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-03-15 01:10+0000\n"
+"PO-Revision-Date: 2025-04-13 01:53+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.2\n"
+"X-Generator: Weblate 5.10.4\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -8028,10 +8028,8 @@ msgstr "ID-ის დიაპაზონის წაშლა."
 msgid "Search for ranges."
 msgstr "როლების ძებნა."
 
-#, fuzzy
-#| msgid "Modify a role."
 msgid "Modify ID range."
-msgstr "როლის შეცვლა."
+msgstr "ID შუალედის შეცვლა."
 
 #, fuzzy
 #| msgid "Display information about a role."
@@ -17210,10 +17208,8 @@ msgstr "OTP კოდების წაშლა"
 msgid "OTP tokens"
 msgstr "OTP კოდების წაშლა"
 
-#, fuzzy
-#| msgid "OTP Token Settings"
 msgid "OTP Tokens"
-msgstr "OTP კოდის მორგება"
+msgstr "OTP კოდები"
 
 #, fuzzy
 #| msgid "OTP Token Settings"
