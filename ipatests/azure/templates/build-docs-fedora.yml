@@ -1,8 +1,0 @@
-steps:
-- script: |
-    set -e
-    echo "Generate virtual environment for building documentation"
-    make -C doc/ venv
-    echo "Build documentation"
-    make -C doc/ html
-  displayName: Build documentation
