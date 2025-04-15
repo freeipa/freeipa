@@ -36,7 +36,7 @@ from ipaserver.plugins.automember import REBUILD_TASK_CONTAINER
 import time
 import pytest
 import re
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 try:
     from ipaserver.plugins.ldap2 import ldap2
