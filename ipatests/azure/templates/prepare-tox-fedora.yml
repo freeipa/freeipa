@@ -1,6 +1,0 @@
-steps:
-- script: |
-    set -e
-    sudo dnf -y install nss-tools python3-pip git
-    python3 -m pip install --user --upgrade pip setuptools pycodestyle
-  displayName: Install Tox prerequisites

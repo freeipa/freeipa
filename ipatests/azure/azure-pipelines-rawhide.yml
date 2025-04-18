@@ -1,4 +1,0 @@
-extends:
-  template: azure-pipelines.yml
-  parameters:
-    VARIABLES_FILE: 'templates/variables-rawhide.yml'
