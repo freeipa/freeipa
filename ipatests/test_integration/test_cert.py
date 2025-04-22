@@ -299,6 +299,33 @@ class TestInstallMasterClient(IntegrationTest):
         ).stdout_text
         assert 'issued:' in result
 
+    def test_remove_missing_lwca(self):
+        """Test removing an IPA LWCA if the PKI copy is missing."""
+        lwca_regex = r'  Authority ID: (.*)$'
+        lwca = 'lwca'
+        subject = 'CN=LWCA'
+        result = self.master.run_command([
+            'ipa', 'ca-add', lwca, '--subject', subject
+        ])
+        assert 'Created CA "{}"'.format(lwca) in result.stdout_text
+
+        result = self.master.run_command(['ipa', 'ca-show', lwca, '--all'])
+        m = None
+        for line in result.stdout_text.split('\n'):
+            m = re.match(lwca_regex, line)
+            if m:
+                break
+        assert m
+        ca_id = m.groups(0)[0]
+
+        remove_ca_ldif = textwrap.dedent("""
+             dn: cn={ca_id},ou=authorities,ou=ca,o=ipaca
+             changetype: delete
+             """.format(ca_id=ca_id))
+        tasks.ldapmodify_dm(self.master, remove_ca_ldif)
+
+        self.master.run_command(['ipa', 'ca-del', lwca])
+
 
 class TestCertmongerRekey(IntegrationTest):
 
