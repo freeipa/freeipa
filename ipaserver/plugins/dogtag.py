@@ -611,6 +611,97 @@ class RestClient(Backend):
         return (status, resp_headers, resp_body)
 
 
+class APIClient(Backend):
+    """Simple Dogtag API client to be subclassed by other backends.
+
+    This class is a context manager.  Authenticated calls must be
+    executed in a ``with`` suite::
+
+        @register()
+        class ra_certprofile(RestClient):
+            path = 'profile'
+            ...
+
+        with api.Backend.ra_certprofile as profile_api:
+            # REST client is now logged in
+            profile_api.create_profile(...)
+
+    """
+    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
+    KDC_PROFILE = dogtag.KDC_PROFILE
+
+    def __init__(self, api):
+        self.pki_client = None
+        self._ca_host = None
+        if api.env.in_tree:
+            self.client_certfile = os.path.join(
+                api.env.dot_ipa, 'ra-agent.pem')
+
+            self.client_keyfile = os.path.join(
+                api.env.dot_ipa, 'ra-agent.key')
+        else:
+            self.client_certfile = paths.RA_AGENT_PEM
+            self.client_keyfile = paths.RA_AGENT_KEY
+        super(APIClient, self).__init__(api)
+        self.ca_cert = api.env.tls_ca_cert
+
+    @property
+    def ca_host(self):
+        if self._ca_host is not None:
+            return self._ca_host
+
+        preferred = [api.env.ca_host]
+        if api.env.host != api.env.ca_host:
+            preferred.append(api.env.host)
+        ca_host = find_providing_server(
+            'CA', conn=self.api.Backend.ldap2, preferred_hosts=preferred,
+            api=self.api
+        )
+        if ca_host is None:
+            # TODO: need during installation, CA is not yet set as enabled
+            ca_host = api.env.ca_host
+        self._ca_host = ca_host
+        return ca_host
+
+    def __enter__(self):
+        self.pki_client = pki.client.PKIClient(
+            url='https://localhost:8443', verify=False)
+        self.pki_client.set_client_auth(
+            client_cert=paths.RA_AGENT_PEM,
+            client_key=paths.RA_AGENT_KEY)
+
+        api_path = self.pki_client.get_api_path()
+        path = '/ca/%s/account/login' % api_path
+
+        try:
+            response = self.pki_client.connection.get(path)
+        except requests.exceptions.HTTPError as e:
+            logger.debug("PKI API login failed %s", e)
+            if e.response.status_code == 401:
+                raise errors.CertificateOperationError(
+                    error="PKI API login failed: invalid authentication")
+            else:
+                raise errors.CertificateOperationError(error=e.args[0])
+
+        json_response = response.json()
+        logger.debug('Response:\n%s', json.dumps(json_response, indent=4))
+
+        self.client = pki.authority.AuthorityClient(self.pki_client.connection)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.pki_client is None:
+            return
+
+        api_path = self.pki_client.get_api_path()
+        path = '/ca/%s/account/logout' % api_path
+        try:
+            self.pki_client.connection.get(path)
+        except Exception as e:
+            # this shouldn't fail but it also shouldn't fail the call
+            logger.debug("ra_lightweight_ca: logout failed %s", e)
+
+
 @register()
 class ra(rabase.rabase):
     """
@@ -1296,83 +1387,10 @@ class ra_certprofile(RestClient):
 
 
 @register()
-class ra_lightweight_ca(Backend):
+class ra_lightweight_ca(APIClient):
     """
     Lightweight CA management backend plugin.
     """
-    path = 'authorities'
-    pki_client = None
-
-    def __init__(self, api):
-        self._ca_host = None
-        if api.env.in_tree:
-            self.client_certfile = os.path.join(
-                api.env.dot_ipa, 'ra-agent.pem')
-
-            self.client_keyfile = os.path.join(
-                api.env.dot_ipa, 'ra-agent.key')
-        else:
-            self.client_certfile = paths.RA_AGENT_PEM
-            self.client_keyfile = paths.RA_AGENT_KEY
-        super(ra_lightweight_ca, self).__init__(api)
-        self.ca_cert = api.env.tls_ca_cert
-
-    @property
-    def ca_host(self):
-        if self._ca_host is not None:
-            return self._ca_host
-
-        preferred = [api.env.ca_host]
-        if api.env.host != api.env.ca_host:
-            preferred.append(api.env.host)
-        ca_host = find_providing_server(
-            'CA', conn=self.api.Backend.ldap2, preferred_hosts=preferred,
-            api=self.api
-        )
-        if ca_host is None:
-            # TODO: need during installation, CA is not yet set as enabled
-            ca_host = api.env.ca_host
-        self._ca_host = ca_host
-        return ca_host
-
-    def __enter__(self):
-        self.pki_client = pki.client.PKIClient(
-            url='https://localhost:8443', verify=False)
-        self.pki_client.set_client_auth(
-            client_cert=paths.RA_AGENT_PEM,
-            client_key=paths.RA_AGENT_KEY)
-
-        api_path = self.pki_client.get_api_path()
-        path = '/ca/%s/account/login' % api_path
-
-        try:
-            response = self.pki_client.connection.get(path)
-        except requests.exceptions.HTTPError as e:
-            logger.debug("PKI API login failed %s", e)
-            if e.response.status_code == 401:
-                raise errors.CertificateOperationError(
-                    error="PKI API login failed: invalid authentication")
-            else:
-                raise errors.CertificateOperationError(error=e.args[0])
-
-        json_response = response.json()
-        logger.debug('Response:\n%s', json.dumps(json_response, indent=4))
-
-        self.client = pki.authority.AuthorityClient(self.pki_client.connection)
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if self.pki_client is None:
-            return
-
-        api_path = self.pki_client.get_api_path()
-        path = '/ca/%s/account/logout' % api_path
-        try:
-            self.pki_client.connection.get(path)
-        except Exception as e:
-            # this shouldn't fail but it also shouldn't fail the call
-            logger.debug("ra_lightweight_ca: logout failed %s", e)
-
     def create_ca(self, dn):
         """Create CA with the given DN.
 
