@@ -33,6 +33,7 @@ CLEANFILES = $(systemdsystemunit_DATA) $(nodist_app_SCRIPTS)
 		-e 's|@ODS_USER[@]|$(ODS_USER)|g' \
 		-e 's|@ODS_GROUP[@]|$(ODS_GROUP)|g' \
 		-e 's|@NAMED_GROUP[@]|$(NAMED_GROUP)|g' \
+		-e 's|@IPA_DATA_DIR[@]|$(IPA_DATA_DIR)|g' \
 		'$(srcdir)/$@.in' >$@
 
 dnssecconfdir = $(IPA_SYSCONF_DIR)/dnssec
