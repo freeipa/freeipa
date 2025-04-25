@@ -265,6 +265,13 @@ corenet_tcp_bind_generic_node(ipa_dnskey_t)
 corenet_tcp_connect_kerberos_port(ipa_dnskey_t)
 corenet_tcp_connect_rndc_port(ipa_dnskey_t)
 
+# Allow rndc to access SoftHSM token in IPA directory
+gen_require(`
+    type ndc_t;
+')
+allow ndc_t ipa_dnskey_t:file { getattr open read };
+
+
 dev_read_rand(ipa_dnskey_t)
 dev_read_sysfs(ipa_dnskey_t)
 
