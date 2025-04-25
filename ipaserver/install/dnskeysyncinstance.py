@@ -258,6 +258,16 @@ class DNSKeySyncInstance(service.Service):
             'SOFTHSM2_CONF', paths.DNSSEC_SOFTHSM2_CONF,
             quotes=False, separator='=')
 
+        directivesetter.set_directive(
+            sysconfig,
+            'DNSSEC_TOKENS_DIR', paths.DNSSEC_TOKENS_DIR,
+            quotes=False, separator='=')
+
+        directivesetter.set_directive(
+            sysconfig,
+            'DNSSEC_SOFTHSM_PIN', paths.DNSSEC_SOFTHSM_PIN,
+            quotes=False, separator='=')
+
         if any([constants.NAMED_OPENSSL_ENGINE is not None,
                 constants.NAMED_OPENSSL_PROVIDER is not None]):
             directivesetter.set_directive(
