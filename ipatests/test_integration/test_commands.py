@@ -1883,6 +1883,44 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         assert old_err_msg not in dirsrv_error_log
         assert re.search(new_err_msg, dirsrv_error_log)
 
+    def test_unique_krbcanonicalname(self):
+        """Verify that the uniqueness for krbcanonicalname is working"""
+        master = self.master
+
+        base_dn = str(master.domain.basedn)
+        hostname = master.hostname
+        realm = master.domain.realm
+        principal = f'test/{hostname}@{realm}'
+        entry_ldif = textwrap.dedent("""
+            dn: krbprincipalname={principal},cn=services,cn=accounts,{base_dn}
+            changetype: add
+            ipakrbprincipalalias: test/{hostname}@{realm}
+            krbprincipalname: {principal}
+            objectclass: ipakrbprincipal
+            objectclass: ipaobject
+            objectclass: ipaservice
+            objectclass: krbprincipal
+            objectclass: krbprincipalaux
+            objectclass: top
+            krbcanonicalname: admin@{realm}
+            managedby: fqdn={hostname},cn=computers,cn=accounts,{base_dn}
+        """).format(
+            base_dn=base_dn,
+            hostname=hostname,
+            principal=principal,
+            realm=realm)
+        tasks.kdestroy_all(master)
+        master.run_command(
+            ['kinit', '-kt', '/etc/krb5.keytab', f'host/{hostname}@{realm}'])
+        args = [
+            'ldapmodify',
+            '-Y',
+            'GSSAPI'
+        ]
+        result = master.run_command(args, stdin_text=entry_ldif,
+                                    raiseonerr=False)
+        assert "entry with the same attribute value" in result.stderr_text
+
 
 class TestIPAautomount(IntegrationTest):
     @classmethod
