@@ -530,26 +530,43 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
 
     /* get adtrust options using default refresh interval */
     ret = ipadb_reinit_mspac(ipactx, false, &stmsg);
-    if (ret && stmsg)
-        krb5_klog_syslog(LOG_WARNING, "MS-PAC generator: %s", stmsg);
+    if (ret) {
+        if (stmsg) {
+            krb5_klog_syslog(LOG_WARNING, "MS-PAC generator: %s", stmsg);
+        }
+        /* Initialization of the MS-PAC generator is an optional dependency.
+         * Fail only if the connection was lost. */
+        if (!ipactx->lcontext) {
+            goto done;
+        }
+    }
 
     ret = 0;
 
 done:
     ldap_msgfree(res);
 
+    /* LDAP context should never be null on success, but keep this test out of
+     * security to make sure we do not return an invalid context. */
+    if (ret == 0 && !ipactx->lcontext) {
+        krb5_klog_syslog(LOG_WARNING, "Internal malfunction: LDAP connection "
+                                      "process resulted in an invalid context "
+                                      "(please report this incident)");
+        ret = LDAP_SERVER_DOWN;
+    }
+
     if (ret) {
+        /* Cleanup LDAP context if connection failed. */
         if (ipactx->lcontext) {
             ldap_unbind_ext_s(ipactx->lcontext, NULL, NULL);
             ipactx->lcontext = NULL;
         }
-        if (ret == LDAP_SERVER_DOWN) {
-            return ETIMEDOUT;
-        }
-        return EIO;
+
+        /* Replace LDAP error code by POSIX error code. */
+        ret = ret == LDAP_SERVER_DOWN ? ETIMEDOUT : EIO;
     }
 
-    return 0;
+    return ret;
 }
 
 static krb5_principal ipadb_create_local_tgs(krb5_context kcontext,
