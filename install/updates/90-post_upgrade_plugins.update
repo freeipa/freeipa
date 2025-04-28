@@ -25,6 +25,7 @@ plugin: update_mapping_Guests_to_nobody
 plugin: fix_kra_people_entry
 plugin: update_pwpolicy
 plugin: update_pwpolicy_grace
+plugin: add_admin_krbcanonicalname
 
 # last
 # DNS version 1
