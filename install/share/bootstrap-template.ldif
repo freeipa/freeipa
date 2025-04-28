@@ -239,6 +239,7 @@ objectClass: ipasshuser
 uid: admin
 krbPrincipalName: admin@$REALM
 krbPrincipalName: root@$REALM
+krbCanonicalName: admin@$REALM
 cn: Administrator
 sn: Administrator
 uidNumber: $IDSTART
