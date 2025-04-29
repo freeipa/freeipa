@@ -202,6 +202,14 @@ def decode_attr_vals(entry_attrs):
     decoded_attrs = {}
     for attr in entry_attrs:
         vals = ensure_list_str(entry_attrs[attr])
+        # Remove replication state data, but don't remove ";binary"
+        # e.g.  userCertififccate;binary;adcsn=<CSN>
+        parts = attr.split(";")
+        if len(parts) > 1 and not attr.endswith(";binary"):
+            if parts[1] == "binary":
+                attr = parts[0] + ";binary"
+            else:
+                attr = parts[0]
         decoded_attrs[attr] = vals
     return decoded_attrs
 
@@ -269,19 +277,19 @@ class LDIFParser(ldif.LDIFParser):
         if self.mc is None:
             return
 
+        entry_attrs = decode_attr_vals(entry)
         if self.get_realm:
             # Get the realm from krb container
             if DN(("cn", "kerberos"), self.mc.remote_suffix) in DN(dn):
                 # check objectclass krbrealmcontainer
                 oc_attr = 'objectClass'
-                if 'objectclass' in entry:
+                if 'objectclass' in entry_attrs:
                     oc_attr = 'objectclass'
-                if 'krbrealmcontainer' in ensure_list_str(entry[oc_attr]):
-                    self.mc.remote_realm = ensure_str(entry['cn'][0])
+                if 'krbrealmcontainer' in entry_attrs[oc_attr]:
+                    self.mc.remote_realm = ensure_str(entry_attrs['cn'][0])
                     self.mc.log_debug("Found remote realm from ldif: "
                                       f"{self.mc.remote_realm}")
         else:
-            entry_attrs = decode_attr_vals(entry)
             self.mc.process_db_entry(entry_dn=dn, entry_attrs=entry_attrs)
 
 
