@@ -50,7 +50,7 @@ import ipapython.errors
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import get_auth_tool
-from ipaplatform.base.tasks import BaseTaskNamespace
+from ipaplatform.base.tasks import BaseTaskNamespace, IPAAbstractVersion
 
 logger = logging.getLogger(__name__)
 
@@ -77,43 +77,21 @@ NM_IPA_CONF = textwrap.dedent("""
 
 
 @total_ordering
-class IPAVersion:
+class IPAVersion(IPAAbstractVersion):
     _rpmvercmp_func = None
 
-    @classmethod
-    def _rpmvercmp(cls, a, b):
+    def _vercmp(self, a, b):
         """Lazy load and call librpm's rpmvercmp
         """
-        rpmvercmp_func = cls._rpmvercmp_func
+        rpmvercmp_func = self._rpmvercmp_func
         if rpmvercmp_func is None:
             librpm = ctypes.CDLL(find_library('rpm'))
             rpmvercmp_func = librpm.rpmvercmp
             # int rpmvercmp(const char *a, const char *b)
             rpmvercmp_func.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
             rpmvercmp_func.restype = ctypes.c_int
-            cls._rpmvercmp_func = rpmvercmp_func
+            self._rpmvercmp_func = rpmvercmp_func
         return rpmvercmp_func(a, b)
-
-    def __init__(self, version):
-        self._version = version
-        self._bytes = version.encode('utf-8')
-
-    @property
-    def version(self):
-        return self._version
-
-    def __eq__(self, other):
-        if not isinstance(other, IPAVersion):
-            return NotImplemented
-        return self._rpmvercmp(self._bytes, other._bytes) == 0
-
-    def __lt__(self, other):
-        if not isinstance(other, IPAVersion):
-            return NotImplemented
-        return self._rpmvercmp(self._bytes, other._bytes) < 0
-
-    def __hash__(self):
-        return hash(self._version)
 
 
 class RedHatTaskNamespace(BaseTaskNamespace):
@@ -482,7 +460,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return True
 
-    def parse_ipa_version(self, version):
+    @staticmethod
+    def parse_ipa_version(version):
         """
         :param version: textual version
         :return: object implementing proper __cmp__ method for version compare
