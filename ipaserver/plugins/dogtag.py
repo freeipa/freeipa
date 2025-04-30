@@ -812,8 +812,8 @@ class ra(rabase.rabase):
         if request.operation_result != "success":
             self.raise_certificate_operation_error(
                 'check_request_status',
-                cms_request_status_to_string(operation_result),
-                parse_result.get('errorMessage'))
+                request.operation_result,
+                request.error_message)
 
         # reformat the response to what IPA expects
         cmd_result = {}
