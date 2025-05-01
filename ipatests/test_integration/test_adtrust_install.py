@@ -13,7 +13,7 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 import pytest
 

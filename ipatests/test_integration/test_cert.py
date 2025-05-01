@@ -21,7 +21,7 @@ from ipapython.dn import DN
 from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 from cryptography.hazmat.backends import default_backend
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
