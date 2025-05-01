@@ -23,6 +23,7 @@ This module contains default platform-specific implementations of system tasks.
 '''
 
 from __future__ import absolute_import
+from functools import total_ordering
 
 import os
 import logging
@@ -46,6 +47,34 @@ RESOLVE1_IPA_CONF = textwrap.dedent("""
     # make local BIND default DNS server, add search suffixes
     Domains=~. {searchdomains}
 """)
+
+
+@total_ordering
+class IPAAbstractVersion:
+
+    def __init__(self, version):
+        self._version = version
+        self._bytes = version.encode('utf-8')
+
+    @property
+    def version(self):
+        return self._version
+
+    def __eq__(self, other):
+        if not isinstance(other, IPAAbstractVersion):
+            return NotImplemented
+        return self._vercmp(self._bytes, other._bytes) == 0
+
+    def __lt__(self, other):
+        if not isinstance(other, IPAAbstractVersion):
+            return NotImplemented
+        return self._vercmp(self._bytes, other._bytes) < 0
+
+    def __hash__(self):
+        return hash(self._version)
+
+    def _vercmp(self, _a, _b):
+        return NotImplemented
 
 
 class BaseTaskNamespace:
@@ -274,7 +303,7 @@ class BaseTaskNamespace:
         :param version: textual version
         :return: object implementing proper __cmp__ method for version compare
         """
-        return parse_version(version)
+        return IPAAbstractVersion(parse_version(version))
 
     def set_hostname(self, hostname):
         """
