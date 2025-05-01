@@ -547,21 +547,25 @@ def ca_initialize_hsm_state(ca):
         ca.set_hsm_state(config)
 
 
-def dnssec_set_openssl_engine(dnskeysyncd):
+def dnssec_set_openssl_provider(dnskeysyncd):
     """
-    Setup OpenSSL engine for BIND
+    Setup OpenSSL engine or provider for BIND
     """
-    if constants.NAMED_OPENSSL_ENGINE is None:
+    if all([constants.NAMED_OPENSSL_ENGINE is None,
+            constants.NAMED_OPENSSL_PROVIDER is None]):
         return False
 
-    if sysupgrade.get_upgrade_state('dns', 'openssl_engine'):
+    # Nothing to do if we are using OpenSSL provider already and not on the OS
+    # that requires OpenSSL provider instead.
+    if all([sysupgrade.get_upgrade_state('dns', 'openssl_provider'),
+            constants.NAMED_OPENSSL_PROVIDER is None]):
         return False
 
-    logger.info('[Set OpenSSL engine for BIND]')
+    logger.info('[Set OpenSSL engine or provider for BIND]')
     dnskeysyncd.setup_named_openssl_conf()
     dnskeysyncd.setup_named_sysconfig()
     dnskeysyncd.setup_ipa_dnskeysyncd_sysconfig()
-    sysupgrade.set_upgrade_state('dns', 'openssl_engine', True)
+    sysupgrade.set_upgrade_state('dns', 'openssl_provider', True)
 
     return True
 
@@ -1888,7 +1892,7 @@ def upgrade_configuration():
                 dnskeysyncd.create_instance(fqdn, api.env.realm)
                 dnskeysyncd.start_dnskeysyncd()
             else:
-                if dnssec_set_openssl_engine(dnskeysyncd):
+                if dnssec_set_openssl_provider(dnskeysyncd):
                     dnskeysyncd.start_dnskeysyncd()
             dnskeysyncd.set_dyndb_ldap_workdir_permissions()
 

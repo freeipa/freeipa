@@ -68,7 +68,7 @@ class BINDMgr:
             str_val,
             ipalib.constants.LDAP_GENERALIZED_TIME_FORMAT
         )
-        return dt.strftime(time_bindfmt).encode('utf-8')
+        return dt.strftime(time_bindfmt)
 
     def dates2params(self, ldap_attrs):
         """Convert LDAP timestamps to list of parameters suitable
@@ -117,21 +117,30 @@ class BINDMgr:
         """Run dnssec-keyfromlabel on given LDAP object.
         :returns: base file name of output files, e.g. Kaaa.test.+008+19719
         """
-        logger.info('attrs: %s', attrs)
         assert attrs.get('idnsseckeyzone', [b'FALSE'])[0] == b'TRUE', \
             b'object %s is not a DNS zone key' % attrs['dn']
 
-        uri = b"%s;pin-source=%s" % (
-            attrs['idnsSecKeyRef'][0],
-            paths.DNSSEC_SOFTHSM_PIN.encode('utf-8')
-        )
+        uri = None
+        # LDAP object entries are all in binary encoding
+        keyref = attrs['idnsSecKeyRef'][0].decode('utf-8')
+        if platformconstants.NAMED_OPENSSL_ENGINE is not None:
+            uri = "%s;pin-source=%s" % (
+                keyref,
+                paths.DNSSEC_SOFTHSM_PIN
+            )
+        elif platformconstants.NAMED_OPENSSL_PROVIDER is not None:
+            uri = "%s;token=%s" % (
+                keyref,
+                ipalib.constants.SOFTHSM_DNSSEC_TOKEN_LABEL
+            )
+
+        assert uri is not None
         cmd = [
             paths.DNSSEC_KEYFROMLABEL,
-            '-E', 'pkcs11',
             '-K', workdir,
-            '-a', attrs['idnsSecAlgorithm'][0],
-            '-l', uri
+            '-a', attrs['idnsSecAlgorithm'][0].decode('utf-8'),
         ]
+        cmd.extend(['-l', uri])
         cmd.extend(self.dates2params(attrs))
         if attrs.get('idnsSecKeySep', [b'FALSE'])[0].upper() == b'TRUE':
             cmd.extend(['-f', 'KSK'])
