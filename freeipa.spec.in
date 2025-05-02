@@ -173,8 +173,8 @@
 # Make sure to use PKI versions that work with 389-ds fix for https://github.com/389ds/389-ds-base/issues/4609
 %global pki_version 10.10.5
 %else
-# Make sure to use PKI versions that work with 389-ds fix for https://github.com/389ds/389-ds-base/issues/4609
-%global pki_version 10.10.5
+# Require a PKI version that provides the full python API
+%global pki_version 11.6.0
 %endif
 
 # RHEL 8.3+, F32+ has 0.79.13
