@@ -1086,4 +1086,50 @@ class test_range(Declarative):
             ),
         ),
 
+        # Fail without baserid and secondarybaserid
+
+        dict(
+            desc='Try creating ID range %r without both rid' % (testrange9),
+            command=('idrange_add', [testrange9],
+                     dict(ipabaseid=testrange9_base_id,
+                          ipaidrangesize=testrange9_size)),
+            expected=errors.ValidationError(
+                name='ID Range setup',
+                error=(
+                    'You must specify both rid-base and '
+                    'secondary-rid-base options.'
+                )
+            )
+        ),
+
+        dict(
+            desc='Try creating ID range %r without'
+            'secondarybaserid' % (testrange9),
+            command=('idrange_add', [testrange9],
+                     dict(ipabaseid=testrange9_base_id,
+                          ipaidrangesize=testrange9_size,
+                          ipabaserid=testrange9_base_rid)),
+            expected=errors.ValidationError(
+                name='ID Range setup',
+                error=(
+                    'You must specify both rid-base and '
+                    'secondary-rid-base options.'
+                )
+            )
+        ),
+
+        dict(
+            desc='Try creating ID range %r without baserid' % (testrange9),
+            command=('idrange_add', [testrange9],
+                     dict(ipabaseid=testrange9_base_id,
+                          ipaidrangesize=testrange9_size,
+                          ipasecondarybaserid=testrange9_secondary_base_rid)),
+            expected=errors.ValidationError(
+                name='ID Range setup',
+                error=(
+                    'You must specify both rid-base and '
+                    'secondary-rid-base options.'
+                )
+            )
+        ),
     ]
