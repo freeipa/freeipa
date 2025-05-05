@@ -73,9 +73,13 @@ Both types have the following attributes in common:
 With those two attributes a range object can reserve the Posix IDs starting
 with base-id up to but not including base-id+range-size exclusively.
 
-Additionally an ID range of the local domain may set
+Additionally an ID range of the local domain must set
  - rid-base: the first RID(*) of the corresponding RID range
  - secondary-rid-base: first RID of the secondary RID range
+
+If the server is updated from a previous version and defines local ID ranges
+missing the rid-base and secondary-rid-base, it is recommended to use
+`ipa-idrange-fix` command to identify the missing values and fix the ID ranges.
 
 and an ID range of a trusted domain must set
  - rid-base: the first RID of the corresponding RID range
@@ -519,11 +523,15 @@ class idrange_add(LDAPCreate):
                             'or ipa-ad-trust-posix when '
                             'auto-private-groups is specified'))
 
-            # secondary base rid must be set if and only if base rid is set
-            if is_set('ipasecondarybaserid') != is_set('ipabaserid'):
-                raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options secondary-rid-base and rid-base must '
-                            'be used together'))
+            # base rid and secondary base rid must be set for sidgen
+            if not (is_set('ipabaserid') and is_set('ipasecondarybaserid')):
+                raise errors.ValidationError(
+                    name='ID Range setup',
+                    error=_(
+                        'You must specify both rid-base and '
+                        'secondary-rid-base options.'
+                    )
+                )
 
             # and they must not overlap
             if is_set('ipabaserid') and is_set('ipasecondarybaserid'):
@@ -534,21 +542,6 @@ class idrange_add(LDAPCreate):
                         raise errors.ValidationError(name='ID Range setup',
                             error=_("Primary RID range and secondary RID range"
                                     " cannot overlap"))
-
-            # rid-base and secondary-rid-base must be set if
-            # ipa-adtrust-install has been run on the system
-            adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
-
-            if adtrust_is_enabled and not (
-                    is_set('ipabaserid') and is_set('ipasecondarybaserid')):
-                raise errors.ValidationError(
-                    name='ID Range setup',
-                    error=_(
-                        'You must specify both rid-base and '
-                        'secondary-rid-base options, because '
-                        'ipa-adtrust-install has already been run.'
-                    )
-                )
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
