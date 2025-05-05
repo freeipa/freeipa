@@ -652,7 +652,9 @@ Requires: %{openssl_pkcs11_name} >= %{openssl_pkcs11_version}
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1825812
 # RHEL 8.3+ and Fedora 32+ have 2.1
 Requires: opendnssec >= 2.1.6-5
+%if 0%{?fedora} >= 42 || 0%{?rhel} > 9
 Recommends: %{name}-server-encrypted-dns
+%endif
 %{?systemd_requires}
 
 Provides: %{alt_name}-server-dns = %{version}
@@ -670,6 +672,8 @@ Integrated DNS server is BIND 9. OpenDNSSEC provides key management.
 %package server-encrypted-dns
 Summary: support for encrypted DNS in IPA integrated DNS server
 Requires: %{name}-client-encrypted-dns
+# Will need newer bind-dyndb-ldap to allow use of OpenSSL provider API
+Requires: bind-dyndb-ldap >= 11.11
 
 %description server-encrypted-dns
 Provides support for enabling DNS over TLS in the IPA integrated DNS
