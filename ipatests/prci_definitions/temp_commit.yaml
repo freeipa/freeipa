@@ -72,7 +72,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest-ipa-4-12/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheck
         template: *ci-ipa-4-12-latest
-        timeout: 3600
+        timeout: 6300
         topology: *master_1repl_1client
