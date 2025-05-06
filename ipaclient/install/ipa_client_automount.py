@@ -62,6 +62,12 @@ def parse_options():
     parser = IPAOptionParser(usage=usage)
     parser.add_option("--server", dest="server", help="FQDN of IPA server")
     parser.add_option(
+        "--domain",
+        dest="domain",
+        default="",
+        help="Primary DNS domain of the IPA deployment"
+    )
+    parser.add_option(
         "--location",
         dest="location",
         default="default",
@@ -387,7 +393,7 @@ def configure_automount():
     ds = discovery.IPADiscovery()
     if not options.server:
         print("Searching for IPA server...")
-        ret = ds.search(ca_cert_path=ca_cert_path)
+        ret = ds.search(domain=options.domain, ca_cert_path=ca_cert_path)
         logger.debug('Executing DNS discovery')
         if ret == discovery.NO_LDAP_SERVER:
             logger.debug('Autodiscovery did not find LDAP server')
