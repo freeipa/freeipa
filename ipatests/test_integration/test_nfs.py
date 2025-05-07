@@ -355,3 +355,27 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
 
     def test_nsswitch_backup_restore_sssd(self):
         self.nsswitch_backup_restore()
+
+
+class TestIpaClientAutomountDiscovery(IntegrationTest):
+
+    num_clients = 1
+    topology = 'line'
+
+    def test_automount_invalid_domain(self):
+        """Validate that the --domain option is passed into
+           Discovery. This is expected to fail discovery.
+        """
+        testdomain = "client.test"
+        msg1 = f"Search for LDAP SRV record in {testdomain}"
+        msg2 = f"Search DNS for SRV record of _ldap._tcp.{testdomain}"
+        msg3 = "Autodiscovery did not find LDAP server"
+
+        client = self.clients[0]
+        result = client.run_command([
+            'ipa-client-automount', '--domain', 'client.test',
+            '--debug'
+        ], stdin_text="n", raiseonerr=False)
+        assert msg1 in result.stderr_text
+        assert msg2 in result.stderr_text
+        assert msg3 in result.stderr_text
