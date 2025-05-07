@@ -826,6 +826,19 @@ class TestCreate(XMLRPC_test):
         user_idp.check_create(result, ['ipaidpsub'])
         user_idp.delete()
 
+    def test_out_of_idrange(self):
+        """Test ensuring warning is thrown when uid is out of range"""
+        uid = 2000
+        testuser = UserTracker(
+            name="testwarning", givenname="test", sn="warning", uid=uid
+        )
+        command = testuser.make_create_command()
+        result = command()
+        result_messages = result['messages']
+        assert len(result_messages) == 1
+        assert result_messages[0]['type'] == 'warning'
+        assert result_messages[0]['code'] == 13034
+
 
 @pytest.mark.tier1
 class TestUserWithGroup(XMLRPC_test):
