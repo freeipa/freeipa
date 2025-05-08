@@ -80,7 +80,7 @@ static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
 void
 ipa_krb5_free_ktypes(krb5_context context, krb5_enctype *val)
 {
-    free(val);
+    krb5_free_enctypes(context, val);
 }
 
 /*
