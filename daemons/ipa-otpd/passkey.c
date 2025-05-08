@@ -307,7 +307,7 @@ bool is_passkey(struct otpd_queue_item *item)
 
 static json_t *ipa_passkey_to_json_array(char **ipa_passkey)
 {
-    int ret;
+    int ret = 0;
     const char *sep;
     char *start;
     size_t c;
