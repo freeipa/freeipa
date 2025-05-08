@@ -7,7 +7,7 @@ import time
 from ipaclient.remote_plugins import ServerInfo
 
 
-class TestServerInfo(ServerInfo):
+class AServerInfo(ServerInfo):
     """Simplified ServerInfo class with hardcoded values"""
     def __init__(self, fingerprint='deadbeef', hostname='ipa.example.test',
                  force_check=False, language='en_US',
@@ -34,22 +34,22 @@ class TestIPAServerInfo:
     """Test that ServerInfo detects changes in remote configuration"""
 
     def test_valid(self):
-        server_info = TestServerInfo()
+        server_info = AServerInfo()
         assert server_info.is_valid() is True
 
     def test_force_check(self):
-        server_info = TestServerInfo(force_check=True)
+        server_info = AServerInfo(force_check=True)
         assert server_info.is_valid() is False
 
     def test_language_change(self):
-        server_info = TestServerInfo()
+        server_info = AServerInfo()
         assert server_info.is_valid() is True
         server_info._language = 'fr_FR'
         assert server_info.is_valid() is False
         server_info._language = 'en_US'
 
     def test_expired(self):
-        server_info = TestServerInfo(expiration=time.time() + 2)
+        server_info = AServerInfo(expiration=time.time() + 2)
         assert server_info.is_valid() is True
 
         # skip past the expiration time
@@ -65,7 +65,7 @@ class TestIPAServerInfo:
         assert server_info.is_valid() is False
 
     def test_update_validity(self):
-        server_info = TestServerInfo(expiration=time.time() + 1)
+        server_info = AServerInfo(expiration=time.time() + 1)
 
         # Expiration and time are one second off so the cache is ok
         assert server_info.is_valid() is True

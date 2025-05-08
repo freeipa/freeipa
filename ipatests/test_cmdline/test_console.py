@@ -41,4 +41,13 @@ class TestIPAConsole:
     def test_help(self, api_obj):
         s = self.run_pydoc(api_obj.Command.group_add)
         # check for __signature__ in help()
-        assert "group_add(cn: str, *, description: str = None," in s
+        # Since Python 3.13 the format did change and cannot be influenced
+        # check both variants of the possible output
+        snippets = [
+            " |  group_add(\n |      cn: str,\n |      *,\n"
+            " |      description: str = None,",
+            "group_add(cn: str, *, description: str = None,"
+        ]
+
+        present = [snippet in s for snippet in snippets]
+        assert any(present)

@@ -35,7 +35,7 @@ import syslog
 import time
 import tempfile
 from configparser import RawConfigParser
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 from ipalib import api
 from ipalib import x509

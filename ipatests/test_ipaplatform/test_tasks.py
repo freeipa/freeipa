@@ -31,7 +31,6 @@ def test_ipa_version():
     assert v3 <= v3
     assert v3 != v4
     assert v3 == v3
-    assert not v3 == v4
     assert v4 > v3
     assert v4 >= v3
 

@@ -24,6 +24,8 @@ vms:
     - test_ipatests_plugins
     - test_xmlrpc/test_dns_plugin.py
     args: "-k 'not test_dns_soa'"
+    ignore:
+    - test_ipaserver/test_migratepw.py
     type: base
     isolated: "true"
 

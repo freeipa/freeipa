@@ -36,7 +36,7 @@ import time
 from shlex import quote
 import configparser
 from contextlib import contextmanager
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 import uuid
 
 import dns
@@ -1396,7 +1396,7 @@ def two_connected_topo(master, replicas):
             i += 1
 
     except IndexError:
-        return
+        pass
 
 
 @_topo('double-circle')

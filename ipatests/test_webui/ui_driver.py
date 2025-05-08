@@ -29,7 +29,7 @@ import re
 import time
 from datetime import datetime
 from functools import wraps
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 from urllib.error import URLError
 
 import pytest
