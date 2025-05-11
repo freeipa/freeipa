@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-04-13 01:53+0000\n"
+"PO-Revision-Date: 2025-05-11 08:01+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.4\n"
+"X-Generator: Weblate 5.11.3\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -14084,13 +14084,14 @@ msgstr "ავტოწევრის წესის წაშლა."
 msgid "Modified automember rule \"%(value)s\""
 msgstr "შეიცვალა როლი \"%(value)s\""
 
-#, fuzzy
-#| msgid "Delete an automember rule."
 msgid ""
 "\n"
 "    Delete an automember rule.\n"
 "    "
-msgstr "ავტოწევრის წესის წაშლა."
+msgstr ""
+"\n"
+"    ავტოწევრის წესის წაშლა.\n"
+"    "
 
 #, fuzzy, python-format
 #| msgid "Deleted role \"%(value)s\""
@@ -17203,10 +17204,8 @@ msgstr ""
 msgid "OTP token"
 msgstr "OTP კოდების წაშლა"
 
-#, fuzzy
-#| msgid "Remove OTP tokens"
 msgid "OTP tokens"
-msgstr "OTP კოდების წაშლა"
+msgstr "OTP კოდები"
 
 msgid "OTP Tokens"
 msgstr "OTP კოდები"
