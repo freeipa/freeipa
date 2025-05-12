@@ -271,6 +271,19 @@ gen_require(`
 ')
 allow ndc_t ipa_dnskey_t:file { getattr open read };
 
+# Allow relabel from systemd_tmpfiles_t
+gen_require(`
+    type systemd_tmpfiles_t;
+')
+allow systemd_tmpfiles_t ipa_dnskey_t:file { getattr relabelfrom relabelto };
+gen_require(`
+    type fs_t;
+')
+allow ipa_dnskey_t fs_t:filesystem associate;
+gen_require(`
+    type named_t;
+')
+allow named_t ipa_dnskey_t:file { getattr open read };
 
 dev_read_rand(ipa_dnskey_t)
 dev_read_sysfs(ipa_dnskey_t)
@@ -320,6 +333,7 @@ optional_policy(`
 allow ipa_ods_exporter_t self:netlink_route_socket { bind create getattr nlmsg_read };
 allow ipa_ods_exporter_t self:udp_socket { connect create getattr };
 allow ipa_ods_exporter_t self:unix_dgram_socket { create getopt setopt };
+allow ipa_ods_exporter_t ipa_dnskey_t:file { getattr ioctl open read };
 
 manage_files_pattern(ipa_ods_exporter_t, ipa_var_lib_t, ipa_var_lib_t)
 list_dirs_pattern(ipa_ods_exporter_t, ipa_var_lib_t, ipa_var_lib_t)
