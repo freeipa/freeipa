@@ -197,6 +197,7 @@ import pki.ca
 import pki.cert
 import pki.client
 import pki.info
+import pki.profile
 
 from pki.cert import CertRequestStatus
 import pki.crypto as cryptoutil
@@ -1329,61 +1330,59 @@ class kra(Backend):
 
 
 @register()
-class ra_certprofile(RestClient):
+class ra_certprofile(APIClient):
     """
     Profile management backend plugin.
     """
-    path = 'profiles'
+    def __enter__(self):
+        super().__enter__()
+        # the class ostensibly supports a pki_client and warns if not provided
+        # but providing it fails
+        self.profile_client = pki.profile.ProfileClient(self.pki_client.connection)
+        return self
 
     def create_profile(self, profile_data):
         """
         Import the profile into Dogtag
         """
-        self._ssldo('POST', 'raw',
-            headers={
-                'Content-type': 'application/xml',
-                'Accept': 'application/json',
-            },
-            body=profile_data
-        )
+        try:
+            self.profile_client.create_profile(profile_data, raw=True)
+        except Exception as e:
+            raise errors.CertificateOperationError(error=str(e))
 
     def read_profile(self, profile_id):
         """
         Read the profile configuration from Dogtag
         """
-        _status, _resp_headers, resp_body = self._ssldo(
-            'GET', profile_id + '/raw')
-        return resp_body
+        profile = self.profile_client.get_profile(profile_id, raw=True)
+        return profile.encode("utf-8")
 
     def update_profile(self, profile_id, profile_data):
         """
         Update the profile configuration in Dogtag
         """
-        self._ssldo('PUT', profile_id + '/raw',
-            headers={
-                'Content-type': 'application/xml',
-                'Accept': 'application/json',
-            },
-            body=profile_data
-        )
+        try:
+            self.profile_client.modify_profile(profile_data)
+        except Exception as e:
+            raise errors.CertificateOperationError(error=str(e))
 
     def enable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
         """
-        self._ssldo('POST', profile_id + '?action=enable')
+        self.profile_client.enable_profile(profile_id)
 
     def disable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
         """
-        self._ssldo('POST', profile_id + '?action=disable')
+        self.profile_client.disable_profile(profile_id)
 
     def delete_profile(self, profile_id):
         """
         Delete the profile from Dogtag
         """
-        self._ssldo('DELETE', profile_id, headers={'Accept': 'application/json'})
+        self.profile_client.delete_profile(profile_id)
 
 
 @register()
