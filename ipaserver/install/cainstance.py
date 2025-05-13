@@ -2116,7 +2116,7 @@ def import_included_profiles():
     # on what port to use, 443 (remote) or 8443 (local) for importing
     # the profiles.
     #
-    # api.Backend.ra_certprofile invokes the RestClient class
+    # api.Backend.ra_certprofile invokes the APIClient class
     # which will discover and login to the CA REST API. We can
     # use this information to detect where to import the profiles.
     #
@@ -2129,7 +2129,7 @@ def import_included_profiles():
     # Apache but no CA, login fails with 404) so we override to the
     # local server.
     #
-    # When override port was always set to 8443 the RestClient could
+    # When override port was always set to 8443 the APIClient could
     # pick a remote server and since 8443 isn't in our firewall profile
     # setting up a new server would fail.
     try:
