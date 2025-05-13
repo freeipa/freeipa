@@ -198,6 +198,7 @@ import pki.cert
 import pki.client
 import pki.info
 import pki.profile
+import pki.system
 
 from pki.cert import CertRequestStatus
 import pki.crypto as cryptoutil
@@ -1488,20 +1489,23 @@ class ra_lightweight_ca(APIClient):
 
 
 @register()
-class ra_securitydomain(RestClient):
+class ra_securitydomain(APIClient):
     """
     Security domain management backend plugin.
 
     Dogtag handles the creation of securitydomain entries
     we need to clean them up when an IPA server is removed.
     """
-    path = 'securityDomain/hosts'
+    def __enter__(self):
+        super().__enter__()
+        # the class ostensibly supports a pki_client and warns if not provided
+        # but providing it fails
+        self.domain_client = pki.system.SecurityDomainClient(self.pki_client.connection)
+        return self
+
 
     def delete_domain(self, hostname, type):
         """
         Delete a security domain
         """
-        self._ssldo(
-            'DELETE', f'{type}%20{hostname}%20443',
-            headers={'Accept': 'application/json'}
-        )
+        self.domain_client.remove_host(hostname, type.lower(), '443')
