@@ -198,6 +198,7 @@ import pki.cert
 import pki.client
 import pki.info
 import pki.profile
+import pki.subsystem
 import pki.system
 
 from pki.cert import CertRequestStatus
@@ -620,7 +621,7 @@ class APIClient(Backend):
     executed in a ``with`` suite::
 
         @register()
-        class ra_certprofile(RestClient):
+        class ra_certprofile(APIClient):
             path = 'profile'
             ...
 
@@ -666,6 +667,9 @@ class APIClient(Backend):
         return ca_host
 
     def __enter__(self):
+        # Refresh the ca_host property
+        object.__setattr__(self, '_ca_host', None)
+
         self.pki_client = pki.client.PKIClient(
             url='https://localhost:8443', verify=False)
         self.pki_client.set_client_auth(
@@ -687,8 +691,6 @@ class APIClient(Backend):
 
         json_response = response.json()
         logger.debug('Response:\n%s', json.dumps(json_response, indent=4))
-
-        self.client = pki.authority.AuthorityClient(self.pki_client.connection)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -1337,9 +1339,9 @@ class ra_certprofile(APIClient):
     """
     def __enter__(self):
         super().__enter__()
-        # the class ostensibly supports a pki_client and warns if not provided
-        # but providing it fails
-        self.profile_client = pki.profile.ProfileClient(self.pki_client.connection)
+        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
+        self.client = pki.profile.ProfileClient(sub_client)
+
         return self
 
     def create_profile(self, profile_data):
@@ -1347,7 +1349,7 @@ class ra_certprofile(APIClient):
         Import the profile into Dogtag
         """
         try:
-            self.profile_client.create_profile(profile_data, raw=True)
+            self.client.create_profile(profile_data, raw=True)
         except Exception as e:
             raise errors.CertificateOperationError(error=str(e))
 
@@ -1355,7 +1357,7 @@ class ra_certprofile(APIClient):
         """
         Read the profile configuration from Dogtag
         """
-        profile = self.profile_client.get_profile(profile_id, raw=True)
+        profile = self.client.get_profile(profile_id, raw=True)
         return profile.encode("utf-8")
 
     def update_profile(self, profile_id, profile_data):
@@ -1363,7 +1365,7 @@ class ra_certprofile(APIClient):
         Update the profile configuration in Dogtag
         """
         try:
-            self.profile_client.modify_profile(profile_data)
+            self.client.modify_profile(profile_data)
         except Exception as e:
             raise errors.CertificateOperationError(error=str(e))
 
@@ -1371,19 +1373,19 @@ class ra_certprofile(APIClient):
         """
         Enable the profile in Dogtag
         """
-        self.profile_client.enable_profile(profile_id)
+        self.client.enable_profile(profile_id)
 
     def disable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
         """
-        self.profile_client.disable_profile(profile_id)
+        self.client.disable_profile(profile_id)
 
     def delete_profile(self, profile_id):
         """
         Delete the profile from Dogtag
         """
-        self.profile_client.delete_profile(profile_id)
+        self.client.delete_profile(profile_id)
 
 
 @register()
@@ -1391,6 +1393,13 @@ class ra_lightweight_ca(APIClient):
     """
     Lightweight CA management backend plugin.
     """
+    def __enter__(self):
+        super().__enter__()
+        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
+        self.client = pki.authority.AuthorityClient(sub_client)
+
+        return self
+
     def create_ca(self, dn):
         """Create CA with the given DN.
 
@@ -1498,14 +1507,13 @@ class ra_securitydomain(APIClient):
     """
     def __enter__(self):
         super().__enter__()
-        # the class ostensibly supports a pki_client and warns if not provided
-        # but providing it fails
-        self.domain_client = pki.system.SecurityDomainClient(self.pki_client.connection)
-        return self
+        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
+        self.client = pki.system.SecurityDomainClient(sub_client)
 
+        return self
 
     def delete_domain(self, hostname, type):
         """
         Delete a security domain
         """
-        self.domain_client.remove_host(hostname, type.lower(), '443')
+        self.client.remove_host(hostname, type.lower(), '443')
