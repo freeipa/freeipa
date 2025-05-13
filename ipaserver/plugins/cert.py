@@ -640,6 +640,10 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             yield arg
 
     def execute(self, csr, all=False, raw=False, chain=False, **kw):
+        # deferred import to avoid issues building documentation
+        from ipaserver.install import cainstance, dsinstance, krainstance
+        from ipaserver.install.ca import lookup_ca_subject
+
         ca_enabled_check(self.api)
 
         ldap = self.api.Backend.ldap2
@@ -666,7 +670,89 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         Binding with a user principal one needs to be in the request_certs
         taskgroup (directly or indirectly via role membership).
         """
+        casubsystem_profile = False
         principal_arg = kw.get('principal')
+        op_account = getattr(context, 'principal', None)
+        logger.debug(
+            "Requesting cert for principal %s from principal %s with "
+            "profile %s", principal_arg, op_account, profile_id
+        )
+        if (
+            op_account
+            and profile_id in (
+                self.Backend.ra.OCSP_PROFILE,
+                self.Backend.ra.SUBSYSTEM_PROFILE,
+                self.Backend.ra.AUDIT_PROFILE,
+                self.Backend.ra.CACERT_PROFILE,
+                self.Backend.ra.CASERVER_PROFILE,
+                self.Backend.ra.KRA_AUDIT_PROFILE,
+                self.Backend.ra.KRA_STORAGE_PROFILE,
+                self.Backend.ra.KRA_TRANSPORT_PROFILE
+            )
+        ):
+            # Here we validate for these CA/KRA profiles:
+            #  1. the requesting principal is a host
+            #  2. the requesting principal is an IPA server
+            #  3. the subject of the CSR matches the expected
+            #     subject for this profile type
+            host_principal = kerberos.Principal(op_account)
+            if principal_to_principal_type(host_principal) != HOST:
+                raise errors.NotFound(
+                    reason=_(
+                        "Certificate request for profile '%s' was not "
+                        "requested from a host", profile_id)
+                )
+            try:
+                self.api.Command.server_show(host_principal.hostname)
+            except errors.NotFound:
+                raise errors.NotFound(
+                    reason=_(
+                        "Certificate request for profile '%s' was not "
+                        "requested from an IPA server", profile_id)
+                )
+            ca = cainstance.CAInstance(api.env.realm)
+            reqs = ca.tracking_reqs.items()
+            kra = krainstance.KRAInstance(api.env.realm)
+            if api.Command.kra_is_enabled()['result']:
+                reqs = itertools.chain(reqs,
+                                       kra.tracking_reqs.items())
+            nickname = None
+            for nick, prof in reqs:
+                if prof == profile_id:
+                    nickname = nick
+                    break
+            subject_dn = None
+            if nickname:
+                logger.debug("Requested CA/KRA nickname %s", nickname)
+                subject_base = dsinstance.DsInstance().find_subject_base()
+                ca_subject_dn = lookup_ca_subject(api, subject_base)
+                nickname_by_subject_dn = cainstance.get_nickname_by_subject_dn(
+                    subject_base, ca_subject_dn
+                )
+                for sub_dn, nick in nickname_by_subject_dn.items():
+                    if nick == nickname:
+                        subject_dn = sub_dn
+                        break
+                if subject_dn:
+                    if subject_dn != DN(csr.subject):
+                        raise errors.NotFound(
+                            reason=_(
+                                "CSR subject mismatch, {expected} vs "
+                                "{csr}".format(
+                                    expected=subject_dn, csr=csr.subject
+                                )
+                            )
+                        )
+                    else:
+                        logger.debug("Found subject %s", subject_dn)
+            else:
+                raise errors.NotFound(
+                    reason=_(
+                        "Invalid subject '{subject}' for profile "
+                        "'{profile}'".format(
+                            subject=csr.subject, profile=profile_id))
+                )
+            casubsystem_profile = True
 
         if principal_to_principal_type(principal_arg) == KRBTGT:
             principal_obj = None
@@ -710,17 +796,18 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # Can the bound principal request certs for another principal?
             self.check_access()
 
-        try:
-            self.check_access("request certificate ignore caacl")
-            bypass_caacl = True
-        except errors.ACIError:
-            bypass_caacl = False
+        if not casubsystem_profile:
+            try:
+                self.check_access("request certificate ignore caacl")
+                bypass_caacl = True
+            except errors.ACIError:
+                bypass_caacl = False
 
-        if not bypass_caacl:
-            if principal_type == KRBTGT:
-                ca_kdc_check(self.api, bind_principal.hostname)
-            else:
-                caacl_check(principal, ca, profile_id)
+            if not bypass_caacl:
+                if principal_type == KRBTGT:
+                    ca_kdc_check(self.api, bind_principal.hostname)
+                else:
+                    caacl_check(principal, ca, profile_id)
 
         try:
             ext_san = csr.extensions.get_extension_for_oid(
@@ -738,7 +825,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 error=_("No Common Name was found in subject of request."))
         cn = cns[-1].value  # "most specific" is end of list
 
-        if principal_type in (SERVICE, HOST):
+        if principal_type in (SERVICE, HOST) and not casubsystem_profile:
             if not _dns_name_matches_principal(cn, principal, principal_obj):
                 raise errors.ValidationError(
                     name='csr',
@@ -966,23 +1053,24 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
         # Success? Then add it to the principal's entry
         # (unless the profile tells us not to)
-        profile = api.Command['certprofile_show'](profile_id)
-        store = profile['result']['ipacertprofilestoreissued'][0]
-        if store and 'certificate' in result:
-            cert = result.get('certificate')
-            kwargs = dict(addattr=u'usercertificate={}'.format(cert))
-            # note: we call different commands for the different
-            # principal types because handling of 'userCertificate'
-            # vs. 'userCertificate;binary' varies by plugin.
-            if principal_type == SERVICE:
-                api.Command['service_mod'](principal_string, **kwargs)
-            elif principal_type == HOST:
-                api.Command['host_mod'](principal.hostname, **kwargs)
-            elif principal_type == USER:
-                api.Command['user_mod'](principal.username, **kwargs)
-            elif principal_type == KRBTGT:
-                logger.error("Profiles used to store cert should't be "
-                             "used for krbtgt certificates")
+        if not casubsystem_profile:
+            profile = api.Command['certprofile_show'](profile_id)
+            store = profile['result']['ipacertprofilestoreissued'][0]
+            if store and 'certificate' in result:
+                cert = result.get('certificate')
+                kwargs = dict(addattr=u'usercertificate={}'.format(cert))
+                # note: we call different commands for the different
+                # principal types because handling of 'userCertificate'
+                # vs. 'userCertificate;binary' varies by plugin.
+                if principal_type == SERVICE:
+                    api.Command['service_mod'](principal_string, **kwargs)
+                elif principal_type == HOST:
+                    api.Command['host_mod'](principal.hostname, **kwargs)
+                elif principal_type == USER:
+                    api.Command['user_mod'](principal.username, **kwargs)
+                elif principal_type == KRBTGT:
+                    logger.error("Profiles used to store cert should't be "
+                                 "used for krbtgt certificates")
 
         if 'certificate_chain' in ca_obj:
             cert = x509.load_der_x509_certificate(
