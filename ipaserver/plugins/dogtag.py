@@ -1463,7 +1463,8 @@ class ra_certprofile(APIClient):
         Update the profile configuration in Dogtag
         """
         try:
-            self.client.modify_profile(profile_data)
+            self.client.modify_profile(profile_data, profile_id=profile_id,
+                                       raw=True)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'update_profile', e)
