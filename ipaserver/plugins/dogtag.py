@@ -454,167 +454,6 @@ from ipaplatform.paths import paths
 register = Registry()
 
 
-class RestClient(Backend):
-    """Simple Dogtag REST client to be subclassed by other backends.
-
-    This class is a context manager.  Authenticated calls must be
-    executed in a ``with`` suite::
-
-        @register()
-        class ra_certprofile(RestClient):
-            path = 'profile'
-            ...
-
-        with api.Backend.ra_certprofile as profile_api:
-            # REST client is now logged in
-            profile_api.create_profile(...)
-
-    """
-    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
-    KDC_PROFILE = dogtag.KDC_PROFILE
-    path = None
-
-    @staticmethod
-    def _parse_dogtag_error(body):
-        try:
-            return pki.PKIException.from_json(
-                json.loads(ipautil.decode_json(body)))
-        except Exception:
-            return None
-
-    def __init__(self, api):
-        self.ca_cert = api.env.tls_ca_cert
-        if api.env.in_tree:
-            self.client_certfile = os.path.join(
-                api.env.dot_ipa, 'ra-agent.pem')
-
-            self.client_keyfile = os.path.join(
-                api.env.dot_ipa, 'ra-agent.key')
-        else:
-            self.client_certfile = paths.RA_AGENT_PEM
-            self.client_keyfile = paths.RA_AGENT_KEY
-        super(RestClient, self).__init__(api)
-
-        self._ca_host = None
-        # session cookie
-        self.override_port = None
-        self.cookie = None
-
-    @property
-    def ca_host(self):
-        """
-        :returns: FQDN of a host hopefully providing a CA service
-
-        Select our CA host, cache it for the first time.
-        """
-        if self._ca_host is not None:
-            return self._ca_host
-
-        preferred = [api.env.ca_host]
-        if api.env.host != api.env.ca_host:
-            preferred.append(api.env.host)
-        ca_host = find_providing_server(
-            'CA', conn=self.api.Backend.ldap2, preferred_hosts=preferred,
-            api=self.api
-        )
-        if ca_host is None:
-            # TODO: need during installation, CA is not yet set as enabled
-            ca_host = api.env.ca_host
-        # object is locked, need to use __setattr__()
-        object.__setattr__(self, '_ca_host', ca_host)
-        return ca_host
-
-    def __enter__(self):
-        """Log into the REST API"""
-        # Refresh the ca_host property
-        object.__setattr__(self, '_ca_host', None)
-
-        if self.cookie is not None:
-            return None
-
-        # Refresh the ca_host property
-        object.__setattr__(self, '_ca_host', None)
-
-        status, resp_headers, _resp_body = dogtag.https_request(
-            self.ca_host, self.override_port or self.env.ca_agent_port,
-            url='/ca/rest/account/login',
-            cafile=self.ca_cert,
-            client_certfile=self.client_certfile,
-            client_keyfile=self.client_keyfile,
-            method='GET'
-        )
-        cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
-        if status != 200 or len(cookies) == 0:
-            raise errors.RemoteRetrieveError(reason=_('Failed to authenticate to CA REST API'))
-        object.__setattr__(self, 'cookie', str(cookies[0]))
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Log out of the REST API"""
-        dogtag.https_request(
-            self.ca_host, self.override_port or self.env.ca_agent_port,
-            url='/ca/rest/account/logout',
-            cafile=self.ca_cert,
-            client_certfile=self.client_certfile,
-            client_keyfile=self.client_keyfile,
-            method='GET'
-        )
-        object.__setattr__(self, 'cookie', None)
-
-    def _ssldo(self, method, path, headers=None, body=None, use_session=True):
-        """
-        Perform an HTTPS request.
-
-        :param method: HTTP method to use
-        :param path: Path component. This will *extend* the path defined for
-            the class (if any).
-        :param headers: Additional headers to include in the request.
-        :param body: Request body.
-        :param use_session: If ``True``, session cookie is added to request
-            (client must be logged in).
-
-        :return:   (http_status, http_headers, http_body)
-                   as (integer, dict, str)
-
-        :raises: ``RemoteRetrieveError`` if ``use_session`` is not ``False``
-            and client is not logged in.
-
-        """
-        headers = headers or {}
-
-        if use_session:
-            if self.cookie is None:
-                raise errors.RemoteRetrieveError(
-                    reason=_("REST API is not logged in."))
-            headers['Cookie'] = self.cookie
-
-        resource = '/ca/rest'
-        if self.path is not None:
-            resource = os.path.join(resource, self.path)
-        if path is not None:
-            resource = os.path.join(resource, path)
-
-        # perform main request
-        status, resp_headers, resp_body = dogtag.https_request(
-            self.ca_host, self.override_port or self.env.ca_agent_port,
-            url=resource,
-            cafile=self.ca_cert,
-            client_certfile=self.client_certfile,
-            client_keyfile=self.client_keyfile,
-            method=method, headers=headers, body=body
-        )
-        if status < 200 or status >= 300:
-            explanation = self._parse_dogtag_error(resp_body) or ''
-            if status == 404:
-                raise errors.NotFound(reason=explanation)
-            raise errors.HTTPRequestError(
-                status=status,
-                reason=_('Non-2xx response from CA REST API: %(status)d. %(explanation)s')
-                % {'status': status, 'explanation': explanation}
-            )
-        return (status, resp_headers, resp_body)
-
-
 class APIClient(Backend):
     """Simple Dogtag API client to be subclassed by other backends.
 
@@ -665,6 +504,7 @@ class APIClient(Backend):
 
     def __init__(self, api):
         self.pki_client = None
+        self.client = None
         self._ca_host = None
         self.override_port = None
         if api.env.in_tree:
@@ -694,7 +534,7 @@ class APIClient(Backend):
         if ca_host is None:
             # TODO: need during installation, CA is not yet set as enabled
             ca_host = api.env.ca_host
-        self._ca_host = ca_host
+        object.__setattr__(self, '_ca_host', ca_host)
         return ca_host
 
     def __enter__(self):
@@ -702,8 +542,9 @@ class APIClient(Backend):
         object.__setattr__(self, '_ca_host', None)
         port = self.override_port or "443"
 
-        self.pki_client = pki.client.PKIClient(
+        pki_client = pki.client.PKIClient(
             url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        object.__setattr__(self, 'pki_client', pki_client)
         self.pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
@@ -762,7 +603,8 @@ class ra(rabase.rabase, APIClient):
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
         ca_client = pki.ca.CAClient(pki_client)
-        self.client = pki.cert.CertClient(ca_client)
+        client = pki.cert.CertClient(ca_client)
+        object.__setattr__(self, 'client', client)
 
     def raise_certificate_operation_error(
         self, func_name, err_msg=None, detail=None
@@ -1012,7 +854,7 @@ class ra(rabase.rabase, APIClient):
         request_data = result.request
         if request_data.request_status != CertRequestStatus.COMPLETE:
             raise errors.CertificateOperationError(
-                error=request_data.error_messsage)
+                error=request_data.error_message)
         s = result.cert.encoded
         match = x509.PEM_CERT_REGEX.search(s.encode('utf-8'))
         if match:
@@ -1430,7 +1272,8 @@ class ra_certprofile(APIClient):
     def __enter__(self):
         super().__enter__()
         sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
-        self.client = pki.profile.ProfileClient(sub_client)
+        client = pki.profile.ProfileClient(sub_client)
+        object.__setattr__(self, 'client', client)
 
         return self
 
@@ -1528,7 +1371,8 @@ class ra_lightweight_ca(APIClient):
     def __enter__(self):
         super().__enter__()
         sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'ca')
-        self.client = pki.authority.AuthorityClient(sub_client)
+        client = pki.authority.AuthorityClient(sub_client)
+        object.__setattr__(self, 'client', client)
 
         return self
 
