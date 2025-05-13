@@ -4,21 +4,22 @@
 
 
 import enum
+import pki.acme
 import pki.util
+import pki.subsystem
 import logging
 
-from ipalib import api, errors, x509
-from ipalib import _
+from ipalib import api, x509
 from ipalib.facts import is_ipa_configured
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
-from ipapython import cookie, dogtag, config
-from ipapython.ipautil import run
+from ipapython import dogtag, config
+from ipapython.ipautil import run, log_level_override
 from ipapython.certdb import NSSDatabase, EXTERNAL_CA_TRUST_FLAGS
 from ipaserver.install import cainstance
 from ipaserver.install.ca import lookup_random_serial_number_version
 
-from ipaserver.plugins.dogtag import RestClient
+from ipaserver.plugins.dogtag import APIClient
 
 logger = logging.getLogger(__name__)
 
@@ -80,50 +81,21 @@ def validate_range(val, min, max):
 # remove this program, or make it a wrapper for the API commands.
 
 
-class acme_state(RestClient):
-
-    def _request(self, url, headers=None):
-        headers = headers or {}
-        return dogtag.https_request(
-            self.ca_host, 8443,
-            url=url,
-            cafile=self.ca_cert,
-            client_certfile=paths.RA_AGENT_PEM,
-            client_keyfile=paths.RA_AGENT_KEY,
-            headers=headers,
-            method='POST'
-        )
+class acme_state(APIClient):
 
     def __enter__(self):
-        status, resp_headers, _unused = self._request('/acme/login')
-        cookies = cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
-        if status != 200 or len(cookies) == 0:
-            raise errors.RemoteRetrieveError(
-                reason=_('Failed to authenticate to CA REST API')
-            )
-        object.__setattr__(self, 'cookie', str(cookies[0]))
+        self.override_port = 8443
+        with log_level_override():
+            super().__enter__()
+        self.client = pki.acme.ACMEClient(self.pki_client)
+
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Log out of the REST API"""
-        headers = dict(Cookie=self.cookie)
-        status, unused, _unused = self._request('/acme/logout', headers=headers)
-        object.__setattr__(self, 'cookie', None)
-        if status != 204:
-            raise RuntimeError('Failed to logout')
-
     def enable(self):
-        headers = dict(Cookie=self.cookie)
-        status, unused, _unused = self._request('/acme/enable', headers=headers)
-        if status != 200:
-            raise RuntimeError('Failed to enable ACME')
+        self.client.enable()
 
     def disable(self):
-        headers = dict(Cookie=self.cookie)
-        status, unused, _unused = self._request('/acme/disable',
-                                                headers=headers)
-        if status != 200:
-            raise RuntimeError('Failed to disable ACME')
+        self.client.disable()
 
 
 class Command(enum.Enum):
@@ -189,12 +161,11 @@ class IPAACMEManage(AdminTool):
         parser.add_option_group(group)
         super(IPAACMEManage, cls).add_options(parser, debug_option=True)
 
-
     def validate_options(self):
         super(IPAACMEManage, self).validate_options(needs_root=True)
 
         if len(self.args) < 1:
-            self.option_parser.error(f'missing command argument')
+            self.option_parser.error('missing command argument')
 
         if self.args[0] == "pruning":
             if self.options.enable and self.options.disable:
@@ -382,7 +353,6 @@ class IPAACMEManage(AdminTool):
         config_show()
 
         print("The CA service must be restarted for changes to take effect")
-
 
     def run(self):
         if not is_ipa_configured():

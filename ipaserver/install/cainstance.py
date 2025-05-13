@@ -1825,18 +1825,11 @@ def update_authority_entry(cert):
     return __update_entry_from_cert(make_filter, make_entry, cert)
 
 
-def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
+def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
+    """Dynamically define the relationship between subjects and
+        nicknames for the CA and KRA.
     """
-    Get the nickname for storage in the cn_renewal container.
-
-    :param subject_base: Certificate subject base
-    :param ca_subject_dn: IPA CA subject DN
-    :param sdn: Subject DN
-    :return: string, or None if nickname cannot be determined.
-
-    """
-    assert isinstance(sdn, DN)
-    nickname_by_subject_dn = {
+    return {
         DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
         DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
         DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
@@ -1848,6 +1841,22 @@ def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
             'storageCert cert-pki-kra',
         DN('CN=IPA RA', subject_base): 'ipaCert',
     }
+
+
+def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
+    """
+    Get the nickname for storage in the cn_renewal container.
+
+    :param subject_base: Certificate subject base
+    :param ca_subject_dn: IPA CA subject DN
+    :param sdn: Subject DN
+    :return: string, or None if nickname cannot be determined.
+
+    """
+    assert isinstance(sdn, DN)
+    nickname_by_subject_dn = get_nickname_by_subject_dn(
+        subject_base, ca_subject_dn
+    )
     return nickname_by_subject_dn.get(sdn)
 
 
@@ -2116,7 +2125,7 @@ def import_included_profiles():
     # on what port to use, 443 (remote) or 8443 (local) for importing
     # the profiles.
     #
-    # api.Backend.ra_certprofile invokes the RestClient class
+    # api.Backend.ra_certprofile invokes the APIClient class
     # which will discover and login to the CA REST API. We can
     # use this information to detect where to import the profiles.
     #
@@ -2129,7 +2138,7 @@ def import_included_profiles():
     # Apache but no CA, login fails with 404) so we override to the
     # local server.
     #
-    # When override port was always set to 8443 the RestClient could
+    # When override port was always set to 8443 the APIClient could
     # pick a remote server and since 8443 isn't in our firewall profile
     # setting up a new server would fail.
     try:
