@@ -199,6 +199,20 @@ def profile_server(builder, ca_nick, ca,
             critical=False,
         )
 
+    if ca:
+        try:
+            ski_ext = ca.cert.extensions.get_extension_for_class(
+                x509.SubjectKeyIdentifier)
+            builder = builder.add_extension(
+                x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
+                    ski_ext.value
+                ),
+                critical=False,
+            )
+        except x509.ExtensionNotFound:
+            # if the CA doesn't have a SKI, just ignore
+            pass
+
     if badusage:
         builder = builder.add_extension(
             x509.KeyUsage(
