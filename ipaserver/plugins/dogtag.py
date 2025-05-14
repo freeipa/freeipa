@@ -1191,6 +1191,8 @@ class ra_certprofile(APIClient):
         """
         try:
             self.client.create_profile(profile_data, raw=True)
+        except pki.ConflictingOperationException as e:
+            raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
             raise errors.CertificateOperationError(error=str(e))
 
@@ -1206,7 +1208,8 @@ class ra_certprofile(APIClient):
         Update the profile configuration in Dogtag
         """
         try:
-            self.client.modify_profile(profile_data)
+            self.client.modify_profile(profile_data, profile_id=profile_id,
+                                       raw=True)
         except Exception as e:
             raise errors.CertificateOperationError(error=str(e))
 
