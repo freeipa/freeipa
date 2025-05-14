@@ -92,10 +92,10 @@ class acme_state(APIClient):
         return self
 
     def enable(self):
-        self.client.enable():
+        self.client.enable()
 
     def disable(self):
-        self.client.disable():
+        self.client.disable()
 
 
 class Command(enum.Enum):
