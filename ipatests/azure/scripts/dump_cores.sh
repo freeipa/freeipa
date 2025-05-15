@@ -22,7 +22,10 @@ chmod +x "$debugger"
 # make sure coredumpctl installed
 which coredumpctl
 coredumpctl \
-    --no-pager --directory="$HOST_JOURNAL" --since="$since_time" list ||:
+    --no-pager --directory="$HOST_JOURNAL" list ||:
+ls -l /var/lib/systemd/coredump/
+ls -l /var/log/host_journal
+journalctl -D /var/log/host_journal/ -t systemd-coredump
 
 rm -rvf "$COREDUMPS_DIR" ||:
 mkdir "$COREDUMPS_DIR"
