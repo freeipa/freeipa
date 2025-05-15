@@ -185,8 +185,7 @@ import six
 
 from ipalib import Backend, api, x509
 from ipapython.dn import DN
-import ipapython.cookie
-from ipapython import dogtag, ipautil
+from ipapython import dogtag
 from ipaserver.masters import find_providing_server
 
 import requests.exceptions
@@ -474,6 +473,28 @@ class APIClient(Backend):
     DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
     KDC_PROFILE = dogtag.KDC_PROFILE
 
+    def raise_certificate_operation_error(self, func_name, exc):
+        """
+        :param func_name: function name where error occurred
+
+        :param exc:       the exception being raised
+
+        Raise a CertificateOperationError and log the error message.
+        """
+
+        if exc is None:
+            err_msg = _('Unable to communicate with CMS')
+        else:
+            err_msg = exc.message
+
+        logger.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
+        if type(exc) in (
+            pki.ProfileNotFoundException, pki.BadRequestException,
+            pki.ResourceNotFoundException,
+        ):
+            raise errors.NotFound(reason=err_msg)
+        raise errors.CertificateOperationError(error=err_msg)
+
     def __init__(self, api):
         self.pki_client = None
         self._ca_host = None
@@ -640,7 +661,7 @@ class ra(rabase.rabase):
 
         try:
             request = self.client.get_request(request_id)
-        except pki.RequestNotFoundException as e:
+        except pki.RequestNotFoundException:
             raise errors.NotFound(
                 reason="Request ID %s not found" % hex(request_id))
         except requests.exceptions.HTTPError as e:
@@ -723,7 +744,7 @@ class ra(rabase.rabase):
 
         try:
             cert = self.client.get_cert(serial_number)
-        except pki.CertNotFoundException as e:
+        except pki.CertNotFoundException:
             raise errors.NotFound(
                 reason="Certificate ID %s not found" % hex(serial_number))
         except Exception as e:
@@ -795,7 +816,7 @@ class ra(rabase.rabase):
 
         try:
             result = self.client.enroll_cert(profile_id, inputs, ca_id)
-        except pki.PKIException:
+        except pki.PKIException as e:
             raise errors.CertificateOperationError(error=e.message)
         except Exception as e:
             raise errors.CertificateOperationError(error=e)
@@ -837,7 +858,6 @@ class ra(rabase.rabase):
                                                    detail=e)
 
         return pki_version
-
 
     def revoke_certificate(self, serial_number, revocation_reason=0):
         """
@@ -951,7 +971,7 @@ class ra(rabase.rabase):
 
         try:
             result = self.client.unrevoke_cert(serial_number)
-        except pki.CertNotFoundException as e:
+        except pki.CertNotFoundException:
             raise errors.NotFound(
                 reason="Certificate ID %s not found" % hex(serial_number))
         except Exception as e:
@@ -1192,9 +1212,11 @@ class ra_certprofile(APIClient):
         try:
             self.client.create_profile(profile_data, raw=True)
         except pki.ConflictingOperationException as e:
+            # profile exists
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
-            raise errors.CertificateOperationError(error=str(e))
+            self.raise_certificate_operation_error(
+                'create_profile', e)
 
     def read_profile(self, profile_id):
         """
@@ -1202,12 +1224,9 @@ class ra_certprofile(APIClient):
         """
         try:
             profile = self.client.get_profile(profile_id, raw=True)
-        except pki.ProfileNotFoundException as e:
-            raise errors.NotFound(
-                reason="Profile ID %s found" % profile_id)
-            raise errors.errors.CertificateOperationError(reason=str(e))
         except Exception as e:
-            raise errors.CertificateOperationError(error=str(e))
+            self.raise_certificate_operation_error(
+                'read_profile', e)
         return profile.encode("utf-8")
 
     def update_profile(self, profile_id, profile_data):
@@ -1218,7 +1237,8 @@ class ra_certprofile(APIClient):
             self.client.modify_profile(profile_data, profile_id=profile_id,
                                        raw=True)
         except Exception as e:
-            raise errors.CertificateOperationError(error=str(e))
+            self.raise_certificate_operation_error(
+                'update_profile', e)
 
     def enable_profile(self, profile_id):
         """
@@ -1229,7 +1249,8 @@ class ra_certprofile(APIClient):
         except pki.ConflictingOperationException as e:
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
-            raise errors.CertificateOperationError(error=str(e))
+            self.raise_certificate_operation_error(
+                'enable_profile', e)
 
     def disable_profile(self, profile_id):
         """
@@ -1240,13 +1261,21 @@ class ra_certprofile(APIClient):
         except pki.ConflictingOperationException as e:
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
-            raise errors.CertificateOperationError(error=str(e))
+            self.raise_certificate_operation_error(
+                'disable_profile', e)
 
     def delete_profile(self, profile_id):
         """
         Delete the profile from Dogtag
         """
-        self.client.delete_profile(profile_id)
+        try:
+            self.client.delete_profile(profile_id)
+        except pki.ProfileNotFoundException:
+            raise errors.NotFound(
+                reason="Profile ID %s not found" % profile_id)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'delete_profile', e)
 
 
 @register()
@@ -1281,7 +1310,7 @@ class ra_lightweight_ca(APIClient):
 
         if not host_ca:
             logger.debug('No host ca found')
-            raise errors.CertificateOperationError(
+            raise errors.NotFound(
                 error=("No host ca found")
             )
 
@@ -1295,10 +1324,8 @@ class ra_lightweight_ca(APIClient):
         try:
             subca = self.client.create_ca(data)
         except Exception as e:
-            logger.debug('%s', e, exc_info=True)
-            raise errors.CertificateOperationError(
-                error=("Creating ca failed %s" % e)
-            )
+            self.raise_certificate_operation_error(
+                'create_ca', e)
 
         newca = self.client.get_ca(subca.aid)
         response = dict()
@@ -1307,9 +1334,12 @@ class ra_lightweight_ca(APIClient):
         response['dn'] = newca.dn
         return response
 
-
     def read_ca(self, ca_id):
-        subca = self.client.get_ca(ca_id)
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'read_ca', e)
 
         # reformat the response to what IPA expects
         response = dict()
@@ -1324,38 +1354,68 @@ class ra_lightweight_ca(APIClient):
     def read_ca_cert(self, ca_id):
         try:
             subca = self.client.get_ca(ca_id)
-        except pki.ResourceNotFoundException as e:
-            raise errors.NotFound(
-                reason=("ca %s not found" % ca_id)
-            )
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'read_ca_cert', e)
         cert = self.client.get_cert(subca.aid, "PEM")
         c = x509.load_pem_x509_certificate(cert.encode("utf-8"))
         return c.public_bytes(x509.Encoding.DER)
 
     def read_ca_chain(self, ca_id):
-        subca = self.client.get_ca(ca_id)
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'read_ca_chain', e)
         # The PKCS7 format from PKI doesn't seem to be correct. So
         # retrieve it as PEM and decode it into DER here instead.
-        chain = self.client.get_chain(subca.aid, "PEM")
+        try:
+            chain = self.client.get_chain(subca.aid, "PEM")
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'read_ca_chain', e)
         chain = chain.replace(r"----BEGIN PKCS7----", "")
         chain = chain.replace(r"----END PKCS7----", "")
         chain = base64.b64decode(chain)
         return chain
 
     def disable_ca(self, ca_id):
-        subca = self.client.get_ca(ca_id)
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'disable_ca', e)
 
-        return self.client.disable_ca(subca.aid)
+        try:
+            self.client.disable_ca(subca.aid)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'disable_ca', e)
 
     def enable_ca(self, ca_id):
-        subca = self.client.get_ca(ca_id)
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'enable_ca', e)
 
-        return self.client.disable_ca(subca.aid)
+        try:
+            self.client.enable_ca(subca.aid)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'enable_ca', e)
 
     def delete_ca(self, ca_id):
-        subca = self.client.get_ca(ca_id)
-
-        return self.client.delete_ca(subca.aid)
+        try:
+            subca = self.client.get_ca(ca_id)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'enable_ca', e)
+        try:
+            self.client.delete_ca(subca.aid)
+        except Exception as e:
+            self.raise_certificate_operation_error(
+                'enable_ca', e)
 
 
 @register()
