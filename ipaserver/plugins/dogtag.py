@@ -1200,7 +1200,14 @@ class ra_certprofile(APIClient):
         """
         Read the profile configuration from Dogtag
         """
-        profile = self.client.get_profile(profile_id, raw=True)
+        try:
+            profile = self.client.get_profile(profile_id, raw=True)
+        except pki.ProfileNotFoundException as e:
+            raise errors.NotFound(
+                reason="Profile ID %s found" % profile_id)
+            raise errors.errors.CertificateOperationError(reason=str(e))
+        except Exception as e:
+            raise errors.CertificateOperationError(error=str(e))
         return profile.encode("utf-8")
 
     def update_profile(self, profile_id, profile_data):
@@ -1217,13 +1224,23 @@ class ra_certprofile(APIClient):
         """
         Enable the profile in Dogtag
         """
-        self.client.enable_profile(profile_id)
+        try:
+            self.client.enable_profile(profile_id)
+        except pki.ConflictingOperationException as e:
+            raise errors.RemoteRetrieveError(reason=str(e))
+        except Exception as e:
+            raise errors.CertificateOperationError(error=str(e))
 
     def disable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
         """
-        self.client.disable_profile(profile_id)
+        try:
+            self.client.disable_profile(profile_id)
+        except pki.ConflictingOperationException as e:
+            raise errors.RemoteRetrieveError(reason=str(e))
+        except Exception as e:
+            raise errors.CertificateOperationError(error=str(e))
 
     def delete_profile(self, profile_id):
         """
