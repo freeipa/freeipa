@@ -64,7 +64,7 @@ steps:
 
 - script: |
     set -eu
-    date +'%Y-%m-%d %H:%M:%S' > coredumpctl.time.mark
+    date +'%Y-%m-%d %H:%M:%S %Z' > coredumpctl.time.mark
     systemd_conf="/etc/systemd/system.conf"
     sudo sed -i 's/^DumpCore=.*/#&/g' "$systemd_conf"
     sudo sed -i 's/^DefaultLimitCORE=.*/#&/g' "$systemd_conf"
