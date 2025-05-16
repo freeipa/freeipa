@@ -533,7 +533,7 @@ class APIClient(Backend):
         object.__setattr__(self, '_ca_host', None)
 
         self.pki_client = pki.client.PKIClient(
-            url='https://localhost:8443', verify=False)
+            url=f'https://{self.ca_host}:8443', ca_bundle=self.ca_cert)
         self.pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
@@ -569,7 +569,7 @@ class APIClient(Backend):
 
 
 @register()
-class ra(rabase.rabase):
+class ra(rabase.rabase, APIClient):
     """
     Request Authority backend plugin.
     """
@@ -577,9 +577,11 @@ class ra(rabase.rabase):
 
     def __init__(self, api):
         super(ra, self).__init__(api)
+        self.client = None
 
+    def get_client(self):
         pki_client = pki.client.PKIClient(
-            url='https://localhost:8443', verify=False)
+            url=f'https://{self.ca_host}:8443', ca_bundle=self.ca_cert)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
@@ -659,6 +661,7 @@ class ra(rabase.rabase):
         # necessary.
         request_id = int(request_id, 0)
 
+        self.get_client()
         try:
             request = self.client.get_request(request_id)
         except pki.RequestNotFoundException:
@@ -742,6 +745,7 @@ class ra(rabase.rabase):
         if isinstance(serial_number, str):
             serial_number = int(serial_number, 0)
 
+        self.get_client()
         try:
             cert = self.client.get_cert(serial_number)
         except pki.CertNotFoundException:
@@ -814,6 +818,7 @@ class ra(rabase.rabase):
         inputs['cert_request_type'] = 'pkcs10'
         inputs['cert_request'] = csr
 
+        self.get_client()
         try:
             result = self.client.enroll_cert(profile_id, inputs, ca_id)
         except pki.PKIException as e:
@@ -848,7 +853,7 @@ class ra(rabase.rabase):
         Returns a version string like "11.6.0"
         """
         pki_client = pki.client.PKIClient(
-            url='https://localhost:8443', verify=False)
+            url=f'https://{self.ca_host}:8443', ca_bundle=self.ca_cert)
         info_client = pki.info.InfoClient(pki_client)
 
         try:
@@ -904,6 +909,7 @@ class ra(rabase.rabase):
                 detail='7 is not a valid revocation reason'
             )
 
+        self.get_client()
         try:
             result = self.client.revoke_cert(
                 serial_number,
@@ -969,6 +975,7 @@ class ra(rabase.rabase):
         # necessary.
         serial_number = int(serial_number, 0)
 
+        self.get_client()
         try:
             result = self.client.unrevoke_cert(serial_number)
         except pki.CertNotFoundException:
@@ -1059,6 +1066,7 @@ class ra(rabase.rabase):
         payload = json.dumps(cert_search_request, sort_keys=True)
         logger.debug('%s.find(): request: %s', type(self).__name__, payload)
 
+        self.get_client()
         sizelimit = options.get('sizelimit', 0)
         if sizelimit == 0:
             sizelimit = 0x7fffffff
@@ -1185,8 +1193,8 @@ class kra(Backend):
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
         # https://fedorahosted.org/freeipa/ticket/4557
         pki_client = pki.client.PKIClient(
-            url='https://%s:%s' % (self.kra_host, str(self.kra_port)),
-            verify=False)
+            url=f'https://{self.kra_host}:{self.kra_port}',
+            ca_bundle=paths.IPA_CA_CRT)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
