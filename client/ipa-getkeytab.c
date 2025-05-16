@@ -866,6 +866,7 @@ static int read_ipa_config(struct ipa_config **ipacfg)
         (*ipacfg)->domain = ini_get_string_config_value(obj, &ret);
     }
 
+    ini_config_destroy(cfgctx);
     return 0;
 }
 
@@ -984,7 +985,7 @@ int main(int argc, const char *argv[])
 	krb5_context krbctx;
 	krb5_ccache ccache;
 	krb5_principal uprinc = NULL;
-	krb5_principal sprinc;
+	krb5_principal sprinc = NULL;
 	krb5_error_code krberr;
 	struct keys_container keys = { 0 };
 	krb5_keytab kt;
@@ -1026,6 +1027,7 @@ int main(int argc, const char *argv[])
 			fprintf(stdout, "%s\n", enc);
 		}
 		ipa_krb5_free_ktypes(krbctx, ktypes);
+		poptFreeContext(pc);
 		exit (0);
 	}
 
@@ -1033,6 +1035,7 @@ int main(int argc, const char *argv[])
 		if (!quiet) {
 			poptPrintUsage(pc, stderr, 0);
 		}
+		poptFreeContext(pc);
 		exit(2);
 	}
 
@@ -1041,12 +1044,14 @@ int main(int argc, const char *argv[])
 		if (!quiet) {
 			poptPrintUsage(pc, stderr, 0);
 		}
+		poptFreeContext(pc);
 		exit(2);
     }
 
     if (askbindpw) {
 		bindpw = ask_password(krbctx, _("Enter LDAP password"), NULL, false);
 		if (!bindpw) {
+			poptFreeContext(pc);
 			exit(2);
 		}
     }
@@ -1056,6 +1061,7 @@ int main(int argc, const char *argv[])
                         _("Bind password required when using a bind DN (-w or -W).\n"));
 		if (!quiet)
 			poptPrintUsage(pc, stderr, 0);
+		poptFreeContext(pc);
 		exit(10);
 	}
 
@@ -1064,6 +1070,7 @@ int main(int argc, const char *argv[])
                           "and bind DN simultaneously.\n"));
         if (!quiet)
             poptPrintUsage(pc, stderr, 0);
+        poptFreeContext(pc);
         exit(2);
     }
 
@@ -1071,6 +1078,7 @@ int main(int argc, const char *argv[])
         fprintf(stderr, _("Invalid SASL bind mechanism\n"));
         if (!quiet)
             poptPrintUsage(pc, stderr, 0);
+        poptFreeContext(pc);
         exit(2);
     }
 
@@ -1083,8 +1091,10 @@ int main(int argc, const char *argv[])
                           "simultaneously.\n"));
         if (!quiet)
             poptPrintUsage(pc, stderr, 0);
+        poptFreeContext(pc);
         exit(2);
     }
+    poptFreeContext(pc);
 
     if (server && (strcasecmp(server, "_srv_") == 0)) {
         struct srvrec *srvrecs, *srv;
@@ -1119,6 +1129,7 @@ int main(int argc, const char *argv[])
             /* Discovery failed, fall through to option methods */
             server = NULL;
         }
+        free(ipacfg);
     }
 
     if (!server && !ldap_uri) {
