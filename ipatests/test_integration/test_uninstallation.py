@@ -186,8 +186,6 @@ class TestUninstallCleanup(IntegrationTest):
             '/root/.cache',
             '/root/.dogtag',
             '/root/.local',
-            '/run/dirsrv',
-            '/run/lock/dirsrv',
             '/var/lib/authselect/backups',
             '/var/lib/gssproxy/rcache/krb5_0.rcache2',
             '/var/lib/ipa/ipa-kasp.db.backup',
