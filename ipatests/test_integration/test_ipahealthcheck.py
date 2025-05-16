@@ -1527,6 +1527,40 @@ class TestIpaHealthCheck(IntegrationTest):
         )
 
     @pytest.fixture
+    def change_pwd_plugin_default(self):
+        """
+        Fixture to change the password plugin feature
+        to AllowNThash and change it to default
+        """
+        self.master.run_command(
+            ["ipa", "config-mod", "--ipaconfigstring=AllowNThash"]
+        )
+        yield
+        self.master.run_command(
+            ["ipa", "config-mod",
+             "--ipaconfigstring={AllowNThash, 'KDC:Disable Last Success'}"]
+        )
+
+    def test_krbLastSuccessfulAuth_warning(self, change_pwd_plugin_default):
+        """
+        This test checks that warning message is displayed
+        when password plugin feature is modified to
+        AllowNThash
+        """
+        err_msg = (
+            "Last Successful Auth is enabled. "
+            "It may cause performance problems."
+        )
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.config",
+            "IPAkrbLastSuccessfulAuth",
+        )
+        assert returncode == 1
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["msg"] == err_msg
+
+    @pytest.fixture
     def expire_cert_critical(self):
         """
         Fixture to expire the cert by moving the system date using
@@ -1552,7 +1586,6 @@ class TestIpaHealthCheck(IntegrationTest):
             assert check["kw"]["key"] == "DSCERTLE0002"
             assert "Expired Certificate" in check["kw"]["items"]
             assert check["kw"]["msg"] == msg
-
 
     def test_ipa_healthcheck_expiring(self, restart_service):
         """
