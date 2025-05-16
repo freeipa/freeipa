@@ -27,7 +27,7 @@ import posixpath
 
 import six
 
-from ipalib import api
+from ipalib import api, messages
 from ipalib import errors
 from ipalib import Bool, Flag, Str
 from .baseuser import (
@@ -173,6 +173,24 @@ def check_last_member(user, protected_group_name=u'admins'):
     if enabled_users == [user]:
         raise errors.LastMemberError(key=user, label=_(u'group'),
             container=protected_group_name)
+
+
+def is_in_local_idrange(command, uidnumber, options):
+    result = command.api.Command.idrange_find(
+        version=options['version'],
+        iparangetype='ipa-local',
+        sizelimit=0,
+    )
+
+    for r in result['result']:
+        if 'ipabaserid' in r:
+            ipabaseid = int(r['ipabaseid'][0])
+            ipaidrangesize = int(r['ipaidrangesize'][0])
+            if ipabaseid <= uidnumber <= ipabaseid + ipaidrangesize:
+                return True
+
+    return False
+
 
 @register()
 class user(baseuser):
@@ -669,6 +687,17 @@ class user_add(baseuser_add):
                 reason = "External IdP configuration {} not found"
                 raise errors.NotFound(reason=_(reason).format(rcl))
             entry_attrs['ipaidpconfiglink'] = answer
+
+        # Check and warn if we're out of local idrange
+        # Skip dynamically assigned uid, old clients say 999
+        uidnumber = entry_attrs.get('uidnumber')
+        if (
+            uidnumber != -1
+            and uidnumber != 999
+            and not is_in_local_idrange(self, uidnumber, options)
+        ):
+            self.add_message(messages.UidNumberOutOfLocalIDRange(
+                user=entry_attrs.get('uid'), uidnumber=uidnumber))
 
         self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
                                  **options)
