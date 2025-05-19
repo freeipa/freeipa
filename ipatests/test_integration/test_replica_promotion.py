@@ -417,6 +417,9 @@ class TestRenewalMaster(IntegrationTest):
         replica = self.replicas[0]
         replica.run_command(['ipa', 'config-mod',
                              '--ca-renewal-master-server', replica.hostname])
+        # wait for replication to complete before checking on the master
+        tasks.wait_for_replication(replica.ldap_connect())
+
         result = self.master.run_command(["ipa", "config-show"]).stdout_text
         assert("IPA CA renewal master: %s" % replica.hostname in result), (
             "Replica hostname not found among CA renewal masters"
