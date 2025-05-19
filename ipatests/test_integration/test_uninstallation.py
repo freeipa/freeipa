@@ -178,6 +178,7 @@ class TestUninstallCleanup(IntegrationTest):
             '/var/log',
             '/var/tmp/systemd-private',
             '/run/systemd',
+            '/run/log/journal',
             '/var/lib/authselect/backups/pre_ipaclient',
             '/var/named/data/named.run',
             paths.DNSSEC_SOFTHSM_PIN_SO,  # See commit eb54814741
