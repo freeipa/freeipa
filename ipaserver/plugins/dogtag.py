@@ -472,6 +472,14 @@ class APIClient(Backend):
     """
     DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
     KDC_PROFILE = dogtag.KDC_PROFILE
+    OCSP_PROFILE = dogtag.OCSP_PROFILE
+    SUBSYSTEM_PROFILE = dogtag.SUBSYSTEM_PROFILE
+    AUDIT_PROFILE = dogtag.AUDIT_PROFILE
+    CACERT_PROFILE = dogtag.CACERT_PROFILE
+    CASERVER_PROFILE = dogtag.CASERVER_PROFILE
+    KRA_AUDIT_PROFILE = dogtag.KRA_AUDIT_PROFILE
+    KRA_STORAGE_PROFILE = dogtag.KRA_STORAGE_PROFILE
+    KRA_TRANSPORT_PROFILE = dogtag.KRA_TRANSPORT_PROFILE
 
     def raise_certificate_operation_exception(self, func_name, exc):
         """
