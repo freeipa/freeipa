@@ -225,6 +225,8 @@ CMS_STATUS_REJECTED     = 5
 CMS_STATUS_ERROR        = 6
 CMS_STATUS_EXCEPTION    = 7
 
+MAX_INT32 = 2147483647
+
 
 def cms_request_status_to_string(request_status):
     '''
@@ -472,6 +474,15 @@ class APIClient(Backend):
     """
     DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
     KDC_PROFILE = dogtag.KDC_PROFILE
+    OCSP_PROFILE = dogtag.OCSP_PROFILE
+    SUBSYSTEM_PROFILE = dogtag.SUBSYSTEM_PROFILE
+    AUDIT_PROFILE = dogtag.AUDIT_PROFILE
+    CACERT_PROFILE = dogtag.CACERT_PROFILE
+    CASERVER_PROFILE = dogtag.CASERVER_PROFILE
+    KRA_AUDIT_PROFILE = dogtag.KRA_AUDIT_PROFILE
+    KRA_STORAGE_PROFILE = dogtag.KRA_STORAGE_PROFILE
+    KRA_TRANSPORT_PROFILE = dogtag.KRA_TRANSPORT_PROFILE
+
 
     def raise_certificate_operation_error(self, func_name, exc):
         """
@@ -688,11 +699,41 @@ class ra(rabase.rabase, APIClient):
         cmd_result = {}
         if request.cert_id:  # the cert may not have been issued
             cmd_result['serial_number'] = int(request.cert_id, 16)
-        cmd_result['request_id'] = int(request.request_id)
+        cmd_result['request_id'] = request_id
         cmd_result['cert_request_status'] = request.request_status
         cmd_result['request_type'] = request.request_type
 
         return cmd_result
+
+    def review_request(self, request_id):
+        """
+        Retrieve the full certificate enrollment request.
+        """
+        logger.debug('%s.review_request()', type(self).__name__)
+
+        # Convert serial number to integral type from string to properly handle
+        # radix issues. Note: the int object constructor will properly handle
+        # large magnitude integral values by returning a Python long type when
+        # necessary.
+        request_id = int(request_id, 0)
+
+        self.get_client()
+        try:
+            request = self.client.review_request(request_id)
+        except pki.RequestNotFoundException:
+            raise errors.NotFound(
+                reason="Request ID %s not found" % hex(request_id))
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                raise errors.NotFound(
+                    reason="Request ID %s not found" % hex(request_id))
+            else:
+                self.raise_certificate_operation_error(
+                    'check_request_status',
+                    err_msg=e.args[0],
+                    detail=e.response.status_code
+                )
+        import pdb; pdb.set_trace()
 
     def get_certificate(self, serial_number):
         """
@@ -1139,6 +1180,86 @@ class ra(rabase.rabase, APIClient):
 
         return cmd_result
 
+    def approve_request(self, request_id):
+        """
+        :param request_id: request ID
+
+        Approve a certificate signing request.
+
+        The command returns a dict with these possible key/value pairs.
+        Some key/value pairs may be absent.
+
+        +-------------------+---------------+---------------+
+        |result name        |result type    |comments       |
+        +===================+===============+===============+
+        |serial_number      |unicode [1]_   |               |
+        +-------------------+---------------+---------------+
+        |request_id         |unicode [1]_   |               |
+        +-------------------+---------------+---------------+
+        |cert_request_status|unicode [2]_   |               |
+        +-------------------+---------------+---------------+
+
+        .. [1] The request_id and serial_number values are as
+               decimal regardless of what the request contains.
+
+        .. [2] cert_request_status, requestStatus, may be one of:
+
+               - "begin"
+               - "pending"
+               - "approved"
+               - "svc_pending"
+               - "canceled"
+               - "rejected"
+               - "complete"
+
+        The result component of IPA API responds with JSON in the form of:
+
+        "result": {
+            "cert_request_status": "complete",
+            "request_id": "214708171545060652318544694826586802577",
+            "serial_number": "140329369075043613975209265839482570077"
+        },
+        "summary": null,
+        "value": "214708171545060652318544694826586802577"
+
+
+        """
+        logger.debug('%s.approve_request()', type(self).__name__)
+        import pdb; pdb.set_trace()
+
+        # Retrieve and verify the request
+        request = self.client.review_request(request_id)
+
+        if request.request_status != 'pending':
+            self.raise_certificate_operation_error(
+                'approve_request',
+                err_msg='Certificate not in pending state',
+                detail=400
+            )
+
+        profile = request.profileSetId
+        if profile not in (
+            self.OCSP_PROFILE,
+            self.SUBSYSTEM_PROFILE,
+            self.AUDIT_PROFILE,
+            self.CACERT_PROFILE,
+            self.CASERVER_PROFILE,
+            self.KRA_AUDIT_PROFILE,
+            self.KRA_STORAGE_PROFILE,
+            self.KRA_TRANSPORT_PROFILE
+        ):
+            self.raise_certificate_operation_error(
+                'approve_request',
+                err_msg="Profile '%s' not on the approved list." % profile,
+                detail=400
+            )
+
+        # Approve the request
+        # TODO: error handling
+        self.client.review_request(request_id, request)
+
+        return self.check_request_status(request_id)
+
 
 # ----------------------------------------------------------------------------
 @register()
@@ -1284,6 +1405,32 @@ class ra_certprofile(APIClient):
         except Exception as e:
             self.raise_certificate_operation_error(
                 'delete_profile', e)
+
+    def list_profiles(self):
+        savepath = self.path
+        self.path = None
+        path = 'profiles?visible=true&enable=true&size={}'.format(MAX_INT32)
+
+        try:
+            _http_status, _http_headers, http_body = self._ssldo(
+                'GET', path, headers={'Accept': 'application/json',})
+        finally:
+            self.path = savepath
+
+        data = json.loads(http_body)
+
+        profiles = data['entries']
+
+        results = []
+
+        for profile in profiles:
+            response = {}
+            response['profile_id'] = profile.get('profileId')
+            response['profile_name'] = profile.get('profileName')
+            response['profile_enabled'] = profile.get('profileEnable')
+            results.append(response)
+
+        return results
 
 
 @register()
