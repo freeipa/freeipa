@@ -18,19 +18,23 @@ subjectKeyIdentifier = hash
 1.3.6.1.4.1.311.20.2 = ASN1:BMPString:${PROFILE}
 
 [alt_names]
+# The fully-qualified name SAN
 DNS.1 = ${FQDN}
+# An optional SAN, ipa-ca for the HTTP cert is an example. Optional.
 ${DNS_2}
-otherName.1 = 1.3.6.1.4.1.311.20.2.3;UTF8:${SERVICE}/${FQDN}@${REALM}
-otherName.2 = 1.3.6.1.5.2.2;SEQUENCE:princ_name
+# The Kerberos principal of the certificate
+otherName.1 = 1.3.6.1.4.1.311.20.2.3;UTF8:${SERVICE}/${PRINCIPAL}@${REALM}
+# Used for the id-pkinit-san for the pkinit certificate.
+${OTHERNAME_2}
 
 [princ_name]
 realm=EXP:0,GeneralString:${REALM}
 principal_name=EXP:1,SEQUENCE:principal_seq
 
 [principal_seq]
-name_type=EXP:0,INTEGER:1
+name_type=EXP:0,INTEGER:2
 name_string=EXP:1,SEQUENCE:principals
 
 [principals]
 princ1=GeneralString:${SERVICE}
-princ2=GeneralString:${FQDN}
+princ2=GeneralString:${REALM}
