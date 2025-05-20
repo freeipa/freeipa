@@ -843,6 +843,7 @@ class ra(rabase.rabase, APIClient):
         cmd_result = {}
         cmd_result['certificate'] = ''.join(s.splitlines())
         cmd_result['request_id'] = result.request.request_id
+        cmd_result['cert_request_status'] = result.request.request_status
 
         return cmd_result
 
@@ -1284,6 +1285,19 @@ class ra_certprofile(APIClient):
         except Exception as e:
             self.raise_certificate_operation_error(
                 'delete_profile', e)
+
+    def list_profiles(self):
+        profiles = self.client.list_profiles()
+
+        results = []
+        for profile in profiles:
+            response = {}
+            response['profile_id'] = profile.profile_id
+            response['profile_name'] = profile.profile_name
+            response['profile_enabled'] = str(profile.profileEnable)
+            results.append(response)
+
+        return results
 
 
 @register()
