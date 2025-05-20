@@ -483,7 +483,6 @@ class APIClient(Backend):
     KRA_STORAGE_PROFILE = dogtag.KRA_STORAGE_PROFILE
     KRA_TRANSPORT_PROFILE = dogtag.KRA_TRANSPORT_PROFILE
 
-
     def raise_certificate_operation_error(self, func_name, exc):
         """
         :param func_name: function name where error occurred

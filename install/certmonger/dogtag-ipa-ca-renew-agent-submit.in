@@ -212,7 +212,8 @@ def request_cert(reuse_existing, **kwargs):
              "--keyfile", paths.RA_AGENT_KEY] +
             sys.argv[1:] +
             ['--submit-option', "requestor_name=IPA"] +
-            ['--force-new', '--approval-option', 'bypassCAnotafter=true']
+            ['--force-new', '--approval-option', 'bypassCAnotafter=true'] +
+            ['--jsonrpc-url', 'https://%s:/ipa/json' % api.env.host]
     )
     result = ipautil.run(args, raiseonerr=False, env=os.environ,
                          capture_output=True)
