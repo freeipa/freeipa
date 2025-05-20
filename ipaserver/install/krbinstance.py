@@ -490,7 +490,7 @@ class KrbInstance(service.Service):
             if use_dogtag_submit:
                 ca_args = [
                     paths.CERTMONGER_DOGTAG_SUBMIT,
-                    '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                    '--jsonrpc-url', 'https://%s/ipa/json' % self.fqdn,
                     '--certfile', paths.RA_AGENT_PEM,
                     '--keyfile', paths.RA_AGENT_KEY,
                     '--cafile', paths.IPA_CA_CRT,

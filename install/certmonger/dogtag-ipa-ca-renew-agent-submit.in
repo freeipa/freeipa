@@ -109,6 +109,7 @@ def ldap_connect():
         if conn is not None and conn.isconnected():
             conn.disconnect()
 
+
 def call_handler(_handler, *args, **kwargs):
     """
     Request handler call wrapper
@@ -206,13 +207,17 @@ def request_cert(reuse_existing, **kwargs):
     syslog.syslog(syslog.LOG_NOTICE,
                   "Forwarding request to dogtag-ipa-renew-agent")
 
-    args = ([paths.DOGTAG_IPA_RENEW_AGENT_SUBMIT,
-             "--cafile", paths.IPA_CA_CRT,
-             "--certfile", paths.RA_AGENT_PEM,
-             "--keyfile", paths.RA_AGENT_KEY] +
-            sys.argv[1:] +
-            ['--submit-option', "requestor_name=IPA"] +
-            ['--force-new', '--approval-option', 'bypassCAnotafter=true']
+    args = (
+        [
+            paths.DOGTAG_IPA_RENEW_AGENT_SUBMIT,
+            "--cafile", paths.IPA_CA_CRT,
+            "--certfile", paths.RA_AGENT_PEM,
+            "--keyfile", paths.RA_AGENT_KEY,
+        ]
+        + sys.argv[1:]
+        + ['--submit-option', "requestor_name=IPA"]
+        + ['--force-new', '--approval-option', 'bypassCAnotafter=true']
+        + ['--jsonrpc-url', 'https://%s/ipa/json' % api.env.host]
     )
     result = ipautil.run(args, raiseonerr=False, env=os.environ,
                          capture_output=True)
@@ -484,6 +489,7 @@ def renew_ca_cert(reuse_existing, force_self_signed, **kwargs):
     else:
         return result
 
+
 def main():
     kwargs = {
         'reuse_existing': False,
@@ -546,7 +552,7 @@ def main():
 
 try:
     sys.exit(main())
-except Exception as e:
+except Exception:
     syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
     print("Internal error")
     sys.exit(UNREACHABLE)
