@@ -383,7 +383,7 @@ class TestIpaHealthCheck(IntegrationTest):
         if (
             parse_version(healthcheck_version) < parse_version("0.18")
             and osinfo.id == 'fedora'
-            and osinfo.version_number > (41,0)
+            and osinfo.version_number >= (42,0)
         ):
             # Patch: https://github.com/freeipa/freeipa-healthcheck/pull/349
             pytest.xfail("Patch is unavailable for Fedora 42+ "
