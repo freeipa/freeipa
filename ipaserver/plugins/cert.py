@@ -1065,7 +1065,6 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     error=_("CA '%s' is disabled") % ca)
             else:
                 raise e
-        import pdb; pdb.set_trace()
 
         if not raw:
             try:

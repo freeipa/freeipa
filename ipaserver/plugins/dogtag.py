@@ -733,7 +733,8 @@ class ra(rabase.rabase, APIClient):
                     err_msg=e.args[0],
                     detail=e.response.status_code
                 )
-        import pdb; pdb.set_trace()
+
+        return request
 
     def get_certificate(self, serial_number):
         """
@@ -884,6 +885,7 @@ class ra(rabase.rabase, APIClient):
         cmd_result = {}
         cmd_result['certificate'] = ''.join(s.splitlines())
         cmd_result['request_id'] = result.request.request_id
+        cmd_result['cert_request_status'] = result.request.request_status
 
         return cmd_result
 
@@ -1225,12 +1227,11 @@ class ra(rabase.rabase, APIClient):
 
         """
         logger.debug('%s.approve_request()', type(self).__name__)
-        import pdb; pdb.set_trace()
 
         # Retrieve and verify the request
         request = self.client.review_request(request_id)
 
-        if request.request_status != 'pending':
+        if request.request_status != CertRequestStatus.PENDING:
             self.raise_certificate_operation_error(
                 'approve_request',
                 err_msg='Certificate not in pending state',
@@ -1256,7 +1257,9 @@ class ra(rabase.rabase, APIClient):
 
         # Approve the request
         # TODO: error handling
-        self.client.review_request(request_id, request)
+        request = self.client.review_request(request_id)
+
+        self.client.approve_request(request_id, request)
 
         return self.check_request_status(request_id)
 
@@ -1407,27 +1410,14 @@ class ra_certprofile(APIClient):
                 'delete_profile', e)
 
     def list_profiles(self):
-        savepath = self.path
-        self.path = None
-        path = 'profiles?visible=true&enable=true&size={}'.format(MAX_INT32)
-
-        try:
-            _http_status, _http_headers, http_body = self._ssldo(
-                'GET', path, headers={'Accept': 'application/json',})
-        finally:
-            self.path = savepath
-
-        data = json.loads(http_body)
-
-        profiles = data['entries']
+        profiles = self.client.list_profiles()
 
         results = []
-
         for profile in profiles:
             response = {}
-            response['profile_id'] = profile.get('profileId')
-            response['profile_name'] = profile.get('profileName')
-            response['profile_enabled'] = profile.get('profileEnable')
+            response['profile_id'] = profile.profile_id
+            response['profile_name'] = profile.profile_name
+            response['profile_enabled'] = str(profile.profileEnable)
             results.append(response)
 
         return results
