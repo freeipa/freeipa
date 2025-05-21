@@ -26,6 +26,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
 from ipaplatform.osinfo import osinfo
 from ipaserver.install.installutils import resolve_ip_addresses_nss
+from ipatests.test_integration.test_caless import CALessBase
 from ipatests.test_integration.base import IntegrationTest
 from packaging.version import parse as parse_version
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
@@ -3135,3 +3136,53 @@ class TestIpaHealthCheckSingleMaster(IntegrationTest):
         finally:
             # cleanup
             tasks.uninstall_master(self.master)
+
+
+class TestIPAHealthcheckWithCALess(CALessBase):
+    """
+    Install CALess server with user provided certificate.
+    """
+    num_replicas = 0
+
+    @classmethod
+    def install(cls, mh):
+        super(TestIPAHealthcheckWithCALess, cls).install(mh)
+        cls.create_pkcs12('ca1/server')
+        cls.prepare_cacert('ca1')
+        result = cls.install_server()
+        assert result.returncode == 0
+
+    @pytest.fixture
+    def expire_cert_warn(self):
+        """
+        Fixture to move the cert to about to expire, by moving the
+        system date using date -s command and revert it back
+        """
+        self.master.run_command(['date','-s', '+11Months10Days'])
+        yield
+        self.master.run_command(['date','-s', '-11Months10Days'])
+        self.master.run_command(['ipactl', 'restart'])
+
+    def test_ipahealthcheck_warns_on_expired_user_certs(self, expire_cert_warn):
+        """
+        This testcase checks that ipa-healthcheck warns
+        on expiring user-provided certificates.
+        """
+        msg = (
+            'Request id {key} expires in {days} days. '
+            'You need to manually renew this certificate.'
+        )
+        version = tasks.get_healthcheck_version(self.master)
+        if parse_version(version) < parse_version("0.18"):
+            pytest.skip("Check does not exist in ipa-healthcheck < 0.18")
+        returncode, data = run_healthcheck(
+            self.master, "ipahealthcheck.ipa.certs",
+            "IPAUserProvidedExpirationCheck",
+        )
+        assert returncode == 1
+        certs = [d["kw"]["key"] for d in data]
+        assert set(certs) == {'HTTP', 'LDAP', 'KDC'}
+        for check in data:
+            assert check["result"] == "WARNING"
+            assert check["kw"]["key"] in ("LDAP", "HTTP", "KDC")
+            assert check["kw"]["msg"] == msg
