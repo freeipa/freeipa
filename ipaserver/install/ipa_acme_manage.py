@@ -86,8 +86,7 @@ class acme_state(APIClient):
 
     def __enter__(self):
         super().__enter__()
-        sub_client = pki.subsystem.SubsystemClient(self.pki_client, 'acme')
-        self.client = pki.acme.ACMEClient(sub_client)
+        self.client = pki.acme.ACMEClient(self.pki_client)
 
         return self
 
