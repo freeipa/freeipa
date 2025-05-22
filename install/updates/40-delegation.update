@@ -140,6 +140,14 @@ default:objectClass: top
 default:objectClass: nsContainer
 default:cn: request certificate ignore caacl
 
+dn: cn=list all profiles,cn=virtual operations,cn=etc,$SUFFIX
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: list all profiles
+
+dn: $SUFFIX
+add:aci: (targetattr = "objectclass")(target = "ldap:///cn=list all profiles,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:List all profiles from the CA" ; allow (write) groupdn = "ldap:///cn=List all profiles from the CA,cn=permissions,cn=pbac,$SUFFIX";)
+
 dn: cn=Request Certificate ignoring CA ACLs,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: top
 default:objectClass: groupofnames
