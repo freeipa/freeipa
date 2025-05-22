@@ -80,9 +80,7 @@ options_def = OrderedDict([
     ('car license', {u'carlicense': u'abc1234'}),
     ('SSH key', {u'ipasshpubkey': sshpubkey}),
     ('manager', {u'manager': u'auser1'}),
-    ('user ID number', {u'uidnumber': uid}),
     ('group ID number', {u'gidnumber': gid}),
-    ('UID and GID numbers', {u'uidnumber': uid, u'gidnumber': gid}),
     ('password', {u'userpassword': u'Secret123'}),
     ('random password', {u'random': True}),
     ])
@@ -90,6 +88,13 @@ options_def = OrderedDict([
 options_ok = list(options_def.values())
 options_ids = list(options_def.keys())
 
+warn_options_def = OrderedDict([
+    ('user ID number', {u'uidnumber': uid}),
+    ('UID and GID numbers', {u'uidnumber': uid, u'gidnumber': gid}),
+])
+
+warn_options_ok = list(warn_options_def.values())
+warn_options_ids = list(warn_options_def.keys())
 
 @pytest.fixture(scope='class')
 def stageduser(request, xmlrpc_setup):
@@ -105,6 +110,12 @@ def stageduser_min(request, xmlrpc_setup):
 @pytest.fixture(scope='class', params=options_ok, ids=options_ids)
 def stageduser2(request, xmlrpc_setup):
     tracker = StageUserTracker(u'suser2', u'staged', u'user', **request.param)
+    return tracker.make_fixture_activate(request)
+
+
+@pytest.fixture(scope='class', params=warn_options_ok, ids=warn_options_ids)
+def warn_stageduser(request, xmlrpc_setup):
+    tracker = StageUserTracker(u'warnuser', u'staged', u'user', **request.param)
     return tracker.make_fixture_activate(request)
 
 
@@ -269,6 +280,36 @@ class TestStagedUser(XMLRPC_test):
         command = stageduser2.make_retrieve_command()
         with raises_exact(errors.NotFound(
                 reason=u'%s: stage user not found' % stageduser2.uid)):
+            command()
+
+        user_activated.delete()
+
+    def test_warn_create_with_attr(self, warn_stageduser, user, user_activated):
+        """ Tests creating a user with various valid attributes that throw
+        a warning listed in 'warn_options_ok' list"""
+        # create staged user with specified parameters
+        user.ensure_exists()  # necessary for manager test
+        warn_stageduser.ensure_missing()
+        command = warn_stageduser.make_create_command()
+        result = command()
+        warn_stageduser.track_create()
+        warn_stageduser.check_create_with_warning(result, (13034,))
+
+        # activate user, verify that specified values were preserved
+        # after activation
+        user_activated.ensure_missing()
+        user_activated = UserTracker(
+            warn_stageduser.uid, warn_stageduser.givenname,
+            warn_stageduser.sn, **warn_stageduser.kwargs)
+        user_activated.create_from_staged(warn_stageduser)
+        command = warn_stageduser.make_activate_command()
+        result = command()
+        user_activated.check_activate(result)
+
+        # verify the staged user does not exist after activation
+        command = warn_stageduser.make_retrieve_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: stage user not found' % warn_stageduser.uid)):
             command()
 
         user_activated.delete()
