@@ -214,19 +214,20 @@ class certprofile_find(LDAPSearch, VirtualCommand):
                 for entry in result['result']:
                     ipa_list.append(entry['cn'][0])
 
-                for entry in profiles:
-                    if entry['profile_id'] in ipa_list:
-                        continue
-                    new = {
-                        # We don't have a DN for profiles that come from the CA
-                        # so fill something in so all the entries contain the
-                        # same set of attributes.
-                        'dn': DN('cn={}'.format(entry['profile_id'])),
-                        'cn': [entry['profile_id']],
-                        'description': [entry['profile_name']],
-                        'ipacertprofilestoreissued': [False],
-                    }
-                    result['result'].append(new)
+                if kwargs['all']:
+                    for entry in profiles:
+                        if entry['profile_id'] in ipa_list:
+                            continue
+                        new = {
+                            # We don't have a DN for profiles that come from the CA
+                            # so fill something in so all the entries contain the
+                            # same set of attributes.
+                            'dn': DN('cn={}'.format(entry['profile_id'])),
+                            'cn': [entry['profile_id']],
+                            'description': [entry['profile_name']],
+                            'ipacertprofilestoreissued': [False],
+                        }
+                        result['result'].append(new)
 
         result['count'] = len(result['result'])
 
