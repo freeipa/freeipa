@@ -826,6 +826,49 @@ class TestCreate(XMLRPC_test):
         user_idp.check_create(result, ['ipaidpsub'])
         user_idp.delete()
 
+    def test_out_of_idrange(self):
+        """Test ensuring warning is thrown when uid is out of range"""
+        uidnumber = 2000
+        testuser = UserTracker(
+            name="testwarning", givenname="test",
+            sn="warning", uidnumber=uidnumber
+        )
+        testuser.attrs.update(
+            uidnumber=[u'2000'],
+        )
+        command = testuser.make_create_command()
+        result = command()
+        result_messages = result['messages']
+        assert len(result_messages) == 1
+        assert result_messages[0]['type'] == 'warning'
+        assert result_messages[0]['code'] == 13034
+        testuser.delete()
+
+    def test_in_idrange(self):
+        """Test ensuring no warning is thrown when uid is in range"""
+        result = api.Command.idrange_find(
+            iparangetype='ipa-local',
+            sizelimit=0,
+        )
+
+        assert len(result) >= 1
+        ipabaseid = int(result['result'][0]['ipabaseid'][0])
+        ipaidrangesize = int(result['result'][0]['ipaidrangesize'][0])
+
+        # Take the last valid id, as we're not sure which has not yet been used
+        valid_id = ipabaseid + ipaidrangesize - 1
+        testuser = UserTracker(
+            name="testnowarning", givenname="test",
+            sn="nowarning", uidnumber=valid_id
+        )
+        testuser.attrs.update(
+            uidnumber=[str(valid_id)],
+        )
+        command = testuser.make_create_command()
+        result = command()
+        assert "messages" not in result
+        testuser.delete()
+
 
 @pytest.mark.tier1
 class TestUserWithGroup(XMLRPC_test):
