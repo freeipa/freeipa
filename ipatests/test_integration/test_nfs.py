@@ -366,8 +366,10 @@ class TestMultidomain(MultiDomainIntegrationTest):
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master)
+        tasks.disable_dnssec_validation(cls.master)
+        tasks.restart_named(cls.master)
         tasks.install_client(cls.master, cls.clients[0])
-        tasks.install_client(cls.master, cls.trusted_clients[0])
+        tasks.install_client(cls.master, cls.trusted_clients[0], nameservers=None)
 
     def test_multidomain_automount(self):
         """
