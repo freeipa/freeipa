@@ -3,6 +3,7 @@
 #
 
 import six
+import copy
 
 from ipalib import api, errors
 from ipaplatform.constants import constants as platformconstants
@@ -181,6 +182,27 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
     def check_create(self, result, extra_keys=()):
         """ Check 'stageuser-add' command result """
         expected = self.filter_attrs(self.create_keys | set(extra_keys))
+        assert_deepequal(dict(
+            value=self.uid,
+            summary=u'Added stage user "%s"' % self.uid,
+            result=self.filter_attrs(expected),
+        ), result)
+
+    def check_create_with_warning(self, result,
+                                  warning_codes=(), extra_keys=()):
+        """ Check 'stageuser-add' command result """
+        expected = self.filter_attrs(self.create_keys | set(extra_keys))
+
+        result = copy.deepcopy(result)
+        assert 'messages' in result
+        assert len(result['messages']) == len(warning_codes)
+        codes = [message['code'] for message in result['messages']]
+        for code in warning_codes:
+            assert code in codes
+            codes.pop(codes.index(code))
+
+        del result['messages']
+
         assert_deepequal(dict(
             value=self.uid,
             summary=u'Added stage user "%s"' % self.uid,

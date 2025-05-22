@@ -519,6 +519,18 @@ class ServerUpgradeRequired(PublicMessage):
     )
 
 
+class UidNumberOutOfLocalIDRange(PublicMessage):
+    """
+    **13034** UID Number is out of all local ID Ranges
+    """
+    errno = 13034
+    type = "warning"
+    format = _(
+        "User '%(user)s', with UID Number '%(uidnumber)d' is out of all ID "
+        "Ranges, 'SID' will not be correctly generated."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
