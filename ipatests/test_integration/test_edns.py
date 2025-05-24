@@ -247,6 +247,7 @@ class TestDNSOverTLS(IntegrationTest):
 
 
 class TestDNS_DoT(TestDNS):
+
     @classmethod
     def install(cls, mh):
         tasks.install_packages(cls.master, ['*ipa-server-encrypted-dns'])
@@ -255,3 +256,20 @@ class TestDNS_DoT(TestDNS):
             "--dot-forwarder", "1.1.1.1#cloudflare-dns.com"
         ]
         tasks.install_master(cls.master, extra_args=args)
+
+    def test_check_dot_forwarder_added_in_ipa_conf(self):
+        """
+        This test checks that forwarders is listed in
+        dnsserver-show command and also the dot forwarder is
+        added to unbound and included in
+        /etc/unbound/conf.d/zzz-ipa.conf
+        """
+        msg = 'Forwarders: 127.0.0.55'
+        cmd1 = self.master.run_command(
+            ["ipa", "dnsserver-show", self.master.hostname]
+        )
+        assert msg in cmd1.stdout_text
+        contents = self.master.get_file_contents(
+            paths.UNBOUND_CONF, encoding='utf-8'
+        )
+        assert 'forward-addr: 1.1.1.1#cloudflare-dns.com' in contents
