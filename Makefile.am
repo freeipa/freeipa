@@ -166,6 +166,7 @@ _rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec
 	rm -f $(top_builddir)/.tarball_name
 
 rpms: $(VERSION_UPDATE_TARGET)
+	git submodule update --init --recursive
 	$(MAKE) _rpms-body
 
 _rpms-body: _rpms-prep
