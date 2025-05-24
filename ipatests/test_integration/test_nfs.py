@@ -21,7 +21,7 @@ import time
 
 import pytest
 
-from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.base import IntegrationTest, MultiDomainIntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
 # give some time for units to stabilize
@@ -357,25 +357,38 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         self.nsswitch_backup_restore()
 
 
-class TestIpaClientAutomountDiscovery(IntegrationTest):
-
+class TestMultidomain(MultiDomainIntegrationTest):
+    num_replicas = 0
+    num_trusted_replicas = 0
     num_clients = 1
-    topology = 'line'
+    num_trusted_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master)
+        tasks.disable_dnssec_validation(cls.master)
+        tasks.restart_named(cls.master)
+        tasks.install_client(cls.master, cls.clients[0])
+        tasks.install_client(cls.master, cls.trusted_clients[0], nameservers=None)
+
+    def test_multidomain_automount(self):
+        """
+        Test services on multidomain topology.
+        """
+
+        for host in (self.master, self.clients[0], self.trusted_clients[0]):
+            tasks.kinit_admin(host)
 
     def test_automount_invalid_domain(self):
         """Validate that the --domain option is passed into
-           Discovery. This is expected to fail discovery.
+           Discovery.
         """
-        testdomain = "client.test"
-        msg1 = f"Search for LDAP SRV record in {testdomain}"
-        msg2 = f"Search DNS for SRV record of _ldap._tcp.{testdomain}"
-        msg3 = "Autodiscovery did not find LDAP server"
-
-        client = self.clients[0]
-        result = client.run_command([
-            'ipa-client-automount', '--domain', 'client.test',
-            '--debug'
-        ], stdin_text="n", raiseonerr=False)
-        assert msg1 in result.stderr_text
-        assert msg2 in result.stderr_text
-        assert msg3 in result.stderr_text
+        testdomain1 = self.master.domain.name
+        client1 = self.clients[0]
+        client2 = self.trusted_clients[0]
+        for host in [client1, client2]:
+            result = host.run_command(
+                ['ipa-client-automount', '--server',
+                 self.master.hostname, '--domain',
+                 testdomain1, '--debug', '-U']
+            )
