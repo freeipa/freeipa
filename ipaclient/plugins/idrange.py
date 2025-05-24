@@ -19,7 +19,6 @@
 
 from ipaclient.frontend import MethodOverride
 from ipalib.plugable import Registry
-from ipalib import api
 
 register = Registry()
 
@@ -33,8 +32,7 @@ class idrange_add(MethodOverride):
         Also ensure that secondary-rid-base is prompted for when rid-base is
         specified and vice versa, in case that dom-sid was not specified.
 
-        Also ensure that rid-base and secondary-rid-base is prompted for
-        if ipa-adtrust-install has been run on the system.
+        Also ensure that rid-base and secondary-rid-base is prompted for.
         """
 
         # dom-sid can be specified using dom-sid or dom-name options
@@ -63,27 +61,10 @@ class idrange_add(MethodOverride):
 
         else:
             # This is a local range
-            # Find out whether ipa-adtrust-install has been ran
-            adtrust_is_enabled = api.Command['adtrust_is_enabled']()['result']
 
-            if adtrust_is_enabled:
-                # If ipa-adtrust-install has been ran, all local ranges
-                # require both RID base and secondary RID base
+            # All local ranges require both RID base and secondary RID base
+            if rid_base is None:
+                set_from_prompt('ipabaserid')
 
-                if rid_base is None:
-                    set_from_prompt('ipabaserid')
-
-                if secondary_rid_base is None:
-                    set_from_prompt('ipasecondarybaserid')
-
-            else:
-                # This is a local range on a server with no adtrust support
-
-                # Prompt for secondary RID base only if RID base was given
-                if rid_base is not None and secondary_rid_base is None:
-                    set_from_prompt('ipasecondarybaserid')
-
-                # Symetrically, prompt for RID base if secondary RID base was
-                # given
-                if rid_base is None and secondary_rid_base is not None:
-                    set_from_prompt('ipabaserid')
+            if secondary_rid_base is None:
+                set_from_prompt('ipasecondarybaserid')
