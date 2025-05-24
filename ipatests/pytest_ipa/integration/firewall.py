@@ -239,6 +239,7 @@ class Firewall(FirewallBase):
         firewalls = {
             'rhel': FirewallD,
             'fedora': FirewallD,
+            'fedora_aes_sha1': FirewallD,
             'debian': FirewallD,
             'ubuntu': FirewallD,
             'altlinux': NoOpFirewall,
