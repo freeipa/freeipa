@@ -11,8 +11,10 @@ from unittest import mock
 import pytest
 
 from ipalib.util import (
-    get_pager, create_https_connection, get_proper_tls_version_span
+    get_pager, create_https_connection, get_proper_tls_version_span,
+    validate_domain_name
 )
+
 from ipaplatform.constants import constants
 
 
@@ -27,7 +29,7 @@ from ipaplatform.constants import constants
 def test_get_pager(pager, expected_result):
     with mock.patch.dict(os.environ, {'PAGER': pager}):
         pager = get_pager()
-        assert(pager == expected_result or pager.endswith(expected_result))
+        assert (pager == expected_result or pager.endswith(expected_result))
 
 
 BASE_CTX = ssl.SSLContext(ssl.PROTOCOL_TLS)
@@ -75,3 +77,18 @@ def test_tls_version_span(minver, maxver, opt, expected):
     ctx = getattr(conn, "_context")
     assert ctx.options == BASE_OPT | opt
     assert ctx.get_ciphers() == BASE_CTX.get_ciphers()
+
+
+@pytest.mark.parametrize("domain_input,expected_valid,description", [
+    ("invalid..domain", False, "double dots should be rejected"),
+    (".invalid.domain", False, "leading dot should be rejected"),
+    ("invalid domain with spaces", False, "spaces should be rejected"),
+    ("toolong" + "x" * 250 + ".domain", False, "overly long domain rejected"),
+    ("", False, "empty string should be rejected"),
+    ("single", False, "single label should be rejected"),
+])
+def test_validate_domain_name(domain_input, expected_valid, description):
+    """Test domain name validation logic in ipalib.util.validate_domain_name"""
+
+    with pytest.raises((ValueError, TypeError)):
+        validate_domain_name(domain_input)
