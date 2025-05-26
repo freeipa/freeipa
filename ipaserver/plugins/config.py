@@ -524,7 +524,7 @@ class config(LDAPObject):
     def is_config_option_present(self, option):
         dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'), self.api.env.basedn)
         configentry = self.api.Backend.ldap2.get_entry(dn, ['ipaconfigstring'])
-        configstring = configentry['ipaconfigstring']
+        configstring = configentry.get('ipaconfigstring') or []
         return (option.lower() in map(str.lower, configstring))
 
 
@@ -702,7 +702,7 @@ class config_mod(LDAPUpdate):
                     error=_('SELinux user map default user not in order list'))
 
         if 'ipaconfigstring' in entry_attrs:
-            configstring = entry_attrs['ipaconfigstring']
+            configstring = entry_attrs['ipaconfigstring'] or []
             if 'SubID:Disable'.lower() in map(str.lower, configstring):
                 # Check if SubIDs already allocated
                 try:
