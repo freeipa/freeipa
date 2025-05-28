@@ -32,7 +32,8 @@ Only RSA keys will be supported.
 
 Using an HSM should be largely invisible to users and administrators beyond passing additional options during installation. The options required and any pre-installion work are HSM-specific.
 
-It will not be possible to mix and match by default. PKI supports specifying the token values so a user can override these using --pki-config-override but it is, and will be, untested.
+It will not be possible to mix and match by default. IPA allows overriding some, but not all, of the PKI options. The following HSM-specific options are added to the not allowed list: pki_hsm_enable, pki_hsm_libfile, pki_hsm_modulename, pki_token_name, pki_token_password. IPA requires that its HSM command-line options are used.
+
 
 There are a few basic rules:
 
