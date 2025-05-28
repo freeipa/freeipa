@@ -194,7 +194,7 @@ class certprofile_find(LDAPSearch):
         ca_enabled_check(self.api)
         result = super(certprofile_find, self).execute(*args, **kwargs)
 
-        if len(args) == 0:
+        if len(args) == 0 and kwargs.get('all'):
             try:
                 self.check_access()
             except errors.ACIError:
@@ -207,20 +207,19 @@ class certprofile_find(LDAPSearch):
                 for entry in result['result']:
                     ipa_list.append(entry['cn'][0])
 
-                if kwargs['all']:
-                    for entry in profiles:
-                        if entry['profile_id'] in ipa_list:
-                            continue
-                        new = {
-                            # We don't have a DN for profiles that come from the CA
-                            # so fill something in so all the entries contain the
-                            # same set of attributes.
-                            'dn': DN('cn={}'.format(entry['profile_id'])),
-                            'cn': [entry['profile_id']],
-                            'description': [entry['profile_name']],
-                            'ipacertprofilestoreissued': [False],
-                        }
-                        result['result'].append(new)
+                for entry in profiles:
+                    if entry['profile_id'] in ipa_list:
+                        continue
+                    new = {
+                        # We don't have a DN for profiles that come from the CA
+                        # so fill something in so all the entries contain the
+                        # same set of attributes.
+                        'dn': DN('cn={}'.format(entry['profile_id'])),
+                        'cn': [entry['profile_id']],
+                        'description': [entry['profile_name']],
+                        'ipacertprofilestoreissued': [False],
+                    }
+                    result['result'].append(new)
 
         result['count'] = len(result['result'])
 
