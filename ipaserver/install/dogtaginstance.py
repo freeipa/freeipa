@@ -1042,6 +1042,12 @@ class PKIIniLoader:
         'pki_clone_replication_clone_port',
         'pki_clone_replicate_schema',
         'pki_clone_uri',
+        # hsm
+        'pki_hsm_enable',
+        'pki_hsm_libfile',
+        'pki_hsm_modulename',
+        'pki_token_name',
+        'pki_token_password',
         # cainstance
         'pki_ds_secure_connection',
         'pki_server_database_password',
