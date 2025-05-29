@@ -158,9 +158,12 @@ endif IS_GIT_SNAPSHOT
 # We need to record new $(TARBALL) value used by dist for furher use
 # in rpms target.
 dist-hook: $(VERSION_BAKEIN_TARGET)
-	git submodule update --init
 	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
 	echo "$(VERSION)" > $(top_builddir)/.version
+	git submodule update --init
+	cd install/freeipa-webui/
+	npm i
+
 
 _rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec
 	cp $(top_builddir)/$$(cat $(top_builddir)/.tarball_name) $(RPMBUILD)/SOURCES/
