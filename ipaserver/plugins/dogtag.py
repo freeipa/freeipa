@@ -492,8 +492,10 @@ class APIClient(Backend):
 
         if exc is None:
             err_msg = _('Unable to communicate with CMS')
-        else:
+        elif hasattr(exc, 'message'):
             err_msg = exc.message
+        else:
+            err_msg = str(exc)
 
         logger.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
         if type(exc) in (
