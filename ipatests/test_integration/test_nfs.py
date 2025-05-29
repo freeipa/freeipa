@@ -21,7 +21,8 @@ import time
 
 import pytest
 
-from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.base import (
+    IntegrationTest, MultiDomainIntegrationTest)
 from ipatests.pytest_ipa.integration import tasks
 
 # give some time for units to stabilize
@@ -357,10 +358,13 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         self.nsswitch_backup_restore()
 
 
-class TestIpaClientAutomountDiscovery(IntegrationTest):
+class TestIpaClientAutomountDiscovery(MultiDomainIntegrationTest):
 
+    num_replicas = 0
+    num_trusted_replicas = 0
     num_clients = 1
-    topology = 'line'
+    num_trusted_clients = 1
+    topology = "line"
 
     def test_automount_invalid_domain(self):
         """Validate that the --domain option is passed into
@@ -379,3 +383,31 @@ class TestIpaClientAutomountDiscovery(IntegrationTest):
         assert msg1 in result.stderr_text
         assert msg2 in result.stderr_text
         assert msg3 in result.stderr_text
+
+    def test_automount_valid_domain(self):
+        """If a client machine is in a domain other than the
+        IPA domain then DNS discovery should be searched from
+        given domain.
+        """
+
+        testdomain1 = self.master.domain.name
+        client2 = self.trusted_clients[0]
+        tasks.uninstall_client(client2)
+        client2.run_command(["ipa-client-install", "--domain", testdomain1,
+                             "--realm", self.master.domain.realm,
+                             "--server", self.master.hostname,
+                             "-p", client2.config.admin_name, "-w",
+                             client2.config.admin_password, "-U"]
+                            )
+        result = client2.run_command(
+            ['ipa-client-automount', '--debug', '-U'], raiseonerr=False
+        )
+        msg = "Search DNS for SRV record of _ldap._tcp.{0}"
+        assert msg.format(client2.domain.name) in result.stderr_text
+        client2.run_command(
+            ['ipa-client-automount', '--uninstall', '-U'], raiseonerr=False
+        )
+        result2 = client2.run_command(
+            ['ipa-client-automount', '--debug', '--domain', testdomain1, '-U']
+        )
+        assert msg.format(testdomain1) in result2.stderr_text
