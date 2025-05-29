@@ -160,16 +160,6 @@ endif IS_GIT_SNAPSHOT
 dist-hook: $(VERSION_BAKEIN_TARGET)
 	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
 	echo "$(VERSION)" > $(top_builddir)/.version
-	echo "Getting run"
-	echo "Getting run 2xx"
-	cd $(top_builddir)/install/freeipa-webui/
-	cd $(top_builddir)
-	mkdir hello
-	cd $(top_distdir)
-	mkdir world
-	npm install
-	npm run build
-
 
 _rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec
 	cp $(top_builddir)/$$(cat $(top_builddir)/.tarball_name) $(RPMBUILD)/SOURCES/
