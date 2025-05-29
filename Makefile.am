@@ -161,14 +161,13 @@ dist-hook: $(VERSION_BAKEIN_TARGET)
 	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
 	echo "$(VERSION)" > $(top_builddir)/.version
 	echo "Getting run"
-	git submodule update --init
 	echo "Getting run 2xx"
 	cd $(top_builddir)/install/freeipa-webui/
 	cd $(top_builddir)
 	mkdir hello
 	cd $(top_distdir)
 	mkdir world
-	npm i
+	npm install
 	npm run build
 
 
