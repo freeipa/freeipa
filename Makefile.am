@@ -163,6 +163,7 @@ dist-hook: $(VERSION_BAKEIN_TARGET)
 	git submodule update --init
 	cd install/freeipa-webui/
 	npm i
+	npm run build
 
 
 _rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec
