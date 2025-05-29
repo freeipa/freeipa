@@ -161,7 +161,7 @@ dist-hook: $(VERSION_BAKEIN_TARGET)
 	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
 	echo "$(VERSION)" > $(top_builddir)/.version
 	git submodule update --init
-	cd $(top_distdir)/install/freeipa-webui/
+	cd $(top_builddir)/install/freeipa-webui/
 	npm i
 	npm run build
 
