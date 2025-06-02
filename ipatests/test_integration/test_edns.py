@@ -4,15 +4,20 @@
 """This covers tests for DNS over TLS related feature"""
 
 from __future__ import absolute_import
+import pytest
 import textwrap
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_dns import TestDNS
 from ipatests.pytest_ipa.integration.firewall import Firewall
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 
 
+@pytest.mark.skipif(
+    osinfo.id == 'fedora' and osinfo.version_number == (41,),
+    reason='Encrypted DNS not supported in fedora 41')
 class TestDNSOverTLS(IntegrationTest):
     """Tests for DNS over TLS feature."""
 
@@ -246,6 +251,9 @@ class TestDNSOverTLS(IntegrationTest):
         assert '''--dns-over-tls      Configure DNS over TLS''' in cmdout.stdout_text  # noqa: E501
 
 
+@pytest.mark.skipif(
+    osinfo.id == 'fedora' and osinfo.version_number == (41,),
+    reason='Encrypted DNS not supported in fedora 41')
 class TestDNS_DoT(TestDNS):
 
     @classmethod
