@@ -40,13 +40,18 @@ class TestIpaIdrangeFix(IntegrationTest):
 
     def test_idrange_no_rid_bases(self):
         """Test ipa-idrange-fix command with IDrange with no RID bases."""
-        self.master.run_command([
-            "ipa",
-            "idrange-add",
-            "idrange_no_rid_bases",
-            "--base-id", '10000',
-            "--range-size", '20000',
-        ])
+        # Use ldapmodify to create the range without rid bases
+        idrange_ldif = (
+            "dn: cn=idrange_no_rid_bases,cn=ranges,cn=etc,{suffix}\n"
+            "changetype: add\n"
+            "objectclass: top\n"
+            "objectclass: ipaIDrange\n"
+            "objectclass: ipadomainidrange\n"
+            "ipaRangeType: ipa-local\n"
+            "ipaBaseID: 10000\n"
+            "ipaIDRangeSize: 20000\n"
+        ).format(suffix=str(self.master.domain.basedn))
+        tasks.ldapmodify_dm(self.master, idrange_ldif)
 
         result = self.master.run_command(["ipa-idrange-fix", "--unattended"])
         expected_text = "RID bases updated for range 'idrange_no_rid_bases'"
@@ -62,13 +67,19 @@ class TestIpaIdrangeFix(IntegrationTest):
         previously had a range with RID bases reversed - secondary lower than
         primary. It is a valid configuration, so we should fix no-RID range.
         """
-        self.master.run_command([
-            "ipa",
-            "idrange-add",
-            "idrange_no_rid_bases",
-            "--base-id", '10000',
-            "--range-size", '20000',
-        ])
+        # Use ldapmodify to create the range without rid bases
+        idrange_ldif = (
+            "dn: cn=idrange_no_rid_bases,cn=ranges,cn=etc,{suffix}\n"
+            "changetype: add\n"
+            "objectclass: top\n"
+            "objectclass: ipaIDrange\n"
+            "objectclass: ipadomainidrange\n"
+            "ipaRangeType: ipa-local\n"
+            "ipaBaseID: 10000\n"
+            "ipaIDRangeSize: 20000\n"
+        ).format(suffix=str(self.master.domain.basedn))
+        tasks.ldapmodify_dm(self.master, idrange_ldif)
+
         self.master.run_command([
             "ipa",
             "idrange-add",
