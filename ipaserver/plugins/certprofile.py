@@ -9,9 +9,11 @@ from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
     LDAPDelete, LDAPUpdate, LDAPRetrieve)
+from .virtual import VirtualCommand
 from ipalib.request import context
 from ipalib import ngettext
 from ipalib.text import _
+from ipapython.dn import DN
 from ipapython.dogtag import INCLUDED_PROFILES
 from ipapython.version import API_VERSION
 
@@ -184,11 +186,13 @@ class certprofile(LDAPObject):
 
 
 @register()
-class certprofile_find(LDAPSearch):
+class certprofile_find(LDAPSearch, VirtualCommand):
     __doc__ = _("Search for Certificate Profiles.")
     msg_summary = ngettext(
         '%(count)d profile matched', '%(count)d profiles matched', 0
     )
+
+    operation = "list all profiles"
 
     def execute(self, *args, **kwargs):
         ca_enabled_check(self.api)
