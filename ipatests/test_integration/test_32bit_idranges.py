@@ -6,6 +6,7 @@ from __future__ import absolute_import
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_trust import BaseTestTrust
 
 
 class Test32BitIdRanges(IntegrationTest):
@@ -102,3 +103,24 @@ class Test32BitIdRanges(IntegrationTest):
         )
         assert result.returncode == 0
         assert str(uid) in result.stdout_text
+
+
+class Test32BitIdrangeInTrustEnv(Test32BitIdRanges, BaseTestTrust):
+    """
+    Tests to check 32BitIdrange functionality
+    in IPA-AD trust enviornment
+    """
+    topology = 'line'
+    num_ad_domains = 1
+    num_ad_subdomains = 0
+    num_ad_treedomains = 0
+    num_clients = 0
+
+    @classmethod
+    def install(cls, mh):
+        super(BaseTestTrust, cls).install(mh)
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
