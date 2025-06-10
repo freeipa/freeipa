@@ -506,6 +506,7 @@ class APIClient(Backend):
     def __init__(self, api):
         self.pki_client = None
         self._ca_host = None
+        self.override_port = None
         if api.env.in_tree:
             self.client_certfile = os.path.join(
                 api.env.dot_ipa, 'ra-agent.pem')
@@ -539,14 +540,18 @@ class APIClient(Backend):
     def __enter__(self):
         # Refresh the ca_host property
         object.__setattr__(self, '_ca_host', None)
+        port = self.override_port or "443"
 
         self.pki_client = pki.client.PKIClient(
-            url=f'https://{self.ca_host}:8443', ca_bundle=self.ca_cert)
+            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
         self.pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
 
-        api_path = self.pki_client.get_api_path()
+        try:
+            api_path = self.pki_client.get_api_path()
+        except (requests.exceptions.HTTPError, requests.exceptions.SSLError) as e:
+            raise errors.RemoteRetrieveError(reason=e.args[0])
         path = '/ca/%s/account/login' % api_path
 
         try:
@@ -554,10 +559,10 @@ class APIClient(Backend):
         except requests.exceptions.HTTPError as e:
             logger.debug("PKI API login failed %s", e)
             if e.response.status_code == 401:
-                raise errors.CertificateOperationError(
-                    error="PKI API login failed: invalid authentication")
+                raise errors.RemoteRetrieveError(
+                    reason=_("PKI API login failed: invalid authentication"))
             else:
-                raise errors.CertificateOperationError(error=e.args[0])
+                raise errors.RemoteRetrieveError(reason=e.args[0])
 
         json_response = response.json()
         logger.debug('Response:\n%s', json.dumps(json_response, indent=4))
@@ -588,15 +593,18 @@ class ra(rabase.rabase, APIClient):
         self.client = None
 
     def get_client(self):
+        port = self.override_port or "443"
         pki_client = pki.client.PKIClient(
-            url=f'https://{self.ca_host}:8443', ca_bundle=self.ca_cert)
+            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
         ca_client = pki.ca.CAClient(pki_client)
         self.client = pki.cert.CertClient(ca_client)
 
-    def raise_certificate_operation_error(self, func_name, err_msg=None, detail=None):
+    def raise_certificate_operation_error(
+        self, func_name, err_msg=None, detail=None
+    ):
         """
         :param func_name: function name where error occurred
 
@@ -861,8 +869,9 @@ class ra(rabase.rabase, APIClient):
 
         Returns a version string like "11.6.0"
         """
+        port = self.override_port or "443"
         pki_client = pki.client.PKIClient(
-            url=f'https://{self.ca_host}:8443', ca_bundle=self.ca_cert)
+            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
         info_client = pki.info.InfoClient(pki_client)
 
         try:
@@ -1114,14 +1123,115 @@ class ra(rabase.rabase, APIClient):
         :param wait: if true, the call will be synchronous and return only
                      when the CRL has been generated
         """
+        def _sslget(url, port, **kw):
+            """
+            :param url: The URL to post to.
+            :param kw:  Keyword arguments to encode into POST body.
+            :return:   (http_status, http_headers, http_body)
+                       as (integer, dict, str)
+
+            Perform an HTTPS request
+            """
+            return dogtag.https_request(
+                self.ca_host, port, url,
+                cafile=self.ca_cert,
+                client_certfile=self.client_certfile,
+                client_keyfile=self.client_keyfile,
+                **kw)
+
+        def get_parse_result_xml(xml_text, parse_func):
+            '''
+            :param xml_text:   The XML text to parse
+            :param parse_func: The XML parsing function to apply to the
+                               parsed DOM tree.
+            :return:           parsed result dict
+
+            Utility routine which parses the input text into an XML DOM tree
+            and then invokes the parsing function on the DOM tree in order
+            to get the parsing result as a dict of key/value pairs.
+            '''
+            parser = etree.XMLParser()
+            try:
+                doc = etree.fromstring(xml_text, parser)
+            except etree.XMLSyntaxError as e:
+                self.raise_certificate_operation_error(
+                    'get_parse_result_xml',
+                    detail=str(e))
+            result = parse_func(doc)
+
+            logger.debug(
+                "%s() xml_text:\n%r\nparse_result:\n%r",
+                parse_func.__name__, xml_text, result)
+            return result
+
+        def parse_updateCRL_xml(self, doc):
+            '''
+            :param doc: The root node of the xml document to parse
+            :returns:   result dict
+            :except ValueError:
+
+            After parsing the results are returned in a result dict. The
+            following table illustrates the mapping from the CMS data item
+            to what may be found in the result dict. If a CMS data item is
+            absent it will also be absent in the result dict.
+
+            If the requestStatus is not SUCCESS then the response dict will
+            have the contents described in `parse_error_template_xml`.
+
+            +-----------------+-------------+--------------------+------------+
+            |cms name         |cms type     |result name         |result type |
+            +=================+=============+====================+============+
+            |crlIssuingPoint  |string       |crl_issuing_point   |unicode     |
+            +-----------------+-------------+--------------------+------------+
+            |crlUpdate        |string       |crl_update [1]      |unicode     |
+            +-----------------+-------------+--------------------+------------+
+
+            .. [1] crlUpdate may be one of:
+
+                   - "Success"
+                   - "Failure"
+                   - "missingParameters"
+                   - "testingNotEnabled"
+                   - "testingInProgress"
+                   - "Scheduled"
+                   - "inProgress"
+                   - "disabled"
+                   - "notInitialized"
+
+            '''
+
+            request_status = get_request_status_xml(doc)
+
+            if request_status != CMS_STATUS_SUCCESS:
+                response = parse_error_template_xml(doc)
+                return response
+
+            response = {}
+            response['request_status'] = request_status
+
+            crl_issuing_point = doc.xpath('//xml/header/crlIssuingPoint[1]')
+            if len(crl_issuing_point) == 1:
+                crl_issuing_point = etree.tostring(
+                    crl_issuing_point[0], method='text',
+                    encoding=unicode).strip()
+                response['crl_issuing_point'] = crl_issuing_point
+
+            crl_update = doc.xpath('//xml/header/crlUpdate[1]')
+            if len(crl_update) == 1:
+                crl_update = etree.tostring(crl_update[0], method='text',
+                                            encoding=unicode).strip()
+                response['crl_update'] = crl_update
+
+            return response
+
         logger.debug('%s.updateCRL()', type(self).__name__)
         # Call CMS
         http_status, _http_headers, http_body = (
-            self._sslget('/ca/agent/ca/updateCRL',
-                         self.override_port or self.env.ca_agent_port,
-                         crlIssuingPoint='MasterCRL',
-                         waitForUpdate=wait,
-                         xml='true')
+            _sslget('/ca/agent/ca/updateCRL',
+                    self.override_port or 443,
+                    crlIssuingPoint='MasterCRL',
+                    waitForUpdate=wait,
+                    xml='true')
         )
 
         # Parse and handle errors
@@ -1129,8 +1239,8 @@ class ra(rabase.rabase, APIClient):
             self.raise_certificate_operation_error('updateCRL',
                                                    detail=http_status)
 
-        parse_result = self.get_parse_result_xml(http_body,
-                                                 parse_updateCRL_xml)
+        parse_result = get_parse_result_xml(http_body,
+                                            parse_updateCRL_xml)
         request_status = parse_result['request_status']
         if request_status != CMS_STATUS_SUCCESS:
             self.raise_certificate_operation_error(
@@ -1375,7 +1485,7 @@ class ra_lightweight_ca(APIClient):
         response = dict()
         response['id'] = subca.aid
         # Note that issuerDN is not present in the __repr__ class
-        response['issuerDN'] = subca.issuerDN
+        response['issuerDN'] = subca.issuerDN  # pylint: disable=no-member
         response['dn'] = subca.dn
         response['enabled'] = subca.enabled
 
