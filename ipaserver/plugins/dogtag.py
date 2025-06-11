@@ -550,7 +550,7 @@ class APIClient(Backend):
 
         try:
             api_path = self.pki_client.get_api_path()
-        except (requests.exceptions.HTTPError, requests.exceptions.SSLError) as e:
+        except requests.exceptions.RequestException as e:
             raise errors.RemoteRetrieveError(reason=e.args[0])
         path = '/ca/%s/account/login' % api_path
 
@@ -563,6 +563,8 @@ class APIClient(Backend):
                     reason=_("PKI API login failed: invalid authentication"))
             else:
                 raise errors.RemoteRetrieveError(reason=e.args[0])
+        except requests.exceptions.RequestException as e:
+            raise errors.RemoteRetrieveError(reason=e.args[0])
 
         json_response = response.json()
         logger.debug('Response:\n%s', json.dumps(json_response, indent=4))
