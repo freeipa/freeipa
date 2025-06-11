@@ -481,13 +481,18 @@ class APIClient(Backend):
     KRA_STORAGE_PROFILE = dogtag.KRA_STORAGE_PROFILE
     KRA_TRANSPORT_PROFILE = dogtag.KRA_TRANSPORT_PROFILE
 
-    def raise_certificate_operation_error(self, func_name, exc):
+    def raise_certificate_operation_exception(self, func_name, exc):
         """
         :param func_name: function name where error occurred
 
         :param exc:       the exception being raised
 
-        Raise a CertificateOperationError and log the error message.
+        Raise an appropriate exception and log the error message.
+
+        This differs from the ra class raise_certificate_operation_error
+        in that it takes a raw exception instead of an error message and
+        attempts to return the correct exception type, which may not
+        be a CertificateOperationError
         """
 
         if exc is None:
@@ -1346,7 +1351,7 @@ class ra_certprofile(APIClient):
             # profile exists
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'create_profile', e)
 
     def read_profile(self, profile_id):
@@ -1356,7 +1361,7 @@ class ra_certprofile(APIClient):
         try:
             profile = self.client.get_profile(profile_id, raw=True)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'read_profile', e)
         return profile.encode("utf-8")
 
@@ -1368,7 +1373,7 @@ class ra_certprofile(APIClient):
             self.client.modify_profile(profile_data, profile_id=profile_id,
                                        raw=True)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'update_profile', e)
 
     def enable_profile(self, profile_id):
@@ -1380,7 +1385,7 @@ class ra_certprofile(APIClient):
         except pki.ConflictingOperationException as e:
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'enable_profile', e)
 
     def disable_profile(self, profile_id):
@@ -1392,7 +1397,7 @@ class ra_certprofile(APIClient):
         except pki.ConflictingOperationException as e:
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'disable_profile', e)
 
     def delete_profile(self, profile_id):
@@ -1405,7 +1410,7 @@ class ra_certprofile(APIClient):
             raise errors.NotFound(
                 reason="Profile ID %s not found" % profile_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'delete_profile', e)
 
     def list_profiles(self):
@@ -1468,7 +1473,7 @@ class ra_lightweight_ca(APIClient):
         try:
             subca = self.client.create_ca(data)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'create_ca', e)
 
         newca = self.client.get_ca(subca.aid)
@@ -1482,7 +1487,7 @@ class ra_lightweight_ca(APIClient):
         try:
             subca = self.client.get_ca(ca_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'read_ca', e)
 
         # reformat the response to what IPA expects
@@ -1499,7 +1504,7 @@ class ra_lightweight_ca(APIClient):
         try:
             subca = self.client.get_ca(ca_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'read_ca_cert', e)
         cert = self.client.get_cert(subca.aid, "PEM")
         c = x509.load_pem_x509_certificate(cert.encode("utf-8"))
@@ -1509,14 +1514,14 @@ class ra_lightweight_ca(APIClient):
         try:
             subca = self.client.get_ca(ca_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'read_ca_chain', e)
         # The PKCS7 format from PKI doesn't seem to be correct. So
         # retrieve it as PEM and decode it into DER here instead.
         try:
             chain = self.client.get_chain(subca.aid, "PEM")
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'read_ca_chain', e)
         chain = chain.replace(r"----BEGIN PKCS7----", "")
         chain = chain.replace(r"----END PKCS7----", "")
@@ -1527,38 +1532,38 @@ class ra_lightweight_ca(APIClient):
         try:
             subca = self.client.get_ca(ca_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'disable_ca', e)
 
         try:
             self.client.disable_ca(subca.aid)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'disable_ca', e)
 
     def enable_ca(self, ca_id):
         try:
             subca = self.client.get_ca(ca_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'enable_ca', e)
 
         try:
             self.client.enable_ca(subca.aid)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'enable_ca', e)
 
     def delete_ca(self, ca_id):
         try:
             subca = self.client.get_ca(ca_id)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'enable_ca', e)
         try:
             self.client.delete_ca(subca.aid)
         except Exception as e:
-            self.raise_certificate_operation_error(
+            self.raise_certificate_operation_exception(
                 'enable_ca', e)
 
 
