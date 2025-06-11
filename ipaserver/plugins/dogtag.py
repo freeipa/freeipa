@@ -1166,7 +1166,7 @@ class ra(rabase.rabase, APIClient):
                 parse_func.__name__, xml_text, result)
             return result
 
-        def parse_updateCRL_xml(self, doc):
+        def parse_updateCRL_xml(doc):
             '''
             :param doc: The root node of the xml document to parse
             :returns:   result dict
