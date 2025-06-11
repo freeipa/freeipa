@@ -2139,6 +2139,9 @@ def import_included_profiles():
     except (errors.NetworkError, errors.RemoteRetrieveError) as e:
         logger.debug('Overriding CA port: %s', e)
         api.Backend.ra_certprofile.override_port = 8443
+    except Exception as e:
+        logger.debug('Overriding CA port: %s', e)
+        api.Backend.ra_certprofile.override_port = 8443
 
     for (profile_id, desc, store_issued) in dogtag.INCLUDED_PROFILES:
         dn = DN(('cn', profile_id),
