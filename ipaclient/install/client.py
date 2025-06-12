@@ -48,6 +48,7 @@ from ipalib.util import (
     no_matching_interface_for_ip_address_warning,
     validate_hostname,
     verify_host_resolvable,
+    get_reverse_record_default,
 )
 from ipaplatform import services
 from ipaplatform.constants import constants
@@ -1500,6 +1501,18 @@ show
 send
 """
 
+DELETE_TEMPLATE_REVERSE_PTR = """
+update delete $ZONE PTR
+show
+send
+"""
+
+ADD_TEMPLATE_REVERSE_PTR = """
+update add $ZONE $TTL PTR $HOSTNAME.
+show
+send
+"""
+
 UPDATE_FILE = paths.IPA_DNS_UPDATE_TXT
 CCACHE_FILE = paths.IPA_DNS_CCACHE
 
@@ -1553,6 +1566,14 @@ def update_dns(server, hostname, options):
         elif ip.version == 6:
             template = ADD_TEMPLATE_AAAA
         update_txt += ipautil.template_str(template, sub_dict)
+
+    for ip in update_ips:
+        zone = get_reverse_record_default(ip)
+        sub_dict = dict(ZONE=zone, HOSTNAME=hostname, TTL=1200)
+        update_txt += ipautil.template_str(DELETE_TEMPLATE_REVERSE_PTR,
+                                           dict(ZONE=zone))
+        update_txt += ipautil.template_str(ADD_TEMPLATE_REVERSE_PTR,
+                                           sub_dict)
 
     if not do_nsupdate(update_txt, options, server):
         logger.error("Failed to update DNS records.")
