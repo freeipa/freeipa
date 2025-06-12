@@ -732,6 +732,12 @@ def get_reverse_zone_default(ip_address):
     return normalize_zone('.'.join(items))
 
 
+def get_reverse_record_default(ip_address):
+    ip = netaddr.IPAddress(str(ip_address))
+
+    return normalize_zone(ip.reverse_dns)
+
+
 def validate_rdn_param(ugettext, value):
     try:
         RDN(value)
