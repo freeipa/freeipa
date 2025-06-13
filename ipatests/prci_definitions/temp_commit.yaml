@@ -349,7 +349,7 @@ jobs:
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_cert.py
         template: *ci-master-latest
-        timeout: 5400
+        timeout: 7200
         topology: *master_1repl_1client
 
   fedora-latest/test_upgrade:
