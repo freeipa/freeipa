@@ -640,6 +640,10 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             yield arg
 
     def execute(self, csr, all=False, raw=False, chain=False, **kw):
+        # deferred import to avoid issues building documentation
+        from ipaserver.install import cainstance, dsinstance, krainstance
+        from ipaserver.install.ca import lookup_ca_subject
+
         ca_enabled_check(self.api)
 
         ldap = self.api.Backend.ldap2
@@ -689,6 +693,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # Here we validate for these CA/KRA profiles:
             #  1. the requesting principal is a host
             #  2. the requesting principal is an IPA server
+            #  3. the subject of the CSR matches the expected
+            #     subject for this profile type
             host_principal = kerberos.Principal(op_account)
             if principal_to_principal_type(host_principal) != HOST:
                 raise errors.NotFound(
@@ -703,6 +709,48 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     reason=_(
                         "Certificate request for profile '%s' was not "
                         "requested from an IPA server", profile_id)
+                )
+            ca = cainstance.CAInstance(api.env.realm)
+            reqs = ca.tracking_reqs.items()
+            kra = krainstance.KRAInstance(api.env.realm)
+            if kra.is_installed():
+                reqs = itertools.chain(reqs,
+                                       kra.tracking_reqs.items())
+            nickname = None
+            for nick, prof in reqs:
+                if prof == profile_id:
+                    nickname = nick
+                    break
+            subject_dn = None
+            if nickname:
+                logger.debug("Requested CA/KRA nickname %s", nickname)
+                subject_base = dsinstance.DsInstance().find_subject_base()
+                ca_subject_dn = lookup_ca_subject(api, subject_base)
+                nickname_by_subject_dn = cainstance.get_nickname_by_subject_dn(
+                    subject_base, ca_subject_dn
+                )
+                for sub_dn, nick in nickname_by_subject_dn.items():
+                    if nick == nickname:
+                        subject_dn = sub_dn
+                        break
+                if subject_dn:
+                    if subject_dn != DN(csr.subject):
+                        raise errors.NotFound(
+                            reason=_(
+                                "CSR subject mismatch, {expected} vs "
+                                "{csr}".format(
+                                    expected=subject_dn, csr=csr.subject
+                                )
+                            )
+                        )
+                    else:
+                        logger.debug("Found subject %s", subject_dn)
+            else:
+                raise errors.NotFound(
+                    reason=_(
+                        "Invalid subject '{subject}' for profile "
+                        "'{profile}'".format(
+                            subject=csr.subject, profile=profile_id))
                 )
             casubsystem_profile = True
 
