@@ -51,6 +51,7 @@ from ipalib.util import strip_csr_header
 from ipalib.text import _
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
+from ipaserver.plugins.dogtag import log_override
 
 
 logger = logging.getLogger(__name__)
@@ -775,7 +776,9 @@ class CertDB:
         inputs['cert_request_type'] = 'pkcs10'
         with open(csrfile, 'r') as f:
             inputs['cert_request'] = f.read()
-        result = cert_client.enroll_cert(constants.RA_AGENT_PROFILE, inputs)[0]
+        with log_override():
+            result = cert_client.enroll_cert(
+                constants.RA_AGENT_PROFILE, inputs)[0]
 
         request_data = result.request
         if request_data.request_status != pki.cert.CertRequestStatus.COMPLETE:
@@ -857,7 +860,8 @@ class CertDB:
         inputs['cert_request_type'] = 'pkcs10'
         with open(os.path.join(self.secdir, "csr"), 'r') as f:
             inputs['cert_request'] = f.read()
-        result = cert_client.enroll_cert(profile, inputs)[0]
+        with log_override():
+            result = cert_client.enroll_cert(profile, inputs)[0]
 
         request_data = result.request
         if request_data.operation_result != "success":

@@ -56,6 +56,7 @@ from ipaserver.install import service
 from ipaserver.install import sysupgrade
 from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
+from ipaserver.plugins.dogtag import log_override
 
 
 logger = logging.getLogger(__name__)
@@ -84,7 +85,8 @@ def get_security_domain():
         url=f'https://{api.env.ca_host}:8443', ca_bundle=paths.IPA_CA_CRT)
     sub_client = pki.subsystem.SubsystemClient(pki_client, 'ca')
     domain_client = pki.system.SecurityDomainClient(sub_client)
-    info = domain_client.get_domain_info()
+    with log_override():
+        info = domain_client.get_domain_info()
     return info
 
 

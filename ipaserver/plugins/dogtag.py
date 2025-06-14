@@ -177,6 +177,7 @@ import base64
 import json
 import logging
 
+from contextlib import contextmanager
 from lxml import etree
 import time
 import contextlib
@@ -454,6 +455,33 @@ from ipaplatform.paths import paths
 register = Registry()
 
 
+@contextmanager
+def log_override():
+    """The PKI python libraries log to info() which ends up polluting
+       the ipa server installation output. Switch the log level
+       prior to calling any PKI library functions and then restore
+       the value in order to suppress the output. Lines like:
+
+       INFO Connecting to https://localhost:8443
+       INFO Getting PKI server info from /pki/v2/info
+
+       This won't affect what is logged to files.
+    """
+    level = logging.INFO
+    for handler in logging.root.handlers:
+        handler_type = type(handler)
+        if handler_type == logging.StreamHandler:
+            level = handler.level
+            break
+    handler.setLevel(logging.ERROR)
+    try:
+        yield
+    except Exception as e:
+        raise e
+    finally:
+        handler.setLevel(level)
+
+
 class APIClient(Backend):
     """Simple Dogtag API client to be subclassed by other backends.
 
@@ -556,7 +584,8 @@ class APIClient(Backend):
             client_key=paths.RA_AGENT_KEY)
 
         try:
-            api_path = self.pki_client.get_api_path()
+            with log_override():
+                api_path = self.pki_client.get_api_path()
         except requests.exceptions.RequestException as e:
             raise errors.RemoteRetrieveError(reason=e.args[0])
         path = '/ca/%s/account/login' % api_path
@@ -688,7 +717,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            request = self.client.get_request(request_id)
+            with log_override():
+                request = self.client.get_request(request_id)
         except pki.RequestNotFoundException:
             raise errors.NotFound(
                 reason="Request ID %s not found" % hex(request_id))
@@ -772,7 +802,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            cert = self.client.get_cert(serial_number)
+            with log_override():
+                cert = self.client.get_cert(serial_number)
         except pki.CertNotFoundException:
             raise errors.NotFound(
                 reason="Certificate ID %s not found" % hex(serial_number))
@@ -845,7 +876,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            result = self.client.enroll_cert(profile_id, inputs, ca_id)
+            with log_override():
+                result = self.client.enroll_cert(profile_id, inputs, ca_id)
         except pki.PKIException as e:
             raise errors.CertificateOperationError(error=e.message)
         except Exception as e:
@@ -878,13 +910,18 @@ class ra(rabase.rabase, APIClient):
 
         Returns a version string like "11.6.0"
         """
+
         port = self.override_port or "443"
-        pki_client = pki.client.PKIClient(
-            url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
-        info_client = pki.info.InfoClient(pki_client)
+        with log_override():
+            pki_client = pki.client.PKIClient(
+                url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+
+        with log_override():
+            info_client = pki.info.InfoClient(pki_client)
 
         try:
-            pki_version = str(info_client.get_version())
+            with log_override():
+                pki_version = str(info_client.get_version())
         except Exception as e:
             self.raise_certificate_operation_error('get_pki_version',
                                                    detail=e)
@@ -938,10 +975,11 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            result = self.client.revoke_cert(
-                serial_number,
-                revocation_reason=reasons[revocation_reason]
-            )
+            with log_override():
+                result = self.client.revoke_cert(
+                    serial_number,
+                    revocation_reason=reasons[revocation_reason]
+                )
         except pki.BadRequestException as e:
             # for some reason PKI returns with a # instead of a a hex:
             # certificate #f5aa3399f725feb... has already been revoked
@@ -1004,7 +1042,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            result = self.client.unrevoke_cert(serial_number)
+            with log_override():
+                result = self.client.unrevoke_cert(serial_number)
         except pki.CertNotFoundException:
             raise errors.NotFound(
                 reason="Certificate ID %s not found" % hex(serial_number))
@@ -1098,9 +1137,10 @@ class ra(rabase.rabase, APIClient):
         if sizelimit == 0:
             sizelimit = 0x7fffffff
         try:
-            result = self.client.list_certs(
-                size=sizelimit,
-                **cert_search_request
+            with log_override():
+                result = self.client.list_certs(
+                    size=sizelimit,
+                    **cert_search_request
             )
         except Exception as e:
             self.raise_certificate_operation_error(
@@ -1320,12 +1360,13 @@ class kra(Backend):
 
         # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
         # https://fedorahosted.org/freeipa/ticket/4557
-        pki_client = pki.client.PKIClient(
-            url=f'https://{self.kra_host}:{self.kra_port}',
-            ca_bundle=paths.IPA_CA_CRT)
-        pki_client.set_client_auth(
-            client_cert=paths.RA_AGENT_PEM,
-            client_key=paths.RA_AGENT_KEY)
+        with log_override():
+            pki_client = pki.client.PKIClient(
+                url=f'https://{self.kra_host}:{self.kra_port}',
+                ca_bundle=paths.IPA_CA_CRT)
+            pki_client.set_client_auth(
+                client_cert=paths.RA_AGENT_PEM,
+                client_key=paths.RA_AGENT_KEY)
         yield KRAClient(pki_client.connection, crypto)
 
 
@@ -1346,7 +1387,8 @@ class ra_certprofile(APIClient):
         Import the profile into Dogtag
         """
         try:
-            self.client.create_profile(profile_data, raw=True)
+            with log_override():
+                self.client.create_profile(profile_data, raw=True)
         except pki.ConflictingOperationException as e:
             # profile exists
             raise errors.RemoteRetrieveError(reason=str(e))
@@ -1359,7 +1401,8 @@ class ra_certprofile(APIClient):
         Read the profile configuration from Dogtag
         """
         try:
-            profile = self.client.get_profile(profile_id, raw=True)
+            with log_override():
+                profile = self.client.get_profile(profile_id, raw=True)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'read_profile', e)
@@ -1370,8 +1413,9 @@ class ra_certprofile(APIClient):
         Update the profile configuration in Dogtag
         """
         try:
-            self.client.modify_profile(profile_data, profile_id=profile_id,
-                                       raw=True)
+            with log_override():
+                self.client.modify_profile(profile_data, profile_id=profile_id,
+                                           raw=True)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'update_profile', e)
@@ -1381,7 +1425,8 @@ class ra_certprofile(APIClient):
         Enable the profile in Dogtag
         """
         try:
-            self.client.enable_profile(profile_id)
+            with log_override():
+                self.client.enable_profile(profile_id)
         except pki.ConflictingOperationException as e:
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
@@ -1393,7 +1438,8 @@ class ra_certprofile(APIClient):
         Enable the profile in Dogtag
         """
         try:
-            self.client.disable_profile(profile_id)
+            with log_override():
+                self.client.disable_profile(profile_id)
         except pki.ConflictingOperationException as e:
             raise errors.RemoteRetrieveError(reason=str(e))
         except Exception as e:
@@ -1405,7 +1451,8 @@ class ra_certprofile(APIClient):
         Delete the profile from Dogtag
         """
         try:
-            self.client.delete_profile(profile_id)
+            with log_override():
+                self.client.delete_profile(profile_id)
         except pki.ProfileNotFoundException:
             raise errors.NotFound(
                 reason="Profile ID %s not found" % profile_id)
@@ -1414,7 +1461,8 @@ class ra_certprofile(APIClient):
                 'delete_profile', e)
 
     def list_profiles(self):
-        profiles = self.client.list_profiles()
+        with log_override():
+            profiles = self.client.list_profiles()
 
         results = []
         for profile in profiles:
@@ -1451,7 +1499,8 @@ class ra_lightweight_ca(APIClient):
         assert isinstance(dn, DN)
 
         host_ca = None
-        authorities = self.client.list_cas()
+        with log_override():
+            authorities = self.client.list_cas()
         for ca in authorities.ca_list:
             if ca.is_host_authority:
                 host_ca = ca
@@ -1471,12 +1520,14 @@ class ra_lightweight_ca(APIClient):
         data = pki.authority.AuthorityData(**authority_data)
 
         try:
-            subca = self.client.create_ca(data)
+            with log_override():
+                subca = self.client.create_ca(data)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'create_ca', e)
 
-        newca = self.client.get_ca(subca.aid)
+        with log_override():
+            newca = self.client.get_ca(subca.aid)
         response = dict()
         response['id'] = subca.aid
         response['issuerDN'] = host_ca.dn
@@ -1502,24 +1553,28 @@ class ra_lightweight_ca(APIClient):
 
     def read_ca_cert(self, ca_id):
         try:
-            subca = self.client.get_ca(ca_id)
+            with log_override():
+                subca = self.client.get_ca(ca_id)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'read_ca_cert', e)
-        cert = self.client.get_cert(subca.aid, "PEM")
+        with log_override():
+            cert = self.client.get_cert(subca.aid, "PEM")
         c = x509.load_pem_x509_certificate(cert.encode("utf-8"))
         return c.public_bytes(x509.Encoding.DER)
 
     def read_ca_chain(self, ca_id):
         try:
-            subca = self.client.get_ca(ca_id)
+            with log_override():
+                subca = self.client.get_ca(ca_id)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'read_ca_chain', e)
         # The PKCS7 format from PKI doesn't seem to be correct. So
         # retrieve it as PEM and decode it into DER here instead.
         try:
-            chain = self.client.get_chain(subca.aid, "PEM")
+            with log_override():
+                chain = self.client.get_chain(subca.aid, "PEM")
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'read_ca_chain', e)
@@ -1530,38 +1585,44 @@ class ra_lightweight_ca(APIClient):
 
     def disable_ca(self, ca_id):
         try:
-            subca = self.client.get_ca(ca_id)
+            with log_override():
+                subca = self.client.get_ca(ca_id)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'disable_ca', e)
 
         try:
-            self.client.disable_ca(subca.aid)
+            with log_override():
+                self.client.disable_ca(subca.aid)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'disable_ca', e)
 
     def enable_ca(self, ca_id):
         try:
-            subca = self.client.get_ca(ca_id)
+            with log_override():
+                subca = self.client.get_ca(ca_id)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'enable_ca', e)
 
         try:
-            self.client.enable_ca(subca.aid)
+            with log_override():
+                self.client.enable_ca(subca.aid)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'enable_ca', e)
 
     def delete_ca(self, ca_id):
         try:
-            subca = self.client.get_ca(ca_id)
+            with log_override():
+                subca = self.client.get_ca(ca_id)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'enable_ca', e)
         try:
-            self.client.delete_ca(subca.aid)
+            with log_override():
+                self.client.delete_ca(subca.aid)
         except Exception as e:
             self.raise_certificate_operation_exception(
                 'enable_ca', e)
@@ -1586,4 +1647,5 @@ class ra_securitydomain(APIClient):
         """
         Delete a security domain
         """
-        self.client.remove_host(hostname, type.lower(), '443')
+        with log_override():
+            self.client.remove_host(hostname, type.lower(), '443')
