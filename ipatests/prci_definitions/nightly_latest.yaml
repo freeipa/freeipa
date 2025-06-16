@@ -2179,3 +2179,15 @@ jobs:
         template: *ci-master-latest
         timeout: 14400
         topology: *master_2repl_1client
+
+  fedora-latest/test_32BitIdranges:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_32bit_idranges.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master
