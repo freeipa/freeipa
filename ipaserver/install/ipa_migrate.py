@@ -33,7 +33,7 @@ from ipaserver.install.ipa_migrate_constants import (
     DS_CONFIG, DB_OBJECTS, DS_INDEXES, BIND_DN, LOG_FILE_NAME,
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
     DNA_REGEN_VAL, DNA_REGEN_ATTRS, NIS_PLUGIN, IGNORE_ATTRS,
-    DB_EXCLUDE_TREES, POLICY_OP_ATTRS
+    DB_EXCLUDE_TREES, POLICY_OP_ATTRS, STATE_OPTIONS
 )
 
 """
@@ -202,14 +202,15 @@ def decode_attr_vals(entry_attrs):
     decoded_attrs = {}
     for attr in entry_attrs:
         vals = ensure_list_str(entry_attrs[attr])
-        # Remove replication state data, but don't remove ";binary"
-        # e.g.  userCertififccate;binary;adcsn=<CSN>
+        # Remove "only" replication state data, but don't remove other attr
+        # options like ";binary"
+        #    e.g.  userCertificate;binary;adcsn=<CSN>
         parts = attr.split(";")
-        if len(parts) > 1 and not attr.endswith(";binary"):
-            if parts[1] == "binary":
-                attr = parts[0] + ";binary"
-            else:
-                attr = parts[0]
+        attr_parts = [
+            parts[0]] + [p for p in parts[1:]
+                         if not any(p.startswith(opt)
+                                    for opt in STATE_OPTIONS)]
+        attr = (';').join(attr_parts)
         decoded_attrs[attr] = vals
     return decoded_attrs
 

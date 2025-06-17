@@ -117,6 +117,8 @@ AD_TRUST_ATTRS = [  # ipaNTTrustedDomain objectclass
     'ipantadditionalsuffixes',
 ]
 
+STATE_OPTIONS = ('adcsn-', 'mdcsn-', 'vucsn-', 'vdcsn-')
+
 DNA_REGEN_VAL = "-1"
 
 DNA_REGEN_ATTRS = [
