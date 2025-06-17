@@ -156,13 +156,13 @@ List of pre-populated IdP types is currently limited by the following provider
 Some IdP providers support parametrized URIs which include organization or a
 realm name, or specific base URL, or both.
 
-One notable omission in the pre-populated IdP types above is Gitlab.
+One notable omission in the pre-populated IdP types above is GitLab.
 
 FreeIPA only supports IdPs that implement OAuth 2.0 Device authorization
 grant flow as defined by the [RFC 8628](https://www.rfc-editor.org/rfc/rfc8628).
 If required IdP cannot be made to support Device authorization grant flow, it
 is recommended to use OAuth 2.0 federation within an IdP that supports this
-method. Gitlab does not support OAuth 2.0 Device authorization grant flow and
+method. GitLab does not support OAuth 2.0 Device authorization grant flow and
 thus is not supported directly.
 
 SSSD 2.7.0 implements Kerberos pre-authentication method `idp` (registered as a
@@ -193,7 +193,7 @@ Choosing `--provider=google` would expand to use the following options:
 | `--scope`=STR         | `openid email`                                     |
 | `--idp-user-id`=STR   | `email`                                            |
 
-#### Github IdPs
+#### GitHub IdPs
 
 Choosing `--provider=github` would expand to use the following options:
 
@@ -207,17 +207,17 @@ Choosing `--provider=github` would expand to use the following options:
 | `--scope`=STR         | `user`                                             |
 | `--idp-user-id`=STR   | `login`                                            |
 
-Please note that Github explicitly states that a user login is not unique and
+Please note that GitHub explicitly states that a user login is not unique and
 can be reused after a user account was deleted. The configuration above aims
-for an easy setup for testing. If production deployment with Github IdP would
+for an easy setup for testing. If production deployment with GitHub IdP would
 be required, it is recommended to change `--idp-user-id` to a more unique subject
-like `id`. Unfortunately, Github UI does not give an easy way to discover a
+like `id`. Unfortunately, GitHub UI does not give an easy way to discover a
 user ID. Other IdPs also lack an easy way to resolve these internal identifiers
 when not authorized by the user themselves.
 
-For Github, user's ID can be looked up without authentication through the Users
+For GitHub, user's ID can be looked up without authentication through the Users
 API. Assuming we have `curl` and `jq` utilities available, a request to
-discover an ID of a Github user named `test` would look like:
+discover an ID of a GitHub user named `test` would look like:
 
 ```
 $ curl --silent \
@@ -386,10 +386,10 @@ scope is used, this typically maps to `sub` value. Since there are no ways to
 pull this value for all users in advance, pre-populated IdP templates set OAuth
 2.0 scopes to include `email` and then use `email` to map IdP subject where possible.
 There are some well-known IdPs which allow reuse of user accounts and emails, this
-applies to both Github and Gitlab. Since Gitlab does not support OAuth 2.0
+applies to both GitHub and GitLab. Since GitLab does not support OAuth 2.0
 Device authorization grant flow, it is not an issue in itself for this project. However,
-for Github it is known that user accounts can be recycled after their removal. In
-this case we would recommend to use internal Github identifier instead.
+for GitHub it is known that user accounts can be recycled after their removal. In
+this case we would recommend to use internal GitHub identifier instead.
 
 ## Upgrade and backward compatibility
 
