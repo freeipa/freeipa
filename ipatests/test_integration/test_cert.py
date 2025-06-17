@@ -540,7 +540,7 @@ class TestCAShowErrorHandling(IntegrationTest):
         4. Verify LWCA is recognized on the server
         5. Run `ipa ca-show <LWCA>`
 
-        PKI Github Link: https://github.com/dogtagpki/pki/pull/3605/
+        PKI GitHub Link: https://github.com/dogtagpki/pki/pull/3605/
         """
         self.replicas[0].run_command(['systemctl', 'stop', 'ipa-custodia'])
         lwca = 'lwca1'
