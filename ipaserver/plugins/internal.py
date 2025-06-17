@@ -1100,7 +1100,7 @@ class i18n_messages(Command):
             "idp": {
                 "template_keycloak": _("Keycloak or Red Hat SSO"),
                 "template_google": _("Google"),
-                "template_github": _("Github"),
+                "template_github": _("GitHub"),
                 "template_microsoft": _("Microsoft or Azure"),
                 "template_okta": _("Okta"),
                 "label_idpclient": _("OAuth 2.0 client details"),
