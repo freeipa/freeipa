@@ -21,7 +21,7 @@
 ########################################################
 define(IPA_VERSION_MAJOR, 4)
 define(IPA_VERSION_MINOR, 12)
-define(IPA_VERSION_RELEASE, 4)
+define(IPA_VERSION_RELEASE, 5)
 
 ########################################################
 # For 'pre' releases the version will be               #
