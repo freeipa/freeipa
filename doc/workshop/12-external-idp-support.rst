@@ -94,7 +94,7 @@ authorization grant flow:
 
 * Microsoft Identity Platform, including Azure AD
 * Google
-* Github
+* GitHub
 * Keycloak, including Red Hat SSO
 * Okta
 
@@ -389,7 +389,7 @@ IPA. Option ``--provider keycloak`` allows us to fill-in pre-defined template
 for Keycloak or Red Hat SSO IdPs. The template expects both Keycloak's realm
 (``--org`` option) and a base URL (``--base-url`` option) because Keycloak is
 typically deployed as a part of a larger solution. These options may not be
-needed for other pre-defined templates like Google or Github.
+needed for other pre-defined templates like Google or GitHub.
 
 The `openid` scope is mandatory since
 [Keycloak 19.0.2](https://www.keycloak.org/docs/latest/upgrading/index.html#userinfo-endpoint-changes).

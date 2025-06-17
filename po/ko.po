@@ -21688,7 +21688,7 @@ msgstr ""
 msgid "Google"
 msgstr "구글"
 
-msgid "Github"
+msgid "GitHub"
 msgstr "깃허브"
 
 msgid "Microsoft or Azure"
