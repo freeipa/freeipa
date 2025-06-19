@@ -22,3 +22,13 @@ class TestIPANotConfigured(IntegrationTest):
         assert (exp_str in cmd.stderr_text and
                 cmd.returncode == SERVER_NOT_CONFIGURED and
                 unexp_str not in cmd.stderr_text)
+
+    def test_ipa_idrange_fix(self):
+        """
+        Test for https://pagure.io/freeipa/issue/9809
+        Launch ipa-idrange-fix command when the server is not configured.
+        """
+        exp_str = "IPA is not configured"
+        cmd = self.master.run_command(["ipa-idrange-fix"], raiseonerr=False)
+        assert (exp_str in cmd.stderr_text
+                and cmd.returncode == SERVER_NOT_CONFIGURED)

@@ -10,6 +10,7 @@ from ipalib import api, errors
 from ipapython.admintool import AdminTool
 from ipapython.dn import DN
 from ipapython import ipautil
+from ipaserver.install.installutils import check_server_configuration
 from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
@@ -169,6 +170,8 @@ for confirmation",
         super().validate_options(needs_root)
 
     def run(self):
+        check_server_configuration()
+
         api.bootstrap(in_server=True)
         api.finalize()
 
