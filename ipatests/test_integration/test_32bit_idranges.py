@@ -102,3 +102,69 @@ class Test32BitIdRanges(IntegrationTest):
         )
         assert result.returncode == 0
         assert str(uid) in result.stdout_text
+
+    def test_ssh_login_with_user(self):
+        """
+        This testcase checks that 32Bit idrange
+        associated user is able to login via ssh
+        """
+        testuser = 'ipauser'
+        original_passwd = 'Secret123'
+        new_passwd = 'userPasswd123'
+        tasks.kinit_admin(self.master)
+        self.master.run_command(
+            ['ipa', 'user-add', testuser, '--first',
+             'ipa', '--last', 's',
+             '--uid', '2147483650',
+             '--gid', '2147483650',
+             '--password'], stdin_text=original_passwd
+        )
+        tasks.ldappasswd_user_change(testuser, original_passwd,
+                                     new_passwd,
+                                     self.master)
+        tasks.kdestroy_all(self.master)
+        tasks.run_ssh_cmd(to_host=self.master.external_hostname,
+                          username=testuser,
+                          auth_method="password",
+                          password=new_passwd,
+                          expect_auth_success=True)
+
+    def test_sudo_rule_is_applied_to_user(self):
+        """
+        This testcase checks that sudo rule is applied to
+        newly added user
+        """
+        testuser = 'ipauser'
+        tasks.kinit_admin(self.master)
+        self.master.run_command(
+            ['ipa', 'sudorule-add', 'readfiles']
+        )
+        self.master.run_command(
+            ['ipa', 'sudocmd-add', '/usr/bin/less']
+        )
+        self.master.run_command(
+            ['ipa', 'sudorule-add-allow-command', 'readfiles',
+             '--sudocmds', '/usr/bin/less']
+        )
+        self.master.run_command(
+            ['ipa', 'sudorule-add-user',
+             'readfiles', '--users', testuser]
+        )
+        self.master.run_command(
+            ['ipa', 'sudorule-add-runasuser', testuser],
+            raiseonerr=False
+        )
+
+    def test_check_ipa_idrange_fix(self):
+        """
+        This testcase checks that ipa-idrange-fix tool
+        runs with the newly added 32Bit idrange
+        """
+        idrange_name = f"{self.master.domain.realm}_upper_32bit_range"
+        msg = "The ipa-idrange-fix command was successful"
+        cmd = self.master.run_command(
+            ['ipa-idrange-fix', '--unattended'],
+            raiseonerr=False
+        )
+        assert msg in cmd.stderr_text
+        assert idrange_name in cmd.stderr_text
