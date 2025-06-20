@@ -22363,8 +22363,8 @@ msgstr ""
 msgid "Google"
 msgstr "Google"
 
-msgid "Github"
-msgstr "Github"
+msgid "GitHub"
+msgstr "GitHub"
 
 msgid "Microsoft or Azure"
 msgstr ""

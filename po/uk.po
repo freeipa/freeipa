@@ -28647,8 +28647,8 @@ msgstr "Keycloak або Red Hat SSO"
 msgid "Google"
 msgstr "Google"
 
-msgid "Github"
-msgstr "Github"
+msgid "GitHub"
+msgstr "GitHub"
 
 msgid "Microsoft or Azure"
 msgstr "Microsoft або Azure"
