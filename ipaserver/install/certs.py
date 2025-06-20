@@ -44,6 +44,7 @@ from ipapython import ipautil
 from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
+from ipapython.ipautil import log_level_override
 from ipalib import x509, api, constants
 from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
@@ -773,7 +774,9 @@ class CertDB:
         inputs['cert_request_type'] = 'pkcs10'
         with open(csrfile, 'r') as f:
             inputs['cert_request'] = f.read()
-        result = cert_client.enroll_cert(constants.RA_AGENT_PROFILE, inputs)[0]
+        with log_level_override():
+            result = cert_client.enroll_cert(
+                constants.RA_AGENT_PROFILE, inputs)[0]
 
         request_data = result.request
         if request_data.request_status != pki.cert.CertRequestStatus.COMPLETE:
@@ -857,7 +860,8 @@ class CertDB:
         inputs['cert_request_type'] = 'pkcs10'
         with open(os.path.join(self.secdir, "csr"), 'r') as f:
             inputs['cert_request'] = f.read()
-        result = cert_client.enroll_cert(profile, inputs)[0]
+        with log_level_override():
+            result = cert_client.enroll_cert(profile, inputs)[0]
 
         request_data = result.request
         if request_data.operation_result != "success":
