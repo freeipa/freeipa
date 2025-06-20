@@ -82,7 +82,8 @@ def get_security_domain():
         url=f'https://{api.env.ca_host}:8443', ca_bundle=paths.IPA_CA_CRT)
     sub_client = pki.subsystem.SubsystemClient(pki_client, 'ca')
     domain_client = pki.system.SecurityDomainClient(sub_client)
-    info = domain_client.get_domain_info()
+    with ipautil.log_level_override():
+        info = domain_client.get_domain_info()
     return info
 
 

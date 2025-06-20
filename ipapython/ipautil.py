@@ -1822,3 +1822,30 @@ def get_config_debug(context):
         return False
 
     return parser.get(CONFIG_SECTION, 'debug').lower() == 'true'
+
+
+@contextmanager
+def log_level_override():
+    """The PKI python libraries log to info() which ends up polluting
+       the ipa server installation output. Switch the log level
+       prior to calling any PKI library functions and then restore
+       the value in order to suppress the output. Lines like:
+
+       INFO Connecting to https://localhost:8443
+       INFO Getting PKI server info from /pki/v2/info
+
+       This won't affect what is logged to files.
+    """
+    stream_handlers = [
+        (handler, handler.level) for handler in logging.root.handlers
+        if type(handler) is logging.StreamHandler
+    ]
+    for (handler, _level) in stream_handlers:
+        handler.setLevel(logging.ERROR)
+    try:
+        yield
+    except Exception as e:
+        raise e
+    finally:
+        for (handler, orig_level) in stream_handlers:
+            handler.setLevel(orig_level)
