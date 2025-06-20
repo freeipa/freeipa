@@ -186,6 +186,7 @@ import six
 from ipalib import Backend, api, x509
 from ipapython.dn import DN
 from ipapython import dogtag
+from ipapython.ipautil import log_level_override
 from ipaserver.masters import find_providing_server
 
 import requests.exceptions
@@ -558,7 +559,8 @@ class APIClient(Backend):
             client_key=paths.RA_AGENT_KEY)
 
         try:
-            api_path = self.pki_client.get_api_path()
+            with log_level_override():
+                api_path = self.pki_client.get_api_path()
         except requests.exceptions.RequestException as e:
             raise errors.RemoteRetrieveError(reason=e.args[0])
         path = '/ca/%s/account/login' % api_path
@@ -691,7 +693,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            request = self.client.get_request(request_id)
+            with log_level_override():
+                request = self.client.get_request(request_id)
         except pki.RequestNotFoundException:
             raise errors.NotFound(
                 reason="Request ID %s not found" % hex(request_id))
@@ -775,7 +778,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            cert = self.client.get_cert(serial_number)
+            with log_level_override():
+                cert = self.client.get_cert(serial_number)
         except pki.CertNotFoundException:
             raise errors.NotFound(
                 reason="Certificate ID %s not found" % hex(serial_number))
@@ -848,7 +852,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            result = self.client.enroll_cert(profile_id, inputs, ca_id)
+            with log_level_override():
+                result = self.client.enroll_cert(profile_id, inputs, ca_id)
         except pki.PKIException as e:
             raise errors.CertificateOperationError(error=e.message)
         except Exception as e:
@@ -887,7 +892,8 @@ class ra(rabase.rabase, APIClient):
         info_client = pki.info.InfoClient(pki_client)
 
         try:
-            pki_version = str(info_client.get_version())
+            with log_level_override():
+                pki_version = str(info_client.get_version())
         except Exception as e:
             self.raise_certificate_operation_error('get_pki_version',
                                                    detail=e)
@@ -941,10 +947,11 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            result = self.client.revoke_cert(
-                serial_number,
-                revocation_reason=reasons[revocation_reason]
-            )
+            with log_level_override():
+                result = self.client.revoke_cert(
+                    serial_number,
+                    revocation_reason=reasons[revocation_reason]
+                )
         except pki.BadRequestException as e:
             # for some reason PKI returns with a # instead of a a hex:
             # certificate #f5aa3399f725feb... has already been revoked
@@ -1007,7 +1014,8 @@ class ra(rabase.rabase, APIClient):
 
         self.get_client()
         try:
-            result = self.client.unrevoke_cert(serial_number)
+            with log_level_override():
+                result = self.client.unrevoke_cert(serial_number)
         except pki.CertNotFoundException:
             raise errors.NotFound(
                 reason="Certificate ID %s not found" % hex(serial_number))
@@ -1101,10 +1109,11 @@ class ra(rabase.rabase, APIClient):
         if sizelimit == 0:
             sizelimit = 0x7fffffff
         try:
-            result = self.client.list_certs(
-                size=sizelimit,
-                **cert_search_request
-            )
+            with log_level_override():
+                result = self.client.list_certs(
+                    size=sizelimit,
+                    **cert_search_request
+                )
         except Exception as e:
             self.raise_certificate_operation_error(
                 'find',
