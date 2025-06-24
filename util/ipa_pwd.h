@@ -46,7 +46,11 @@ enum ipapwd_error {
     IPAPWD_POLICY_PWD_SEQUENCE = 7,
     IPAPWD_POLICY_PWD_DICT_WORD = 8,
     IPAPWD_POLICY_PWD_PALINDROME = 9,
-    IPAPWD_POLICY_PWD_USER = 10
+    IPAPWD_POLICY_PWD_USER = 10,
+    IPAPWD_POLICY_PWD_MIN_DIGITS = 11,
+    IPAPWD_POLICY_PWD_MIN_UPPERS = 12,
+    IPAPWD_POLICY_PWD_MIN_LOWERS = 13,
+    IPAPWD_POLICY_PWD_MIN_OTHERS = 14
 };
 
 struct ipapwd_policy {
@@ -63,6 +67,10 @@ struct ipapwd_policy {
     int max_classrepeat;
     int dictcheck;
     int usercheck;
+    int dcredit;
+    int ucredit;
+    int lcredit;
+    int ocredit;
 };
 
 time_t ipapwd_gentime_to_time_t(char *timestr);
