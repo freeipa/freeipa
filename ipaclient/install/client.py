@@ -1656,7 +1656,7 @@ def get_server_connection_interface(server):
     raise RuntimeError(msg)
 
 
-def client_dns(server, hostname, options):
+def client_dns(server, hostname, options, statestore):
 
     try:
         verify_host_resolvable(hostname)
@@ -1672,12 +1672,22 @@ def client_dns(server, hostname, options):
 
     # Setup DNS over TLS
     if options.dns_over_tls:
+        fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+        statestore.backup_state("dns_over_tls", "enabled", True)
+        save_state(services.knownservices["unbound"], statestore)
         # setup and enable Unbound as resolver
         server_ip = str(list(dnsutil.resolve_ip_addresses(server))[0])
         forward_addr = "forward-addr: %s#%s" % (server_ip, server)
         # module_config_iterator is commented out if DNSSEC validation is
         # not disabled.
         module_config_iterator = '' if options.no_dnssec_validation else '# '
+        # backup and remove all previous Unbound configuration
+        for filename in os.listdir(paths.UNBOUND_CONFIG_DIR):
+            filepath = os.path.join(paths.UNBOUND_CONFIG_DIR, filename)
+            if filepath == paths.UNBOUND_CONF:
+                continue
+            fstore.backup_file(filepath)
+            remove_file(filepath)
         ipautil.copy_template_file(
             paths.UNBOUND_CONF_SRC,
             paths.UNBOUND_CONF,
@@ -1710,7 +1720,6 @@ def client_dns(server, hostname, options):
             "search .",
             "nameserver 127.0.0.55\n"
         ]
-        fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
         fstore.backup_file(paths.RESOLV_CONF)
         with open(paths.RESOLV_CONF, 'w') as f:
             f.write('\n'.join(cfg))
@@ -3242,7 +3251,7 @@ def _install(options, tdict):
     tasks.insert_ca_certs_into_systemwide_ca_store(ca_certs)
 
     if not options.on_master:
-        client_dns(cli_server[0], hostname, options)
+        client_dns(cli_server[0], hostname, options, statestore)
 
     update_ssh_keys(hostname, paths.SSH_CONFIG_DIR, options, cli_server[0])
 
@@ -3631,6 +3640,20 @@ def uninstall(options):
             oddjobd.disable()
         except Exception:
             pass
+
+    # Restore unbound to its original status
+    if statestore.restore_state("dns_over_tls", "enabled"):
+        unbound = services.knownservices['unbound']
+        if not statestore.restore_state('unbound', 'running'):
+            unbound.stop()
+        if not statestore.restore_state('unbound', 'enabled'):
+            unbound.disable()
+        # restore unbound config files that were removed during IPA install
+        remove_file(paths.UNBOUND_CONF)
+        for filename, fileinfo in fstore.files.items():
+            if paths.UNBOUND_CONFIG_DIR in fileinfo:
+                fstore.restore_file(
+                    os.path.join(paths.UNBOUND_CONFIG_DIR, filename))
 
     logger.info("Disabling client Kerberos and LDAP configurations")
     was_sssd_installed = False

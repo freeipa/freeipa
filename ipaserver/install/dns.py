@@ -138,6 +138,16 @@ def _setup_dns_over_tls(options):
     # module_config_iterator is commented out if DNSSEC validation is
     # not disabled.
     module_config_iterator = '' if options.no_dnssec_validation else '# '
+
+    # backup and remove all previous Unbound configuration
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+    for filename in os.listdir(paths.UNBOUND_CONFIG_DIR):
+        filepath = os.path.join(paths.UNBOUND_CONFIG_DIR, filename)
+        if filepath == paths.UNBOUND_CONF:
+            continue
+        fstore.backup_file(filepath)
+        ipautil.remove_file(filepath)
+
     ipautil.copy_template_file(
         paths.UNBOUND_CONF_SRC,
         paths.UNBOUND_CONF,
@@ -179,7 +189,6 @@ def _setup_dns_over_tls(options):
     ]
     nameservers = get_ipa_resolver().nameservers
     if not nameservers or nameservers[0] != "127.0.0.1":
-        fstore = sysrestore.FileStore(paths.SYSRESTORE)
         fstore.backup_file(paths.RESOLV_CONF)
         with open(paths.RESOLV_CONF, 'w') as f:
             f.write('\n'.join(cfg))
