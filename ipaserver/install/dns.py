@@ -136,6 +136,16 @@ def _setup_dns_over_tls(options):
     # module_config_iterator is commented out if DNSSEC validation is
     # not disabled.
     module_config_iterator = '' if options.no_dnssec_validation else '# '
+
+    # disable all previous Unbound configuration
+    for filename in os.listdir(paths.UNBOUND_CONFIG_DIR):
+        if (os.path.join(paths.UNBOUND_CONFIG_DIR, filename)
+                == paths.UNBOUND_CONF):
+            continue
+        os.rename(os.path.join(paths.UNBOUND_CONFIG_DIR, filename),
+                  os.path.join(paths.UNBOUND_CONFIG_DIR,
+                               filename + ".disabled"))
+
     ipautil.copy_template_file(
         paths.UNBOUND_CONF_SRC,
         paths.UNBOUND_CONF,
