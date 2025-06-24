@@ -333,7 +333,9 @@ int ipapwd_getPolicy(const char *dn,
                       "krbPwdMinDiffChars", "krbPwdMinLength",
                       "krbPwdHistoryLength", "ipaPwdMaxRepeat",
                       "ipaPwdMaxSequence", "ipaPwdDictCheck",
-                      "ipaPwdUserCheck", NULL};
+                      "ipaPwdUserCheck", "ipapwdDcredit",
+                      "ipaPwdUcredit", "ipaPwdLcredit",
+                      "ipaPwdOcredit", NULL};
     Slapi_Entry **es = NULL;
     Slapi_Entry *pe = NULL;
     int ret, res, scope;
@@ -418,6 +420,10 @@ int ipapwd_getPolicy(const char *dn,
     policy->max_sequence = slapi_entry_attr_get_int(pe, "ipaPwdMaxSequence");
     policy->dictcheck = slapi_entry_attr_get_bool(pe, "ipaPwdDictCheck");
     policy->usercheck = slapi_entry_attr_get_bool(pe, "ipaPwdUserCheck");
+    policy->dcredit = slapi_entry_attr_get_int(pe, "ipaPwdDcredit");
+    policy->ucredit = slapi_entry_attr_get_int(pe, "ipaPwdUcredit");
+    policy->lcredit = slapi_entry_attr_get_int(pe, "ipaPwdLcredit");
+    policy->ocredit = slapi_entry_attr_get_int(pe, "ipaPwdOcredit");
 
     ret = 0;
 
