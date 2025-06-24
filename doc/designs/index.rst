@@ -36,3 +36,4 @@ FreeIPA design documentation
    id-mapping.md
    audit-ipa-api.md
    sysaccounts.md
+   master-key-upgrade.md
