@@ -133,13 +133,17 @@ def _setup_dns_over_tls(options):
     if options.dot_forwarders:
         forward_addrs = ["forward-addr: %s" % fw
                          for fw in options.dot_forwarders]
+    # module_config_iterator is commented out if DNSSEC validation is
+    # not disabled.
+    module_config_iterator = '' if options.no_dnssec_validation else '# '
     ipautil.copy_template_file(
         paths.UNBOUND_CONF_SRC,
         paths.UNBOUND_CONF,
         dict(
             TLS_CERT_BUNDLE_PATH=os.path.join(
                 paths.OPENSSL_CERTS_DIR, "ca-bundle.crt"),
-            FORWARD_ADDRS="\n".join(forward_addrs)
+            FORWARD_ADDRS="\n".join(forward_addrs),
+            MODULE_CONFIG_ITERATOR=module_config_iterator
         )
     )
 
