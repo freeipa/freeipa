@@ -23,6 +23,7 @@ from __future__ import print_function
 import logging
 import os
 import socket
+import tempfile
 import dbus
 
 import dns.name
@@ -197,11 +198,14 @@ class KrbInstance(service.Service):
         self.step("starting the KDC", self.__start_instance)
         self.step("configuring KDC to start on boot", self.__enable)
 
-    def create_instance(self, realm_name, host_name, domain_name, admin_password, master_password, setup_pkinit=False, pkcs12_info=None, subject_base=None):
+    def create_instance(self, realm_name, host_name, domain_name,
+                        admin_password, master_password, setup_pkinit=False,
+                        pkcs12_info=None, subject_base=None, promote=False):
         self.master_password = master_password
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
         self.config_pkinit = setup_pkinit
+        self.promote = promote
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
@@ -234,6 +238,7 @@ class KrbInstance(service.Service):
         self.subject_base = subject_base
         self.master_fqdn = master_fqdn
         self.config_pkinit = setup_pkinit
+        self.promote = True
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
@@ -445,6 +450,25 @@ class KrbInstance(service.Service):
                 timeout=api.env.replication_wait_timeout
             )
 
+    def _get_certificate(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdb = certs.CertDB(api.env.realm, nssdir=tmpdir)
+            tmpdb.create_from_cacert()
+            tmpdb.pki_issue_certificate(
+                "krbtgt", KDC_PROFILE,
+                paths.KDC_KEY, paths.KDC_CERT
+            )
+
+            os.chmod(paths.KDC_CERT, 0o644)
+            self.cert = x509.load_certificate_from_file(paths.KDC_CERT)
+            certmonger.start_tracking(
+                certpath=(paths.KDC_CERT, paths.KDC_KEY),
+                post_command='renew_kdc_cert',
+                dns=[self.fqdn],
+                storage='FILE',
+                profile=KDC_PROFILE,
+            )
+
     def _call_certmonger(self, certmonger_ca='IPA'):
         subject = str(DN(('cn', self.fqdn), self.subject_base))
         krbtgt = "krbtgt/" + self.realm + "@" + self.realm
@@ -466,7 +490,7 @@ class KrbInstance(service.Service):
             if use_dogtag_submit:
                 ca_args = [
                     paths.CERTMONGER_DOGTAG_SUBMIT,
-                    '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
+                    '--jsonrpc-url', 'https://%s:/ipa/json' % self.fqdn,
                     '--certfile', paths.RA_AGENT_PEM,
                     '--keyfile', paths.RA_AGENT_KEY,
                     '--cafile', paths.IPA_CA_CRT,
@@ -477,6 +501,7 @@ class KrbInstance(service.Service):
                     certmonger_ca, helper
                 )
 
+            (keytype, keysize) = installutils.lookup_key_type(api)
             certmonger.request_and_wait_for_cert(
                 certpath=certpath,
                 subject=subject,
@@ -487,7 +512,9 @@ class KrbInstance(service.Service):
                 profile=KDC_PROFILE,
                 post_command='renew_kdc_cert',
                 perms=(0o644, 0o600),
-                resubmit_timeout=api.env.certmonger_wait_timeout
+                resubmit_timeout=api.env.certmonger_wait_timeout,
+                keytype=keytype,
+                keysize=keysize,
             )
         except dbus.DBusException as e:
             # if the certificate is already tracked, ignore the error
@@ -541,7 +568,10 @@ class KrbInstance(service.Service):
 
     def issue_ipa_ca_signed_pkinit_certs(self):
         try:
-            self._call_certmonger()
+            if self.promote:
+                self._call_certmonger()
+            else:
+                self._get_certificate()
             self._install_pkinit_ca_bundle()
             self.pkinit_enable()
         except RuntimeError as e:
