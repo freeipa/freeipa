@@ -1,0 +1,31 @@
+---
+rule_settings:
+  disable: [replace-interpolation-with-fstring]
+  python_version: '3.6'
+
+rules:
+  - id: prefer-log
+    pattern: print(...)
+    description: "`print` should most likely be replaced with logger functions."
+    tests:
+      - match: print("Hello world!")
+      - match: print("Hello", file=stderr)
+      - no-match: print_log("Hi!")
+      - no-match: logger.print("Hello world!")
+      - no-match: send(print)
+
+  - id: upper-case-global-variables
+    pattern: ${var} = ${value}
+    condition: |
+        var.in_module_scope()
+          and not var.is_upper_case()
+          and not var.starts_with("_")
+    description: "Don't declare `${var}` as a global variable or make it upper case or start with _."
+
+  - id: prefer-api
+    pattern: self.api.${command}
+    description: "Prefer importing `api` from ipalib and omitting self."
+    replacement: api.${command}
+    tests:
+      - match: self.api.Command()
+      - no-match: api.Command(s)
