@@ -23944,7 +23944,7 @@ msgid "Google"
 msgstr ""
 
 #: ipaserver/plugins/internal.py:1103
-msgid "Github"
+msgid "GitHub"
 msgstr ""
 
 #: ipaserver/plugins/internal.py:1104
