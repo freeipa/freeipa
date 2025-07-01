@@ -25,6 +25,7 @@ from ipalib.constants import IPA_CA_RECORD
 from ipalib.constants import ALLOWED_NETBIOS_CHARS
 from ipalib.sysrestore import SYSRESTORE_STATEFILE, SYSRESTORE_INDEXFILE
 from ipapython.dn import DN
+from ipapython.ipaldap import realm_to_serverid
 from ipaplatform.constants import constants
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
@@ -2212,3 +2213,42 @@ class TestNsslapdIgnoreTimeSkew(IntegrationTest):
         conn = self.replicas[0].ldap_connect()
         ldap_entry = conn.get_entry(DN("cn=config"))
         assert ldap_entry.single_value['nsslapd-ignore-time-skew'] == "on"
+
+
+class TestInstallKeySizes(IntegrationTest):
+
+    num_replicas = 1
+    master_with_dns = True
+
+    @classmethod
+    def install(cls, mh):
+        extra_args = ["--key-type-size", "rsa:3072",]
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=extra_args)
+        tasks.install_replica(
+            cls.master, cls.replicas[0], setup_ca=False)
+
+    def check_key_sizes(self, host):
+        serverid = (realm_to_serverid(host.domain.realm)).upper()
+        instance = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid
+        result = host.run_command(
+            "certutil -L -d %s -n Server-Cert -a | "
+            "openssl x509 -text -noout | "
+            "grep Public-Key" % instance)
+        assert "3072 bit" in result.stdout_text
+
+        for file in (
+            paths.HTTPD_CERT_FILE,
+            paths.KDC_CERT,
+            paths.RA_AGENT_PEM,
+        ):
+            result = host.run_command(
+                "openssl x509 -text -noout -in %s | "
+                "grep Public-Key" % file)
+            assert "3072 bit" in result.stdout_text
+
+    def test_master_key_sizes(self):
+        self.check_key_sizes(self.master)
+
+    def test_replica_key_sizes(self):
+        self.check_key_sizes(self.replicas[0])
