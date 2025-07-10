@@ -1,34 +1,16 @@
-dn: cn=krbPrincipalName uniqueness,cn=plugins,cn=config
+dn: cn=kerberos name uniqueness,cn=plugins,cn=config
 changetype: add
 objectClass: top
 objectClass: nsSlapdPlugin
 objectClass: extensibleObject
-cn: krbPrincipalName uniqueness
+cn: kerberos name uniqueness
 nsslapd-pluginPath: libattr-unique-plugin
 nsslapd-pluginInitfunc: NSUniqueAttr_Init
 nsslapd-pluginType: preoperation
 nsslapd-pluginEnabled: on
-uniqueness-attribute-name: krbPrincipalName
-nsslapd-plugin-depends-on-type: database
-nsslapd-pluginId: NSUniqueAttr
-nsslapd-pluginVersion: 1.1.0
-nsslapd-pluginVendor: Fedora Project
-nsslapd-pluginDescription: Enforce unique attribute values
-uniqueness-subtrees: $SUFFIX
-uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
-uniqueness-across-all-subtrees: on
-
-dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
-changetype: add
-objectClass: top
-objectClass: nsSlapdPlugin
-objectClass: extensibleObject
-cn: krbCanonicalName uniqueness
-nsslapd-pluginPath: libattr-unique-plugin
-nsslapd-pluginInitfunc: NSUniqueAttr_Init
-nsslapd-pluginType: preoperation
-nsslapd-pluginEnabled: on
-uniqueness-attribute-name: krbCanonicalName
+uniqueness-attribute-name: krbPrincipalName:CaseIgnoreMatch:
+uniqueness-attribute-name: krbPrincipalAlias:CaseIgnoreMatch:
+uniqueness-attribute-name: krbCanonicalName:CaseIgnoreMatch:
 nsslapd-plugin-depends-on-type: database
 nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
