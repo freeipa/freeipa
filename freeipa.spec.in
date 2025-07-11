@@ -1326,8 +1326,8 @@ fi
 %post server-trust-ad
 %{_sbindir}/update-alternatives --install %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so \
         winbind_krb5_locator.so /dev/null 90
-/bin/systemctl reload-or-try-restart dbus
-/bin/systemctl reload-or-try-restart oddjobd
+/bin/systemctl reload-or-try-restart dbus >/dev/null 2>&1 || :
+/bin/systemctl reload-or-try-restart oddjobd >/dev/null 2>&1 || :
 
 
 %posttrans server-trust-ad
@@ -1344,8 +1344,8 @@ if [ $1 -eq 0 ]; then
     %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
     # Skip systemctl calls when leapp upgrade is in progress
     if [ -z "$LEAPP_IPU_IN_PROGRESS" ] ; then
-        /bin/systemctl reload-or-try-restart dbus
-        /bin/systemctl reload-or-try-restart oddjobd
+        /bin/systemctl reload-or-try-restart dbus >/dev/null 2>&1 || :
+        /bin/systemctl reload-or-try-restart oddjobd >/dev/null 2>&1 || :
     fi
 fi
 
