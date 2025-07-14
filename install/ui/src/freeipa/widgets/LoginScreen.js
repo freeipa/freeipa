@@ -53,6 +53,10 @@ define(['dojo/_base/declare',
 
         expired_msg: "Your session has expired. Please re-login.",
 
+        new_ui_msg: "<i class=\"fa fa-info-circle\"></i> We have launched " +
+            "new UI, <a href='${protocol}//${host}/ipa/modern_ui'>" + 
+            "try it out!</a>",
+
         form_auth_msg: "<i class=\"fa fa-info-circle\"></i> To log in with " +
             "<strong>username and password</strong>, enter them in the " +
             "corresponding fields, then click Login.",
@@ -532,6 +536,7 @@ define(['dojo/_base/declare',
 
         set_login_aside_text: function() {
             var aside = "";
+            aside += "<p>"+this.new_ui_msg+"<p/>"
             if (this.password_enabled()) {
                 aside += "<p>"+this.form_auth_msg+"<p/>";
             }
@@ -556,6 +561,11 @@ define(['dojo/_base/declare',
                 spec.expired_msg || '@i18n:ajax.401.message',
                 this.expired_msg
             );
+
+            this.new_ui_msg = text.get(
+                spec.new_ui_msg || '@i18n:login.new_ui_msg',
+                this.new_ui_msg
+            )
 
             this.form_auth_msg = text.get(
                 spec.form_auth_msg || '@i18n:login.form_auth',
@@ -583,6 +593,10 @@ define(['dojo/_base/declare',
             );
 
             this.kerberos_msg = this.kerberos_msg
+                .replace('${protocol}', window.location.protocol)
+                .replace('${host}', window.location.hostname);
+
+            this.new_ui_msg = this.new_ui_msg
                 .replace('${protocol}', window.location.protocol)
                 .replace('${host}', window.location.hostname);
 
