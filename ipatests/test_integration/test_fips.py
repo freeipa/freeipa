@@ -39,18 +39,6 @@ class TestInstallFIPS(IntegrationTest):
         for host in cls.get_all_hosts():
             assert host.is_fips_mode
             assert fips.is_fips_enabled(host)
-        # patch named-pkcs11 crypto policy
-        # see RHBZ#1772111
-        for host in [cls.master] + cls.replicas:
-            host.run_command(
-                [
-                    "sed",
-                    "-i",
-                    "-E",
-                    "s/RSAMD5;//g",
-                    "/etc/crypto-policies/back-ends/bind.config",
-                ]
-            )
         # master with CA, KRA, DNS+DNSSEC
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
         # replica with CA, KRA, DNS
