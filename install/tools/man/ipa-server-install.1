@@ -172,6 +172,9 @@ The subject base for certificates issued by IPA (default O=REALM.NAME). RDNs are
 .TP
 \fB\-\-ca\-signing\-algorithm\fR=\fIALGORITHM\fR
 Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SHA256withRSA, SHA384withRSA, SHA512withRSA. Default value is SHA256withRSA. Use this option with --external-ca if the external CA does not support the default signing algorithm.
+.TP
+\fB\-\-key\-type\-size\fR=\fITYPE:SIZE\fR
+Specifies the key type and size for the HTTP, LDAP, PKINIT and RA certificates (if configured with a CA). The format is type:size where type is the type of key and size is the number represents the number of bits. Currently type only supports RSA keys. The sizes will depend on what the crypto engines and CA profiles support. Typical RSA sizes are 2048, 3072, 4096, 7168 and 8192. The default is rsa:2048.
 
 .SS "HSM OPTIONS"
 .TP
