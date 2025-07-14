@@ -90,6 +90,7 @@ ENV_MAP = {
 }
 
 DEFAULT_BROWSER = 'firefox'
+IMPLICIT_WAIT_TIME = 1
 DEFAULT_PORT = 4444
 DEFAULT_TYPE = 'local'
 
@@ -287,6 +288,8 @@ class UI_driver:
                     'Error while establishing webdriver: %s' % e
                 )
 
+        # default 0, wait N seconds for an element to appear
+        driver.implicitly_wait(IMPLICIT_WAIT_TIME)
         return driver
 
     @dismiss_unexpected_alert
