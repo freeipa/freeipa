@@ -1265,3 +1265,78 @@ class TestIPAMigrationWithADtrust(IntegrationTest):
             ["ipa", "idrange-show", ad_domain_name + "_id_range"]
         )
         assert cmd1.stdout_text == cmd2.stdout_text
+
+
+class TestIPAMigratewithBackupRestore(IntegrationTest):
+    """
+    Test for ipa-migrate tool with backup files.
+    """
+    num_replicas = 2
+    topology = "line"
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
+        prepare_ipa_server(cls.master)
+        tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True)
+        tasks.install_replica(cls.master, cls.replicas[1],
+                              setup_dns=True, setup_kra=True)
+
+    @pytest.fixture
+    def create_delete_user(self):
+        """
+        This fixtures creates a ldapuser using the
+        ldif file and then delete the users
+        """
+        self.master.run_command(['ipa', 'user-add', 'testuser',
+                                 '--first', 'test',
+                                 '--last', 'user'])
+        self.master.run_command(['ipa', 'user-del', 'testuser'])
+        yield
+
+    def test_ipa_migrate_stage_mode(self, create_delete_user):
+        """
+        This test checks ipa-migrate with LDIF file
+        from backup of remote server is successful.
+        """
+        ERR_MSG = (
+            "error: change collided with another change"
+        )
+        dashed_domain_name = self.master.domain.realm.replace(
+            ".", '-'
+        )
+        DB_LDIF_FILE = '{}-userRoot.ldif'.format(
+            dashed_domain_name
+        )
+        SCHEMA_LDIF_FILE = '{}''/config_files/schema/99user.ldif'.format(
+            dashed_domain_name)
+        CONFIG_LDIF_FILE = '{}''/config_files/dse.ldif'.format(
+            dashed_domain_name)
+        param = [
+            '-n', '-g', CONFIG_LDIF_FILE, '-m', SCHEMA_LDIF_FILE,
+            '-f', DB_LDIF_FILE
+        ]
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        backup_path = tasks.get_backup_dir(self.master)
+        remote_ipa_tar_file = backup_path + '/ipa-full.tar'
+        ipa_tar_file = self.master.get_file_contents(
+            remote_ipa_tar_file
+        )
+        replica_file_name = "/tmp/ipa-full.tar"
+        self.replicas[0].put_file_contents(
+            replica_file_name, ipa_tar_file
+        )
+        self.replicas[0].run_command(
+            ['/usr/bin/tar', '-xvf', replica_file_name]
+        )
+        result = run_migrate(
+            self.replicas[0],
+            "stage-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=param,
+        )
+        assert result.returncode == 0
+        assert ERR_MSG not in result.stderr_text
