@@ -35,10 +35,7 @@ import dns
 import encodings
 import sys
 import ssl
-import termios
-import fcntl
 import shutil
-import struct
 import subprocess
 
 import netaddr
@@ -1335,7 +1332,7 @@ def no_matching_interface_for_ip_address_warning(addr_list):
             )
 
 
-def get_terminal_height(fd=1):
+def get_terminal_height():
     """
     Get current terminal height
 
@@ -1345,11 +1342,7 @@ def get_terminal_height(fd=1):
     Returns:
         int: Terminal height
     """
-    try:
-        return struct.unpack(
-            'hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, b'1234'))[0]
-    except (IOError, OSError, struct.error):
-        return os.environ.get("LINES", 25)
+    return shutil.get_terminal_size().lines
 
 
 def get_pager():
