@@ -193,7 +193,7 @@ krb5_error_code ipadb_store_master_key_list(krb5_context kcontext,
         kerr = ENOMEM;
         goto done;
     }
-    mods[0]->mod_op = LDAP_MOD_ADD | LDAP_MOD_BVALUES;
+    mods[0]->mod_op = LDAP_MOD_REPLACE | LDAP_MOD_BVALUES;
     mods[0]->mod_type = strdup("krbMKey");
     if (!mods[0]->mod_type) {
         kerr = ENOMEM;
