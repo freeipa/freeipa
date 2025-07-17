@@ -11,6 +11,8 @@ from __future__ import print_function, absolute_import
 import enum
 import logging
 import os.path
+import tempfile
+
 import pki.util
 
 import six
@@ -212,7 +214,11 @@ def hsm_validator(token_name, token_library, token_password):
     pkiuser = constants.PKI_USER
     pkigroup = constants.PKI_GROUP
     group_list = os.getgrouplist(pkiuser, pkigroup.gid)
-    with certdb.NSSDatabase() as tempnssdb:
+    with (
+        tempfile.TemporaryDirectory(dir=paths.TMP) as tempnssdir,
+        tempfile.NamedTemporaryFile(mode="w+", dir=paths.TMP) as pwdfile,
+    ):
+        tempnssdb = certdb.NSSDatabase(nssdir=tempnssdir)
         tempnssdb.create_db(user=str(pkiuser), group=str(pkigroup))
         # Try adding the token library to the temporary database in
         # case it isn't already available. Ignore all errors.
@@ -250,7 +256,9 @@ def hsm_validator(token_name, token_library, token_password):
                 "Token named '%s' was not found. Check permissions"
                 % token_name
             )
-        pwdfile = ipautil.write_tmp_file(token_password)
+
+        pwdfile.write(token_password)
+        pwdfile.flush()
         os.fchown(pwdfile.fileno(), pkiuser.uid, pkigroup.gid)
         args = [
             paths.CERTUTIL,
