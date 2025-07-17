@@ -126,10 +126,47 @@ class TestMkeyUpgrade(IntegrationTest):
         result = self.replicas[0].run_command(['kdb5_util', 'list_mkeys'])
         assert not p.search(result.stdout_text)
 
+    def test_restart_replicas(self):
+        tasks.restart_ipa_server(self.master)
+        tasks.restart_ipa_server(self.replicas[0])
+
+    def test_new_service(self):
+        p = re.compile('^MKey: vno 2$', flags=re.MULTILINE)
+        tasks.kinit_admin(self.master)
+        self.master.run_command(['ipa', 'service-add',
+                                 f'test/{self.master.hostname}'])
+        self.master.run_command(['ipa-getkeytab',
+                                 '-p', f'test/{self.master.hostname}',
+                                 '-k', '/root/test.keytab'])
+        result = self.master.run_command(['kadmin.local', 'getprinc',
+                                          f'test/{self.master.hostname}'])
+        assert p.search(result.stdout_text)
+        tasks.kdestroy_all(self.master)
+        self.master.run_command(['kinit', '-kt', '/root/test.keytab',
+                                 f'test/{self.master.hostname}'])
+        tasks.kdestroy_all(self.master)
+
+    def test_new_user(self):
+        p = re.compile('^MKey: vno 2$', flags=re.MULTILINE)
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, 'testuser', password='Secret123')
+        result = self.master.run_command(['kadmin.local', 'getprinc',
+                                          'testuser'])
+        assert p.search(result.stdout_text)
+        tasks.kdestroy_all(self.master)
+        self.master.run_command(['kinit', 'testuser'],
+                                stdin_text='Secret123\nSecret123\nSecret123')
+        tasks.kdestroy_all(self.master)
+
     @classmethod
     def uninstall(cls, mh):
+        tasks.kinit_admin(cls.master)
+        tasks.user_del(cls.master, 'testuser')
+        cls.master.run_command(['ipa', 'service-del',
+                                f'test/{cls.master.hostname}'])
+        tasks.kdestroy_all(cls.master)
         cls.master.run_command([
-            'rm', '/etc/profile.d/ipaplatform.sh',
+            'rm', '/root/test.keytab', '/etc/profile.d/ipaplatform.sh',
             '/etc/systemd/system/ipa.service.d/platform.conf'])
         cls.master.run_command(['rmdir', '/etc/systemd/system/ipa.service.d'])
         super().uninstall(mh)
