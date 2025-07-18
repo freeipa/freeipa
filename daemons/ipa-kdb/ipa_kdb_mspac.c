@@ -3346,3 +3346,90 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 
 	return KRB5_KDB_NOENTRY;
 }
+
+static krb5_error_code
+check_for_pac(krb5_context kcontext, krb5_authdata **authdata, bool *pac_present)
+{
+    krb5_error_code kerr = ENOENT;
+    size_t i, j;
+    krb5_authdata **ifrel = NULL;
+
+    for (i = 0; authdata && authdata[i]; ++i) {
+        if (authdata[i]->ad_type != KRB5_AUTHDATA_IF_RELEVANT) {
+            continue;
+        }
+
+        kerr = krb5_decode_authdata_container(kcontext,
+                                              KRB5_AUTHDATA_IF_RELEVANT,
+                                              authdata[i], &ifrel);
+        if (kerr) {
+            goto end;
+        }
+
+        for (j = 0; ifrel[j]; ++j) {
+            if (ifrel[j]->ad_type == KRB5_AUTHDATA_WIN2K_PAC) {
+                break;
+            }
+        }
+        if (ifrel[j]) {
+            break;
+        }
+
+        krb5_free_authdata(kcontext, ifrel);
+        ifrel = NULL;
+    }
+
+    *pac_present = ifrel;
+    kerr = 0;
+
+end:
+    krb5_free_authdata(kcontext, ifrel);
+    return kerr;
+}
+
+krb5_error_code
+ipadb_enforce_pac(krb5_context kcontext, const krb5_ticket *ticket,
+                  const char **status)
+{
+    struct ipadb_context *ipactx;
+    bool pac_present;
+    krb5_error_code kerr;
+
+    /* Filter TGTs only */
+    if (!ipadb_is_tgs_princ(kcontext, ticket->server)) {
+        kerr = 0;
+        goto end;
+    }
+
+    /* Get IPA context */
+    ipactx = ipadb_get_context(kcontext);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto end;
+    }
+
+    /* If local TGT but PAC generator not initialized, skip PAC enforcement */
+    if (krb5_realm_compare(kcontext, ipactx->local_tgs, ticket->server) &&
+        !ipactx->mspac)
+    {
+        krb5_klog_syslog(LOG_WARNING, "MS-PAC not available. This makes "
+                         "FreeIPA vulnerable to privilege escalation exploit "
+                         "(CVE-2025-7493). Please generate SIDs to enable PAC "
+                         "support.");
+        kerr = 0;
+        goto end;
+    }
+
+    /* Search for the PAC, fail if it cannot be found */
+    kerr = check_for_pac(kcontext, ticket->enc_part2->authorization_data,
+                         &pac_present);
+    if (kerr) {
+        *status = "PAC_ENFORCEMENT_CANNOT_DECODE_TGT_AUTHDATA";
+    } else if (!pac_present) {
+        kerr = ENOENT;
+        *status = "PAC_ENFORCEMENT_TGT_WITHOUT_PAC";
+    }
+
+end:
+    return kerr;
+}
