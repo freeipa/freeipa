@@ -195,7 +195,7 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
     *lifetime_out = 0;
     *renew_lifetime_out = 0;
 
-    return 0;
+    return ipadb_enforce_pac(context, ticket, status);
 }
 
 krb5_error_code kdcpolicy_ipakdb_initvt(krb5_context context,

@@ -431,6 +431,14 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
                                                   const char *test_realm, size_t size,
                                                   char **trusted_realm);
 
+/* Check the ticket provided in a TGS-REQ. In some situations, the ticket is
+ * expected to contain a PAC. If it is not the case, or if the function is
+ * enable to decode an authorization-data element, it fails.
+ * Any failure should result in the TGS-REQ to be rejected. */
+krb5_error_code ipadb_enforce_pac(krb5_context kcontext,
+                                  const krb5_ticket *ticket,
+                                  const char **status);
+
 /* DELEGATION CHECKS */
 
 krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
@@ -475,3 +483,4 @@ int ipadb_string_to_sid(const char *str, struct dom_sid *sid);
 void alloc_sid(struct dom_sid **sid);
 void free_sid(struct dom_sid **sid);
 bool dom_sid_check(const struct dom_sid *sid1, const struct dom_sid *sid2, bool exact_check);
+bool ipadb_is_tgs_princ(krb5_context kcontext, krb5_const_principal princ);
