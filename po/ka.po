@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2025-05-18 08:27+0000\n"
+"PO-Revision-Date: 2025-07-23 02:53+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-10/ka/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11.3\n"
+"X-Generator: Weblate 5.12.2\n"
 
 msgid ""
 "\n"
@@ -1999,7 +1999,7 @@ msgstr ""
 
 #, python-format
 msgid "Skipped %(map)s"
-msgstr ""
+msgstr "გამოტოვებულია %(map)s"
 
 msgid "Duplicate keys skipped:"
 msgstr ""
@@ -2574,7 +2574,7 @@ msgid "Add an automember rule."
 msgstr ""
 
 msgid "Automember Rule"
-msgstr ""
+msgstr "ავტოწევრის წესი"
 
 msgid ""
 "Set an attribute to a name/value pair. Format is attr=value.\n"
@@ -3555,7 +3555,7 @@ msgid ""
 msgstr ""
 
 msgid "Global forwarders"
-msgstr ""
+msgstr "გლობალური გადამგზავნები"
 
 msgid ""
 "Global forwarders. A custom port can be specified for each forwarder using a "
@@ -3563,7 +3563,7 @@ msgid ""
 msgstr ""
 
 msgid "Forward policy"
-msgstr ""
+msgstr "გადაგზავნის პოლიტიკა"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
@@ -3598,7 +3598,7 @@ msgid "Is zone active?"
 msgstr "ზონა აქტიურია?"
 
 msgid "Zone forwarders"
-msgstr ""
+msgstr "ზონის გადამმისამართებლები"
 
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
@@ -3834,7 +3834,7 @@ msgid "LOC Direction Latitude"
 msgstr ""
 
 msgid "Direction Latitude"
-msgstr ""
+msgstr "მიმართულების განედი"
 
 msgid "LOC Degrees Longitude"
 msgstr ""
@@ -3846,19 +3846,19 @@ msgid "LOC Minutes Longitude"
 msgstr "LOC გრძედი წუთებში"
 
 msgid "Minutes Longitude"
-msgstr ""
+msgstr "გრძედი წუთებში"
 
 msgid "LOC Seconds Longitude"
 msgstr ""
 
 msgid "Seconds Longitude"
-msgstr ""
+msgstr "გრძედი წამებში"
 
 msgid "LOC Direction Longitude"
 msgstr ""
 
 msgid "Direction Longitude"
-msgstr ""
+msgstr "მიმართულების გრძედი"
 
 msgid "LOC Altitude"
 msgstr "LOC სიმაღლე"
@@ -4154,7 +4154,7 @@ msgid "Allow inline DNSSEC signing of records in the zone"
 msgstr ""
 
 msgid "NSEC3PARAM record"
-msgstr ""
+msgstr "NSEC3PARAM ჩანაწერი"
 
 msgid ""
 "NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
@@ -5881,7 +5881,7 @@ msgid "Manage ticket policy for specific user"
 msgstr ""
 
 msgid "Max life"
-msgstr ""
+msgstr "მაქს სიცოცხლის დრო"
 
 msgid "Maximum ticket life (seconds)"
 msgstr ""
@@ -6562,7 +6562,7 @@ msgid "Permission name"
 msgstr "წვდომის სახელი"
 
 msgid "Granted rights"
-msgstr ""
+msgstr "მინიჭებულია უფლებები"
 
 msgid "Rights to grant (read, search, compare, write, add, delete, all)"
 msgstr ""
@@ -7333,7 +7333,7 @@ msgid "Service principal"
 msgstr "სერვისის პრინციპალი"
 
 msgid "PAC type"
-msgstr ""
+msgstr "PAC-ის ტიპი"
 
 msgid ""
 "Override default list of supported PAC types. Use 'NONE' to disable PAC "
@@ -8216,7 +8216,7 @@ msgid "Security Identifier"
 msgstr ""
 
 msgid "NetBIOS name"
-msgstr ""
+msgstr "NETBIOS სახელი"
 
 msgid "Fallback primary group"
 msgstr ""
@@ -8379,7 +8379,7 @@ msgid ""
 msgstr ""
 
 msgid "Kerberos principal"
-msgstr ""
+msgstr "Kerberos-ის პრინციპალი"
 
 msgid "Kerberos principal expiration"
 msgstr ""
@@ -8599,7 +8599,7 @@ msgid ""
 msgstr ""
 
 msgid "Command category"
-msgstr ""
+msgstr "ბრძანების კატეგორია"
 
 msgid "Command category the rule applies to"
 msgstr ""
@@ -8617,7 +8617,7 @@ msgid "RunAs Group category the rule applies to"
 msgstr ""
 
 msgid "Sudo order"
-msgstr ""
+msgstr "Sudo-ის მიმდევრობა"
 
 msgid "integer to order the Sudo rules"
 msgstr ""
@@ -9271,7 +9271,7 @@ msgid "IPA server hostname"
 msgstr "IPA სერვერის ჰოსტის სახელი"
 
 msgid "Managed suffix"
-msgstr ""
+msgstr "მართული სუფიქსი"
 
 msgid "Min domain level"
 msgstr ""
@@ -9371,7 +9371,7 @@ msgid "Add member to a named service delegation rule."
 msgstr ""
 
 msgid "member principal"
-msgstr ""
+msgstr "წევრი პრინციპალი"
 
 msgid "principal to add"
 msgstr "დასამატებელი პრინციპალი"
@@ -9583,7 +9583,7 @@ msgid ""
 msgstr ""
 
 msgid "Session timeout"
-msgstr ""
+msgstr "სესიის მოლოდინის დრო"
 
 msgid ""
 "Number of seconds outbound LDAP operations waits for a response from the "
@@ -9841,13 +9841,13 @@ msgid "Vault description"
 msgstr "საცავის აღწერა"
 
 msgid "Vault type"
-msgstr ""
+msgstr "საცავის ტიპი"
 
 msgid "Salt"
 msgstr "მარილი"
 
 msgid "Vault salt"
-msgstr ""
+msgstr "საცავის მარილი"
 
 msgid "Vault public key"
 msgstr "საცავის საჯარო გასაღები"
@@ -10261,7 +10261,7 @@ msgid ""
 msgstr ""
 
 msgid "Managed suffixes"
-msgstr ""
+msgstr "მართული სუფიქსები"
 
 msgid "Check connection to remote IPA server."
 msgstr ""
@@ -11100,7 +11100,7 @@ msgid "SOA record time to live"
 msgstr ""
 
 msgid "SOA class"
-msgstr ""
+msgstr "SOA კლასი"
 
 msgid "SOA record class"
 msgstr ""
@@ -12104,7 +12104,7 @@ msgid "Active directory domain administrator's password"
 msgstr "Active Directory-ის დომენის ადმინისტრატორის პაროლი"
 
 msgid "GECOS field"
-msgstr ""
+msgstr "GECOS ველი"
 
 msgid ""
 "\n"
@@ -12148,7 +12148,7 @@ msgid "comma-separated list of sudo command groups to remove"
 msgstr ""
 
 msgid "Failed members"
-msgstr ""
+msgstr "ჩავარდნილი წევრები"
 
 msgid "Failed source hosts/hostgroups"
 msgstr ""
@@ -12157,7 +12157,7 @@ msgid "Failed hosts/hostgroups"
 msgstr "ჩავარდნილი ჰოსტები/ჰოსტის ჯგუფები"
 
 msgid "Failed users/groups"
-msgstr ""
+msgstr "ჩავარდნილი მომხმარებლები/მომხმარებლის ჯგუფები"
 
 msgid "Failed service/service groups"
 msgstr ""
@@ -12166,10 +12166,10 @@ msgid "Failed to remove"
 msgstr "წაშლის შეცდომა"
 
 msgid "Failed RunAs"
-msgstr ""
+msgstr "სხვა სახელით გაშვება ჩავარდა"
 
 msgid "Failed RunAsGroup"
-msgstr ""
+msgstr "სხვა ჯგუფის სახელით გაშვება ჩავარდა"
 
 msgid "Failed profiles"
 msgstr "ჩავარდნილი პროფილები"
@@ -13089,10 +13089,10 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "automount map"
-msgstr ""
+msgstr "ავტომიმაგრების რუკა"
 
 msgid "automount maps"
-msgstr ""
+msgstr "ავტომიმაგრების რუკები"
 
 msgid "Automount Maps"
 msgstr ""
@@ -21308,7 +21308,7 @@ msgid "Remove sudo options"
 msgstr "Sudo პარამეტრების წაშლა"
 
 msgid "Autogenerated"
-msgstr ""
+msgstr "ავტოგენერირებულია"
 
 msgid "Segment details"
 msgstr "სეგმენტის დეტალები"
