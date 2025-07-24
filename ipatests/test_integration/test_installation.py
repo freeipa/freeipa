@@ -585,12 +585,15 @@ class TestInstallWithCA_DNS3(CALessBase):
     ticket 7239
     """
 
-    @pytest.mark.xfail(
-        osinfo.id == 'fedora' and osinfo.version_number >= (36,),
-        reason='freeipa ticket 9135', strict=True)
     @server_install_setup
     def test_number_of_zones(self):
         """There should be two zones: one forward, one reverse"""
+
+        # Removed xfail for test_number_of_zones
+        # This test is xpass when executed in IdM-CI
+        # but still failing in PRCI. There is a different configuration
+        # in the 2 CIs and with this we will get a green test
+        # in IdM-CI nightly tests.
 
         self.create_pkcs12('ca1/server')
         self.prepare_cacert('ca1')
