@@ -5,13 +5,14 @@
 # Emilio Herrera <ehespinosa57@gmail.com>, 2019. #zanata, 2020, 2021, 2024.
 # Emilio Herrera <ehespinosa57@gmail.com>, 2020. #zanata, 2021, 2024.
 # N M <nm@users.noreply.translate.fedoraproject.org>, 2024.
+# "Fco. Javier F. Serrador" <fserrador@gmail.com>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-07-22 01:38+0000\n"
-"Last-Translator: N M <nm@users.noreply.translate.fedoraproject.org>\n"
+"PO-Revision-Date: 2025-06-30 09:23+0000\n"
+"Last-Translator: \"Fco. Javier F. Serrador\" <fserrador@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/es/>\n"
 "Language: es\n"
@@ -19,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.6.2\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -253,7 +254,7 @@ msgstr "Advertencia: Tipo para convertir falló (#%d)⏎\n"
 
 #, c-format
 msgid "Bind password already provided (-w).\n"
-msgstr ""
+msgstr "Vincular contraseña ya suministrada (-w).\n"
 
 #, fuzzy
 #| msgid "LDAP password"
@@ -922,10 +923,9 @@ msgstr ""
 msgid "Credential type"
 msgstr "Identidad"
 
-#, fuzzy, python-format
-#| msgid "cannot specify both raw certificate and file"
+#, python-format
 msgid "cannot specify both %s and passkey mapping"
-msgstr "no puede especificar un certificado RAW y un archivo"
+msgstr "no se puede especificar ambos %s y llave de paso a asignar"
 
 #, python-format
 msgid ""
