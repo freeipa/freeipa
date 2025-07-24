@@ -28647,8 +28647,8 @@ msgstr "Keycloak або Red Hat SSO"
 msgid "Google"
 msgstr "Google"
 
-msgid "Github"
-msgstr "Github"
+msgid "GitHub"
+msgstr ""
 
 msgid "Microsoft or Azure"
 msgstr "Microsoft або Azure"
@@ -32830,6 +32830,9 @@ msgstr ""
 
 msgid "Unable to initialize STARTTLS session\n"
 msgstr "Не вдалося ініціалізувати сеанс STARTTLS\n"
+
+#~ msgid "Github"
+#~ msgstr "Github"
 
 #~ msgid ""
 #~ "\n"
