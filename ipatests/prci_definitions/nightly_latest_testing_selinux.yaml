@@ -2673,6 +2673,21 @@ jobs:
         timeout: 7200
         topology: *ad_master_1repl_1client
 
+  testing-fedora/test_IPAMigrateBackupRestore:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigratewithBackupRestore
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_2repl_1client
+
   testing-fedora/test_cockpit:
     requires: [testing-fedora/build]
     priority: 50
