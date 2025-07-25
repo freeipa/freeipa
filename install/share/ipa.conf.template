@@ -1,5 +1,5 @@
 #
-# VERSION 33 - DO NOT REMOVE THIS LINE
+# VERSION 34 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -205,6 +205,19 @@ Alias /ipa/ui "/usr/share/ipa/ui"
   <FilesMatch "(index.html|loader.js|login.html|reset_password.html)">
         ExpiresDefault "access plus 0 seconds"
   </FilesMatch>
+</Directory>
+
+# Modern WebUI
+Alias /ipa/modern_ui "/usr/share/ipa/freeipa-webui"
+<Directory "/usr/share/ipa/freeipa-webui">
+  SetHandler None
+  AllowOverride None
+  Satisfy Any
+  Require all granted
+  RewriteEngine On
+  RewriteRule ^(.*)/assets/(.*)$$ assets/$$2 [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.html [QSA,L]
 </Directory>
 
 #  Simple wsgi scripts required by ui
