@@ -66,6 +66,10 @@ class BaseTestTrust(IntegrationTest):
         if cls.num_ad_subdomains > 0:
             cls.child_ad = cls.ad_subdomains[0]
             cls.ad_subdomain = cls.child_ad.domain.name
+            cls.subaduser = f"subdomaintestuser@{cls.ad_subdomain}"
+            cls.subaduser2 = f"subdomaindisabledadu@{cls.ad_subdomain}"
+            cls.ad_sub_group = f"subdomaintestgroup@{cls.ad_subdomain}"
+
         if cls.num_ad_treedomains > 0:
             cls.tree_ad = cls.ad_treedomains[0]
             cls.ad_treedomain = cls.tree_ad.domain.name
@@ -74,6 +78,9 @@ class BaseTestTrust(IntegrationTest):
         cls.srv_gc_record_name = \
             '_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs'
         cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
+        cls.aduser = f"nonposixuser@{cls.ad_domain}"
+        cls.aduser2 = f"nonposixuser1@{cls.ad_domain}"
+        cls.ad_group = f"testgroup@{cls.ad_domain}"
 
     @classmethod
     def check_sid_generation(cls):
@@ -1303,8 +1310,8 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
                                      self.gid_override):
             self.mod_idrange_auto_private_group(type)
             (uid, gid) = self.get_user_id(self.clients[0], posixuser)
-            assert(uid == self.uid_override
-                   and gid == self.gid_override)
+            assert (uid == self.uid_override
+                    and gid == self.gid_override)
             result = self.clients[0].run_command(['id', posixuser])
             sssd_version = tasks.get_sssd_version(self.clients[0])
             bad_version = sssd_version >= tasks.parse_version("2.9.4")
