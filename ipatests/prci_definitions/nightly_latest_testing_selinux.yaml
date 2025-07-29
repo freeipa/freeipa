@@ -2752,3 +2752,18 @@ jobs:
         template: *ci-master-latest
         timeout: 7200
         topology: *ad_master
+
+  testing-fedora/test_trust_functional_hbac:
+    requires: [testing-fedora/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        selinux_enforcing: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_trust_functional.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *adroot_adchild_adtree_master_1client
