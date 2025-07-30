@@ -263,7 +263,7 @@ authentication indicator-based authorization. Since version 2.6.0, SSSD provides
 a PAM module ``pam_sss_gss`` which allows to authenticate users with GSSAPI
 (Kerberos ticket) and optionally check authentication indicator that was used to
 obtain this ticket. More information can be found in the man page for
-``pam_sss_gss` and for ``sssd.conf`` where options starting with ``pam_gssapi_``
+``pam_sss_gss`` and for ``sssd.conf`` where options starting with ``pam_gssapi_``
 prefix are documented. This feature was also backported to SSSD 2.4.2 and 2.5.0.
 
 For example, setting the following in SSSD configuration would allow GSSAPI
