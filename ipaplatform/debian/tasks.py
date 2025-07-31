@@ -146,8 +146,12 @@ used by ca-certificates and is provided for information only.\
             # CAs who used the same serial number?)
             filename = f'{subject.ldap_text()} {cert.serial_number}.crt'
 
+            # Some CAs have DNs with a slash character, which are not legal in
+            # paths. Also escape NUL for good measure.
+            safe_filename = filename.replace('\0', '-').replace('/', '-')
+
             # pylint: disable=old-division
-            cert_path = path / filename
+            cert_path = path / safe_filename
             # pylint: enable=old-division
             try:
                 f = open(cert_path, 'w')
