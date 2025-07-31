@@ -1666,6 +1666,7 @@ class cert_find(Search, CertMethod):
             ra_options[name] = value
         if exactly:
             ra_options['exactly'] = True
+        complete = bool(ra_options)
         if 'sizelimit' in options:
             # sizelimit = 0 means return everything, drop it and let
             # ra_find() handle the value.
@@ -1675,7 +1676,6 @@ class cert_find(Search, CertMethod):
             ra_options['sizelimit'] = self.api.Backend.ldap2.size_limit
 
         result = collections.OrderedDict()
-        complete = bool(ra_options)
 
         # workaround for RHBZ#1669012 and RHBZ#1695685
         # Improve performance for service, host and user case by also
