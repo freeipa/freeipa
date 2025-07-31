@@ -21,13 +21,33 @@ import time
 
 import pytest
 
-from ipatests.test_integration.base import IntegrationTest
+from ipaplatform.paths import paths
+from ipatests.test_integration.base import (
+    IntegrationTest, MultiDomainIntegrationTest)
 from ipatests.pytest_ipa.integration import tasks
-
 # give some time for units to stabilize
 # otherwise we get transient errors
 WAIT_AFTER_INSTALL = 5
 WAIT_AFTER_UNINSTALL = WAIT_AFTER_INSTALL
+
+
+def remove_automount(host):
+    time.sleep(WAIT_AFTER_INSTALL)
+    host.run_command([
+        'ipa-client-automount', '--uninstall', '-U'
+    ], raiseonerr=False)
+    time.sleep(WAIT_AFTER_UNINSTALL)
+
+
+def add_automount(host, extra_args, raiseonerr=False):
+    time.sleep(WAIT_AFTER_UNINSTALL)
+    args = [
+        "ipa-client-automount",
+    ]
+    args.extend(extra_args)
+    ret = host.run_command(args, raiseonerr=raiseonerr)
+    time.sleep(WAIT_AFTER_INSTALL)
+    return ret
 
 
 class TestNFS(IntegrationTest):
@@ -357,25 +377,184 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
         self.nsswitch_backup_restore()
 
 
-class TestIpaClientAutomountDiscovery(IntegrationTest):
+class TestIpaClientAutomountDiscovery(MultiDomainIntegrationTest):
 
+    num_replicas = 0
+    num_trusted_replicas = 0
     num_clients = 1
-    topology = 'line'
+    num_trusted_clients = 1
+    topology = "line"
 
-    def test_automount_invalid_domain(self):
-        """Validate that the --domain option is passed into
-           Discovery. This is expected to fail discovery.
+    def test_automount_valid_domain(self):
+        """Test that --domain option controls which domain is used
+        for DNS SRV record lookup.
+
+        Without --domain: client searches in its local domain (fails if no
+        IPA records) With --domain: client searches in the specified
+        domain (succeeds for IPA domain)
         """
-        testdomain = "client.test"
-        msg1 = f"Search for LDAP SRV record in {testdomain}"
-        msg2 = f"Search DNS for SRV record of _ldap._tcp.{testdomain}"
-        msg3 = "Autodiscovery did not find LDAP server"
+        testdomain1 = self.master.domain.name
+        client2 = self.trusted_clients[0]
+        tasks.uninstall_client(client2)
+        client2.run_command(["ipa-client-install", "--domain", testdomain1,
+                             "--realm", self.master.domain.realm,
+                             "--server", self.master.hostname,
+                             "-p", client2.config.admin_name, "-w",
+                             client2.config.admin_password, "-U"]
+                            )
+        result = add_automount(
+            client2, extra_args=['--debug', '-U']
+        )
+        msg = "Search DNS for SRV record of _ldap._tcp.{0}"
+        assert msg.format(client2.domain.name) in result.stderr_text
+        remove_automount(client2)
+        result2 = add_automount(
+            client2, extra_args=['--debug', '--domain', testdomain1, '-U']
+        )
+        assert msg.format(testdomain1) in result2.stderr_text
 
+    @pytest.mark.parametrize(
+        "domain_input,expected_success,test_description", [
+            ("{ipa_domain}", True, "valid IPA domain should succeed"),
+            ("client.test", False, "non-IPA domain should fail discovery"),
+            ("  example.com  ", True, "whitespace should be trimmed"),
+            ("EXAMPLE.COM", True, "uppercase should work"),
+
+        ])
+    def test_automount_domain_option_integration(
+            self, domain_input, expected_success, test_description):
+        """Test for --domain affects DNS discovery and system integration.
+
+        This test verifies that the --domain option actually changes the DNS
+        discovery behavior and system configuration, not just input validation.
+
+        Test cases:
+        - Valid IPA domain: Should successfully discover IPA services and
+          configure automount correctly
+        - Non-IPA domain: Should fail discovery since no IPA DNS records
+          exist in that domain
+        """
         client = self.clients[0]
-        result = client.run_command([
-            'ipa-client-automount', '--domain', 'client.test',
-            '--debug'
-        ], stdin_text="n", raiseonerr=False)
-        assert msg1 in result.stderr_text
-        assert msg2 in result.stderr_text
-        assert msg3 in result.stderr_text
+        ipa_domain = self.master.domain.name
+
+        # Replace placeholders in domain_input
+        domain_to_test = domain_input.format(ipa_domain=ipa_domain)
+
+        if expected_success:
+            # Should succeed
+            add_automount(
+                client, extra_args=['--domain', domain_to_test,
+                                    '--debug', '-U']
+            )
+            # Verify configuration if successful
+            sssd_conf = client.get_file_contents(
+                paths.SSSD_CONF).decode()
+            assert "autofs_provider = ipa" in sssd_conf, \
+                "Autofs provider should be set to ipa"
+            # Clean up
+            remove_automount(client)
+        else:
+            # Should fail
+            result = client.run_command([
+                'ipa-client-automount', '--domain', domain_to_test,
+                '--debug'
+            ], stdin_text="n", raiseonerr=False)
+            assert (
+                result.returncode != 0
+                or "Autodiscovery did not find LDAP server" in
+                result.stderr_text
+                or "Invalid domain" in result.stderr_text
+            ), f"Should have failed: {test_description}"
+
+    def test_automount_domain_option_overrides_discovery(self):
+        """Test that explicit --domain option overrides automatic discovery."""
+        client = self.clients[0]
+        ipa_domain = self.master.domain.name
+
+        # First install without domain to establish baseline
+        result_auto = add_automount(client, extra_args=['--debug', '-U'])
+        assert "Search DNS for SRV record" in result_auto.stderr_text
+        remove_automount(client)
+
+        # Now with explicit domain
+        result_explicit = add_automount(
+            client, extra_args=['--domain', ipa_domain, '--debug', '-U']
+        )
+        explicit_domain_msg = (
+            f"Using domain '{ipa_domain}'" in result_explicit.stderr_text
+            or f"Search DNS for SRV record of _ldap._tcp.{ipa_domain}"
+            in result_explicit.stderr_text
+        )
+
+        assert explicit_domain_msg, \
+            "Explicit domain should override automatic discovery"
+
+        # Final cleanup
+        remove_automount(client)
+
+    def test_automount_domain_hint_for_cross_domain_discovery(self):
+        """Test that --domain option enables discovery when client is in
+           a different domain than the IPA domain.
+        """
+        client = self.clients[0]
+        other_domain = self.trusted_master.domain.name
+        tasks.uninstall_client(client)
+        # Add DNS forwarder
+        self.master.run_command([
+            "ipa", "dnsforwardzone-add", self.trusted_master.domain.name,
+            "--forwarder", self.trusted_master.ip,
+            "--forward-policy=only"
+        ])
+        self.trusted_master.run_command([
+            "ipa", "dnsforwardzone-add", self.master.domain.name,
+            "--forwarder", self.master.ip,
+            "--forward-policy=only"
+        ])
+        # Backup original resolv.conf
+        tasks.backup_file(client, paths.RESOLV_CONF)
+
+        try:
+            # Install client in a domain other than the IPA domain
+            non_ipa_resolv_conf = f"""search {other_domain}
+nameserver {self.trusted_master.ip}
+"""
+            client.put_file_contents(paths.RESOLV_CONF, non_ipa_resolv_conf)
+
+            # Ensure client is installed for the test
+            tasks.uninstall_client(client)
+            client.run_command(["ipa-client-install", "--domain", other_domain,
+                                "--realm", self.trusted_master.domain.realm,
+                                "--server", self.trusted_master.hostname,
+                                "-p", client.config.admin_name, "-w",
+                                client.config.admin_password, "-U"]
+                               )
+            # Verify DNS discovery will fail when client is in Non-IPA domain
+            # Attempt automount with --domain hint (should succeed)
+            nodomain = add_automount(
+                client, extra_args=['--debug', '-U']
+            )
+            # Verify discovery fails.
+            assert "DNS record not found" in nodomain.stderr_text
+            remove_automount(client)
+
+            # Attempt automount with --domain hint (should succeed)
+            withdomain = add_automount(
+                client, extra_args=['--domain', other_domain,
+                                    '--debug', '-U']
+            )
+            # Verify discovery finds a IPA server.
+            assert "DNS record found" in withdomain.stderr_text
+            ipa_discovery = (
+                f"Validated servers: {self.trusted_master.hostname}"
+                in withdomain.stderr_text
+            )
+            assert ipa_discovery, \
+                "Autodiscovery success"
+            # Verify configuration was applied correctly
+            sssd_conf = client.get_file_contents(paths.SSSD_CONF).decode()
+            assert "autofs_provider = ipa" in sssd_conf, \
+                "Autofs provider should be configured"
+        finally:
+            # Cleanup: restore original resolv.conf and uninstall
+            tasks.restore_files(client)
+            remove_automount(client)
