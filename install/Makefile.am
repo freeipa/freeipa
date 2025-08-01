@@ -7,6 +7,7 @@ NULL =
 SUBDIRS =			\
         certmonger		\
         custodia		\
+        freeipa-webui		\
         html			\
         migration		\
         share			\

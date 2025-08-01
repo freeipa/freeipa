@@ -1693,6 +1693,9 @@ fi
 %dir %{_usr}/share/ipa/migration
 %{_usr}/share/ipa/migration/index.html
 %{_usr}/share/ipa/migration/migration.py*
+%dir %{_usr}/share/ipa/freeipa-webui
+%{_usr}/share/ipa/freeipa-webui/index.html
+%{_usr}/share/ipa/freeipa-webui/assets
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
 %{_usr}/share/ipa/ui/reset_password.html
