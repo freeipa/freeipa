@@ -45,8 +45,20 @@ class CertUpdate(admintool.AdminTool):
     description = ("Update local IPA certificate databases with certificates "
                    "from the server.")
 
-    def validate_options(self):
-        super(CertUpdate, self).validate_options(needs_root=True)
+    @classmethod
+    def add_options(cls, parser, debug_option=False):
+        super(CertUpdate, cls).add_options(parser)
+        parser.add_option(
+            "--force-server",
+            dest="forced_server",
+            type=str,
+            default=None,
+            metavar="ipa.server.fqdn",
+            help="Force the use of the specified server for the update. ",
+        )
+
+    def validate_options(self, needs_root=True):
+        super().validate_options(needs_root)
 
     def run(self):
         check_client_configuration()
@@ -56,11 +68,20 @@ class CertUpdate(admintool.AdminTool):
         os.environ['KRB5CCNAME'] = "MEMORY:"
 
         try:
-            api.bootstrap(context='cli_installer', confdir=paths.ETC_IPA)
+            # set bootstrap parameters
+            bootstrap_kw = {
+                'context': 'cli_installer',
+                'confdir': paths.ETC_IPA,
+            }
+            # pass forced server to bootstrap if specified
+            if self.options.forced_server is not None:
+                bootstrap_kw['forced_server'] = self.options.forced_server
+
+            api.bootstrap(**bootstrap_kw)
             api.finalize()
 
             api.Backend.rpcclient.connect()
-            run_with_args(api)
+            run_with_args(api, self.options)
             api.Backend.rpcclient.disconnect()
         except errors.CCacheError:
             logger.error(
@@ -75,7 +96,7 @@ class CertUpdate(admintool.AdminTool):
                 os.environ['KRB5CCNAME'] = old_krb5ccname
 
 
-def run_with_args(api):
+def run_with_args(api, options=None):
     """
     Run the certupdate procedure with the given API object.
 
@@ -83,7 +104,15 @@ def run_with_args(api):
                 (such that Commands can be invoked)
 
     """
-    server = urlsplit(api.env.jsonrpc_uri).hostname
+    if options is None or getattr(options, "forced_server", None) is None:
+        # Use the server from the API environment
+        server = urlsplit(api.env.jsonrpc_uri).hostname
+    else:
+        # Use the forced server
+        server = options.forced_server
+
+    logger.info("Updating certificates from server %s", server)
+
     ldap = ipaldap.LDAPClient.from_hostname_secure(server)
 
     try:
