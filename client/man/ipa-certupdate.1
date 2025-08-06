@@ -16,7 +16,7 @@
 .\"
 .\" Author: Jan Cholasta <jcholast@redhat.com>
 .\"
-.TH "ipa-certupdate" "1" "Jul 2 2014" "IPA" "IPA Manual Pages"
+.TH "ipa-certupdate" "1" "Dec 27 2025" "IPA" "IPA Manual Pages"
 .SH "NAME"
 ipa\-certupdate \- Update local IPA certificate databases with certificates from the server
 .SH "SYNOPSIS"
@@ -24,6 +24,9 @@ ipa\-certupdate \- Update local IPA certificate databases with certificates from
 .SH "DESCRIPTION"
 \fBipa\-certupdate\fR can be used to update local IPA certificate databases with certificates from the server.
 .SH "OPTIONS"
+.TP
+\fB\-\-force\-server\fR=\fIipa.server.fqdn\fR
+Force the use of the specified server for the update. Use only fully-qualified domain name of the server, and verify that target server has a correct set of CA certificates, local certificates will be overwritten.
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Print debugging information.
