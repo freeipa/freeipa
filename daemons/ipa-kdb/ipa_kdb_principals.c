@@ -253,15 +253,15 @@ static int ipadb_ldap_attr_to_key_data(LDAP *lcontext, LDAPMessage *le,
     struct berval **vals, **p;
     krb5_key_data *cur_res = NULL, *fin_res = NULL, *tmp_res;
     int fin_mkvno = 0, cur_mkvno, cur_num, fin_num = 0;
-    int ret;
+    int err = ENOENT;
 
     vals = ldap_get_values_len(lcontext, le, attrname);
     if (!vals)
-        return ENOENT;
+        return err;
 
     for (p = vals; *p; ++p) {
-        ret = ber_decode_krb5_key_data(*p, &cur_mkvno, &cur_num, &cur_res);
-        if (ret)
+        err = ber_decode_krb5_key_data(*p, &cur_mkvno, &cur_num, &cur_res);
+        if (err)
             goto end;
 
         /* All keys in a principal entry should be encrypted with the same
@@ -269,7 +269,7 @@ static int ipadb_ldap_attr_to_key_data(LDAP *lcontext, LDAPMessage *le,
         if (fin_mkvno == 0) {
             fin_mkvno = cur_mkvno;
         } else if (cur_mkvno != fin_mkvno) {
-            ret = EINVAL;
+            err = EINVAL;
             goto end;
         }
 
@@ -278,7 +278,7 @@ static int ipadb_ldap_attr_to_key_data(LDAP *lcontext, LDAPMessage *le,
         } else {
             tmp_res = realloc(fin_res, (fin_num + cur_num) * sizeof(*fin_res));
             if (!tmp_res) {
-                ret = ENOMEM;
+                err = ENOMEM;
                 goto end;
             } else {
                 fin_res = tmp_res;
@@ -296,17 +296,20 @@ static int ipadb_ldap_attr_to_key_data(LDAP *lcontext, LDAPMessage *le,
         *mkvno = fin_mkvno;
     if (num)
         *num = fin_num;
-    if (result) {
+
+    err = 0;
+
+end:
+    if (!err && result) {
         *result = fin_res;
     } else {
         free(fin_res);
     }
 
-end:
     ldap_value_free_len(vals);
     if (cur_res && fin_res != cur_res)
         free(cur_res);
-    return ret;
+    return err;
 }
 
 static void ipadb_validate_otp(struct ipadb_context *ipactx,
