@@ -3,7 +3,6 @@
 
 # Str
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
-
 A parameter for Unicode text (stored in the ``unicode`` type).
 
 This class is named `Str` instead of `Unicode` so it's aligned with the
