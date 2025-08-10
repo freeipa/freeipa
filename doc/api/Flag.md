@@ -3,7 +3,6 @@
 
 # Flag
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
-
 A boolean parameter that always gets filled in with a default value.
 
 This `Bool` subclass forces ``autofill=True`` in `Flag.__init__()`.  If no

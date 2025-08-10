@@ -3,7 +3,6 @@
 
 # Decimal
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
-
 A parameter for floating-point values (stored in the ``Decimal`` type).
 
 Python Decimal type helps overcome problems tied to plain "float" type,
