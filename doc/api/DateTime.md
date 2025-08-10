@@ -3,7 +3,6 @@
 
 # DateTime
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
-
 DateTime parameter type.
 
 Accepts LDAP Generalized time without in the following format:

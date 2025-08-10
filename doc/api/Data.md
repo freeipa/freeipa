@@ -3,7 +3,6 @@
 
 # Data
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
-
 Base class for the `Bytes` and `Str` parameters.
 
 Previously `Str` was as subclass of `Bytes`.  Now the common functionality
