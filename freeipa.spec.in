@@ -336,6 +336,8 @@ BuildRequires:  nodejs(abi) < 127
 %else
 BuildRequires:  nodejs(abi) < 111
 %endif
+# Copr explicitely says no weak refs, so this has to be included
+BuildRequires:  nodejs-npm
 # use old dependency on RHEL 8 for now
 %if 0%{?fedora} >= 31 || 0%{?rhel} >= 9
 BuildRequires:  python3-rjsmin
@@ -1693,6 +1695,9 @@ fi
 %dir %{_usr}/share/ipa/migration
 %{_usr}/share/ipa/migration/index.html
 %{_usr}/share/ipa/migration/migration.py*
+%dir %{_usr}/share/ipa/modern-ui
+%{_usr}/share/ipa/modern-ui/index.html
+%{_usr}/share/ipa/modern-ui/assets
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
 %{_usr}/share/ipa/ui/reset_password.html
