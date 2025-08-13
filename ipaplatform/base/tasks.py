@@ -554,7 +554,7 @@ class BaseTaskNamespace:
 
     # Encryption types used in the past, not supported anymore
     def get_removed_supported_enctypes(self):
-        return ('des3-hmac-sha1:special')
+        return ('des3-hmac-sha1:special', )
 
     # Encryption types used by default when generating Kerberos keys
     def get_default_enctypes(self):
