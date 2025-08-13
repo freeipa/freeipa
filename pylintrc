@@ -16,6 +16,9 @@ extension-pkg-allow-list=
     lxml.etree,
     pysss_murmur,
 
+# We want to ignore freeipa-webui, linting is handled separately there
+ignore=freeipa-webui
+
 [CLASSES]
 
 # List of valid names for the first argument in a metaclass class method.

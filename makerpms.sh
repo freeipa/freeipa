@@ -3,6 +3,8 @@ set -o errexit
 
 pushd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+git submodule update --init --recursive
+
 test ! -x "configure" && autoreconf -i
 # run configure with the same parameters as RPM build
 # this makes it easy to tweak files locally and use make install
