@@ -1,0 +1,3 @@
+[submodule "install/freeipa-webui"]
+	path = install/freeipa-webui
+	url = https://github.com/freeipa/freeipa-webui.git
