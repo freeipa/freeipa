@@ -411,6 +411,10 @@ class i18n_messages(Command):
             "login_certificate_desc": _("Log in using personal certificate"),
             "logout": _("Log out"),
             "logout_error": _("Log out error"),
+            "new_ui_msg": _(
+                "<i class=\"fa fa-info-circle\"></i> We have launched "
+                "new UI, <a href='${protocol}//${host}/ipa/modern_ui'>"
+                "try it out!</a>"),
             "password": _("Password"),
             "password_and_otp": _("Password or Password+One-Time Password"),
             "redirect_msg": _("You will be redirected in ${count}s"),
