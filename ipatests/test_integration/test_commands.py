@@ -199,6 +199,28 @@ duplicatesubject = (
 duplicate_serial = "4097"
 
 
+@pytest.fixture()
+def expire_password():
+    """
+    Fixture to expire a user's password far into the future past
+    2038, then revert time back.
+    """
+    hosts = dict()
+
+    def _expire_password(host):
+        hosts['host'] = host
+        tasks.move_date(host, 'stop', '+20Years')
+        host.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+    yield _expire_password
+
+    host = hosts.pop('host')
+    tasks.uninstall_master(host)
+    tasks.move_date(host, 'start', '-20Years')
+
+
 class TestIPACommand(IntegrationTest):
     """
     A lot of commands can be executed against a single IPA installation
@@ -1790,6 +1812,37 @@ class TestIPACommand(IntegrationTest):
 
         assert f"{interm_nick}  {intermediate_serial}" not in certs
         assert f"{interm_nick}  {duplicate_serial}" in certs
+
+    def test_expiration_date_post_2038(self, expire_password):
+        """Test that expiration dates after 2038 function without
+           overflow.
+        """
+        testuser = 'testuser2038'
+        password = 'Secret@123'
+
+        tasks.kinit_admin(self.master)
+        tasks.user_add(self.master, testuser, password=password)
+        self.master.run_command([
+            'ipa', 'user-mod', testuser, '--password-expiration',
+            '20381112175322Z',
+        ])
+
+        tasks.kdestroy_all(self.master)
+        expire_password(self.master)
+
+        new_password = "%s\n%s\n%s\n" % (password,
+                                         password,
+                                         password)
+
+        # kinit_user will pass in the "password" value as stdin. We
+        # should see a prompt about an expired password and set a new
+        # one (to the same thing). If this kinit succeeds then the
+        # expiration date was honored and a new one can be set. Time will
+        # be restored on return from this function.
+        tasks.kinit_user(self.master, testuser, new_password)
+
+        # This must be the last test in this class because it moves
+        # time and uninstalls the server when it is finished.
 
 
 class TestIPACommandWithoutReplica(IntegrationTest):
