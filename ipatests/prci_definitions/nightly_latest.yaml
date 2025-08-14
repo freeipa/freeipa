@@ -1012,6 +1012,18 @@ jobs:
         timeout: 7200
         topology: *master_1repl
 
+  fedora-latest/test_mkey_upgrade:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_mkey_upgrade.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_1repl
+
   fedora-latest/test_topology_TestCASpecificRUVs:
     requires: [fedora-latest/build]
     priority: 50
