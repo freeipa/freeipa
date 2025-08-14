@@ -211,14 +211,17 @@ def expire_password():
     def _expire_password(host):
         hosts['host'] = host
         tasks.move_date(host, 'stop', '+20Years')
+        host.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
 
     yield _expire_password
 
     host = hosts.pop('host')
+    tasks.move_date(host, 'start', '-20Years')
     host.run_command(
         ['ipactl', 'restart', '--ignore-service-failures']
     )
-    tasks.move_date(host, 'start', '-20Years')
 
 
 class TestIPACommand(IntegrationTest):
@@ -1827,9 +1830,8 @@ class TestIPACommand(IntegrationTest):
             '20381112175322Z',
         ])
 
-        expire_password(self.master)
-
         tasks.kdestroy_all(self.master)
+        expire_password(self.master)
         tasks.kinit_admin(self.master)
 
         new_password = "%s\n%s\n%s\n" % (password,
