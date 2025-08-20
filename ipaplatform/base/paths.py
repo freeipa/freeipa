@@ -104,6 +104,7 @@ class BasePathNamespace:
     UNBOUND_CONF_SRC = '/usr/share/ipa/client/unbound.conf.template'
     UNBOUND_CONFIG_DIR = "/etc/unbound/conf.d/"
     UNBOUND_CONF = "/etc/unbound/conf.d/zzz-ipa.conf"
+    UNBOUND_CONF_DIR = "/etc/unbound/conf.d"
     NSLCD_CONF = "/etc/nslcd.conf"
     NSS_LDAP_CONF = "/etc/nss_ldap.conf"
     NSSWITCH_CONF = "/etc/nsswitch.conf"
