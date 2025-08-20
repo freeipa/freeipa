@@ -15,6 +15,32 @@ from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 
 
+def verify_queries_encrypted(master, replicas, clients, forwarder="1.1.1.1#853"):
+    """
+    Helper function to verify that queries are encrypted and routed to the specified forwarder.
+    """
+    unbound_log_cfg = textwrap.dedent("""
+    server:
+        verbosity: 3
+        log-queries: yes
+        cache-min-ttl: 0 
+        cache-max-ttl: 0
+    """)
+
+    for server in [master] + replicas:
+        server.put_file_contents("/etc/unbound/conf.d/log.conf", unbound_log_cfg)
+        server.run_command(["systemctl", "restart", "unbound"])
+        server.run_command(["journalctl", "--flush", "--rotate", "--vacuum-time=1s"])
+        server.run_command(["dig", "freeipa.org"])
+        log_output = server.run_command(["journalctl", "-u", "unbound", "--grep", forwarder])
+        assert forwarder in log_output.stdout_text, f"Forwarder {forwarder} not found in logs on {server.hostname}"
+        server.run_command(["journalctl", "--flush", "--rotate", "--vacuum-time=1s"])
+
+    for client in clients:
+        client.run_command(["dig", "redhat.com"])
+        log_output = master.run_command(["journalctl", "-u", "unbound", "--grep", forwarder])
+        assert forwarder in log_output.stdout_text, f"Forwarder {forwarder} not found in logs on master for client {client.hostname}"
+
 @pytest.mark.skipif(
     osinfo.id == 'fedora' and osinfo.version_number == (41,),
     reason='Encrypted DNS not supported in fedora 41')
@@ -250,6 +276,135 @@ class TestDNSOverTLS(IntegrationTest):
             ['ipa-client-install', '--help'])
         assert '''--dns-over-tls      Configure DNS over TLS''' in cmdout.stdout_text  # noqa: E501
 
+@pytest.mark.skipif(
+    osinfo.id == 'fedora' and osinfo.version_number == (41,),
+    reason='Encrypted DNS not supported in fedora 41')
+class TestDOT_Relaxed(IntegrationTest):
+    """Tests for DNS over TLS feature."""
+
+    topology = 'line'
+    num_replicas = 1
+    num_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+        Firewall(cls.master).enable_service("dns-over-tls")
+        Firewall(cls.replicas[0]).enable_service("dns-over-tls")
+        tasks.install_packages(cls.master, ['*ipa-server-encrypted-dns'])
+        tasks.install_packages(cls.replicas[0], ['*ipa-server-encrypted-dns'])
+        tasks.install_packages(cls.clients[0], ['*ipa-client-encrypted-dns'])
+
+    def test_dot_relaxed_dns_policy_without_certs(self):
+        """
+        This tests installs IPA server with --no-dnssec-validation option and relaxed policy.
+        """
+        args = [
+            "--dns-over-tls",
+            "--dot-forwarder", "1.1.1.1#cloudflare-dns.com",
+            "--no-dnssec-validation",
+            "--dns-policy", "relaxed"
+        ]
+        tasks.install_master(self.master, extra_args=args)
+
+        
+        self.clients[0].put_file_contents(
+            paths.RESOLV_CONF,
+            "nameserver %s" % self.master.ip
+        )
+        args = [
+            "--dns-over-tls",
+            "--no-dnssec-validation"
+        ]
+        tasks.install_client(self.master,
+                                    self.clients[0],
+                                    nameservers=None,
+                                    extra_args=args)
+
+        args = [
+            "--dns-over-tls",
+            "--dot-forwarder", "1.1.1.1#cloudflare-dns.com",
+            "--no-dnssec-validation",
+            "--dns-policy", "relaxed"
+        ]
+        tasks.install_replica(self.master, self.replicas[0],
+                                     setup_dns=True, extra_args=args)
+        
+        verify_queries_encrypted(self.master, [self.replicas[0]], [self.clients[0]])
+    
+    def test_uninstall_all(self):
+        """
+        This test ensures that all hosts can be uninstalled correctly.
+        """
+        tasks.uninstall_client(self.clients[0])
+        tasks.uninstall_replica(self.master, self.replicas[0])
+        tasks.uninstall_master(self.master)
+    
+    def test_dot_relaxed_dns_policy_with_external_ca(self):
+        """
+        This tests installs IPA server with --no-dnssec-validation option and relaxed policy with external CA.
+        """
+        # Install Master with external CA
+        self.master.run_command(["openssl", "req", "-newkey", "rsa:2048",
+                                 "-nodes", "-keyout",
+                                 "/etc/pki/tls/certs/privkey.pem", "-x509",
+                                 "-days", "36500", "-out",
+                                 "/etc/pki/tls/certs/certificate.pem", "-subj",
+                                 ("/C=ES/ST=Andalucia/L=Sevilla/O=CompanyName/"
+                                  "OU=IT/CN={}/"
+                                  "emailAddress=email@example.com")
+                                 .format(self.master.hostname)])
+        
+        self.master.run_command(["chown", "named:named",
+                                 "/etc/pki/tls/certs/privkey.pem",
+                                 "/etc/pki/tls/certs/certificate.pem"])
+        
+        args = [
+            "--dns-over-tls",
+            "--dot-forwarder", "1.1.1.1#cloudflare-dns.com",
+            "--dns-over-tls-cert", "/etc/pki/tls/certs/certificate.pem",
+            "--dns-over-tls-key", "/etc/pki/tls/certs/privkey.pem",
+            "--no-dnssec-validation",
+            "--dns-policy", "relaxed"
+        ]
+        tasks.install_master(self.master, extra_args=args)
+
+        # Install Client with external CA
+        self.clients[0].put_file_contents(
+            paths.RESOLV_CONF,
+            "nameserver %s" % self.master.ip
+        )
+        tasks.copy_files(self.master, self.clients[0],
+                         ["/etc/pki/tls/certs/certificate.pem"])
+        self.clients[0].run_command(["mv",
+                                     "/etc/pki/tls/certs/certificate.pem",
+                                     "/etc/pki/ca-trust/source/anchors/"])
+        self.clients[0].run_command(["update-ca-trust", "extract"])
+        args = [
+            "--dns-over-tls",
+            "--no-dnssec-validation"
+        ]
+        tasks.install_client(self.master,
+                                    self.clients[0],
+                                    nameservers=None,
+                                    extra_args=args)
+        
+        # Install Replica with external CA
+        tasks.copy_files(self.master, self.replicas[0],
+                         ["/etc/pki/tls/certs/certificate.pem"])
+        self.replicas[0].run_command(["mv",
+                                     "/etc/pki/tls/certs/certificate.pem",
+                                     "/etc/pki/ca-trust/source/anchors/"])
+        self.replicas[0].run_command(["update-ca-trust", "extract"])
+        args = [
+            "--dns-over-tls",
+            "--dot-forwarder", "1.1.1.1#cloudflare-dns.com",
+            "--no-dnssec-validation",
+            "--dns-policy", "relaxed"
+        ]
+        tasks.install_replica(self.master, self.replicas[0],
+                                     setup_dns=True, extra_args=args)
+
+        verify_queries_encrypted(self.master, [self.replicas[0]], [self.clients[0]])
 
 @pytest.mark.skipif(
     osinfo.id == 'fedora' and osinfo.version_number == (41,),
