@@ -104,7 +104,17 @@
 %global python_netaddr_version 0.7.16
 # Require 4.7.0 which brings Python 3 bindings
 # Require 4.12 which has DsRGetForestTrustInformation access rights fixes
+%if 0%{?fedora} <= 40
 %global samba_version 2:4.12.10
+%elif 0%{?fedora} == 41
+# Require 4.20.0 or later for libndr4, latest F41 is 4.21.7 already
+%global samba_version 2:4.21.7
+%elif 0%{?fedora} == 42
+%global samba_version 2:4.22.0
+%else
+# Require 4.23 for passdb ABI bump
+%global samba_version 2:4.23.0
+%endif
 
 # 3.14.5-45 or later includes a number of interfaces fixes for IPA interface
 # 36.16-1 fixes BZ#2115691
