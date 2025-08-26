@@ -558,8 +558,10 @@ class TestCAShowErrorHandling(IntegrationTest):
         )
         error_msg = 'ipa: ERROR: The certificate for ' \
                     '{} is not available on this server.'.format(lwca)
-        bad_version = (tasks.get_pki_version(self.master)
-                       >= tasks.parse_version('11.5.0'))
+        pki_version = tasks.get_pki_version(self.master)
+        # The regression was introduced in 11.5 and fixed in 11.7
+        bad_version = (tasks.parse_version('11.5.0') <= pki_version
+                       < tasks.parse_version('11.7.0'))
         with xfail_context(bad_version,
                            reason="https://pagure.io/freeipa/issue/9606"):
             assert error_msg in result.stderr_text
