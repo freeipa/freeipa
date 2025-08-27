@@ -1,5 +1,5 @@
 server:
-    tls-cert-bundle: $TLS_CERT_BUNDLE_PATH
+    tls-system-cert: yes
     tls-upstream: yes
     interface: 127.0.0.55
     log-servfail: yes
