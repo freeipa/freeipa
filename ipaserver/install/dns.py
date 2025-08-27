@@ -152,8 +152,6 @@ def _setup_dns_over_tls(options):
         paths.UNBOUND_CONF_SRC,
         paths.UNBOUND_CONF,
         dict(
-            TLS_CERT_BUNDLE_PATH=os.path.join(
-                paths.OPENSSL_CERTS_DIR, "ca-bundle.crt"),
             FORWARD_ADDRS="\n".join(forward_addrs),
             MODULE_CONFIG_ITERATOR=module_config_iterator
         )

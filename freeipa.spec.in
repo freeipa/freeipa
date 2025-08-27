@@ -1413,6 +1413,17 @@ if [ $1 -gt 1 ] ; then
             fi
         fi
     fi
+
+    UNBOUND_CFG=/etc/unbound/conf.d/zzz-ipa.conf
+    if [ -f "$UNBOUND_CFG" -a $restore -ge 2 ]; then
+        # The client has been configured for Dot
+        # replace the line tls-cert-bundle: /etc/pki/tls/certs/ca-bundle.crt
+        # with tls-system-cert: yes
+        # See https://fedoraproject.org/wiki/Changes/droppingOfCertPemFile
+        if grep -E -q 'tls-cert-bundle: \/etc\/pki\/tls\/certs\/ca-bundle.crt'  $UNBOUND_CFG 2>/dev/null; then
+            sed -E --in-place=.orig 's/tls-cert-bundle: \/etc\/pki\/tls\/certs\/ca-bundle.crt/tls-system-cert: yes/' $UNBOUND_CFG
+        fi
+    fi
 fi
 
 
