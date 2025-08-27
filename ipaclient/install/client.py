@@ -1692,8 +1692,6 @@ def client_dns(server, hostname, options, statestore):
             paths.UNBOUND_CONF_SRC,
             paths.UNBOUND_CONF,
             dict(
-                TLS_CERT_BUNDLE_PATH=os.path.join(
-                    paths.OPENSSL_CERTS_DIR, "ca-bundle.crt"),
                 FORWARD_ADDRS=forward_addr,
                 MODULE_CONFIG_ITERATOR=module_config_iterator
             )
