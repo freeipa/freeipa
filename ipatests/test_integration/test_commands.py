@@ -2239,7 +2239,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         hostname = master.hostname
         realm = master.domain.realm
         principal = f'test/{hostname}@{realm}'
-        entry_ldif = textwrap.dedent("""
+        entry_ldif_template = textwrap.dedent("""
             dn: krbprincipalname={principal},cn=services,cn=accounts,{base_dn}
             changetype: add
             ipakrbprincipalalias: test/{hostname}@{realm}
@@ -2250,13 +2250,15 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             objectclass: krbprincipal
             objectclass: krbprincipalaux
             objectclass: top
-            krbcanonicalname: admin@{realm}
+            krbcanonicalname: {user}@{realm}
             managedby: fqdn={hostname},cn=computers,cn=accounts,{base_dn}
-        """).format(
+        """)
+        entry_ldif = entry_ldif_template.format(
             base_dn=base_dn,
             hostname=hostname,
             principal=principal,
-            realm=realm)
+            realm=realm,
+            user='admin')
         tasks.kdestroy_all(master)
         master.run_command(
             ['kinit', '-kt', '/etc/krb5.keytab', f'host/{hostname}@{realm}'])
@@ -2268,6 +2270,40 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         result = master.run_command(args, stdin_text=entry_ldif,
                                     raiseonerr=False)
         assert "entry with the same attribute value" in result.stderr_text
+
+        # Now try with root@realm instead of admin@realm
+        entry_ldif = entry_ldif_template.format(
+            base_dn=base_dn,
+            hostname=hostname,
+            principal=principal,
+            realm=realm,
+            user='root')
+        args = [
+            'ldapmodify',
+            '-Y',
+            'GSSAPI'
+        ]
+        result = master.run_command(args, stdin_text=entry_ldif,
+                                    raiseonerr=False)
+        assert "entry with the same attribute value" in result.stderr_text
+        tasks.kdestroy_all(master)
+
+    def test_no_request_pac(self):
+        # Try to use a TGT obtained without PAC
+        # Should fail as the presence of the PAC when processing TGTs
+        # provided by TGS-REQ is now enforced.
+        hostname = self.master.hostname
+        realm = self.master.domain.realm
+        self.master.run_command([
+            'kinit', '-kt', '/etc/krb5.keytab', f'host/{hostname}@{realm}',
+            '--no-request-pac'
+        ])
+        result = self.master.run_command(
+            ['kvno', f'ldap/{hostname}@{realm}'],
+            raiseonerr=False
+        )
+        assert result.returncode == 1
+        assert "PAC_ENFORCEMENT_TGT_WITHOUT_PAC" in result.stderr_text
 
 
 class TestIPAautomount(IntegrationTest):
