@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-04-13 01:53+0000\n"
+"PO-Revision-Date: 2025-07-23 02:53+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.4\n"
+"X-Generator: Weblate 5.12.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -889,10 +889,9 @@ msgstr ""
 msgid "Duplicate maps skipped:"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "Added %(map)s"
+#, python-format
 msgid "Skipped %(map)s"
-msgstr "დაემატა %(map)s"
+msgstr "გამოტოვებულია %(map)s"
 
 msgid "Duplicate keys skipped:"
 msgstr ""
@@ -1655,10 +1654,8 @@ msgstr "ზომის ლიმიტი"
 msgid "Maximum number of entries returned"
 msgstr "დაბრუნებული შედეგების რაოდენობა"
 
-#, fuzzy
-#| msgid "Display an automount key."
 msgid "Modify an automount key."
-msgstr "ავტომატური მიმაგრების გასაღების ჩვენება."
+msgstr "ავტომიმაგრების გასაღების შეცვლა."
 
 msgid ""
 "Delete an attribute/value pair. The option will be evaluated\n"
@@ -2265,20 +2262,16 @@ msgid ""
 "   ipa dnsconfig-mod --forwarder=203.0.113.113\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "DNS forwarder"
 msgid "Global forwarders"
-msgstr "DNS გადამგზავნი"
+msgstr "გლობალური გადამგზავნები"
 
 msgid ""
 "Global forwarders. A custom port can be specified for each forwarder using a "
 "standard format \"IP_ADDRESS port PORT\""
 msgstr ""
 
-#, fuzzy
-#| msgid "password policy"
 msgid "Forward policy"
-msgstr "პაროლის პოლიტიკა"
+msgstr "გადაგზავნის პოლიტიკა"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
@@ -2312,10 +2305,8 @@ msgstr "აქტიური ზონა"
 msgid "Is zone active?"
 msgstr "ზონა აქტიურია?"
 
-#, fuzzy
-#| msgid "Forwarders"
 msgid "Zone forwarders"
-msgstr "გადამმისამართებლები"
+msgstr "ზონის გადამმისამართებლები"
 
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
@@ -2581,10 +2572,8 @@ msgstr "განედი წამებში"
 msgid "LOC Direction Latitude"
 msgstr "LOC განედი წამებში"
 
-#, fuzzy
-#| msgid "Seconds Latitude"
 msgid "Direction Latitude"
-msgstr "განედი წამებში"
+msgstr "მიმართულების განედი"
 
 #, fuzzy
 #| msgid "LOC Degrees Latitude"
@@ -2597,30 +2586,24 @@ msgstr "გრძედი გრადუსებში"
 msgid "LOC Minutes Longitude"
 msgstr "LOC გრძედი წუთებში"
 
-#, fuzzy
-#| msgid "Minutes Latitude"
 msgid "Minutes Longitude"
-msgstr "განედი წუთებში"
+msgstr "გრძედი წუთებში"
 
 #, fuzzy
 #| msgid "LOC Seconds Latitude"
 msgid "LOC Seconds Longitude"
 msgstr "LOC განედი წამებში"
 
-#, fuzzy
-#| msgid "Seconds Latitude"
 msgid "Seconds Longitude"
-msgstr "განედი წამებში"
+msgstr "გრძედი წამებში"
 
 #, fuzzy
 #| msgid "LOC Seconds Latitude"
 msgid "LOC Direction Longitude"
 msgstr "LOC განედი წამებში"
 
-#, fuzzy
-#| msgid "Seconds Latitude"
 msgid "Direction Longitude"
-msgstr "განედი წამებში"
+msgstr "მიმართულების გრძედი"
 
 msgid "LOC Altitude"
 msgstr "LOC სიმაღლე"
@@ -2951,10 +2934,8 @@ msgstr ""
 msgid "Allow inline DNSSEC signing of records in the zone"
 msgstr ""
 
-#, fuzzy
-#| msgid "NSEC3 record"
 msgid "NSEC3PARAM record"
-msgstr "NSEC3 ჩანაწერი"
+msgstr "NSEC3PARAM ჩანაწერი"
 
 msgid ""
 "NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
@@ -3076,10 +3057,8 @@ msgstr "DNS-ის ზონის გათიშვა."
 msgid "Enable DNS Zone."
 msgstr "DNS-ის ზონის ჩანრთვა."
 
-#, fuzzy
-#| msgid "Search for DNS servers."
 msgid "Search for DNS zones (SOA records)."
-msgstr "DNS სერვერების ძებნა."
+msgstr "DNS ზონების ძებნა (SOA ჩანაწერები)."
 
 #, fuzzy
 #| msgid "Forwarders"
@@ -3555,10 +3534,8 @@ msgstr "შემთხვევითი პაროლი"
 msgid "Certificate"
 msgstr "სერტიფიკატი"
 
-#, fuzzy
-#| msgid "Issue new certificate"
 msgid "Base-64 encoded server certificate"
-msgstr "ახალი სერტიფიკატის გამოცემა"
+msgstr "Base-64-ით კოდირებული სერვერის სერტიფიკატი"
 
 msgid "Principal name"
 msgstr "პრინციპალის სახელი"
@@ -4248,10 +4225,8 @@ msgstr "მომხმარებლის სახელი"
 msgid "Manage ticket policy for specific user"
 msgstr ""
 
-#, fuzzy
-#| msgid "Max failures"
 msgid "Max life"
-msgstr "მაქს ჩავარდნები"
+msgstr "მაქს სიცოცხლის დრო"
 
 msgid "Maximum ticket life (seconds)"
 msgstr ""
@@ -4868,10 +4843,8 @@ msgstr ""
 msgid "Permission name"
 msgstr "წვდომის სახელი"
 
-#, fuzzy
-#| msgid "Granted to Privilege"
 msgid "Granted rights"
-msgstr "მინიჭებულია პრივილეგიებზე"
+msgstr "მინიჭებულია უფლებები"
 
 msgid "Rights to grant (read, search, compare, write, add, delete, all)"
 msgstr ""
@@ -5802,10 +5775,8 @@ msgstr "პრინციპალი"
 msgid "Service principal"
 msgstr "სერვისის პრინციპალი"
 
-#, fuzzy
-#| msgid "Default PAC types"
 msgid "PAC type"
-msgstr "ნაგულისხმევი PAC ტპები"
+msgstr "PAC-ის ტიპი"
 
 msgid ""
 "Override default list of supported PAC types. Use 'NONE' to disable PAC "
@@ -6672,10 +6643,8 @@ msgstr "ნაჩვენები სახელი"
 msgid "Initials"
 msgstr "ინიციალები"
 
-#, fuzzy
-#| msgid "Service principal"
 msgid "Kerberos principal"
-msgstr "სერვისის პრინციპალი"
+msgstr "Kerberos-ის პრინციპალი"
 
 #, fuzzy
 #| msgid "Kerberos principal name for this host"
@@ -7015,10 +6984,8 @@ msgid ""
 "com\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "A description of this host"
 msgid "A description of this auto member rule"
-msgstr "ამ ჰოსტის აღწერა"
+msgstr "ამ ავტოწევრის წესის აღწერა"
 
 #, fuzzy
 #| msgid "Default host group"
@@ -7035,10 +7002,8 @@ msgstr "ნაგულისხმევი ჯგუფი ახალი მ
 msgid "Add an automember rule."
 msgstr "ავტოწევრის წესის წაშლა."
 
-#, fuzzy
-#| msgid "Automember"
 msgid "Automember Rule"
-msgstr "ავტოწევრი"
+msgstr "ავტოწევრის წესი"
 
 msgid "Grouping Type"
 msgstr "დაჯგუფების ტიპი"
@@ -8239,10 +8204,8 @@ msgid ""
 "   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command name"
 msgid "Command category"
-msgstr "ბრძანების სახელი"
+msgstr "ბრძანების კატეგორია"
 
 msgid "Command category the rule applies to"
 msgstr ""
@@ -8263,10 +8226,8 @@ msgstr "ჯგუფის კატეგორიები"
 msgid "RunAs Group category the rule applies to"
 msgstr ""
 
-#, fuzzy
-#| msgid "Sudo Command"
 msgid "Sudo order"
-msgstr "ბრძანება Sudo"
+msgstr "Sudo-ის მიმდევრობა"
 
 #, fuzzy
 #| msgid "Member of Sudo rule"
@@ -8546,10 +8507,8 @@ msgstr ""
 msgid "Security Identifier"
 msgstr ""
 
-#, fuzzy
-#| msgid "Domain NetBIOS name"
 msgid "NetBIOS name"
-msgstr "დომენის NETBIOS სახელი"
+msgstr "NETBIOS სახელი"
 
 msgid "Domain GUID"
 msgstr "დომენის GUID"
@@ -8923,10 +8882,8 @@ msgstr "სერვერი სახელი"
 msgid "IPA server hostname"
 msgstr "IPA სერვერის ჰოსტის სახელი"
 
-#, fuzzy
-#| msgid "Managed by"
 msgid "Managed suffix"
-msgstr "მმართველია"
+msgstr "მართული სუფიქსი"
 
 #, fuzzy
 #| msgid "Domain Level"
@@ -9041,10 +8998,8 @@ msgstr "სერვისის დელეგაციის წესი"
 msgid "Add member to a named service delegation rule."
 msgstr "სერვისის დელეგაციის წესი"
 
-#, fuzzy
-#| msgid "member privilege"
 msgid "member principal"
-msgstr "წევრის პრივილეგია"
+msgstr "წევრი პრინციპალი"
 
 msgid "principal to add"
 msgstr "დასამატებელი პრინციპალი"
@@ -9302,10 +9257,8 @@ msgid ""
 "update. E.g. (objectclass=*) $ EXCLUDE accountlockout"
 msgstr ""
 
-#, fuzzy
-#| msgid "Session error"
 msgid "Session timeout"
-msgstr "სესიის შეცდომა"
+msgstr "სესიის მოლოდინის დრო"
 
 msgid ""
 "Number of seconds outbound LDAP operations waits for a response from the "
@@ -9571,18 +9524,14 @@ msgstr "საცავის სახელი"
 msgid "Vault description"
 msgstr "საცავის აღწერა"
 
-#, fuzzy
-#| msgid "Rule type"
 msgid "Vault type"
-msgstr "წესის ტიპი"
+msgstr "საცავის ტიპი"
 
 msgid "Salt"
 msgstr "მარილი"
 
-#, fuzzy
-#| msgid "Vaults"
 msgid "Vault salt"
-msgstr "საცავები"
+msgstr "საცავის მარილი"
 
 msgid "Public key"
 msgstr "საჯარო გასაღები"
@@ -10078,10 +10027,8 @@ msgid ""
 "Force DNS zone creation even if nameserver is not resolvable. (Deprecated)"
 msgstr ""
 
-#, fuzzy
-#| msgid "suffixes"
 msgid "Managed suffixes"
-msgstr "სუფიქსები"
+msgstr "მართული სუფიქსები"
 
 msgid "Check connection to remote IPA server."
 msgstr ""
@@ -10868,10 +10815,8 @@ msgstr "სიცოცხლის დრო"
 msgid "SOA record time to live"
 msgstr "SOA ჩანაწერის ვადა"
 
-#, fuzzy
-#| msgid "DNS class"
 msgid "SOA class"
-msgstr "DNS კლასი"
+msgstr "SOA კლასი"
 
 #, fuzzy
 #| msgid "A record"
@@ -11646,10 +11591,8 @@ msgstr ""
 msgid "comma-separated list of sudo commands to remove"
 msgstr ""
 
-#, fuzzy
-#| msgid "GECOS"
 msgid "GECOS field"
-msgstr "GECOS"
+msgstr "GECOS ველი"
 
 msgid ""
 "\n"
@@ -12068,10 +12011,8 @@ msgstr ""
 msgid "Active directory domain administrator's password"
 msgstr "Active Directory-ის დომენის ადმინისტრატორის პაროლი"
 
-#, fuzzy
-#| msgid "Failed owners"
 msgid "Failed members"
-msgstr "ჩავარდნილი მფლობელები"
+msgstr "ჩავარდნილი წევრები"
 
 #, fuzzy
 #| msgid "Failed hosts/hostgroups"
@@ -12081,10 +12022,8 @@ msgstr "ჩავარდნილი ჰოსტები/ჰოსტის 
 msgid "Failed hosts/hostgroups"
 msgstr "ჩავარდნილი ჰოსტები/ჰოსტის ჯგუფები"
 
-#, fuzzy
-#| msgid "Failed hosts/hostgroups"
 msgid "Failed users/groups"
-msgstr "ჩავარდნილი ჰოსტები/ჰოსტის ჯგუფები"
+msgstr "ჩავარდნილი მომხმარებლები/მომხმარებლის ჯგუფები"
 
 #, fuzzy
 #| msgid "Member service groups"
@@ -12094,15 +12033,11 @@ msgstr "წევრი სერვისის ჯგუფები"
 msgid "Failed to remove"
 msgstr "წაშლის შეცდომა"
 
-#, fuzzy
-#| msgid "Failed CAs"
 msgid "Failed RunAs"
-msgstr "ჩავარდნილი CA-ები"
+msgstr "სხვა სახელით გაშვება ჩავარდა"
 
-#, fuzzy
-#| msgid "RunAs Groups"
 msgid "Failed RunAsGroup"
-msgstr "გავუშვაროგორც ჯგუფები"
+msgstr "სხვა ჯგუფის სახელით გაშვება ჩავარდა"
 
 msgid "Failed profiles"
 msgstr "ჩავარდნილი პროფილები"
@@ -14084,13 +14019,14 @@ msgstr "ავტოწევრის წესის წაშლა."
 msgid "Modified automember rule \"%(value)s\""
 msgstr "შეიცვალა როლი \"%(value)s\""
 
-#, fuzzy
-#| msgid "Delete an automember rule."
 msgid ""
 "\n"
 "    Delete an automember rule.\n"
 "    "
-msgstr "ავტოწევრის წესის წაშლა."
+msgstr ""
+"\n"
+"    ავტოწევრის წესის წაშლა.\n"
+"    "
 
 #, fuzzy, python-format
 #| msgid "Deleted role \"%(value)s\""
@@ -14220,15 +14156,11 @@ msgid_plural "%(count)d automount locations matched"
 msgstr[0] "ავტომიმაგრების მდებარეობის დამატება"
 msgstr[1] "ავტომიმაგრების მდებარეობის დამატება"
 
-#, fuzzy
-#| msgid "Remove automount maps"
 msgid "automount map"
-msgstr "ავტომიმაგრების რუკების წაშლა"
+msgstr "ავტომიმაგრების რუკა"
 
-#, fuzzy
-#| msgid "Remove automount maps"
 msgid "automount maps"
-msgstr "ავტომიმაგრების რუკების წაშლა"
+msgstr "ავტომიმაგრების რუკები"
 
 #, fuzzy
 #| msgid "Automount"
@@ -17203,10 +17135,8 @@ msgstr ""
 msgid "OTP token"
 msgstr "OTP კოდების წაშლა"
 
-#, fuzzy
-#| msgid "Remove OTP tokens"
 msgid "OTP tokens"
-msgstr "OTP კოდების წაშლა"
+msgstr "OTP კოდები"
 
 msgid "OTP Tokens"
 msgstr "OTP კოდები"
@@ -20600,10 +20530,8 @@ msgstr ""
 msgid "External Identity Provider"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add Passkey"
 msgid "Passkey"
-msgstr "საკვანძო სიტყვის დამატება"
+msgstr "საკვანძო სიტყვა"
 
 #, fuzzy
 #| msgid "Add user ID override"
@@ -23075,10 +23003,8 @@ msgstr "მითითებული პროფილები"
 msgid "Remove sudo options"
 msgstr "Sudo პარამეტრების წაშლა"
 
-#, fuzzy
-#| msgid "Generated OTP"
 msgid "Autogenerated"
-msgstr "გენერირებული OTP"
+msgstr "ავტოგენერირებულია"
 
 msgid "Segment details"
 msgstr "სეგმენტის დეტალები"
