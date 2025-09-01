@@ -733,7 +733,7 @@ def unconfigure_windows_dns_for_trust(ad, master):
 
 
 def establish_trust_with_ad(master, ad_domain, ad_admin=None, extra_args=(),
-                            shared_secret=None):
+                            shared_secret=None, debug=False):
     """
     Establishes trust with Active Directory. Trust type is detected depending
     on the presence of SfU (Services for Unix) support on the AD.
@@ -755,6 +755,27 @@ def establish_trust_with_ad(master, ad_domain, ad_admin=None, extra_args=(),
     kinit_admin(master)
     master.run_command(['klist'])
     master.run_command(['smbcontrol', 'all', 'debug', '100'])
+
+    if debug:
+        server_conf = textwrap.dedent(f"""
+        [global]]
+        debug=True
+        """)
+        master.put_file_contents(paths.IPA_SERVER_CONF, server_conf)
+        master.run_command(['systemctl', 'restart', 'httpd'])
+        master.run_command(['systemctl', 'stop', 'smb', 'winbind'])
+        master.run_command([
+            'net', 'conf', 'setparm', 'global', 'log level', '100'
+        ])
+        smb_conf = textwrap.dedent(f"""
+        [global]]
+        log level = 100
+        """)
+        master.put_file_contents(
+            os.path.join(paths.USR_SHARE_IPA_DIR, "smb.conf.empty"),
+            smb_conf)
+        master.run_command(['rm -fv /var/log/samba/log.*'], raiseonerr=False)
+        master.run_command(['systemctl', 'start', 'smb', 'winbind'])
 
     if shared_secret:
         extra_args += ['--trust-secret']

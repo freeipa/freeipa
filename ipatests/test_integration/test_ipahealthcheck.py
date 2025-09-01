@@ -1828,7 +1828,8 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         cls.ad_treedomain = cls.tree_ad.domain.name
         tasks.install_adtrust(cls.master)
         tasks.configure_dns_for_trust(cls.master, cls.ad)
-        tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+        tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name,
+                                      debug=True)
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
 
     def test_ipahealthcheck_trust_domainscheck(self):
