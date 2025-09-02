@@ -178,3 +178,28 @@ krb5_ts_after(krb5_timestamp a, krb5_timestamp b) {
 /* Implement boolean string parsing function from MIT krb5:
  * src/lib/krb5/krb/libdef_parse.c:_krb5_conf_boolean() */
 bool ipa_krb5_parse_bool(const char *str);
+
+/* Sort Kerberos keys according to the enctypes order of the
+ * "permitted_enctypes" parameter from the local krb5 configuration.
+ * Key types not present in this parameter are sorted according to an hard-coded
+ * ordered list with a lower priority. */
+krb5_error_code ipa_sort_keys_by_pref(krb5_context kctx, krb5_key_data *keys,
+                                      size_t n_keys);
+
+/* Create a list of default key/salt types ordered by preference based on the
+ * value of the "permitted_enctypes" parameter from the local krb5
+ * configuration.
+ * The "keysalts" argument is dynamically allocated, and must be free()d by the
+ * caller. */
+krb5_error_code ipa_get_default_types(krb5_context kctx,
+                                      krb5_key_salt_tuple **keysalts,
+                                      size_t *n_keysalts);
+
+/* Create a list of supported key/salt types ordered by preference based on the
+ * value of the "permitted_enctypes" parameter from the local krb5
+ * configuration.
+ * The "keysalts" argument is dynamically allocated, and must be free()d by the
+ * caller. */
+krb5_error_code ipa_get_supported_types(krb5_context kctx,
+                                        krb5_key_salt_tuple **keysalts,
+                                        size_t *n_keysalts);
