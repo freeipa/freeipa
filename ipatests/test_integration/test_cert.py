@@ -13,7 +13,6 @@ import pytest
 import random
 import re
 import string
-import time
 import textwrap
 
 from ipaplatform.paths import paths
@@ -70,9 +69,10 @@ class TestInstallMasterClient(IntegrationTest):
     def install(cls, mh):
         super().install(mh)
 
-        # time to look into journal logs in
+        # store the start time to look into journal logs in
         # test_certmonger_ipa_responder_jsonrpc
-        cls.since = time.strftime('%Y-%m-%d %H:%M:%S')
+        result = cls.clients[0].run_command(['date', '+%Y-%m-%d %H:%M:%S'])
+        cls.since = result.stdout_text.strip()
 
     def test_cacert_file_appear_with_option_F(self):
         """Test if getcert creates cacert file with -F option
