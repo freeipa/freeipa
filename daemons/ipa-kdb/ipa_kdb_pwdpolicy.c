@@ -273,7 +273,7 @@ krb5_error_code ipadb_get_pwd_policy(krb5_context kcontext, char *name,
         pentry->pw_lockout_duration = result;
     }
 
-    ret = ipa_kstuples_to_string(ipactx->supp_encs, ipactx->n_supp_encs,
+    ret = ipa_kstuples_to_string(ipactx->supp_encs, (int)ipactx->n_supp_encs,
                                  &pentry->allowed_keysalts);
     if (ret != 0) {
         kerr = KRB5_KDB_INTERNAL_ERROR;
