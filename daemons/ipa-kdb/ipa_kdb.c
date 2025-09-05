@@ -389,61 +389,6 @@ ipadb_get_global_config(struct ipadb_context *ipactx)
     return &ipactx->config;
 }
 
-int ipadb_get_enc_salt_types(struct ipadb_context *ipactx,
-                             LDAPMessage *entry, char *attr,
-                             krb5_key_salt_tuple **enc_salt_types,
-                             int *n_enc_salt_types)
-{
-    struct berval **vals = NULL;
-    char **cvals = NULL;
-    int c = 0;
-    int i;
-    int ret = 0;
-    krb5_key_salt_tuple *kst;
-    int n_kst;
-
-    vals = ldap_get_values_len(ipactx->lcontext, entry, attr);
-    if (!vals || !vals[0]) {
-        goto done;
-    }
-
-    for (c = 0; vals[c]; c++) /* count */ ;
-    cvals = calloc(c, sizeof(char *));
-    if (!cvals) {
-        ret = ENOMEM;
-        goto done;
-    }
-    for (i = 0; i < c; i++) {
-        cvals[i] = strndup(vals[i]->bv_val, vals[i]->bv_len);
-        if (!cvals[i]) {
-            ret = ENOMEM;
-            goto done;
-        }
-    }
-
-    ret = parse_bval_key_salt_tuples(ipactx->kcontext,
-                                     (const char * const *)cvals, c,
-                                     &kst, &n_kst);
-    if (ret) {
-        goto done;
-    }
-
-    if (*enc_salt_types) {
-        free(*enc_salt_types);
-    }
-
-    *enc_salt_types = kst;
-    *n_enc_salt_types = n_kst;
-
-done:
-    ldap_value_free_len(vals);
-    for (i = 0; i < c && cvals[i]; i++) {
-        free(cvals[i]);
-    }
-    free(cvals);
-    return ret;
-}
-
 int ipadb_get_connection(struct ipadb_context *ipactx)
 {
     struct timeval tv = { 5, 0 };
@@ -508,16 +453,16 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
 
     /* defaults first, this is used to tell what default enc:salts to use
      * for kadmin password changes */
-    ret = ipadb_get_enc_salt_types(ipactx, first,  "krbDefaultEncSaltTypes",
-                                   &ipactx->def_encs, &ipactx->n_def_encs);
+    ret = ipa_get_default_types(ipactx->kcontext, &ipactx->def_encs,
+                                &ipactx->n_def_encs);
     if (ret) {
         goto done;
     }
 
     /* supported enc salt types, use to tell kadmin what to accept
      * but also to detect if kadmin is requesting the default set */
-    ret = ipadb_get_enc_salt_types(ipactx, first, "krbSupportedEncSaltTypes",
-                                   &ipactx->supp_encs, &ipactx->n_supp_encs);
+    ret = ipa_get_supported_types(ipactx->kcontext, &ipactx->supp_encs,
+                                  &ipactx->n_supp_encs);
     if (ret) {
         goto done;
     }

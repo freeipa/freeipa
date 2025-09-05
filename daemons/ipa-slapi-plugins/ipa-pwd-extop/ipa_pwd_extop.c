@@ -96,104 +96,6 @@ void *ipapwd_get_plugin_id(void)
     return ipapwd_plugin_id;
 }
 
-static bool is_nthash_allowed(const char *service_name, const char *bind_dn)
-{
-#define CIFS_PRINCIPAL_PREFIX "krbprincipalname=cifs/"
-        return (0 == strncmp("cifs/", service_name, 5)) ||
-               (0 == strncmp(CIFS_PRINCIPAL_PREFIX, bind_dn,
-                             sizeof(CIFS_PRINCIPAL_PREFIX) - 1));
-}
-
-static void filter_keys(struct ipapwd_krbcfg *krbcfg,
-                        struct ipapwd_keyset *kset,
-                        bool allow_nthash)
-{
-    size_t i, j;
-
-    for (i = 0; i < kset->num_keys; i++) {
-        for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
-            if (kset->keys[i].key_data_type[0] ==
-                    krbcfg->supp_encsalts[j].ks_enctype) {
-                break;
-            }
-        }
-
-        /* if requested by the caller, allow arcfour-hmac even
-         * if it is missing in the list of supported enctypes. */
-        if (allow_nthash &&
-            (ENCTYPE_ARCFOUR_HMAC == kset->keys[i].key_data_type[0])) {
-            break;
-        }
-
-        if (j == krbcfg->num_supp_encsalts) { /* not valid */
-
-            /* free key */
-            free(kset->keys[i].key_data_contents[0]);
-            free(kset->keys[i].key_data_contents[1]);
-
-            /* move all remaining keys up by one */
-            kset->num_keys -= 1;
-
-            for (j = i; j < kset->num_keys; j++) {
-                kset->keys[j] = kset->keys[j + 1];
-            }
-
-            /* new key has been moved to this position, make sure
-             * we do not skip it, by neutralizing next increment */
-            i--;
-        }
-    }
-}
-
-static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
-                            krb5_key_salt_tuple *kenctypes,
-                            int *num_kenctypes,
-                            bool allow_nthash)
-{
-    /* first filter for duplicates */
-    for (size_t i = 0; i + 1 < *num_kenctypes; i++) {
-        for (size_t j = i + 1; j < *num_kenctypes; j++) {
-            if (kenctypes[i].ks_enctype == kenctypes[j].ks_enctype) {
-                /* duplicate, filter out */
-                for (size_t k = j; k + 1 < *num_kenctypes; k++) {
-                    kenctypes[k].ks_enctype = kenctypes[k + 1].ks_enctype;
-                    kenctypes[k].ks_salttype = kenctypes[k + 1].ks_salttype;
-                }
-                (*num_kenctypes)--;
-                j--;
-            }
-        }
-    }
-
-    /* then filter for supported */
-    for (size_t i = 0; i < *num_kenctypes; i++) {
-        size_t j;
-
-        /* Check if supported */
-        for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
-            if (kenctypes[i].ks_enctype ==
-                                    krbcfg->supp_encsalts[j].ks_enctype) {
-                break;
-            }
-        }
-        /* if requested by the caller, allow arcfour-hmac even
-         * if it is missing in the list of supported enctypes. */
-        if (allow_nthash &&
-            (ENCTYPE_ARCFOUR_HMAC == kenctypes[i].ks_enctype)) {
-            break;
-        }
-        if (j == krbcfg->num_supp_encsalts) {
-            /* Unsupported, filter out */
-            for (size_t k = i; k + 1 < *num_kenctypes; k++) {
-                kenctypes[k].ks_enctype = kenctypes[k + 1].ks_enctype;
-                kenctypes[k].ks_salttype = kenctypes[k + 1].ks_salttype;
-            }
-            (*num_kenctypes)--;
-            i--;
-        }
-    }
-}
-
 static int ipapwd_to_ldap_pwpolicy_error(int ipapwderr)
 {
     switch (ipapwderr) {
@@ -1243,7 +1145,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     int kvno;
     char *svcname;
     bool allowed_access = false;
-    bool nthash_allowed = false;
+    bool nthash_allowed;
     struct berval *bvp = NULL;
     LDAPControl new_ctrl;
 
@@ -1320,8 +1222,14 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     /* Only allow generating arcfour-hmac keys for cifs/.. services
      * unless the enctype is allowed by the IPA configuration for use
      * by the all principals */
-    nthash_allowed = is_nthash_allowed(serviceName, bindDN);
-    filter_keys(krbcfg, kset, nthash_allowed);
+    nthash_allowed = ipa_is_cifs_princ(serviceName) || ipa_is_cifs_dn(bindDN);
+    krberr = ipa_sort_and_filter_keys_i(krbctx, kset->keys, &kset->num_keys,
+                                        nthash_allowed);
+    if (krberr) {
+        errMesg = "Unable to filter Kerberos keys\n";
+        rc = LDAP_OPERATIONS_ERROR;
+        goto free_and_return;
+    }
 
 	/* check if we have any left */
 	if (kset->num_keys == 0) {
@@ -1629,7 +1537,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     struct berval *bvp = NULL;
     LDAPControl new_ctrl;
     bool wantold = false;
-    bool nthash_allowed = false;
+    bool nthash_allowed;
 
     /* Get Bind DN */
     slapi_pblock_get(pb, SLAPI_CONN_DN, &bind_dn);
@@ -1728,8 +1636,16 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         /* Only allow generating arcfour-hmac keys for cifs/.. services
          * unless the enctype is allowed by the IPA configuration for use
          * by the all principals */
-        nthash_allowed = is_nthash_allowed(service_name, bind_dn);
-        filter_enctypes(krbcfg, kenctypes, &num_kenctypes, nthash_allowed);
+        nthash_allowed = ipa_is_cifs_princ(service_name) ||
+                         ipa_is_cifs_dn(bind_dn);
+        krberr = ipa_sort_and_filter_keysalt_types_i(krbctx, kenctypes,
+                                                     &num_kenctypes,
+                                                     nthash_allowed);
+        if (krberr) {
+            err_msg = "Unable to filter Kerberos key/salt types";
+            rc = LDAP_OPERATIONS_ERROR;
+            goto free_and_return;
+        }
 
         /* check if we have any left */
         if (num_kenctypes == 0 && kenctypes != NULL) {
