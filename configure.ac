@@ -658,6 +658,7 @@ AC_CONFIG_FILES([
     install/Makefile
     install/certmonger/Makefile
     install/custodia/Makefile
+    install/freeipa-webui/Makefile
     install/html/Makefile
     install/migration/Makefile
     install/share/Makefile

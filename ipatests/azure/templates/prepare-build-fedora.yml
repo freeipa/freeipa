@@ -1,4 +1,8 @@
 steps:
+- checkout: self
+  submodules: true
+  displayName: Checkout source code
+
 - script: |
     CONTAINERID=`echo '$(Agent.ContainerMapping)' | jq -r '.builder.id'`
     /usr/bin/docker exec $CONTAINERID bash -c "dnf reinstall -y shadow-utils; chmod a+r /etc/shadow"
@@ -23,6 +27,7 @@ steps:
         podman \
         python3-paramiko \
         python3-pyyaml \
+        nodejs \
 
     echo "Installing FreeIPA development dependencies"
     sudo dnf builddep -y freeipa

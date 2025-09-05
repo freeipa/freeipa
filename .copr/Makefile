@@ -6,6 +6,9 @@ srpm:
 	cp freeipa.spec.in freeipa.spec
 	dnf builddep -y --best --allowerasing --setopt=install_weak_deps=False freeipa.spec > ${outdir}/builddep.log 2>&1
 
+	# Fetch webui
+	git submodule update --init --recursive
+
 	# Run autoconf
 	autoreconf -i
 	./configure --enable-silent-rules
