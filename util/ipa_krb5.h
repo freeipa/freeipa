@@ -179,12 +179,9 @@ krb5_ts_after(krb5_timestamp a, krb5_timestamp b) {
  * src/lib/krb5/krb/libdef_parse.c:_krb5_conf_boolean() */
 bool ipa_krb5_parse_bool(const char *str);
 
-/* Sort Kerberos keys according to the enctypes order of the
- * "permitted_enctypes" parameter from the local krb5 configuration.
- * Key types not present in this parameter are sorted according to an hard-coded
- * ordered list with a lower priority. */
-krb5_error_code ipa_sort_keys_by_pref(krb5_context kctx, krb5_key_data *keys,
-                                      size_t n_keys);
+bool ipa_is_cifs_princ(const char *princname);
+
+bool ipa_is_cifs_dn(const char *dn);
 
 /* Create a list of default key/salt types ordered by preference based on the
  * value of the "permitted_enctypes" parameter from the local krb5
@@ -203,3 +200,34 @@ krb5_error_code ipa_get_default_types(krb5_context kctx,
 krb5_error_code ipa_get_supported_types(krb5_context kctx,
                                         krb5_key_salt_tuple **keysalts,
                                         size_t *n_keysalts);
+
+/* Sort Kerberos key/salt types according to the enctypes order of the
+ * "permitted_enctypes" parameter from the local krb5 configuration.
+ * Types not present in this parameter are sorted according to an hard-coded
+ * ordered list with a lower priority. */
+krb5_error_code ipa_sort_keysalt_types(krb5_context kctx,
+                                       krb5_key_salt_tuple *ks, size_t n_ks);
+
+/* Sort Kerberos keys according to the enctypes order of the
+ * "permitted_enctypes" parameter from the local krb5 configuration.
+ * Types not present in this parameter are sorted according to an hard-coded
+ * ordered list with a lower priority. */
+krb5_error_code ipa_sort_keys(krb5_context kctx, krb5_key_data *keys,
+                              size_t n_keys);
+
+krb5_error_code ipa_sort_and_filter_keysalt_types(krb5_context kctx,
+                                                  krb5_key_salt_tuple *ks,
+                                                  size_t *n_ks,
+                                                  bool allow_nthash);
+
+krb5_error_code ipa_sort_and_filter_keysalt_types_i(krb5_context kctx,
+                                                    krb5_key_salt_tuple *ks,
+                                                    int *n_ks,
+                                                    bool allow_nthash);
+
+krb5_error_code ipa_sort_and_filter_keys(krb5_context kctx, krb5_key_data *keys,
+                                         size_t *n_keys, bool allow_nthash);
+
+krb5_error_code ipa_sort_and_filter_keys_i(krb5_context kctx,
+                                           krb5_key_data *keys, int *n_keys,
+                                           bool allow_nthash);

@@ -1023,10 +1023,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             break;
         }
 
-        kerr = ipa_sort_keys_by_pref(kcontext, res_key_data, (size_t)result);
-        if (kerr) {
-            goto done;
-        }
+        kerr = ipa_sort_keys(kcontext, res_key_data, (size_t)result);
+        if (kerr) goto done;
 
         entry->key_data = res_key_data;
         entry->n_key_data = result;
@@ -2585,6 +2583,7 @@ static krb5_error_code ipadb_get_mkvno_from_tl_data(krb5_tl_data *tl_data,
 }
 
 static krb5_error_code ipadb_get_ldap_mod_key_data(krb5_context kctx,
+                                                   krb5_principal princ,
                                                    struct ipadb_mods *imods,
                                                    krb5_key_data *key_data,
                                                    int n_key_data, int mkvno,
@@ -2595,6 +2594,8 @@ static krb5_error_code ipadb_get_ldap_mod_key_data(krb5_context kctx,
     struct berval **bvals = NULL;
     LDAPMod *mod;
     int i, j, begin, n_kvno;
+    bool nthash_allowed;
+    char *princname = NULL;
 
     /* If the key data is empty, remove all keys. */
     if (n_key_data == 0 || key_data == NULL) {
@@ -2620,11 +2621,15 @@ static krb5_error_code ipadb_get_ldap_mod_key_data(krb5_context kctx,
 
     memcpy(kvno_kdata, key_data, n_key_data * sizeof(*kvno_kdata));
 
-    /* Make sure the key list is sorted by KVNO and enctype. */
-    kerr = ipa_sort_keys_by_pref(kctx, kvno_kdata, n_key_data);
-    if (kerr) {
-        goto done;
-    }
+    /* Make sure the key list is filtered and sorted by KVNO, enctype, and
+     * salt. */
+    kerr = krb5_unparse_name(kctx, princ, &princname);
+    if (kerr) goto done;
+
+    nthash_allowed = ipa_is_cifs_princ(princname);
+    kerr = ipa_sort_and_filter_keys_i(kctx, kvno_kdata, &n_key_data,
+                                      nthash_allowed);
+    if (kerr) goto done;
 
     /* Count number of distinct KVNOs. */
     for (i = 1, n_kvno = 1; i < n_key_data; ++i) {
@@ -2660,6 +2665,7 @@ static krb5_error_code ipadb_get_ldap_mod_key_data(krb5_context kctx,
                                       mod_op);
 
 done:
+    krb5_free_unparsed_name(kctx, princname);
     if (kerr && bvals) {
         for (i = 0; i < n_kvno; ++i)
             ber_bvfree(bvals[i]);
@@ -3039,11 +3045,9 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             goto done;
         }
 
-        kerr = ipadb_get_ldap_mod_key_data(kcontext, imods,
-                                           entry->key_data,
-                                           entry->n_key_data,
-                                           mkvno,
-                                           mod_op);
+        kerr = ipadb_get_ldap_mod_key_data(kcontext, entry->princ, imods,
+                                           entry->key_data, entry->n_key_data,
+                                           mkvno, mod_op);
         if (kerr) {
             goto done;
         }

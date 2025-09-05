@@ -103,8 +103,6 @@ struct ipapwd_krbcfg {
     char *realm;
     int mkvno;
     krb5_keyblock *kmkey;
-    size_t num_supp_encsalts;
-    krb5_key_salt_tuple *supp_encsalts;
     size_t num_pref_encsalts;
     krb5_key_salt_tuple *pref_encsalts;
     char **passsync_mgrs;
