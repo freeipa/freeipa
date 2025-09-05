@@ -18,13 +18,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
+import re
 from ipaplatform.paths import paths
-
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
     clear_sssd_cache, get_host_ip_with_hostmask, remote_sssd_config,
-    FileBackup, install_master, install_client)
+    FileBackup, install_master, install_client, kinit_admin,
+    create_active_user, ldapsearch_dm, stop_ipa_server,
+    start_ipa_server, kinit_as_user)
 
 class TestSudo(IntegrationTest):
     """
@@ -756,3 +757,1142 @@ class TestSudo(IntegrationTest):
         finally:
             self.master.run_command(
                 ['ipa', 'config-mod', '--domain-resolution-order='])
+
+
+class TestSudo_Functional(IntegrationTest):
+    """
+    Test Sudo Functional
+    """
+    num_clients = 1
+
+    # Define constants for reuse
+    SUDO_RULE = "sudorule1"
+    USER_1 = "testuser1"
+    USER_2 = "testuser2"
+    USER_3 = "testuser3"
+    SUDO_GROUP = "sudogrp1"
+    HOST_GROUP = "hostgrp1"
+    GROUP = "testgroup"
+
+    @classmethod
+    def install(cls, mh):
+        super(TestSudo_Functional, cls).install(mh)
+
+        extra_args = ["--idstart=60001", "--idmax=65000"]
+        install_master(cls.master, setup_dns=True, extra_args=extra_args)
+        install_client(cls.master, cls.clients[0])
+
+        cls.client = cls.clients[0]
+        cls.user_password = "Secret123!"
+
+        for username in [cls.USER_1, cls.USER_2, cls.USER_3]:
+            create_active_user(
+                cls.master,
+                username,
+                password=cls.user_password
+            )
+
+    def list_sudo_commands(self, user, raiseonerr=False, verbose=False,
+                           skip_kinit=False, skip_sssd_cache_clear=False):
+        list_flag = '-ll' if verbose else '-l'
+        if not skip_sssd_cache_clear:
+            clear_sssd_cache(self.client)
+        if not skip_kinit:
+            kinit_as_user(self.client, user, self.user_password)
+        return self.client.run_command(
+            'su -c "sudo %s -n" %s' % (list_flag, user),
+            raiseonerr=raiseonerr)
+
+    def test_sudorule_add_allow_command_func001(self):
+        master = self.master
+        client = self.clients[0].hostname
+        kinit_admin(master)
+
+        master.run_command(["ipa", "sudocmdgroup-del", self.SUDO_GROUP],
+                           raiseonerr=False)
+        master.run_command(["ipa", "sudorule-del", self.SUDO_RULE],
+                           raiseonerr=False)
+
+        cmds = [
+            "/bin/mkdir", "/bin/date", "/bin/df", "/bin/touch", "/bin/rm",
+            "/bin/uname", "/bin/hostname", "/bin/rmdir"
+        ]
+        for cmd in cmds:
+            master.run_command(["ipa", "sudocmd-add", cmd])
+
+        master.run_command(["ipa", "sudocmdgroup-add", self.SUDO_GROUP,
+                            "--desc=sudogrp1"])
+        master.run_command([
+            "ipa", "sudocmdgroup-add-member", self.SUDO_GROUP,
+            "--sudocmds=/bin/date", "--sudocmds=/bin/touch",
+            "--sudocmds=/bin/uname"
+        ])
+        master.run_command(["ipa", "sudorule-add", self.SUDO_RULE])
+        master.run_command([
+            "ipa", "sudorule-add-option", "--sudooption=!authenticate",
+            self.SUDO_RULE
+        ])
+        master.run_command(["ipa", "sudorule-add-host", self.SUDO_RULE,
+                            "--hosts", client])
+        master.run_command(["ipa", "sudorule-add-user", self.SUDO_RULE,
+                            "--users", self.USER_1])
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/mkdir",
+            self.SUDO_RULE
+        ])
+        master.run_command(["ipa", "sudorule-find", self.SUDO_RULE])
+
+        clear_sssd_cache(self.client)
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert "/bin/mkdir" in result.stdout_text
+
+    def test_sudorule_add_allow_commandgrp_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command",
+            f"--sudocmdgroups={self.SUDO_GROUP}", self.SUDO_RULE
+        ])
+        master.run_command(["ipa", "sudorule-show", self.SUDO_RULE])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert ("User {} may run the following commands"
+                .format(self.USER_1)) in result.stdout_text
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date", "/bin/mkdir"]:
+            assert cmd in result.stdout_text
+
+    def test_sudorule_remove_allow_command_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command", "--sudocmds=/bin/mkdir",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert "/bin/mkdir" not in result.stdout_text
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date"]:
+            assert cmd in result.stdout_text
+
+    def test_sudorule_remove_allow_commandgrp_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command(["ipa", "sudorule-find", self.SUDO_RULE])
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command",
+            f"--sudocmdgroups={self.SUDO_GROUP}",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert "/bin/mkdir" not in result.stdout_text
+
+    def test_sudorule_add_deny_command_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-deny-command", "--sudocmds=/bin/mkdir",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert ("User {} may run the following commands"
+                .format(self.USER_1)) in result.stdout_text
+        assert "!/bin/mkdir" in result.stdout_text
+
+    def test_sudorule_remove_deny_command_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-deny-command", "--sudocmds=/bin/mkdir",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert "!/bin/mkdir" not in result.stdout_text
+
+    def test_sudorule_add_deny_commandgrp_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-deny-command",
+            f"--sudocmdgroups={self.SUDO_GROUP}", self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert ("User {} may run the following commands"
+                .format(self.USER_1)) in result.stdout_text
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date"]:
+            assert "!{}".format(cmd) in result.stdout_text
+
+    def test_sudorule_remove_deny_commandgrp_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-deny-command",
+            f"--sudocmdgroups={self.SUDO_GROUP}", self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert "!/bin/mkdir" not in result.stdout_text
+
+    def test_sudorule_add_hostgrp_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command(["ipa", "hostgroup-add", self.HOST_GROUP,
+                            "--desc=test_hostgrp"])
+        master.run_command([
+            "ipa", "hostgroup-add-member", self.HOST_GROUP,
+            "--hosts=" + self.client.hostname
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/mkdir",
+            self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "sudorule-remove-host", self.SUDO_RULE,
+            "--hosts=" + self.client.hostname
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-host", self.SUDO_RULE,
+            f"--hostgroup={self.HOST_GROUP}"
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert "/bin/mkdir" in result.stdout_text
+        assert ("User {} is not allowed to run sudo".format(self.USER_1)
+                ) not in result.stdout_text
+
+    def test_sudorule_remove_hostgrp_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-host", self.SUDO_RULE,
+            f"--hostgroup={self.HOST_GROUP}"
+        ])
+        master.run_command(["ipa", "hostgroup-del", self.HOST_GROUP])
+        clear_sssd_cache(self.client)
+        clear_sssd_cache(master)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert "/bin/mkdir" not in result.stdout_text
+        master.run_command([
+            "ipa", "sudorule-add-host", self.SUDO_RULE,
+            "--hosts=" + self.client.hostname
+        ])
+
+    # ----------------------
+    # RunAs user/group tests
+    # ----------------------
+    def test_sudorule_add_runasuser_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command",
+            f"--sudocmdgroups={self.SUDO_GROUP}", self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-runasuser", self.SUDO_RULE,
+            "--users={}".format(self.USER_2)
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert f"RunAsUsers: {self.USER_2}" in result.stdout_text
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date", "/bin/mkdir"]:
+            assert cmd in result.stdout_text
+
+    def test_sudorule_remove_runasuser_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-runasuser", self.SUDO_RULE,
+            "--users={}".format(self.USER_2)
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert f"RunAsUsers: {self.USER_2}" not in result.stdout_text
+
+    def test_sudorule_add_runasuser_func002(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-runasuser", self.SUDO_RULE,
+            "--groups={}".format(self.USER_2)
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert f"RunAsUsers: %{self.USER_2}" in result.stdout_text
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date", "/bin/mkdir"]:
+            assert cmd in result.stdout_text
+
+    def test_sudorule_remove_runasuser_func002(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-runasuser", self.SUDO_RULE,
+            "--groups={}".format(self.USER_2)
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert f"RunAsUsers: {self.USER_2}" not in result.stdout_text
+
+    def test_sudorule_add_runasuser_func003(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-runasuser", self.SUDO_RULE,
+            "--users", self.USER_2, "--users", self.USER_3
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert (
+            f"RunAsUsers: {self.USER_2}, {self.USER_3}"
+            in result.stdout_text
+        )
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date", "/bin/mkdir"]:
+            assert cmd in result.stdout_text
+
+    def test_sudorule_remove_runasuser_func003(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-runasuser", self.SUDO_RULE,
+            "--users", self.USER_2, "--users", self.USER_3
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert (
+            f"RunAsUsers: {self.USER_2}, {self.USER_3}"
+            not in result.stdout_text
+        )
+
+    def test_sudorule_add_runasuser_func004(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-runasuser", self.SUDO_RULE,
+            "--groups", self.USER_2, "--groups", self.USER_3
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert (
+            f"RunAsUsers: %{self.USER_2}, %{self.USER_3}"
+            in result.stdout_text
+        )
+        for cmd in ["/bin/uname", "/bin/touch", "/bin/date", "/bin/mkdir"]:
+            assert cmd in result.stdout_text
+
+    def test_sudorule_remove_runasuser_func004(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-remove-runasuser", self.SUDO_RULE,
+            "--groups", self.USER_2, "--groups", self.USER_3
+        ])
+        clear_sssd_cache(self.client)
+
+        result = self.list_sudo_commands(self.USER_1, verbose=True)
+        assert (
+            f"RunAsUsers: %{self.USER_2}, %{self.USER_3}"
+            not in result.stdout_text
+        )
+
+    def test_sudorule_add_runasuser_func005(self):
+        master = self.master
+        kinit_admin(master)
+
+        result = master.run_command([
+            "ipa", "sudorule-add-runasuser", self.SUDO_RULE, "--users=ALL"
+        ], raiseonerr=False)
+        assert ("ERROR: invalid 'runas-user': RunAsUser does not accept 'ALL' "
+                "as a user name") in result.stderr_text
+        master.run_command([
+            "ipa", "sudorule-remove-runasuser", self.SUDO_RULE, "--users=ALL"
+        ], raiseonerr=False)
+
+    # ----------------------
+    # Sudo disable/enable
+    # ----------------------
+    def test_sudorule_disable_func001(self):
+        master = self.master
+        kinit_admin(master)
+
+        result = master.run_command(["ipa", "sudorule-show", self.SUDO_RULE])
+        master.run_command(["ipa", "sudorule-disable", self.SUDO_RULE])
+        master.run_command(["ipa", "sudocmd-add", "/bin/newcmd"])
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/newcmd",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(master)
+        clear_sssd_cache(self.client)
+        result = self.list_sudo_commands(self.USER_1)
+        assert not re.search(r"\(root\).*?/bin/newcmd", result.stdout_text)
+
+        master.run_command(["ipa", "sudorule-enable", self.SUDO_RULE])
+        clear_sssd_cache(self.client)
+        result = self.list_sudo_commands(self.USER_1)
+        assert (
+            "(root) NOPASSWD: /bin/uname, /bin/touch, "
+            "/bin/date, /bin/newcmd, /bin/mkdir"
+            in result.stdout_text
+        )
+
+    # ----------------------
+    # Cleanup
+    # ----------------------
+    def test_cleanup(self):
+        master = self.master
+        kinit_admin(master)
+
+        # Delete sudo command group
+        master.run_command(["ipa", "sudocmdgroup-del", self.SUDO_GROUP],
+                           raiseonerr=False)
+        # Delete sudo rule
+        master.run_command(["ipa", "sudorule-del", self.SUDO_RULE],
+                           raiseonerr=False)
+        # Delete sudo commands
+        sudo_commands = [
+            "/bin/mkdir", "/bin/date", "/bin/df", "/bin/touch", "/bin/rm",
+            "/bin/uname", "/bin/hostname", "/bin/rmdir", "/bin/newcmd"
+        ]
+        for cmd in sudo_commands:
+            master.run_command(["ipa", "sudocmd-del", cmd], raiseonerr=False)
+        clear_sssd_cache(self.master)
+
+    # ----------------------
+    # Offline client caching functional test
+    # ----------------------
+    def test_001_sudorule_offline_caching_allow_command(self):
+        master = self.master
+        client = self.clients[0].hostname
+        kinit_admin(master)
+
+        master.run_command(["ipa", "sudocmdgroup-del", self.SUDO_GROUP],
+                           raiseonerr=False)
+        master.run_command(["ipa", "sudorule-del", self.SUDO_RULE],
+                           raiseonerr=False)
+
+        cmds = [
+            "/bin/mkdir", "/bin/date", "/bin/df", "/bin/touch", "/bin/rm",
+            "/bin/uname", "/bin/hostname", "/bin/rmdir"
+        ]
+        for cmd in cmds:
+            master.run_command(["ipa", "sudocmd-add", cmd])
+
+        master.run_command(["ipa", "sudocmdgroup-add", self.SUDO_GROUP,
+                            "--desc=sudogrp1"])
+        master.run_command([
+            "ipa", "sudocmdgroup-add-member", self.SUDO_GROUP,
+            "--sudocmds=/bin/date", "--sudocmds=/bin/touch",
+            "--sudocmds=/bin/uname"
+        ])
+        master.run_command(["ipa", "sudorule-add", self.SUDO_RULE])
+        master.run_command([
+            "ipa", "sudorule-add-option", "--sudooption=!authenticate",
+            self.SUDO_RULE
+        ])
+        master.run_command(["ipa", "sudorule-add-host", self.SUDO_RULE,
+                            "--hosts", client])
+        master.run_command(["ipa", "sudorule-add-user", self.SUDO_RULE,
+                            "--users", self.USER_1])
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(master)
+        clear_sssd_cache(self.client)
+
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert "(root) NOPASSWD: /bin/date" in result.stdout_text
+
+        stop_ipa_server(master)
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(
+            self.USER_1, skip_kinit=True, skip_sssd_cache_clear=True
+        )
+        assert "(root) NOPASSWD: /bin/date" in result.stdout_text
+
+        start_ipa_server(master)
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+
+    def test_002_sudorule_offline_caching_deny_command(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-deny-command", "--sudocmds=/bin/uname",
+            self.SUDO_RULE
+        ])
+        clear_sssd_cache(self.client)
+        clear_sssd_cache(master)
+
+        self.client.run_command(
+            'su -c "sudo -u root uname" %s' % (self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert "(root) NOPASSWD: !/bin/uname" in result.stdout_text
+
+        stop_ipa_server(master)
+        self.client.run_command(
+            'su -c "sudo -u root uname" %s' % (self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(
+            self.USER_1, skip_kinit=True, skip_sssd_cache_clear=True
+        )
+        assert "(root) NOPASSWD: !/bin/uname" in result.stdout_text
+
+        start_ipa_server(master)
+        master.run_command([
+            "ipa", "sudorule-remove-deny-command", "--sudocmds=/bin/uname",
+            self.SUDO_RULE
+        ])
+
+    def test_003_sudorule_offline_caching_runasuser_command(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+
+        master.run_command([
+            "ipa", "sudorule-add-runasuser", self.SUDO_RULE,
+            "--users={}".format(self.USER_2)
+        ])
+        clear_sssd_cache(self.client)
+        clear_sssd_cache(master)
+
+        self.client.run_command(
+            'su -c "sudo -u %s date" %s' % (self.USER_2, self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert f"({self.USER_2}) NOPASSWD: /bin/date" in result.stdout_text
+
+        stop_ipa_server(master)
+        self.client.run_command(
+            'su -c "sudo -u %s date" %s' % (self.USER_2, self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(
+            self.USER_1, skip_kinit=True, skip_sssd_cache_clear=True
+        )
+        assert f"({self.USER_2}) NOPASSWD: /bin/date" in result.stdout_text
+
+        start_ipa_server(master)
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+
+        master.run_command([
+            "ipa", "sudorule-remove-runasuser", self.SUDO_RULE,
+            "--users={}".format(self.USER_2)
+        ])
+
+    def test_004_sudorule_offline_caching_runasgroup_command(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "group-add", "--desc=testgroup", self.GROUP
+        ])
+        master.run_command([
+            "ipa", "group-add-member", self.GROUP,
+            "--users={}".format(self.USER_2)
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-runasgroup", self.SUDO_RULE,
+            f"--groups={self.GROUP}"
+        ])
+        clear_sssd_cache(self.client)
+        clear_sssd_cache(master)
+
+        self.client.run_command(
+            'su -c "sudo -g %s date" %s' % (self.GROUP, self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(self.USER_1)
+        assert (
+            f"({self.USER_1} : {self.GROUP}) NOPASSWD: /bin/date"
+            in result.stdout_text
+        )
+
+        stop_ipa_server(master)
+        self.client.run_command(
+            'su -c "sudo -g %s date" %s' % (self.GROUP, self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(
+            self.USER_1, skip_kinit=True, skip_sssd_cache_clear=True
+        )
+        assert (
+            f"({self.USER_1} : {self.GROUP}) NOPASSWD: /bin/date"
+            in result.stdout_text
+        )
+
+        start_ipa_server(master)
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command",
+            "--sudocmds=/bin/date", self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "sudorule-remove-runasgroup", self.SUDO_RULE,
+            f"--groups={self.GROUP}"
+        ])
+        master.run_command([
+            "ipa", "group-remove-member", self.GROUP,
+            "--users={}".format(self.USER_2)
+        ])
+        master.run_command([
+            "ipa", "group-del", self.GROUP])
+
+    def test_005_sudorule_offline_caching_hostgroup_command(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "hostgroup-add", "--desc=testhostgroup",
+            self.HOST_GROUP
+        ])
+        master.run_command([
+            "ipa", "sudorule-remove-host", self.SUDO_RULE,
+            "--hosts=" + self.client.hostname
+        ])
+        master.run_command([
+            "ipa", "hostgroup-add-member", self.HOST_GROUP,
+            "--hosts=" + self.client.hostname
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-host", self.SUDO_RULE,
+            f"--hostgroup={self.HOST_GROUP}"
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-user", self.SUDO_RULE,
+            "--users", self.USER_1], raiseonerr=False
+        )
+        clear_sssd_cache(self.client)
+
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+        result = self.list_sudo_commands(self.USER_1)
+        assert "(root) NOPASSWD: /bin/date" in result.stdout_text
+
+        stop_ipa_server(master)
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(
+            self.USER_1, skip_kinit=True, skip_sssd_cache_clear=True
+        )
+        assert "(root) NOPASSWD: /bin/date" in result.stdout_text
+
+        start_ipa_server(master)
+        kinit_admin(master)
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command",
+            "--sudocmds=/bin/date", self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "sudorule-remove-host", self.SUDO_RULE,
+            f"--hostgroup={self.HOST_GROUP}"
+        ])
+        master.run_command([
+            "ipa", "hostgroup-remove-member", self.HOST_GROUP,
+            "--hosts=" + self.client.hostname
+        ])
+        master.run_command(["ipa", "hostgroup-del", self.HOST_GROUP])
+        master.run_command([
+            "ipa", "sudorule-add-host", self.SUDO_RULE,
+            f"--hosts=" + self.client.hostname
+        ])
+
+    def test_006_sudorule_offline_caching_group_command(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "sudorule-remove-user", self.SUDO_RULE,
+            "--users", self.USER_1], raiseonerr=False
+        )
+        master.run_command([
+            "ipa", "group-add", "--desc=testgroup", self.GROUP
+        ])
+        master.run_command([
+            "ipa", "group-add-member", self.GROUP,
+            "--users={}".format(self.USER_1)
+        ])
+        master.run_command([
+            "ipa", "sudorule-add-user", self.SUDO_RULE,
+            f"--groups={self.GROUP}"], raiseonerr=False
+        )
+        clear_sssd_cache(self.client)
+
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+        result = self.list_sudo_commands(self.USER_1)
+        assert "(root) NOPASSWD: /bin/date" in result.stdout_text
+
+        stop_ipa_server(master)
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+
+        result = self.list_sudo_commands(
+            self.USER_1, skip_kinit=True, skip_sssd_cache_clear=True
+        )
+        start_ipa_server(master)
+        kinit_admin(master)
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command",
+            "--sudocmds=/bin/date", self.SUDO_RULE
+        ])
+        master.run_command([
+            "ipa", "sudorule-remove-user", self.SUDO_RULE,
+            f"--groups={self.GROUP}"], raiseonerr=False
+        )
+        master.run_command([
+            "ipa", "sudorule-add-user", self.SUDO_RULE,
+            f"--users={self.USER_1}"], raiseonerr=False
+        )
+        master.run_command([
+            "ipa", "group-remove-member", self.GROUP,
+            "--users={}".format(self.USER_1)
+        ])
+        master.run_command([
+            "ipa", "group-del", self.GROUP])
+
+    def test_007_disable_sudorule_offline_caching(self):
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command([
+            "ipa", "sudorule-add-allow-command", "--sudocmds=/bin/date",
+            self.SUDO_RULE
+        ])
+        master.run_command(["ipa", "sudorule-disable", self.SUDO_RULE])
+        self.client.run_command(
+            'su -c "sudo -u root date" %s' % (self.USER_1),
+            raiseonerr=False)
+        result = self.list_sudo_commands(self.USER_1)
+        assert "(root) NOPASSWD: /bin/date" not in result.stdout_text
+
+        start_ipa_server(master)
+        kinit_admin(master)
+        master.run_command(["ipa", "sudorule-enable", self.SUDO_RULE])
+        master.run_command([
+            "ipa", "sudorule-remove-allow-command",
+            "--sudocmds=/bin/date", self.SUDO_RULE
+        ])
+
+
+class TestSudo_BugFunctional(IntegrationTest):
+    """
+    Sudo Bug Functional Tests converted from Bash to Pytest
+    """
+    num_clients = 1
+
+    @classmethod
+    def install(cls, mh):
+        super(TestSudo_BugFunctional, cls).install(mh)
+
+        extra_args = ["--idstart=60001", "--idmax=65000"]
+        install_master(cls.master, setup_dns=True, extra_args=extra_args)
+        install_client(cls.master, cls.clients[0])
+
+        cls.client = cls.clients[0]
+        cls.user_password = "Secret123!"
+        # Create basic users for tests
+        for i in range(1, 3):
+            username = f"user{i}"
+            create_active_user(
+                cls.master, username, password=cls.user_password
+            )
+
+    def test_bug769491(self):
+        """
+        Add certain sudo commands to groups, bz769491
+        https://bugzilla.redhat.com/show_bug.cgi?id=769491
+        """
+        master = self.master
+        kinit_admin(master)
+        cmd = "/bin/chown -R apache:developers /var/www/*/shared/log"
+
+        out = master.run_command(["ipa", "sudocmd-add", cmd]).stdout_text
+        assert "Added Sudo Command" in out
+
+        master.run_command(["ipa", "sudocmdgroup-add", "sudogrp1",
+                            "--desc=sudogrp1"])
+
+        out = master.run_command(
+            ["ipa", "sudocmdgroup-add-member", "sudogrp1", f"--sudocmds={cmd}"]
+        ).stdout_text
+        assert ("Member Sudo commands: /bin/chown -R apache:developers "
+                "/var/www/*/shared/log") in out
+        assert "Number of members added 1" in out
+
+        out = master.run_command(
+            ["ipa", "sudocmdgroup-show", "sudogrp1"]
+        ).stdout_text
+        assert "Sudo Command Group: sudogrp1" in out
+        assert ("Member Sudo commands: /bin/chown -R apache:developers "
+                "/var/www/*/shared/log") in out
+
+        out = master.run_command(
+            ["ipa", "sudocmdgroup-remove-member", "sudogrp1",
+             f"--sudocmds={cmd}"]
+        ).stdout_text
+        assert "Sudo Command Group: sudogrp1" in out
+        assert ("Member Sudo commands: /bin/chown -R apache:developers "
+                "/var/www/*/shared/log") not in out
+        assert "Number of members removed 1" in out
+
+        master.run_command(["ipa", "sudocmd-del", cmd])
+        master.run_command(["ipa", "sudocmdgroup-del", "sudogrp1"])
+
+    def test_bug741604(self):
+        """
+        Proper error when adding duplicate external members to sudo rule,
+        bz741604
+        """
+        master = self.master
+        kinit_admin(master)
+
+        master.run_command(["ipa", "sudorule-add", "741604rule"])
+
+        out = master.run_command(
+            ["ipa", "sudorule-add-user", "--users=user1", "--users=unknown",
+             "741604rule"]
+        ).stdout_text
+        assert "This entry is already a member" not in out
+
+        out = master.run_command(
+            ["ipa", "sudorule-add-user", "--users=user1", "--users=unknown",
+             "741604rule"],
+            raiseonerr=False,
+        ).stdout_text
+        assert "member user: user1: This entry is already a member" in out
+        assert "member user: unknown: This entry is already a member" in out
+        assert "no such entry" not in out
+
+        master.run_command(["ipa", "sudorule-del", "741604rule"])
+
+    def test_bug782976(self):
+        """
+        Users/groups should detect ALL and error appropriately, bz782976
+        """
+        master = self.master
+        kinit_admin(master)
+
+        out = master.run_command(
+            ["ipa", "sudorule-add", "bug782976", "--usercat=all"]
+        ).stdout_text
+        assert "User category: all" in out
+
+        out = master.run_command(
+            ["ipa", "sudorule-add-user", "bug782976", "--users=shanks"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: users cannot be added when user category='all'"
+                in out)
+
+        master.run_command(["ipa", "group-add", "group1", "--desc=group1"])
+        out = master.run_command(
+            ["ipa", "sudorule-add-user", "bug782976", "--groups=group1"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: users cannot be added when user category='all'"
+                in out)
+
+        master.run_command(["ipa", "sudorule-del", "bug782976"])
+        master.run_command(["ipa", "sudorule-add", "bug782976"])
+        master.run_command(
+            ["ipa", "sudorule-add-user", "bug782976", "--users=user1"]
+        )
+        out = master.run_command(
+            ["ipa", "sudorule-mod", "bug782976", "--usercat=all"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: user category cannot be set to 'all' "
+                "while there are allowed users") in out
+
+        master.run_command(["ipa", "sudorule-del", "bug782976"])
+        master.run_command(["ipa", "sudorule-add", "bug782976"])
+        master.run_command(
+            ["ipa", "sudorule-add-user", "bug782976", "--groups=group1"]
+        )
+        out = master.run_command(
+            ["ipa", "sudorule-mod", "bug782976", "--usercat=all"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: user category cannot be set to 'all' "
+                "while there are allowed users") in out
+
+        master.run_command(["ipa", "group-del", "group1"])
+        master.run_command(["ipa", "sudorule-del", "bug782976"])
+
+    def test_bug783286(self):
+        """
+        Setting HBAC SUDO category to anyone should remove users/groups,
+        bz783286
+        """
+        master = self.master
+        kinit_admin(master)
+
+        create_active_user(
+            self.master,
+            "pranav",
+            password=self.user_password,
+            first="pranav",
+            last="thube"
+        )
+
+        kinit_admin(master)
+        master.run_command(["ipa", "group-add", "group1", "--desc=group1"])
+        master.run_command(["ipa", "sudocmd-add", "/bin/ls"])
+
+        out = master.run_command(
+            ["ipa", "sudorule-add", "bug783286", "--usercat=all"]
+        ).stdout_text
+        assert "User category: all" in out
+
+        master.run_command(
+            ["ipa", "sudorule-add-host", "bug783286",
+             f"--hosts={master.hostname}"]
+        )
+
+        out = master.run_command(
+            ["ipa", "sudorule-add-user", "bug783286", "--users=pranav"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: users cannot be added when user category='all'"
+                in out)
+
+        out = master.run_command(
+            ["ipa", "sudorule-add-user", "bug783286", "--groups=group1"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: users cannot be added when user category='all'"
+                in out)
+
+        master.run_command(["ipa", "sudorule-del", "bug783286"])
+        master.run_command(["ipa", "sudorule-add", "bug783286"])
+        master.run_command(
+            ["ipa", "sudorule-add-user", "bug783286", "--users=pranav"],
+            raiseonerr=False,
+        )
+
+        out = master.run_command(
+            ["ipa", "sudorule-mod", "bug783286", "--usercat=all"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: user category cannot be set to 'all' "
+                "while there are allowed users") in out
+
+        master.run_command(["ipa", "sudorule-del", "bug783286"])
+        master.run_command(["ipa", "sudorule-add", "bug783286"])
+        master.run_command(
+            ["ipa", "sudorule-add-user", "bug783286", "--groups=group1"]
+        )
+
+        out = master.run_command(
+            ["ipa", "sudorule-mod", "bug783286", "--usercat=all"],
+            raiseonerr=False,
+        ).stderr_text
+        assert ("ipa: ERROR: user category cannot be set to 'all' "
+                "while there are allowed users") in out
+
+        # cleanup
+        master.run_command(["ipa", "group-del", "group1"])
+        master.run_command(["ipa", "user-del", "pranav"])
+        master.run_command(["ipa", "sudocmd-del", "/bin/ls"])
+        master.run_command(["ipa", "sudorule-del", "bug783286"])
+
+    def test_bug800537(self):
+        """
+        Remove sudo commands with special characters from command groups,
+        bz800537
+        """
+        master = self.master
+        kinit_admin(master)
+
+        for testcmd in ["/bin/ls /lost+found", "/bin/ls /tmp/test dir",
+                        "/bin/ls /bin/cp"]:
+            master.run_command(["ipa", "sudocmd-add", testcmd])
+            master.run_command(
+                ["ipa", "sudocmdgroup-add", "a-group", "--desc=test"]
+            )
+            master.run_command(
+                ["ipa", "sudocmdgroup-add-member", "a-group",
+                 f"--sudocmds={testcmd}"]
+            )
+            master.run_command(
+                ["ipa", "sudocmdgroup-remove-member", "a-group",
+                 f"--sudocmds={testcmd}"]
+            )
+            master.run_command(["ipa", "sudocmdgroup-del", "a-group"])
+            master.run_command(["ipa", "sudocmd-del", testcmd])
+
+    def test_bug800544(self):
+        """
+        Sudo commands are case insensitive, bz800544
+        """
+        master = self.master
+        kinit_admin(master)
+
+        for cmd in ["/usr/bin/X", "/usr/bin/x"]:
+            master.run_command(["ipa", "sudocmd-add", cmd])
+
+        master.run_command(["ipa", "sudocmdgroup-add", "group800544",
+                            "--desc=blabla"])
+        for cmd in ["/usr/bin/X", "/usr/bin/x"]:
+            master.run_command(
+                ["ipa", "sudocmdgroup-add-member", "group800544",
+                 f"--sudocmds={cmd}"]
+            )
+            master.run_command(
+                ["ipa", "sudocmdgroup-remove-member", "group800544",
+                 f"--sudocmds={cmd}"]
+            )
+
+        for cmd in ["/usr/bin/x", "/usr/bin/X"]:
+            master.run_command(["ipa", "sudocmd-del", cmd])
+
+        master.run_command(["ipa", "sudocmdgroup-del", "group800544"])
+
+    def test_bug912673(self):
+        """
+        Sudorule disable should remove rule from ou sudoers, bz912637
+        """
+        master = self.master
+        rule = "rule4bug912673"
+        kinit_admin(master)
+
+        master.run_command(["ipa", "sudorule-add", rule])
+        master.run_command(["ipa", "sudorule-show", rule])
+        result = ldapsearch_dm(
+            self.master,
+            f"cn={rule},ou=sudoers,{master.domain.basedn}",
+            ldap_args=[],
+            scope="base"
+        )
+        assert (f"cn={rule},ou=sudoers,{master.domain.basedn}" in
+                result.stdout_text), "ldap entry not found is not expected"
+
+        master.run_command(["ipa", "sudorule-disable", rule])
+        master.run_command(
+            ["ipa", "sudorule-show", rule], raiseonerr=False
+        )
+        result = ldapsearch_dm(
+            self.master,
+            f"cn={rule},ou=sudoers,{master.domain.basedn}",
+            ldap_args=[],
+            scope="base",
+            raiseonerr=False
+        )
+        assert "No such object (32)" in result.stderr_text, (
+            "found ldap entry via ldapsearch is not expected"
+        )
+
+        master.run_command(["ipa", "sudorule-enable", rule])
+        master.run_command(["ipa", "sudorule-show", rule])
+        result = ldapsearch_dm(
+            self.master,
+            f"cn={rule},ou=sudoers,{master.domain.basedn}",
+            ldap_args=[],
+            scope="base"
+        )
+        assert (f"cn={rule},ou=sudoers,{master.domain.basedn}" in
+                result.stdout_text), "ldap entry not found is not expected"
+
+    def test_bug837356(self):
+        """
+        Deleting command should not bring LDAP to inconsistent state, bz837356
+        """
+        master = self.master
+        rule = "rule4bz837356"
+        cmd = "/usr/bin/yum"
+
+        kinit_admin(master)
+
+        master.run_command(["ipa", "sudorule-add", rule])
+        master.run_command(["ipa", "sudorule-show", rule])
+        master.run_command(["ipa", "sudocmd-add", cmd])
+        master.run_command(
+            ["ipa", "sudorule-add-allow-command", rule, f"--sudocmds={cmd}"]
+        )
+        master.run_command(["ipa", "sudorule-show", rule, "--all", "--raw"])
+        # Try to delete command (should fail)
+        result = master.run_command(
+            ["ipa", "sudocmd-del", cmd],
+            raiseonerr=False
+        )
+        err_msg = (
+            f"{cmd} cannot be deleted because sudorule {rule} "
+            "requires it"
+        )
+        assert err_msg in result.stderr_text
+
+        master.run_command(["ipa", "sudorule-del", rule])
+        master.run_command(["ipa", "sudocmd-del", cmd])
