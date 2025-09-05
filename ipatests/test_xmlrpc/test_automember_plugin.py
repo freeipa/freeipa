@@ -35,8 +35,6 @@ from ipaserver.plugins.automember import REBUILD_TASK_CONTAINER
 
 import time
 import pytest
-import re
-from packaging.version import parse as parse_version
 
 try:
     from ipaserver.plugins.ldap2 import ldap2
@@ -1492,31 +1490,8 @@ class TestAutomemberFindOrphans(XMLRPC_test):
 
         hostgroup1.ensure_missing()
 
-        # Test rebuild (is failing)
-        # rebuild fails if 389-ds is older than 1.4.0.22 where unmembering
-        # feature was implemented: https://pagure.io/389-ds-base/issue/50077
-        if not have_ldap2:
-            pytest.skip('server plugin not available')
-        ldap = ldap2(api)
-        ldap.connect()
-        rootdse = ldap.get_entry(DN(''), ['vendorVersion'])
-        version = rootdse.single_value.get('vendorVersion')
-        # The format of vendorVersion is the following:
-        # 389-Directory/1.3.8.4 B2019.037.1535
-        # Extract everything between 389-Directory/ and ' B'
-        mo = re.search(r'389-Directory/(.*) B', version)
-        vendor_version = parse_version(mo.groups()[0])
-        expected_failure = vendor_version < parse_version('1.4.0.22')
-
-        try:
-            api.Command['automember_rebuild'](type=u'hostgroup')
-        except errors.DatabaseError:
-            rebuild_failure = True
-        else:
-            rebuild_failure = False
-        if expected_failure != rebuild_failure:
-            pytest.fail("unexpected result for automember_rebuild with "
-                        "an orphan automember rule")
+        # Rebuild with a missing hostgroup
+        api.Command['automember_rebuild'](type=u'hostgroup')
 
         # Find obsolete automember rules
         result = api.Command['automember_find_orphans'](type=u'hostgroup')
