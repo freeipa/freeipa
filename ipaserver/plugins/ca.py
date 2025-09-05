@@ -208,6 +208,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:  # pki v2 api
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
         if want_chain or full:
             try:
@@ -221,6 +224,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:  # pki v2 api
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
     return msg
 
@@ -353,7 +359,10 @@ class ca_del(LDAPDelete):
                 key=keys[0],
                 reason=_("IPA CA cannot be deleted"))
 
-        ca_id = self.api.Command.ca_show(keys[0])['result']['ipacaid'][0]
+        try:
+            ca_id = self.api.Command.ca_show(keys[0])['result']['ipacaid'][0]
+        except errors.NotFound:
+            return dn
         with self.api.Backend.ra_lightweight_ca as ca_api:
             data = ca_api.read_ca(ca_id)
             if data['enabled']:
