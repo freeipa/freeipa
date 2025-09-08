@@ -30,6 +30,8 @@ char *smb_xstrdup(const char *s);
 #include <smbldap.h>
 
 #include <gen_ndr/samr.h>
+#include <gen_ndr/drsblobs.h>
+#include <gen_ndr/ndr_drsblobs.h>
 
 #include <passdb.h>
 
@@ -101,7 +103,6 @@ struct unixid {
 	enum id_type type;
 }/* [public] */;
 
-enum ndr_err_code ndr_pull_trustAuthInOutBlob(struct ndr_pull *ndr, int ndr_flags, struct trustAuthInOutBlob *r); /*available in libndr-samba.so */
 bool sid_check_is_builtin(const struct dom_sid *sid); /* available in libpdb.so */
 /* available in libpdb.so, renamed from sid_check_is_domain() in c43505b621725c9a754f0ee98318d451b093f2ed */
 bool sid_linearize(char *outbuf, size_t len, const struct dom_sid *sid); /* available in libsmbconf.so */
@@ -2422,6 +2423,36 @@ static bool get_uint32_t_from_ldap_msg(struct ipasam_private *ipasam_state,
 	return true;
 }
 
+static bool repack_pdb_forest_trust_info(struct pdb_trusted_domain *td)
+{
+	struct ForestTrustInfo *fti = NULL;
+	enum ndr_err_code ndr_err = 0;
+	/*
+	 * Fix-up the version field as Samba expects it.
+	 * We need to unpack the blob, change, and pack it again
+	 */
+	fti = talloc(td, struct ForestTrustInfo);
+	if (fti == NULL) {
+	    return false;
+	}
+	ndr_err = ndr_pull_struct_blob_all(&td->trust_forest_trust_info, td, fti,
+					   (ndr_pull_flags_fn_t)ndr_pull_ForestTrustInfo);
+	if (!NDR_ERR_CODE_IS_SUCCESS(ndr_err)) {
+	    TALLOC_FREE(fti);
+	    return false;
+	}
+
+	fti->version = 1;
+
+	talloc_free(td->trust_forest_trust_info.data);
+	td->trust_forest_trust_info = data_blob_null;
+
+	ndr_err = ndr_push_struct_blob(&td->trust_forest_trust_info, td, fti,
+				       (ndr_push_flags_fn_t)ndr_push_ForestTrustInfo);
+	TALLOC_FREE(fti);
+	return NDR_ERR_CODE_IS_SUCCESS(ndr_err);
+}
+
 static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 				    struct ipasam_private *ipasam_state,
 				    LDAPMessage *entry,
@@ -2614,6 +2645,11 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					LDAP_ATTRIBUTE_TRUST_FOREST_TRUST_INFO,
 					&td->trust_forest_trust_info)) {
 		DEBUG(9, ("Failed to set forest trust info.\n"));
+	} else {
+		res = repack_pdb_forest_trust_info(td);
+		if (!res) {
+			return false;
+		}
 	}
 
 	*_td = td;
