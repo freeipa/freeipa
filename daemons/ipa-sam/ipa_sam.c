@@ -2594,10 +2594,10 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		TALLOC_FREE(td);
 		return false;
 	}
-	if (td->trust_attributes == 0) {
-		/* attribute wasn't present, this is a subdomain within the
-		 * parent forest */
-		td->trust_attributes = LSA_TRUST_ATTRIBUTE_WITHIN_FOREST;
+	if (td->trust_attributes == 0 && (td->domain_name != dns_domain)) {
+                /* attribute wasn't present and this is not a subdomain within
+                 * the parent forest */
+		td->trust_attributes = LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE;
 	}
 
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
