@@ -1658,6 +1658,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
 
     ftinfo.count = len(ftinfo_records)
     ftinfo.records = ftinfo_records
+    ftinfo.version = 1
     result['ftinfo_data'] = ndr_pack(ftinfo)
     return result
 
