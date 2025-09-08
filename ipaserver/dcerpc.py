@@ -1362,6 +1362,8 @@ class TrustDomainInstance:
         info.trust_attributes = 0
         if trust_external:
             info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
+        else:
+            info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
 
         try:
             dname = lsa.String()
