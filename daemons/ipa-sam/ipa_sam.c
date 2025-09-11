@@ -5380,12 +5380,14 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	return NT_STATUS_OK;
 }
 
+NTSTATUS samba_module_init(void);
 NTSTATUS samba_module_init(void)
 {
 	return smb_register_passdb(PASSDB_INTERFACE_VERSION, "ipasam",
 				   pdb_init_ipasam);
 }
 
+NTSTATUS samba_init_module(void);
 NTSTATUS samba_init_module(void)
 {
 	return smb_register_passdb(PASSDB_INTERFACE_VERSION, "ipasam",
