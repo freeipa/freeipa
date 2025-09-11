@@ -236,15 +236,13 @@ static void idmap_talloc_free(void *ptr, void *pvt)
 
 static void sid_copy(struct dom_sid *dst, const struct dom_sid *src)
 {
-	size_t c;
-
 	memset(dst, 0, sizeof(*dst));
 
 	dst->sid_rev_num = src->sid_rev_num;
 	dst->num_auths = src->num_auths;
 	memcpy(&dst->id_auth[0], &src->id_auth[0], sizeof(src->id_auth));
 
-	for (c = 0; c < src->num_auths; c++) {
+	for (int8_t c = 0; c < src->num_auths; c++) {
 		dst->sub_auths[c] = src->sub_auths[c];
 	}
 }
@@ -3249,7 +3247,6 @@ static NTSTATUS ipasam_enum_trusteddoms(struct pdb_methods *methods,
 {
 	NTSTATUS status;
 	struct pdb_trusted_domain **td;
-	int i;
 
 	status = ipasam_enum_trusted_domains(methods, mem_ctx,
 					     num_domains, &td);
@@ -3267,7 +3264,7 @@ static NTSTATUS ipasam_enum_trusteddoms(struct pdb_methods *methods,
 		goto fail;
 	}
 
-	for (i = 0; i < *num_domains; i++) {
+	for (uint32_t i = 0; i < *num_domains; i++) {
 		struct trustdom_info *dom_info;
 
 		dom_info = talloc(*domains, struct trustdom_info);
