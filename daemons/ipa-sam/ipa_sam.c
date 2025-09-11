@@ -2507,7 +2507,8 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 	rc = ldap_str2dn(strdn, &dn, LDAP_DN_FORMAT_LDAPV3);
 	if (rc) {
 		free(strdn);
-		return false;
+		res = false;
+		goto done;
 	}
 
 	for (count = 0; dn[count] != NULL; count++);
@@ -2519,8 +2520,8 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 			  strdn, ipasam_state->trust_dn));
 		ldap_dnfree(dn);
 		free(strdn);
-		TALLOC_FREE(td);
-		return false;
+		res = false;
+		goto done;
 
 	}
 
@@ -2543,7 +2544,8 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					       dummy, &sid);
 		TALLOC_FREE(dummy);
 		if (err != IDMAP_SUCCESS) {
-			return false;
+			res = false;
+			goto done;
 		}
 		sid_copy(&td->security_identifier, sid);
 		talloc_free(sid);
@@ -2583,16 +2585,14 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					 LDAP_ATTRIBUTE_TRUST_DIRECTION,
 					 &td->trust_direction);
 	if (!res) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_ATTRIBUTES,
 					 &td->trust_attributes);
 	if (!res) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 	if (td->trust_attributes == 0 && (td->domain_name != dns_domain)) {
                 /* attribute wasn't present and this is not a subdomain within
@@ -2604,8 +2604,7 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 					 LDAP_ATTRIBUTE_TRUST_TYPE,
 					 &td->trust_type);
 	if (!res) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 	if (td->trust_type == 0) {
 		/* attribute wasn't present, set default value */
@@ -2614,28 +2613,24 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 
 	td->trust_posix_offset = talloc_zero(td, uint32_t);
 	if (td->trust_posix_offset == NULL) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_TRUST_POSIX_OFFSET,
 					 td->trust_posix_offset);
 	if (!res) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 
 	td->supported_enc_type = talloc_zero(td, uint32_t);
 	if (td->supported_enc_type == NULL) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 	res = get_uint32_t_from_ldap_msg(ipasam_state, entry,
 					 LDAP_ATTRIBUTE_SUPPORTED_ENC_TYPE,
 					 td->supported_enc_type);
 	if (!res) {
-		TALLOC_FREE(td);
-		return false;
+		goto done;
 	}
 	if (*td->supported_enc_type == 0) {
 		*td->supported_enc_type = ipasam_state->supported_enctypes;
@@ -2647,14 +2642,15 @@ static bool fill_pdb_trusted_domain(TALLOC_CTX *mem_ctx,
 		DEBUG(9, ("Failed to set forest trust info.\n"));
 	} else {
 		res = repack_pdb_forest_trust_info(td);
-		if (!res) {
-			return false;
-		}
 	}
 
-	*_td = td;
-
-	return true;
+done:
+	if (res) {
+		*_td = td;
+	} else {
+		TALLOC_FREE(td);
+	}
+	return res;
 }
 
 static NTSTATUS ipasam_get_trusted_domain(struct pdb_methods *methods,
