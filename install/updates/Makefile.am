@@ -51,7 +51,6 @@ app_DATA =				\
 	50-dogtag10-migration.update	\
 	50-groupuuid.update		\
 	50-hbacservice.update		\
-	50-krbenctypes.update		\
 	50-ipaconfig.update		\
 	55-pbacmemberof.update		\
 	59-trusts-sysacount.update	\

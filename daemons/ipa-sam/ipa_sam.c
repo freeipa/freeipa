@@ -169,6 +169,7 @@ struct ipasam_private {
 	struct sss_idmap_ctx *idmap_ctx;
 	uint32_t supported_enctypes;
 	bool fips_enabled;
+	krb5_context kcontext;
 };
 
 
@@ -4460,80 +4461,17 @@ static NTSTATUS ipasam_get_domain_name(struct ipasam_private *ipasam_state,
 static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 				    uint32_t *enctypes)
 {
-	int ret;
-	LDAPMessage *result;
-	LDAPMessage *entry = NULL;
-	LDAP *ld = NULL;
-	int count, i;
-	char **enctype_list, *dn;
-	krb5_enctype enctype;
+	krb5_enctype *e, *permitted_enctypes = NULL;
 	krb5_error_code err;
-	struct smbldap_state *ldap_state = ipasam_state->ldap_state;
-	const char *attr_list[] = {
-					"krbDefaultEncSaltTypes",
-					NULL
-				  };
+	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
 
-	dn = talloc_asprintf(ipasam_state, "cn=%s,cn=kerberos,%s",
-			     ipasam_state->realm,
-			     ipasam_state->base_dn);
-
-	if (dn == NULL) {
-		DEBUG(1, ("Failed to construct DN to the realm's kerberos container\n"));
-		return NT_STATUS_UNSUCCESSFUL;
-	}
-
-	ret = smbldap_search(ldap_state, dn, LDAP_SCOPE_BASE,
-			     "objectclass=krbrealmcontainer", attr_list, 0,
-			     &result);
-	if (ret != LDAP_SUCCESS) {
-		DEBUG(1, ("Failed to get kerberos realm encryption types: %s\n",
-			  ldap_err2string (ret)));
-		talloc_free(dn);
-		return NT_STATUS_UNSUCCESSFUL;
-	}
-
-	ld = _smbldap_get_ldap(ldap_state);
-	count = ldap_count_entries(ld, result);
-
-	if (count != 1) {
-		DEBUG(1, ("Unexpected number of results [%d] for realm "
-			  "search.\n", count));
-		ldap_msgfree(result);
-		talloc_free(dn);
-		return NT_STATUS_UNSUCCESSFUL;
-	}
-
-	entry = ldap_first_entry(ld, result);
-	if (entry == NULL) {
-		DEBUG(0, ("Could not get krbrealmcontainer entry\n"));
-		ldap_msgfree(result);
-		talloc_free(dn);
-		return NT_STATUS_UNSUCCESSFUL;
-	}
-
-	enctype_list = get_attribute_values(dn, ld, entry,
-					    "krbDefaultEncSaltTypes", &count);
-	ldap_msgfree(result);
-	if (enctype_list == NULL) {
-		talloc_free(dn);
-		return NT_STATUS_UNSUCCESSFUL;
-	}
+	err = krb5_get_permitted_enctypes(ipasam_state->kcontext,
+					  &permitted_enctypes);
+	if (err) goto end;
 
 	*enctypes = 0;
-	for (i = 0; i < count ; i++) {
-		char *enc = strchr(enctype_list[i], ':');
-		if (enc != NULL) {
-			*enc = '\0';
-		}
-		err = krb5_string_to_enctype(enctype_list[i], &enctype);
-		if (enc != NULL) {
-			*enc = ':';
-		}
-		if (err) {
-			continue;
-		}
-		switch (enctype) {
+	for (e = permitted_enctypes; *e; ++e) {
+		switch (*e) {
 			case ENCTYPE_DES_CBC_CRC:
 				*enctypes |= KERB_ENCTYPE_DES_CBC_CRC;
 				break;
@@ -4541,9 +4479,7 @@ static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 				*enctypes |= KERB_ENCTYPE_DES_CBC_MD5;
 				break;
 			case ENCTYPE_ARCFOUR_HMAC:
-				if (!ipasam_state->fips_enabled) {
-					*enctypes |= KERB_ENCTYPE_RC4_HMAC_MD5;
-				}
+				*enctypes |= KERB_ENCTYPE_RC4_HMAC_MD5;
 				break;
 			case ENCTYPE_AES128_CTS_HMAC_SHA1_96:
 				*enctypes |= KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96;
@@ -4556,8 +4492,11 @@ static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 		}
 	}
 
-	talloc_free(dn);
-	return NT_STATUS_OK;
+	status = NT_STATUS_OK;
+
+end:
+	krb5_free_enctypes(ipasam_state->kcontext, permitted_enctypes);
+	return status;
 }
 
 static NTSTATUS ipasam_get_realm(struct ipasam_private *ipasam_state,
@@ -4873,7 +4812,6 @@ static void bind_callback_cleanup(struct ipasam_sasl_interact_priv *datap, krb5_
 		datap->principal = NULL;
 	}
 
-	krb5_free_context(datap->context);
 	datap->context = NULL;
 }
 
@@ -4918,11 +4856,7 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 
 	data.name = ipasam_state->client_princ;
 	data.name_len = strlen(data.name);
-
-	rc = krb5_init_context(&data.context);
-	if (rc) {
-		return LDAP_LOCAL_ERROR;
-	}
+	data.context = ipasam_state->kcontext;
 
 	rc = krb5_parse_name(data.context, data.name, &data.principal);
 	if (rc) {
@@ -5022,17 +4956,11 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) {
 
 	krb5_error_code rc;
-	krb5_context context;
 	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
 	const char *hostname;
 	char *default_realm = NULL;
 
 	if (!ipasam_state) {
-		return status;
-	}
-
-	rc = krb5_init_context(&context);
-	if (rc) {
 		return status;
 	}
 
@@ -5042,7 +4970,7 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) 
 		goto done;
 	}
 
-	rc = krb5_get_default_realm(context, &default_realm);
+	rc = krb5_get_default_realm(ipasam_state->kcontext, &default_realm);
 	if (rc) {
 		goto done;
 	};
@@ -5084,11 +5012,7 @@ static NTSTATUS ipasam_generate_principals(struct ipasam_private *ipasam_state) 
 done:
 
 	if (default_realm) {
-		krb5_free_default_realm(context, default_realm);
-	}
-
-	if (context) {
-		krb5_free_context(context);
+		krb5_free_default_realm(ipasam_state->kcontext, default_realm);
 	}
 	return status;
 }
@@ -5096,10 +5020,10 @@ done:
 static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				const char *location)
 {
-	struct ipasam_private *ipasam_state;
+	struct ipasam_private *ipasam_state = NULL;
 
 	char *uri;
-	NTSTATUS status;
+	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
 	char *dn = NULL;
 	char *domain_sid_string = NULL;
 	struct dom_sid *ldap_domain_sid = NULL;
@@ -5109,23 +5033,32 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	LDAPMessage *result = NULL;
 	LDAPMessage *entry = NULL;
 	enum idmap_error_code err;
+	krb5_error_code kerr;
 	uint32_t enctypes = 0;
 
 	status = make_pdb_method(pdb_method);
 	if (!NT_STATUS_IS_OK(status)) {
-		return status;
+		goto done;
 	}
 
 	(*pdb_method)->name = "ipasam";
 
 	if ( !(ipasam_state = talloc_zero(*pdb_method, struct ipasam_private)) ) {
 		DEBUG(0, ("pdb_init_ipasam: talloc() failed for ipasam private_data!\n"));
-		return NT_STATUS_NO_MEMORY;
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
+	}
+
+	kerr = krb5_init_context(&ipasam_state->kcontext);
+	if (kerr) {
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
 	}
 
 	uri = talloc_strdup(ipasam_state, location );
 	if (uri == NULL) {
-		return NT_STATUS_NO_MEMORY;
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
 	}
 	trim_string( uri, "\"", "\"" );
 
@@ -5133,7 +5066,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to generate kerberos principal for LDAP authentication.\n"));
-		return status;
+		goto done;
 	} else {
 		/* We authenticate via GSSAPI and thus will use kerberos principal to bind our access */
 		status = smbldap_init(*pdb_method, pdb_get_tevent_context(),
@@ -5151,7 +5084,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 
 	talloc_free(uri);
 	if (!NT_STATUS_IS_OK(status)) {
-		return status;
+		goto done;
 	}
 
 	(*pdb_method)->private_data = ipasam_state;
@@ -5162,13 +5095,14 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				    &ipasam_state->base_dn);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get base DN.\n"));
-		return status;
+		goto done;
 	}
 
 	if (!(smbldap_has_extension(priv2ld(ipasam_state), IPA_KEYTAB_SET_OID) ||
 	      smbldap_has_extension(priv2ld(ipasam_state), IPA_KEYTAB_SET_OID_OLD))) {
 		DEBUG(0, ("Server is not an IPA server.\n"));
-		return NT_STATUS_INVALID_PARAMETER;
+		status = NT_STATUS_INVALID_PARAMETER;
+		goto done;
 	}
 
 	ipasam_state->fips_enabled = ipapwd_fips_enabled();
@@ -5177,21 +5111,22 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 						 ipasam_state->base_dn);
 	if (ipasam_state->trust_dn == NULL) {
 		DEBUG(0, ("Failed to create trsut DN.\n"));
-		return NT_STATUS_NO_MEMORY;
+		status = NT_STATUS_NO_MEMORY;
+		goto done;
 	}
 
 	status = ipasam_get_domain_name(ipasam_state, ipasam_state,
 					(char**) &ipasam_state->domain_name);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get domain name.\n"));
-		return status;
+		goto done;
 	}
 
 	status = ipasam_get_realm(ipasam_state,
 				  &ipasam_state->realm);
 	if (!NT_STATUS_IS_OK(status)) {
 		DEBUG(0, ("Failed to get realm.\n"));
-		return status;
+		goto done;
 	}
 
 	status = ipasam_search_domain_info(ipasam_state->ldap_state, &result);
@@ -5200,7 +5135,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		DEBUG(0, ("pdb_init_ldapsam: WARNING: Could not get domain "
 			  "info, nor add one to the domain. "
 			  "We cannot work reliably without it.\n"));
-		return NT_STATUS_CANT_ACCESS_DOMAIN_INFO;
+		status = NT_STATUS_CANT_ACCESS_DOMAIN_INFO;
+		goto done;
 	}
 
 	entry = ldap_first_entry(priv2ld(ipasam_state), result);
@@ -5208,13 +5144,15 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		DEBUG(0, ("pdb_init_ipasam: Could not get domain info "
 			  "entry\n"));
 		ldap_msgfree(result);
-		return NT_STATUS_UNSUCCESSFUL;
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
 	}
 
 	dn = get_dn(ipasam_state, priv2ld(ipasam_state), entry);
 	if (dn == NULL) {
 		ldap_msgfree(result);
-		return NT_STATUS_UNSUCCESSFUL;
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
 	}
 
 	ipasam_state->domain_dn = smb_xstrdup(dn);
@@ -5228,7 +5166,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		DEBUG(0, ("Missing mandatory attribute %s.\n",
 			  LDAP_ATTRIBUTE_FLAT_NAME));
 		ldap_msgfree(result);
-		return NT_STATUS_INVALID_PARAMETER;
+		status = NT_STATUS_INVALID_PARAMETER;
+		goto done;
 	}
 
 	err = sss_idmap_init(idmap_talloc, ipasam_state,
@@ -5237,7 +5176,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	if (err != IDMAP_SUCCESS) {
 		DEBUG(1, ("Failed to setup idmap context.\n"));
 		ldap_msgfree(result);
-		return NT_STATUS_UNSUCCESSFUL;
+		status = NT_STATUS_UNSUCCESSFUL;
+		goto done;
 	}
 
 	fallback_group_sid = get_fallback_group_sid(ipasam_state,
@@ -5248,7 +5188,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	if (fallback_group_sid == NULL) {
 		DEBUG(0, ("Cannot find SID of fallback group.\n"));
 		ldap_msgfree(result);
-		return NT_STATUS_INVALID_PARAMETER;
+		status = NT_STATUS_INVALID_PARAMETER;
+		goto done;
 	}
 	sid_copy(&ipasam_state->fallback_primary_group, fallback_group_sid);
 	talloc_free(fallback_group_sid);
@@ -5256,7 +5197,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	if (fallback_group_gid_str == NULL) {
 		DEBUG(0, ("Cannot find gidNumber of fallback group.\n"));
 		ldap_msgfree(result);
-		return NT_STATUS_INVALID_PARAMETER;
+		status = NT_STATUS_INVALID_PARAMETER;
+		goto done;
 	}
 	ipasam_state->fallback_primary_group_gid_str = fallback_group_gid_str;
 
@@ -5274,7 +5216,8 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 				  "read as a valid SID\n", domain_sid_string));
 			ldap_msgfree(result);
 			TALLOC_FREE(domain_sid_string);
-			return NT_STATUS_INVALID_PARAMETER;
+			status = NT_STATUS_INVALID_PARAMETER;
+			goto done;
 		}
 		sid_copy(&ipasam_state->domain_sid, ldap_domain_sid);
 		talloc_free(ldap_domain_sid);
@@ -5283,7 +5226,7 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		status = save_sid_to_secret(ipasam_state);
 		if (!NT_STATUS_IS_OK(status)) {
 			ldap_msgfree(result);
-			return status;
+			goto done;
 		}
 	}
 
@@ -5337,7 +5280,14 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 		  "enabled for domain %s\n", ipasam_state->domain_name));
 #endif
 
-	return NT_STATUS_OK;
+	status = NT_STATUS_OK;
+
+done:
+	if (!NT_STATUS_IS_OK(status) && ipasam_state) {
+		krb5_free_context(ipasam_state->kcontext);
+	}
+
+	return status;
 }
 
 NTSTATUS samba_module_init(void);
