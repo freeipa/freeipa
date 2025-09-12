@@ -1016,9 +1016,9 @@ int main(int argc, const char *argv[])
 			fprintf(stderr, _("No system preferred enctypes ?!\n"));
 			exit(1);
 		}
-		fprintf(stdout, _("Supported encryption types:\n"));
 		for (i = 0; ktypes[i]; i++) {
-			krberr = krb5_enctype_to_string(ktypes[i], enc, 79);
+			krberr = krb5_enctype_to_name(ktypes[i], false, enc,
+						      79);
 			if (krberr) {
 				fprintf(stderr, _("Warning: "
                                         "failed to convert type (#%d)\n"), i);
