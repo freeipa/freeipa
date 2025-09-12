@@ -1362,6 +1362,8 @@ class TrustDomainInstance:
         info.trust_attributes = 0
         if trust_external:
             info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
+        else:
+            info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
 
         try:
             dname = lsa.String()
@@ -1658,6 +1660,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
 
     ftinfo.count = len(ftinfo_records)
     ftinfo.records = ftinfo_records
+    ftinfo.version = 1
     result['ftinfo_data'] = ndr_pack(ftinfo)
     return result
 
