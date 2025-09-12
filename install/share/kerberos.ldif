@@ -14,9 +14,25 @@ objectClass: krbrealmcontainer
 objectClass: krbticketpolicyaux
 krbSubTrees: $SUFFIX
 krbSearchScope: 2
+krbSupportedEncSaltTypes: aes256-cts:normal
+krbSupportedEncSaltTypes: aes256-cts:special
+krbSupportedEncSaltTypes: aes128-cts:normal
+krbSupportedEncSaltTypes: aes128-cts:special
+krbSupportedEncSaltTypes: aes128-sha2:normal
+krbSupportedEncSaltTypes: aes128-sha2:special
+krbSupportedEncSaltTypes: aes256-sha2:normal
+krbSupportedEncSaltTypes: aes256-sha2:special
+${FIPS}krbSupportedEncSaltTypes: camellia128-cts-cmac:normal
+${FIPS}krbSupportedEncSaltTypes: camellia128-cts-cmac:special
+${FIPS}krbSupportedEncSaltTypes: camellia256-cts-cmac:normal
+${FIPS}krbSupportedEncSaltTypes: camellia256-cts-cmac:special
 krbMaxTicketLife: 86400
 krbMaxRenewableAge: 604800
-${LDIF_SUPPORTED_ENCTYPES}${LDIF_DEFAULT_ENCTYPES}
+krbDefaultEncSaltTypes: aes256-sha2:special
+krbDefaultEncSaltTypes: aes128-sha2:special
+krbDefaultEncSaltTypes: aes256-cts:special
+krbDefaultEncSaltTypes: aes128-cts:special
+
 # Default password Policy
 dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
 changetype: add
