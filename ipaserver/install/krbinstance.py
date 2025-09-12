@@ -56,6 +56,14 @@ from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
 
+MASTER_KEY_TYPE = 'aes256-sha2'
+SUPPORTED_ENCTYPES = ('aes256-sha2:special', 'aes128-sha2:special',
+                      'aes256-sha2:normal', 'aes128-sha2:normal',
+                      'aes256-cts:special', 'aes128-cts:special',
+                      'aes256-cts:normal', 'aes128-cts:normal',
+                      'camellia256-cts:special', 'camellia128-cts:special',
+                      'camellia256-cts:normal', 'camellia128-cts:normal')
+
 
 def get_pkinit_request_ca():
     """
@@ -295,18 +303,15 @@ class KrbInstance(service.Service):
                              INCLUDES=includes,
                              FIPS='#' if fips_enabled else '')
 
-        supported_enctypes = tasks.get_supported_enctypes()
-        str_supported_enctypes = ' '.join(supported_enctypes)
-        ldif_supported_enctypes = ''.join(f'krbSupportedEncSaltTypes: {e}\n'
-                                          for e in supported_enctypes)
-        ldif_default_enctypes = ''.join(f'krbDefaultEncSaltTypes: {e}\n'
-                                        for e in tasks.get_default_enctypes())
+        if fips_enabled:
+            supported_enctypes = list(
+                filter(lambda e: not e.startswith('camellia'),
+                       SUPPORTED_ENCTYPES))
+        else:
+            supported_enctypes = SUPPORTED_ENCTYPES
+        self.sub_dict['SUPPORTED_ENCTYPES'] = ' '.join(supported_enctypes)
 
-        self.sub_dict['SUPPORTED_ENCTYPES'] = str_supported_enctypes
-        self.sub_dict['LDIF_SUPPORTED_ENCTYPES'] = ldif_supported_enctypes
-        self.sub_dict['LDIF_DEFAULT_ENCTYPES'] = ldif_default_enctypes
-
-        self.sub_dict['MASTER_KEY_TYPE'] = tasks.get_masterkey_enctype()
+        self.sub_dict['MASTER_KEY_TYPE'] = MASTER_KEY_TYPE
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified
