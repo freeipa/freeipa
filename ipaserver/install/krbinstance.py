@@ -56,14 +56,6 @@ from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
 
-MASTER_KEY_TYPE = 'aes256-sha2'
-SUPPORTED_ENCTYPES = ('aes256-sha2:special', 'aes128-sha2:special',
-                      'aes256-sha2:normal', 'aes128-sha2:normal',
-                      'aes256-cts:special', 'aes128-cts:special',
-                      'aes256-cts:normal', 'aes128-cts:normal',
-                      'camellia256-cts:special', 'camellia128-cts:special',
-                      'camellia256-cts:normal', 'camellia128-cts:normal')
-
 
 def get_pkinit_request_ca():
     """
@@ -92,6 +84,20 @@ def is_pkinit_enabled():
             return True
 
     return False
+
+
+def get_krb_key_types():
+    result = ipautil.run([paths.IPA_GETKEYTAB, '--permitted-enctypes'],
+                         capture_output=True)
+    permitted_enctypes = result.output.splitlines()
+    if not permitted_enctypes:
+        raise EnvironmentError('ipa-getkeytab provided no permitted '
+                               'encryption types')
+
+    supported_enctypes = [e + ':' + s for e in permitted_enctypes
+                          for s in ['special', 'normal']]
+
+    return (permitted_enctypes[0], ' '.join(supported_enctypes))
 
 
 class KpasswdInstance(service.SimpleServiceInstance):
@@ -303,15 +309,10 @@ class KrbInstance(service.Service):
                              INCLUDES=includes,
                              FIPS='#' if fips_enabled else '')
 
-        if fips_enabled:
-            supported_enctypes = list(
-                filter(lambda e: not e.startswith('camellia'),
-                       SUPPORTED_ENCTYPES))
-        else:
-            supported_enctypes = SUPPORTED_ENCTYPES
-        self.sub_dict['SUPPORTED_ENCTYPES'] = ' '.join(supported_enctypes)
+        mkey_type, supported_key_types = get_krb_key_types()
 
-        self.sub_dict['MASTER_KEY_TYPE'] = MASTER_KEY_TYPE
+        self.sub_dict['SUPPORTED_ENCTYPES'] = supported_key_types
+        self.sub_dict['MASTER_KEY_TYPE'] = mkey_type
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified

@@ -41,7 +41,6 @@ from ipalib import api, create_api
 from ipalib import constants
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
-from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipaserver.install import installutils, replication
 
@@ -82,7 +81,6 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         HOST=fqdn,
         LIBARCH=paths.LIBARCH,
         TIME=int(time.time()),
-        FIPS="#" if tasks.is_fips_enabled() else "",
         # idstart, idmax, and idrange_size may be None
         IDSTART=idstart,
         IDMAX=idmax,

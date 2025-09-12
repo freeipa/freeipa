@@ -389,66 +389,10 @@ ipadb_get_global_config(struct ipadb_context *ipactx)
     return &ipactx->config;
 }
 
-int ipadb_get_enc_salt_types(struct ipadb_context *ipactx,
-                             LDAPMessage *entry, char *attr,
-                             krb5_key_salt_tuple **enc_salt_types,
-                             int *n_enc_salt_types)
-{
-    struct berval **vals = NULL;
-    char **cvals = NULL;
-    int c = 0;
-    int i;
-    int ret = 0;
-    krb5_key_salt_tuple *kst;
-    int n_kst;
-
-    vals = ldap_get_values_len(ipactx->lcontext, entry, attr);
-    if (!vals || !vals[0]) {
-        goto done;
-    }
-
-    for (c = 0; vals[c]; c++) /* count */ ;
-    cvals = calloc(c, sizeof(char *));
-    if (!cvals) {
-        ret = ENOMEM;
-        goto done;
-    }
-    for (i = 0; i < c; i++) {
-        cvals[i] = strndup(vals[i]->bv_val, vals[i]->bv_len);
-        if (!cvals[i]) {
-            ret = ENOMEM;
-            goto done;
-        }
-    }
-
-    ret = parse_bval_key_salt_tuples(ipactx->kcontext,
-                                     (const char * const *)cvals, c,
-                                     &kst, &n_kst);
-    if (ret) {
-        goto done;
-    }
-
-    if (*enc_salt_types) {
-        free(*enc_salt_types);
-    }
-
-    *enc_salt_types = kst;
-    *n_enc_salt_types = n_kst;
-
-done:
-    ldap_value_free_len(vals);
-    for (i = 0; i < c && cvals[i]; i++) {
-        free(cvals[i]);
-    }
-    free(cvals);
-    return ret;
-}
-
 int ipadb_get_connection(struct ipadb_context *ipactx)
 {
     struct timeval tv = { 5, 0 };
     LDAPMessage *res = NULL;
-    LDAPMessage *first;
     const char *stmsg;
     int ret;
     int v3;
@@ -489,36 +433,6 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
                            NULL, "EXTERNAL",
                            NULL, NULL, NULL, NULL);
     if (ret != LDAP_SUCCESS) {
-        goto done;
-    }
-
-    /* TODO: search rootdse */
-
-    ret = ipadb_simple_search(ipactx,
-                              ipactx->realm_base, LDAP_SCOPE_BASE,
-                              "(objectclass=*)", NULL, &res);
-    if (ret) {
-        goto done;
-    }
-
-    first = ldap_first_entry(ipactx->lcontext, res);
-    if (!first) {
-        goto done;
-    }
-
-    /* defaults first, this is used to tell what default enc:salts to use
-     * for kadmin password changes */
-    ret = ipadb_get_enc_salt_types(ipactx, first,  "krbDefaultEncSaltTypes",
-                                   &ipactx->def_encs, &ipactx->n_def_encs);
-    if (ret) {
-        goto done;
-    }
-
-    /* supported enc salt types, use to tell kadmin what to accept
-     * but also to detect if kadmin is requesting the default set */
-    ret = ipadb_get_enc_salt_types(ipactx, first, "krbSupportedEncSaltTypes",
-                                   &ipactx->supp_encs, &ipactx->n_supp_encs);
-    if (ret) {
         goto done;
     }
 
@@ -607,8 +521,9 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
                                          char **db_args, int mode)
 {
     struct ipadb_context *ipactx;
+    char *default_types = NULL, *supported_types = NULL;
     krb5_error_code kerr;
-    int ret;
+    int ret = EINVAL;
     int i;
 
     /* make sure the context is freed to avoid leaking it */
@@ -632,7 +547,7 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
             krb5_set_error_message(kcontext, EINVAL,
                                    "Plugin requires -update argument!");
             ret = EINVAL;
-            goto fail;
+            goto end;
         }
     }
 
@@ -641,44 +556,78 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
     kerr = krb5_get_default_realm(kcontext, &ipactx->realm);
     if (kerr != 0) {
         ret = EINVAL;
-        goto fail;
+        goto end;
     }
+
+    /* defaults first, this is used to tell what default enc:salts to use
+     * for kadmin password changes */
+    kerr = ipa_get_default_types(kcontext, &ipactx->def_encs,
+                                 &ipactx->n_def_encs);
+    if (kerr) {
+        ret = EINVAL;
+        goto end;
+    }
+
+    kerr = ipa_kstuples_to_string(ipactx->def_encs, ipactx->n_def_encs, ' ',
+                                  &default_types, NULL);
+    if (kerr) {
+        ret = ENOMEM;
+        goto end;
+    }
+    krb5_klog_syslog(LOG_INFO, "Default key types = %s", default_types);
+
+    /* supported enc salt types, use to tell kadmin what to accept
+     * but also to detect if kadmin is requesting the default set */
+    kerr = ipa_get_supported_types(kcontext, &ipactx->supp_encs,
+                                   &ipactx->n_supp_encs);
+    if (kerr) {
+        ret = EINVAL;
+        goto end;
+    }
+
+    kerr = ipa_kstuples_to_string(ipactx->supp_encs, ipactx->n_supp_encs, ' ',
+                                  &supported_types, NULL);
+    if (kerr) {
+        ret = ENOMEM;
+        goto end;
+    }
+    krb5_klog_syslog(LOG_INFO, "Supported key types = %s", supported_types);
 
     ipactx->uri = ipadb_realm_to_ldapi_uri(ipactx->realm);
     if (!ipactx->uri) {
         ret = ENOMEM;
-        goto fail;
+        goto end;
     }
 
     ipactx->local_tgs = ipadb_create_local_tgs(kcontext, ipactx);
     if (!ipactx->local_tgs) {
         ret = ENOMEM;
-        goto fail;
+        goto end;
     }
 
     ipactx->base = ipadb_get_base_from_realm(kcontext);
     if (!ipactx->base) {
         ret = ENOMEM;
-        goto fail;
+        goto end;
     }
 
     ret = asprintf(&ipactx->realm_base, "cn=%s,cn=kerberos,%s",
                                         ipactx->realm, ipactx->base);
     if (ret == -1) {
         ret = ENOMEM;
-        goto fail;
+        goto end;
     }
 
     ret = asprintf(&ipactx->accounts_base, "cn=accounts,%s", ipactx->base);
     if (ret == -1) {
         ret = ENOMEM;
-        goto fail;
+        goto end;
     }
 
     ipactx->kdc_hostname = ipa_gethostfqdn();
     if (!ipactx->kdc_hostname) {
         ret = errno;
-        goto fail;
+        goto end;
     }
 
     ipactx->optional_pac_tkt_chksum = IPADB_TRISTATE_UNDEFINED;
@@ -693,14 +642,19 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
     kerr = krb5_db_set_context(kcontext, ipactx);
     if (kerr != 0) {
         ret = EACCES;
-        goto fail;
+        goto end;
     }
 
+    ret = 0;
 
-    return 0;
+end:
+    if (ret) {
+        ipadb_context_free(kcontext, &ipactx);
+    }
 
-fail:
-    ipadb_context_free(kcontext, &ipactx);
+    free(default_types);
+    free(supported_types);
+
     return ret;
 }
 
