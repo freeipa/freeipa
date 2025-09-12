@@ -54,9 +54,6 @@ UPDATES_DIR=paths.UPDATES_DIR
 UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
 
 
-def ldif_mod(op, attr, values):
-    return ''.join(f'{op}: {attr}: {v}\n' for v in values)
-
 def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
     """LDAP template substitution dict for installer and updater
     """
@@ -76,15 +73,6 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         named_uid = None
         named_gid = None
 
-    add_supported_enctypes = ldif_mod('add', 'krbSupportedEncSaltTypes',
-                                      tasks.get_supported_enctypes())
-    add_default_enctypes = ldif_mod('add', 'krbDefaultEncSaltTypes',
-                                    tasks.get_default_enctypes())
-    rm_supported_enctypes = ldif_mod('remove', 'krbSupportedEncSaltTypes',
-                                     tasks.get_removed_supported_enctypes())
-    rm_default_enctypes = ldif_mod('remove', 'krbDefaultEncSaltTypes',
-                                   tasks.get_removed_default_enctypes())
-
     return dict(
         REALM=realm,
         DOMAIN=domain,
@@ -94,10 +82,7 @@ def get_sub_dict(realm, domain, suffix, fqdn, idstart=None, idmax=None):
         HOST=fqdn,
         LIBARCH=paths.LIBARCH,
         TIME=int(time.time()),
-        ADD_SUPPORTED_ENCTYPES=add_supported_enctypes,
-        ADD_DEFAULT_ENCTYPES=add_default_enctypes,
-        REMOVE_SUPPORTED_ENCTYPES=rm_supported_enctypes,
-        REMOVE_DEFAULT_ENCTYPES=rm_default_enctypes,
+        FIPS="#" if tasks.is_fips_enabled() else "",
         # idstart, idmax, and idrange_size may be None
         IDSTART=idstart,
         IDMAX=idmax,
