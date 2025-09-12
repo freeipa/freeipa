@@ -913,6 +913,9 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             break;
         }
 
+        kerr = ipa_sort_keys(kcontext, res_key_data, (size_t)result);
+        if (kerr) goto done;
+
         entry->key_data = res_key_data;
         entry->n_key_data = result;
         if (mkvno) {
@@ -2337,17 +2340,9 @@ static krb5_error_code ipadb_get_mkvno_from_tl_data(krb5_tl_data *tl_data,
     return 0;
 }
 
-static int desc_key_data(const void *a, const void *b)
-{
-    const krb5_key_data *ka = a;
-    const krb5_key_data *kb = b;
-
-    return ka->key_data_kvno != kb->key_data_kvno
-        ? kb->key_data_kvno - ka->key_data_kvno
-        : kb->key_data_type[0] - ka->key_data_type[0];
-}
-
-static krb5_error_code ipadb_get_ldap_mod_key_data(struct ipadb_mods *imods,
+static krb5_error_code ipadb_get_ldap_mod_key_data(krb5_context kctx,
+                                                   krb5_principal princ,
+                                                   struct ipadb_mods *imods,
                                                    krb5_key_data *key_data,
                                                    int n_key_data, int mkvno,
                                                    int mod_op)
@@ -2382,8 +2377,11 @@ static krb5_error_code ipadb_get_ldap_mod_key_data(struct ipadb_mods *imods,
 
     memcpy(kvno_kdata, key_data, n_key_data * sizeof(*kvno_kdata));
 
-    /* Make sure the key list is sorted by KVNO and enctype. */
-    qsort(kvno_kdata, n_key_data, sizeof(*kvno_kdata), desc_key_data);
+    /* Make sure the key list is filtered and sorted by KVNO, enctype, and
+     * salt. */
+    kerr = ipa_sort_and_filter_keys_i(kctx, kvno_kdata, &n_key_data,
+                                      ipa_is_cifs_princ(kctx, princ));
+    if (kerr) goto done;
 
     /* Count number of distinct KVNOs. */
     for (i = 1, n_kvno = 1; i < n_key_data; ++i) {
@@ -2798,11 +2796,9 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             goto done;
         }
 
-        kerr = ipadb_get_ldap_mod_key_data(imods,
-                                           entry->key_data,
-                                           entry->n_key_data,
-                                           mkvno,
-                                           mod_op);
+        kerr = ipadb_get_ldap_mod_key_data(kcontext, entry->princ, imods,
+                                           entry->key_data, entry->n_key_data,
+                                           mkvno, mod_op);
         if (kerr) {
             goto done;
         }

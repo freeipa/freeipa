@@ -573,8 +573,8 @@ static int ldap_set_keytab(krb5_context krbctx,
 		if (ret == LBER_ERROR) {
 			char enc[79]; /* fit std terminal or truncate */
 			krb5_error_code krberr;
-			krberr = krb5_enctype_to_string(
-				keys->ksdata[i].enctype, enc, 79);
+			krberr = krb5_enctype_to_name(
+				keys->ksdata[i].enctype, false, enc, 79);
 			if (krberr) {
 				fprintf(stderr, _("Failed to retrieve "
 					"encryption type type #%d\n"),
@@ -1014,9 +1014,9 @@ int main(int argc, const char *argv[])
 			fprintf(stderr, _("No system preferred enctypes ?!\n"));
 			exit(1);
 		}
-		fprintf(stdout, _("Supported encryption types:\n"));
 		for (i = 0; ktypes[i]; i++) {
-			krberr = krb5_enctype_to_string(ktypes[i], enc, 79);
+			krberr = krb5_enctype_to_name(ktypes[i], false, enc,
+						      79);
 			if (krberr) {
 				fprintf(stderr, _("Warning: "
                                         "failed to convert type (#%d)\n"), i);
