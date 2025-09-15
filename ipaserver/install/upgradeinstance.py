@@ -29,7 +29,7 @@ import traceback
 from ipalib import api
 from ipaplatform.paths import paths
 from ipaplatform import services
-from ipapython import ipaldap
+from ipapython import ipaldap, ipautil
 
 from ipaserver.install import installutils
 from ipaserver.install import schemaupdate
@@ -57,8 +57,8 @@ class GetEntryFromLDIF(ldif.LDIFParser):
          returned if list is empty.
         """
         ldif.LDIFParser.__init__(self, input_file)
-        self.entries_dn = entries_dn
-        self.results = {}
+        self.entries_dn = [e.lower() for e in entries_dn]
+        self.results = ipautil.CIDict()
 
     def get_results(self):
         """
@@ -67,7 +67,7 @@ class GetEntryFromLDIF(ldif.LDIFParser):
         return self.results
 
     def handle(self, dn, entry):
-        if self.entries_dn and dn not in self.entries_dn:
+        if self.entries_dn and dn.lower() not in self.entries_dn:
             return
 
         self.results[dn] = entry
