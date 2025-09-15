@@ -2461,3 +2461,70 @@ jobs:
         template: *ci-master-frawhide
         timeout: 2400
         topology: *ipaserver
+
+  fedora-rawhide/test_key_types_family:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAes
+          test_integration/test_key_types.py::TestKeyTypeAesCamellia
+          test_integration/test_key_types.py::TestKeyTypeCamellia
+          test_integration/test_key_types.py::TestKeyTypeAesCamelliaRc4
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *ipaserver
+
+  fedora-rawhide/test_key_types_mix:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAesSha2ShortAesSha1ShortRc4
+          test_integration/test_key_types.py::TestKeyTypeAesSha2LongAesSha1LongCamelliaLong
+          test_integration/test_key_types.py::TestKeyTypeAesSha2LongAesSha1LongCamelliaLongRc4Long
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *ipaserver
+
+  fedora-rawhide/test_key_types_single_long:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAesSha2Long
+          test_integration/test_key_types.py::TestKeyTypeAesSha1Long
+          test_integration/test_key_types.py::TestKeyTypeCamelliaLong
+          test_integration/test_key_types.py::TestKeyTypeRc4Long
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *ipaserver
+
+  fedora-rawhide/test_key_types_single_short:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAesSha1Short
+          test_integration/test_key_types.py::TestKeyTypeAesSha2Short
+          test_integration/test_key_types.py::TestKeyTypeCamelliaShort
+          test_integration/test_key_types.py::TestKeyTypeRc4Short
+        template: *ci-master-frawhide
+        timeout: 7200
+        topology: *ipaserver
