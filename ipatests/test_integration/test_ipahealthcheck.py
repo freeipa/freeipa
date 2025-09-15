@@ -2521,6 +2521,12 @@ class TestIpaHealthCLI(IntegrationTest):
         )
         tasks.install_packages(cls.master, HEALTHCHECK_PKG)
         set_excludes(cls.master, "key", "DSCLE0004")
+        # Because of issue PKI#4906, skip the check ipahealthcheck.ipa.files
+        # TomcatFileCheck if random serial numbers are enabled
+        cs_cfg = cls.master.get_file_contents(paths.CA_CS_CFG_PATH,
+                                              encoding='utf-8')
+        if "dbs.cert.id.generator=random" in cs_cfg:
+            set_excludes(cls.master, "check", "TomcatFileCheck")
 
     def test_indent(self):
         """
