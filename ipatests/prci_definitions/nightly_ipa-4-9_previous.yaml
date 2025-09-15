@@ -1837,3 +1837,66 @@ jobs:
         template: *ci-ipa-4-9-previous
         timeout: 600
         topology: *master_1repl
+
+  fedora-previous-ipa-4-9/test_key_types_family:
+    requires: [fedora-previous-ipa-4-9/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-9/build_url}'
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAes
+          test_integration/test_key_types.py::TestKeyTypeAesCamellia
+          test_integration/test_key_types.py::TestKeyTypeCamellia
+          test_integration/test_key_types.py::TestKeyTypeAesCamelliaRc4
+        template: *ci-master-previous
+        timeout: 7200
+        topology: *ipaserver
+
+  fedora-previous-ipa-4-9/test_key_types_mix:
+    requires: [fedora-previous-ipa-4-9/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-9/build_url}'
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAesSha2ShortAesSha1ShortRc4
+          test_integration/test_key_types.py::TestKeyTypeAesSha2LongAesSha1LongCamelliaLong
+          test_integration/test_key_types.py::TestKeyTypeAesSha2LongAesSha1LongCamelliaLongRc4Long
+        template: *ci-master-previous
+        timeout: 7200
+        topology: *ipaserver
+
+  fedora-previous-ipa-4-9/test_key_types_single_long:
+    requires: [fedora-previous-ipa-4-9/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-9/build_url}'
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAesSha2Long
+          test_integration/test_key_types.py::TestKeyTypeAesSha1Long
+          test_integration/test_key_types.py::TestKeyTypeCamelliaLong
+          test_integration/test_key_types.py::TestKeyTypeRc4Long
+        template: *ci-master-previous
+        timeout: 7200
+        topology: *ipaserver
+
+  fedora-previous-ipa-4-9/test_key_types_single_short:
+    requires: [fedora-previous-ipa-4-9/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-previous-ipa-4-9/build_url}'
+        test_suite: >-
+          test_integration/test_key_types.py::TestKeyTypeAesSha1Short
+          test_integration/test_key_types.py::TestKeyTypeAesSha2Short
+          test_integration/test_key_types.py::TestKeyTypeCamelliaShort
+          test_integration/test_key_types.py::TestKeyTypeRc4Short
+        template: *ci-master-previous
+        timeout: 7200
+        topology: *ipaserver
