@@ -75,6 +75,7 @@
 #define IPA_CHANGETYPE_NORMAL 0
 #define IPA_CHANGETYPE_ADMIN 1
 #define IPA_CHANGETYPE_DSMGR 2
+#define IPA_CHANGETYPE_SYSACCT 3
 
 struct ipapwd_data {
     Slapi_Entry *target;
@@ -108,7 +109,7 @@ struct ipapwd_krbcfg {
     int num_pref_encsalts;
     krb5_key_salt_tuple *pref_encsalts;
     char **passsync_mgrs;
-    int num_passsync_mgrs;
+    char **sysacct_mgrs;
     bool allow_nt_hash;
     bool enforce_ldap_otp;
 };
