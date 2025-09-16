@@ -583,10 +583,11 @@ parse_req_done:
         (strcasecmp(ipa_changepw_principal_dn, bindDN) != 0)) {
         pwdata.changetype = IPA_CHANGETYPE_ADMIN;
 
-        for (size_t i = 0; i < krbcfg->num_passsync_mgrs; i++) {
-            if (strcasecmp(krbcfg->passsync_mgrs[i], bindDN) == 0) {
-                pwdata.changetype = IPA_CHANGETYPE_DSMGR;
-                break;
+        if (slapi_ch_array_utf8_inlist(krbcfg->passsync_mgrs, bindDN) == 1) {
+            pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+        } else {
+            if (slapi_ch_array_utf8_inlist(krbcfg->sysacct_mgrs, bindDN) == 1) {
+                pwdata.changetype = IPA_CHANGETYPE_SYSACCT;
             }
         }
     }
