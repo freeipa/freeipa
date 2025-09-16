@@ -368,10 +368,12 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         slapi_pblock_get(pb, SLAPI_CONN_DN, &binddn);
 
         /* if it is a passsync manager we also need to skip resets */
-        for (size_t i = 0; i < krbcfg->num_passsync_mgrs; i++) {
-            if (strcasecmp(krbcfg->passsync_mgrs[i], binddn) == 0) {
-                pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
-                break;
+        if (slapi_ch_array_utf8_inlist(krbcfg->passsync_mgrs, binddn) == 1) {
+            pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+        } else {
+            /* if it is a system account allowed to skip resets, mark it so */
+            if (slapi_ch_array_utf8_inlist(krbcfg->sysacct_mgrs, binddn) == 1) {
+                pwdop->pwdata.changetype = IPA_CHANGETYPE_SYSACCT;
             }
         }
     }
@@ -861,10 +863,12 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             pwdop->pwdata.changetype = IPA_CHANGETYPE_ADMIN;
 
             /* if it is a passsync manager we also need to skip resets */
-            for (size_t i = 0; i < krbcfg->num_passsync_mgrs; i++) {
-                if (strcasecmp(krbcfg->passsync_mgrs[i], binddn) == 0) {
-                    pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
-                    break;
+            if (slapi_ch_array_utf8_inlist(krbcfg->passsync_mgrs, binddn) == 1) {
+                pwdop->pwdata.changetype = IPA_CHANGETYPE_DSMGR;
+            } else {
+                /* if it is a system account allowed to skip resets, mark it so */
+                if (slapi_ch_array_utf8_inlist(krbcfg->sysacct_mgrs, binddn) == 1) {
+                    pwdop->pwdata.changetype = IPA_CHANGETYPE_SYSACCT;
                 }
             }
         }
