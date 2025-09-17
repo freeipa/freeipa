@@ -1791,6 +1791,47 @@ class TestIPACommand(IntegrationTest):
         assert f"{interm_nick}  {intermediate_serial}" not in certs
         assert f"{interm_nick}  {duplicate_serial}" in certs
 
+    def test_ipa_force_server(self):
+        """
+        Test ipa command with --server option
+        Do ping to a replica from the master, verify that the ipa tool
+        connected to the replica
+        """
+        tasks.kinit_admin(self.master)
+        replica = self.replicas[0]
+
+        result = self.master.run_command(
+            ["ipa", "--force-server", replica.hostname, "--debug", "ping"],
+        )
+        assert replica.hostname in result.stderr_text
+
+        # test with invalid server
+        failresult = self.master.run_command(
+            ["ipa",
+             "--force-server",
+             '1' + str(replica.hostname),
+             "--debug",
+             "ping"],
+            raiseonerr=False
+        )
+        assert '[Errno -2] Name or service not known' in failresult.stderr_text
+
+        # test with not running valid server
+        self.master.run_command(
+            ["systemctl", "stop", "ipa"]
+        )
+        failresult = self.master.run_command(
+            ["ipa",
+             "--force-server",
+             self.master.hostname,
+             "--debug",
+             "ping"],
+            raiseonerr=False
+        )
+        assert '[Errno 111] Connection refused' in failresult.stderr_text
+        self.master.run_command(
+            ["systemctl", "start", "ipa"]
+        )
 
 class TestIPACommandWithoutReplica(IntegrationTest):
     """
