@@ -366,3 +366,15 @@ jobs:
         template: *ci-ipa-4-12-latest
         timeout: 4800
         topology: *adroot_adchild_adtree_master_1client
+
+  fedora-latest-ipa-4-12/test_sysaccounts:
+    requires: [fedora-latest-ipa-4-12/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-ipa-4-12/build_url}'
+        test_suite: test_integration/test_sysaccounts.py
+        template: *ci-ipa-4-12-latest
+        timeout: 3600
+        topology: *master_1repl
