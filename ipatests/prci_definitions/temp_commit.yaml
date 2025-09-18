@@ -76,7 +76,7 @@ jobs:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_delegation.py::TestDelegationAdd test_integration/test_delegation.py::TestDelegationDel test_integration/test_delegation.py::TestDelegationCmd test_integration/test_delegation.py::TestDelegationFind test_integration/test_delegation.py::TestDelegationMod test_integration/test_delegation.py::TestDelegationShow test_integration/test_delegation.py::TestDelegationUser test_integration/test_delegation.py::TestDelegationBZ test_integration/test_delegation.py::TestDelegationClientSide test_integration/test_delegation.py::TestDelegationReplication
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 28800
         topology: *master_1repl_1client
