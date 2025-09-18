@@ -50,6 +50,8 @@ class AutomountTest(XMLRPC_test):
     """Provides common functionality for automount tests"""
 
     locname = u'testlocation'
+    locname2 = u'testlocation2'
+    locname3 = u'testlocation3'
     tofiles_output = ''  # To be overridden
 
     def check_tofiles(self):
@@ -156,6 +158,33 @@ class test_automount(AutomountTest):
         entry = ret['result']
         assert_attr_equal(entry, 'cn', self.locname)
 
+    def test_0a_automountlocation_add_all(self):
+        """
+        Test adding location with --all option
+        """
+        ret = self.failsafe_add(
+            api.Object.automountlocation, self.locname2,
+            all=True
+        )
+        res = ret['result']
+        assert res
+        assert res['objectclass'] == ('nscontainer', 'top')
+        assert_attr_equal(res, 'cn', self.locname2)
+
+    def test_0b_automountlocation_add_all_raw(self):
+        """
+        Test adding location with --all and --raw options
+        """
+        ret = self.failsafe_add(
+            api.Object.automountlocation, self.locname3,
+            all=True,
+            raw=True
+        )
+        res = ret['result']
+        assert res
+        assert res['objectClass'] == ('nscontainer', 'top')
+        assert_attr_equal(res, 'cn', self.locname3)
+
     def test_1_automountmap_add(self):
         """
         Test adding a map `xmlrpc.automountmap_add` method.
@@ -202,6 +231,36 @@ class test_automount(AutomountTest):
         """
         res = api.Command['automountmap_find'](self.locname, self.mapname, raw=True)['result']
         assert_attr_equal(res[0], 'automountmapname', self.mapname)
+
+    def test_6a_automountlocation_find_pkey_only(self):
+        """
+        Test location-find with --pkey-only option
+        Corresponds to automount_location_find_006
+        """
+        res = api.Command['automountlocation_find'](
+            self.locname,
+            pkey_only=True
+        )['result']
+        assert len(res) > 0, "No automount locations returned"
+        assert any(r["cn"][0] == self.locname for r in res), (
+            f"Location {self.locname} not found in result"
+        )
+
+    def test_6b_automountlocation_find_all_raw(self):
+        """
+        Test location-find with --all and --raw options
+        Corresponds to automount_location_find_005
+        """
+        res = api.Command['automountlocation_find'](
+            self.locname,
+            all=True,
+            raw=True
+        )['result']
+        assert res
+        assert res[0]['objectClass'] == ('nscontainer', 'top')
+        assert any(r["cn"][0] == self.locname for r in res), (
+            f"Location {self.locname} not found in result"
+        )
 
     def test_7_automountkey_show(self):
         """
@@ -377,6 +436,21 @@ class test_automount_direct(AutomountTest):
         """Test the `automountmap_tofiles` command"""
         self.check_tofiles()
 
+    def test_2b_automountmap_show_rights(self):
+        """
+        Test map-show with --rights for direct maps
+        """
+        res = api.Command['automountmap_show'](
+            self.locname,
+            self.mapname,
+            rights=True,
+            all=True,
+            raw=True
+        )['result']
+        assert res
+        assert 'attributelevelrights' in res
+        assert_attr_equal(res, 'automountmapname', self.mapname)
+
     def test_3_automountlocation_del(self):
         """
         Remove the location.
@@ -430,7 +504,10 @@ class test_automount_indirect(AutomountTest):
         """
         Test adding an indirect map.
         """
-        res = api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
+        res = api.Command['automountmap_add_indirect'](
+            self.locname,
+            self.mapname,
+            **self.map_kw)['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname)
 
@@ -442,6 +519,50 @@ class test_automount_indirect(AutomountTest):
             api.Command['automountmap_add_indirect'](
                 self.locname, self.mapname, **self.map_kw
             )
+
+    def test_1b_automountkey_add(self):
+        """
+        Add the key /home to the indirect map auto.home.
+        """
+        res = api.Command['automountkey_add'](
+            self.locname,
+            self.mapname,
+            **self.key_kw)['result']
+        assert res
+        assert_attr_equal(res, 'automountkey', self.keyname)
+
+    def test_1b_automountkey_show_rights(self):
+        """
+        Test key-show with --rights for indirect maps
+        """
+        res = api.Command['automountkey_show'](
+            self.locname,
+            self.mapname,
+            automountkey=self.keyname,
+            rights=True,
+            all=True,
+            raw=True
+        )['result']
+        assert res
+        assert 'attributelevelrights' in res
+        assert_attr_equal(res, 'automountkey', self.keyname)
+
+    def test_1c_automountkey_find_sizelimit(self):
+        """
+        Test key-find with sizelimit
+        """
+        res = api.Command['automountkey_find'](
+            self.locname,
+            self.mapname,
+            sizelimit=1,
+            all=True
+        )['result']
+        assert len(res) == 1
+
+        res = api.Command['automountkey_del'](
+            self.locname,
+            self.mapname,
+            **self.key_kw)['result']
 
     def test_2_automountmap_show(self):
         """
