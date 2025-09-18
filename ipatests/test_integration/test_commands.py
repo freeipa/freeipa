@@ -2297,3 +2297,413 @@ class TestIPAautomount(IntegrationTest):
         ).stdout_text
         assert '/test' in result
         assert '/test2' in result
+
+
+class TestIPADelegationBugFixes(IntegrationTest):
+    """
+    Tests ipa delegation cli commands are working correctly.
+    Bug references:
+    bz783307: ipa delegation-add not failing when membergroup does not exist
+    bz783475: ipa delegation-find --membergroup="" returns internal error
+    bz783489: ipa delegation-find --permissions= returns internal error
+    bz783501: ipa delegation-find --attrs= returns internal error
+    bz783543: ipa delegation-mod --membergroup= returns internal error
+    bz783548: ipa delegation-mod not failing when membergroup does not exist
+    bz783554: ipa delegation-mod --attrs= removes Attributes instead of failing
+    bz888524: ipa delegation-find --group option returns internal error
+    """
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    def test_bz783307_delegation_add_fails_with_nonexistent_membergroup(self):
+        """
+        Verify that ipa delegation-add fails when membergroup doesn't exist.
+        """
+        # Create test group for delegation
+        error_msg = 'ipa: ERROR: nonexistentgroup: group not found'
+        self.master.run_command(
+            ["ipa", "group-add", "bz783307_testgroup", "--desc=Test group"]
+        )
+        try:
+            # Try to add delegation with non-existent membergroup
+            # This should fail (returncode != 0)
+            result = self.master.run_command(
+                [
+                    "ipa",
+                    "delegation-add",
+                    "bz783307_delegation",
+                    "--membergroup=nonexistentgroup",
+                    "--group=bz783307_testgroup",
+                    "--attrs=mobile",
+                ],
+                raiseonerr=False,
+            )
+            assert result.returncode != 0
+            assert error_msg not in result.stdout_text
+        finally:
+            self.master.run_command(
+                ["ipa", "group-del", "bz783307_testgroup"], raiseonerr=False
+            )
+
+    def test_bz783475_find_empty_string_membergroup_no_internal_error(self):
+        """
+        Verify ipa delegation-find --membergroup="" doesn't cause
+        internal error.
+        """
+        error_msg = 'ipa: ERROR: an internal error has occurred'
+        # Try find with empty string membergroup
+        result = self.master.run_command(
+            ["ipa", "delegation-find", "--membergroup="], raiseonerr=False
+        )
+        assert error_msg not in result.stdout_text
+
+    def test_bz783489_find_empty_permissions_no_internal_error(self):
+        """
+        Verify ipa delegation-find --permissions= doesn't cause internal error.
+        """
+        error_msg = 'ipa: ERROR: an internal error has occurred'
+        # Create test delegation
+        self.master.run_command(
+            [
+                "ipa",
+                "group-add",
+                "bz783489_membergroup",
+                "--desc=Test member group",
+            ]
+        )
+        self.master.run_command(
+            ["ipa", "group-add", "bz783489_group", "--desc=Test group"]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "delegation-add",
+                "bz783489_delegation",
+                "--membergroup=bz783489_membergroup",
+                "--group=bz783489_group",
+                "--attrs=mobile",
+            ]
+        )
+        try:
+            result = self.master.run_command(
+                ["ipa", "delegation-find", "--permissions="], raiseonerr=False
+            )
+            assert error_msg not in result.stderr_text
+        finally:
+            # Cleanup
+            self.master.run_command(
+                ["ipa", "delegation-del", "bz783489_delegation"],
+                raiseonerr=False,
+            )
+            self.master.run_command(
+                ["ipa", "group-del", "bz783489_membergroup"], raiseonerr=False
+            )
+            self.master.run_command(
+                ["ipa", "group-del", "bz783489_group"], raiseonerr=False
+            )
+
+    def test_bz783501_find_empty_attrs_no_internal_error(self):
+        """
+        Verify ipa-delegation-find --attrs= doesn't cause internal error.
+        """
+        error_msg = 'ipa: ERROR: an internal error has occurred'
+        # Create test delegation
+        self.master.run_command(
+            [
+                "ipa",
+                "group-add",
+                "bz783501_membergroup",
+                "--desc=Test member group",
+            ]
+        )
+        self.master.run_command(
+            ["ipa", "group-add", "bz783501_group", "--desc=Test group"]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "delegation-add",
+                "bz783501_delegation",
+                "--membergroup=bz783501_membergroup",
+                "--group=bz783501_group",
+                "--attrs=mobile",
+            ]
+        )
+        try:
+            # Test with empty attrs
+            result = self.master.run_command(
+                ["ipa", "delegation-find", "--attrs="], raiseonerr=False
+            )
+            assert error_msg not in result.stderr_text
+        finally:
+            # Cleanup
+            self.master.run_command(
+                ["ipa", "delegation-del", "bz783501_delegation"],
+                raiseonerr=False,
+            )
+            self.master.run_command(
+                [
+                    "ipa",
+                    "group-del",
+                    "bz783501_membergroup"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa",
+                    "group-del",
+                    "bz783501_group"
+                ], raiseonerr=False
+            )
+
+    def test_bz783543_mod_empty_membergroup_no_internal_error(self):
+        """
+        Verify delegation-mod --membergroup= doesn't cause internal error.
+        """
+        error_msg = 'ipa: ERROR: an internal error has occurred'
+        # Create test delegation
+        self.master.run_command(
+            [
+                "ipa",
+                "group-add",
+                "bz783543_membergroup",
+                "--desc=Test member group",
+            ]
+        )
+        self.master.run_command(
+            ["ipa", "group-add", "bz783543_group", "--desc=Test group"]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "delegation-add",
+                "bz783543_delegation",
+                "--membergroup=bz783543_membergroup",
+                "--group=bz783543_group",
+                "--attrs=mobile",
+            ]
+        )
+
+        try:
+            # Try to mod with empty membergroup
+            result = self.master.run_command(
+                [
+                    "ipa",
+                    "delegation-mod",
+                    "bz783543_delegation",
+                    "--membergroup=",
+                ], raiseonerr=False,
+            )
+            assert error_msg not in result.stderr_text
+
+        finally:
+            # Cleanup
+            self.master.run_command(
+                [
+                    "ipa",
+                    "delegation-del",
+                    "bz783543_delegation"
+                ], raiseonerr=False,
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz783543_membergroup"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz783543_group"
+                ], raiseonerr=False
+            )
+
+    def test_bz783548_mod_fails_with_nonexistent_membergroup(self):
+        """
+        Verify ipa delegation-mod fails when membergroup doesn't exist.
+        """
+        # Create test delegation
+        self.master.run_command(
+            [
+                "ipa",
+                "group-add",
+                "bz783548_membergroup",
+                "--desc=Test member group",
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa", "group-add",
+                "bz783548_group",
+                "--desc=Test group"
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "delegation-add",
+                "bz783548_delegation",
+                "--membergroup=bz783548_membergroup",
+                "--group=bz783548_group",
+                "--attrs=mobile",
+            ]
+        )
+        try:
+            # Try to modify with non-existent membergroup
+            result = self.master.run_command(
+                [
+                    "ipa",
+                    "delegation-mod",
+                    "bz783548_delegation",
+                    "--membergroup=nonexistentmembergroup",
+                ], raiseonerr=False,
+            )
+            assert result.returncode != 0
+        finally:
+            self.master.run_command(
+                ["ipa", "delegation-del", "bz783548_delegation"],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz783548_membergroup"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz783548_group"
+                ], raiseonerr=False
+            )
+
+    def test_bz783554_mod_empty_attrs_fails(self):
+        """
+        Verify that  ipa delegation-mod --attrs= doesn't
+        removes attributes from delegation instead of failing
+        """
+        # Create test delegation
+        self.master.run_command(
+            [
+                "ipa",
+                "group-add",
+                "bz783554_membergroup",
+                "--desc=Test member group",
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa", "group-add",
+                "bz783554_group",
+                "--desc=Test group"
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "delegation-add",
+                "bz783554_delegation",
+                "--membergroup=bz783554_membergroup",
+                "--group=bz783554_group",
+                "--attrs=mobile",
+            ]
+        )
+        try:
+            # Try to modify with empty attrs - should fail
+            result = self.master.run_command(
+                [
+                    "ipa", "delegation-mod",
+                    "bz783554_delegation",
+                    "--attrs="
+                ], raiseonerr=False
+            )
+            assert result.returncode != 0
+            # Verify attrs were NOT removed
+            show_result = self.master.run_command(
+                [
+                    "ipa", "delegation-show",
+                    "bz783554_delegation"
+                ]
+            )
+            assert "mobile" in show_result.stdout_text
+        finally:
+            # Cleanup
+            self.master.run_command(
+                [
+                    "ipa", "delegation-del",
+                    "bz783554_delegation"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz783554_membergroup"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz783554_group"
+                ], raiseonerr=False
+            )
+
+    def test_bz888524_find_with_group_no_internal_error(self):
+        """
+        Verify ipa delegation-find --group doesn't cause
+        internal error.
+        """
+        error_msg = 'ipa: ERROR: an internal error has occurred'
+        # Create test delegation
+        self.master.run_command(
+            [
+                "ipa",
+                "group-add",
+                "bz888524_membergroup",
+                "--desc=Test member group",
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa", "group-add", "bz888524_group",
+                "--desc=Test group"
+            ]
+        )
+        self.master.run_command(
+            [
+                "ipa",
+                "delegation-add",
+                "bz888524_delegation",
+                "--membergroup=bz888524_membergroup",
+                "--group=bz888524_group",
+                "--attrs=mobile",
+            ]
+        )
+        try:
+            result = self.master.run_command(
+                [
+                    "ipa", "delegation-find",
+                    "--group=bz888524_group"
+                ], raiseonerr=False
+            )
+            assert error_msg not in result.stderr_text
+        finally:
+            # Cleanup
+            self.master.run_command(
+                [
+                    "ipa", "delegation-del",
+                    "bz888524_delegation"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz888524_membergroup"
+                ], raiseonerr=False
+            )
+            self.master.run_command(
+                [
+                    "ipa", "group-del",
+                    "bz888524_group"
+                ], raiseonerr=False
+            )
