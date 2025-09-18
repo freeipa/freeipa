@@ -43,53 +43,6 @@ char *smb_xstrdup(const char *s);
 #include "ipa_pwd.h"
 #include "ipa_mspac.h"
 
-/* from drsblobs.h */
-struct AuthInfoNone {
-	uint32_t size;/* [value(0)] */
-};
-
-struct AuthInfoNT4Owf {
-	uint32_t size;/* [value(16)] */
-	struct samr_Password password;
-};
-
-struct AuthInfoClear {
-	uint32_t size;
-	uint8_t *password;
-};
-
-struct AuthInfoVersion {
-	uint32_t size;/* [value(4)] */
-	uint32_t version;
-};
-
-union AuthInfo {
-	struct AuthInfoNone none;/* [case(TRUST_AUTH_TYPE_NONE)] */
-	struct AuthInfoNT4Owf nt4owf;/* [case(TRUST_AUTH_TYPE_NT4OWF)] */
-	struct AuthInfoClear clear;/* [case(TRUST_AUTH_TYPE_CLEAR)] */
-	struct AuthInfoVersion version;/* [case(TRUST_AUTH_TYPE_VERSION)] */
-}/* [nodiscriminant] */;
-
-struct AuthenticationInformation {
-	NTTIME LastUpdateTime;
-	enum lsa_TrustAuthType AuthType;
-	union AuthInfo AuthInfo;/* [switch_is(AuthType)] */
-	DATA_BLOB _pad;/* [flag(LIBNDR_FLAG_ALIGN4)] */
-}/* [public] */;
-
-struct AuthenticationInformationArray {
-	uint32_t count;
-	struct AuthenticationInformation *array;
-}/* [gensize,nopush,public,nopull] */;
-
-struct trustAuthInOutBlob {
-	uint32_t count;
-	uint32_t current_offset;/* [value((count>0)?12:0)] */
-	uint32_t previous_offset;/* [value((count>0)?12+ndr_size_AuthenticationInformationArray(&current,ndr->flags):0)] */
-	struct AuthenticationInformationArray current;/* [subcontext_size((previous_offset)-(current_offset)),subcontext(0)] */
-	struct AuthenticationInformationArray previous;/* [subcontext(0),flag(LIBNDR_FLAG_REMAINING)] */
-}/* [gensize,public,nopush] */;
-
 /* from generated idmap.h - hopefully OK */
 enum id_type {
 	ID_TYPE_NOT_SPECIFIED,
