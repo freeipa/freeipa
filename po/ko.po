@@ -21688,8 +21688,8 @@ msgstr ""
 msgid "Google"
 msgstr "구글"
 
-msgid "Github"
-msgstr "깃허브"
+msgid "GitHub"
+msgstr ""
 
 msgid "Microsoft or Azure"
 msgstr ""
@@ -24972,3 +24972,6 @@ msgstr ""
 
 msgid "Unable to initialize STARTTLS session\n"
 msgstr ""
+
+#~ msgid "Github"
+#~ msgstr "깃허브"

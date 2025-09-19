@@ -5,13 +5,15 @@
 # Emilio Herrera <ehespinosa57@gmail.com>, 2019. #zanata, 2020, 2021, 2024.
 # Emilio Herrera <ehespinosa57@gmail.com>, 2020. #zanata, 2021, 2024.
 # N M <nm@users.noreply.translate.fedoraproject.org>, 2024.
+# "Fco. Javier F. Serrador" <fserrador@gmail.com>, 2025.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-07-22 01:38+0000\n"
-"Last-Translator: N M <nm@users.noreply.translate.fedoraproject.org>\n"
+"PO-Revision-Date: 2025-09-16 14:54+0000\n"
+"Last-Translator: \"Fco. Javier F. Serrador\" <fserrador@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/es/>\n"
 "Language: es\n"
@@ -19,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.6.2\n"
+"X-Generator: Weblate 5.13.3\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -253,16 +255,14 @@ msgstr "Advertencia: Tipo para convertir falló (#%d)⏎\n"
 
 #, c-format
 msgid "Bind password already provided (-w).\n"
-msgstr ""
+msgstr "Vincular contraseña ya suministrada (-w).\n"
 
-#, fuzzy
-#| msgid "LDAP password"
 msgid "Enter LDAP password"
-msgstr "Contraseña LDAP"
+msgstr "Introduzca la contraseña LDAP"
 
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
-msgstr ""
+msgstr "Contraseña de bind requiere cuando utilice un bind ND (-w o -W).\n"
 
 #, c-format
 msgid "Cannot specify both SASL mechanism and bind DN simultaneously.\n"
@@ -279,33 +279,31 @@ msgstr "No se puede especificar servidor y LDAP uri simultáneamente.\n"
 
 #, c-format
 msgid "DNS discovery for domain %s\n"
-msgstr ""
+msgstr "Descubrir DNS para dominio %s\n"
 
-#, fuzzy, c-format
-#| msgid "Advertised by servers"
+#, c-format
 msgid "Discovered server %s\n"
-msgstr "Anunciado por los servidores"
+msgstr "Servidor %s descubierto\n"
 
 #, c-format
 msgid "Using discovered server %s\n"
-msgstr ""
+msgstr "Utilizando servidor %s descubierto\n"
 
 #, c-format
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "DNS descubierto incorrecto\n"
 
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "Utilizar servidor desde config %s\n"
 
 #, c-format
 msgid "Server name not provided and unavailable\n"
 msgstr "El nombre del servidor no se ha suministrado y es indisponible\n"
 
-#, fuzzy, c-format
-#| msgid "Ping a remote server."
+#, c-format
 msgid "Using provided server %s\n"
-msgstr "Hacer ping a un servidor remoto."
+msgstr "Empleando servidor proporcionado %s\n"
 
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
@@ -456,50 +454,45 @@ msgstr ""
 "Petición JSON-RPC:\n"
 "%s\n"
 
-#, fuzzy, c-format
-#| msgid "Operation failed: %s\n"
+#, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr "Falló operación: %s\n"
+msgstr "Invocación incorrecta de JSON-RPC: %s\n"
 
 #, c-format
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
-msgstr ""
+msgstr "Invocación JSON-RPC fue no autorizada. Compruebe sus credenciales.\n"
 
 #, c-format
 msgid "JSON-RPC call failed with status code: %li\n"
-msgstr ""
+msgstr "Invocación JSON-RPC incorrecta con código de estado: %li\n"
 
-#, fuzzy, c-format
-#| msgid ""
-#| "JSON-RPC request:\n"
-#| "%s\n"
+#, c-format
 msgid ""
 "JSON-RPC response:\n"
 "%s\n"
 msgstr ""
-"Petición JSON-RPC:\n"
+"Respuesta JSON-RPC:\n"
 "%s\n"
 
 #, c-format
 msgid "Extracting the error from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Extrayendo el error desde la respuesta JSON-RPM incorrecta: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Respuesta JSON-RPC interpretada incorrecta: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
-msgstr ""
+msgstr "Respuesta JSON-RPC interpretada: sin valor 'result' encontrado.\n"
 
 #, c-format
 msgid "Extracting the data from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Extrayendo los datos desde la respuesta de JSON-RPC incorrecta: %s\n"
 
-#, fuzzy, c-format
-#| msgid "json_dumps() failed\n"
+#, c-format
 msgid "json_pack_ex() failed: %s\n"
-msgstr "json_dumps() falló\n"
+msgstr "json_pack_ex() incorrecto: %s\n"
 
 #, c-format
 msgid "Unenrollment successful.\n"
@@ -553,7 +546,7 @@ msgstr "la ejecución de ipa-getkeytab falló, errno %d\n"
 
 #, c-format
 msgid "child exited with %d\n"
-msgstr "hijo terminó con %d\n"
+msgstr "subproceso terminado con %d\n"
 
 #, c-format
 msgid "Error resolving keytab: %s.\n"
@@ -620,7 +613,7 @@ msgstr "basedn"
 
 #, c-format
 msgid "Cannot get host's FQDN!\n"
-msgstr ""
+msgstr "No se puede obtener FQDN del host.\n"
 
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
@@ -691,21 +684,21 @@ msgstr ""
 "El principal para borrar desde keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 
 msgid "The keytab file to remove the principcal(s) from"
-msgstr "El fichero keytab fpara borrar el principal(s) desde"
+msgstr "El archivo keytab para eliminar el principal(s) desde"
 
 msgid "Remove all principals in this realm"
 msgstr "Quite todos los principales en este ámbito"
 
 msgid "Realm name"
-msgstr "Nombre de reino "
+msgstr "Nombre de ámbito"
 
 #, c-format
 msgid "Failed to open keytab '%1$s': %2$s\n"
-msgstr "Fallo al abrir keytab '%1$s': %2$s\n"
+msgstr "Incorrecto al abrir keytab «%1$s»: %2$s\n"
 
 #, c-format
 msgid "Closing keytab failed\n"
-msgstr "Cierre de tabla de claves falló\n"
+msgstr "Cierre de tabla de claves incorrecto\n"
 
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
@@ -736,7 +729,7 @@ msgid ""
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
 "El modo migración esta desactivado.\n"
-"Use 'ip confi-mod --enable-migration=TRUE' para activarlo."
+"Emplee 'ip confi-mod --enable-migration=TRUE' para activarlo."
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
@@ -840,9 +833,11 @@ msgid ""
 "IMPORTANT: In case of a high number of users, hosts or groups, the operation "
 "may require high CPU usage."
 msgstr ""
+"IMPORTANTE: en caso de un número de usuarios alto, los host o grupos, la "
+"operación puede requerir empleo intenso de la CPU."
 
 msgid "maps not connected to /etc/auto.master:"
-msgstr "mapa no conectado a /etc/auto.master"
+msgstr "mapas no conectados a /etc/auto.master"
 
 msgid "Import automount files for a specific location."
 msgstr "Importar ficheros de automontaje para una localización específica."
@@ -861,94 +856,92 @@ msgstr ""
 
 #, python-format
 msgid "File %(file)s not found"
-msgstr "No se encontró el archivo %(file)s "
+msgstr "Archivo %(file)s no encontrado"
 
 #, python-format
 msgid "key %(key)s already exists"
-msgstr "key %(key)s ya existe"
+msgstr "la llave %(key)s ya existe"
 
 #, python-format
 msgid "map %(map)s already exists"
 msgstr "map %(map)s ya existe"
 
 msgid "Imported maps:"
-msgstr "Mapas importados"
+msgstr "Mapas importados:"
 
 #, python-format
 msgid "Added %(map)s"
 msgstr "%(map)s agregados"
 
 msgid "Imported keys:"
-msgstr "Llaves (keys) importadas"
+msgstr "Llaves importadas:"
 
 #, python-format
 msgid "Added %(src)s to %(dst)s"
 msgstr "Agregado %(src)s a %(dst)s"
 
 msgid "Ignored keys:"
-msgstr "Llaves ignoradas: "
+msgstr "Llaves ignoradas:"
 
 #, python-format
 msgid "Ignored %(src)s to %(dst)s"
 msgstr "%(src)s a %(dst)s ignorados"
 
 msgid "Duplicate maps skipped:"
-msgstr "Mapa duplicado omitido"
+msgstr "Relación duplicada omitida:"
 
 #, python-format
 msgid "Skipped %(map)s"
 msgstr "%(map)s omitido"
 
 msgid "Duplicate keys skipped:"
-msgstr "Llaves duplicadas omitidas"
+msgstr "Duplicado de llaves omitido:"
 
 #, python-format
 msgid "Skipped %(key)s"
 msgstr "%(key)s omitida"
 
-#, fuzzy
-#| msgid "Registration password"
 msgid "Register the passkey"
-msgstr "Contraseña de registro"
+msgstr "Registra la llave de acceso"
 
 msgid "Require user verification during authentication with the passkey"
 msgstr ""
+"Requiere verificación de usuario durante autenticación con la llave de acceso"
 
 msgid "COSE type to use for registration"
-msgstr ""
+msgstr "El tipo COSE a utilizar para registrado"
 
-#, fuzzy
-#| msgid "Identity"
 msgid "Credential type"
-msgstr "Identidad"
+msgstr "Tipo credencial"
 
-#, fuzzy, python-format
-#| msgid "cannot specify both raw certificate and file"
+#, python-format
 msgid "cannot specify both %s and passkey mapping"
-msgstr "no puede especificar un certificado RAW y un archivo"
+msgstr "no se puede especificar ambos %s y llave de paso a asignar"
 
 #, python-format
 msgid ""
 "Missing executable %s, use the command with LOGIN PASSKEY instead of LOGIN --"
 "register"
 msgstr ""
+"Ejecutable %s ausente, utilice el comando con LOGIN PASSKEY en lugar de "
+"LOGIN --register"
 
 msgid "Split DNS record to parts"
-msgstr "Divide registro DNS en partes"
+msgstr "Desglosa registro DNS en partes"
 
 msgid "Please choose a type of DNS resource record to be added"
-msgstr "Por favor seleccione un tipo de origen de DNS para ser agregado"
+msgstr "Elija un tipo de registro de recurso DNS para ser añadido"
 
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
-msgstr "Los tipos mas comunes para este tipo de zona son: %s\n"
+msgstr "Los tipos más comunes para este tipo de zona son: %s\n"
 
 msgid "DNS resource record type"
-msgstr "Registro de tipo de recurso DNS "
+msgstr "Tipo de registro del recurso DNS"
 
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
-msgstr "Invalido o tipo no soportado. Valores permitidos son: %s"
+msgstr "Tipo no válido o no soportado. Los valores permitidos son: %s"
 
 msgid "No option to modify specific record provided."
 msgstr "No hay opción para modificar registro específico proporcionado."
@@ -978,10 +971,9 @@ msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
-"Ni --del-all ni opciones para borrar un registro en concreto ha sido "
-"especificado.\n"
-"El comando de ayuda puede ser consultado para ver los tipos de registros "
-"soportados."
+"Ni --del-all ni opciones para borrar un registro en concreto ha sido\n"
+"proporcionado. El comando de ayuda puede ser consultado para\n"
+"ver los tipos de registros soportados."
 
 msgid "No option to delete specific record provided."
 msgstr "Ninguna opción para borrar un registro en concreto especificado."
@@ -1020,10 +1012,10 @@ msgstr ""
 "tamaño de su terminal."
 
 msgid "Synchronize an OTP token."
-msgstr "Sincronice una ficha OTP"
+msgstr "Sincronice un vale OTP."
 
 msgid "User ID"
-msgstr "ID de usuario"
+msgstr "ID de Usuario"
 
 msgid "Password"
 msgstr "Contraseña"
@@ -1039,34 +1031,32 @@ msgstr "ID de ficha"
 
 #, python-format
 msgid "Unable to synchronize token: %s"
-msgstr ""
+msgstr "No es capaz de sincronizar vale: %s"
 
-#, fuzzy
-#| msgid "Add one or more certificate mappings to the user entry."
 msgid "Add one or more passkey mappings to the user entry."
-msgstr "Añade uno o más mapeados de certificados a la entrada de usuario."
+msgstr "Añade una o más llaves de paso mapeados al apunte de usuario."
 
 #, python-format
 msgid "Enabled Sudo Rule \"%s\""
-msgstr "Regla Sudo Habilitada “%s”"
+msgstr "Regla Sudo Habilitada «%s»"
 
 #, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr "Regla Sudo Deshabilitada “%s”"
+msgstr "Regla Sudo Deshabilitada «%s»"
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr "Añadiendo la opción \"%(option)s\" a Sudo Rule \"%(rule)s\""
+msgstr "Opción «%(option)s» añadida a «%(rule)s» de Sudo Rule"
 
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
-msgstr "Quitada opción \"%(option)s\" de Sudo Rule \"%(rule)s\""
+msgstr "Opción «%(option)s» quitada desde «%(rule)s» Sudo Rule"
 
 msgid "Delete a user, keeping the entry available for future use"
-msgstr "Borrar un usuario manteniendo la entrada disponible para un uso futuro"
+msgstr "Borra un usuario, conservando disponible el apunte para empleo futuro"
 
 msgid "Delete a user"
-msgstr "Borrar un usuario"
+msgstr "Borra un usuario"
 
 msgid "preserve and no-preserve cannot be both set"
 msgstr "preserve y no-preserve no pueden estar ambos ajustados"
@@ -1084,7 +1074,7 @@ msgid "Input filename"
 msgstr "Entrada nombre de archivo"
 
 msgid "File to load the certificate from."
-msgstr "Archivo desde donde cargar el certificado"
+msgstr "Archivo desde donde cargar el certificado."
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
@@ -1104,10 +1094,10 @@ msgid "Vault password"
 msgstr "Contraseña de la bóveda"
 
 msgid "File containing the vault password"
-msgstr "Fichero que contiene la contraseña de bóveda"
+msgstr "Archivo que contiene la contraseña de la bóveda"
 
 msgid "File containing the vault public key"
-msgstr "Fichero que contiene la clave pública de la bóveda"
+msgstr "Archivo que contiene la llave pública de la bóveda"
 
 msgid "Password can be specified only for symmetric vault"
 msgstr "La contraseña solo se debe especificar para bóveda simétrica"
@@ -1126,10 +1116,10 @@ msgstr "Clave pública de la bóveda desaparecida"
 
 #, python-format
 msgid "Invalid or unsupported vault public key: %s"
-msgstr "Clave pública de bóveda no válida o no soportada: %s"
+msgstr "Clave pública de la bóveda no válida o no soportada: %s"
 
 msgid "Modify a vault."
-msgstr "Modificar una bóveda"
+msgstr "Modifica una bóveda."
 
 msgid "Change password"
 msgstr "Cambiar contraseña"
@@ -1150,20 +1140,20 @@ msgid "Old vault private key"
 msgstr "Clave privada de bóveda antigua"
 
 msgid "File containing the old vault private key"
-msgstr "Fichero que contiene la clave privada de bóveda antigua"
+msgstr "Archivo que contiene la llave privada de bóveda antigua"
 
 msgid "File containing the new vault public key"
-msgstr "Fichero que contiene la nueva clave pública de bóveda"
+msgstr "Archivo que contiene la llave pública nueva de bóveda"
 
 msgid "New public key specified multiple times"
-msgstr "Nueva clave pública especificada múltiples veces"
+msgstr "Llave pública nueva especificada múltiples veces"
 
 msgid "Missing new vault public key"
-msgstr "Nueva clave pública de bóveda desaparecida"
+msgstr "Llave pública nueva de bóveda desaparecida"
 
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
-msgstr ""
+msgstr "{algo} no está admitido algoritmo de cobertura de bóveda"
 
 msgid "Archive data into a vault."
 msgstr "Datos archivados en una bóveda"
@@ -1177,53 +1167,39 @@ msgstr "Fichero conteniendo datos para archivar"
 msgid "Override existing password"
 msgstr "Anular contraseña existente"
 
-#, fuzzy
-#| msgid "Public key specified multiple times"
 msgid "Input data specified multiple times"
-msgstr "Clave pública especificada múltiples veces"
+msgstr "Datos de entrada especificados múltiples veces"
 
 #, python-format
 msgid ""
 "Size of data exceeds the limit. Current vault data size limit is %(limit)d B"
 msgstr ""
+"El tamaño de datos supera el límite. El límite del tamaño de la bóveda "
+"actual es de %(limit)d B"
 
-#, fuzzy
-#| msgid "Bind rule type"
 msgid "Invalid vault type"
-msgstr "Tipo de regla de enlace"
+msgstr "Tipo de bóveda no válido"
 
-#, fuzzy
-#| msgid "Archive data into a vault."
 msgid "Retrieve a data from a vault."
-msgstr "Datos archivados en una bóveda"
+msgstr "Obtiene los datos desde una bóveda."
 
-#, fuzzy
-#| msgid "Failed allowed to retrieve keytab"
 msgid "File to store retrieved data"
-msgstr "Falló permitir recuperar una KeyTab"
+msgstr "Archivo para almacenar datos recuperados"
 
-#, fuzzy
-#| msgid "Old vault private key"
 msgid "Vault private key"
-msgstr "Clave privada de bóveda antigua"
+msgstr "Clave privada de bóveda"
 
-#, fuzzy
-#| msgid "File containing the old vault private key"
 msgid "File containing the vault private key"
-msgstr "Fichero que contiene la clave privada de bóveda antigua"
+msgstr "Archivo que contiene la llave privada de bóveda"
 
 msgid "Data"
 msgstr "Datos"
 
-#, fuzzy
-#| msgid "Public key specified multiple times"
 msgid "Private key specified multiple times"
-msgstr "Clave pública especificada múltiples veces"
+msgstr "Llave privada especificada múltiples veces"
 
-#, fuzzy
-#| msgid "Missing vault public key"
 msgid "Missing vault private key"
-msgstr "Clave pública de la bóveda desaparecida"
+msgstr "Llave privada de bóveda ausente"
 
 msgid ""
 "\n"
@@ -1348,46 +1324,39 @@ msgstr ""
 "\n"
 "Instrucciones de Control de Acceso al Servidor de Directorio (ACIs)\n"
 "\n"
-"ACIs son usados para permitir o denegar acceso a la información. Este módulo "
-"está\n"
-" actualmente diseñado para permitir, no denegar, acceso.\n"
+"ACIs son usados para permitir o denegar acceso a la información. Este "
+"módulo\n"
+"está actualmente diseñado para permitir, no denegar, acceso.\n"
 "\n"
 "Los comandos aci están diseñados para conceder permisos que permitan la\n"
-"actualización de entradas existentes o el añadido o borrado de nuevas. El "
-"objetivo\n"
-"de los ACIs que van con IPA es suministrar un conjunto de permisos de bajo "
-"nivel\n"
-"que conceden acceso a grupos espaciales llamados grupos de tareas. Estos\n"
-"permisos de bajo nivel pueden ser combinados en roles que conceden un "
-"acceso\n"
-"más amplio. Estos roles son otro tipo de grupo, roles.\n"
+"actualización de entradas existentes o el añadido o borrado de nuevas. El\n"
+"objetivo de los ACIs que van con IPA es suministrar un conjunto de permisos\n"
+"de bajo nivel que conceden acceso a grupos espaciales llamados grupos de\n"
+"tareas. Estos permisos de bajo nivel pueden ser combinados en roles que\n"
+"conceden un acceso más amplio. Estos roles son otro tipo de grupo, roles.\n"
 "\n"
-"Por ejemplo, si usted tiene un grupo de tareas que le permiten añadir y "
-"modificar\n"
-"usuarios usted podría crear un role, useradmin. Debería asignar usuarios al "
-"role\n"
-"useradmin que les permitirá hacer operaciones definidas en el grupo de "
-"tareas.\n"
+"Por ejemplo, si usted tiene un grupo de tareas que le permiten añadir y\n"
+"modificar usuarios usted podría crear un role, useradmin. Debería asignar\n"
+"usuarios al rol useradmin que les permitirá hacer operaciones definidas en\n"
+"el grupo de tareas.\n"
 "\n"
-"Usted puede crear ACIs que deleguen permisos así usuarios del grupo A "
-"pueden\n"
-"escribir atributos en el grupo B.\n"
+"Usted puede crear los ACI que deleguen permisos así usuarios del grupo A\n"
+"pueden escribir atributos en el grupo B.\n"
 "\n"
-"La opción type es un mapa que aplica a todas las entradas en la localización "
-"de\n"
-"usuarios, grupos o host. Está diseñada principalmente para ser usada cuando "
-"se\n"
-"otorgan permisos de añadir (para escribir nuevas entradas).\n"
+"La opción type es un mapa que aplica a todas las entradas en la "
+"localización\n"
+"de usuarios, grupos o host. Está diseñada principalmente para ser usada\n"
+"cuando se otorgan permisos de añadir (para escribir nuevas entradas).\n"
 "\n"
 "Un ACI consta de tres partes:\n"
 "1. objetivo\n"
 "2. permisos\n"
 "3. reglas de enlace\n"
 "\n"
-"El objetivo es un conjunto de reglas que definen que objetos LDAP son "
-"objetivos.\n"
-"Esto puede incluir una lista de atributos, un área del árbol LDAP o un "
-"filtro LDAP.\n"
+"El objetivo es un conjunto de reglas que definen que objetos LDAP son\n"
+"objetivos. Esto puede incluir una lista de atributos, un área del árbol LDAP "
+"o\n"
+"un filtro LDAP.\n"
 "\n"
 "Los objetivos incluyen:\n"
 "- attrs: lista de atributos afectados\n"
@@ -1398,15 +1367,14 @@ msgstr ""
 "  principalmente para habilitar a los usuarios para añadir o borrar miembros "
 "de un\n"
 "  grupo específico.\n"
-"- filter: Un filtro LDAP legal usado para reducir el alcance del objetivo.\n"
-"- subtree: Usado para aplicar una regla a lo largo de un conjunto de "
-"objetos. Por\n"
-"  ejemplo, para añadir usuarios usted necesita conceder permisos \"add\" al "
-"subtree\n"
-"  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. La opción subtree es "
-"a\n"
-"  prueba de fallos para objetos que pueden no estar cubiertos por la opción "
-"type.\n"
+"- filter: un filtro LDAP legal usado para reducir el alcance del objetivo.\n"
+"- subtree: usado para aplicar una regla a lo largo de un conjunto de "
+"objetos. \n"
+"  Por ejemplo, para añadir usuarios usted necesita conceder permisos \"add\""
+"\n"
+"  al subárbol ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. La\n"
+"  opción subtree es la prueba de fallos para objetos que pueden no estar\n"
+"  cubiertos por la opción type.\n"
 "\n"
 "Los permisos definidos que ACI tiene permitidos hacer son uno o más de:\n"
 "1. write - escribir uno o mas atributos\n"
@@ -1434,7 +1402,7 @@ msgstr ""
 "\n"
 "EJEMPLOS:\n"
 "\n"
-"AVISO: Los ACIs se añaden ahora por medio del plugin permisos. Estos "
+"AVISO: Los ACI se añaden ahora por medio del plugin permisos. Estos "
 "ejemplos\n"
 "son para demostrar como trabajan diversas opciones pero esto está hecho por\n"
 "medio de los permisos de linea de comandos ahora (vea último ejemplo).\n"
@@ -1443,7 +1411,7 @@ msgstr ""
 "dirección de cualquier usuario:\n"
 "   ipa group-add --desc=\"Office secretaries\" secretaries\n"
 "   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries "
-"--permissions=write --prefix=none \"Secretaries write addresses\"\n"
+"--permissions=write --prefix=none \"Secretarios escriben direciones\"\n"
 "\n"
 " Mostrar el nuevo ACI:\n"
 "   ipa aci-show --prefix=none \"Secretaries write addresses\"\n"
@@ -1451,30 +1419,31 @@ msgstr ""
 " Añadir un ACI que permita a los  miembros del permiso \"addusers\" añadir "
 "nuevos usuarios:\n"
 "   ipa aci-add --type=user --permission=addusers --permissions=add --"
-"prefix=none \"Add new users\"\n"
+"prefix=none \"Añade usuarios nuevos\"\n"
 "\n"
 " Añadir un ACI que permita a los miembros de los editores manejar miembros "
 "del grupo admins:\n"
 "   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --"
-"group=editors --prefix=none \"Editors manage admins\"\n"
+"group=editors --prefix=none \"Editores gestionan admins\"\n"
 "\n"
 " Añadir un ACI que permita a los miembros del grupo admins manejar la calle "
 "y el código postal de los que estén en el grupo editors:\n"
 "   ipa aci-add --permissions=write --memberof=editors --group=admins --"
-"attrs=street --attrs=postalcode --prefix=none \"admins edit the address of "
-"editors\"\n"
+"attrs=street --attrs=postalcode --prefix=none "
+"\"admins editan la dirección de editores\"\n"
 "\n"
 " Añadir un ACI que permita a los miembros del grupo admins manejar la calle "
 "y el código postal de aquellos que trabajan para el jefe:\n"
 "   ipa aci-add --permissions=write --group=admins --attrs=street --"
-"attrs=postalcode --filter=\"(manager=uid=boss,cn=users,cn=accounts,"
-"dc=example,dc=com)\" --prefix=none \"Edit the address of those who work for "
-"the boss\"\n"
+"attrs=postalcode --filter="
+"\"(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)\" --prefix=none "
+"\"Edite la dirección de aquellos quienes trabajen para el jefe\"\n"
 "\n"
 " Añadir un clase de registro totalmente nueva para IPA que no esté cubierta "
 "por ninguna de las opciones –type, creando un permiso:\n"
-"   ipa permission-add  --permissions=add --subtree=\"cn=*,cn=orange,"
-"cn=accounts,dc=example,dc=com\" --desc=\"Add Orange Entries\" add_orange\n"
+"   ipa permission-add  --permissions=add --subtree="
+"\"cn=*,cn=orange,cn=accounts,dc=example,dc=com\" --desc="
+"\"Añade Apuntes Orange\" add_orange\n"
 "\n"
 "\n"
 "El comando show muestra el ACI 389-ds en bruto.\n"
@@ -1516,7 +1485,8 @@ msgstr "Tipo"
 
 msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
 msgstr ""
-"Objeto de tipo IPA (usuario, grupo, grupo de host, servicio, grupo de red)"
+"tipo de objeto IPA (usuario, grupo, host, grupo de host, servicio, grupo de "
+"red)"
 
 msgid "Member of"
 msgstr "Miembro de"
@@ -1979,70 +1949,64 @@ msgstr "Nueva información de montaje"
 msgid "Rename"
 msgstr "Cambiar el nombre de"
 
-#, fuzzy
-#| msgid "Automount key object."
 msgid "Rename the automount key object"
-msgstr "Objeto clave de automontaje"
+msgstr "Renombra el objeto clave de auto-montaje"
 
 msgid "Display an automount key."
-msgstr "Mostrar una clave de automontaje."
+msgstr "Exhibe una clave de auto-montaje."
 
 msgid "Create a new automount location."
-msgstr "Crear una nueva localización de automontaje."
+msgstr "Crear un nuevo lugar de auto-montaje."
 
 msgid "Delete an automount location."
-msgstr "Borrar una localización de automontaje."
+msgstr "Borrar un lugar de auto-montaje."
 
 msgid "Search for an automount location."
-msgstr "Buscar una localización de automontaje."
+msgstr "Buscar un lugar de auto-montaje."
 
-#, fuzzy
-#| msgid "Results should contain primary key attribute only (\"name\")"
 msgid "Results should contain primary key attribute only (\"location\")"
 msgstr ""
-"Los resultados deberían contener solo la clave del atributo primario "
-"(\"name\")"
+"Los resultados deberían contener solo la clave del atributo primario ("
+"\"location\")"
 
 msgid "Display an automount location."
-msgstr "Mostrar una localización de automontaje"
+msgstr "Exhibe un lugar de auto-montaje"
 
 msgid "Generate automount files for a specific location."
-msgstr "Generar ficheros de automontaje para una localización específica."
+msgstr "Generar archivos de auto-montaje para un lugar específico."
 
 msgid "Create a new automount map."
-msgstr "Crear un nuevo mapa de automontaje"
+msgstr "Crea un mapa de auto-montaje nuevo"
 
 msgid "Create a new indirect mount point."
-msgstr "Crear un nuevo punto de montaje indirecto."
+msgstr "Crea un punto indirecto de montaje nuevo."
 
 msgid "Mount point"
 msgstr "Punto de montaje"
 
 msgid "Parent map"
-msgstr "Mapa del padre"
+msgstr "Mapa del antecesor"
 
 msgid "Name of parent automount map (default: auto.master)."
 msgstr ""
-"Nombre del mapa de montaje automático de padre (por defecto: auto.master)."
+"Nombre del anterior mapa de montaje automático (por defecto: auto.master)."
 
 msgid "Delete an automount map."
-msgstr "Borrar un mapa de automontaje."
+msgstr "Borrar un mapa de auto-montaje."
 
 msgid "Search for an automount map."
-msgstr "Buscar un mapa de automontaje."
+msgstr "Buscar un mapa de auto-montaje."
 
-#, fuzzy
-#| msgid "Results should contain primary key attribute only (\"name\")"
 msgid "Results should contain primary key attribute only (\"map\")"
 msgstr ""
-"Los resultados deberían contener solo la clave del atributo primario "
-"(\"name\")"
+"Los resultados deberían contener solo la clave del atributo primario (\"map\""
+")"
 
 msgid "Modify an automount map."
-msgstr "Modificar un mapa de automontaje"
+msgstr "Modificar un mapa de auto-montaje."
 
 msgid "Display an automount map."
-msgstr "Mostrar un mapa de automontaje"
+msgstr "Exhibe un mapa de auto-montaje"
 
 msgid ""
 "\n"
@@ -2128,16 +2092,16 @@ msgid ""
 msgstr ""
 
 msgid "Maximum username length"
-msgstr "Largo máximo para nombre de usuario"
+msgstr "Longitud máxima del nombre de usuario"
 
 msgid "Home directory base"
 msgstr "Base del directorio principal"
 
 msgid "Default location of home directories"
-msgstr "Localización por defecto de los directorios home"
+msgstr "Lugar por defecto de los directorios home"
 
 msgid "Default shell"
-msgstr "Shell predeterminada"
+msgstr "Intérprete predeterminado"
 
 msgid "Default shell for new users"
 msgstr "Shell predeterminada para usuarios nuevos"
@@ -2609,7 +2573,7 @@ msgstr ""
 "promotor usando el formato estándar \"IP_ADDRESS port PORT\""
 
 msgid "Forward policy"
-msgstr "Política de envío"
+msgstr "Normativa de envío"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
@@ -15580,7 +15544,7 @@ msgstr "Un grupo administrado no puede tener una política de contraseñas."
 
 #, python-format
 msgid "'%(entry)s' doesn't have a certificate."
-msgstr "'%(entry)s' no tiene certificado"
+msgstr "'%(entry)s' no tiene certificado."
 
 #, python-format
 msgid "Unable to create private group. A group '%(group)s' already exists."
@@ -16021,7 +15985,7 @@ msgstr ""
 
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
-msgstr "debe coincidir con el modelo \"%(pattern)s"
+msgstr "debe coincidir con el modelo \"%(pattern)s\""
 
 msgid "must be binary data"
 msgstr "debe ser un dato binario"
@@ -27483,7 +27447,7 @@ msgstr ""
 msgid "Google"
 msgstr ""
 
-msgid "Github"
+msgid "GitHub"
 msgstr ""
 
 msgid "Microsoft or Azure"
