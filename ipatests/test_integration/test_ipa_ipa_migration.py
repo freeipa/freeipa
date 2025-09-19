@@ -1283,7 +1283,8 @@ class TestIPAMigratewithBackupRestore(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
         prepare_ipa_server(cls.master)
-        tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True)
+        tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True,
+                             extra_args=['--allow-zone-overlap'])
         tasks.install_replica(cls.master, cls.replicas[1],
                               setup_dns=True, setup_kra=True)
 
