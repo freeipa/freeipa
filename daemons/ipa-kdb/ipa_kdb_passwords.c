@@ -50,6 +50,10 @@ static krb5_error_code ipapwd_error_to_kerr(krb5_context context,
         krb5_set_error_message(context, kerr, "Password reuse not permitted");
         break;
     case IPAPWD_POLICY_PWD_COMPLEXITY:
+    case IPAPWD_POLICY_PWD_MIN_DIGITS:
+    case IPAPWD_POLICY_PWD_MIN_UPPERS:
+    case IPAPWD_POLICY_PWD_MIN_LOWERS:
+    case IPAPWD_POLICY_PWD_MIN_OTHERS:
         kerr = KADM5_PASS_Q_CLASS;
         krb5_set_error_message(context, kerr, "Password is too simple");
         break;
