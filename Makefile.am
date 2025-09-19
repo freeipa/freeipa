@@ -388,6 +388,7 @@ if WITH_PYLINT
 pylint: $(GENERATED_PYTHON_FILES) ipasetup.py python_scripts
 	FILES=`find $(top_srcdir) \
 		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
+		-path './install/freeipa-webui' -prune -o \
 		-path './rpmbuild' -prune -o \
 		-path './freeipa-*' -prune -o \
 		-path './dist' -prune -o \

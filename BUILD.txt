@@ -25,6 +25,19 @@ For more dependencies management tips, you can have a look at ./ipatests/azure/t
 Building
 --------
 
+FreeIPA git repository is using another project as a git submodule to store
+the source code for its Modern WebUI. The submodule is available at
+https://github.com/freeipa/freeipa-webui and installed in the directory
+install/freeipa-webui.
+
+In order to get more familiar with git submodule concepts, you can read
+https://git-scm.com/book/en/v2/Git-Tools-Submodules.
+
+Before building FreeIPA, make sure that you have pulled the submodule using:
+$ git submodule update --init --recursive
+
+makerpms.sh can do this step for you.
+
 From the root of the source tree run:
 $ ./makerpms.sh
 
@@ -33,7 +46,7 @@ The resulting rpm packages are in dist/rpms:
 # yum --nogpgcheck localinstall dist/rpms/*
 # ipa-server-install
 
-You might tweak the build and run steps separatelly:
+You might tweak the build and run steps separately:
 $ autoreconf -i
 $ ./configure
 $ make
