@@ -1,7 +1,5 @@
 srpm:
 	# Setup development environment
-	echo "Installing base development environment"
-	dnf install -y dnf5-plugins
 	echo "Installing FreeIPA development dependencies"
 	cp freeipa.spec.in freeipa.spec
 	dnf builddep -y --best --allowerasing --setopt=install_weak_deps=False freeipa.spec > ${outdir}/builddep.log 2>&1
