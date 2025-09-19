@@ -74,6 +74,13 @@ class BaseTestTrust(IntegrationTest):
         cls.srv_gc_record_name = \
             '_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs'
         cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
+        cls.aduser = f"nonposixuser@{cls.ad_domain}"
+        cls.aduser2 = f"nonposixuser1@{cls.ad_domain}"
+        cls.subaduser = f"subdomaintestuser@{cls.ad_subdomain}"
+        cls.subaduser2 = f"subdomaindisabledadu@{cls.ad_subdomain}"
+        cls.ad_group = f"testgroup@{cls.ad_domain}"
+        cls.ad_sub_group = f"subdomaintestgroup@{cls.ad_subdomain}"
+
 
     @classmethod
     def check_sid_generation(cls):
