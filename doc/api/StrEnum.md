@@ -3,7 +3,6 @@
 
 # StrEnum
 [//]: # (ADD YOUR NOTES BELOW. THESE WILL BE PICKED EVERY TIME THE DOCS ARE REGENERATED. //end)
-
 Enumerable for Unicode text (stored in the ``unicode`` type).
 
 For example:

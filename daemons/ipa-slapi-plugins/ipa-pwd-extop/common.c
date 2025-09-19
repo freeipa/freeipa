@@ -225,7 +225,10 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         goto free_and_error;
     }
     config->passsync_mgrs =
-            slapi_entry_attr_get_charray(config_entry, "passSyncManagersDNs");
+        slapi_entry_attr_get_charray(config_entry, "passSyncManagersDNs");
+    config->sysacct_mgrs =
+        slapi_entry_attr_get_charray(config_entry, "SysAcctManagersDNs");
+
     /* now add Directory Manager, it is always added by default */
     tmpstr = slapi_ch_strdup("cn=Directory Manager");
     slapi_ch_array_add(&config->passsync_mgrs, tmpstr);
@@ -233,8 +236,6 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         LOG_OOM();
         goto free_and_error;
     }
-    for (i = 0; config->passsync_mgrs[i]; i++) /* count */ ;
-    config->num_passsync_mgrs = i;
 
     slapi_entry_free(config_entry);
 
@@ -289,6 +290,7 @@ free_and_error:
         free(config->pref_encsalts);
         free(config->supp_encsalts);
         slapi_ch_array_free(config->passsync_mgrs);
+        slapi_ch_array_free(config->sysacct_mgrs);
         free(config);
     }
     slapi_entry_free(config_entry);
@@ -628,6 +630,7 @@ int ipapwd_CheckPolicy(struct ipapwd_data *data)
              * For this intentional fallthrough here
              */
         case IPA_CHANGETYPE_DSMGR:
+        case IPA_CHANGETYPE_SYSACCT:
             /* PassSync agents and Directory Manager can administratively
              * change the password without expiring it.
              *
@@ -1137,4 +1140,3 @@ int ipapwd_check_max_pwd_len(size_t len, char **errMesg) {
     }
     return 0;
 }
-
