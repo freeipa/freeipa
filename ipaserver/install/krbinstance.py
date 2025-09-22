@@ -378,6 +378,7 @@ class KrbInstance(service.Service):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
         self.__template_file(paths.KRB5_CONF)
         self.__template_file(paths.KRB5_FREEIPA_SERVER)
+        self.__template_file(paths.KRB5_FREEIPA_DEFAULTS, client_template=True)
         self.__template_file(paths.KRB5_FREEIPA, client_template=True)
 
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
@@ -635,7 +636,7 @@ class KrbInstance(service.Service):
         except Exception:
             pass
 
-        for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF]:
+        for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF, paths.KRB5_FREEIPA]:
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
@@ -657,5 +658,5 @@ class KrbInstance(service.Service):
         self.kpasswd.uninstall()
 
         ipautil.remove_file(paths.KRB5_KEYTAB)
-        ipautil.remove_file(paths.KRB5_FREEIPA)
+        ipautil.remove_file(paths.KRB5_FREEIPA_DEFAULTS)
         ipautil.remove_file(paths.KRB5_FREEIPA_SERVER)
