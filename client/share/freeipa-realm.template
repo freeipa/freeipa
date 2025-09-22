@@ -1,0 +1,11 @@
+[realms]
+        $REALM = {
+                admin_server = $FQDN
+                kdc = $FQDN
+                master_kdc = $FQDN
+                default_domain = $REALM
+        }
+
+[domain_realm]
+        .$DOMAIN = $REALM
+        $DOMAIN = $REALM
