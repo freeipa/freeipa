@@ -1,7 +1,5 @@
 [libdefaults]
         default_realm = $REALM
-        krb4_config = /usr/kerberos/lib/krb.conf
-        krb4_realms = /usr/kerberos/lib/krb.realms
         dns_lookup_kdc = true
 
 [realms]
