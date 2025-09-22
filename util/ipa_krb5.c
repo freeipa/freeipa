@@ -51,6 +51,9 @@ static const char *const conf_yes[] = {
 /* Salt types */
 #define KRB5P_SALT_SIZE 16
 
+#define IPA_ADD_SALTTYPE_NORMAL (1 << 0)
+#define IPA_ADD_SALTTYPE_SPECIAL (1 << 1)
+
 static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
                                            krb5_data *salt)
 {
@@ -1579,19 +1582,24 @@ ipa_sort_and_filter_keys_i(krb5_context kctx, krb5_key_data *keys, int *n_keys,
 
 static krb5_error_code
 permitted_to_keysalt_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
-                           size_t *n_keysalts, bool normal_salt)
+                           size_t *n_keysalts, unsigned int add_salt_types)
 {
     krb5_error_code err;
     krb5_enctype *ptypes;
-    size_t n_enctypes, n_ks, i;
+    /* Index and number of enctypes and key/salt pairs */
+    size_t ie, n_enctypes, iks, n_ks;
     krb5_key_salt_tuple *ksts = NULL;
+    bool add_normal = add_salt_types & IPA_ADD_SALTTYPE_NORMAL;
+    bool add_special = add_salt_types & IPA_ADD_SALTTYPE_SPECIAL;
 
     err = krb5_get_permitted_enctypes(kctx, &ptypes);
     if (err) goto end;
 
     for (n_enctypes = 0; ptypes[n_enctypes]; ++n_enctypes);
 
-    n_ks = normal_salt ? n_enctypes * 2 : n_enctypes;
+    n_ks = 0;
+    if (add_normal) n_ks += n_enctypes;
+    if (add_special) n_ks += n_enctypes;
 
     ksts = calloc(n_ks, sizeof(*ksts));
     if (!ksts) {
@@ -1599,17 +1607,16 @@ permitted_to_keysalt_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
         goto end;
     }
 
-    if (normal_salt) {
-        for (i = 0; i < n_enctypes; ++i) {
-            ksts[i*2] = (krb5_key_salt_tuple){
-                ptypes[i], KRB5_KDB_SALTTYPE_SPECIAL };
-            ksts[i*2 + 1] = (krb5_key_salt_tuple){
-                ptypes[i], KRB5_KDB_SALTTYPE_NORMAL };
+    iks = 0;
+    for (ie = 0; ie < n_enctypes; ++ie) {
+        /* Special salt type is prioritized over normal type. */
+        if (add_special) {
+            ksts[iks++] = (krb5_key_salt_tuple){
+                ptypes[ie], KRB5_KDB_SALTTYPE_SPECIAL };
         }
-    } else {
-        for (i = 0; i < n_enctypes; ++i) {
-            ksts[i] = (krb5_key_salt_tuple){
-                ptypes[i], KRB5_KDB_SALTTYPE_SPECIAL };
+        if (add_normal) {
+            ksts[iks++] = (krb5_key_salt_tuple){
+                ptypes[ie], KRB5_KDB_SALTTYPE_NORMAL };
         }
     }
 
@@ -1625,12 +1632,23 @@ krb5_error_code
 ipa_get_default_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
                       size_t *n_keysalts)
 {
-    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts, false);
+    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts,
+                                      IPA_ADD_SALTTYPE_SPECIAL);
 }
 
 krb5_error_code
 ipa_get_supported_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
                         size_t *n_keysalts)
 {
-    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts, true);
+    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts,
+                                      IPA_ADD_SALTTYPE_NORMAL |
+                                      IPA_ADD_SALTTYPE_SPECIAL);
+}
+
+krb5_error_code
+ipa_get_randkey_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
+                      size_t *n_keysalts)
+{
+    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts,
+                                      IPA_ADD_SALTTYPE_NORMAL);
 }

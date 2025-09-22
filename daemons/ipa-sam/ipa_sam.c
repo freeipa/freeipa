@@ -4454,18 +4454,17 @@ static NTSTATUS ipasam_get_domain_name(struct ipasam_private *ipasam_state,
 static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 				    uint32_t *enctypes)
 {
-	krb5_key_salt_tuple *keysalts = NULL;
-	size_t i, n_keysalts;
+	krb5_enctype *e, *permitted_enctypes = NULL;
 	krb5_error_code err;
 	NTSTATUS status = NT_STATUS_UNSUCCESSFUL;
 
-	err = ipa_get_default_types(ipasam_state->kcontext, &keysalts,
-				    &n_keysalts);
+	err = krb5_get_permitted_enctypes(ipasam_state->kcontext,
+					  &permitted_enctypes);
 	if (err) goto end;
 
 	*enctypes = 0;
-	for (i = 0; i < n_keysalts; ++i) {
-		switch (keysalts[i].ks_enctype) {
+	for (e = permitted_enctypes; *e; ++e) {
+		switch (*e) {
 			case ENCTYPE_DES_CBC_CRC:
 				*enctypes |= KERB_ENCTYPE_DES_CBC_CRC;
 				break;
@@ -4489,7 +4488,7 @@ static NTSTATUS ipasam_get_enctypes(struct ipasam_private *ipasam_state,
 	status = NT_STATUS_OK;
 
 end:
-	free(keysalts);
+	krb5_free_enctypes(ipasam_state->kcontext, permitted_enctypes);
 	return status;
 }
 

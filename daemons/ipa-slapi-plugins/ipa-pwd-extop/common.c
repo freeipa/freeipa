@@ -166,6 +166,14 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
         goto free_and_error;
     }
 
+    /*** get the Random Key Enc/Salt types ***/
+    ret = ipa_get_randkey_types(config->krbctx, &config->randkey_encsalts,
+                                &config->num_randkey_encsalts);
+    if (ret) {
+        LOG_FATAL("Can't get Random Key EncSalt Types\n");
+        goto free_and_error;
+    }
+
     slapi_entry_free(realm_entry);
 
     /* get the Realm Container entry */
@@ -240,6 +248,7 @@ free_and_error:
             krb5_free_context(config->krbctx);
         }
         free(config->pref_encsalts);
+        free(config->randkey_encsalts);
         slapi_ch_array_free(config->passsync_mgrs);
         slapi_ch_array_free(config->sysacct_mgrs);
         free(config);
@@ -1088,6 +1097,7 @@ void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
         free(c->kmkey);
     }
     free(c->pref_encsalts);
+    free(c->randkey_encsalts);
     slapi_ch_array_free(c->passsync_mgrs);
     free(c);
     *cfg = NULL;

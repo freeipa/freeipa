@@ -1529,8 +1529,8 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     Slapi_Entry *target_entry = NULL;
     bool acl_ok = false;
     char *password = NULL;
-    int num_kenctypes = 0;
-    krb5_key_salt_tuple *kenctypes = NULL;
+    int num_req_ktypes = 0, num_ktypes = 0;
+    krb5_key_salt_tuple *req_ktypes = NULL, *ktypes = NULL;
     int mkvno = 0;
     int num_keys = 0;
     krb5_key_data *keys = NULL;
@@ -1570,7 +1570,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     }
 
     rc = decode_getkeytab_request(extop_value, &wantold, &service_name,
-                                  &password, &kenctypes, &num_kenctypes,
+                                  &password, &req_ktypes, &num_req_ktypes,
                                   &err_msg);
     if (rc != LDAP_SUCCESS) {
         goto free_and_return;
@@ -1640,8 +1640,8 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
          * by the all principals */
         nthash_allowed = ipa_is_cifs_princname(service_name) ||
                          ipa_is_cifs_dn(bind_dn);
-        krberr = ipa_sort_and_filter_keysalt_types_i(krbctx, kenctypes,
-                                                     &num_kenctypes,
+        krberr = ipa_sort_and_filter_keysalt_types_i(krbctx, req_ktypes,
+                                                     &num_req_ktypes,
                                                      nthash_allowed);
         if (krberr) {
             err_msg = "Unable to filter Kerberos key/salt types";
@@ -1650,7 +1650,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         }
 
         /* check if we have any left */
-        if (num_kenctypes == 0 && kenctypes != NULL) {
+        if (num_req_ktypes == 0 && req_ktypes != NULL) {
             LOG_FATAL("keyset filtering rejected all proposed keys\n");
             err_msg = "All enctypes provided are unsupported";
             rc = LDAP_UNWILLING_TO_PERFORM;
@@ -1662,12 +1662,24 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         data.target = target_entry;
         data.password = password;
 
+        if (!req_ktypes) {
+            if (!password) {
+                /* If client requested a random password with default key types,
+                 * then the "normal" salt type should be used, rather than the
+                 * "special" one. */
+                ktypes = krbcfg->randkey_encsalts;
+                num_ktypes = krbcfg->num_randkey_encsalts;
+            } else {
+                ktypes = krbcfg->pref_encsalts;
+                num_ktypes = krbcfg->num_pref_encsalts;
+            }
+        } else {
+            ktypes = req_ktypes;
+            num_ktypes = num_req_ktypes;
+        }
+
         svals = ipapwd_encrypt_encode_key(krbcfg, &data, service_name,
-                                          kenctypes ? num_kenctypes :
-                                              (int)krbcfg->num_pref_encsalts,
-                                          kenctypes ? kenctypes :
-                                              krbcfg->pref_encsalts,
-                                          &err_msg);
+                                          num_ktypes, ktypes, &err_msg);
         if (!svals) {
             rc = LDAP_OPERATIONS_ERROR;
             LOG_FATAL("encrypt_encode_keys failed!\n");
@@ -1707,7 +1719,7 @@ free_and_return:
 
     /* Free anything that we allocated above */
     if (krbctx) krb5_free_context(krbctx);
-    free(kenctypes);
+    free(req_ktypes);
     free(service_name);
     free(password);
     if (target_entry) slapi_entry_free(target_entry);
