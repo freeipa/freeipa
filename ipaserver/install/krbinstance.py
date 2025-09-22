@@ -379,9 +379,6 @@ class KrbInstance(service.Service):
         self.__template_file(paths.KRB5_CONF)
         self.__template_file(paths.KRB5_FREEIPA_SERVER)
         self.__template_file(paths.KRB5_FREEIPA, client_template=True)
-        self.__template_file(paths.HTML_KRB5_INI)
-        self.__template_file(paths.KRB_CON)
-        self.__template_file(paths.HTML_KRBREALM_CON)
 
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')

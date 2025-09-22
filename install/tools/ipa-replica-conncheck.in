@@ -266,8 +266,7 @@ def configure_krb5_conf(realm, kdc, filename):
     pamopts = [{'name':'debug', 'type':'option', 'value':'false'},
                {'name':'ticket_lifetime', 'type':'option', 'value':'36000'},
                {'name':'renew_lifetime', 'type':'option', 'value':'36000'},
-               {'name':'forwardable', 'type':'option', 'value':'true'},
-               {'name':'krb4_convert', 'type':'option', 'value':'false'}]
+               {'name':'forwardable', 'type':'option', 'value':'true'}]
     appopts = [{'name':'pam', 'type':'subsection', 'value':pamopts}]
     opts.append({'name':'appdefaults', 'type':'section', 'value':appopts})
 
