@@ -4,6 +4,7 @@
                 kdc = $FQDN
                 master_kdc = $FQDN
                 default_domain = $REALM
+                auto_fast_armor = true
         }
 
 [domain_realm]
