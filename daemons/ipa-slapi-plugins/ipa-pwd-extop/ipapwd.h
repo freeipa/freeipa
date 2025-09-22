@@ -106,6 +106,8 @@ struct ipapwd_krbcfg {
     krb5_keyblock *kmkey;
     size_t num_pref_encsalts;
     krb5_key_salt_tuple *pref_encsalts;
+    size_t num_randkey_encsalts;
+    krb5_key_salt_tuple *randkey_encsalts;
     char **passsync_mgrs;
     char **sysacct_mgrs;
     bool allow_nt_hash;

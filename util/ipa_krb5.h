@@ -200,6 +200,15 @@ krb5_error_code ipa_get_supported_types(krb5_context kctx,
                                         krb5_key_salt_tuple **keysalts,
                                         size_t *n_keysalts);
 
+/* Create a list of key/salt types for principals set with random credentials.
+ * It is ordered by preference based on the value of the "permitted_enctypes"
+ * parameter from the local krb5 configuration.
+ * The "keysalts" argument is dynamically allocated, and must be free()d by the
+ * caller. */
+krb5_error_code
+ipa_get_randkey_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
+                      size_t *n_keysalts);
+
 /* Sort Kerberos key/salt types according to the enctypes order of the
  * "permitted_enctypes" parameter from the local krb5 configuration.
  * Types not present in this parameter are sorted according to an hard-coded
