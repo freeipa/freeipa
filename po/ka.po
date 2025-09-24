@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.0.dev202204261349+gitfbfd64fc2\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-07-23 02:53+0000\n"
+"PO-Revision-Date: 2025-09-01 11:53+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/ka/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.12.2\n"
+"X-Generator: Weblate 5.13\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -14162,15 +14162,11 @@ msgstr "ავტომიმაგრების რუკა"
 msgid "automount maps"
 msgstr "ავტომიმაგრების რუკები"
 
-#, fuzzy
-#| msgid "Automount"
 msgid "Automount Maps"
-msgstr "ავტომატური მიმაგრება"
+msgstr "ავტომიმაგრების რუკები"
 
-#, fuzzy
-#| msgid "Automount"
 msgid "Automount Map"
-msgstr "ავტომატური მიმაგრება"
+msgstr "ავტომიმაგრების რუკა"
 
 #, fuzzy, python-format
 #| msgid "Added group \"%(value)s\""
@@ -22292,7 +22288,7 @@ msgid "Google"
 msgstr "Google"
 
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 msgid "Microsoft or Azure"
 msgstr ""
