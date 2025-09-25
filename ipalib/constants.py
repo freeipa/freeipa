@@ -178,6 +178,7 @@ DEFAULT_CONFIG = (
     # ('ldap_uri', 'ldap://localhost:389'),
 
     ('rpc_protocol', 'jsonrpc'),
+    ('uris_derived', True),
 
     ('ldap_cache', True),
     ('ldap_cache_size', 100),
