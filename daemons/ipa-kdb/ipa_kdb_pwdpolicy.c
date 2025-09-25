@@ -38,6 +38,10 @@ char *std_pwdpolicy_attrs[] = {
     "ipapwdmaxsequence",
     "ipapwddictcheck",
     "ipapwdusercheck",
+    "ipapwddcredit",
+    "ipapwducredit",
+    "ipapwdlcredit",
+    "ipapwdocredit",
 
     NULL
 };
@@ -51,6 +55,7 @@ krb5_error_code ipadb_get_ipapwd_policy(struct ipadb_context *ipactx,
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
     uint32_t result;
+    int iresult;
     bool resbool;
     int ret;
 
@@ -146,8 +151,28 @@ krb5_error_code ipadb_get_ipapwd_policy(struct ipadb_context *ipactx,
         pol->usercheck = 1;
     }
 
+    ret = ipadb_ldap_attr_to_int(ipactx->lcontext, lentry,
+                                    "ipaPwdDcredit", &iresult);
     if (ret == 0) {
-        pol->max_sequence = result;
+        pol->dcredit = iresult;
+    }
+
+    ret = ipadb_ldap_attr_to_int(ipactx->lcontext, lentry,
+                                    "ipaPwdUcredit", &iresult);
+    if (ret == 0) {
+        pol->ucredit = iresult;
+    }
+
+    ret = ipadb_ldap_attr_to_int(ipactx->lcontext, lentry,
+                                    "ipaPwdLcredit", &iresult);
+    if (ret == 0) {
+        pol->lcredit = iresult;
+    }
+
+    ret = ipadb_ldap_attr_to_int(ipactx->lcontext, lentry,
+                                    "ipaPwdOcredit", &iresult);
+    if (ret == 0) {
+        pol->ocredit = iresult;
     }
 
     *_pol = pol;

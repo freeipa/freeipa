@@ -30,6 +30,14 @@ Search for group password policies.
  * Default: False
 * ipapwdusercheck : :ref:`Bool<Bool>`
  * Default: False
+* ipapwddcredit : :ref:`Int<Int>`
+ * Default: 0
+* ipapwducredit : :ref:`Int<Int>`
+ * Default: 0
+* ipapwdlcredit : :ref:`Int<Int>`
+ * Default: 0
+* ipapwdocredit : :ref:`Int<Int>`
+ * Default: 0
 * passwordgracelimit : :ref:`Int<Int>`
  * Default: -1
 * timelimit : :ref:`Int<Int>`
