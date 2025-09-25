@@ -511,17 +511,14 @@ class TestIpaClientAutomountDiscovery(MultiDomainIntegrationTest):
             "--forward-policy=only"
         ])
         # Backup original resolv.conf
-        tasks.backup_file(client, paths.RESOLV_CONF)
+        client.resolver.backup()
 
         try:
             # Install client in a domain other than the IPA domain
-            non_ipa_resolv_conf = f"""search {other_domain}
-nameserver {self.trusted_master.ip}
-"""
-            client.put_file_contents(paths.RESOLV_CONF, non_ipa_resolv_conf)
+            client.resolver.setup_resolver(self.trusted_master.ip,
+                                           searchdomains=other_domain)
 
             # Ensure client is installed for the test
-            tasks.uninstall_client(client)
             client.run_command(["ipa-client-install", "--domain", other_domain,
                                 "--realm", self.trusted_master.domain.realm,
                                 "--server", self.trusted_master.hostname,
@@ -556,5 +553,5 @@ nameserver {self.trusted_master.ip}
                 "Autofs provider should be configured"
         finally:
             # Cleanup: restore original resolv.conf and uninstall
-            tasks.restore_files(client)
+            client.resolver.restore()
             remove_automount(client)
