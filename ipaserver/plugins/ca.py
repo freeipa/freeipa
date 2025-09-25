@@ -208,6 +208,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:  # pki v2 api
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
         if want_chain or full:
             try:
@@ -221,6 +224,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:  # pki v2 api
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
     return msg
 
