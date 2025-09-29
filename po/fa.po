@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.2.dev202306060737+git283f5463f\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-06-06 09:38+0200\n"
-"PO-Revision-Date: 2025-09-29 20:01+0000\n"
+"PO-Revision-Date: 2025-09-29 22:21+0000\n"
 "Last-Translator: Pejman Rezaei <prezaei.eu@gmail.com>\n"
 "Language-Team: Persian <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/fa/>\n"
@@ -225,32 +225,32 @@ msgstr "پاسخ LDAP فاقد فهرست کنترل مورد انتظار اس�
 #: client/ipa-getkeytab.c:477
 #, c-format
 msgid "Missing reply control!\n"
-msgstr ""
+msgstr "پاسخ LDAP فاقد کنترل لازم برای ادامهٔ عملیات است!\n"
 
 #: client/ipa-getkeytab.c:519
 #, c-format
 msgid "Out of Memory!\n"
-msgstr ""
+msgstr "کمبود حافظه\n"
 
 #: client/ipa-getkeytab.c:526 client/ipa-getkeytab.c:688
 #, c-format
 msgid "Failed to create control!\n"
-msgstr ""
+msgstr "امکان ساخت کنترل LDAP وجود ندارد!\n"
 
 #: client/ipa-getkeytab.c:532 client/ipa-getkeytab.c:696
 #, c-format
 msgid "Failed to bind to server!\n"
-msgstr ""
+msgstr "اتصال به سرور با شکست مواجه شد!\n"
 
 #: client/ipa-getkeytab.c:539
 #, c-format
 msgid "Failed to get keytab!\n"
-msgstr ""
+msgstr "دریافت فایل keytab با شکست مواجه شد!\n"
 
 #: client/ipa-getkeytab.c:548
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
-msgstr ""
+msgstr "راه‌اندازی ber_init() با شکست مواجه شد؛ کنترل نامعتبر؟!\n"
 
 #: client/ipa-getkeytab.c:567
 #, c-format
