@@ -8,85 +8,87 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.2.dev202306060737+git283f5463f\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-06-06 09:38+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2025-09-29 20:01+0000\n"
+"Last-Translator: Pejman Rezaei <prezaei.eu@gmail.com>\n"
+"Language-Team: Persian <https://translate.fedoraproject.org/projects/freeipa/"
+"ipa-4-10/fa/>\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.13.3\n"
 
 #: client/config.c:56
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr ""
+msgstr "‮نمی‌توان فایل پیکربندی %s را باز کرد\n"
 
 #: client/config.c:63
 #, c-format
 msgid "cannot stat() configuration file %s\n"
-msgstr ""
+msgstr "نمی‌توان اطلاعات فایل پیکربندی %s را دریافت کرد\n"
 
 #: client/config.c:69
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "حافظه پر است\n"
 
 #: client/config.c:80
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "خطای خواندن\n"
 
 #: client/ipa-rmkeytab.c:51
 #, c-format
 msgid "Unable to parse principal name\n"
-msgstr ""
+msgstr "نمی‌توان نام اصلی (پرینسیپال) را تجزیه کرد\n"
 
 #: client/ipa-rmkeytab.c:53
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_parse_name %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_parse_name %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:63
 #, c-format
 msgid "Removing principal %s\n"
-msgstr ""
+msgstr "در حال حذف پرینسیپال %s\n"
 
 #: client/ipa-rmkeytab.c:76
 #, c-format
 msgid "Failed to open keytab\n"
-msgstr ""
+msgstr "نمی‌توان keytab را باز کرد\n"
 
 #: client/ipa-rmkeytab.c:80
 #, c-format
 msgid "principal not found\n"
-msgstr ""
+msgstr "پرینسیپال پیدا نشد\n"
 
 #: client/ipa-rmkeytab.c:82
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:90
 #, c-format
 msgid "Unable to remove entry\n"
-msgstr ""
+msgstr "نمی‌توان مورد را حذف کرد\n"
 
 #: client/ipa-rmkeytab.c:92
 #, c-format
 msgid "kvno %d\n"
-msgstr ""
+msgstr "شماره نسخه کلید (kvno) %d\n"
 
 #: client/ipa-rmkeytab.c:93
-#, c-format
+#, c-format, fuzzy
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
-msgstr ""
+msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:124 client/ipa-rmkeytab.c:146
 #: client/ipa-rmkeytab.c:160 client/ipa-rmkeytab.c:263
 #, c-format
 msgid "Failed to set cursor '%1$s'\n"
-msgstr ""
+msgstr "عدم امکان تنظیم نشانگر '%1$s'\n"
 
 #: client/ipa-rmkeytab.c:133
 #, c-format
@@ -159,65 +161,66 @@ msgstr ""
 #: client/ipa-getkeytab.c:254
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "راه‌اندازی زمینهٔ Kerberos با شکست مواجه شد: %1$s (%2$d)\n"
 
 #: client/ipa-getkeytab.c:265
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr ""
+msgstr "امکان تجزیهٔ شناسهٔ Kerberos وجود ندارد: %1$s (%2$d)\n"
 
 #: client/ipa-getkeytab.c:320
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "KDC هیچ‌یک از کلیدهای موجود را نپذیرفت\n"
 
 #: client/ipa-getkeytab.c:338
 #, c-format
 msgid "Out of memory \n"
-msgstr ""
+msgstr "کمبود حافظه (Out of memory) \n"
 
 #: client/ipa-getkeytab.c:361
 #, c-format
 msgid "Unable to initialize ldap library!\n"
 msgstr ""
+"خطا در بارگذاری کتابخانهٔ LDAP: امکان آغاز ارتباط با سرویس دایرکتوری نیست\n"
 
 #: client/ipa-getkeytab.c:377
 msgid "Simple bind failed\n"
-msgstr ""
+msgstr "احراز هویت ساده LDAP موفق نبود\n"
 
 #: client/ipa-getkeytab.c:391 client/ipa-join.c:262
 msgid "SASL Bind failed\n"
-msgstr ""
+msgstr "احراز هویت با مکانیزم SASL موفق نبود\n"
 
 #: client/ipa-getkeytab.c:422
 #, c-format
 msgid "Operation failed: %s\n"
-msgstr ""
+msgstr "عملیات با شکست مواجه شد: %s\n"
 
 #: client/ipa-getkeytab.c:431
 #, c-format
 msgid "Failed to get result: %s\n"
-msgstr ""
+msgstr "دریافت نتیجه با شکست مواجه شد: %s\n"
 
 #: client/ipa-getkeytab.c:435
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "زمان انتظار برای پاسخ به پایان رسید."
 
 #: client/ipa-getkeytab.c:441
 #, c-format
 msgid "Failed to parse extended result: %s\n"
-msgstr ""
+msgstr "خطا در تجزیهٔ نتیجهٔ توسعه‌یافته: %s\n"
 
 #: client/ipa-getkeytab.c:448
 #, c-format
 msgid "Failed to parse result: %s\n"
-msgstr ""
+msgstr "تجزیهٔ نتیجه با شکست مواجه شد: %s\n"
 
 #: client/ipa-getkeytab.c:467
 #, c-format
 msgid "Missing reply control list!\n"
-msgstr ""
+msgstr "پاسخ LDAP فاقد فهرست کنترل مورد انتظار است!\n"
 
 #: client/ipa-getkeytab.c:477
 #, c-format
