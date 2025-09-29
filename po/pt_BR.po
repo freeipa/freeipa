@@ -1,13 +1,13 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
-# Rafael Fontenelle <rafaelff@gnome.org>, 2020.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2020, 2021.
 # Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.8.0\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2020-08-20 12:57+0300\n"
-"PO-Revision-Date: 2021-02-23 13:43+0000\n"
-"Last-Translator: Daniel Lara Souza <daniellarasouza@yahoo.com.br>\n"
+"PO-Revision-Date: 2021-03-08 03:01+0000\n"
+"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/ipa-4-8/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.4.2\n"
+"X-Generator: Weblate 4.5.1\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
@@ -110,7 +110,7 @@ msgstr ""
 
 #, c-format
 msgid "Error storing creds in credential cache: %s.\n"
-msgstr ""
+msgstr "Erro ao armazenar credenciais no cache de credenciais: %s\n"
 
 #, c-format
 msgid "Unenrollment successful.\n"
@@ -217,7 +217,7 @@ msgstr ""
 msgid "Unable to parse principal name\n"
 msgstr "Incapaz de analisar o nome principal\n"
 
-#, c-format, fuzzy
+#, c-format
 msgid "krb5_parse_name %1$d: %2$s\n"
 msgstr "krb5_parse_name %1$d: %2$s\n"
 
@@ -233,7 +233,7 @@ msgstr "Falha ao abrir o keytab\n"
 msgid "principal not found\n"
 msgstr "Principal não encontrado\n"
 
-#, c-format, fuzzy
+#, c-format
 msgid "krb5_kt_get_entry %1$d: %2$s\n"
 msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 
@@ -241,11 +241,11 @@ msgstr "krb5_kt_get_entry %1$d: %2$s\n"
 msgid "Unable to remove entry\n"
 msgstr "Incapaz de remover entrada\n"
 
-#, c-format, fuzzy
+#, c-format
 msgid "kvno %d\n"
 msgstr "kvno %d\n"
 
-#, c-format, fuzzy
+#, c-format
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
 msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
@@ -253,7 +253,7 @@ msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 msgid "Unable to parse principal\n"
 msgstr "Incapaz de analisar o principal\n"
 
-#, c-format, fuzzy
+#, c-format
 msgid "krb5_unparse_name %1$d: %2$s\n"
 msgstr "krb5_unparse_name %1$d: %2$s\n"
 
@@ -272,9 +272,8 @@ msgid ""
 msgstr ""
 "O principal a ser removido do keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 
-#, fuzzy
 msgid "Kerberos Service Principal Name"
-msgstr "O principal do serviço é necessário"
+msgstr "Nome principal do serviço Kerberos"
 
 msgid "The keytab file to remove the principcal(s) from"
 msgstr ""
@@ -601,15 +600,15 @@ msgstr ""
 
 #, python-format
 msgid "File %(file)s not found"
-msgstr ""
+msgstr "Arquivo %(file)s não encontrado"
 
 #, python-format
 msgid "key %(key)s already exists"
-msgstr ""
+msgstr "a chave %(key)s já existe"
 
 #, python-format
 msgid "map %(map)s already exists"
-msgstr ""
+msgstr "o mapa %(map)s já existe"
 
 msgid "Imported maps:"
 msgstr ""
@@ -874,7 +873,7 @@ msgstr ""
 
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr ""
+msgstr "Modificar %(name)s \"%(value)s\"?"
 
 #, python-format
 msgid ""
@@ -899,7 +898,7 @@ msgstr ""
 
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
-msgstr ""
+msgstr "Excluir %(name)s \"%(value)s\"?"
 
 msgid "Server will check DNS forwarder(s)."
 msgstr ""
@@ -943,11 +942,11 @@ msgstr ""
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
-msgstr ""
+msgstr "Não foi possível ler \"%(filename)s\": %(exc)s"
 
 #, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
-msgstr ""
+msgstr "Não foi possível decodificar o arquivo \"%(filename)s\": %(exc)s"
 
 msgid "Invalid credentials"
 msgstr ""
@@ -11949,7 +11948,7 @@ msgstr ""
 
 #, python-format
 msgid "'%(attr)s' already contains one or more values"
-msgstr ""
+msgstr "\"%(attr)s\" já contém um ou mais valores"
 
 #, python-format
 msgid "no command nor help topic '%(topic)s'"
@@ -12056,7 +12055,7 @@ msgstr ""
 
 #, python-format
 msgid "%(exception)s"
-msgstr ""
+msgstr "%(exception)s"
 
 #, python-format
 msgid ""
@@ -12097,7 +12096,7 @@ msgstr ""
 
 #, python-format
 msgid "'%(option)s' option is deprecated. %(additional_info)s"
-msgstr ""
+msgstr "A opção \"%(option)s\" foi descontinuada. %(additional_info)s"
 
 #, python-format
 msgid ""
@@ -12229,7 +12228,7 @@ msgstr ""
 
 #, python-format
 msgid "The certificate for %(ca)s is not available on this server."
-msgstr ""
+msgstr "O certificado para %(ca)s não está disponível neste servidor."
 
 #, python-format
 msgid "%(filename)s: file not found"
@@ -12280,7 +12279,7 @@ msgstr ""
 
 #, python-format
 msgid "query '%(owner)s %(rtype)s': %(error)s"
-msgstr ""
+msgstr "consulta \"%(owner)s %(rtype)s\": %(error)s"
 
 #, python-format
 msgid "query '%(owner)s %(rtype)s' with EDNS0: %(error)s"
@@ -12314,7 +12313,7 @@ msgstr ""
 
 #, python-format
 msgid "invalid domain-name: %s"
-msgstr ""
+msgstr "nome de domínio inválido: %s"
 
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
@@ -12340,7 +12339,7 @@ msgstr ""
 
 #, python-format
 msgid "request failed with HTTP status %d"
-msgstr ""
+msgstr "a solicitação falhou com status HTTP %d"
 
 #, python-format
 msgid "Retrieving CA status failed: %s"
@@ -12617,7 +12616,7 @@ msgstr ""
 
 #, python-format
 msgid "key named %(key)s already exists"
-msgstr ""
+msgstr "uma chave chamada %(key)s já existe"
 
 #, python-format
 msgid "The automount key %(key)s with info %(info)s does not exist"
@@ -12805,7 +12804,7 @@ msgstr ""
 
 #, python-format
 msgid "can be at most %(len)d characters"
-msgstr ""
+msgstr "pode ser no máximo %(len)d caracteres"
 
 #, python-format
 msgid "Deleted host \"%(value)s\""
@@ -14472,7 +14471,7 @@ msgstr "Nome do comando"
 
 #, python-format
 msgid "%(pkey)s: %(oname)s not found"
-msgstr ""
+msgstr "%(pkey)s: %(oname)s não encontrado"
 
 msgid "Display information about a command."
 msgstr "Exibe informações sobre um comando."
@@ -14538,7 +14537,7 @@ msgstr "Argumentos posicionais"
 
 #, python-format
 msgid "%(metaobject)s: %(oname)s not found"
-msgstr ""
+msgstr "%(metaobject)s: %(oname)s não encontrado"
 
 msgid "Display information about a command parameter."
 msgstr ""
@@ -14548,7 +14547,7 @@ msgstr ""
 
 #, python-format
 msgid "%(command_name)s: %(oname)s not found"
-msgstr ""
+msgstr "%(command_name)s: %(oname)s não encontrado"
 
 msgid "Display information about a command output."
 msgstr ""
@@ -14705,7 +14704,7 @@ msgstr ""
 
 #, python-format
 msgid "Malformed principal: %(error)s"
-msgstr ""
+msgstr "Principal malformado: %(error)s"
 
 msgid "Add target to a named service delegation."
 msgstr ""
@@ -14961,8 +14960,8 @@ msgstr ""
 #, python-format
 msgid "%(count)d Sudo Command matched"
 msgid_plural "%(count)d Sudo Commands matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d comando sudo correspondido"
+msgstr[1] "%(count)d comando sudo correspondidos"
 
 msgid ""
 "\n"
@@ -15329,7 +15328,7 @@ msgstr ""
 
 #, python-format
 msgid "Invalid domain name '%(domain)s': %(e)s"
-msgstr ""
+msgstr "Nome de domínio inválido \"%(domain)s\": %(e)s"
 
 #, python-format
 msgid "Server has no information about domain '%(domain)s'"
@@ -15358,7 +15357,7 @@ msgstr ""
 
 #, python-format
 msgid "SELinux user '%(user)s' is not valid: %(error)s"
-msgstr ""
+msgstr "O usuário SELinux \"%(user)s\" não é válido: %(error)s"
 
 msgid "SELinux user map default user not in order list"
 msgstr ""
@@ -15569,7 +15568,7 @@ msgstr ""
 
 #, python-format
 msgid "%s: user is already preserved"
-msgstr ""
+msgstr "%s: o usuário já está preservado"
 
 #, python-format
 msgid "Modified user \"%(value)s\""
@@ -15581,7 +15580,7 @@ msgstr ""
 
 #, python-format
 msgid "user \"%s\" is already active"
-msgstr ""
+msgstr "o usuário \"%s\" já está ativo"
 
 #, python-format
 msgid "Staged user account \"%(value)s\""
@@ -15660,7 +15659,7 @@ msgstr ""
 
 #, python-format
 msgid "Account disabled: %(disabled)s"
-msgstr ""
+msgstr "Conta desabilitada: %(disabled)s"
 
 #, python-format
 msgid "Added certificates to user \"%(value)s\""
@@ -16556,7 +16555,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "An error has occurred (${error})"
-msgstr ""
+msgstr "Ocorreu um erro interno (${error})"
 
 msgid "HTTP Error"
 msgstr ""
@@ -19907,7 +19906,7 @@ msgstr ""
 
 #, python-format
 msgid "Failed to remove server %(master)s from server list: %(err)s"
-msgstr ""
+msgstr "Falha ao remover o servidor %(master)s da lista de servidores: %(err)s"
 
 #, python-format
 msgid "Failed to clean up Custodia keys for %(master)s: %(err)s"
@@ -19942,7 +19941,7 @@ msgstr ""
 
 #, python-format
 msgid "must be \"%s\""
-msgstr ""
+msgstr "deve ser \"%s\""
 
 msgid "not allowed to perform server connection check"
 msgstr ""
@@ -19958,7 +19957,7 @@ msgstr ""
 
 #, python-format
 msgid "Changed server state of \"%(value)s\"."
-msgstr ""
+msgstr "Alterado o estado do servidor de \"%(value)s\"."
 
 msgid "Cannot hide CA renewal master."
 msgstr ""
@@ -21453,7 +21452,7 @@ msgstr ""
 
 #, python-format
 msgid "permission \"%(value)s\" already exists"
-msgstr ""
+msgstr "a permissão \"%(value)s\" já existe"
 
 #, python-format
 msgid "Removed system permission \"%(value)s\""
@@ -22243,8 +22242,8 @@ msgstr ""
 #, python-format
 msgid "%(count)d certificate matched"
 msgid_plural "%(count)d certificates matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d certificado correspondido"
+msgstr[1] "%(count)d certificados correspondidos"
 
 #, python-format
 msgid "Search for certificates with these owner %s."
@@ -22444,7 +22443,7 @@ msgstr ""
 
 #, python-format
 msgid "%(otype)s \"%(oname)s\" not found"
-msgstr ""
+msgstr "%(otype)s \"%(oname)s\" não encontrado"
 
 #, python-format
 msgid "%s is not a valid attribute."
@@ -22537,6 +22536,9 @@ msgid ""
 "    Display information about an automember rule.\n"
 "    "
 msgstr ""
+"\n"
+"    Exibe informações sobre um regra automembro.\n"
+"    "
 
 msgid ""
 "\n"
@@ -22644,7 +22646,7 @@ msgstr ""
 
 #, python-format
 msgid "%(parent)s: %(oname)s not found"
-msgstr ""
+msgstr "%(parent)s: %(oname)s não encontrado"
 
 #, python-format
 msgid "%(oname)s with name \"%(pkey)s\" already exists"
@@ -22652,7 +22654,7 @@ msgstr ""
 
 #, python-format
 msgid "attribute \"%(attribute)s\" not allowed"
-msgstr ""
+msgstr "o atributo \"%(attribute)s\" não é permitido"
 
 #, python-format
 msgid "these attributes are not allowed: %(attrs)s"
@@ -23063,7 +23065,7 @@ msgid "SID does not match exactlywith any trusted domain's SID"
 msgstr ""
 
 msgid "SID does not match any trusted domain"
-msgstr ""
+msgstr "SID não corresponde a nenhum domínio confiável"
 
 msgid "Trust setup"
 msgstr ""
