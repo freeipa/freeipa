@@ -208,6 +208,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
         if want_chain or full:
             try:
@@ -221,6 +224,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
     return msg
 
@@ -354,9 +360,17 @@ class ca_del(LDAPDelete):
                 reason=_("IPA CA cannot be deleted"))
 
         try:
-            ca_id = self.api.Command.ca_show(keys[0])['result']['ipacaid'][0]
+            result = self.api.Command.ca_show(keys[0])
         except errors.NotFound:
             return dn
+        else:
+            # The ca_show may have caught that the LWCA doesn't exist
+            # in PKI. Sift through the messages to find out. If it
+            # does not then we need to skip trying to delete it.
+            for msg in result['messages']:
+                if msg['name'] == 'LightweightCACertificateNotAvailable':
+                    return dn
+            ca_id = result['result']['ipacaid'][0]
         with self.api.Backend.ra_lightweight_ca as ca_api:
             data = ca_api.read_ca(ca_id)
             if data['enabled']:
@@ -401,14 +415,14 @@ class CAQuery(LDAPQuery):
                 "Insufficient privilege to modify a CA."))
 
         with self.api.Backend.ra_lightweight_ca as ca_api:
-            self.perform_action(ca_api, ca_obj['ipacaid'][0])
+            self.perform_action(ca_api, ca_obj['ipacaid'][0], cn)
 
         return dict(
             result=True,
             value=pkey_to_value(cn, options),
         )
 
-    def perform_action(self, ca_api, ca_id):
+    def perform_action(self, ca_api, ca_id, cn):
         raise NotImplementedError
 
 
@@ -426,8 +440,13 @@ class ca_disable(CAQuery):
 
         return super(ca_disable, self).execute(cn, **options)
 
-    def perform_action(self, ca_api, ca_id):
-        ca_api.disable_ca(ca_id)
+    def perform_action(self, ca_api, ca_id, cn):
+        try:
+            ca_api.disable_ca(ca_id)
+        except errors.NotFound:
+            msg = messages.LightweightCACertificateNotAvailable(
+                ca=cn)
+            self.add_message(msg)
 
 
 @register()
@@ -435,5 +454,5 @@ class ca_enable(CAQuery):
     __doc__ = _('Enable a CA.')
     msg_summary = _('Enabled CA "%(value)s"')
 
-    def perform_action(self, ca_api, ca_id):
+    def perform_action(self, ca_api, ca_id, cn):
         ca_api.enable_ca(ca_id)
