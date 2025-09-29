@@ -279,8 +279,8 @@ msgstr ""
 #, c-format
 msgid "Cannot specify both SASL mechanism and bind DN simultaneously.\n"
 msgstr ""
-"Impossible de spécifier simultanément un mécanisme SASL et un DN de liaison."
-"\n"
+"Impossible de spécifier simultanément un mécanisme SASL et un DN de "
+"liaison.\n"
 
 #, c-format
 msgid "Invalid SASL bind mechanism\n"
@@ -23954,9 +23954,9 @@ msgstr ""
 "\n"
 "Pour activer le DN de liaison, exécutez la commande suivante pour définir le "
 "mot de passe :\n"
-"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -H ldap://"
-"ipa.example.com -ZZ -D \"cn=Directory Manager\" "
-"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -H ldap://ipa."
+"example.com -ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,"
+"dc=example,dc=com\n"
 
 msgid ""
 "\n"
@@ -28303,7 +28303,7 @@ msgstr ""
 msgid "Google"
 msgstr ""
 
-msgid "Github"
+msgid "GitHub"
 msgstr ""
 
 msgid "Microsoft or Azure"

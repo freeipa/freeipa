@@ -22552,7 +22552,7 @@ msgstr ""
 msgid "Google"
 msgstr ""
 
-msgid "Github"
+msgid "GitHub"
 msgstr ""
 
 msgid "Microsoft or Azure"
