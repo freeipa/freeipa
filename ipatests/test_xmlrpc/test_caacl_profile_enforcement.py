@@ -306,6 +306,7 @@ class TestCertSignMIMEwithSubCA(XMLRPC_test):
     def test_add_group_to_acl(self, smime_group, smime_acl):
         smime_acl.add_user(group=smime_group)
 
+    @pytest.mark.xfail(reason='pki RHEL-108293')
     def test_sign_smime_csr(self, smime_profile, smime_user, smime_signing_ca):
         csr = generate_user_csr(smime_user)
         with change_principal(smime_user, SMIME_USER_PW):
@@ -313,6 +314,7 @@ class TestCertSignMIMEwithSubCA(XMLRPC_test):
                                      profile_id=smime_profile.name,
                                      cacn=smime_signing_ca.name)
 
+    @pytest.mark.xfail(reason='pki RHEL-108293')
     def test_sign_smime_csr_full_principal(
             self, smime_profile, smime_user, smime_signing_ca):
         csr = generate_user_csr(smime_user)
@@ -322,6 +324,7 @@ class TestCertSignMIMEwithSubCA(XMLRPC_test):
                                      profile_id=smime_profile.name,
                                      cacn=smime_signing_ca.name)
 
+    @pytest.mark.xfail(reason='pki RHEL-108293')
     def test_verify_cert_issuer_dn_is_subca(
             self, smime_profile, smime_user, smime_signing_ca):
         csr = generate_user_csr(smime_user)
@@ -541,6 +544,7 @@ class TestPrincipalAliasForSubjectAltNameDnsName(SubjectAltNameOneServiceBase):
             santest_service_host_1.name,
             santest_service_host_2.name)
 
+    @pytest.mark.xfail(reason='pki RHEL-108293')
     def test_request_cert_with_SAN_matching_principal_alias(
             self, santest_subca, santest_host_1,
             santest_service_host_1, santest_csr):
@@ -604,6 +608,7 @@ class TestSignServiceCertManagedByMultipleHosts(CAACLEnforcementOnCertBase):
         santest_subca_acl.add_host(santest_host_2.name)
         santest_subca_acl.add_service(santest_service_host_2.name)
 
+    @pytest.mark.xfail(reason='pki RHEL-108293')
     def test_request_cert_with_additional_host(
             self, santest_subca, santest_host_1, santest_host_2,
             santest_service_host_1, santest_csr):
@@ -696,6 +701,7 @@ class TestManagedByACIOnCertRequest(CAACLEnforcementOnCertBase):
                         cacn=santest_subca.name
                     )
 
+    @pytest.mark.xfail(reason='pki RHEL-108293')
     def test_issuing_service_cert_by_related_host(self,
                                                   santest_subca,
                                                   santest_host_1,
