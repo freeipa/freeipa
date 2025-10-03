@@ -167,7 +167,8 @@ msgid "Server Name"
 msgstr "Sunucu Adı"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
-msgstr "Anahtar tablosu alınacak yetkili (örn: ftp/ftp.example.com@EXAMPLE.COM)"
+msgstr ""
+"Anahtar tablosu alınacak yetkili (örn: ftp/ftp.example.com@EXAMPLE.COM)"
 
 msgid "Kerberos Service Principal Name"
 msgstr "Kerberos Hizmet Yetkilisi Adı"
@@ -22659,7 +22660,7 @@ msgstr ""
 msgid "Google"
 msgstr ""
 
-msgid "Github"
+msgid "GitHub"
 msgstr ""
 
 msgid "Microsoft or Azure"
