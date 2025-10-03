@@ -35,3 +35,4 @@ FreeIPA design documentation
    rbcd.md
    id-mapping.md
    audit-ipa-api.md
+   sysaccounts.md
