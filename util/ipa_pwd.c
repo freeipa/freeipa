@@ -394,6 +394,128 @@ cleanup:
 }
 
 /**
+* @brief    Returns True/False if any of the pwquality config is set
+*
+* A history element is a base64 string of a hash+salt buffer, prepended
+* by the hash type enclosed within curly braces.
+*
+* @param policy             The policy to check against
+*
+* @return a boolean
+*/
+static bool has_pwquality_rules(struct ipapwd_policy *p)
+{
+    return (p->max_repeat   || p->max_sequence ||
+            p->dictcheck    || p->usercheck    ||
+            p->dcredit      || p->ucredit      ||
+            p->lcredit      || p->ocredit      );
+}
+
+/**
+* @brief    Runs the libpwquality checks as configured in the policy
+*
+* If any libpwquality policies are defined then the password is
+* passed into libpwquality for validation. The result is converted
+* into a IPA password policy response and returned.
+*
+* @param policy             The policy to check against
+*
+* @return int of the result
+*/
+
+#if defined(USE_PWQUALITY)
+static int call_pwquality(const struct ipapwd_policy *policy,
+                             const char   *password,
+                             const char   *user)
+{
+    int entropy = 0;
+    char buf[PWQ_MAX_ERROR_MESSAGE_LEN];
+    void *auxerror;
+    struct pwquality_settings *pwq = pwquality_default_settings();
+
+    if (!pwq) {
+        syslog(LOG_ERR, "pwquality defaults failed");
+        return IPAPWD_POLICY_ERROR;
+    }
+
+    /* Call libpwquality */
+    openlog(NULL, LOG_CONS | LOG_NDELAY, LOG_DAEMON);
+    if (pwq == NULL) {
+            syslog(LOG_ERR, "Not able to set pwquality defaults\n");
+            return IPAPWD_POLICY_ERROR;
+        }
+    if (policy->min_pwd_length < 6)
+        syslog(LOG_WARNING, "password policy min length is < 6. Will be enforced as 6\n");
+    pwquality_set_int_value(pwq, PWQ_SETTING_MIN_LENGTH, policy->min_pwd_length);
+    pwquality_set_int_value(pwq, PWQ_SETTING_MAX_REPEAT, policy->max_repeat);
+    pwquality_set_int_value(pwq, PWQ_SETTING_MAX_SEQUENCE, policy->max_sequence);
+    pwquality_set_int_value(pwq, PWQ_SETTING_DICT_CHECK, policy->dictcheck);
+    pwquality_set_int_value(pwq, PWQ_SETTING_USER_CHECK, policy->usercheck);
+    pwquality_set_int_value(pwq, PWQ_SETTING_DIG_CREDIT, policy->dcredit);
+    pwquality_set_int_value(pwq, PWQ_SETTING_UP_CREDIT, policy->ucredit);
+    pwquality_set_int_value(pwq, PWQ_SETTING_LOW_CREDIT, policy->lcredit);
+    pwquality_set_int_value(pwq, PWQ_SETTING_OTH_CREDIT, policy->ocredit);
+
+    entropy = pwquality_check(pwq, password, NULL, user, &auxerror);
+    pwquality_free_settings(pwq);
+
+#ifdef TEST
+    if (user != NULL) {
+        fprintf(stderr, "Checking password for %s\n", user);
+    } else {
+        fprintf(stderr, "No user provided\n");
+    }
+
+    fprintf(stderr, "min length %d\n", policy->min_pwd_length);
+    fprintf(stderr, "max repeat %d\n", policy->max_repeat);
+    fprintf(stderr, "max sequence %d\n", policy->max_sequence);
+    fprintf(stderr, "dict check %d\n", policy->dictcheck);
+    fprintf(stderr, "user check %d\n", policy->usercheck);
+    fprintf(stderr, "digit credit %d\n", policy->dcredit);
+    fprintf(stderr, "upper credit %d\n", policy->ucredit);
+    fprintf(stderr, "lower credit %d\n", policy->lcredit);
+    fprintf(stderr, "other credit %d\n", policy->ocredit);
+#endif
+
+    if (entropy < 0) {
+#ifdef TEST
+        fprintf(stderr, "Bad password '%s': %s\n", password, pwquality_strerror(buf, sizeof(buf), entropy, auxerror));
+#endif
+        syslog(LOG_ERR, "Password is rejected with error %d: %s\n", entropy, pwquality_strerror(buf, sizeof(buf), entropy, auxerror));
+        switch (entropy) {
+        case PWQ_ERROR_MIN_LENGTH:
+            return IPAPWD_POLICY_PWD_TOO_SHORT;
+        case PWQ_ERROR_PALINDROME:
+            return IPAPWD_POLICY_PWD_PALINDROME;
+        case PWQ_ERROR_MAX_CONSECUTIVE:
+            return IPAPWD_POLICY_PWD_CONSECUTIVE;
+        case PWQ_ERROR_MAX_SEQUENCE:
+            return IPAPWD_POLICY_PWD_SEQUENCE;
+        case PWQ_ERROR_CRACKLIB_CHECK:
+            return IPAPWD_POLICY_PWD_DICT_WORD;
+        case PWQ_ERROR_USER_CHECK:
+            return IPAPWD_POLICY_PWD_USER;
+        case PWQ_ERROR_MIN_DIGITS:
+            return IPAPWD_POLICY_PWD_MIN_DIGITS;
+        case PWQ_ERROR_MIN_UPPERS:
+            return IPAPWD_POLICY_PWD_MIN_UPPERS;
+        case PWQ_ERROR_MIN_LOWERS:
+            return IPAPWD_POLICY_PWD_MIN_LOWERS;
+        case PWQ_ERROR_MIN_OTHERS:
+            return IPAPWD_POLICY_PWD_MIN_OTHERS;
+        default:
+            return IPAPWD_POLICY_PWD_COMPLEXITY;
+        }
+#ifdef TEST
+    } else {
+        fprintf(stderr, "Password '%s' is ok, entropy is %d\n", password, entropy);
+#endif
+    }
+    return IPAPWD_POLICY_OK;
+}
+#endif /* USE_PWQUALITY */
+
+/**
 * @brief Funtion used to check password policies on a password change.
 *
 * @param policy             The policy to check against
@@ -417,13 +539,6 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
 {
     int pwdlen, blen;
     int ret;
-#if defined(USE_PWQUALITY)
-    pwquality_settings_t *pwq;
-    int check_pwquality = 0;
-    int entropy = 0;
-    char buf[PWQ_MAX_ERROR_MESSAGE_LEN];
-    void *auxerror;
-#endif
 
     if (!policy || !password) {
         return IPAPWD_POLICY_ERROR;
@@ -452,12 +567,6 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
     }
 
     pwdlen = strlen_utf8(password, &blen);
-
-    if (policy->min_pwd_length) {
-        if (pwdlen < policy->min_pwd_length) {
-            return IPAPWD_POLICY_PWD_TOO_SHORT;
-        }
-    }
 
     if (policy->min_complexity) {
         int num_digits = 0;
@@ -541,70 +650,19 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
      * because there are a number of checks that don't have knobs
      * so preserve the previous behavior.
      */
-    check_pwquality = policy->max_repeat + policy->max_sequence + policy->dictcheck + policy->usercheck;
-
-    if (check_pwquality > 0) {
-        /* Call libpwquality */
-        openlog(NULL, LOG_CONS | LOG_NDELAY, LOG_DAEMON);
-        pwq = pwquality_default_settings();
-        if (pwq == NULL) {
-            syslog(LOG_ERR, "Not able to set pwquality defaults\n");
-            return IPAPWD_POLICY_ERROR;
-        }
-        if (policy->min_pwd_length < 6)
-            syslog(LOG_WARNING, "password policy min length is < 6. Will be enforced as 6\n");
-        pwquality_set_int_value(pwq, PWQ_SETTING_MIN_LENGTH, policy->min_pwd_length);
-        pwquality_set_int_value(pwq, PWQ_SETTING_MAX_REPEAT, policy->max_repeat);
-        pwquality_set_int_value(pwq, PWQ_SETTING_MAX_SEQUENCE, policy->max_sequence);
-        pwquality_set_int_value(pwq, PWQ_SETTING_DICT_CHECK, policy->dictcheck);
-        pwquality_set_int_value(pwq, PWQ_SETTING_USER_CHECK, policy->usercheck);
-
-        entropy = pwquality_check(pwq, password, NULL, user, &auxerror);
-        pwquality_free_settings(pwq);
-
-#ifdef TEST
-        if (user != NULL) {
-            fprintf(stderr, "Checking password for %s\n", user);
-        } else {
-            fprintf(stderr, "No user provided\n");
-        }
-
-        fprintf(stderr, "min length %d\n", policy->min_pwd_length);
-        fprintf(stderr, "max repeat %d\n", policy->max_repeat);
-        fprintf(stderr, "max sequence %d\n", policy->max_sequence);
-        fprintf(stderr, "dict check %d\n", policy->dictcheck);
-        fprintf(stderr, "user check %d\n", policy->usercheck);
-#endif
-
-        if (entropy < 0) {
-#ifdef TEST
-            fprintf(stderr, "Bad password '%s': %s\n", password, pwquality_strerror(buf, sizeof(buf), entropy, auxerror));
-#endif
-            syslog(LOG_ERR, "Password is rejected with error %d: %s\n", entropy, pwquality_strerror(buf, sizeof(buf), entropy, auxerror));
-            switch (entropy) {
-            case PWQ_ERROR_MIN_LENGTH:
+    if (has_pwquality_rules(policy)) {
+        ret = call_pwquality(policy, password, user);
+        if (ret != IPAPWD_POLICY_OK)
+            return ret;
+    } else
+#endif /* USE_PWQUALITY */
+    {
+        if (policy->min_pwd_length) {
+            if (pwdlen < policy->min_pwd_length) {
                 return IPAPWD_POLICY_PWD_TOO_SHORT;
-            case PWQ_ERROR_PALINDROME:
-                return IPAPWD_POLICY_PWD_PALINDROME;
-            case PWQ_ERROR_MAX_CONSECUTIVE:
-                return IPAPWD_POLICY_PWD_CONSECUTIVE;
-            case PWQ_ERROR_MAX_SEQUENCE:
-                return IPAPWD_POLICY_PWD_SEQUENCE;
-            case PWQ_ERROR_CRACKLIB_CHECK:
-                return IPAPWD_POLICY_PWD_DICT_WORD;
-            case PWQ_ERROR_USER_CHECK:
-                return IPAPWD_POLICY_PWD_USER;
-            default:
-                return IPAPWD_POLICY_PWD_COMPLEXITY;
             }
- 
-#ifdef TEST
-        } else {
-            fprintf(stderr, "Password '%s' is ok, entropy is %d\n", password, entropy);
-#endif
         }
     }
-#endif /* USE_PWQUALITY */
 
     if (pwd_history) {
         char *hash;
@@ -634,13 +692,17 @@ char * IPAPWD_ERROR_STRINGS[] = {
     "Password contains a monotonic sequence",
     "Password is based on a dictionary word",
     "Password is a palindrone",
-    "Password contains username"
+    "Password contains username",
+    "Password contains too few digits",
+    "Password contains too few upper characters",
+    "Password contains too few lower characters",
+    "Password contains too few special characters"
 };
 
 char * IPAPWD_ERROR_STRING_GENERAL = "Password does not meet the policy requirements";
 
 char * ipapwd_error2string(enum ipapwd_error err) {
-   if (err < 0 || err > IPAPWD_POLICY_PWD_USER) {
+   if (err < 0 || err > IPAPWD_POLICY_PWD_MIN_OTHERS) {
        /* IPAPWD_POLICY_ERROR or out of boundary, return general error */
        return IPAPWD_ERROR_STRING_GENERAL;
    }
