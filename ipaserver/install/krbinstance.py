@@ -378,10 +378,8 @@ class KrbInstance(service.Service):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
         self.__template_file(paths.KRB5_CONF)
         self.__template_file(paths.KRB5_FREEIPA_SERVER)
+        self.__template_file(paths.KRB5_FREEIPA_DEFAULTS, client_template=True)
         self.__template_file(paths.KRB5_FREEIPA, client_template=True)
-        self.__template_file(paths.HTML_KRB5_INI)
-        self.__template_file(paths.KRB_CON)
-        self.__template_file(paths.HTML_KRBREALM_CON)
 
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
@@ -660,5 +658,5 @@ class KrbInstance(service.Service):
         self.kpasswd.uninstall()
 
         ipautil.remove_file(paths.KRB5_KEYTAB)
-        ipautil.remove_file(paths.KRB5_FREEIPA)
+        ipautil.remove_file(paths.KRB5_FREEIPA_DEFAULTS)
         ipautil.remove_file(paths.KRB5_FREEIPA_SERVER)
