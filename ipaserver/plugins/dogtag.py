@@ -1707,13 +1707,13 @@ class ra_lightweight_ca(RestClient):
     def read_ca_cert(self, ca_id):
         _status, _resp_headers, resp_body = self._ssldo(
             'GET', '{}/cert'.format(ca_id),
-            headers={'Accept': 'application/pkix-cert'})
+            headers={'Accept': 'application/pkix-cert, application/json'})
         return resp_body
 
     def read_ca_chain(self, ca_id):
         _status, _resp_headers, resp_body = self._ssldo(
             'GET', '{}/chain'.format(ca_id),
-            headers={'Accept': 'application/pkcs7-mime'})
+            headers={'Accept': 'application/pkcs7-mime, application/json'})
         return resp_body
 
     def disable_ca(self, ca_id):
