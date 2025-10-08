@@ -575,6 +575,9 @@ class TestCAShowErrorHandling(IntegrationTest):
             'ipa', 'ca-add', lwca, '--subject', 'CN=LWCA 1'
         ])
         assert 'Created CA "{}"'.format(lwca) in result.stdout_text
+        match = re.search(r'Authority ID: (?P<id>.*)', result.stdout_text)
+        id = match.group('id')
+
         # wait for replication to propagate the change
         tasks.wait_for_replication(self.replicas[0].ldap_connect())
         result = self.master.run_command(['ipa', 'ca-find'])
@@ -585,13 +588,16 @@ class TestCAShowErrorHandling(IntegrationTest):
         )
         error_msg = 'ipa: ERROR: The certificate for ' \
                     '{} is not available on this server.'.format(lwca)
+        new_error_msg = 'ipa: ERROR: Certificate for CA ' \
+                        '"{}" not available'.format(id)
         pki_version = tasks.get_pki_version(self.master)
         # The regression was introduced in 11.5 and fixed in 11.7
         bad_version = (tasks.parse_version('11.5.0') <= pki_version
                        < tasks.parse_version('11.7.0'))
         with xfail_context(bad_version,
                            reason="https://pagure.io/freeipa/issue/9606"):
-            assert error_msg in result.stderr_text
+            assert (error_msg in result.stderr_text
+                    or new_error_msg in result.stderr_text)
 
     def test_certmonger_empty_cert_not_segfault(self):
         """Test empty cert request doesn't force certmonger to segfault
