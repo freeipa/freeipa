@@ -232,44 +232,27 @@ def check_certs():
         logger.debug('Certificate file exists')
 
 def update_dbmodules(realm, filename=paths.KRB5_CONF):
-    newfile = []
-    found_dbrealm = False
-    found_realm = False
-    prefix = ''
-
     logger.info('[Verifying that KDC configuration is using ipa-kdb backend]')
-    fd = open(filename)
+    aug = Augeas(flags=Augeas.NO_LOAD | Augeas.NO_MODL_AUTOLOAD,
+                 loadpath=paths.USR_SHARE_IPA_DIR)
+    try:
+        aug.transform('IPAKrb5', filename)
+        aug.load()
 
-    lines = fd.readlines()
-    fd.close()
+        path = "/files{}/dbmodules/{}/db_library"
+        path = path.format(filename, realm)
+        if aug.match(path):
+            if aug.get(path) == "ipadb.so":
+                logger.debug('dbmodules already updated in %s', filename)
+                return
+            aug.remove(path)
 
-    if '    db_library = ipadb.so\n' in lines:
-        logger.debug('dbmodules already updated in %s', filename)
-        return
+        aug.set(path, "ipadb.so")
+        aug.save()
 
-    for line in lines:
-        if line.startswith('[dbmodules]'):
-            found_dbrealm = True
-        if found_dbrealm and line.find(realm) > -1:
-            found_realm = True
-            prefix = '#'
-        if found_dbrealm and line.find('}') > -1 and found_realm:
-            found_realm = False
-            newfile.append('#%s' % line)
-            prefix = ''
-            continue
+    finally:
+        aug.close()
 
-        newfile.append('%s%s' % (prefix, line))
-
-    # Append updated dbmodules information
-    newfile.append('  %s = {\n' % realm)
-    newfile.append('    db_library = ipadb.so\n')
-    newfile.append('  }\n')
-
-    # Write out new file
-    fd = open(filename, 'w')
-    fd.write("".join(newfile))
-    fd.close()
     logger.debug('%s updated', filename)
 
 def cleanup_kdc(fstore):
