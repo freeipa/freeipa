@@ -38,7 +38,7 @@ EXAMPLES:
    ipa sysaccount-add my-app --random
 
  Allow the system account to change user passwords without triggering a reset:
-   ipa sysaccount-mod my-app --update-without-reset=True
+   ipa sysaccount-mod my-app --privileged=True
 
 The system account still needs to be permitted to modify user passwords through
 a role that includes a corresponding permission ('System: Change User
@@ -176,7 +176,8 @@ class sysaccount(LDAPObject):
                  cli_name='password',
                  label=_('Password'),
                  doc=_('Prompt to set the user password'),
-                 exclude='webui'),
+                 exclude='webui',
+                 flags=('no_search',)),
         Flag('random?',
              doc=_('Generate a random user password'),
              flags=('no_search', 'virtual_attribute'),

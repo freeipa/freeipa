@@ -15,7 +15,6 @@ Search for IPA system accounts.
 * no_members : :ref:`Flag<Flag>` **(Required)**
  * Default: True
 * uid : :ref:`Str<Str>`
-* userpassword : :ref:`Password<Password>`
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`

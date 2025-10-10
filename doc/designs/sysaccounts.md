@@ -178,7 +178,7 @@ $ ipa role-add-privilege 'my-app role' \
              --privilege 'my-app password change privilege'
 $ ipa role-add-member 'my role' --sysaccounts 'my-app'
 # In order to allow password changes without reset:
-$ ipa sysaccount-manage-reset 'my-app' --privileged=true
+$ ipa sysaccount-policy 'my-app' --privileged=true
 ```
 
 ## Feature Management

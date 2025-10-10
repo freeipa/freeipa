@@ -6079,7 +6079,7 @@ output: Output('result', type=[<type 'bool'>])
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_find/1
-args: 1,9,4
+args: 1,8,4
 arg: Str('criteria?')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=True)
@@ -6088,7 +6088,6 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Int('sizelimit?', autofill=False)
 option: Int('timelimit?', autofill=False)
 option: Str('uid?', autofill=False, cli_name='login')
-option: Password('userpassword?', autofill=False, cli_name='password')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')

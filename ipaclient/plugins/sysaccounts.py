@@ -10,7 +10,7 @@ register = Registry()
 @register(override=True, no_fail=True)
 class sysaccount_add(MethodOverride):
     def interactive_prompt_callback(self, kw):
-        if not kw.get('random', False):
+        if not (kw.get('random', False) or kw.get('userpassword', False)):
             kw['userpassword'] = self.Backend.textui.prompt_password(
                 self.params['userpassword'].label
             )
