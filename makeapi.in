@@ -25,6 +25,8 @@
 
 from __future__ import print_function
 
+import locale
+import platform
 import importlib
 import itertools
 import sys
@@ -680,6 +682,9 @@ def validate_api_reference():
     return rval
 
 def main():
+    if platform.system() == "Linux":
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
     rval = 0
     options, _args = parse_options()
 
