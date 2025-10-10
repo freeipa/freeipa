@@ -10,7 +10,7 @@ from ipalib import api, errors, messages, output
 from ipalib import Bytes, DNParam, Flag, Str, Int
 from ipalib.constants import IPA_CA_CN
 from ipalib.plugable import Registry
-from ipapython.dn import ATTR_NAME_BY_OID
+from ipapython.dn import ATTR_NAME_BY_OID, DN
 from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
@@ -174,6 +174,26 @@ class ca(LDAPObject):
         },
     }
 
+    # LWCA are supported on HSMs but the key will only be generated
+    # there if the LWCA name is prefixed by the token name. So do
+    # that automatically for users to hide that complexity.
+
+    def add_token_key(self, *keys):
+        if len(keys) == 0 or keys[0] == IPA_CA_CN:
+            return keys
+        config = api.Command['config_show']()['result']
+        if 'hsm_token_name' in config and not keys[-1].startswith(
+            config['hsm_token_name']
+        ):
+            keys = (f"{config['hsm_token_name']}:{keys[-1]}",)
+        return keys
+
+    def remove_token_key(self, *keys):
+        config = api.Command['config_show']()['result']
+        if 'hsm_token_name' in config and ':' in keys[-1]:
+            keys = (keys[-1].split(':', 1)[1],)
+        return keys
+
 
 def set_certificate_attrs(entry, options, want_cert=True):
     """
@@ -233,6 +253,10 @@ class ca_find(LDAPSearch):
 
     def execute(self, *keys, **options):
         ca_enabled_check(self.api)
+        keys = self.obj.add_token_key(*keys)
+        if 'cn' in options:
+            new = self.obj.add_token_key(options['cn'])
+            options['cn'] = new[0]
         result = super(ca_find, self).execute(*keys, **options)
         if not options.get('pkey_only', False):
             for entry in result['result']:
@@ -259,6 +283,7 @@ class ca_show(LDAPRetrieve):
 
     def execute(self, *keys, **options):
         ca_enabled_check(self.api)
+        keys = self.obj.add_token_key(*keys)
         result = super(ca_show, self).execute(*keys, **options)
         msg = set_certificate_attrs(result['result'], options)
         if msg:
@@ -301,6 +326,7 @@ class ca_add(LDAPCreate):
 
         # check for name collision before creating CA in Dogtag
         try:
+            keys = self.obj.remove_token_key(*keys)
             api.Object.ca.get_dn_if_exists(keys[-1])
             self.obj.handle_duplicate_entry(*keys)
         except errors.NotFound:
@@ -325,6 +351,10 @@ class ca_add(LDAPCreate):
         entry['ipacasubjectdn'] = [resp['dn']]
         return dn
 
+    def execute(self, *keys, **options):
+        keys = self.obj.add_token_key(*keys)
+        return super(ca_add, self).execute(*keys, **options)
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         msg = set_certificate_attrs(entry_attrs, options)
         if msg:
@@ -341,6 +371,12 @@ class ca_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         ca_enabled_check(self.api)
 
+        # Handle an HSM-stored LWCA that is referenced without the
+        # token name. On a non-HSM install real_* will be unchanged
+        # from keys and dn.
+        real_keys = self.obj.add_token_key(*keys)
+        dn = DN(('cn', real_keys[0]), self.obj.container_dn,
+                api.env.basedn)
         # ensure operator has permission to delete CA
         # before contacting Dogtag
         if not ldap.can_delete(dn):
@@ -385,6 +421,10 @@ class ca_mod(LDAPUpdate):
                     reason=u'IPA CA cannot be renamed')
 
         return dn
+
+    def execute(self, *keys, **options):
+        keys = self.obj.add_token_key(*keys)
+        return super(ca_mod, self).execute(*keys, **options)
 
 
 class CAQuery(LDAPQuery):
