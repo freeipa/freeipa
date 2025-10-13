@@ -217,6 +217,14 @@ def expire_password():
     yield _expire_password
 
     host = hosts.pop('host')
+    # Prior to uninstall remove all the cert tracking to prevent
+    # errors from certmonger trying to check the status of certs
+    # that don't matter because we are uninstalling.
+    host.run_command(['systemctl', 'stop', 'certmonger'])
+    # Important: run_command with a str argument is able to
+    # perform shell expansion but run_command with a list of
+    # arguments is not
+    host.run_command('rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*')
     tasks.uninstall_master(host)
     tasks.move_date(host, 'start', '-20Years')
 
