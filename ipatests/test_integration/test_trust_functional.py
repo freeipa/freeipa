@@ -289,6 +289,7 @@ class TestTrustFunctionalHbac(BaseTestTrust):
             for user in [self.aduser, self.subaduser]:
                 with self.clients[0].spawn_expect(
                         test_sudo.format(user=user)) as e:
+                    e.expect(r'.*assword for {}.*:'.format(user))
                     e.sendline('Secret123')
                     e.expect_exit(ignore_remaining_output=True, timeout=60)
                     output = e.get_last_output()
