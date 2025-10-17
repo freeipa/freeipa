@@ -809,6 +809,7 @@ class TestSubCAkeyReplication(IntegrationTest):
     def test_del_subca_replica(self):
         self.del_subca(self.replicas[0], self.SUBCA_REPLICA)
 
+    @pytest.mark.xfail(reason='pki ticket 4677')
     def test_scale_add_subca(self):
         master = self.master
         replica = self.replicas[0]
