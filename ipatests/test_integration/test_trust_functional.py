@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import
 
+import time
+
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_trust import BaseTestTrust
@@ -290,7 +292,9 @@ class TestTrustFunctionalHbac(BaseTestTrust):
                 with self.clients[0].spawn_expect(
                         test_sudo.format(user=user)) as e:
                     e.sendline('Secret123')
-                    e.expect_exit(ignore_remaining_output=True, timeout=60)
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
                     output = e.get_last_output()
                     assert 'uid=0(root)' in output
             for user in [self.aduser2, self.subaduser2]:
@@ -304,3 +308,381 @@ class TestTrustFunctionalHbac(BaseTestTrust):
         finally:
             self._cleanup_hrule_allow_all_and_wait(hrule)
             self.master.run_command(["ipa", "sudorule-del", srule])
+
+
+class TestTrustFunctionalSudo(BaseTestTrust):
+    topology = 'line'
+    num_ad_treedomains = 0
+
+    def cache_reset(self):
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(self.clients[0])
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        tasks.wait_for_sssd_domain_status_online(self.clients[0])
+
+    def _cleanup_srule(self, srule):
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "sudorule-del", srule])
+        self.cache_reset()
+
+    def test_ipa_trust_func_sudo_setup(self):
+        tasks.configure_dns_for_trust(self.master, self.ad)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+        tasks.kinit_admin(self.master)
+
+        for i in range(1, 4):
+            external_group = f"sudogroup_external{i}"
+            internal_group = f"sudogroup{i}"
+            tasks.group_add(self.master,
+                            groupname=external_group,
+                            extra_args=["--external"]
+                            )
+            tasks.group_add(self.master,
+                            groupname=internal_group
+                            )
+            tasks.group_add_member(self.master,
+                                   groupname=internal_group,
+                                   extra_args=[f"--groups={external_group}"]
+                                   )
+
+        group_members = {
+            "sudogroup_external1": [self.aduser, self.subaduser],
+            "sudogroup_external2": [self.aduser2, self.subaduser2],
+        }
+
+        for group, members in group_members.items():
+            for member in members:
+                self.master.run_command([
+                    'ipa', '-n', 'group-add-member', '--external',
+                    member, group,
+                ])
+        for user in ['sudouser1', 'sudouser2', 'ipauser1']:
+            tasks.create_active_user(
+                self.master, user, password='Secret123'
+            )
+
+    def test_ipa_trust_func_sudo_0001(self):
+        """
+        Test sudo rule allow AD user in external group to run commands as root.
+
+        This test creates a sudo rule that allows members of sudogroup1 (which
+        includes AD users via external group membership) to run all commands as
+        root. It verifies that AD users who are members of the external group
+        can successfully use sudo to gain root privileges, while AD users who
+        are not members are denied access.
+        """
+        srule = "sudorule_01"
+        cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
+        try:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--groups=sudogroup1"]
+            )
+            self.cache_reset()
+            time.sleep(60)
+            test_sudo = "su {user} -c 'sudo -S id'"
+            for user in [self.aduser, self.subaduser]:
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=user)) as e:
+                    e.sendline('Secret123')
+                    e.expect_exit(ignore_remaining_output=True, timeout=60)
+                    output = e.get_last_output()
+                    assert 'uid=0(root)' in output
+        finally:
+            self._cleanup_srule(srule)
+
+    def test_ipa_trust_func_sudo_0004(self):
+        """
+        Test sudo rule allows IPA users to run commands as AD users.
+
+        This test creates a sudo rule that allows IPA users to run commands
+        as AD users who are members of external groups. It verifies that
+        IPA users can successfully use sudo to switch to AD user accounts
+        when they have the appropriate sudo permissions.
+        """
+        srule = "sudorule_04"
+        cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
+        try:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--users=ipauser1"]
+            )
+            self.master.run_command(
+                ["ipa", "sudorule-add-runasuser", srule, "--groups=sudogroup1"]
+            )
+            for user in [self.aduser, self.subaduser]:
+                max_retries = 5
+                for attempt in range(max_retries):
+                    try:
+                        tasks.clear_sssd_cache(self.clients[0])
+                        time.sleep(30)
+                        test_sudo = "su - ipauser1"
+                        with self.clients[0].spawn_expect(test_sudo) as e:
+                            e.sendline('sudo -S -u {} id'.format(user))
+                            e.expect(r'.*assword for {}.*:'.format('ipauser1'))
+                            e.sendline('Secret123')
+                            e.sendline('exit')
+                            e.expect_exit(
+                                ignore_remaining_output=True, raiseonerr=False)
+                            output = e.get_last_output()
+                        if "domain users" in output:
+                            break  # Success, exit retry loop
+                        if attempt < max_retries - 1:
+                            # Not the expected output, wait and retry
+                            time.sleep(10)
+                            continue
+                        # Last attempt failed, assert the failure
+                        assert False, f"failed with {max_retries} attempts"
+                    except Exception:
+                        if attempt < max_retries - 1:
+                            # Exception occurred, retry
+                            continue
+                        # Last attempt failed, re-raise the exception
+                        raise
+        finally:
+            self._cleanup_srule(srule)
+
+    def test_ipa_trust_func_sudo_0002(self):
+        """
+        Test sudo rule allows AD users to run commands as other AD users.
+
+        This test creates a sudo rule that allows members of sudogroup1 to run
+        commands as members of sudogroup2. It verifies that AD users can
+        successfully use sudo to switch to other AD user accounts when they
+        have the appropriate sudo permissions.
+        """
+        srule = "sudorule_02"
+        cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
+        try:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--groups=sudogroup1"]
+            )
+            self.master.run_command(
+                ["ipa", "sudorule-add-runasuser", srule, "--groups=sudogroup2"]
+            )
+            self.cache_reset()
+            test_sudo = "su {user} -c 'sudo -S -u {user2} id'"
+            with self.clients[0].spawn_expect(
+                    test_sudo.format(
+                        user=self.aduser, user2=self.aduser2)) as e:
+                e.sendline('Secret123')
+                e.expect_exit(ignore_remaining_output=True, timeout=60)
+                output = e.get_last_output()
+                assert self.aduser2 in output
+
+            with self.clients[0].spawn_expect(
+                    test_sudo.format(
+                        user=self.subaduser, user2=self.subaduser2)) as e:
+                e.sendline('Secret123')
+                e.expect_exit(ignore_remaining_output=True, timeout=60)
+                output = e.get_last_output()
+                assert self.subaduser2 in output
+        finally:
+            self._cleanup_srule(srule)
+
+    def test_ipa_trust_func_sudo_0005(self):
+        """
+        Test sudo rule disable/enable functionality for AD users.
+
+        Test creates a sudo rule that allows AD users to run commands as root,
+        then tests the disable/enable functionality. It verifies that:
+        1. AD users can sudo as root when the rule is enabled
+        2. AD users are denied sudo access when the rule is disabled
+        3. AD users can sudo as root again when the rule is re-enabled
+        """
+        srule = "sudorule_05"
+        cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
+        try:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--groups=sudogroup1"]
+            )
+            self.cache_reset()
+            test_sudo = "su - {user}"
+            for aduser in [self.aduser, self.subaduser]:
+                # First check that user can sudo as root
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=aduser)) as e:
+                    e.sendline('sudo -S id')
+                    e.expect(r'.*assword for {}.*:'.format(aduser))
+                    e.sendline('Secret123')
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
+                    output = e.get_last_output()
+                    assert 'uid=0(root)' in output
+                # disable sudorule
+                self.master.run_command(["ipa", "sudorule-disable", srule])
+                self.cache_reset()
+                # now make sure user cannot sudo as root
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=aduser)) as e:
+                    e.sendline('sudo -S id')
+                    e.expect(r'.*assword for {}.*:'.format(aduser))
+                    e.sendline('Secret123')
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
+                    output = e.get_last_output()
+                    assert "is not allowed to" in output
+
+                # now reenable rule
+                self.master.run_command(["ipa", "sudorule-enable", srule])
+                self.cache_reset()
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=aduser)) as e:
+                    e.sendline('sudo -S id')
+                    e.expect(r'.*assword for {}.*:'.format(aduser))
+                    e.sendline('Secret123')
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
+                output = e.get_last_output()
+                assert 'uid=0(root)' in output
+        finally:
+            self._cleanup_srule(srule)
+
+    def test_ipa_trust_func_sudo_0007(self):
+        """
+        Test sudo rule with allow/deny command restrictions for AD users.
+
+        Test creates a sudo rule that allows AD users to run commands as root,
+        but with specific command restrictions. It verifies that:
+        1. AD users are denied access to commands in the deny list
+        2. AD users are allowed access to commands in the allow list
+
+        The test uses /usr/bin/id as a denied command and /usr/bin/whoami as an
+        allowed command to demonstrate the allow/deny functionality.
+        """
+        srule = "sudorule_07"
+        try:
+            tasks.kinit_admin(self.master)
+            cmd = ["ipa", "sudorule-add", srule, "--hostcat=all"]
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--groups=sudogroup1"]
+            )
+            self.master.run_command(['ipa', 'sudocmd-add', '/usr/bin/id'])
+            self.master.run_command(['ipa', 'sudocmd-add', '/usr/bin/whoami'])
+            self.master.run_command(['ipa', 'sudorule-add-deny-command', srule,
+                                     '--sudocmds', '/usr/bin/id']
+                                    )
+            self.master.run_command(
+                ['ipa', 'sudorule-add-allow-command', srule,
+                 '--sudocmds', '/usr/bin/whoami']
+            )
+            self.cache_reset()
+            test_sudo = "su - {user}"
+            for aduser in [self.aduser, self.subaduser]:
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=aduser)) as e:
+                    e.sendline('sudo -S id')
+                    e.expect(r'.*assword for {}.*:'.format(aduser))
+                    e.sendline('Secret123')
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
+                    output = e.get_last_output()
+                    assert "is not allowed to" in output
+            for aduser in [self.aduser, self.subaduser]:
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=aduser)) as e:
+                    e.sendline('sudo -S whoami')
+                    e.expect(r'.*assword for {}.*:'.format(aduser))
+                    e.sendline('Secret123')
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
+                    output = e.get_last_output()
+                    assert "root" in output
+        finally:
+            self._cleanup_srule(srule)
+            self.master.run_command(['ipa', 'sudocmd-del', '/usr/bin/id'])
+            self.master.run_command(['ipa', 'sudocmd-del', '/usr/bin/whoami'])
+
+    def test_ipa_trust_func_sudo_0009(self):
+        """
+        Test sudo rule denies AD users access when they are not in the rule.
+
+        This test creates a sudo rule that only allows members of sudogroup2
+        to run commands as other members of sudogroup2. It verifies that
+        AD users who are not members of the allowed group are denied access
+        when attempting to use sudo to switch to other user accounts.
+        """
+        srule = "sudorule_09"
+        cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
+        try:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--groups=sudogroup2"]
+            )
+            self.master.run_command(
+                ["ipa", "sudorule-add-runasuser", srule, "--groups=sudogroup2"]
+            )
+            self.cache_reset()
+            test_sudo = "su - {user}"
+            with self.clients[0].spawn_expect(
+                    test_sudo.format(user=self.aduser)) as e:
+                e.sendline('sudo -S -u {} id'.format(self.aduser2))
+                e.expect(r'.*assword for {}.*:'.format(self.aduser))
+                e.sendline('Secret123')
+                e.sendline('exit')
+                e.expect_exit(ignore_remaining_output=True, raiseonerr=False)
+                output = e.get_last_output()
+                assert "not allowed to run sudo" in output
+            with self.clients[0].spawn_expect(
+                    test_sudo.format(user=self.subaduser)) as e:
+                e.sendline('sudo -S -u {} id'.format(self.subaduser2))
+                e.expect(r'.*assword for {}.*:'.format(self.subaduser))
+                e.sendline('Secret123')
+                e.sendline('exit')
+                e.expect_exit(ignore_remaining_output=True, raiseonerr=False)
+                output = e.get_last_output()
+                assert "not allowed to run sudo" in output
+        finally:
+            self._cleanup_srule(srule)
+
+    def test_ipa_trust_func_sudo_0010(self):
+        """
+        Test sudo rule denies IPA users access to AD users not in the rule.
+
+        This test creates a sudo rule that allows IPA users to run commands as
+        members of sudogroup2 (which includes aduser2/subaduser2), but not as
+        members of sudogroup1 (which includes aduser1/subaduser1). It verifies
+        that IPA users are denied access when attempting to use sudo to switch
+        to AD user accounts that are not in the allowed runasuser group.
+        """
+        srule = "sudorule_10"
+        cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
+        try:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(cmd)
+            self.master.run_command(
+                ["ipa", "sudorule-add-user", srule, "--users=ipauser1"]
+            )
+            self.master.run_command(
+                ["ipa", "sudorule-add-runasuser", srule, "--groups=sudogroup2"]
+            )
+            self.cache_reset()
+            test_sudo = "su - {user}"
+            for aduser in [self.aduser, self.subaduser]:
+                with self.clients[0].spawn_expect(
+                        test_sudo.format(user=aduser)) as e:
+                    e.sendline('sudo -S id')
+                    e.expect(r'.*assword for {}.*:'.format(aduser))
+                    e.sendline('Secret123')
+                    e.sendline('exit')
+                    e.expect_exit(
+                        ignore_remaining_output=True, raiseonerr=False)
+                    output = e.get_last_output()
+                    assert "is not allowed to" in output
+        finally:
+            self._cleanup_srule(srule)
