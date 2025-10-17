@@ -22291,8 +22291,8 @@ msgstr ""
 msgid "Google"
 msgstr "Google"
 
-msgid "Github"
-msgstr "Github"
+msgid "GitHub"
+msgstr ""
 
 msgid "Microsoft or Azure"
 msgstr ""
@@ -25777,3 +25777,6 @@ msgstr ""
 #| msgid "Unable to initialize ldap library!\n"
 msgid "Unable to initialize STARTTLS session\n"
 msgstr "LDAP ბიბლიოთეკის ინიციალიზაციის შეცდომა!\n"
+
+#~ msgid "Github"
+#~ msgstr "Github"
