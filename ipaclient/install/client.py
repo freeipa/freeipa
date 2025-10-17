@@ -1675,6 +1675,7 @@ def client_dns(server, hostname, options, statestore):
         fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
         statestore.backup_state("dns_over_tls", "enabled", True)
         save_state(services.knownservices["unbound"], statestore)
+        save_state(services.knownservices["dnsconfd"], statestore)
         # setup and enable Unbound as resolver
         server_ip = str(list(dnsutil.resolve_ip_addresses(server))[0])
         forward_addr = "forward-addr: %s#%s" % (server_ip, server)
@@ -1700,6 +1701,11 @@ def client_dns(server, hostname, options, statestore):
         if sr.is_running():
             sr.stop()
             sr.disable()
+
+        dnsconfd = services.knownservices["dnsconfd"]
+        if dnsconfd.is_running():
+            dnsconfd.stop()
+            dnsconfd.disable()
 
         nm = services.knownservices["NetworkManager"]
         if nm.is_enabled():
@@ -3639,13 +3645,18 @@ def uninstall(options):
         except Exception:
             pass
 
-    # Restore unbound to its original status
+    # Restore unbound and dnsconfd to their original status
     if statestore.restore_state("dns_over_tls", "enabled"):
         unbound = services.knownservices['unbound']
+        dnsconfd = services.knownservices['dnsconfd']
         if not statestore.restore_state('unbound', 'running'):
             unbound.stop()
         if not statestore.restore_state('unbound', 'enabled'):
             unbound.disable()
+        if statestore.restore_state('dnsconfd', 'running'):
+            dnsconfd.start()
+        if statestore.restore_state('dnsconfd', 'enabled'):
+            dnsconfd.enable()
         # restore unbound config files that were removed during IPA install
         remove_file(paths.UNBOUND_CONF)
         for filename, fileinfo in fstore.files.items():
