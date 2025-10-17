@@ -12,8 +12,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-06-30 19:19+0000\n"
-"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
+"PO-Revision-Date: 2025-10-07 11:39+0000\n"
+"Last-Translator: \"Fco. Javier F. Serrador\" <fserrador@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/es/>\n"
 "Language: es\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.12.2\n"
+"X-Generator: Weblate 5.13.3\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -257,14 +257,12 @@ msgstr "Advertencia: Tipo para convertir falló (#%d)⏎\n"
 msgid "Bind password already provided (-w).\n"
 msgstr "Vincular contraseña ya suministrada (-w).\n"
 
-#, fuzzy
-#| msgid "LDAP password"
 msgid "Enter LDAP password"
-msgstr "Contraseña LDAP"
+msgstr "Introduzca la contraseña LDAP"
 
 #, c-format
 msgid "Bind password required when using a bind DN (-w or -W).\n"
-msgstr ""
+msgstr "Contraseña de bind requiere cuando utilice un bind ND (-w o -W).\n"
 
 #, c-format
 msgid "Cannot specify both SASL mechanism and bind DN simultaneously.\n"
@@ -281,33 +279,31 @@ msgstr "No se puede especificar servidor y LDAP uri simultáneamente.\n"
 
 #, c-format
 msgid "DNS discovery for domain %s\n"
-msgstr ""
+msgstr "Descubrir DNS para dominio %s\n"
 
-#, fuzzy, c-format
-#| msgid "Advertised by servers"
+#, c-format
 msgid "Discovered server %s\n"
-msgstr "Anunciado por los servidores"
+msgstr "Servidor %s descubierto\n"
 
 #, c-format
 msgid "Using discovered server %s\n"
-msgstr ""
+msgstr "Utilizando servidor %s descubierto\n"
 
 #, c-format
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "DNS descubierto incorrecto\n"
 
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "Utilizar servidor desde config %s\n"
 
 #, c-format
 msgid "Server name not provided and unavailable\n"
 msgstr "El nombre del servidor no se ha suministrado y es indisponible\n"
 
-#, fuzzy, c-format
-#| msgid "Ping a remote server."
+#, c-format
 msgid "Using provided server %s\n"
-msgstr "Hacer ping a un servidor remoto."
+msgstr "Empleando servidor proporcionado %s\n"
 
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
@@ -458,50 +454,45 @@ msgstr ""
 "Petición JSON-RPC:\n"
 "%s\n"
 
-#, fuzzy, c-format
-#| msgid "Operation failed: %s\n"
+#, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr "Falló operación: %s\n"
+msgstr "Invocación incorrecta de JSON-RPC: %s\n"
 
 #, c-format
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
-msgstr ""
+msgstr "Invocación JSON-RPC fue no autorizada. Compruebe sus credenciales.\n"
 
 #, c-format
 msgid "JSON-RPC call failed with status code: %li\n"
-msgstr ""
+msgstr "Invocación JSON-RPC incorrecta con código de estado: %li\n"
 
-#, fuzzy, c-format
-#| msgid ""
-#| "JSON-RPC request:\n"
-#| "%s\n"
+#, c-format
 msgid ""
 "JSON-RPC response:\n"
 "%s\n"
 msgstr ""
-"Petición JSON-RPC:\n"
+"Respuesta JSON-RPC:\n"
 "%s\n"
 
 #, c-format
 msgid "Extracting the error from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Extrayendo el error desde la respuesta JSON-RPM incorrecta: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Respuesta JSON-RPC interpretada incorrecta: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
-msgstr ""
+msgstr "Respuesta JSON-RPC interpretada: sin valor 'result' encontrado.\n"
 
 #, c-format
 msgid "Extracting the data from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Extrayendo los datos desde la respuesta de JSON-RPC incorrecta: %s\n"
 
-#, fuzzy, c-format
-#| msgid "json_dumps() failed\n"
+#, c-format
 msgid "json_pack_ex() failed: %s\n"
-msgstr "json_dumps() falló\n"
+msgstr "json_pack_ex() incorrecto: %s\n"
 
 #, c-format
 msgid "Unenrollment successful.\n"
@@ -555,7 +546,7 @@ msgstr "la ejecución de ipa-getkeytab falló, errno %d\n"
 
 #, c-format
 msgid "child exited with %d\n"
-msgstr "hijo terminó con %d\n"
+msgstr "subproceso terminado con %d\n"
 
 #, c-format
 msgid "Error resolving keytab: %s.\n"
@@ -622,7 +613,7 @@ msgstr "basedn"
 
 #, c-format
 msgid "Cannot get host's FQDN!\n"
-msgstr ""
+msgstr "No se puede obtener FQDN del host.\n"
 
 #, c-format
 msgid "The hostname must be fully-qualified: %s\n"
@@ -693,21 +684,21 @@ msgstr ""
 "El principal para borrar desde keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 
 msgid "The keytab file to remove the principcal(s) from"
-msgstr "El fichero keytab fpara borrar el principal(s) desde"
+msgstr "El archivo keytab para eliminar el principal(s) desde"
 
 msgid "Remove all principals in this realm"
 msgstr "Quite todos los principales en este ámbito"
 
 msgid "Realm name"
-msgstr "Nombre de reino "
+msgstr "Nombre de ámbito"
 
 #, c-format
 msgid "Failed to open keytab '%1$s': %2$s\n"
-msgstr "Fallo al abrir keytab '%1$s': %2$s\n"
+msgstr "Incorrecto al abrir keytab «%1$s»: %2$s\n"
 
 #, c-format
 msgid "Closing keytab failed\n"
-msgstr "Cierre de tabla de claves falló\n"
+msgstr "Cierre de tabla de claves incorrecto\n"
 
 #, c-format
 msgid "krb5_kt_close %1$d: %2$s\n"
@@ -738,7 +729,7 @@ msgid ""
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
 "El modo migración esta desactivado.\n"
-"Use 'ip confi-mod --enable-migration=TRUE' para activarlo."
+"Emplee 'ip confi-mod --enable-migration=TRUE' para activarlo."
 
 msgid ""
 "Passwords have been migrated in pre-hashed format.\n"
@@ -842,9 +833,11 @@ msgid ""
 "IMPORTANT: In case of a high number of users, hosts or groups, the operation "
 "may require high CPU usage."
 msgstr ""
+"IMPORTANTE: en caso de un número de usuarios alto, los host o grupos, la "
+"operación puede requerir empleo intenso de la CPU."
 
 msgid "maps not connected to /etc/auto.master:"
-msgstr "mapa no conectado a /etc/auto.master"
+msgstr "mapas no conectados a /etc/auto.master"
 
 msgid "Import automount files for a specific location."
 msgstr "Importar ficheros de automontaje para una localización específica."
@@ -863,66 +856,63 @@ msgstr ""
 
 #, python-format
 msgid "File %(file)s not found"
-msgstr "No se encontró el archivo %(file)s "
+msgstr "Archivo %(file)s no encontrado"
 
 #, python-format
 msgid "key %(key)s already exists"
-msgstr "key %(key)s ya existe"
+msgstr "la llave %(key)s ya existe"
 
 #, python-format
 msgid "map %(map)s already exists"
 msgstr "map %(map)s ya existe"
 
 msgid "Imported maps:"
-msgstr "Mapas importados"
+msgstr "Mapas importados:"
 
 #, python-format
 msgid "Added %(map)s"
 msgstr "%(map)s agregados"
 
 msgid "Imported keys:"
-msgstr "Llaves (keys) importadas"
+msgstr "Llaves importadas:"
 
 #, python-format
 msgid "Added %(src)s to %(dst)s"
 msgstr "Agregado %(src)s a %(dst)s"
 
 msgid "Ignored keys:"
-msgstr "Llaves ignoradas: "
+msgstr "Llaves ignoradas:"
 
 #, python-format
 msgid "Ignored %(src)s to %(dst)s"
 msgstr "%(src)s a %(dst)s ignorados"
 
 msgid "Duplicate maps skipped:"
-msgstr "Mapa duplicado omitido"
+msgstr "Relación duplicada omitida:"
 
 #, python-format
 msgid "Skipped %(map)s"
 msgstr "%(map)s omitido"
 
 msgid "Duplicate keys skipped:"
-msgstr "Llaves duplicadas omitidas"
+msgstr "Duplicado de llaves omitido:"
 
 #, python-format
 msgid "Skipped %(key)s"
 msgstr "%(key)s omitida"
 
-#, fuzzy
-#| msgid "Registration password"
 msgid "Register the passkey"
-msgstr "Contraseña de registro"
+msgstr "Registra la llave de acceso"
 
 msgid "Require user verification during authentication with the passkey"
 msgstr ""
+"Requiere verificación de usuario durante autenticación con la llave de acceso"
 
 msgid "COSE type to use for registration"
-msgstr ""
+msgstr "El tipo COSE a utilizar para registrado"
 
-#, fuzzy
-#| msgid "Identity"
 msgid "Credential type"
-msgstr "Identidad"
+msgstr "Tipo credencial"
 
 #, python-format
 msgid "cannot specify both %s and passkey mapping"
@@ -933,23 +923,25 @@ msgid ""
 "Missing executable %s, use the command with LOGIN PASSKEY instead of LOGIN --"
 "register"
 msgstr ""
+"Ejecutable %s ausente, utilice el comando con LOGIN PASSKEY en lugar de "
+"LOGIN --register"
 
 msgid "Split DNS record to parts"
-msgstr "Divide registro DNS en partes"
+msgstr "Desglosa registro DNS en partes"
 
 msgid "Please choose a type of DNS resource record to be added"
-msgstr "Por favor seleccione un tipo de origen de DNS para ser agregado"
+msgstr "Elija un tipo de registro de recurso DNS para ser añadido"
 
 #, python-format
 msgid "The most common types for this type of zone are: %s\n"
-msgstr "Los tipos mas comunes para este tipo de zona son: %s\n"
+msgstr "Los tipos más comunes para este tipo de zona son: %s\n"
 
 msgid "DNS resource record type"
-msgstr "Registro de tipo de recurso DNS "
+msgstr "Tipo de registro del recurso DNS"
 
 #, python-format
 msgid "Invalid or unsupported type. Allowed values are: %s"
-msgstr "Invalido o tipo no soportado. Valores permitidos son: %s"
+msgstr "Tipo no válido o no soportado. Los valores permitidos son: %s"
 
 msgid "No option to modify specific record provided."
 msgstr "No hay opción para modificar registro específico proporcionado."
@@ -979,10 +971,9 @@ msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
-"Ni --del-all ni opciones para borrar un registro en concreto ha sido "
-"especificado.\n"
-"El comando de ayuda puede ser consultado para ver los tipos de registros "
-"soportados."
+"Ni --del-all ni opciones para borrar un registro en concreto ha sido\n"
+"proporcionado. El comando de ayuda puede ser consultado para\n"
+"ver los tipos de registros soportados."
 
 msgid "No option to delete specific record provided."
 msgstr "Ninguna opción para borrar un registro en concreto especificado."
@@ -1021,10 +1012,10 @@ msgstr ""
 "tamaño de su terminal."
 
 msgid "Synchronize an OTP token."
-msgstr "Sincronice una ficha OTP"
+msgstr "Sincronice un vale OTP."
 
 msgid "User ID"
-msgstr "ID de usuario"
+msgstr "ID de Usuario"
 
 msgid "Password"
 msgstr "Contraseña"
@@ -1040,34 +1031,32 @@ msgstr "ID de ficha"
 
 #, python-format
 msgid "Unable to synchronize token: %s"
-msgstr ""
+msgstr "No es capaz de sincronizar vale: %s"
 
-#, fuzzy
-#| msgid "Add one or more certificate mappings to the user entry."
 msgid "Add one or more passkey mappings to the user entry."
-msgstr "Añade uno o más mapeados de certificados a la entrada de usuario."
+msgstr "Añade una o más llaves de paso mapeados al apunte de usuario."
 
 #, python-format
 msgid "Enabled Sudo Rule \"%s\""
-msgstr "Regla Sudo Habilitada “%s”"
+msgstr "Regla Sudo Habilitada «%s»"
 
 #, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr "Regla Sudo Deshabilitada “%s”"
+msgstr "Regla Sudo Deshabilitada «%s»"
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr "Añadiendo la opción \"%(option)s\" a Sudo Rule \"%(rule)s\""
+msgstr "Opción «%(option)s» añadida a «%(rule)s» de Sudo Rule"
 
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
-msgstr "Quitada opción \"%(option)s\" de Sudo Rule \"%(rule)s\""
+msgstr "Opción «%(option)s» quitada desde «%(rule)s» Sudo Rule"
 
 msgid "Delete a user, keeping the entry available for future use"
-msgstr "Borrar un usuario manteniendo la entrada disponible para un uso futuro"
+msgstr "Borra un usuario, conservando disponible el apunte para empleo futuro"
 
 msgid "Delete a user"
-msgstr "Borrar un usuario"
+msgstr "Borra un usuario"
 
 msgid "preserve and no-preserve cannot be both set"
 msgstr "preserve y no-preserve no pueden estar ambos ajustados"
@@ -1085,7 +1074,7 @@ msgid "Input filename"
 msgstr "Entrada nombre de archivo"
 
 msgid "File to load the certificate from."
-msgstr "Archivo desde donde cargar el certificado"
+msgstr "Archivo desde donde cargar el certificado."
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
@@ -1099,16 +1088,16 @@ msgid "Invalid credentials"
 msgstr "Credenciales no válidas"
 
 msgid "Create a new vault."
-msgstr "Crear una nueva bóveda."
+msgstr "Crea una bóveda nueva."
 
 msgid "Vault password"
 msgstr "Contraseña de la bóveda"
 
 msgid "File containing the vault password"
-msgstr "Fichero que contiene la contraseña de bóveda"
+msgstr "Archivo que contiene la contraseña de la bóveda"
 
 msgid "File containing the vault public key"
-msgstr "Fichero que contiene la clave pública de la bóveda"
+msgstr "Archivo que contiene la llave pública de la bóveda"
 
 msgid "Password can be specified only for symmetric vault"
 msgstr "La contraseña solo se debe especificar para bóveda simétrica"
@@ -1127,10 +1116,10 @@ msgstr "Clave pública de la bóveda desaparecida"
 
 #, python-format
 msgid "Invalid or unsupported vault public key: %s"
-msgstr "Clave pública de bóveda no válida o no soportada: %s"
+msgstr "Clave pública de la bóveda no válida o no soportada: %s"
 
 msgid "Modify a vault."
-msgstr "Modificar una bóveda"
+msgstr "Modifica una bóveda."
 
 msgid "Change password"
 msgstr "Cambiar contraseña"
@@ -1151,20 +1140,20 @@ msgid "Old vault private key"
 msgstr "Clave privada de bóveda antigua"
 
 msgid "File containing the old vault private key"
-msgstr "Fichero que contiene la clave privada de bóveda antigua"
+msgstr "Archivo que contiene la llave privada de bóveda antigua"
 
 msgid "File containing the new vault public key"
-msgstr "Fichero que contiene la nueva clave pública de bóveda"
+msgstr "Archivo que contiene la llave pública nueva de bóveda"
 
 msgid "New public key specified multiple times"
-msgstr "Nueva clave pública especificada múltiples veces"
+msgstr "Llave pública nueva especificada múltiples veces"
 
 msgid "Missing new vault public key"
-msgstr "Nueva clave pública de bóveda desaparecida"
+msgstr "Llave pública nueva de bóveda desaparecida"
 
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
-msgstr ""
+msgstr "{algo} no está admitido algoritmo de cobertura de bóveda"
 
 msgid "Archive data into a vault."
 msgstr "Datos archivados en una bóveda"
@@ -1178,53 +1167,39 @@ msgstr "Fichero conteniendo datos para archivar"
 msgid "Override existing password"
 msgstr "Anular contraseña existente"
 
-#, fuzzy
-#| msgid "Public key specified multiple times"
 msgid "Input data specified multiple times"
-msgstr "Clave pública especificada múltiples veces"
+msgstr "Datos de entrada especificados múltiples veces"
 
 #, python-format
 msgid ""
 "Size of data exceeds the limit. Current vault data size limit is %(limit)d B"
 msgstr ""
+"El tamaño de datos supera el límite. El límite del tamaño de la bóveda "
+"actual es de %(limit)d B"
 
-#, fuzzy
-#| msgid "Bind rule type"
 msgid "Invalid vault type"
-msgstr "Tipo de regla de enlace"
+msgstr "Tipo de bóveda no válido"
 
-#, fuzzy
-#| msgid "Archive data into a vault."
 msgid "Retrieve a data from a vault."
-msgstr "Datos archivados en una bóveda"
+msgstr "Obtiene los datos desde una bóveda."
 
-#, fuzzy
-#| msgid "Failed allowed to retrieve keytab"
 msgid "File to store retrieved data"
-msgstr "Falló permitir recuperar una KeyTab"
+msgstr "Archivo para almacenar datos recuperados"
 
-#, fuzzy
-#| msgid "Old vault private key"
 msgid "Vault private key"
-msgstr "Clave privada de bóveda antigua"
+msgstr "Clave privada de bóveda"
 
-#, fuzzy
-#| msgid "File containing the old vault private key"
 msgid "File containing the vault private key"
-msgstr "Fichero que contiene la clave privada de bóveda antigua"
+msgstr "Archivo que contiene la llave privada de bóveda"
 
 msgid "Data"
 msgstr "Datos"
 
-#, fuzzy
-#| msgid "Public key specified multiple times"
 msgid "Private key specified multiple times"
-msgstr "Clave pública especificada múltiples veces"
+msgstr "Llave privada especificada múltiples veces"
 
-#, fuzzy
-#| msgid "Missing vault public key"
 msgid "Missing vault private key"
-msgstr "Clave pública de la bóveda desaparecida"
+msgstr "Llave privada de bóveda ausente"
 
 msgid ""
 "\n"
@@ -1349,65 +1324,53 @@ msgstr ""
 "\n"
 "Instrucciones de Control de Acceso al Servidor de Directorio (ACIs)\n"
 "\n"
-"ACIs son usados para permitir o denegar acceso a la información. Este módulo "
-"está\n"
-" actualmente diseñado para permitir, no denegar, acceso.\n"
+"ACIs son usados para permitir o denegar acceso a la información. Este\n"
+"módulo está actualmente diseñado para permitir, no denegar, acceso.\n"
 "\n"
-"Los comandos aci están diseñados para conceder permisos que permitan la\n"
-"actualización de entradas existentes o el añadido o borrado de nuevas. El "
-"objetivo\n"
-"de los ACIs que van con IPA es suministrar un conjunto de permisos de bajo "
-"nivel\n"
-"que conceden acceso a grupos espaciales llamados grupos de tareas. Estos\n"
-"permisos de bajo nivel pueden ser combinados en roles que conceden un "
-"acceso\n"
-"más amplio. Estos roles son otro tipo de grupo, roles.\n"
+"Los comandos ACI están diseñados para conceder permisos que permitan\n"
+"la actualización de entradas existentes o el añadido o borrado de nuevas.\n"
+"El objetivo de los ACI que van con IPA es suministrar un conjunto de "
+"permisos\n"
+"de bajo nivel que conceden acceso a grupos espaciales llamados grupos de\n"
+"tareas. Estos permisos de bajo nivel pueden ser combinados en roles que\n"
+"conceden un acceso más amplio. Estos roles son otro tipo de grupo, roles.\n"
 "\n"
-"Por ejemplo, si usted tiene un grupo de tareas que le permiten añadir y "
-"modificar\n"
-"usuarios usted podría crear un role, useradmin. Debería asignar usuarios al "
-"role\n"
-"useradmin que les permitirá hacer operaciones definidas en el grupo de "
-"tareas.\n"
+"Por ejemplo, si usted tiene un grupo de tareas que le permiten añadir y\n"
+"modificar usuarios usted podría crear un rol, useradmin. Debería asignar\n"
+"usuarios al rol useradmin que les permitirá hacer operaciones definidas\n"
+"en el grupo de tareas.\n"
 "\n"
-"Usted puede crear ACIs que deleguen permisos así usuarios del grupo A "
-"pueden\n"
-"escribir atributos en el grupo B.\n"
+"Usted puede crear los ACI que deleguen permisos así usuarios del grupo A\n"
+"pueden escribir atributos en el grupo B.\n"
 "\n"
-"La opción type es un mapa que aplica a todas las entradas en la localización "
-"de\n"
-"usuarios, grupos o host. Está diseñada principalmente para ser usada cuando "
-"se\n"
-"otorgan permisos de añadir (para escribir nuevas entradas).\n"
+"La opción type es un mapa que aplica a todas las entradas en la "
+"localización\n"
+"de usuarios, grupos o host. Está diseñada principalmente para ser usada\n"
+"cuando se otorgan permisos de añadir (para escribir nuevas entradas).\n"
 "\n"
 "Un ACI consta de tres partes:\n"
 "1. objetivo\n"
 "2. permisos\n"
 "3. reglas de enlace\n"
 "\n"
-"El objetivo es un conjunto de reglas que definen que objetos LDAP son "
-"objetivos.\n"
-"Esto puede incluir una lista de atributos, un área del árbol LDAP o un "
-"filtro LDAP.\n"
+"El objetivo es un conjunto de reglas que definen que objetos LDAP son\n"
+"objetivos. Esto puede incluir una lista de atributos, un área del árbol\n"
+"LDAP o un filtro LDAP.\n"
 "\n"
 "Los objetivos incluyen:\n"
 "- attrs: lista de atributos afectados\n"
 "- type: un tipo de objeto (usuario, grupo, host, servicio, etc)\n"
 "- memberof: miembros de un grupo\n"
-"- targetgroup: concede acceso para modificar un grupo específico. Está "
-"diseñado\n"
-"  principalmente para habilitar a los usuarios para añadir o borrar miembros "
-"de un\n"
-"  grupo específico.\n"
-"- filter: Un filtro LDAP legal usado para reducir el alcance del objetivo.\n"
-"- subtree: Usado para aplicar una regla a lo largo de un conjunto de "
-"objetos. Por\n"
-"  ejemplo, para añadir usuarios usted necesita conceder permisos \"add\" al "
-"subtree\n"
-"  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. La opción subtree es "
-"a\n"
-"  prueba de fallos para objetos que pueden no estar cubiertos por la opción "
-"type.\n"
+"- targetgroup: concede acceso para modificar un grupo específico. Está\n"
+"diseñado principalmente para habilitar a los usuarios para añadir o borrar\n"
+"miembros de un grupo específico.\n"
+"- filter: un filtro LDAP legal usado para reducir el alcance del destino.\n"
+"- subtree: usado para aplicar una regla a lo largo de un conjunto de "
+"objetos. \n"
+"Por ejemplo, para añadir usuarios usted necesita conceder permisos \"add\"\n"
+"al subárbol ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. La\n"
+"opción subárbol es la prueba de fallos para objetos que pueden no estar\n"
+"cubiertos por la opción type.\n"
 "\n"
 "Los permisos definidos que ACI tiene permitidos hacer son uno o más de:\n"
 "1. write - escribir uno o mas atributos\n"
@@ -1422,68 +1385,69 @@ msgstr ""
 "será\n"
 "editable.\n"
 "\n"
-"La regla bind define a quien concede ACI estos permisos. El servidor LDAP "
-"permite\n"
-"esto para cualquier entrada LDAP válida pero recomendamos el uso de grupos "
-"de\n"
-"tareas de modo que los derechos puedan ser fácilmente compartidos entre los\n"
-"roles.\n"
+"La regla bind define a quien concede ACI estos permisos. El servidor LDAP\n"
+"permite esto para cualquier entrada LDAP válida pero recomendamos el\n"
+"uso de grupos de tareas de modo que los derechos puedan ser fácilmente\n"
+"compartidos entre los roles.\n"
 "\n"
-"Para una descripción más completa de los controles de acceso vea\n"
+"Para una descripción más completa de los controles de acceso consulte\n"
 "http://www.redhat.com/docs/manuals/dir-server/ag/8.0/Managing_Access_Control."
 "html\n"
 "\n"
 "EJEMPLOS:\n"
 "\n"
-"AVISO: Los ACIs se añaden ahora por medio del plugin permisos. Estos "
+"AVISO: Los ACI se añaden ahora por medio del plugin permisos. Estos "
 "ejemplos\n"
 "son para demostrar como trabajan diversas opciones pero esto está hecho por\n"
 "medio de los permisos de linea de comandos ahora (vea último ejemplo).\n"
 "\n"
-" Añadir un ACI de modo que el grupo \"secretaries\" pueda actualizar la "
+"Añadir un ACI de modo que el grupo \"secretaries\" pueda actualizar la\n"
 "dirección de cualquier usuario:\n"
 "   ipa group-add --desc=\"Office secretaries\" secretaries\n"
-"   ipa aci-add --attrs=streetAddress --memberof=ipausers --group=secretaries "
-"--permissions=write --prefix=none \"Secretaries write addresses\"\n"
+"   ipa aci-add --attrs=streetAddress --memberof=ipausers --group="
+"secretaries\n"
+"--permissions=write --prefix=none \"Secretarios escriben direcciones\"\n"
 "\n"
 " Mostrar el nuevo ACI:\n"
 "   ipa aci-show --prefix=none \"Secretaries write addresses\"\n"
 "\n"
-" Añadir un ACI que permita a los  miembros del permiso \"addusers\" añadir "
-"nuevos usuarios:\n"
-"   ipa aci-add --type=user --permission=addusers --permissions=add --"
-"prefix=none \"Add new users\"\n"
+" Añadir un ACI que permita a los miembros del permiso \"addusers\" añadir\n"
+"usuarios nuevos:\n"
+"   ipa aci-add --type=user --permission=addusers --permissions=add\n"
+"--prefix=none \"Añade usuarios nuevos\"\n"
 "\n"
-" Añadir un ACI que permita a los miembros de los editores manejar miembros "
+" Añadir un ACI que permita a los miembros de los editores manejar miembros\n"
 "del grupo admins:\n"
-"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --"
-"group=editors --prefix=none \"Editors manage admins\"\n"
+"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins\n"
+"--group=editors --prefix=none \"Editores gestionan admins\"\n"
 "\n"
 " Añadir un ACI que permita a los miembros del grupo admins manejar la calle "
-"y el código postal de los que estén en el grupo editors:\n"
-"   ipa aci-add --permissions=write --memberof=editors --group=admins --"
-"attrs=street --attrs=postalcode --prefix=none \"admins edit the address of "
-"editors\"\n"
+"y\n"
+"el código postal de los que estén en el grupo editores:\n"
+"   ipa aci-add --permissions=write --memberof=editors --group=admins\n"
+"--attrs=street --attrs=postalcode --prefix=none "
+"\"admins editan la dirección de editores\"\n"
 "\n"
 " Añadir un ACI que permita a los miembros del grupo admins manejar la calle "
-"y el código postal de aquellos que trabajan para el jefe:\n"
-"   ipa aci-add --permissions=write --group=admins --attrs=street --"
-"attrs=postalcode --filter=\"(manager=uid=boss,cn=users,cn=accounts,"
-"dc=example,dc=com)\" --prefix=none \"Edit the address of those who work for "
-"the boss\"\n"
+"y\n"
+"el código postal de aquellos que trabajan para el jefe:\n"
+"   ipa aci-add --permissions=write --group=admins --attrs=street --attrs="
+"postalcode\n"
+"--filter=\"(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)\"\n"
+"--prefix=none "
+"\"Edite la dirección de aquellos quienes trabajen para el jefe\"\n"
 "\n"
-" Añadir un clase de registro totalmente nueva para IPA que no esté cubierta "
+" Añadir un clase de registro totalmente nueva para IPA que no esté cubierta\n"
 "por ninguna de las opciones –type, creando un permiso:\n"
-"   ipa permission-add  --permissions=add --subtree=\"cn=*,cn=orange,"
-"cn=accounts,dc=example,dc=com\" --desc=\"Add Orange Entries\" add_orange\n"
+"   ipa permission-add  --permissions=add --subtree=\"cn=*,\n"
+"cn=orange,cn=accounts,dc=example,dc=com\" --desc=\"Añade Apuntes Orange\" "
+"add_orange\n"
 "\n"
+"La instrucción show muestra el ACI 389-ds en bruto.\n"
 "\n"
-"El comando show muestra el ACI 389-ds en bruto.\n"
-"\n"
-"IMPORTANTE: Cuando modifique los atributos target de un ACI existente debe\n"
-"incluir todos los atributos existentes también. Cuando haga un aci-mod "
-"targetattr\n"
-"REEMPLAZA los atributos actuales, no los añade.\n"
+"IMPORTANTE: Cuando modifique los atributos destino de un ACI existente\n"
+"debe incluir todos los atributos existentes también. Cuando haga un aci-mod\n"
+"targetattr REEMPLAZA los atributos actuales, no los añade.\n"
 
 msgid "ACI name"
 msgstr "Nombre de ACI"
@@ -1517,7 +1481,8 @@ msgstr "Tipo"
 
 msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
 msgstr ""
-"Objeto de tipo IPA (usuario, grupo, grupo de host, servicio, grupo de red)"
+"tipo de objeto IPA (usuario, grupo, host, grupo de host, servicio, grupo de "
+"red)"
 
 msgid "Member of"
 msgstr "Miembro de"
@@ -1771,27 +1736,29 @@ msgid ""
 "    ipa automountkey-del baltimore auto.share --key=man\n"
 msgstr ""
 "\n"
-"Automontaje\n"
+"Auto-montaje\n"
 "\n"
 "Almacena configuración automount(8) para autofs(8) en IPA.\n"
 "\n"
-"La base de una configuración de automontaje es el fichero de configuración\n"
+"La base de una configuración de auto-montaje es el archivo de configuración\n"
 "auto.master. Este es también la base de la localización en IPA. Diversas\n"
-"configuraciones auto.master se pueden almacenar en localizaciones "
-"separadas.\n"
+"configuraciones auto.master se pueden almacenar en localizaciones separadas."
+"\n"
 "Una localización es específica de la implementación con la predeterminada \n"
 "llamada 'default'. Por ejemplo, usted puede tener localizaciones por región "
-"geográfica, por piso, por tipo, etc.\n"
+"geográfica,\n"
+"por piso, por tipo, etc.\n"
 "\n"
-"Automontaje tiene tres tipos de objeto básicos: localizaciones, mapas y "
+"Auto-montaje tiene tres tipos de objeto básicos: localizaciones, mapas y "
 "claves.\n"
 "\n"
 "Una localización define un conjunto de mapas anclados en auto.master. Esto "
 "le\n"
-"permite almacenar múltiples configuraciones de automontaje. Una localización "
-"en\n"
-"si misma no es muy interesante, es solo un punto donde iniciar un nuevo mapa "
-"de automontaje.\n"
+"permite almacenar múltiples configuraciones de auto-montaje. Una "
+"localización\n"
+"en sí misma no es muy interesante, es solo un punto donde iniciar un nuevo "
+"mapa\n"
+"de auto-montaje.\n"
 "\n"
 "Un mapa es aproximadamente equivalente a un archivo automount discreto y \n"
 "suministra almacenamiento para las claves.\n"
@@ -1801,80 +1768,79 @@ msgstr ""
 "Cuando se crea una nueva localización, se crean automáticamente dos mapas\n"
 "para ella: auto.master y auto.direct. auto.master es el mapa raíz para todos "
 "los\n"
-"mapas de automontaje para la localización. auto.direct es el mapa "
+"mapas de auto-montaje para la localización. auto.direct es el mapa "
 "predeterminado\n"
 "para montajes directos y se monta sobre /-.\n"
 "\n"
-"Un mapa de automontaje puede contener una clave de submontaje. Esta clave\n"
+"Un mapa de auto-montaje puede contener una clave de submontaje. Esta clave\n"
 "define una localización dentro del mapa que referencia a otro mapa. Esto "
 "puede ser\n"
-"hecho bien usando utomountmap-add-indirect –parentmap o manualmente con\n"
-"automountkey-add estableciendo la información a \"-type=autofs :"
-"<mapname>\".\n"
+"hecho bien usando automountmap-add-indirect –parentmap o manualmente con\n"
+"automountkey-add estableciendo la información a \"-type=autofs :<mapname>\"."
+"\n"
 "\n"
 "EJEMPLOS:\n"
 "\n"
-"Localizaciones:\n"
+"Lugares:\n"
 "\n"
-"  Crear una localización llamada, \"Baltimore\":\n"
+"  Cree un lugar llamado, \"Baltimore\":\n"
 "    ipa automountlocation-add baltimore\n"
 "\n"
-"  Mostrar la nueva localización:\n"
+"  Muestre el lugar nuevo:\n"
 "    ipa automountlocation-show baltimore\n"
 "\n"
-"  Encontrar localizaciones disponibles:\n"
+"  Encuentre los lugares disponibles:\n"
 "    ipa automountlocation-find\n"
 "\n"
-"  Borrar una localización automontaje llamada:\n"
+"  Borre un lugar auto-montaje llamado:\n"
 "    ipa automountlocation-del baltimore\n"
 "\n"
-"  Mostrar cual de los mapas de automontaje parecería como si estuviera en el "
-"sistema de archivos:\n"
+"  Muestre cual de los mapas de auto-montaje parecería como si estuviera en "
+"el sistema de archivos:\n"
 "    ipa automountlocation-tofiles baltimore\n"
 "\n"
 "  Importar una configuración existente a una localización:\n"
 "    ipa automountlocation-import baltimore /etc/auto.master\n"
 "\n"
 "    La importación fallará si se encuentra cualquier entrada duplicada. Para "
-"operaciones continuas donde los errores son ignorados, use la opción --"
-"continue.\n"
+"operaciones continuas donde los errores son ignorados, use la opción "
+"--continue.\n"
 "\n"
 "Mapas:\n"
 "\n"
-"  Crear un nuevo mapa, \"auto.share\":\n"
+"  Cree un nuevo mapa, \"auto.share\":\n"
 "    ipa automountmap-add baltimore auto.share\n"
 "\n"
-"  Mostrar el nuevo mapa:\n"
+"  Muestre el nuevo mapa:\n"
 "    ipa automountmap-show baltimore auto.share\n"
 "\n"
-"  Encontrar mapas en la localización baltimore:\n"
+"  Encuentre mapas en el lugar baltimore:\n"
 "    ipa automountmap-find baltimore\n"
 "\n"
-"  Crear un mapa indirecto con auto.share como submontaje:\n"
+"  Cree un mapa indirecto con auto.share como submontaje:\n"
 "    ipa automountmap-add-indirect baltimore --parentmap=auto.share --"
 "mount=sub auto.man\n"
 "\n"
 "    Esto es equivalente a:\n"
 "\n"
 "    ipa automountmap-add-indirect baltimore --mount=/man auto.man\n"
-"    ipa automountkey-add baltimore auto.man --key=sub --info=\"-"
-"fstype=autofs ldap:auto.share\"\n"
+"    ipa automountkey-add baltimore auto.man --key=sub --info="
+"\"-fstype=autofs ldap:auto.share\"\n"
 "\n"
-"  Borrar el mapa auto.share:\n"
+"  Borre el mapa auto.share:\n"
 "    ipa automountmap-del baltimore auto.share\n"
 "\n"
 "Claves:\n"
 "\n"
-"  Crear una nueva clave para el mapa auto.share en la localización "
-"baltimore. Esto\n"
+"  Crear una nueva clave para el mapa auto.share en el lugar baltimore. Esto\n"
 "  ata el mapa que henos creado previamente a auto.master:\n"
 "    ipa automountkey-add baltimore auto.master --key=/share --info=auto."
 "share\n"
 "\n"
 "  Crear una nueva clave para nuestro mapa auto.share, un montaje NFS para "
 "páginas de manual:\n"
-"    ipa automountkey-add baltimore auto.share --key=man --info=\"-ro,soft,"
-"rsize=8192,wsize=8192 ipa.example.com:/shared/man\"\n"
+"    ipa automountkey-add baltimore auto.share --key=man --info="
+"\"-ro,soft,rsize=8192,wsize=8192 ipa.example.com:/shared/man\"\n"
 "\n"
 "  Encontrar todas las claves para el mapa auto.share:\n"
 "    ipa automountkey-find baltimore auto.share\n"
@@ -1886,10 +1852,10 @@ msgstr ""
 "    ipa automountkey-del baltimore auto.share --key=man\n"
 
 msgid "Key"
-msgstr "Llave"
+msgstr "Clave"
 
 msgid "Automount key name."
-msgstr "Nombre de clave de montaje automático"
+msgstr "Nombre de clave de montaje automático."
 
 msgid "Mount information"
 msgstr "Información de montaje"
@@ -1927,11 +1893,11 @@ msgid ""
 "Add an attribute/value pair. Format is attr=value. The attribute\n"
 "must be part of the schema."
 msgstr ""
-"Añadir un par atributo/valor. El formato es attr=value. El atributo debe ser "
-"parte del esquema."
+"Añadir un par atributo/valor. El formato es attr=value. El atributo\n"
+"debe ser parte del esquema."
 
 msgid "Delete an automount key."
-msgstr "Borrar una clave de automontaje."
+msgstr "Borrar una clave de auto-montaje."
 
 msgid "Continuous mode: Don't stop on errors."
 msgstr "Modo continuo: No se detenga en los errores."
@@ -1961,8 +1927,8 @@ msgid ""
 "Delete an attribute/value pair. The option will be evaluated\n"
 "last, after all sets and adds."
 msgstr ""
-"Borrar un par atributo/valor. La opción será evaluada al final, después de "
-"todos los ajustes y añadidos."
+"Borra una pareja atributo/valor. La opción será evaluada al final,\n"
+"después de todos los ajustes y añadidos."
 
 msgid "Rights"
 msgstr "Derechos"
@@ -1980,70 +1946,64 @@ msgstr "Nueva información de montaje"
 msgid "Rename"
 msgstr "Cambiar el nombre de"
 
-#, fuzzy
-#| msgid "Automount key object."
 msgid "Rename the automount key object"
-msgstr "Objeto clave de automontaje"
+msgstr "Renombra el objeto clave de auto-montaje"
 
 msgid "Display an automount key."
-msgstr "Mostrar una clave de automontaje."
+msgstr "Exhibe una clave de auto-montaje."
 
 msgid "Create a new automount location."
-msgstr "Crear una nueva localización de automontaje."
+msgstr "Crear un nuevo lugar de auto-montaje."
 
 msgid "Delete an automount location."
-msgstr "Borrar una localización de automontaje."
+msgstr "Borrar un lugar de auto-montaje."
 
 msgid "Search for an automount location."
-msgstr "Buscar una localización de automontaje."
+msgstr "Buscar un lugar de auto-montaje."
 
-#, fuzzy
-#| msgid "Results should contain primary key attribute only (\"name\")"
 msgid "Results should contain primary key attribute only (\"location\")"
 msgstr ""
-"Los resultados deberían contener solo la clave del atributo primario "
-"(\"name\")"
+"Los resultados deberían contener solo la clave del atributo primario ("
+"\"location\")"
 
 msgid "Display an automount location."
-msgstr "Mostrar una localización de automontaje"
+msgstr "Exhibe un lugar de auto-montaje."
 
 msgid "Generate automount files for a specific location."
-msgstr "Generar ficheros de automontaje para una localización específica."
+msgstr "Generar archivos de auto-montaje para un lugar específico."
 
 msgid "Create a new automount map."
-msgstr "Crear un nuevo mapa de automontaje"
+msgstr "Crea un mapa de auto-montaje nuevo."
 
 msgid "Create a new indirect mount point."
-msgstr "Crear un nuevo punto de montaje indirecto."
+msgstr "Crea un punto indirecto de montaje nuevo."
 
 msgid "Mount point"
 msgstr "Punto de montaje"
 
 msgid "Parent map"
-msgstr "Mapa del padre"
+msgstr "Mapa del antecesor"
 
 msgid "Name of parent automount map (default: auto.master)."
 msgstr ""
-"Nombre del mapa de montaje automático de padre (por defecto: auto.master)."
+"Nombre del anterior mapa de montaje automático (por defecto: auto.master)."
 
 msgid "Delete an automount map."
-msgstr "Borrar un mapa de automontaje."
+msgstr "Borrar un mapa de auto-montaje."
 
 msgid "Search for an automount map."
-msgstr "Buscar un mapa de automontaje."
+msgstr "Buscar un mapa de auto-montaje."
 
-#, fuzzy
-#| msgid "Results should contain primary key attribute only (\"name\")"
 msgid "Results should contain primary key attribute only (\"map\")"
 msgstr ""
-"Los resultados deberían contener solo la clave del atributo primario "
-"(\"name\")"
+"Los resultados deberían contener solo la clave del atributo primario (\"map\""
+")"
 
 msgid "Modify an automount map."
-msgstr "Modificar un mapa de automontaje"
+msgstr "Modificar un mapa de auto-montaje."
 
 msgid "Display an automount map."
-msgstr "Mostrar un mapa de automontaje"
+msgstr "Exhibe un mapa de auto-montaje"
 
 msgid ""
 "\n"
@@ -2075,6 +2035,37 @@ msgid ""
 "\n"
 "And then a nested response for each IPA command method sent in the request\n"
 msgstr ""
+"\n"
+"Enchufe para crear múltiples invocaciones ipa por medio de una invocación de "
+"procedimiento remoto\n"
+"\n"
+"Para ejecutar este código en el lite-server\n"
+"\n"
+"curl   -H \"Content-Type:application/json\"          -H "
+"\"Accept:application/json\" -H \"Accept-Language:en\"        --negotiate -u :"
+"          --cacert /etc/ipa/ca.crt           -d  @batch_request.json -X "
+"POST       http://localhost:8888/ipa/json\n"
+"\n"
+"donde el contenido del archivo batch_request.json sigue el ejemplo a "
+"continuación\n"
+"\n"
+"{\"method\":\"batch\",\"params\":[[\n"
+"        {\"method\":\"group_find\",\"params\":[[],{}]},\n"
+"        {\"method\":\"user_find\",\"params\":[[],{\"whoami\":\"true\",\"all\""
+":\"true\"}]},\n"
+"        {\"method\":\"user_show\",\"params\":[[\"admin\"],{\"all\":true}]}\n"
+"        ],{}],\"id\":1}\n"
+"\n"
+"El formato de la respuesta está anidada de la mima manera. En la cima verá\n"
+"  \"error\": null,\n"
+"    \"id\": 1,\n"
+"    \"result\": {\n"
+"        \"count\": 3,\n"
+"            \"results\": [\n"
+"\n"
+"\n"
+"Y entones por cada método de instrucción IPA enviada una respuesta anidadas "
+"en la respuesta\n"
 
 msgid "Nested Methods to execute"
 msgstr "Métodos anidados para ejecutar"
@@ -2127,18 +2118,73 @@ msgid ""
 "   ipa config-mod --ipaselinuxusermaporder='guest_u:s0$xguest_u:s0$user_u:s0-"
 "s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023'\n"
 msgstr ""
+"\n"
+"Configuración del servidor\n"
+"\n"
+"Administre los valores predeterminados que utiliza IPA y algunos de sus\n"
+"parámetros de ajuste.\n"
+"\n"
+"NOTAS:\n"
+"\n"
+"El valor de notificación de contraseña (--pwdexpnotify) se almacena aquí\n"
+"para que se replique. Actualmente no se utiliza para notificar a los "
+"usuarios\n"
+"con antelación sobre la caducidad de una contraseña.\n"
+"\n"
+"Algunos atributos son de solo lectura y se proporcionan únicamente con "
+"fines\n"
+"informativos. Estos incluyen:\n"
+"\n"
+"Base del sujeto del certificado: la base del sujeto del certificado "
+"configurada,\n"
+"por ejemplo, O=EJEMPLO.COM. Esto solo se puede configurar durante la\n"
+"instalación.  Funciones del complemento de contraseña: actualmente define\n"
+"hashes adicionales que generará la contraseña (pueden existir otras "
+"condiciones).\n"
+"\n"
+"Al configurar la lista de orden para la asignación de usuarios de SELinux, "
+"es\n"
+"posible que deba indicar el valor entre comillas para que el shell no lo "
+"interprete.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+"Mostrar la configuración básica del servidor:\n"
+"ipa config-show\n"
+"\n"
+"Mostrar todas las opciones de configuración:\n"
+"    ipa config-show --all\n"
+"\n"
+"Cambiar la longitud máxima del nombre de usuario a 99 caracteres:\n"
+"    ipa config-mod --maxusername=99\n"
+"\n"
+"Aumentar los límites predeterminados de tiempo y tamaño para la búsqueda\n"
+"máxima en el servidor IPA:\n"
+"    ipa config-mod --searchtimelimit=10 --searchrecordslimit=2000\n"
+"\n"
+"Establecer el dominio de correo electrónico predeterminado del usuario:\n"
+"    ipa config-mod --emaildomain=example.com\n"
+"\n"
+"Habilitar el modo de migración para que el comando \"ipa migrate-ds\" "
+"funcione:\n"
+"    ipa config-mod --enable-migration=TRUE\n"
+"\n"
+"Definir el orden de asignación de usuarios de SELinux:\n"
+"    ipa config-mod "
+"--ipaselinuxusermaporder='invitado_u:s0$xinvitado_u:s0$usuario_u:s0-s0:c0.c1023$personal_u:s0-s0:c0.c1023$"
+"sin confinamiento_u:s0-s0:c0.c1023'\n"
 
 msgid "Maximum username length"
-msgstr "Largo máximo para nombre de usuario"
+msgstr "Longitud máxima del nombre de usuario"
 
 msgid "Home directory base"
 msgstr "Base del directorio principal"
 
 msgid "Default location of home directories"
-msgstr "Localización por defecto de los directorios home"
+msgstr "Lugar por defecto de los directorios home"
 
 msgid "Default shell"
-msgstr "Shell predeterminada"
+msgstr "Intérprete predeterminado"
 
 msgid "Default shell for new users"
 msgstr "Shell predeterminada para usuarios nuevos"
@@ -2175,10 +2221,8 @@ msgstr ""
 "Una lista separada por comas de los campos a buscar cuando se está buscando "
 "usuarios"
 
-#, fuzzy
-#| msgid "User search fields"
 msgid "Group search fields"
-msgstr "Campos de búsqueda de usuario"
+msgstr "Campos de búsqueda de grupo"
 
 msgid "A comma-separated list of fields to search in when searching for groups"
 msgstr ""
@@ -2218,45 +2262,39 @@ msgstr "Funciones del complemento de contraseña"
 msgid "Extra hashes to generate in password plug-in"
 msgstr "Hashes extra para generar en el plugin de contraseña"
 
-#, fuzzy
-#| msgid "SELinux User Map rule"
 msgid "SELinux user map order"
-msgstr "Regla Mapa de Usuario SELinux"
+msgstr "Ordenación de mapa de usuario SELinux"
 
 msgid "Order in increasing priority of SELinux users, delimited by $"
-msgstr ""
+msgstr "Ordenar en prioridad creciente de usuarios SELinux, delimitados por $"
 
 #, fuzzy
 #| msgid "Delete a SELinux User Map."
 msgid "Default SELinux user"
-msgstr "Borrar un Mapa de Usuario SELinux."
+msgstr "Usuario SELinux por defecto"
 
 msgid "Default SELinux user when no match is found in SELinux map rule"
 msgstr ""
+"Usuario SELinux por defecto cuando no coincida está encontrado dentro de "
+"regla de relación SELinux"
 
-#, fuzzy
-#| msgid "PAC type"
 msgid "Default PAC types"
-msgstr "Tipo PAC"
+msgstr "Tipo predeterminado de PAC"
 
 msgid "Default types of PAC supported for services"
-msgstr ""
+msgstr "Tipos por defecto de PAC admitidos para servicios"
 
-#, fuzzy
-#| msgid "Last failed authentication"
 msgid "Default user authentication types"
-msgstr "Última autenticación fallada"
+msgstr "Tipos de autenticación de usuario por defecto"
 
-#, fuzzy
-#| msgid "The number of times to retry authentication"
 msgid "Default types of supported user authentication"
-msgstr "El número de veces para reintentar la autenticación"
+msgstr "Tipos por defecto de autenticación de usuario admitido"
 
 msgid "Modify configuration options."
 msgstr "Modificar opciones de configuración."
 
 msgid "Show the current configuration."
-msgstr "Muestra la configuración actual"
+msgstr "Muestra la configuración actual."
 
 msgid ""
 "\n"
@@ -2311,7 +2349,7 @@ msgstr ""
 "   ipa delegation-mod --attrs=street --attrs=postalCode --group=managers --"
 "membergroup=employees \"managers edit employees' street\"\n"
 "\n"
-" Mostrar nuestra regla actualizada:\n"
+" Exhibir nuestra regla actualizada:\n"
 "   ipa delegation-show \"managers edit employees' street\"\n"
 "\n"
 " Borrar una regla:\n"
@@ -2610,7 +2648,7 @@ msgstr ""
 "promotor usando el formato estándar \"IP_ADDRESS port PORT\""
 
 msgid "Forward policy"
-msgstr "Política de envío"
+msgstr "Normativa de envío"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
@@ -2648,7 +2686,7 @@ msgid "Is zone active?"
 msgstr "¿Está la zona activa?"
 
 msgid "Zone forwarders"
-msgstr "Zona de expedidores"
+msgstr "Zona de re-envío"
 
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
@@ -2691,758 +2729,512 @@ msgstr "%s registro"
 msgid "Raw A records"
 msgstr "Registros brutos %s"
 
-#, fuzzy
-#| msgid "IP Address"
 msgid "A IP Address"
-msgstr "Dirección IP"
+msgstr "Una dirección IP"
 
 msgid "IP Address"
 msgstr "Dirección IP"
 
-#, fuzzy
-#| msgid "Create reverse"
 msgid "A Create reverse"
-msgstr "Crear reversa"
+msgstr "Una creación reversa"
 
 msgid "Create reverse record for this IP Address"
 msgstr "Crear registro reverso para esta Dirección IP"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "AAAA record"
-msgstr "%s registro"
+msgstr "Registro AAAA"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw AAAA records"
-msgstr "Registros brutos %s"
+msgstr "Registros AAAA en bruto"
 
-#, fuzzy
-#| msgid "IP Address"
 msgid "AAAA IP Address"
-msgstr "Dirección IP"
+msgstr "Dirección IP AAAA"
 
-#, fuzzy
-#| msgid "Create reverse"
 msgid "AAAA Create reverse"
-msgstr "Crear reversa"
+msgstr "Crear AAAA reversa"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "A6 record"
-msgstr "%s registro"
+msgstr "Registro A6"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw A6 records"
-msgstr "Registros brutos %s"
+msgstr "Registros A6 en bruto"
 
-#, fuzzy
-#| msgid "Record data"
 msgid "A6 Record data"
-msgstr "Registrar datos"
+msgstr "Registro A6 de datos"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "AFSDB record"
-msgstr "%s registro"
+msgstr "Registro AFSDB"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw AFSDB records"
-msgstr "Registros brutos %s"
+msgstr "Registros AFSDB en bruto"
 
-#, fuzzy
-#| msgid "Subtype"
 msgid "AFSDB Subtype"
-msgstr "Subtipo"
+msgstr "Subtipo AFSDB"
 
 msgid "Subtype"
 msgstr "Subtipo"
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "AFSDB Hostname"
-msgstr "Nombre del equipo anfitrión"
+msgstr "Nombre del host AFSDB"
 
 msgid "Hostname"
-msgstr "Nombre del equipo anfitrión"
+msgstr "Nombre del host"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "APL record"
-msgstr "%s registro"
+msgstr "Registro APL"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw APL records"
-msgstr "Registros brutos %s"
+msgstr "Registros APL en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "CERT record"
-msgstr "%s registro"
+msgstr "Registro CERT"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw CERT records"
-msgstr "Registros brutos %s"
+msgstr "Registros CERT en bruto"
 
-#, fuzzy
-#| msgid "Certificate Type"
 msgid "CERT Certificate Type"
-msgstr "Tipo de certificado"
+msgstr "Tipo de Certificado CERT"
 
 msgid "Certificate Type"
-msgstr "Tipo de certificado"
+msgstr "Tipo de Certificado"
 
-#, fuzzy
-#| msgid "Key Tag"
 msgid "CERT Key Tag"
-msgstr "Etiqueta de clave"
+msgstr "Etiqueta de clave CERT"
 
 msgid "Key Tag"
 msgstr "Etiqueta de clave"
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "CERT Algorithm"
-msgstr "Algoritmo"
+msgstr "Algoritmo CERT"
 
 msgid "Algorithm"
 msgstr "Algoritmo"
 
-#, fuzzy
-#| msgid "Certificate/CRL"
 msgid "CERT Certificate/CRL"
-msgstr "Certificado/CRL"
+msgstr "Certificado/CRL CERT"
 
 msgid "Certificate/CRL"
 msgstr "Certificado/CRL"
 
-#, fuzzy
-#| msgid "NSEC3PARAM record"
 msgid "CNAME record"
-msgstr "Registro NSEC3PARAM"
+msgstr "Registro CNAME"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw CNAME records"
-msgstr "Registros brutos %s"
+msgstr "Registros CNAME en bruto"
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "CNAME Hostname"
-msgstr "Nombre del equipo anfitrión"
+msgstr "Nombre del host CNAME"
 
 msgid "A hostname which this alias hostname points to"
 msgstr "Un nombre de host al que este nombre de host alias apunta"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "DHCID record"
-msgstr "%s registro"
+msgstr "Registro DHCID"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw DHCID records"
-msgstr "Registros brutos %s"
+msgstr "Registros brutos DHCID"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "DLV record"
-msgstr "%s registro"
+msgstr "Registro DLV"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw DLV records"
-msgstr "Registros brutos %s"
+msgstr "Registros brutos DLV"
 
-#, fuzzy
-#| msgid "Key Tag"
 msgid "DLV Key Tag"
-msgstr "Etiqueta de clave"
+msgstr "Etiqueta de clave DLV"
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "DLV Algorithm"
-msgstr "Algoritmo"
+msgstr "Algoritmo DLV"
 
-#, fuzzy
-#| msgid "Digest Type"
 msgid "DLV Digest Type"
-msgstr "Tipo de Resumen"
+msgstr "Tipo de Resumen DLV"
 
 msgid "Digest Type"
 msgstr "Tipo de Resumen"
 
-#, fuzzy
-#| msgid "Digest"
 msgid "DLV Digest"
-msgstr "Resumen"
+msgstr "Resumen DLV"
 
 msgid "Digest"
 msgstr "Resumen"
 
-#, fuzzy
-#| msgid "NSEC3PARAM record"
 msgid "DNAME record"
-msgstr "Registro NSEC3PARAM"
+msgstr "Registro DNAME"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw DNAME records"
-msgstr "Registros brutos %s"
+msgstr "Registros DNAME en bruto"
 
-#, fuzzy
-#| msgid "Target"
 msgid "DNAME Target"
-msgstr "Meta"
+msgstr "Destino DNAME"
 
 msgid "Target"
-msgstr "Meta"
+msgstr "Destino"
 
-#, fuzzy
-#| msgid "IPA DNS records"
 msgid "DNSKEY record"
-msgstr "Registros IPA DNS"
+msgstr "Registros DNSKEY"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw DNSKEY records"
-msgstr "Registros brutos %s"
+msgstr "Registros DNSKEY en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "DS record"
-msgstr "%s registro"
+msgstr "Registro DS"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw DS records"
-msgstr "Registros brutos %s"
+msgstr "Registros DS en bruto"
 
-#, fuzzy
-#| msgid "Key Tag"
 msgid "DS Key Tag"
-msgstr "Etiqueta de clave"
+msgstr "Etiqueta de clave DS"
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "DS Algorithm"
-msgstr "Algoritmo"
+msgstr "Algoritmo DS"
 
-#, fuzzy
-#| msgid "Digest Type"
 msgid "DS Digest Type"
-msgstr "Tipo de Resumen"
+msgstr "Tipo de Resumen DS"
 
-#, fuzzy
-#| msgid "Digest"
 msgid "DS Digest"
-msgstr "Resumen"
+msgstr "Resumen DS"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "HIP record"
-msgstr "%s registro"
+msgstr "Registro HIP"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw HIP records"
-msgstr "Registros brutos %s"
+msgstr "Registros HIP bruto"
 
-#, fuzzy
-#| msgid "IPA DNS records"
 msgid "IPSECKEY record"
-msgstr "Registros IPA DNS"
+msgstr "Registro IPSECKEY"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw IPSECKEY records"
-msgstr "Registros brutos %s"
+msgstr "Registros IPSECKEY en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "KEY record"
-msgstr "%s registro"
+msgstr "Registro KEY"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw KEY records"
-msgstr "Registros brutos %s"
+msgstr "Registros KEY en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "KX record"
-msgstr "%s registro"
+msgstr "Registro KX"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw KX records"
-msgstr "Registros brutos %s"
+msgstr "Registros KX en bruto"
 
-#, fuzzy
-#| msgid "Preference"
 msgid "KX Preference"
-msgstr "Preferencia"
+msgstr "Preferencia KX"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
 "Se ha dado preferencia a este intercambiador. Se prefieren más los valores "
 "más bajos"
 
-#, fuzzy
-#| msgid "Exchanger"
 msgid "KX Exchanger"
-msgstr "Intercambiador"
+msgstr "Intercambiador KX"
 
 msgid "A host willing to act as a key exchanger"
 msgstr "Un host dispuesto a actuar como un intercambiador clave"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "LOC record"
-msgstr "%s registro"
+msgstr "Registro LOC"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw LOC records"
-msgstr "Registros brutos %s"
+msgstr "Registros LOC brutos"
 
-#, fuzzy
-#| msgid "Degrees Latitude"
 msgid "LOC Degrees Latitude"
-msgstr "Latitud en grados"
+msgstr "Latitud en grados LOC"
 
 msgid "Degrees Latitude"
 msgstr "Latitud en grados"
 
-#, fuzzy
-#| msgid "Minutes Latitude"
 msgid "LOC Minutes Latitude"
-msgstr "Latitud en minutos"
+msgstr "Latitud en minutos LOC"
 
 msgid "Minutes Latitude"
 msgstr "Latitud en minutos"
 
-#, fuzzy
-#| msgid "Seconds Latitude"
 msgid "LOC Seconds Latitude"
-msgstr "Latitud en segundos"
+msgstr "Latitud en segundos LOC"
 
 msgid "Seconds Latitude"
 msgstr "Latitud en segundos"
 
-#, fuzzy
-#| msgid "Direction Latitude"
 msgid "LOC Direction Latitude"
-msgstr "Latitud de dirección"
+msgstr "Latitud de dirección LOC"
 
 msgid "Direction Latitude"
 msgstr "Latitud de dirección"
 
-#, fuzzy
-#| msgid "Degrees Longitude"
 msgid "LOC Degrees Longitude"
-msgstr "Grados de Longitud"
+msgstr "Grados de Longitud LOC"
 
 msgid "Degrees Longitude"
 msgstr "Grados de Longitud"
 
-#, fuzzy
-#| msgid "Minutes Longitude"
 msgid "LOC Minutes Longitude"
-msgstr "Minutos de Longitud"
+msgstr "Minutos de Longitud LOC"
 
 msgid "Minutes Longitude"
 msgstr "Minutos de Longitud"
 
-#, fuzzy
-#| msgid "Seconds Longitude"
 msgid "LOC Seconds Longitude"
-msgstr "Segundos de Longitud"
+msgstr "Segundos de Longitud LOC"
 
 msgid "Seconds Longitude"
 msgstr "Segundos de Longitud"
 
-#, fuzzy
-#| msgid "Direction Longitude"
 msgid "LOC Direction Longitude"
-msgstr "Dirección de la Longitud"
+msgstr "Dirección de la Longitud LOC"
 
 msgid "Direction Longitude"
 msgstr "Dirección de la Longitud"
 
-#, fuzzy
-#| msgid "Altitude"
 msgid "LOC Altitude"
-msgstr "Altitud"
+msgstr "Altitud LOC"
 
 msgid "Altitude"
 msgstr "Altitud"
 
-#, fuzzy
-#| msgid "Size"
 msgid "LOC Size"
-msgstr "Tamaño"
+msgstr "Tamaño LOC"
 
 msgid "Size"
 msgstr "Tamaño"
 
-#, fuzzy
-#| msgid "Horizontal Precision"
 msgid "LOC Horizontal Precision"
-msgstr "Precisión horizontal"
+msgstr "Precisión horizontal LOC"
 
 msgid "Horizontal Precision"
 msgstr "Precisión horizontal"
 
-#, fuzzy
-#| msgid "Vertical Precision"
 msgid "LOC Vertical Precision"
-msgstr "Precisión vertical"
+msgstr "Precisión vertical LOC"
 
 msgid "Vertical Precision"
 msgstr "Precisión vertical"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "MX record"
-msgstr "%s registro"
+msgstr "Registro MX"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw MX records"
-msgstr "Registros brutos %s"
+msgstr "Registros MX en bruto"
 
-#, fuzzy
-#| msgid "Preference"
 msgid "MX Preference"
-msgstr "Preferencia"
+msgstr "Preferencia MX"
 
-#, fuzzy
-#| msgid "Exchanger"
 msgid "MX Exchanger"
-msgstr "Intercambiador"
+msgstr "Intercambiador MX"
 
 msgid "A host willing to act as a mail exchanger"
 msgstr "Un host dispuesto a actuar como un intercambiador de correo"
 
-#, fuzzy
-#| msgid "NSEC3PARAM record"
 msgid "NAPTR record"
-msgstr "Registro NSEC3PARAM"
+msgstr "Registro NAPTR"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw NAPTR records"
-msgstr "Registros brutos %s"
+msgstr "Registros NAPTR en bruto"
 
-#, fuzzy
-#| msgid "Order"
 msgid "NAPTR Order"
-msgstr "Orden"
+msgstr "Ordenación NAPTR"
 
 msgid "Order"
-msgstr "Orden"
+msgstr "Ordenación"
 
-#, fuzzy
-#| msgid "Preference"
 msgid "NAPTR Preference"
-msgstr "Preferencia"
+msgstr "Preferencia NAPTR"
 
 msgid "Preference"
 msgstr "Preferencia"
 
-#, fuzzy
-#| msgid "Flags"
 msgid "NAPTR Flags"
-msgstr "Banderas"
+msgstr "Indicadores NAPTR"
 
 msgid "Flags"
-msgstr "Banderas"
+msgstr "Indicadores"
 
-#, fuzzy
-#| msgid "Any Service"
 msgid "NAPTR Service"
-msgstr "Cualquier servicio"
+msgstr "Servicio NAPTR"
 
 msgid "Service"
 msgstr "Servicio"
 
-#, fuzzy
-#| msgid "Regular Expression"
 msgid "NAPTR Regular Expression"
-msgstr "Expresión regular"
+msgstr "Expresión regular NAPTR"
 
 msgid "Regular Expression"
 msgstr "Expresión regular"
 
-#, fuzzy
-#| msgid "Replacement"
 msgid "NAPTR Replacement"
-msgstr "Reemplazo"
+msgstr "Reemplazo NAPTR"
 
 msgid "Replacement"
 msgstr "Reemplazo"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "NS record"
-msgstr "%s registro"
+msgstr "Registro NS"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw NS records"
-msgstr "Registros brutos %s"
+msgstr "Registros NS en bruto"
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "NS Hostname"
-msgstr "Nombre del equipo anfitrión"
+msgstr "Nombre de host NS"
 
-#, fuzzy
-#| msgid "NSEC3PARAM record"
 msgid "NSEC record"
-msgstr "Registro NSEC3PARAM"
+msgstr "Registro NSEC"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw NSEC records"
-msgstr "Registros brutos %s"
+msgstr "Registros NSEC en bruto"
 
-#, fuzzy
-#| msgid "NSEC3PARAM record"
 msgid "NSEC3 record"
-msgstr "Registro NSEC3PARAM"
+msgstr "Registro NSEC3"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw NSEC3 records"
-msgstr "Registros brutos %s"
+msgstr "Registros NSEC3 en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "PTR record"
-msgstr "%s registro"
+msgstr "Registro PTR"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw PTR records"
-msgstr "Registros brutos %s"
+msgstr "Registros PTR en bruto"
 
-#, fuzzy
-#| msgid "Hostname"
 msgid "PTR Hostname"
-msgstr "Nombre del equipo anfitrión"
+msgstr "Nombre del anfitrión PTR"
 
 msgid "The hostname this reverse record points to"
 msgstr "El nombre de host al que apunta este registro inverso"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "RRSIG record"
-msgstr "%s registro"
+msgstr "Registro RRSIG"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw RRSIG records"
-msgstr "Registros brutos %s"
+msgstr "Registros RRSIG en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "RP record"
-msgstr "%s registro"
+msgstr "Registro RP"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw RP records"
-msgstr "Registros brutos %s"
+msgstr "Registros RP en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "SIG record"
-msgstr "%s registro"
+msgstr "Registro SIG"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw SIG records"
-msgstr "Registros brutos %s"
+msgstr "Registros SIG en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "SPF record"
-msgstr "%s registro"
+msgstr "Registro SPF"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw SPF records"
-msgstr "Registros brutos %s"
+msgstr "Registros SPF en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "SRV record"
-msgstr "%s registro"
+msgstr "Registro SRV"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw SRV records"
-msgstr "Registros brutos %s"
+msgstr "Registros SRV en bruto"
 
-#, fuzzy
-#| msgid "Priority"
 msgid "SRV Priority"
-msgstr "Prioridad"
+msgstr "Prioridad SRV"
 
 msgid "Priority"
 msgstr "Prioridad"
 
-#, fuzzy
-#| msgid "Weight"
 msgid "SRV Weight"
-msgstr "Peso"
+msgstr "Ponderación SRV"
 
 msgid "Weight"
-msgstr "Peso"
+msgstr "Ponderación"
 
-#, fuzzy
-#| msgid "Port"
 msgid "SRV Port"
-msgstr "Puerto"
+msgstr "Puerto SRV"
 
 msgid "Port"
 msgstr "Puerto"
 
-#, fuzzy
-#| msgid "Target"
 msgid "SRV Target"
-msgstr "Meta"
+msgstr "Destino SRV"
 
 msgid ""
 "The domain name of the target host or '.' if the service is decidedly not "
 "available at this domain"
 msgstr ""
-"El nombre de dominio del host objetivo o '.' si el servicio es decididamente "
-"no disponible en este dominio"
+"El nombre de dominio del host destino o '.' si el servicio decididamente "
+"está no disponible en este dominio"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "SSHFP record"
-msgstr "%s registro"
+msgstr "Registro SSHFP"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw SSHFP records"
-msgstr "Registros brutos %s"
+msgstr "Registros SSHFP en bruto"
 
-#, fuzzy
-#| msgid "Algorithm"
 msgid "SSHFP Algorithm"
-msgstr "Algoritmo"
+msgstr "Algoritmo SSHFP"
 
-#, fuzzy
-#| msgid "Fingerprint Type"
 msgid "SSHFP Fingerprint Type"
-msgstr "Tipo de huella digital"
+msgstr "Tipo de huella digital SSHFP"
 
 msgid "Fingerprint Type"
 msgstr "Tipo de huella digital"
 
-#, fuzzy
-#| msgid "SHA1 Fingerprint"
 msgid "SSHFP Fingerprint"
-msgstr "Huella digital SHA1"
+msgstr "Huella digital SSHFP"
 
 msgid "Fingerprint"
 msgstr "Huella digital"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "TA record"
-msgstr "%s registro"
+msgstr "Registro TA"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw TA records"
-msgstr "Registros brutos %s"
+msgstr "Registros TA en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "TLSA record"
-msgstr "%s registro"
+msgstr "Registro TLSA"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw TLSA records"
-msgstr "Registros brutos %s"
+msgstr "Registros TLSA en bruto"
 
-#, fuzzy
-#| msgid "Certificate Usage"
 msgid "TLSA Certificate Usage"
-msgstr "Utilización del Certificado"
+msgstr "Utilización del Certificado TLSA"
 
 msgid "Certificate Usage"
 msgstr "Utilización del Certificado"
 
-#, fuzzy
-#| msgid "Selector"
 msgid "TLSA Selector"
-msgstr "Selector"
+msgstr "Selector TLSA"
 
 msgid "Selector"
 msgstr "Selector"
 
-#, fuzzy
-#| msgid "Matching Type"
 msgid "TLSA Matching Type"
-msgstr "Tipo de Coincidencia"
+msgstr "Tipo de Coincidencia TLSA"
 
 msgid "Matching Type"
 msgstr "Tipo de Coincidencia"
 
-#, fuzzy
-#| msgid "Certificate Association Data"
 msgid "TLSA Certificate Association Data"
-msgstr "Datos de Asociación del Certificado"
+msgstr "Datos de Asociación del Certificado TLSA"
 
 msgid "Certificate Association Data"
 msgstr "Datos de Asociación del Certificado"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "TKEY record"
-msgstr "%s registro"
+msgstr "Registro TKEY"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw TKEY records"
-msgstr "Registros brutos %s"
+msgstr "Registros TKEY en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "TSIG record"
-msgstr "%s registro"
+msgstr "Registro TSIG"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw TSIG records"
-msgstr "Registros brutos %s"
+msgstr "Registros TSIG en bruto"
 
-#, fuzzy
-#| msgid "%s record"
 msgid "TXT record"
-msgstr "%s registro"
+msgstr "Registro TXT"
 
-#, fuzzy
-#| msgid "Raw %s records"
 msgid "Raw TXT records"
-msgstr "Registros brutos %s"
+msgstr "Registros TXT en bruto"
 
-#, fuzzy
-#| msgid "Text Data"
 msgid "TXT Text Data"
-msgstr "Datos de texto"
+msgstr "Datos de texto TXT"
 
 msgid "Text Data"
 msgstr "Datos de texto"
@@ -3451,7 +3243,7 @@ msgid "Authoritative nameserver"
 msgstr "Nombre de servidor autoritativo"
 
 msgid "Authoritative nameserver domain name"
-msgstr "Nombre de dominio servidor de nombre autorizado"
+msgstr "Nombre de dominio del servidor de nombre autoritativo"
 
 msgid "Administrator e-mail address"
 msgstr "Correo-e de administrador"
@@ -3463,22 +3255,22 @@ msgid "SOA record serial number"
 msgstr "Número de serie de registro SOA"
 
 msgid "SOA refresh"
-msgstr "Actualizar SOA"
+msgstr "Recargar SOA"
 
 msgid "SOA record refresh time"
-msgstr "registro SOA tiempo de actualización"
+msgstr "Registro SOA tiempo de recarga"
 
 msgid "SOA retry"
 msgstr "Reintentar SOA"
 
 msgid "SOA record retry time"
-msgstr "tiempo de reintento de "
+msgstr "Tiempo de reintento de registro SOA"
 
 msgid "SOA expire"
-msgstr "Expirar SOA"
+msgstr "Caducidad SOA"
 
 msgid "SOA record expire time"
-msgstr "tiempo de expiración de registro SOA"
+msgstr "Tiempo de caducidad de registro SOA"
 
 msgid "SOA minimum"
 msgstr "Mínimo SOA"
@@ -3487,7 +3279,7 @@ msgid "How long should negative responses be cached"
 msgstr "¿Por cuánto tiempo las respuestas negativas deben guardarse en cache?"
 
 msgid "Time to live for records at zone apex"
-msgstr "Tiempo de vida de los registros en zona apéndice"
+msgstr "Tiempo de vida para registros en zona apéndice"
 
 msgid "BIND update policy"
 msgstr "Política de actualización de BIND"
@@ -3496,10 +3288,10 @@ msgid "Dynamic update"
 msgstr "Actualización dinámica"
 
 msgid "Allow dynamic updates."
-msgstr "Permitir actualizaciones dinámicas."
+msgstr "Concede actualizaciones dinámicas."
 
 msgid "Allow query"
-msgstr "Permitir consulta"
+msgstr "Concede consulta"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
@@ -3509,7 +3301,7 @@ msgstr ""
 "permitido enviar peticiones"
 
 msgid "Allow transfer"
-msgstr "Permitir transferencia"
+msgstr "Conceder transferencia"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
@@ -3614,16 +3406,14 @@ msgstr "Buscar recursos DNS."
 msgid "Modify a DNS resource record."
 msgstr "Modificar un registro de recurso DNS."
 
-#, fuzzy
-#| msgid "Delete DNS resource record."
 msgid "Rename the DNS resource record object"
-msgstr "Borrar un registro de recurso DNS."
+msgstr "Renombrado del objeto del registro de recurso DNS"
 
 msgid "Display DNS resource."
-msgstr "Mostrar un recurso DNS."
+msgstr "Exhibe un recurso DNS."
 
 msgid "Create new DNS zone (SOA record)."
-msgstr "Crear nueva zona DNS (registro SOA)."
+msgstr "Crea zona DNS nueva (registro SOA)."
 
 msgid "Force DNS zone creation even if nameserver is not resolvable."
 msgstr ""
@@ -3665,6 +3455,7 @@ msgstr "Quita un permiso para una delegación de acceso por zona."
 msgid "Display information about a DNS zone (SOA record)."
 msgstr "Mostrar información sobre una zona DNS (registro SOA)."
 
+#, fuzzy
 msgid ""
 "\n"
 "Host-based access control\n"
@@ -3714,6 +3505,53 @@ msgid ""
 " Remove a named HBAC rule:\n"
 "   ipa hbacrule-del allow_server\n"
 msgstr ""
+"\n"
+"Control de acceso basado en host\n"
+"\n"
+"Controla quien puede acceder que servicios en que hosts.\n"
+"Puede utilizar HBAC para control de cuales usuarios o grupos puedan\n"
+"acceder a un servicio, o grupo de servicios, en un host destino.\n"
+"\n"
+"Además puede especificar una categoría de usuarios y los host destino\n"
+"Esto está limitado actualmente a \"all\", todo, pero tal vez sea expandido\n"
+"en el futuro.\n"
+"\n"
+"Los host destino en las reglas HBAC deben ser los host gestionados por IPA.\n"
+"\n"
+"Los servicios y grupos de servicios disponibles se controlan mediante los\n"
+"complementos hbacsvc y hbacsvcgroup, respectivamente.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+"Cree una regla, \"test1\", que otorgue a todos los usuarios acceso al host "
+"\"server\" desde cualquier lugar:\n"
+"ipa hbacrule-add --usercat=all test1\n"
+"ipa hbacrule-add-host --hosts=server.example.com test1\n"
+"\n"
+"Muestre las propiedades de una regla HBAC con nombre:\n"
+"ipa hbacrule-show test1\n"
+"\n"
+"Crea una regla para un servicio específico. Esto permite al usuario juan\n"
+"acceder al servicio sshd en cualquier máquina y desde cualquier máquina:\n"
+"   ipa hbacrule-add --hostcat=all juan_sshd\n"
+"   ipa hbacrule-add-user --users=juan\n"
+"   ipa hbacrule-add-service --hbacsvcs=sshd juan_sshd\n"
+"\n"
+" Crea una regla para un grupo de servicio nuevo. Esto permite al usuario "
+"juan acceder\n"
+" al servicio FTP en cualquier máquina desde cualquier máquina:\n"
+"   ipa hbacsvcgroup-add ftpers\n"
+"   ipa hbacsvc-add sftp\n"
+"   ipa hbacsvcgroup-add-member --hbacsvcs=ftp --hbacsvcs=sftp ftpers\n"
+"   ipa hbacrule-add --hostcat=all john_ftp\n"
+"   ipa hbacrule-add-user --users=john john_ftp\n"
+"   ipa hbacrule-add-service --hbacsvcgroups=ftpers john_ftp\n"
+"\n"
+" Inhabilita una regla HBAC nombrada:\n"
+"   ipa hbacrule-disable test1\n"
+"\n"
+" Retira una regla HBAC nombrada:\n"
+"   ipa hbacrule-del allow_server\n"
 
 msgid "Rule name"
 msgstr "Nombre de la regla"
@@ -3761,16 +3599,16 @@ msgid "Services"
 msgstr "Sevicios HBAC"
 
 msgid "Service Groups"
-msgstr "Búsqueda de servicios HBAC."
+msgstr "Grupos de Servicio"
 
 msgid "External host"
 msgstr "Equipo externo"
 
 msgid "Create a new HBAC rule."
-msgstr "Crear una nueva regla HBAC."
+msgstr "Crea una regla HBAC nueva."
 
 msgid "Suppress processing of membership attributes."
-msgstr ""
+msgstr "Suprime al procesar atributos de afiliación."
 
 msgid "Add target hosts and hostgroups to an HBAC rule."
 msgstr "Añadir hosts objetivos y grupos de host a una regla HBAC."
@@ -3786,10 +3624,8 @@ msgstr "%s a añadir"
 msgid "member host group"
 msgstr "miembro del grupo de host"
 
-#, fuzzy
-#| msgid "host groups"
 msgid "host groups to add"
-msgstr "grupos de host"
+msgstr "grupos de host para añadir"
 
 msgid "Members that could not be added"
 msgstr "Miembros que no han podido ser añadidos"
@@ -3980,13 +3816,11 @@ msgstr "Servicio HBAC"
 msgid "HBAC service description"
 msgstr "Descripción de servicio HBAC"
 
-#, fuzzy
-#| msgid "Member HBAC service groups"
 msgid "Member of HBAC service groups"
-msgstr "Grupos de servicio de Miembros HBAC"
+msgstr "Grupos de servicio de Miembros de HBAC"
 
 msgid "Add a new HBAC service."
-msgstr "Añadir un nuevo servicio HBAC."
+msgstr "Añade un servicio HBAC nuevo."
 
 msgid "Delete an existing HBAC service."
 msgstr "Borrar un servicio HBAC existente."
@@ -4226,10 +4060,8 @@ msgstr "Miembro de un grupo"
 msgid "Member of HBAC rule"
 msgstr "Miembro del servicio HBAC"
 
-#, fuzzy
-#| msgid "Indirect Member netgroups"
 msgid "Indirect Member of netgroup"
-msgstr "Miembros indirectos netgroups"
+msgstr "Miembros indirectos de netgroups"
 
 #, fuzzy
 #| msgid "Indirect Member host-groups"
@@ -4434,10 +4266,8 @@ msgstr "host"
 msgid "Search for hosts with these managed by hosts."
 msgstr "Búsqueda de servicios con aquellos gestionados por hosts."
 
-#, fuzzy
-#| msgid "Search for services without these managed by hosts."
 msgid "Search for hosts without these managed by hosts."
-msgstr "Búsqueda de servicios sin aquellos gestionados por hosts."
+msgstr "Búsqueda de los host sin aquellos gestionados por los host."
 
 #, fuzzy
 #| msgid "Search for services with these managed by hosts."
@@ -4622,7 +4452,7 @@ msgid ""
 msgstr ""
 
 msgid "Anchor to override"
-msgstr ""
+msgstr "Ancla para anular"
 
 msgid "Group name"
 msgstr "Nombre del grupo"
@@ -4645,7 +4475,7 @@ msgid "User ID Number"
 msgstr "Número de Identificación de Grupo"
 
 msgid "GECOS"
-msgstr ""
+msgstr "GECOS"
 
 msgid "Home directory"
 msgstr "Directorio principal"
@@ -4654,7 +4484,7 @@ msgid "Login shell"
 msgstr "Shell de ingreso"
 
 msgid "ID View Name"
-msgstr ""
+msgstr "ID de Nombre de Vista"
 
 #, fuzzy
 #| msgid "Add a new IPA service."
@@ -4732,6 +4562,9 @@ msgid ""
 "Applies ID View to specified hosts or current members of specified "
 "hostgroups. If any other ID View is applied to the host, it is overriden."
 msgstr ""
+"Aplica ID Vista a los host especificados o miembros actuales de hostgroups "
+"especificados. Si cualquiera otro ID de Vista está aplicado al host, es "
+"anulado."
 
 msgid "hosts"
 msgstr "hosts"
@@ -4758,10 +4591,10 @@ msgid "Hosts that this ID View was applied to."
 msgstr "Categoría del equipo al que se aplica la regla"
 
 msgid "Hosts or hostgroups that this ID View could not be applied to."
-msgstr ""
+msgstr "Los host o hostgroups que este ID de Vista no pudo ser aplicado."
 
 msgid "Number of hosts the ID View was applied to:"
-msgstr ""
+msgstr "Número de los host que el ID Vista al cual fue aplicado:"
 
 #, fuzzy
 #| msgid "Delete an ID range."
@@ -4797,24 +4630,29 @@ msgid ""
 "Clears ID View from specified hosts or current members of specified "
 "hostgroups."
 msgstr ""
+"Purga ID Vista desde los host especificados o miembros actuales del grupos "
+"de host especificados."
 
 msgid "Hosts to clear (any) ID View from."
-msgstr ""
+msgstr "Los host a purgar (cualquiera) desde ID Vista."
 
 msgid ""
 "Hostgroups whose hosts should have ID Views cleared. Note that view is not "
 "cleared automatically from any host added to the hostgroup after running "
 "idview-unapply command."
 msgstr ""
+"Hostgroups cuyos host tendrían que tener #ID Vistas vaciados. Nota que la "
+"vista no está vacía automáticamente desde cualquier host añadido al grupo de "
+"host tras ejecutar instrucción idview-unapply."
 
 msgid "Hosts that ID View was cleared from."
-msgstr ""
+msgstr "Los host que ID Vista desde donde fue vaciado."
 
 msgid "Hosts or hostgroups that ID View could not be cleared from."
 msgstr ""
 
 msgid "Number of hosts that had a ID View was unset:"
-msgstr ""
+msgstr "Número de anfitriones que tuvo un ID Vista estaba no fijado:"
 
 msgid ""
 "\n"
@@ -6546,6 +6384,33 @@ msgid ""
 " Delete a configuration:\n"
 "   ipa radiusproxy-del MyRADIUS\n"
 msgstr ""
+"\n"
+"Servidores proxy de radio\n"
+"\n"
+"Gestiona servidores proxy de RADIUS.\n"
+"\n"
+"IPA admite el uso de un servidor de proxy RADIUS externo para\n"
+"autentificaciones OTP en krb5. Esto permite un trato sumo de\n"
+"flexibilidad cuando integra con autentificación de servicios de\n"
+"partes de terceros.\n"
+"\n"
+"EJEMPLOS:\n"
+"\n"
+" Añadir un servidor nuevo:\n"
+"   ipa radiusproxy-add Mi_RADIUS --server=radius.ejemplo.com:1812\n"
+"\n"
+" Encuentra todos los  servidores cuyos apuntes incluyen la serie "
+"\"ejemplo.com\":\n"
+"   ipa radiusproxy-find ejemplo.com\n"
+"\n"
+" Examinar la configuración:\n"
+"   ipa radiusproxy-show MiRADIUS\n"
+"\n"
+" Cambiar el secreto:\n"
+"   ipa radiusproxy-mod MiRADIUS --secret\n"
+"\n"
+" Eliminar una configuración:\n"
+"   ipa radiusproxy-del MiRADIUS\n"
 
 msgid "RADIUS proxy server name"
 msgstr "Nombre del servidor proxy RADIUS"
@@ -7930,6 +7795,8 @@ msgstr ""
 
 msgid "RPC command used to log the current user out of their session."
 msgstr ""
+"La instrucción RPC utilizada para bitácora del usuario actual de salida de "
+"su sesión."
 
 #, fuzzy
 #| msgid ""
@@ -8344,7 +8211,7 @@ msgid "Employee Number"
 msgstr "Número de teléfono"
 
 msgid "Employee Type"
-msgstr ""
+msgstr "Tipo de empleado"
 
 #, fuzzy
 #| msgid "Preference"
@@ -8732,10 +8599,11 @@ msgid "Number of conditions added"
 msgstr "Número de condiciones agregadas"
 
 msgid "Remove default (fallback) group for all unmatched entries."
-msgstr ""
+msgstr "Retira por defecto (fallback) grupo para todos los apuntes no marcados."
 
 msgid "Set default (fallback) group for all unmatched entries."
 msgstr ""
+"Establece por defecto (fallback) grupo para todos los apuntes no marcados."
 
 #, fuzzy
 #| msgid "Default group for new users not found"
@@ -8762,19 +8630,20 @@ msgid "Rebuild auto membership."
 msgstr "Reconstruir auto membresía"
 
 msgid "Rebuild membership for all members of a grouping"
-msgstr ""
+msgstr "Reconstruye afiliación para todos los miembros de una agrupación"
 
 msgid "Rebuild membership for specified users"
-msgstr ""
+msgstr "Reconstruye afiliación para usuarios especificados"
 
 msgid "Rebuild membership for specified hosts"
-msgstr ""
+msgstr "Reconstruye afiliación para hosts específicos"
 
 msgid "No wait"
-msgstr ""
+msgstr "Ninguna espera"
 
+#, fuzzy
 msgid "Don't wait for rebuilding membership"
-msgstr ""
+msgstr "No espera para reconstruir afiliación"
 
 msgid "Remove conditions from an automember rule."
 msgstr "Borrar condiciones de una regla automiembro."
@@ -8903,31 +8772,31 @@ msgid "maximum serial number"
 msgstr "Número de serie"
 
 msgid "match the common name exactly"
-msgstr ""
+msgstr "coincide el nombre usual exactamente"
 
 msgid "Valid not after from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Válido no tras esta fecha (AAAA-mm-dd)"
 
 msgid "Valid not after to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Válido no tras esta fecha (AAAA-mm-dd)"
 
 msgid "Valid not before from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Válido no antes de esta fecha (AAAA-mm-dd)"
 
 msgid "Valid not before to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Válido no antes a esta fecha (AAAA-mm-dd)"
 
 msgid "Issued on from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Emitido desde esta fecha (AAAA-mm-dd)"
 
 msgid "Issued on to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Emitido en esta fecha (AAAA-mm-dd)"
 
 msgid "Revoked on from this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Revocado desde esta fecha (AAAA-mm-dd)"
 
 msgid "Revoked on to this date (YYYY-mm-dd)"
-msgstr ""
+msgstr "Revocado a esta fecha (AAAA-mm-dd)"
 
 #, fuzzy
 #| msgid "Maximum number of entries returned"
@@ -9216,6 +9085,7 @@ msgstr "Eliminar miembro desde un grupo."
 msgid "Display information about a named group."
 msgstr "Mostrar información sobre un grupo denominado."
 
+#, fuzzy
 msgid ""
 "\n"
 "Simulate use of Host-based access controls\n"
@@ -9412,6 +9282,215 @@ msgid ""
 "      Matched rules: allow_all\n"
 "      Not matched rules: can_login\n"
 msgstr ""
+"\n"
+"Simula uso de Anfitrión-controles de acceso basado\n"
+"\n"
+"HBAC las reglas controlan quiénes pueden acceder lo que servicios en qué "
+"anfitriones.\n"
+" Puedes utilizar HBAC para controlar qué usuarios o los grupos pueden "
+"acceder un servicio,\n"
+"o grupo de servicios, en un anfitrión de objetivo.\n"
+"\n"
+"Desde entonces aplicando HBAC las reglas implica uso de un entorno de "
+"producción,\n"
+"este plugin objetivos para proporcionar simulacro de HBAC evaluación de "
+"reglas sin\n"
+"habiendo acceso al entorno de producción.\n"
+"\n"
+" Usuario de prueba que viene a un servicio en un nombrado anfitrión en "
+"contra\n"
+" existiendo habilitó reglas.\n"
+"\n"
+" ipa hbactest --Usuario= --anfitrión= --servicio=\n"
+"              [--las reglas=gobierna-lista] [--nodetail] [--habilitado] "
+"[--discapacitado]\n"
+"              [--sizelimit= ]\n"
+"\n"
+" --usuario, --anfitrión, y --el servicio es obligatorio, otros son "
+"opcionales.\n"
+"\n"
+" Si --las reglas está especificada simula habilitar del especificó reglas y "
+"probar\n"
+" el login del usuario que utiliza sólo estas reglas.\n"
+"\n"
+" Si --habilitado está especificado, todo habilitó HBAC las reglas serán "
+"añadidas a simulacro\n"
+"\n"
+" Si --discapacitado está especificado, todo discapacitado HBAC las reglas "
+"serán añadidas a simulacro\n"
+"\n"
+" Si --nodetail está especificado, no regresa la información sobre reglas "
+"emparejó/no emparejado.\n"
+"\n"
+" Si ambos --reglas y --habilitados está especificado, aplica simulacro a --"
+"reglas _y_\n"
+" todo IPA habilitó reglas.\n"
+"\n"
+" Si no --las reglas especificaron, el simulacro está corrido en contra todo "
+"IPA habilitó reglas.\n"
+" Por default  hay un IPA-límite ancho para numerar de entradas fetched,  "
+"puedes cambiar él\n"
+" con --sizelimit opción.\n"
+"\n"
+"Ejemplos:\n"
+"\n"
+"    1. Uso todo habilitó HBAC reglas en IPA base de datos para simular:\n"
+"    $ ipa  hbactest --usuario=a1a --barra=anfitriona --servicio=sshd\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      No emparejó reglas: mi-segundo-gobierna\n"
+"      No emparejó reglas: mi-tercer-gobierna\n"
+"      No emparejó reglas: myrule\n"
+"      Emparejó reglas: deja_todo\n"
+"\n"
+"    2. Inutiliza resumen detallado de cómo las reglas estuvieron aplicadas:\n"
+"    $ ipa hbactest --usuario=a1a --barra=anfitriona --servicio=sshd --"
+"nodetail\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"\n"
+"    3. La prueba explícitamente especificada HBAC reglas:\n"
+"    $ ipa hbactest --usuario=a1a --barra=anfitriona --servicio=sshd \\\n"
+"          --reglas=myrule --reglas=mi-segundo-regla\n"
+"    ---------------------\n"
+"    el acceso concedió: Falso\n"
+"    ---------------------\n"
+"      No emparejó reglas: mi-segundo-gobierna\n"
+"      No emparejó reglas: myrule\n"
+"\n"
+"    4. Uso todo habilitó HBAC reglas en IPA la base de datos + "
+"explícitamente especificó reglas:\n"
+"    $ ipa hbactest --usuario=a1a --barra=anfitriona --servicio=sshd \\\n"
+"          --reglas=myrule --reglas=mi-segundo-regla --habilitado\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      No emparejó reglas: mi-segundo-gobierna\n"
+"      No emparejó reglas: mi-tercer-gobierna\n"
+"      No emparejó reglas: myrule\n"
+"      Emparejó reglas: deja_todo\n"
+"\n"
+"    5. Prueba todo discapacitado HBAC reglas en IPA base de datos:\n"
+"    $ ipa hbactest --usuario=a1a --barra=anfitriona --servicio=sshd --"
+"discapacitado\n"
+"    ---------------------\n"
+"    el acceso concedió: Falso\n"
+"    ---------------------\n"
+"      No emparejó reglas: nuevo-regla\n"
+"\n"
+"    6. Prueba todo discapacitado HBAC reglas en IPA la base de datos + "
+"explícitamente especificó reglas:\n"
+"    $ ipa hbactest --usuario=a1a --barra=anfitriona --servicio=sshd \\\n"
+"          --reglas=myrule --reglas=mi-segundo-regla --discapacitado\n"
+"    ---------------------\n"
+"    el acceso concedió: Falso\n"
+"    ---------------------\n"
+"      No emparejó reglas: mi-segundo-gobierna\n"
+"      No emparejó reglas: mi-tercer-gobierna\n"
+"      No emparejó reglas: myrule\n"
+"\n"
+"    7. Prueba todo (habilitado y discapacitado) HBAC reglas en IPA base de "
+"datos:\n"
+"    $ ipa hbactest --usuario=a1a --barra=anfitriona --servicio=sshd \\\n"
+"          --habilitado --discapacitado\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      No emparejó reglas: mi-segundo-gobierna\n"
+"      No emparejó reglas: mi-tercer-gobierna\n"
+"      No emparejó reglas: myrule\n"
+"      No emparejó reglas: nuevo-la regla\n"
+"      Emparejó reglas: dejar_todo\n"
+"\n"
+"\n"
+"HBACTEST Y CONFIÓ EN ÁMBITOS\n"
+"\n"
+"Cuándo un ámbito confiado externo está configurado en IPA, HBAC las reglas "
+"son también aplicadas\n"
+"en los usuarios que acceden IPA recursos del ámbito confiado en. Usuarios de "
+"ámbito confiado en y\n"
+"grupos (y su SIDs) puede ser entonces asignado a externo agrupa cuáles "
+"pueden ser\n"
+"miembros  de POSIX grupos en IPA cuáles pueden ser utilizados en HBAC reglas "
+"y así dejando\n"
+"el acceso a recursos protegió por el HBAC sistema.\n"
+"\n"
+"hbactest plugin Es capaz de probar acceso para ambos local IPA usuarios y "
+"usuarios\n"
+"del confió en ámbitos, cualquiera por un usuario plenamente cualificado "
+"nombre o por usuario SID.\n"
+"Tal necesidad de nombres del usuario para tener un ámbito confiado en "
+"especificado como nombre corto\n"
+"(Administrador\\de ÁMBITO) o con un usuario nombre principal (UPN), "
+"Administrator@ad.test.\n"
+"\n"
+"Complacer nota que hbactest ejecutado con un usuario de ámbito confiado en "
+"tan --parámetro de usuario\n"
+"puede ser sólo corrido por miembros de \"confiar en admins\" grupo.\n"
+"\n"
+"Ejemplos:\n"
+"\n"
+"    1. Prueba si un usuario de un ámbito confiado en especificado por su "
+"shortname partidos cualquier\n"
+"       regla:\n"
+"\n"
+"    $ ipa hbactest --usuario 'Administrador\\de ÁMBITO' --anfitrión "
+"`hostname` --servicio sshd\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      Emparejó reglas: deja_todo\n"
+"      Emparejó reglas: puede_login\n"
+"\n"
+"    2. Prueba si un usuario de un ámbito confiado en especificado por su "
+"nombre de ámbito empareja\n"
+"       cualquier regla:\n"
+"\n"
+"    $ ipa hbactest --usuario 'Administrator@domain.com' --anfitrión "
+"`hostname` --servicio sshd\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      Emparejó reglas: deja_todo\n"
+"      Emparejó reglas: puede_login\n"
+"\n"
+"    3. Prueba si un usuario de un ámbito confiado en especificado por su SID "
+"empareja cualquier regla:\n"
+"\n"
+"    $ ipa hbactest --usuario S-1-5-21-3035198329-144811719-1378114514-500 \\"
+"\n"
+"            --anfitrión `hostname` --servicio sshd\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      Emparejó reglas: deja_todo\n"
+"      Emparejó reglas: puede_login\n"
+"\n"
+"    4. Prueba si otro usuario de un ámbito confiado en especificado por su "
+"SID empareja cualquier regla:\n"
+"\n"
+"    $ ipa hbactest --usuario S-1-5-21-3035198329-144811719-1378114514-1203 \\"
+"\n"
+"            --anfitrión `hostname` --servicio sshd\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      Emparejó reglas: deja_todo\n"
+"      No emparejó reglas: puede_login\n"
+"\n"
+"   5. Prueba si otro usuario de un ámbito confiado en especificado por su "
+"shortname partidos\n"
+"       cualquier regla:\n"
+"\n"
+"    $ ipa hbactest --usuario 'ÁMBITO\\Otheruser' --anfitrión `hostname` --"
+"servicio sshd\n"
+"    --------------------\n"
+"    el acceso concedió: Cierto\n"
+"    --------------------\n"
+"      Emparejó reglas: deja_todo\n"
+"      No emparejó reglas: puede_login\n"
 
 msgid "Simulate use of Host-based access controls"
 msgstr "Simular el uso de controles de acceso basados en Host"
@@ -9452,6 +9531,7 @@ msgstr "Reglas no existentes o no válidas"
 msgid "Result of simulation"
 msgstr "Resultado de la simulación"
 
+#, fuzzy
 msgid ""
 "\n"
 "ID ranges\n"
@@ -9598,6 +9678,161 @@ msgid ""
 "be\n"
 "modified to match the new range.\n"
 msgstr ""
+"\n"
+"#Id gamas\n"
+"\n"
+"Dirigen #ID gamas  utilizaron a mapa Posix IDs a SIDs y atrás.\n"
+"\n"
+" Hay dos tipo de ID varía cuáles son ambos manejados por esta utilidad:\n"
+"\n"
+" - las #ID gamas del ámbito local\n"
+" - las #ID gamas de los ámbitos remotos confiados en\n"
+"\n"
+"Tanto los tipos tienen los atributos siguientes en común:\n"
+"\n"
+" - base-id: el primer ID del Posix ID gama\n"
+" - gama-medida: la medida de la gama\n"
+"\n"
+"Con aquellos dos atributos un objeto de gama puede reservar el Posix IDs "
+"empezando\n"
+"con base-id hasta pero no incluyendo base-id+gama-medida exclusivamente.\n"
+"\n"
+"Además una ID gama del ámbito local puede poner\n"
+" - librado-base: el primer LIBRADO() de la gama LIBRADA correspondiente\n"
+" - secundario-librado-base: primero LIBRADO de la gama LIBRADA secundaria\n"
+"\n"
+"y una ID gama de un ámbito confiado en tiene que poner\n"
+" - librado-base: el primer LIBRADO de la gama LIBRADA correspondiente\n"
+" - sid: ámbito SID del EJEMPLO de\n"
+"\n"
+"\n"
+"\n"
+"ámbito confiado en: Añadir un nuevo ID gama para un ámbito confiado en\n"
+"\n"
+"Desde entonces allí podría ser más de uno ámbito confiado en el ámbito SID "
+"tiene que ser dado\n"
+"mientras creando la ID gama.\n"
+"\n"
+"  ipa idrange-Añadir --base-id=1200000 --gama-medida=200000 --librado-"
+"base=0                   --dom-sid=S-1-5-21-123-456-789 confió "
+"en_dom_variar\n"
+"\n"
+"Esta ID gama es entonces utilizada por el IPA servidor y el SSSD IPA "
+"proveedor para\n"
+"asignar Posix UIDs a usuarios del ámbito confiado en.\n"
+"\n"
+"Si p. ej. una gama para un ámbito confiado en está configurada con los "
+"valores siguientes:\n"
+" base-id = 1200000\n"
+" gama-medida = 200000\n"
+" librado-base = 0\n"
+"el Libra 0 a 199999 es mapped al Posix ID de 1200000 a 13999999. Tan\n"
+"LIBRADO 1000 <-> Posix ID 1201000\n"
+"\n"
+"\n"
+"\n"
+"EJEMPLO: Añadir un nuevo ID gama para el ámbito local\n"
+"\n"
+"para crear una ID gama para el ámbito local no es necesario de especificar "
+"un\n"
+"ámbito SID. Pero desde entonces  es posible que un usuario y un grupo pueden "
+"tener el mismo\n"
+"valor como Posix ID un segundo intervalo LIBRADO está necesitado para "
+"manejar conflictos.\n"
+"\n"
+"  ipa idrange-Añadir --base-id=1200000 --gama-medida=200000 --librado-"
+"base=1000                   --secundario-librado-base=1000000 gama_local\n"
+"\n"
+"El dato de las #ID gamas del ámbito local están utilizadas por el IPA "
+"servidor\n"
+"internamente para asignar SIDs a IPA usuarios y grupos. El SID entonces será "
+"almacenado\n"
+"en el usuario u objetos de grupo.\n"
+"\n"
+"Si p. ej. la ID gama para el ámbito local está configurada con los valores "
+"del\n"
+" ejemplo encima entonces un usuario nuevo con el UID 1200007 cogerá el "
+"LIBRADO 1007.\n"
+"Si esto LIBRA es ya utilizado por un grupo el LIBRADO será 1000007. Esto "
+"sólo puede\n"
+"pasar si un usuario o un objeto de grupo estuvo creado con un fijo ID porque "
+"la\n"
+"tarea automática no asignará el mismo ID dos veces. Desde entonces  hay "
+"usuarios\n"
+"únicos y agrupa compartir el mismo ID namespace  es suficiente de tener "
+"sólo\n"
+"uno fallback gama para manejar conflictos.\n"
+"\n"
+"Para encontrar el Posix ID para un dado LIBRADO del ámbito local  tiene que "
+"ser\n"
+"comprobado primero si el LIBRAR caídas en el primarios o gama LIBRADA "
+"secundaria y\n"
+"el librado-base o el secundario-librado-la base tiene que ser restada, "
+"respectivamente,\n"
+"y la base-id tiene que ser añadido para coger el Posix ID.\n"
+"\n"
+"Típicamente la creación de #ID gamas pasa detrás de las escenas y esto CLI\n"
+"no tiene que ser utilizado en absoluto. La ID gama para el ámbito local será "
+"creada\n"
+"durante instalación o upgrade de una versión más vieja. La ID gama para un\n"
+"ámbito confiado en será creada junto con la confianza por 'ipa confianza-"
+"añadir ...'.\n"
+"\n"
+"CASOS de uso:\n"
+"\n"
+"  Añadir una ID gama de un transitively ámbito confiado en\n"
+"\n"
+"    Si el ámbito confiado en (Un) confía en otro ámbito (B) también y esta "
+"confianza\n"
+"    es transitive 'ipa confianza-añadir ámbito-Un' sólo creará una gama "
+"para\n"
+"    ámbito Un.  La ID gama para ámbito B tiene que ser añadido manualmente.\n"
+"\n"
+"  Añadir un adicional ID gama para el ámbito local\n"
+"\n"
+"    Si la ID gama del ámbito local está agotada, i.e. ningún nuevo IDs puede "
+"ser\n"
+"    asignado a Posix usuarios o grupos por el ADN plugin, una gama nueva "
+"tiene que ser\n"
+"    creada para dejar grupos y usuarios nuevos para ser añadidos. ("
+"Actualmente no hay ninguna\n"
+"    conexión entre esta gama CLI y el ADN plugin, pero una versión futura\n"
+"    podría ser capaz de modificar la configuración del DNS plugin también)\n"
+"\n"
+"En general no es necesario de modificar o eliminar #ID gamas. Si  hay no\n"
+"otra manera de conseguir una configuración segura que para modificar o "
+"eliminar una ID\n"
+"gama  tendría que ser hecho con cuidado sumo. Porque UIDs está almacenado en "
+"el sistema\n"
+"de lima y está utilizado para el acceso lo controla podría ser posible que "
+"los usuarios están\n"
+"dejados para acceder limas de otros usuarios si una ID gama cogió eliminada "
+"y reused\n"
+"para un ámbito diferente.\n"
+"\n"
+"() El LIBRADO es típicamente el último entero de un usuario o grupo SID cuál "
+"sigue\n"
+"el ámbito SID. P. ej. si el ámbito SID es S-1-5-21-123-456-789 y un usuario "
+"de\n"
+"este ámbito tiene el SID S-1-5-21-123-456-789-1010 entonces 1010 es el "
+"LIBRADO del\n"
+"usuario. Libra es único en un ámbito, 32mordió valores y está utilizado para "
+"usuarios y\n"
+"grupos.\n"
+"\n"
+"Aviso:\n"
+"\n"
+"ADN plugin en 389-ds destinará IDs basado en las gamas configuraron para el\n"
+"ámbito local. Actualmente el ADN plugin no puede* ser reconfigured él "
+"basado\n"
+"en las gamas locales puestas vía esta familia de órdenes.\n"
+"\n"
+"Cambio de configuración manual tiene que ser hecho en el ADN plugin "
+"configuración para\n"
+"la gama local nueva. Específicamente, El dnaNextRange atributo de 'cn=Posix\n"
+"IDs,cn=Tarea Numérica Distribuida Plugin,cn=plugins,cn=config' tiene que "
+"ser\n"
+"modificado para emparejar la gama nueva.\n"
 
 msgid "Range name"
 msgstr "Nombre del intervalo"
@@ -9625,6 +9860,7 @@ msgstr "Tipo de intervalo"
 
 msgid "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 msgstr ""
+"Tipo de ID de intervalo, uno de ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 
 #, fuzzy
 #| msgid ""
@@ -9752,6 +9988,7 @@ msgstr "Modificar rango de ID."
 msgid "Display information about a range."
 msgstr "Mostrar información sobre un rango."
 
+#, fuzzy
 msgid ""
 "\n"
 "OTP Tokens\n"
@@ -9776,6 +10013,29 @@ msgid ""
 " Delete a token:\n"
 "   ipa otptoken-del a93db710-a31a-4639-8647-f15b2c70b78a\n"
 msgstr ""
+"\n"
+"OTP Tokens\n"
+"\n"
+"Dirigir OTP tokens.\n"
+"\n"
+"IPA Apoya el uso de OTP tokens para multi-autentificación de factor. Este\n"
+"código habilita la gestión de OTP tokens.\n"
+"\n"
+"Ejemplos:\n"
+"\n"
+" Añadir un nuevo token:\n"
+"   ipa otptoken-añadir --escribir=totp --dueño=jdoe --desc="
+"\"Mi blando token\"\n"
+"\n"
+" Examinar el token:\n"
+"   ipa otptoken-asomar a93db710-a31a-4639-8647-f15b2c70b78a\n"
+"\n"
+" Cambio el vendedor:\n"
+"   ipa otptoken-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendedor="
+"\"el sombrero Rojo\"\n"
+"\n"
+" Elimina un token:\n"
+"   ipa otptoken-del a93db710-a31a-4639-8647-f15b2c70b78a\n"
 
 msgid "Unique ID"
 msgstr "ID única"
@@ -10130,8 +10390,9 @@ msgstr "grupos de comando sudo"
 msgid "Add hosts and hostgroups affected by Sudo Rule."
 msgstr "Añadir hosts y grupos de hosts afectados por Regla Sudo."
 
+#, fuzzy
 msgid "host masks of allowed hosts"
-msgstr ""
+msgstr "máscaras host de anfitriones permitidos"
 
 msgid "Add an option to the Sudo Rule."
 msgstr "Añadir una opción a la Regla Sudo."
@@ -10728,6 +10989,7 @@ msgstr "Tiempo límite de búsqueda en segundos (0 es ilimitado)"
 msgid "Maximum number of entries returned (0 is unlimited)"
 msgstr "Número máximo de entradas devueltas (0 es ilimitado)"
 
+#, fuzzy
 msgid ""
 "\n"
 "Manage CA ACL rules.\n"
@@ -10762,6 +11024,38 @@ msgid ""
 "  Remove a CA ACL:\n"
 "    ipa caacl-del test\n"
 msgstr ""
+"\n"
+"Dirige CA ACL reglas.\n"
+"\n"
+"Esto plugin suele definir las reglas que rigen qué principals es\n"
+"permitted para tener los certificados emitieron utilizar un perfil de\n"
+"certificado dado.\n"
+"\n"
+"Perfil ID SINTAXIS:\n"
+"\n"
+"Un Perfil ID es una serie sin los espacios o la puntuación que empiezan con "
+"una letra\n"
+"y seguido por una secuencia de letras, dígitos o underscore (\"_\").\n"
+"\n"
+"Ejemplos:\n"
+"\n"
+"  Crear un CA ACL \"prueba\" que becas todo acceso de usuarios al\n"
+"  \"UserCert\" perfil:\n"
+"    ipa caacl-añadir prueba --usercat=todo\n"
+"    ipa caacl-añadir-prueba de perfil --certprofiles UserCert\n"
+"\n"
+"  Mostrar las haciendas de un nombrados CA ACL:\n"
+"    ipa caacl-prueba de espectáculo\n"
+"\n"
+"  Crea un CA ACL para dejar usuario \"alice\" utilizar el \"DNP3\" perfil:\n"
+"    ipa caacl-añadir-perfil alice_dnp3 --certprofiles DNP3\n"
+"    ipa caacl-añadir-usuario alice_dnp3 --usuario=alice\n"
+"\n"
+"  Inutilizar un CA ACL:\n"
+"    ipa caacl-inutilizar la prueba\n"
+"\n"
+"  Saca un CA ACL:\n"
+"    ipa caacl-del prueba\n"
 
 #, fuzzy
 #| msgid "ACI name"
@@ -10899,21 +11193,26 @@ msgstr ""
 msgid "Maximum number of records to search (-1 or 0 is unlimited)"
 msgstr "Máximo número de registros a buscar (-1 es ilimitado)"
 
+#, fuzzy
 msgid ""
 "\n"
 "Raise the IPA Domain Level.\n"
 msgstr ""
+"\n"
+"Elevar el IPA Nivel de Dominio.\n"
 
+#, fuzzy
 msgid "Query current Domain Level."
-msgstr ""
+msgstr "Consulta Nivel de Ámbito actual."
 
 #, fuzzy
 #| msgid "Min domain level"
 msgid "Current domain level:"
 msgstr "Nivel de dominio Min"
 
+#, fuzzy
 msgid "Change current Domain Level."
-msgstr ""
+msgstr "Cambio Nivel de Ámbito actual."
 
 #, fuzzy
 #| msgid "Max domain level"
@@ -10926,13 +11225,17 @@ msgstr "Añade certificados a la entrada de host"
 msgid "Remove certificates from host entry"
 msgstr "Borra certificados de una entrada de host"
 
+#, fuzzy
 msgid "Fallback to AD DC LDAP"
-msgstr ""
+msgstr "Fallback A ANUNCIO DC LDAP"
 
+#, fuzzy
 msgid ""
 "Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-"
 "way trusts only."
 msgstr ""
+"Deja caer atrás a ANUNCIO DC LDAP cuándo resolviendo el ANUNCIO confió en "
+"objetos. Para confianzasdedos maneras sólo."
 
 msgid ""
 "Applies ID View to specified hosts or current members of specified "
