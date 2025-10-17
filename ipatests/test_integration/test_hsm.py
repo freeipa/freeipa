@@ -1316,3 +1316,95 @@ class TestHSMVault(BaseHSMTest):
             vault_name,
             "--password", vault_password,
         ])
+
+
+class TestHSMLWCA(BaseHSMTest):
+    """Test that managing a LWCA on an HSM-installed system installs
+       the keys onto the HSM and not the local NSS database.
+
+       Also verify that the ca-* operations can handle hiding the
+       complexity of the token name prefix without specifying it
+       (but also allowing it).
+    """
+
+    num_replicas = 0
+
+    def remove_lwca(self, lwca, othername=None):
+        """Save a lot of duplicate code disabling and removing a lwca"""
+        self.master.run_command([
+            'ipa', 'ca-disable', lwca,
+        ])
+
+        name = othername or lwca
+        self.master.run_command([
+            'ipa', 'ca-del', name,
+        ])
+
+    def test_hsm_add_lwca(self):
+        lwca = "lwca"
+        lwca_fullname = "{}:{}".format(self.token_name, lwca)
+
+        check_version(self.master)
+
+        """First test add/show/disable/delete without specifying
+           the token. So hiding the complexity of including the
+           token name except the stored Name (cn) value.
+        """
+        result = self.master.run_command([
+            'ipa', 'ca-add', lwca, '--subject', 'CN=LWCA',
+        ])
+        assert 'Name: {}'.format(lwca_fullname) in result.stdout_text
+
+        self.remove_lwca(lwca)
+
+    def test_hsm_token_add_lwca(self):
+        """Now test add/show/disable/delete with specifying
+           the token with the name. So not hiding the complexity of
+           including the token name.
+        """
+        lwca = "lwca"
+        lwca_fullname = "{}:{}".format(self.token_name, lwca)
+
+        check_version(self.master)
+
+        result = self.master.run_command([
+            'ipa', 'ca-add', lwca_fullname, '--subject', 'CN=LWCA',
+        ])
+        assert 'Name: {}'.format(lwca_fullname) in result.stdout_text
+
+        self.remove_lwca(lwca_fullname)
+
+    def test_duplicate_token_add_lwca(self):
+        """Test that adding a duplicate name by adding with and
+           without the token included"""
+        lwca = "lwca"
+        lwca_fullname = "{}:{}".format(self.token_name, lwca)
+
+        check_version(self.master)
+
+        self.master.run_command([
+            'ipa', 'ca-add', lwca_fullname, '--subject', 'CN=LWCA',
+        ])
+        result = self.master.run_command([
+            'ipa', 'ca-add', lwca, '--subject', 'CN=LWCA',
+        ], raiseonerr=False)
+        assert 'Subject DN is already used' in result.stderr_text
+
+        # we can also mix and match the name in the cleanup
+        self.remove_lwca(lwca, lwca_fullname)
+
+    def test_colon_in_lwca(self):
+        # Trying to add a CA using an unknown or mis-typed token
+        # name will result in the real token + whatever the name.
+        lwca = "lwca"
+        colonname = "undefined:{}".format(lwca)
+        colonfullname = "{}:undefined:{}".format(self.token_name, lwca)
+
+        check_version(self.master)
+
+        result = self.master.run_command([
+            'ipa', 'ca-add', colonname, '--subject', 'CN=LWCA',
+        ])
+        assert 'Name: {}'.format(colonfullname) in result.stdout_text
+
+        self.remove_lwca(colonfullname, colonname)
