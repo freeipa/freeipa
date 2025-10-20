@@ -1462,4 +1462,5 @@ ATTR_NAME_BY_OID = {
     cryptography.x509.ObjectIdentifier('2.5.4.9'): 'STREET',
     cryptography.x509.ObjectIdentifier('2.5.4.17'): 'postalCode',
     cryptography.x509.ObjectIdentifier('0.9.2342.19200300.100.1.1'): 'UID',
+    cryptography.x509.ObjectIdentifier('2.5.4.97'): 'organizationIdentifier',
 }
