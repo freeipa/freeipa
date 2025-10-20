@@ -23,6 +23,8 @@ import time
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.x509.oid import ObjectIdentifier, NameOID
+from cryptography.hazmat.primitives import hashes, serialization
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -106,6 +108,142 @@ def service_control_dirsrv(host, function):
 def check_ipaca_issuerDN(host, expected_dn):
     result = host.run_command(['ipa', 'ca-show', 'ipa'])
     assert "Issuer DN: {}".format(expected_dn) in result.stdout_text
+
+
+def create_external_ca_with_subject(subject_attrs):
+    """
+    Create an external CA with custom subject attributes including non-standard
+    OIDs.
+
+    :param subject_attrs: List of x509.NameAttribute objects to include in
+    subject
+    :return: Tuple of (ExternalCA object, root CA certificate as PEM bytes)
+
+    Example:
+        subj_attrs = [
+            x509.NameAttribute(NameOID.COMMON_NAME, 'My CA'),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, 'US'),
+            x509.NameAttribute(ObjectIdentifier('2.5.4.97'), 'VATEU-123456789')
+        ]
+        external_ca, root_ca_pem = create_external_ca_with_subject(subj_attrs)
+        signed_cert = external_ca.sign_csr(csr_data)
+    """
+    external_ca = ExternalCA()
+    external_ca.create_ca_key()
+
+    # Create the custom subject
+    subject = x509.Name(subject_attrs)
+    external_ca.issuer = subject
+
+    # Build the root CA certificate
+    builder = x509.CertificateBuilder()
+    builder = builder.subject_name(subject)
+    builder = builder.issuer_name(subject)  # self-signed
+    builder = builder.public_key(external_ca.ca_public_key)
+    builder = builder.serial_number(x509.random_serial_number())
+    builder = builder.not_valid_before(external_ca.now)
+    builder = builder.not_valid_after(external_ca.now + external_ca.delta)
+
+    # Add required extensions for a CA certificate
+    builder = builder.add_extension(
+        x509.KeyUsage(
+            digital_signature=False,
+            content_commitment=False,
+            key_encipherment=False,
+            data_encipherment=False,
+            key_agreement=False,
+            key_cert_sign=True,
+            crl_sign=True,
+            encipher_only=False,
+            decipher_only=False,
+        ),
+        critical=True,
+    )
+
+    builder = builder.add_extension(
+        x509.BasicConstraints(ca=True, path_length=None),
+        critical=True,
+    )
+
+    builder = builder.add_extension(
+        x509.SubjectKeyIdentifier.from_public_key(
+            external_ca.ca_public_key
+        ),
+        critical=False,
+    )
+
+    builder = builder.add_extension(
+        x509.AuthorityKeyIdentifier.from_issuer_public_key(
+            external_ca.ca_public_key
+        ),
+        critical=False,
+    )
+
+    # Sign the certificate
+    root_ca_cert = builder.sign(
+        external_ca.ca_key, hashes.SHA256(), default_backend()
+    )
+    root_ca_pem = root_ca_cert.public_bytes(serialization.Encoding.PEM)
+
+    return external_ca, root_ca_pem
+
+
+def find_cert_in_chain(cert_chain, subject_attrs=None, issuer_attrs=None):
+    """
+    Retrieves a certificate from a provided chain that matches specified
+    criteria. The search can be filtered using dictionaries of subject
+    attributes, issuer attributes, or a combination of both.
+
+    :param cert_chain: List of certificates to search through
+    :param subject_attrs: Dict of OID -> expected value for subject attributes
+    :param issuer_attrs: Dict of OID -> expected value for issuer attributes
+    :return: The matching certificate or None if not found
+
+    Example:
+        from cryptography.x509.oid import NameOID, ObjectIdentifier
+        org_id_oid = ObjectIdentifier("2.5.4.97")
+
+        # Find IPA CA cert with specific subject and issuer
+        cert = find_cert_in_chain(
+            ca_chain,
+            subject_attrs={
+                NameOID.COMMON_NAME: "Certificate Authority",
+                NameOID.ORGANIZATION_NAME: "EXAMPLE.TEST"
+            },
+            issuer_attrs={
+                org_id_oid: "VATEU-123456789"
+            }
+        )
+    """
+    for cert in cert_chain:
+        # Check subject attributes if provided
+        if subject_attrs:
+            subject_match = True
+            for oid, expected_value in subject_attrs.items():
+                attrs = [attr for attr in cert.subject if attr.oid == oid]
+                if not any(attr.value == expected_value for attr in attrs):
+                    # This cert doesn't match, move to next cert
+                    subject_match = False
+                    break
+            if not subject_match:
+                continue
+
+        # Check issuer attributes if provided
+        if issuer_attrs:
+            issuer_match = True
+            for oid, expected_value in issuer_attrs.items():
+                attrs = [attr for attr in cert.issuer if attr.oid == oid]
+                if not any(attr.value == expected_value for attr in attrs):
+                    # This cert doesn't match, move to next cert
+                    issuer_match = False
+                    break
+            if not issuer_match:
+                continue
+
+        # All specified attributes match, return this cert
+        return cert
+
+    return None
 
 
 def check_mscs_extension(ipa_csr, template):
@@ -241,6 +379,133 @@ class TestExternalCAConstraints(IntegrationTest):
 
         tasks.kinit_admin(self.master)
         self.master.run_command(['ipa', 'ping'])
+
+
+class TestExternalCAInstallWithOrgId(IntegrationTest):
+    """Test 2-step installation with external CA containing
+    organizationIdentifier.
+
+    This test verifies that FreeIPA can successfully install with a 2-step
+    external CA process when the external CA certificate contains the
+    organizationIdentifier attribute (OID 2.5.4.97) in its issuer DN.
+
+    This tests the fix for DN parsing in ensure_ipa_authority_entry in
+    cainstance.py where the issuer DN must be properly parsed against
+    ATTR_NAME_BY_OID to recognize all OIDs including organizationIdentifier.
+    """
+    num_replicas = 0
+    num_clients = 0
+
+    def test_external_ca_install_with_organization_identifier(self):
+        """Test 2-step installation with organizationIdentifier (OID 2.5.4.97)
+
+        Verify that FreeIPA can successfully complete a 2-step installation
+        with an external CA that contains organizationIdentifier (OID 2.5.4.97)
+        in the issuer DN. The issuer DN should be properly parsed and stored
+        in LDAP during the ensure_ipa_authority_entry process.
+        """
+
+        # Test parameters
+        org_id_value = "VATEU-123456789"
+        org_id_oid = ObjectIdentifier("2.5.4.97")  # organizationIdentifier OID
+        external_ca_cn = "External CA with OrgID"
+
+        # Step 1 of ipa-server-install
+        result = install_server_external_ca_step1(self.master)
+        assert result.returncode == 0
+
+        # Get the CSR generated by step 1
+        ipa_csr = self.master.get_file_contents(paths.ROOT_IPA_CSR)
+
+        # Create an external CA with organizationIdentifier in the subject
+        subject_attrs = [
+            x509.NameAttribute(NameOID.COMMON_NAME, external_ca_cn),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, 'US'),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Test Organization'),
+            x509.NameAttribute(org_id_oid, org_id_value),
+        ]
+        external_ca, root_ca = create_external_ca_with_subject(subject_attrs)
+
+        # Sign the IPA CSR with the external CA that has organizationIdentifier
+        ipa_ca = external_ca.sign_csr(ipa_csr)
+
+        # Write certificates to files
+        root_ca_fname = os.path.join(
+            self.master.config.test_dir,
+            'root_ca_with_orgid.crt'
+        )
+        ipa_ca_fname = os.path.join(
+            self.master.config.test_dir,
+            'ipa_ca_signed_with_orgid.crt'
+        )
+
+        # Transport certificates to master
+        self.master.put_file_contents(root_ca_fname, root_ca)
+        self.master.put_file_contents(ipa_ca_fname, ipa_ca)
+
+        # Step 2 of ipa-server-install
+        # This should succeed despite organizationIdentifier in issuer DN
+        result = install_server_external_ca_step2(
+            self.master, ipa_ca_fname, root_ca_fname
+        )
+        assert result.returncode == 0
+
+        # Make sure IPA server is working properly
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(['ipa', 'user-show', 'admin'])
+        assert 'User login: admin' in result.stdout_text
+
+        # Verify IPA is functional
+        result = self.master.run_command(['ipa', 'ping'])
+        assert result.returncode == 0
+
+        # Verify the certificate chain contains the expected certificates
+        # Load all certificates from /etc/ipa/ca.crt (the CA chain)
+        ca_chain_content = self.master.get_file_contents(paths.IPA_CA_CRT)
+        ca_chain = ipa_x509.load_certificate_list(ca_chain_content)
+
+        # 1. Find and verify the IPA CA certificate
+        # It should have subject O=REALM, CN=Certificate Authority
+        # and issuer with organizationIdentifier
+        ipa_ca_cert = find_cert_in_chain(
+            ca_chain,
+            subject_attrs={
+                NameOID.COMMON_NAME: "Certificate Authority",
+                NameOID.ORGANIZATION_NAME: self.master.domain.realm
+            },
+            issuer_attrs={
+                org_id_oid: org_id_value,
+                NameOID.COMMON_NAME: external_ca_cn
+            }
+        )
+        assert ipa_ca_cert is not None, \
+            f"Did not find IPA CA certificate with subject " \
+            f"O={self.master.domain.realm}, CN=Certificate Authority " \
+            f"and issuer with organizationIdentifier={org_id_value}"
+
+        # 2. Find and verify the external root CA certificate
+        # It should be self-signed with organizationIdentifier in subject
+        external_ca_cert = find_cert_in_chain(
+            ca_chain,
+            subject_attrs={
+                NameOID.COMMON_NAME: external_ca_cn,
+                org_id_oid: org_id_value
+            },
+            issuer_attrs={
+                NameOID.COMMON_NAME: external_ca_cn,
+                org_id_oid: org_id_value
+            }
+        )
+        assert external_ca_cert is not None, \
+            f"Did not find external root CA certificate (CN={external_ca_cn})" \
+            f" with organizationIdentifier={org_id_value} in subject"
+
+        # 3. Verify the issuer DN is correctly stored in LDAP
+        # The issuer DN should contain organizationIdentifier
+        # Note: The order in the DN string representation matters
+        result = self.master.run_command(['ipa', 'ca-show', 'ipa'])
+        assert f"organizationIdentifier={org_id_value}" in result.stdout_text, \
+            "organizationIdentifier not found in IPA CA issuer DN"
 
 
 def verify_caentry(host, cert):
@@ -474,6 +739,113 @@ class TestExternalCAInstall(IntegrationTest):
         # Install new cert
         self.master.run_command([paths.IPA_CACERT_MANAGE, 'install',
                                  root_ca_fname])
+
+    def test_renew_external_ca_with_organization_identifier(self):
+        """Test CA renewal with organizationIdentifier (OID 2.5.4.97)
+
+        Verify that FreeIPA can successfully renew CA with an external CA
+        that contains organizationIdentifier (OID 2.5.4.97) in the issuer DN.
+        The IPA CA will be signed by this external CA, and the issuer DN
+        will contain the organizationIdentifier attribute.
+        """
+
+        # Test parameters
+        org_id_value = "VATEU-123456789"
+        org_id_oid = ObjectIdentifier("2.5.4.97")  # organizationIdentifier OID
+        external_ca_cn = "External CA with OrgID"
+
+        # Initiate CA renewal with external CA
+        result = self.master.run_command([paths.IPA_CACERT_MANAGE, 'renew',
+                                         '--external-ca'])
+        assert result.returncode == 0
+
+        # Get the CSR generated by the renewal process
+        ipa_csr = self.master.get_file_contents(paths.IPA_CA_CSR)
+
+        # Create an external CA with organizationIdentifier in the subject
+        subject_attrs = [
+            x509.NameAttribute(NameOID.COMMON_NAME, external_ca_cn),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, 'US'),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Test Organization'),
+            x509.NameAttribute(org_id_oid, org_id_value),
+        ]
+        external_ca, root_ca = create_external_ca_with_subject(subject_attrs)
+
+        # Sign the IPA CSR with the external CA that has organizationIdentifier
+        ipa_ca = external_ca.sign_csr(ipa_csr)
+
+        # Write certificates to files
+        root_ca_fname = os.path.join(
+            self.master.config.test_dir,
+            'root_ca_with_orgid.crt'
+        )
+        ipa_ca_fname = os.path.join(
+            self.master.config.test_dir,
+            'ipa_ca_signed_with_orgid.crt'
+        )
+
+        # Transport certificates to master
+        self.master.put_file_contents(root_ca_fname, root_ca)
+        self.master.put_file_contents(ipa_ca_fname, ipa_ca)
+
+        # Complete the renewal with the signed certificates
+        # This should succeed despite organizationIdentifier in issuer DN
+        result = self.master.run_command([
+            paths.IPA_CACERT_MANAGE, 'renew',
+            '--external-cert-file', ipa_ca_fname,
+            '--external-cert-file', root_ca_fname
+        ])
+        assert result.returncode == 0
+
+        # Verify the CA was properly installed
+        result = self.master.run_command([paths.IPA_CERTUPDATE])
+        assert result.returncode == 0
+
+        # Verify IPA is still functional
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(['ipa', 'ping'])
+        assert result.returncode == 0
+
+        # Verify the certificate chain contains the expected certificates
+        # Load all certificates from /etc/ipa/ca.crt (the CA chain)
+        ca_chain_content = self.master.get_file_contents(paths.IPA_CA_CRT)
+        ca_chain = ipa_x509.load_certificate_list(ca_chain_content)
+
+        # 1. Find and verify the IPA CA certificate
+        # It should have subject O=REALM, CN=Certificate Authority
+        # and issuer with organizationIdentifier
+        ipa_ca_cert = find_cert_in_chain(
+            ca_chain,
+            subject_attrs={
+                NameOID.COMMON_NAME: "Certificate Authority",
+                NameOID.ORGANIZATION_NAME: self.master.domain.realm
+            },
+            issuer_attrs={
+                org_id_oid: org_id_value,
+                NameOID.COMMON_NAME: external_ca_cn
+            }
+        )
+        assert ipa_ca_cert is not None, \
+            f"Did not find IPA CA certificate with subject " \
+            f"O={self.master.domain.realm}, CN=Certificate Authority " \
+            f"and issuer with organizationIdentifier={org_id_value}"
+
+        # 2. Find and verify the external root CA certificate
+        # It should be self-signed with organizationIdentifier in subject
+        external_ca_cert = find_cert_in_chain(
+            ca_chain,
+            subject_attrs={
+                NameOID.COMMON_NAME: external_ca_cn,
+                org_id_oid: org_id_value
+            },
+            issuer_attrs={
+                NameOID.COMMON_NAME: external_ca_cn,
+                org_id_oid: org_id_value
+            }
+        )
+        assert external_ca_cert is not None, \
+            f"Did not find external root CA certificate (CN={external_ca_cn})"\
+            f" with organizationIdentifier={org_id_value} in subject"
 
 
 class TestMultipleExternalCA(IntegrationTest):
