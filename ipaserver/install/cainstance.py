@@ -2394,10 +2394,16 @@ def ensure_ipa_authority_entry():
     api.Backend.ra_lightweight_ca.override_port = 8443
     with api.Backend.ra_lightweight_ca as lwca:
         data = lwca.read_ca('host-authority')
+        # Loading certificate to properly re-parse issuer and subject DNs in
+        # case CA doesn't recognize some of the OIDs. DN class will re-access
+        # the OIDs based on ATTR_NAME_BY_OID list.
+        cert_data = lwca.read_ca_cert('host-authority')
+        cert = x509.load_der_x509_certificate(cert_data)
+
         attrs = dict(
             ipacaid=data['id'],
-            ipacaissuerdn=data['issuerDN'],
-            ipacasubjectdn=data['dn'],
+            ipacaissuerdn=DN(cert.issuer),
+            ipacasubjectdn=DN(cert.subject),
         )
     api.Backend.ra_lightweight_ca.override_port = None
 
