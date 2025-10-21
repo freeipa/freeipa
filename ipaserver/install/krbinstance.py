@@ -266,10 +266,9 @@ class KrbInstance(service.Service):
             logger.critical("krb5kdc service failed to start")
 
     def __setup_sub_dict(self):
-        if os.path.exists(paths.COMMON_KRB5_CONF_DIR):
-            includes = 'includedir {}'.format(paths.COMMON_KRB5_CONF_DIR)
-        else:
-            includes = ''
+        if not os.path.exists(paths.COMMON_KRB5_CONF_DIR):
+            os.mkdir(paths.COMMON_KRB5_CONF_DIR, 0o755)
+        includes = 'includedir {}'.format(paths.COMMON_KRB5_CONF_DIR)
 
         fips_enabled = tasks.is_fips_enabled()
         self.sub_dict = dict(FQDN=self.fqdn,
