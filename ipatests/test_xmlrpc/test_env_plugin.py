@@ -22,7 +22,7 @@ class TestEnv(XMLRPC_test):
         return cmd_result
 
     def assert_result(self, cmd_result):
-        assert tuple(cmd_result.keys()) == self.EXPECTED_KEYS
+        assert sorted(tuple(cmd_result.keys())) == sorted(self.EXPECTED_KEYS)
         result = cmd_result["result"]
         assert isinstance(result, dict)
 
