@@ -5,13 +5,14 @@
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Paul Ritter <paul-ritter@gmx.net>, 2018. #zanata
 # Alexander Bokovoy <abokovoy@redhat.com>, 2021.
+# Christian Rohr <christian.rohr@mailbox.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2021-01-27 07:52+0000\n"
-"Last-Translator: Alexander Bokovoy <abokovoy@redhat.com>\n"
+"PO-Revision-Date: 2025-10-17 18:54+0000\n"
+"Last-Translator: Christian Rohr <christian.rohr@mailbox.org>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/freeipa/"
 "master/de/>\n"
 "Language: de\n"
@@ -19,13 +20,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.4.2\n"
+"X-Generator: Weblate 5.13.3\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
 msgstr "Konfigurationsdatei %s konnte nicht geöffnet werden\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "cannot stat() configuration file %s\n"
 msgstr "Aufruf von »stat« für Konfigurationsdatei %s nicht möglich\n"
 
@@ -37,10 +38,9 @@ msgstr "Nicht genügend Speicher\n"
 msgid "read error\n"
 msgstr "Lesefehler\n"
 
-#, fuzzy, c-format
-#| msgid "Kerberos context initialization failed\n"
+#, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr "Initialisierung des Kerberos-Kontexts fehlgschlagen\n"
+msgstr "Initialisierung des Kerberos-Kontexts: %1$s (%2$d) ist fehlgeschlagen\n"
 
 #, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
@@ -14809,7 +14809,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Bedingungen von einer einer Auto-Mitglieschaftsregel entfernen.    "
+"    Bedingungen von einer einer Auto-Mitglieschaftsregel entfernen.\n"
+"    "
 
 #, python-format
 msgid "Removed condition(s) from \"%(value)s\""
@@ -26066,8 +26067,8 @@ msgid ""
 " Alternatively, following servers are capable of running this command: "
 "%(masters)s"
 msgstr ""
-"Alternativ sind folgende Server in der Lage den Befehl auszuführen: "
-"%(masters)s"
+" Alternativ sind folgende Server in der Lage den Befehl auszuführen: %"
+"(masters)s"
 
 msgid "AD Trust setup"
 msgstr ""
