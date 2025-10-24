@@ -1170,7 +1170,7 @@ make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 # (These are typically configuration files created by IPA installer.)
 # All other artifacts should be created by make install.
 
-%make_install
+%make_install PACKAGE_NAME=%{package_name}
 
 # don't package ipasphinx for now
 rm -rf %{buildroot}%{python3_sitelib}/ipasphinx*
@@ -1721,7 +1721,7 @@ fi
 %files server-common
 %doc README.md Contributors.txt
 %license COPYING
-%license %{_defaultlicensedir}/%{name}-server-common/modern-ui/COPYING
+%license %{_defaultlicensedir}/%{package_name}-server-common/modern-ui/COPYING
 %ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
 %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
