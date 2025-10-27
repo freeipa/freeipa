@@ -709,11 +709,23 @@ static int ipamodrdn_post_op(Slapi_PBlock *pb)
     Slapi_Attr *sattr = NULL;
     Slapi_Attr *tattr = NULL;
     int ret = LDAP_SUCCESS;
+    int is_repl_op;
 
     LOG_TRACE("--in-->\n");
 
     /* Just bail if we aren't ready to service requests yet. */
     if (!g_plugin_started) {
+        goto done;
+    }
+
+    if (slapi_pblock_get(pb, SLAPI_IS_REPLICATED_OPERATION, &is_repl_op) != 0) {
+        LOG_FATAL("unable to retrieve replication operation status\n");
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    /* pass through if this is a replicated operation */
+    if (is_repl_op) {
         goto done;
     }
 
