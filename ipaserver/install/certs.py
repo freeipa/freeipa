@@ -796,16 +796,12 @@ class CertDB:
         """Use openssl to generate a CSR and submit it using the pki
            Python API, using the IPA RA certificate.
         """
-        if service == "krbtgt":
-            host = api.env.realm
-        else:
-            host = api.env.host
-
         template = os.path.join(
             paths.USR_SHARE_IPA_DIR, "openssl_cnf.template")
         sub_dict = dict(
             REALM=api.env.realm,
-            FQDN=host,
+            DOMAIN=api.env.domain,
+            FQDN=api.env.host,
             NICKNAME="Server-Cert",
             PROFILE=profile,
             SERVICE=service,
