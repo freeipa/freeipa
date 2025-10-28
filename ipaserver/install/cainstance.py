@@ -1829,6 +1829,9 @@ def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
     """Dynamically define the relationship between subjects and
         nicknames for the CA and KRA.
     """
+    if subject_base is None or ca_subject_dn is None:
+        raise ValueError(
+            "Both subject_base and ca_subject_dn are required.")
     return {
         DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
         DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
@@ -1840,6 +1843,7 @@ def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
         DN('CN=KRA Storage Certificate', subject_base):
             'storageCert cert-pki-kra',
         DN('CN=IPA RA', subject_base): 'ipaCert',
+        DN(('CN', api.env.host), subject_base): 'Server-Cert cert-pki-ca',
     }
 
 
