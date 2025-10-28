@@ -716,23 +716,34 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             if api.Command.kra_is_enabled()['result']:
                 reqs = itertools.chain(reqs,
                                        kra.tracking_reqs.items())
-            nickname = None
+            nickname = []
             for nick, prof in reqs:
                 if prof == profile_id:
-                    nickname = nick
-                    break
+                    if prof == "caSubsystemCert":
+                        # this profile is used for both the CA subsystem cert
+                        # and the RA agent certificate so we have to accept
+                        # the CSR subject.
+                        if not nickname:
+                            nickname.append('ipaCert')
+                    nickname.append(nick)
             subject_dn = None
             if nickname:
                 logger.debug("Requested CA/KRA nickname %s", nickname)
-                subject_base = dsinstance.DsInstance().find_subject_base()
+                subject_base = dsinstance.DsInstance().find_subject_base(
+                    skip_runcheck=True)
                 ca_subject_dn = lookup_ca_subject(api, subject_base)
                 nickname_by_subject_dn = cainstance.get_nickname_by_subject_dn(
                     subject_base, ca_subject_dn
                 )
                 for sub_dn, nick in nickname_by_subject_dn.items():
-                    if nick == nickname:
-                        subject_dn = sub_dn
-                        break
+                    if nick in nickname:
+                        if len(nickname) == 1:
+                            subject_dn = sub_dn
+                            break
+                        if sub_dn == DN(csr.subject):
+                            # fallback for caSubsystemCert
+                            subject_dn = sub_dn
+                            break
                 if subject_dn:
                     if subject_dn != DN(csr.subject):
                         raise errors.NotFound(
