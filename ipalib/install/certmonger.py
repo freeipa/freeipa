@@ -465,6 +465,8 @@ def request_cert(
         request_parameters['nss-user'] = nss_user
     if keysize is None:
         keysize = 2048
+    if keysize is None:
+        keysize = 2048
     if keytype is None:
         keytype = "rsa"
     request_parameters['key-type'] = keytype
