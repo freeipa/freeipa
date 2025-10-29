@@ -308,6 +308,16 @@ default:objectClass: nestedgroup
 default:cn: DNS Servers
 default:description: DNS Servers
 
+dn: cn=List all profiles from the CA,cn=permissions,cn=pbac,$SUFFIX
+default: objectClass: top
+default: objectClass: groupofnames
+default: objectClass: ipapermission
+default: cn: List all profiles from the CA
+default: member: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+
+dn: $SUFFIX
+add: aci: (targetattr = "objectclass")(target = "ldap:///cn=list all profiles,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:List all profiles from the CA" ; allow (write) groupdn = "ldap:///cn=List all profiles from the CA,cn=permissions,cn=pbac,$SUFFIX";)
+
 dn: cn=External IdP server Administrators,cn=privileges,cn=pbac,$SUFFIX
 default:objectClass: top
 default:objectClass: groupofnames
