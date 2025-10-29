@@ -2589,3 +2589,17 @@ jobs:
         template: *ci-master-latest
         timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
+
+  testing-fedora/test_installation_TestInstallKeySizes:
+    requires: [testing-fedora/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{testing-fedora/build_url}'
+        update_packages: True
+        enable_testing_repo: True
+        test_suite: test_integration/test_installation.py::TestInstallKeySizes
+        template: *ci-master-latest
+        timeout: 3600
+        topology: *master_1repl
