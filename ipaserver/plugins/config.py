@@ -397,7 +397,7 @@ class config(LDAPObject):
         ),
         Str(
             'ipaservicekeytypesize?',
-            validate_key_type_size,
+            validate_key_type_size_wrapper,
             cli_name='key_type_size',
             label=_('IPA Service key type:size'),
             doc=_('IPA Service key type:size'),
