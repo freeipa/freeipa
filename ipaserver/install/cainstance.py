@@ -1831,7 +1831,7 @@ def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
     """
     if subject_base is None or ca_subject_dn is None:
         raise ValueError(
-            "Both subject_base and ca_subject_dn must are required.")
+            "Both subject_base and ca_subject_dn are required.")
     return {
         DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
         DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
