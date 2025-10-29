@@ -713,7 +713,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             ca = cainstance.CAInstance(api.env.realm)
             reqs = ca.tracking_reqs.items()
             kra = krainstance.KRAInstance(api.env.realm)
-            if not api.Command.kra_is_enabled()['result']:
+            if api.Command.kra_is_enabled()['result']:
                 reqs = itertools.chain(reqs,
                                        kra.tracking_reqs.items())
             nickname = []
