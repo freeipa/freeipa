@@ -8,6 +8,5 @@ steps:
     ./autogen.sh \
         ${{ parameters.options }} \
         --enable-pylint \
-        --enable-rpmlint \
-
+        --enable-rpmlint
   displayName: Configure the project
