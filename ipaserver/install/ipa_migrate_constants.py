@@ -117,6 +117,21 @@ AD_TRUST_ATTRS = [  # ipaNTTrustedDomain objectclass
     'ipantadditionalsuffixes',
 ]
 
+# Do not log the values of these attributes
+REDACTED_ATTRS = [
+    'userpassword',
+    'krbprincipalkey',
+    'sambalmpassword',
+    'sambantpassword',
+    'passwordhistory',
+    'ipanthash',
+    # cn=config attributes
+    'nsslapd-rootpw',
+    'nsds5replicacredentials',
+    'nsds5replicabootstrapcredentials',
+    'nsmultiplexorcredentials',
+]
+
 STATE_OPTIONS = ('adcsn-', 'mdcsn-', 'vucsn-', 'vdcsn-')
 
 DNA_REGEN_VAL = "-1"
@@ -735,6 +750,13 @@ DB_OBJECTS = {
         'subtree': ',cn=computers,cn=accounts,$SUFFIX',
         'label': 'Hosts',
         'mode': 'all',
+        'preserve_attrs': [
+            'cn',
+            'fqdn',
+            'dn',
+            'krbprincipalname',
+            'krbcanonicalname',
+        ],
         'count': 0,
     },
     'admin': {
@@ -780,6 +802,9 @@ DB_OBJECTS = {
         'subtree': ',cn=hostgroups,cn=accounts,$SUFFIX',
         'label': 'Host Groups',
         'mode': 'all',
+        'preserve_attrs': [
+            'memberhost',
+        ],
         'count': 0,
     },
     'services': {  # Contains COS entries - should COS be ignored TODO
@@ -822,6 +847,9 @@ DB_OBJECTS = {
         'subtree': ',cn=automount,$SUFFIX',
         'label': 'Automounts',
         'mode': 'all',
+        'preserve_attrs': [
+            'automountinformation',
+        ],
         'count': 0,
     },
     'automount_maps': {
