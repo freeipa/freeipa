@@ -463,10 +463,11 @@ class KrbInstance(service.Service):
             self.cert = x509.load_certificate_from_file(paths.KDC_CERT)
             certmonger.start_tracking(
                 certpath=(paths.KDC_CERT, paths.KDC_KEY),
-                post_command='renew_kdc_cert',
                 dns=[self.fqdn],
                 storage='FILE',
                 profile=KDC_PROFILE,
+                post_command='renew_kdc_cert',
+                perms=(0o644, 0o600),
             )
 
     def _call_certmonger(self, certmonger_ca='IPA'):

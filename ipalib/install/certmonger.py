@@ -503,7 +503,7 @@ def request_cert(
 def start_tracking(
         certpath, ca='IPA', nickname=None, pin=None, pinfile=None,
         pre_command=None, post_command=None, profile=None, storage="NSSDB",
-        token_name=None, dns=None, nss_user=None):
+        token_name=None, dns=None, nss_user=None, perms=None):
     """
     Tell certmonger to track the given certificate in either a file or an NSS
     database. The certificate access can be protected by a password_file.
@@ -542,6 +542,8 @@ def start_tracking(
         List of DNS names
     :param nss_user:
         login of the private key owner
+    :params perms:
+        A tuple of (cert, key) permissions in e.g., (0644,0660)
     :returns: certificate tracking nickname.
     """
     if storage == 'FILE':
@@ -590,6 +592,12 @@ def start_tracking(
         params['DNS'] = dns
     if nss_user:
         params['nss-user'] = nss_user
+    if perms:
+        (cert, key) = perms
+        if cert:
+            params['cert-perms'] = cert
+        if cert:
+            params['key-perms'] = key
 
     logger.debug("start tracking %s", params)
     result = cm.obj_if.add_request(params,

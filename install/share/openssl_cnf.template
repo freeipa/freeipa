@@ -28,9 +28,9 @@ realm=EXP:0,GeneralString:${REALM}
 principal_name=EXP:1,SEQUENCE:principal_seq
 
 [principal_seq]
-name_type=EXP:0,INTEGER:1
+name_type=EXP:0,INTEGER:2
 name_string=EXP:1,SEQUENCE:principals
 
 [principals]
 princ1=GeneralString:${SERVICE}
-princ2=GeneralString:${FQDN}
+princ2=GeneralString:${REALM}
