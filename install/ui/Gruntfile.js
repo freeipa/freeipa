@@ -6,9 +6,9 @@ module.exports = function(grunt) {
         qunit: {
             options: {
                 puppeteer: {
-		    executablePath: '/usr/bin/chromium-browser',
                     args: [
-                        "--allow-file-access-from-files"
+                        "--allow-file-access-from-files",
+                        "--no-sandbox"
                     ]
                 },
             },
