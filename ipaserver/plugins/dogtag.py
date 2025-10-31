@@ -455,6 +455,28 @@ from ipaplatform.paths import paths
 register = Registry()
 
 
+def support_v2(pki_client):
+    """Ignore PKI failover and do it ourselves.
+
+       PKI API failover is completely determined by the remote
+       server version. In IPA it is possible that a 11.7.0 CA has
+       been deployed but not upgraded so it doesn't expose the v2
+       API. This will allow the connection to fall back to v1.
+
+       This is not ideal as v1 relies on VLV which we are trying to
+       move away from but let's not punish users too much.
+    """
+    pki_client.api_path = 'v2'
+    pki_client.api_version = 'v2'
+    try:
+        pki_client.info_client.get_info()
+    except Exception:  # yes, PKI can raise a raw exception here
+        pki_client.api_path = 'rest'
+        pki_client.api_version = 'v1'
+    logger.debug("PKI detected API %s", pki_client.api_version)
+    return pki_client
+
+
 class APIClient(Backend):
     """Simple Dogtag API client to be subclassed by other backends.
 
@@ -553,6 +575,7 @@ class APIClient(Backend):
 
         pki_client = pki.client.PKIClient(
             url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        pki_client = support_v2(pki_client)
         object.__setattr__(self, 'pki_client', pki_client)
         self.pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
@@ -609,6 +632,7 @@ class ra(rabase.rabase, APIClient):
         port = self.override_port or "443"
         pki_client = pki.client.PKIClient(
             url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        pki_client = support_v2(pki_client)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
@@ -1275,6 +1299,7 @@ class kra(Backend):
         pki_client = pki.client.PKIClient(
             url=f'https://{self.kra_host}:{self.kra_port}',
             ca_bundle=paths.IPA_CA_CRT)
+        pki_client = support_v2(pki_client)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
