@@ -100,3 +100,12 @@ default:description: Enrollment Administrator responsible for client(host) enrol
 
 dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
 add:member: cn=Enrollment Administrator,cn=roles,cn=accounts,$SUFFIX
+
+dn: cn=System Accounts Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:objectClass: top
+default:cn: System Accounts Administrators
+default:description: System Accounts Administrators
+add: member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
+add: member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX

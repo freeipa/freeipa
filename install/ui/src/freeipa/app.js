@@ -55,6 +55,7 @@ define([
     './stageuser',
     './subid',
     './sudo',
+    './sysaccount',
     './trust',
     './topology',
     './user',
