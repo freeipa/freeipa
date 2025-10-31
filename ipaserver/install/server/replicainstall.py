@@ -664,7 +664,8 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
             paths.KRB5_CONF,
             host_domain,
             hostname,
-            configure_sssd=False
+            configure_sssd=False,
+            fstore=fstore
         )
 
     except CalledProcessError as e:
@@ -1326,7 +1327,8 @@ def install(installer):
         filename=paths.KRB5_CONF,
         client_domain=host_domain,
         client_hostname=config.host_name,
-        configure_sssd=False
+        configure_sssd=False,
+        fstore=fstore
     )
 
     if installer._add_to_ipaservers:

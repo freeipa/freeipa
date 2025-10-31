@@ -266,10 +266,9 @@ class KrbInstance(service.Service):
             logger.critical("krb5kdc service failed to start")
 
     def __setup_sub_dict(self):
-        if os.path.exists(paths.COMMON_KRB5_CONF_DIR):
-            includes = 'includedir {}'.format(paths.COMMON_KRB5_CONF_DIR)
-        else:
-            includes = ''
+        if not os.path.exists(paths.COMMON_KRB5_CONF_DIR):
+            os.mkdir(paths.COMMON_KRB5_CONF_DIR, 0o755)
+        includes = 'includedir {}'.format(paths.COMMON_KRB5_CONF_DIR)
 
         fips_enabled = tasks.is_fips_enabled()
         self.sub_dict = dict(FQDN=self.fqdn,
@@ -378,10 +377,8 @@ class KrbInstance(service.Service):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
         self.__template_file(paths.KRB5_CONF)
         self.__template_file(paths.KRB5_FREEIPA_SERVER)
+        self.__template_file(paths.KRB5_FREEIPA_DEFAULTS, client_template=True)
         self.__template_file(paths.KRB5_FREEIPA, client_template=True)
-        self.__template_file(paths.HTML_KRB5_INI)
-        self.__template_file(paths.KRB_CON)
-        self.__template_file(paths.HTML_KRBREALM_CON)
 
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
@@ -638,7 +635,7 @@ class KrbInstance(service.Service):
         except Exception:
             pass
 
-        for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF]:
+        for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF, paths.KRB5_FREEIPA]:
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
@@ -660,5 +657,5 @@ class KrbInstance(service.Service):
         self.kpasswd.uninstall()
 
         ipautil.remove_file(paths.KRB5_KEYTAB)
-        ipautil.remove_file(paths.KRB5_FREEIPA)
+        ipautil.remove_file(paths.KRB5_FREEIPA_DEFAULTS)
         ipautil.remove_file(paths.KRB5_FREEIPA_SERVER)

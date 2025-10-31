@@ -656,25 +656,154 @@ def hardcode_ldap_server(cli_server):
         "hardcoded server name: %s", cli_server[0])
 
 
-# Currently this doesn't support templating, but that could be changed in the
-# future.  Note that this function is also called from %post.
+def configure_krb5_realm(
+        krbconf, cli_realm, cli_domain, cli_server, cli_kdc,
+        dnsok, client_domain, client_hostname, force=False):
+
+    opts = []
+    # the following are necessary only if DNS discovery does not work
+    kropts = []
+    if not dnsok or not cli_kdc or force:
+        # [realms]
+        for server in cli_server:
+            kropts.extend([
+                krbconf.setOption('kdc', ipautil.format_netloc(server, 88)),
+                krbconf.setOption('master_kdc',
+                                  ipautil.format_netloc(server, 88)),
+                krbconf.setOption('admin_server',
+                                  ipautil.format_netloc(server, 749)),
+                krbconf.setOption('kpasswd_server',
+                                  ipautil.format_netloc(server, 464))
+            ])
+    else:
+        # For DNS-based setup we should not have explicit configuration
+        kropts.extend([
+            krbconf.rmOption('kdc'),
+            krbconf.rmOption('master_kdc'),
+            krbconf.rmOption('admin_server'),
+            krbconf.rmOption('kpasswd_server')
+        ])
+
+    kropts.append(krbconf.setOption('default_domain', cli_domain))
+    kropts.append(
+        krbconf.setOption('pkinit_anchors',
+                          'FILE:%s' % paths.KDC_CA_BUNDLE_PEM))
+    kropts.append(
+        krbconf.setOption('pkinit_pool',
+                          'FILE:%s' % paths.CA_BUNDLE_PEM))
+    ropts = [{
+        'name': cli_realm,
+        'type': 'subsection',
+        'value': kropts,
+        'action': 'set'
+    }]
+
+    opts.append(krbconf.setSection('realms', ropts))
+    opts.append(krbconf.emptyLine())
+
+    # [domain_realm]
+    dropts = [
+        krbconf.setOption('.{}'.format(cli_domain), cli_realm),
+        krbconf.setOption(cli_domain, cli_realm),
+        krbconf.setOption(client_hostname, cli_realm)
+    ]
+
+    # add client domain mapping if different from server domain
+    if cli_domain != client_domain:
+        dropts.extend([
+            krbconf.setOption('.{}'.format(client_domain), cli_realm),
+            krbconf.setOption(client_domain, cli_realm)
+        ])
+
+    opts.extend([
+        krbconf.setSection('domain_realm', dropts),
+        krbconf.emptyLine()
+    ])
+
+    return opts
+
+
 def configure_krb5_snippet():
+    template = os.path.join(
+        paths.USR_SHARE_IPA_CLIENT_DIR,
+        os.path.basename(paths.KRB5_FREEIPA_DEFAULTS) + ".template"
+    )
+    shutil.copy(template, paths.KRB5_FREEIPA_DEFAULTS)
+    os.chmod(paths.KRB5_FREEIPA_DEFAULTS, 0o644)
+    tasks.restore_context(paths.KRB5_FREEIPA_DEFAULTS)
+
+
+def configure_krb5_snippet_full(
+        cli_realm, cli_domain, cli_server, cli_kdc,
+        dnsok, client_domain, client_hostname, force=False, fstore=None):
+
+    configure_krb5_snippet()
+
+    # Then, perform the rest of our configuration into krb5.conf itself.
+    krbconf = IPAChangeConf("IPA Installer")
+    krbconf.setOptionAssignment((" = ", " "))
+    krbconf.setSectionNameDelimiters(("[", "]"))
+    krbconf.setSubSectionDelimiters(("{", "}"))
+    krbconf.setIndent(("", "  ", "    "))
+
+    opts = [
+        {
+            'name': 'comment',
+            'type': 'comment',
+            'value': 'File modified by ipa-client-install',
+            'action': 'set'
+        },
+        krbconf.emptyLine(),
+    ]
+
+    new_opts = configure_krb5_realm(
+        krbconf, cli_realm, cli_domain, cli_server, cli_kdc,
+        dnsok, client_domain, client_hostname, force)
+
+    opts.extend(new_opts)
+    logger.debug("Writing Kerberos realm configuration to %s:",
+                 paths.KRB5_FREEIPA)
+    logger.debug("%s", krbconf.dump(opts))
+
     template = os.path.join(
         paths.USR_SHARE_IPA_CLIENT_DIR,
         os.path.basename(paths.KRB5_FREEIPA) + ".template"
     )
-    shutil.copy(template, paths.KRB5_FREEIPA)
-    os.chmod(paths.KRB5_FREEIPA, 0o644)
 
+    # Bootstrap the default configuration
+    sub_dict = {
+        'REALM': cli_realm, 'DOMAIN': cli_domain, 'FQDN': cli_kdc,
+        'KDC_CA_BUNDLE_PEM': paths.KDC_CA_BUNDLE_PEM,
+        'CA_BUNDLE_PEM': paths.CA_BUNDLE_PEM,
+        'OTHER_DOMAIN_REALM_MAPS': ''
+    }
+    if not dnsok or not cli_kdc or force:
+        sub_dict['FQDN'] = cli_server[0]
+
+    conf = ipautil.template_file(template, sub_dict)
+    if fstore is not None:
+        fstore.backup_file(paths.KRB5_FREEIPA)
+    with open(paths.KRB5_FREEIPA, 'w') as f:
+        f.write(conf)
+
+    # Apply the actual setup
+    krbconf.changeConf(paths.KRB5_FREEIPA, opts)
+    # Remove the backup which contained the initialized template
+    remove_file(paths.KRB5_FREEIPA + '.ipabkp')
+    os.chmod(paths.KRB5_FREEIPA, 0o644)
     tasks.restore_context(paths.KRB5_FREEIPA)
 
 
 def configure_krb5_conf(
         cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
         filename, client_domain, client_hostname, force=False,
-        configure_sssd=True):
+        configure_sssd=True, fstore=None):
+
     # First, write a snippet to krb5.conf.d.
-    configure_krb5_snippet()
+    configure_krb5_snippet_full(
+        cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
+        client_domain, client_hostname, force=force, fstore=fstore
+    )
 
     # Then, perform the rest of our configuration into krb5.conf itself.
     krbconf = IPAChangeConf("IPA Installer")
@@ -731,56 +860,6 @@ def configure_krb5_conf(
 
     opts.extend([
         krbconf.setSection('libdefaults', libopts),
-        krbconf.emptyLine()
-    ])
-
-    # the following are necessary only if DNS discovery does not work
-    kropts = []
-    if not dnsok or not cli_kdc or force:
-        # [realms]
-        for server in cli_server:
-            kropts.extend([
-                krbconf.setOption('kdc', ipautil.format_netloc(server, 88)),
-                krbconf.setOption('master_kdc',
-                                  ipautil.format_netloc(server, 88)),
-                krbconf.setOption('admin_server',
-                                  ipautil.format_netloc(server, 749)),
-                krbconf.setOption('kpasswd_server',
-                                  ipautil.format_netloc(server, 464))
-            ])
-        kropts.append(krbconf.setOption('default_domain', cli_domain))
-
-    kropts.append(
-        krbconf.setOption('pkinit_anchors',
-                          'FILE:%s' % paths.KDC_CA_BUNDLE_PEM))
-    kropts.append(
-        krbconf.setOption('pkinit_pool',
-                          'FILE:%s' % paths.CA_BUNDLE_PEM))
-    ropts = [{
-        'name': cli_realm,
-        'type': 'subsection',
-        'value': kropts
-    }]
-
-    opts.append(krbconf.setSection('realms', ropts))
-    opts.append(krbconf.emptyLine())
-
-    # [domain_realm]
-    dropts = [
-        krbconf.setOption('.{}'.format(cli_domain), cli_realm),
-        krbconf.setOption(cli_domain, cli_realm),
-        krbconf.setOption(client_hostname, cli_realm)
-    ]
-
-    # add client domain mapping if different from server domain
-    if cli_domain != client_domain:
-        dropts.extend([
-            krbconf.setOption('.{}'.format(client_domain), cli_realm),
-            krbconf.setOption(client_domain, cli_realm)
-        ])
-
-    opts.extend([
-        krbconf.setSection('domain_realm', dropts),
         krbconf.emptyLine()
     ])
 
@@ -2897,7 +2976,8 @@ def _install(options, tdict):
             client_domain=client_domain,
             client_hostname=hostname,
             configure_sssd=options.sssd,
-            force=options.force)
+            force=options.force,
+            fstore=fstore)
         env['KRB5_CONFIG'] = krb_name
         ccache_name = os.path.join(ccache_dir, 'ccache')
         join_args = [
@@ -3453,7 +3533,8 @@ def _install(options, tdict):
             client_domain=client_domain,
             client_hostname=hostname,
             configure_sssd=options.sssd,
-            force=options.force)
+            force=options.force,
+            fstore=fstore)
 
         logger.info("Configured /etc/krb5.conf for IPA realm %s", cli_realm)
 
@@ -3890,6 +3971,8 @@ def uninstall(options):
     remove_file(paths.IPA_CA_CRT)
     remove_file(paths.KDC_CA_BUNDLE_PEM)
     remove_file(paths.CA_BUNDLE_PEM)
+    remove_file(paths.KRB5_FREEIPA)
+    remove_file(paths.KRB5_FREEIPA_DEFAULTS)
 
     logger.info("Client uninstall complete.")
 
