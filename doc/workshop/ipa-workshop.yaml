@@ -9,7 +9,6 @@ network:
   no_dns: true
 extra_data:
   - playbooks
-  # - open-firefox.sh
 ipa_deployments:
   - name: ipa-workshop
     domain: ipademo.local

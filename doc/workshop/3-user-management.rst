@@ -13,9 +13,9 @@ Web UI
 
 To be able to access the WebUI, you need to add a profile to your Firefox
 configuration, and run the browser with ``podman unshare --rootless-netns``.
-From the workshop folder run ``open-firefox.sh <URL>`` that it will take
-care of all the configuration. Once done, run ``open-firefox.sh -r`` to
-clean up the configuration.
+Use the script ``scripts/open-browser.sh <URL>`` that it will take care of
+all the configuration, for either Firefox or Google Chrome. Once done, run
+``scripts/open-browser.sh -r`` to clean up the configuration.
 
 Visit ``https://server.ipademo.local/``.  You'll get a TLS
 *untrusted issuer* warning which you can dismiss (by adding a temporary

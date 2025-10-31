@@ -1,2 +1,2 @@
-ipalab-config>=0.15.0
+ipalab-config @ git+https://github.com/rjeffman/ipalab-config@open_browser
 podman-compose>=0.13.0
