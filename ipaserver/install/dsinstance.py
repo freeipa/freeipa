@@ -855,19 +855,34 @@ class DsInstance(service.Service):
             # rewrite the pin file with current password
             dsdb.create_pin_file()
             if self.master_fqdn is None:
-                ca_args = [
-                    paths.CERTMONGER_DOGTAG_SUBMIT,
-                    '--ee-url', 'https://%s:8443/ca/ee/ca' % self.fqdn,
-                    '--certfile', paths.RA_AGENT_PEM,
-                    '--keyfile', paths.RA_AGENT_KEY,
-                    '--cafile', paths.IPA_CA_CRT,
-                    '--agent-submit'
-                ]
-                helper = " ".join(ca_args)
-                prev_helper = certmonger.modify_ca_helper('IPA', helper)
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    tmpdb = certs.CertDB(api.env.realm, nssdir=tmpdir)
+                    tmpdb.create_from_cacert()
+                    keyfile = os.path.join(tmpdb.secdir, "key.pem")
+                    certfile = os.path.join(tmpdb.secdir, "cert.pem")
+                    tmpdb.pki_issue_certificate(
+                        "ldap", dogtag.DEFAULT_PROFILE,
+                        keyfile, certfile
+                    )
+
+                    ipautil.run(
+                        [paths.OPENSSL, 'pkcs12', '-export',
+                         '-in', certfile,
+                         '-out', os.path.join(tmpdb.secdir, 'server.p12'),
+                         '-inkey', keyfile,
+                         '-password', 'file:{}'.format(tmpdb.passwd_fname),
+                         '-name', 'Server-Cert',
+                         '-keypbe', 'AES-256-CBC',
+                         '-certpbe', 'AES-256-CBC',
+                         '-macalg', 'sha384',]
+                    )
+                    with open(tmpdb.passwd_fname, "r") as fd:
+                        key_password = fd.read()
+                    dsdb.import_pkcs12(
+                        os.path.join(tmpdb.secdir, 'server.p12'), key_password
+                    )
             else:
-                prev_helper = None
-            try:
+                (keytype, keysize) = installutils.lookup_key_type(api)
                 cmd = 'restart_dirsrv %s' % self.serverid
                 certmonger.request_and_wait_for_cert(
                     certpath=dirname,
@@ -880,20 +895,18 @@ class DsInstance(service.Service):
                     profile=dogtag.DEFAULT_PROFILE,
                     dns=[self.fqdn],
                     post_command=cmd,
-                    resubmit_timeout=api.env.certmonger_wait_timeout
+                    resubmit_timeout=api.env.certmonger_wait_timeout,
+                    keytype=keytype,
+                    keysize=keysize,
                 )
-            finally:
-                if prev_helper is not None:
-                    certmonger.modify_ca_helper('IPA', prev_helper)
 
-            # restart_dirsrv in the request above restarts DS, reconnect ldap2
             api.Backend.ldap2.disconnect()
             api.Backend.ldap2.connect()
 
             self.cert = dsdb.get_cert_from_db(self.nickname)
-
-            if prev_helper is not None:
-                self.add_cert_to_service()
+            self.add_cert_to_service()
+            if self.master_fqdn is None:
+                self.start_tracking_certificates(self.serverid)
 
         self.cacert_name = dsdb.cacert_name
 
@@ -1295,7 +1308,7 @@ class DsInstance(service.Service):
         else:
             logger.debug("extdom plugin is already configured")
 
-    def find_subject_base(self):
+    def find_subject_base(self, skip_runcheck=False):
         """
         Try to find the current value of certificate subject base.
         1) Look in sysupgrade first
@@ -1305,6 +1318,8 @@ class DsInstance(service.Service):
         Note that this method can only be executed AFTER the ipa server
         is configured, the api is initialized elsewhere and
         that a ticket already have been acquired.
+
+        :param skip_runcheck: test that DS is running or not.
         """
         logger.debug(
             'Trying to find certificate subject base in sysupgrade')
@@ -1322,14 +1337,17 @@ class DsInstance(service.Service):
         logger.debug(
             'Trying to find certificate subject base in DS')
 
-        ds_is_running = is_ds_running()
-        if not ds_is_running:
-            try:
-                self.start()
-                ds_is_running = True
-            except ipautil.CalledProcessError as e:
-                logger.error('Cannot start DS to find certificate '
-                             'subject base: %s', e)
+        if not skip_runcheck:
+            ds_is_running = is_ds_running()
+            if not ds_is_running:
+                try:
+                    self.start()
+                    ds_is_running = True
+                except ipautil.CalledProcessError as e:
+                    logger.error('Cannot start DS to find certificate '
+                                 'subject base: %s', e)
+        else:
+            ds_is_running = True
 
         if ds_is_running:
             try:

@@ -49,7 +49,10 @@ from ipaplatform.tasks import tasks
 from ipapython import directivesetter
 from ipapython import dogtag
 from ipapython import ipautil
-from ipapython.certdb import get_ca_nickname
+from ipapython.certdb import (
+    get_ca_nickname,
+    IPA_CA_TRUST_FLAGS,
+    EMPTY_TRUST_FLAGS)
 from ipapython.dn import DN, RDN
 from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.secrets.kem import IPAKEMKeys
@@ -934,88 +937,71 @@ class CAInstance(DogtagInstance):
         in a usual deployment would be used in the UI to handle
         administrative duties. IPA does not use this certificate
         except as a bootstrap to generate the RA.
-
-        To do this it bends over backwards a bit by modifying the
-        way typical certificates are retrieved using certmonger by
-        forcing it to call dogtag-submit directly.
         """
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdb = certs.CertDB(self.realm, nssdir=tmpdir)
+            chain_file = os.path.join(tmpdir, "chain.pem")
 
-        # create a temp PEM file storing the CA chain
-        chain_file = tempfile.NamedTemporaryFile(
-            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
-        chain_file.close()
+            chain = self.__get_ca_chain()
+            data = base64.b64decode(chain)
+            ipautil.run(
+                [paths.OPENSSL,
+                 "pkcs7",
+                 "-inform",
+                 "DER",
+                 "-print_certs",
+                 "-out", chain_file,
+                 ], stdin=data, capture_output=False)
 
-        chain = self.__get_ca_chain()
-        data = base64.b64decode(chain)
-        ipautil.run(
-            [paths.OPENSSL,
-             "pkcs7",
-             "-inform",
-             "DER",
-             "-print_certs",
-             "-out", chain_file.name,
-             ], stdin=data, capture_output=False)
+            tmpdb.create_noise_file()
+            tmpdb.create_passwd_file()
+            tmpdb.create_certdbs()
+            tmpdb.load_cacert(chain_file, IPA_CA_TRUST_FLAGS)
 
-        # CA agent cert in PEM form
-        agent_cert = tempfile.NamedTemporaryFile(
-            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
-        agent_cert.close()
+            tmpdb.import_pkcs12(
+                paths.DOGTAG_ADMIN_P12, pkcs12_passwd=self.dm_password)
 
-        # CA agent key in PEM form
-        agent_key = tempfile.NamedTemporaryFile(
-            mode="w", dir=paths.VAR_LIB_IPA, delete=False)
-        agent_key.close()
+            (_keytype, keysize) = api.env.key_type_size.split(':', 1)
 
-        certs.install_pem_from_p12(paths.DOGTAG_ADMIN_P12,
-                                   self.dm_password,
-                                   agent_cert.name)
-        certs.install_key_from_p12(paths.DOGTAG_ADMIN_P12,
-                                   self.dm_password,
-                                   agent_key.name)
-
-        agent_args = [paths.CERTMONGER_DOGTAG_SUBMIT,
-                      "--cafile", chain_file.name,
-                      "--ee-url", 'http://%s:8080/ca/ee/ca/' % self.fqdn,
-                      "--agent-url",
-                      'https://%s:8443/ca/agent/ca/' % self.fqdn,
-                      "--certfile", agent_cert.name,
-                      "--keyfile", agent_key.name, ]
-
-        helper = " ".join(agent_args)
-
-        # configure certmonger renew agent to use temporary agent cert
-        old_helper = certmonger.modify_ca_helper(
-            ipalib.constants.RENEWAL_CA_NAME, helper)
-
-        try:
-            # The certificate must be requested using caSubsystemCert profile
-            # because this profile does not require agent authentication
-            reqId = certmonger.request_and_wait_for_cert(
-                certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
-                principal='host/%s' % self.fqdn,
-                subject=str(DN(('CN', 'IPA RA'), self.subject_base)),
-                ca=ipalib.constants.RENEWAL_CA_NAME,
-                profile=ipalib.constants.RA_AGENT_PROFILE,
-                pre_command='renew_ra_cert_pre',
-                post_command='renew_ra_cert',
-                storage="FILE",
-                resubmit_timeout=api.env.certmonger_wait_timeout
+            csrfile = os.path.join(tmpdb.secdir, "csr")
+            ipautil.run(
+                [paths.CERTUTIL,
+                 "-d", tmpdb.secdir,
+                 "-R", "-s", str(DN(('CN', 'IPA RA'), self.subject_base)),
+                 # eventually use -q curve-name for ECC
+                 "-g", keysize,
+                 "-z", os.path.join(tmpdb.secdir, tmpdb.noise_fname),
+                 "-f", tmpdb.passwd_fname,
+                 "-o", csrfile,
+                 "-a",]
             )
-            self._set_ra_cert_perms()
 
-            self.requestId = str(reqId)
+            tmpdb.pki_issue_ra_certificate(
+                csrfile=csrfile,
+                certfile=paths.RA_AGENT_PEM,
+                dm_password=self.dm_password)
+
             self.ra_cert = x509.load_certificate_from_file(
                 paths.RA_AGENT_PEM)
-        finally:
-            # we can restore the helper parameters
-            certmonger.modify_ca_helper(
-                ipalib.constants.RENEWAL_CA_NAME, old_helper)
-            # remove any temporary files
-            for f in (chain_file, agent_cert, agent_key):
-                try:
-                    os.remove(f.name)
-                except OSError:
-                    pass
+            tmpdb.add_cert(self.ra_cert, 'IPA RA', EMPTY_TRUST_FLAGS)
+            pk12_pwdfile = ipautil.write_tmp_file(self.dm_password)
+            tmpdb.export_pkcs12(
+                os.path.join(tmpdb.secdir, "ra.p12"),
+                pk12_pwdfile.name,
+                'IPA RA')
+            certs.install_key_from_p12(
+                os.path.join(tmpdb.secdir, "ra.p12"),
+                self.dm_password, paths.RA_AGENT_KEY)
+        self._set_ra_cert_perms()
+        update_people_entry(self.ra_cert)
+        certmonger.start_tracking(
+            certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
+            ca=ipalib.constants.RENEWAL_CA_NAME,
+            profile=ipalib.constants.RA_AGENT_PROFILE,
+            pre_command='renew_ra_cert_pre',
+            post_command='renew_ra_cert',
+            storage='FILE',
+        )
 
     def prepare_crl_publish_dir(self):
         """
@@ -1839,6 +1825,28 @@ def update_authority_entry(cert):
     return __update_entry_from_cert(make_filter, make_entry, cert)
 
 
+def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
+    """Dynamically define the relationship between subjects and
+        nicknames for the CA and KRA.
+    """
+    if subject_base is None or ca_subject_dn is None:
+        raise ValueError(
+            "Both subject_base and ca_subject_dn are required.")
+    return {
+        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
+        DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
+        DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
+        DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
+        DN('CN=KRA Audit', subject_base): 'auditSigningCert cert-pki-kra',
+        DN('CN=KRA Transport Certificate', subject_base):
+            'transportCert cert-pki-kra',
+        DN('CN=KRA Storage Certificate', subject_base):
+            'storageCert cert-pki-kra',
+        DN('CN=IPA RA', subject_base): 'ipaCert',
+        DN(('CN', api.env.host), subject_base): 'Server-Cert cert-pki-ca',
+    }
+
+
 def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
     """
     Get the nickname for storage in the cn_renewal container.
@@ -1850,18 +1858,9 @@ def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
 
     """
     assert isinstance(sdn, DN)
-    nickname_by_subject_dn = {
-        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
-        DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
-        DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
-        DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
-        DN('CN=KRA Audit', subject_base): 'auditSigningCert cert-pki-kra',
-        DN('CN=KRA Transport Certificate', subject_base):
-            'transportCert cert-pki-kra',
-        DN('CN=KRA Storage Certificate', subject_base):
-            'storageCert cert-pki-kra',
-        DN('CN=IPA RA', subject_base): 'ipaCert',
-    }
+    nickname_by_subject_dn = get_nickname_by_subject_dn(
+        subject_base, ca_subject_dn
+    )
     return nickname_by_subject_dn.get(sdn)
 
 
@@ -2130,7 +2129,7 @@ def import_included_profiles():
     # on what port to use, 443 (remote) or 8443 (local) for importing
     # the profiles.
     #
-    # api.Backend.ra_certprofile invokes the RestClient class
+    # api.Backend.ra_certprofile invokes the APIClient class
     # which will discover and login to the CA REST API. We can
     # use this information to detect where to import the profiles.
     #
@@ -2143,7 +2142,7 @@ def import_included_profiles():
     # Apache but no CA, login fails with 404) so we override to the
     # local server.
     #
-    # When override port was always set to 8443 the RestClient could
+    # When override port was always set to 8443 the APIClient could
     # pick a remote server and since 8443 isn't in our firewall profile
     # setting up a new server would fail.
     try:
@@ -2151,6 +2150,9 @@ def import_included_profiles():
             if profile_api.ca_host == api.env.host:
                 api.Backend.ra_certprofile.override_port = 8443
     except (errors.NetworkError, errors.RemoteRetrieveError) as e:
+        logger.debug('Overriding CA port: %s', e)
+        api.Backend.ra_certprofile.override_port = 8443
+    except Exception as e:
         logger.debug('Overriding CA port: %s', e)
         api.Backend.ra_certprofile.override_port = 8443
 
