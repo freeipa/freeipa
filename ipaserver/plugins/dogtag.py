@@ -455,6 +455,20 @@ from ipaplatform.paths import paths
 register = Registry()
 
 
+def support_v2(pki_client):
+    """Fix the PKIClient class if the remote CA is 11.7.0 or higher
+
+       Older versions of PKI either do not support v2 or
+       IPA doesn't configure to accept v2. Fall back to v1.
+    """
+    server_info = pki_client.info_client.get_info()
+    version = pki.util.Version(server_info.version)
+    if version <= pki.util.Version('11.6.0'):
+        pki_client.api_version = 'v1'
+        pki_client.api_path = 'rest'
+    return pki_client
+
+
 class APIClient(Backend):
     """Simple Dogtag API client to be subclassed by other backends.
 
@@ -553,6 +567,7 @@ class APIClient(Backend):
 
         pki_client = pki.client.PKIClient(
             url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        pki_client = support_v2(pki_client)
         object.__setattr__(self, 'pki_client', pki_client)
         self.pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
@@ -609,6 +624,7 @@ class ra(rabase.rabase, APIClient):
         port = self.override_port or "443"
         pki_client = pki.client.PKIClient(
             url=f'https://{self.ca_host}:{port}', ca_bundle=self.ca_cert)
+        pki_client = support_v2(pki_client)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
@@ -1275,6 +1291,7 @@ class kra(Backend):
         pki_client = pki.client.PKIClient(
             url=f'https://{self.kra_host}:{self.kra_port}',
             ca_bundle=paths.IPA_CA_CRT)
+        pki_client = support_v2(pki_client)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
