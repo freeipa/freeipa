@@ -125,6 +125,8 @@ global_output_params = (
         label='Subordinate ids',),
     Str('member_idoverrideuser?',
         label=_('Member ID user overrides'),),
+    Str('member_sysaccount?',
+        label=_('Member system accounts'),),
     Str('memberindirect_idoverrideuser?',
         label=_('Indirect Member ID user overrides'),),
     Str('memberindirect_user?',
@@ -1480,6 +1482,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
     )
 
     has_output_params = global_output_params
+    allow_empty_update = False
 
     def _get_rename_option(self):
         rdnparam = getattr(self.obj.params, self.obj.primary_key.name)
@@ -1573,8 +1576,9 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
         except errors.EmptyModlist as e:
-            if not rdnupdate:
-                raise e
+            if not self.allow_empty_update:
+                if not rdnupdate:
+                    raise e
         except errors.NotFound:
             raise self.obj.handle_not_found(*keys)
 

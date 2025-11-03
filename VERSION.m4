@@ -86,8 +86,8 @@ define(IPA_DATA_VERSION, 20100614120000)
 #                                                      #
 ########################################################
 define(IPA_API_VERSION_MAJOR, 2)
-# Last change: add pwpolicy credit options
-define(IPA_API_VERSION_MINOR, 255)
+# Last change: add sysaccounts
+define(IPA_API_VERSION_MINOR, 256)
 
 ########################################################
 # Following values are auto-generated from values above

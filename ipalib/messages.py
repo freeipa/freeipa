@@ -531,6 +531,32 @@ class UidNumberOutOfLocalIDRange(PublicMessage):
     )
 
 
+class ServerSysacctMgrUpdateRequired(PublicMessage):
+    """
+    **13035** An update of sysaccount manager entry is required on other servers
+    """
+    errno = 13035
+    type = "warning"
+    format = _(
+        "Password reset permission is local to server %(server)s.\n"
+        "Restart the Directory Server services on it. Run the command "
+        "'ipa %(command)s' against each server you want to allow or "
+        "disable to reset passwords on."
+    )
+
+
+class SystemAccountUsage(PublicMessage):
+    """
+    **13036** General sysaccount usage note
+    """
+    errno = 13036
+    type = "info"
+    format = _(
+        "To bind to LDAP with system account '%(uid)s', use the bind DN "
+        "'%(dn)s'."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
