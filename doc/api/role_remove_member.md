@@ -21,6 +21,7 @@ Remove members from a role.
 * hostgroup : :ref:`Str<Str>`
 * service : :ref:`Str<Str>`
 * idoverrideuser : :ref:`Str<Str>`
+* sysaccount : :ref:`Str<Str>`
 
 ### Output
 |Name|Type
