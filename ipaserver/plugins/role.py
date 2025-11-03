@@ -89,7 +89,7 @@ class role(LDAPObject):
 
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup', 'service',
-                   'idoverrideuser'],
+                   'idoverrideuser', 'sysaccount'],
         'memberof': ['privilege'],
     }
     reverse_members = {

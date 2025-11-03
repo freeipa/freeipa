@@ -1047,6 +1047,7 @@ class test_service_in_role(Declarative):
                         service=[],
                         user=[],
                         idoverrideuser=[],
+                        sysaccount=[],
                     ),
                 ),
                 completed=1,

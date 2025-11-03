@@ -374,6 +374,16 @@ dn: cn=sudorules,cn=sudo,dc=ipa,dc=example
 aci: (targetattr = "cmdcategory || cn || createtimestamp || description || entryusn || externalhost || externaluser || hostcategory || hostmask || ipaenabledflag || ipasudoopt || ipasudorunas || ipasudorunasextgroup || ipasudorunasextuser || ipasudorunasextusergroup || ipasudorunasgroup || ipasudorunasgroupcategory || ipasudorunasusercategory || ipauniqueid || member || memberallowcmd || memberdenycmd || memberhost || memberuser || modifytimestamp || objectclass || sudonotafter || sudonotbefore || sudoorder || usercategory")(targetfilter = "(objectclass=ipasudorule)")(version 3.0;acl "permission:System: Read Sudo Rules";allow (compare,read,search) userdn = "ldap:///all";)
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || modifytimestamp || objectclass || ou || sudocommand || sudohost || sudonotafter || sudonotbefore || sudooption || sudoorder || sudorunas || sudorunasgroup || sudorunasuser || sudouser")(target = "ldap:///ou=sudoers,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Sudoers compat tree";allow (compare,read,search) userdn = "ldap:///anyone";)
+dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Add System Accounts";allow (add) groupdn = "ldap:///cn=System: Add System Accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "userpassword")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Check System Accounts passwords";allow (search) groupdn = "ldap:///cn=System: Check System Accounts passwords,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "userpassword")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Modify System Accounts";allow (write) groupdn = "ldap:///cn=System: Modify System Accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || entryusn || memberof || modifytimestamp || objectclass || uid")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Read System Accounts";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Remove System Accounts";allow (delete) groupdn = "ldap:///cn=System: Remove System Accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=topology,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (targetfilter = "(|(objectclass=iparepltopoconf)(objectclass=iparepltoposegment))")(version 3.0;acl "permission:System: Add Topology Segments";allow (add) groupdn = "ldap:///cn=System: Add Topology Segments,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=topology,cn=ipa,cn=etc,dc=ipa,dc=example
