@@ -121,7 +121,8 @@ var nav = {};
                             label: '@i18n:objects.subid.stats'
                         }
                     ]
-                }
+                },
+                { entity: 'sysaccount' }
             ]
         },
         {

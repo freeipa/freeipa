@@ -434,6 +434,14 @@ IPA API Commands
    sudorule_remove_runasuser.md
    sudorule_remove_user.md
    sudorule_show.md
+   sysaccount_add.md
+   sysaccount_del.md
+   sysaccount_disable.md
+   sysaccount_enable.md
+   sysaccount_find.md
+   sysaccount_mod.md
+   sysaccount_policy.md
+   sysaccount_show.md
    topic_find.md
    topic_show.md
    topologysegment_add.md
