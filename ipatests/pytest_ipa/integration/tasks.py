@@ -1922,7 +1922,7 @@ def run_repeatedly(host, command, assert_zero_rc=True, test=None,
     if test:
         assert callable(test)
 
-    while(time_waited <= timeout):
+    while (time_waited <= timeout):
         result = host.run_command(command, raiseonerr=False, **kwargs)
 
         return_code_ok = not assert_zero_rc or (result.returncode == 0)
@@ -2142,6 +2142,154 @@ def group_add_member(host, groupname, users=None,
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
+def hbacrule_add(host, rulename, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add", rulename,
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacrule_add_user(host, rulename, users=None, groups=None,
+                      raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add-user", rulename
+    ]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_add_host(host, rulename, hosts=None,
+                      raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add-host", rulename
+    ]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_add_service(host, rulename, services=None,
+                         raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-add-service", rulename
+    ]
+    if services:
+        cmd.append("--hbacsvcs")
+        cmd.append(services)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hostgroup_add(host, groupname, extra_args=()):
+    cmd = [
+        "ipa", "hostgroup-add", groupname,
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hostgroup_add_member(host, groupname, hosts=None,
+                         raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hostgroup-add-member", groupname
+    ]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_show(host, rulename, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-show", rulename
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacrule_remove_user(host, rulename, users=None, groups=None,
+                         raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-remove-user", rulename
+    ]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_remove_service(host, rulename, services=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-remove-service", rulename
+    ]
+    if services:
+        cmd.append("--hbacsvcs")
+        cmd.append(services)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_del(host, rulename, extra_args=()):
+    cmd = [
+        "ipa", "hbacrule-del", rulename
+    ]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacrule_enable(host, rulename, raiseonerr=True):
+    cmd = ["ipa", "hbacrule-enable", rulename]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacrule_disable(host, rulename, raiseonerr=True):
+    cmd = ["ipa", "hbacrule-disable", rulename]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacsvc_add(host, svcname, extra_args=(), raiseonerr=True):
+    cmd = ["ipa", "hbacsvc-add", svcname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacsvc_del(host, svcname, raiseonerr=True):
+    cmd = ["ipa", "hbacsvc-del", svcname]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hbacsvcgroup_add(host, groupname, extra_args=()):
+    cmd = ["ipa", "hbacsvcgroup-add", groupname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def hbacsvcgroup_add_member(host, groupname, services=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "hbacsvcgroup-add-member", groupname]
+    if services:
+        cmd.append("--hbacsvc")
+        cmd.append(services)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def hostgroup_del(host, groupname, raiseonerr=True):
+    cmd = ["ipa", "hostgroup-del", groupname]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
 def ldapmodify_dm(host, ldif_text, **kwargs):
     """Run ldapmodify as Directory Manager
 
@@ -2237,7 +2385,7 @@ def set_user_password(host, username, password):
     sendpass = f"redhat\n{password}\n{password}"
     kdestroy_all(host)
     kinit_admin(host)
-    host.run_command(["ipa", "passwd", username],stdin_text=temppass)
+    host.run_command(["ipa", "passwd", username], stdin_text=temppass)
     host.run_command(["kinit", username], stdin_text=sendpass)
     kdestroy_all(host)
     kinit_admin(host)
