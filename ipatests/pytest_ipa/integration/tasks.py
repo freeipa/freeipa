@@ -60,6 +60,7 @@ from ipalib.constants import (
     DEFAULT_CONFIG, DOMAIN_SUFFIX_NAME, DOMAIN_LEVEL_0,
     MIN_DOMAIN_LEVEL, MAX_DOMAIN_LEVEL
 )
+from ipapython.ipaldap import realm_to_serverid
 
 from ipatests.create_external_ca import ExternalCA
 from .env_config import env_to_script
@@ -1922,7 +1923,7 @@ def run_repeatedly(host, command, assert_zero_rc=True, test=None,
     if test:
         assert callable(test)
 
-    while(time_waited <= timeout):
+    while (time_waited <= timeout):
         result = host.run_command(command, raiseonerr=False, **kwargs)
 
         return_code_ok = not assert_zero_rc or (result.returncode == 0)
@@ -2185,6 +2186,54 @@ def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
     return host.run_command(args, **kwargs)
 
 
+def run_ldapsearch(host, bind_dn, bind_pw, base,
+                   ldap_args, scope='sub', **kwargs
+                   ):
+    """Run ldapsearch with specified bind credentials
+
+    :param host: host object
+    :param bind_dn: DN to bind as
+    :param bind_pw: password for bind
+    :param base: base DN for search
+    :param ldap_args: additional arguments to ldapsearch (filter, attributes)
+    :param scope: search scope (base, sub, one), default: 'sub'
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapsearch',
+        '-x',
+        '-H', "ldap://{}".format(host.hostname),
+        '-D', bind_dn,
+        '-w', bind_pw,
+        '-s', scope,
+        '-b', base,
+    ]
+    args.extend(ldap_args)
+    return host.run_command(args, **kwargs)
+
+
+def run_ldapmodify(host, bind_dn, bind_pwd, ldif_text, **kwargs):
+    """Run ldapmodify with specified bind credentials
+
+    :param host: host object
+    :param bind_dn: DN to bind as
+    :param bind_pwd: password for bind
+    :param ldif_text: LDIF text to apply
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapmodify',
+        '-x',
+        '-ZZ',
+        '-H', "ldap://{}".format(host.hostname),
+        '-D', bind_dn,
+        '-w', bind_pwd,
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
 def create_temp_file(host, directory=None, suffix=None, create_file=True):
     """Creates temporary file using mktemp. See `man 1 mktemp`."""
     cmd = ['mktemp']
@@ -2237,7 +2286,7 @@ def set_user_password(host, username, password):
     sendpass = f"redhat\n{password}\n{password}"
     kdestroy_all(host)
     kinit_admin(host)
-    host.run_command(["ipa", "passwd", username],stdin_text=temppass)
+    host.run_command(["ipa", "passwd", username], stdin_text=temppass)
     host.run_command(["kinit", username], stdin_text=sendpass)
     kdestroy_all(host)
     kinit_admin(host)
@@ -3014,3 +3063,10 @@ def check_journal_does_not_contain_secret(host, cmd):
     result = host.run_command(journalctl_cmd, raiseonerr=False)
     assert (host.config.admin_password not in result.stdout_text)
     assert (host.config.dirman_password not in result.stdout_text)
+
+
+def service_control_dirsrv(host, function='restart'):
+    """Function to control the dirsrv service i.e start, stop, restart etc"""
+    instance = realm_to_serverid(host.domain.realm)
+    cmd = host.run_command(['systemctl', function, f"dirsrv@{instance}"])
+    assert cmd.returncode == 0
