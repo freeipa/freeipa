@@ -1255,7 +1255,6 @@ class TestIpaHealthCheck(IntegrationTest):
         revert back to the default TLS1.2
         """
         instance = realm_to_serverid(self.master.domain.realm)
-        cmd = ["systemctl", "restart", "dirsrv@{}".format(instance)]
         # The crypto policy must be set to LEGACY otherwise 389ds
         # combines crypto policy amd minSSLVersion and removes
         # TLS1.0 on fedora>=33 as the DEFAULT policy forbids TLS1.0
@@ -1269,7 +1268,7 @@ class TestIpaHealthCheck(IntegrationTest):
                 "--tls-protocol-min=TLS1.0",
             ]
         )
-        self.master.run_command(cmd)
+        tasks.service_control_dirsrv(self.master)
         yield
         self.master.run_command(['update-crypto-policies', '--set', 'DEFAULT'])
         self.master.run_command(
@@ -1281,7 +1280,7 @@ class TestIpaHealthCheck(IntegrationTest):
                 "--tls-protocol-min=TLS1.2",
             ]
         )
-        self.master.run_command(cmd)
+        tasks.service_control_dirsrv(self.master)
 
     @pytest.mark.skipif((osinfo.id == 'rhel'
                          and osinfo.version_number >= (9,0)),
@@ -1684,9 +1683,7 @@ class TestIpaHealthCheck(IntegrationTest):
             self.master.run_command(['date', '-s', grace_date])
 
             # Restart dirsrv as it doesn't like time jumps
-            instance = realm_to_serverid(self.master.domain.realm)
-            cmd = ["systemctl", "restart", "dirsrv@{}".format(instance)]
-            self.master.run_command(cmd)
+            tasks.service_control_dirsrv(self.master)
 
             for check in ("IPACertmongerExpirationCheck",
                           "IPACertfileExpirationCheck",):
