@@ -212,9 +212,7 @@ class TestCASpecificRUVs(IntegrationTest):
             "The output should display 2 RUV ids of the selected replica")
 
         # Block replication to preserve replica-specific RUVs
-        dashed_domain = master.domain.realm.replace(".", '-')
-        dirsrv_service = "dirsrv@%s.service" % dashed_domain
-        replica.run_command(['systemctl', 'stop', dirsrv_service])
+        tasks.service_control_dirsrv(replica, function='stop')
         try:
             master.run_command(['ipa-replica-manage', 'clean-ruv',
                                 replica_ruvs[1], '-p',
@@ -233,7 +231,7 @@ class TestCASpecificRUVs(IntegrationTest):
             assert(replica.hostname not in res3.stdout_text), (
                 "replica's RUV is still displayed")
         finally:
-            replica.run_command(['systemctl', 'start', dirsrv_service])
+            tasks.service_control_dirsrv(replica, function='start')
 
     def test_replica_uninstall_deletes_ruvs(self):
         """
