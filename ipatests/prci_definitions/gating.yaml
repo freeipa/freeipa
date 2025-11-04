@@ -3,6 +3,10 @@ topologies:
     name: build
     cpu: 2
     memory: 3800
+  master_3client: &master_3client
+    name: master_3client
+    cpu: 5
+    memory: 7750
   master_1repl: &master_1repl
     name: master_1repl
     cpu: 4
@@ -378,3 +382,15 @@ jobs:
         template: *ci-master-latest
         timeout: 5600
         topology: *master_1repl
+
+  fedora-latest/test_hbac_functional:
+    requires: [fedora-latest/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_hbac_functional.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *master_3client
