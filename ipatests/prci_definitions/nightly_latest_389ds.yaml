@@ -35,7 +35,7 @@ jobs:
     job:
       class: Build
       args:
-        copr: '@389ds/389-ds-base-nightly'
+        copr: 'tbordaz/F20buildDS389'
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
