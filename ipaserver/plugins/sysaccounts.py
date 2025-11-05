@@ -15,6 +15,7 @@ from .baseldap import (
     LDAPSearch,
     LDAPRetrieve,
     LDAPQuery)
+from .baseuser import validate_nsaccountlock, convert_nsaccountlock
 from ipalib import _, ngettext
 from ipalib import constants
 from ipalib import output
@@ -285,6 +286,7 @@ class sysaccount_add(LDAPCreate):
                 error=_('Either --password or --random is required')
             )
         check_userpassword(entry_attrs, **options)
+        validate_nsaccountlock(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -296,6 +298,7 @@ class sysaccount_add(LDAPCreate):
         except errors.NotGroupMember:
             pass
         self.add_message(SystemAccountUsage(uid=keys[0], dn=dn))
+        convert_nsaccountlock(entry_attrs)
         return dn
 
 
@@ -353,12 +356,15 @@ class sysaccount_mod(LDAPUpdate):
         if 'privileged' not in options:
             self.allow_empty_update = False
 
+        validate_nsaccountlock(entry_attrs)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         fill_randompassword(entry_attrs, **options)
         entry_attrs['privileged'] = getattr(context, 'privileged')
+        convert_nsaccountlock(entry_attrs)
         return dn
 
 
@@ -382,6 +388,7 @@ class sysaccount_find(LDAPSearch):
             self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
             self.obj.handle_reset(self, self,
                                   ldap, entry_attrs.dn, entry_attrs, **options)
+            convert_nsaccountlock(entry_attrs)
 
         return truncated
 
@@ -398,6 +405,7 @@ class sysaccount_show(LDAPRetrieve):
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         self.obj.handle_reset(self, self,
                               ldap, dn, entry_attrs, **options)
+        convert_nsaccountlock(entry_attrs)
 
         return dn
 
@@ -413,6 +421,7 @@ class sysaccount_policy(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.handle_reset(self, self, ldap, dn, entry_attrs, **options)
+        convert_nsaccountlock(entry_attrs)
         return dn
 
 
