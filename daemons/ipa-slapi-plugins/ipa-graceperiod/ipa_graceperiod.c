@@ -448,7 +448,8 @@ static int ipagraceperiod_preop(Slapi_PBlock *pb)
         goto done;
     } else if (grace_limit < -1) {
         LOG_FATAL("Invalid passwordGraceLimit value %d\n", grace_limit);
-        return LDAP_OPERATIONS_ERROR;
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     grace_user_time = slapi_entry_attr_get_int(target_entry, "passwordGraceUserTime");
@@ -500,6 +501,7 @@ done:
         slapi_vattr_values_free(&values, &actual_type_name, attr_free_flags);
     }
     if (sdn) slapi_sdn_free(&sdn);
+    slapi_ch_free_string(&tmpstr);
 
     LOG("preop returning %d: %s\n", ret, errstr ? errstr : "success\n");
 
