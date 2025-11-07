@@ -483,6 +483,7 @@ parse_req_done:
 
             slapi_value_free(&cpw[0]);
             slapi_value_free(&pw);
+            slapi_ch_free_string(&cur_pw);
 
             if (ret != 0) {
                 LOG_TRACE("Invalid password!\n");
