@@ -1489,6 +1489,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 
             if (current_time > expire_time && expire_time > 0) {
                 LOG_FATAL("kerberos principal in %s is expired\n", dn);
+                slapi_ch_free_string(&principal_expire);
                 slapi_entry_free(entry);
                 slapi_sdn_free(&sdn);
                 slapi_send_ldap_result(pb, LDAP_UNWILLING_TO_PERFORM, NULL,
@@ -1521,6 +1522,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* Authenticate the user. */
     ret = ipapwd_authenticate(dn, entry, credentials);
     if (ret) {
+        slapi_ch_free_string(&principal_expire);
         slapi_entry_free(entry);
         slapi_sdn_free(&sdn);
         return 0;
@@ -1533,11 +1535,13 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* Attempt to write out kerberos keys for the user. */
     ipapwd_write_krb_keys(pb, discard_const(dn), entry, credentials);
 
+    slapi_ch_free_string(&principal_expire);
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
     return 0;
 
 invalid_creds:
+    slapi_ch_free_string(&principal_expire);
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
