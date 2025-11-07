@@ -812,7 +812,6 @@ static int ipalockout_preop(Slapi_PBlock *pb)
                 goto done;
             }
         }
-        slapi_ch_free_string(&unlock_time);
     }
 
     max_fail = slapi_entry_attr_get_uint(policy_entry, "krbPwdMaxFailure");
@@ -837,6 +836,7 @@ static int ipalockout_preop(Slapi_PBlock *pb)
 
 done:
     if (lastfail) slapi_ch_free_string(&lastfail);
+    if (unlock_time) slapi_ch_free_string(&unlock_time);
     slapi_entry_free(target_entry);
     slapi_entry_free(policy_entry);
     if (values != NULL) {
