@@ -66,6 +66,8 @@ static int ipa_sidgen_close(Slapi_PBlock *pb)
     if (ret == 0) {
         free_ranges(&ctx->ranges);
         slapi_ch_free_string(&ctx->dom_sid);
+        slapi_ch_free_string(&ctx->base_dn);
+        free(ctx);
     } else {
         LOG_FATAL("Missing private plugin context.\n");
     }
@@ -204,7 +206,10 @@ static int ipa_sidgen_init_ctx(Slapi_PBlock *pb, struct ipa_sidgen_ctx **_ctx)
 
 done:
     if (ret != 0) {
-        free(ctx);
+        if (ctx) {
+            slapi_ch_free_string(&ctx->base_dn);
+            free(ctx);
+        }
     } else {
         *_ctx = ctx;
     }
@@ -237,6 +242,8 @@ int ipa_sidgen_init(Slapi_PBlock *pb)
                          (void *) ipa_sidgen_add_post_op) != 0 ||
         slapi_pblock_set(pb, SLAPI_PLUGIN_PRIVATE, ctx) != 0) {
         LOG_FATAL("failed to register plugin\n");
+        slapi_ch_free_string(&ctx->base_dn);
+        free(ctx);
         ret = EFAIL;
     }
 
