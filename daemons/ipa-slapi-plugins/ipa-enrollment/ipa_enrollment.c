@@ -136,7 +136,7 @@ ipa_join(Slapi_PBlock *pb)
     int is_root=0;
     char *krbLastPwdChange = NULL;
     char *fqdn = NULL;
-    Slapi_Mods *smods;
+    Slapi_Mods *smods = NULL;
     char *attrlist[] = {"fqdn", "krbPrincipalKey", "krbLastPwdChange", "krbPrincipalName", NULL };
     char * filter;
 
@@ -328,8 +328,13 @@ free_and_return:
     if (pbtm) {
         slapi_pblock_destroy(pbtm);
     }
+    if (smods) {
+        slapi_mods_free(&smods);
+    }
 
     if (krbLastPwdChange) slapi_ch_free_string(&krbLastPwdChange);
+    if (fqdn) slapi_ch_free_string(&fqdn);
+    if (sdn) slapi_sdn_free(&sdn);
 
     LOG("%s", errMesg ? errMesg : "success\n");
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
