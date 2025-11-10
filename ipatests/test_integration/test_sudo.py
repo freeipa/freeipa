@@ -1343,13 +1343,15 @@ class TestSudo_Functional(IntegrationTest):
         clear_sssd_cache(master)
         clear_sssd_cache(self.client)
         result = self.run_as_sudo_user(
-            "date", sudo_user="root", su_user=self.USER_1)
+            "date", sudo_user="root", su_user=self.USER_1,
+            skip_sssd_cache_clear=True)
 
         sys_day = self.client.run_command(
             ["date", "+%a"]).stdout_text.strip()
         assert sys_day in result.stdout_text
 
-        result = self.list_sudo_commands(self.USER_1)
+        result = self.list_sudo_commands(self.USER_1,
+                                         skip_sssd_cache_clear=True)
         assert "(root) /bin/date" in result.stdout_text
 
         stop_ipa_server(master)
@@ -1383,9 +1385,11 @@ class TestSudo_Functional(IntegrationTest):
         clear_sssd_cache(self.client)
         clear_sssd_cache(master)
         result = self.run_as_sudo_user(
-            "uname", sudo_user="root", su_user=self.USER_1)
+            "uname", sudo_user="root", su_user=self.USER_1,
+            skip_sssd_cache_clear=True)
 
-        result = self.list_sudo_commands(self.USER_1)
+        result = self.list_sudo_commands(self.USER_1,
+                                         skip_sssd_cache_clear=True)
         assert "(root) !/bin/uname" in result.stdout_text
 
         stop_ipa_server(master)
@@ -1420,7 +1424,8 @@ class TestSudo_Functional(IntegrationTest):
         clear_sssd_cache(master)
         clear_sssd_cache(self.client)
         result = self.run_as_sudo_user(
-            "date", sudo_user=self.USER_2, su_user=self.USER_1)
+            "date", sudo_user=self.USER_2, su_user=self.USER_1,
+            skip_sssd_cache_clear=True)
 
         sys_day = self.client.run_command(
             ["date", "+%a"]).stdout_text.strip()
@@ -1485,13 +1490,15 @@ class TestSudo_Functional(IntegrationTest):
         )
         clear_sssd_cache(self.client)
         result = self.run_as_sudo_user(
-            "date", sudo_user="root", su_user=self.USER_1)
+            "date", sudo_user="root", su_user=self.USER_1,
+            skip_sssd_cache_clear=True)
 
         sys_day = self.client.run_command(
             ["date", "+%a"]).stdout_text.strip()
         assert sys_day in result.stdout_text
 
-        result = self.list_sudo_commands(self.USER_1)
+        result = self.list_sudo_commands(self.USER_1,
+                                         skip_sssd_cache_clear=True)
         assert "(root) /bin/date" in result.stdout_text
 
         stop_ipa_server(master)
@@ -1554,13 +1561,15 @@ class TestSudo_Functional(IntegrationTest):
         clear_sssd_cache(self.client)
 
         result = self.run_as_sudo_user(
-            "date", sudo_user="root", su_user=self.USER_1)
+            "date", sudo_user="root", su_user=self.USER_1,
+            skip_sssd_cache_clear=True)
 
         sys_day = self.client.run_command(
             ["date", "+%a"]).stdout_text.strip()
         assert sys_day in result.stdout_text
 
-        result = self.list_sudo_commands(self.USER_1)
+        result = self.list_sudo_commands(self.USER_1,
+                                         skip_sssd_cache_clear=True)
         assert "(root) /bin/date" in result.stdout_text
 
         stop_ipa_server(master)
@@ -1613,13 +1622,14 @@ class TestSudo_Functional(IntegrationTest):
         clear_sssd_cache(self.client)
         result = self.run_as_sudo_user(
             "date", sudo_user="root", su_user=self.USER_1,
-            skip_password=True)
+            skip_password=True, skip_sssd_cache_clear=True)
 
         sys_day = self.client.run_command(
             ["date", "+%a"]).stdout_text.strip()
         assert sys_day in result.stdout_text
 
-        result = self.list_sudo_commands(self.USER_1)
+        result = self.list_sudo_commands(self.USER_1,
+                                         skip_sssd_cache_clear=True)
         assert "(root) NOPASSWD: /bin/date" in result.stdout_text
 
         stop_ipa_server(master)
@@ -1660,13 +1670,15 @@ class TestSudo_Functional(IntegrationTest):
         master.run_command(["ipa", "sudorule-disable", self.SUDO_RULE])
         clear_sssd_cache(self.client)
         result = self.run_as_sudo_user(
-            "date", sudo_user="root", su_user=self.USER_1)
+            "date", sudo_user="root", su_user=self.USER_1,
+            skip_sssd_cache_clear=True)
 
         sys_day = self.client.run_command(
             ["date", "+%a"]).stdout_text.strip()
         assert sys_day not in result.stdout_text
 
-        result = self.list_sudo_commands(self.USER_1)
+        result = self.list_sudo_commands(self.USER_1,
+                                         skip_sssd_cache_clear=True)
         assert "(root) /bin/date" not in result.stdout_text
 
         stop_ipa_server(master)
