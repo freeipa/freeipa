@@ -6,10 +6,10 @@ from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 
 
-def setup_keycloakserver(host, version='26.1.0'):
+def setup_keycloakserver(host, version='26.4.4'):
     dir = "/opt/keycloak"
     password = host.config.admin_password
-    packages = ["unzip", "java-21-openjdk-headless", "openssl", "maven", "wget"]
+    packages = ["unzip", "java-25-openjdk-headless", "openssl", "maven", "wget"]
     # For RHEL 10 we don't install firefox as it is not shipped any more
     # as a rpm. The infra handles the installation from a zip file
     if not (tasks.get_platform(host) == "rhel"
