@@ -138,7 +138,7 @@ class sysaccount(LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'objectclass',
-                'uid', 'memberof'
+                'uid', 'memberof', 'nsaccountlock', 'description'
             },
         },
         'System: Check System Accounts passwords': {
@@ -152,7 +152,8 @@ class sysaccount(LDAPObject):
         },
         'System: Modify System Accounts': {
             'ipapermright': {'write'},
-            'ipapermdefaultattr': {'userpassword'},
+            'ipapermdefaultattr': {'userpassword', 'description',
+                                   'nsaccountlock'},
             'default_privileges': {'System Accounts Administrators'},
         },
         'System: Remove System Accounts': {
