@@ -379,9 +379,9 @@ aci: (targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "perm
 dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "userpassword")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Check System Accounts passwords";allow (search) groupdn = "ldap:///cn=System: Check System Accounts passwords,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
-aci: (targetattr = "userpassword")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Modify System Accounts";allow (write) groupdn = "ldap:///cn=System: Modify System Accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "description || nsaccountlock || userpassword")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Modify System Accounts";allow (write) groupdn = "ldap:///cn=System: Modify System Accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
-aci: (targetattr = "createtimestamp || entryusn || memberof || modifytimestamp || objectclass || uid")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Read System Accounts";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "createtimestamp || description || entryusn || memberof || modifytimestamp || nsaccountlock || objectclass || uid")(targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Read System Accounts";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=sysaccounts,cn=etc,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=simplesecurityobject)")(version 3.0;acl "permission:System: Remove System Accounts";allow (delete) groupdn = "ldap:///cn=System: Remove System Accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=topology,cn=ipa,cn=etc,dc=ipa,dc=example
