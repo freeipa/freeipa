@@ -76,7 +76,7 @@ Slapi_PluginDesc ipa_range_check_plugin_desc = {
 
 struct ipa_range_check_ctx {
     Slapi_ComponentId *plugin_id;
-    const char *base_dn;
+    char *base_dn;
 };
 
 typedef enum {
@@ -469,6 +469,15 @@ static int ipa_range_check_start(Slapi_PBlock *pb)
 
 static int ipa_range_check_close(Slapi_PBlock *pb)
 {
+    int ret;
+    struct ipa_range_check_ctx *ctx;
+
+    ret = slapi_pblock_get(pb, SLAPI_PLUGIN_PRIVATE, &ctx);
+    if (ret == 0 && ctx != NULL) {
+        slapi_ch_free_string(&ctx->base_dn);
+        free(ctx);
+    }
+
     return 0;
 }
 
@@ -752,7 +761,10 @@ static int ipa_range_check_init_ctx(Slapi_PBlock *pb,
 
 done:
     if (ret != 0) {
-        free(ctx);
+        if (ctx) {
+            slapi_ch_free_string(&ctx->base_dn);
+            free(ctx);
+        }
     } else {
         *_ctx = ctx;
     }
@@ -787,6 +799,8 @@ int ipa_range_check_init(Slapi_PBlock *pb)
                          (void *) ipa_range_check_add_pre_op) != 0 ||
         slapi_pblock_set(pb, SLAPI_PLUGIN_PRIVATE, rc_ctx) != 0) {
         LOG_FATAL("failed to register plugin\n");
+        slapi_ch_free_string(&rc_ctx->base_dn);
+        free(rc_ctx);
         ret = EFAIL;
     }
 
