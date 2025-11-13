@@ -1308,7 +1308,7 @@ class DsInstance(service.Service):
         else:
             logger.debug("extdom plugin is already configured")
 
-    def find_subject_base(self, skip_runcheck=False):
+    def find_subject_base(self):
         """
         Try to find the current value of certificate subject base.
         1) Look in sysupgrade first
@@ -1318,53 +1318,16 @@ class DsInstance(service.Service):
         Note that this method can only be executed AFTER the ipa server
         is configured, the api is initialized elsewhere and
         that a ticket already have been acquired.
-
-        :param skip_runcheck: test that DS is running or not.
         """
-        logger.debug(
-            'Trying to find certificate subject base in sysupgrade')
-        subject_base = sysupgrade.get_upgrade_state(
-            'certmap.conf', 'subject_base')
-
-        if subject_base:
-            logger.debug(
-                'Found certificate subject base in sysupgrade: %s',
-                subject_base)
-            return subject_base
-
-        logger.debug(
-            'Unable to find certificate subject base in sysupgrade')
-        logger.debug(
-            'Trying to find certificate subject base in DS')
-
-        if not skip_runcheck:
-            ds_is_running = is_ds_running()
-            if not ds_is_running:
-                try:
-                    self.start()
-                    ds_is_running = True
-                except ipautil.CalledProcessError as e:
-                    logger.error('Cannot start DS to find certificate '
-                                 'subject base: %s', e)
-        else:
-            ds_is_running = True
-
-        if ds_is_running:
+        ds_is_running = is_ds_running()
+        if not ds_is_running:
             try:
-                ret = api.Command['config_show']()
-                subject_base = str(
-                    ret['result']['ipacertificatesubjectbase'][0])
-                logger.debug(
-                    'Found certificate subject base in DS: %s', subject_base)
-            except errors.PublicError as e:
-                logger.error('Cannot connect to DS to find certificate '
+                self.start()
+                ds_is_running = True
+            except ipautil.CalledProcessError as e:
+                logger.error('Cannot start DS to find certificate '
                              'subject base: %s', e)
-
-        if subject_base:
-            return subject_base
-
-        logger.debug('Unable to find certificate subject base in certmap.conf')
-        return None
+        return installutils.find_subject_base()
 
     def __set_domain_level(self):
         # Create global domain level entry and set the domain level
