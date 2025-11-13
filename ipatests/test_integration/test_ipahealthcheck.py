@@ -107,6 +107,7 @@ ipatrust_checks = [
     "IPATrustControllerServiceCheck",
     "IPATrustControllerConfCheck",
     "IPATrustControllerGroupSIDCheck",
+    "IPATrustControllerAdminSIDCheck",
     "IPATrustPackageCheck",
 ]
 
@@ -458,11 +459,28 @@ class TestIpaHealthCheck(IntegrationTest):
         Testcase to verify checks available in
         ipahealthcheck.ipa.trust source
         """
+        # earlier trust check used to return an empty SUCCESS message when
+        # trust is not configured.But now it actually returns a message
+        not_a_trust_agent = ["IPATrustAgentCheck", "IPATrustCatalogCheck",
+                             "IPAsidgenpluginCheck", "IPATrustAgentMemberCheck",
+                             "IPATrustDomainsCheck", "IPATrustPackageCheck"]
+
+        not_a_trust_controller = ["IPATrustControllerPrincipalCheck",
+                                  "IPATrustControllerServiceCheck",
+                                  "IPATrustControllerConfCheck",
+                                  "IPATrustControllerGroupSIDCheck",
+                                  "IPATrustControllerAdminSIDCheck"]
         result = self.master.run_command(
-            ["ipa-healthcheck", "--source", "ipahealthcheck.ipa.trust"]
+            ["ipa-healthcheck", "--source",
+             "ipahealthcheck.ipa.trust", "--all"]
         )
         for check in ipatrust_checks:
-            assert check in result.stdout_text
+            if check in not_a_trust_agent:
+                assert "Skipped. Not a trust agent" in result.stdout_text
+            elif check in not_a_trust_controller:
+                assert "Skipped. Not a trust controller" in result.stdout_text
+            else:
+                assert check in result.stdout_text
 
     def test_source_ipahealthcheck_meta_services_check(self, restart_service):
         """
