@@ -49,7 +49,7 @@ import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
 from ipapython.admintool import ScriptError, SERVER_NOT_CONFIGURED  # noqa: E402
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
-from ipalib.constants import FQDN, MAXHOSTNAMELEN
+from ipalib.constants import FQDN, MAXHOSTNAMELEN, IPA_CA_CN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipalib.install import dnsforwarders
@@ -1656,3 +1656,91 @@ def lookup_key_type(api):
             (keytype, keysize) = type_size[0].split(':', 1)
 
     return (keytype, keysize)
+
+
+def find_subject_base():
+    """
+    Try to find the current value of certificate subject base.
+    1) Look in sysupgrade first
+    2) If no value is found there, look in DS
+    3) If all fails, log loudly and return None
+
+    Note that this method can only be executed AFTER the ipa server
+    is configured, the api is initialized elsewhere and
+    that a ticket already have been acquired.
+    """
+    logger.debug(
+        'Trying to find certificate subject base in sysupgrade')
+    subject_base = sysupgrade.get_upgrade_state(
+        'certmap.conf', 'subject_base')
+
+    if subject_base:
+        logger.debug(
+            'Found certificate subject base in sysupgrade: %s',
+            subject_base)
+        return subject_base
+
+    logger.debug(
+        'Unable to find certificate subject base in sysupgrade')
+    logger.debug(
+        'Trying to find certificate subject base in DS')
+
+    try:
+        ret = api.Command['config_show']()
+        subject_base = str(
+            ret['result']['ipacertificatesubjectbase'][0])
+        logger.debug(
+            'Found certificate subject base in DS: %s', subject_base)
+    except errors.PublicError as e:
+        logger.error('Cannot connect to DS to find certificate '
+                     'subject base: %s', e)
+
+    if subject_base:
+        return subject_base
+
+    logger.debug('Unable to find certificate subject base in certmap.conf')
+    return None
+
+
+def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
+    """Dynamically define the relationship between subjects and
+       nicknames for the CA and KRA.
+
+       Do not add Server-Cert cert-pki-ca to this list because
+       it will treat it as renewed on renewal master only o
+       will not generate a replacement with the correct subject.
+    """
+    if subject_base is None or ca_subject_dn is None:
+        raise ValueError(
+            "Both subject_base and ca_subject_dn are required.")
+    return {
+        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
+        DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
+        DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
+        DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
+        DN('CN=KRA Audit', subject_base): 'auditSigningCert cert-pki-kra',
+        DN('CN=KRA Transport Certificate', subject_base):
+            'transportCert cert-pki-kra',
+        DN('CN=KRA Storage Certificate', subject_base):
+            'storageCert cert-pki-kra',
+        DN('CN=IPA RA', subject_base): 'ipaCert',
+    }
+
+
+def lookup_ca_subject(api, subject_base):
+    dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
+    try:
+        # we do not use api.Command.ca_show because it attempts to
+        # talk to the CA (to read certificate / chain), but the RA
+        # backend may be unavailable (ipa-replica-install) or unusable
+        # due to RA Agent cert not yet created (ipa-ca-install).
+        ca_subject = api.Backend.ldap2.get_entry(dn)['ipacasubjectdn'][0]
+    except errors.NotFound:
+        # if the entry doesn't exist, we are dealing with a pre-v4.4
+        # installation, where the default CA subject was always based
+        # on the subject_base.
+        #
+        # installutils.default_ca_subject_dn is NOT used here in
+        # case the default changes in the future.
+        ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
+    return str(ca_subject)

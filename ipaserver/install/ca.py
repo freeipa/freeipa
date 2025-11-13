@@ -90,22 +90,8 @@ def random_serial_numbers_validator(enabled):
 
 
 def lookup_ca_subject(api, subject_base):
-    dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
-    try:
-        # we do not use api.Command.ca_show because it attempts to
-        # talk to the CA (to read certificate / chain), but the RA
-        # backend may be unavailable (ipa-replica-install) or unusable
-        # due to RA Agent cert not yet created (ipa-ca-install).
-        ca_subject = api.Backend.ldap2.get_entry(dn)['ipacasubjectdn'][0]
-    except errors.NotFound:
-        # if the entry doesn't exist, we are dealing with a pre-v4.4
-        # installation, where the default CA subject was always based
-        # on the subject_base.
-        #
-        # installutils.default_ca_subject_dn is NOT used here in
-        # case the default changes in the future.
-        ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
-    return str(ca_subject)
+    """Function moved to installutils with stub retained for API compat"""
+    return installutils.lookup_ca_subject(api, subject_base)
 
 
 def lookup_random_serial_number_version(api):

@@ -36,7 +36,12 @@ from ipalib import api
 from ipalib import errors, messages
 from ipalib import x509
 from ipalib import ngettext
-from ipalib.constants import IPA_CA_CN, IPA_CA_RECORD
+from ipalib.constants import (
+    IPA_CA_CN,
+    IPA_CA_RECORD,
+    CA_TRACKING_REQS,
+    KRA_TRACKING_REQS
+)
 from ipalib.crud import Create, PKQuery, Retrieve, Search
 from ipalib.frontend import Method, Object
 from ipalib.parameters import (
@@ -57,6 +62,7 @@ from ipaserver.plugins.service import normalize_principal, validate_realm
 from ipaserver.masters import (
     ENABLED_SERVICE, CONFIGURED_SERVICE, HIDDEN_SERVICE, is_service_enabled
 )
+from ipaserver.install import installutils
 
 try:
     import pyhbac
@@ -162,6 +168,8 @@ USER, HOST, KRBTGT, SERVICE = range(4)
 register = Registry()
 
 PKIDATE_FORMAT = '%Y-%m-%d'
+
+CA_SERVER_REQ = {'Server-Cert cert-pki-ca': 'caServerCert',}
 
 
 def _acl_make_request(principal_type, principal, ca_id, profile_id):
@@ -640,10 +648,6 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             yield arg
 
     def execute(self, csr, all=False, raw=False, chain=False, **kw):
-        # deferred import to avoid issues building documentation
-        from ipaserver.install import cainstance, dsinstance, krainstance
-        from ipaserver.install.ca import lookup_ca_subject
-
         ca_enabled_check(self.api)
 
         ldap = self.api.Backend.ldap2
@@ -710,12 +714,11 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         "Certificate request for profile '%s' was not "
                         "requested from an IPA server", profile_id)
                 )
-            ca = cainstance.CAInstance(api.env.realm)
-            reqs = ca.tracking_reqs.items()
-            kra = krainstance.KRAInstance(api.env.realm)
+            reqs = CA_TRACKING_REQS.items()
+            reqs = itertools.chain(reqs, CA_SERVER_REQ.items())
             if api.Command.kra_is_enabled()['result']:
                 reqs = itertools.chain(reqs,
-                                       kra.tracking_reqs.items())
+                                       KRA_TRACKING_REQS.items())
             nickname = []
             for nick, prof in reqs:
                 if prof == profile_id:
@@ -729,11 +732,12 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             subject_dn = None
             if nickname:
                 logger.debug("Requested CA/KRA nickname %s", nickname)
-                subject_base = dsinstance.DsInstance().find_subject_base(
-                    skip_runcheck=True)
-                ca_subject_dn = lookup_ca_subject(api, subject_base)
-                nickname_by_subject_dn = cainstance.get_nickname_by_subject_dn(
-                    subject_base, ca_subject_dn
+                subject_base = installutils.find_subject_base()
+                ca_subject_dn = installutils.lookup_ca_subject(
+                    api, subject_base)
+                nickname_by_subject_dn = (
+                    installutils.get_nickname_by_subject_dn(
+                        subject_base, ca_subject_dn)
                 )
                 for sub_dn, nick in nickname_by_subject_dn.items():
                     if nick in nickname:
