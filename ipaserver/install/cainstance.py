@@ -54,11 +54,9 @@ from ipapython.certdb import (
     IPA_CA_TRUST_FLAGS,
     EMPTY_TRUST_FLAGS)
 from ipapython.dn import DN, RDN
-from ipapython.ipa_log_manager import standard_logging_setup
 from ipaserver.secrets.kem import IPAKEMKeys
 
 from ipaserver.install import certs
-from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
@@ -290,21 +288,14 @@ class CAInstance(DogtagInstance):
        2 = have signed cert, continue installation
     """
 
-    server_cert_name = 'Server-Cert cert-pki-ca'
-
     # Mapping of nicknames for tracking requests, and the profile to
     # use for that certificate.  'configure_renewal()' reads this
     # dict.  The profile MUST be specified.
-    tracking_reqs = {
-        'auditSigningCert cert-pki-ca': 'caSignedLogCert',
-        'ocspSigningCert cert-pki-ca': 'caOCSPCert',
-        'subsystemCert cert-pki-ca': 'caSubsystemCert',
-        'caSigningCert cert-pki-ca': 'caCACert',
-        server_cert_name: 'caServerCert',
-    }
+    tracking_reqs = ipalib.constants.CA_TRACKING_REQS
+
     token_names = {
         # Server-Cert always on internal token
-        server_cert_name: INTERNAL_TOKEN,
+        'Server-Cert cert-pki-ca': INTERNAL_TOKEN,
     }
 
     # The following must be aligned with the RewriteRule defined in
@@ -1825,28 +1816,6 @@ def update_authority_entry(cert):
     return __update_entry_from_cert(make_filter, make_entry, cert)
 
 
-def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
-    """Dynamically define the relationship between subjects and
-        nicknames for the CA and KRA.
-    """
-    if subject_base is None or ca_subject_dn is None:
-        raise ValueError(
-            "Both subject_base and ca_subject_dn are required.")
-    return {
-        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
-        DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
-        DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
-        DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
-        DN('CN=KRA Audit', subject_base): 'auditSigningCert cert-pki-kra',
-        DN('CN=KRA Transport Certificate', subject_base):
-            'transportCert cert-pki-kra',
-        DN('CN=KRA Storage Certificate', subject_base):
-            'storageCert cert-pki-kra',
-        DN('CN=IPA RA', subject_base): 'ipaCert',
-        DN(('CN', api.env.host), subject_base): 'Server-Cert cert-pki-ca',
-    }
-
-
 def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
     """
     Get the nickname for storage in the cn_renewal container.
@@ -1858,7 +1827,7 @@ def get_ca_renewal_nickname(subject_base, ca_subject_dn, sdn):
 
     """
     assert isinstance(sdn, DN)
-    nickname_by_subject_dn = get_nickname_by_subject_dn(
+    nickname_by_subject_dn = installutils.get_nickname_by_subject_dn(
         subject_base, ca_subject_dn
     )
     return nickname_by_subject_dn.get(sdn)
@@ -2089,7 +2058,7 @@ def __get_profile_config(profile_id):
         DOMAIN=ipautil.format_netloc(api.env.domain),
         IPA_CA_RECORD=ipalib.constants.IPA_CA_RECORD,
         CRL_ISSUER='CN=Certificate Authority,o=ipaca',
-        SUBJECT_DN_O=dsinstance.DsInstance().find_subject_base(),
+        SUBJECT_DN_O=installutils.find_subject_base(),
         ACME_AGENT_GROUP=ACME_AGENT_GROUP,
     )
 
@@ -2535,11 +2504,3 @@ def check_ipa_ca_san(cert):
             name='certificate',
             error='Does not have a \'{}\' SAN'.format(expect)
         )
-
-
-if __name__ == "__main__":
-    standard_logging_setup("install.log")
-    ds = dsinstance.DsInstance()
-
-    ca = CAInstance("EXAMPLE.COM")
-    ca.configure_instance("catest.example.com", "password", "password")

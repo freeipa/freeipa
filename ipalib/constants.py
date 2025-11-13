@@ -374,6 +374,16 @@ SUBID_RANGE_SIZE = SUBID_RANGE_MAX - SUBID_RANGE_START
 # threshold before DNA plugin requests a new range
 SUBID_DNA_THRESHOLD = 500
 
+# moved from ipaserver/install/cainstance.py::CAInstance to make importing
+# the values easier without pulling in half the installer codebase.
+CA_TRACKING_REQS = {
+    'auditSigningCert cert-pki-ca': 'caSignedLogCert',
+    'ocspSigningCert cert-pki-ca': 'caOCSPCert',
+    'subsystemCert cert-pki-ca': 'caSubsystemCert',
+    'caSigningCert cert-pki-ca': 'caCACert',
+    'Server-Cert cert-pki-ca': 'caServerCert',
+}
+
 # moved from ipaserver/install/krainstance.py::KRAInstance to avoid duplication
 # as per https://pagure.io/freeipa/issue/8795
 KRA_TRACKING_REQS = {
