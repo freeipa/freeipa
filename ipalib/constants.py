@@ -63,6 +63,8 @@ TLS_VERSION_MAXIMAL = "tls1.3"
 TLS_VERSION_DEFAULT_MIN = None
 TLS_VERSION_DEFAULT_MAX = None
 
+DEFAULT_KEY_TYPE_SIZE = "rsa:2048"
+
 SD_IPA_API_MESSAGE_ID = uuid.uuid3(uuid.NAMESPACE_DNS, 'IPA.API')
 
 # regular expression NameSpace member names must match:
@@ -251,6 +253,9 @@ DEFAULT_CONFIG = (
     # Ignore TTL. Perform schema call and download schema if not in cache.
     ('force_schema_check', False),
 
+    # Default key type and size for IPA certs (HTTP, DS, KDC and RA)
+    ('key_type_size', DEFAULT_KEY_TYPE_SIZE),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************
@@ -368,6 +373,16 @@ SUBID_RANGE_MAX = (2 ** 32) - (2 * SUBID_COUNT)
 SUBID_RANGE_SIZE = SUBID_RANGE_MAX - SUBID_RANGE_START
 # threshold before DNA plugin requests a new range
 SUBID_DNA_THRESHOLD = 500
+
+# moved from ipaserver/install/cainstance.py::CAInstance to make importing
+# the values easier without pulling in half the installer codebase.
+CA_TRACKING_REQS = {
+    'auditSigningCert cert-pki-ca': 'caSignedLogCert',
+    'ocspSigningCert cert-pki-ca': 'caOCSPCert',
+    'subsystemCert cert-pki-ca': 'caSubsystemCert',
+    'caSigningCert cert-pki-ca': 'caCACert',
+    'Server-Cert cert-pki-ca': 'caServerCert',
+}
 
 # moved from ipaserver/install/krainstance.py::KRAInstance to avoid duplication
 # as per https://pagure.io/freeipa/issue/8795

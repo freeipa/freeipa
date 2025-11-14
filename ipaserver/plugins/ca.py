@@ -228,6 +228,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:  # pki v2 api
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
         if want_chain or full:
             try:
@@ -241,6 +244,9 @@ def set_certificate_attrs(entry, options, want_cert=True):
                         ca=entry['cn'][0])
                 else:
                     raise e
+            except errors.NotFound:  # pki v2 api
+                msg = messages.LightweightCACertificateNotAvailable(
+                    ca=entry['cn'][0])
 
     return msg
 
@@ -394,7 +400,10 @@ class ca_del(LDAPDelete):
         except errors.NotFound:
             return dn
         with self.api.Backend.ra_lightweight_ca as ca_api:
-            data = ca_api.read_ca(ca_id)
+            try:
+                data = ca_api.read_ca(ca_id)
+            except errors.NotFound:
+                return dn
             if data['enabled']:
                 raise errors.ProtectedEntryError(
                     label=_("CA"),

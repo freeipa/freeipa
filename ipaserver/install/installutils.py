@@ -43,13 +43,13 @@ from dns import rrset, rdatatype, rdataclass
 from dns.exception import DNSException
 import ldap
 
-from ipalib import facts
+from ipalib import facts, _
 from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
 from ipapython.admintool import ScriptError, SERVER_NOT_CONFIGURED  # noqa: E402
 from ipapython.certdb import EXTERNAL_CA_TRUST_FLAGS
-from ipalib.constants import FQDN, MAXHOSTNAMELEN
+from ipalib.constants import FQDN, MAXHOSTNAMELEN, IPA_CA_CN
 from ipalib.util import validate_hostname
 from ipalib import api, errors, x509
 from ipalib.install import dnsforwarders
@@ -1591,3 +1591,153 @@ def get_replication_plugin_name(dirsrv_get_entry):
                 'LDAP query returned unknown type for cn %s: %s' %
                 (cn, type(cn))
             )
+
+
+def validate_key_type_size(value):
+    """Do some basic validation of key type and size.
+
+       Returns None on success and an error string on failure.
+    """
+    types = {
+        'rsa': (2048, 3072, 4096, 7168, 8192),
+        'ec': tuple(),
+        'ml-dsa': tuple(),
+    }
+    if len(value.split(':', 1)) != 2:
+        return _('Must be of the form type:size')
+    (type, size) = value.split(':', 1)
+    type = type.strip()
+    size = size.strip()
+
+    if type not in types:
+        if len(types) == 1:
+            return _('Key type must be "%(type)s"') % {
+                'type': next(iter(types))
+            }
+        else:
+            return _("Key type must be one of: %(types)s") % {
+                "types": ", ".join(types)
+            }
+
+    if type == 'rsa':
+        try:
+            size = int(size)
+        except ValueError:
+            return _('Not an integer: %(size)s') % {'size': size}
+    else:
+        return _('%(type)s keys are not supported yet') % {'type': type}
+
+    if size not in types.get(type):
+        return _('Invalid size {}. Allowed {}').format(size, types.get(type))
+
+    return None
+
+
+def lookup_key_type(api):
+    """
+    Retrieve the key type and size configuration.
+
+    This can be used when installing a new replica to set the key
+    type and sizing.
+
+    Returns a tuple of (type, size) or (None, None)
+    """
+    try:
+        ret = api.Command['config_show']()
+    except errors.PublicError as e:
+        logger.error('Cannot retrieve key type/size %s', e)
+
+    keytype = None
+    keysize = None
+
+    if ret:
+        type_size = ret['result'].get('ipaservicekeytypesize')
+        if type_size:
+            (keytype, keysize) = type_size[0].split(':', 1)
+
+    return (keytype, keysize)
+
+
+def find_subject_base():
+    """
+    Try to find the current value of certificate subject base.
+    1) Look in sysupgrade first
+    2) If no value is found there, look in DS
+    3) If all fails, log loudly and return None
+
+    Note that this method can only be executed AFTER the ipa server
+    is configured, the api is initialized elsewhere and
+    that a ticket already have been acquired.
+    """
+    logger.debug(
+        'Trying to find certificate subject base in sysupgrade')
+    subject_base = sysupgrade.get_upgrade_state(
+        'certmap.conf', 'subject_base')
+
+    if subject_base:
+        logger.debug(
+            'Found certificate subject base in sysupgrade: %s',
+            subject_base)
+        return subject_base
+
+    logger.debug(
+        'Unable to find certificate subject base in sysupgrade')
+    logger.debug(
+        'Trying to find certificate subject base in DS')
+
+    try:
+        ret = api.Command['config_show']()
+        subject_base = str(
+            ret['result']['ipacertificatesubjectbase'][0])
+        logger.debug(
+            'Found certificate subject base in DS: %s', subject_base)
+    except errors.PublicError as e:
+        logger.error('Cannot connect to DS to find certificate '
+                     'subject base: %s', e)
+
+    if subject_base:
+        return subject_base
+
+    logger.debug('Unable to find certificate subject base in certmap.conf')
+    return None
+
+
+def get_nickname_by_subject_dn(subject_base, ca_subject_dn):
+    """Dynamically define the relationship between subjects and
+        nicknames for the CA and KRA.
+    """
+    if subject_base is None or ca_subject_dn is None:
+        raise ValueError(
+            "Both subject_base and ca_subject_dn are required.")
+    return {
+        DN(ca_subject_dn): 'caSigningCert cert-pki-ca',
+        DN('CN=CA Audit', subject_base): 'auditSigningCert cert-pki-ca',
+        DN('CN=OCSP Subsystem', subject_base): 'ocspSigningCert cert-pki-ca',
+        DN('CN=CA Subsystem', subject_base): 'subsystemCert cert-pki-ca',
+        DN('CN=KRA Audit', subject_base): 'auditSigningCert cert-pki-kra',
+        DN('CN=KRA Transport Certificate', subject_base):
+            'transportCert cert-pki-kra',
+        DN('CN=KRA Storage Certificate', subject_base):
+            'storageCert cert-pki-kra',
+        DN('CN=IPA RA', subject_base): 'ipaCert',
+        DN(('CN', api.env.host), subject_base): 'Server-Cert cert-pki-ca',
+    }
+
+
+def lookup_ca_subject(api, subject_base):
+    dn = DN(('cn', IPA_CA_CN), api.env.container_ca, api.env.basedn)
+    try:
+        # we do not use api.Command.ca_show because it attempts to
+        # talk to the CA (to read certificate / chain), but the RA
+        # backend may be unavailable (ipa-replica-install) or unusable
+        # due to RA Agent cert not yet created (ipa-ca-install).
+        ca_subject = api.Backend.ldap2.get_entry(dn)['ipacasubjectdn'][0]
+    except errors.NotFound:
+        # if the entry doesn't exist, we are dealing with a pre-v4.4
+        # installation, where the default CA subject was always based
+        # on the subject_base.
+        #
+        # installutils.default_ca_subject_dn is NOT used here in
+        # case the default changes in the future.
+        ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
+    return str(ca_subject)
