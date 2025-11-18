@@ -131,8 +131,8 @@ class TestHttpKdcProxy(IntegrationTest):
         with tasks.remote_ini_file(self.master, paths.KDCPROXY_CONFIG) as conf:
             conf.set('global', 'use_dns', 'true')
             conf.set('global', 'configs', 'mit')
+            conf.add_section(self.ad.domain.realm)
             if use_tcp:
-                conf.add_section(self.ad.domain.realm)
                 conf.set(self.ad.domain.realm, 'kerberos',
                          'kerberos+tcp://{}:88'.format(self.ad.hostname))
                 conf.set(self.ad.domain.realm, 'kpasswd',
