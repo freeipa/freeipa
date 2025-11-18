@@ -34,7 +34,7 @@ class Graph:
     def remove_edge(self, tail, head):
         try:
             self.edges.remove((tail, head))
-        except KeyError:
+        except ValueError:
             raise ValueError(
                 "graph does not contain edge: ({0}, {1})".format(tail, head)
             )
