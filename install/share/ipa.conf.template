@@ -78,6 +78,7 @@ WSGIScriptReloading Off
   GssapiDelegCcacheUnique On
   GssapiUseS4U2Proxy on
   GssapiAllowedMech krb5
+  GssapiNegotiateOnce On
   Require valid-user
   ErrorDocument 401 /ipa/errors/unauthorized.html
   Header always append X-Frame-Options DENY
