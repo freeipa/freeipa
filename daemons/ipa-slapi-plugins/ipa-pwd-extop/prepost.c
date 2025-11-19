@@ -1536,6 +1536,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
         if (ret != 0) {
             LOG_FATAL("ipapwd_gen_checks failed for '%s': %s\n",
                       slapi_sdn_get_dn(sdn), errMesg);
+            free_ipapwd_krbcfg(&krbcfg);
             slapi_ch_free_string(&principal_expire);
             slapi_entry_free(entry);
             slapi_sdn_free(&sdn);
@@ -1593,6 +1594,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* Authenticate the user. */
     ret = ipapwd_authenticate(dn, entry, credentials);
     if (ret) {
+        free_ipapwd_krbcfg(&krbcfg);
         slapi_ch_free_string(&principal_expire);
         slapi_entry_free(entry);
         slapi_sdn_free(&sdn);
@@ -1617,6 +1619,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 #endif
 
+    free_ipapwd_krbcfg(&krbcfg);
     slapi_ch_free_string(&principal_expire);
     slapi_entry_free(entry);
     slapi_sdn_free(&sdn);
