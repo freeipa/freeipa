@@ -749,6 +749,12 @@ class CertDB:
             '-nokeys',
             '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
         ]
+        # the PKCS12 MAC requires PKCS12KDF which is not an approved FIPS
+        # algorithm and cannot be supported by the FIPS provider.
+        # Do not require mac verification in FIPS mode
+        fips_enabled = tasks.is_fips_enabled()
+        if fips_enabled:
+            cmd.append('-nomacver')
         ipautil.run(cmd)
 
         cmd = [
@@ -759,6 +765,8 @@ class CertDB:
             '-noenc',
             '-password', 'file:{pk12pwfile}'.format(pk12pwfile=pk12pwfile.name),
         ]
+        if fips_enabled:
+            cmd.append('-nomacver')
         ipautil.run(cmd)
 
         pki_client = pki.client.PKIClient(
