@@ -61,6 +61,7 @@ class TestInstallFIPS(IntegrationTest):
         tasks.kinit_admin(client)
         client.run_command(["ipa", "ping"])
 
+    @pytest.mark.xfail(reason='freeipa ticket 9785', strict=True)
     def test_dnssec(self):
         dnssec_install_master(self.master)
         # DNSSEC zone
