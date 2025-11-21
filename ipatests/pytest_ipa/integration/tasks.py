@@ -3014,3 +3014,11 @@ def check_journal_does_not_contain_secret(host, cmd):
     result = host.run_command(journalctl_cmd, raiseonerr=False)
     assert (host.config.admin_password not in result.stdout_text)
     assert (host.config.dirman_password not in result.stdout_text)
+
+
+def restart_dirsrv(host):
+    dashed_domain = host.domain.realm.replace(".", "-")
+    host.run_command(
+        ["systemctl", "restart", f"dirsrv@{dashed_domain}"]
+    )
+    time.sleep(15)
