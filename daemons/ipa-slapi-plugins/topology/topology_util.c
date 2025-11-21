@@ -678,6 +678,7 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
                                               mattrs[i],
                                               segm_attr_val);
                     }
+                    slapi_ch_free_string(&agmt_attr_val);
 
                 }
             }
@@ -711,10 +712,10 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
                 ipa_topo_cfg_segment_set_visited(conf, topo_segm);
             }
         }
+        slapi_ch_free_string(&targetHost);
 
         repl_agmt = entries[++nentries];
     }
-    slapi_free_search_results_internal(pb);
 
 update_only:
     /* check if segments not covered by agreement exist
@@ -724,6 +725,7 @@ update_only:
                                     ipa_topo_get_plugin_hostname());
 
 error_return:
+    slapi_free_search_results_internal(pb);
     slapi_ch_free_string(&filter);
     slapi_pblock_destroy(pb);
     return rc;

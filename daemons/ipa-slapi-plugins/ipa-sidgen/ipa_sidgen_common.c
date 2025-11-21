@@ -51,7 +51,7 @@ int get_dom_sid(Slapi_ComponentId *plugin_id, const char *base_dn, char **_sid)
     int search_result;
     Slapi_Entry **search_entries = NULL;
     int ret;
-    const char *sid;
+    char *sid = NULL;
 
     search_pb = slapi_pblock_new();
     if (search_pb == NULL) {
@@ -114,6 +114,7 @@ int get_dom_sid(Slapi_ComponentId *plugin_id, const char *base_dn, char **_sid)
     ret = 0;
 
 done:
+    slapi_ch_free_string(&sid);
     slapi_free_search_results_internal(search_pb);
     slapi_pblock_destroy(search_pb);
 

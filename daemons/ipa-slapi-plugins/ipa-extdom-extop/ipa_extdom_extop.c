@@ -171,6 +171,26 @@ static int ipa_extdom_start(Slapi_PBlock *pb)
     return LDAP_SUCCESS;
 }
 
+static int ipa_extdom_close(Slapi_PBlock *pb)
+{
+    int ret;
+    struct ipa_extdom_ctx *ctx;
+
+    ret = slapi_pblock_get(pb, SLAPI_PLUGIN_PRIVATE, &ctx);
+    if (ret == 0 && ctx != NULL) {
+        if (ctx->extdom_instance_counter) {
+            slapi_counter_destroy(&ctx->extdom_instance_counter);
+        }
+        if (ctx->nss_ctx) {
+            back_extdom_free_context(&ctx->nss_ctx);
+        }
+        slapi_ch_free_string(&ctx->base_dn);
+        free(ctx);
+    }
+
+    return 0;
+}
+
 static int ipa_extdom_extop(Slapi_PBlock *pb)
 {
     char *oid = NULL;
@@ -360,7 +380,16 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
 
 done:
     if (ret) {
-        free(ctx);
+        if (ctx) {
+            if (ctx->extdom_instance_counter) {
+                slapi_counter_destroy(&ctx->extdom_instance_counter);
+            }
+            if (ctx->nss_ctx) {
+                back_extdom_free_context(&ctx->nss_ctx);
+            }
+            slapi_ch_free_string(&ctx->base_dn);
+            free(ctx);
+        }
     } else {
         *_ctx = ctx;
     }
@@ -389,6 +418,10 @@ int ipa_extdom_init(Slapi_PBlock *pb)
                                (void *)ipa_extdom_start);
     }
     if (!ret) {
+        ret = slapi_pblock_set(pb, SLAPI_PLUGIN_CLOSE_FN,
+                               (void *)ipa_extdom_close);
+    }
+    if (!ret) {
         ret = slapi_pblock_set(pb, SLAPI_PLUGIN_EXT_OP_OIDLIST,
                                ipa_extdom_oid_list);
     }
@@ -405,6 +438,10 @@ int ipa_extdom_init(Slapi_PBlock *pb)
     }
     if (ret) {
         LOG("Failed to set plug-in version, function, and OID.\n" );
+        slapi_counter_destroy(&extdom_ctx->extdom_instance_counter);
+        back_extdom_free_context(&extdom_ctx->nss_ctx);
+        slapi_ch_free_string(&extdom_ctx->base_dn);
+        free(extdom_ctx);
         return -1;
     }
 

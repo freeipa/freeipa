@@ -74,7 +74,7 @@ struct range_info {
 
 struct ipa_sidgen_ctx {
     Slapi_ComponentId *plugin_id;
-    const char *base_dn;
+    char *base_dn;
     char *dom_sid;
     struct range_info **ranges;
 };
