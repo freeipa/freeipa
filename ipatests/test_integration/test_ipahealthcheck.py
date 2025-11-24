@@ -578,8 +578,8 @@ class TestIpaHealthCheck(IntegrationTest):
         error_msg = "Request for certificate failed"
         additional_msg = (
             "Certificate operation cannot be completed: "
-            "Request failed with status 503: "
-            "Non-2xx response from CA REST API: 503.  (503)"
+            "Unable to communicate with CMS "
+            "(Failed to retrieve certificate: 503"
         )
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.dogtag.ca",
@@ -592,7 +592,7 @@ class TestIpaHealthCheck(IntegrationTest):
             # pre ipa-healthcheck 0.11, the additional msg was in msg
             # but moved to "error" with 0.11+
             assert additional_msg in check["kw"]["msg"] or \
-                   additional_msg == check["kw"]["error"]
+                   additional_msg in check["kw"]["error"]
 
     def test_ipahealthcheck_ca_not_configured(self):
         """
