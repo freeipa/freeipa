@@ -52,6 +52,7 @@ from ipalib.util import strip_csr_header
 from ipalib.text import _
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
+from ipaserver.masters import find_providing_server
 
 
 logger = logging.getLogger(__name__)
@@ -855,9 +856,27 @@ class CertDB:
             )
         result = ipautil.run(args, capture_output=True)
 
+        preferred = [api.env.ca_host]
+        if api.env.host != api.env.ca_host:
+            preferred.append(api.env.host)
+        ca_host = find_providing_server(
+            'CA', conn=api.Backend.ldap2, preferred_hosts=preferred,
+            api=api
+        )
+        if ca_host is None:
+            ca_host = api.env.ca_host
+
+        # during initial bootstrap we need to talk directly to the
+        # CA. So if the operation takes place on a CA-enabled server
+        # then use port 8443.
+        if ca_host == api.env.host:
+            port = 8443
+        else:
+            port = 443
+
         # initialise PKIClient
         pki_client = pki.client.PKIClient(
-            url='https://localhost:8443', verify=False)
+            url=f'https://{ca_host}:{port}', verify=False)
         pki_client.set_client_auth(
             client_cert=paths.RA_AGENT_PEM,
             client_key=paths.RA_AGENT_KEY)
