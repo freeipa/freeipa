@@ -290,7 +290,7 @@ not needed."
                 )
                 if len(self.under1000) > 0:
                     logger.info(
-                        "Found IDs under 1000, which is not recommeneded \
+                        "Found IDs under 1000, which is not recommended \
 (if you definitely need ranges proposed for those, use --allowunder1000):"
                     )
                     for identity in self.under1000:
