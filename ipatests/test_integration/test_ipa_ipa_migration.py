@@ -348,6 +348,11 @@ class MigrationTest(IntegrationTest):
         tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True,
                              extra_args=['--allow-zone-overlap'])
 
+        # Make sure the new server can communicate with the old one.
+        hosts = cls.replicas[0].get_file_contents(paths.HOSTS, encoding='utf-8')
+        hosts += f"\n{cls.master.ip}\t{cls.master.hostname}\n"
+        cls.replicas[0].put_file_contents(paths.HOSTS, hosts)
+
 
 class TestIPAMigrateCLIOptions(MigrationTest):
     """
