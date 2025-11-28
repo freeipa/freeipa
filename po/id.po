@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-10-24 17:36+0000\n"
+"PO-Revision-Date: 2025-11-28 12:58+0000\n"
 "Last-Translator: Arif Budiman <arifpedia@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/id/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.13.3\n"
+"X-Generator: Weblate 5.14.3\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -520,10 +520,9 @@ msgstr "json_pack_ex() gagal: %s\n"
 msgid "Unenrollment successful.\n"
 msgstr "Pencabutan pendaftaran berhasil.\n"
 
-#, fuzzy, c-format
-#| msgid "Enrollment failed. %s\n"
+#, c-format
 msgid "Unenrollment failed.\n"
-msgstr "Pendaftaran gagal. %s\n"
+msgstr "Pendaftaran gagal.\n"
 
 #, c-format
 msgid "result not found in XML-RPC response\n"
@@ -683,10 +682,9 @@ msgstr "kvno %d\n"
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
 msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
-#, fuzzy, c-format
-#| msgid "Failed to get result: %s\n"
+#, c-format
 msgid "Failed to set cursor '%1$s'\n"
-msgstr "Gagal mendapatkan hasil: %s\n"
+msgstr "Gagal mengatur kursor '%1$s'\n"
 
 #, c-format
 msgid "Unable to parse principal\n"
@@ -885,10 +883,9 @@ msgstr ""
 "Mode operasi terus-menerus. Kesalahan dilaporkan, tetapi proses tetap "
 "berlanjut."
 
-#, fuzzy, python-format
-#| msgid "HBAC rule %(rule)s not found"
+#, python-format
 msgid "File %(file)s not found"
-msgstr "Aturan HBAC %(rule)s tidak ditemukan"
+msgstr "Berkas %(file)s tidak ditemukan"
 
 #, python-format
 msgid "key %(key)s already exists"
@@ -1076,10 +1073,9 @@ msgstr "Tambahkan satu atau lebih pemetaan kunci akses ke entri pengguna."
 msgid "Enabled Sudo Rule \"%s\""
 msgstr "Aturan Sudo \"%s\" diaktifkan"
 
-#, fuzzy, python-format
-#| msgid "Disabled CA \"%(value)s\""
+#, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr "CA \"%(value)s\" dinonaktifkan"
+msgstr "Aturan Sudo yang Dinonaktifkan \"%s\""
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
@@ -1119,10 +1115,9 @@ msgstr "namaberkas"
 msgid "File to load the certificate from."
 msgstr "Berkas untuk memuat sertifikat dari."
 
-#, fuzzy, python-format
-#| msgid "invalid '%(name)s': %(error)s"
+#, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
-msgstr "'%(name)s' tidak valid: %(error)s"
+msgstr "Tidak dapat membaca berkas '%(filename)s': %(exc)s"
 
 #, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
@@ -12213,10 +12208,9 @@ msgstr "Perintah tidak dikenal ‘%(name)s’"
 msgid "error on server '%(server)s': %(error)s"
 msgstr "galat pada server '%(server)s': %(error)s"
 
-#, fuzzy, python-format
-#| msgid "error on server '%(server)s': %(error)s"
+#, python-format
 msgid "cannot connect to '%(uri)s': %(error)s"
-msgstr "galat pada server '%(server)s': %(error)s"
+msgstr "tidak dapat terhubung ke ‘%(uri)s’: %(error)s"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
@@ -12400,10 +12394,9 @@ msgstr ""
 msgid "A managed group cannot have a password policy."
 msgstr "Kelompok yang dikelola tidak dapat memiliki kebijakan kata sandi."
 
-#, fuzzy, python-format
-#| msgid "must be a certificate"
+#, python-format
 msgid "'%(entry)s' doesn't have a certificate."
-msgstr "harus merupakan sebuah sertifikat"
+msgstr "'%(entry)s' tidak memiliki sertifikat."
 
 #, python-format
 msgid "Unable to create private group. A group '%(group)s' already exists."
@@ -12924,10 +12917,9 @@ msgstr "harus berupa kamus"
 msgid "must be Kerberos principal"
 msgstr "harus menjadi prinsipal Kerberos"
 
-#, fuzzy, python-format
-#| msgid "Modify %(name)s '%(value)s'?"
+#, python-format
 msgid "Malformed principal: '%(value)s'"
-msgstr "Ubah '%(value)s' %(name)s?"
+msgstr "Prinsipal yang tidak valid: '%(value)s'"
 
 #, fuzzy
 #| msgid "Kerberos Service Principal Name"
@@ -12947,10 +12939,9 @@ msgstr "tidak valid valid heksadesimal"
 msgid "invalid serial number 0"
 msgstr "Nomor seri minimum"
 
-#, fuzzy, python-format
-#| msgid "%(otype)s \"%(oname)s\" not found"
+#, python-format
 msgid "%(filename)s: file not found"
-msgstr "%(otype)s \"%(oname)s\" tidak ditemukan"
+msgstr "%(filename)s: berkas tidak ditemukan"
 
 #, fuzzy, python-brace-format
 #| msgid "Unable to parse principal\n"
@@ -13043,10 +13034,9 @@ msgstr "nama domain tidak valid"
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
 msgstr "Nama domain ‘%(domain)s’ harus dinormalisasi menjadi: %(normalized)s"
 
-#, fuzzy, python-format
-#| msgid "invalid '%(name)s': %(error)s"
+#, python-format
 msgid "invalid domain-name: %s"
-msgstr "'%(name)s' tidak valid: %(error)s"
+msgstr "nama domain tidak valid: %s"
 
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
@@ -13298,12 +13288,10 @@ msgstr "Pengguna \"%(value)s\" dimodifikasi"
 msgid "Search for DNS servers."
 msgstr "Cari server DNS."
 
-#, fuzzy, python-format
-#| msgid "%(count)s server matched"
-#| msgid_plural "%(count)s servers matched"
+#, python-format
 msgid "%(count)d DNS server matched"
 msgid_plural "%(count)d DNS servers matched"
-msgstr[0] "%(count)s server cocok"
+msgstr[0] "%(count)d server DNS yang cocok"
 
 #, fuzzy
 #| msgid "IPA Server to use"
@@ -13380,12 +13368,10 @@ msgstr "Pengguna \"%(value)s\" dihapus"
 msgid "Modified HBAC service \"%(value)s\""
 msgstr "Pengguna \"%(value)s\" dimodifikasi"
 
-#, fuzzy, python-format
-#| msgid "%(count)s server matched"
-#| msgid_plural "%(count)s servers matched"
+#, python-format
 msgid "%(count)d HBAC service matched"
 msgid_plural "%(count)d HBAC services matched"
-msgstr[0] "%(count)s server cocok"
+msgstr[0] "%(count)d layanan HBAC yang cocok"
 
 msgid "HBAC service group"
 msgstr "Kelompok Layanan HBAC"
@@ -13639,12 +13625,10 @@ msgstr "Pengguna \"%(value)s\" dihapus"
 msgid "Modified RADIUS proxy server \"%(value)s\""
 msgstr "Pengguna \"%(value)s\" dimodifikasi"
 
-#, fuzzy, python-format
-#| msgid "%(count)s server matched"
-#| msgid_plural "%(count)s servers matched"
+#, python-format
 msgid "%(count)d RADIUS proxy server matched"
 msgid_plural "%(count)d RADIUS proxy servers matched"
-msgstr[0] "%(count)s server cocok"
+msgstr[0] "%(count)d server proxy RADIUS yang cocok"
 
 msgid "self service permission"
 msgstr "izin layanan mandiri"
@@ -13677,12 +13661,10 @@ msgstr "Pengguna \"%(value)s\" dihapus"
 msgid "Modified selfservice \"%(value)s\""
 msgstr "Pengguna \"%(value)s\" dimodifikasi"
 
-#, fuzzy, python-format
-#| msgid "%(count)s server matched"
-#| msgid_plural "%(count)s servers matched"
+#, python-format
 msgid "%(count)d selfservice matched"
 msgid_plural "%(count)d selfservices matched"
-msgstr[0] "%(count)s server cocok"
+msgstr[0] "%(count)d layanan mandiri yang cocok"
 
 msgid "commands for controlling sudo configuration"
 msgstr "perintah untuk mengonfigurasi sudo"
@@ -14647,15 +14629,13 @@ msgstr ""
 msgid "Entry"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "%(otype)s \"%(oname)s\" not found"
+#, python-format
 msgid "container entry (%(container)s) not found"
-msgstr "%(otype)s \"%(oname)s\" tidak ditemukan"
+msgstr "Entri kontainer (%(container)s) tidak ditemukan"
 
-#, fuzzy, python-format
-#| msgid "%(otype)s \"%(oname)s\" not found"
+#, python-format
 msgid "%(parent)s: %(oname)s not found"
-msgstr "%(otype)s \"%(oname)s\" tidak ditemukan"
+msgstr "%(parent)s: %(oname)s tidak ditemukan"
 
 #, fuzzy, python-format
 #| msgid "%(otype)s \"%(oname)s\" not found"
@@ -25836,10 +25816,9 @@ msgstr "Gagal memperoleh keytab\n"
 msgid "Bad or unsupported salt type.\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "Unable to initialize ldap library!\n"
+#, c-format
 msgid "Unable to initialize connection to ldap server %1$s: %2$s\n"
-msgstr "Tak bisa menginisialisasi pustaka ldap!\n"
+msgstr "Tidak dapat menginisialisasi koneksi ke server LDAP %1$s: %2$s\n"
 
 msgid "Unable to set LDAP_OPT_PROTOCOL_VERSION\n"
 msgstr ""
