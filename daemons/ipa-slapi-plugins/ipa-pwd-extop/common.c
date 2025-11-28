@@ -1107,6 +1107,7 @@ int ipapwd_set_extradata(const char *dn,
 
     slapi_value_free(&va[0]);
     slapi_mods_free(&smods);
+    free(xdata);
 
     return ret;
 }
@@ -1121,7 +1122,7 @@ void ipapwd_free_slapi_value_array(Slapi_Value ***svals)
         }
     }
 
-    slapi_ch_free((void **)sv);
+    slapi_ch_free((void **)svals);
 }
 
 void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
