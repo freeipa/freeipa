@@ -694,6 +694,12 @@ class BindInstance(service.Service):
                                  services.knownservices["unbound"].is_running())
         self.sstore.backup_state("unbound", "enabled",
                                  services.knownservices["unbound"].is_enabled())
+        self.sstore.backup_state("dnsconfd", "running",
+                                 services.knownservices["dnsconfd"]
+                                 .is_running())
+        self.sstore.backup_state("dnsconfd", "enabled",
+                                 services.knownservices["dnsconfd"]
+                                 .is_enabled())
 
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % normalize_zone(self.domain)
@@ -1391,6 +1397,11 @@ class BindInstance(service.Service):
                 services.knownservices["unbound"].disable()
             if not self.sstore.restore_state("unbound", "running"):
                 services.knownservices["unbound"].stop()
+            # restore dnsconfd status prior IPA was deployed
+            if self.sstore.restore_state("dnsconfd", "enabled"):
+                services.knownservices["dnsconfd"].enable()
+            if self.sstore.restore_state("dnsconfd", "running"):
+                services.knownservices["dnsconfd"].start()
             # restore unbound config files that were removed during IPA install
             ipautil.remove_file(paths.UNBOUND_CONF)
             for filename, fileinfo in self.fstore.files.items():
