@@ -84,7 +84,7 @@ def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
 
 def find_cert_from_txt(cert, start=0):
     """
-    Given a cert blob (str) which may or may not contian leading and
+    Given a cert blob (str) which may or may not contain leading and
     trailing text, pull out just the certificate part. This will return
     the FIRST cert in a stream of data.
 

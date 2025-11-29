@@ -223,8 +223,8 @@ def quote_directive_value(value, quote_char):
 def unquote_directive_value(value, quote_char):
     """Unquote a directive value
     :param value: string to unquote
-    :param quote_char: character to strip. All escaped occurences of
-        `quote_char` will be uncescaped during processing
+    :param quote_char: character to strip. All escaped occurrences of
+        `quote_char` will be unescaped during processing
     :returns: processed value
     """
     unescaped_value = "".join(unescape_seq(quote_char, value))
