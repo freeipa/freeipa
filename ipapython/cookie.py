@@ -33,7 +33,7 @@ not use the standard libraries?
 Cookie.py has some serious bugs, it cannot correctly parse the
 HttpOnly, Secure, and Expires cookie attributes (more of a client side
 need and not what it was designed for). Since we utilize those
-attributes that makes Cookie.py a non-starter. Plus it's API awkard
+attributes that makes Cookie.py a non-starter. Plus its API is awkward
 and limited (we would have to build more on top of it).
 
 The Cookie.py bug reports are:
@@ -41,11 +41,11 @@ The Cookie.py bug reports are:
 http://bugs.python.org/issue3073
 http://bugs.python.org/issue16611
 
-cookielib.py has a lot of good featuress, a nice API and covers all
+cookielib.py has a lot of good features, a nice API and covers all
 the relevant RFC's as well as actual practice in the field. However
-cookielib.py is tighly integrated with urllib2 and it's not possible
+cookielib.py is tightly integrated with urllib2 and it's not possible
 to use most of the features of cookielib without simultaneously using
-urllib2. Unfortunataely we only use httplib because of our dependency
+urllib2. Unfortunately we only use httplib because of our dependency
 on xmlrpc.client. Without urllib2 cookielib is a non-starter.
 
 This module is a minimal implementation of Netscape cookies which
@@ -53,8 +53,8 @@ works equally well on either the client or server side. It's API is
 easy to use with cookie attributes as class properties which can be
 read or set easily. The Cookie object automatically converts Expires
 and Max-Age attributes into datetime objects for easy time
-comparision. Cookies in strings can easily be parsed, including
-multiple cookies in the HTTP_COOKIE envionment variable.
+comparison. Cookies in strings can easily be parsed, including
+multiple cookies in the HTTP_COOKIE environment variable.
 
 The cookie RFC is silent on any escaping requirements for cookie
 contents as such this module does not provide any automated support
@@ -367,11 +367,11 @@ class Cookie:
         The UTC moment at which cookie was received for purposes of
         computing the expiration given a Max-Age offset. The
         expiration will be timestamp + max_age. The timestamp value
-        will aways be a datetime object.
+        will always be a datetime object.
 
         By default the timestamp will be the moment the Cookie object
         is created as this often corresponds to the moment the cookie
-        is received (the intent of the Max-Age attribute). But becuase
+        is received (the intent of the Max-Age attribute). But because
         it's sometimes desirable to force a specific moment for
         purposes of computing the expiration from the Max-Age the
         Cookie timestamp can be updated.
@@ -379,7 +379,7 @@ class Cookie:
         Setting a value of None causes the timestamp to be set to the
         current UTC time (now). You may also assign with a numeric
         UNIX timestamp (seconds since the epoch UTC) or a formatted time
-        sting, in all cases the value will be converted to a datetime
+        string, in all cases the value will be converted to a datetime
         object.
         '''
         return self._timestamp
@@ -571,7 +571,7 @@ class Cookie:
         Tests to see if a cookie should be returned when a request is
         sent to a specific URL.
 
-        * The request url's host must match the cookie's doman
+        * The request url's host must match the cookie's domain
           otherwise raises Cookie.URLMismatch.
 
         * The path in the request url must contain the cookie's path
