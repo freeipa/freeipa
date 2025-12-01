@@ -144,6 +144,14 @@ class TestIpaCertFix(IntegrationTest):
 
         yield
 
+        # Prior to uninstall remove all the cert tracking to prevent
+        # errors from certmonger trying to check the status of certs
+        # that don't matter because we are uninstalling.
+        self.master.run_command(['systemctl', 'stop', 'certmonger'])
+        # Important: run_command with a str argument is able to
+        # perform shell expansion but run_command with a list of
+        # arguments is not
+        self.master.run_command('rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*')
         tasks.uninstall_master(self.master)
         tasks.move_date(self.master, 'start', '-20Years-1day')
 
