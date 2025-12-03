@@ -349,13 +349,13 @@ class sysaccount_mod(LDAPUpdate):
         except (errors.EmptyModlist,
                 errors.NotGroupMember,
                 errors.AlreadyGroupMember):
-            self.allow_empty_update = False
+            object.__setattr__(self, 'allow_empty_update', False)
 
         setattr(context, 'privileged', entry_attrs['privileged'])
         del entry_attrs['privileged']
 
         if 'privileged' not in options:
-            self.allow_empty_update = False
+            object.__setattr__(self, 'allow_empty_update', False)
 
         validate_nsaccountlock(entry_attrs)
 
