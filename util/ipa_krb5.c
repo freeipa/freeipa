@@ -833,7 +833,6 @@ int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
         count++;
         t++;
     }
-    count++; /* count the last one that is 0 terminated instead */
 
     /* at the end we will have at most count entries + 1 terminating */
     ksdata = calloc(count + 1, sizeof(struct krb_key_salt));
