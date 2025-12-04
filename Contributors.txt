@@ -11,6 +11,7 @@ Developers:
 	Adam Williamson
 	Adam Young
 	Ade Lee
+	Aleksandr Sharov
 	Aleksei Slaikovskii
 	Ales 'alich' Marecek
 	Alex Zeleznikov
@@ -23,13 +24,16 @@ Developers:
 	Alexey Tikhonov
 	Amit Kumar
 	Ana Krivokapić
+	Andi Chandler
 	Andika Triwidada
 	Andrew Wnuk
 	Antonio Torres
 	Antonio Torres Moríñigo
 	Anuja More
 	Ariel O. Barria
+	Arif Budiman
 	Armando Neto
+	asharov@redhat.com
 	Ben Lipton
 	Benjamin Drung
 	Brian Cook
@@ -42,7 +46,9 @@ Developers:
 	Chris Kelley
 	Christian Heimes
 	Christian Hermann
+	Christian Rohr
 	Daniel Lara Souza
+	David Hanina
 	David Kreitschmann
 	David Kupka
 	David O'Brien
@@ -52,6 +58,7 @@ Developers:
 	Dinesh Prasanth M K
 	Diogo Nunes
 	Dmitri Pal
+	Dmytro Markevych
 	Don Davis
 	Drew Erny
 	Emilio Herrera
@@ -59,15 +66,18 @@ Developers:
 	Erik
 	Erik Belko
 	Fabiano Fidêncio
+	Fco. Javier F. Serrador
 	Felipe Volpone
 	Filip Dvorak
 	Filip Skola
+	Finn Krein-Schuch
 	Florence Blanc-Renaud
 	Francesco Marella
 	Francisco Trivino
 	François Cami
 	Frank Cusack
 	Fraser Tweedale
+	Frederik Himpe
 	Gabe Alford
 	Ganna Kaihorodova
 	Gaurav Talreja
@@ -75,6 +85,8 @@ Developers:
 	Gowrishankar Rajaiyan
 	Günther Deschner
 	Hela Basa
+	hsu zangmen
+	Ian Brown
 	Ian Kumlien
 	Ian Pilcher
 	Iker Pedrosa
@@ -102,6 +114,7 @@ Developers:
 	John Dennis
 	John L
 	John Morris
+	Jonathan Steffan
 	Jr Aquino
 	Julian Gethmann
 	Julien Rische
@@ -112,6 +125,7 @@ Developers:
 	Krzysztof Klimonda
 	Kyle Baker
 	Lars Sjostrom
+	Léane GRASSER
 	Lenka Doudova
 	Lenka Ryznarova
 	Lenz Grimmer
@@ -120,6 +134,7 @@ Developers:
 	Ludwig Krispenz
 	Lukáš Slebodník
 	Lynn Root
+	Madhuri Upadhye
 	Marcin Stanclik
 	Mark McLoughlin
 	Mark Reynolds
@@ -141,6 +156,7 @@ Developers:
 	MIZUTA Takeshi
 	Mohammad Rizwan
 	Mohammad Rizwan Yusuf
+	N M
 	Nalin Dahyabhai
 	Nathan Kinder
 	Nathaniel McCallum
@@ -162,6 +178,7 @@ Developers:
 	Pavel Picka
 	Pavel Vomáčka
 	Pavel Zůna
+	Pejman Rezaei
 	Pete Rowley
 	Peter Keresztes Schmidt
 	Peter Lacko
@@ -170,6 +187,7 @@ Developers:
 	Petr Viktorin
 	Petr Voborník
 	Piotr Drąg
+	PRANAV THUBE
 	Rafael Fontenelle
 	Rafael Guterres Jeffman
 	realsobek
@@ -189,6 +207,7 @@ Developers:
 	Sergio Oliveira Campos
 	Serhii Tsymbaliuk
 	shanyin
+	Shunsuke matsumoto
 	Simo Sorce
 	Simon Nussbaum
 	Slava Aseev
@@ -203,6 +222,7 @@ Developers:
 	sumenon
 	Sumit Bose
 	Sylvain Baubeau
+	TAKAHASHI Masatsuna
 	Takeshi MIZUTA
 	Temuri Doghonadze
 	Theodor van Nahl
@@ -217,6 +237,8 @@ Developers:
 	Tomáš Křížek
 	Troy Dawson
 	Varun Mylaraiah
+	Vasily Parfenov
+	vectinx
 	Viacheslav Sychov
 	Viktor Ashirov
 	Vit Mojzis
@@ -225,7 +247,9 @@ Developers:
 	Weblate Translation Memory
 	William Brown
 	William Jon McCann
+	Wouter Schoot
 	Xiao-Long Chen
+	Yaakov Selkowitz
 	Yuri Chornoivan
 	Zdenek Pytela
 	zdover
