@@ -1148,7 +1148,7 @@ class login_password(Backend, KerberosSession):
                   ' has expired while getting initial credentials') in str(e):
                 raise KrbPrincipalExpired(principal=principal,
                                           message=unicode(e))
-            elif ('kinit: Clients credentials have been revoked '
+            elif ('kinit: Client\'s credentials have been revoked '
                   'while getting initial credentials') in str(e):
                 raise UserLocked(principal=principal,
                                  message=unicode(e))
