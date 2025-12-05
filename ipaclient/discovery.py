@@ -464,8 +464,7 @@ class IPADiscovery:
             for lres in lret:
                 logger.debug("Found: %s", lres.dn)
                 [cn] = lres.raw['cn']
-                if six.PY3:
-                    cn = cn.decode('utf-8')
+                cn = cn.decode('utf-8')
                 lrealms.append(cn)
 
             if trealm:

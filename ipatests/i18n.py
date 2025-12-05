@@ -623,12 +623,8 @@ def test_translations(po_file, lang, domain, locale_dir):
 
     t = gettext.translation(domain, locale_dir)
 
-    if six.PY2:
-        get_msgstr = t.ugettext
-        get_msgstr_plural = t.ungettext
-    else:
-        get_msgstr = t.gettext
-        get_msgstr_plural = t.ngettext
+    get_msgstr = t.gettext
+    get_msgstr_plural = t.ngettext
 
     return po_file_iterate(po_file, get_msgstr, get_msgstr_plural)
 

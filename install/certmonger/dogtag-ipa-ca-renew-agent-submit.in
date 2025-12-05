@@ -221,11 +221,8 @@ def request_cert(reuse_existing, **kwargs):
     )
     result = ipautil.run(args, raiseonerr=False, env=os.environ,
                          capture_output=True)
-    if six.PY2:
-        sys.stderr.write(result.raw_error_output)
-    else:
-        # Write bytes directly
-        sys.stderr.buffer.write(result.raw_error_output)
+    # Write bytes directly
+    sys.stderr.buffer.write(result.raw_error_output)
     sys.stderr.flush()
 
     syslog.syslog(syslog.LOG_NOTICE,

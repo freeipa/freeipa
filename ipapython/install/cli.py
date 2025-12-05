@@ -22,8 +22,7 @@ from . import core, common
 
 __all__ = ['install_tool', 'uninstall_tool']
 
-if six.PY3:
-    long = int
+long = int
 
 NoneType = type(None)
 
