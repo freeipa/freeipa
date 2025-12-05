@@ -2,7 +2,6 @@
 #
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
-import six
 
 from ipalib import api
 

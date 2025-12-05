@@ -74,7 +74,6 @@ from ipapython.dnsutil import DNSName
 from dns.exception import DNSException
 import pysss_nss_idmap
 import pysss
-import six
 from ipaplatform.paths import paths
 
 from time import sleep
@@ -84,9 +83,8 @@ try:
 except ImportError:
     from ldap.controls import LDAPControl
 
-if six.PY3:
-    unicode = str
-    long = int
+unicode = str
+long = int
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls

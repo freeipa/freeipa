@@ -40,7 +40,6 @@ import ldap.sasl
 import ldap.filter
 from ldap.controls import SimplePagedResultsControl, GetEffectiveRightsControl
 import ldapurl
-import six
 
 # pylint: disable=ipa-forbidden-import
 from ipalib import errors, x509, _
@@ -54,8 +53,7 @@ from ipapython.kerberos import Principal
 
 from collections.abc import MutableMapping
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

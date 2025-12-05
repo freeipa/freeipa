@@ -2,7 +2,6 @@
 # Copyright (C) 2020  FreeIPA Contributors see COPYING for license
 #
 
-import six
 import abc
 import sqlite3
 from ipaplatform.paths import paths

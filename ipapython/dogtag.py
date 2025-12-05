@@ -26,8 +26,6 @@ from urllib.parse import urlencode
 import xml.dom.minidom
 import zlib
 
-import six
-
 # pylint: disable=ipa-forbidden-import
 from ipalib import api, errors
 from ipalib.util import create_https_connection
@@ -43,8 +41,7 @@ try:
 except ImportError:
     import http.client as httplib
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

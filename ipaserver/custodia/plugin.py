@@ -11,7 +11,6 @@ import re
 
 from jwcrypto.common import json_encode
 
-import six
 
 from .log import CustodiaLoggingAdapter, auditlog, getLogger
 

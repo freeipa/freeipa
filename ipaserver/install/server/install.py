@@ -15,7 +15,6 @@ import time
 import tempfile
 import textwrap
 
-import six
 
 from ipaclient.install import timeconf
 from ipaclient.install.client import (
@@ -48,8 +47,7 @@ from ipaserver.install.installutils import (
     load_pkcs12, read_password, verify_fqdn, update_hosts_file,
     validate_mask)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 NoneType = type(None)
 

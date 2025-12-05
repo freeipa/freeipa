@@ -31,7 +31,6 @@ import time
 import logging
 import warnings
 
-import six
 
 from ipapython import ipautil
 from ipaplatform.paths import paths

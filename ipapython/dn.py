@@ -423,7 +423,6 @@ import sys
 import functools
 
 import cryptography.x509
-import six
 
 try:
     from ldap import DECODING_ERROR
@@ -433,8 +432,7 @@ else:
     from ldap.dn import str2dn, dn2str
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __all__ = 'AVA', 'RDN', 'DN'
 

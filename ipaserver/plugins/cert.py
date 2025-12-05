@@ -29,7 +29,6 @@ from operator import attrgetter
 import cryptography.x509
 from cryptography.hazmat.primitives import hashes, serialization
 from dns import resolver, reversename
-import six
 
 from ipalib import Command, Str, Int, Flag, StrEnum, SerialNumber
 from ipalib import api
@@ -69,8 +68,7 @@ try:
 except ImportError:
     raise errors.SkipPluginModule(reason=_('pyhbac is not installed.'))
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 IPA certificate operations
