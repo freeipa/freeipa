@@ -194,15 +194,9 @@ class test_LDAPEntry:
         assert u'cn' in e
         assert u'cn' in e.keys()
         assert 'CN' in e
-        if six.PY2:
-            assert 'CN' not in e.keys()
-        else:
-            assert 'CN' in e.keys()
+        assert 'CN' in e.keys()
         assert 'commonName' in e
-        if six.PY2:
-            assert 'commonName' not in e.keys()
-        else:
-            assert 'commonName' in e.keys()
+        assert 'commonName' in e.keys()
         assert e['CN'] is self.cn1
         assert e['CN'] is e[u'cn']
 
@@ -215,15 +209,9 @@ class test_LDAPEntry:
         assert u'cn' in e
         assert u'cn' in e.keys()
         assert 'CN' in e
-        if six.PY2:
-            assert 'CN' not in e.keys()
-        else:
-            assert 'CN' in e.keys()
+        assert 'CN' in e.keys()
         assert 'commonName' in e
-        if six.PY2:
-            assert 'commonName' not in e.keys()
-        else:
-            assert 'commonName' in e.keys()
+        assert 'commonName' in e.keys()
         assert e['CN'] is self.cn2
         assert e['CN'] is e[u'cn']
 
