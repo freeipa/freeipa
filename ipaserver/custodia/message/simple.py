@@ -1,7 +1,6 @@
 # Copyright (C) 2015  Custodia Project Contributors - see LICENSE file
 from __future__ import absolute_import
 
-from six import string_types
 
 from ipaserver.custodia.message.common import InvalidMessage
 from ipaserver.custodia.message.common import MessageHandler

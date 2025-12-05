@@ -326,7 +326,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 return
 
             self.send_response(response.get('code', 200))
-            for header, value in six.iteritems(response.get('headers', {})):
+            for header, value in response.get('headers', {}).items():
                 self.send_header(header, value)
             self.end_headers()
 

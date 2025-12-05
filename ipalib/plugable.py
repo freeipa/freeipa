@@ -335,7 +335,7 @@ class APINameSpace(Mapping):
         return self.__api._get(plugin)
 
     def __call__(self):
-        return six.itervalues(self)
+        return self.values()
 
     def __getattr__(self, key):
         try:
@@ -800,7 +800,7 @@ class API(ReadOnly):
                 assert not hasattr(self, name)
             setattr(self, name, APINameSpace(self, base))
 
-        for instance in six.itervalues(self.__instances):
+        for instance in self.__instances.values():
             if not production_mode:
                 assert instance.api is self
             if not self.env.plugins_on_demand:

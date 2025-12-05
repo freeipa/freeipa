@@ -89,8 +89,7 @@ HIDDEN = u'hidden'
 ABSENT = u'absent'
 
 
-@six.add_metaclass(abc.ABCMeta)
-class LDAPBasedProperty:
+class LDAPBasedProperty(metaclass=abc.ABCMeta):
     """
     base class for all master properties defined by LDAP content
     :param attr_name: attribute name
@@ -110,8 +109,7 @@ class LDAPBasedProperty:
             self.attr_name_hidden = None
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseServerRole(LDAPBasedProperty):
+class BaseServerRole(LDAPBasedProperty, metaclass=abc.ABCMeta):
     """
     Server role hierarchy apex. All other server role definition should either
     inherit from it or at least provide the 'status' method for querying role

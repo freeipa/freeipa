@@ -585,7 +585,7 @@ def get_package(server_info, client):
             plugin = module.register()(plugin)  # pylint: disable=no-member
     sys.modules[module_name] = module
 
-    for full_name, topic in six.iteritems(schema['topics']):
+    for full_name, topic in schema['topics'].items():
         name = str(topic['name'])
         module_name = '.'.join((package_name, name))
         try:

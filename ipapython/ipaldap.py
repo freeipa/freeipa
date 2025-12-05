@@ -1378,8 +1378,8 @@ class LDAPClient:
             if isinstance(value, bytes):
                 value = binascii.hexlify(value).decode('ascii')
                 # value[-2:0] is empty string for the initial '\\'
-                value = u'\\'.join(
-                    value[i:i+2] for i in six.moves.range(-2, len(value), 2))
+                value = '\\'.join(
+                    value[i:i + 2] for i in range(-2, len(value), 2))
             elif isinstance(value, datetime):
                 value = cls._encode_datetime(value)
                 value = ldap.filter.escape_filter_chars(value)

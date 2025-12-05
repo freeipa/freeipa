@@ -58,7 +58,6 @@ def split_principal_name(principal_name):
     return tuple(COMPONENT_SPLIT_RE.split(principal_name))
 
 
-@six.python_2_unicode_compatible
 class Principal:
     """
     Container for the principal name and realm according to RFC 1510

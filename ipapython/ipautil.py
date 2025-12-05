@@ -44,7 +44,6 @@ import locale
 import collections
 import urllib
 
-from six.moves import input
 
 try:
     import ifaddr
@@ -704,7 +703,7 @@ class CIDict(dict):
             return failobj
 
     def __iter__(self):
-        return six.itervalues(self._keys)
+        return iter(self._keys.values())
 
     def keys(self):
         return self.iterkeys()
@@ -720,13 +719,13 @@ class CIDict(dict):
         return CIDict(list(self.items()))
 
     def iteritems(self):
-        return ((k, self[k]) for k in six.itervalues(self._keys))
+        return ((k, self[k]) for k in self._keys.values())
 
     def iterkeys(self):
-        return six.itervalues(self._keys)
+        return self._keys.values()
 
     def itervalues(self):
-        return (v for k, v in six.iteritems(self))
+        return (v for k, v in self.items())
 
     def setdefault(self, key, value=None):
         try:

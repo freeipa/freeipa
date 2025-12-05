@@ -44,7 +44,6 @@ except ImportError:
     readline = rlcompleter = None
 
 
-from six.moves import input
 
 from ipalib.util import (
     check_client_configuration, get_pager, get_terminal_height, open_in_pager
