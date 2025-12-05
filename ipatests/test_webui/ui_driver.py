@@ -2021,24 +2021,39 @@ class UI_driver:
         undo.click()
         self.wait(0.6)
 
-    def run_cmd_on_ui_host(self, cmd):
+    def run_cmd_on_ui_host(self, cmd, auth_method='password',
+                           private_key_path=None,
+                           username=None, password=None
+                           ):
         """
-        Run "shell" command on the UI system using "admin" user's passwd from
-        conf.
-        Use only where API does not fit.
-
         cmd (str): command to run
+        auth_method (str): authentication method password/key
+        private_key_path (str): path to private key
+        username (str): username for ssh
+        password (str): password for ssh
         """
+        if username is None:
+            login = self.config.get('ipa_admin')
+        else:
+            login = username
 
-        login = self.config.get('ipa_admin')
         hostname = self.config.get('ipa_server')
-        password = self.config.get('ipa_password')
+        if password is None:
+            password = self.config.get('ipa_password')
 
-        tasks.run_ssh_cmd(
-            to_host=hostname, username=login,
-            auth_method="password", password=password,
-            cmd=cmd
-        )
+        if auth_method == 'key':
+            tasks.run_ssh_cmd(
+                to_host=hostname, username=login,
+                auth_method="key",
+                private_key_path=private_key_path,
+                cmd=cmd
+            )
+        elif auth_method == 'password':
+            tasks.run_ssh_cmd(
+                to_host=hostname, username=login,
+                auth_method="password", password=password,
+                cmd=cmd
+            )
 
     @dismiss_unexpected_alert
     def has_class(self, el, cls):
