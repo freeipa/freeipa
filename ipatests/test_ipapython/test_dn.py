@@ -1278,18 +1278,14 @@ class TestInternationalization:
         self.arabic_hello_unicode = self.arabic_hello_utf8.decode('utf-8')
 
     def assert_equal_utf8(self, obj, b):
-        if six.PY2:
-            assert str(obj) == b
-        else:
-            assert str(obj) == b.decode('utf-8')
+        assert str(obj) == b.decode('utf-8')
 
     @contextlib.contextmanager
     def fail_py3(self, exception_type):
         try:
             yield
         except exception_type:
-            if six.PY2:
-                raise
+            pass
 
     def test_i18n(self):
         actual = self.arabic_hello_unicode.encode('utf-8')
@@ -1306,11 +1302,6 @@ class TestInternationalization:
 
         with self.fail_py3(TypeError):
             ava1 = AVA(self.arabic_hello_utf8, 'foo')
-        if six.PY2:
-            assert isinstance(ava1.attr, unicode)
-            assert isinstance(ava1.value, unicode)
-            assert ava1.attr == self.arabic_hello_unicode
-            self.assert_equal_utf8(ava1, self.arabic_hello_utf8 + b'=foo')
 
         # test value i18n
         ava1 = AVA('cn', self.arabic_hello_unicode)
@@ -1321,11 +1312,6 @@ class TestInternationalization:
 
         with self.fail_py3(TypeError):
             ava1 = AVA('cn', self.arabic_hello_utf8)
-        if six.PY2:
-            assert isinstance(ava1.attr, unicode)
-            assert isinstance(ava1.value, unicode)
-            assert ava1.value == self.arabic_hello_unicode
-            self.assert_equal_utf8(ava1, b'cn=' + self.arabic_hello_utf8)
 
         # RDN's
         # test attr i18n
@@ -1337,11 +1323,6 @@ class TestInternationalization:
 
         with self.fail_py3(TypeError):
             rdn1 = RDN((self.arabic_hello_utf8, 'foo'))
-        if six.PY2:
-            assert isinstance(rdn1.attr, unicode)
-            assert isinstance(rdn1.value, unicode)
-            assert rdn1.attr == self.arabic_hello_unicode
-            assert str(rdn1) == self.arabic_hello_utf8 + b'=foo'
 
         # test value i18n
         rdn1 = RDN(('cn', self.arabic_hello_unicode))
@@ -1352,11 +1333,6 @@ class TestInternationalization:
 
         with self.fail_py3(TypeError):
             rdn1 = RDN(('cn', self.arabic_hello_utf8))
-        if six.PY2:
-            assert isinstance(rdn1.attr, unicode)
-            assert isinstance(rdn1.value, unicode)
-            assert rdn1.value == self.arabic_hello_unicode
-            assert str(rdn1) == b'cn=' + self.arabic_hello_utf8
 
         # DN's
         # test attr i18n
@@ -1368,11 +1344,6 @@ class TestInternationalization:
 
         with self.fail_py3(TypeError):
             dn1 = DN((self.arabic_hello_utf8, 'foo'))
-        if six.PY2:
-            assert isinstance(dn1[0].attr, unicode)
-            assert isinstance(dn1[0].value, unicode)
-            assert dn1[0].attr == self.arabic_hello_unicode
-            assert str(dn1) == self.arabic_hello_utf8 + b'=foo'
 
         # test value i18n
         dn1 = DN(('cn', self.arabic_hello_unicode))
@@ -1383,11 +1354,6 @@ class TestInternationalization:
 
         with self.fail_py3(TypeError):
             dn1 = DN(('cn', self.arabic_hello_utf8))
-        if six.PY2:
-            assert isinstance(dn1[0].attr, unicode)
-            assert isinstance(dn1[0].value, unicode)
-            assert dn1[0].value == self.arabic_hello_unicode
-            assert str(dn1) == b'cn=' + self.arabic_hello_utf8
 
 
 # 1: LDAP_AVA_STRING

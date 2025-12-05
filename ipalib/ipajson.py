@@ -118,8 +118,7 @@ class _JSONPrimer(dict):
 
     def _enc_bytes(self, val):
         encoded = base64.b64encode(val)
-        if not six.PY2:
-            encoded = encoded.decode('ascii')
+        encoded = encoded.decode('ascii')
         return {'__base64__': encoded}
 
     def _enc_list(self, val, _identity=_identity):
