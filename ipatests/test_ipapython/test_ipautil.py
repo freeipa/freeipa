@@ -148,10 +148,6 @@ class TestCIDict:
         assert list(self.cidict) == []
         assert list(self.cidict.values()) == []
         assert list(self.cidict.items()) == []
-        if six.PY2:
-            assert self.cidict.keys() == []
-            assert self.cidict.values() == []
-            assert self.cidict.items() == []
         assert self.cidict._keys == {}
 
     def test_copy(self):
@@ -460,24 +456,14 @@ def test_run_decode():
     result = ipautil.run([paths.ECHO, u'á'.encode('utf-8')],
                          encoding='utf-8', capture_output=True)
     assert result.returncode == 0
-    if six.PY3:
-        assert result.output == 'á\n'
-    else:
-        assert result.output == 'á\n'.encode('utf-8')
+    assert result.output == 'á\n'
 
 
 def test_run_decode_bad():
-    if six.PY3:
-        with pytest.raises(UnicodeDecodeError):
-            ipautil.run([paths.ECHO, b'\xa0\xa1'],
-                        capture_output=True,
-                        encoding='utf-8')
-    else:
-        result = ipautil.run([paths.ECHO, '\xa0\xa1'],
-                             capture_output=True,
-                             encoding='utf-8')
-        assert result.returncode == 0
-        assert result.output == '\xa0\xa1\n'
+    with pytest.raises(UnicodeDecodeError):
+        ipautil.run([paths.ECHO, b'\xa0\xa1'],
+                    capture_output=True,
+                    encoding='utf-8')
 
 
 def test_backcompat():

@@ -44,10 +44,6 @@ class berval(ctypes.Structure):
     def __str__(self):
         return self.__bytes__().decode("utf-8")
 
-    if six.PY2:
-        __unicode__ = __str__
-        __str__ = __bytes__
-
 
 class LDAPAVA(ctypes.Structure):
     __slots__ = ()

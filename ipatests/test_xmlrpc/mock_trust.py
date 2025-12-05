@@ -21,10 +21,7 @@ def get_trust_dn(name):
 
 def encode_mockldap_value(value):
     value = str(value)
-    if six.PY3:
-        return value.encode('utf-8')
-    else:
-        return value
+    return value.encode('utf-8')
 
 
 def get_trusted_dom_range_dict(name, base_id, size, rangetype, base_rid, sid):
