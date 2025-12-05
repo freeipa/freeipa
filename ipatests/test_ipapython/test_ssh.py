@@ -22,13 +22,11 @@ Test the `ipapython/ssh.py` module.
 
 import base64
 
-import six
 import pytest
 
 from ipapython import ssh
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 pytestmark = pytest.mark.tier0
 

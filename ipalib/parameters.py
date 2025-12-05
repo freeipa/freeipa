@@ -108,7 +108,6 @@ import inspect
 import typing
 from xmlrpc.client import MAXINT, MININT
 
-import six
 from cryptography import x509 as crypto_x509
 import dns.name
 
@@ -147,8 +146,8 @@ def _is_null(value):
     else:
         return True
 
-if six.PY3:
-    unicode = str
+
+unicode = str
 
 
 class DefaultFrom(ReadOnly):

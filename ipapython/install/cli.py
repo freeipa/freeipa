@@ -11,7 +11,6 @@ import enum
 import logging
 import signal
 
-import six
 
 from ipapython import admintool, config
 from ipapython.ipa_log_manager import standard_logging_setup

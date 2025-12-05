@@ -35,7 +35,6 @@ from xmlrpc.client import MAXINT, MININT
 
 import pytest
 
-import six
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 
@@ -48,9 +47,8 @@ from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
-    long = int
+unicode = str
+long = int
 
 NULLS = (None, b'', u'', tuple(), [])
 

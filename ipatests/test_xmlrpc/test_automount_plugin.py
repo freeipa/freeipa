@@ -30,13 +30,11 @@ from ipalib import errors
 from ipapython.dn import DN
 
 import pytest
-import six
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipatests.util import assert_deepequal
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class MockTextui(list):

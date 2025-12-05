@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
@@ -15,8 +14,7 @@ from .hbacrule import is_all
 from ipalib import _, ngettext
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Manage CA ACL rules.

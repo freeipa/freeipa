@@ -3,12 +3,10 @@
 #
 
 import pytest
-import six
 
 from ipapython.kerberos import Principal
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 valid_principals = {
     u'tuser@REALM.TEST': {

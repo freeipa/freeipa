@@ -32,15 +32,13 @@ import os
 import sys
 
 import pytest
-import six
 
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2, AUTOBIND_DISABLED
 from ipalib import api, create_api, errors
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 @pytest.mark.tier0

@@ -34,10 +34,8 @@ import urllib
 import uuid
 import os
 
-import six
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 OTP Tokens

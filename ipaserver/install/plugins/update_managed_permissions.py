@@ -85,7 +85,6 @@ The plugin also deletes permissions specified in OBSOLETE_PERMISSIONS.
 
 import logging
 
-import six
 
 from ipalib import api, errors
 from ipapython.dn import DN
@@ -96,8 +95,7 @@ from ipapython import ipautil
 from ipaserver.plugins import aci
 from ipaserver.plugins.permission import permission, permission_del
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

@@ -20,8 +20,6 @@
 import shlex
 import re
 
-import six
-
 # The Python re module doesn't do nested parenthesis
 
 # Break the ACI into 3 pieces: target, name, permissions/bind_rules

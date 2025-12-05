@@ -19,7 +19,6 @@
 
 import logging
 
-import six
 
 from ipalib import api, errors, krb_utils
 from ipalib import Command
@@ -34,8 +33,7 @@ from ipapython.dn import DN
 from ipaserver.plugins.baseuser import normalize_user_principal
 from ipaserver.plugins.service import validate_realm
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Set a user's password

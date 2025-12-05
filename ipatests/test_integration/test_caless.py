@@ -29,7 +29,6 @@ import glob
 import contextlib
 
 import pytest
-import six
 
 from ipalib import x509
 from ipapython import ipautil
@@ -41,8 +40,7 @@ from ipatests.create_external_ca import ExternalCA
 from ipatests.pytest_ipa.integration import create_caless_pki
 from ipalib.constants import DOMAIN_LEVEL_0
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

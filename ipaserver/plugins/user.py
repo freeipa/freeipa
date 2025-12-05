@@ -25,7 +25,6 @@ import time
 from time import gmtime, strftime
 import posixpath
 
-import six
 
 from ipalib import api
 from ipalib import errors
@@ -76,8 +75,7 @@ from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 from ipaserver.masters import get_masters
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Users

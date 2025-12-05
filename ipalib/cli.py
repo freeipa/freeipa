@@ -44,15 +44,13 @@ except ImportError:
     readline = rlcompleter = None
 
 
-import six
 from six.moves import input
 
 from ipalib.util import (
     check_client_configuration, get_pager, get_terminal_height, open_in_pager
 )
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 from ipalib import frontend
 from ipalib import backend

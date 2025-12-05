@@ -11,14 +11,12 @@ from ipaplatform.paths import paths
 import sys
 import os
 
-import six
 import gssapi
 
 from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipapython.admintool import admin_cleanup_global_argv
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 def parse_options():

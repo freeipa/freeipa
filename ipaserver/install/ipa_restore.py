@@ -28,7 +28,6 @@ import time
 import ldif
 import itertools
 
-import six
 
 from ipaclient.install.client import update_ipa_nssdb
 from ipalib import api, errors

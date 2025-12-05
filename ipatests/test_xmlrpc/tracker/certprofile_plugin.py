@@ -5,15 +5,13 @@
 
 import os
 
-import six
 
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class CertprofileTracker(Tracker):

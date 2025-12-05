@@ -6,9 +6,6 @@ import sys
 import warnings
 
 
-import six
-
-
 LOGGING_FORMAT = "%(asctime)s - %(origin)-32s - %(message)s"
 LOGGING_DATEFORMAT = "%Y-%m-%d %H:%M:%S"
 

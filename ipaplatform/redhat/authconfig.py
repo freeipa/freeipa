@@ -20,7 +20,6 @@
 
 from __future__ import absolute_import
 import logging
-import six
 import abc
 
 from ipaplatform.paths import paths

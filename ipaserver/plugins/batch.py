@@ -20,7 +20,6 @@
 
 import logging
 
-import six
 
 from ipalib import api, errors
 from ipalib import Command
@@ -58,8 +57,7 @@ And then a nested response for each IPA command method sent in the request
 
 """)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

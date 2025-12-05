@@ -41,7 +41,6 @@ import requests
 import ldap.controls
 from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
-import six
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -70,8 +69,7 @@ from ipalib.text import _
 from base64 import b64decode, b64encode
 from requests.auth import AuthBase
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 # time.perf_counter_ns appeared in Python 3.7.
 if version_info < (3, 7):

@@ -36,7 +36,6 @@ import sys
 from urllib.parse import urlparse, urlunparse
 from configparser import RawConfigParser, ParsingError
 
-import six
 
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN
@@ -49,8 +48,7 @@ from ipalib.constants import (
 )
 from ipalib import errors
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class Env:

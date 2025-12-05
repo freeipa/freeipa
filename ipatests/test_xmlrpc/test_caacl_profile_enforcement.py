@@ -9,7 +9,6 @@ import os
 import pytest
 import tempfile
 
-import six
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -31,8 +30,7 @@ from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 
 from ipapython.ipautil import run
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 BASE_DIR = os.path.dirname(__file__)
 

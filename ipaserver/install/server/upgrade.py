@@ -60,14 +60,12 @@ from ipaserver.install import replication
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
-import six
 # pylint: disable=import-error
 # The SafeConfigParser class has been renamed to ConfigParser in Py3
 from configparser import ConfigParser as SafeConfigParser
 # pylint: enable=import-error
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 logger = logging.getLogger(__name__)

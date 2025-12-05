@@ -25,7 +25,6 @@ import base64
 import os
 
 import pytest
-import six
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
@@ -35,8 +34,7 @@ from ipapython.ipautil import run
 from ipatests.test_xmlrpc.testcert import subject_base
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 # So we can save the cert from issuance and compare it later
 cert = None

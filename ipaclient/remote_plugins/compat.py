@@ -9,14 +9,12 @@ import os
 import re
 import sys
 
-import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib.frontend import Object
 from ipapython.ipautil import APIVersion
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class CompatCommand(ClientCommand):

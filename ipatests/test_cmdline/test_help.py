@@ -23,14 +23,12 @@ from io import StringIO
 import shutil
 import errno
 
-import six
 
 from ipalib import api, errors
 from ipaserver.plugins.user import user_add
 import pytest
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 pytestmark = pytest.mark.needs_ipaapi

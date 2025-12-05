@@ -3,7 +3,6 @@
 #
 from __future__ import absolute_import
 
-import six
 from lib389.utils import get_default_db_lib
 
 from ipapython.dn import DN
@@ -19,8 +18,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.test_xmlrpc import objectclasses
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class CATracker(Tracker, EnableTracker):

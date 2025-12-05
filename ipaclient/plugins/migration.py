@@ -17,15 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipaclient.frontend import CommandOverride
 from ipalib.parameters import File
 from ipalib.plugable import Registry
 from ipalib import _
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 

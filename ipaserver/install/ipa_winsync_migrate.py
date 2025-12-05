@@ -24,7 +24,6 @@ import logging
 import gssapi
 import sys
 
-import six
 
 from ipalib import api
 from ipalib import errors
@@ -34,8 +33,7 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
 from ipaserver.install import replication, installutils
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

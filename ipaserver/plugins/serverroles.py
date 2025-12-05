@@ -40,7 +40,6 @@ in the calling code
 """
 
 
-import six
 
 from ipalib import errors, _
 from ipalib.backend import Backend
@@ -51,8 +50,7 @@ from ipaserver.servroles import (
 from ipaserver.servroles import SingleValuedServerAttribute
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 register = Registry()

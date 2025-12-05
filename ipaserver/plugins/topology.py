@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api, errors
 from ipalib import Int, Str, StrEnum, Flag, DNParam
@@ -18,8 +17,7 @@ from ipaserver.topology import (
     map_masters_to_suffixes)
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Topology

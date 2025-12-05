@@ -8,8 +8,6 @@ from __future__ import absolute_import
 import ctypes
 import ctypes.util
 
-import six
-
 __all__ = ("str2dn", "dn2str", "DECODING_ERROR", "LDAPError")
 
 # load reentrant ldap client library (libldap_r-*.so.2 or libldap.so.2)

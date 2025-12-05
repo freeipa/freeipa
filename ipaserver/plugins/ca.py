@@ -4,7 +4,6 @@
 
 import base64
 
-import six
 
 from ipalib import api, errors, messages, output
 from ipalib import Bytes, DNParam, Flag, Str, Int

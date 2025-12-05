@@ -21,7 +21,6 @@ import base64
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 import re
-import six
 
 from ipalib import api, errors, constants, messages
 from ipalib import (
@@ -55,8 +54,7 @@ from ipalib.util import (
 )
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Baseuser

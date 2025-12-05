@@ -2,15 +2,13 @@
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
 
-import six
 from ipalib import api, Command, errors, output, Str
 from ipalib import _
 from ipapython.dn import DN
 from ipalib.plugable import Registry
 from .idviews import DEFAULT_TRUST_VIEW_NAME
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Return information about currently authenticated identity

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib import api, errors, messages
 from ipalib import Str, Flag
@@ -28,8 +27,7 @@ from ipalib.util import has_soa_or_ns_record, validate_domain_name
 from ipalib.util import detect_dns_zone_realm_type
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Realm domains
