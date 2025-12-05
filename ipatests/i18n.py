@@ -31,7 +31,6 @@ import traceback
 import polib
 from collections import namedtuple
 
-import six
 
 '''
 We test our translations by taking the original untranslated string

@@ -34,7 +34,6 @@ import lxml.etree
 
 from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
 
-import six
 
 import pki
 from pki.client import PKIConnection

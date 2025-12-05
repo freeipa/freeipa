@@ -8,8 +8,6 @@ Utilities.
 
 import sys
 
-import six
-
 
 class from_:
     """

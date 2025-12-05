@@ -20,7 +20,6 @@
 import logging
 
 import dbus
-import six
 
 from cryptography import x509 as crypto_x509
 
@@ -42,8 +41,7 @@ from ipalib import _, ngettext
 from ipalib import output
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

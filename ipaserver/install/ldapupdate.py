@@ -33,7 +33,6 @@ import fnmatch
 import warnings
 
 from pysss_murmur import murmurhash3
-import six
 
 from ipapython import ipautil, ipaldap
 from ipalib import errors
@@ -45,8 +44,7 @@ from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipaserver.install import installutils, replication
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

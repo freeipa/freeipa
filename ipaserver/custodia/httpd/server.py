@@ -14,7 +14,6 @@ from http.server import BaseHTTPRequestHandler
 from socketserver import ForkingTCPServer, BaseServer
 from urllib.parse import parse_qs, unquote, urlparse
 
-import six
 
 from ipaserver.custodia import log
 from ipaserver.custodia.plugin import HTTPError

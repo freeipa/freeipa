@@ -75,14 +75,12 @@ import abc
 from collections import namedtuple, defaultdict
 
 from ldap import SCOPE_ONELEVEL
-import six
 
 from ipalib import _, errors
 from ipapython.dn import DN
 from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 ENABLED = u'enabled'

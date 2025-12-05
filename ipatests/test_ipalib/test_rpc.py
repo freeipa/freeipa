@@ -26,7 +26,6 @@ from xmlrpc.client import Binary, Fault, dumps, loads
 import urllib
 
 import pytest
-import six
 
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
 from ipatests.util import Fuzzy
@@ -36,8 +35,7 @@ from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request as ipa_request
 from ipapython.version import API_VERSION
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)

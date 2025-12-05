@@ -14,7 +14,6 @@ import logging
 import os
 import sys
 
-import six
 from subprocess import CalledProcessError
 
 from ipalib import api
@@ -49,8 +48,7 @@ from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
 from ipaserver.install import service
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

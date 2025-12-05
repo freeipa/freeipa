@@ -7,7 +7,6 @@ from cryptography import x509 as crypto_x509
 import datetime
 from decimal import Decimal
 import json
-import six
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib import capabilities, x509
 from ipalib.x509 import Encoding as x509_Encoding
@@ -15,8 +14,7 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class _JSONPrimer(dict):
