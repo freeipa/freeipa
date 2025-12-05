@@ -79,14 +79,6 @@ TRUNCATED_ADMIN_LIMIT = object()
 DIRMAN_DN = DN(('cn', 'directory manager'))
 
 
-if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
-    # XXX silence python-ldap's BytesWarnings
-    warnings.filterwarnings(
-        action="ignore",
-        category=ldap.LDAPBytesWarning,
-    )
-
-
 def realm_to_serverid(realm_name):
     """Convert Kerberos realm name to 389-DS server id"""
     return "-".join(realm_name.split("."))
@@ -399,16 +391,11 @@ class LDAPEntry(MutableMapping):
             return self._names[name]
 
         if self._conn.schema is not None:
-            if six.PY2:
-                encoded_name = name.encode('utf-8')
-            else:
-                encoded_name = name
+            encoded_name = name
             attrtype = self._conn.schema.get_obj(
                 ldap.schema.AttributeType, encoded_name)
             if attrtype is not None:
                 for altname in attrtype.names:
-                    if six.PY2:
-                        altname = altname.decode('utf-8')
                     self._names[altname] = name
 
         self._names[name] = name
@@ -923,10 +910,6 @@ class LDAPClient:
         if not self._decode_attrs:
             return bytes
 
-        if six.PY2:
-            if isinstance(name_or_oid, unicode):
-                name_or_oid = name_or_oid.encode('utf-8')
-
         # Is this a special case attribute?
         if name_or_oid in self._SYNTAX_OVERRIDE:
             return self._SYNTAX_OVERRIDE[name_or_oid]
@@ -957,9 +940,6 @@ class LDAPClient:
         If there is a problem loading the schema or the attribute is
         not in the schema return None
         """
-        if six.PY2 and isinstance(name_or_oid, unicode):
-            name_or_oid = name_or_oid.encode('utf-8')
-
         if name_or_oid in self._SINGLE_VALUE_OVERRIDE:
             return self._SINGLE_VALUE_OVERRIDE[name_or_oid]
 
@@ -1545,10 +1525,6 @@ class LDAPClient:
 
         # pass arguments to python-ldap
         with self.error_handler():
-            if six.PY2:
-                filter = self.encode(filter)
-                attrs_list = self.encode(attrs_list)
-
             while True:
                 if paged_search:
                     sctrls = base_sctrls + [

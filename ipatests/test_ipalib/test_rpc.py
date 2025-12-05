@@ -65,13 +65,8 @@ def test_round_trip():
     """
     # We first test that our assumptions about xmlrpc.client module in the Python
     # standard library are correct:
-    if six.PY2:
-        output_binary_type = bytes
-    else:
-        output_binary_type = Binary
+    output_binary_type = Binary
 
-    if six.PY2:
-        assert_equal(dump_n_load(utf8_bytes), unicode_str)
     assert_equal(dump_n_load(unicode_str), unicode_str)
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)

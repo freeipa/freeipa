@@ -165,10 +165,7 @@ def test_parse_param_spec():
     assert f('name^') == ('name^', dict(required=True, multivalue=False))
 
     # Test that TypeError is raised if spec isn't an str:
-    if six.PY2:
-        bad_value = u'name?'
-    else:
-        bad_value = b'name?'
+    bad_value = b'name?'
     e = raises(TypeError, f, bad_value)
     assert str(e) == TYPE_ERROR % ('spec', str, bad_value, type(bad_value))
 
@@ -1027,10 +1024,7 @@ class test_Str(ClassChecker):
         pat = r'\w{5}$'
         r1 = re.compile(pat)
         r2 = re.compile(pat, re.UNICODE)
-        if six.PY2:
-            assert r1.match(unicode_str) is None
-        else:
-            assert r1.match(unicode_str) is not None
+        assert r1.match(unicode_str) is not None
         assert r2.match(unicode_str) is not None
 
         # Create instance:
@@ -1567,10 +1561,7 @@ def test_create_param():
         assert p.multivalue is kw['multivalue']
 
     # Test that TypeError is raised when spec is neither a Param nor a str:
-    if six.PY2:
-        bad_value = u'one'
-    else:
-        bad_value = b'one'
+    bad_value = b'one'
     for spec in (bad_value, 42, parameters.Param, parameters.Str):
         e = raises(TypeError, f, spec)
         assert str(e) == \
@@ -1609,10 +1600,7 @@ class test_IA5Str(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            if six.PY2:
-                assert_equal(e.error, u"The character '\\xc3' is not allowed.")
-            else:
-                assert_equal(e.error, u"The character 'á' is not allowed.")
+            assert_equal(e.error, u"The character 'á' is not allowed.")
 
 
 class test_DateTime(ClassChecker):
