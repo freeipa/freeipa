@@ -128,7 +128,7 @@ def dn2str(dn):
 def str2dn(dn, flags=0):
     if dn is None:
         return []
-    if isinstance(dn, six.text_type):
+    if isinstance(dn, str):
         dn = dn.encode("utf-8")
 
     ldapdn = LDAPDN()
@@ -150,8 +150,8 @@ def str2dn(dn, flags=0):
                 ava = ava_p[0]
                 avas.append(
                     (
-                        six.text_type(ava.la_attr),
-                        six.text_type(ava.la_value),
+                        str(ava.la_attr),
+                        str(ava.la_value),
                         ava.la_flags & AVA_MASK,
                     )
                 )

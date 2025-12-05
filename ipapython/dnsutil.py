@@ -198,7 +198,6 @@ class DNSZoneAlreadyExists(dns.exception.DNSException):
            "and is handled by server(s): {ns}")
 
 
-@six.python_2_unicode_compatible
 class DNSName(dns.name.Name):
     labels = None  # make pylint happy
 
