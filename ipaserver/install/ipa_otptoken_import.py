@@ -30,7 +30,6 @@ from lxml import etree
 import dateutil.parser
 import dateutil.tz
 import gssapi
-import six
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, hmac
@@ -415,7 +414,7 @@ class PSKCKeyPackage:
 
             result = fetch(element, path)
             if result is not None:
-                lambda_code_attr = "__code__" if six.PY3 else "func_code"
+                lambda_code_attr = "__code__"
                 if getattr(
                         getattr(v[1], lambda_code_attr, None),
                         "co_argcount", 0) > 1:

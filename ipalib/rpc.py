@@ -48,7 +48,6 @@ from ssl import SSLError
 from cryptography import x509 as crypto_x509
 import gssapi
 from dns.exception import DNSException
-import six
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
@@ -109,15 +108,11 @@ except ImportError:
     )
 
 # pylint: disable=import-error
-if six.PY3:
-    from http.client import RemoteDisconnected
-else:
-    from httplib import BadStatusLine as RemoteDisconnected
+from http.client import RemoteDisconnected
 # pylint: enable=import-error
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -570,18 +565,9 @@ class KerbTransport(SSLTransport):
             self.get_auth_info()
 
             while True:
-                if six.PY2:
-                    # pylint: disable=no-value-for-parameter
-                    self.send_request(h, handler, request_body)
-                    # pylint: enable=no-value-for-parameter
-                    self.send_host(h, host)
-                    self.send_user_agent(h)
-                    self.send_content(h, request_body)
-                    response = h.getresponse(buffering=True)
-                else:
-                    self.__send_request(h, host, handler,
-                                        request_body, verbose)
-                    response = h.getresponse()
+                self.__send_request(h, host, handler,
+                                    request_body, verbose)
+                response = h.getresponse()
 
                 if response.status != 200:
                     # Must read response (even if it is empty)
@@ -623,24 +609,23 @@ class KerbTransport(SSLTransport):
             raise
     # pylint: enable=inconsistent-return-statements
 
-    if six.PY3:
-        def __send_request(self, connection, host, handler,
-                           request_body, debug):
-            # Based on xmlrpc.client.Transport.send_request
-            headers = self._extra_headers[:]
-            if debug:
-                connection.set_debuglevel(1)
-            if self.accept_gzip_encoding and gzip:
-                connection.putrequest("POST", handler,
-                                      skip_accept_encoding=True)
-                connection.putheader("Accept-Encoding", "gzip")
-                headers.append(("Accept-Encoding", "gzip"))
-            else:
-                connection.putrequest("POST", handler)
-            headers.append(("User-Agent", self.user_agent))
-            self.send_headers(connection, headers)
-            self.send_content(connection, request_body)
-            return connection
+    def __send_request(self, connection, host, handler,
+                       request_body, debug):
+        # Based on xmlrpc.client.Transport.send_request
+        headers = self._extra_headers[:]
+        if debug:
+            connection.set_debuglevel(1)
+        if self.accept_gzip_encoding and gzip:
+            connection.putrequest("POST", handler,
+                                  skip_accept_encoding=True)
+            connection.putheader("Accept-Encoding", "gzip")
+            headers.append(("Accept-Encoding", "gzip"))
+        else:
+            connection.putrequest("POST", handler)
+        headers.append(("User-Agent", self.user_agent))
+        self.send_headers(connection, headers)
+        self.send_content(connection, request_body)
+        return connection
 
     # Find all occurrences of the expiry component
     expiry_re = re.compile(r'.*?(&expiry=\d+).*?')
@@ -718,10 +703,7 @@ class KerbTransport(SSLTransport):
             pass
 
     def parse_response(self, response):
-        if six.PY2:
-            header = response.msg.getheaders('Set-Cookie')
-        else:
-            header = response.msg.get_all('Set-Cookie')
+        header = response.msg.get_all('Set-Cookie')
         self.store_session_cookie(header)
         return SSLTransport.parse_response(self, response)
 

@@ -20,12 +20,10 @@
 Test `adtrustinstance`
 """
 import pytest
-import six
 
 from ipaserver.install import adtrustinstance
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 @pytest.mark.tier0

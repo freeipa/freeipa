@@ -28,7 +28,6 @@ import time
 import ldif
 import itertools
 
-import six
 
 from ipaclient.install.client import update_ipa_nssdb
 from ipalib import api, errors
@@ -57,11 +56,8 @@ except ImportError:
     adtrustinstance = None
 
 # pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
+# The SafeConfigParser class has been renamed to ConfigParser in Py3
+from configparser import ConfigParser as SafeConfigParser
 # pylint: enable=import-error
 
 logger = logging.getLogger(__name__)

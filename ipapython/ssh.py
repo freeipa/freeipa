@@ -28,10 +28,8 @@ import struct
 from hashlib import sha1
 from hashlib import sha256
 
-import six
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __all__ = ['SSHPublicKey']
 

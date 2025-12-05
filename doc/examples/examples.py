@@ -42,9 +42,7 @@ from ipalib import output
 
 
 # To make the example ready for Python 3, we alias "unicode" to strings.
-import six
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 # We're going to create an example command plugin, that takes a name as its

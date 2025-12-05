@@ -44,19 +44,12 @@ except ImportError:
     readline = rlcompleter = None
 
 
-import six
-from six.moves import input
 
 from ipalib.util import (
     check_client_configuration, get_pager, get_terminal_height, open_in_pager
 )
 
-if six.PY3:
-    unicode = str
-
-if six.PY2:
-    reload(sys)  # pylint: disable=reload-builtin, undefined-variable
-    sys.setdefaultencoding('utf-8')  # pylint: disable=no-member
+unicode = str
 
 from ipalib import frontend
 from ipalib import backend
@@ -151,31 +144,11 @@ class textui(backend.Backend):
             return 'UTF-8'
         return stream.encoding
 
-    if six.PY2:
-        def decode(self, value):
-            """
-            Decode text from stdin.
-            """
-            if type(value) is bytes:
-                encoding = self.__get_encoding(sys.stdin)
-                return value.decode(encoding)
-            elif type(value) in (list, tuple):
-                return tuple(self.decode(v) for v in value)
-            return value
+    def decode(self, value):
+        return value
 
-        def encode(self, unicode_text):
-            """
-            Encode text for output to stdout.
-            """
-            assert type(unicode_text) is unicode
-            encoding = self.__get_encoding(sys.stdout)
-            return unicode_text.encode(encoding)
-    else:
-        def decode(self, value):
-            return value
-
-        def encode(self, value):
-            return value
+    def encode(self, value):
+        return value
 
     def choose_number(self, n, singular, plural=None):
         if n == 1 or plural is None:
@@ -1425,7 +1398,7 @@ class cli(backend.Executioner):
                         )
                 elif p.stdin_if_missing:
                     try:
-                        if six.PY3 and p.type is bytes:
+                        if p.type is bytes:
                             raw = sys.stdin.buffer.read()
                         else:
                             raw = sys.stdin.read()

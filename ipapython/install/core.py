@@ -12,8 +12,6 @@ import functools
 import itertools
 import sys
 
-import six
-
 from . import util
 from .util import from_
 
@@ -455,7 +453,7 @@ class Configurable(metaclass=abc.ABCMeta):
     def _handle_exception(self, exc_info):
         assert not hasattr(super(Configurable, self), '_handle_exception')
 
-        six.reraise(*exc_info)
+        exc_info[1].with_traceback(exc_info[2])
 
     def _handle_validate_exception(self, exc_info):
         assert not hasattr(super(Configurable, self),

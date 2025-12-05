@@ -104,8 +104,6 @@ current block assignments:
             - **5100 - 5999**  *Reserved for future use*
 """
 
-import six
-
 from ipalib.text import ngettext as ungettext
 from ipalib import messages
 
@@ -121,16 +119,15 @@ class PrivateError(Exception):
         self.msg = self.format % kw
         self.kw = kw
         for (key, value) in kw.items():
-            assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
+            assert not hasattr(self, key), 'conflicting kwarg {}.{} = {!r}'.format(
                 self.__class__.__name__, key, value,
             )
             setattr(self, key, value)
         Exception.__init__(self, self.msg)
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
+    @property
+    def message(self):
+        return str(self)
 
 
 class SubprocessError(PrivateError):
@@ -273,10 +270,9 @@ class PublicError(Exception):
     rval = 1
     format = None
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
+    @property
+    def message(self):
+        return str(self)
 
 
 class VersionError(PublicError):

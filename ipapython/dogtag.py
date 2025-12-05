@@ -26,8 +26,6 @@ from urllib.parse import urlencode
 import xml.dom.minidom
 import zlib
 
-import six
-
 # pylint: disable=ipa-forbidden-import
 from ipalib import api, errors
 from ipalib.util import create_https_connection
@@ -43,8 +41,7 @@ try:
 except ImportError:
     import http.client as httplib
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -73,13 +70,7 @@ KRA_STORAGE_PROFILE = 'caStorageCert'
 KRA_TRANSPORT_PROFILE = 'caTransportCert'
 
 
-if six.PY3:
-    gzip_decompress = gzip.decompress
-else:
-    # note: gzip.decompress available in Python >= 3.2
-    def gzip_decompress(data):
-        with gzip.GzipFile(fileobj=io.BytesIO(data)) as f:
-            return f.read()
+gzip_decompress = gzip.decompress
 
 
 def error_from_xml(doc, message_template):

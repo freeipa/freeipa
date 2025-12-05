@@ -50,7 +50,6 @@ import pyasn1.error
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
 from pyasn1_modules import rfc2315, rfc2459
-import six
 
 try:
     from urllib3.util import ssl_match_hostname
@@ -783,7 +782,7 @@ def chunk(size, s):
     Works on character strings only.
 
     """
-    return (u''.join(span) for span in six.moves.zip(*[iter(s)] * size))
+    return (u''.join(span) for span in zip(*[iter(s)] * size))
 
 
 def add_colons(s):

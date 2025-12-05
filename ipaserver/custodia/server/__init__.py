@@ -5,7 +5,6 @@ import importlib
 import importlib.metadata
 import os
 
-import six
 
 from ipaserver.custodia import log
 from ipaserver.custodia.httpd.server import HTTPServer
@@ -20,7 +19,7 @@ __all__ = ['default_argparser', 'main']
 
 
 def attach_store(typename, plugins, stores):
-    for name, c in six.iteritems(plugins):
+    for name, c in plugins.items():
         if getattr(c, 'store_name', None) is None:
             continue
         try:

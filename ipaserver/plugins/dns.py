@@ -32,7 +32,6 @@ import dns.name
 import dns.exception
 import dns.rdatatype
 import dns.resolver
-import six
 
 from ipalib.dns import (extra_name_format,
                         get_extra_rrtype,
@@ -94,8 +93,7 @@ from ipaserver.dns_data_management import (
 )
 from ipaserver.masters import find_providing_servers, is_service_enabled
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Domain Name System (DNS)
