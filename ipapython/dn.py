@@ -457,7 +457,7 @@ def _adjust_indices(start, end, length):
 
 
 def _normalize_ava_input(val):
-    if six.PY3 and isinstance(val, bytes):
+    if isinstance(val, bytes):
         raise TypeError('expected str, got bytes: %r' % val)
     elif not isinstance(val, str):
         val = val_encode(str(val))

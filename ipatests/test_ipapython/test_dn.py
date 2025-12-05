@@ -9,29 +9,29 @@ from ipapython.dn import DN, RDN, AVA, str2dn, dn2str, DECODING_ERROR
 from ipapython import dn_ctypes
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
-    def cmp(a, b):
-        if a == b:
-            assert not a < b
-            assert not a > b
-            assert not a != b
-            assert a <= b
-            assert a >= b
-            return 0
-        elif a < b:
-            assert not a > b
-            assert a != b
-            assert a <= b
-            assert not a >= b
-            return -1
-        else:
-            assert a > b
-            assert a != b
-            assert not a <= b
-            assert a >= b
-            return 1
+
+def cmp(a, b):
+    if a == b:
+        assert not a < b
+        assert not a > b
+        assert not a != b
+        assert a <= b
+        assert a >= b
+        return 0
+    elif a < b:
+        assert not a > b
+        assert a != b
+        assert a <= b
+        assert not a >= b
+        return -1
+    else:
+        assert a > b
+        assert a != b
+        assert not a <= b
+        assert a >= b
+        return 1
 
 pytestmark = pytest.mark.tier0
 
