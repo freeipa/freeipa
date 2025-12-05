@@ -461,8 +461,6 @@ def _normalize_ava_input(val):
         raise TypeError('expected str, got bytes: %r' % val)
     elif not isinstance(val, str):
         val = val_encode(str(val))
-    elif six.PY2 and isinstance(val, unicode):
-        val = val.encode('utf-8')
     return val
 
 
@@ -544,22 +542,15 @@ def rdn_key(rdn):
     return (len(rdn),) + tuple(ava_key(k) for k in rdn)
 
 
-if six.PY2:
-    # Python 2: Input/output is unicode; we store UTF-8 bytes
-    def val_encode(s):
-        return s.encode('utf-8')
+# Python 3: Everything is unicode (str)
+def val_encode(s):
+    if isinstance(s, bytes):
+        raise TypeError('expected str, got bytes: %s' % s)
+    return s
 
-    def val_decode(s):
-        return s.decode('utf-8')
-else:
-    # Python 3: Everything is unicode (str)
-    def val_encode(s):
-        if isinstance(s, bytes):
-            raise TypeError('expected str, got bytes: %s' % s)
-        return s
 
-    def val_decode(s):
-        return s
+def val_decode(s):
+    return s
 
 
 @functools.total_ordering
