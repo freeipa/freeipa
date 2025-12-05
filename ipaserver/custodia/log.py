@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 import logging
 import sys
+import types
 import warnings
 
 
@@ -71,7 +72,7 @@ def getLogger(name):
         self.log(logging.ERROR, msg, *args, **kwargs)
 
     logger = logging.getLogger(name)
-    logger.exception = six.create_bound_method(exception, logger)
+    logger.exception = types.MethodType(exception, logger)
     return logger
 
 

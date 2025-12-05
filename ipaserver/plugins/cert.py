@@ -1250,7 +1250,7 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
         _san_ip_update_reachable(reachable, name, cname_depth=1)
 
     # Each iPAddressName must be reachable from a dNSName
-    unreachable_ips = san_ip_set - six.viewkeys(reachable)
+    unreachable_ips = san_ip_set - reachable.keys()
     if len(unreachable_ips) > 0:
         raise errors.ValidationError(
             name='csr',
@@ -1267,7 +1267,7 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
             ptrs_by_ip[unicode(ip)] = set(s.rstrip('.') for s in ptrs)
 
     # Each iPAddressName must have a corresponding PTR record.
-    missing_ptrs = san_ip_set - six.viewkeys(ptrs_by_ip)
+    missing_ptrs = san_ip_set - ptrs_by_ip.keys()
     if len(missing_ptrs) > 0:
         raise errors.ValidationError(
             name='csr',
@@ -2002,7 +2002,7 @@ Search for existing certificates.
                     if key not in sub_result:
                         del result[key]
 
-            for key, sub_obj in six.iteritems(sub_result):
+            for key, sub_obj in sub_result.items():
                 try:
                     obj = result[key]
                 except KeyError:
@@ -2020,7 +2020,7 @@ Search for existing certificates.
             if ca_enabled:
                 ra = self.api.Backend.ra
 
-            for key, obj in six.iteritems(result):
+            for key, obj in result.items():
                 if all and 'cacn' in obj:
                     _issuer, serial_number = key
                     cacn = obj['cacn']
@@ -2061,7 +2061,7 @@ Search for existing certificates.
                         obj.pop('certificate', None)
                     self.obj._fill_owners(obj)
 
-        result = list(six.itervalues(result))
+        result = list(result.values())
         if (len(result) > sizelimit > 0):
             if not truncated:
                 self.add_message(messages.SearchResultTruncated(

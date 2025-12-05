@@ -2239,7 +2239,7 @@ def create_signature(command):
             )
             # ipalib.parameters.DNSNameParam also handles text
             if isinstance(ipaparam, DNSNameParam):
-                allowed_types += (six.text_type,)
+                allowed_types += (str,)
             ann = typing.Union[allowed_types]
             if ipaparam.multivalue:
                 ann = typing.List[ann]

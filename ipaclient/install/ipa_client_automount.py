@@ -32,7 +32,7 @@ import gssapi
 
 import SSSDConfig
 
-from six.moves.urllib.parse import urlsplit
+from urllib.parse import urlsplit
 
 from ipapython import ipachangeconf
 from ipaclient import discovery
