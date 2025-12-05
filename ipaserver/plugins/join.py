@@ -19,7 +19,6 @@
 
 import logging
 
-import six
 
 from ipalib import Registry, api
 from ipalib import Command, Str
@@ -31,8 +30,7 @@ __doc__ = _("""
 Joining an IPA domain
 """)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

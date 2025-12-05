@@ -12,8 +12,6 @@ import functools
 import itertools
 import sys
 
-import six
-
 from . import util
 from .util import from_
 

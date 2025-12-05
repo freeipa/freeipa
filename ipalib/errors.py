@@ -104,8 +104,6 @@ current block assignments:
             - **5100 - 5999**  *Reserved for future use*
 """
 
-import six
-
 from ipalib.text import ngettext as ungettext
 from ipalib import messages
 

@@ -26,15 +26,13 @@ import os
 import shutil
 import tempfile
 
-import six
 import pytest
 
 from ipatests.i18n import create_po, po_file_iterate
 from ipalib.request import context
 from ipalib import text
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 pytestmark = pytest.mark.tier0
 

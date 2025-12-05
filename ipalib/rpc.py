@@ -48,7 +48,6 @@ from ssl import SSLError
 from cryptography import x509 as crypto_x509
 import gssapi
 from dns.exception import DNSException
-import six
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
@@ -113,8 +112,7 @@ from http.client import RemoteDisconnected
 # pylint: enable=import-error
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

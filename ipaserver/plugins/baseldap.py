@@ -25,7 +25,6 @@ import time
 from copy import deepcopy
 import base64
 
-import six
 
 from ipalib import api, crud, errors
 from ipalib import Method, Object
@@ -41,8 +40,7 @@ from ipalib.request import context
 from ipapython.dn import DN, RDN
 from ipapython.version import API_VERSION
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 DNA_MAGIC = -1
 

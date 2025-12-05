@@ -27,7 +27,6 @@ import traceback
 import tempfile
 import warnings
 
-import six
 
 from ipalib.install import certstore, sysrestore
 from ipapython import ipautil
@@ -46,8 +45,7 @@ from ipaserver.install.ldapupdate import LDAPUpdate, run_ldapi_reload_task
 
 logger = logging.getLogger(__name__)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 def print_msg(message, output_fd=sys.stdout):

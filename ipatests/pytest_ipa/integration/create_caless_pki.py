@@ -18,7 +18,6 @@ import datetime
 import itertools
 import os
 import os.path
-import six
 
 from cryptography import __version__ as cryptography_version
 from cryptography import x509
@@ -31,8 +30,7 @@ from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import encoder as der_encoder
 from pyasn1.codec.native import decoder as native_decoder
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 DAY = datetime.timedelta(days=1)
 YEAR = 365 * DAY

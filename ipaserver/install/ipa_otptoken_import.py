@@ -28,7 +28,6 @@ import uuid
 
 from lxml import etree
 import gssapi
-import six
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, hmac

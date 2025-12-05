@@ -26,7 +26,6 @@ import traceback
 
 import dns.dnssec
 from gssapi.exceptions import GSSError
-import six
 import systemd.daemon
 
 import ipalib

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib.frontend import Command, Object
 from ipalib import api, errors
@@ -51,8 +50,7 @@ else:
     AES_128_CBC_OID = "{2 16 840 1 101 3 4 1 2}"
     PKIException = Exception
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Vaults

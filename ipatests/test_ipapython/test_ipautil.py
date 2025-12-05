@@ -31,7 +31,6 @@ import textwrap
 import time
 
 import pytest
-import six
 
 from ipalib.constants import IPAAPI_USER
 from ipaplatform.paths import paths

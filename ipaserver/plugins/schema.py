@@ -6,7 +6,6 @@ import importlib
 import itertools
 import sys
 
-import six
 import hashlib
 
 from .baseldap import LDAPObject
@@ -35,8 +34,7 @@ EXAMPLES:
    ipa param-find user-find
 """)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 

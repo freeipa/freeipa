@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 import copy
 
 from ipalib import api, errors
@@ -18,8 +17,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.util import assert_deepequal
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'

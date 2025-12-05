@@ -27,8 +27,6 @@ import logging
 import os
 import sys
 
-import six
-
 from ipalib.install import sysrestore
 from ipaserver.install import adtrust, service
 from ipaserver.install.installutils import (
@@ -43,8 +41,7 @@ from ipapython.config import IPAOptionParser, SUPPRESS_HELP
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import standard_logging_setup
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(os.path.basename(__file__))
 

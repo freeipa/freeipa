@@ -20,7 +20,6 @@
 
 from __future__ import print_function
 
-import six
 import copy
 import re
 
@@ -38,8 +37,7 @@ from ipalib import _, ngettext
 from ipalib import util
 from ipapython.dnsutil import DNSName
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib.plugable import Registry
 from .baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
@@ -27,8 +26,7 @@ from ipalib import errors
 from ipaplatform import services
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 if api.env.in_server:
     try:

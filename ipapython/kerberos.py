@@ -6,12 +6,10 @@
 classes/utils for Kerberos principal name validation/manipulation
 """
 import re
-import six
 
 from ipapython.ipautil import escape_seq, unescape_seq
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 REALM_SPLIT_RE = re.compile(r'(?<!\\)@')
 COMPONENT_SPLIT_RE = re.compile(r'(?<!\\)/')

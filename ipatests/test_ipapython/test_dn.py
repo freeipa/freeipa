@@ -3,8 +3,6 @@ import contextlib
 import pytest
 
 from cryptography import x509
-import six
-
 from ipapython.dn import DN, RDN, AVA, str2dn, dn2str, DECODING_ERROR
 from ipapython import dn_ctypes
 

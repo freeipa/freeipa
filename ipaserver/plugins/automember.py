@@ -20,7 +20,6 @@ import uuid
 import time
 
 import ldap as _ldap
-import six
 
 from ipalib import api, errors, Str, StrEnum, DNParam, Flag, _, ngettext
 from ipalib import output, Method, Object
@@ -37,8 +36,7 @@ from .baseldap import (
 from ipalib.request import context
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Auto Membership Rule.

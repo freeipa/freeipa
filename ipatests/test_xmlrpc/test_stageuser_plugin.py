@@ -8,8 +8,6 @@ Test the `ipaserver/plugins/stageuser.py` module.
 
 import pytest
 
-import six
-
 from collections import OrderedDict
 from ipalib import api, errors
 from ipalib.constants import ERRMSG_GROUPUSER_NAME
@@ -28,8 +26,7 @@ except ImportError:
 else:
     have_ldap2 = True
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 validuser1 = u'tuser1'
 validuser2 = u'tuser2'

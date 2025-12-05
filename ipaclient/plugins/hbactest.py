@@ -20,10 +20,8 @@
 from ipaclient.frontend import CommandOverride
 from ipalib.plugable import Registry
 
-import six
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 

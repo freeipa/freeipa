@@ -22,7 +22,6 @@ import dbus
 import dbus.mainloop.glib
 import logging
 
-import six
 
 from ipalib.messages import (
     add_message,
@@ -59,8 +58,7 @@ from ipaserver.dcerpc_common import (TRUST_ONEWAY,
                                      trust_status_string)
 from ipaserver.plugins.privilege import principal_has_privilege
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 try:
     import pysss_murmur

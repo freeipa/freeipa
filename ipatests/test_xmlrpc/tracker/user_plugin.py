@@ -6,7 +6,6 @@ from ipalib import api, errors
 from ipaplatform.constants import constants as platformconstants
 from ipapython.dn import DN
 
-import six
 
 from ipatests.util import assert_deepequal, get_group_dn
 from ipatests.test_xmlrpc import objectclasses
@@ -18,8 +17,7 @@ from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc.tracker.certmapdata import CertmapdataMixin
 from ipatests.test_xmlrpc.tracker.passkey_plugin import PasskeyMixin
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,

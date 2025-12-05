@@ -44,7 +44,6 @@ import locale
 import collections
 import urllib
 
-import six
 from six.moves import input
 
 try:

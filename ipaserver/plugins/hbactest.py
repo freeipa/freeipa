@@ -33,7 +33,6 @@ if api.env.in_server:
     except ImportError:
         _dcerpc_bindings_installed = False
 
-import six
 
 try:
     import pyhbac
@@ -41,8 +40,7 @@ except ImportError:
     raise errors.SkipPluginModule(reason=_('pyhbac is not installed.'))
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _(r"""
 Simulate use of Host-based access controls

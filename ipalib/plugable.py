@@ -37,7 +37,6 @@ import textwrap
 import collections
 import importlib
 
-import six
 
 from ipalib import errors
 from ipalib.config import Env
@@ -52,8 +51,7 @@ from ipapython.ipa_log_manager import (
     LOGGING_FORMAT_STDERR)
 from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

@@ -7,14 +7,12 @@ import ctypes.util
 import binascii
 import struct
 
-import six
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 _ffi = FFI()

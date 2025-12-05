@@ -11,7 +11,6 @@ from __future__ import print_function, absolute_import
 import logging
 import os
 
-import six
 
 from ipalib.constants import MIN_DOMAIN_LEVEL
 from ipalib import create_api, rpc
@@ -31,8 +30,7 @@ from ipaserver.install.bindinstance import dns_zone_exists
 from ipaserver.dns_data_management import IPASystemRecords
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

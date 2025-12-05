@@ -6,15 +6,13 @@ import subprocess
 import sys
 import tempfile
 
-import six
 
 from ipatests import util
 from ipatests.test_ipalib.test_x509 import goodcert_headers
 from ipalib import api, errors
 import pytest
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 TEST_ZONE = u'zoneadd.%(domain)s' % api.env
 

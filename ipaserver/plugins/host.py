@@ -22,7 +22,6 @@ from __future__ import absolute_import
 
 import logging
 
-import six
 
 from ipalib import api, errors, util
 from ipalib import messages
@@ -68,8 +67,7 @@ from ipapython.dn import DN
 from ipapython import kerberos
 from functools import reduce
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Hosts/Machines

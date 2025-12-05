@@ -19,7 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import re
 
-import six
 
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                        LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -45,8 +44,7 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
 
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 _dcerpc_bindings_installed = False
 

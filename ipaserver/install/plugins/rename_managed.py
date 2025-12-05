@@ -19,7 +19,6 @@
 
 import logging
 
-import six
 
 from ipalib import Registry, errors
 from ipalib import Updater
@@ -30,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 register = Registry()
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 def entry_to_update(entry):

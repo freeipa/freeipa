@@ -21,7 +21,6 @@ import logging
 import re
 import traceback
 
-import six
 
 from . import baseldap
 from .privilege import validate_permission_to_privilege
@@ -35,8 +34,7 @@ from ipalib.aci import ACI
 from ipapython.dn import DN
 from ipalib.request import context
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Permissions

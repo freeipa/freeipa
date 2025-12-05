@@ -34,7 +34,6 @@ import lxml.etree
 
 from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
 
-import six
 
 import pki
 import pki.system

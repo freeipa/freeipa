@@ -30,12 +30,9 @@ import dns.rdatatype
 import dns.reversename
 
 
-import six
-
 from ipapython.ipautil import UnsafeIPAddress
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

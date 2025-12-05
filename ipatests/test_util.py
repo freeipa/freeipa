@@ -23,14 +23,11 @@ Test the `tests.util` module.
 
 import re
 
-import six
-
 from ipatests import util
 from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
 import pytest
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 pytestmark = pytest.mark.tier0
 pattern_type = type(re.compile(""))

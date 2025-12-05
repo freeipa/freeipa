@@ -26,7 +26,6 @@ import sys
 import tempfile
 import time
 
-import six
 
 from ipaplatform.paths import paths
 from ipaplatform import services

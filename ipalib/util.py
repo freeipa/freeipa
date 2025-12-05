@@ -43,7 +43,6 @@ from dns import rdatatype
 from dns.exception import DNSException
 from dns.resolver import NXDOMAIN
 from netaddr.core import AddrFormatError
-import six
 
 try:
     from httplib import HTTPSConnection
@@ -78,8 +77,7 @@ if sys.version_info >= (3, 2):
 else:
     reprlib = None
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 _IPA_CLIENT_SYSRESTORE = "/var/lib/ipa-client/sysrestore"
 _IPA_DEFAULT_CONF = "/etc/ipa/default.conf"

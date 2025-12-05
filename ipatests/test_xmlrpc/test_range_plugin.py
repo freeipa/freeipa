@@ -21,7 +21,6 @@
 Test the `ipaserver/plugins/idrange.py` module, and XML-RPC in general.
 """
 
-import six
 
 from ipalib import api, errors, messages
 from ipalib import constants
@@ -37,8 +36,7 @@ from ipatests.test_xmlrpc.mock_trust import (
     get_trust_dn)
 import pytest
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 # Determine the test shift used
 

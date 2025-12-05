@@ -14,7 +14,6 @@ import zipfile
 
 from cryptography import x509 as crypto_x509
 
-import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib import errors, parameters, plugable
@@ -31,8 +30,7 @@ logger = logging.getLogger(__name__)
 
 FORMAT = '1'
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 _TYPES = {
     'DN': DN,

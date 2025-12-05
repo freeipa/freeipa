@@ -3,7 +3,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api
 from ipatests.test_xmlrpc.tracker.base import Tracker
@@ -13,8 +12,7 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class ServiceTracker(KerberosAliasMixin, Tracker):

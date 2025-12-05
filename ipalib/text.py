@@ -134,12 +134,10 @@ forms, see `NGettextFactory` and `NGettext`.
 
 import gettext
 
-import six
 
 from ipalib.request import context
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 def create_translation(key):
