@@ -784,8 +784,9 @@ void free_keys_contents(krb5_context krbctx, struct keys_container *keys)
     keys->nkeys = 0;
 }
 
-int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
-                           int *num_encsalts, char **err_msg)
+int ipa_string_to_enctypes(const char *str, krb5_int32 default_salttype,
+                           struct krb_key_salt **encsalts, int *num_encsalts,
+                           char **err_msg)
 {
     struct krb_key_salt *ksdata;
     krb5_error_code krberr;
@@ -836,7 +837,7 @@ int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
         if (p) t = p + 1;
 
         if (!q) {
-            ksdata[num].salttype = KRB5_KDB_SALTTYPE_NORMAL;
+            ksdata[num].salttype = default_salttype;
             num++;
             continue;
         }
@@ -861,7 +862,7 @@ int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
  * filters out equivalent encodings,
  * returns 0 if no enctypes available, >0 if enctypes are available */
 static int prep_ksdata(krb5_context krbctx, const char *str,
-                       struct keys_container *keys,
+                       krb5_int32 default_salttype, struct keys_container *keys,
                        char **err_msg)
 {
     struct krb_key_salt *ksdata;
@@ -897,7 +898,8 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
         nkeys = i;
 
     } else {
-        krberr = ipa_string_to_enctypes(str, &ksdata, &nkeys, err_msg);
+        krberr = ipa_string_to_enctypes(str, default_salttype, &ksdata, &nkeys,
+                                        err_msg);
         if (krberr) {
             return 0;
         }
@@ -953,6 +955,7 @@ int create_keys(krb5_context krbctx,
                 char **err_msg)
 {
     struct krb_key_salt *ksdata;
+    krb5_int32 default_salttype;
     krb5_error_code krberr;
     krb5_data key_password;
     krb5_data *realm = NULL;
@@ -961,7 +964,9 @@ int create_keys(krb5_context krbctx,
 
     *err_msg = NULL;
 
-    ret = prep_ksdata(krbctx, enctypes_string, keys, err_msg);
+    default_salttype = password ? KRB5_KDB_SALTTYPE_SPECIAL
+                                : KRB5_KDB_SALTTYPE_NORMAL;
+    ret = prep_ksdata(krbctx, enctypes_string, default_salttype, keys, err_msg);
     if (ret == 0) return 0;
 
     ksdata = keys->ksdata;

@@ -663,6 +663,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
                            struct keys_container *keys, int *kvno,
                            char **err_msg)
 {
+    krb5_int32 default_salttype;
     struct krb_key_salt *es = NULL;
     int num_es = 0;
     struct berval *control = NULL;
@@ -675,7 +676,10 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
     *err_msg = NULL;
 
     if (enctypes) {
-        ret = ipa_string_to_enctypes(enctypes, &es, &num_es, err_msg);
+        default_salttype = password ? KRB5_KDB_SALTTYPE_SPECIAL
+                                    : KRB5_KDB_SALTTYPE_NORMAL;
+        ret = ipa_string_to_enctypes(enctypes, default_salttype, &es, &num_es,
+                                     err_msg);
         if (ret || num_es == 0) {
             free(es);
             return LDAP_OPERATIONS_ERROR;
