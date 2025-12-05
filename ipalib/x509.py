@@ -782,7 +782,7 @@ def chunk(size, s):
     Works on character strings only.
 
     """
-    return (u''.join(span) for span in six.moves.zip(*[iter(s)] * size))
+    return (u''.join(span) for span in zip(*[iter(s)] * size))
 
 
 def add_colons(s):

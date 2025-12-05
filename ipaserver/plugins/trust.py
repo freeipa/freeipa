@@ -1745,7 +1745,7 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry,
 
     suffixes = list()
     suffixes.extend(y['cn']
-                    for x, y in six.iteritems(domains['suffixes'])
+                    for x, y in domains['suffixes'].items()
                     if x not in domains['domains'])
 
     try:
@@ -1768,8 +1768,8 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry,
     if is_nontransitive:
         return result
 
-    for dom in six.itervalues(domains['domains']):
-        dom['trust_type'] = u'ad'
+    for dom in domains['domains'].values():
+        dom['trust_type'] = 'ad'
         try:
             name = dom['cn']
             del dom['cn']
