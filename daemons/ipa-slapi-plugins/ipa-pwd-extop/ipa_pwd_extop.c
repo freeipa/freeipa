@@ -1635,33 +1635,6 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
             goto free_and_return;
         }
 
-        /* Only allow generating arcfour-hmac keys for cifs/.. services
-         * unless the enctype is allowed by the IPA configuration for use
-         * by the all principals */
-        nthash_allowed = ipa_is_cifs_princname(service_name) ||
-                         ipa_is_cifs_dn(bind_dn);
-        krberr = ipa_sort_and_filter_keysalt_types_i(krbctx, req_ktypes,
-                                                     &num_req_ktypes,
-                                                     nthash_allowed);
-        if (krberr) {
-            err_msg = "Unable to filter Kerberos key/salt types";
-            rc = LDAP_OPERATIONS_ERROR;
-            goto free_and_return;
-        }
-
-        /* check if we have any left */
-        if (num_req_ktypes == 0 && req_ktypes != NULL) {
-            LOG_FATAL("keyset filtering rejected all proposed keys\n");
-            err_msg = "All enctypes provided are unsupported";
-            rc = LDAP_UNWILLING_TO_PERFORM;
-            goto free_and_return;
-        }
-
-        /* only target is used, leave everything else NULL,
-         * if password is not provided we want to generate a random key */
-        data.target = target_entry;
-        data.password = password;
-
         if (!req_ktypes) {
             if (!password) {
                 /* If client requested a random password with default key types,
@@ -1674,9 +1647,36 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
                 num_ktypes = krbcfg->num_pref_encsalts;
             }
         } else {
+            /* Only allow generating arcfour-hmac keys for cifs/.. services
+             * unless the enctype is allowed by the IPA configuration for use
+             * by the all principals */
+            nthash_allowed = ipa_is_cifs_princname(service_name) ||
+                             ipa_is_cifs_dn(bind_dn);
+            krberr = ipa_sort_and_filter_keysalt_types_i(krbctx, req_ktypes,
+                                                         &num_req_ktypes,
+                                                         nthash_allowed);
+            if (krberr) {
+                err_msg = "Unable to filter Kerberos key/salt types";
+                rc = LDAP_OPERATIONS_ERROR;
+                goto free_and_return;
+            }
+
+            /* check if we have any left */
+            if (num_req_ktypes == 0 && req_ktypes != NULL) {
+                LOG_FATAL("keyset filtering rejected all proposed keys\n");
+                err_msg = "All enctypes provided are unsupported";
+                rc = LDAP_UNWILLING_TO_PERFORM;
+                goto free_and_return;
+            }
+
             ktypes = req_ktypes;
             num_ktypes = num_req_ktypes;
         }
+
+        /* only target is used, leave everything else NULL,
+         * if password is not provided we want to generate a random key */
+        data.target = target_entry;
+        data.password = password;
 
         svals = ipapwd_encrypt_encode_key(krbcfg, &data, service_name,
                                           num_ktypes, ktypes, &err_msg);
