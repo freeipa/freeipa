@@ -448,11 +448,10 @@ def zonemgr_callback(option, opt_str, value, parser):
     """
     if value is not None:
         # validate the value first
-        if six.PY3:
-            try:
-                validate_zonemgr_str(value)
-            except ValueError as e:
-                parser.error("invalid zonemgr: {}".format(e))
+        try:
+            validate_zonemgr_str(value)
+        except ValueError as e:
+            parser.error("invalid zonemgr: {}".format(e))
         else:
             try:
                 # IDNA support requires unicode

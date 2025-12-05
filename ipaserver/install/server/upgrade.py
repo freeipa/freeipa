@@ -62,11 +62,8 @@ from ipaserver.install.ldapupdate import BadSyntax
 
 import six
 # pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
+# The SafeConfigParser class has been renamed to ConfigParser in Py3
+from configparser import ConfigParser as SafeConfigParser
 # pylint: enable=import-error
 
 if six.PY3:
