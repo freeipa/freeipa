@@ -130,12 +130,12 @@ class KeyTypeTest(IntegrationTest):
 
     def test_gkt_created_service(self):
         fqdn = self.master.hostname
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
         self.master.run_command(['ipa', 'service-add', f'test/{fqdn}'])
         self.master.run_command(['ipa-getkeytab', '-p', f'test/{fqdn}', '-k',
                                  TEST_KEYTAB])
         self.check_keytab(TEST_KEYTAB, self.expected)
         self.check_kadmin_princ_keys(f'test/{fqdn}', 1, self.expected)
-        self.master.run_command(['rm', TEST_KEYTAB])
 
     # When randomizing keys using kadmin, ipadb_change_pwd() is not called.
     # kadmin will though a different execution flow where the list of types is
@@ -143,30 +143,30 @@ class KeyTypeTest(IntegrationTest):
     # It will use a NULL salt, which will be displayed as ":normal".
     def test_service_after_kadmin_cpw(self):
         fqdn = self.master.hostname
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
         self.master.run_command(['kadmin.local', 'change_password', '-randkey',
                                  f'test/{fqdn}'])
         self.master.run_command(['kadmin.local', 'ktadd', '-norandkey', '-k',
                                  TEST_KEYTAB, f'test/{fqdn}'])
         self.check_keytab(TEST_KEYTAB, self.expected)
         self.check_kadmin_princ_keys(f'test/{fqdn}', 2, self.expected)
-        self.master.run_command(['rm', TEST_KEYTAB])
 
     def test_service_after_gkt_cpw_w_pw(self):
         fqdn = self.master.hostname
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
         self.master.run_command(['ipa-getkeytab', '-p', f'test/{fqdn}', '-k',
                                  TEST_KEYTAB, '-P'],
                                 stdin_text=f'{TESTPWD}\n{TESTPWD}\n')
         self.check_keytab(TEST_KEYTAB, self.expected)
         self.check_kadmin_princ_keys(f'test/{fqdn}', 3, self.default_keytypes())
-        self.master.run_command(['rm', TEST_KEYTAB])
 
     def test_service_after_gkt_cpw_wo_pw(self):
         fqdn = self.master.hostname
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
         self.master.run_command(['ipa-getkeytab', '-p', f'test/{fqdn}', '-k',
                                  TEST_KEYTAB])
         self.check_keytab(TEST_KEYTAB, self.expected)
         self.check_kadmin_princ_keys(f'test/{fqdn}', 4, self.expected)
-        self.master.run_command(['rm', TEST_KEYTAB])
 
     # For CIFS principals, RC4 should be allowed even if not explicitly allowed
     # in permitted_enctypes
@@ -194,6 +194,8 @@ class KeyTypeTest(IntegrationTest):
         fqdn = self.master.hostname
         rexpected = list(reversed(self.expected))
 
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
+
         set_permitted_entypes(self.master, list(reversed(self.configured)))
         tasks.restart_ipa_server(self.master)
 
@@ -217,8 +219,6 @@ class KeyTypeTest(IntegrationTest):
                                  TEST_KEYTAB])
         self.check_keytab(TEST_KEYTAB, rexpected)
         self.check_kadmin_princ_keys(f'test/{fqdn}', 5, rexpected)
-
-        self.master.run_command(['rm', TEST_KEYTAB])
 
         set_permitted_entypes(self.master, self.configured)
         tasks.restart_ipa_server(self.master)
