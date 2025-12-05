@@ -209,7 +209,6 @@ class LazyText:
         return other + ConcatenatedLazyText(self)
 
 
-@six.python_2_unicode_compatible
 class Gettext(LazyText):
     """
     Deferred translation using ``gettext.ugettext()``.
@@ -304,7 +303,6 @@ class Gettext(LazyText):
         return str(self).expandtabs(tabsize)
 
 
-@six.python_2_unicode_compatible
 class FixMe(Gettext):
     """
     Non-translated place-holder for UI labels.
@@ -478,7 +476,6 @@ class NGettext(LazyText):
         return t.ngettext(self.singular, self.plural, count)
 
 
-@six.python_2_unicode_compatible
 class ConcatenatedLazyText:
     """Concatenation of multiple strings, or any objects convertible to unicode
 

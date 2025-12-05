@@ -127,7 +127,7 @@ class _JSONPrimer(dict):
             append(v if func is _identity else func(v))
         return result
 
-    def _enc_dict(self, val, _identity=_identity, _iteritems=six.iteritems):
+    def _enc_dict(self, val, _identity=_identity, _iteritems=dict.items):
         result = {}
         for k, v in _iteritems(val):
             func = self[v.__class__]
@@ -155,7 +155,7 @@ def json_encode_binary(val, version, pretty_print=False):
         return json.dumps(result)
 
 
-def _ipa_obj_hook(dct, _iteritems=six.iteritems, _list=list):
+def _ipa_obj_hook(dct, _iteritems=dict.items, _list=list):
     """JSON object hook
 
     :see: _JSONPrimer
