@@ -19,7 +19,6 @@ import textwrap
 import traceback
 
 from packaging.version import parse as parse_version
-import six
 
 from ipaclient.install.client import check_ldap_conf, sssd_enable_ifp
 import ipaclient.install.timeconf
@@ -51,8 +50,7 @@ from ipaserver.masters import find_providing_servers, find_providing_server
 import SSSDConfig
 from subprocess import CalledProcessError
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 NoneType = type(None)
 

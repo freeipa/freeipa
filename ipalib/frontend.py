@@ -22,7 +22,6 @@ Base classes for all front-end plugins.
 """
 import logging
 
-import six
 
 from ipapython.version import API_VERSION
 from ipapython.ipautil import APIVersion
@@ -46,8 +45,7 @@ from ipalib.request import context, context_frame
 from ipalib.util import classproperty, classobjectproperty, json_serialize
 from ipalib.constants import SD_IPA_API_MESSAGE_ID
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

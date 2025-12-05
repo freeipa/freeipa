@@ -22,7 +22,6 @@ Test the `ipalib.frontend` module.
 """
 
 import pytest
-import six
 
 from ipatests.util import raises, read_only
 from ipatests.util import ClassChecker, create_test_api
@@ -34,8 +33,7 @@ from ipalib import output, messages
 from ipalib.parameters import Str
 from ipapython.version import API_VERSION
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 pytestmark = pytest.mark.tier0

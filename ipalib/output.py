@@ -20,15 +20,13 @@
 """
 Simple description of return values.
 """
-import six
 
 from ipalib.plugable import ReadOnly, lock
 from ipalib.capabilities import client_has_capability
 from ipalib.text import _
 from ipalib.util import apirepr
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 class Output(ReadOnly):
     """

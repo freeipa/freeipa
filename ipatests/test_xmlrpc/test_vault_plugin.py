@@ -22,7 +22,6 @@ Test the `ipaserver/plugins/vault.py` module.
 """
 
 import pytest
-import six
 
 from ipalib import api
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_bytes

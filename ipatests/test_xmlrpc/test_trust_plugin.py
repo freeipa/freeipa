@@ -20,7 +20,6 @@
 Test the `ipaserver/plugins/trust.py` module.
 """
 
-import six
 
 from ipalib import api, errors
 from ipapython.dn import DN
@@ -31,8 +30,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_digits)
 import pytest
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 trustconfig_ad_config = DN(('cn', api.env.domain),

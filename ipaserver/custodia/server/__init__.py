@@ -5,7 +5,6 @@ import importlib
 import importlib.metadata
 import os
 
-import six
 
 from ipaserver.custodia import log
 from ipaserver.custodia.httpd.server import HTTPServer

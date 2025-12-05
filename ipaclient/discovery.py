@@ -21,7 +21,6 @@ from __future__ import absolute_import
 
 import logging
 
-import six
 
 from dns import rdatatype
 from dns.exception import DNSException

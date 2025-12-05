@@ -24,14 +24,12 @@ Test the `ipaserver.rpc` module.
 import json
 import pytest
 
-import six
 
 from ipatests.util import assert_equal, raises, PluginTester
 from ipalib import errors
 from ipaserver import rpcserver
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 pytestmark = pytest.mark.tier0
 

@@ -256,7 +256,6 @@ from lxml import etree
 import time
 import contextlib
 
-import six
 
 from ipalib import Backend, api, x509
 from ipapython.dn import DN
@@ -269,8 +268,7 @@ from pki.client import PKIConnection
 import pki.crypto as cryptoutil
 from pki.kra import KRAClient
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

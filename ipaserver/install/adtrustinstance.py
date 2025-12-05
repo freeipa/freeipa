@@ -29,7 +29,6 @@ import struct
 import re
 import socket
 
-import six
 
 from ipaserver.install import service
 from ipaserver.install import installutils
@@ -49,8 +48,7 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

@@ -22,7 +22,6 @@
 import logging
 
 from cryptography.hazmat.primitives import hashes
-import six
 
 from ipalib import api, errors, messages
 from ipalib import StrEnum, Bool, Str, Flag
@@ -54,8 +53,7 @@ from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Services
