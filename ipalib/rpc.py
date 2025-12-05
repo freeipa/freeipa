@@ -109,10 +109,7 @@ except ImportError:
     )
 
 # pylint: disable=import-error
-if six.PY3:
-    from http.client import RemoteDisconnected
-else:
-    from httplib import BadStatusLine as RemoteDisconnected
+from http.client import RemoteDisconnected
 # pylint: enable=import-error
 
 
@@ -623,24 +620,23 @@ class KerbTransport(SSLTransport):
             raise
     # pylint: enable=inconsistent-return-statements
 
-    if six.PY3:
-        def __send_request(self, connection, host, handler,
-                           request_body, debug):
-            # Based on xmlrpc.client.Transport.send_request
-            headers = self._extra_headers[:]
-            if debug:
-                connection.set_debuglevel(1)
-            if self.accept_gzip_encoding and gzip:
-                connection.putrequest("POST", handler,
-                                      skip_accept_encoding=True)
-                connection.putheader("Accept-Encoding", "gzip")
-                headers.append(("Accept-Encoding", "gzip"))
-            else:
-                connection.putrequest("POST", handler)
-            headers.append(("User-Agent", self.user_agent))
-            self.send_headers(connection, headers)
-            self.send_content(connection, request_body)
-            return connection
+    def __send_request(self, connection, host, handler,
+                       request_body, debug):
+        # Based on xmlrpc.client.Transport.send_request
+        headers = self._extra_headers[:]
+        if debug:
+            connection.set_debuglevel(1)
+        if self.accept_gzip_encoding and gzip:
+            connection.putrequest("POST", handler,
+                                  skip_accept_encoding=True)
+            connection.putheader("Accept-Encoding", "gzip")
+            headers.append(("Accept-Encoding", "gzip"))
+        else:
+            connection.putrequest("POST", handler)
+        headers.append(("User-Agent", self.user_agent))
+        self.send_headers(connection, headers)
+        self.send_content(connection, request_body)
+        return connection
 
     # Find all occurrences of the expiry component
     expiry_re = re.compile(r'.*?(&expiry=\d+).*?')

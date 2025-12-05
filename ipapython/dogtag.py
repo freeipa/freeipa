@@ -65,13 +65,7 @@ DEFAULT_PROFILE = u'caIPAserviceCert'
 KDC_PROFILE = u'KDCs_PKINIT_Certs'
 
 
-if six.PY3:
-    gzip_decompress = gzip.decompress
-else:
-    # note: gzip.decompress available in Python >= 3.2
-    def gzip_decompress(data):
-        with gzip.GzipFile(fileobj=io.BytesIO(data)) as f:
-            return f.read()
+gzip_decompress = gzip.decompress
 
 
 def error_from_xml(doc, message_template):
