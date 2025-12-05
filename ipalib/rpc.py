@@ -567,18 +567,9 @@ class KerbTransport(SSLTransport):
             self.get_auth_info()
 
             while True:
-                if six.PY2:
-                    # pylint: disable=no-value-for-parameter
-                    self.send_request(h, handler, request_body)
-                    # pylint: enable=no-value-for-parameter
-                    self.send_host(h, host)
-                    self.send_user_agent(h)
-                    self.send_content(h, request_body)
-                    response = h.getresponse(buffering=True)
-                else:
-                    self.__send_request(h, host, handler,
-                                        request_body, verbose)
-                    response = h.getresponse()
+                self.__send_request(h, host, handler,
+                                    request_body, verbose)
+                response = h.getresponse()
 
                 if response.status != 200:
                     # Must read response (even if it is empty)
@@ -714,10 +705,7 @@ class KerbTransport(SSLTransport):
             pass
 
     def parse_response(self, response):
-        if six.PY2:
-            header = response.msg.getheaders('Set-Cookie')
-        else:
-            header = response.msg.get_all('Set-Cookie')
+        header = response.msg.get_all('Set-Cookie')
         self.store_session_cookie(header)
         return SSLTransport.parse_response(self, response)
 

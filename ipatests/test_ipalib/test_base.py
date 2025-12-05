@@ -187,12 +187,8 @@ def test_check_name():
     ]
     for name in okay:
         assert name is f(name)
-        if six.PY2:
-            bad_type = unicode
-            bad_value = unicode(name)
-        else:
-            bad_type = bytes
-            bad_value = name.encode('ascii')
+        bad_type = bytes
+        bad_value = name.encode('ascii')
         e = raises(TypeError, f, bad_value)
         assert str(e) == TYPE_ERROR % ('name', str, bad_value, bad_type)
     for name in nope:
