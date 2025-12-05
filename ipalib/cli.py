@@ -1425,7 +1425,7 @@ class cli(backend.Executioner):
                         )
                 elif p.stdin_if_missing:
                     try:
-                        if six.PY3 and p.type is bytes:
+                        if p.type is bytes:
                             raw = sys.stdin.buffer.read()
                         else:
                             raw = sys.stdin.read()
