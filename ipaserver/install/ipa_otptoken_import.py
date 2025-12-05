@@ -415,7 +415,7 @@ class PSKCKeyPackage:
 
             result = fetch(element, path)
             if result is not None:
-                lambda_code_attr = "__code__" if six.PY3 else "func_code"
+                lambda_code_attr = "__code__"
                 if getattr(
                         getattr(v[1], lambda_code_attr, None),
                         "co_argcount", 0) > 1:

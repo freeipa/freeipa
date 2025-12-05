@@ -37,10 +37,7 @@ symmetric_vault_name = u'symmetric_test_vault'
 asymmetric_vault_name = u'asymmetric_test_vault'
 
 # binary data from \x00 to \xff
-if six.PY2:
-    secret = b''.join(chr(c) for c in range(0, 256))
-else:
-    secret = bytes(range(0, 256))
+secret = bytes(range(0, 256))
 
 password = u'password'
 other_password = u'other_password'

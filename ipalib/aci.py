@@ -115,8 +115,6 @@ class ACI:
         return s
 
     def _parse_target(self, aci):
-        if six.PY2:
-            aci = aci.encode('utf-8')
         lexer = shlex.shlex(aci)
         lexer.wordchars = lexer.wordchars + "."
 
