@@ -176,8 +176,7 @@ class BINDMgr:
         escaped = []
         for label in zone:
             for char in label:
-                if six.PY3:
-                    char = chr(char)
+                char = chr(char)
                 if char.isalnum() or char in "-_":
                     escaped.append(char.lower())
                 else:

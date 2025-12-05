@@ -510,8 +510,7 @@ def receive_systemd_command():
     cmd = conn.read_cmd()
 
     # ODS uses an ASCII protocol, the rest of the code expects str
-    if six.PY3:
-        cmd = cmd.decode('ascii')
+    cmd = cmd.decode('ascii')
     logger.debug('received command "%s" from systemd socket', cmd)
     return cmd, conn
 
@@ -565,11 +564,10 @@ def parse_command(cmd):
 
 
 def send_systemd_reply(conn, reply):
-        # Reply & close connection early.
-        # This is necessary to let Enforcer to unlock the ODS DB.
-        if six.PY3:
-            reply = reply.encode('ascii')
-        conn.send_reply_and_close(reply)
+    # Reply & close connection early.
+    # This is necessary to let Enforcer to unlock the ODS DB.
+    reply = reply.encode('ascii')
+    conn.send_reply_and_close(reply)
 
 def cmd2ods_zone_name(cmd):
     # ODS stores zone name without trailing period

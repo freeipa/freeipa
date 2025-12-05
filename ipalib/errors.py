@@ -127,10 +127,9 @@ class PrivateError(Exception):
             setattr(self, key, value)
         Exception.__init__(self, self.msg)
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
+    @property
+    def message(self):
+        return str(self)
 
 
 class SubprocessError(PrivateError):
@@ -273,10 +272,9 @@ class PublicError(Exception):
     rval = 1
     format = None
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
+    @property
+    def message(self):
+        return str(self)
 
 
 class VersionError(PublicError):

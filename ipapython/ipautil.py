@@ -504,7 +504,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     if encoding is None:
         encoding = locale.getpreferredencoding()
 
-    if six.PY3 and isinstance(stdin, str):
+    if isinstance(stdin, str):
         stdin = stdin.encode(encoding)
 
     arg_string = nolog_replace(repr(args), nolog)
@@ -563,17 +563,11 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         output_log = None
         error_log = None
     else:
-        if six.PY3:
-            output_log = stdout.decode(locale.getpreferredencoding(),
-                                       errors='replace')
-        else:
-            output_log = stdout
+        output_log = stdout.decode(locale.getpreferredencoding(),
+                                   errors='replace')
 
-        if six.PY3:
-            error_log = stderr.decode(locale.getpreferredencoding(),
-                                      errors='replace')
-        else:
-            error_log = stderr
+        error_log = stderr.decode(locale.getpreferredencoding(),
+                                  errors='replace')
 
         output_log = nolog_replace(output_log, nolog)
         if nolog_output:
@@ -588,18 +582,12 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
             logger.debug('stderr=%s', error_log)
 
     if capture_output:
-        if six.PY2:
-            output = stdout
-        else:
-            output = stdout.decode(encoding)
+        output = stdout.decode(encoding)
     else:
         output = None
 
     if capture_error:
-        if six.PY2:
-            error_output = stderr
-        else:
-            error_output = stderr.decode(encoding)
+        error_output = stderr.decode(encoding)
     else:
         error_output = None
 
@@ -708,13 +696,7 @@ class CIDict(dict):
             self.__setitem__(key, value, seen)
 
     def __contains__(self, key):
-        return super(CIDict, self).__contains__(key.lower())
-
-    if six.PY2:
-        def has_key(self, key):
-            # pylint: disable=no-member
-            return super(CIDict, self).has_key(key.lower())  # noqa
-            # pylint: enable=no-member
+        return super().__contains__(key.lower())
 
     def get(self, key, failobj=None):
         try:
@@ -726,22 +708,13 @@ class CIDict(dict):
         return six.itervalues(self._keys)
 
     def keys(self):
-        if six.PY2:
-            return list(self.iterkeys())
-        else:
-            return self.iterkeys()
+        return self.iterkeys()
 
     def items(self):
-        if six.PY2:
-            return list(self.iteritems())
-        else:
-            return self.iteritems()
+        return self.iteritems()
 
     def values(self):
-        if six.PY2:
-            return list(self.itervalues())
-        else:
-            return self.itervalues()
+        return self.itervalues()
 
     def copy(self):
         """Returns a shallow copy of this CIDict"""
@@ -1508,23 +1481,7 @@ def private_krb5_config(realm, server, dir="/run/ipa"):
             os.remove(tcfg)
 
 
-if six.PY2:
-    def fsdecode(value):
-        """
-        Decode argument using the file system encoding, as returned by
-        `sys.getfilesystemencoding()`.
-        """
-        if isinstance(value, bytes):
-            return value.decode(sys.getfilesystemencoding())
-        elif isinstance(value, str):
-            return value
-        else:
-            raise TypeError("expect {0} or {1}, not {2}".format(
-                bytes.__name__,
-                str.__name__,
-                type(value).__name__))
-else:
-    fsdecode = os.fsdecode
+fsdecode = os.fsdecode
 
 
 def unescape_seq(seq, *args):
