@@ -45,6 +45,11 @@ if api.env.in_server:
     from pki.crypto import DES_EDE3_CBC_OID
     from pki.crypto import AES_128_CBC_OID
     from pki import PKIException
+else:
+    # Define dummy values for non-server environments
+    DES_EDE3_CBC_OID = None
+    AES_128_CBC_OID = None
+    PKIException = Exception
 
 unicode = str
 

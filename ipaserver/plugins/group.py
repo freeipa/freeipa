@@ -51,6 +51,8 @@ unicode = str
 
 logger = logging.getLogger(__name__)
 
+# Initialize dcerpc bindings availability
+_dcerpc_bindings_installed = False
 if api.env.in_server:
     try:
         import ipaserver.dcerpc

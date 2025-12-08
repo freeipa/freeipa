@@ -119,9 +119,10 @@ class PrivateError(Exception):
         self.msg = self.format % kw
         self.kw = kw
         for (key, value) in kw.items():
-            assert not hasattr(self, key), 'conflicting kwarg {}.{} = {!r}'.format(
-                self.__class__.__name__, key, value,
+            assert not hasattr(self, key), (
+                f'conflicting kwarg {self.__class__.__name__}.{key} = {value!r}'
             )
+
             setattr(self, key, value)
         Exception.__init__(self, self.msg)
 

@@ -60,10 +60,8 @@ from ipaserver.install import replication
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
-# pylint: disable=import-error
 # The SafeConfigParser class has been renamed to ConfigParser in Py3
 from configparser import ConfigParser as SafeConfigParser
-# pylint: enable=import-error
 
 unicode = str
 

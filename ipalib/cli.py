@@ -138,12 +138,6 @@ class textui(backend.Backend):
             return max(len(row) for row in rows)
         return max(len(row[col]) for row in rows)
 
-    def __get_encoding(self, stream):
-        assert stream in (sys.stdin, sys.stdout)
-        if getattr(stream, 'encoding', None) is None:
-            return 'UTF-8'
-        return stream.encoding
-
     def decode(self, value):
         return value
 

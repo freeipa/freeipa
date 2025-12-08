@@ -23,7 +23,7 @@ class SimpleKey(MessageHandler):
         if msg is None:
             return
 
-        if not isinstance(msg, string_types):
+        if not isinstance(msg, str):
             raise InvalidMessage("The 'value' attribute is not a string")
 
         self.name = name

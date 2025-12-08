@@ -41,10 +41,8 @@ from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from lib389.cli_ctl.dblib import run_dbscan
 
-# pylint: disable=import-error
 # The SafeConfigParser class has been renamed to ConfigParser in Py3
 from configparser import ConfigParser as SafeConfigParser
-# pylint: enable=import-error
 ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S'
 
 logger = logging.getLogger(__name__)
