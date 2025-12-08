@@ -107,9 +107,7 @@ except ImportError:
         MAXINT,
     )
 
-# pylint: disable=import-error
 from http.client import RemoteDisconnected
-# pylint: enable=import-error
 
 
 unicode = str

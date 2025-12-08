@@ -19,7 +19,6 @@
 
 import collections
 import gzip
-import io
 import json
 import logging
 from urllib.parse import urlencode

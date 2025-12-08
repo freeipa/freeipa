@@ -40,7 +40,7 @@ def _load_plugin_class(menu, name):
         raise ValueError(
             "Multiple entry points for {} {}: {}".format(menu, name, eps))
     elif len(eps) == 1:
-        ep, *_ = eps
+        ep = eps[0]
         return ep.load(require=False)
     elif '.' in name:
         # fall back to old style dotted name

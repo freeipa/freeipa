@@ -630,7 +630,6 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
 
     try:
         installer._enrollment_performed = True
-        # pylint: disable=E0606
         host_result = remote_api.Command.host_add(
             unicode(config.host_name), force=installer.no_host_dns
         )['result']

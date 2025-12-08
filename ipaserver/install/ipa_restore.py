@@ -55,10 +55,8 @@ try:
 except ImportError:
     adtrustinstance = None
 
-# pylint: disable=import-error
 # The SafeConfigParser class has been renamed to ConfigParser in Py3
 from configparser import ConfigParser as SafeConfigParser
-# pylint: enable=import-error
 
 logger = logging.getLogger(__name__)
 
