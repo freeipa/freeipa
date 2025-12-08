@@ -26,6 +26,8 @@ from ipapython.dn import DN
 from ipalib.plugable import Registry
 from ipalib.messages import VersionMissing
 
+# Initialize dcerpc bindings availability
+_dcerpc_bindings_installed = False
 if api.env.in_server:
     try:
         import ipaserver.dcerpc

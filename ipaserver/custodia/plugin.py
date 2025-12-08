@@ -12,7 +12,7 @@ import re
 from jwcrypto.common import json_encode
 
 
-from .log import CustodiaLoggingAdapter, auditlog, getLogger
+from ipaserver.custodia.log import CustodiaLoggingAdapter, auditlog, getLogger
 
 
 logger = getLogger(__name__)
