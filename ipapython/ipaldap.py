@@ -29,7 +29,6 @@ from copy import deepcopy
 import contextlib
 import os
 import pwd
-import warnings
 
 from collections import OrderedDict
 
