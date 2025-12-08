@@ -1,0 +1,33 @@
+# This file is read by the IPAthinCA service and WSGI application
+
+[global]
+realm = $REALM
+domain = $DOMAIN
+host = $FQDN
+basedn = $BASEDN
+
+[ca]
+ca_cert = $IPA_CA_CRT
+random_serial_numbers = $RANDOM_SERIAL_NUMBERS
+
+[ldap]
+pool_min_connections = 2
+pool_max_connections = 10
+
+[server]
+bind_host = 0.0.0.0
+https_port = 8443
+workers = 2
+ssl_cert = ${IPATHINCA_CERTS_DIR}server.crt
+ssl_key = ${IPATHINCA_PRIVATE_DIR}server.key
+pid_file = $IPATHINCA_PID
+user = ipaca
+group = ipaca
+
+[logging]
+level = INFO
+log_file = ${IPATHINCA_LOG_DIR}ipathinca.log
+access_log = ${IPATHINCA_LOG_DIR}access.log
+gunicorn_log = ${IPATHINCA_LOG_DIR}gunicorn.log
+max_log_size = 10485760
+backup_count = 10

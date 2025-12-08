@@ -1,0 +1,99 @@
+#!/usr/bin/python3
+# Copyright (C) 2025  FreeIPA Contributors see COPYING for license
+
+"""IPAthinCA service - thin Certificate Authority for FreeIPA.
+
+Single executable that reads /etc/ipa/ipathinca.conf and starts the
+gunicorn-based WSGI server.  The process shows in ``ps`` as::
+
+    ipathinca /etc/ipa/ipathinca.conf
+"""
+
+import argparse
+import configparser
+import sys
+
+from gunicorn.app.base import BaseApplication
+
+from ipaplatform.paths import paths
+
+
+class IPAthinCAApplication(BaseApplication):
+    """Gunicorn application that reads ipathinca.conf."""
+
+    def __init__(self, config_file):
+        self.config_file = config_file
+        self._ipathinca_config = configparser.ConfigParser()
+        if not self._ipathinca_config.read(config_file):
+            raise SystemExit(
+                f"Error: configuration file {config_file} not found"
+            )
+        super().__init__()
+
+    def load_config(self):
+        cfg = self._ipathinca_config
+
+        # Server socket
+        bind_host = cfg.get('server', 'bind_host')
+        https_port = cfg.get('server', 'https_port')
+        self.cfg.set('bind', f'{bind_host}:{https_port}')
+
+        # Workers
+        self.cfg.set('workers', int(cfg.get('server', 'workers')))
+        self.cfg.set('worker_class', 'sync')
+        self.cfg.set('timeout', 300)
+
+        # Process naming
+        self.cfg.set('proc_name', 'ipathinca')
+
+        # Logging
+        self.cfg.set('accesslog', cfg.get('logging', 'access_log'))
+        self.cfg.set('errorlog', cfg.get('logging', 'gunicorn_log'))
+        self.cfg.set('loglevel', 'info')
+
+        # PID file
+        # self.cfg.set('pidfile', cfg.get('server', 'pid_file'))
+        
+        # User/Group
+        self.cfg.set('user', cfg.get('server', 'user'))
+        self.cfg.set('group', cfg.get('server', 'group'))
+
+        # SSL
+        self.cfg.set('certfile', cfg.get('server', 'ssl_cert'))
+        self.cfg.set('keyfile', cfg.get('server', 'ssl_key'))
+        self.cfg.set('ca_certs', cfg.get('ca', 'ca_cert'))
+        self.cfg.set('cert_reqs', 1)
+
+    def load(self):
+        from ipathinca.wsgi import application
+        return application
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='IPAthinCA - thin Certificate Authority for FreeIPA'
+    )
+    parser.add_argument(
+        'config',
+        nargs='?',
+        default=paths.IPATHINCA_CONF,
+        help=(
+            'Path to ipathinca.conf '
+            f'(default: {paths.IPATHINCA_CONF})'
+        ),
+    )
+    parser.add_argument(
+        '--foreground',
+        action='store_true',
+        help='Run in the foreground (do not daemonize)',
+    )
+    args = parser.parse_args()
+
+    app = IPAthinCAApplication(args.config)
+    if not args.foreground:
+        app.cfg.set('daemon', True)
+    app.run()
+
+
+if __name__ == '__main__':
+    main()
