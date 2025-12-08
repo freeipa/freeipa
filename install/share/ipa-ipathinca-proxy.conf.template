@@ -1,0 +1,66 @@
+# VERSION 1 - DO NOT REMOVE THIS LINE
+# Apache proxy configuration for ipathinca (Python CA)
+# This proxies CA requests to ipathinca service on port 8443
+
+ProxyRequests Off
+
+# Enable SSL proxy module and configure certificate verification
+SSLProxyEngine on
+# Trust IPA CA for proxy connections
+SSLProxyCACertificateFile /etc/ipa/ca.crt
+# Verify peer certificate and hostname
+SSLProxyVerify require
+SSLProxyCheckPeerName on
+# Use RA agent certificate when connecting to backend
+# This allows Apache to present a client cert to ipathinca
+SSLProxyMachineCertificateFile /etc/httpd/alias/ipa-proxy.pem
+
+# matches for ee port
+<LocationMatch "^/ca/ee/ca/checkRequest|^/ca/ee/ca/getCertChain|^/ca/ee/ca/getTokenInfo|^/ca/ee/ca/tokenAuthenticate|^/ca/ee/ca/updateNumberRange|^/ca/ee/ca/getCRL|^/ca/ee/ca/profileSubmit|^/ca/ee/ca/displayBySerial">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient none
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
+# matches for admin port and installer
+<LocationMatch "^/ca/admin/ca/getCertChain|^/ca/admin/ca/getConfigEntries|^/ca/admin/ca/getCookie|^/ca/admin/ca/getStatus|^/ca/admin/ca/securityDomainLogin|^/ca/admin/ca/getDomainXML|^/ca/admin/ca/updateNumberRange|^/ca/admin/ca/tokenAuthenticate|^/ca/admin/ca/updateNumberRange|^/ca/admin/ca/updateDomainXML|^/ca/admin/ca/updateConnector|^/ca/admin/ca/getSubsystemCert|^/ca/admin/ca/updateCRL">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient none
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
+# matches for agent port and eeca port
+<LocationMatch "^/ca/agent/ca/displayBySerial|^/ca/agent/ca/doRevoke|^/ca/agent/ca/doUnrevoke|^/ca/agent/ca/updateDomainXML|^/ca/agent/ca/updateCRL|^/ca/eeca/ca/profileSubmitSSLClient">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient require
+    # Forward client certificate to backend for authentication
+    RequestHeader set SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"
+    RequestHeader set SSL_CLIENT_CERT_CHAIN_0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
+    RequestHeader set SSL_CLIENT_VERIFY "%{SSL_CLIENT_VERIFY}s"
+    RequestHeader set SSL_CLIENT_S_DN "%{SSL_CLIENT_S_DN}s"
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
+# matches for REST API of CA and PKI
+<LocationMatch "^/(ca|pki)/(rest|v1|v2)/">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient optional
+    # Forward client certificate to backend for authentication
+    RequestHeader set SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"
+    RequestHeader set SSL_CLIENT_CERT_CHAIN_0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
+    RequestHeader set SSL_CLIENT_VERIFY "%{SSL_CLIENT_VERIFY}s"
+    RequestHeader set SSL_CLIENT_S_DN "%{SSL_CLIENT_S_DN}s"
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
+# CRL Distribution Point
+# Note: CRLs are published to /var/lib/ipa/pki-ca/publish/ and served by
+# Apache using the Alias directive in ipa.conf (same as Dogtag).
+# No proxy needed - Apache serves the files directly from disk.
+
+# Only enable this on servers that are not generating a CRL
+${CLONE}RewriteRule ^/ipa/crl/MasterCRL.bin https://$FQDN/ca/ee/ca/getCRL?op=getCRL&crlIssuingPoint=MasterCRL [L,R=301,NC]

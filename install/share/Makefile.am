@@ -97,6 +97,7 @@ dist_app_DATA =				\
 	ipa.conf.template		\
 	ipa-kdc-proxy.conf.template	\
 	ipa-pki-proxy.conf.template	\
+	ipa-ipathinca-proxy.conf.template	\
 	ipa-rewrite.conf.template	\
 	ipaca_default.ini		\
 	ipaca_customize.ini		\
@@ -108,6 +109,8 @@ dist_app_DATA =				\
 	pki-acme-realm.conf.template	\
 	ldbm-tuning.ldif		\
 	openssl_cnf.template		\
+	ipathinca.conf.template		\
+	ipathinca.service.template		\
 	$(NULL)
 
 kdcproxyconfdir = $(IPA_SYSCONF_DIR)/kdcproxy
