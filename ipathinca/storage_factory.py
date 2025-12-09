@@ -90,9 +90,33 @@ def get_storage_backend(
             value_type="boolean",
         )
 
+    # Read serial_number_bits from config (default: 128, matching Dogtag RSNv3)
+    serial_number_bits = _get_config_value(
+        config=config,
+        config_path=config_path,
+        section="ca",
+        option="serial_number_bits",
+        default=128,
+        value_type="int",
+    )
+
+    # Read collision_recovery_attempts from config (default: 100)
+    collision_recovery_attempts = _get_config_value(
+        config=config,
+        config_path=config_path,
+        section="ca",
+        option="collision_recovery_attempts",
+        default=100,
+        value_type="int",
+    )
+
     logger.debug(
-        f"Creating CA storage backend: ca_id={ca_id}, "
-        f"random_serial_numbers={random_serial_numbers}"
+        "Creating CA storage backend: ca_id=%s, random_serial_numbers=%s, "
+        "serial_number_bits=%s, collision_recovery_attempts=%s",
+        ca_id,
+        random_serial_numbers,
+        serial_number_bits,
+        collision_recovery_attempts,
     )
 
     # Late import to avoid circular dependency
@@ -100,7 +124,10 @@ def get_storage_backend(
     from ipathinca.storage_ca import CAStorageBackend
 
     return CAStorageBackend(
-        ca_id=ca_id, random_serial_numbers=random_serial_numbers
+        ca_id=ca_id,
+        random_serial_numbers=random_serial_numbers,
+        serial_number_bits=serial_number_bits,
+        collision_recovery_attempts=collision_recovery_attempts,
     )
 
 
@@ -138,21 +165,25 @@ def _get_config_value(
 
     if not Path(config_path).exists():
         logger.debug(
-            f"Config file not found: {config_path}. Using default: {default}"
+            "Config file not found: %s. Using default: %s",
+            config_path,
+            default,
         )
         return default
 
     try:
-        from ipathinca import load_config
+        from ipathinca.config import IPAthinCAConfig
 
-        cfg = load_config(config_path)
+        cfg = IPAthinCAConfig.from_file(config_path)
         return _read_from_config_object(
             cfg, section, option, default, value_type
         )
     except Exception as e:
         logger.warning(
-            f"Error reading config file {config_path}: {e}. "
-            f"Using default: {default}"
+            "Error reading config file %s: %s. Using default: %s",
+            config_path,
+            e,
+            default,
         )
         return default
 
@@ -178,11 +209,11 @@ def _read_from_config_object(
         else:
             value = config.get(section, option)
 
-        logger.debug(f"Config: [{section}] {option} = {value}")
+        logger.debug("Config: [%s] %s = %s", section, option, value)
         return value
     except Exception as e:
         logger.warning(
-            f"Error parsing config option [{section}] {option}: {e}"
+            "Error parsing config option [%s] %s: %s", section, option, e
         )
         return default
 
@@ -207,7 +238,7 @@ def _read_config(config_path: str) -> dict:
     }
 
     if not Path(config_path).exists():
-        logger.debug(f"Config file not found: {config_path}. Using defaults.")
+        logger.debug("Config file not found: %s. Using defaults.", config_path)
         return default_config
 
     try:
@@ -226,8 +257,9 @@ def _read_config(config_path: str) -> dict:
 
     except Exception as e:
         logger.warning(
-            f"Error reading configuration file {config_path}: {e}. "
-            "Using defaults."
+            "Error reading configuration file %s: %s. Using defaults.",
+            config_path,
+            e,
         )
         return default_config
 
@@ -268,9 +300,11 @@ def create_default_config(
             f.write("# Generated automatically by ipa-server-install\n\n")
             cfg.write(f)
 
-        logger.info(f"Created configuration file: {config_path}")
+        logger.info("Created configuration file: %s", config_path)
     except Exception as e:
-        logger.error(f"Failed to create configuration file {config_path}: {e}")
+        logger.error(
+            "Failed to create configuration file %s: %s", config_path, e
+        )
         raise
 
 

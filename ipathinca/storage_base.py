@@ -13,6 +13,7 @@ from ipapython.dn import DN
 from ipapython.ipaldap import LDAPClient
 
 from ipathinca.ldap_utils import get_ldap_connection
+from ipathinca.exceptions import StorageConnectionError
 
 # Removed: Abstract StorageBackend base class (only one implementation exists)
 
@@ -22,13 +23,32 @@ try:
 
     CACHETOOLS_AVAILABLE = True
 except ImportError:
-    # Fallback: caching disabled if cachetools not available
-    TTLCache = None
     CACHETOOLS_AVAILABLE = False
+
+    class TTLCache(dict):
+        """Minimal cache fallback when cachetools is not available.
+
+        Acts like a dict with a maxsize limit.  TTL is ignored.
+        """
+
+        def __init__(self, maxsize=128, ttl=None):
+            super().__init__()
+            self._maxsize = maxsize
+
+        def __setitem__(self, key, value):
+            if len(self) >= self._maxsize:
+                try:
+                    del self[next(iter(self))]
+                except StopIteration:
+                    pass
+            super().__setitem__(key, value)
+
 
 # Import LDAP filter escaping to prevent injection attacks
 try:
-    from ldap.filter import escape_filter_chars
+    from ldap.filter import (  # pylint: disable=unused-import
+        escape_filter_chars,
+    )
 except ImportError:
     # Fallback implementation if python-ldap is not available
     def escape_filter_chars(text):
@@ -104,13 +124,76 @@ def biginteger_from_db(encoded_serial: str) -> int:
         return int(serial_str)
     except ValueError:
         logger.warning(
-            f"Invalid Dogtag encoding: cannot parse '{serial_str}' "
-            f"from '{encoded_serial}'"
+            "Invalid Dogtag encoding: cannot parse '%s' from '%s'",
+            serial_str,
+            encoded_serial,
         )
         return None
 
 
-class BaseStorageBackend:
+class LDAPStorageMixin:
+    """Shared LDAP utility methods for storage backends.
+
+    Provides ``_get_ldap_connection`` (pooled, with error wrapping) and
+    ``_create_ou_if_not_exists`` (idempotent OU creation with race-condition
+    handling).  Inherit this mixin in any storage backend that talks to the
+    ``o=ipaca`` LDAP tree.
+    """
+
+    def _get_ldap_connection(self):
+        """Get LDAP connection using shared utility with pooling.
+
+        Returns:
+            Context manager for pooled LDAP connection (use with ``with``).
+        """
+        try:
+            return get_ldap_connection(use_pool=True)
+        except Exception as e:
+            logger.error(
+                "%s: Failed to get LDAP connection: %s",
+                self.__class__.__name__,
+                e,
+                exc_info=True,
+            )
+            raise StorageConnectionError(
+                f"Cannot connect to LDAP database: {e}"
+            )
+
+    def _create_ou_if_not_exists(self, ldap: LDAPClient, dn: DN, ou_name: str):
+        """Create organizational unit if it doesn't exist."""
+        try:
+            ldap.get_entry(dn)
+            logger.debug("OU already exists: %s", dn)
+        except errors.NotFound:
+            logger.debug("Creating OU: %s", dn)
+            try:
+                entry = ldap.make_entry(
+                    dn,
+                    objectclass=["top", "organizationalUnit"],
+                    ou=[ou_name],
+                )
+                ldap.add_entry(entry)
+            except Exception as e:
+                # Ignore "Already exists" errors - another process may have
+                # created it
+                if "already exists" in str(e).lower():
+                    logger.debug("OU %s already exists (race condition)", dn)
+                else:
+                    raise
+        except Exception as e:
+            # If we get permission denied on read, assume it exists
+            if "Insufficient access" in str(e) or "Permission denied" in str(
+                e
+            ):
+                logger.debug(
+                    "Cannot read %s (permission denied), assuming it exists",
+                    dn,
+                )
+            else:
+                raise
+
+
+class BaseStorageBackend(LDAPStorageMixin):
     """
     Certificate Authority Storage Backend (Dogtag-Compatible)
 
@@ -135,7 +218,13 @@ class BaseStorageBackend:
         (historical).
     """
 
-    def __init__(self, ca_id="ipa", random_serial_numbers=False):
+    def __init__(
+        self,
+        ca_id="ipa",
+        random_serial_numbers=False,
+        serial_number_bits=128,
+        collision_recovery_attempts=100,
+    ):
         """
         Initialize Dogtag-compatible LDAP storage backend
 
@@ -143,9 +232,15 @@ class BaseStorageBackend:
             ca_id: CA identifier (for sub-CA support)
             random_serial_numbers: Use RSNv3 random serial numbers
                                        (default: False)
+            serial_number_bits: Bit length for random serial numbers
+                                       (default: 128, matching Dogtag RSNv3)
+            collision_recovery_attempts: Maximum attempts to find unused serial
+                                       (default: 100)
         """
         self.ca_id = ca_id
         self.random_serial_numbers = random_serial_numbers
+        self.serial_number_bits = serial_number_bits
+        self.collision_recovery_attempts = collision_recovery_attempts
 
         # Dogtag-style base DNs (fixed schema, not configurable)
         self.base_dn = DN(("o", "ipaca"))
@@ -164,47 +259,20 @@ class BaseStorageBackend:
         # Initialize caches for frequently accessed data
         # TTL=60s for statistics (changes infrequently)
         # TTL=300s for CRL info (CRLs generated periodically)
+        self._stats_cache = TTLCache(maxsize=1, ttl=60)
+        self._crl_info_cache = TTLCache(maxsize=10, ttl=300)
         if CACHETOOLS_AVAILABLE:
-            self._stats_cache = TTLCache(maxsize=1, ttl=60)
-            self._crl_info_cache = TTLCache(maxsize=10, ttl=300)
             logger.debug("Initialized query result caches (TTL-based)")
         else:
-            self._stats_cache = None
-            self._crl_info_cache = None
             logger.debug(
-                "Caching disabled (cachetools not available). "
-                "Install cachetools for better performance."
+                "Using basic dict cache (install cachetools for "
+                "TTL-based caching)"
             )
 
         # Thread-safe serial number allocation
         import threading
 
         self._serial_lock = threading.Lock()
-
-    def _get_ldap_connection(self):
-        """Get LDAP connection using shared utility with pooling
-
-        Returns:
-            Context manager for pooled LDAP connection (use with 'with'
-            statement)
-
-        Note:
-            This uses connection pooling for optimal performance. The
-            connection is automatically returned to the pool after use.
-
-            Usage:
-                with self._get_ldap_connection() as ldap:
-                    ldap.get_entry(dn)
-        """
-        try:
-            # Use pooled connections for performance (default behavior)
-            return get_ldap_connection(use_pool=True)
-        except Exception as e:
-            logger.error(
-                f"CAStorageBackend: Failed to get LDAP connection: {e}",
-                exc_info=True,
-            )
-            raise Exception(f"Cannot connect to LDAP database: {e}")
 
     def initialize_schema(self):
         """
@@ -218,9 +286,9 @@ class BaseStorageBackend:
             # Create base container (o=ipaca) - usually already exists
             try:
                 ldap.get_entry(self.base_dn)
-                logger.debug(f"Base container already exists: {self.base_dn}")
+                logger.debug("Base container already exists: %s", self.base_dn)
             except errors.NotFound:
-                logger.debug(f"Creating base container: {self.base_dn}")
+                logger.debug("Creating base container: %s", self.base_dn)
                 try:
                     entry = ldap.make_entry(
                         self.base_dn,
@@ -229,20 +297,21 @@ class BaseStorageBackend:
                     )
                     ldap.add_entry(entry)
                     logger.debug(
-                        f"Base container created successfully: {self.base_dn}"
+                        "Base container created successfully: %s", self.base_dn
                     )
 
                     # Verify the entry was created and is readable
                     try:
                         ldap.get_entry(self.base_dn)
                         logger.debug(
-                            "Verified base container is readable:"
-                            f" {self.base_dn}"
+                            "Verified base container is readable: %s",
+                            self.base_dn,
                         )
                     except errors.NotFound:
                         logger.error(
                             "Base container was created but cannot be read"
-                            f" back: {self.base_dn}"
+                            " back: %s",
+                            self.base_dn,
                         )
                         raise
 
@@ -250,8 +319,9 @@ class BaseStorageBackend:
                     # Ignore "Already exists" errors - race condition
                     if "already exists" not in str(e).lower():
                         logger.error(
-                            "Failed to create base container"
-                            f" {self.base_dn}: {e}"
+                            "Failed to create base container %s: %s",
+                            self.base_dn,
+                            e,
                         )
                         raise
 
@@ -344,38 +414,6 @@ class BaseStorageBackend:
                 "Dogtag-compatible CA LDAP schema initialized successfully"
             )
 
-    def _create_ou_if_not_exists(self, ldap: LDAPClient, dn: DN, ou_name: str):
-        """Create organizational unit if it doesn't exist"""
-        try:
-            ldap.get_entry(dn)
-            logger.debug(f"OU already exists: {dn}")
-        except errors.NotFound:
-            logger.debug(f"Creating OU: {dn}")
-            try:
-                entry = ldap.make_entry(
-                    dn,
-                    objectclass=["top", "organizationalUnit"],
-                    ou=[ou_name],
-                )
-                ldap.add_entry(entry)
-            except Exception as e:
-                # Ignore "Already exists" errors - another process may have
-                # created it
-                if "already exists" in str(e).lower():
-                    logger.debug(f"OU {dn} already exists (race condition)")
-                else:
-                    raise
-        except Exception as e:
-            # If we get permission denied on read, assume it exists
-            if "Insufficient access" in str(e) or "Permission denied" in str(
-                e
-            ):
-                logger.debug(
-                    f"Cannot read {dn} (permission denied), assuming it exists"
-                )
-            else:
-                raise
-
     def _create_repository_if_not_exists(
         self, ldap: LDAPClient, dn: DN, ou_name: str, initial_serialno: str
     ):
@@ -395,10 +433,12 @@ class BaseStorageBackend:
         """
         try:
             ldap.get_entry(dn)
-            logger.debug(f"Repository already exists: {dn}")
+            logger.debug("Repository already exists: %s", dn)
         except errors.NotFound:
             logger.debug(
-                f"Creating repository: {dn} with serialno={initial_serialno}"
+                "Creating repository: %s with serialno=%s",
+                dn,
+                initial_serialno,
             )
             try:
                 entry = ldap.make_entry(
@@ -413,7 +453,7 @@ class BaseStorageBackend:
                 # created it
                 if "already exists" in str(e).lower():
                     logger.debug(
-                        f"Repository {dn} already exists (race condition)"
+                        "Repository %s already exists (race condition)", dn
                     )
                 else:
                     raise
@@ -423,7 +463,8 @@ class BaseStorageBackend:
                 e
             ):
                 logger.debug(
-                    f"Cannot read {dn} (permission denied), assuming it exists"
+                    "Cannot read %s (permission denied), assuming it exists",
+                    dn,
                 )
             else:
                 raise
@@ -432,9 +473,9 @@ class BaseStorageBackend:
         """Create CA configuration entry"""
         try:
             ldap.get_entry(self.config_dn)
-            logger.debug(f"Config entry already exists: {self.config_dn}")
+            logger.debug("Config entry already exists: %s", self.config_dn)
         except errors.NotFound:
-            logger.debug(f"Creating config entry: {self.config_dn}")
+            logger.debug("Creating config entry: %s", self.config_dn)
             entry = ldap.make_entry(
                 self.config_dn,
                 objectclass=["top", "nsContainer", "extensibleObject"],
@@ -498,7 +539,7 @@ class BaseStorageBackend:
                 ("cn", "config"),
             )
 
-            logger.debug(f"Configuring LDAP indexes for {backend_dn}")
+            logger.debug("Configuring LDAP indexes for %s", backend_dn)
 
             for attr_name, index_types in indexes_needed.items():
                 index_dn = DN(("cn", attr_name), backend_dn)
@@ -513,7 +554,7 @@ class BaseStorageBackend:
                     )
 
                     if existing_index:
-                        logger.debug(f"Index for {attr_name} already exists")
+                        logger.debug("Index for %s already exists", attr_name)
                         continue
 
                 except ldap_module.NO_SUCH_OBJECT:
@@ -524,8 +565,9 @@ class BaseStorageBackend:
                 try:
                     index_types_str = ",".join(index_types)
                     logger.debug(
-                        f"Creating index for {attr_name} (types:"
-                        f" {index_types_str})"
+                        "Creating index for %s (types: %s)",
+                        attr_name,
+                        index_types_str,
                     )
 
                     # Add index entry
@@ -543,19 +585,20 @@ class BaseStorageBackend:
                     )
 
                     logger.debug(
-                        f"Created LDAP index for attribute: {attr_name}"
+                        "Created LDAP index for attribute: %s", attr_name
                     )
 
                 except ldap_module.ALREADY_EXISTS:
                     logger.debug(
-                        f"Index for {attr_name} already exists (race"
-                        " condition)"
+                        "Index for %s already exists (race", attr_name
                     )
                 except Exception as e:
                     # Non-fatal: indexes are optional optimization
                     logger.warning(
-                        f"Failed to create index for {attr_name}: {e}. "
-                        "Queries will still work but may be slower."
+                        "Failed to create index for %s: %s. Queries will "
+                        "still work but may be slower.",
+                        attr_name,
+                        e,
                     )
 
             logger.debug(
@@ -568,6 +611,5 @@ class BaseStorageBackend:
             # Index creation is non-fatal - queries will still work, just
             # slower
             logger.warning(
-                f"Failed to configure LDAP indexes: {e}. This is not critical"
-                " - queries will work but may be slower for large datasets."
+                "Failed to configure LDAP indexes: %s. This is not critical", e
             )

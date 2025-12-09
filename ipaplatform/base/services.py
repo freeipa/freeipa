@@ -53,7 +53,7 @@ wellknownservices = [
     'named', 'ods_enforcerd', 'ods_signerd', 'gssproxy',
     'nfs-utils', 'sssd', 'NetworkManager', 'ipa-custodia',
     'ipa-dnskeysyncd', 'ipa-otpd', 'ipa-ods-exporter',
-    'systemd-resolved', 'unbound', 'dnsconfd',
+    'systemd-resolved', 'unbound', 'dnsconfd', 'ipathinca',
 ]
 
 # The common ports for these services. This is used to wait for the
@@ -63,6 +63,7 @@ wellknownports = {
     'pki-tomcatd@pki-tomcat.service': [8080, 8443],
     'pki-tomcat': [8080, 8443],
     'pki-tomcatd': [8080, 8443],  # used if the incoming instance name is blank
+    'ipathinca': [8443],  # ipathinca Python CA REST API (HTTPS only)
 }
 
 SERVICE_POLL_INTERVAL = 0.1 # seconds

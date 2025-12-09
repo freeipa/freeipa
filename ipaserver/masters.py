@@ -9,7 +9,9 @@ from __future__ import absolute_import
 import collections
 import logging
 import random
+from configparser import ConfigParser as SafeConfigParser
 
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipalib import api
 from ipalib import errors
@@ -32,14 +34,74 @@ service_definition = collections.namedtuple(
     "systemd_name startorder service_entry"
 )
 
+
+def get_ca_service():
+    """Get the CA service type from /etc/ipa/default.conf.
+
+    Returns:
+        str: 'ipathinca' for Python CA or 'dogtag' for traditional PKI
+             (default)
+    """
+    try:
+        conf = SafeConfigParser()
+        conf.read(paths.IPA_DEFAULT_CONF)
+        return conf.get('global', 'ca_backend', fallback='dogtag')
+    except Exception:
+        # If we can't read the config, assume dogtag
+        return 'dogtag'
+
+
+def get_ca_systemd_service_name():
+    """Get the systemd service name for the CA service.
+
+    Returns:
+        str: 'ipathinca' if using Python CA, 'pki-tomcatd' if using Java PKI
+    """
+    ca_service = get_ca_service()
+    if ca_service == 'ipathinca':
+        return 'ipathinca'
+    else:
+        return 'pki-tomcatd'
+
+
+def _get_ca_service_definition():
+    """Determine which CA service to use based on configuration.
+
+    Returns the appropriate service definition for CA:
+    - 'ipathinca' if ca_backend=ipathinca
+    - 'pki-tomcatd' if ca_backend=dogtag (default)
+    """
+    # Check if ca_backend is set in default.conf
+    ca_backend = get_ca_service()
+    if ca_backend == 'ipathinca':
+        return service_definition('ipathinca', 50, 'CA')
+
+    return service_definition('pki-tomcatd', 50, 'CA')
+
+
+def _get_kra_service_definition():
+    """Determine which KRA service to use based on configuration.
+
+    Returns the appropriate service definition for KRA:
+    - 'ipathinca' if ca_backend=ipathinca
+    - 'pki-tomcatd' if ca_backend=dogtag (default)
+    """
+    # Check if ca_backend is set in default.conf
+    ca_backend = get_ca_service()
+    if ca_backend == 'ipathinca':
+        return service_definition('ipathinca', 51, 'KRA')
+
+    return service_definition('pki-tomcatd', 51, 'KRA')
+
+
 SERVICES = [
     service_definition('krb5kdc', 10, 'KDC'),
     service_definition('kadmin', 20, 'KPASSWD'),
     service_definition('named', 30, 'DNS'),
     service_definition('httpd', 40, 'HTTP'),
     service_definition('ipa-custodia', 41, 'KEYS'),
-    service_definition('pki-tomcatd', 50, 'CA'),
-    service_definition('pki-tomcatd', 51, 'KRA'),
+    # CA and KRA service is determined dynamically based on ca_backend config
+    # Will be added to SERVICE_LIST after api is initialized
     service_definition('smb', 60, 'ADTRUST'),
     service_definition('winbind', 70, 'EXTID'),
     service_definition('ipa-otpd', 80, 'OTPD'),
@@ -48,7 +110,21 @@ SERVICES = [
     service_definition('ipa-dnskeysyncd', 110, 'DNSKeySync'),
 ]
 
-SERVICE_LIST = {s.service_entry: s for s in SERVICES}
+
+# Build SERVICE_LIST with dynamic CA service selection
+def _build_service_list():
+    """Build SERVICE_LIST with appropriate CA service."""
+    # Insert CA service at the correct position
+    services = SERVICES.copy()
+    ca_service = _get_ca_service_definition()
+    kra_service = _get_kra_service_definition()
+    # Insert after ipa-custodia (index 5, which is after position 41)
+    services.insert(5, ca_service)
+    services.insert(6, kra_service)
+    return {s.service_entry: s for s in services}
+
+
+SERVICE_LIST = _build_service_list()
 
 
 def find_providing_servers(svcname, conn=None, preferred_hosts=(), api=api):
