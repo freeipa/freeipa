@@ -90,9 +90,31 @@ def get_storage_backend(
             value_type="boolean",
         )
 
+    # Read serial_number_bits from config (default: 128, matching Dogtag RSNv3)
+    serial_number_bits = _get_config_value(
+        config=config,
+        config_path=config_path,
+        section="ca",
+        option="serial_number_bits",
+        default=128,
+        value_type="int",
+    )
+
+    # Read collision_recovery_attempts from config (default: 100)
+    collision_recovery_attempts = _get_config_value(
+        config=config,
+        config_path=config_path,
+        section="ca",
+        option="collision_recovery_attempts",
+        default=100,
+        value_type="int",
+    )
+
     logger.debug(
         f"Creating CA storage backend: ca_id={ca_id}, "
-        f"random_serial_numbers={random_serial_numbers}"
+        f"random_serial_numbers={random_serial_numbers}, "
+        f"serial_number_bits={serial_number_bits}, "
+        f"collision_recovery_attempts={collision_recovery_attempts}"
     )
 
     # Late import to avoid circular dependency
@@ -100,7 +122,10 @@ def get_storage_backend(
     from ipathinca.storage_ca import CAStorageBackend
 
     return CAStorageBackend(
-        ca_id=ca_id, random_serial_numbers=random_serial_numbers
+        ca_id=ca_id,
+        random_serial_numbers=random_serial_numbers,
+        serial_number_bits=serial_number_bits,
+        collision_recovery_attempts=collision_recovery_attempts,
     )
 
 
@@ -143,9 +168,9 @@ def _get_config_value(
         return default
 
     try:
-        from ipathinca import load_config
+        from ipathinca.config import IPAthinCAConfig
 
-        cfg = load_config(config_path)
+        cfg = IPAthinCAConfig.from_file(config_path)
         return _read_from_config_object(
             cfg, section, option, default, value_type
         )

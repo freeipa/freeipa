@@ -38,7 +38,7 @@ from ipathinca import x509_utils, set_global_config, load_config
 from ipathinca.ca import RevocationReason
 from ipathinca.ca_internal import InternalCA
 from ipathinca.exceptions import ProfileNotFound
-from ipathinca.profiles import ProfileManager, CertificateProfile
+from ipathinca.profiles import ProfileManager
 from ipathinca.pruning import PruningManager
 from ipathinca.x509_utils import (
     get_ca_key_usage_extension,
@@ -458,80 +458,71 @@ class PythonCABackend:
 
     def create_profile(self, profile_data):
         """
-        Create certificate profile - replaces ra_certprofile.create_profile()
-        """
-        try:
-            profile = CertificateProfile.from_dict(profile_data)
-            self.profile_manager.create_profile(profile)
-            return {"status": "SUCCESS"}
+        Create certificate profile
 
-        except Exception as e:
-            logger.error(f"Profile creation failed: {e}")
-            raise errors.CertificateOperationError(error=str(e))
+        NOTE: Profile creation is not supported. Profiles must be installed
+        from .cfg files in /usr/share/ipa/profiles/ during installation.
+        """
+        raise errors.CertificateOperationError(
+            error="Profile creation not supported - profiles are installed "
+            "from .cfg files"
+        )
 
     def read_profile(self, profile_id):
         """
-        Read certificate profile - replaces ra_certprofile.read_profile()
+        Read certificate profile
         """
-        profile = self.profile_manager.get_profile(profile_id)
-        if not profile:
-            # Match Dogtag's new profile not found error message
-            error_msg = (
-                f"Unable to get enrollment template for {profile_id}: "
-                "Profile not found"
-            )
-            raise errors.CertificateOperationError(error=error_msg)
+        try:
+            profile = self.profile_manager.get_profile(profile_id)
+            if not profile:
+                error_msg = (
+                    f"Unable to get enrollment template for {profile_id}: "
+                    "Profile not found"
+                )
+                raise errors.CertificateOperationError(error=error_msg)
 
-        return profile.to_dict()
+            # Return profile data as dict
+            return {
+                "profile_id": profile.profile_id,
+                "name": profile.name,
+                "description": profile.description,
+                "enabled": profile.enabled,
+                "class_id": profile.class_id,
+            }
+
+        except Exception as e:
+            logger.error(f"Profile read failed: {e}")
+            raise errors.CertificateOperationError(error=str(e))
 
     def update_profile(self, profile_data):
         """
-        Update certificate profile - replaces ra_certprofile.update_profile()
-        """
-        try:
-            profile = CertificateProfile.from_dict(profile_data)
-            self.profile_manager.update_profile(profile)
-            return {"status": "SUCCESS"}
+        Update certificate profile
 
-        except Exception as e:
-            logger.error(f"Profile update failed: {e}")
-            raise errors.CertificateOperationError(error=str(e))
+        NOTE: Profile updates not supported. Profiles are read-only from
+        .cfg files.
+        """
+        raise errors.CertificateOperationError(
+            error="Profile updates not supported - profiles are read-only"
+        )
 
     def delete_profile(self, profile_id):
-        """
-        Delete certificate profile - replaces ra_certprofile.delete_profile()
-        """
-        try:
-            self.profile_manager.delete_profile(profile_id)
-            return {"status": "SUCCESS"}
-
-        except Exception as e:
-            logger.error(f"Profile deletion failed: {e}")
-            raise errors.CertificateOperationError(error=str(e))
+        """Delete certificate profile - NOT SUPPORTED"""
+        raise errors.CertificateOperationError(
+            error="Profile deletion not supported - profiles are managed by "
+            "installation"
+        )
 
     def enable_profile(self, profile_id):
-        """
-        Enable certificate profile - replaces ra_certprofile.enable_profile()
-        """
-        try:
-            self.profile_manager.enable_profile(profile_id)
-            return {"status": "SUCCESS"}
-
-        except Exception as e:
-            logger.error(f"Profile enable failed: {e}")
-            raise errors.CertificateOperationError(error=str(e))
+        """Enable certificate profile - NOT SUPPORTED"""
+        raise errors.CertificateOperationError(
+            error="Profile enable/disable not supported"
+        )
 
     def disable_profile(self, profile_id):
-        """
-        Disable certificate profile - replaces ra_certprofile.disable_profile()
-        """
-        try:
-            self.profile_manager.disable_profile(profile_id)
-            return {"status": "SUCCESS"}
-
-        except Exception as e:
-            logger.error(f"Profile disable failed: {e}")
-            raise errors.CertificateOperationError(error=str(e))
+        """Disable certificate profile - NOT SUPPORTED"""
+        raise errors.CertificateOperationError(
+            error="Profile enable/disable not supported"
+        )
 
     # CRL Operations
 

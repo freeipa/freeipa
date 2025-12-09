@@ -472,7 +472,8 @@ def install_check(installer):
     print("  * Create and configure a Kerberos Key Distribution Center (KDC)")
     print("  * Configure Apache (httpd)")
     if options.setup_kra:
-        print("  * Configure KRA (dogtag) for secret management")
+        kra_backend = "ipathinca" if getattr(options, 'use_ipathinca', False) else "dogtag"
+        print(f"  * Configure KRA ({kra_backend}) for secret management")
     if options.setup_dns:
         print("  * Configure DNS (bind)")
     print("  * Configure SID generation")
@@ -709,10 +710,15 @@ def install_check(installer):
     ]
 
     if setup_ca:
+        # Determine CA backend: ipathinca or dogtag (default)
+        use_ipathinca = getattr(options, 'use_ipathinca', False)
+        ca_backend = 'ipathinca' if use_ipathinca else 'dogtag'
+
         gopts.extend([
             ipaconf.setOption('enable_ra', 'True'),
             ipaconf.setOption('ra_plugin', 'dogtag'),
-            ipaconf.setOption('dogtag_version', '10')
+            ipaconf.setOption('dogtag_version', '10'),
+            ipaconf.setOption('ca_backend', ca_backend)
         ])
     else:
         gopts.extend([
@@ -1008,6 +1014,11 @@ def install(installer):
     # configure PKINIT now that all required services are in place
     krb.enable_ssl()
 
+    # Register CA service in LDAP after PKINIT is configured
+    # This ensures PKINIT uses dogtag-submit during initial installation
+    if setup_ca:
+        ca.enable_ca_service(options)
+
     # Apply any LDAP updates. Needs to be done after the configuration file
     # is created. DS is restarted in the process.
     service.print_msg("Applying LDAP updates")
@@ -1060,6 +1071,14 @@ def install(installer):
         print()
     except Exception:
         raise ScriptError("Configuration of client side components failed!")
+
+    # Restart krb5kdc when using IPAthinCA to ensure anonymous PKINIT works
+    # for webui authentication. This is needed because of timing differences in
+    # CA service registration between IPAthinCA and dogtag. Without this restart,
+    # anonymous kinit fails with "Pre-authentication failed". Not needed for dogtag.
+    if setup_ca and getattr(options, 'use_ipathinca', False):
+        service.print_msg("Restarting the KDC")
+        krb.restart()
 
     # Enable configured services and update DNS SRV records
     service.enable_services(host_name)
