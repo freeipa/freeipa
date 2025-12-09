@@ -917,9 +917,31 @@ class PythonCA:
         logger.debug(f"Certificate {serial_number} taken off hold")
 
     def generate_crl(self) -> x509.CertificateRevocationList:
-        """Generate Certificate Revocation List"""
+        """Generate Certificate Revocation List
+
+        Uses configuration settings matching Dogtag CS.cfg:
+        - ca.crl.MasterCRL.autoUpdateInterval (crl_update_interval)
+        - ca.crl.MasterCRL.nextUpdateGracePeriod (crl_next_update_grace_period)
+        """
         # Ensure CA cert and key are loaded
         self._ensure_ca_loaded()
+
+        # Read CRL update interval from config (default: 240 minutes = 4 hours)
+        import ipathinca
+
+        update_interval = int(
+            ipathinca.get_config_value(
+                "ca", "crl_update_interval", default="240"
+            )
+        )
+        grace_period = int(
+            ipathinca.get_config_value(
+                "ca", "crl_next_update_grace_period", default="0"
+            )
+        )
+
+        # Calculate next update time (interval + grace period)
+        next_update_minutes = update_interval + grace_period
 
         builder = x509.CertificateRevocationListBuilder()
         builder = builder.issuer_name(self.ca_cert.subject)
@@ -927,11 +949,25 @@ class PythonCA:
         now = datetime.datetime.now(datetime.timezone.utc)
         builder = builder.last_update(now)
         builder = builder.next_update(
-            now + datetime.timedelta(days=1)
-        )  # Update daily
+            now + datetime.timedelta(minutes=next_update_minutes)
+        )
 
         # Get all revoked certificates from LDAP storage
+        # Optionally filter out expired certificates
+        include_expired = (
+            ipathinca.get_config_value(
+                "ca", "crl_include_expired_certs", default="false"
+            ).lower()
+            == "true"
+        )
         revoked_certs = self.storage.find_certificates({"status": "REVOKED"})
+        if not include_expired:
+            revoked_certs = [
+                c
+                for c in revoked_certs
+                if c.not_valid_after is None
+                or c.not_valid_after >= now.replace(tzinfo=None)
+            ]
 
         # Add revoked certificates to CRL
         for cert_record in revoked_certs:

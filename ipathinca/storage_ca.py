@@ -1,7 +1,7 @@
 # Copyright (C) 2025  FreeIPA Contributors see COPYING for license
 
 """
-CA storage backend combining certificate and profile storage.
+CA storage backend combining certificate, profile, CRL and maintenance storage.
 Provides unified interface for CA operations.
 """
 
@@ -10,11 +10,20 @@ from __future__ import absolute_import
 from ipathinca.storage_base import BaseStorageBackend
 from ipathinca.storage_certificates import CertificateStorage
 from ipathinca.storage_profiles import ProfileStorage
+from ipathinca.storage_crl import CRLStorage
+from ipathinca.storage_maintenance import MaintenanceStorage
 
 
-class CAStorageBackend(CertificateStorage, ProfileStorage, BaseStorageBackend):
+class CAStorageBackend(
+    CertificateStorage,
+    ProfileStorage,
+    CRLStorage,
+    MaintenanceStorage,
+    BaseStorageBackend,
+):
     """
-    CA storage backend for certificate and profile operations.
+    CA storage backend for certificate, profile, CRL and maintenance
+    operations.
 
     This class uses multiple inheritance to provide a unified interface
     to CA storage operations.
@@ -22,6 +31,8 @@ class CAStorageBackend(CertificateStorage, ProfileStorage, BaseStorageBackend):
     Provides:
     - CertificateStorage for cert/request operations
     - ProfileStorage for profile operations
+    - CRLStorage for CRL operations
+    - MaintenanceStorage for cleanup/pruning
     """
 
     def __init__(
