@@ -9,6 +9,7 @@ replacement for Dogtag PKI's pki-tomcat service.
 """
 
 import logging
+import os
 import base64
 import traceback
 import argparse
@@ -19,6 +20,7 @@ from flask import Flask, request, Response, make_response, jsonify
 from ipathinca.backend import get_python_ca_backend
 from ipathinca.exceptions import ProfileNotFound
 from ipalib import errors
+from ipaplatform.paths import paths
 
 # Import REST API helpers
 from ipathinca.rest_api_helpers import (
@@ -1319,6 +1321,367 @@ def profile_submit_ssl_client():
             f"<Error>{str(e)}</Error>\n</XMLResponse>"
         )
         return Response(error_xml, mimetype="application/xml", status=500)
+
+
+# CRL Endpoints
+# ============================================================================
+
+
+@app.route("/ca/ee/ca/getCRL", methods=["GET"])
+@require_ca_backend
+@handle_ca_errors
+def get_crl():
+    """Get Certificate Revocation List
+
+    Serves CRL at /ca/ee/ca/getCRL (Dogtag format).
+
+    Note: /ipa/crl/MasterCRL.bin is served by Apache directly via Alias
+    directive from /var/lib/ipa/pki-ca/publish/MasterCRL.bin (not via this
+    REST API).
+    """
+    # Generate fresh CRL
+    ca_backend.update_crl()
+
+    # Read CRL from file
+    crl_path = os.path.join(paths.IPATHINCA_CERTS_DIR, "ca_crl.der")
+    if os.path.exists(crl_path):
+        with open(crl_path, "rb") as f:
+            crl_data = f.read()
+        return Response(crl_data, mimetype="application/pkix-crl")
+    else:
+        return error_response("CRLNotFound", "CRL file not found", 404)
+
+
+@app.route("/ca/rest/agent/crl", methods=["POST"])
+@require_agent_auth
+@require_ca_backend
+@handle_ca_errors
+def update_crl():
+    """Update CRL (force regeneration)"""
+    result = ca_backend.update_crl()
+    return success_response({"Status": result["status"]})
+
+
+@app.route("/ca/agent/ca/updateCRL", methods=["GET"])
+@require_agent_auth
+@require_ca_backend
+def update_crl_legacy():
+    """
+    Legacy Dogtag XML endpoint for CRL update
+    Used by IPA RA plugin (ipaserver/plugins/dogtag.py updateCRL method)
+
+    Query parameters:
+    - crlIssuingPoint: CRL issuing point (usually 'MasterCRL')
+    - waitForUpdate: Wait for update completion (ignored - operation is
+                     synchronous)
+    - xml: Return XML response ('true')
+    """
+    try:
+        # Get parameters
+        crl_issuing_point = request.args.get("crlIssuingPoint", "MasterCRL")
+        # Note: waitForUpdate is ignored - CRL update is always synchronous
+        xml_output = request.args.get("xml", "true")
+
+        # Force CRL update
+        result = ca_backend.update_crl()
+
+        # Return XML response (Dogtag format)
+        if xml_output.lower() == "true":
+            # Success response in Dogtag XML format
+            # requestStatus: 2 = SUCCESS (from dogtag.py CMS_STATUS_SUCCESS)
+            crl_update_status = (
+                "Success" if result.get("status") == "success" else "Failure"
+            )
+
+            response_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <fixed>
+    <requestStatus>2</requestStatus>
+  </fixed>
+  <header>
+    <crlIssuingPoint>{crl_issuing_point}</crlIssuingPoint>
+    <crlUpdate>{crl_update_status}</crlUpdate>
+  </header>
+</xml>"""
+
+            return Response(response_xml, mimetype="application/xml")
+        else:
+            # Text response
+            return Response(
+                f"crlUpdate={result.get('status', 'unknown')}",
+                mimetype="text/plain",
+            )
+
+    except Exception as e:
+        logger.error(f"Error in updateCRL (legacy): {e}", exc_info=True)
+
+        # Return XML error response
+        error_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <fixed>
+    <requestStatus>6</requestStatus>
+    <errorDetails>{str(e)}</errorDetails>
+  </fixed>
+</xml>"""
+        return Response(error_xml, mimetype="application/xml", status=500)
+
+
+# CRL Issuing Points Management
+# ----------------------------------------------------------------------------
+
+
+@app.route("/ca/rest/crl/issuingpoints", methods=["GET"])
+@app.route("/ca/v2/crl/issuingpoints", methods=["GET"])
+@require_ca_backend
+@handle_ca_errors
+def list_crl_issuing_points():
+    """
+    List all CRL issuing points
+
+    Returns list of CRL issuing point names
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "list_crl_issuing_points"):
+            crl_points = storage.list_crl_issuing_points()
+            return (
+                jsonify({"entries": crl_points, "total": len(crl_points)}),
+                200,
+            )
+        else:
+            # Fallback for storage backends without this method
+            return jsonify({"entries": ["MasterCRL"], "total": 1}), 200
+
+    except Exception as e:
+        logger.error(f"Error listing CRL issuing points: {e}", exc_info=True)
+        return error_response(
+            "InternalError",
+            f"Failed to list CRL issuing points: {str(e)}",
+            500,
+        )
+
+
+@app.route("/ca/rest/crl/issuingpoints/<crl_name>", methods=["GET"])
+@app.route("/ca/v2/crl/issuingpoints/<crl_name>", methods=["GET"])
+@require_ca_backend
+@handle_ca_errors
+def get_crl_issuing_point_info(crl_name):
+    """
+    Get CRL issuing point information
+
+    Returns metadata about a CRL issuing point including:
+    - crl_number
+    - crl_size (number of revoked certificates)
+    - this_update (issue time)
+    - next_update (next scheduled update)
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "get_crl_info"):
+            crl_info = storage.get_crl_info(crl_name)
+
+            if crl_info:
+                return jsonify(crl_info), 200
+            else:
+                return error_response(
+                    "CRLIssuingPointNotFound",
+                    f"CRL issuing point '{crl_name}' not found",
+                    404,
+                )
+        else:
+            return error_response(
+                "NotImplemented", "CRL issuing point info not available", 501
+            )
+
+    except Exception as e:
+        logger.error(
+            f"Error getting CRL issuing point info: {e}", exc_info=True
+        )
+        return error_response(
+            "InternalError", f"Failed to get CRL info: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/crl/issuingpoints/<crl_name>", methods=["DELETE"])
+@app.route("/ca/v2/crl/issuingpoints/<crl_name>", methods=["DELETE"])
+@require_agent_auth
+@require_ca_backend
+@handle_ca_errors
+def delete_crl_issuing_point(crl_name):
+    """
+    Delete a CRL issuing point
+
+    This removes the CRL issuing point configuration.
+    Requires agent authentication.
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "delete_crl_issuing_point"):
+            storage.delete_crl_issuing_point(crl_name)
+            return (
+                success_response(
+                    {
+                        "message": (
+                            f"CRL issuing point '{crl_name}' deleted"
+                            " successfully"
+                        )
+                    }
+                ),
+                200,
+            )
+        else:
+            return error_response(
+                "NotImplemented",
+                "CRL issuing point deletion not available",
+                501,
+            )
+
+    except Exception as e:
+        logger.error(f"Error deleting CRL issuing point: {e}", exc_info=True)
+        return error_response(
+            "InternalError",
+            f"Failed to delete CRL issuing point: {str(e)}",
+            500,
+        )
+
+
+# ============================================================================
+# Certificate and Request Pruning Endpoints
+# ============================================================================
+
+
+@app.route("/ca/rest/pruning/config", methods=["GET"])
+@app.route("/ca/v2/pruning/config", methods=["GET"])
+@require_ca_backend
+def get_pruning_config():
+    """
+    Get pruning configuration
+
+    Returns configuration for certificate and request pruning including
+    retention times, search limits, and enabled status.
+    """
+    try:
+        config = ca_backend.pruning_manager.get_config()
+        return success_response(config)
+
+    except Exception as e:
+        logger.error(f"Error getting pruning config: {e}", exc_info=True)
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/pruning/config", methods=["POST", "PUT"])
+@app.route("/ca/v2/pruning/config", methods=["POST", "PUT"])
+@require_agent_auth
+@require_ca_backend
+def update_pruning_config():
+    """
+    Update pruning configuration
+
+    Requires agent authentication.
+
+    Request body can include:
+    - certRetentionTime: Certificate retention time value
+    - certRetentionUnit: Certificate retention unit (minute, hour, day, year)
+    - certSearchSizeLimit: LDAP search size limit for certificates
+    - certSearchTimeLimit: LDAP search time limit for certificates
+    - requestRetentionTime: Request retention time value
+    - requestRetentionUnit: Request retention unit
+    - requestSearchSizeLimit: LDAP search size limit for requests
+    - requestSearchTimeLimit: LDAP search time limit for requests
+    - cronSchedule: Cron schedule for automatic pruning
+    """
+    try:
+        data = request.get_json() or {}
+
+        # Validate and update configuration
+        ca_backend.pruning_manager.update_config(data)
+
+        # Get updated config to return
+        config = ca_backend.pruning_manager.get_config()
+        return success_response(config)
+
+    except Exception as e:
+        logger.error(f"Error updating pruning config: {e}", exc_info=True)
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/pruning/enable", methods=["POST"])
+@app.route("/ca/v2/pruning/enable", methods=["POST"])
+@require_agent_auth
+@require_ca_backend
+def enable_pruning():
+    """
+    Enable certificate pruning
+
+    Sets pruningEnabled=TRUE in LDAP configuration.
+    Requires agent authentication.
+    """
+    try:
+        ca_backend.pruning_manager.set_enabled(True)
+        logger.info("Certificate pruning enabled")
+        return success_response(
+            {"Status": "SUCCESS", "Message": "Pruning enabled"}
+        )
+
+    except Exception as e:
+        logger.error(f"Error enabling pruning: {e}", exc_info=True)
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/pruning/disable", methods=["POST"])
+@app.route("/ca/v2/pruning/disable", methods=["POST"])
+@require_agent_auth
+@require_ca_backend
+def disable_pruning():
+    """
+    Disable certificate pruning
+
+    Sets pruningEnabled=FALSE in LDAP configuration.
+    Requires agent authentication.
+    """
+    try:
+        ca_backend.pruning_manager.set_enabled(False)
+        logger.info("Certificate pruning disabled")
+        return success_response(
+            {"Status": "SUCCESS", "Message": "Pruning disabled"}
+        )
+
+    except Exception as e:
+        logger.error(f"Error disabling pruning: {e}", exc_info=True)
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/pruning/run", methods=["POST"])
+@app.route("/ca/v2/pruning/run", methods=["POST"])
+@require_agent_auth
+@require_ca_backend
+def run_pruning():
+    """
+    Run pruning job manually
+
+    Executes certificate and request pruning based on current configuration.
+    Requires agent authentication.
+
+    Returns:
+    {
+        "certificates_deleted": 123,
+        "requests_deleted": 45,
+        "errors": []
+    }
+    """
+    try:
+        results = ca_backend.pruning_manager.run_pruning()
+        return success_response(results)
+
+    except ValueError as e:
+        # Pruning not enabled
+        return error_response("PruningNotEnabled", str(e), 400)
+    except Exception as e:
+        logger.error(f"Error running pruning job: {e}", exc_info=True)
+        return error_response("ServerError", str(e), 500)
 
 
 # ============================================================================
