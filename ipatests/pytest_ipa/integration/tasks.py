@@ -852,10 +852,10 @@ def setup_sssd_conf(host):
             pass
 
         for sssd_service_name in sssd_config.list_services():
-            sssd_config.edit_service(sssd_service_name, "debug_level", 7)
+            sssd_config.edit_service(sssd_service_name, "debug_level", 9)
 
         for sssd_domain_name in sssd_config.list_domains():
-            sssd_config.edit_domain(sssd_domain_name, "debug_level", 7)
+            sssd_config.edit_domain(sssd_domain_name, "debug_level", 9)
 
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)
