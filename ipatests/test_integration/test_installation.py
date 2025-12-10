@@ -2100,6 +2100,7 @@ class TestHostnameValidator(IntegrationTest):
             '--setup-dns',
             '--forwarder', host.config.dns_forwarder,
             '--auto-reverse',
+            '--allow-zone-overlap',
             '--netbios-name', 'EXAMPLE',
         ]
 
