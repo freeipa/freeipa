@@ -1200,6 +1200,9 @@ rm -f %{buildroot}%{_usr}/share/ipa/ui/images/header-logo.png
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-background.jpg
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-logo.png
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/product-name.png
+rm -f %{buildroot}%{_usr}/share/ipa/modern-ui/assets/images/header-logo.png
+rm -f %{buildroot}%{_usr}/share/ipa/modern-ui/assets/images/login-screen-background.jpg
+rm -f %{buildroot}%{_usr}/share/ipa/modern-ui/assets/images/product-name.png
 %endif
 # RHEL spec file only: END
 
