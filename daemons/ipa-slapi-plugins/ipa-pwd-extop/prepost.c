@@ -422,22 +422,23 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                 LOG_FATAL("failed to set encoded values in entry\n");
                 rc = LDAP_OPERATIONS_ERROR;
                 ipapwd_free_slapi_value_array(&svals);
+                slapi_ch_free_string(&nt);
+                ipapwd_free_slapi_value_array(&ntvals);
                 goto done;
             }
-
-            ipapwd_free_slapi_value_array(&svals);
         }
+        ipapwd_free_slapi_value_array(&svals);
 
         if (nt && is_smb) {
             /* set value */
             slapi_entry_attr_set_charptr(e, "sambaNTPassword", nt);
-            slapi_ch_free_string(&nt);
         }
+        slapi_ch_free_string(&nt);
 
         if (ntvals && is_ipant) {
             slapi_entry_attr_replace_sv(e, "ipaNTHash", ntvals);
-            ipapwd_free_slapi_value_array(&ntvals);
         }
+        ipapwd_free_slapi_value_array(&ntvals);
 
         if (is_smb) {
             /* with samba integration we need to also set sambaPwdLastSet or
@@ -921,21 +922,21 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
             /* replace values */
             slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
                                       "krbPrincipalKey", svals);
-            ipapwd_free_slapi_value_array(&svals);
         }
+        ipapwd_free_slapi_value_array(&svals);
 
         if (nt && is_smb) {
             /* replace value */
             slapi_mods_add_string(smods, LDAP_MOD_REPLACE,
                                   "sambaNTPassword", nt);
-            slapi_ch_free_string(&nt);
         }
+        slapi_ch_free_string(&nt);
 
         if (ntvals && is_ipant) {
             slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
                                       "ipaNTHash", ntvals);
-            ipapwd_free_slapi_value_array(&ntvals);
         }
+        ipapwd_free_slapi_value_array(&ntvals);
 
         if (is_smb) {
             /* with samba integration we need to also set sambaPwdLastSet or
