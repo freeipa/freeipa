@@ -755,6 +755,7 @@ next:
         hint = slapi_valueset_next_value(svs, hint, &sv);
     }
 
+    slapi_valueset_free(svs);
     return kvno;
 }
 
