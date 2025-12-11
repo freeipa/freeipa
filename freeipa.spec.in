@@ -627,18 +627,18 @@ Provides: bundled(npm(cookie)) = 1.0.2
 Provides: bundled(npm(csstype)) = 3.1.3
 Provides: bundled(npm(file-selector)) = 2.1.2
 Provides: bundled(npm(focus-trap)) = 7.6.4
-Provides: bundled(npm(freeipa-webui)) = 0.1.6
+Provides: bundled(npm(freeipa-webui)) = 0.1.8
 Provides: bundled(npm(immer)) = 10.1.1
 Provides: bundled(npm(js-tokens)) = 4.0.0
 Provides: bundled(npm(lodash)) = 4.17.21
 Provides: bundled(npm(loose-envify)) = 1.4.0
 Provides: bundled(npm(object-assign)) = 4.1.1
-Provides: bundled(npm(@patternfly/patternfly)) = 6.3.0
-Provides: bundled(npm(@patternfly/react-core)) = 6.3.0
-Provides: bundled(npm(@patternfly/react-icons)) = 6.3.0
-Provides: bundled(npm(@patternfly/react-styles)) = 6.3.0
-Provides: bundled(npm(@patternfly/react-table)) = 6.3.0
-Provides: bundled(npm(@patternfly/react-tokens)) = 6.3.0
+Provides: bundled(npm(@patternfly/patternfly)) = 6.3.1
+Provides: bundled(npm(@patternfly/react-core)) = 6.3.1
+Provides: bundled(npm(@patternfly/react-icons)) = 6.3.1
+Provides: bundled(npm(@patternfly/react-styles)) = 6.3.1
+Provides: bundled(npm(@patternfly/react-table)) = 6.3.1
+Provides: bundled(npm(@patternfly/react-tokens)) = 6.3.1
 Provides: bundled(npm(prop-types)) = 15.8.1
 Provides: bundled(npm(qrcode.react)) = 4.2.0
 Provides: bundled(npm(react)) = 18.3.1
@@ -646,8 +646,7 @@ Provides: bundled(npm(react-dom)) = 18.3.1
 Provides: bundled(npm(react-dropzone)) = 14.3.8
 Provides: bundled(npm(react-is)) = 16.13.1
 Provides: bundled(npm(react-redux)) = 9.2.0
-Provides: bundled(npm(react-router)) = 7.6.2
-Provides: bundled(npm(react-router-dom)) = 7.6.2
+Provides: bundled(npm(react-router)) = 7.9.3
 Provides: bundled(npm(redux)) = 5.0.1
 Provides: bundled(npm(@reduxjs/toolkit)) = 2.6.1
 Provides: bundled(npm(redux-thunk)) = 3.1.0
@@ -655,6 +654,7 @@ Provides: bundled(npm(reselect)) = 5.1.1
 Provides: bundled(npm(scheduler)) = 0.23.2
 Provides: bundled(npm(set-cookie-parser)) = 2.7.1
 Provides: bundled(npm(tabbable)) = 6.2.0
+Provides: bundled(npm(tiny-invariant)) = 1.3.3
 Provides: bundled(npm(tslib)) = 2.8.1
 Provides: bundled(npm(@types/prop-types)) = 15.7.14
 Provides: bundled(npm(@types/react)) = 18.3.20
@@ -1200,6 +1200,9 @@ rm -f %{buildroot}%{_usr}/share/ipa/ui/images/header-logo.png
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-background.jpg
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/login-screen-logo.png
 rm -f %{buildroot}%{_usr}/share/ipa/ui/images/product-name.png
+rm -f %{buildroot}%{_usr}/share/ipa/modern-ui/assets/images/header-logo.png
+rm -f %{buildroot}%{_usr}/share/ipa/modern-ui/assets/images/login-screen-background.jpg
+rm -f %{buildroot}%{_usr}/share/ipa/modern-ui/assets/images/product-name.png
 %endif
 # RHEL spec file only: END
 
