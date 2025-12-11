@@ -516,12 +516,58 @@ static krb5_error_code ipadb_fini_library(void)
     return 0;
 }
 
+static krb5_error_code
+check_kdcconf_supported_enctypes(krb5_context kcontext,
+                                 krb5_key_salt_tuple *types, size_t n_types,
+                                 bool *out_matching)
+{
+    kadm5_config_params params;
+    size_t i;
+    krb5_int32 j;
+    bool matching = false;
+    krb5_error_code kerr;
+
+    memset(&params, 0, sizeof(params));
+
+    kerr = kadm5_get_config_params(kcontext, 1, NULL, &params);
+    if (kerr) goto end;
+
+    if ((krb5_int32)n_types > params.num_keysalts) {
+        /* There are more key/salt types inferred from permitted_enctypes than
+         * supported_enctypes in kdc.conf, which means some are missing. */
+        goto end;
+    }
+
+    for (i = 0; i < n_types; ++i) {
+        for (j = 0; j < params.num_keysalts; ++j) {
+            if (types[i].ks_enctype == params.keysalts[j].ks_enctype
+                && types[i].ks_salttype == params.keysalts[j].ks_salttype) {
+                /* Matching key/salt type found. */
+                break;
+            }
+        }
+        /* Stop if a key/salt type was not found in kdc.conf's
+         * supported_enctypes. */
+        if (j == params.num_keysalts) goto end;
+    }
+
+    matching = true;
+
+end:
+    if (out_matching)
+        *out_matching = matching;
+
+    kadm5_free_config_params(kcontext, &params);
+    return kerr;
+}
+
 static krb5_error_code ipadb_init_module(krb5_context kcontext,
                                          char *conf_section,
                                          char **db_args, int mode)
 {
     struct ipadb_context *ipactx;
     char *default_types = NULL, *supported_types = NULL;
+    bool supp_encs_matching;
     krb5_error_code kerr;
     int ret = EINVAL;
     int i;
@@ -592,6 +638,26 @@ static krb5_error_code ipadb_init_module(krb5_context kcontext,
         goto end;
     }
     krb5_klog_syslog(LOG_INFO, "Supported key types = %s", supported_types);
+
+    /* Log a warning in case some key/salt types are not present in kdc.conf's
+     * "supported_enctypes" setting. This setting is still referred to when
+     * generating randomized keys using kadmin. */
+    kerr = check_kdcconf_supported_enctypes(kcontext, ipactx->supp_encs,
+                                            ipactx->n_supp_encs,
+                                            &supp_encs_matching);
+    if (kerr) {
+        ret = EINVAL;
+        goto end;
+    }
+    if (!supp_encs_matching) {
+        krb5_klog_syslog(LOG_WARNING,
+                         "The value of the \"supported_enctypes\" setting from "
+                         "kdc.conf does not include all the supported key "
+                         "types inferred from the \"permitted_enctypes\" krb5 "
+                         "client configuration setting. Please update the "
+                         "kdc.conf file accordingly to ensure strong "
+                         "encryption types are used.");
+    }
 
     ipactx->uri = ipadb_realm_to_ldapi_uri(ipactx->realm);
     if (!ipactx->uri) {
