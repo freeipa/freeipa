@@ -1073,7 +1073,7 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     void *op;
     struct ipapwd_operation *pwdop = NULL;
     Slapi_Mods *smods;
-    Slapi_Value **pwvals;
+    Slapi_Value **pwvals = NULL;
     int ret;
     char *errMsg = "Internal operations error\n";
     struct ipapwd_krbcfg *krbcfg = NULL;
@@ -1203,6 +1203,7 @@ done:
     slapi_mods_free(&smods);
     slapi_ch_free_string(&principal);
     free_ipapwd_krbcfg(&krbcfg);
+    ipapwd_free_slapi_value_array(&pwvals);
     return 0;
 }
 
