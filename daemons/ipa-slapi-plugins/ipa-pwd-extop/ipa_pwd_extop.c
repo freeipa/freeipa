@@ -650,6 +650,7 @@ free_and_return:
 		}
 		slapi_pblock_destroy(chpwop_pb);
 	}
+	slapi_ch_free_string(&bindDN);
 	slapi_ch_free_string(&oldPasswd);
 	slapi_ch_free_string(&newPasswd);
 	/* Either this is the same pointer that we allocated and set above,
@@ -1372,6 +1373,7 @@ static int ipapwd_setkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
 
 	/* Free anything that we allocated above */
 free_and_return:
+	slapi_ch_free_string(&bindDN);
 	free(serviceName);
 	if (kset) ipapwd_keyset_free(&kset);
 
@@ -1790,6 +1792,7 @@ free_and_return:
     slapi_send_ldap_result(pb, rc, NULL, err_msg, 0, NULL);
 
     /* Free anything that we allocated above */
+    slapi_ch_free_string(&bind_dn);
     if (krbctx) krb5_free_context(krbctx);
     free(kenctypes);
     free(service_name);

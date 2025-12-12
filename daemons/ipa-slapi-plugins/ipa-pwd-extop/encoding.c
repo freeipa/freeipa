@@ -220,6 +220,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
     *svals = NULL;
     *nthash = NULL;
+    *ntvals = NULL;
     *errMesg = NULL;
 
     if (is_krb) {
@@ -282,6 +283,7 @@ done:
     if (rc) {
         ipapwd_free_slapi_value_array(svals);
         ipapwd_free_slapi_value_array(ntvals);
+        slapi_ch_free_string(nthash);
     }
 
     return rc;
