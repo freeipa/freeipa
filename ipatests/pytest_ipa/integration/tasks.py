@@ -360,7 +360,8 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         args.extend([
             '--setup-dns',
             '--forwarder', host.config.dns_forwarder,
-            '--auto-reverse'
+            '--auto-reverse',
+            '--allow-zone-overlap'
         ])
         fw_services.append("dns")
     if setup_kra:

@@ -761,7 +761,8 @@ class TestInstallNoDnssecValidation(IntegrationTest):
             '-U',
             '--setup-dns',
             '--forwarder', cls.replicas[0].ip,
-            '--auto-reverse'
+            '--auto-reverse',
+            '--allow-zone-overlap'
         ]
 
     def test_install_withDnssecValidation(self):
