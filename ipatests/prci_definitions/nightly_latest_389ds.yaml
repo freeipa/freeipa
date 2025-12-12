@@ -675,3 +675,16 @@ jobs:
         timeout: 5000
         topology: *master_2repl_1client
 
+  389ds-fedora/test_sysaccounts:
+    requires: [389ds-fedora/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{389ds-fedora/build_url}'
+        update_packages: True
+        copr: '@389ds/389-ds-base-nightly'
+        test_suite: test_integration/test_sysaccounts.py
+        template: *ci-master-latest
+        timeout: 5600
+        topology: *master_1repl

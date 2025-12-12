@@ -96,15 +96,6 @@ def install_server_external_ca_step2(host, ipa_ca_cert, root_ca_cert,
     return cmd
 
 
-def service_control_dirsrv(host, function):
-    """Function to control the dirsrv service i.e start, stop, restart etc"""
-
-    dashed_domain = host.domain.realm.replace(".", '-')
-    dirsrv_service = "dirsrv@%s.service" % dashed_domain
-    cmd = host.run_command(['systemctl', function, dirsrv_service])
-    assert cmd.returncode == 0
-
-
 def check_ipaca_issuerDN(host, expected_dn):
     result = host.run_command(['ipa', 'ca-show', 'ipa'])
     assert "Issuer DN: {}".format(expected_dn) in result.stdout_text
@@ -638,7 +629,7 @@ class TestExternalCAdirsrvStop(IntegrationTest):
         assert result.returncode == 0
 
         # stop dirsrv server.
-        service_control_dirsrv(self.master, 'stop')
+        tasks.service_control_dirsrv(self.master, 'stop')
 
         # Sign CA, transport it to the host and get ipa and root ca paths.
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
