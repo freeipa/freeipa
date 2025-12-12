@@ -35,10 +35,8 @@ from ipalib.plugable import Registry
 from ipalib.request import context
 from ipapython.dn import DN
 
-import six
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Password policy

@@ -23,7 +23,6 @@ import logging
 import itertools
 
 import re
-import six
 import time
 import datetime
 import sys
@@ -43,8 +42,7 @@ from ipapython.ipaldap import ldap_initialize
 from ipaplatform.paths import paths
 from ipaserver.install import installutils
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

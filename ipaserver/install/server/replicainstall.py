@@ -19,7 +19,6 @@ import textwrap
 import traceback
 
 from packaging.version import parse as parse_version
-import six
 
 from ipaclient.install.client import check_ldap_conf, sssd_enable_ifp
 import ipaclient.install.timeconf
@@ -51,8 +50,7 @@ from ipaserver.masters import find_providing_servers, find_providing_server
 import SSSDConfig
 from subprocess import CalledProcessError
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 NoneType = type(None)
 
@@ -632,7 +630,6 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
 
     try:
         installer._enrollment_performed = True
-        # pylint: disable=E0606
         host_result = remote_api.Command.host_add(
             unicode(config.host_name), force=installer.no_host_dns
         )['result']

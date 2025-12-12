@@ -23,14 +23,11 @@ Test the `tests.util` module.
 
 import re
 
-import six
-
 from ipatests import util
 from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
 import pytest
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 pytestmark = pytest.mark.tier0
 pattern_type = type(re.compile(""))
@@ -208,7 +205,7 @@ def test_assert_deepequal(pytestconfig):
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, bytes, u'hello', b'hello', (2 if six.PY2 else 0,)
+        'foo', unicode, bytes, u'hello', b'hello', (0,)
     )
 
     b = [
@@ -228,7 +225,7 @@ def test_assert_deepequal(pytestconfig):
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', int, float, 18, 18.0, (0 if six.PY2 else 2,)
+        'foo', int, float, 18, 18.0, (2,)
     )
 
     # List length mismatch

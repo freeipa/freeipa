@@ -75,14 +75,12 @@ import abc
 from collections import namedtuple, defaultdict
 
 from ldap import SCOPE_ONELEVEL
-import six
 
 from ipalib import _, errors
 from ipapython.dn import DN
 from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 ENABLED = u'enabled'
@@ -91,8 +89,7 @@ HIDDEN = u'hidden'
 ABSENT = u'absent'
 
 
-@six.add_metaclass(abc.ABCMeta)
-class LDAPBasedProperty:
+class LDAPBasedProperty(metaclass=abc.ABCMeta):
     """
     base class for all master properties defined by LDAP content
     :param attr_name: attribute name
@@ -112,8 +109,7 @@ class LDAPBasedProperty:
             self.attr_name_hidden = None
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseServerRole(LDAPBasedProperty):
+class BaseServerRole(LDAPBasedProperty, metaclass=abc.ABCMeta):
     """
     Server role hierarchy apex. All other server role definition should either
     inherit from it or at least provide the 'status' method for querying role

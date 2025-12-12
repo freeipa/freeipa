@@ -37,7 +37,6 @@ import textwrap
 import collections
 import importlib
 
-import six
 
 from ipalib import errors
 from ipalib.config import Env
@@ -52,8 +51,7 @@ from ipapython.ipa_log_manager import (
     LOGGING_FORMAT_STDERR)
 from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -337,7 +335,7 @@ class APINameSpace(Mapping):
         return self.__api._get(plugin)
 
     def __call__(self):
-        return six.itervalues(self)
+        return self.values()
 
     def __getattr__(self, key):
         try:
@@ -802,7 +800,7 @@ class API(ReadOnly):
                 assert not hasattr(self, name)
             setattr(self, name, APINameSpace(self, base))
 
-        for instance in six.itervalues(self.__instances):
+        for instance in self.__instances.values():
             if not production_mode:
                 assert instance.api is self
             if not self.env.plugins_on_demand:

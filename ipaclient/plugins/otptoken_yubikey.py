@@ -19,7 +19,6 @@
 
 import os
 
-import six
 
 from ipalib import _, api, IntEnum
 from ipalib.errors import NotFound, SkipPluginModule
@@ -34,8 +33,7 @@ except ImportError:
     # python-yubico depends on pyusb
     raise SkipPluginModule(reason=_("python-yubico is not installed."))
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 YubiKey Tokens
