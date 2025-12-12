@@ -33,7 +33,7 @@ from ipaserver.install.ipa_migrate_constants import (
     DS_CONFIG, DB_OBJECTS, DS_INDEXES, BIND_DN, LOG_FILE_NAME,
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
     DNA_REGEN_VAL, DNA_REGEN_ATTRS, IGNORE_ATTRS,
-    DB_EXCLUDE_TREES, POLICY_OP_ATTRS, STATE_OPTIONS
+    DB_EXCLUDE_TREES, POLICY_OP_ATTRS, STATE_OPTIONS, REDACTED_ATTRS,
 )
 
 """
@@ -1077,15 +1077,31 @@ class IPAMigrate():
 
         return len(cert_values) == 0
 
-    def convert_value(self, val, dns=False):
+    def convert_value(self, entry_dn, val, attr, entry_type):
         """
         Replace suffix, hostname, domain, and realm from a string
         """
         if isinstance(val, bytes) or isinstance(val, DN):
             return val
 
-        # For DNS DN we only replace suffix
-        if dns:
+        if entry_type in DB_OBJECTS and \
+           'preserve_attrs' in DB_OBJECTS[entry_type] and \
+           attr.lower() in DB_OBJECTS[entry_type]['preserve_attrs']:
+            # We want to preserve this value as is, but we still need to update
+            # suffix and realm
+            val = self.replace_suffix_value(val)
+            val = val.replace(self.remote_realm, self.realm)
+
+            if not self.args.verbose and attr.lower() in REDACTED_ATTRS:
+                log_val = "[REDACTED]"
+            else:
+                log_val = val
+            self.log_debug("Preserving attribute/value "
+                           f"'{attr}:{log_val}' for entry: {entry_dn}")
+            return val
+
+        # For DNS we only replace suffix
+        if entry_type.startswith("dns"):
             val = self.replace_suffix_value(val)
             return val
 
@@ -1105,13 +1121,14 @@ class IPAMigrate():
 
         return val
 
-    def convert_values(self, values, dns=False):
+    def convert_values(self, entry_dn, values, attr, entry_type):
         """
         Replace suffix, hostname, domain, and realm in a list
         """
         new_values = []
         for val in values:
-            new_values.append(self.convert_value(val, dns))
+            new_values.append(self.convert_value(entry_dn, val, attr,
+                                                 entry_type))
 
         # normalize DN values
         return self.normalize_vals(new_values)
@@ -1213,7 +1230,9 @@ class IPAMigrate():
                 entry_attrs[attr] = new_vals
 
             # Replace suffix/realm/host/domain in all values
-            entry_attrs[attr] = self.convert_values(entry_attrs[attr])
+            entry_attrs[attr] = self.convert_values(entry_dn,
+                                                    entry_attrs[attr],
+                                                    attr, entry_type)
 
             # Check userCertificate issuer and remove IPA CA certs
             if attr.lower() == "usercertificate" and \
@@ -1347,23 +1366,37 @@ class IPAMigrate():
                                     local_entry[attr][0] += f",{item}"
                                 if len(new_items) > 0:
                                     entry_updated = True
+                                    if not self.args.verbose and \
+                                       attr.lower() in REDACTED_ATTRS:
+                                        log_old_val = "[REDACTED]"
+                                        log_new_val = "[REDACTED]"
+                                    else:
+                                        log_old_val = old_value
+                                        log_new_val = local_entry[attr][0]
                                     self.log_debug("Entry is different and "
                                                    "will be updated: "
                                                    f"'{local_dn}' attribute "
                                                    f"'{attr}' old value "
-                                                   f"'{old_value}' "
+                                                   f"'{log_old_val}' "
                                                    "new value "
-                                                   f"'{local_entry[attr][0]}'")
+                                                   f"'{log_new_val}'")
                             elif 'single' == sp_attr[1]:
                                 # The attribute is defined as multivalued, but
                                 # we really need to treat it as single valued
+                                if not self.args.verbose and \
+                                   attr.lower() in REDACTED_ATTRS:
+                                    log_old_val = "[REDACTED]"
+                                    log_new_val = "[REDACTED]"
+                                else:
+                                    log_old_val = local_entry[attr][0]
+                                    log_new_val = remote_attrs[attr][0]
                                 self.log_debug("Entry is different and will "
                                                f"be updated: '{local_dn}' "
                                                f"attribute '{attr}' replaced "
                                                "with val "
-                                               f"'{remote_attrs[attr][0]}' "
+                                               f"'{log_new_val}' "
                                                "old value: "
-                                               f"{local_entry[attr][0]}")
+                                               f"{log_old_val}")
                                 local_entry[attr][0] = remote_attrs[attr][0]
                             goto_next_attr = True
                             break
@@ -1392,18 +1425,32 @@ class IPAMigrate():
                         elif self.local_conn.get_attribute_single_value(attr):
                             # Must "replace" single valued attribute
                             local_entry[attr] = remote_attrs[attr]
+                            if not self.args.verbose and \
+                               attr.lower() in REDACTED_ATTRS:
+                                log_old_val = "[REDACTED]"
+                                log_new_val = "[REDACTED]"
+                            else:
+                                log_old_val = str(local_attr_vals)
+                                log_new_val = val
                             self.log_debug("Entry is different and will be "
                                            f"updated: '{local_dn}' attribute "
                                            f"'{attr}' replaced with val "
-                                           f"'{val}' old value: "
-                                           f"{str(local_attr_vals)}")
+                                           f"'{log_new_val}' old value: "
+                                           f"{log_old_val}")
                         else:
                             # Ok, "append" multivalued attribute value
                             local_entry[attr].append(val)
+                            if not self.args.verbose and \
+                               attr.lower() in REDACTED_ATTRS:
+                                log_old_val = "[REDACTED]"
+                                log_new_val = "[REDACTED]"
+                            else:
+                                log_old_val = str(local_attr_vals)
+                                log_new_val = val
                             self.log_debug("Entry is different and will be "
                                            f"updated: '{local_dn}' attribute "
-                                           f"'{attr}' add val '{val}' not "
-                                           f"in {str(local_attr_vals)}")
+                                           f"'{attr}' add val '{log_new_val}'"
+                                           f" not in {log_old_val}")
                         entry_updated = True
             else:
                 # Attribute does not exist in the local entry, copy the
@@ -1504,8 +1551,8 @@ class IPAMigrate():
         remote_attrs = self.clean_entry(entry_dn, entry_type, entry_attrs)
 
         # First we need to convert dn to match local server
-        local_dn = self.convert_value(str(entry_dn),
-                                      dns=entry_type.startswith("dns"))
+        local_dn = self.convert_value(str(entry_dn), str(entry_dn), 'dn',
+                                      entry_type)
 
         #
         # Based on the entry type do additional work
@@ -1857,7 +1904,8 @@ class IPAMigrate():
                                 # The local entry also has this attr, proceed
                                 attr_exists = True
                                 remote_vals = self.convert_values(
-                                    remote_attrs[remote_attr])
+                                    dn, remote_attrs[remote_attr], remote_attr,
+                                    'config')
                                 local_vals = self.normalize_vals(
                                     local_entry[local_attr])
                                 for rval in remote_vals:
@@ -1870,10 +1918,16 @@ class IPAMigrate():
                                             # Append value
                                             local_entry[local_attr].append(
                                                 rval)
+                                            if not self.args.verbose and \
+                                               local_attr.lower() in \
+                                               REDACTED_ATTRS:
+                                                log_val = "[REDACTED]"
+                                            else:
+                                                log_val = rval
                                             self.log_debug("Config setting "
                                                            f"{local_attr}' "
                                                            "added value "
-                                                           f"'{rval}'"
+                                                           f"'{log_val}'"
                                                            f" in '{dn}'")
                                         else:
                                             # Replace attr value
@@ -1883,17 +1937,27 @@ class IPAMigrate():
                                             local_entry[local_attr] = \
                                                 remote_vals
                                             val = remote_vals[0]
+                                            if not self.args.verbose and \
+                                               local_attr.lower() in \
+                                               REDACTED_ATTRS:
+                                                log_old_val = "[REDACTED]"
+                                                log_new_val = "[REDACTED]"
+                                            else:
+                                                log_old_val = str(old_vals)
+                                                log_new_val = val
                                             self.log_debug("Config setting '"
                                                            f"{local_attr}' "
                                                            "replaced "
-                                                           f"'{str(old_vals)}'"
-                                                           f" with '{val}'"
+                                                           f"'{log_old_val}'"
+                                                           " with "
+                                                           f"'{log_new_val}'"
                                                            f" in '{dn}'")
                                             break
                         if not attr_exists:
                             # local entry is missing this attribute, add it
                             remote_vals = self.convert_values(
-                                remote_attrs[remote_attr])
+                                dn, remote_attrs[remote_attr], remote_attr,
+                                'config')
                             local_entry[remote_attr] = remote_vals
                             self.log_debug("Config setting '"
                                            f"{remote_attr}' "
