@@ -326,7 +326,7 @@ def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
 def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
                    extra_args=(), domain_level=None, unattended=True,
                    external_ca=False, stdin_text=None, raiseonerr=True,
-                   random_serial=False):
+                   random_serial=False, allow_zone_overlap=True):
     if domain_level is None:
         domain_level = host.config.domain_level
     check_domain_level(domain_level)
@@ -361,9 +361,10 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         args.extend([
             '--setup-dns',
             '--forwarder', host.config.dns_forwarder,
-            '--auto-reverse',
-            '--allow-zone-overlap'
+            '--auto-reverse'
         ])
+        if allow_zone_overlap:
+            args.extend(['--allow-zone-overlap'])
         fw_services.append("dns")
     if setup_kra:
         args.append('--setup-kra')
