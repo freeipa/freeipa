@@ -184,7 +184,7 @@ class CALessBase(IntegrationTest):
                        http_pin=_DEFAULT, dirsrv_pin=_DEFAULT, pkinit_pin=None,
                        root_ca_file='root.pem', pkinit_pkcs12_exists=False,
                        pkinit_pkcs12='server-kdc.p12', unattended=True,
-                       stdin_text=None, extra_args=[]):
+                       stdin_text=None, extra_args=[], allow_zone_overlap=True):
         """Install a CA-less server
 
         Return value is the remote ipa-server-install command
@@ -241,7 +241,8 @@ class CALessBase(IntegrationTest):
         return tasks.install_master(host, extra_args=extra_args,
                                     unattended=unattended,
                                     stdin_text=stdin_text,
-                                    raiseonerr=False)
+                                    raiseonerr=False,
+                                    allow_zone_overlap=allow_zone_overlap)
 
     @classmethod
     def copy_cert(cls, host, filename):
