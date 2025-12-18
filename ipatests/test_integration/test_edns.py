@@ -15,6 +15,9 @@ from ipatests.test_integration.test_dns import TestDNS
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
+from ipatests.pytest_ipa.integration.resolver import (
+    resolver as detect_resolver
+)
 
 
 def apply_enforced_dns_preconfig(host, master_ip, master_host,
@@ -30,6 +33,9 @@ def apply_enforced_dns_preconfig(host, master_ip, master_host,
         ca_cert_path: Path to the CA certificate on the master
         dest_cert_name: Destination certificate filename in trust anchors
     """
+    # Backup resolver before making any changes (with original resolver type)
+    host.resolver.backup()
+
     # Get the network interface for routing
     iface_cmd = host.run_command([
         "bash", "-c",
@@ -43,7 +49,8 @@ def apply_enforced_dns_preconfig(host, master_ip, master_host,
     host.put_file_contents(dest_ca_path, ca_cert_data)
     host.run_command(["update-ca-trust", "extract"])
 
-    if osinfo.id in ['rhel', 'centos']:
+    platform = tasks.get_platform(host)
+    if platform in ['rhel', 'centos']:
         # RHEL/CentOS configuration
         # Install and configure dnsconfd
         tasks.install_packages(host, ['dnsconfd'])
@@ -51,30 +58,59 @@ def apply_enforced_dns_preconfig(host, master_ip, master_host,
         host.run_command(["systemctl", "enable", "--now", "dnsconfd"])
         host.run_command(["nmcli", "g", "reload"])
 
-        # Configure DNS over TLS via NetworkManager
+        # Configure DNS over TLS via NetworkManager device-specific settings.
+        # Device-specific DNS settings work alongside global resolver config.
         host.run_command([
             "nmcli", "device", "modify", iface,
             "ipv4.dns", f"dns+tls://{master_ip}"
         ])
 
-    elif osinfo.id == 'fedora':
-        # Fedora configuration
+    elif platform == 'fedora':
         # Configure systemd-resolved for DNS over TLS
         host.run_command([
-            "ln", "-sf", "../run/systemd/resolve/stub-resolv.conf",
+            "ln", "-sf", "/run/systemd/resolve/stub-resolv.conf",
             "/etc/resolv.conf"
         ])
+        # Restart systemd-resolved to ensure DoT settings are fully applied
+        # and resolv.conf is updated
         host.run_command(["systemctl", "restart", "systemd-resolved"])
-
-        # Configure DNS over TLS via systemd-resolve
+        # Configure DNS over TLS via systemd-resolve per-interface settings
+        # Per-interface DNS settings work alongside the global resolver config
         host.run_command([
             "systemd-resolve", "--set-dns", master_ip,
             "--set-dnsovertls=yes", f"--interface={iface}"
         ])
     else:
         raise ValueError(
-            f"Unsupported OS for enforced DNS policy: {osinfo.id}"
+            f"Unsupported OS for enforced DNS policy: {platform}"
         )
+
+    # Re-detect resolver since we may have changed the resolver type
+    # (e.g., from PlainFileResolver to ResolvedResolver on Fedora)
+    # This ensures state tracking works correctly with the new resolver type
+    # Store the original resolver so we can restore from it during uninstall
+    host._enforced_dns_original_resolver = host.resolver
+    host.resolver = detect_resolver(host)
+    host.resolver.current_state = host.resolver._get_state()
+
+
+def restore_enforced_dns_resolver(host):
+    """
+    Restore resolver state after enforced DNS preconfig.
+
+    This restores the original resolver backup created by
+    apply_enforced_dns_preconfig() and syncs host.resolver state.
+    """
+    if not hasattr(host, '_enforced_dns_original_resolver'):
+        return
+    original_resolver = host._enforced_dns_original_resolver
+    if original_resolver.has_backups():
+        original_resolver.current_state = original_resolver._get_state()
+        original_resolver.restore()
+        # Sync host.resolver state since original_resolver changed the config
+        host.resolver.backups.clear()
+        host.resolver.current_state = host.resolver._get_state()
+    delattr(host, '_enforced_dns_original_resolver')
 
 
 def setup_dns_over_tls_environment(cls):
@@ -451,15 +487,10 @@ class TestDNSOverTLS_EnforcedPolicy_IPA_CA(IntegrationTest):
         tasks.install_master(self.master, extra_args=args)
 
         # Apply pre-configuration on client before installation
+        # This configures the resolver with master IP and domain
         apply_enforced_dns_preconfig(
             self.clients[0], self.master.ip, self.master,
             paths.IPA_CA_CRT, "ca.crt"
-        )
-
-        # Configure client nameserver
-        self.clients[0].put_file_contents(
-            paths.RESOLV_CONF,
-            "nameserver %s" % self.master.ip
         )
 
         # Install client with enforced policy
@@ -506,6 +537,8 @@ class TestDNSOverTLS_EnforcedPolicy_IPA_CA(IntegrationTest):
         """
         This test ensures that all hosts can be uninstalled correctly.
         """
+        for host in [self.clients[0], self.replicas[0]]:
+            restore_enforced_dns_resolver(host)
         tasks.uninstall_client(self.clients[0])
         tasks.uninstall_replica(self.master, self.replicas[0])
         tasks.uninstall_master(self.master)
@@ -559,15 +592,10 @@ class TestDNSOverTLS_EnforcedPolicy_External_CA(IntegrationTest):
 
         # Apply pre-configuration on client before installation
         # (includes CA cert setup)
+        # This configures the resolver with master IP and domain
         apply_enforced_dns_preconfig(
             self.clients[0], self.master.ip, self.master,
             cert_dest, "certificate.pem"
-        )
-
-        # Configure client nameserver
-        self.clients[0].put_file_contents(
-            paths.RESOLV_CONF,
-            "nameserver %s" % self.master.ip
         )
 
         # Install client with enforced policy
@@ -615,6 +643,8 @@ class TestDNSOverTLS_EnforcedPolicy_External_CA(IntegrationTest):
         """
         This test ensures that all hosts can be uninstalled correctly.
         """
+        for host in [self.clients[0], self.replicas[0]]:
+            restore_enforced_dns_resolver(host)
         tasks.uninstall_client(self.clients[0])
         tasks.uninstall_replica(self.master, self.replicas[0])
         tasks.uninstall_master(self.master)
