@@ -2233,6 +2233,18 @@ jobs:
         timeout: 7200
         topology: *adroot_adchild_adtree_master_1client
 
+  fedora-latest-ipa-4-13/test_hbac_functional:
+    requires: [fedora-latest-ipa-4-13/build]
+    priority: 100
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest-ipa-4-13/build_url}'
+        test_suite: test_integration/test_hbac_functional.py
+        template: *ci-ipa-4-13-latest
+        timeout: 7200
+        topology: *master_3client
+
   fedora-latest-ipa-4-13/test_installation_TestInstallKeySizes:
     requires: [fedora-latest-ipa-4-13/build]
     priority: 100
