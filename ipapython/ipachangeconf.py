@@ -23,10 +23,8 @@ import logging
 import os
 import shutil
 
-import six
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

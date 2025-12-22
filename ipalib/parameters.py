@@ -108,7 +108,6 @@ import inspect
 import typing
 from xmlrpc.client import MAXINT, MININT
 
-import six
 from cryptography import x509 as crypto_x509
 import dns.name
 
@@ -147,8 +146,8 @@ def _is_null(value):
     else:
         return True
 
-if six.PY3:
-    unicode = str
+
+unicode = str
 
 
 class DefaultFrom(ReadOnly):
@@ -1123,7 +1122,7 @@ class Int(Number):
         if type(value) is unicode:
             if u'.' in value:
                 return int(float(value))
-            if six.PY3 and re.match('0[0-9]+', value):
+            if re.match('0[0-9]+', value):
                 # 0-prefixed octal format
                 return int(value, 8)
             return int(value, 0)
@@ -2240,7 +2239,7 @@ def create_signature(command):
             )
             # ipalib.parameters.DNSNameParam also handles text
             if isinstance(ipaparam, DNSNameParam):
-                allowed_types += (six.text_type,)
+                allowed_types += (str,)
             ann = typing.Union[allowed_types]
             if ipaparam.multivalue:
                 ann = typing.List[ann]

@@ -133,7 +133,6 @@ extraction:
         - pyusb
         - pyyaml
         - qrcode
-        - six
     before_index:
       # Let LGTM pick up our packages
       - export PYTHONPATH=$LGTM_SRC

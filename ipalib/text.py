@@ -134,12 +134,10 @@ forms, see `NGettextFactory` and `NGettext`.
 
 import gettext
 
-import six
 
 from ipalib.request import context
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 def create_translation(key):
@@ -211,7 +209,6 @@ class LazyText:
         return other + ConcatenatedLazyText(self)
 
 
-@six.python_2_unicode_compatible
 class Gettext(LazyText):
     """
     Deferred translation using ``gettext.ugettext()``.
@@ -287,10 +284,7 @@ class Gettext(LazyText):
             t = context.__dict__[self.key]
         else:
             t = create_translation(self.key)
-        if six.PY2:
-            return t.ugettext(self.msg)
-        else:
-            return t.gettext(self.msg)
+        return t.gettext(self.msg)
 
     def __str__(self):
         return unicode(self.as_unicode())
@@ -309,7 +303,6 @@ class Gettext(LazyText):
         return str(self).expandtabs(tabsize)
 
 
-@six.python_2_unicode_compatible
 class FixMe(Gettext):
     """
     Non-translated place-holder for UI labels.
@@ -480,13 +473,9 @@ class NGettext(LazyText):
             t = context.__dict__[self.key]
         else:
             t = create_translation(self.key)
-        if six.PY2:
-            return t.ungettext(self.singular, self.plural, count)
-        else:
-            return t.ngettext(self.singular, self.plural, count)
+        return t.ngettext(self.singular, self.plural, count)
 
 
-@six.python_2_unicode_compatible
 class ConcatenatedLazyText:
     """Concatenation of multiple strings, or any objects convertible to unicode
 

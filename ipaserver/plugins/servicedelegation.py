@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api
 from ipalib import Str
@@ -20,8 +19,7 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipapython import kerberos
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Service Constrained Delegation

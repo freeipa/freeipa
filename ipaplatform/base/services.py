@@ -31,7 +31,6 @@ import time
 import logging
 import warnings
 
-import six
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -88,7 +87,7 @@ class KnownServices(Mapping):
         return len(self.__d)
 
     def __call__(self):
-        return six.itervalues(self.__d)
+        return self.__d.values()
 
     def __getattr__(self, name):
         try:
