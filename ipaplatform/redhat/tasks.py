@@ -772,13 +772,5 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             logger.info("It may happen if the configuration was done "
                         "using authconfig instead of authselect")
 
-    def get_supported_enctypes(self):
-        enctypes = super().get_supported_enctypes()
-
-        if not self.is_fips_enabled():
-            return enctypes
-
-        return tuple(e for e in enctypes if not e.startswith('camellia'))
-
 
 tasks = RedHatTaskNamespace()
