@@ -41,7 +41,6 @@ if __name__ == '__main__':
             "ipaplatform.rhel",
             "ipaplatform.rhel_container",
             "ipaplatform.suse",
-            "ipaplatform.test_fedora_legacy",
             "ipaplatform.opencloudos",
             "ipaplatform.tencentos"
         ],
