@@ -1500,6 +1500,51 @@ class TestIPACommand(IntegrationTest):
         # Run it again for good measure
         self.master.run_command(["ipa-certupdate"])
 
+    def test_certupdate_force_server(self):
+        """Test that certupdate works with a forced server.
+
+           This is useful for running certupdate against a specific master,
+           especially if replicas have different CA certs in a disaster
+           recovery scenario.
+        """
+        tasks.kdestroy_all(self.master)
+
+        # try with a correct server
+        server = self.replicas[0].hostname
+        result = self.master.run_command(
+            ["ipa-certupdate", "--force-server", server]
+        )
+        stdstring = "Updating certificates from server %s" % server
+        assert stdstring in result.stderr_text
+        assert "The ipa-certupdate command was successful" \
+            in result.stderr_text
+
+        # try with a non-existent server
+        non_server = 'non-' + server
+        result = self.master.run_command(
+            ["ipa-certupdate", "--force-server", non_server],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+        assert "cannot connect to 'ldap://%s:389" % non_server \
+            in result.stderr_text
+
+        # try with a turned off/inaccessible server
+        self.replicas[0].run_command(["ipactl", "stop"])
+        result = self.master.run_command(
+            ["ipa-certupdate", "--force-server", server],
+            raiseonerr=False
+        )
+        assert result.returncode != 0
+        # Error may be either LDAP URI - Transport endpoint is not connected
+        # or an HTTP URI - [Errno 111] Connection refused
+        pattern = rf"cannot connect to .*{re.escape(server)}"
+        error = r'\b(?:Transport endpoint is not connected|\
+            Connection refused)\b'
+        assert re.search(pattern,result.stderr_text)
+        assert re.search(error, result.stderr_text)
+        self.replicas[0].run_command(["ipactl", "start"])
+
     def test_proxycommand_invalid_shell(self):
         """Test that ssh works with a user with an invalid shell.
 
