@@ -1628,6 +1628,71 @@ def add_a_record(master, host):
                             '--a-rec', host.ip])
 
 
+def add_dns_record(master, zone, name, record_type, record_value,
+                   raiseonerr=True):
+    """Add DNS record of any type.
+
+    :param master: The IPA master host to run command on
+    :param zone: DNS zone name (e.g., 'example.com.')
+    :param name: Record name (e.g., 'www' or '@' for zone apex)
+    :param record_type: Record type like 'a', 'aaaa', 'afsdb', 'cname',
+                        'txt', 'srv', 'mx', 'ptr', 'naptr', 'dname',
+                        'cert', 'loc', 'kx', etc.
+    :param record_value: List of values for the record
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'dnsrecord-add', zone, name]
+    opt = f'--{record_type}-rec'
+    for val in record_value:
+        command.extend([opt, val])
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def del_dns_record(master, zone, name, record_type=None, record_value=None,
+                   del_all=False, raiseonerr=True):
+    """Delete DNS record of any type.
+
+    :param record_type: Record type like 'a', 'aaaa', 'afsdb', 'cname', etc.
+    :param record_value: List of values (optional)
+    :param del_all: If True, delete all records for this name
+    """
+    command = ['ipa', 'dnsrecord-del', zone, name]
+    if del_all:
+        command.append('--del-all')
+    elif record_type and record_value:
+        opt = f'--{record_type}-rec'
+        for val in record_value:
+            command.extend([opt, val])
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def find_dns_record(master, zone, name=None, raiseonerr=True):
+    """Find DNS record.
+
+    :param name: Record name, if not provided searches all records in zone
+    """
+    command = ['ipa', 'dnsrecord-find', zone]
+    if name is not None:
+        command.append(name)
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def mod_dns_record(master, zone, name, record_type, old_value, new_value,
+                   raiseonerr=True):
+    """Modify DNS record value.
+
+    :param record_type: Record type like 'a', 'aaaa', 'txt', etc.
+    :param old_value: Current record value
+    :param new_value: New record value
+    """
+    return master.run_command([
+        'ipa', 'dnsrecord-mod', zone, name,
+        f'--{record_type}-rec={old_value}',
+        f'--{record_type}-data={new_value}'
+    ], raiseonerr=raiseonerr)
+
+
 def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
     """Resolve DNS record
     :retry: if resolution failed try again until timeout is reached
@@ -2002,7 +2067,9 @@ def ldappasswd_sysaccount_change(user, oldpw, newpw, master, use_dirman=False):
 
 
 def add_dns_zone(master, zone, skip_overlap_check=False,
-                 dynamic_update=False, add_a_record_hosts=None):
+                 dynamic_update=False, add_a_record_hosts=None,
+                 admin_email=None, refresh=None, retry=None,
+                 expire=None, minimum=None, ttl=None, raiseonerr=True):
     """
     Add DNS zone if it is not already added.
     """
@@ -2010,14 +2077,27 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
     result = master.run_command(
         ['ipa', 'dnszone-show', zone], raiseonerr=False)
 
+    # Verify both return code and zone name before adding
     if result.returncode != 0:
         command = ['ipa', 'dnszone-add', zone]
         if skip_overlap_check:
             command.append('--skip-overlap-check')
         if dynamic_update:
             command.append('--dynamic-update=True')
+        if admin_email:
+            command.append('--admin-email=' + admin_email)
+        if refresh:
+            command.append('--refresh=' + str(refresh))
+        if retry:
+            command.append('--retry=' + str(retry))
+        if expire:
+            command.append('--expire=' + str(expire))
+        if minimum:
+            command.append('--minimum=' + str(minimum))
+        if ttl:
+            command.append('--ttl=' + str(ttl))
 
-        master.run_command(command)
+        master.run_command(command, raiseonerr=raiseonerr)
 
         if add_a_record_hosts:
             for host in add_a_record_hosts:
@@ -2025,6 +2105,46 @@ def add_dns_zone(master, zone, skip_overlap_check=False,
                                     host.hostname + ".", '--a-rec', host.ip])
     else:
         logger.debug('Zone %s already added.', zone)
+
+
+def del_dns_zone(host, zone, raiseonerr=False):
+    """Delete DNS zone."""
+    return host.run_command(
+        ['ipa', 'dnszone-del', zone], raiseonerr=raiseonerr)
+
+
+def find_dns_zone(host, zone, all_attrs=False, raiseonerr=True):
+    """Find DNS zone."""
+    command = ['ipa', 'dnszone-find', zone]
+    if all_attrs:
+        command.append('--all')
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def show_dns_zone(host, zone, all_attrs=False, raiseonerr=True):
+    """Show DNS zone."""
+    command = ['ipa', 'dnszone-show', zone]
+    if all_attrs:
+        command.append('--all')
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def add_dns_zone_permission(host, zone, raiseonerr=True):
+    """Add permission to manage DNS zone."""
+    return host.run_command(['ipa', 'dnszone-add-permission', zone],
+                            raiseonerr=raiseonerr)
+
+
+def remove_dns_zone_permission(host, zone, raiseonerr=True):
+    """Remove permission to manage DNS zone."""
+    return host.run_command(['ipa', 'dnszone-remove-permission', zone],
+                            raiseonerr=raiseonerr)
+
+
+def find_permission(host, permission, raiseonerr=True):
+    """Find permission."""
+    return host.run_command(['ipa', 'permission-find', permission],
+                            raiseonerr=raiseonerr)
 
 
 def sign_ca_and_transport(host, csr_name, root_ca_name, ipa_ca_name,
