@@ -161,8 +161,9 @@ dist-hook: $(VERSION_BAKEIN_TARGET)
 	echo "$(TARBALL)" > $(top_builddir)/.tarball_name
 	echo "$(VERSION)" > $(top_builddir)/.version
 
-_rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec
+_rpms-prep: dist-gzip rpmroot rpmdistdir freeipa.spec freeipa-sysusers.conf
 	cp $(top_builddir)/$$(cat $(top_builddir)/.tarball_name) $(RPMBUILD)/SOURCES/
+	cp $(top_builddir)/freeipa-sysusers.conf $(RPMBUILD)/SOURCES/
 	rm -f $(top_builddir)/.tarball_name
 
 rpms: $(VERSION_UPDATE_TARGET)
