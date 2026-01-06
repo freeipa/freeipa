@@ -306,7 +306,7 @@ class realmdomains_mod(LDAPUpdate):
             try:
                 self.api.Command['dnsrecord_add'](
                     unicode(domain),
-                    u'_kerberos',
+                    '_kerberos',
                     txtrecord=api.env.realm
                 )
             except (errors.EmptyModlist, errors.NotFound,
@@ -335,7 +335,7 @@ class realmdomains_mod(LDAPUpdate):
             try:
                 self.api.Command['dnsrecord_del'](
                     unicode(domain),
-                    u'_kerberos',
+                    '_kerberos',
                     txtrecord=api.env.realm
                 )
             except (errors.AttrValueNotFound, errors.NotFound,

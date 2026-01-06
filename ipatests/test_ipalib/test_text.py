@@ -174,7 +174,7 @@ class test_FixMe:
 
     def test_unicode(self):
         inst = self.klass('user.label')
-        assert unicode(inst) == u'<user.label>'
+        assert unicode(inst) == '<user.label>'
         assert type(unicode(inst)) is unicode
 
 
@@ -195,7 +195,7 @@ class test_Gettext:
 
     def test_unicode(self):
         inst = self.klass('what up?', 'foo', 'bar')
-        assert unicode(inst) == u'what up?'
+        assert unicode(inst) == 'what up?'
 
     def test_mod(self):
         inst = self.klass('hello %(adj)s nurse', 'foo', 'bar')
@@ -404,7 +404,7 @@ class test_ConcatenatedText:
 
     def test_unicode(self):
         inst = self.klass('[', text.Gettext('green', 'foo', 'bar'), 1, ']')
-        assert unicode(inst) == u'[green1]'
+        assert unicode(inst) == '[green1]'
 
     def test_mod(self):
         inst = self.klass('[', text.Gettext('%(color)s', 'foo', 'bar'), ']')

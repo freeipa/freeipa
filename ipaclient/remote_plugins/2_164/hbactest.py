@@ -197,7 +197,7 @@ class hbactest(Command):
     takes_options = (
         parameters.Str(
             'user',
-            label=_(u'User name'),
+            label=_('User name'),
         ),
         parameters.Str(
             'sourcehost',
@@ -208,75 +208,75 @@ class hbactest(Command):
         parameters.Str(
             'targethost',
             cli_name='host',
-            label=_(u'Target host'),
+            label=_('Target host'),
         ),
         parameters.Str(
             'service',
-            label=_(u'Service'),
+            label=_('Service'),
         ),
         parameters.Str(
             'rules',
             required=False,
             multivalue=True,
-            label=_(u'Rules to test. If not specified, --enabled is assumed'),
+            label=_('Rules to test. If not specified, --enabled is assumed'),
         ),
         parameters.Flag(
             'nodetail',
             required=False,
-            label=_(u'Hide details which rules are matched, not matched, or invalid'),
+            label=_('Hide details which rules are matched, not matched, or invalid'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'enabled',
             required=False,
-            label=_(u'Include all enabled IPA rules into test [default]'),
+            label=_('Include all enabled IPA rules into test [default]'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'disabled',
             required=False,
-            label=_(u'Include all disabled IPA rules into test'),
+            label=_('Include all disabled IPA rules into test'),
             default=False,
             autofill=True,
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of rules to process when no --rules is specified'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of rules to process when no --rules is specified'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'warning',
             (list, tuple, type(None)),
-            doc=_(u'Warning'),
+            doc=_('Warning'),
         ),
         output.Output(
             'matched',
             (list, tuple, type(None)),
-            doc=_(u'Matched rules'),
+            doc=_('Matched rules'),
         ),
         output.Output(
             'notmatched',
             (list, tuple, type(None)),
-            doc=_(u'Not matched rules'),
+            doc=_('Not matched rules'),
         ),
         output.Output(
             'error',
             (list, tuple, type(None)),
-            doc=_(u'Non-existent or invalid rules'),
+            doc=_('Non-existent or invalid rules'),
         ),
         output.Output(
             'value',
             bool,
-            doc=_(u'Result of simulation'),
+            doc=_('Result of simulation'),
         ),
     )

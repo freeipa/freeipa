@@ -1870,7 +1870,7 @@ def update_ssh_keys(hostname, ssh_dir, options, server):
             ipautil.fsdecode(hostname),
             ipasshpubkey=[pk.openssh() for pk in pubkeys],
             updatedns=False,
-            version=u'2.26',  # this version adds support for SSH public keys
+            version='2.26',  # this version adds support for SSH public keys
         )
     except errors.EmptyModlist:
         pass
@@ -2134,7 +2134,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                         paths.IPA_CA_CRT)
                 except Exception as e:
                     raise errors.FileError(
-                        reason=u"Unable to load existing CA cert '%s': %s" %
+                        reason="Unable to load existing CA cert '%s': %s" %
                                (paths.IPA_CA_CRT, e))
             else:
                 raise errors.FileError(
@@ -2155,7 +2155,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                     "(this is INSECURE)", False
                 ):
                     raise errors.NoCertificateError(
-                        message=u"HTTP certificate download declined by user")
+                        message="HTTP certificate download declined by user")
                 try:
                     ca_certs = get_ca_certs_from_http(url, override)
                 except Exception as e:
@@ -2186,7 +2186,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                     "(this is INSECURE)", False
                 ):
                     raise errors.NoCertificateError(
-                        message=u"HTTP "
+                        message="HTTP "
                         "certificate download declined by user")
                 elif not interactive and not options.force:
                     logger.error(
@@ -2194,7 +2194,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                         "(OTP) or without --ca-cert-file\nYou must specify"
                         " --force to retrieve the CA cert using HTTP")
                     raise errors.NoCertificateError(
-                        message=u"HTTP "
+                        message="HTTP "
                         "certificate download requires --force")
                 else:
                     try:
@@ -2209,8 +2209,8 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 raise errors.NoCertificateError(entry=url)
 
         if ca_certs is None and existing_ca_certs is None:
-            raise errors.InternalError(u"expected CA cert file '%s' to "
-                                       u"exist, but it's absent" % ca_file)
+            raise errors.InternalError("expected CA cert file '%s' to "
+                                       "exist, but it's absent" % ca_file)
 
     if ca_certs is not None:
         try:
@@ -2223,7 +2223,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                     logger.error(
                         "Failed to remove '%s': %s", ca_file, e2)
             raise errors.FileError(
-                reason=u"cannot write certificate file '%s': %s" % (
+                reason="cannot write certificate file '%s': %s" % (
                     ca_file, e)
             )
 
@@ -2233,8 +2233,8 @@ def get_ca_certs(fstore, options, server, basedn, realm):
     try:
         os.chmod(paths.IPA_CA_CRT, 0o644)
     except Exception as e:
-        raise errors.FileError(reason=u"Unable set permissions on ca "
-                               u"cert '%s': %s" % (paths.IPA_CA_CRT, e))
+        raise errors.FileError(reason="Unable set permissions on ca "
+                               "cert '%s': %s" % (paths.IPA_CA_CRT, e))
 
 # IMPORTANT: First line of FF config file is ignored
 FIREFOX_CONFIG_TEMPLATE = """
@@ -3260,14 +3260,14 @@ def _install(options, tdict):
     try:
         result = api.Backend.rpcclient.forward(
             'ca_is_enabled',
-            version=u'2.107',
+            version='2.107',
         )
         ca_enabled = result['result']
     except (errors.CommandError, errors.NetworkError):
         result = api.Backend.rpcclient.forward(
             'env',
             server=True,
-            version=u'2.0',
+            version='2.0',
         )
         ca_enabled = result['result']['enable_ra']
     if not ca_enabled:
@@ -3277,7 +3277,7 @@ def _install(options, tdict):
         result = api.Backend.rpcclient.forward(
             'config_show',
             raw=True,  # so that servroles are not queried
-            version=u'2.0'
+            version='2.0'
         )
     except Exception as e:
         logger.debug("config_show failed %s", e, exc_info=True)

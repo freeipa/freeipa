@@ -26,9 +26,9 @@ from ipalib import api, errors
 from ipapython.dn import DN
 from ipapython.ipaldap import ldap_initialize
 
-testuser = u'tuser'
-old_password = u'old_password'
-new_password = u'new_password'
+testuser = 'tuser'
+old_password = 'old_password'
+new_password = 'new_password'
 
 
 @pytest.mark.tier1
@@ -38,8 +38,8 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
     @pytest.fixture(autouse=True)
     def changepw_setup(self, request):
         try:
-            api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
-            api.Command['passwd'](testuser, password=u'old_password')
+            api.Command['user_add'](uid=testuser, givenname='Test', sn='User')
+            api.Command['passwd'](testuser, password='old_password')
         except errors.ExecutionError as e:
             pytest.skip(
                 'Cannot set up test user: %s' % e

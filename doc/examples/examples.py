@@ -80,7 +80,7 @@ class exhelloworld(Command):
         # Note the ? at the end of the parameter name. It makes the parameter
         # optional.
         Str('name?', validate_name,
-            default=u'anonymous coward',
+            default='anonymous coward',
             autofill=True,
         ),
     )

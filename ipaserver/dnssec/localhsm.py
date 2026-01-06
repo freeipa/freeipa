@@ -133,7 +133,7 @@ class LocalHSM(AbstractHSM):
     @property
     def master_keys(self):
         """Get all usable DNSSEC master keys"""
-        keys = self.find_keys(objclass=_ipap11helper.KEY_CLASS_SECRET_KEY, label=u'dnssec-master', cka_unwrap=True)
+        keys = self.find_keys(objclass=_ipap11helper.KEY_CLASS_SECRET_KEY, label='dnssec-master', cka_unwrap=True)
 
         for key in keys.values():
             prefix = 'dnssec-master'
@@ -150,7 +150,7 @@ class LocalHSM(AbstractHSM):
     def active_master_key(self):
         """Get one active DNSSEC master key suitable for key wrapping"""
         keys = self.find_keys(objclass=_ipap11helper.KEY_CLASS_SECRET_KEY,
-                label=u'dnssec-master', cka_wrap=True, cka_unwrap=True)
+                label='dnssec-master', cka_wrap=True, cka_unwrap=True)
         assert len(keys) > 0, "DNSSEC master key with UN/WRAP = TRUE not found"
         return keys.popitem()[1]
 

@@ -212,7 +212,7 @@ class server(LDAPObject):
             include_master=True,
         )['result']
 
-        enabled_role_names = [r[u'role_servrole'] for r in enabled_roles]
+        enabled_role_names = [r['role_servrole'] for r in enabled_roles]
 
         entry_attrs['enabled_role_servrole'] = enabled_role_names
 
@@ -256,12 +256,12 @@ class server_mod(LDAPUpdate):
             if ipalocation:
                 ipalocation = ipalocation[0]['idnsname']
             else:
-                ipalocation = u''
+                ipalocation = ''
             try:
                 self.api.Command.dnsserver_mod(
                     keys[0],
                     setattr=[
-                        u'idnsSubstitutionVariable;ipalocation={loc}'.format(
+                        'idnsSubstitutionVariable;ipalocation={loc}'.format(
                             loc=ipalocation)
                     ]
                 )
@@ -349,7 +349,7 @@ class server_find(LDAPSearch):
             )['result']
 
             return set(
-                r[u'server_server'] for r in role_status)
+                r['server_server'] for r in role_status)
 
         enabled_masters = _get_masters_with_enabled_servrole(
             servroles[0])
@@ -854,10 +854,10 @@ class server_del(LDAPDelete):
                         message=_("Following segments were not deleted:")))
                     for s in left:
                         self.add_message(messages.ServerRemovalWarning(
-                            message=u"  %s" % s['cn'][0]))
+                            message="  %s" % s['cn'][0]))
                     for s in right:
                         self.add_message(messages.ServerRemovalWarning(
-                            message=u"  %s" % s['cn'][0]))
+                            message="  %s" % s['cn'][0]))
                     return
                 i += 1
 
@@ -933,7 +933,7 @@ class server_conncheck(crud.PKQuery):
             raise self.obj.handle_not_found(keys[-2])
 
         # the user must have the Replication Administrators privilege
-        privilege = u'Replication Administrators'
+        privilege = 'Replication Administrators'
         op_account = getattr(context, 'principal', None)
         if not principal_has_privilege(self.api, op_account, privilege):
             raise errors.ACIError(
@@ -968,7 +968,7 @@ class server_state(crud.PKQuery):
     takes_options = (
         StrEnum(
             'state',
-            values=(u'enabled', u'hidden'),
+            values=('enabled', 'hidden'),
             label=_('State'),
             doc=_('Server state'),
             flags={'virtual_attribute', 'no_create', 'no_search'},
@@ -1010,7 +1010,7 @@ class server_state(crud.PKQuery):
 
     def execute(self, *keys, **options):
         fqdn = keys[0]
-        if options['state'] == u'enabled':
+        if options['state'] == 'enabled':
             to_status = ENABLED
             from_status = HIDDEN
         else:
@@ -1022,7 +1022,7 @@ class server_state(crud.PKQuery):
             status=from_status,
             include_master=True,
         )['result']
-        from_roles = [r[u'role_servrole'] for r in roles]
+        from_roles = [r['role_servrole'] for r in roles]
         if not from_roles:
             # no server role is in source status
             raise errors.EmptyModlist

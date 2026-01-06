@@ -83,8 +83,8 @@ class cert_remove_hold(Command):
     takes_args = (
         parameters.Str(
             'serial_number',
-            label=_(u'Serial number'),
-            doc=_(u'Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            label=_('Serial number'),
+            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
             no_convert=True,
         ),
     )
@@ -103,24 +103,24 @@ class cert_request(Command):
         parameters.Str(
             'csr',
             cli_name='csr_file',
-            label=_(u'CSR'),
+            label=_('CSR'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Str(
             'principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal for this certificate (e.g. HTTP/test.example.com)'),
+            label=_('Principal'),
+            doc=_('Service principal for this certificate (e.g. HTTP/test.example.com)'),
         ),
         parameters.Str(
             'request_type',
-            default=u'pkcs10',
+            default='pkcs10',
             autofill=True,
         ),
         parameters.Flag(
             'add',
-            doc=_(u"automatically add the principal if it doesn't exist"),
+            doc=_("automatically add the principal if it doesn't exist"),
             default=False,
             autofill=True,
         ),
@@ -129,7 +129,7 @@ class cert_request(Command):
         output.Output(
             'result',
             dict,
-            doc=_(u'Dictionary mapping variable name to value'),
+            doc=_('Dictionary mapping variable name to value'),
         ),
     )
 
@@ -141,16 +141,16 @@ class cert_revoke(Command):
     takes_args = (
         parameters.Str(
             'serial_number',
-            label=_(u'Serial number'),
-            doc=_(u'Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            label=_('Serial number'),
+            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Int(
             'revocation_reason',
-            label=_(u'Reason'),
-            doc=_(u'Reason for revoking the certificate (0-10)'),
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
             default=0,
             autofill=True,
         ),
@@ -169,8 +169,8 @@ class cert_show(Command):
     takes_args = (
         parameters.Str(
             'serial_number',
-            label=_(u'Serial number'),
-            doc=_(u'Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            label=_('Serial number'),
+            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
             no_convert=True,
         ),
     )
@@ -178,8 +178,8 @@ class cert_show(Command):
         parameters.Str(
             'out',
             required=False,
-            label=_(u'Output filename'),
-            doc=_(u'File to store the certificate in.'),
+            label=_('Output filename'),
+            doc=_('File to store the certificate in.'),
             exclude=('webui',),
         ),
     )
@@ -197,7 +197,7 @@ class cert_status(Command):
     takes_args = (
         parameters.Str(
             'request_id',
-            label=_(u'Request id'),
+            label=_('Request id'),
         ),
     )
     has_output = (

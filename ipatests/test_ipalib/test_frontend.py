@@ -407,8 +407,8 @@ class test_Command(ClassChecker):
             def is_production_mode():
                 return False
         kw = dict(
-            option0=u'1.5',
-            option1=u'7',
+            option0='1.5',
+            option1='7',
         )
         o = self.subcls(api)
         o.finalize()
@@ -424,8 +424,8 @@ class test_Command(ClassChecker):
             def is_production_mode():
                 return False
         kw = dict(
-            option0=u'OPTION0',
-            option1=u'OPTION1',
+            option0='OPTION0',
+            option1='OPTION1',
         )
         norm = dict((k, v.lower()) for (k, v) in kw.items())
         sub = self.subcls(api)
@@ -452,7 +452,7 @@ class test_Command(ClassChecker):
             def run(self, *args, **options):
                 return dict(result=options)
 
-        kw = dict(option0=u'some value')
+        kw = dict(option0='some value')
 
         api, _home = create_test_api()
         api.finalize()
@@ -461,7 +461,7 @@ class test_Command(ClassChecker):
         e = o.get_default(**kw)
         assert type(e) is dict
         assert 'option2' in e
-        assert e['option2'] == u'some value'
+        assert e['option2'] == 'some value'
 
     def test_validate(self):
         """
@@ -478,8 +478,8 @@ class test_Command(ClassChecker):
 
         # Check with valid values
         okay = dict(
-            option0=u'option0',
-            option1=u'option1',
+            option0='option0',
+            option1='option1',
             another_option='some value',
             version=API_VERSION,
         )
@@ -487,10 +487,10 @@ class test_Command(ClassChecker):
 
         # Check with an invalid value
         fail = dict(okay)
-        fail['option0'] = u'whatever'
+        fail['option0'] = 'whatever'
         e = raises(errors.ValidationError, sub.validate, **fail)
-        assert_equal(e.name, u'option0')
-        assert_equal(e.error, u"must equal 'option0'")
+        assert_equal(e.name, 'option0')
+        assert_equal(e.error, "must equal 'option0'")
 
         # Check with a missing required arg
         fail = dict(okay)
@@ -846,17 +846,17 @@ class test_LocalOrRemote(ClassChecker):
         api.add_plugin(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd(version=u'2.47') == dict(
-            result=('execute', (), dict(version=u'2.47'))
+        assert cmd(version='2.47') == dict(
+            result=('execute', (), dict(version='2.47'))
         )
-        assert cmd(u'var', version=u'2.47') == dict(
-            result=('execute', (u'var',), dict(version=u'2.47'))
+        assert cmd('var', version='2.47') == dict(
+            result=('execute', ('var',), dict(version='2.47'))
         )
-        assert cmd(server=True, version=u'2.47') == dict(
-            result=('forward', (), dict(version=u'2.47', server=True))
+        assert cmd(server=True, version='2.47') == dict(
+            result=('forward', (), dict(version='2.47', server=True))
         )
-        assert cmd(u'var', server=True, version=u'2.47') == dict(
-            result=('forward', (u'var',), dict(version=u'2.47', server=True))
+        assert cmd('var', server=True, version='2.47') == dict(
+            result=('forward', ('var',), dict(version='2.47', server=True))
         )
 
         # Test when in_server=True (should always call execute):
@@ -864,17 +864,17 @@ class test_LocalOrRemote(ClassChecker):
         api.add_plugin(example)
         api.finalize()
         cmd = api.Command.example
-        assert cmd(version=u'2.47') == dict(
-            result=('execute', (), dict(version=u'2.47', server=False))
+        assert cmd(version='2.47') == dict(
+            result=('execute', (), dict(version='2.47', server=False))
         )
-        assert cmd(u'var', version=u'2.47') == dict(
-            result=('execute', (u'var',), dict(version=u'2.47', server=False))
+        assert cmd('var', version='2.47') == dict(
+            result=('execute', ('var',), dict(version='2.47', server=False))
         )
-        assert cmd(server=True, version=u'2.47') == dict(
-            result=('execute', (), dict(version=u'2.47', server=True))
+        assert cmd(server=True, version='2.47') == dict(
+            result=('execute', (), dict(version='2.47', server=True))
         )
-        assert cmd(u'var', server=True, version=u'2.47') == dict(
-            result=('execute', (u'var',), dict(version=u'2.47', server=True))
+        assert cmd('var', server=True, version='2.47') == dict(
+            result=('execute', ('var',), dict(version='2.47', server=True))
         )
 
 

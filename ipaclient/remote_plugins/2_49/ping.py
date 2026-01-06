@@ -36,7 +36,7 @@ EXAMPLES:
  Ping an IPA server verbosely:
    ipa -v ping
    ipa: INFO: trying https://ipa.example.com/ipa/xml
-   ipa: INFO: Forwarding 'ping' to server u'https://ipa.example.com/ipa/xml'
+   ipa: INFO: Forwarding 'ping' to server 'https://ipa.example.com/ipa/xml'
    -----------------------------------------------------
    IPA server version 2.1.9. API version 2.20
    -----------------------------------------------------
@@ -53,6 +53,6 @@ class ping(Command):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
     )

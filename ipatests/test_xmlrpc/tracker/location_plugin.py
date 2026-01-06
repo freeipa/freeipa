@@ -23,13 +23,13 @@ class LocationTracker(Tracker):
     find_all_keys = find_keys | {'objectclass'}
     update_keys = {'idnsname', 'description'}
 
-    def __init__(self, name, description=u"Location description"):
+    def __init__(self, name, description="Location description"):
         super(LocationTracker, self).__init__(default_version=None)
         # ugly hack to allow testing invalid inputs
         try:
             self.idnsname_obj = DNSName(name)
         except Exception:
-            self.idnsname_obj = DNSName(u"placeholder-for-invalid-value")
+            self.idnsname_obj = DNSName("placeholder-for-invalid-value")
 
         self.idnsname = name
         self.description = description
@@ -72,7 +72,7 @@ class LocationTracker(Tracker):
             dn=self.dn,
             idnsname=[self.idnsname_obj],
             description=[self.description],
-            objectclass=[u'top', u'ipaLocationObject'],
+            objectclass=['top', 'ipaLocationObject'],
         )
         self.exists = True
 
@@ -80,7 +80,7 @@ class LocationTracker(Tracker):
         """Check `location-add` command result"""
         assert_deepequal(dict(
             value=self.idnsname_obj,
-            summary=u'Added IPA location "{loc}"'.format(loc=self.idnsname),
+            summary='Added IPA location "{loc}"'.format(loc=self.idnsname),
             result=self.filter_attrs(self.create_keys)
         ), result)
 
@@ -88,7 +88,7 @@ class LocationTracker(Tracker):
         """Check `location-del` command result"""
         assert_deepequal(dict(
             value=[self.idnsname_obj],
-            summary=u'Deleted IPA location "{loc}"'.format(loc=self.idnsname),
+            summary='Deleted IPA location "{loc}"'.format(loc=self.idnsname),
             result=dict(failed=[]),
         ), result)
 
@@ -114,7 +114,7 @@ class LocationTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 IPA location matched',
+            summary='1 IPA location matched',
             result=[expected],
         ), result)
 
@@ -122,12 +122,12 @@ class LocationTracker(Tracker):
         """Check `location-update` command result"""
         assert_deepequal(dict(
             value=self.idnsname_obj,
-            summary=u'Modified IPA location "{loc}"'.format(loc=self.idnsname),
+            summary='Modified IPA location "{loc}"'.format(loc=self.idnsname),
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 
     def add_server_to_location(
-            self, server_name, weight=100, relative_weight=u"100.0%"):
+            self, server_name, weight=100, relative_weight="100.0%"):
         self.attrs.setdefault('servers_server', []).append(server_name)
         self.attrs.setdefault('dns_server', []).append(server_name)
         self.servers[server_name] = {

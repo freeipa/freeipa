@@ -268,8 +268,8 @@ list.
 AVA's have an attr and value property, thus if you have an AVA
 
 # Get the attr and value
-ava.attr  -> u'cn'
-ava.value -> u'Bob'
+ava.attr  -> 'cn'
+ava.value -> 'Bob'
 
 # Set the attr and value
 ava.attr  = 'cn'
@@ -280,8 +280,8 @@ behavior applies to an RDN. If the RDN is multi-valued then the attr
 property returns the attr of the first AVA, likewise for the value.
 
 # Get the attr and value
-rdn.attr  -> u'cn'
-rdn.value -> u'Bob'
+rdn.attr  -> 'cn'
+rdn.value -> 'Bob'
 
 # Set the attr and value
 rdn.attr  = 'cn'
@@ -290,7 +290,7 @@ rdn.value = 'Bob'
 Also RDN's can be indexed by name or position (see the RDN class doc
 for details).
 
-rdn['cn'] -> u'Bob'
+rdn['cn'] -> 'Bob'
 rdn[0] -> AVA('cn', 'Bob')
 
 A DN is a sequence of RDN's, as such any of Python's container
@@ -310,10 +310,10 @@ for rdn in dn:
 dn[0] -> RDN('cn', 'Bob')
 
 # Get the value of the first RDN in a DN
-dn[0].value -> u'Bob'
+dn[0].value -> 'Bob'
 
 # Get the value of the first RDN by indexing by attr name
-dn['cn'] -> u'Bob'
+dn['cn'] -> 'Bob'
 
 # WARNING, when a string is used as an index key the FIRST RDN's value
 # in the sequence whose attr matches the key is returned. Thus if you
@@ -780,8 +780,8 @@ class RDN:
 
     rdn = RDN(('cn', 'Bob')) # rdn has 1 AVA whose attr == 'cn' and value == 'Bob'
     len(rdn) -> 1
-    rdn.attr -> u'cn'      # exactly equivalent to rdn[0].attr
-    rdn.value -> u'Bob'    # exactly equivalent to rdn[0].value
+    rdn.attr -> 'cn'      # exactly equivalent to rdn[0].attr
+    rdn.value -> 'Bob'    # exactly equivalent to rdn[0].value
 
     When attr and value are returned they will always be unicode. When
     attr or value are set they will be promoted to unicode.

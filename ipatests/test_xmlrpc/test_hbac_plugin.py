@@ -31,26 +31,26 @@ class test_hbac(XMLRPC_test):
     """
     Test the `hbacrule` plugin.
     """
-    rule_name = u'testing_rule1234'
-    rule_renamed = u'mega_testing_rule'
-    rule_type = u'allow'
-    rule_type_fail = u'value not allowed'
-    rule_service = u'ssh'
-    rule_time = u'absolute 20081010000000 ~ 20081015120000'
-    rule_time2 = u'absolute 20081010000000 ~ 20081016120000'
+    rule_name = 'testing_rule1234'
+    rule_renamed = 'mega_testing_rule'
+    rule_type = 'allow'
+    rule_type_fail = 'value not allowed'
+    rule_service = 'ssh'
+    rule_time = 'absolute 20081010000000 ~ 20081015120000'
+    rule_time2 = 'absolute 20081010000000 ~ 20081016120000'
     # wrong time, has 30th day in February in first date
-    rule_time_fail = u'absolute 20080230000000 ~ 20081015120000'
-    rule_desc = u'description'
-    rule_desc_mod = u'description modified'
+    rule_time_fail = 'absolute 20080230000000 ~ 20081015120000'
+    rule_desc = 'description'
+    rule_desc_mod = 'description modified'
 
-    test_user = u'hbacrule_test_user'
-    test_group = u'hbacrule_test_group'
-    test_host = u'hbacrule.testnetgroup'
-    test_hostgroup = u'hbacrule_test_hostgroup'
-    test_service = u'sshd'
-    test_host_external = u'notfound.example.com'
+    test_user = 'hbacrule_test_user'
+    test_group = 'hbacrule_test_group'
+    test_host = 'hbacrule.testnetgroup'
+    test_hostgroup = 'hbacrule_test_hostgroup'
+    test_service = 'sshd'
+    test_host_external = 'notfound.example.com'
 
-    test_invalid_sourcehost = u'inv+alid#srchost.nonexist.com'
+    test_invalid_sourcehost = 'inv+alid#srchost.nonexist.com'
 
     def test_0_hbacrule_add(self):
         """
@@ -139,19 +139,19 @@ class test_hbac(XMLRPC_test):
         Initialize data for more HBAC plugin testing.
         """
         self.failsafe_add(api.Object.user,
-            self.test_user, givenname=u'first', sn=u'last'
+            self.test_user, givenname='first', sn='last'
         )
         self.failsafe_add(api.Object.group,
-            self.test_group, description=u'description'
+            self.test_group, description='description'
         )
         self.failsafe_add(api.Object.host,
             self.test_host, force=True
         )
         self.failsafe_add(api.Object.hostgroup,
-            self.test_hostgroup, description=u'description'
+            self.test_hostgroup, description='description'
         )
         self.failsafe_add(api.Object.hbacsvc,
-            self.test_service, description=u'desc',
+            self.test_service, description='desc',
         )
 
     def test_8_hbacrule_add_user(self):
@@ -343,7 +343,7 @@ class test_hbac(XMLRPC_test):
         Test disabling HBAC rule using setattr
         """
         command_result = api.Command['hbacrule_mod'](
-            self.rule_name, setattr=u'ipaenabledflag=false')
+            self.rule_name, setattr='ipaenabledflag=false')
         assert command_result['result']['ipaenabledflag'] == (False,)
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
         assert_attr_equal(entry, 'ipaenabledflag', False)
@@ -353,7 +353,7 @@ class test_hbac(XMLRPC_test):
         Test enabling HBAC rule using setattr
         """
         command_result = api.Command['hbacrule_mod'](
-            self.rule_name, setattr=u'ipaenabledflag=1')
+            self.rule_name, setattr='ipaenabledflag=1')
         assert command_result['result']['ipaenabledflag'] == (True,)
         # check it's really enabled
         entry = api.Command['hbacrule_show'](self.rule_name)['result']
@@ -363,40 +363,40 @@ class test_hbac(XMLRPC_test):
         """
         Test adding a user to an HBAC rule when usercat='all'
         """
-        api.Command['hbacrule_mod'](self.rule_name, usercategory=u'all')
+        api.Command['hbacrule_mod'](self.rule_name, usercategory='all')
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['hbacrule_add_user'](
-                    self.rule_name, user=u'admin'
+                    self.rule_name, user='admin'
                 )
         finally:
-            api.Command['hbacrule_mod'](self.rule_name, usercategory=u'')
+            api.Command['hbacrule_mod'](self.rule_name, usercategory='')
 
     def test_g_hbacrule_exclusiveuser(self):
         """
         Test setting usercat='all' in an HBAC rule when there are users
         """
-        api.Command['hbacrule_add_user'](self.rule_name, user=u'admin')
+        api.Command['hbacrule_add_user'](self.rule_name, user='admin')
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['hbacrule_mod'](
-                    self.rule_name, usercategory=u'all'
+                    self.rule_name, usercategory='all'
                 )
         finally:
-            api.Command['hbacrule_remove_user'](self.rule_name, user=u'admin')
+            api.Command['hbacrule_remove_user'](self.rule_name, user='admin')
 
     def test_h_hbacrule_exclusivehost(self):
         """
         Test adding a host to an HBAC rule when hostcat='all'
         """
-        api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'all')
+        api.Command['hbacrule_mod'](self.rule_name, hostcategory='all')
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['hbacrule_add_host'](
                     self.rule_name, host=self.test_host
                 )
         finally:
-            api.Command['hbacrule_mod'](self.rule_name, hostcategory=u'')
+            api.Command['hbacrule_mod'](self.rule_name, hostcategory='')
 
     def test_i_hbacrule_exclusivehost(self):
         """
@@ -406,7 +406,7 @@ class test_hbac(XMLRPC_test):
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['hbacrule_mod'](
-                    self.rule_name, hostcategory=u'all'
+                    self.rule_name, hostcategory='all'
                 )
         finally:
             api.Command['hbacrule_remove_host'](
@@ -417,14 +417,14 @@ class test_hbac(XMLRPC_test):
         """
         Test adding a service to an HBAC rule when servicecat='all'
         """
-        api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'all')
+        api.Command['hbacrule_mod'](self.rule_name, servicecategory='all')
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['hbacrule_add_service'](
                     self.rule_name, hbacsvc=self.test_service
                 )
         finally:
-            api.Command['hbacrule_mod'](self.rule_name, servicecategory=u'')
+            api.Command['hbacrule_mod'](self.rule_name, servicecategory='')
 
     def test_k_hbacrule_exclusiveservice(self):
         """
@@ -436,7 +436,7 @@ class test_hbac(XMLRPC_test):
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['hbacrule_mod'](
-                    self.rule_name, servicecategory=u'all'
+                    self.rule_name, servicecategory='all'
                 )
         finally:
             api.Command['hbacrule_remove_service'](
@@ -449,8 +449,8 @@ class test_hbac(XMLRPC_test):
         """
         with pytest.raises(errors.ValidationError):
             api.Command['hbacrule_add'](
-                u'denyrule',
-                accessruletype=u'deny',
+                'denyrule',
+                accessruletype='deny',
                 description=self.rule_desc,
             )
 
@@ -461,7 +461,7 @@ class test_hbac(XMLRPC_test):
         with pytest.raises(errors.ValidationError):
             api.Command['hbacrule_mod'](
                 self.rule_name,
-                accessruletype=u'deny',
+                accessruletype='deny',
             )
 
     def test_n_hbacrule_links(self):
@@ -527,5 +527,5 @@ class test_hbac(XMLRPC_test):
         """
         with pytest.raises(errors.ValidationError):
             api.Command['hbacrule_add'](
-                self.rule_name, sourcehostcategory=u'all'
+                self.rule_name, sourcehostcategory='all'
             )

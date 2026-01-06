@@ -72,55 +72,55 @@ for idrange in api.Command['idrange_find']()['result']:
 
 # Local ranges definitions
 
-testrange1 = u'testrange1'
+testrange1 = 'testrange1'
 testrange1_base_id = id_shift + 900000
 testrange1_size = 99999
 testrange1_base_rid = rid_shift + 10000
 testrange1_secondary_base_rid = rid_shift + 200000
 
-testrange2 = u'testrange2'
+testrange2 = 'testrange2'
 testrange2_base_id = id_shift + 100
 testrange2_size = 50
 testrange2_base_rid = rid_shift + 100
 testrange2_secondary_base_rid = rid_shift + 1000
 
-testrange3 = u'testrange3'
+testrange3 = 'testrange3'
 testrange3_base_id = id_shift + 200
 testrange3_size = 50
 testrange3_base_rid = rid_shift + 70
 testrange3_secondary_base_rid = rid_shift + 1100
 
-testrange4 = u'testrange4'
+testrange4 = 'testrange4'
 testrange4_base_id = id_shift + 300
 testrange4_size = 50
 testrange4_base_rid = rid_shift + 200
 testrange4_secondary_base_rid = rid_shift + 1030
 
-testrange5 = u'testrange5'
+testrange5 = 'testrange5'
 testrange5_base_id = id_shift + 400
 testrange5_size = 50
 testrange5_base_rid = rid_shift + 1020
 testrange5_secondary_base_rid = rid_shift + 1200
 
-testrange6 = u'testrange6'
+testrange6 = 'testrange6'
 testrange6_base_id = id_shift + 130
 testrange6_size = 50
 testrange6_base_rid = rid_shift + 500
 testrange6_secondary_base_rid = rid_shift + 1300
 
-testrange7 = u'testrange7'
+testrange7 = 'testrange7'
 testrange7_base_id = id_shift + 600
 testrange7_size = 50
 testrange7_base_rid = rid_shift + 600
 testrange7_secondary_base_rid = rid_shift + 649
 
-testrange8 = u'testrange8'
+testrange8 = 'testrange8'
 testrange8_base_id = id_shift + 700
 testrange8_size = 50
 testrange8_base_rid = rid_shift + 700
 testrange8_secondary_base_rid = rid_shift + 800
 
-testrange9 = u'testrange9'
+testrange9 = 'testrange9'
 testrange9_base_id = id_shift + 800
 testrange9_size = 50
 testrange9_base_rid = rid_shift + 800
@@ -129,13 +129,13 @@ testrange9_secondary_base_rid = rid_shift + 1800
 # Domain ranges definitions
 
 # Domain1 - AD domain nonactive (not present in LDAP)
-domain1_sid = u'S-1-5-21-259319770-2312917334-591429603'
+domain1_sid = 'S-1-5-21-259319770-2312917334-591429603'
 
-domain1range1 = u'domain1range1'
+domain1range1 = 'domain1range1'
 domain1range1_base_id = id_shift + 10000
 domain1range1_size = 50
 domain1range1_base_rid = rid_shift + 10000
-domain1range1_type = u'ipa-ad-trust'
+domain1range1_type = 'ipa-ad-trust'
 
 domain1range1_dn = get_range_dn(name=domain1range1)
 
@@ -149,17 +149,17 @@ domain1range1_add = get_trusted_dom_range_dict(
 )
 
 # Domain2 - AD domain active (present in LDAP)
-domain2 = u'domain2'
+domain2 = 'domain2'
 domain2_dn = get_trust_dn(domain2)
-domain2_sid = u'S-1-5-21-2997650941-1802118864-3094776726'
+domain2_sid = 'S-1-5-21-2997650941-1802118864-3094776726'
 
 domain2_add = get_trusted_dom_dict(domain2, domain2_sid)
 
-domain2range1 = u'domain2range1'
+domain2range1 = 'domain2range1'
 domain2range1_base_id = id_shift + 10100
 domain2range1_size = 50
 domain2range1_base_rid = rid_shift + 10100
-domain2range1_type = u'ipa-ad-trust'
+domain2range1_type = 'ipa-ad-trust'
 
 domain2range1_dn = get_range_dn(name=domain2range1)
 
@@ -172,11 +172,11 @@ domain2range1_add = get_trusted_dom_range_dict(
     sid=domain2_sid
 )
 
-domain2range2 = u'domain2range2'
+domain2range2 = 'domain2range2'
 domain2range2_base_id = id_shift + 10200
 domain2range2_size = 50
 domain2range2_base_rid = rid_shift + 10200
-domain2range2_type = u'ipa-ad-trust'
+domain2range2_type = 'ipa-ad-trust'
 
 domain2range2_dn = get_range_dn(name=domain2range2)
 
@@ -191,17 +191,17 @@ domain2range2_add = get_trusted_dom_range_dict(
 
 
 # Domain3 - Posix active AD domain, two posix ranges
-domain3 = u'domain3'
+domain3 = 'domain3'
 domain3_dn = get_trust_dn(domain3)
-domain3_sid = u'S-1-5-21-1980929950-1830687243-1002863068'
+domain3_sid = 'S-1-5-21-1980929950-1830687243-1002863068'
 
 domain3_add = get_trusted_dom_dict(domain3, domain3_sid)
 
-domain3range1 = u'domain3range1'
+domain3range1 = 'domain3range1'
 domain3range1_base_id = id_shift + 10300
 domain3range1_size = 50
 domain3range1_base_rid = 0
-domain3range1_type = u'ipa-ad-trust-posix'
+domain3range1_type = 'ipa-ad-trust-posix'
 
 domain3range1_dn = get_range_dn(name=domain3range1)
 
@@ -214,11 +214,11 @@ domain3range1_add = get_trusted_dom_range_dict(
     sid=domain3_sid
 )
 
-domain3range2 = u'domain3range2'
+domain3range2 = 'domain3range2'
 domain3range2_base_id = id_shift + 10400
 domain3range2_size = 50
 domain3range2_base_rid = 0
-domain3range2_type = u'ipa-ad-trust-posix'
+domain3range2_type = 'ipa-ad-trust-posix'
 
 domain3range2_dn = get_range_dn(name=domain3range2)
 
@@ -232,17 +232,17 @@ domain3range2_add = get_trusted_dom_range_dict(
 )
 
 # Domain4 - Posix active AD domain, one posix range
-domain4 = u'domain4'
+domain4 = 'domain4'
 domain4_dn = get_trust_dn(domain4)
-domain4_sid = u'S-1-5-21-2630044516-2228086573-3500008130'
+domain4_sid = 'S-1-5-21-2630044516-2228086573-3500008130'
 
 domain4_add = get_trusted_dom_dict(domain4, domain4_sid)
 
-domain4range1 = u'domain4range1'
+domain4range1 = 'domain4range1'
 domain4range1_base_id = id_shift + 10500
 domain4range1_size = 50
 domain4range1_base_rid = 0
-domain4range1_type = u'ipa-ad-trust-posix'
+domain4range1_type = 'ipa-ad-trust-posix'
 
 domain4range1_dn = get_range_dn(name=domain4range1)
 
@@ -256,17 +256,17 @@ domain4range1_add = get_trusted_dom_range_dict(
 )
 
 # Domain5 - NonPosix active AD domain, two nonposix ranges
-domain5 = u'domain5'
+domain5 = 'domain5'
 domain5_dn = get_trust_dn(domain5)
-domain5_sid = u'S-1-5-21-2936727573-1940715531-2353349748'
+domain5_sid = 'S-1-5-21-2936727573-1940715531-2353349748'
 
 domain5_add = get_trusted_dom_dict(domain5, domain5_sid)
 
-domain5range1 = u'domain5range1'
+domain5range1 = 'domain5range1'
 domain5range1_base_id = id_shift + 10600
 domain5range1_size = 50
 domain5range1_base_rid = rid_shift + 10600
-domain5range1_type = u'ipa-ad-trust'
+domain5range1_type = 'ipa-ad-trust'
 
 domain5range1_dn = get_range_dn(name=domain5range1)
 
@@ -279,11 +279,11 @@ domain5range1_add = get_trusted_dom_range_dict(
     sid=domain5_sid
 )
 
-domain5range2 = u'domain5range2'
+domain5range2 = 'domain5range2'
 domain5range2_base_id = id_shift + 10700
 domain5range2_size = 50
 domain5range2_base_rid = rid_shift + 10700
-domain5range2_type = u'ipa-ad-trust'
+domain5range2_type = 'ipa-ad-trust'
 
 domain5range2_dn = get_range_dn(name=domain5range2)
 
@@ -297,17 +297,17 @@ domain5range2_add = get_trusted_dom_range_dict(
 )
 
 # Domain6 - NonPosix active AD domain, one nonposix ranges
-domain6 = u'domain6'
+domain6 = 'domain6'
 domain6_dn = get_trust_dn(domain6)
-domain6_sid = u'S-1-5-21-2824814446-180299986-1494994477'
+domain6_sid = 'S-1-5-21-2824814446-180299986-1494994477'
 
 domain6_add = get_trusted_dom_dict(domain6, domain6_sid)
 
-domain6range1 = u'domain6range1'
+domain6range1 = 'domain6range1'
 domain6range1_base_id = id_shift + 10800
 domain6range1_size = 50
 domain6range1_base_rid = rid_shift + 10800
-domain6range1_type = u'ipa-ad-trust'
+domain6range1_type = 'ipa-ad-trust'
 
 domain6range1_dn = get_range_dn(name=domain6range1)
 
@@ -321,16 +321,16 @@ domain6range1_add = get_trusted_dom_range_dict(
 )
 
 # Domain7 - Posix active AD domain, invalid(defined) RID
-domain7 = u'domain7'
+domain7 = 'domain7'
 domain7_dn = get_trust_dn(domain7)
-domain7_sid = u'S-1-5-21-2714542333-175454564-1645457223'
+domain7_sid = 'S-1-5-21-2714542333-175454564-1645457223'
 domain7_add = get_trusted_dom_dict(domain7, domain7_sid)
 
-domain7range1 = u'domain7range1'
+domain7range1 = 'domain7range1'
 domain7range1_base_id = id_shift + 10900
 domain7range1_size = 50
 domain7range1_base_rid = rid_shift + 10900
-domain7range1_type = u'ipa-ad-trust-posix'
+domain7range1_type = 'ipa-ad-trust-posix'
 domain7range1_dn = get_range_dn(name=domain7range1)
 
 # Container for all trusted objects
@@ -361,13 +361,13 @@ trust_local_add = dict(
     ipaNTSecurityIdentifier=[b"S-1-5-21-2568409255-1212639194-836868319"]
     )
 
-user1 = u'tuser1'
+user1 = 'tuser1'
 user1_uid = id_shift + 900000
-group1 = u'group1'
+group1 = 'group1'
 group1_gid = id_shift + 900100
 
 IPA_LOCAL_RANGE_MOD_ERR = (
-    u"This command can not be used to change ID allocation for local IPA "
+    "This command can not be used to change ID allocation for local IPA "
     "domain. Run `ipa help idrange` for more information"
 )
 
@@ -457,16 +457,16 @@ class test_range(Declarative):
                     dn=DN(('cn',testrange1),('cn','ranges'),('cn','etc'),
                           api.env.basedn),
                     cn=[testrange1],
-                    objectclass=[u'ipaIDrange', u'ipadomainidrange'],
+                    objectclass=['ipaIDrange', 'ipadomainidrange'],
                     ipabaseid=[unicode(testrange1_base_id)],
                     ipabaserid=[unicode(testrange1_base_rid)],
                     ipasecondarybaserid=[unicode(testrange1_secondary_base_rid)],
                     ipaidrangesize=[unicode(testrange1_size)],
-                    iparangetyperaw=[u'ipa-local'],
-                    iparangetype=[u'local domain range'],
+                    iparangetyperaw=['ipa-local'],
+                    iparangetype=['local domain range'],
                 ),
                 value=testrange1,
-                summary=u'Added ID range "%s"' % (testrange1),
+                summary='Added ID range "%s"' % (testrange1),
                 messages=(
                     messages.ServiceRestartRequired(
                         service=dirsrv_instance,
@@ -487,8 +487,8 @@ class test_range(Declarative):
                     ipabaserid=[unicode(testrange1_base_rid)],
                     ipasecondarybaserid=[unicode(testrange1_secondary_base_rid)],
                     ipaidrangesize=[unicode(testrange1_size)],
-                    iparangetyperaw=[u'ipa-local'],
-                    iparangetype=[u'local domain range'],
+                    iparangetyperaw=['ipa-local'],
+                    iparangetype=['local domain range'],
                 ),
                 value=testrange1,
                 summary=None,
@@ -500,17 +500,17 @@ class test_range(Declarative):
         dict(
             desc='Create user %r in ID range %r' % (user1, testrange1),
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                'user_add', [user1], dict(givenname='Test', sn='User1',
                                           uidnumber=user1_uid)
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "%s"' % user1,
+                summary='Added user "%s"' % user1,
                 result=get_user_result(
-                    user1, u'Test', u'User1', 'add',
+                    user1, 'Test', 'User1', 'add',
                     uidnumber=[unicode(user1_uid)],
                     gidnumber=[unicode(user1_uid)],
-                    objectclass=objectclasses.user_base + [u'mepOriginEntry'],
+                    objectclass=objectclasses.user_base + ['mepOriginEntry'],
                 ),
             ),
         ),
@@ -519,17 +519,17 @@ class test_range(Declarative):
         dict(
             desc='Create group %r in ID range %r' % (group1, testrange1),
             command=(
-                'group_add', [group1], dict(description=u'Test desc 1',
+                'group_add', [group1], dict(description='Test desc 1',
                                             gidnumber=group1_gid)
             ),
             expected=dict(
                 value=group1,
-                summary=u'Added group "%s"' % group1,
+                summary='Added group "%s"' % group1,
                 result=dict(
                     cn=[group1],
-                    description=[u'Test desc 1'],
+                    description=['Test desc 1'],
                     gidnumber=[unicode(group1_gid)],
-                    objectclass=objectclasses.group + [u'posixgroup'],
+                    objectclass=objectclasses.group + ['posixgroup'],
                     ipauniqueid=[fuzzy_uuid],
                     dn=DN(('cn',group1),('cn','groups'),('cn','accounts'), api.env.basedn),
                 ),
@@ -571,8 +571,8 @@ class test_range(Declarative):
             desc='Try to delete ID range %r with active IDs inside it' % testrange1,
             command=('idrange_del', [testrange1], {}),
             expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
-                error=u'range modification leaving objects with ID out of the'
-                      u' defined range is not allowed'),
+                error='range modification leaving objects with ID out of the'
+                      ' defined range is not allowed'),
         ),
 
 
@@ -582,7 +582,7 @@ class test_range(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[user1],
-                summary=u'Deleted user "%s"' % user1,
+                summary='Deleted user "%s"' % user1,
             ),
         ),
 
@@ -593,7 +593,7 @@ class test_range(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[group1],
-                summary=u'Deleted group "%s"' % group1,
+                summary='Deleted group "%s"' % group1,
             ),
         ),
 
@@ -614,7 +614,7 @@ class test_range(Declarative):
                 result=dict(failed=[]),
                 messages=fuzzy_restart_messages,
                 value=[testrange1],
-                summary=u'Deleted ID range "%s"' % testrange1,
+                summary='Deleted ID range "%s"' % testrange1,
             ),
         ),
 
@@ -632,16 +632,16 @@ class test_range(Declarative):
                     dn=DN(('cn',testrange2),('cn','ranges'),('cn','etc'),
                           api.env.basedn),
                     cn=[testrange2],
-                    objectclass=[u'ipaIDrange', u'ipadomainidrange'],
+                    objectclass=['ipaIDrange', 'ipadomainidrange'],
                     ipabaseid=[unicode(testrange2_base_id)],
                     ipabaserid=[unicode(testrange2_base_rid)],
                     ipasecondarybaserid=[unicode(testrange2_secondary_base_rid)],
                     ipaidrangesize=[unicode(testrange2_size)],
-                    iparangetyperaw=[u'ipa-local'],
-                    iparangetype=[u'local domain range'],
+                    iparangetyperaw=['ipa-local'],
+                    iparangetype=['local domain range'],
                 ),
                 value=testrange2,
-                summary=u'Added ID range "%s"' % (testrange2),
+                summary='Added ID range "%s"' % (testrange2),
                 messages=(
                     messages.ServiceRestartRequired(
                         service=dirsrv_instance,
@@ -719,7 +719,7 @@ class test_range(Declarative):
                 result=dict(failed=[]),
                 messages=fuzzy_restart_messages,
                 value=[testrange2],
-                summary=u'Deleted ID range "%s"' % testrange2,
+                summary='Deleted ID range "%s"' % testrange2,
             ),
         ),
 
@@ -798,15 +798,15 @@ class test_range(Declarative):
                 result=dict(
                     dn=unicode(domain7range1_dn),
                     cn=[domain7range1],
-                    objectclass=[u'ipaIDrange', u'ipatrustedaddomainrange'],
+                    objectclass=['ipaIDrange', 'ipatrustedaddomainrange'],
                     ipabaseid=[unicode(domain7range1_base_id)],
                     ipaidrangesize=[unicode(domain7range1_size)],
                     ipanttrusteddomainsid=[unicode(domain7_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust-posix'],
-                    iparangetype=[u'Active Directory trust range with POSIX attributes'],
+                    iparangetyperaw=['ipa-ad-trust-posix'],
+                    iparangetype=['Active Directory trust range with POSIX attributes'],
                 ),
                 value=unicode(domain7range1),
-                summary=u'Added ID range "%s"' % (domain7range1),
+                summary='Added ID range "%s"' % (domain7range1),
             ),
         ),
 
@@ -828,7 +828,7 @@ class test_range(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[domain1range1],
-                summary=u'Deleted ID range "%s"' % domain1range1,
+                summary='Deleted ID range "%s"' % domain1range1,
                 messages=fuzzy_restart_messages,
             ),
         ),
@@ -862,12 +862,12 @@ class test_range(Declarative):
                     ipabaseid=[unicode(domain3range1_base_id)],
                     ipaidrangesize=[unicode(domain3range2_size)],
                     ipanttrusteddomainsid=[unicode(domain3_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust-posix'],
-                    iparangetype=[u'Active Directory trust range with POSIX '
+                    iparangetyperaw=['ipa-ad-trust-posix'],
+                    iparangetype=['Active Directory trust range with POSIX '
                                    'attributes'],
                 ),
                 value=domain3range2,
-                summary=u'Modified ID range "%s"' % (domain3range2),
+                summary='Modified ID range "%s"' % (domain3range2),
             ),
         ),
 
@@ -929,11 +929,11 @@ class test_range(Declarative):
                     ipabaserid=[unicode(domain5range1_base_rid)],
                     ipaidrangesize=[unicode(domain2range1_size)],
                     ipanttrusteddomainsid=[unicode(domain2_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust'],
-                    iparangetype=[u'Active Directory domain range'],
+                    iparangetyperaw=['ipa-ad-trust'],
+                    iparangetype=['Active Directory domain range'],
                 ),
                 value=domain2range1,
-                summary=u'Modified ID range "%s"' % (domain2range1),
+                summary='Modified ID range "%s"' % (domain2range1),
             ),
         ),
 
@@ -964,12 +964,12 @@ class test_range(Declarative):
                     ipabaserid=[unicode(domain5range1_base_rid)],
                     ipaidrangesize=[unicode(domain2range1_size)],
                     ipanttrusteddomainsid=[unicode(domain2_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust'],
-                    ipaautoprivategroups=[u'true'],
-                    iparangetype=[u'Active Directory domain range'],
+                    iparangetyperaw=['ipa-ad-trust'],
+                    ipaautoprivategroups=['true'],
+                    iparangetype=['Active Directory domain range'],
                 ),
                 value=domain2range1,
-                summary=u'Modified ID range "%s"' % (domain2range1),
+                summary='Modified ID range "%s"' % (domain2range1),
             ),
         ),
 
@@ -986,12 +986,12 @@ class test_range(Declarative):
                     ipabaserid=[unicode(domain5range1_base_rid)],
                     ipaidrangesize=[unicode(domain2range1_size)],
                     ipanttrusteddomainsid=[unicode(domain2_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust'],
-                    ipaautoprivategroups=[u'false'],
-                    iparangetype=[u'Active Directory domain range'],
+                    iparangetyperaw=['ipa-ad-trust'],
+                    ipaautoprivategroups=['false'],
+                    iparangetype=['Active Directory domain range'],
                 ),
                 value=domain2range1,
-                summary=u'Modified ID range "%s"' % (domain2range1),
+                summary='Modified ID range "%s"' % (domain2range1),
             ),
         ),
 
@@ -1008,12 +1008,12 @@ class test_range(Declarative):
                     ipabaserid=[unicode(domain5range1_base_rid)],
                     ipaidrangesize=[unicode(domain2range1_size)],
                     ipanttrusteddomainsid=[unicode(domain2_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust'],
-                    ipaautoprivategroups=[u'hybrid'],
-                    iparangetype=[u'Active Directory domain range'],
+                    iparangetyperaw=['ipa-ad-trust'],
+                    ipaautoprivategroups=['hybrid'],
+                    iparangetype=['Active Directory domain range'],
                 ),
                 value=domain2range1,
-                summary=u'Modified ID range "%s"' % (domain2range1),
+                summary='Modified ID range "%s"' % (domain2range1),
             ),
         ),
 
@@ -1030,11 +1030,11 @@ class test_range(Declarative):
                     ipabaserid=[unicode(domain5range1_base_rid)],
                     ipaidrangesize=[unicode(domain2range1_size)],
                     ipanttrusteddomainsid=[unicode(domain2_sid)],
-                    iparangetyperaw=[u'ipa-ad-trust'],
-                    iparangetype=[u'Active Directory domain range'],
+                    iparangetyperaw=['ipa-ad-trust'],
+                    iparangetype=['Active Directory domain range'],
                 ),
                 value=domain2range1,
-                summary=u'Modified ID range "%s"' % (domain2range1),
+                summary='Modified ID range "%s"' % (domain2range1),
             ),
         ),
 
@@ -1054,17 +1054,17 @@ class test_range(Declarative):
                     dn=DN(('cn', testrange9), ('cn', 'ranges'), ('cn', 'etc'),
                           api.env.basedn),
                     cn=[testrange9],
-                    objectclass=[u'ipaIDrange', u'ipadomainidrange'],
+                    objectclass=['ipaIDrange', 'ipadomainidrange'],
                     ipabaseid=[unicode(testrange9_base_id)],
                     ipabaserid=[unicode(testrange9_base_rid)],
                     ipasecondarybaserid=[
                         unicode(testrange9_secondary_base_rid)],
                     ipaidrangesize=[unicode(testrange9_size)],
-                    iparangetyperaw=[u'ipa-local'],
-                    iparangetype=[u'local domain range'],
+                    iparangetyperaw=['ipa-local'],
+                    iparangetype=['local domain range'],
                 ),
                 value=testrange9,
-                summary=u'Added ID range "%s"' % (testrange9),
+                summary='Added ID range "%s"' % (testrange9),
                 messages=(
                     messages.ServiceRestartRequired(
                         service=dirsrv_instance,
@@ -1079,7 +1079,7 @@ class test_range(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[testrange9],
-                summary=u'Deleted ID range "%s"' % testrange9,
+                summary='Deleted ID range "%s"' % testrange9,
                 messages=fuzzy_restart_messages,
             ),
         ),

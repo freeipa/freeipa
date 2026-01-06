@@ -13,30 +13,30 @@ from ipatests.util import assert_deepequal
 
 
 class CertmapdataMixin:
-    certmapdata_options = {u'issuer', u'subject', u'certificate',
-                           u'ipacertmapdata'}
+    certmapdata_options = {'issuer', 'subject', 'certificate',
+                           'ipacertmapdata'}
 
     def _data_from_options(self, **options):
         issuer = None
         subject = None
 
         if not self.certmapdata_options & set(options):
-            raise RequirementError(name=u'certmapdata')
+            raise RequirementError(name='certmapdata')
 
-        if ({u'issuer', u'subject'} & set(options) and
-                {u'ipacertmapdata', u'certificate'} & set(options)):
-            raise MutuallyExclusiveError(reason=u'Mutually exclusive options '
-                                                u'provided at the same time.')
+        if ({'issuer', 'subject'} & set(options) and
+                {'ipacertmapdata', 'certificate'} & set(options)):
+            raise MutuallyExclusiveError(reason='Mutually exclusive options '
+                                                'provided at the same time.')
 
-        if u'issuer' in options and u'subject' not in options:
-            raise RequirementError(name=u'subject')
+        if 'issuer' in options and 'subject' not in options:
+            raise RequirementError(name='subject')
 
-        if u'subject' in options and u'issuer' not in options:
-            raise RequirementError(name=u'issuer')
+        if 'subject' in options and 'issuer' not in options:
+            raise RequirementError(name='issuer')
 
-        if {u'ipacertmapdata', u'certificate'} & set(options):
+        if {'ipacertmapdata', 'certificate'} & set(options):
             try:
-                data = options[u'ipacertmapdata']
+                data = options['ipacertmapdata']
             except KeyError:
                 data = []
             else:
@@ -44,7 +44,7 @@ class CertmapdataMixin:
                     data = [data]
 
             try:
-                certs = options[u'certificate']
+                certs = options['certificate']
             except KeyError:
                 certs = []
             else:
@@ -60,13 +60,13 @@ class CertmapdataMixin:
                 subject = DN(cert.subject).x500_text()
 
                 data.append(
-                    u'X509:<I>{i}<S>{s}'.format(i=issuer, s=subject)
+                    'X509:<I>{i}<S>{s}'.format(i=issuer, s=subject)
                 )
         else:
-            issuer = DN(options[u'issuer']).x500_text()
-            subject = DN(options[u'subject']).x500_text()
+            issuer = DN(options['issuer']).x500_text()
+            subject = DN(options['subject']).x500_text()
 
-            data = [u'X509:<I>{i}<S>{s}'.format(i=issuer, s=subject)]
+            data = ['X509:<I>{i}<S>{s}'.format(i=issuer, s=subject)]
 
         return set(data)
 
@@ -88,21 +88,21 @@ class CertmapdataMixin:
                 cmd(**kwargs)
         else:
             result = cmd(**kwargs)
-            self.attrs.setdefault(u'ipacertmapdata', []).extend(
+            self.attrs.setdefault('ipacertmapdata', []).extend(
                 expected_certmapdata)
 
             expected = dict(
-                summary=(u'Added certificate mappings to user '
-                         u'"{}"'.format(self.name)),
+                summary=('Added certificate mappings to user '
+                         '"{}"'.format(self.name)),
                 value=self.name,
                 result=dict(
                     uid=(self.name,),
                 ),
             )
 
-            if self.attrs[u'ipacertmapdata']:
-                expected[u'result'][u'ipacertmapdata'] = (
-                    self.attrs[u'ipacertmapdata'])
+            if self.attrs['ipacertmapdata']:
+                expected['result']['ipacertmapdata'] = (
+                    self.attrs['ipacertmapdata'])
 
             assert_deepequal(expected, result)
 
@@ -118,18 +118,18 @@ class CertmapdataMixin:
             result = cmd(**kwargs)
 
             for data in expected_certmapdata:
-                self.attrs[u'ipacertmapdata'].remove(data)
+                self.attrs['ipacertmapdata'].remove(data)
 
             expected = dict(
-                summary=(u'Removed certificate mappings from user '
-                         u'"{}"'.format(self.name)),
+                summary=('Removed certificate mappings from user '
+                         '"{}"'.format(self.name)),
                 value=self.name,
                 result=dict(
                     uid=(self.name,),
                 ),
             )
-            if self.attrs[u'ipacertmapdata']:
-                expected[u'result'][u'ipacertmapdata'] = (
-                    self.attrs[u'ipacertmapdata'])
+            if self.attrs['ipacertmapdata']:
+                expected['result']['ipacertmapdata'] = (
+                    self.attrs['ipacertmapdata'])
 
             assert_deepequal(expected, result)

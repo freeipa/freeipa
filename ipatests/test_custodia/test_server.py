@@ -36,29 +36,29 @@ def test_args_instance(args_instance):
 def test_parse_config(args):
     parser, config = parse_config(args)
 
-    assert parser.has_section(u'/')
-    assert parser.get(u'/', u'handler') == u'Root'
+    assert parser.has_section('/')
+    assert parser.get('/', 'handler') == 'Root'
 
     assert config == {
-        'auditlog': u'/var/log/custodia/audit.log',
+        'auditlog': '/var/log/custodia/audit.log',
         'authenticators': {},
         'authorizers': {},
-        'confdpattern': EMPTY_CONF + u'.d/*.conf',
+        'confdpattern': EMPTY_CONF + '.d/*.conf',
         'configdir': HERE,
         'configfiles': [
             EMPTY_CONF,
-            EMPTY_CONF + u'.d/root.conf'
+            EMPTY_CONF + '.d/root.conf'
         ],
         'consumers': {},
         'debug': False,
         'hostname': socket.gethostname(),
-        'instance': u'',
-        'libdir': u'/var/lib/custodia',
-        'logdir': u'/var/log/custodia',
+        'instance': '',
+        'libdir': '/var/lib/custodia',
+        'logdir': '/var/log/custodia',
         'makedirs': False,
-        'rundir': u'/var/run/custodia',
+        'rundir': '/var/run/custodia',
         'server_url': 'http+unix://%2Fvar%2Frun%2Fcustodia%2Fcustodia.sock/',
-        'socketdir': u'/var/run/custodia',
+        'socketdir': '/var/run/custodia',
         'stores': {},
         'tls_verify_client': False,
         'umask': 23
@@ -68,29 +68,29 @@ def test_parse_config(args):
 def test_parse_config_instance(args_instance):
     parser, config = parse_config(args_instance)
 
-    assert parser.has_section(u'/')
-    assert parser.get(u'/', u'handler') == u'Root'
+    assert parser.has_section('/')
+    assert parser.get('/', 'handler') == 'Root'
 
     assert config == {
-        'auditlog': u'/var/log/custodia/testing/audit.log',
+        'auditlog': '/var/log/custodia/testing/audit.log',
         'authenticators': {},
         'authorizers': {},
-        'confdpattern': EMPTY_CONF + u'.d/*.conf',
+        'confdpattern': EMPTY_CONF + '.d/*.conf',
         'configdir': HERE,
         'configfiles': [
             EMPTY_CONF,
-            EMPTY_CONF + u'.d/root.conf'
+            EMPTY_CONF + '.d/root.conf'
         ],
         'consumers': {},
         'debug': True,
         'hostname': socket.gethostname(),
-        'instance': u'testing',
-        'libdir': u'/var/lib/custodia/testing',
-        'logdir': u'/var/log/custodia/testing',
+        'instance': 'testing',
+        'libdir': '/var/lib/custodia/testing',
+        'logdir': '/var/log/custodia/testing',
         'makedirs': False,
-        'rundir': u'/var/run/custodia/testing',
+        'rundir': '/var/run/custodia/testing',
         'server_url': 'http+unix://%2Fvar%2Frun%2Fcustodia%2Ftesting.sock/',
-        'socketdir': u'/var/run/custodia',
+        'socketdir': '/var/run/custodia',
         'stores': {},
         'tls_verify_client': False,
         'umask': 23

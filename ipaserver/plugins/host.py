@@ -155,7 +155,7 @@ def remove_ptr_rec(ipaddr, fqdn):
 
         # assume that target in PTR record is absolute name (otherwise it is
         # non-standard configuration)
-        delkw = {'ptrrecord': u"%s" % fqdn.make_absolute()}
+        delkw = {'ptrrecord': "%s" % fqdn.make_absolute()}
 
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except (errors.NotFound, errors.AttrValueNotFound):
@@ -287,7 +287,7 @@ class HostPassword(Str):
     )
 
     def safe_value(self, value):
-        return u'********'
+        return '********'
 
 
 @register()
@@ -663,8 +663,8 @@ class host(LDAPObject):
                   " Use 'passkey' to allow passkey-based 2FA authentications."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
-                    u'passkey'),
+            values=('radius', 'otp', 'pkinit', 'hardened', 'idp',
+                    'passkey'),
         ),
     ) + ticket_flags_params
 
@@ -1354,7 +1354,7 @@ class host_allow_retrieve_keytab(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -1391,7 +1391,7 @@ class host_allow_create_keytab(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -1496,7 +1496,7 @@ class host_allow_add_delegation(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,

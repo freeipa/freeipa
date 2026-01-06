@@ -367,8 +367,8 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
                                 idnssoarname=unicode(zonemgr),
                                 idnsallowdynupdate=True,
                                 idnsupdatepolicy=unicode(update_policy),
-                                idnsallowquery=u'any',
-                                idnsallowtransfer=u'none',
+                                idnsallowquery='any',
+                                idnsallowtransfer='none',
                                 skip_overlap_check=skip_overlap_check,
                                 force=force)
     except (errors.DuplicateEntry, errors.EmptyModlist):
@@ -582,8 +582,8 @@ def ensure_dnsserver_container_exists(ldap, api_instance, logger=logger):
     entry = ldap.make_entry(
         DN(api_instance.env.container_dnsservers, api_instance.env.basedn),
         {
-            u'objectclass': [u'top', u'nsContainer'],
-            u'cn': [u'servers']
+            'objectclass': ['top', 'nsContainer'],
+            'cn': ['servers']
         }
     )
     try:
@@ -647,7 +647,7 @@ class BindInstance(service.Service):
             fstore=fstore,
             api=api,
             service_user=constants.NAMED_USER,
-            service_prefix=u'DNS',
+            service_prefix='DNS',
             keytab=paths.NAMED_KEYTAB
         )
         self.dns_backup = DnsBackup(self)
@@ -743,7 +743,7 @@ class BindInstance(service.Service):
 
     def create_file_with_system_records(self):
         system_records = IPASystemRecords(self.api, all_servers=True)
-        text = u'\n'.join(
+        text = '\n'.join(
             IPASystemRecords.records_list_from_zone(
                 system_records.get_base_records()
             )
@@ -1301,7 +1301,7 @@ class BindInstance(service.Service):
                 # zone record
                 zone = entry.single_value['idnsname']
                 logger.debug("zone record %s", zone)
-                del_ns_rr(zone, u'@', ns_rdata, api=self.api)
+                del_ns_rr(zone, '@', ns_rdata, api=self.api)
             else:
                 zone = entry.dn[1].value  # get zone from DN
                 record = entry.single_value['idnsname']
@@ -1340,7 +1340,7 @@ class BindInstance(service.Service):
         global_conf_set = any(
             param.name in result['result'] for param in
             self.api.Object['dnsconfig'].params() if
-            u'virtual_attribute' not in param.flags
+            'virtual_attribute' not in param.flags
         )
 
         if not global_conf_set:

@@ -634,7 +634,7 @@ class stageuser_activate(LDAPQuery):
                 # merge all the values from->to
                 v = self.__value_2_add(args, options, attr, value)
                 if (isinstance(v, str) and v in ('', None)) or \
-                   (isinstance(v, unicode) and v in (u'', None)):
+                   (isinstance(v, unicode) and v in ('', None)):
                     try:
                         v.decode('utf-8')
                         logger.debug("merge: %s:%r wiped", attr, v)
@@ -690,10 +690,10 @@ class stageuser_activate(LDAPQuery):
                 # we are about to add a DN syntax value
                 # Check this is a valid DN
                 if not isinstance(value, DN):
-                    return u''
+                    return ''
 
                 if not self.obj.active_user(value):
-                    return u''
+                    return ''
 
                 # Check that this value is a Active user
                 try:
@@ -702,9 +702,9 @@ class stageuser_activate(LDAPQuery):
                     )
                     return value
                 except errors.NotFound:
-                    return u''
+                    return ''
             else:
-                return u''
+                return ''
         else:
             return value
 

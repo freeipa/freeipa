@@ -56,7 +56,7 @@ class KerberosAliasMixin:
 
     def _normalize_principal_value(self, principal):
         """Normalize principal value by appending the realm string."""
-        return u'@'.join((principal, self.api.env.realm))
+        return '@'.join((principal, self.api.env.realm))
 
     def add_principal(self, principal_list, **options):
         """Add kerberos principal alias to the entity.

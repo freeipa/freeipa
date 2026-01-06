@@ -444,7 +444,7 @@ def test_run_bytes():
 
 
 def test_run_decode():
-    result = ipautil.run([paths.ECHO, u'á'.encode('utf-8')],
+    result = ipautil.run([paths.ECHO, 'á'.encode('utf-8')],
                          encoding='utf-8', capture_output=True)
     assert result.returncode == 0
     assert result.output == 'á\n'

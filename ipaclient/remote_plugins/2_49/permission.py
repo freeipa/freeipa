@@ -77,60 +77,60 @@ class permission(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
         parameters.Str(
             'permissions',
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
         ),
         parameters.Str(
             'type',
             required=False,
-            label=_(u'Type'),
-            doc=_(u'Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            label=_('Type'),
+            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of group'),
-            doc=_(u'Target members of a group'),
+            label=_('Member of group'),
+            doc=_('Target members of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply permissions to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply permissions to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'User group to apply permissions to'),
+            label=_('Target group'),
+            doc=_('User group to apply permissions to'),
         ),
         parameters.Str(
             'member_privilege',
             required=False,
-            label=_(u'Granted to Privilege'),
+            label=_('Granted to Privilege'),
         ),
         parameters.Str(
             'memberindirect_role',
             required=False,
-            label=_(u'Indirect Member of roles'),
+            label=_('Indirect Member of roles'),
         ),
     )
 
@@ -143,22 +143,22 @@ class permission_add(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'permissions',
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
             alwaysask=True,
             no_convert=True,
         ),
@@ -166,62 +166,62 @@ class permission_add(Method):
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            label=_('Type'),
+            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
             alwaysask=True,
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of group'),
-            doc=_(u'Target members of a group'),
+            label=_('Member of group'),
+            doc=_('Target members of a group'),
             alwaysask=True,
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
             alwaysask=True,
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply permissions to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply permissions to'),
             alwaysask=True,
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'User group to apply permissions to'),
+            label=_('Target group'),
+            doc=_('User group to apply permissions to'),
             alwaysask=True,
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -231,7 +231,7 @@ class permission_add(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -239,7 +239,7 @@ class permission_add(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -254,20 +254,20 @@ class permission_add_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -277,8 +277,8 @@ class permission_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='privileges',
-            label=_(u'member privilege'),
-            doc=_(u'comma-separated list of privileges to add'),
+            label=_('member privilege'),
+            doc=_('comma-separated list of privileges to add'),
             alwaysask=True,
         ),
     )
@@ -289,12 +289,12 @@ class permission_add_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -309,7 +309,7 @@ class permission_add_noaci(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
@@ -317,18 +317,18 @@ class permission_add_noaci(Method):
             'permissiontype',
             required=False,
             cli_metavar="['SYSTEM']",
-            label=_(u'Permission type'),
+            label=_('Permission type'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -338,7 +338,7 @@ class permission_add_noaci(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -346,7 +346,7 @@ class permission_add_noaci(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -360,20 +360,20 @@ class permission_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'force',
-            label=_(u'Force'),
-            doc=_(u'force delete of SYSTEM permissions'),
+            label=_('Force'),
+            doc=_('force delete of SYSTEM permissions'),
             exclude=('cli', 'webui'),
             default=False,
             autofill=True,
@@ -383,17 +383,17 @@ class permission_del(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -406,7 +406,7 @@ class permission_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -414,76 +414,76 @@ class permission_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
             no_convert=True,
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            label=_('Type'),
+            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of group'),
-            doc=_(u'Target members of a group'),
+            label=_('Member of group'),
+            doc=_('Target members of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply permissions to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply permissions to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'User group to apply permissions to'),
+            label=_('Target group'),
+            doc=_('User group to apply permissions to'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -491,8 +491,8 @@ class permission_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -501,7 +501,7 @@ class permission_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -509,12 +509,12 @@ class permission_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -527,7 +527,7 @@ class permission_mod(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
@@ -535,86 +535,86 @@ class permission_mod(Method):
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
             no_convert=True,
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            label=_('Type'),
+            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of group'),
-            doc=_(u'Target members of a group'),
+            label=_('Member of group'),
+            doc=_('Target members of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply permissions to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply permissions to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'User group to apply permissions to'),
+            label=_('Target group'),
+            doc=_('User group to apply permissions to'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -622,15 +622,15 @@ class permission_mod(Method):
         parameters.Str(
             'rename',
             required=False,
-            label=_(u'Rename'),
-            doc=_(u'Rename the permission object'),
+            label=_('Rename'),
+            doc=_('Rename the permission object'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -638,7 +638,7 @@ class permission_mod(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -653,20 +653,20 @@ class permission_remove_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -676,8 +676,8 @@ class permission_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='privileges',
-            label=_(u'member privilege'),
-            doc=_(u'comma-separated list of privileges to remove'),
+            label=_('member privilege'),
+            doc=_('comma-separated list of privileges to remove'),
             alwaysask=True,
         ),
     )
@@ -688,12 +688,12 @@ class permission_remove_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -706,27 +706,27 @@ class permission_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Permission name'),
+            label=_('Permission name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -736,7 +736,7 @@ class permission_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -744,6 +744,6 @@ class permission_show(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

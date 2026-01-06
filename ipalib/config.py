@@ -64,17 +64,17 @@ class Env:
     >>> env = Env()
     >>> env.attr = 'I was set as an attribute.'
     >>> env.attr
-    u'I was set as an attribute.'
+    'I was set as an attribute.'
     >>> env['attr']  # Also retrieve as a dictionary item
-    u'I was set as an attribute.'
+    'I was set as an attribute.'
 
     Or you can set a variable as a dictionary item:
 
     >>> env['item'] = 'I was set as a dictionary item.'
     >>> env['item']
-    u'I was set as a dictionary item.'
+    'I was set as a dictionary item.'
     >>> env.item  # Also retrieve as an attribute
-    u'I was set as a dictionary item.'
+    'I was set as a dictionary item.'
 
     The variable names must be valid lower-case Python identifiers that neither
     start nor end with an underscore.  If your variable name doesn't meet these
@@ -111,7 +111,7 @@ class Env:
 
     >>> env.not_false = 'false'  # Not equal to repr(False)!
     >>> env.not_false
-    u'false'
+    'false'
 
     If an ``str`` value looks like an integer, it's automatically converted to
     the ``int`` type.
@@ -125,7 +125,7 @@ class Env:
 
     >>> env.message = '  Hello!  '  # Surrounded by double spaces
     >>> env.message
-    u'Hello!'
+    'Hello!'
     >>> env.number = ' 42 '  # Still converted to an int
     >>> env.number
     42
@@ -146,7 +146,7 @@ class Env:
     >>> env.date = 'Second'
     Traceback (most recent call last):
       ...
-    AttributeError: cannot override Env.date value u'First' with 'Second'
+    AttributeError: cannot override Env.date value 'First' with 'Second'
 
     An `Env` instance can be *locked*, after which no further variables can be
     set.  Trying to set variables on a locked `Env` instance will also raise
@@ -397,7 +397,7 @@ class Env:
         >>> env = Env()
         >>> env.home = '/people/joe'
         >>> env._join('home', 'Music', 'favourites')
-        u'/people/joe/Music/favourites'
+        '/people/joe/Music/favourites'
         """
         if key in self and self[key] is not None:
             return path.join(self[key], *parts)

@@ -69,7 +69,7 @@ register = Registry()
 
 protected_default_trust_view_error = errors.ProtectedEntryError(
     label=_('ID View'),
-    key=u"Default Trust View",
+    key="Default Trust View",
     reason=_('system ID View')
 )
 
@@ -202,7 +202,7 @@ class idview_add(LDAPCreate):
         # the id view. We need to add it if we define a new
         # value for ipaDomainResolutionOrder
         if 'ipadomainresolutionorder' in entry_attrs:
-            add_missing_object_class(ldap, u'ipanameresolutiondata', dn,
+            add_missing_object_class(ldap, 'ipanameresolutiondata', dn,
                                      entry_attrs, update=False)
         return dn
 

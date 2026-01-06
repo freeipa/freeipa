@@ -52,7 +52,7 @@ def is_db_configured():
     """
     aliasdir = api.env.dot_ipa + os.sep + 'alias' + os.sep + '.pwd'
 
-    if (api.env.xmlrpc_uri == u'http://localhost:8888/ipa/xml' and
+    if (api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml' and
        not os.path.isfile(aliasdir)):
         pytest.skip('developer CA not configured in %s' % aliasdir)
 
@@ -73,8 +73,8 @@ def is_db_configured():
 # running as the lite-server.
 
 class BaseCert(XMLRPC_test):
-    host_fqdn = u'ipatestcert.%s' % api.env.domain
-    service_princ = u'test/%s@%s' % (host_fqdn, api.env.realm)
+    host_fqdn = 'ipatestcert.%s' % api.env.domain
+    service_princ = 'test/%s@%s' % (host_fqdn, api.env.realm)
     certfile = None
     nssdb = None
     reqfile = None
@@ -236,19 +236,19 @@ class test_cert(BaseCert):
         """
 
         from ipaserver.plugins.cert import _emails_are_valid
-        email_addrs = [u'any@EmAiL.CoM']
-        result = _emails_are_valid(email_addrs, [u'any@email.com'])
+        email_addrs = ['any@EmAiL.CoM']
+        result = _emails_are_valid(email_addrs, ['any@email.com'])
         assert result
 
-        email_addrs = [u'any@EmAiL.CoM']
-        result = _emails_are_valid(email_addrs, [u'any@email.com',
-                                                 u'another@email.com'])
+        email_addrs = ['any@EmAiL.CoM']
+        result = _emails_are_valid(email_addrs, ['any@email.com',
+                                                 'another@email.com'])
         assert result
 
-        result = _emails_are_valid([], [u'any@email.com'])
+        result = _emails_are_valid([], ['any@email.com'])
         assert result
 
-        email_addrs = [u'invalidEmailAddress']
+        email_addrs = ['invalidEmailAddress']
         result = _emails_are_valid(email_addrs, [])
         assert not result
 
@@ -305,14 +305,14 @@ class test_cert_find(XMLRPC_test):
         """
         Search for the CA certificate.
         """
-        res = api.Command['cert_find'](subject=u'Certificate Authority')
+        res = api.Command['cert_find'](subject='Certificate Authority')
         assert 'count' in res and res['count'] == 1
 
     def test_0003_find_OCSP(self):
         """
         Search for the OCSP certificate.
         """
-        res = api.Command['cert_find'](subject=u'OCSP Subsystem')
+        res = api.Command['cert_find'](subject='OCSP Subsystem')
         assert 'count' in res
         assert res['count'], "No OSCP certificate found"
 
@@ -343,7 +343,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates issued since 2008
         """
-        res = api.Command['cert_find'](issuedon_from=u'2008-01-01',
+        res = api.Command['cert_find'](issuedon_from='2008-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 10
 
@@ -351,7 +351,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates issued through 2008
         """
-        res = api.Command['cert_find'](issuedon_to=u'2008-01-01',
+        res = api.Command['cert_find'](issuedon_to='2008-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 0
 
@@ -359,7 +359,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not before 2008
         """
-        res = api.Command['cert_find'](validnotbefore_from=u'2008-01-01',
+        res = api.Command['cert_find'](validnotbefore_from='2008-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 10
 
@@ -367,7 +367,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not before to 2100
         """
-        res = api.Command['cert_find'](validnotbefore_to=u'2100-01-01',
+        res = api.Command['cert_find'](validnotbefore_to='2100-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 10
 
@@ -375,7 +375,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not before 2100
         """
-        res = api.Command['cert_find'](validnotbefore_from=u'2100-01-01',
+        res = api.Command['cert_find'](validnotbefore_from='2100-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 0
 
@@ -383,7 +383,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not before to 2008
         """
-        res = api.Command['cert_find'](validnotbefore_to=u'2008-01-01',
+        res = api.Command['cert_find'](validnotbefore_to='2008-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 0
 
@@ -391,7 +391,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not after 2008
         """
-        res = api.Command['cert_find'](validnotafter_from=u'2008-01-01',
+        res = api.Command['cert_find'](validnotafter_from='2008-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 10
 
@@ -399,7 +399,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not after to 2100
         """
-        res = api.Command['cert_find'](validnotafter_to=u'2100-01-01',
+        res = api.Command['cert_find'](validnotafter_to='2100-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 10
 
@@ -407,7 +407,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not after 2100
         """
-        res = api.Command['cert_find'](validnotafter_from=u'2100-01-01',
+        res = api.Command['cert_find'](validnotafter_from='2100-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 0
 
@@ -415,7 +415,7 @@ class test_cert_find(XMLRPC_test):
         """
         Find all certificates valid not after to 2008
         """
-        res = api.Command['cert_find'](validnotafter_to=u'2008-01-01',
+        res = api.Command['cert_find'](validnotafter_to='2008-01-01',
                                        sizelimit=10)
         assert 'count' in res and res['count'] == 0
 
@@ -438,14 +438,14 @@ class test_cert_find(XMLRPC_test):
         """
         Search for a host that isn't there.
         """
-        res = api.Command['cert_find'](subject=u'notfound')
+        res = api.Command['cert_find'](subject='notfound')
         assert 'count' in res and res['count'] == 0
 
     def test_0030_search_for_testcerts(self):
         """
         Search for certs created in other tests
         """
-        res = api.Command['cert_find'](subject=u'ipatestcert.%s' % api.env.domain)
+        res = api.Command['cert_find'](subject='ipatestcert.%s' % api.env.domain)
         assert 'count' in res and res['count'] >= 1
 
     def test_0031_search_on_invalid_date(self):
@@ -453,7 +453,7 @@ class test_cert_find(XMLRPC_test):
         Search using invalid date format
         """
         with pytest.raises(errors.ConversionError):
-            api.Command['cert_find'](issuedon_from=u'xyz')
+            api.Command['cert_find'](issuedon_from='xyz')
 
 
 @pytest.mark.tier1

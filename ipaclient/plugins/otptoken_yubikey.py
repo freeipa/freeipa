@@ -169,18 +169,18 @@ class otptoken_add_yubikey(Command):
         # Run the command.
         answer = self.Backend.rpcclient.forward('otptoken_add',
                                                 *args,
-                                                type=u'hotp',
-                                                ipatokenvendor=u'YubiCo',
+                                                type='hotp',
+                                                ipatokenvendor='YubiCo',
                                                 ipatokenmodel=unicode(yk.model),
                                                 ipatokenserial=unicode(yk.serial()),
-                                                ipatokenotpalgorithm=u'sha1',
+                                                ipatokenotpalgorithm='sha1',
                                                 ipatokenhotpcounter=0,
                                                 ipatokenotpkey=key,
                                                 no_qrcode=True,
                                                 **options)
 
         # Suppress values we don't want to return.
-        for k in (u'uri', u'ipatokenotpkey'):
+        for k in ('uri', 'ipatokenotpkey'):
             if k in answer.get('result', {}):
                 del answer['result'][k]
 

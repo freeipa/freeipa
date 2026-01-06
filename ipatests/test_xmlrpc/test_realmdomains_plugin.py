@@ -27,13 +27,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
 
-cn = u'Realm Domains'
+cn = 'Realm Domains'
 dn = DN(('cn', cn), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 our_domain = api.env.domain
-new_domain_1 = u'example1.com'
-new_domain_2 = u'example2.com'
-bad_domain = u'doesnotexist.test'
-sl_domain = u'singlelabeldomain'
+new_domain_1 = 'example1.com'
+new_domain_2 = 'example2.com'
+bad_domain = 'doesnotexist.test'
+sl_domain = 'singlelabeldomain'
 
 
 @pytest.mark.tier1
@@ -71,20 +71,20 @@ class test_realmdomains(Declarative):
                     cn=[cn],
                     objectclass=objectclasses.realmdomains,
                     aci=[
-                        u'(targetattr = "associateddomain || cn || '
-                            u'createtimestamp || entryusn || '
-                            u'modifytimestamp || objectclass")'
-                        u'(targetfilter = "(objectclass=domainrelatedobject)")'
-                        u'(version 3.0;acl '
-                            u'"permission:System: Read Realm Domains";'
-                            u'allow (compare,read,search) '
-                            u'userdn = "ldap:///all";)',
+                        '(targetattr = "associateddomain || cn || '
+                            'createtimestamp || entryusn || '
+                            'modifytimestamp || objectclass")'
+                        '(targetfilter = "(objectclass=domainrelatedobject)")'
+                        '(version 3.0;acl '
+                            '"permission:System: Read Realm Domains";'
+                            'allow (compare,read,search) '
+                            'userdn = "ldap:///all";)',
 
-                        u'(targetattr = "associateddomain")'
-                        u'(targetfilter = "(objectclass=domainrelatedobject)")'
-                        u'(version 3.0;acl '
-                            u'"permission:System: Modify Realm Domains";'
-                            u'allow (write) groupdn = "ldap:///%s";)' %
+                        '(targetattr = "associateddomain")'
+                        '(targetfilter = "(objectclass=domainrelatedobject)")'
+                        '(version 3.0;acl '
+                            '"permission:System: Modify Realm Domains";'
+                            'allow (write) groupdn = "ldap:///%s";)' %
                                 DN('cn=System: Modify Realm Domains',
                                    api.env.container_permission,
                                    api.env.basedn),
@@ -99,19 +99,19 @@ class test_realmdomains(Declarative):
             expected=dict(
                 value=None,
                 summary=None,
-                messages=({u'message': u"The _kerberos TXT record from domain "
+                messages=({'message': "The _kerberos TXT record from domain "
                             "example1.com could not be created (%s.: "
                             "DNS zone not found).\nThis can happen if the zone "
                             "is not managed by IPA. Please create the record "
                             "manually, containing the following value: "
                             "'%s'" % (new_domain_1, api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': new_domain_1,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
+                            'code': 13011,
+                            'type': 'warning',
+                            'name': 'KerberosTXTRecordCreationFailure',
+                            'data': {
+                                'domain': new_domain_1,
+                                'realm': api.env.realm,
+                                'error': ("%s.: DNS zone not found" %
                                            new_domain_1),
                             }},
                 ),
@@ -129,20 +129,20 @@ class test_realmdomains(Declarative):
                 result=dict(
                     associateddomain=[our_domain, new_domain_1, new_domain_2],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
+                messages=({'message': "The _kerberos TXT record from domain "
                             "%(domain)s could not be created (%(domain)s.: "
                             "DNS zone not found).\nThis can happen if the zone "
                             "is not managed by IPA. Please create the record "
                             "manually, containing the following value: "
                             "'%(realm)s'" % dict(domain=new_domain_2,
                                                  realm=api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': new_domain_2,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
+                            'code': 13011,
+                            'type': 'warning',
+                            'name': 'KerberosTXTRecordCreationFailure',
+                            'data': {
+                                'domain': new_domain_2,
+                                'realm': api.env.realm,
+                                'error': ("%s.: DNS zone not found" %
                                            new_domain_2),
                             }},
                 ),
@@ -157,17 +157,17 @@ class test_realmdomains(Declarative):
                 result=dict(
                     associateddomain=[our_domain, new_domain_1],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
+                messages=({'message': "The _kerberos TXT record from domain "
                             "%(domain)s could not be removed (%(domain)s.: "
                             "DNS zone not found).\nThis can happen if the zone "
                             "is not managed by IPA. Please remove the record "
                             "manually." % dict(domain=new_domain_2),
-                            u'code': 13012,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordDeletionFailure',
-                            u'data': {
-                                u'domain': new_domain_2,
-                                u'error': (u"%s.: DNS zone not found" %
+                            'code': 13012,
+                            'type': 'warning',
+                            'name': 'KerberosTXTRecordDeletionFailure',
+                            'data': {
+                                'domain': new_domain_2,
+                                'error': ("%s.: DNS zone not found" %
                                            new_domain_2),
                             }},
                 ),
@@ -182,33 +182,33 @@ class test_realmdomains(Declarative):
                 result=dict(
                     associateddomain=[our_domain, new_domain_2],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
+                messages=({'message': "The _kerberos TXT record from domain "
                             "%(domain)s could not be created (%(domain)s.: "
                             "DNS zone not found).\nThis can happen if the zone "
                             "is not managed by IPA. Please create the record "
                             "manually, containing the following value: "
                             "'%(realm)s'" % dict(domain=new_domain_2,
                                                  realm=api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': new_domain_2,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
+                            'code': 13011,
+                            'type': 'warning',
+                            'name': 'KerberosTXTRecordCreationFailure',
+                            'data': {
+                                'domain': new_domain_2,
+                                'realm': api.env.realm,
+                                'error': ("%s.: DNS zone not found" %
                                            new_domain_2),
                             }},
-                          {u'message': u"The _kerberos TXT record from domain "
+                          {'message': "The _kerberos TXT record from domain "
                             "%(domain)s could not be removed (%(domain)s.: "
                             "DNS zone not found).\nThis can happen if the zone "
                             "is not managed by IPA. Please remove the record "
                             "manually." % dict(domain=new_domain_1),
-                            u'code': 13012,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordDeletionFailure',
-                            u'data': {
-                                u'domain': new_domain_1,
-                                u'error': (u"%s.: DNS zone not found" %
+                            'code': 13012,
+                            'type': 'warning',
+                            'name': 'KerberosTXTRecordDeletionFailure',
+                            'data': {
+                                'domain': new_domain_1,
+                                'error': ("%s.: DNS zone not found" %
                                            new_domain_1),
                             }},
                 ),
@@ -262,20 +262,20 @@ class test_realmdomains(Declarative):
                 result=dict(
                     associateddomain=[our_domain, new_domain_2, bad_domain],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
+                messages=({'message': "The _kerberos TXT record from domain "
                             "%(domain)s could not be created (%(domain)s.: "
                             "DNS zone not found).\nThis can happen if the zone "
                             "is not managed by IPA. Please create the record "
                             "manually, containing the following value: "
                             "'%(realm)s'" % dict(domain=bad_domain,
                                                  realm=api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': bad_domain,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
+                            'code': 13011,
+                            'type': 'warning',
+                            'name': 'KerberosTXTRecordCreationFailure',
+                            'data': {
+                                'domain': bad_domain,
+                                'realm': api.env.realm,
+                                'error': ("%s.: DNS zone not found" %
                                            bad_domain),
                             }},
                 ),

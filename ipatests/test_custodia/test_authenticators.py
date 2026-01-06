@@ -5,7 +5,7 @@ import pwd
 
 from ipaserver.custodia.httpd import authenticators
 
-CONFIG = u"""
+CONFIG = """
 [auth:cred_default]
 
 [auth:cred_int]

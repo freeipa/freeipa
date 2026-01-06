@@ -80,53 +80,53 @@ class topologysegment(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
         ),
         parameters.Str(
             'iparepltoposegmentleftnode',
-            label=_(u'Left node'),
-            doc=_(u'Left replication node - an IPA server'),
+            label=_('Left node'),
+            doc=_('Left replication node - an IPA server'),
         ),
         parameters.Str(
             'iparepltoposegmentrightnode',
-            label=_(u'Right node'),
-            doc=_(u'Right replication node - an IPA server'),
+            label=_('Right node'),
+            doc=_('Right replication node - an IPA server'),
         ),
         parameters.Str(
             'iparepltoposegmentdirection',
-            label=_(u'Connectivity'),
-            doc=_(u'Direction of replication between left and right replication node'),
+            label=_('Connectivity'),
+            doc=_('Direction of replication between left and right replication node'),
         ),
         parameters.Str(
             'nsds5replicastripattrs',
             required=False,
-            label=_(u'Attributes to strip'),
-            doc=_(u'A space separated list of attributes which are removed from replication updates.'),
+            label=_('Attributes to strip'),
+            doc=_('A space separated list of attributes which are removed from replication updates.'),
         ),
         parameters.Str(
             'nsds5replicatedattributelist',
             required=False,
-            label=_(u'Attributes to replicate'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            label=_('Attributes to replicate'),
+            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
-            label=_(u'Attributes for total update'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            label=_('Attributes for total update'),
+            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
-            label=_(u'Session timeout'),
-            doc=_(u'Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            label=_('Session timeout'),
+            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
         ),
         parameters.Str(
             'nsds5replicaenabled',
             required=False,
-            label=_(u'Replication agreement enabled'),
-            doc=_(u'Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            label=_('Replication agreement enabled'),
+            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
         ),
     )
 
@@ -137,11 +137,11 @@ class topologysuffix(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.DNParam(
             'iparepltopoconfroot',
-            label=_(u'Managed LDAP suffix DN'),
+            label=_('Managed LDAP suffix DN'),
         ),
     )
 
@@ -154,13 +154,13 @@ class topologysegment_add(Method):
         parameters.Str(
             'topologysuffixcn',
             cli_name='topologysuffix',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
             default_from=DefaultFrom(lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode: None, 'iparepltoposegmentleftnode', 'iparepltoposegmentrightnode'),
             # FIXME:
             # lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
@@ -171,89 +171,89 @@ class topologysegment_add(Method):
         parameters.Str(
             'iparepltoposegmentleftnode',
             cli_name='leftnode',
-            label=_(u'Left node'),
-            doc=_(u'Left replication node - an IPA server'),
+            label=_('Left node'),
+            doc=_('Left replication node - an IPA server'),
             no_convert=True,
         ),
         parameters.Str(
             'iparepltoposegmentrightnode',
             cli_name='rightnode',
-            label=_(u'Right node'),
-            doc=_(u'Right replication node - an IPA server'),
+            label=_('Right node'),
+            doc=_('Right replication node - an IPA server'),
             no_convert=True,
         ),
         parameters.Str(
             'iparepltoposegmentdirection',
             cli_name='direction',
             cli_metavar="['both', 'left-right', 'right-left']",
-            label=_(u'Connectivity'),
-            doc=_(u'Direction of replication between left and right replication node'),
+            label=_('Connectivity'),
+            doc=_('Direction of replication between left and right replication node'),
             exclude=('cli', 'webui'),
-            default=u'both',
+            default='both',
             autofill=True,
         ),
         parameters.Str(
             'nsds5replicastripattrs',
             required=False,
             cli_name='stripattrs',
-            label=_(u'Attributes to strip'),
-            doc=_(u'A space separated list of attributes which are removed from replication updates.'),
+            label=_('Attributes to strip'),
+            doc=_('A space separated list of attributes which are removed from replication updates.'),
             no_convert=True,
         ),
         parameters.Str(
             'nsds5replicatedattributelist',
             required=False,
             cli_name='replattrs',
-            label=_(u'Attributes to replicate'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            label=_('Attributes to replicate'),
+            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             cli_name='replattrstotal',
-            label=_(u'Attributes for total update'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            label=_('Attributes for total update'),
+            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             cli_name='timeout',
-            label=_(u'Session timeout'),
-            doc=_(u'Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            label=_('Session timeout'),
+            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
         ),
         parameters.Str(
             'nsds5replicaenabled',
             required=False,
             cli_name='enabled',
             cli_metavar="['on', 'off']",
-            label=_(u'Replication agreement enabled'),
-            doc=_(u'Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            label=_('Replication agreement enabled'),
+            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -263,14 +263,14 @@ class topologysegment_add(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -283,14 +283,14 @@ class topologysegment_del(Method):
         parameters.Str(
             'topologysuffixcn',
             cli_name='topologysuffix',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.Str(
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
             default_from=DefaultFrom(lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode: None, 'iparepltoposegmentleftnode', 'iparepltoposegmentrightnode'),
             # FIXME:
             # lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
@@ -300,7 +300,7 @@ class topologysegment_del(Method):
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -309,12 +309,12 @@ class topologysegment_del(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -330,12 +330,12 @@ class topologysegment_find(Method):
         parameters.Str(
             'topologysuffixcn',
             cli_name='topologysuffix',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -343,8 +343,8 @@ class topologysegment_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
             default_from=DefaultFrom(lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode: None, 'iparepltoposegmentleftnode', 'iparepltoposegmentrightnode'),
             # FIXME:
             # lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
@@ -354,16 +354,16 @@ class topologysegment_find(Method):
             'iparepltoposegmentleftnode',
             required=False,
             cli_name='leftnode',
-            label=_(u'Left node'),
-            doc=_(u'Left replication node - an IPA server'),
+            label=_('Left node'),
+            doc=_('Left replication node - an IPA server'),
             no_convert=True,
         ),
         parameters.Str(
             'iparepltoposegmentrightnode',
             required=False,
             cli_name='rightnode',
-            label=_(u'Right node'),
-            doc=_(u'Right replication node - an IPA server'),
+            label=_('Right node'),
+            doc=_('Right replication node - an IPA server'),
             no_convert=True,
         ),
         parameters.Str(
@@ -371,71 +371,71 @@ class topologysegment_find(Method):
             required=False,
             cli_name='direction',
             cli_metavar="['both', 'left-right', 'right-left']",
-            label=_(u'Connectivity'),
-            doc=_(u'Direction of replication between left and right replication node'),
+            label=_('Connectivity'),
+            doc=_('Direction of replication between left and right replication node'),
             exclude=('cli', 'webui'),
-            default=u'both',
+            default='both',
         ),
         parameters.Str(
             'nsds5replicastripattrs',
             required=False,
             cli_name='stripattrs',
-            label=_(u'Attributes to strip'),
-            doc=_(u'A space separated list of attributes which are removed from replication updates.'),
+            label=_('Attributes to strip'),
+            doc=_('A space separated list of attributes which are removed from replication updates.'),
             no_convert=True,
         ),
         parameters.Str(
             'nsds5replicatedattributelist',
             required=False,
             cli_name='replattrs',
-            label=_(u'Attributes to replicate'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            label=_('Attributes to replicate'),
+            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             cli_name='replattrstotal',
-            label=_(u'Attributes for total update'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            label=_('Attributes for total update'),
+            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             cli_name='timeout',
-            label=_(u'Session timeout'),
-            doc=_(u'Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            label=_('Session timeout'),
+            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
         ),
         parameters.Str(
             'nsds5replicaenabled',
             required=False,
             cli_name='enabled',
             cli_metavar="['on', 'off']",
-            label=_(u'Replication agreement enabled'),
-            doc=_(u'Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            label=_('Replication agreement enabled'),
+            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
             exclude=('cli', 'webui'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -443,8 +443,8 @@ class topologysegment_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -453,7 +453,7 @@ class topologysegment_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -461,12 +461,12 @@ class topologysegment_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -479,13 +479,13 @@ class topologysegment_mod(Method):
         parameters.Str(
             'topologysuffixcn',
             cli_name='topologysuffix',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
             default_from=DefaultFrom(lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode: None, 'iparepltoposegmentleftnode', 'iparepltoposegmentrightnode'),
             # FIXME:
             # lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
@@ -497,78 +497,78 @@ class topologysegment_mod(Method):
             'nsds5replicastripattrs',
             required=False,
             cli_name='stripattrs',
-            label=_(u'Attributes to strip'),
-            doc=_(u'A space separated list of attributes which are removed from replication updates.'),
+            label=_('Attributes to strip'),
+            doc=_('A space separated list of attributes which are removed from replication updates.'),
             no_convert=True,
         ),
         parameters.Str(
             'nsds5replicatedattributelist',
             required=False,
             cli_name='replattrs',
-            label=_(u'Attributes to replicate'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            label=_('Attributes to replicate'),
+            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             cli_name='replattrstotal',
-            label=_(u'Attributes for total update'),
-            doc=_(u'Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            label=_('Attributes for total update'),
+            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             cli_name='timeout',
-            label=_(u'Session timeout'),
-            doc=_(u'Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            label=_('Session timeout'),
+            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
         ),
         parameters.Str(
             'nsds5replicaenabled',
             required=False,
             cli_name='enabled',
             cli_metavar="['on', 'off']",
-            label=_(u'Replication agreement enabled'),
-            doc=_(u'Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            label=_('Replication agreement enabled'),
+            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -578,14 +578,14 @@ class topologysegment_mod(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -598,13 +598,13 @@ class topologysegment_reinitialize(Method):
         parameters.Str(
             'topologysuffixcn',
             cli_name='topologysuffix',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
             default_from=DefaultFrom(lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode: None, 'iparepltoposegmentleftnode', 'iparepltoposegmentrightnode'),
             # FIXME:
             # lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
@@ -615,21 +615,21 @@ class topologysegment_reinitialize(Method):
         parameters.Flag(
             'left',
             required=False,
-            doc=_(u'Initialize left node'),
+            doc=_('Initialize left node'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'right',
             required=False,
-            doc=_(u'Initialize right node'),
+            doc=_('Initialize right node'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'stop',
             required=False,
-            doc=_(u'Stop already started refresh of chosen node(s)'),
+            doc=_('Stop already started refresh of chosen node(s)'),
             default=False,
             autofill=True,
         ),
@@ -638,16 +638,16 @@ class topologysegment_reinitialize(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -660,13 +660,13 @@ class topologysegment_show(Method):
         parameters.Str(
             'topologysuffixcn',
             cli_name='topologysuffix',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Segment name'),
-            doc=_(u'Arbitrary string identifying the segment'),
+            label=_('Segment name'),
+            doc=_('Arbitrary string identifying the segment'),
             default_from=DefaultFrom(lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode: None, 'iparepltoposegmentleftnode', 'iparepltoposegmentrightnode'),
             # FIXME:
             # lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
@@ -676,21 +676,21 @@ class topologysegment_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -700,14 +700,14 @@ class topologysegment_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -722,39 +722,39 @@ class topologysuffix_add(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
     )
     takes_options = (
         parameters.DNParam(
             'iparepltopoconfroot',
             cli_name='suffix_dn',
-            label=_(u'Managed LDAP suffix DN'),
+            label=_('Managed LDAP suffix DN'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -764,14 +764,14 @@ class topologysuffix_add(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -787,13 +787,13 @@ class topologysuffix_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -802,12 +802,12 @@ class topologysuffix_del(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -823,7 +823,7 @@ class topologysuffix_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -831,36 +831,36 @@ class topologysuffix_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
         parameters.DNParam(
             'iparepltopoconfroot',
             required=False,
             cli_name='suffix_dn',
-            label=_(u'Managed LDAP suffix DN'),
+            label=_('Managed LDAP suffix DN'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -868,8 +868,8 @@ class topologysuffix_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -878,7 +878,7 @@ class topologysuffix_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -886,12 +886,12 @@ class topologysuffix_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -906,7 +906,7 @@ class topologysuffix_mod(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
     )
     takes_options = (
@@ -914,46 +914,46 @@ class topologysuffix_mod(Method):
             'iparepltopoconfroot',
             required=False,
             cli_name='suffix_dn',
-            label=_(u'Managed LDAP suffix DN'),
+            label=_('Managed LDAP suffix DN'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -963,14 +963,14 @@ class topologysuffix_mod(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -983,27 +983,27 @@ class topologysuffix_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1013,14 +1013,14 @@ class topologysuffix_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1041,7 +1041,7 @@ Checks done:
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Suffix name'),
+            label=_('Suffix name'),
         ),
     )
     takes_options = (

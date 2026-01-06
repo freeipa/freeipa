@@ -11,14 +11,14 @@ from ipatests.util import assert_deepequal
 
 class SudoCmdTracker(Tracker):
     """ Class for tracking sudo commands """
-    retrieve_keys = {u'dn', u'sudocmd', u'description',
-                     u'memberof_sudocmdgroup'}
-    retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass'}
+    retrieve_keys = {'dn', 'sudocmd', 'description',
+                     'memberof_sudocmdgroup'}
+    retrieve_all_keys = retrieve_keys | {'ipauniqueid', 'objectclass'}
 
     create_keys = retrieve_all_keys
-    update_keys = retrieve_keys - {u'dn'}
+    update_keys = retrieve_keys - {'dn'}
 
-    find_keys = {u'dn', u'sudocmd', u'description'}
+    find_keys = {'dn', 'sudocmd', 'description'}
     find_all_keys = retrieve_all_keys
 
     def __init__(self, command, description="Test sudo command"):
@@ -68,7 +68,7 @@ class SudoCmdTracker(Tracker):
         """ Checks 'sudocmd_add' command result """
         assert_deepequal(dict(
             value=self.cmd,
-            summary=u'Added Sudo Command "%s"' % self.cmd,
+            summary='Added Sudo Command "%s"' % self.cmd,
             result=self.filter_attrs(self.create_keys)
             ), result)
 
@@ -76,7 +76,7 @@ class SudoCmdTracker(Tracker):
         """ Checks 'sudocmd_del' command result """
         assert_deepequal(dict(
             value=[self.cmd],
-            summary=u'Deleted Sudo Command "%s"' % self.cmd,
+            summary='Deleted Sudo Command "%s"' % self.cmd,
             result=dict(failed=[]),
             ), result)
 
@@ -103,7 +103,7 @@ class SudoCmdTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 Sudo Command matched',
+            summary='1 Sudo Command matched',
             result=[expected],
         ), result)
 
@@ -111,6 +111,6 @@ class SudoCmdTracker(Tracker):
         """ Checks 'sudocmd_mod' command result """
         assert_deepequal(dict(
             value=self.cmd,
-            summary=u'Modified Sudo Command "%s"' % self.cmd,
+            summary='Modified Sudo Command "%s"' % self.cmd,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)

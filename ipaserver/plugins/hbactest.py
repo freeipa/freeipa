@@ -234,7 +234,7 @@ def _convert_to_ipa_rule(rule):
         )
     for element in structure:
         category = '%scategory' % (element[0])
-        if (category in rule and rule[category][0] == u'all') or (element[0] == 'sourcehost'):
+        if (category in rule and rule[category][0] == 'all') or (element[0] == 'sourcehost'):
             # rule applies to all elements
             # sourcehost is always set to 'all'
             element[4].category = set([pyhbac.HBAC_CATEGORY_ALL])
@@ -316,7 +316,7 @@ class hbactest(Command):
         Canonicalize the host name -- add default IPA domain if that is missing
         """
         if host.find('.') == -1:
-            return u'%s.%s' % (host, self.env.domain)
+            return '%s.%s' % (host, self.env.domain)
         return host
 
     def execute(self, *args, **options):
@@ -390,14 +390,14 @@ class hbactest(Command):
         # Check if there are unresolved rules left
         if len(testrules) > 0:
             # Error, unresolved rules are left in --rules
-            return {'summary' : unicode(_(u'Unresolved rules in --rules')),
+            return {'summary' : unicode(_('Unresolved rules in --rules')),
                     'error': testrules, 'matched': None, 'notmatched': None,
                     'warning' : None, 'value' : False}
 
         # Rules are converted to pyhbac format, build request and then test it
         request = pyhbac.HbacRequest()
 
-        if options['user'] != u'all':
+        if options['user'] != 'all':
             # check first if this is not a trusted domain user
             if _dcerpc_bindings_installed:
                 # pylint: disable=used-before-assignment
@@ -455,7 +455,7 @@ class hbactest(Command):
                 except Exception:
                     pass
 
-        if options['service'] != u'all':
+        if options['service'] != 'all':
             try:
                 request.service.name = options['service']
                 service_result = self.api.Command.hbacsvc_show(request.service.name)['result']
@@ -464,7 +464,7 @@ class hbactest(Command):
             except Exception:
                 pass
 
-        if options['targethost'] != u'all':
+        if options['targethost'] != 'all':
             try:
                 request.targethost.name = self.canonicalize(options['targethost'])
                 tgthost_result = self.api.Command.host_show(request.targethost.name)['result']

@@ -1830,7 +1830,7 @@ def gen_key_id(key_id_len=16):
     )
 
 
-def generate_master_key(p11, keylabel=u"dnssec-master", key_length=16,
+def generate_master_key(p11, keylabel="dnssec-master", key_length=16,
                         disable_old_keys=True):
     assert isinstance(p11, P11_Helper)
 

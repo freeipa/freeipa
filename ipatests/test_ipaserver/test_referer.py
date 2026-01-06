@@ -26,8 +26,8 @@ from ipalib import api, errors
 from ipapython.ipautil import run
 from ipapython.version import API_VERSION
 
-testuser = u'tuser'
-password = u'password'
+testuser = 'tuser'
+password = 'password'
 
 
 @pytest.mark.tier1
@@ -38,7 +38,7 @@ class test_referer(XMLRPC_test, Unauthorized_HTTP_test):
         ccache = os.path.join('/tmp', str(uuid.uuid4()))
         tokenid = None
         try:
-            api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
+            api.Command['user_add'](uid=testuser, givenname='Test', sn='User')
             api.Command['passwd'](testuser, password=password)
             run(['kinit', testuser], stdin='{0}\n{0}\n{0}\n'.format(password),
                 env={"KRB5CCNAME": ccache})

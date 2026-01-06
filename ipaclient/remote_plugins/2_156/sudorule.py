@@ -74,151 +74,151 @@ class sudorule(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
         ),
         parameters.Str(
             'usercategory',
             required=False,
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'cmdcategory',
             required=False,
-            label=_(u'Command category'),
-            doc=_(u'Command category the rule applies to'),
+            label=_('Command category'),
+            doc=_('Command category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasusercategory',
             required=False,
-            label=_(u'RunAs User category'),
-            doc=_(u'RunAs User category the rule applies to'),
+            label=_('RunAs User category'),
+            doc=_('RunAs User category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasgroupcategory',
             required=False,
-            label=_(u'RunAs Group category'),
-            doc=_(u'RunAs Group category the rule applies to'),
+            label=_('RunAs Group category'),
+            doc=_('RunAs Group category the rule applies to'),
         ),
         parameters.Int(
             'sudoorder',
             required=False,
-            label=_(u'Sudo order'),
-            doc=_(u'integer to order the Sudo rules'),
+            label=_('Sudo order'),
+            doc=_('integer to order the Sudo rules'),
         ),
         parameters.Str(
             'memberuser_user',
             required=False,
-            label=_(u'Users'),
+            label=_('Users'),
         ),
         parameters.Str(
             'memberuser_group',
             required=False,
-            label=_(u'User Groups'),
+            label=_('User Groups'),
         ),
         parameters.Str(
             'externaluser',
             required=False,
-            label=_(u'External User'),
-            doc=_(u'External User the rule applies to (sudorule-find only)'),
+            label=_('External User'),
+            doc=_('External User the rule applies to (sudorule-find only)'),
         ),
         parameters.Str(
             'memberhost_host',
             required=False,
-            label=_(u'Hosts'),
+            label=_('Hosts'),
         ),
         parameters.Str(
             'memberhost_hostgroup',
             required=False,
-            label=_(u'Host Groups'),
+            label=_('Host Groups'),
         ),
         parameters.Str(
             'hostmask',
             multivalue=True,
-            label=_(u'Host Masks'),
+            label=_('Host Masks'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
         ),
         parameters.Str(
             'memberallowcmd_sudocmd',
             required=False,
-            label=_(u'Sudo Allow Commands'),
+            label=_('Sudo Allow Commands'),
         ),
         parameters.Str(
             'memberdenycmd_sudocmd',
             required=False,
-            label=_(u'Sudo Deny Commands'),
+            label=_('Sudo Deny Commands'),
         ),
         parameters.Str(
             'memberallowcmd_sudocmdgroup',
             required=False,
-            label=_(u'Sudo Allow Command Groups'),
+            label=_('Sudo Allow Command Groups'),
         ),
         parameters.Str(
             'memberdenycmd_sudocmdgroup',
             required=False,
-            label=_(u'Sudo Deny Command Groups'),
+            label=_('Sudo Deny Command Groups'),
         ),
         parameters.Str(
             'ipasudorunas_user',
             required=False,
-            label=_(u'RunAs Users'),
-            doc=_(u'Run as a user'),
+            label=_('RunAs Users'),
+            doc=_('Run as a user'),
         ),
         parameters.Str(
             'ipasudorunas_group',
             required=False,
-            label=_(u'Groups of RunAs Users'),
-            doc=_(u'Run as any user within a specified group'),
+            label=_('Groups of RunAs Users'),
+            doc=_('Run as any user within a specified group'),
         ),
         parameters.Str(
             'ipasudorunasextuser',
             required=False,
-            label=_(u'RunAs External User'),
-            doc=_(u'External User the commands can run as (sudorule-find only)'),
+            label=_('RunAs External User'),
+            doc=_('External User the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'ipasudorunasextusergroup',
             required=False,
-            label=_(u'External Groups of RunAs Users'),
-            doc=_(u'External Groups of users that the command can run as'),
+            label=_('External Groups of RunAs Users'),
+            doc=_('External Groups of users that the command can run as'),
         ),
         parameters.Str(
             'ipasudorunasgroup_group',
             required=False,
-            label=_(u'RunAs Groups'),
-            doc=_(u'Run with the gid of a specified POSIX group'),
+            label=_('RunAs Groups'),
+            doc=_('Run with the gid of a specified POSIX group'),
         ),
         parameters.Str(
             'ipasudorunasextgroup',
             required=False,
-            label=_(u'RunAs External Group'),
-            doc=_(u'External Group the commands can run as (sudorule-find only)'),
+            label=_('RunAs External Group'),
+            doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'ipasudoopt',
             required=False,
-            label=_(u'Sudo Option'),
+            label=_('Sudo Option'),
         ),
     )
 
@@ -231,7 +231,7 @@ class sudorule_add(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
@@ -239,12 +239,12 @@ class sudorule_add(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -252,107 +252,107 @@ class sudorule_add(Method):
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'cmdcategory',
             required=False,
             cli_name='cmdcat',
             cli_metavar="['all']",
-            label=_(u'Command category'),
-            doc=_(u'Command category the rule applies to'),
+            label=_('Command category'),
+            doc=_('Command category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasusercategory',
             required=False,
             cli_name='runasusercat',
             cli_metavar="['all']",
-            label=_(u'RunAs User category'),
-            doc=_(u'RunAs User category the rule applies to'),
+            label=_('RunAs User category'),
+            doc=_('RunAs User category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasgroupcategory',
             required=False,
             cli_name='runasgroupcat',
             cli_metavar="['all']",
-            label=_(u'RunAs Group category'),
-            doc=_(u'RunAs Group category the rule applies to'),
+            label=_('RunAs Group category'),
+            doc=_('RunAs Group category the rule applies to'),
         ),
         parameters.Int(
             'sudoorder',
             required=False,
             cli_name='order',
-            label=_(u'Sudo order'),
-            doc=_(u'integer to order the Sudo rules'),
+            label=_('Sudo order'),
+            doc=_('integer to order the Sudo rules'),
             default=0,
         ),
         parameters.Str(
             'externaluser',
             required=False,
-            label=_(u'External User'),
-            doc=_(u'External User the rule applies to (sudorule-find only)'),
+            label=_('External User'),
+            doc=_('External User the rule applies to (sudorule-find only)'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'ipasudorunasextuser',
             required=False,
             cli_name='runasexternaluser',
-            label=_(u'RunAs External User'),
-            doc=_(u'External User the commands can run as (sudorule-find only)'),
+            label=_('RunAs External User'),
+            doc=_('External User the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'ipasudorunasextgroup',
             required=False,
             cli_name='runasexternalgroup',
-            label=_(u'RunAs External Group'),
-            doc=_(u'External Group the commands can run as (sudorule-find only)'),
+            label=_('RunAs External Group'),
+            doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -362,14 +362,14 @@ class sudorule_add(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -382,27 +382,27 @@ class sudorule_add_allow_command(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -412,8 +412,8 @@ class sudorule_add_allow_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmds',
-            label=_(u'member sudo command'),
-            doc=_(u'sudo commands to add'),
+            label=_('member sudo command'),
+            doc=_('sudo commands to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -421,8 +421,8 @@ class sudorule_add_allow_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmdgroups',
-            label=_(u'member sudo command group'),
-            doc=_(u'sudo command groups to add'),
+            label=_('member sudo command group'),
+            doc=_('sudo command groups to add'),
             alwaysask=True,
         ),
     )
@@ -433,12 +433,12 @@ class sudorule_add_allow_command(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -451,27 +451,27 @@ class sudorule_add_deny_command(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -481,8 +481,8 @@ class sudorule_add_deny_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmds',
-            label=_(u'member sudo command'),
-            doc=_(u'sudo commands to add'),
+            label=_('member sudo command'),
+            doc=_('sudo commands to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -490,8 +490,8 @@ class sudorule_add_deny_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmdgroups',
-            label=_(u'member sudo command group'),
-            doc=_(u'sudo command groups to add'),
+            label=_('member sudo command group'),
+            doc=_('sudo command groups to add'),
             alwaysask=True,
         ),
     )
@@ -502,12 +502,12 @@ class sudorule_add_deny_command(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -520,27 +520,27 @@ class sudorule_add_host(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -550,8 +550,8 @@ class sudorule_add_host(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to add'),
+            label=_('member host'),
+            doc=_('hosts to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -559,15 +559,15 @@ class sudorule_add_host(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'host groups to add'),
+            label=_('member host group'),
+            doc=_('host groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
             'hostmask',
             required=False,
             multivalue=True,
-            label=_(u'host masks of allowed hosts'),
+            label=_('host masks of allowed hosts'),
         ),
     )
     has_output = (
@@ -577,12 +577,12 @@ class sudorule_add_host(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -595,32 +595,32 @@ class sudorule_add_option(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'ipasudoopt',
             cli_name='sudooption',
-            label=_(u'Sudo Option'),
+            label=_('Sudo Option'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -630,14 +630,14 @@ class sudorule_add_option(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -650,27 +650,27 @@ class sudorule_add_runasgroup(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -680,8 +680,8 @@ class sudorule_add_runasgroup(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to add'),
+            label=_('member group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
     )
@@ -692,12 +692,12 @@ class sudorule_add_runasgroup(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -710,27 +710,27 @@ class sudorule_add_runasuser(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -740,8 +740,8 @@ class sudorule_add_runasuser(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to add'),
+            label=_('member user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -749,8 +749,8 @@ class sudorule_add_runasuser(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to add'),
+            label=_('member group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
     )
@@ -761,12 +761,12 @@ class sudorule_add_runasuser(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -779,27 +779,27 @@ class sudorule_add_user(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -809,8 +809,8 @@ class sudorule_add_user(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to add'),
+            label=_('member user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -818,8 +818,8 @@ class sudorule_add_user(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to add'),
+            label=_('member group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
     )
@@ -830,12 +830,12 @@ class sudorule_add_user(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -849,13 +849,13 @@ class sudorule_del(Method):
             'cn',
             multivalue=True,
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -864,12 +864,12 @@ class sudorule_del(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -885,7 +885,7 @@ class sudorule_disable(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
@@ -905,7 +905,7 @@ class sudorule_enable(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
@@ -925,7 +925,7 @@ class sudorule_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -933,18 +933,18 @@ class sudorule_find(Method):
             'cn',
             required=False,
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -952,105 +952,105 @@ class sudorule_find(Method):
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'cmdcategory',
             required=False,
             cli_name='cmdcat',
             cli_metavar="['all']",
-            label=_(u'Command category'),
-            doc=_(u'Command category the rule applies to'),
+            label=_('Command category'),
+            doc=_('Command category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasusercategory',
             required=False,
             cli_name='runasusercat',
             cli_metavar="['all']",
-            label=_(u'RunAs User category'),
-            doc=_(u'RunAs User category the rule applies to'),
+            label=_('RunAs User category'),
+            doc=_('RunAs User category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasgroupcategory',
             required=False,
             cli_name='runasgroupcat',
             cli_metavar="['all']",
-            label=_(u'RunAs Group category'),
-            doc=_(u'RunAs Group category the rule applies to'),
+            label=_('RunAs Group category'),
+            doc=_('RunAs Group category the rule applies to'),
         ),
         parameters.Int(
             'sudoorder',
             required=False,
             cli_name='order',
-            label=_(u'Sudo order'),
-            doc=_(u'integer to order the Sudo rules'),
+            label=_('Sudo order'),
+            doc=_('integer to order the Sudo rules'),
             default=0,
         ),
         parameters.Str(
             'externaluser',
             required=False,
-            label=_(u'External User'),
-            doc=_(u'External User the rule applies to (sudorule-find only)'),
+            label=_('External User'),
+            doc=_('External User the rule applies to (sudorule-find only)'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'ipasudorunasextuser',
             required=False,
             cli_name='runasexternaluser',
-            label=_(u'RunAs External User'),
-            doc=_(u'External User the commands can run as (sudorule-find only)'),
+            label=_('RunAs External User'),
+            doc=_('External User the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'ipasudorunasextgroup',
             required=False,
             cli_name='runasexternalgroup',
-            label=_(u'RunAs External Group'),
-            doc=_(u'External Group the commands can run as (sudorule-find only)'),
+            label=_('RunAs External Group'),
+            doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1058,8 +1058,8 @@ class sudorule_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("sudorule-name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("sudorule-name")'),
             default=False,
             autofill=True,
         ),
@@ -1068,7 +1068,7 @@ class sudorule_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -1076,12 +1076,12 @@ class sudorule_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -1094,7 +1094,7 @@ class sudorule_mod(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
@@ -1102,12 +1102,12 @@ class sudorule_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
@@ -1115,121 +1115,121 @@ class sudorule_mod(Method):
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'cmdcategory',
             required=False,
             cli_name='cmdcat',
             cli_metavar="['all']",
-            label=_(u'Command category'),
-            doc=_(u'Command category the rule applies to'),
+            label=_('Command category'),
+            doc=_('Command category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasusercategory',
             required=False,
             cli_name='runasusercat',
             cli_metavar="['all']",
-            label=_(u'RunAs User category'),
-            doc=_(u'RunAs User category the rule applies to'),
+            label=_('RunAs User category'),
+            doc=_('RunAs User category the rule applies to'),
         ),
         parameters.Str(
             'ipasudorunasgroupcategory',
             required=False,
             cli_name='runasgroupcat',
             cli_metavar="['all']",
-            label=_(u'RunAs Group category'),
-            doc=_(u'RunAs Group category the rule applies to'),
+            label=_('RunAs Group category'),
+            doc=_('RunAs Group category the rule applies to'),
         ),
         parameters.Int(
             'sudoorder',
             required=False,
             cli_name='order',
-            label=_(u'Sudo order'),
-            doc=_(u'integer to order the Sudo rules'),
+            label=_('Sudo order'),
+            doc=_('integer to order the Sudo rules'),
             default=0,
         ),
         parameters.Str(
             'externaluser',
             required=False,
-            label=_(u'External User'),
-            doc=_(u'External User the rule applies to (sudorule-find only)'),
+            label=_('External User'),
+            doc=_('External User the rule applies to (sudorule-find only)'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'ipasudorunasextuser',
             required=False,
             cli_name='runasexternaluser',
-            label=_(u'RunAs External User'),
-            doc=_(u'External User the commands can run as (sudorule-find only)'),
+            label=_('RunAs External User'),
+            doc=_('External User the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'ipasudorunasextgroup',
             required=False,
             cli_name='runasexternalgroup',
-            label=_(u'RunAs External Group'),
-            doc=_(u'External Group the commands can run as (sudorule-find only)'),
+            label=_('RunAs External Group'),
+            doc=_('External Group the commands can run as (sudorule-find only)'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1239,14 +1239,14 @@ class sudorule_mod(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1259,27 +1259,27 @@ class sudorule_remove_allow_command(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1289,8 +1289,8 @@ class sudorule_remove_allow_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmds',
-            label=_(u'member sudo command'),
-            doc=_(u'sudo commands to remove'),
+            label=_('member sudo command'),
+            doc=_('sudo commands to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1298,8 +1298,8 @@ class sudorule_remove_allow_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmdgroups',
-            label=_(u'member sudo command group'),
-            doc=_(u'sudo command groups to remove'),
+            label=_('member sudo command group'),
+            doc=_('sudo command groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1310,12 +1310,12 @@ class sudorule_remove_allow_command(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1328,27 +1328,27 @@ class sudorule_remove_deny_command(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1358,8 +1358,8 @@ class sudorule_remove_deny_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmds',
-            label=_(u'member sudo command'),
-            doc=_(u'sudo commands to remove'),
+            label=_('member sudo command'),
+            doc=_('sudo commands to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1367,8 +1367,8 @@ class sudorule_remove_deny_command(Method):
             required=False,
             multivalue=True,
             cli_name='sudocmdgroups',
-            label=_(u'member sudo command group'),
-            doc=_(u'sudo command groups to remove'),
+            label=_('member sudo command group'),
+            doc=_('sudo command groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1379,12 +1379,12 @@ class sudorule_remove_deny_command(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1397,27 +1397,27 @@ class sudorule_remove_host(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1427,8 +1427,8 @@ class sudorule_remove_host(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to remove'),
+            label=_('member host'),
+            doc=_('hosts to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1436,15 +1436,15 @@ class sudorule_remove_host(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'host groups to remove'),
+            label=_('member host group'),
+            doc=_('host groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
             'hostmask',
             required=False,
             multivalue=True,
-            label=_(u'host masks of allowed hosts'),
+            label=_('host masks of allowed hosts'),
         ),
     )
     has_output = (
@@ -1454,12 +1454,12 @@ class sudorule_remove_host(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1472,32 +1472,32 @@ class sudorule_remove_option(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'ipasudoopt',
             cli_name='sudooption',
-            label=_(u'Sudo Option'),
+            label=_('Sudo Option'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1507,14 +1507,14 @@ class sudorule_remove_option(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -1527,27 +1527,27 @@ class sudorule_remove_runasgroup(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1557,8 +1557,8 @@ class sudorule_remove_runasgroup(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to remove'),
+            label=_('member group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1569,12 +1569,12 @@ class sudorule_remove_runasgroup(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1587,27 +1587,27 @@ class sudorule_remove_runasuser(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1617,8 +1617,8 @@ class sudorule_remove_runasuser(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to remove'),
+            label=_('member user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1626,8 +1626,8 @@ class sudorule_remove_runasuser(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to remove'),
+            label=_('member group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1638,12 +1638,12 @@ class sudorule_remove_runasuser(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1656,27 +1656,27 @@ class sudorule_remove_user(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1686,8 +1686,8 @@ class sudorule_remove_user(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to remove'),
+            label=_('member user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1695,8 +1695,8 @@ class sudorule_remove_user(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to remove'),
+            label=_('member group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1707,12 +1707,12 @@ class sudorule_remove_user(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1725,34 +1725,34 @@ class sudorule_show(Method):
         parameters.Str(
             'cn',
             cli_name='sudorule_name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1762,13 +1762,13 @@ class sudorule_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

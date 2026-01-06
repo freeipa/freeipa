@@ -50,7 +50,7 @@ class update_pacs(Updater):
         if not nfs_pac_set:
             logger.debug('Adding nfs:NONE to default PAC types')
 
-            updated_pacs = pacs + [u'nfs:NONE']
+            updated_pacs = pacs + ['nfs:NONE']
             entry['ipakrbauthzdata'] = updated_pacs
             ldap.update_entry(entry)
         else:

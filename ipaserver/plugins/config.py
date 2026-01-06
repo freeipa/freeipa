@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',
     'memberindirect', 'memberofindirect',)
 
-DOMAIN_RESOLUTION_ORDER_SEPARATOR = u':'
+DOMAIN_RESOLUTION_ORDER_SEPARATOR = ':'
 
 __doc__ = _("""
 Server configuration
@@ -266,10 +266,10 @@ class config(LDAPObject):
             cli_name='ipaconfigstring',
             label=_('Password plugin features'),
             doc=_('Extra hashes to generate in password plug-in'),
-            values=(u'AllowNThash',
-                    u'KDC:Disable Last Success', u'KDC:Disable Lockout',
-                    u'KDC:Disable Default Preauth for SPNs',
-                    u'EnforceLDAPOTP', u'SubID:Disable'),
+            values=('AllowNThash',
+                    'KDC:Disable Last Success', 'KDC:Disable Lockout',
+                    'KDC:Disable Default Preauth for SPNs',
+                    'EnforceLDAPOTP', 'SubID:Disable'),
         ),
         Str('ipaselinuxusermaporder',
             label=_('SELinux user map order'),
@@ -283,15 +283,15 @@ class config(LDAPObject):
             cli_name='pac_type',
             label=_('Default PAC types'),
             doc=_('Default types of PAC supported for services'),
-            values=(u'MS-PAC', u'PAD', u'nfs:NONE'),
+            values=('MS-PAC', 'PAD', 'nfs:NONE'),
         ),
         StrEnum(
             'ipauserauthtype*',
             cli_name='user_auth_type',
             label=_('Default user authentication types'),
             doc=_('Default types of supported user authentication'),
-            values=(u'password', u'radius', u'otp',
-                    u'pkinit', u'hardened', u'idp', u'passkey', u'disabled'),
+            values=('password', 'radius', 'otp',
+                    'pkinit', 'hardened', 'idp', 'passkey', 'disabled'),
         ),
         Bool('ipauserdefaultsubordinateid?',
              cli_name='user_default_subid',

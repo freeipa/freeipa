@@ -310,8 +310,8 @@ class update_managed_permissions(Updater):
     """
 
     def get_anonymous_read_aci(self, ldap):
-        aciname = u'Enable Anonymous access'
-        aciprefix = u'none'
+        aciname = 'Enable Anonymous access'
+        aciprefix = 'none'
 
         base_entry = ldap.get_entry(self.api.env.basedn, ['aci'])
 
@@ -386,7 +386,7 @@ class update_managed_permissions(Updater):
             try:
                 self.api.Command[permission_del](unicode(obsolete_name),
                                                  force=True,
-                                                 version=u'2.101')
+                                                 version='2.101')
             except errors.NotFound:
                 logger.debug('Obsolete permission not found')
             else:
@@ -599,7 +599,7 @@ class update_managed_permissions(Updater):
         if template.pop('non_object', False):
             obj = None
 
-        entry['ipapermissiontype'] = [u'SYSTEM', u'V2', u'MANAGED']
+        entry['ipapermissiontype'] = ['SYSTEM', 'V2', 'MANAGED']
 
         # Attributes with defaults
         objectclass = template.pop('objectclass', None)
