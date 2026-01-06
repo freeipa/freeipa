@@ -66,7 +66,7 @@ register = Registry()
 
 # We only need to prompt for the current password when changing a password
 # for yourself, but the parameter is still required
-MAGIC_VALUE = u'CHANGING_PASSWORD_FOR_ANOTHER_USER'
+MAGIC_VALUE = 'CHANGING_PASSWORD_FOR_ANOTHER_USER'
 
 def get_current_password(principal):
     """

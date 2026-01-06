@@ -460,7 +460,7 @@ def configure_automount():
             api.Backend.rpcclient.forward(
                 'automountlocation_show',
                 ipautil.fsdecode(options.location),
-                version=u'2.0',
+                version='2.0',
             )
         except errors.VersionError as e:
             sys.exit('This client is incompatible: ' + str(e))

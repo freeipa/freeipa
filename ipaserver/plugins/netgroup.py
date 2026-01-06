@@ -224,13 +224,13 @@ class netgroup(LDAPObject):
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         external_host_param,
     )
@@ -238,7 +238,7 @@ class netgroup(LDAPObject):
     def get_primary_key_from_dn(self, dn):
         assert isinstance(dn, DN)
         if not dn.rdns:
-            return u''
+            return ''
 
         first_ava = dn.rdns[0][0]
         if first_ava[0] == self.primary_key.name:
@@ -251,7 +251,7 @@ class netgroup(LDAPObject):
             try:
                 return entry_attrs[self.primary_key.name][0]
             except (KeyError, IndexError):
-                return u''
+                return ''
         except errors.NotFound:
             return unicode(dn)
 
@@ -263,8 +263,8 @@ class netgroup_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + output_params
     msg_summary = _('Added netgroup "%(value)s"')
 
-    msg_collision = _(u'hostgroup with name "%s" already exists. ' \
-                      u'Hostgroups and netgroups share a common namespace')
+    msg_collision = _('hostgroup with name "%s" already exists. ' \
+                      'Hostgroups and netgroups share a common namespace')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)

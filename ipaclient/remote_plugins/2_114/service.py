@@ -84,78 +84,78 @@ class service(Object):
         parameters.Str(
             'krbprincipalname',
             primary_key=True,
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
         ),
         parameters.Bytes(
             'usercertificate',
             required=False,
-            label=_(u'Certificate'),
-            doc=_(u'Base-64 encoded server certificate'),
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
         ),
         parameters.Str(
             'ipakrbauthzdata',
             required=False,
             multivalue=True,
-            label=_(u'PAC type'),
-            doc=_(u"Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
+            label=_('PAC type'),
+            doc=_("Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
         ),
         parameters.Bool(
             'ipakrbrequirespreauth',
             required=False,
-            label=_(u'Requires pre-authentication'),
-            doc=_(u'Pre-authentication is required for the service'),
+            label=_('Requires pre-authentication'),
+            doc=_('Pre-authentication is required for the service'),
         ),
         parameters.Bool(
             'ipakrbokasdelegate',
             required=False,
-            label=_(u'Trusted for delegation'),
-            doc=_(u'Client credentials may be delegated to the service'),
+            label=_('Trusted for delegation'),
+            doc=_('Client credentials may be delegated to the service'),
         ),
         parameters.Str(
             'memberof_role',
             required=False,
-            label=_(u'Roles'),
+            label=_('Roles'),
         ),
         parameters.Flag(
             'has_keytab',
-            label=_(u'Keytab'),
+            label=_('Keytab'),
         ),
         parameters.Str(
             'managedby_host',
-            label=_(u'Managed by'),
+            label=_('Managed by'),
         ),
         parameters.Str(
             'ipaallowedtoperform_read_keys_user',
-            label=_(u'Users allowed to retrieve keytab'),
+            label=_('Users allowed to retrieve keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_read_keys_group',
-            label=_(u'Groups allowed to retrieve keytab'),
+            label=_('Groups allowed to retrieve keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_read_keys_host',
-            label=_(u'Hosts allowed to retrieve keytab'),
+            label=_('Hosts allowed to retrieve keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_read_keys_hostgroup',
-            label=_(u'Host Groups allowed to retrieve keytab'),
+            label=_('Host Groups allowed to retrieve keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_write_keys_user',
-            label=_(u'Users allowed to create keytab'),
+            label=_('Users allowed to create keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_write_keys_group',
-            label=_(u'Groups allowed to create keytab'),
+            label=_('Groups allowed to create keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_write_keys_host',
-            label=_(u'Hosts allowed to create keytab'),
+            label=_('Hosts allowed to create keytab'),
         ),
         parameters.Str(
             'ipaallowedtoperform_write_keys_hostgroup',
-            label=_(u'Host Groups allowed to create keytab'),
+            label=_('Host Groups allowed to create keytab'),
         ),
     )
 
@@ -168,8 +168,8 @@ class service_add(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
@@ -178,8 +178,8 @@ class service_add(Method):
             'usercertificate',
             required=False,
             cli_name='certificate',
-            label=_(u'Certificate'),
-            doc=_(u'Base-64 encoded server certificate'),
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
         ),
         parameters.Str(
             'ipakrbauthzdata',
@@ -187,61 +187,61 @@ class service_add(Method):
             multivalue=True,
             cli_name='pac_type',
             cli_metavar="['MS-PAC', 'PAD', 'NONE']",
-            label=_(u'PAC type'),
-            doc=_(u"Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
+            label=_('PAC type'),
+            doc=_("Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
         ),
         parameters.Bool(
             'ipakrbrequirespreauth',
             required=False,
             cli_name='requires_pre_auth',
-            label=_(u'Requires pre-authentication'),
-            doc=_(u'Pre-authentication is required for the service'),
+            label=_('Requires pre-authentication'),
+            doc=_('Pre-authentication is required for the service'),
         ),
         parameters.Bool(
             'ipakrbokasdelegate',
             required=False,
             cli_name='ok_as_delegate',
-            label=_(u'Trusted for delegation'),
-            doc=_(u'Client credentials may be delegated to the service'),
+            label=_('Trusted for delegation'),
+            doc=_('Client credentials may be delegated to the service'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'force',
-            label=_(u'Force'),
-            doc=_(u'force principal name even if not in DNS'),
+            label=_('Force'),
+            doc=_('force principal name even if not in DNS'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -251,14 +251,14 @@ class service_add(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -271,29 +271,29 @@ class service_add_host(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -303,8 +303,8 @@ class service_add_host(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to add'),
+            label=_('member host'),
+            doc=_('hosts to add'),
             alwaysask=True,
         ),
     )
@@ -315,12 +315,12 @@ class service_add_host(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -333,29 +333,29 @@ class service_allow_create_keytab(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -365,8 +365,8 @@ class service_allow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to add'),
+            label=_('member user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -374,8 +374,8 @@ class service_allow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to add'),
+            label=_('member group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -383,8 +383,8 @@ class service_allow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to add'),
+            label=_('member host'),
+            doc=_('hosts to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -392,8 +392,8 @@ class service_allow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'host groups to add'),
+            label=_('member host group'),
+            doc=_('host groups to add'),
             alwaysask=True,
         ),
     )
@@ -404,12 +404,12 @@ class service_allow_create_keytab(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -422,29 +422,29 @@ class service_allow_retrieve_keytab(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -454,8 +454,8 @@ class service_allow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to add'),
+            label=_('member user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -463,8 +463,8 @@ class service_allow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to add'),
+            label=_('member group'),
+            doc=_('groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -472,8 +472,8 @@ class service_allow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to add'),
+            label=_('member host'),
+            doc=_('hosts to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -481,8 +481,8 @@ class service_allow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'host groups to add'),
+            label=_('member host group'),
+            doc=_('host groups to add'),
             alwaysask=True,
         ),
     )
@@ -493,12 +493,12 @@ class service_allow_retrieve_keytab(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -512,15 +512,15 @@ class service_del(Method):
             'krbprincipalname',
             multivalue=True,
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -529,12 +529,12 @@ class service_del(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -550,8 +550,8 @@ class service_disable(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
@@ -561,16 +561,16 @@ class service_disable(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -583,29 +583,29 @@ class service_disallow_create_keytab(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -615,8 +615,8 @@ class service_disallow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to remove'),
+            label=_('member user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -624,8 +624,8 @@ class service_disallow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to remove'),
+            label=_('member group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -633,8 +633,8 @@ class service_disallow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to remove'),
+            label=_('member host'),
+            doc=_('hosts to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -642,8 +642,8 @@ class service_disallow_create_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'host groups to remove'),
+            label=_('member host group'),
+            doc=_('host groups to remove'),
             alwaysask=True,
         ),
     )
@@ -654,12 +654,12 @@ class service_disallow_create_keytab(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -672,29 +672,29 @@ class service_disallow_retrieve_keytab(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -704,8 +704,8 @@ class service_disallow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to remove'),
+            label=_('member user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -713,8 +713,8 @@ class service_disallow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'groups to remove'),
+            label=_('member group'),
+            doc=_('groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -722,8 +722,8 @@ class service_disallow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to remove'),
+            label=_('member host'),
+            doc=_('hosts to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -731,8 +731,8 @@ class service_disallow_retrieve_keytab(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'host groups to remove'),
+            label=_('member host group'),
+            doc=_('host groups to remove'),
             alwaysask=True,
         ),
     )
@@ -743,12 +743,12 @@ class service_disallow_retrieve_keytab(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -761,7 +761,7 @@ class service_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -769,8 +769,8 @@ class service_find(Method):
             'krbprincipalname',
             required=False,
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
         parameters.Str(
@@ -779,38 +779,38 @@ class service_find(Method):
             multivalue=True,
             cli_name='pac_type',
             cli_metavar="['MS-PAC', 'PAD', 'NONE']",
-            label=_(u'PAC type'),
-            doc=_(u"Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
+            label=_('PAC type'),
+            doc=_("Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -818,8 +818,8 @@ class service_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("principal")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("principal")'),
             default=False,
             autofill=True,
         ),
@@ -828,23 +828,23 @@ class service_find(Method):
             required=False,
             multivalue=True,
             cli_name='man_by_hosts',
-            label=_(u'host'),
-            doc=_(u'Search for services with these managed by hosts.'),
+            label=_('host'),
+            doc=_('Search for services with these managed by hosts.'),
         ),
         parameters.Str(
             'not_man_by_host',
             required=False,
             multivalue=True,
             cli_name='not_man_by_hosts',
-            label=_(u'host'),
-            doc=_(u'Search for services without these managed by hosts.'),
+            label=_('host'),
+            doc=_('Search for services without these managed by hosts.'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -852,12 +852,12 @@ class service_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -870,8 +870,8 @@ class service_mod(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
@@ -880,8 +880,8 @@ class service_mod(Method):
             'usercertificate',
             required=False,
             cli_name='certificate',
-            label=_(u'Certificate'),
-            doc=_(u'Base-64 encoded server certificate'),
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
         ),
         parameters.Str(
             'ipakrbauthzdata',
@@ -889,68 +889,68 @@ class service_mod(Method):
             multivalue=True,
             cli_name='pac_type',
             cli_metavar="['MS-PAC', 'PAD', 'NONE']",
-            label=_(u'PAC type'),
-            doc=_(u"Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
+            label=_('PAC type'),
+            doc=_("Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services."),
         ),
         parameters.Bool(
             'ipakrbrequirespreauth',
             required=False,
             cli_name='requires_pre_auth',
-            label=_(u'Requires pre-authentication'),
-            doc=_(u'Pre-authentication is required for the service'),
+            label=_('Requires pre-authentication'),
+            doc=_('Pre-authentication is required for the service'),
         ),
         parameters.Bool(
             'ipakrbokasdelegate',
             required=False,
             cli_name='ok_as_delegate',
-            label=_(u'Trusted for delegation'),
-            doc=_(u'Client credentials may be delegated to the service'),
+            label=_('Trusted for delegation'),
+            doc=_('Client credentials may be delegated to the service'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -960,14 +960,14 @@ class service_mod(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -980,29 +980,29 @@ class service_remove_host(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1012,8 +1012,8 @@ class service_remove_host(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'hosts to remove'),
+            label=_('member host'),
+            doc=_('hosts to remove'),
             alwaysask=True,
         ),
     )
@@ -1024,12 +1024,12 @@ class service_remove_host(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1042,41 +1042,41 @@ class service_show(Method):
         parameters.Str(
             'krbprincipalname',
             cli_name='principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal'),
+            label=_('Principal'),
+            doc=_('Service principal'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'out',
             required=False,
-            doc=_(u'file to store certificate in'),
+            doc=_('file to store certificate in'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -1086,13 +1086,13 @@ class service_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

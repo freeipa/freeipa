@@ -35,8 +35,8 @@ import pytest
 @pytest.fixture(scope='class')
 def user(request, xmlrpc_setup):
     tracker = UserTracker(
-        name=u'user1', givenname=u'Test', sn=u'User1',
-        mail=[u'test1@example.com', u'test2@example.com']
+        name='user1', givenname='Test', sn='User1',
+        mail=['test1@example.com', 'test2@example.com']
     )
     return tracker.make_fixture(request)
 
@@ -49,32 +49,32 @@ class TestReplace(XMLRPC_test):
 
     def test_drop_one_add_another_mail(self, user):
         """ Drop one mail address and add another to the user """
-        updates = {'mail': [u'test1@example.com', u'test3@example.com']}
+        updates = {'mail': ['test1@example.com', 'test3@example.com']}
         user.update(updates, updates)
 
     def test_set_new_single_mail(self, user):
         """ Reset mail attribute to one single value """
-        updates = {'mail': u'test4@example.com'}
+        updates = {'mail': 'test4@example.com'}
         user.update(updates)
 
     def test_set_three_new_mails(self, user):
         """ Assign three new mail addresses to the user """
         updates = {'mail': [
-            u'test5@example.com', u'test6@example.com', u'test7@example.com'
+            'test5@example.com', 'test6@example.com', 'test7@example.com'
         ]}
         user.update(updates, updates)
 
     def test_remove_all_mails(self, user):
         """ Remove all email addresses from the user """
-        updates = {'mail': u''}
+        updates = {'mail': ''}
         user.update(updates)
 
     def test_replace_initials(self, user):
         """ Test single value attribute by replacing initials """
-        updates = {'initials': u'ABC'}
+        updates = {'initials': 'ABC'}
         user.update(updates)
 
     def test_drop_initials(self, user):
         """ Test drop of single value attribute by dropping initials """
-        updates = {'initials': u''}
+        updates = {'initials': ''}
         user.update(updates)

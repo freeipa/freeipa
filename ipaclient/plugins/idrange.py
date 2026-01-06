@@ -56,7 +56,7 @@ class idrange_add(MethodOverride):
             # This is a trusted range
 
             # Prompt for RID base if domain SID / name was given
-            if rid_base is None and range_type != u'ipa-ad-trust-posix':
+            if rid_base is None and range_type != 'ipa-ad-trust-posix':
                 set_from_prompt('ipabaserid')
 
         else:

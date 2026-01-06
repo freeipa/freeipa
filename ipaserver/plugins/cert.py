@@ -556,7 +556,7 @@ class BaseCertObject(Object):
 
 def _format_othername(on):
     """Format a python-cryptography OtherName for display."""
-    return u'{}:{}'.format(
+    return '{}:{}'.format(
         on.type_id.dotted_string,
         base64.b64encode(on.value).decode('ascii')
     )
@@ -574,7 +574,7 @@ class certreq(BaseCertObject):
     takes_params = BaseCertObject.takes_params + (
         Str(
             'request_type',
-            default=u'pkcs10',
+            default='pkcs10',
             autofill=True,
             flags={'no_option', 'no_update', 'no_search'},
         ),
@@ -778,7 +778,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                            self.Backend.ra.KDC_PROFILE))
 
             # Allow only our own realm krbtgt for now; no trusted realms.
-            if principal != kerberos.Principal((u'krbtgt', realm),
+            if principal != kerberos.Principal(('krbtgt', realm),
                                                realm=realm):
                 raise errors.NotFound("Not our realm's krbtgt")
 
@@ -939,7 +939,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             name, all=True)['result']
                     elif principal_type == KRBTGT:
                         alt_principal = kerberos.Principal(
-                            (u'host', name), principal.realm)
+                            ('host', name), principal.realm)
                     elif principal_type == SERVICE:
                         alt_principal_obj = api.Command['service_show'](
                             alt_principal, all=True)['result']
@@ -990,7 +990,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 if principal_type == KRBTGT:
                         principal_obj = dict()
                         principal_obj['krbprincipalname'] = [
-                            kerberos.Principal((u'krbtgt', realm), realm)]
+                            kerberos.Principal(('krbtgt', realm), realm)]
                 if not _principal_name_matches_principal(
                         gn.name, principal_obj):
                     raise errors.ValidationError(
@@ -1071,7 +1071,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             store = profile['result']['ipacertprofilestoreissued'][0]
             if store and 'certificate' in result:
                 cert = result.get('certificate')
-                kwargs = dict(addattr=u'usercertificate={}'.format(cert))
+                kwargs = dict(addattr='usercertificate={}'.format(cert))
                 # note: we call different commands for the different
                 # principal types because handling of 'userCertificate'
                 # vs. 'userCertificate;binary' varies by plugin.
@@ -1322,7 +1322,7 @@ def _san_ip_update_reachable(reachable, dnsname, cname_depth):
     if cname_depth > 0:
         for cname in result.get('cnamerecord', []):
             if not cname.endswith('.'):
-                cname = u'%s.%s' % (cname, zone)
+                cname = '%s.%s' % (cname, zone)
             _san_ip_update_reachable(reachable, cname, cname_depth - 1)
 
 
@@ -1671,8 +1671,8 @@ Search for existing certificates.
         StrEnum(
             'status?',
             doc=_("Status of the certificate"),
-            values=(u'VALID', u'INVALID', u'REVOKED', u'EXPIRED',
-                    u'REVOKED_EXPIRED'),
+            values=('VALID', 'INVALID', 'REVOKED', 'EXPIRED',
+                    'REVOKED_EXPIRED'),
         ),
         Flag('pkey_only?',
             label=_("Primary key only"),
@@ -1845,7 +1845,7 @@ Search for existing certificates.
                     obj['valid_not_after'] = (
                         convert_pkidatetime(obj['valid_not_after']))
                     obj['revoked'] = (
-                        ra_obj['status'] in (u'REVOKED', u'REVOKED_EXPIRED'))
+                        ra_obj['status'] in ('REVOKED', 'REVOKED_EXPIRED'))
 
             obj['cacn'] = ca_obj['cn'][0]
 

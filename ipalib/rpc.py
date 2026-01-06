@@ -537,7 +537,7 @@ class KerbTransport(SSLTransport):
                         pass
             if not token:
                 raise errors.KerberosError(
-                    message=u"No valid Negotiate header in server response")
+                    message="No valid Negotiate header in server response")
             token = self._sec_context.step(token=token)
             if self._sec_context.complete:
                 self._sec_context = None

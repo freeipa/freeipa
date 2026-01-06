@@ -656,7 +656,7 @@ class ra(rabase.rabase, APIClient):
             err_msg = _('Unable to communicate with CMS')
 
         if detail is not None:
-            err_msg = u'%s (%s)' % (err_msg, detail)
+            err_msg = '%s (%s)' % (err_msg, detail)
 
         logger.error('%s.%s(): %s', type(self).__name__, func_name, err_msg)
         if detail == 404:

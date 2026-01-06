@@ -49,30 +49,30 @@ class delegation(Object):
         parameters.Str(
             'aciname',
             primary_key=True,
-            label=_(u'Delegation name'),
+            label=_('Delegation name'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
         ),
         parameters.Str(
             'memberof',
-            label=_(u'Member user group'),
-            doc=_(u'User group to apply delegation to'),
+            label=_('Member user group'),
+            doc=_('User group to apply delegation to'),
         ),
         parameters.Str(
             'group',
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
     )
 
@@ -85,7 +85,7 @@ class delegation_add(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Delegation name'),
+            label=_('Delegation name'),
         ),
     )
     takes_options = (
@@ -93,37 +93,37 @@ class delegation_add(Method):
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
             no_convert=True,
         ),
         parameters.Str(
             'memberof',
             cli_name='membergroup',
-            label=_(u'Member user group'),
-            doc=_(u'User group to apply delegation to'),
+            label=_('Member user group'),
+            doc=_('User group to apply delegation to'),
         ),
         parameters.Str(
             'group',
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -133,7 +133,7 @@ class delegation_add(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -141,7 +141,7 @@ class delegation_add(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -154,24 +154,24 @@ class delegation_del(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Delegation name'),
+            label=_('Delegation name'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -191,54 +191,54 @@ class delegation_find(Method):
             'aciname',
             required=False,
             cli_name='name',
-            label=_(u'Delegation name'),
+            label=_('Delegation name'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
             no_convert=True,
         ),
         parameters.Str(
             'memberof',
             required=False,
             cli_name='membergroup',
-            label=_(u'Member user group'),
-            doc=_(u'User group to apply delegation to'),
+            label=_('Member user group'),
+            doc=_('User group to apply delegation to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -248,7 +248,7 @@ class delegation_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -256,12 +256,12 @@ class delegation_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -274,7 +274,7 @@ class delegation_mod(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Delegation name'),
+            label=_('Delegation name'),
         ),
     )
     takes_options = (
@@ -282,40 +282,40 @@ class delegation_mod(Method):
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Comma-separated list of permissions to grant (read, write). Default is write.'),
+            label=_('Permissions'),
+            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes'),
-            doc=_(u'Comma-separated list of attributes'),
+            label=_('Attributes'),
+            doc=_('Comma-separated list of attributes'),
             no_convert=True,
         ),
         parameters.Str(
             'memberof',
             required=False,
             cli_name='membergroup',
-            label=_(u'Member user group'),
-            doc=_(u'User group to apply delegation to'),
+            label=_('Member user group'),
+            doc=_('User group to apply delegation to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -325,7 +325,7 @@ class delegation_mod(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -333,7 +333,7 @@ class delegation_mod(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -346,20 +346,20 @@ class delegation_show(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'Delegation name'),
+            label=_('Delegation name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -369,7 +369,7 @@ class delegation_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -377,6 +377,6 @@ class delegation_show(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

@@ -65,27 +65,27 @@ class entitle_consume(Method):
     takes_args = (
         parameters.Int(
             'quantity',
-            label=_(u'Quantity'),
+            label=_('Quantity'),
         ),
     )
     takes_options = (
         parameters.Int(
             'hidden',
-            label=_(u'Quantity'),
+            label=_('Quantity'),
             exclude=('cli', 'webui'),
             default=1,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -95,7 +95,7 @@ class entitle_consume(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -103,7 +103,7 @@ class entitle_consume(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -116,32 +116,32 @@ class entitle_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -151,7 +151,7 @@ class entitle_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -159,12 +159,12 @@ class entitle_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -176,14 +176,14 @@ class entitle_get(Command):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -193,7 +193,7 @@ class entitle_get(Command):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -201,12 +201,12 @@ class entitle_get(Command):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -228,22 +228,22 @@ class entitle_import(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'uuid',
             required=False,
-            label=_(u'UUID'),
-            doc=_(u'Enrollment UUID'),
-            default=u'IMPORTED',
+            label=_('UUID'),
+            doc=_('Enrollment UUID'),
+            default='IMPORTED',
             autofill=True,
         ),
     )
@@ -251,7 +251,7 @@ class entitle_import(Method):
         output.Output(
             'result',
             dict,
-            doc=_(u'Dictionary mapping variable name to value'),
+            doc=_('Dictionary mapping variable name to value'),
         ),
     )
 
@@ -263,7 +263,7 @@ class entitle_register(Method):
     takes_args = (
         parameters.Str(
             'username',
-            label=_(u'Username'),
+            label=_('Username'),
         ),
     )
     takes_options = (
@@ -271,37 +271,37 @@ class entitle_register(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'ipaentitlementid',
             required=False,
-            label=_(u'UUID'),
-            doc=_(u'Enrollment UUID (not implemented)'),
+            label=_('UUID'),
+            doc=_('Enrollment UUID (not implemented)'),
         ),
         parameters.Password(
             'password',
-            label=_(u'Password'),
-            doc=_(u'Registration password'),
+            label=_('Password'),
+            doc=_('Registration password'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -311,7 +311,7 @@ class entitle_register(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -319,7 +319,7 @@ class entitle_register(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -332,7 +332,7 @@ class entitle_status(Command):
         output.Output(
             'result',
             dict,
-            doc=_(u'Dictionary mapping variable name to value'),
+            doc=_('Dictionary mapping variable name to value'),
         ),
     )
 
@@ -344,21 +344,21 @@ class entitle_sync(Method):
     takes_options = (
         parameters.Int(
             'hidden',
-            label=_(u'Quantity'),
+            label=_('Quantity'),
             exclude=('cli', 'webui'),
             default=1,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -368,7 +368,7 @@ class entitle_sync(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -376,6 +376,6 @@ class entitle_sync(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

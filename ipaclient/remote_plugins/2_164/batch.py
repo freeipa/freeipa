@@ -52,7 +52,7 @@ class batch(Command):
             'methods',
             required=False,
             multivalue=True,
-            doc=_(u'Nested Methods to execute'),
+            doc=_('Nested Methods to execute'),
         ),
     )
     takes_options = (

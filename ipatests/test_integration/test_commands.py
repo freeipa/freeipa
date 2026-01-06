@@ -46,9 +46,9 @@ from packaging.version import parse as parse_version
 logger = logging.getLogger(__name__)
 
 # from ipaserver.masters
-CONFIGURED_SERVICE = u'configuredService'
-ENABLED_SERVICE = u'enabledService'
-HIDDEN_SERVICE = u'hiddenService'
+CONFIGURED_SERVICE = 'configuredService'
+ENABLED_SERVICE = 'enabledService'
+HIDDEN_SERVICE = 'hiddenService'
 
 DIRSRV_SLEEP = 5
 

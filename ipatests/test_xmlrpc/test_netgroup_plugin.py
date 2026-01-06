@@ -34,33 +34,33 @@ import pytest
 # Global so we can save the value between tests
 netgroup_dn = None
 
-netgroup1 = u'netgroup1'
-netgroup2 = u'netgroup2'
-netgroup_single = u'a'
+netgroup1 = 'netgroup1'
+netgroup2 = 'netgroup2'
+netgroup_single = 'a'
 
-host1 = u'ipatesthost.%s' % api.env.domain
+host1 = 'ipatesthost.%s' % api.env.domain
 host_dn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
               api.env.basedn)
 
-unknown_host = u'unknown'
+unknown_host = 'unknown'
 
-unknown_host2 = u'unknown2'
+unknown_host2 = 'unknown2'
 
-hostgroup1 = u'hg1'
+hostgroup1 = 'hg1'
 hostgroup_dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                    api.env.basedn)
 
-user1 = u'jexample'
+user1 = 'jexample'
 
 # user2 is a member of testgroup
-user2 = u'pexample'
+user2 = 'pexample'
 
-group1 = u'testgroup'
+group1 = 'testgroup'
 
-invalidnetgroup1=u'+badnetgroup'
-invalidnisdomain1=u'domain1,domain2'
-invalidnisdomain2=u'+invalidnisdomain'
-invalidhost=u'+invalid&host'
+invalidnetgroup1='+badnetgroup'
+invalidnisdomain1='domain1,domain2'
+invalidnisdomain2='+invalidnisdomain'
+invalidhost='+invalid&host'
 
 
 @pytest.mark.tier1
@@ -85,17 +85,17 @@ class test_netgroup(Declarative):
             desc='Try to retrieve non-existent %r' % netgroup1,
             command=('netgroup_show', [netgroup1], {}),
             expected=errors.NotFound(
-                reason=u'%s: netgroup not found' % netgroup1),
+                reason='%s: netgroup not found' % netgroup1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % netgroup1,
             command=('netgroup_mod', [netgroup1],
-                dict(description=u'Updated hostgroup 1')
+                dict(description='Updated hostgroup 1')
             ),
             expected=errors.NotFound(
-                reason=u'%s: netgroup not found' % netgroup1),
+                reason='%s: netgroup not found' % netgroup1),
         ),
 
 
@@ -103,22 +103,22 @@ class test_netgroup(Declarative):
             desc='Try to delete non-existent %r' % netgroup1,
             command=('netgroup_del', [netgroup1], {}),
             expected=errors.NotFound(
-                reason=u'%s: netgroup not found' % netgroup1),
+                reason='%s: netgroup not found' % netgroup1),
         ),
 
 
         dict(
             desc='Test an invalid netgroup name %r' % invalidnetgroup1,
-            command=('netgroup_add', [invalidnetgroup1], dict(description=u'Test')),
+            command=('netgroup_add', [invalidnetgroup1], dict(description='Test')),
             expected=errors.ValidationError(name='name',
-                error=u'may only include letters, numbers, _, -, and .'),
+                error='may only include letters, numbers, _, -, and .'),
         ),
 
 
         dict(
             desc='Test an invalid nisdomain1 name %r' % invalidnisdomain1,
             command=('netgroup_add', [netgroup1],
-                dict(description=u'Test',nisdomainname=invalidnisdomain1)),
+                dict(description='Test',nisdomainname=invalidnisdomain1)),
             expected=errors.ValidationError(name='nisdomain',
                 error='may only include letters, numbers, _, -, and .'),
         ),
@@ -127,7 +127,7 @@ class test_netgroup(Declarative):
         dict(
             desc='Test an invalid nisdomain2 name %r' % invalidnisdomain2,
             command=('netgroup_add', [netgroup1],
-                dict(description=u'Test',nisdomainname=invalidnisdomain2)),
+                dict(description='Test',nisdomainname=invalidnisdomain2)),
             expected=errors.ValidationError(name='nisdomain',
                 error='may only include letters, numbers, _, -, and .'),
         ),
@@ -136,16 +136,16 @@ class test_netgroup(Declarative):
         dict(
             desc='Create %r' % netgroup1,
             command=('netgroup_add', [netgroup1],
-                dict(description=u'Test netgroup 1')
+                dict(description='Test netgroup 1')
             ),
             expected=dict(
                 value=netgroup1,
-                summary=u'Added netgroup "%s"' % netgroup1,
+                summary='Added netgroup "%s"' % netgroup1,
                 result=dict(
                     dn=fuzzy_netgroupdn,
                     cn=[netgroup1],
                     objectclass=objectclasses.netgroup,
-                    description=[u'Test netgroup 1'],
+                    description=['Test netgroup 1'],
                     nisdomainname=['%s' % api.env.domain],
                     ipauniqueid=[fuzzy_uuid],
                 ),
@@ -156,16 +156,16 @@ class test_netgroup(Declarative):
         dict(
             desc='Create %r' % netgroup2,
             command=('netgroup_add', [netgroup2],
-                dict(description=u'Test netgroup 2')
+                dict(description='Test netgroup 2')
             ),
             expected=dict(
                 value=netgroup2,
-                summary=u'Added netgroup "%s"' % netgroup2,
+                summary='Added netgroup "%s"' % netgroup2,
                 result=dict(
                     dn=fuzzy_netgroupdn,
                     cn=[netgroup2],
                     objectclass=objectclasses.netgroup,
-                    description=[u'Test netgroup 2'],
+                    description=['Test netgroup 2'],
                     nisdomainname=['%s' % api.env.domain],
                     ipauniqueid=[fuzzy_uuid],
                 ),
@@ -176,16 +176,16 @@ class test_netgroup(Declarative):
         dict(
             desc='Create netgroup with name containing only one letter: %r' % netgroup_single,
             command=('netgroup_add', [netgroup_single],
-                dict(description=u'Test netgroup_single')
+                dict(description='Test netgroup_single')
             ),
             expected=dict(
                 value=netgroup_single,
-                summary=u'Added netgroup "%s"' % netgroup_single,
+                summary='Added netgroup "%s"' % netgroup_single,
                 result=dict(
                     dn=fuzzy_netgroupdn,
                     cn=[netgroup_single],
                     objectclass=objectclasses.netgroup,
-                    description=[u'Test netgroup_single'],
+                    description=['Test netgroup_single'],
                     nisdomainname=['%s' % api.env.domain],
                     ipauniqueid=[fuzzy_uuid],
                 ),
@@ -198,7 +198,7 @@ class test_netgroup(Declarative):
             command=('netgroup_del', [netgroup_single], {}),
             expected=dict(
                 value=[netgroup_single],
-                summary=u'Deleted netgroup "%s"' % netgroup_single,
+                summary='Deleted netgroup "%s"' % netgroup_single,
                 result=dict(failed=[]),
             ),
         ),
@@ -207,10 +207,10 @@ class test_netgroup(Declarative):
         dict(
             desc='Try to create duplicate %r' % netgroup1,
             command=('netgroup_add', [netgroup1],
-                dict(description=u'Test netgroup 1')
+                dict(description='Test netgroup 1')
             ),
             expected=errors.DuplicateEntry(
-                message=u'netgroup with name "%s" already exists' % netgroup1),
+                message='netgroup with name "%s" already exists' % netgroup1),
         ),
 
 
@@ -218,21 +218,21 @@ class test_netgroup(Declarative):
             desc='Create host %r' % host1,
             command=('host_add', [host1],
                 dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
+                    description='Test host 1',
+                    l='Undisclosed location 1',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=host1,
-                summary=u'Added host "%s"' % host1,
+                summary='Added host "%s"' % host1,
                 result=dict(
                     dn=host_dn1,
                     fqdn=[host1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (host1, api.env.realm)],
-                    krbcanonicalname=[u'host/%s@%s' % (host1, api.env.realm)],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
+                    krbprincipalname=['host/%s@%s' % (host1, api.env.realm)],
+                    krbcanonicalname=['host/%s@%s' % (host1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[host1],
@@ -246,16 +246,16 @@ class test_netgroup(Declarative):
         dict(
             desc='Create %r' % hostgroup1,
             command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
+                dict(description='Test hostgroup 1')
             ),
             expected=dict(
                 value=hostgroup1,
-                summary=u'Added hostgroup "%s"' % hostgroup1,
+                summary='Added hostgroup "%s"' % hostgroup1,
                 result=dict(
                     dn=hostgroup_dn1,
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 1'],
+                    description=['Test hostgroup 1'],
                     mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
                                         api.env.basedn)],
                     ipauniqueid=[fuzzy_uuid],
@@ -267,24 +267,24 @@ class test_netgroup(Declarative):
         dict(
             desc='Create %r' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
+                'user_add', [user1], dict(givenname='Test', sn='User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "%s"' % user1,
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
+                summary='Added user "%s"' % user1,
+                result=get_user_result(user1, 'Test', 'User1', 'add'),
             ),
         ),
 
         dict(
             desc='Create %r' % user2,
             command=(
-                'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
+                'user_add', [user2], dict(givenname='Test', sn='User2')
             ),
             expected=dict(
                 value=user2,
-                summary=u'Added user "%s"' % user2,
-                result=get_user_result(user2, u'Test', u'User2', 'add'),
+                summary='Added user "%s"' % user2,
+                result=get_user_result(user2, 'Test', 'User2', 'add'),
             ),
         ),
 
@@ -292,14 +292,14 @@ class test_netgroup(Declarative):
         dict(
             desc='Create %r' % group1,
             command=(
-                'group_add', [group1], dict(description=u'Test desc 1')
+                'group_add', [group1], dict(description='Test desc 1')
             ),
             expected=dict(
                 value=group1,
-                summary=u'Added group "%s"' % group1,
+                summary='Added group "%s"' % group1,
                 result=dict(
                     cn=[group1],
-                    description=[u'Test desc 1'],
+                    description=['Test desc 1'],
                     gidnumber=[fuzzy_digits],
                     objectclass=fuzzy_set_optional_oc(
                         objectclasses.posixgroup, 'ipantgroupattrs'),
@@ -332,7 +332,7 @@ class test_netgroup(Declarative):
                         'member_user': (user2,),
                         'gidnumber': [fuzzy_digits],
                         'cn': [group1],
-                        'description': [u'Test desc 1'],
+                        'description': ['Test desc 1'],
                 },
             ),
         ),
@@ -342,8 +342,8 @@ class test_netgroup(Declarative):
             desc='Add invalid host %r to netgroup %r' % (invalidhost, netgroup1),
             command=('netgroup_add_member', [netgroup1], dict(host=invalidhost)),
             expected=errors.ValidationError(name='host',
-             error=u"only letters, numbers, '_', '-' are allowed. " +
-                    u"DNS label may not start or end with '-'"),
+             error="only letters, numbers, '_', '-' are allowed. " +
+                    "DNS label may not start or end with '-'"),
         ),
 
 
@@ -371,8 +371,8 @@ class test_netgroup(Declarative):
                         'dn': fuzzy_netgroupdn,
                         'memberhost_host': (host1,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -403,8 +403,8 @@ class test_netgroup(Declarative):
                         'memberhost_host': (host1,),
                         'memberhost_hostgroup': (hostgroup1,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -417,21 +417,21 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=2,
                 truncated=False,
-                summary=u'2 netgroups matched',
+                summary='2 netgroups matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
                         'memberhost_host': (host1,),
                         'memberhost_hostgroup': (hostgroup1,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup2],
-                        'description': [u'Test netgroup 2'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 2'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                 ],
             ),
@@ -444,19 +444,19 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=2,
                 truncated=False,
-                summary=u'2 netgroups matched',
+                summary='2 netgroups matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup2],
-                        'description': [u'Test netgroup 2'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 2'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                 ],
             ),
@@ -469,7 +469,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=0,
                 truncated=False,
-                summary=u'0 netgroups matched',
+                summary='0 netgroups matched',
                 result=[],
             ),
         ),
@@ -500,8 +500,8 @@ class test_netgroup(Declarative):
                         'memberhost_hostgroup': (hostgroup1,),
                         'memberuser_user': (user1,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -512,13 +512,13 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 netgroup matched',
+                summary='1 netgroup matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup2],
-                        'description': [u'Test netgroup 2'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 2'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                 ],
             ),
@@ -551,8 +551,8 @@ class test_netgroup(Declarative):
                         'memberuser_user': (user1,),
                         'memberuser_group': (group1,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -586,8 +586,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -596,13 +596,13 @@ class test_netgroup(Declarative):
         dict(
             desc='Add non-existent netgroup to netgroup %r' % (netgroup1),
             command=(
-                'netgroup_add_member', [netgroup1], dict(netgroup=u'notfound')
+                'netgroup_add_member', [netgroup1], dict(netgroup='notfound')
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     member=dict(
-                        netgroup=[(u'notfound', u'no such entry')],
+                        netgroup=[('notfound', 'no such entry')],
                     ),
                     memberuser=dict(
                         group=tuple(),
@@ -621,8 +621,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -641,7 +641,7 @@ class test_netgroup(Declarative):
                     ),
                     memberuser=dict(
                         group=tuple(),
-                        user=[('%s' % user1, u'This entry is already a member')],
+                        user=[('%s' % user1, 'This entry is already a member')],
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
@@ -656,8 +656,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -674,7 +674,7 @@ class test_netgroup(Declarative):
                         netgroup=tuple(),
                     ),
                     memberuser=dict(
-                        group=[('%s' % group1, u'This entry is already a member')],
+                        group=[('%s' % group1, 'This entry is already a member')],
                         user=tuple(),
                     ),
                     memberhost=dict(
@@ -690,8 +690,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -714,7 +714,7 @@ class test_netgroup(Declarative):
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
-                        host=[('%s' % host1, u'This entry is already a member')],
+                        host=[('%s' % host1, 'This entry is already a member')],
                     ),
                 ),
                 result={
@@ -725,8 +725,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -748,7 +748,7 @@ class test_netgroup(Declarative):
                         user=tuple(),
                     ),
                     memberhost=dict(
-                        hostgroup=[('%s' % hostgroup1, u'This entry is already a member')],
+                        hostgroup=[('%s' % hostgroup1, 'This entry is already a member')],
                         host=tuple(),
                     ),
                 ),
@@ -760,8 +760,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                 },
             ),
         ),
@@ -795,8 +795,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -810,8 +810,8 @@ class test_netgroup(Declarative):
                 dict(setattr='externalhost=%s' % invalidhost)
             ),
             expected=errors.ValidationError(name='externalhost',
-                error=u"only letters, numbers, '_', '-' are allowed. " +
-                    u"DNS label may not start or end with '-'"),
+                error="only letters, numbers, '_', '-' are allowed. " +
+                    "DNS label may not start or end with '-'"),
         ),
 
         dict(
@@ -822,8 +822,8 @@ class test_netgroup(Declarative):
                 dict(addattr='externalhost=%s' % unknown_host2)
             ),
             expected=dict(
-                value=u'netgroup1',
-                summary=u'Modified netgroup "netgroup1"',
+                value='netgroup1',
+                summary='Modified netgroup "netgroup1"',
                 result={
                         'memberhost_host': (host1,),
                         'memberhost_hostgroup': (hostgroup1,),
@@ -831,8 +831,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host, unknown_host2],
                 },
             )
@@ -846,8 +846,8 @@ class test_netgroup(Declarative):
                 dict(delattr='externalhost=%s' % unknown_host2)
             ),
             expected=dict(
-                value=u'netgroup1',
-                summary=u'Modified netgroup "netgroup1"',
+                value='netgroup1',
+                summary='Modified netgroup "netgroup1"',
                 result={
                         'memberhost_host': (host1,),
                         'memberhost_hostgroup': (hostgroup1,),
@@ -855,8 +855,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             )
@@ -876,8 +876,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -890,7 +890,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 netgroup matched',
+                summary='1 netgroup matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
@@ -900,8 +900,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                     },
                 ],
@@ -915,13 +915,13 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 netgroup matched',
+                summary='1 netgroup matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                     },
                 ],
@@ -936,7 +936,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 netgroup matched',
+                summary='1 netgroup matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
@@ -946,8 +946,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                     },
                 ],
@@ -961,13 +961,13 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 netgroup matched',
+                summary='1 netgroup matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                     },
                 ],
@@ -982,7 +982,7 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=2,
                 truncated=False,
-                summary=u'2 netgroups matched',
+                summary='2 netgroups matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
@@ -992,16 +992,16 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                     },
                     {
                         'dn': fuzzy_netgroupdn,
                         'memberof_netgroup': (netgroup1,),
                         'cn': [netgroup2],
-                        'description': [u'Test netgroup 2'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 2'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                 ],
             ),
@@ -1014,20 +1014,20 @@ class test_netgroup(Declarative):
             expected=dict(
                 count=2,
                 truncated=False,
-                summary=u'2 netgroups matched',
+                summary='2 netgroups matched',
                 result=[
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                     },
                     {
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup2],
-                        'description': [u'Test netgroup 2'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Test netgroup 2'],
+                        'nisdomainname': ['%s' % api.env.domain],
                     },
                 ],
             ),
@@ -1037,11 +1037,11 @@ class test_netgroup(Declarative):
         dict(
             desc='Update %r' % netgroup1,
             command=('netgroup_mod', [netgroup1],
-                dict(description=u'Updated netgroup 1')
+                dict(description='Updated netgroup 1')
             ),
             expected=dict(
                 value=netgroup1,
-                summary=u'Modified netgroup "%s"' % netgroup1,
+                summary='Modified netgroup "%s"' % netgroup1,
                 result={
                         'memberhost_host': (host1,),
                         'memberhost_hostgroup': (hostgroup1,),
@@ -1049,8 +1049,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1084,8 +1084,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1118,8 +1118,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1151,8 +1151,8 @@ class test_netgroup(Declarative):
                         'memberuser_group': (group1,),
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1183,8 +1183,8 @@ class test_netgroup(Declarative):
                         'dn': fuzzy_netgroupdn,
                         'member_netgroup': (netgroup2,),
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1214,8 +1214,8 @@ class test_netgroup(Declarative):
                 result={
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1239,14 +1239,14 @@ class test_netgroup(Declarative):
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
-                        host=[('%s' % host1, u'This entry is not a member')]
+                        host=[('%s' % host1, 'This entry is not a member')]
                     ),
                 ),
                 result={
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1269,15 +1269,15 @@ class test_netgroup(Declarative):
                         user=tuple(),
                     ),
                     memberhost=dict(
-                        hostgroup=[('%s' % hostgroup1, u'This entry is not a member')],
+                        hostgroup=[('%s' % hostgroup1, 'This entry is not a member')],
                         host=tuple(),
                     ),
                 ),
                 result={
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1297,7 +1297,7 @@ class test_netgroup(Declarative):
                     ),
                     memberuser=dict(
                         group=tuple(),
-                        user=[('%s' % user1, u'This entry is not a member')],
+                        user=[('%s' % user1, 'This entry is not a member')],
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
@@ -1307,8 +1307,8 @@ class test_netgroup(Declarative):
                 result={
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1327,7 +1327,7 @@ class test_netgroup(Declarative):
                         netgroup=tuple(),
                     ),
                     memberuser=dict(
-                        group= [('%s' % group1, u'This entry is not a member')],
+                        group= [('%s' % group1, 'This entry is not a member')],
                         user=tuple(),
                     ),
                     memberhost=dict(
@@ -1338,8 +1338,8 @@ class test_netgroup(Declarative):
                 result={
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1355,7 +1355,7 @@ class test_netgroup(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        netgroup=[('%s' % netgroup2, u'This entry is not a member')],
+                        netgroup=[('%s' % netgroup2, 'This entry is not a member')],
                     ),
                     memberuser=dict(
                         group=tuple(),
@@ -1369,8 +1369,8 @@ class test_netgroup(Declarative):
                 result={
                         'dn': fuzzy_netgroupdn,
                         'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                        'description': ['Updated netgroup 1'],
+                        'nisdomainname': ['%s' % api.env.domain],
                         'externalhost': [unknown_host],
                 },
             ),
@@ -1382,7 +1382,7 @@ class test_netgroup(Declarative):
             command=('netgroup_del', [netgroup1], {}),
             expected=dict(
                 value=[netgroup1],
-                summary=u'Deleted netgroup "%s"' % netgroup1,
+                summary='Deleted netgroup "%s"' % netgroup1,
                 result=dict(failed=[]),
             ),
         ),

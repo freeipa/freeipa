@@ -27,15 +27,15 @@ from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 import pytest
 
-permission1 = u'testperm'
+permission1 = 'testperm'
 permission1_dn = DN(('cn',permission1),
                     api.env.container_permission,api.env.basedn)
 
-permission2 = u'testperm2'
+permission2 = 'testperm2'
 permission2_dn = DN(('cn',permission2),
                     api.env.container_permission,api.env.basedn)
 
-privilege1 = u'testpriv1'
+privilege1 = 'testpriv1'
 privilege1_dn = DN(('cn',privilege1),
                    api.env.container_privilege,api.env.basedn)
 
@@ -57,15 +57,15 @@ class test_privilege(Declarative):
             desc='Try to retrieve non-existent %r' % privilege1,
             command=('privilege_show', [privilege1], {}),
             expected=errors.NotFound(
-                reason=u'%s: privilege not found' % privilege1),
+                reason='%s: privilege not found' % privilege1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % privilege1,
-            command=('privilege_mod', [privilege1], dict(description=u'Foo')),
+            command=('privilege_mod', [privilege1], dict(description='Foo')),
             expected=errors.NotFound(
-                reason=u'%s: privilege not found' % privilege1),
+                reason='%s: privilege not found' % privilege1),
         ),
 
 
@@ -73,7 +73,7 @@ class test_privilege(Declarative):
             desc='Try to delete non-existent %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
             expected=errors.NotFound(
-                reason=u'%s: privilege not found' % privilege1),
+                reason='%s: privilege not found' % privilege1),
         ),
 
 
@@ -83,7 +83,7 @@ class test_privilege(Declarative):
             expected=dict(
                 count=0,
                 truncated=False,
-                summary=u'0 privileges matched',
+                summary='0 privileges matched',
                 result=[],
             ),
         ),
@@ -93,21 +93,21 @@ class test_privilege(Declarative):
             desc='Create %r' % permission1,
             command=(
                 'permission_add', [permission1], dict(
-                    type=u'user',
-                    ipapermright=[u'add', u'delete'],
+                    type='user',
+                    ipapermright=['add', 'delete'],
                 )
             ),
             expected=dict(
                 value=permission1,
-                summary=u'Added permission "%s"' % permission1,
+                summary='Added permission "%s"' % permission1,
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
-                    type=[u'user'],
-                    ipapermright=[u'add', u'delete'],
-                    ipapermbindruletype=[u'permission'],
-                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    type=['user'],
+                    ipapermright=['add', 'delete'],
+                    ipapermbindruletype=['permission'],
+                    ipapermissiontype=['SYSTEM', 'V2'],
                     ipapermlocation=[users_dn],
                 ),
             ),
@@ -117,15 +117,15 @@ class test_privilege(Declarative):
         dict(
             desc='Create %r' % privilege1,
             command=('privilege_add', [privilege1],
-                dict(description=u'privilege desc. 1')
+                dict(description='privilege desc. 1')
             ),
             expected=dict(
                 value=privilege1,
-                summary=u'Added privilege "%s"' % privilege1,
+                summary='Added privilege "%s"' % privilege1,
                 result=dict(
                     dn=privilege1_dn,
                     cn=[privilege1],
-                    description=[u'privilege desc. 1'],
+                    description=['privilege desc. 1'],
                     objectclass=objectclasses.privilege,
                 ),
             ),
@@ -147,7 +147,7 @@ class test_privilege(Declarative):
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'privilege desc. 1'],
+                    'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1],
                 }
             ),
@@ -163,7 +163,7 @@ class test_privilege(Declarative):
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'privilege desc. 1'],
+                    'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1],
                 },
             ),
@@ -176,12 +176,12 @@ class test_privilege(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 privilege matched',
+                summary='1 privilege matched',
                 result=[
                     {
                         'dn': privilege1_dn,
                         'cn': [privilege1],
-                        'description': [u'privilege desc. 1'],
+                        'description': ['privilege desc. 1'],
                         'memberof_permission': [permission1],
                     },
                 ],
@@ -195,12 +195,12 @@ class test_privilege(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 privilege matched',
+                summary='1 privilege matched',
                 result=[
                     {
                         'dn': privilege1_dn,
                         'cn': [privilege1],
-                        'description': [u'privilege desc. 1'],
+                        'description': ['privilege desc. 1'],
                     },
                 ],
             ),
@@ -213,12 +213,12 @@ class test_privilege(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 privilege matched',
+                summary='1 privilege matched',
                 result=[
                     {
                         'dn': privilege1_dn,
                         'cn': [privilege1],
-                        'description': [u'privilege desc. 1'],
+                        'description': ['privilege desc. 1'],
                         'memberof_permission': [permission1],
                     },
                 ],
@@ -232,12 +232,12 @@ class test_privilege(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 privilege matched',
+                summary='1 privilege matched',
                 result=[
                     {
                         'dn': privilege1_dn,
                         'cn': [privilege1],
-                        'description': [u'privilege desc. 1'],
+                        'description': ['privilege desc. 1'],
                     },
                 ],
             ),
@@ -248,13 +248,13 @@ class test_privilege(Declarative):
             desc='Create %r' % permission2,
             command=(
                 'permission_add', [permission2], dict(
-                    type=u'user',
-                    ipapermright=u'write',
+                    type='user',
+                    ipapermright='write',
                 )
             ),
             expected=dict(
                 value=permission2,
-                summary=u'Added permission "%s"' % permission2,
+                summary='Added permission "%s"' % permission2,
                 messages=(
                     {
                         'message': ('The permission has write rights but no '
@@ -271,10 +271,10 @@ class test_privilege(Declarative):
                     dn=permission2_dn,
                     cn=[permission2],
                     objectclass=objectclasses.permission,
-                    type=[u'user'],
-                    ipapermright=[u'write'],
-                    ipapermbindruletype=[u'permission'],
-                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    type=['user'],
+                    ipapermright=['write'],
+                    ipapermbindruletype=['permission'],
+                    ipapermissiontype=['SYSTEM', 'V2'],
                     ipapermlocation=[users_dn],
                 ),
             ),
@@ -296,7 +296,7 @@ class test_privilege(Declarative):
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'privilege desc. 1'],
+                    'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
                 }
             ),
@@ -312,13 +312,13 @@ class test_privilege(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        permission=[(u'testperm2', u'This entry is already a member'),],
+                        permission=[('testperm2', 'This entry is already a member'),],
                     ),
                 ),
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'privilege desc. 1'],
+                    'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
                 }
             ),
@@ -331,12 +331,12 @@ class test_privilege(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 privilege matched',
+                summary='1 privilege matched',
                 result=[
                     {
                         'dn': privilege1_dn,
                         'cn': [privilege1],
-                        'description': [u'privilege desc. 1'],
+                        'description': ['privilege desc. 1'],
                         'memberof_permission': [permission1, permission2],
                     },
                 ],
@@ -350,12 +350,12 @@ class test_privilege(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 privilege matched',
+                summary='1 privilege matched',
                 result=[
                     {
                         'dn': privilege1_dn,
                         'cn': [privilege1],
-                        'description': [u'privilege desc. 1'],
+                        'description': ['privilege desc. 1'],
                     },
                 ],
             ),
@@ -365,14 +365,14 @@ class test_privilege(Declarative):
         dict(
             desc='Update %r' % privilege1,
             command=(
-                'privilege_mod', [privilege1], dict(description=u'New desc 1')
+                'privilege_mod', [privilege1], dict(description='New desc 1')
             ),
             expected=dict(
                 value=privilege1,
-                summary=u'Modified privilege "%s"' % privilege1,
+                summary='Modified privilege "%s"' % privilege1,
                 result=dict(
                     cn=[privilege1],
-                    description=[u'New desc 1'],
+                    description=['New desc 1'],
                     memberof_permission=[permission1, permission2],
                 ),
             ),
@@ -394,7 +394,7 @@ class test_privilege(Declarative):
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'New desc 1'],
+                    'description': ['New desc 1'],
                     'memberof_permission': [permission2],
                 }
             ),
@@ -410,13 +410,13 @@ class test_privilege(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        permission=[(u'testperm', u'This entry is not a member'),],
+                        permission=[('testperm', 'This entry is not a member'),],
                     ),
                 ),
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'New desc 1'],
+                    'description': ['New desc 1'],
                     'memberof_permission': [permission2],
                 }
             ),
@@ -438,7 +438,7 @@ class test_privilege(Declarative):
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'New desc 1'],
+                    'description': ['New desc 1'],
                     'memberof_permission': [permission2],
                 }
             ),
@@ -460,7 +460,7 @@ class test_privilege(Declarative):
                 result={
                     'dn': privilege1_dn,
                     'cn': [privilege1],
-                    'description': [u'New desc 1'],
+                    'description': ['New desc 1'],
                     'memberof_permission': [permission2],
                 }
             ),
@@ -473,7 +473,7 @@ class test_privilege(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[privilege1],
-                summary=u'Deleted privilege "%s"' % privilege1,
+                summary='Deleted privilege "%s"' % privilege1,
             )
         ),
 

@@ -87,16 +87,16 @@ class serverroles(Backend):
         role_states = role.status(self.api, server=None)
 
         enabled_masters = [
-            r[u'server_server'] for r in role_states if
-            r[u'status'] == ENABLED
+            r['server_server'] for r in role_states if
+            r['status'] == ENABLED
         ]
         if enabled_masters:
             result.update({role.attr_name: enabled_masters})
 
         if include_hidden and role.attr_name_hidden is not None:
             hidden_masters = [
-                r[u'server_server'] for r in role_states if
-                r[u'status'] == HIDDEN
+                r['server_server'] for r in role_states if
+                r['status'] == HIDDEN
             ]
             if hidden_masters:
                 result.update({role.attr_name_hidden: hidden_masters})
@@ -132,7 +132,7 @@ class serverroles(Backend):
             result.extend(role_status)
 
         if status is not None:
-            return [r for r in result if r[u'status'] == status]
+            return [r for r in result if r['status'] == status]
 
         return result
 

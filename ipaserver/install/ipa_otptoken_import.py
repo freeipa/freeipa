@@ -88,29 +88,29 @@ def convertTokenType(value):
     "Converts token algorithm URI to token type string."
 
     return {
-        "urn:ietf:params:xml:ns:keyprov:pskc:hotp": u"hotp",
-        "urn:ietf:params:xml:ns:keyprov:pskc#hotp": u"hotp",
-        "urn:ietf:params:xml:ns:keyprov:pskc:totp": u"totp",
-        "urn:ietf:params:xml:ns:keyprov:pskc#totp": u"totp",
+        "urn:ietf:params:xml:ns:keyprov:pskc:hotp": "hotp",
+        "urn:ietf:params:xml:ns:keyprov:pskc#hotp": "hotp",
+        "urn:ietf:params:xml:ns:keyprov:pskc:totp": "totp",
+        "urn:ietf:params:xml:ns:keyprov:pskc#totp": "totp",
     }.get(value.lower(), None)
 
 
 def convertHashName(value):
     "Converts hash names to their canonical names."
 
-    default_hash = u"sha1"
+    default_hash = "sha1"
     known_prefixes = ("", "hmac-",)
     known_hashes = {
-        "sha1":    u"sha1",
-        "sha224":  u"sha224",
-        "sha256":  u"sha256",
-        "sha384":  u"sha384",
-        "sha512":  u"sha512",
-        "sha-1":   u"sha1",
-        "sha-224": u"sha224",
-        "sha-256": u"sha256",
-        "sha-384": u"sha384",
-        "sha-512": u"sha512",
+        "sha1":    "sha1",
+        "sha224":  "sha224",
+        "sha256":  "sha256",
+        "sha384":  "sha384",
+        "sha512":  "sha512",
+        "sha-1":   "sha1",
+        "sha-224": "sha224",
+        "sha-256": "sha256",
+        "sha-384": "sha384",
+        "sha-512": "sha512",
     }
 
     if value is None:

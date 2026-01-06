@@ -14,7 +14,7 @@ import pytest
 
 unicode = str
 
-TEST_ZONE = u'zoneadd.%(domain)s' % api.env
+TEST_ZONE = 'zoneadd.%(domain)s' % api.env
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 BASE_DIR = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir))
@@ -60,17 +60,17 @@ class TestCLIParsing:
         self.check_command('plugins', 'plugins')
 
     def test_user_show(self):
-        self.check_command('user-show admin', 'user_show', uid=u'admin')
+        self.check_command('user-show admin', 'user_show', uid='admin')
 
     def test_user_show_underscore(self):
-        self.check_command('user_show admin', 'user_show', uid=u'admin')
+        self.check_command('user_show admin', 'user_show', uid='admin')
 
     def test_group_add(self):
         self.check_command(
             'group-add tgroup1 --desc="Test group"',
             'group_add',
-            cn=u'tgroup1',
-            description=u'Test group',
+            cn='tgroup1',
+            description='Test group',
         )
 
     def test_sudocmdgroup_add_member(self):
@@ -79,16 +79,16 @@ class TestCLIParsing:
             # The following is as it would appear on the command line:
             r'sudocmdgroup-add-member tcmdgroup1 --sudocmds=ab,c --sudocmds=d',
             'sudocmdgroup_add_member',
-            cn=u'tcmdgroup1',
-            sudocmd=[u'ab,c', u'd'],
+            cn='tcmdgroup1',
+            sudocmd=['ab,c', 'd'],
         )
 
     def test_group_add_nonposix(self):
         self.check_command(
             'group-add tgroup1 --desc="Test group" --nonposix',
             'group_add',
-            cn=u'tgroup1',
-            description=u'Test group',
+            cn='tgroup1',
+            description='Test group',
             nonposix=True,
         )
 
@@ -96,16 +96,16 @@ class TestCLIParsing:
         self.check_command(
             'group-add tgroup1 --desc="Test group" --gid=1234',
             'group_add',
-            cn=u'tgroup1',
-            description=u'Test group',
-            gidnumber=u'1234',
+            cn='tgroup1',
+            description='Test group',
+            gidnumber='1234',
         )
 
     def test_group_add_interactive(self):
         with self.fake_stdin('Test group\n'):
             self.check_command(
                 'group-add tgroup1', 'group_add',
-                cn=u'tgroup1',
+                cn='tgroup1',
             )
 
     def test_dnsrecord_add(self):
@@ -113,8 +113,8 @@ class TestCLIParsing:
             'dnsrecord-add %s ns --a-rec=1.2.3.4' % TEST_ZONE,
             'dnsrecord_add',
             dnszoneidnsname=TEST_ZONE,
-            idnsname=u'ns',
-            arecord=u'1.2.3.4',
+            idnsname='ns',
+            arecord='1.2.3.4',
         )
 
     def test_dnsrecord_del_all(self):
@@ -125,13 +125,13 @@ class TestCLIParsing:
         try:
             self.run_command('dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname=u'ns', arecord=u'1.2.3.4', force=True)
+                idnsname='ns', arecord='1.2.3.4', force=True)
             with self.fake_stdin('yes\n'):
                 self.check_command(
                     'dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
-                    idnsname=u'ns',
+                    idnsname='ns',
                     del_all=True,
                 )
             with self.fake_stdin('YeS\n'):
@@ -139,7 +139,7 @@ class TestCLIParsing:
                     'dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
-                    idnsname=u'ns',
+                    idnsname='ns',
                     del_all=True,
                 )
         finally:
@@ -151,32 +151,32 @@ class TestCLIParsing:
         except errors.NotFound:
             pytest.skip('DNS is not configured')
         try:
-            records = (u'1 1 E3B72BA346B90570EED94BE9334E34AA795CED23',
-                       u'2 1 FD2693C1EFFC11A8D2BE57229212A04B45663791')
+            records = ('1 1 E3B72BA346B90570EED94BE9334E34AA795CED23',
+                       '2 1 FD2693C1EFFC11A8D2BE57229212A04B45663791')
             for record in records:
                 self.run_command('dnsrecord_add',
-                    dnszoneidnsname=TEST_ZONE, idnsname=u'ns',
+                    dnszoneidnsname=TEST_ZONE, idnsname='ns',
                     sshfprecord=record)
             with self.fake_stdin('no\nyes\nyes\n'):
                 self.check_command(
                     'dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
-                    idnsname=u'ns',
+                    idnsname='ns',
                     sshfprecord=records,
                 )
         finally:
             self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
     def test_dnsrecord_add_ask_for_missing_fields(self):
-        sshfp_parts = (1, 1, u'E3B72BA346B90570EED94BE9334E34AA795CED23')
+        sshfp_parts = (1, 1, 'E3B72BA346B90570EED94BE9334E34AA795CED23')
 
         with self.fake_stdin('SSHFP\n%d\n%d\n%s' % sshfp_parts):
             self.check_command(
                 'dnsrecord-add %s sshfp' % TEST_ZONE,
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname=u'sshfp',
+                idnsname='sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 sshfp_part_algorithm=sshfp_parts[1],
                 sshfp_part_fingerprint=sshfp_parts[2],
@@ -188,7 +188,7 @@ class TestCLIParsing:
                 'dnsrecord-add %s sshfp' % TEST_ZONE,
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname=u'sshfp',
+                idnsname='sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 sshfp_part_algorithm=sshfp_parts[1],
                 sshfp_part_fingerprint=sshfp_parts[2],
@@ -202,7 +202,7 @@ class TestCLIParsing:
                     TEST_ZONE, sshfp_parts[0]),
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname=u'sshfp',
+                idnsname='sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 # passed via cmdline
                 sshfp_part_algorithm=unicode(sshfp_parts[1]),
@@ -216,7 +216,7 @@ class TestCLIParsing:
                     TEST_ZONE, sshfp_parts[0], sshfp_parts[1]),
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname=u'sshfp',
+                idnsname='sshfp',
                 # passed via cmdline
                 sshfp_part_fp_type=unicode(sshfp_parts[0]),
                 # passed via cmdline
@@ -234,15 +234,15 @@ class TestCLIParsing:
             self.run_command(
                 'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname=u'test',
-                txtrecord=u'"A pretty little problem," said Holmes.')
+                idnsname='test',
+                txtrecord='"A pretty little problem," said Holmes.')
             with self.fake_stdin('no\nyes\n'):
                 self.check_command(
                     'dnsrecord_del %s test' % TEST_ZONE,
                     'dnsrecord_del',
                     dnszoneidnsname=TEST_ZONE,
-                    idnsname=u'test',
-                    txtrecord=[u'"A pretty little problem," said Holmes.'])
+                    idnsname='test',
+                    txtrecord=['"A pretty little problem," said Holmes.'])
         finally:
             self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
@@ -255,9 +255,9 @@ class TestCLIParsing:
                 self.check_command(
                     'idrange_add range1 --base-id=1 --range-size=1',
                     'idrange_add',
-                    cn=u'range1',
-                    ipabaseid=u'1',
-                    ipaidrangesize=u'1',
+                    cn='range1',
+                    ipabaseid='1',
+                    ipaidrangesize='1',
                     ipabaserid=5,
                     ipasecondarybaserid=500000,
                 )
@@ -267,11 +267,11 @@ class TestCLIParsing:
                 'idrange_add range1 --base-id=1 --range-size=1 '
                 '--rid-base=5 --secondary-rid-base=500000',
                 'idrange_add',
-                cn=u'range1',
-                ipabaseid=u'1',
-                ipaidrangesize=u'1',
-                ipabaserid=u'5',
-                ipasecondarybaserid=u'500000',
+                cn='range1',
+                ipabaseid='1',
+                ipaidrangesize='1',
+                ipabaserid='5',
+                ipasecondarybaserid='500000',
             )
 
         adtrust_dn = 'cn=ADTRUST,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % \

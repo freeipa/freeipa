@@ -1328,8 +1328,8 @@ def ntpd_cleanup(fqdn, fstore):
         logger.debug("NTP service entry was not found in LDAP.")
 
     ntp_role_instance = servroles.ServiceBasedRole(
-         u"ntp_server_server",
-         u"NTP server",
+         "ntp_server_server",
+         "NTP server",
          component_services=['NTP']
     )
 
@@ -1379,12 +1379,12 @@ def migrate_to_authselect():
 
 def add_systemd_user_hbac():
     logger.info('[Create systemd-user hbac service and rule]')
-    rule = u'allow_systemd-user'
-    service = u'systemd-user'
+    rule = 'allow_systemd-user'
+    service = 'systemd-user'
     try:
         api.Command.hbacsvc_add(
             service,
-            description=u'pam_systemd and systemd user@.service'
+            description='pam_systemd and systemd user@.service'
         )
     except ipalib.errors.DuplicateEntry:
         logger.info('hbac service %s already exists', service)
@@ -1397,10 +1397,10 @@ def add_systemd_user_hbac():
     try:
         api.Command.hbacrule_add(
             rule,
-            description=(u'Allow pam_systemd to run user@.service to create '
+            description=('Allow pam_systemd to run user@.service to create '
                          'a system user session'),
-            usercategory=u'all',
-            hostcategory=u'all',
+            usercategory='all',
+            hostcategory='all',
         )
     except ipalib.errors.DuplicateEntry:
         logger.info('hbac rule %s already exists', rule)

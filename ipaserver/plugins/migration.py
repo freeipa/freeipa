@@ -146,11 +146,11 @@ _grp_err_msg = _('Failed to add user to the default group. Use \'ipa group-add-m
 _ref_err_msg = _('Migration of LDAP search reference is not supported.')
 _dn_err_msg = _('Malformed DN')
 
-_supported_schemas = (u'RFC2307bis', u'RFC2307')
+_supported_schemas = ('RFC2307bis', 'RFC2307')
 
 # search scopes for users and groups when migrating
-_supported_scopes = {u'base': SCOPE_BASE, u'onelevel': SCOPE_ONELEVEL, u'subtree': SCOPE_SUBTREE}
-_default_scope = u'onelevel'
+_supported_scopes = {'base': SCOPE_BASE, 'onelevel': SCOPE_ONELEVEL, 'subtree': SCOPE_SUBTREE}
+_default_scope = 'onelevel'
 
 
 def _create_kerberos_principals(ldap, pkey, entry_attrs, failed):
@@ -560,14 +560,14 @@ class migrate_ds(Command):
             cli_name='user_objectclass',
             label=_('User object class'),
             doc=_('Objectclasses used to search for user entries in DS'),
-            default=(u'person',),
+            default=('person',),
             autofill=True,
         ),
         Str('groupobjectclass+',
             cli_name='group_objectclass',
             label=_('Group object class'),
             doc=_('Objectclasses used to search for group entries in DS'),
-            default=(u'groupOfUniqueNames', u'groupOfNames'),
+            default=('groupOfUniqueNames', 'groupOfNames'),
             autofill=True,
         ),
         Str('userignoreobjectclass*',

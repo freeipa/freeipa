@@ -47,18 +47,18 @@ logger = logging.getLogger(__name__)
 Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store_issued'])
 
 INCLUDED_PROFILES = {
-    Profile(u'caIPAserviceCert', u'Standard profile for network services', True),
-    Profile(u'IECUserRoles', u'User profile that includes IECUserRoles extension from request', True),
-    Profile(u'KDCs_PKINIT_Certs',
-            u'Profile for PKINIT support by KDCs',
+    Profile('caIPAserviceCert', 'Standard profile for network services', True),
+    Profile('IECUserRoles', 'User profile that includes IECUserRoles extension from request', True),
+    Profile('KDCs_PKINIT_Certs',
+            'Profile for PKINIT support by KDCs',
             False),
-    Profile(u'acmeIPAServerCert',
-            u'ACME IPA service certificate profile',
+    Profile('acmeIPAServerCert',
+            'ACME IPA service certificate profile',
             False),
     }
 
-DEFAULT_PROFILE = u'caIPAserviceCert'
-KDC_PROFILE = u'KDCs_PKINIT_Certs'
+DEFAULT_PROFILE = 'caIPAserviceCert'
+KDC_PROFILE = 'KDCs_PKINIT_Certs'
 OCSP_PROFILE = 'caOCSPCert'
 SUBSYSTEM_PROFILE = 'caSubsystemCert'
 AUDIT_PROFILE = 'caSignedLogCert'
@@ -253,7 +253,7 @@ def _httplib_request(
     if connection_options is None:
         connection_options = {}
 
-    uri = u'%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
+    uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
     logger.debug('request %s %s', method, uri)
     logger.debug('request body %r', request_body)
 

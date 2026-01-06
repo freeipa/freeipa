@@ -19,7 +19,7 @@ from ipatests.test_xmlrpc.tracker.ca_plugin import CATracker
 @pytest.fixture(scope='module')
 def default_profile(request):
     name = 'caIPAserviceCert'
-    desc = u'Standard profile for network services'
+    desc = 'Standard profile for network services'
     tracker = CertprofileTracker(name, store=True, desc=desc)
     tracker.track_create()
     return tracker
@@ -27,18 +27,18 @@ def default_profile(request):
 
 @pytest.fixture(scope='module')
 def default_acl(request):
-    name = u'hosts_services_caIPAserviceCert'
-    tracker = CAACLTracker(name, service_category=u'all', host_category=u'all')
+    name = 'hosts_services_caIPAserviceCert'
+    tracker = CAACLTracker(name, service_category='all', host_category='all')
     tracker.track_create()
     tracker.attrs.update(
-        {u'ipamembercertprofile_certprofile': [u'caIPAserviceCert']})
+        {'ipamembercertprofile_certprofile': ['caIPAserviceCert']})
     return tracker
 
 
 @pytest.fixture(scope='module')
 def default_ca(request):
-    name = u'ipa'
-    desc = u'IPA CA'
+    name = 'ipa'
+    desc = 'IPA CA'
     tracker = CATracker(name, fuzzy_issuer, desc=desc)
     tracker.track_create()
     return tracker
@@ -46,8 +46,8 @@ def default_ca(request):
 
 @pytest.fixture(scope='class')
 def crud_subca(request, xmlrpc_setup):
-    name = u'crud-subca'
-    subject = u'CN=crud subca test,O=crud testing inc'
+    name = 'crud-subca'
+    subject = 'CN=crud subca test,O=crud testing inc'
     tracker = CATracker(name, subject, auto_disable_for_delete=False)
 
     return tracker.make_fixture(request)
@@ -55,8 +55,8 @@ def crud_subca(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def subject_conflict_subca(request, xmlrpc_setup):
-    name = u'crud-subca-2'
-    subject = u'CN=crud subca test,O=crud testing inc'
+    name = 'crud-subca-2'
+    subject = 'CN=crud subca test,O=crud testing inc'
     tracker = CATracker(name, subject)
 
     # Should not get created, no need to delete
@@ -65,8 +65,8 @@ def subject_conflict_subca(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def unrecognised_subject_dn_attrs_subca(request, xmlrpc_setup):
-    name = u'crud-subca-3'
-    subject = u'CN=crud subca test,DN=example.com,O=crud testing inc'
+    name = 'crud-subca-3'
+    subject = 'CN=crud subca test,DN=example.com,O=crud testing inc'
     tracker = CATracker(name, subject)
 
     # Should not get created, no need to delete
@@ -92,7 +92,7 @@ class TestDefaultCA(XMLRPC_test):
 @pytest.mark.tier1
 class TestCAbasicCRUD(XMLRPC_test):
 
-    ATTR_ERROR_MSG = u'attribute is not configurable'
+    ATTR_ERROR_MSG = 'attribute is not configurable'
 
     def test_create(self, crud_subca):
         crud_subca.create()
@@ -106,7 +106,7 @@ class TestCAbasicCRUD(XMLRPC_test):
     def test_export_ca(self, tmpdir, crud_subca):
         exported_ca = tmpdir.join('exported_ca')
         command = crud_subca.make_retrieve_command(
-            certificate_out=u'%s' % exported_ca,
+            certificate_out='%s' % exported_ca,
         )
         command()
 
@@ -125,7 +125,7 @@ class TestCAbasicCRUD(XMLRPC_test):
         crud_subca.find()
 
     def test_modify_description(self, crud_subca):
-        new_desc = u'updated CA description'
+        new_desc = 'updated CA description'
         crud_subca.update(
             dict(
                 description=new_desc,
@@ -136,7 +136,7 @@ class TestCAbasicCRUD(XMLRPC_test):
         )
 
     def test_modify_issuerdn(self, crud_subca):
-        bogus_issuer = u'ipacaissuerdn="cn=phony issuer,o=phony industries'
+        bogus_issuer = 'ipacaissuerdn="cn=phony issuer,o=phony industries'
         cmd = crud_subca.make_update_command(
             updates=dict(setattr=bogus_issuer)
         )
@@ -147,7 +147,7 @@ class TestCAbasicCRUD(XMLRPC_test):
         assert self.ATTR_ERROR_MSG in str(error.value)
 
     def test_modify_subjectdn(self, crud_subca):
-        bogus_subject = u'ipacasubjectdn="cn=phony subject,o=phony industries'
+        bogus_subject = 'ipacasubjectdn="cn=phony subject,o=phony industries'
         cmd = crud_subca.make_update_command(
             updates=dict(setattr=bogus_subject)
         )
@@ -159,7 +159,7 @@ class TestCAbasicCRUD(XMLRPC_test):
 
     def test_delete_subjectdn(self, crud_subca):
         cmd = crud_subca.make_update_command(
-            updates=dict(delattr=u'ipacasubjectdn=%s'
+            updates=dict(delattr='ipacasubjectdn=%s'
                          % crud_subca.ipasubjectdn)
         )
 
@@ -169,7 +169,7 @@ class TestCAbasicCRUD(XMLRPC_test):
         assert self.ATTR_ERROR_MSG in str(error.value)
 
     def test_add_bogus_subjectdn(self, crud_subca):
-        bogus_subject = u'ipacasubjectdn="cn=phony subject,o=phony industries'
+        bogus_subject = 'ipacasubjectdn="cn=phony subject,o=phony industries'
         cmd = crud_subca.make_update_command(
             updates=dict(addattr=bogus_subject)
         )
@@ -180,7 +180,7 @@ class TestCAbasicCRUD(XMLRPC_test):
         assert self.ATTR_ERROR_MSG in str(error.value)
 
     def test_add_bogus_issuerdn(self, crud_subca):
-        bogus_issuer = u'ipacaissuerdn="cn=phony issuer,o=phony industries'
+        bogus_issuer = 'ipacaissuerdn="cn=phony issuer,o=phony industries'
         cmd = crud_subca.make_update_command(
             updates=dict(addattr=bogus_issuer)
         )

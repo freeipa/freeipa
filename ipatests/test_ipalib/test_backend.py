@@ -203,7 +203,7 @@ class test_Executioner(ClassChecker):
             def execute(self, **options):
                 raise errors.ValidationError(
                     name='nurse',
-                    error=u'Not naughty!',
+                    error='Not naughty!',
                 )
         api.add_plugin(good)
 
@@ -237,9 +237,9 @@ class test_Executioner(ClassChecker):
 
         # Test with echo command:
         arg1 = unicode_str
-        arg2 = (u'Hello', unicode_str, u'world!')
+        arg2 = ('Hello', unicode_str, 'world!')
         args = (arg1,) + arg2
-        options = dict(option1=u'How are you?', option2=unicode_str,
+        options = dict(option1='How are you?', option2=unicode_str,
                        version=API_VERSION)
 
         conn = Connection('The connection.', Disconnect('someconn'))
@@ -267,7 +267,7 @@ class test_Executioner(ClassChecker):
         context.someconn = conn
         e = raises(errors.ValidationError, o.execute, 'good')
         assert e.name == 'nurse'
-        assert e.error == u'Not naughty!'
+        assert e.error == 'Not naughty!'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
         assert list(context.__dict__) == []
 
@@ -281,6 +281,6 @@ class test_Executioner(ClassChecker):
         # Test with option 'name':
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
-        expected = dict(result=u'TEST')
-        assert expected == o.execute('with_name', name=u'test',
+        expected = dict(result='TEST')
+        assert expected == o.execute('with_name', name='test',
                                      version=API_VERSION)

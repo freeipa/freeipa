@@ -95,12 +95,12 @@ to delegate, causing the framework to stop functioning.
 register = Registry()
 
 PROTECTED_CONSTRAINT_RULES = (
-    u'ipa-http-delegation',
+    'ipa-http-delegation',
 )
 
 PROTECTED_CONSTRAINT_TARGETS = (
-    u'ipa-cifs-delegation-targets',
-    u'ipa-ldap-delegation-targets',
+    'ipa-cifs-delegation-targets',
+    'ipa-ldap-delegation-targets',
 
 )
 
@@ -406,9 +406,9 @@ class servicedelegationrule_del(LDAPDelete):
         assert isinstance(dn, DN)
         if keys[0] in PROTECTED_CONSTRAINT_RULES:
             raise errors.ProtectedEntryError(
-                label=_(u'service delegation rule'),
+                label=_('service delegation rule'),
                 key=keys[0],
-                reason=_(u'privileged service delegation rule')
+                reason=_('privileged service delegation rule')
             )
         return dn
 
@@ -495,9 +495,9 @@ class servicedelegationtarget_del(LDAPDelete):
         assert isinstance(dn, DN)
         if keys[0] in PROTECTED_CONSTRAINT_TARGETS:
             raise errors.ProtectedEntryError(
-                label=_(u'service delegation target'),
+                label=_('service delegation target'),
                 key=keys[0],
-                reason=_(u'privileged service delegation target')
+                reason=_('privileged service delegation target')
             )
         return dn
 

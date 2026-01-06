@@ -925,7 +925,7 @@ def ipa_generate_password(entropy_bits=256, uppercase=1, lowercase=1, digits=1,
     rnd = random.SystemRandom()
 
     todo_entropy = entropy_bits
-    password = u''
+    password = ''
     # Generate required character classes:
     # The order of generated characters is fixed to comply with check in
     # NSS function sftk_newPinCheck() in nss/lib/softoken/fipstokn.c.
@@ -1138,14 +1138,14 @@ $)''', re.VERBOSE)
                     if option is not None:
                         if replacevars and option in replacevars:
                             # replace value completely
-                            new_line = u"%s=%s\n" % (option, replacevars[option])
+                            new_line = "%s=%s\n" % (option, replacevars[option])
                             old_values[option] = value
                         if appendvars and option in appendvars:
                             # append new value unless it is already existing in the original one
                             if not value:
-                                new_line = u"%s=%s\n" % (option, appendvars[option])
+                                new_line = "%s=%s\n" % (option, appendvars[option])
                             elif value.find(appendvars[option]) == -1:
-                                new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = "%s=%s %s\n" % (option, value, appendvars[option])
                             old_values[option] = value
                         if removevars and option in removevars:
                             old_values[option] = value
@@ -1240,14 +1240,14 @@ $)''', re.VERBOSE)
                         # Great, this is an option from the section we are loking for
                         if replacevars and option in replacevars:
                             # replace value completely
-                            new_line = u"%s=%s\n" % (option, replacevars[option])
+                            new_line = "%s=%s\n" % (option, replacevars[option])
                             old_values[option] = value
                         if appendvars and option in appendvars:
                             # append a new value unless it is already existing in the original one
                             if not value:
-                                new_line = u"%s=%s\n" % (option, appendvars[option])
+                                new_line = "%s=%s\n" % (option, appendvars[option])
                             elif value.find(appendvars[option]) == -1:
-                                new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = "%s=%s %s\n" % (option, value, appendvars[option])
                             old_values[option] = value
                     new_config.write(new_line)
             # We have finished parsing the original file.
@@ -1445,7 +1445,7 @@ def private_krb5_config(realm, server, dir="/run/ipa"):
     cfg = paths.KRB5_CONF
     tcfg = None
     if server:
-        content = textwrap.dedent(u"""
+        content = textwrap.dedent("""
             [realms]
                %s = {
                    kdc = %s
@@ -1506,7 +1506,7 @@ def escape_seq(seq, *args):
     :returns: tuple of strings with escaped sequences
     """
 
-    return tuple(a.replace(seq, u'\\{}'.format(seq)) for a in args)
+    return tuple(a.replace(seq, '\\{}'.format(seq)) for a in args)
 
 
 def decode_json(data):
@@ -1567,7 +1567,7 @@ class APIVersion(tuple):
     __slots__ = ()
 
     def __new__(cls, version):
-        major, dot, minor = version.partition(u'.')
+        major, dot, minor = version.partition('.')
         major = int(major)
         minor = int(minor) if dot else 0
         return tuple.__new__(cls, (major, minor))

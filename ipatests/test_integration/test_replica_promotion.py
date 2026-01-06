@@ -1016,11 +1016,11 @@ class TestHiddenReplicaPromotion(IntegrationTest):
                 assert value not in records
 
     def _check_server_role(self, host, status, kra=True, dns=True):
-        roles = [u'IPA master', u'CA server']
+        roles = ['IPA master', 'CA server']
         if kra:
-            roles.append(u'KRA server')
+            roles.append('KRA server')
         if dns:
-            roles.append(u'DNS server')
+            roles.append('DNS server')
         for role in roles:
             result = self.replicas[0].run_command([
                 'ipa', 'server-role-find',

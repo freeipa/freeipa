@@ -146,7 +146,7 @@ class ADTRUSTInstance(service.Service):
     OBJC_USER = "ipaNTUserAttrs"
     OBJC_GROUP = "ipaNTGroupAttrs"
     OBJC_DOMAIN = "ipaNTDomainAttrs"
-    FALLBACK_GROUP_NAME = u'Default SMB Group'
+    FALLBACK_GROUP_NAME = 'Default SMB Group'
     SERVER_ROLE_OLD = "CLASSIC PRIMARY DOMAIN CONTROLLER"
     SERVER_ROLE_NEW = "IPA PRIMARY DOMAIN CONTROLLER"
 
@@ -169,7 +169,7 @@ class ADTRUSTInstance(service.Service):
         if self.fulltrust:
             super(ADTRUSTInstance, self).__init__(
                 "smb", service_desc="CIFS", fstore=fstore,
-                service_prefix=u'cifs',
+                service_prefix='cifs',
                 keytab=paths.SAMBA_KEYTAB)
         else:
             super(ADTRUSTInstance, self).__init__("SID generation")

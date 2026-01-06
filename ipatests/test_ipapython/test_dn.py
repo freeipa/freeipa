@@ -117,19 +117,19 @@ class TestAVA:
         # Create with non-string parameters, should convert
         ava1 = AVA(1, self.value1)
         self.assertExpectedClass(AVA, ava1, 'self')
-        assert ava1.attr == u'1'
+        assert ava1.attr == '1'
 
         ava1 = AVA((1, self.value1))
         self.assertExpectedClass(AVA, ava1, 'self')
-        assert ava1.attr == u'1'
+        assert ava1.attr == '1'
 
         ava1 = AVA(self.attr1, 1)
         self.assertExpectedClass(AVA, ava1, 'self')
-        assert ava1.value == u'1'
+        assert ava1.value == '1'
 
         ava1 = AVA((self.attr1, 1))
         self.assertExpectedClass(AVA, ava1, 'self')
-        assert ava1.value == u'1'
+        assert ava1.value == '1'
 
     def test_indexing(self):
         ava1 = AVA(self.ava1)
@@ -627,7 +627,7 @@ class TestDN:
     def dn_setup(self):
         # ava1 must sort before ava2
         self.attr1    = 'cn'
-        self.value1   = u'Bob'
+        self.value1   = 'Bob'
         self.str_ava1 = '%s=%s' % (self.attr1, self.value1)
         self.ava1     = AVA(self.attr1, self.value1)
 
@@ -635,7 +635,7 @@ class TestDN:
         self.rdn1     = RDN((self.attr1, self.value1))
 
         self.attr2    = 'ou'
-        self.value2   = u'people'
+        self.value2   = 'people'
         self.str_ava2 = '%s=%s' % (self.attr2, self.value2)
         self.ava2     = AVA(self.attr2, self.value2)
 
@@ -1362,10 +1362,10 @@ class TestInternationalization:
         ('', []),
         ('cn=bob', [[('cn', 'bob', 1)]]),
         ('cn=Bob', [[('cn', 'Bob', 1)]]),
-        (u'cn=b\xf6b', [[('cn', u'b\xf6b', 4)]]),
+        ('cn=b\xf6b', [[('cn', 'b\xf6b', 4)]]),
         ('cn=bob,sn=builder', [[('cn', 'bob', 1)], [('sn', 'builder', 1)]]),
-        (u'cn=b\xf6b,sn=builder', [
-            [('cn', u'b\xf6b', 4)], [('sn', 'builder', 1)]
+        ('cn=b\xf6b,sn=builder', [
+            [('cn', 'b\xf6b', 4)], [('sn', 'builder', 1)]
         ]),
         ('cn=bob+sn=builder', [[('cn', 'bob', 1), ('sn', 'builder', 1)]]),
         ('dc=ipa,dc=example', [[('dc', 'ipa', 1)], [('dc', 'example', 1)]]),

@@ -224,7 +224,7 @@ def normalize_zonemgr(zonemgr):
         # local-part needs to be normalized
         name, _at, domain = zonemgr.partition('@')
         name = name.replace('.', '\\.')
-        zonemgr = u''.join((name, u'.', domain))
+        zonemgr = ''.join((name, '.', domain))
 
     return zonemgr
 
@@ -525,8 +525,8 @@ def convert_sshpubkey_post(entry_attrs):
         fp = pubkey.fingerprint_hex_sha256()
         comment = pubkey.comment()
         if comment:
-            fp = u'%s %s' % (fp, comment)
-        fp = u'%s (%s)' % (fp, pubkey.keytype())
+            fp = '%s %s' % (fp, comment)
+        fp = '%s (%s)' % (fp, pubkey.keytype())
 
         newpubkeys.append(pubkey.openssh())
         fingerprints.append(fp)
@@ -948,7 +948,7 @@ def validate_idna_domain(value):
         #compare if IDN normalized and original domain match
         #there is N:1 mapping between unicode and IDNA names
         #user should use normalized names to avoid mistakes
-        labels = re.split(u'[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
+        labels = re.split('[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
         try:
             for label in labels:
                 label.encode("ascii")
@@ -1088,7 +1088,7 @@ class classobjectproperty(classproperty):
 
 def normalize_hostname(hostname):
     """Use common fqdn form without the trailing dot"""
-    if hostname.endswith(u'.'):
+    if hostname.endswith('.'):
         hostname = hostname[:-1]
     hostname = hostname.lower()
     return hostname
@@ -1128,7 +1128,7 @@ def ipaddr_validator(ugettext, ipaddr, ip_version=None):
 
 
 def validate_bind_forwarder(ugettext, forwarder):
-    ip_address, sep, port = forwarder.partition(u' port ')
+    ip_address, sep, port = forwarder.partition(' port ')
 
     ip_address_validation = ipaddr_validator(ugettext, ip_address)
 
@@ -1238,7 +1238,7 @@ def _collect_trust_namespaces(api_instance, add_local=False):
     :return: set of namespace names as strings.
              If add_local is True, add own realm namesapce
     """
-    trust_objects = api_instance.Command.trust_find(u'', sizelimit=0)['result']
+    trust_objects = api_instance.Command.trust_find('', sizelimit=0)['result']
 
     trust_suffix_namespace = set()
 

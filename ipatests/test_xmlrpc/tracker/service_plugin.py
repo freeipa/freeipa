@@ -32,25 +32,25 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
     """
 
     retrieve_keys = {
-        u'dn', u'krbprincipalname', u'usercertificate', u'has_keytab',
-        u'ipakrbauthzdata', u'ipaallowedtoperform', u'subject',
-        u'managedby', u'serial_number', u'serial_number_hex', u'issuer',
-        u'valid_not_before', u'valid_not_after', u'sha1_fingerprint',
-        u'sha256_fingerprint', u'krbprincipalauthind', u'managedby_host',
-        u'krbcanonicalname'}
+        'dn', 'krbprincipalname', 'usercertificate', 'has_keytab',
+        'ipakrbauthzdata', 'ipaallowedtoperform', 'subject',
+        'managedby', 'serial_number', 'serial_number_hex', 'issuer',
+        'valid_not_before', 'valid_not_after', 'sha1_fingerprint',
+        'sha256_fingerprint', 'krbprincipalauthind', 'managedby_host',
+        'krbcanonicalname'}
     retrieve_all_keys = retrieve_keys | {
-        u'ipaKrbPrincipalAlias', u'ipaUniqueID', u'krbExtraData',
-        u'krbLastPwdChange', u'krbLoginFailedCount', u'memberof',
-        u'objectClass', u'ipakrbrequirespreauth', u'krbpwdpolicyreference',
-        u'ipakrbokasdelegate', u'ipakrboktoauthasdelegate'}
+        'ipaKrbPrincipalAlias', 'ipaUniqueID', 'krbExtraData',
+        'krbLastPwdChange', 'krbLoginFailedCount', 'memberof',
+        'objectClass', 'ipakrbrequirespreauth', 'krbpwdpolicyreference',
+        'ipakrbokasdelegate', 'ipakrboktoauthasdelegate'}
 
-    create_keys = (retrieve_keys | {u'objectclass', u'ipauniqueid'}) - {
-        u'usercertificate', u'has_keytab'}
-    update_keys = retrieve_keys - {u'dn', u'has_keytab'}
+    create_keys = (retrieve_keys | {'objectclass', 'ipauniqueid'}) - {
+        'usercertificate', 'has_keytab'}
+    update_keys = retrieve_keys - {'dn', 'has_keytab'}
 
     def __init__(self, name, host_fqdn, options=None):
         super(ServiceTracker, self).__init__(default_version=None)
-        self._name = u"{0}/{1}@{2}".format(name, host_fqdn, api.env.realm)
+        self._name = "{0}/{1}@{2}".format(name, host_fqdn, api.env.realm)
         self.dn = DN(
             ('krbprincipalname', self.name), api.env.container_service,
             api.env.basedn)
@@ -98,16 +98,16 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
     def track_create(self, **options):
         """ Update expected state for service creation """
         self.attrs = {
-            u'dn': self.dn,
-            u'krbprincipalname': [u'{0}'.format(self.name)],
-            u'objectclass': objectclasses.service,
-            u'ipauniqueid': [fuzzy_uuid],
-            u'managedby_host': [self.host_fqdn],
-            u'krbcanonicalname': [u'{0}'.format(self.name)],
-            u'has_keytab': False,
-            u'ipakrboktoauthasdelegate': False,
-            u'krbpwdpolicyreference': [DN(
-                u'cn=Default Service Password Policy',
+            'dn': self.dn,
+            'krbprincipalname': ['{0}'.format(self.name)],
+            'objectclass': objectclasses.service,
+            'ipauniqueid': [fuzzy_uuid],
+            'managedby_host': [self.host_fqdn],
+            'krbcanonicalname': ['{0}'.format(self.name)],
+            'has_keytab': False,
+            'ipakrboktoauthasdelegate': False,
+            'krbpwdpolicyreference': [DN(
+                'cn=Default Service Password Policy',
                 self.api.env.container_service,
                 self.api.env.basedn,
             )],
@@ -121,17 +121,17 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
     def check_create(self, result):
         """ Check service-add command result """
         assert_deepequal({
-            u'value': u'{0}'.format(self.name),
-            u'summary': u'Added service "{0}"'.format(self.name),
-            u'result': self.filter_attrs(self.create_keys)
+            'value': '{0}'.format(self.name),
+            'summary': 'Added service "{0}"'.format(self.name),
+            'result': self.filter_attrs(self.create_keys)
             }, result)
 
     def check_delete(self, result):
         """ Check service-del command result """
         assert_deepequal({
-            u'value': [u'{0}'.format(self.name)],
-            u'summary': u'Deleted service "{0}"'.format(self.name),
-            u'result': {u'failed': []}
+            'value': ['{0}'.format(self.name)],
+            'summary': 'Deleted service "{0}"'.format(self.name),
+            'result': {'failed': []}
             }, result)
 
     def check_retrieve(self, result, all=False, raw=False):
@@ -142,9 +142,9 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
             expected = self.filter_attrs(self.retrieve_keys)
 
         assert_deepequal({
-            u'value': u'{0}'.format(self.name),
-            u'summary': None,
-            u'result': expected,
+            'value': '{0}'.format(self.name),
+            'summary': None,
+            'result': expected,
         }, result)
 
     def check_find(self, result, all=False, raw=False):
@@ -155,18 +155,18 @@ class ServiceTracker(KerberosAliasMixin, Tracker):
             expected = self.filter_attrs(self.retrieve_keys)
 
         assert_deepequal({
-            u'count': 1,
-            u'truncated': False,
-            u'summary': u'1 service matched',
-            u'result': [expected]
+            'count': 1,
+            'truncated': False,
+            'summary': '1 service matched',
+            'result': [expected]
             }, result)
 
     def check_update(self, result, extra_keys=()):
         """ Check service-mod command result """
         assert_deepequal({
-            u'value': u'{0}'.format(self.name),
-            u'summary': u'Modified service "{0}"'.format(self.name),
-            u'result': self.filter_attrs(self.update_keys | set(extra_keys))
+            'value': '{0}'.format(self.name),
+            'summary': 'Modified service "{0}"'.format(self.name),
+            'result': self.filter_attrs(self.update_keys | set(extra_keys))
             }, result)
 
     #  Kerberos aliases methods

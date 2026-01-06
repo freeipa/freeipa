@@ -147,7 +147,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        single_label_domain = u'single-label-domain'
+        single_label_domain = 'single-label-domain'
 
         # add with force - skipping DNS check
         self._add_associateddomain([single_label_domain], force=True)
@@ -163,7 +163,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        domain_with_special_char = u'﻿ipa@123#.com'
+        domain_with_special_char = '﻿ipa@123#.com'
 
         # add with force - skipping DNS check
         self._add_associateddomain([domain_with_special_char], force=True)
@@ -180,7 +180,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        test_domain = u'﻿itest.bar'
+        test_domain = '﻿itest.bar'
 
         # add and undo
         self.add_multivalued('associateddomain', test_domain)
@@ -198,7 +198,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        test_domain = u'﻿itest.bar'
+        test_domain = '﻿itest.bar'
 
         # add and undo all
         self.add_multivalued('associateddomain', test_domain)
@@ -240,7 +240,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        test_domain = u'﻿itest.bar'
+        test_domain = '﻿itest.bar'
 
         # add and refresh
         self.add_multivalued('associateddomain', test_domain)
@@ -258,7 +258,7 @@ class test_realmdomains(UI_driver):
         self.init_app()
         self.navigate_to_entity(ENTITY)
 
-        test_domain = u'﻿itest.bar'
+        test_domain = '﻿itest.bar'
 
         # add and revert
         self.add_multivalued('associateddomain', test_domain)

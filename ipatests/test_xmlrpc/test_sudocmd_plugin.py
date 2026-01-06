@@ -30,21 +30,21 @@ import pytest
 
 @pytest.fixture(scope='class')
 def sudocmd1(request, xmlrpc_setup):
-    tracker = SudoCmdTracker(command=u'/usr/bin/sudotestcmd1',
-                             description=u'Test sudo command 1')
+    tracker = SudoCmdTracker(command='/usr/bin/sudotestcmd1',
+                             description='Test sudo command 1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def sudocmd2(request, xmlrpc_setup):
-    tracker = SudoCmdTracker(command=u'/usr/bin/sudoTestCmd1',
-                             description=u'Test sudo command 2')
+    tracker = SudoCmdTracker(command='/usr/bin/sudoTestCmd1',
+                             description='Test sudo command 2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def sudorule1(request, xmlrpc_setup):
-    name = u'test_sudorule1'
+    name = 'test_sudorule1'
 
     def fin():
         api.Command['sudorule_del'](name)
@@ -58,21 +58,21 @@ class TestNonexistentSudoCmd(XMLRPC_test):
         """ Try to retrieve non-existent sudocmd """
         command = sudocmd1.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1.cmd)):
+                reason='%s: sudo command not found' % sudocmd1.cmd)):
             command()
 
     def test_update_nonexistent(self, sudocmd1):
         """ Try to update non-existent sudocmd """
-        command = sudocmd1.make_update_command(dict(description=u'Nope'))
+        command = sudocmd1.make_update_command(dict(description='Nope'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1.cmd)):
+                reason='%s: sudo command not found' % sudocmd1.cmd)):
             command()
 
     def test_delete_nonexistent(self, sudocmd1):
         """ Try to delete non-existent sudocmd """
         command = sudocmd1.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1.cmd)):
+                reason='%s: sudo command not found' % sudocmd1.cmd)):
             command()
 
 
@@ -91,11 +91,11 @@ class TestSudoCmd(XMLRPC_test):
         command2 = sudocmd2.make_create_command()
 
         with raises_exact(errors.DuplicateEntry(
-                message=u'sudo command with name "%s" already exists' %
+                message='sudo command with name "%s" already exists' %
                 sudocmd1.cmd)):
             command1()
         with raises_exact(errors.DuplicateEntry(
-                message=u'sudo command with name "%s" already exists' %
+                message='sudo command with name "%s" already exists' %
                 sudocmd2.cmd)):
             command2()
 
@@ -111,7 +111,7 @@ class TestSudoCmd(XMLRPC_test):
 
     def test_update_and_verify(self, sudocmd1):
         """ Update sudocmd description and verify by retrieve """
-        sudocmd1_desc_new = u'Updated sudo command 1'
+        sudocmd1_desc_new = 'Updated sudo command 1'
         sudocmd1.update(dict(description=sudocmd1_desc_new),
                         dict(description=[sudocmd1_desc_new]))
         sudocmd1.retrieve()

@@ -307,7 +307,7 @@ def install_check(standalone, api, replica, options, hostname):
         dnssec_masters = ods.get_masters()
         # we can reinstall current server if it is dnssec master
         if dnssec_masters and api.env.host not in dnssec_masters:
-            print("DNSSEC key master(s):", u','.join(dnssec_masters))
+            print("DNSSEC key master(s):", ','.join(dnssec_masters))
             raise ScriptError(
                 "Only one DNSSEC key master is supported in current version.")
 

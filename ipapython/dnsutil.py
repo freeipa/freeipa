@@ -194,7 +194,7 @@ class DNSResolver(dns.resolver.Resolver):
 
 class DNSZoneAlreadyExists(dns.exception.DNSException):
     supp_kwargs = {'zone', 'ns'}
-    fmt = (u"DNS zone {zone} already exists in DNS "
+    fmt = ("DNS zone {zone} already exists in DNS "
            "and is handled by server(s): {ns}")
 
 

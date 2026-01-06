@@ -41,7 +41,7 @@ class CATracker(Tracker, EnableTracker):
     create_keys = {'objectclass'} | retrieve_keys
     update_keys = ldap_keys - {'dn'}
 
-    def __init__(self, name, subject, desc=u"Test generated CA",
+    def __init__(self, name, subject, desc="Test generated CA",
                  default_version=None, auto_disable_for_delete=True):
         super(CATracker, self).__init__(default_version=default_version)
         self.attrs = {}
@@ -65,7 +65,7 @@ class CATracker(Tracker, EnableTracker):
     def check_create(self, result):
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Created CA "{}"'.format(self.name),
+            summary='Created CA "{}"'.format(self.name),
             result=dict(self.filter_attrs(self.create_keys))
         ), result)
 
@@ -111,7 +111,7 @@ class CATracker(Tracker, EnableTracker):
     def check_delete(self, result):
         assert_deepequal(dict(
             value=[self.name],
-            summary=u'Deleted CA "{}"'.format(self.name),
+            summary='Deleted CA "{}"'.format(self.name),
             result=dict(failed=[])
         ), result)
 
@@ -151,7 +151,7 @@ class CATracker(Tracker, EnableTracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 CA matched',
+            summary='1 CA matched',
             result=[expected]
         ), result)
 
@@ -163,6 +163,6 @@ class CATracker(Tracker, EnableTracker):
         """Check the plugin's `find` command result"""
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Modified CA "{}"'.format(self.name),
+            summary='Modified CA "{}"'.format(self.name),
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)

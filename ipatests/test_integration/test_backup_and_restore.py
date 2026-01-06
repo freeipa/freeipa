@@ -973,11 +973,11 @@ class TestBackupRoles(IntegrationTest):
     topology = 'star'
 
     serverroles = {
-        'ADTA': u'AD trust agent',
-        'ADTC': u'AD trust controller',
-        'CA': u'CA server',
-        'DNS': u'DNS server',
-        'KRA': u'KRA server'
+        'ADTA': 'AD trust agent',
+        'ADTC': 'AD trust controller',
+        'CA': 'CA server',
+        'DNS': 'DNS server',
+        'KRA': 'KRA server'
     }
 
     @classmethod

@@ -426,7 +426,7 @@ class ca_mod(LDAPUpdate):
                 raise errors.ProtectedEntryError(
                     label=_("CA"),
                     key=keys[0],
-                    reason=u'IPA CA cannot be renamed')
+                    reason='IPA CA cannot be renamed')
 
         return dn
 

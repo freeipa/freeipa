@@ -298,7 +298,7 @@ def set_certificate_attrs(entry_attrs):
         cert = entry_attrs['usercertificate']
     entry_attrs['subject'] = unicode(DN(cert.subject))
     entry_attrs['serial_number'] = unicode(cert.serial_number)
-    entry_attrs['serial_number_hex'] = u'0x%X' % cert.serial_number
+    entry_attrs['serial_number_hex'] = '0x%X' % cert.serial_number
     entry_attrs['issuer'] = unicode(DN(cert.issuer))
     entry_attrs['valid_not_before'] = x509.format_datetime(
         cert.not_valid_before_utc)
@@ -598,7 +598,7 @@ class service(LDAPObject):
             doc=_("Override default list of supported PAC types."
                   " Use 'NONE' to disable PAC support for this service,"
                   " e.g. this might be necessary for NFS services."),
-            values=(u'MS-PAC', u'PAD', u'NONE'),
+            values=('MS-PAC', 'PAD', 'NONE'),
         ),
         StrEnum(
             'krbprincipalauthind*',
@@ -616,8 +616,8 @@ class service(LDAPObject):
                   " Use 'passkey' to allow passkey-based 2FA authentications."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
-                    u'passkey'),
+            values=('radius', 'otp', 'pkinit', 'hardened', 'idp',
+                    'passkey'),
         ),
     ) + ticket_flags_params
 
@@ -632,7 +632,7 @@ class service(LDAPObject):
         else:
             new_value = set(new_value)
 
-        if u'NONE' in new_value and len(new_value) > 1:
+        if 'NONE' in new_value and len(new_value) > 1:
             raise errors.ValidationError(name='ipakrbauthzdata',
                 error=_('NONE value cannot be combined with other PAC types'))
 
@@ -1082,7 +1082,7 @@ class service_allow_retrieve_keytab(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -1121,7 +1121,7 @@ class service_allow_create_keytab(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -1273,7 +1273,7 @@ class service_allow_add_delegation(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,

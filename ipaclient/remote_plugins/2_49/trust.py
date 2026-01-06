@@ -106,27 +106,27 @@ class trust(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Realm name'),
+            label=_('Realm name'),
         ),
         parameters.Str(
             'ipantflatname',
-            label=_(u'Domain NetBIOS name'),
+            label=_('Domain NetBIOS name'),
         ),
         parameters.Str(
             'ipanttrusteddomainsid',
-            label=_(u'Domain Security Identifier'),
+            label=_('Domain Security Identifier'),
         ),
         parameters.Str(
             'ipantsidblacklistincoming',
             required=False,
             multivalue=True,
-            label=_(u'SID blacklist incoming'),
+            label=_('SID blacklist incoming'),
         ),
         parameters.Str(
             'ipantsidblacklistoutgoing',
             required=False,
             multivalue=True,
-            label=_(u'SID blacklist outgoing'),
+            label=_('SID blacklist outgoing'),
         ),
     )
 
@@ -136,23 +136,23 @@ class trustconfig(Object):
     takes_params = (
         parameters.Str(
             'cn',
-            label=_(u'Domain'),
+            label=_('Domain'),
         ),
         parameters.Str(
             'ipantsecurityidentifier',
-            label=_(u'Security Identifier'),
+            label=_('Security Identifier'),
         ),
         parameters.Str(
             'ipantflatname',
-            label=_(u'NetBIOS name'),
+            label=_('NetBIOS name'),
         ),
         parameters.Str(
             'ipantdomainguid',
-            label=_(u'Domain GUID'),
+            label=_('Domain GUID'),
         ),
         parameters.Str(
             'ipantfallbackprimarygroup',
-            label=_(u'Fallback primary group'),
+            label=_('Fallback primary group'),
         ),
     )
 
@@ -177,7 +177,7 @@ sides.
         parameters.Str(
             'cn',
             cli_name='realm',
-            label=_(u'Realm name'),
+            label=_('Realm name'),
         ),
     )
     takes_options = (
@@ -185,69 +185,69 @@ sides.
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'trust_type',
             cli_name='type',
             cli_metavar="['ad']",
-            label=_(u'Trust type (ad for Active Directory, default)'),
-            default=u'ad',
+            label=_('Trust type (ad for Active Directory, default)'),
+            default='ad',
             autofill=True,
         ),
         parameters.Str(
             'realm_admin',
             required=False,
             cli_name='admin',
-            label=_(u'Active Directory domain administrator'),
+            label=_('Active Directory domain administrator'),
         ),
         parameters.Password(
             'realm_passwd',
             required=False,
             cli_name='password',
-            label=_(u"Active directory domain administrator's password"),
+            label=_("Active directory domain administrator's password"),
         ),
         parameters.Str(
             'realm_server',
             required=False,
             cli_name='server',
-            label=_(u'Domain controller for the Active Directory domain (optional)'),
+            label=_('Domain controller for the Active Directory domain (optional)'),
         ),
         parameters.Password(
             'trust_secret',
             required=False,
-            label=_(u'Shared secret for the trust'),
+            label=_('Shared secret for the trust'),
         ),
         parameters.Int(
             'base_id',
             required=False,
-            label=_(u'First Posix ID of the range reserved for the trusted domain'),
+            label=_('First Posix ID of the range reserved for the trusted domain'),
         ),
         parameters.Int(
             'range_size',
             required=False,
-            label=_(u'Size of the ID range reserved for the trusted domain'),
+            label=_('Size of the ID range reserved for the trusted domain'),
             default=200000,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -257,7 +257,7 @@ sides.
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -265,7 +265,7 @@ sides.
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -279,13 +279,13 @@ class trust_del(Method):
             'cn',
             multivalue=True,
             cli_name='realm',
-            label=_(u'Realm name'),
+            label=_('Realm name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -294,17 +294,17 @@ class trust_del(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -317,7 +317,7 @@ class trust_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -325,56 +325,56 @@ class trust_find(Method):
             'cn',
             required=False,
             cli_name='realm',
-            label=_(u'Realm name'),
+            label=_('Realm name'),
         ),
         parameters.Str(
             'ipantflatname',
             required=False,
             cli_name='flat_name',
-            label=_(u'Domain NetBIOS name'),
+            label=_('Domain NetBIOS name'),
         ),
         parameters.Str(
             'ipanttrusteddomainsid',
             required=False,
             cli_name='sid',
-            label=_(u'Domain Security Identifier'),
+            label=_('Domain Security Identifier'),
         ),
         parameters.Str(
             'ipantsidblacklistincoming',
             required=False,
             multivalue=True,
             cli_name='sid_blacklist_incoming',
-            label=_(u'SID blacklist incoming'),
+            label=_('SID blacklist incoming'),
         ),
         parameters.Str(
             'ipantsidblacklistoutgoing',
             required=False,
             multivalue=True,
             cli_name='sid_blacklist_outgoing',
-            label=_(u'SID blacklist outgoing'),
+            label=_('SID blacklist outgoing'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -382,8 +382,8 @@ class trust_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("realm")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("realm")'),
             default=False,
             autofill=True,
         ),
@@ -392,7 +392,7 @@ class trust_find(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -400,12 +400,12 @@ class trust_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -423,7 +423,7 @@ Modify a trust (for future use).
         parameters.Str(
             'cn',
             cli_name='realm',
-            label=_(u'Realm name'),
+            label=_('Realm name'),
         ),
     )
     takes_options = (
@@ -432,53 +432,53 @@ Modify a trust (for future use).
             required=False,
             multivalue=True,
             cli_name='sid_blacklist_incoming',
-            label=_(u'SID blacklist incoming'),
+            label=_('SID blacklist incoming'),
         ),
         parameters.Str(
             'ipantsidblacklistoutgoing',
             required=False,
             multivalue=True,
             cli_name='sid_blacklist_outgoing',
-            label=_(u'SID blacklist outgoing'),
+            label=_('SID blacklist outgoing'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -488,7 +488,7 @@ Modify a trust (for future use).
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -496,7 +496,7 @@ Modify a trust (for future use).
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -509,27 +509,27 @@ class trust_show(Method):
         parameters.Str(
             'cn',
             cli_name='realm',
-            label=_(u'Realm name'),
+            label=_('Realm name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -539,7 +539,7 @@ class trust_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -547,7 +547,7 @@ class trust_show(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -561,33 +561,33 @@ class trustconfig_mod(Method):
             'ipantfallbackprimarygroup',
             required=False,
             cli_name='fallback_primary_group',
-            label=_(u'Fallback primary group'),
+            label=_('Fallback primary group'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
@@ -595,20 +595,20 @@ class trustconfig_mod(Method):
             'trust_type',
             cli_name='type',
             cli_metavar="['ad']",
-            label=_(u'Trust type (ad for Active Directory, default)'),
-            default=u'ad',
+            label=_('Trust type (ad for Active Directory, default)'),
+            default='ad',
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -618,7 +618,7 @@ class trustconfig_mod(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -626,7 +626,7 @@ class trustconfig_mod(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -638,8 +638,8 @@ class trustconfig_show(Method):
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
@@ -647,20 +647,20 @@ class trustconfig_show(Method):
             'trust_type',
             cli_name='type',
             cli_metavar="['ad']",
-            label=_(u'Trust type (ad for Active Directory, default)'),
-            default=u'ad',
+            label=_('Trust type (ad for Active Directory, default)'),
+            default='ad',
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -670,7 +670,7 @@ class trustconfig_show(Method):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
@@ -678,6 +678,6 @@ class trustconfig_show(Method):
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

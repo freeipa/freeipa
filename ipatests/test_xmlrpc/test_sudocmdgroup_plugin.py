@@ -31,34 +31,34 @@ import pytest
 
 @pytest.fixture(scope='class')
 def sudocmd1(request, xmlrpc_setup):
-    tracker = SudoCmdTracker(command=u'/usr/bin/sudotestcmd1',
-                             description=u'Test sudo command 1')
+    tracker = SudoCmdTracker(command='/usr/bin/sudotestcmd1',
+                             description='Test sudo command 1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def sudocmd2(request, xmlrpc_setup):
-    tracker = SudoCmdTracker(command=u'/usr/bin/sudoTestCmd1',
-                             description=u'Test sudo command 2')
+    tracker = SudoCmdTracker(command='/usr/bin/sudoTestCmd1',
+                             description='Test sudo command 2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def sudocmd_plus(request, xmlrpc_setup):
-    tracker = SudoCmdTracker(command=u'/bin/ls -l /lost+found/*',
-                             description=u'Test sudo command 3')
+    tracker = SudoCmdTracker(command='/bin/ls -l /lost+found/*',
+                             description='Test sudo command 3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def sudocmdgroup1(request, xmlrpc_setup):
-    tracker = SudoCmdGroupTracker(u'testsudocmdgroup1', u'Test desc1')
+    tracker = SudoCmdGroupTracker('testsudocmdgroup1', 'Test desc1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def sudocmdgroup2(request, xmlrpc_setup):
-    tracker = SudoCmdGroupTracker(u'testsudocmdgroup2', u'Test desc2')
+    tracker = SudoCmdGroupTracker('testsudocmdgroup2', 'Test desc2')
     return tracker.make_fixture(request)
 
 
@@ -69,30 +69,30 @@ class TestSudoCmdGroupNonexistent(XMLRPC_test):
         sudocmdgroup1.ensure_missing()
         command = sudocmdgroup1.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command group not found' %
+                reason='%s: sudo command group not found' %
                 sudocmdgroup1.cn)):
             command()
 
         sudocmdgroup2.ensure_missing()
         command = sudocmdgroup2.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command group not found' %
+                reason='%s: sudo command group not found' %
                 sudocmdgroup2.cn)):
             command()
 
     def test_update_nonexistent(self, sudocmdgroup1, sudocmdgroup2):
         """ Try to update non-existent sudocmdgroups """
         sudocmdgroup1.ensure_missing()
-        command = sudocmdgroup1.make_update_command(dict(description=u'Foo'))
+        command = sudocmdgroup1.make_update_command(dict(description='Foo'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command group not found' %
+                reason='%s: sudo command group not found' %
                 sudocmdgroup1.cn)):
             command()
 
         sudocmdgroup2.ensure_missing()
-        command = sudocmdgroup2.make_update_command(dict(description=u'Foo2'))
+        command = sudocmdgroup2.make_update_command(dict(description='Foo2'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command group not found' %
+                reason='%s: sudo command group not found' %
                 sudocmdgroup2.cn)):
             command()
 
@@ -101,14 +101,14 @@ class TestSudoCmdGroupNonexistent(XMLRPC_test):
         sudocmdgroup1.ensure_missing()
         command = sudocmdgroup1.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command group not found' %
+                reason='%s: sudo command group not found' %
                 sudocmdgroup1.cn)):
             command()
 
         sudocmdgroup2.ensure_missing()
         command = sudocmdgroup2.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: sudo command group not found' %
+                reason='%s: sudo command group not found' %
                 sudocmdgroup2.cn)):
             command()
 
@@ -132,8 +132,8 @@ class TestSudoCmdGroupSCRUD(XMLRPC_test):
         sudocmdgroup1.ensure_exists()
         command = sudocmdgroup1.make_create_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'sudo command group ' +
-                        u'with name "%s" already exists' % sudocmdgroup1.cn)):
+                message='sudo command group ' +
+                        'with name "%s" already exists' % sudocmdgroup1.cn)):
             command()
 
     def test_retrieve(self, sudocmdgroup1):
@@ -144,7 +144,7 @@ class TestSudoCmdGroupSCRUD(XMLRPC_test):
     def test_update(self, sudocmdgroup1):
         """ Update sudocmdgroup and retrieve to verify update """
         sudocmdgroup1.ensure_exists()
-        sudocmdgroup1.update(dict(description=u'New desc 1'))
+        sudocmdgroup1.update(dict(description='New desc 1'))
         sudocmdgroup1.retrieve()
 
     def test_search(self, sudocmdgroup1):
@@ -184,7 +184,7 @@ class TestSudoCmdGroupMembers(XMLRPC_test):
 
     def test_add_nonexistent_member_to_sudocmdgroup(self, sudocmdgroup1):
         """ Try to add non-existent member to sudocmdgroup """
-        options = dict(sudocmd=u'notfound')
+        options = dict(sudocmd='notfound')
         sudocmdgroup1.ensure_exists()
         command = sudocmdgroup1.make_add_member_command(options)
         result = command()
@@ -204,7 +204,7 @@ class TestSudoCmdGroupMembers(XMLRPC_test):
 
     def test_remove_nonexistent_member_from_sudocmdgroup(self, sudocmdgroup1):
         """ Try to remove non-existent member from sudocmdgroup """
-        options = dict(sudocmd=u'notfound')
+        options = dict(sudocmd='notfound')
         sudocmdgroup1.ensure_exists()
         command = sudocmdgroup1.make_remove_member_command(options)
         result = command()

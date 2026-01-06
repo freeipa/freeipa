@@ -168,8 +168,8 @@ class test_LDAPEntry:
     """
     Test the LDAPEntry class
     """
-    cn1 = [u'test1']
-    cn2 = [u'test2']
+    cn1 = ['test1']
+    cn2 = ['test2']
     dn1 = DN(('cn', cn1[0]))
     dn2 = DN(('cn', cn2[0]))
 
@@ -189,14 +189,14 @@ class test_LDAPEntry:
     def test_entry(self):
         e = self.entry
         assert e.dn is self.dn1
-        assert u'cn' in e
-        assert u'cn' in e.keys()
+        assert 'cn' in e
+        assert 'cn' in e.keys()
         assert 'CN' in e
         assert 'CN' in e.keys()
         assert 'commonName' in e
         assert 'commonName' in e.keys()
         assert e['CN'] is self.cn1
-        assert e['CN'] is e[u'cn']
+        assert e['CN'] is e['cn']
 
         e.dn = self.dn2
         assert e.dn is self.dn2
@@ -204,22 +204,22 @@ class test_LDAPEntry:
     def test_set_attr(self):
         e = self.entry
         e['commonName'] = self.cn2
-        assert u'cn' in e
-        assert u'cn' in e.keys()
+        assert 'cn' in e
+        assert 'cn' in e.keys()
         assert 'CN' in e
         assert 'CN' in e.keys()
         assert 'commonName' in e
         assert 'commonName' in e.keys()
         assert e['CN'] is self.cn2
-        assert e['CN'] is e[u'cn']
+        assert e['CN'] is e['cn']
 
     def test_del_attr(self):
         e = self.entry
         del e['CN']
         assert 'CN' not in e
         assert 'CN' not in e.keys()
-        assert u'cn' not in e
-        assert u'cn' not in e.keys()
+        assert 'cn' not in e
+        assert 'cn' not in e.keys()
         assert 'commonName' not in e
         assert 'commonName' not in e.keys()
 
@@ -297,30 +297,30 @@ class test_LDAPEntry:
 
         raw.append(b'4')
         assert e['test'] is nice
-        assert nice == [2, 3, u'4']
+        assert nice == [2, 3, '4']
 
         nice.remove(2)
         raw.append(b'5')
-        assert nice == [3, u'4']
+        assert nice == [3, '4']
         assert raw == [b'2', b'3', b'4', b'5']
         assert e['test'] is nice
         assert e.raw['test'] is raw
-        assert nice == [3, u'4', u'5']
+        assert nice == [3, '4', '5']
         assert raw == [b'3', b'4', b'5']
 
         nice.insert(0, 2)
         raw.remove(b'4')
-        assert nice == [2, 3, u'4', u'5']
+        assert nice == [2, 3, '4', '5']
         assert raw == [b'3', b'5']
         assert e.raw['test'] is raw
         assert e['test'] is nice
-        assert nice == [2, 3, u'5']
+        assert nice == [2, 3, '5']
         assert raw == [b'3', b'5', b'2']
 
         raw = [b'a', b'b']
         e.raw['test'] = raw
         assert e['test'] is not nice
-        assert e['test'] == [u'a', u'b']
+        assert e['test'] == ['a', 'b']
 
         nice = 'not list'
         e['test'] = nice
@@ -328,7 +328,7 @@ class test_LDAPEntry:
         assert e.raw['test'] == [b'not list']
 
         e.raw['test'].append(b'second')
-        assert e['test'] == ['not list', u'second']
+        assert e['test'] == ['not list', 'second']
 
     def test_modlist_with_varying_encodings(self):
         """

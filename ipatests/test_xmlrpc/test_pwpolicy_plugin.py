@@ -90,17 +90,17 @@ class test_pwpolicy(XMLRPC_test):
     """
     Test the `pwpolicy` plugin.
     """
-    group = u'testgroup12'
-    group2 = u'testgroup22'
-    group3 = u'testgroup32'
-    user = u'testuser12'
+    group = 'testgroup12'
+    group2 = 'testgroup22'
+    group3 = 'testgroup32'
+    user = 'testuser12'
     kw = {'cospriority': 1, 'krbminpwdlife': 30, 'krbmaxpwdlife': 40,
           'krbpwdhistorylength': 5, 'krbpwdminlength': 6}
     kw2 = {'cospriority': 2, 'krbminpwdlife': 40, 'krbmaxpwdlife': 60,
            'krbpwdhistorylength': 8, 'krbpwdminlength': 9}
     kw3 = {'cospriority': 10, 'krbminpwdlife': 50, 'krbmaxpwdlife': 30,
            'krbpwdhistorylength': 3, 'krbpwdminlength': 4}
-    global_policy = u'global_policy'
+    global_policy = 'global_policy'
 
     def test_1_pwpolicy_add(self):
         """
@@ -108,10 +108,10 @@ class test_pwpolicy(XMLRPC_test):
         """
         # First set up a group and user that will use this policy
         self.failsafe_add(
-            api.Object.group, self.group, description=u'pwpolicy test group',
+            api.Object.group, self.group, description='pwpolicy test group',
         )
         self.failsafe_add(
-            api.Object.user, self.user, givenname=u'Test', sn=u'User'
+            api.Object.user, self.user, givenname='Test', sn='User'
         )
         api.Command.group_add_member(self.group, user=self.user)
 
@@ -157,7 +157,7 @@ class test_pwpolicy(XMLRPC_test):
         self.failsafe_add(
             api.Object.group,
             self.group2,
-            description=u'pwpolicy test group 2'
+            description='pwpolicy test group 2'
         )
         entry = api.Command['pwpolicy_add'](self.group2, **self.kw2)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '40')
@@ -171,7 +171,7 @@ class test_pwpolicy(XMLRPC_test):
         Add a pwpolicy for a non-existent group
         """
         try:
-            api.Command['pwpolicy_add'](u'nopwpolicy',
+            api.Command['pwpolicy_add']('nopwpolicy',
                                         cospriority=1,
                                         krbminpwdlife=1)
         except errors.NotFound:
@@ -251,12 +251,12 @@ class test_pwpolicy(XMLRPC_test):
         self.failsafe_add(
             api.Object.group,
             test_group101,
-            description=u'pwpolicy test group',
+            description='pwpolicy test group',
         )
         self.failsafe_add(
             api.Object.group,
             test_group102,
-            description=u'pwpolicy test group',
+            description='pwpolicy test group',
         )
         # when minlife(specified in hours) == maxlife(specified in days)
         pwpolicy_cmd('pwpolicy_mod', 24, 1)
@@ -296,7 +296,7 @@ class test_pwpolicy(XMLRPC_test):
         `xmlrpc.pwpolicy_add` method.
         """
         self.failsafe_add(
-            api.Object.group, self.group3, description=u'pwpolicy test group 3'
+            api.Object.group, self.group3, description='pwpolicy test group 3'
         )
         entry = api.Command['pwpolicy_add'](self.group3, **self.kw3)['result']
         assert_attr_equal(entry, 'krbminpwdlife', '50')
@@ -374,13 +374,13 @@ class test_pwpolicy(XMLRPC_test):
 class test_pwpolicy_mod_cospriority(Declarative):
     """Tests for cospriority modifications"""
     cleanup_commands = [
-        ('pwpolicy_del', [u'ipausers'], {}),
+        ('pwpolicy_del', ['ipausers'], {}),
     ]
 
     tests = [
         dict(
             desc='Create a password policy',
-            command=('pwpolicy_add', [u'ipausers'], dict(
+            command=('pwpolicy_add', ['ipausers'], dict(
                 krbmaxpwdlife=90,
                 krbminpwdlife=1,
                 krbpwdhistorylength=10,
@@ -390,27 +390,27 @@ class test_pwpolicy_mod_cospriority(Declarative):
             )),
             expected=dict(
                 result=dict(
-                    cn=[u'ipausers'],
-                    cospriority=[u'10'],
+                    cn=['ipausers'],
+                    cospriority=['10'],
                     dn=DN('cn=ipausers', ('cn', api.env.realm),
                           'cn=kerberos', api.env.basedn),
-                    krbmaxpwdlife=[u'90'],
-                    krbminpwdlife=[u'1'],
-                    krbpwdhistorylength=[u'10'],
-                    krbpwdmindiffchars=[u'3'],
-                    krbpwdminlength=[u'8'],
-                    passwordgracelimit=[u'-1'],
+                    krbmaxpwdlife=['90'],
+                    krbminpwdlife=['1'],
+                    krbpwdhistorylength=['10'],
+                    krbpwdmindiffchars=['3'],
+                    krbpwdminlength=['8'],
+                    passwordgracelimit=['-1'],
                     objectclass=objectclasses.pwpolicy,
                 ),
                 summary=None,
-                value=u'ipausers',
+                value='ipausers',
             ),
         ),
 
         dict(
             # https://fedorahosted.org/freeipa/ticket/4309
             desc="Try no-op modification of password policy's cospriority",
-            command=('pwpolicy_mod', [u'ipausers'], dict(
+            command=('pwpolicy_mod', ['ipausers'], dict(
                 cospriority=10,
             )),
             expected=errors.EmptyModlist(),
@@ -418,22 +418,22 @@ class test_pwpolicy_mod_cospriority(Declarative):
 
         dict(
             desc="Modify the password policy's cospriority",
-            command=('pwpolicy_mod', [u'ipausers'], dict(
+            command=('pwpolicy_mod', ['ipausers'], dict(
                 cospriority=20,
             )),
             expected=dict(
                 result=dict(
-                    cn=[u'ipausers'],
-                    cospriority=[u'20'],
-                    krbmaxpwdlife=[u'90'],
-                    krbminpwdlife=[u'1'],
-                    krbpwdhistorylength=[u'10'],
-                    krbpwdmindiffchars=[u'3'],
-                    krbpwdminlength=[u'8'],
-                    passwordgracelimit=[u'-1'],
+                    cn=['ipausers'],
+                    cospriority=['20'],
+                    krbmaxpwdlife=['90'],
+                    krbminpwdlife=['1'],
+                    krbpwdhistorylength=['10'],
+                    krbpwdmindiffchars=['3'],
+                    krbpwdminlength=['8'],
+                    passwordgracelimit=['-1'],
                 ),
                 summary=None,
-                value=u'ipausers',
+                value='ipausers',
             ),
         ),
     ]

@@ -157,7 +157,7 @@ class IPAChangeConf:
                                self.deol)
 
     def _dump_line(self, *args):
-        return u"".join(unicode(x) for x in args)
+        return "".join(unicode(x) for x in args)
 
     def dump(self, options, level=0):
         output = []

@@ -204,12 +204,12 @@ class SchemaCache:
                     attrlist=['attributetypes', 'objectclasses'])[0]
         except ldap.SERVER_DOWN:
             raise errors.NetworkError(uri=url,
-                               error=u'LDAP Server Down, unable to retrieve LDAP schema')
+                               error='LDAP Server Down, unable to retrieve LDAP schema')
         except ldap.LDAPError as e:
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info', '').strip()
-            raise errors.DatabaseError(desc = u'uri=%s' % url,
-                                info = u'Unable to retrieve LDAP schema: %s: %s' % (desc, info))
+            raise errors.DatabaseError(desc = 'uri=%s' % url,
+                                info = 'Unable to retrieve LDAP schema: %s: %s' % (desc, info))
 
         # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
         # TODO: DS uses 'cn=schema', support for other server?
@@ -1293,12 +1293,12 @@ class LDAPClient:
 
     # generating filters for find_entry
     # some examples:
-    # f1 = ldap2.make_filter_from_attr(u'firstName', u'Pavel')
-    # f2 = ldap2.make_filter_from_attr(u'lastName', u'Zuna')
+    # f1 = ldap2.make_filter_from_attr('firstName', 'Pavel')
+    # f2 = ldap2.make_filter_from_attr('lastName', 'Zuna')
     # f = ldap2.combine_filters([f1, f2], ldap2.MATCH_ALL)
     # # f should be (&(firstName=Pavel)(lastName=Zuna))
     # # it should be equivalent to:
-    # entry_attrs = {u'firstName': u'Pavel', u'lastName': u'Zuna'}
+    # entry_attrs = {'firstName': 'Pavel', 'lastName': 'Zuna'}
     # f = ldap2.make_filter(entry_attrs, rules=ldap2.MATCH_ALL)
 
     @classmethod

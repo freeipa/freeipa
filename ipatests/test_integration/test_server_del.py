@@ -143,7 +143,7 @@ class TestServerDel(ServerDelBase):
         """
         tests that removal of non-existent master raises an error
         """
-        hostname = u'bogus-master.bogus.domain'
+        hostname = 'bogus-master.bogus.domain'
         err_message = "{}: server not found".format(hostname)
         tasks.assert_error(
             tasks.run_server_del(self.client, hostname),
@@ -156,7 +156,7 @@ class TestServerDel(ServerDelBase):
         tests that removal of non-existent master with '--force' does not raise
         an error
         """
-        hostname = u'bogus-master.bogus.domain'
+        hostname = 'bogus-master.bogus.domain'
         result = tasks.run_server_del(self.client, hostname, force=True)
         assert result.returncode == 0
         assert ('Deleted IPA server "{}"'.format(hostname) in

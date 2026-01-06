@@ -713,17 +713,17 @@ class Param(ReadOnly):
         For example:
 
         >>> p = Password('my_password')
-        >>> p.safe_value(u'This is my password')
-        u'********'
+        >>> p.safe_value('This is my password')
+        '********'
         >>> p.safe_value(None) is None
         True
 
         >>> s = Str('my_str')
-        >>> s.safe_value(u'Some arbitrary value')
-        u'Some arbitrary value'
+        >>> s.safe_value('Some arbitrary value')
+        'Some arbitrary value'
         """
         if self.password and value is not None:
-            return u'********'
+            return '********'
         return value
 
     def clone(self, **overrides):
@@ -755,8 +755,8 @@ class Param(ReadOnly):
         >>> param = Param('telephone',
         ...     normalizer=lambda value: value.replace('.', '-')
         ... )
-        >>> param.normalize(u'800.123.4567')
-        u'800-123-4567'
+        >>> param.normalize('800.123.4567')
+        '800-123-4567'
 
         If this `Param` instance was created with a normalizer callback and
         ``value`` is a unicode instance, the normalizer callback is called and
@@ -802,14 +802,14 @@ class Param(ReadOnly):
         >>> scalar.type
         <type 'unicode'>
         >>> scalar.convert(43.2)
-        u'43.2'
+        '43.2'
 
         (Note that `Str` is a subclass of `Param`.)
 
         All non-numeric, non-boolean values which evaluate to False will be
         converted to None.  For example:
 
-        >>> scalar.convert(u'') is None  # An empty string
+        >>> scalar.convert('') is None  # An empty string
         True
         >>> scalar.convert([]) is None  # An empty list
         True
@@ -818,18 +818,18 @@ class Param(ReadOnly):
         For example:
 
         >>> multi = Str('my_multi', multivalue=True)
-        >>> multi.convert([1.5, '', 17, None, u'Hello'])
-        (u'1.5', u'17', u'Hello')
-        >>> multi.convert([None, u'']) is None  # Filters to an empty list
+        >>> multi.convert([1.5, '', 17, None, 'Hello'])
+        ('1.5', '17', 'Hello')
+        >>> multi.convert([None, '']) is None  # Filters to an empty list
         True
 
         Lastly, multivalue parameters will always return a ``tuple`` (assuming
         they don't return ``None`` as in the last example above).  For example:
 
         >>> multi.convert(42)  # Called with a scalar value
-        (u'42',)
+        ('42',)
         >>> multi.convert([0, 1])  # Called with a list value
-        (u'0', u'1')
+        ('0', '1')
 
         Note that how values are converted (and from what types they will be
         converted) completely depends upon how a subclass implements its
@@ -926,11 +926,11 @@ class Param(ReadOnly):
         However, you can provide your own static default via the ``default``
         keyword argument when you create your `Param` instance.  For example:
 
-        >>> s = Str('my_str', default=u'My Static Default')
+        >>> s = Str('my_str', default='My Static Default')
         >>> s.default
-        u'My Static Default'
+        'My Static Default'
         >>> s.get_default()
-        u'My Static Default'
+        'My Static Default'
 
         If you need to generate a dynamic default from other supplied parameter
         values, provide a callback via the ``default_from`` keyword argument.
@@ -938,7 +938,7 @@ class Param(ReadOnly):
         if it isn't one already (see the `DefaultFrom` class for all the gory
         details).  For example:
 
-        >>> login = Str('login', default=u'my-static-login-default',
+        >>> login = Str('login', default='my-static-login-default',
         ...     default_from=lambda first, last: (first[0] + last).lower(),
         ... )
         >>> isinstance(login.default_from, DefaultFrom)
@@ -949,16 +949,16 @@ class Param(ReadOnly):
         Then when all the keys needed by the `DefaultFrom` instance are present,
         the dynamic default is constructed and returned.  For example:
 
-        >>> kw = dict(last=u'Doe', first=u'John')
+        >>> kw = dict(last='Doe', first='John')
         >>> login.get_default(**kw)
-        u'jdoe'
+        'jdoe'
 
         Or if any keys are missing, your *static* default is returned.
         For example:
 
-        >>> kw = dict(first=u'John', department=u'Engineering')
+        >>> kw = dict(first='John', department='Engineering')
         >>> login.get_default(**kw)
-        u'my-static-login-default'
+        'my-static-login-default'
         """
         if self.default_from is not None:
             default = self.default_from(**kw)
@@ -1005,8 +1005,8 @@ class Bool(Param):
     # FIXME: This my quick hack to get some UI stuff working, change these defaults
     #   --jderose 2009-08-28
     kwargs = Param.kwargs + (
-        ('truths', frozenset, frozenset([1, u'1', True, u'true', u'TRUE'])),
-        ('falsehoods', frozenset, frozenset([0, u'0', False, u'false', u'FALSE'])),
+        ('truths', frozenset, frozenset([1, '1', True, 'true', 'TRUE'])),
+        ('falsehoods', frozenset, frozenset([0, '0', False, 'false', 'FALSE'])),
     )
 
     def _convert_scalar(self, value, index=None):
@@ -1120,7 +1120,7 @@ class Int(Number):
             return int(value)
 
         if type(value) is unicode:
-            if u'.' in value:
+            if '.' in value:
                 return int(float(value))
             if re.match('0[0-9]+', value):
                 # 0-prefixed octal format
@@ -1265,7 +1265,7 @@ class Decimal(Number):
                     error=_("number class '%(cls)s' is not included in a list "
                             "of allowed number classes: %(allowed)s") \
                             % dict(cls=numberclass,
-                                   allowed=u', '.join(self.numberclass))
+                                   allowed=', '.join(self.numberclass))
                 )
 
     def _enforce_precision(self, value):
@@ -1717,7 +1717,7 @@ class Enum(Param):
             if len(self.values) == 1:
                 return _("must be '%(value)s'") % dict(value=self.values[0])
             else:
-                values = u', '.join("'%s'" % value for value in self.values)
+                values = ', '.join("'%s'" % value for value in self.values)
                 return _('must be one of %(values)s') % dict(values=values)
         else:
             return None
@@ -1736,10 +1736,10 @@ class StrEnum(Enum):
 
     For example:
 
-    >>> enum = StrEnum('my_enum', values=(u'One', u'Two', u'Three'))
-    >>> enum.validate(u'Two', 'cli') is None
+    >>> enum = StrEnum('my_enum', values=('One', 'Two', 'Three'))
+    >>> enum.validate('Two', 'cli') is None
     True
-    >>> enum.validate(u'Four', 'cli')
+    >>> enum.validate('Four', 'cli')
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'my_enum': must be one of 'One', 'Two', 'Three'
@@ -1839,7 +1839,7 @@ class DateTime(Param):
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, str):
-            if value == u'now':
+            if value == 'now':
                 time = datetime.datetime.now(tz=datetime.timezone.utc)
                 return time
             else:

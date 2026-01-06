@@ -19,14 +19,14 @@ from ipapython.dn import DN
 
 unicode = str
 
-sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
+sshpubkey = ('ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
              'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
              'No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNm'
              'cSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM01'
              '9Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF'
              '0L public key test')
-sshpubkeyfp = (u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
+sshpubkeyfp = ('SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
                'public key test (ssh-rsa)')
 
 
@@ -38,30 +38,30 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
     """
 
     retrieve_keys = {
-        u'uid', u'givenname', u'sn', u'homedirectory', u'loginshell',
-        u'uidnumber', u'gidnumber', u'mail', u'ou', u'telephonenumber',
-        u'title', u'memberof', u'nsaccountlock', u'memberofindirect',
-        u'ipauserauthtype', u'userclass', u'ipatokenradiusconfiglink',
-        u'ipatokenradiususername', u'krbprincipalexpiration',
-        u'usercertificate', u'dn', u'has_keytab', u'has_password',
-        u'street', u'postalcode', u'facsimiletelephonenumber',
-        u'carlicense', u'ipasshpubkey', u'sshpubkeyfp', u'l',
-        u'st', u'mobile', u'pager', u'krbcanonicalname', u'krbprincipalname'}
+        'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
+        'uidnumber', 'gidnumber', 'mail', 'ou', 'telephonenumber',
+        'title', 'memberof', 'nsaccountlock', 'memberofindirect',
+        'ipauserauthtype', 'userclass', 'ipatokenradiusconfiglink',
+        'ipatokenradiususername', 'krbprincipalexpiration',
+        'usercertificate', 'dn', 'has_keytab', 'has_password',
+        'street', 'postalcode', 'facsimiletelephonenumber',
+        'carlicense', 'ipasshpubkey', 'sshpubkeyfp', 'l',
+        'st', 'mobile', 'pager', 'krbcanonicalname', 'krbprincipalname'}
     retrieve_all_keys = retrieve_keys | {
-        u'cn', u'ipauniqueid', u'objectclass', u'description',
-        u'displayname', u'gecos', u'initials', u'manager'}
+        'cn', 'ipauniqueid', 'objectclass', 'description',
+        'displayname', 'gecos', 'initials', 'manager'}
 
     create_keys = retrieve_all_keys | {
-        u'objectclass', u'ipauniqueid', u'randompassword',
-        u'userpassword', u'krbextradata', u'krblastpwdchange',
-        u'krbpasswordexpiration', u'krbprincipalkey'}
+        'objectclass', 'ipauniqueid', 'randompassword',
+        'userpassword', 'krbextradata', 'krblastpwdchange',
+        'krbpasswordexpiration', 'krbprincipalkey'}
 
-    update_keys = retrieve_keys - {u'dn', u'nsaccountlock'}
+    update_keys = retrieve_keys - {'dn', 'nsaccountlock'}
     activate_keys = retrieve_keys | {
-        u'has_keytab', u'has_password', u'nsaccountlock'}
+        'has_keytab', 'has_password', 'nsaccountlock'}
 
-    find_keys = retrieve_keys - {u'has_keytab', u'has_password'}
-    find_all_keys = retrieve_all_keys - {u'has_keytab', u'has_password'}
+    find_keys = retrieve_keys - {'has_keytab', 'has_password'}
+    find_all_keys = retrieve_all_keys - {'has_keytab', 'has_password'}
 
     def __init__(self, name=None, givenname=None, sn=None, **kwargs):
         """ Check for non-empty unicode string for the required attributes
@@ -131,19 +131,19 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
             uid=[self.uid],
             givenname=[self.givenname],
             sn=[self.sn],
-            homedirectory=[u'/home/%s' % self.uid],
-            displayname=[u'%s %s' % (self.givenname, self.sn)],
-            cn=[u'%s %s' % (self.givenname, self.sn)],
-            initials=[u'%s%s' % (self.givenname[0], self.sn[0])],
+            homedirectory=['/home/%s' % self.uid],
+            displayname=['%s %s' % (self.givenname, self.sn)],
+            cn=['%s %s' % (self.givenname, self.sn)],
+            initials=['%s%s' % (self.givenname[0], self.sn[0])],
             objectclass=objectclasses.user_base,
-            description=[u'__no_upg__'],
-            ipauniqueid=[u'autogenerate'],
-            uidnumber=[u'-1'],
-            gidnumber=[u'-1'],
-            krbprincipalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
-            krbcanonicalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
-            mail=[u'%s@%s' % (self.uid, self.api.env.domain)],
-            gecos=[u'%s %s' % (self.givenname, self.sn)],
+            description=['__no_upg__'],
+            ipauniqueid=['autogenerate'],
+            uidnumber=['-1'],
+            gidnumber=['-1'],
+            krbprincipalname=['%s@%s' % (self.uid, self.api.env.realm)],
+            krbcanonicalname=['%s@%s' % (self.uid, self.api.env.realm)],
+            mail=['%s@%s' % (self.uid, self.api.env.domain)],
+            gecos=['%s %s' % (self.givenname, self.sn)],
             loginshell=[platformconstants.DEFAULT_SHELL],
             has_keytab=False,
             has_password=False,
@@ -151,27 +151,27 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
             )
 
         for key in self.kwargs:
-            if key == u'krbprincipalname':
-                self.attrs[key] = [u'%s@%s' % (
+            if key == 'krbprincipalname':
+                self.attrs[key] = ['%s@%s' % (
                     (self.kwargs[key].split('@'))[0].lower(),
                     (self.kwargs[key].split('@'))[1])]
-                self.attrs[u'krbcanonicalname'] = self.attrs[key]
-            elif key == u'manager':
+                self.attrs['krbcanonicalname'] = self.attrs[key]
+            elif key == 'manager':
                 self.attrs[key] = [self.kwargs[key]]
-            elif key == u'ipasshpubkey':
-                self.attrs[u'sshpubkeyfp'] = [sshpubkeyfp]
+            elif key == 'ipasshpubkey':
+                self.attrs['sshpubkeyfp'] = [sshpubkeyfp]
                 self.attrs[key] = [self.kwargs[key]]
-            elif key in {u'random', u'userpassword'}:
-                self.attrs[u'krbextradata'] = [Fuzzy(type=bytes)]
-                self.attrs[u'krbpasswordexpiration'] = [
+            elif key in {'random', 'userpassword'}:
+                self.attrs['krbextradata'] = [Fuzzy(type=bytes)]
+                self.attrs['krbpasswordexpiration'] = [
                     fuzzy_dergeneralizedtime]
-                self.attrs[u'krblastpwdchange'] = [fuzzy_dergeneralizedtime]
-                self.attrs[u'krbprincipalkey'] = [Fuzzy(type=bytes)]
-                self.attrs[u'userpassword'] = [Fuzzy(type=bytes)]
-                self.attrs[u'has_keytab'] = True
-                self.attrs[u'has_password'] = True
-                if key == u'random':
-                    self.attrs[u'randompassword'] = fuzzy_string
+                self.attrs['krblastpwdchange'] = [fuzzy_dergeneralizedtime]
+                self.attrs['krbprincipalkey'] = [Fuzzy(type=bytes)]
+                self.attrs['userpassword'] = [Fuzzy(type=bytes)]
+                self.attrs['has_keytab'] = True
+                self.attrs['has_password'] = True
+                if key == 'random':
+                    self.attrs['randompassword'] = fuzzy_string
             else:
                 self.attrs[key] = [self.kwargs[key]]
 
@@ -182,7 +182,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
         expected = self.filter_attrs(self.create_keys | set(extra_keys))
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Added stage user "%s"' % self.uid,
+            summary='Added stage user "%s"' % self.uid,
             result=self.filter_attrs(expected),
         ), result)
 
@@ -203,7 +203,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
 
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Added stage user "%s"' % self.uid,
+            summary='Added stage user "%s"' % self.uid,
             result=self.filter_attrs(expected),
         ), result)
 
@@ -211,7 +211,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
         """ Check 'stageuser-del' command result """
         assert_deepequal(dict(
             value=[self.uid],
-            summary=u'Deleted stage user "%s"' % self.uid,
+            summary='Deleted stage user "%s"' % self.uid,
             result=dict(failed=[]),
             ), result)
 
@@ -238,7 +238,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 user matched',
+            summary='1 user matched',
             result=[expected],
         ), result)
 
@@ -247,7 +247,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
         assert_deepequal(dict(
             count=0,
             truncated=False,
-            summary=u'0 users matched',
+            summary='0 users matched',
             result=[],
         ), result)
 
@@ -255,14 +255,14 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
         """ Check 'stageuser-mod' command result """
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Modified stage user "%s"' % self.uid,
+            summary='Modified stage user "%s"' % self.uid,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 
     def check_restore_preserved(self, result):
         assert_deepequal(dict(
             value=[self.uid],
-            summary=u'Staged user account "%s"' % self.uid,
+            summary='Staged user account "%s"' % self.uid,
             result=dict(failed=[]),
         ), result)
 
@@ -283,7 +283,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
 
         def finish():
             with raises_exact(errors.NotFound(
-                    reason=u'%s: stage user not found' % self.uid)):
+                    reason='%s: stage user not found' % self.uid)):
                 del_command()
 
         request.addfinalizer(finish)
@@ -299,7 +299,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
         self.sn = user.sn
         self.dn = DN(
             ('uid', self.uid), api.env.container_stageuser, api.env.basedn)
-        self.attrs[u'dn'] = self.dn
+        self.attrs['dn'] = self.dn
 
     def _make_add_alias_cmd(self):
         return self.make_command('stageuser_add_principal', self.name)

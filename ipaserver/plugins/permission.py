@@ -244,8 +244,8 @@ class permission(baseldap.LDAPObject):
             label=_('Granted rights'),
             doc=_('Rights to grant '
                   '(read, search, compare, write, add, delete, all)'),
-            values=(u'read', u'search', u'compare',
-                    u'write', u'add', u'delete', u'all'),
+            values=('read', 'search', 'compare',
+                    'write', 'add', 'delete', 'all'),
             flags={'ask_create'},
         ),
         Str('attrs*',
@@ -368,7 +368,7 @@ class permission(baseldap.LDAPObject):
                 raise errors.ACIError(
                     info=_('Permission with unknown flag %s may not be '
                             'modified or removed') % flag)
-        if list(flags) == [u'SYSTEM']:
+        if list(flags) == ['SYSTEM']:
             raise errors.ACIError(
                 info=_('A SYSTEM permission may not be modified or removed'))
 
@@ -517,12 +517,12 @@ class permission(baseldap.LDAPObject):
                     entry[attr] = entry.single_value[attr]
             # memberof was also single-valued, but not any more
             if entry.get('memberof'):
-                joined_value = u', '.join(str(m) for m in entry['memberof'])
+                joined_value = ', '.join(str(m) for m in entry['memberof'])
                 entry['memberof'] = joined_value
             if 'subtree' in entry:
                 # Legacy clients expect subtree as a URL
                 dn = entry.single_value['subtree']
-                entry['subtree'] = u'ldap:///%s' % dn
+                entry['subtree'] = 'ldap:///%s' % dn
             if 'filter' in entry:
                 # Legacy clients expect filter without parentheses
                 new_filter = []
@@ -545,7 +545,7 @@ class permission(baseldap.LDAPObject):
             # is allowed.
             # (But they can still be excluded explicitly, at least in managed
             # permissions).
-            attrs.update((u'entryusn', u'createtimestamp', u'modifytimestamp'))
+            attrs.update(('entryusn', 'createtimestamp', 'modifytimestamp'))
         attrs.difference_update(entry.get('ipapermexcludedattr', ()))
         return sorted(attrs)
 
@@ -788,11 +788,11 @@ class permission(baseldap.LDAPObject):
             target_entry.single_value['ipapermtargetfilter'] = unicode(
                 aci.target['targetfilter']['expression'])
         if aci.bindrule['expression'] == 'ldap:///all':
-            target_entry.single_value['ipapermbindruletype'] = u'all'
+            target_entry.single_value['ipapermbindruletype'] = 'all'
         elif aci.bindrule['expression'] == 'ldap:///anyone':
-            target_entry.single_value['ipapermbindruletype'] = u'anonymous'
+            target_entry.single_value['ipapermbindruletype'] = 'anonymous'
         else:
-            target_entry.single_value['ipapermbindruletype'] = u'permission'
+            target_entry.single_value['ipapermbindruletype'] = 'permission'
         target_entry['ipapermright'] = aci.permissions
         if 'targetattr' in aci.target:
             target_entry['ipapermincludedattr'] = [
@@ -802,7 +802,7 @@ class permission(baseldap.LDAPObject):
             target_entry['ipapermissiontype'] = ['SYSTEM', 'V2']
             if 'ipapermissionv2' not in entry['objectclass']:
                 target_entry['objectclass'] = list(entry['objectclass']) + [
-                    u'ipapermissionv2']
+                    'ipapermissionv2']
 
         target_entry['ipapermlocation'] = [self.api.env.basedn]
 
@@ -817,7 +817,7 @@ class permission(baseldap.LDAPObject):
         objectclasses = getattr(obj, 'permission_filter_objectclasses', None)
         if not objectclasses:
             return None
-        filters = [u'(objectclass=%s)' % o for o in objectclasses]
+        filters = ['(objectclass=%s)' % o for o in objectclasses]
         if len(filters) == 1:
             return filters[0]
         else:
@@ -890,7 +890,7 @@ class permission(baseldap.LDAPObject):
                 except errors.NotFound:
                     raise errors.NotFound(
                         reason=_('%s: group not found') % group)
-                filter_ops['add'].append(u'(memberOf=%s)' % groupdn)
+                filter_ops['add'].append('(memberOf=%s)' % groupdn)
 
         # targetgroup
         if 'targetgroup' in options:

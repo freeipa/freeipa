@@ -226,7 +226,7 @@ def get_effective_rights(ldap, dn, attrs=None):
             if v == 'none':
                 # the string "none" means "no rights found"
                 # see https://fedorahosted.org/freeipa/ticket/4359
-                v = u''
+                v = ''
             rdict[k.strip().lower()] = v
 
     return rdict
@@ -277,7 +277,7 @@ def pkey_to_unicode(key):
         key = []
     elif not isinstance(key, (tuple, list)):
         key = [key]
-    key = u','.join(unicode(k) for k in key)
+    key = ','.join(unicode(k) for k in key)
     return key
 
 def pkey_to_value(key, options):
@@ -1532,7 +1532,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
         if 'rename' in options:
             if not options['rename']:
                 raise errors.ValidationError(
-                    name='rename', error=u'can\'t be empty')
+                    name='rename', error='can\'t be empty')
             entry_attrs[self.obj.primary_key.name] = options['rename']
 
         # if setattr was used to change the RDN, the primary_key.name is

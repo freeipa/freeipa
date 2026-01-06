@@ -252,31 +252,31 @@ class sudorule(LDAPObject):
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('cmdcategory?',
             cli_name='cmdcat',
             label=_('Command category'),
             doc=_('Command category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('ipasudorunasusercategory?',
             cli_name='runasusercat',
             label=_('RunAs User category'),
             doc=_('RunAs User category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('ipasudorunasgroupcategory?',
             cli_name='runasgroupcat',
             label=_('RunAs Group category'),
             doc=_('RunAs Group category the rule applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         Int('sudoorder?',
             cli_name='order',
@@ -800,7 +800,7 @@ class sudorule_add_runasuser(LDAPAddMember):
 
         def check_validity(runas):
             v = unicode(runas)
-            if v.upper() == u'ALL':
+            if v.upper() == 'ALL':
                 return False
             return True
 
@@ -924,7 +924,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
 
         def check_validity(runas):
             v = unicode(runas)
-            if v.upper() == u'ALL':
+            if v.upper() == 'ALL':
                 return False
             return True
 

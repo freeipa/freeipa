@@ -142,7 +142,7 @@ implement a ``run()`` method, like this:
 >>> api = create_api()
 >>> api.add_plugin(my_command)
 >>> api.finalize()
->>> api.Command.my_command(version=u'2.47') # Call your command
+>>> api.Command.my_command(version='2.47') # Call your command
 {'result': 'My run() method was called!'}
 
 When `frontend.Command.__call__()` is called, it first validates any arguments
@@ -199,7 +199,7 @@ called:
 >>> api.env.in_server = False # run() will dispatch to forward()
 >>> api.add_plugin(my_command)
 >>> api.finalize()
->>> api.Command.my_command(version=u'2.47') # Call your command plugin
+>>> api.Command.my_command(version='2.47') # Call your command plugin
 {'result': 'forward(): in_server=False'}
 
 On the other hand, if ``my_command`` is loaded in a *server* context,
@@ -209,7 +209,7 @@ On the other hand, if ``my_command`` is loaded in a *server* context,
 >>> api.env.in_server = True # run() will dispatch to execute()
 >>> api.add_plugin(my_command)
 >>> api.finalize()
->>> api.Command.my_command(version=u'2.47') # Call your command plugin
+>>> api.Command.my_command(version='2.47') # Call your command plugin
 {'result': 'execute(): in_server=True'}
 
 Normally there should be no reason to override `frontend.Command.forward()`,
@@ -331,7 +331,7 @@ Lastly, we call ``api.finalize()`` and see what happens when we call
 ``my_command()``:
 
 >>> api.finalize()
->>> api.Command.my_command(version=u'2.47')
+>>> api.Command.my_command(version='2.47')
 {'result': 'my_backend.do_stuff() indeed did do stuff!'}
 
 When not in a server context, ``my_command.execute()`` never gets called, so
@@ -361,7 +361,7 @@ False
 
 And yet we can call ``my_command()``:
 
->>> api.Command.my_command(version=u'2.47')
+>>> api.Command.my_command(version='2.47')
 {'result': 'Just my_command.forward() getting called here.'}
 
 
@@ -397,7 +397,7 @@ several other commands in a single operation.  For example:
 >>> api.add_plugin(command_1)
 >>> api.add_plugin(command_2)
 >>> api.finalize()
->>> api.Command.meta_command(version=u'2.47')
+>>> api.Command.meta_command(version='2.47')
 {'result': 'command_1.execute() called; command_2.execute() called.'}
 
 Because this is quite useful, we are going to revise our golden rule somewhat:
@@ -421,7 +421,7 @@ For example:
 ...
 ...     takes_args = ('programmer',)
 ...
-...     takes_options = (Str('stuff', default=u'documentation'))
+...     takes_options = (Str('stuff', default='documentation'))
 ...
 ...     def execute(self, programmer, **kw):
 ...         return dict(
@@ -432,10 +432,10 @@ For example:
 >>> api.env.in_server = True
 >>> api.add_plugin(nudge)
 >>> api.finalize()
->>> api.Command.nudge(u'Jason', version=u'2.47')
-{'result': u'Jason, go write more documentation!'}
->>> api.Command.nudge(u'Jason', stuff=u'unit tests', version=u'2.47')
-{'result': u'Jason, go write more unit tests!'}
+>>> api.Command.nudge('Jason', version='2.47')
+{'result': 'Jason, go write more documentation!'}
+>>> api.Command.nudge('Jason', stuff='unit tests', version='2.47')
+{'result': 'Jason, go write more unit tests!'}
 
 The ``args`` and ``options`` attributes are `plugable.NameSpace` instances
 containing a command's arguments and options, respectively, as you can see:
@@ -447,9 +447,9 @@ Str('programmer')
 >>> list(api.Command.nudge.options) # Iterates through option names
 ['stuff', 'version']
 >>> api.Command.nudge.options.stuff
-Str('stuff', default=u'documentation')
+Str('stuff', default='documentation')
 >>> api.Command.nudge.options.stuff.default
-u'documentation'
+'documentation'
 
 The 'version' option is added to commands automatically.
 
@@ -465,8 +465,8 @@ NameSpace(<3 members>, sort=False)
 When calling a command, its positional arguments can also be provided as
 keyword arguments, and in any order.  For example:
 
->>> api.Command.nudge(stuff=u'lines of code', programmer=u'Jason', version=u'2.47')
-{'result': u'Jason, go write more lines of code!'}
+>>> api.Command.nudge(stuff='lines of code', programmer='Jason', version='2.47')
+{'result': 'Jason, go write more lines of code!'}
 
 When a command plugin is called, the values supplied for its parameters are
 put through a sophisticated processing pipeline that includes steps for
@@ -488,12 +488,12 @@ here is a quick teaser:
 ...
 >>> cp = create_player()
 >>> cp.finalize()
->>> cp.convert(points=u' 1000  ')
+>>> cp.convert(points=' 1000  ')
 {'points': 1000}
->>> cp.normalize(nick=u'NickName')
-{'nick': u'nickname'}
->>> cp.get_default(first=u'Jason', last=u'DeRose')
-{'nick': u'jderose', 'points': 0}
+>>> cp.normalize(nick='NickName')
+{'nick': 'nickname'}
+>>> cp.get_default(first='Jason', last='DeRose')
+{'nick': 'jderose', 'points': 0}
 
 For the full details on the parameter system, see the
 `frontend.parse_param_spec()` function, and the `frontend.Param` and
@@ -593,9 +593,9 @@ For example, say we setup a command like this:
 ...
 ...     def execute(self, key, **options):
 ...         items = dict(
-...             fruit=u'apple',
-...             pet=u'dog',
-...             city=u'Berlin',
+...             fruit='apple',
+...             pet='dog',
+...             city='Berlin',
 ...         )
 ...         if key in items:
 ...             return dict(result=items[key])
@@ -636,9 +636,9 @@ through the ``ipa`` script basically will do the following:
 -----------
 show-items:
 -----------
-  city = u'Berlin'
-  fruit = u'apple'
-  pet = u'dog'
+  city = 'Berlin'
+  fruit = 'apple'
+  pet = 'dog'
 -------
 3 items
 -------
@@ -650,18 +650,18 @@ Similarly, calling it with ``reverse=True``  would result in the following:
 -----------
 show-items:
 -----------
-  pet = u'dog'
-  fruit = u'apple'
-  city = u'Berlin'
+  pet = 'dog'
+  fruit = 'apple'
+  city = 'Berlin'
 --------------------------
 3 items (in reverse order)
 --------------------------
 
 Lastly, providing a ``key`` would result in the following:
 
->>> result = api.Command.show_items(u'city')
+>>> result = api.Command.show_items('city')
 >>> api.Command.show_items.output_for_cli(textui, result, 'city', reverse=False)
-city = u'Berlin'
+city = 'Berlin'
 
 See the `ipalib.cli.textui` plugin for a description of its methods.
 
@@ -763,8 +763,8 @@ For example:
 >>> api.bootstrap(in_server=True, message='Hello, world!')
 >>> api.add_plugin(motd)
 >>> api.finalize()
->>> api.Command.motd(version=u'2.47')
-{'result': u'Hello, world!'}
+>>> api.Command.motd(version='2.47')
+{'result': 'Hello, world!'}
 
 Also see the `plugable.API.bootstrap_with_global_options()` method.
 
