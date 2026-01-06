@@ -18,7 +18,7 @@ from ipaplatform.osinfo import osinfo
 # RHEL 8 uses /etc/nfs.conf
 HAS_NFS_CONF = osinfo.version_number >= (8,)
 # RHEL 9 uses pkcs11 as openssl engine
-HAS_PKCS11_OPENSSL_ENGINE = osinfo.version_number == (9,)
+HAS_PKCS11_OPENSSL_ENGINE = osinfo.version_number[0] == 9
 
 # RHEL 10 and later deprecated OpenSSL engine and recommend using OpenSSL
 # provider API.
