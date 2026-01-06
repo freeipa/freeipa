@@ -3220,3 +3220,18 @@ def service_control_dirsrv(host, function='restart'):
     instance = realm_to_serverid(host.domain.realm)
     cmd = host.run_command(['systemctl', function, f"dirsrv@{instance}"])
     assert cmd.returncode == 0
+
+
+def host_add_with_random_password(host, new_host):
+    """
+    Add a new host with a random password and return the generated password.
+    """
+    kinit_admin(host)
+    cmd = host.run_command(
+        ['ipa', 'host-add', new_host.hostname, '--random']
+    )
+    result = re.search("Random password: (?P<password>.*$)",
+                       cmd.stdout_text,
+                       re.MULTILINE)
+    randpasswd1 = result.group('password')
+    return randpasswd1

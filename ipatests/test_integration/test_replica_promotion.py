@@ -1368,3 +1368,90 @@ class TestReplicaConn(IntegrationTest):
         logs = self.replica.get_file_contents(paths.IPAREPLICA_CONNCHECK_LOG)
         error = "not allowed to perform server connection check"
         assert error.encode() not in logs
+
+
+class TestReplicaPromotionRandomPassword(IntegrationTest):
+    """
+    Test installation of a replica using Random Password
+    (one step install and two-steps installation
+    with client and promotion).
+    """
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        cls.replicas[0].resolver.backup()
+        nameservers = cls.master.ip
+        cls.replicas[0].resolver.setup_resolver(
+            nameservers, cls.master.domain.name
+        )
+
+    @replicas_cleanup
+    def test_replica_random_password_install(self):
+        """
+        Installing IPA replica server using Random Password.
+
+        Steps:
+          1. Ensure replica host/server entries are clean and add DNS A record.
+          2. Add the replica host with a random password and add it to
+             the ipaservers hostgroup.
+          3. Install the replica using random password.
+        """
+        replica = self.replicas[0]
+        tasks.kinit_admin(self.master)
+        tasks.add_a_record(self.master, replica)
+        randpasswd = tasks.host_add_with_random_password(self.master,
+                                                         replica)
+        self.master.run_command([
+            'ipa', 'hostgroup-add-member', '--hosts',
+            replica.hostname, 'ipaservers'
+        ])
+        replica.run_command(
+            ['ipa-replica-install', '-p', randpasswd, '-U']
+        )
+
+    @replicas_cleanup
+    def test_replica_two_step_install(self):
+        """
+        Installing IPA replica server using Random Password installed client
+
+        Steps:
+          1. Ensure replica host/server entries are clean and add DNS A record.
+          2. Add the replica host with a random password and add it to
+             the ipaservers hostgroup.
+          3. Install the IPA client using the Random Password.
+          4. Promote the client to a replica.
+          5. Install CA on the replica and verify the server role.
+        """
+        replica = self.replicas[0]
+        replica.resolver.backup()
+        tasks.kinit_admin(self.master)
+        tasks.add_a_record(self.master, replica)
+        randpasswd = tasks.host_add_with_random_password(self.master,
+                                                         replica)
+        self.master.run_command([
+            'ipa', 'hostgroup-add-member', '--hosts',
+            replica.hostname, 'ipaservers'
+        ])
+        replica.resolver.setup_resolver(
+            self.master.ip, self.master.domain.name
+        )
+        replica.run_command(
+            ['ipa-client-install', '-w', randpasswd, '-U']
+        )
+        Firewall(replica).enable_services(["freeipa-ldap",
+                                           "freeipa-ldaps"])
+        replica.run_command(['ipa-replica-install', '-U'])
+        tasks.kinit_admin(replica)
+        replica.run_command([
+            'ipa-ca-install', '-p',
+            self.master.config.admin_password,
+            '-w', self.master.config.admin_password
+        ])
+        result = self.replicas[0].run_command([
+            'ipa', 'server-role-find',
+            '--server', self.replicas[0].hostname,
+            '--role', 'CA server'
+        ])
+        assert 'Role status: enabled' in result.stdout_text
