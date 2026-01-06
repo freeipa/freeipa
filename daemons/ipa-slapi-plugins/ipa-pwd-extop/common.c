@@ -577,6 +577,7 @@ int ipapwd_gen_checks(Slapi_PBlock *pb, char **errMesg,
         LOG_FATAL("Error Retrieving Master Key\n");
         *errMesg = "Fatal Internal Error";
         rc = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     /* do not return the master key if asked */
