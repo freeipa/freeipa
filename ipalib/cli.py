@@ -245,15 +245,15 @@ class textui(backend.Backend):
 
         >>> items = [
         ...     ('in_server', True),
-        ...     ('mode', u'production'),
+        ...     ('mode', 'production'),
         ... ]
         >>> ui = textui(api)
         >>> ui.print_keyval(items)
           in_server = True
-          mode = u'production'
+          mode = 'production'
         >>> ui.print_keyval(items, indent=0)
         in_server = True
-        mode = u'production'
+        mode = 'production'
 
         Also see `textui.print_indented`.
         """
@@ -268,12 +268,12 @@ class textui(backend.Backend):
 
         >>> attr = 'dn'
         >>> ui = textui(api)
-        >>> ui.print_attribute(attr, u'dc=example,dc=com')
+        >>> ui.print_attribute(attr, 'dc=example,dc=com')
           dn: dc=example,dc=com
         >>> attr = 'objectClass'
-        >>> ui.print_attribute(attr, [u'top', u'someClass'], one_value_per_line=False)
+        >>> ui.print_attribute(attr, ['top', 'someClass'], one_value_per_line=False)
           objectClass: top, someClass
-        >>> ui.print_attribute(attr, [u'top', u'someClass'])
+        >>> ui.print_attribute(attr, ['top', 'someClass'])
           objectClass: top
           objectClass: someClass
         """
@@ -309,9 +309,9 @@ class textui(backend.Backend):
                         text, line_len, break_long_words=False
                     )
                     if len(text) == 0:
-                        text = [u'']
+                        text = ['']
                 else:
-                    s_indent = u''
+                    s_indent = ''
                     text = [text]
                 self.print_indented(format % (attr, text[0]), indent)
                 for line in text[1:]:
@@ -369,7 +369,7 @@ class textui(backend.Backend):
                 flag = flags.get(key, [])
                 value = entry[key]
                 if ('suppress_empty' in flag and
-                    value in [u'', '', (), [], None]):
+                    value in ['', '', (), [], None]):
                     continue
                 if isinstance(value, dict):
                     if frontend.entry_count(value) == 0:
@@ -383,7 +383,7 @@ class textui(backend.Backend):
                     if isinstance(value, (list, tuple)) and \
                        all(isinstance(val, dict) for val in value):
                         # this is a list of entries (dicts), not values
-                        self.print_attribute(label, u'', format, indent)
+                        self.print_attribute(label, '', format, indent)
                         self.print_entries(value, order, labels, flags, print_all,
                                 format, indent+1)
                     else:
@@ -541,13 +541,13 @@ class textui(backend.Backend):
         """
         # TODO: Add tab completion using readline
         if optional:
-            prompt = u'[%s]' % label
+            prompt = '[%s]' % label
         else:
-            prompt = u'%s' % label
+            prompt = '%s' % label
         if default is None:
-            prompt = u'%s: ' % prompt
+            prompt = '%s: ' % prompt
         else:
-            prompt = u'%s [%s]: ' % (prompt, default)
+            prompt = '%s [%s]: ' % (prompt, default)
         return self.prompt_helper(prompt, label)
 
     def prompt_yesno(self, label, default=None):
@@ -572,18 +572,18 @@ class textui(backend.Backend):
                 default_prompt = "No"
 
         if default_prompt:
-            prompt = u'%s Yes/No (default %s): ' % (label, default_prompt)
+            prompt = '%s Yes/No (default %s): ' % (label, default_prompt)
         else:
-            prompt = u'%s Yes/No: ' % label
+            prompt = '%s Yes/No: ' % label
 
         while True:
             data = self.prompt_helper(prompt, label).lower()
 
-            if data in (u'yes', u'y'):
+            if data in ('yes', 'y'):
                 return True
-            elif data in ( u'n', u'no'):
+            elif data in ( 'n', 'no'):
                 return False
-            elif default is not None and data == u'':
+            elif default is not None and data == '':
                 return default
 
         return default  # pylint consinstent return statements
@@ -594,7 +594,7 @@ class textui(backend.Backend):
         on whether there is a tty or not.
         """
         if sys.stdin.isatty():
-            prompt = u'%s: ' % unicode(label)
+            prompt = '%s: ' % unicode(label)
             repeat_prompt = unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
             while True:
                 pw1 = self.prompt_helper(prompt, label, prompt_func=getpass.getpass)
@@ -685,7 +685,7 @@ class help(frontend.Local):
                 length += len(line.split("\n"))
             return length
 
-        def append(self, string=u""):
+        def append(self, string=""):
             self.buffer.append(unicode(string))
 
         def write(self):
@@ -714,7 +714,7 @@ class help(frontend.Local):
     topic = None
 
     def _get_topic(self, topic):
-        doc = u''
+        doc = ''
         parent_topic = None
 
         for package in self.api.packages:
@@ -1138,7 +1138,7 @@ class CLIOptionParser(IPAOptionParser):
             formatter.dedent()
             if len(arguments) > 1:
                 # there is more than just the heading
-                arguments.append(u"\n")
+                arguments.append("\n")
             else:
                 arguments = []
             option_help = "".join(arguments) + option_help

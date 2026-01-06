@@ -226,19 +226,19 @@ class dnsrecord_add(MethodOverride):
 
         # check zone type
         if idnsname.is_empty():
-            common_types = u', '.join(_zone_top_record_types)
+            common_types = ', '.join(_zone_top_record_types)
         elif zonename.is_reverse():
-            common_types = u', '.join(_rev_top_record_types)
+            common_types = ', '.join(_rev_top_record_types)
         else:
-            common_types = u', '.join(_top_record_types)
+            common_types = ', '.join(_top_record_types)
 
-        self.Backend.textui.print_plain(_(u'Please choose a type of DNS resource record to be added'))
-        self.Backend.textui.print_plain(_(u'The most common types for this type of zone are: %s\n') %\
+        self.Backend.textui.print_plain(_('Please choose a type of DNS resource record to be added'))
+        self.Backend.textui.print_plain(_('The most common types for this type of zone are: %s\n') %\
                                           common_types)
 
         ok = False
         while not ok:
-            rrtype = self.Backend.textui.prompt(_(u'DNS resource record type'))
+            rrtype = self.Backend.textui.prompt(_('DNS resource record type'))
 
             if rrtype is None:
                 return
@@ -252,11 +252,11 @@ class dnsrecord_add(MethodOverride):
                 if 'no_option' in param.flags:
                     raise ValueError()
             except (KeyError, ValueError):
-                all_types = u', '.join(get_record_rrtype(p.name)
+                all_types = ', '.join(get_record_rrtype(p.name)
                                        for p in self.params()
                                        if (get_record_rrtype(p.name) and
                                            'no_option' not in p.flags))
-                self.Backend.textui.print_plain(_(u'Invalid or unsupported type. Allowed values are: %s') % all_types)
+                self.Backend.textui.print_plain(_('Invalid or unsupported type. Allowed values are: %s') % all_types)
                 continue
             ok = True
 
@@ -284,7 +284,7 @@ class dnsrecord_mod(MethodOverride):
         self.Backend.textui.print_plain(_("No option to modify specific record provided."))
 
         # ask user for records to be removed
-        self.Backend.textui.print_plain(_(u'Current DNS record contents:\n'))
+        self.Backend.textui.print_plain(_('Current DNS record contents:\n'))
         record_params = []
 
         for attr in dns_record:
@@ -297,9 +297,9 @@ class dnsrecord_mod(MethodOverride):
                 continue
 
             record_params.append((param, rrtype))
-            rec_type_content = u', '.join(dns_record[param.name])
-            self.Backend.textui.print_plain(u'%s: %s' % (param.label, rec_type_content))
-        self.Backend.textui.print_plain(u'')
+            rec_type_content = ', '.join(dns_record[param.name])
+            self.Backend.textui.print_plain('%s: %s' % (param.label, rec_type_content))
+        self.Backend.textui.print_plain('')
 
         # ask what records to remove
         for param, rrtype in record_params:
@@ -316,8 +316,8 @@ class dnsrecord_mod(MethodOverride):
 
                     if rec_values:
                          self.Backend.textui.print_plain(ngettext(
-                            u'%(count)d %(type)s record skipped. Only one value per DNS record type can be modified at one time.',
-                            u'%(count)d %(type)s records skipped. Only one value per DNS record type can be modified at one time.',
+                            '%(count)d %(type)s record skipped. Only one value per DNS record type can be modified at one time.',
+                            '%(count)d %(type)s records skipped. Only one value per DNS record type can be modified at one time.',
                             0) % dict(count=len(rec_values), type=rrtype))
                          break
 
@@ -350,7 +350,7 @@ class dnsrecord_del(MethodOverride):
             return
 
         # ask user for records to be removed
-        self.Backend.textui.print_plain(_(u'Current DNS record contents:\n'))
+        self.Backend.textui.print_plain(_('Current DNS record contents:\n'))
         present_params = []
 
         for attr in dns_record:
@@ -362,9 +362,9 @@ class dnsrecord_del(MethodOverride):
                 continue
 
             present_params.append(param)
-            rec_type_content = u', '.join(dns_record[param.name])
-            self.Backend.textui.print_plain(u'%s: %s' % (param.label, rec_type_content))
-        self.Backend.textui.print_plain(u'')
+            rec_type_content = ', '.join(dns_record[param.name])
+            self.Backend.textui.print_plain('%s: %s' % (param.label, rec_type_content))
+        self.Backend.textui.print_plain('')
 
         # ask what records to remove
         for param in present_params:
@@ -396,9 +396,9 @@ class dnsconfig_mod(MethodOverride):
 class dnsforwardzone_add(MethodOverride):
     def interactive_prompt_callback(self, kw):
         if ('idnsforwarders' not in kw and
-                kw.get('idnsforwardpolicy') != u'none'):
+                kw.get('idnsforwardpolicy') != 'none'):
             kw['idnsforwarders'] = self.Backend.textui.prompt(
-                _(u'DNS forwarder'))
+                _('DNS forwarder'))
 
         # show informative message on client side
         # server cannot send messages asynchronous
@@ -436,10 +436,10 @@ class dns_update_system_records(MethodOverride):
         """Print output in standard format common across the other plugins"""
         for key in self.record_groups:
             if result.get(key):
-                textui.print_indented(u'{}:'.format(labels[key]), indent=1)
+                textui.print_indented('{}:'.format(labels[key]), indent=1)
                 for val in sorted(result[key]):
                     textui.print_indented(val, indent=2)
-                textui.print_line(u'')
+                textui.print_line('')
 
     def _nsupdate_output_file(self, out_f, result):
         """Store data in nsupdate format in file"""

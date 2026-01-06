@@ -207,13 +207,13 @@ class idrange(LDAPObject):
 
     # The commented range types are planned but not yet supported
     range_types = {
-        u'ipa-local': unicode(_('local domain range')),
-        # u'ipa-local-subid': unicode(_('local domain subid range')),
-        # u'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
-        u'ipa-ad-trust': unicode(_('Active Directory domain range')),
-        u'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
+        'ipa-local': unicode(_('local domain range')),
+        # 'ipa-local-subid': unicode(_('local domain subid range')),
+        # 'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
+        'ipa-ad-trust': unicode(_('Active Directory domain range')),
+        'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
                                         'POSIX attributes')),
-        # u'ipa-ipa-trust': unicode(_('IPA trust range')),
+        # 'ipa-ipa-trust': unicode(_('IPA trust range')),
                   }
 
     takes_params = (
@@ -267,7 +267,7 @@ class idrange(LDAPObject):
                 label=_('Auto private groups'),
                 cli_name='auto_private_groups',
                 doc=_('Auto creation of private groups, one of allowed values'),
-                values=(u'true', u'false', u'hybrid'),
+                values=('true', 'false', 'hybrid'),
                 ),
     )
 
@@ -287,7 +287,7 @@ class idrange(LDAPObject):
     def handle_ipabaserid(self, entry_attrs, options):
         if any((options.get('pkey_only', False), options.get('raw', False))):
             return
-        if entry_attrs['iparangetype'][0] == u'ipa-ad-trust-posix':
+        if entry_attrs['iparangetype'][0] == 'ipa-ad-trust-posix':
             entry_attrs.pop('ipabaserid', None)
 
     def check_ids_in_modified_range(self, old_base, old_size, new_base,
@@ -462,16 +462,16 @@ class idrange_add(LDAPCreate):
 
             # Default to ipa-ad-trust if no type set
             if not is_set('iparangetype'):
-                entry_attrs['iparangetype'] = u'ipa-ad-trust'
+                entry_attrs['iparangetype'] = 'ipa-ad-trust'
 
-            if entry_attrs['iparangetype'] == u'ipa-ad-trust':
+            if entry_attrs['iparangetype'] == 'ipa-ad-trust':
                 if not is_set('ipabaserid'):
                     raise errors.ValidationError(
                         name='ID Range setup',
                         error=_('Options dom-sid/dom-name and rid-base must '
                                 'be used together')
                     )
-            elif entry_attrs['iparangetype'] == u'ipa-ad-trust-posix':
+            elif entry_attrs['iparangetype'] == 'ipa-ad-trust-posix':
                 if is_set('ipabaserid') and entry_attrs['ipabaserid'] != 0:
                     raise errors.ValidationError(
                         name='ID Range setup',
@@ -504,8 +504,8 @@ class idrange_add(LDAPCreate):
                 entry_attrs['iparangetype'] = 'ipa-local'
 
             # TODO: can also be ipa-ad-winsync here?
-            if entry_attrs['iparangetype'] in (u'ipa-ad-trust',
-                                               u'ipa-ad-trust-posix'):
+            if entry_attrs['iparangetype'] in ('ipa-ad-trust',
+                                               'ipa-ad-trust-posix'):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('IPA Range type must not be one of ipa-ad-trust '
                             'or ipa-ad-trust-posix when SID of the trusted '
@@ -513,8 +513,8 @@ class idrange_add(LDAPCreate):
 
             # auto private group is possible only for ad trusts
             if is_set('ipaautoprivategroups') and \
-               entry_attrs['iparangetype'] not in (u'ipa-ad-trust',
-                                                   u'ipa-ad-trust-posix'):
+               entry_attrs['iparangetype'] not in ('ipa-ad-trust',
+                                                   'ipa-ad-trust-posix'):
                 raise errors.ValidationError(
                     name='ID Range setup',
                     error=_('IPA Range type must be one of ipa-ad-trust '
@@ -742,13 +742,13 @@ class idrange_mod(LDAPUpdate):
                     error=_('Options dom-sid and secondary-rid-base cannot '
                             'be used together'))
             range_type = old_attrs['iparangetype'][0]
-            if range_type == u'ipa-ad-trust':
+            if range_type == 'ipa-ad-trust':
                 if not in_updated_attrs('ipabaserid'):
                     raise errors.ValidationError(
                         name='ID Range setup',
                         error=_('Options dom-sid and rid-base must '
                                 'be used together'))
-            elif (range_type == u'ipa-ad-trust-posix' and
+            elif (range_type == 'ipa-ad-trust-posix' and
                   'ipabaserid' in entry_attrs):
                 if entry_attrs['ipabaserid'] is None:
                     entry_attrs['ipabaserid'] = 0

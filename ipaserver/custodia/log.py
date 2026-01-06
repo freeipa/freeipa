@@ -31,15 +31,15 @@ class CustodiaFormatter(logging.Formatter):
                 record.exc_text = self.formatException(record.exc_info)
             else:
                 short_exc = True
-                record.exc_text = u"{0.__name__}: {1}".format(
+                record.exc_text = "{0.__name__}: {1}".format(
                     record.exc_info[0], record.exc_info[1]
                 )
 
         result = super(CustodiaFormatter, self).format(record)
         if short_exc:
             # format() adds \n between message and exc_text
-            text, exc = result.rsplit(u'\n', 1)
-            return u"{0} ({1})".format(text, exc)
+            text, exc = result.rsplit('\n', 1)
+            return "{0} ({1})".format(text, exc)
         else:
             return result
 

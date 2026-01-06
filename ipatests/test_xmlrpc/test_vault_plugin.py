@@ -27,19 +27,19 @@ from ipalib import api
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_bytes
 
 
-vault_name = u'test_vault'
-service_name = u'HTTP/server.example.com'
-user_name = u'testuser'
+vault_name = 'test_vault'
+service_name = 'HTTP/server.example.com'
+user_name = 'testuser'
 
-standard_vault_name = u'standard_test_vault'
-symmetric_vault_name = u'symmetric_test_vault'
-asymmetric_vault_name = u'asymmetric_test_vault'
+standard_vault_name = 'standard_test_vault'
+symmetric_vault_name = 'symmetric_test_vault'
+asymmetric_vault_name = 'asymmetric_test_vault'
 
 # binary data from \x00 to \xff
 secret = bytes(range(0, 256))
 
-password = u'password'
-other_password = u'other_password'
+password = 'password'
+other_password = 'other_password'
 
 public_key = b"""
 -----BEGIN PUBLIC KEY-----
@@ -157,20 +157,20 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
-                    'ipavaulttype': u'standard',
+                    'ipavaulttype': 'standard',
                 },
             ),
             'expected': {
                 'value': vault_name,
                 'summary': 'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -185,14 +185,14 @@ class test_vault_plugin(Declarative):
             'expected': {
                 'count': 1,
                 'truncated': False,
-                'summary': u'1 vault matched',
+                'summary': '1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
+                        'dn': 'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                               % (vault_name, api.env.basedn),
                         'cn': [vault_name],
-                        'ipavaulttype': [u'standard'],
-                        'username': u'admin',
+                        'ipavaulttype': ['standard'],
+                        'username': 'admin',
                     },
                 ],
             },
@@ -209,12 +209,12 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -225,18 +225,18 @@ class test_vault_plugin(Declarative):
                 'vault_mod',
                 [vault_name],
                 {
-                    'description': u'Test vault',
+                    'description': 'Test vault',
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Modified vault "%s"' % vault_name,
+                'summary': 'Modified vault "%s"' % vault_name,
                 'result': {
                     'cn': [vault_name],
-                    'description': [u'Test vault'],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'description': ['Test vault'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -250,7 +250,7 @@ class test_vault_plugin(Declarative):
             ),
             'expected': {
                 'value': [vault_name],
-                'summary': u'Deleted vault "%s"' % vault_name,
+                'summary': 'Deleted vault "%s"' % vault_name,
                 'result': {
                     'failed': (),
                 },
@@ -263,21 +263,21 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
-                    'ipavaulttype': u'standard',
+                    'ipavaulttype': 'standard',
                     'service': service_name,
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Added vault "%s"' % vault_name,
+                'summary': 'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=%s@%s,cn=services,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=%s@%s,cn=services,cn=vaults,cn=kra,%s'
                           % (vault_name, service_name, api.env.realm,
                              api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'service': "%s@%s" % (service_name, api.env.realm),
                 },
             },
@@ -295,14 +295,14 @@ class test_vault_plugin(Declarative):
             'expected': {
                 'count': 1,
                 'truncated': False,
-                'summary': u'1 vault matched',
+                'summary': '1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=%s@%s,cn=services,cn=vaults,cn=kra,%s'
+                        'dn': 'cn=%s,cn=%s@%s,cn=services,cn=vaults,cn=kra,%s'
                               % (vault_name, service_name, api.env.realm,
                                  api.env.basedn),
                         'cn': [vault_name],
-                        'ipavaulttype': [u'standard'],
+                        'ipavaulttype': ['standard'],
                         'service': '%s@%s' % (service_name, api.env.realm),
                     },
                 ],
@@ -322,12 +322,12 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=%s@%s,cn=services,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=%s@%s,cn=services,cn=vaults,cn=kra,%s'
                           % (vault_name, service_name, api.env.realm,
                              api.env.basedn),
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'service': "%s@%s" % (service_name, api.env.realm),
                 },
             },
@@ -340,17 +340,17 @@ class test_vault_plugin(Declarative):
                 [vault_name],
                 {
                     'service': service_name,
-                    'description': u'Test vault',
+                    'description': 'Test vault',
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Modified vault "%s"' % vault_name,
+                'summary': 'Modified vault "%s"' % vault_name,
                 'result': {
                     'cn': [vault_name],
-                    'description': [u'Test vault'],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'description': ['Test vault'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'service': "%s@%s" % (service_name, api.env.realm),
                 },
             },
@@ -367,7 +367,7 @@ class test_vault_plugin(Declarative):
             ),
             'expected': {
                 'value': [vault_name],
-                'summary': u'Deleted vault "%s"' % vault_name,
+                'summary': 'Deleted vault "%s"' % vault_name,
                 'result': {
                     'failed': (),
                 },
@@ -380,20 +380,20 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
-                    'ipavaulttype': u'standard',
+                    'ipavaulttype': 'standard',
                     'shared': True
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Added vault "%s"' % vault_name,
+                'summary': 'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'shared': True,
                 },
             },
@@ -411,13 +411,13 @@ class test_vault_plugin(Declarative):
             'expected': {
                 'count': 1,
                 'truncated': False,
-                'summary': u'1 vault matched',
+                'summary': '1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
+                        'dn': 'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
                               % (vault_name, api.env.basedn),
                         'cn': [vault_name],
-                        'ipavaulttype': [u'standard'],
+                        'ipavaulttype': ['standard'],
                         'shared': True,
                     },
                 ],
@@ -437,11 +437,11 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'shared': True,
                 },
             },
@@ -454,17 +454,17 @@ class test_vault_plugin(Declarative):
                 [vault_name],
                 {
                     'shared': True,
-                    'description': u'Test vault',
+                    'description': 'Test vault',
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Modified vault "%s"' % vault_name,
+                'summary': 'Modified vault "%s"' % vault_name,
                 'result': {
                     'cn': [vault_name],
-                    'description': [u'Test vault'],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'description': ['Test vault'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'shared': True,
                 },
             },
@@ -481,7 +481,7 @@ class test_vault_plugin(Declarative):
             ),
             'expected': {
                 'value': [vault_name],
-                'summary': u'Deleted vault "%s"' % vault_name,
+                'summary': 'Deleted vault "%s"' % vault_name,
                 'result': {
                     'failed': (),
                 },
@@ -494,20 +494,20 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
-                    'ipavaulttype': u'standard',
+                    'ipavaulttype': 'standard',
                     'username': user_name,
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Added vault "%s"' % vault_name,
+                'summary': 'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, user_name, api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'username': user_name,
                 },
             },
@@ -525,13 +525,13 @@ class test_vault_plugin(Declarative):
             'expected': {
                 'count': 1,
                 'truncated': False,
-                'summary': u'1 vault matched',
+                'summary': '1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
+                        'dn': 'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
                               % (vault_name, user_name, api.env.basedn),
                         'cn': [vault_name],
-                        'ipavaulttype': [u'standard'],
+                        'ipavaulttype': ['standard'],
                         'username': user_name,
                     },
                 ],
@@ -551,11 +551,11 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, user_name, api.env.basedn),
                     'cn': [vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'username': user_name,
                 },
             },
@@ -568,17 +568,17 @@ class test_vault_plugin(Declarative):
                 [vault_name],
                 {
                     'username': user_name,
-                    'description': u'Test vault',
+                    'description': 'Test vault',
                 },
             ),
             'expected': {
                 'value': vault_name,
-                'summary': u'Modified vault "%s"' % vault_name,
+                'summary': 'Modified vault "%s"' % vault_name,
                 'result': {
                     'cn': [vault_name],
-                    'description': [u'Test vault'],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
+                    'description': ['Test vault'],
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
                     'username': user_name,
                 },
             },
@@ -595,7 +595,7 @@ class test_vault_plugin(Declarative):
             ),
             'expected': {
                 'value': [vault_name],
-                'summary': u'Deleted vault "%s"' % vault_name,
+                'summary': 'Deleted vault "%s"' % vault_name,
                 'result': {
                     'failed': (),
                 },
@@ -608,20 +608,20 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [standard_vault_name],
                 {
-                    'ipavaulttype': u'standard',
+                    'ipavaulttype': 'standard',
                 },
             ),
             'expected': {
                 'value': standard_vault_name,
                 'summary': 'Added vault "%s"' % standard_vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (standard_vault_name, api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [standard_vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -666,19 +666,19 @@ class test_vault_plugin(Declarative):
                 'vault_mod',
                 [standard_vault_name],
                 {
-                    'ipavaulttype': u'symmetric',
+                    'ipavaulttype': 'symmetric',
                     'new_password': password,
                 },
             ),
             'expected': {
                 'value': standard_vault_name,
-                'summary': u'Modified vault "%s"' % standard_vault_name,
+                'summary': 'Modified vault "%s"' % standard_vault_name,
                 'result': {
                     'cn': [standard_vault_name],
-                    'ipavaulttype': [u'symmetric'],
+                    'ipavaulttype': ['symmetric'],
                     'ipavaultsalt': [fuzzy_bytes],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -709,7 +709,7 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [symmetric_vault_name],
                 {
-                    'ipavaulttype': u'symmetric',
+                    'ipavaulttype': 'symmetric',
                     'password': password,
                 },
             ),
@@ -717,14 +717,14 @@ class test_vault_plugin(Declarative):
                 'value': symmetric_vault_name,
                 'summary': 'Added vault "%s"' % symmetric_vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (symmetric_vault_name, api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [symmetric_vault_name],
-                    'ipavaulttype': [u'symmetric'],
+                    'ipavaulttype': ['symmetric'],
                     'ipavaultsalt': [fuzzy_bytes],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -778,13 +778,13 @@ class test_vault_plugin(Declarative):
             ),
             'expected': {
                 'value': symmetric_vault_name,
-                'summary': u'Modified vault "%s"' % symmetric_vault_name,
+                'summary': 'Modified vault "%s"' % symmetric_vault_name,
                 'result': {
                     'cn': [symmetric_vault_name],
-                    'ipavaulttype': [u'symmetric'],
+                    'ipavaulttype': ['symmetric'],
                     'ipavaultsalt': [fuzzy_bytes],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -814,20 +814,20 @@ class test_vault_plugin(Declarative):
                 'vault_mod',
                 [symmetric_vault_name],
                 {
-                    'ipavaulttype': u'asymmetric',
+                    'ipavaulttype': 'asymmetric',
                     'old_password': other_password,
                     'ipavaultpublickey': public_key,
                 },
             ),
             'expected': {
                 'value': symmetric_vault_name,
-                'summary': u'Modified vault "%s"' % symmetric_vault_name,
+                'summary': 'Modified vault "%s"' % symmetric_vault_name,
                 'result': {
                     'cn': [symmetric_vault_name],
-                    'ipavaulttype': [u'asymmetric'],
+                    'ipavaulttype': ['asymmetric'],
                     'ipavaultpublickey': [public_key],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -858,7 +858,7 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [asymmetric_vault_name],
                 {
-                    'ipavaulttype': u'asymmetric',
+                    'ipavaulttype': 'asymmetric',
                     'ipavaultpublickey': public_key,
                 },
             ),
@@ -866,14 +866,14 @@ class test_vault_plugin(Declarative):
                 'value': asymmetric_vault_name,
                 'summary': 'Added vault "%s"' % asymmetric_vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
+                    'dn': 'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (asymmetric_vault_name, api.env.basedn),
-                    'objectclass': [u'top', u'ipaVault'],
+                    'objectclass': ['top', 'ipaVault'],
                     'cn': [asymmetric_vault_name],
-                    'ipavaulttype': [u'asymmetric'],
+                    'ipavaulttype': ['asymmetric'],
                     'ipavaultpublickey': [public_key],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -926,13 +926,13 @@ class test_vault_plugin(Declarative):
             ),
             'expected': {
                 'value': asymmetric_vault_name,
-                'summary': u'Modified vault "%s"' % asymmetric_vault_name,
+                'summary': 'Modified vault "%s"' % asymmetric_vault_name,
                 'result': {
                     'cn': [asymmetric_vault_name],
-                    'ipavaulttype': [u'asymmetric'],
+                    'ipavaulttype': ['asymmetric'],
                     'ipavaultpublickey': [other_public_key],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },
@@ -962,18 +962,18 @@ class test_vault_plugin(Declarative):
                 'vault_mod',
                 [asymmetric_vault_name],
                 {
-                    'ipavaulttype': u'standard',
+                    'ipavaulttype': 'standard',
                     'private_key': other_private_key,
                 },
             ),
             'expected': {
                 'value': asymmetric_vault_name,
-                'summary': u'Modified vault "%s"' % asymmetric_vault_name,
+                'summary': 'Modified vault "%s"' % asymmetric_vault_name,
                 'result': {
                     'cn': [asymmetric_vault_name],
-                    'ipavaulttype': [u'standard'],
-                    'owner_user': [u'admin'],
-                    'username': u'admin',
+                    'ipavaulttype': ['standard'],
+                    'owner_user': ['admin'],
+                    'username': 'admin',
                 },
             },
         },

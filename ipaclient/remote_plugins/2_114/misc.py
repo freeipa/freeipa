@@ -36,13 +36,13 @@ class env(Command):
         parameters.Flag(
             'server',
             required=False,
-            doc=_(u'Forward to server instead of running locally'),
+            doc=_('Forward to server instead of running locally'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=True,
             autofill=True,
@@ -52,22 +52,22 @@ class env(Command):
         output.Output(
             'result',
             dict,
-            doc=_(u'Dictionary mapping variable name to value'),
+            doc=_('Dictionary mapping variable name to value'),
         ),
         output.Output(
             'total',
             int,
-            doc=_(u'Total number of variables env (>= count)'),
+            doc=_('Total number of variables env (>= count)'),
         ),
         output.Output(
             'count',
             int,
-            doc=_(u'Number of variables returned (<= total)'),
+            doc=_('Number of variables returned (<= total)'),
         ),
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
     )
 
@@ -80,13 +80,13 @@ class plugins(Command):
         parameters.Flag(
             'server',
             required=False,
-            doc=_(u'Forward to server instead of running locally'),
+            doc=_('Forward to server instead of running locally'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=True,
             autofill=True,
@@ -96,16 +96,16 @@ class plugins(Command):
         output.Output(
             'result',
             dict,
-            doc=_(u'Dictionary mapping plugin names to bases'),
+            doc=_('Dictionary mapping plugin names to bases'),
         ),
         output.Output(
             'count',
             int,
-            doc=_(u'Number of plugins loaded'),
+            doc=_('Number of plugins loaded'),
         ),
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
     )

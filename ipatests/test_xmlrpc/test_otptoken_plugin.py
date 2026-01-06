@@ -17,13 +17,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 
 
-user_password = u'userSecretPassword123'
+user_password = 'userSecretPassword123'
 
 
 @pytest.fixture
 def user(request):
-    tracker = UserTracker(name=u'user_for_otp_test',
-                          givenname=u'Test', sn=u'User for OTP')
+    tracker = UserTracker(name='user_for_otp_test',
+                          givenname='Test', sn='User for OTP')
     return tracker.make_fixture(request)
 
 
@@ -35,8 +35,8 @@ def id_function(arg):
     - the global config (list containing ipauserauthtypes)
       in this case we need to extract the 'disabled' auth type to evaluate
       whether user setting override is allowed
-      Example: [u'disabled', u'otp'] will return a label noOverride-otp
-               [u'otp', u'password']                    otp+password
+      Example: ['disabled', 'otp'] will return a label noOverride-otp
+               ['otp', 'password']                    otp+password
     - the user config (list containing ipauserauthtypes)
     - the expected outcome (boolean True if delete should be allowed)
     """
@@ -44,12 +44,12 @@ def id_function(arg):
     if isinstance(arg, list):
         # The arg is a list, need to extract the override flag
         labels = list()
-        if u'disabled' in arg:
+        if 'disabled' in arg:
             labels.append('noOverride')
 
         label = 'default'
         if arg:
-            without_override = [item for item in arg if item != u'disabled']
+            without_override = [item for item in arg if item != 'disabled']
             if without_override:
                 label = '+'.join(without_override)
         labels.append(label)
@@ -68,56 +68,56 @@ class TestDeleteLastOtpToken(XMLRPC_test):
         "globalCfg,userCfg,allowDelLast", [
             # When Global config is not set and prevents user override,
             # it is possible to delete last token
-            ([u'disabled'],  None, True),
-            ([u'disabled'], [u'otp'], True),
-            ([u'disabled'], [u'password'], True),
-            ([u'disabled'], [u'password', u'otp'], True),
+            (['disabled'],  None, True),
+            (['disabled'], ['otp'], True),
+            (['disabled'], ['password'], True),
+            (['disabled'], ['password', 'otp'], True),
             # When Global config is not set and allows user override,
             # the userCfg applies
             # Deletion is forbidden only when usercfg = otp only
             (None,  None, True),
-            (None, [u'otp'], False),
-            (None, [u'password'], True),
-            (None, [u'password', u'otp'], True),
+            (None, ['otp'], False),
+            (None, ['password'], True),
+            (None, ['password', 'otp'], True),
             # When Global config is set to otp and prevents user override,
             # it is forbidden to delete last token
-            ([u'disabled', u'otp'], None, False),
-            ([u'disabled', u'otp'], [u'otp'], False),
-            ([u'disabled', u'otp'], [u'password'], False),
-            ([u'disabled', u'otp'], [u'password', u'otp'], False),
+            (['disabled', 'otp'], None, False),
+            (['disabled', 'otp'], ['otp'], False),
+            (['disabled', 'otp'], ['password'], False),
+            (['disabled', 'otp'], ['password', 'otp'], False),
             # When Global config is set to otp and allows user override,
             # the userCfg applies
             # Deletion is forbidden when usercfg = otp only or usercfg not set
-            ([u'otp'], None, False),
-            ([u'otp'], [u'otp'], False),
-            ([u'otp'], [u'password'], True),
-            ([u'otp'], [u'password', u'otp'], True),
+            (['otp'], None, False),
+            (['otp'], ['otp'], False),
+            (['otp'], ['password'], True),
+            (['otp'], ['password', 'otp'], True),
             # When Global config is set to password and prevents user override,
             # it is possible to delete last token
-            ([u'disabled', u'password'], None, True),
-            ([u'disabled', u'password'], [u'otp'], True),
-            ([u'disabled', u'password'], [u'password'], True),
-            ([u'disabled', u'password'], [u'password', u'otp'], True),
+            (['disabled', 'password'], None, True),
+            (['disabled', 'password'], ['otp'], True),
+            (['disabled', 'password'], ['password'], True),
+            (['disabled', 'password'], ['password', 'otp'], True),
             # When Global config is set to password and allows user override,
             # the userCfg applies
             # Deletion is forbidden when usercfg = otp only
-            ([u'password'], None, True),
-            ([u'password'], [u'otp'], False),
-            ([u'password'], [u'password'], True),
-            ([u'password'], [u'password', u'otp'], True),
+            (['password'], None, True),
+            (['password'], ['otp'], False),
+            (['password'], ['password'], True),
+            (['password'], ['password', 'otp'], True),
             # When Global config is set to password+otp and prevents user
             # override, it is possible to delete last token
-            ([u'disabled', u'password', u'otp'], None, True),
-            ([u'disabled', u'password', u'otp'], [u'otp'], True),
-            ([u'disabled', u'password', u'otp'], [u'password'], True),
-            ([u'disabled', u'password', u'otp'], [u'password', u'otp'], True),
+            (['disabled', 'password', 'otp'], None, True),
+            (['disabled', 'password', 'otp'], ['otp'], True),
+            (['disabled', 'password', 'otp'], ['password'], True),
+            (['disabled', 'password', 'otp'], ['password', 'otp'], True),
             # When Global config is set to password+otp and allows user
             # override, the userCfg applies
             # Deletion is forbidden when usercfg = otp only
-            ([u'password', u'otp'], None, True),
-            ([u'password', u'otp'], [u'otp'], False),
-            ([u'password', u'otp'], [u'password'], True),
-            ([u'password', u'otp'], [u'password', u'otp'], True),
+            (['password', 'otp'], None, True),
+            (['password', 'otp'], ['otp'], False),
+            (['password', 'otp'], ['password'], True),
+            (['password', 'otp'], ['password', 'otp'], True),
         ],
         ids=id_function)
     def test_delete(self, globalCfg, userCfg, allowDelLast, user):
@@ -149,20 +149,20 @@ class TestDeleteLastOtpToken(XMLRPC_test):
 
             # Connect as user, create and delete the token
             with change_principal(user.name, user_password):
-                api.Command.otptoken_add(u'lastotp', description=u'last otp',
+                api.Command.otptoken_add('lastotp', description='last otp',
                                          ipatokenowner=user.name)
                 if allowDelLast:
                     # We are expecting the del command to succeed
-                    api.Command.otptoken_del(u'lastotp')
+                    api.Command.otptoken_del('lastotp')
                 else:
                     # We are expecting the del command to fail
                     with pytest.raises(errors.DatabaseError):
-                        api.Command.otptoken_del(u'lastotp')
+                        api.Command.otptoken_del('lastotp')
 
         finally:
             # Make sure the token is removed
             try:
-                api.Command.otptoken_del(u'lastotp',)
+                api.Command.otptoken_del('lastotp',)
             except errors.NotFound:
                 pass
 

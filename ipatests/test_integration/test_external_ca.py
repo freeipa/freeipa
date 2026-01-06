@@ -286,7 +286,7 @@ class TestExternalCA(IntegrationTest):
 
         # check CSR for extension
         ipa_csr = self.master.get_file_contents(paths.ROOT_IPA_CSR)
-        check_mscs_extension(ipa_csr, ipa_x509.MSCSTemplateV1(u'SubCA'))
+        check_mscs_extension(ipa_csr, ipa_x509.MSCSTemplateV1('SubCA'))
 
         # Sign CA, transport it to the host and get ipa a root ca paths.
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(

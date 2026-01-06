@@ -56,9 +56,9 @@ pedantic = False
 show_strings = True
 
 # Unicode right pointing arrow
-prefix = u'\u2192'               # utf-8 == '\xe2\x86\x92'
+prefix = '\u2192'               # utf-8 == '\xe2\x86\x92'
 # Unicode left pointing arrow
-suffix = u'\u2190'               # utf-8 == '\xe2\x86\x90'
+suffix = '\u2190'               # utf-8 == '\xe2\x86\x90'
 
 page_width = 80
 section_seperator = '=' * page_width

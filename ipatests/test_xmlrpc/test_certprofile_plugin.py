@@ -37,14 +37,14 @@ CA_IPA_SERVICE_XML_TEMPLATE = os.path.join(
     BASE_DIR, 'data/caIPAserviceCert.xml.tmpl')
 
 RENAME_ERR_TEMPL = (
-    u'certprofile {} cannot be deleted/modified: '
+    'certprofile {} cannot be deleted/modified: '
     'Certificate profiles cannot be renamed')
 
 
 @pytest.fixture(scope='class')
 def default_profile(request, xmlrpc_setup):
     name = 'caIPAserviceCert'
-    desc = u'Standard profile for network services'
+    desc = 'Standard profile for network services'
     tracker = CertprofileTracker(name, store=True, desc=desc)
     tracker.track_create()
     return tracker
@@ -60,7 +60,7 @@ def user_profile(request, xmlrpc_setup):
             ipacertbase=IPA_CERT_SUBJ_BASE))
 
     tracker = CertprofileTracker(
-        name, store=True, desc=u'Storing copy of a profile',
+        name, store=True, desc='Storing copy of a profile',
         profile=profile_path
     )
 
@@ -69,14 +69,14 @@ def user_profile(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def malformed(request, xmlrpc_setup):
-    name = u'caIPAserviceCert_mal'
+    name = 'caIPAserviceCert_mal'
     profile_path = prepare_config(
         CA_IPA_SERVICE_MALFORMED_TEMPLATE,
         dict(
             ipadomain=api.env.domain,
             ipacertbase=IPA_CERT_SUBJ_BASE))
 
-    tracker = CertprofileTracker(name, store=True, desc=u'malformed profile',
+    tracker = CertprofileTracker(name, store=True, desc='malformed profile',
                                  profile=profile_path)
 
     # Do not return with finalizer. There should be nothing to delete
@@ -85,14 +85,14 @@ def malformed(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def xmlprofile(request, xmlrpc_setup):
-    name = u'caIPAserviceCert_xml'
+    name = 'caIPAserviceCert_xml'
     profile_path = prepare_config(
         CA_IPA_SERVICE_XML_TEMPLATE,
         dict(
             ipadomain=api.env.domain,
             ipacertbase=IPA_CERT_SUBJ_BASE))
 
-    tracker = CertprofileTracker(name, store=True, desc=u'xml format profile',
+    tracker = CertprofileTracker(name, store=True, desc='xml format profile',
                                  profile=profile_path)
 
     return tracker
@@ -109,14 +109,14 @@ class TestDefaultProfile(XMLRPC_test):
 
     def test_try_rename_by_setattr(self, default_profile):
         command = default_profile.make_update_command(
-            updates=dict(setattr=u'cn=bogus'))
+            updates=dict(setattr='cn=bogus'))
         errmsg = RENAME_ERR_TEMPL.format(default_profile.name)
 
         with raises_exact(errors.ProtectedEntryError(message=errmsg)):
             command()
 
     def test_try_rename_by_rename_option(self, default_profile):
-        command = default_profile.make_update_command(dict(rename=u'bogus_id'))
+        command = default_profile.make_update_command(dict(rename='bogus_id'))
         with pytest.raises(errors.OptionError):
             command()
 
@@ -124,7 +124,7 @@ class TestDefaultProfile(XMLRPC_test):
 @pytest.mark.tier1
 class TestProfileCRUD(XMLRPC_test):
     def test_create_duplicate(self, user_profile):
-        msg = u'Certificate Profile with name "{}" already exists'
+        msg = 'Certificate Profile with name "{}" already exists'
         user_profile.ensure_exists()
         command = user_profile.make_create_command()
         with raises_exact(errors.DuplicateEntry(
@@ -163,7 +163,7 @@ class TestProfileCRUD(XMLRPC_test):
         )
 
     def test_update_description(self, user_profile):
-        new_desc = u'new description'
+        new_desc = 'new description'
         user_profile.update(
             dict(
                 description=new_desc
@@ -191,7 +191,7 @@ class TestProfileCRUD(XMLRPC_test):
     def test_try_rename_by_setattr(self, user_profile):
         user_profile.ensure_exists()
         command = user_profile.make_update_command(
-            updates=dict(setattr=u'cn=bogus'))
+            updates=dict(setattr='cn=bogus'))
         errmsg = RENAME_ERR_TEMPL.format(user_profile.name)
 
         with raises_exact(errors.ProtectedEntryError(message=errmsg)):
@@ -203,7 +203,7 @@ class TestProfileCRUD(XMLRPC_test):
 
     def test_try_rename_by_rename_option(self, user_profile):
         user_profile.ensure_exists()
-        command = user_profile.make_update_command(dict(rename=u'bogus_id'))
+        command = user_profile.make_update_command(dict(rename='bogus_id'))
         with pytest.raises(errors.OptionError):
             command()
 
@@ -244,12 +244,12 @@ class TestImportProfileIdHandling(XMLRPC_test):
 
     def test_import_with_multiple_profile_id(self, user_profile):
         # correct profile id, but two occurrences
-        prop = u'profileId={}'.format(user_profile.name)
+        prop = 'profileId={}'.format(user_profile.name)
         command = user_profile.make_create_command(extra_lines=[prop, prop])
         with pytest.raises(errors.ValidationError):
             command()
 
     def test_import_with_correct_profile_id(self, user_profile):
-        prop = u'profileId={}'.format(user_profile.name)
+        prop = 'profileId={}'.format(user_profile.name)
         command = user_profile.make_create_command(extra_lines=[prop])
         command()

@@ -116,7 +116,7 @@ class _SchemaPlugin:
             try:
                 return halp['summary']
             except KeyError:
-                return u'<%s>' % self.full_name
+                return '<%s>' % self.full_name
 
     def _create_default_from(self, api, name, keys):
         cmd_name = self.full_name
@@ -150,7 +150,7 @@ class _SchemaPlugin:
             cls = Password
             sensitive = False
         elif (type_name == 'bool' and
-                'default' in schema and schema['default'][0] == u'False' and
+                'default' in schema and schema['default'][0] == 'False' and
                 not schema.get('alwaysask', False)):
             cls = Flag
             del schema['default']
@@ -291,7 +291,7 @@ class _SchemaCommandPlugin(_SchemaPlugin):
             class_dict['obj_full_name'] = str(schema['obj_class'])
         if 'attr_name' in schema:
             class_dict['attr_name'] = str(schema['attr_name'])
-        if 'exclude' in schema and u'cli' in schema['exclude']:
+        if 'exclude' in schema and 'cli' in schema['exclude']:
             class_dict['NO_CLI'] = True
 
         args = set(str(s['name']) for s in schema['params']
@@ -356,11 +356,11 @@ class Schema:
     >>> m = Schema(api)
 
     From now on we can access schema for commands stored in cache
-    >>> m['commands'][u'ping'][u'doc']
-    u'Ping a remote server.'
+    >>> m['commands']['ping']['doc']
+    'Ping a remote server.'
 
-    >>> m['topics'][u'ping'][u'doc']
-    u'Ping the remote IPA server to ...'
+    >>> m['topics']['ping']['doc']
+    'Ping the remote IPA server to ...'
 
     """
     namespaces = {'classes', 'commands', 'topics'}
@@ -410,11 +410,11 @@ class Schema:
             except EnvironmentError:
                 pass
 
-        kwargs = {u'version': u'2.170'}
+        kwargs = {'version': '2.170'}
         if fps:
-            kwargs[u'known_fingerprints'] = fps
+            kwargs['known_fingerprints'] = fps
         try:
-            schema = client.forward(u'schema', **kwargs)['result']
+            schema = client.forward('schema', **kwargs)['result']
         except errors.CommandError:
             raise NotAvailable()
 

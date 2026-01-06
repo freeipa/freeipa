@@ -34,8 +34,8 @@ unicode = str
 
 register = Registry()
 
-DEFAULT_MAPS = (u'auto.direct', )
-DEFAULT_KEYS = (u'/-', )
+DEFAULT_MAPS = ('auto.direct', )
+DEFAULT_KEYS = ('/-', )
 
 
 @register(no_fail=True)
@@ -183,10 +183,10 @@ class automountlocation_import(Command):
             try:
                 api.Command['automountkey_add'](
                             args[0],
-                            u'auto.master',
+                            'auto.master',
                             automountkey=unicode(am[0]),
                             automountinformation=unicode(' '.join(am[1:])))
-                result['keys'].append([am[0], u'auto.master'])
+                result['keys'].append([am[0], 'auto.master'])
             except errors.DuplicateEntry:
                 if unicode(am[0]) in DEFAULT_KEYS:
                     # ignore conflict when the key was pre-created by the framework

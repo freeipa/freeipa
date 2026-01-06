@@ -57,26 +57,26 @@ perform the translation till `Gettext.__unicode__()` is called.  For example:
 >>> my_plugin.my_string
 Gettext('Hello, %(name)s.', domain='ipa', localedir=None)
 >>> unicode(my_plugin.my_string)
-u'Hello, %(name)s.'
+'Hello, %(name)s.'
 
 Translation can also be performed via the `Gettext.__mod__()` convenience
 method.  For example, these two are equivalent:
 
 >>> my_plugin.my_string % dict(name='Joe')
-u'Hello, Joe.'
+'Hello, Joe.'
 >>> unicode(my_plugin.my_string) % dict(name='Joe')  # Long form
-u'Hello, Joe.'
+'Hello, Joe.'
 
 Translation can also be performed via the `Gettext.format()` convenience
 method.  For example, these two are equivalent:
 
 >>> my_plugin.my_string = _('Hello, {name}.')
 >>> my_plugin.my_string.format(name='Joe')
-u'Hello, Joe.'
+'Hello, Joe.'
 
 >>> my_plugin.my_string = _('Hello, {0}.')
 >>> my_plugin.my_string.format('Joe')
-u'Hello, Joe.'
+'Hello, Joe.'
 
 Similar to ``_()``, the ``ngettext()`` function above is actually an
 `NGettextFactory` instance, which when called returns an `NGettext` instance.
@@ -87,26 +87,26 @@ domain and localedir, but it doesn't perform the translation till
 >>> my_plugin.my_plural
 NGettext('%(count)d goose', '%(count)d geese', domain='ipa', localedir=None)
 >>> my_plugin.my_plural(1)
-u'%(count)d goose'
+'%(count)d goose'
 >>> my_plugin.my_plural(2)
-u'%(count)d geese'
+'%(count)d geese'
 
 Translation can also be performed via the `NGettext.__mod__()` convenience
 method.  For example, these two are equivalent:
 
 >>> my_plugin.my_plural % dict(count=1)
-u'1 goose'
+'1 goose'
 >>> my_plugin.my_plural(1) % dict(count=1)  # Long form
-u'1 goose'
+'1 goose'
 
 Translation can also be performed via the `NGettext.format()` convenience
 method.  For example:
 
 >>> my_plugin.my_plural = ngettext('{count} goose', '{count} geese', 0)
 >>> my_plugin.my_plural.format(count=1)
-u'1 goose'
+'1 goose'
 >>> my_plugin.my_plural.format(count=2)
-u'2 geese'
+'2 geese'
 
 Lastly, 3rd-party plugins can create factories bound to a different gettext
 domain.  The default domain is ``'ipa'``, which is also the domain of the
@@ -230,7 +230,7 @@ class Gettext(LazyText):
     translated string as a Python ``unicode`` instance.  For example:
 
     >>> unicode(msg)
-    u'Hello, %(name)s.'
+    'Hello, %(name)s.'
 
     `Gettext.__unicode__()` should be called at request time, which in a
     nutshell means it should be called from within your plugin's
@@ -243,9 +243,9 @@ class Gettext(LazyText):
     example, these two are equivalent:
 
     >>> msg % dict(name='Joe')
-    u'Hello, Joe.'
+    'Hello, Joe.'
     >>> unicode(msg) % dict(name='Joe')  # Long form
-    u'Hello, Joe.'
+    'Hello, Joe.'
 
     `Gettext.format()` is a convenience method for Python string formatting.
     It will translate your message using `Gettext.__unicode__()` and then
@@ -254,11 +254,11 @@ class Gettext(LazyText):
 
     >>> msg = Gettext('Hello, {name}.')
     >>> msg.format(name='Joe')
-    u'Hello, Joe.'
+    'Hello, Joe.'
 
     >>> msg = Gettext('Hello, {0}.')
     >>> msg.format('Joe')
-    u'Hello, Joe.'
+    'Hello, Joe.'
 
     See `GettextFactory` for additional details.  If you need to pick between
     singular and plural form, use `NGettext` instances via the
@@ -338,7 +338,7 @@ class FixMe(Gettext):
     said conspicuous looking label:
 
     >>> unicode(u.label)
-    u'<user.label>'
+    '<user.label>'
 
     For more examples of how `FixMe` is used, see `ipalib.parameters`.
     """
@@ -349,7 +349,7 @@ class FixMe(Gettext):
         return '%s(%r)' % (self.__class__.__name__, self.msg)
 
     def __str__(self):
-        return u'<%s>' % self.msg
+        return '<%s>' % self.msg
 
 
 class NGettext(LazyText):
@@ -376,32 +376,32 @@ class NGettext(LazyText):
     takes a single argument, an integer specifying the count.  For example:
 
     >>> msg(0)
-    u'%(count)d geese'
+    '%(count)d geese'
     >>> msg(1)
-    u'%(count)d goose'
+    '%(count)d goose'
     >>> msg(2)
-    u'%(count)d geese'
+    '%(count)d geese'
 
     `NGettext.__mod__()` is a convenience method for Python "percent" string
     formatting.  It can only be used if your substitution ``dict`` contains the
     count in a ``'count'`` item.  For example:
 
     >>> msg % dict(count=0)
-    u'0 geese'
+    '0 geese'
     >>> msg % dict(count=1)
-    u'1 goose'
+    '1 goose'
     >>> msg % dict(count=2)
-    u'2 geese'
+    '2 geese'
 
     Alternatively, these longer forms have the same effect as the three examples
     above:
 
     >>> msg(0) % dict(count=0)
-    u'0 geese'
+    '0 geese'
     >>> msg(1) % dict(count=1)
-    u'1 goose'
+    '1 goose'
     >>> msg(2) % dict(count=2)
-    u'2 geese'
+    '2 geese'
 
     A ``KeyError`` is raised if your substitution ``dict`` doesn't have a
     ``'count'`` item.  For example:
@@ -416,7 +416,7 @@ class NGettext(LazyText):
     substitution:
 
     >>> msg2(0) % dict(num=0)
-    u'0 geese'
+    '0 geese'
 
     `NGettext.format()` is a convenience method for Python string formatting.
     It can only be used if your substitution ``dict`` contains the count in a
@@ -424,11 +424,11 @@ class NGettext(LazyText):
 
     >>> msg = NGettext('{count} goose', '{count} geese')
     >>> msg.format(count=0)
-    u'0 geese'
+    '0 geese'
     >>> msg.format(count=1)
-    u'1 goose'
+    '1 goose'
     >>> msg.format(count=2)
-    u'2 geese'
+    '2 geese'
 
     A ``KeyError`` is raised if your substitution ``dict`` doesn't have a
     ``'count'`` item.  For example:
@@ -443,7 +443,7 @@ class NGettext(LazyText):
     string substitution:
 
     >>> msg2(0).format(num=0)
-    u'0 geese'
+    '0 geese'
 
     See `NGettextFactory` for additional details.
     """
@@ -492,7 +492,7 @@ class ConcatenatedLazyText:
         return '%s(%r)' % (self.__class__.__name__, self.components)
 
     def __str__(self):
-        return u''.join(unicode(c) for c in self.components)
+        return ''.join(unicode(c) for c in self.components)
 
     def __json__(self):
         return unicode(self)

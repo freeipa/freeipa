@@ -188,8 +188,8 @@ class topologysegment(LDAPObject):
             'iparepltoposegmentdirection',
             cli_name='direction',
             label=_('Connectivity'),
-            values=(u'both', u'left-right', u'right-left'),
-            default=u'both',
+            values=('both', 'left-right', 'right-left'),
+            default='both',
             autofill=True,
             doc=_('Direction of replication between left and right replication '
                   'node'),
@@ -234,7 +234,7 @@ class topologysegment(LDAPObject):
             label=_('Replication agreement enabled'),
             doc=_('Whether a replication agreement is active, meaning whether '
                   'replication is occurring per that agreement'),
-            values=(u'on', u'off'),
+            values=('on', 'off'),
             flags={'no_option'},
         ),
     )
@@ -401,10 +401,10 @@ class topologysegment_reinitialize(LDAPQuery):
                 _('only one node can be specified')
             )
 
-        action = u'start'
+        action = 'start'
         msg = _('Replication refresh for segment: "%(pkey)s" requested.')
         if stop:
-            action = u'stop'
+            action = 'stop'
             msg = _('Stopping of replication refresh for segment: "'
                     '%(pkey)s" requested.')
 

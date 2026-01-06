@@ -112,7 +112,7 @@ class batch(Command):
         except (AttributeError, ValueError, TypeError):
             raise errors.ConversionError(
                 name='params',
-                error=_(u'must contain a tuple (list, dict)'))
+                error=_('must contain a tuple (list, dict)'))
         except Exception as e:
             raise errors.ConversionError(
                 name='params',
@@ -132,7 +132,7 @@ class batch(Command):
             except Exception:
                 # redact the whole request since we don't know what's in it
                 exceptions = True
-                yield u'********'
+                yield '********'
                 continue
 
             name = arg['method']

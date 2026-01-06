@@ -9,53 +9,53 @@ from ipapython.kerberos import Principal
 unicode = str
 
 valid_principals = {
-    u'tuser@REALM.TEST': {
-        'components': (u'tuser',),
-        'realm': u'REALM.TEST',
-        'username': u'tuser'
+    'tuser@REALM.TEST': {
+        'components': ('tuser',),
+        'realm': 'REALM.TEST',
+        'username': 'tuser'
     },
-    u'tuser\\@tupn.test@REALM.TEST': {
-        'components': (u'tuser@tupn.test',),
-        'realm': u'REALM.TEST',
-        'username': u'tuser@tupn.test',
-        'upn_suffix': u'tupn.test'
+    'tuser\\@tupn.test@REALM.TEST': {
+        'components': ('tuser@tupn.test',),
+        'realm': 'REALM.TEST',
+        'username': 'tuser@tupn.test',
+        'upn_suffix': 'tupn.test'
     },
-    u'test/host.ipa.test@REALM.TEST': {
-        'components': (u'test', u'host.ipa.test'),
-        'realm': u'REALM.TEST',
-        'hostname': u'host.ipa.test'
+    'test/host.ipa.test@REALM.TEST': {
+        'components': ('test', 'host.ipa.test'),
+        'realm': 'REALM.TEST',
+        'hostname': 'host.ipa.test'
     },
-    u'test/service/host.ipa.test@REALM.TEST': {
-        'components': (u'test', u'service', u'host.ipa.test'),
-        'realm': u'REALM.TEST',
-        'service_name': u'test/service'
+    'test/service/host.ipa.test@REALM.TEST': {
+        'components': ('test', 'service', 'host.ipa.test'),
+        'realm': 'REALM.TEST',
+        'service_name': 'test/service'
 
     },
-    u'tuser': {
-        'components': (u'tuser',),
+    'tuser': {
+        'components': ('tuser',),
         'realm': None,
-        'username': u'tuser'
+        'username': 'tuser'
     },
-    u'$%user@REALM.TEST': {
-        'components': (u'$%user',),
-        'realm': u'REALM.TEST',
-        'username': u'$%user'
+    '$%user@REALM.TEST': {
+        'components': ('$%user',),
+        'realm': 'REALM.TEST',
+        'username': '$%user'
     },
-    u'host/host.ipa.test': {
-        'components': (u'host', u'host.ipa.test'),
+    'host/host.ipa.test': {
+        'components': ('host', 'host.ipa.test'),
         'realm': None,
-        'hostname': u'host.ipa.test'
+        'hostname': 'host.ipa.test'
     },
-    u's$c/$%^.ipa.t%$t': {
-        'components': (u's$c', u'$%^.ipa.t%$t'),
+    's$c/$%^.ipa.t%$t': {
+        'components': ('s$c', '$%^.ipa.t%$t'),
         'realm': None,
-        'hostname': u'$%^.ipa.t%$t',
-        'service_name': u's$c'
+        'hostname': '$%^.ipa.t%$t',
+        'service_name': 's$c'
     },
-    u'test\\/service/test\\/host@REALM\\@TEST': {
-        'components': (u'test/service', u'test/host'),
-        'realm': u'REALM@TEST',
-        'hostname': u'test/host',
+    'test\\/service/test\\/host@REALM\\@TEST': {
+        'components': ('test/service', 'test/host'),
+        'realm': 'REALM@TEST',
+        'hostname': 'test/host',
         'service_name': r'test\/service'
     }
 }
@@ -85,23 +85,23 @@ def test_principals(valid_principal):
 
 
 def test_multiple_unescaped_ats_raise_error():
-    pytest.raises(ValueError, Principal, u'too@many@realms')
+    pytest.raises(ValueError, Principal, 'too@many@realms')
 
 
 principals_properties = {
-    u'user@REALM': {
+    'user@REALM': {
         'property_true': ('is_user',),
         'property_raises': ('upn_suffix', 'hostname', 'service_name')
     },
-    u'host/m1.ipa.test@REALM': {
+    'host/m1.ipa.test@REALM': {
         'property_true': ('is_host', 'is_service'),
         'property_raises': ('username', 'upn_suffix')
     },
-    u'service/m1.ipa.test@REALM': {
+    'service/m1.ipa.test@REALM': {
         'property_true': ('is_service'),
         'property_raises': ('username', 'upn_suffix')
     },
-    u'user\\@domain@REALM': {
+    'user\\@domain@REALM': {
         'property_true': ('is_user', 'is_enterprise'),
         'property_raises': ('hostname', 'service_name')
     }

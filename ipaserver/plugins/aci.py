@@ -151,11 +151,11 @@ _type_map = {
 }
 
 _valid_permissions_values = [
-    u'read', u'write', u'add', u'delete', u'all'
+    'read', 'write', 'add', 'delete', 'all'
 ]
 
 _valid_prefix_values = (
-    u'permission', u'delegation', u'selfservice', u'none'
+    'permission', 'delegation', 'selfservice', 'none'
 )
 
 class ListOfACI(output.Output):
@@ -182,7 +182,7 @@ def _make_aci_name(aciprefix, aciname):
     """
     Given a name and a prefix construct an ACI name.
     """
-    if aciprefix == u"none":
+    if aciprefix == "none":
         return aciname
 
     return aciprefix + ACI_NAME_PREFIX_SEP + aciname
@@ -195,7 +195,7 @@ def _parse_aci_name(aciname):
     aciparts = aciname.partition(ACI_NAME_PREFIX_SEP)
 
     if not aciparts[2]: # no prefix/name separator found
-        return (u"none",aciparts[0])
+        return ("none",aciparts[0])
 
     return (aciparts[0], aciparts[2])
 
@@ -289,7 +289,7 @@ def _make_aci(ldap, current, aciname, kw):
             # filter is considered valid if either it returns some entries
             # or it returns no entries, otherwise we let whatever exception
             # happened be raised.
-            if kw['filter'] in ('', None, u''):
+            if kw['filter'] in ('', None, ''):
                 raise errors.BadSearchFilter(info=_('empty filter'))
             try:
                 ldap.find_entries(filter=kw['filter'])
@@ -380,7 +380,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
                 if test:
                     dn = DN(('cn', 'test'), api.env.container_permission,
                             api.env.basedn)
-                    entry = ldap.make_entry(dn, {'cn': [u'test']})
+                    entry = ldap.make_entry(dn, {'cn': ['test']})
             if api.env.container_permission in entry.dn:
                 kw['permission'] = entry['cn'][0]
             else:
@@ -474,7 +474,7 @@ class aci(Object):
             cli_name='type',
             label=_('Type'),
             doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
-            values=(u'user', u'group', u'host', u'service', u'hostgroup', u'netgroup', u'dnsrecord'),
+            values=('user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord'),
             flags=('virtual_attribute',),
         ),
         Str('memberof?',
@@ -795,7 +795,7 @@ Search for ACIs.
 
         if kw.get('selfaci', False) is True:
             for a in acis:
-                if a.bindrule['expression'] != u'ldap:///self':
+                if a.bindrule['expression'] != 'ldap:///self':
                     try:
                         results.remove(a)
                     except ValueError:

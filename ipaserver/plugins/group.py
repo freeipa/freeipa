@@ -165,7 +165,7 @@ Example:
 register = Registry()
 
 # also see "System: Remove Groups"
-PROTECTED_GROUPS = (u'admins', u'trust admins', u'default smb group')
+PROTECTED_GROUPS = ('admins', 'trust admins', 'default smb group')
 
 
 ipaexternalmember_param = Str('ipaexternalmember*',
@@ -421,8 +421,8 @@ class group_del(LDAPDelete):
             self.obj.get_primary_key_from_dn(dn), all=True
         )['result']
         if keys[0] in PROTECTED_GROUPS:
-            raise errors.ProtectedEntryError(label=_(u'group'), key=keys[0],
-                reason=_(u'privileged group'))
+            raise errors.ProtectedEntryError(label=_('group'), key=keys[0],
+                reason=_('privileged group'))
         if 'mepmanagedby' in group_attrs:
             raise errors.ManagedGroupError()
 
@@ -478,8 +478,8 @@ class group_mod(LDAPUpdate):
 
         if 'rename' in options or 'cn' in entry_attrs:
             if is_protected_group:
-                raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
-                    reason=u'Cannot be renamed')
+                raise errors.ProtectedEntryError(label='group', key=keys[-1],
+                    reason='Cannot be renamed')
 
         if 'cn' in entry_attrs:
             # Check the pattern if the group is renamed
@@ -504,8 +504,8 @@ class group_mod(LDAPUpdate):
 
         if options['external']:
             if is_protected_group:
-                raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
-                    reason=u'Cannot support external non-IPA members')
+                raise errors.ProtectedEntryError(label='group', key=keys[-1],
+                    reason='Cannot support external non-IPA members')
             old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
             dn = old_entry_attrs.dn
             if 'posixgroup' in old_entry_attrs['objectclass']:
@@ -697,7 +697,7 @@ class group_remove_member(LDAPRemoveMember):
             users_deleted = set(options['user'])
             if users_left.issubset(users_deleted):
                 raise errors.LastMemberError(key=sorted(users_deleted)[0],
-                    label=_(u'group'), container=protected_group_name)
+                    label=_('group'), container=protected_group_name)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):

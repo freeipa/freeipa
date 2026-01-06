@@ -50,7 +50,7 @@ from ipapython.dn import DN
 unicode = str
 long = int
 
-NULLS = (None, b'', u'', tuple(), [])
+NULLS = (None, b'', '', tuple(), [])
 
 pytestmark = pytest.mark.tier0
 
@@ -267,7 +267,7 @@ class test_Param(ClassChecker):
         # Test when using unknown kwargs:
         e = raises(TypeError, self.cls, 'my_param',
             flags=['hello', 'world'],
-            whatever=u'Hooray!',
+            whatever='Hooray!',
         )
         assert str(e) == \
             "Param('my_param'): takes no such kwargs: 'whatever'"
@@ -340,7 +340,7 @@ class test_Param(ClassChecker):
         assert o.safe_value(None) is None
         p = parameters.Password('my_passwd')
         for value in values:
-            assert_equal(p.safe_value(value), u'********')
+            assert_equal(p.safe_value(value), '********')
         assert p.safe_value(None) is None
 
     def test_password_whitespaces(self):
@@ -418,7 +418,7 @@ class test_Param(ClassChecker):
         """
         Test the `ipalib.parameters.Param.convert` method.
         """
-        okay = ('Hello', u'Hello', 0, 4.2, True, False, unicode_str)
+        okay = ('Hello', 'Hello', 0, 4.2, True, False, unicode_str)
         class Subclass(self.cls):
             def _convert_scalar(self, value, index=None):
                 return value
@@ -476,7 +476,7 @@ class test_Param(ClassChecker):
         o = self.cls('my_param', query=True)
         assert o.query is True
         e = raises(errors.RequirementError, o.validate, None)
-        assert_equal(e.name, u'my_param')
+        assert_equal(e.name, 'my_param')
 
         # Test with multivalue=True:
         o = self.cls('my_param', multivalue=True)
@@ -498,7 +498,7 @@ class test_Param(ClassChecker):
         # Test with some rules and multivalue=False
         pass1 = DummyRule()
         pass2 = DummyRule()
-        fail = DummyRule(u'no good')
+        fail = DummyRule('no good')
         o = Example('example', pass1, pass2)
         assert o.multivalue is False
         assert o.validate(11) is None
@@ -509,7 +509,7 @@ class test_Param(ClassChecker):
         o = Example('example', pass1, pass2, fail)
         e = raises(errors.ValidationError, o.validate, 42)
         assert e.name == 'example'
-        assert e.error == u'no good'
+        assert e.error == 'no good'
         assert pass1.calls == [(text.ugettext, 42)]
         assert pass2.calls == [(text.ugettext, 42)]
         assert fail.calls == [(text.ugettext, 42)]
@@ -517,7 +517,7 @@ class test_Param(ClassChecker):
         # Test with some rules and multivalue=True
         pass1 = DummyRule()
         pass2 = DummyRule()
-        fail = DummyRule(u'this one is not good')
+        fail = DummyRule('this one is not good')
         o = Example('example', pass1, pass2, multivalue=True)
         assert o.multivalue is True
         assert o.validate((3, 9)) is None
@@ -535,7 +535,7 @@ class test_Param(ClassChecker):
         assert o.multivalue is True
         e = raises(errors.ValidationError, o.validate, (3, 9))
         assert e.name == 'multi_example'
-        assert e.error == u'this one is not good'
+        assert e.error == 'this one is not good'
         assert pass1.calls == [(text.ugettext, 3)]
         assert pass2.calls == [(text.ugettext, 3)]
         assert fail.calls == [(text.ugettext, 3)]
@@ -563,14 +563,14 @@ class test_Param(ClassChecker):
 
         # Test with a failing rule:
         okay = DummyRule()
-        fail = DummyRule(u'this describes the error')
+        fail = DummyRule('this describes the error')
         o = MyParam('my_param', okay, fail)
         e = raises(errors.ValidationError, o._validate_scalar, True)
         assert e.name == 'my_param'
-        assert e.error == u'this describes the error'
+        assert e.error == 'this describes the error'
         e = raises(errors.ValidationError, o._validate_scalar, False)
         assert e.name == 'my_param'
-        assert e.error == u'this describes the error'
+        assert e.error == 'this describes the error'
         assert okay.calls == [
             (text.ugettext, True),
             (text.ugettext, False),
@@ -609,23 +609,23 @@ class test_Param(ClassChecker):
         # Test with only a static default:
         o = Str('my_str',
             normalizer=PassThrough(),
-            default=u'Static Default',
+            default='Static Default',
         )
-        assert_equal(o.get_default(), u'Static Default')
+        assert_equal(o.get_default(), 'Static Default')
         assert o._convert_scalar.value is None
         assert o.normalizer.value is None
 
         # Test with default_from:
         o = Str('my_str',
             normalizer=PassThrough(),
-            default=u'Static Default',
+            default='Static Default',
             default_from=lambda first, last: first[0] + last,
         )
-        assert_equal(o.get_default(), u'Static Default')
+        assert_equal(o.get_default(), 'Static Default')
         assert o._convert_scalar.value is None
         assert o.normalizer.value is None
-        default = o.get_default(first=u'john', last='doe')
-        assert_equal(default, u'jdoe')
+        default = o.get_default(first='john', last='doe')
+        assert_equal(default, 'jdoe')
         assert o._convert_scalar.value is default
         assert o.normalizer.value is default
 
@@ -793,7 +793,7 @@ class test_Bytes(ClassChecker):
         o = self.cls('my_bytes', minlength=3)
         assert o.minlength == 3
         rule = o._rule_minlength
-        translation = u'minlength=%(minlength)r'
+        translation = 'minlength=%(minlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -819,7 +819,7 @@ class test_Bytes(ClassChecker):
         o = self.cls('my_bytes', maxlength=4)
         assert o.maxlength == 4
         rule = o._rule_maxlength
-        translation = u'maxlength=%(maxlength)r'
+        translation = 'maxlength=%(maxlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -845,7 +845,7 @@ class test_Bytes(ClassChecker):
         o = self.cls('my_bytes', length=4)
         assert o.length == 4
         rule = o._rule_length
-        translation = u'length=%(length)r'
+        translation = 'length=%(length)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -879,7 +879,7 @@ class test_Bytes(ClassChecker):
         o = self.cls('my_bytes', pattern=pat)
         assert o.pattern is pat
         rule = o._rule_pattern
-        translation = u'pattern=%(pattern)r'
+        translation = 'pattern=%(pattern)r'
         dummy = dummy_ugettext(translation)
 
         # Test with passing values:
@@ -922,18 +922,18 @@ class test_Str(ClassChecker):
         """
         o = self.cls('my_str')
         mthd = o._convert_scalar
-        for value in (u'Hello', 42, 1.2, unicode_str):
+        for value in ('Hello', 42, 1.2, unicode_str):
             assert mthd(value) == unicode(value)
         bad = [True, b'Hello', dict(one=1), utf8_bytes]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert_equal(unicode(e.error), u'must be Unicode text')
-        bad = [(u'Hello',), [42.3]]
+            assert_equal(unicode(e.error), 'must be Unicode text')
+        bad = [('Hello',), [42.3]]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert_equal(unicode(e.error), u'Only one value is allowed')
+            assert_equal(unicode(e.error), 'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_rule_minlength(self):
@@ -943,17 +943,17 @@ class test_Str(ClassChecker):
         o = self.cls('my_str', minlength=3)
         assert o.minlength == 3
         rule = o._rule_minlength
-        translation = u'minlength=%(minlength)r'
+        translation = 'minlength=%(minlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in (u'abc', u'four', u'12345'):
+        for value in ('abc', 'four', '12345'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in (u'', u'a', u'12'):
+        for value in ('', 'a', '12'):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(minlength=3)
@@ -969,17 +969,17 @@ class test_Str(ClassChecker):
         o = self.cls('my_str', maxlength=4)
         assert o.maxlength == 4
         rule = o._rule_maxlength
-        translation = u'maxlength=%(maxlength)r'
+        translation = 'maxlength=%(maxlength)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in (u'ab', u'123', u'four'):
+        for value in ('ab', '123', 'four'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in (u'12345', u'sixsix'):
+        for value in ('12345', 'sixsix'):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(maxlength=4)
@@ -995,17 +995,17 @@ class test_Str(ClassChecker):
         o = self.cls('my_str', length=4)
         assert o.length == 4
         rule = o._rule_length
-        translation = u'length=%(length)r'
+        translation = 'length=%(length)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in (u'1234', u'four'):
+        for value in ('1234', 'four'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in (u'ab', u'123', u'12345', u'sixsix'):
+        for value in ('ab', '123', '12345', 'sixsix'):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(length=4),
@@ -1029,16 +1029,16 @@ class test_Str(ClassChecker):
         o = self.cls('my_str', pattern=pat)
         assert o.pattern is pat
         rule = o._rule_pattern
-        translation = u'pattern=%(pattern)r'
+        translation = 'pattern=%(pattern)r'
         dummy = dummy_ugettext(translation)
 
         # Test with passing values:
-        for value in (u'HELLO', u'hello', unicode_str):
+        for value in ('HELLO', 'hello', unicode_str):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in (u'H LLO', u'***lo', unicode_str + unicode_str):
+        for value in ('H LLO', '***lo', unicode_str + unicode_str):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(pattern=pat),
@@ -1071,10 +1071,10 @@ class test_Password(ClassChecker):
         Test the `ipalib.parameters.Password._convert_scalar` method.
         """
         o = self.cls('my_password')
-        e = raises(errors.PasswordMismatch, o._convert_scalar, [u'one', u'two'])
+        e = raises(errors.PasswordMismatch, o._convert_scalar, ['one', 'two'])
         assert e.name == 'my_password'
-        assert o._convert_scalar([u'one', u'one']) == u'one'
-        assert o._convert_scalar(u'one') == u'one'
+        assert o._convert_scalar(['one', 'one']) == 'one'
+        assert o._convert_scalar('one') == 'one'
 
 
 class EnumChecker(ClassChecker):
@@ -1156,12 +1156,12 @@ class test_StrEnum(EnumChecker):
     _cls = parameters.StrEnum
     _name = 'my_strenum'
     _datatype = unicode
-    _test_values = u'Hello', u'tall', u'nurse!'
-    _bad_type_values = u'Hello', 1, u'nurse!'
+    _test_values = 'Hello', 'tall', 'nurse!'
+    _bad_type_values = 'Hello', 1, 'nurse!'
     _bad_type = int
-    _translation = u"values='Hello', 'tall', 'nurse!'"
-    _bad_values = u'Howdy', u'quiet', u'library!'
-    _single_value_translation = u"value='Hello'"
+    _translation = "values='Hello', 'tall', 'nurse!'"
+    _bad_values = 'Howdy', 'quiet', 'library!'
+    _single_value_translation = "value='Hello'"
 
 
 def check_int_scalar_conversions(o):
@@ -1172,7 +1172,7 @@ def check_int_scalar_conversions(o):
     empty strings & invalid numerical representations fail
     """
     # Assure invalid inputs raise error
-    for bad in ['hello', u'hello', True, None, u'', u'.', 8j, ()]:
+    for bad in ['hello', 'hello', True, None, '', '.', 8j, ()]:
         e = raises(errors.ConversionError, o._convert_scalar, bad)
         assert e.name == 'my_number'
     # Assure large magnitude values are handled correctly
@@ -1181,12 +1181,12 @@ def check_int_scalar_conversions(o):
     assert o._convert_scalar(unicode(sys.maxsize * 2)) == sys.maxsize * 2
     assert o._convert_scalar(long(16)) == 16
     # Assure normal conversions produce expected result
-    assert o._convert_scalar(u'16.99') == 16
+    assert o._convert_scalar('16.99') == 16
     assert o._convert_scalar(16.99) == 16
-    assert o._convert_scalar(u'16') == 16
-    assert o._convert_scalar(u'0x10') == 16
-    assert o._convert_scalar(u'020') == 16
-    assert o._convert_scalar(u'0o20') == 16
+    assert o._convert_scalar('16') == 16
+    assert o._convert_scalar('0x10') == 16
+    assert o._convert_scalar('020') == 16
+    assert o._convert_scalar('0o20') == 16
 
 
 class test_IntEnum(EnumChecker):
@@ -1199,9 +1199,9 @@ class test_IntEnum(EnumChecker):
     _test_values = 1, 2, -3
     _bad_type_values = 1, 2.0, -3
     _bad_type = float
-    _translation = u"values=1, 2, 3"
+    _translation = "values=1, 2, 3"
     _bad_values = 4, 5, -6
-    _single_value_translation = u"value=1"
+    _single_value_translation = "value=1"
 
     def test_convert_scalar(self):
         """
@@ -1260,7 +1260,7 @@ class test_Int(ClassChecker):
         o = self.cls('my_number', minvalue=3)
         assert o.minvalue == 3
         rule = o._rule_minvalue
-        translation = u'minvalue=%(minvalue)r'
+        translation = 'minvalue=%(minvalue)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -1286,7 +1286,7 @@ class test_Int(ClassChecker):
         o = self.cls('my_number', maxvalue=4)
         assert o.maxvalue == 4
         rule = o._rule_maxvalue
-        translation = u'maxvalue=%(maxvalue)r'
+        translation = 'maxvalue=%(maxvalue)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -1359,7 +1359,7 @@ class test_Decimal(ClassChecker):
         o = self.cls('my_number', minvalue='3.1')
         assert o.minvalue == Decimal('3.1')
         rule = o._rule_minvalue
-        translation = u'minvalue=%(minvalue)s'
+        translation = 'minvalue=%(minvalue)s'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -1385,7 +1385,7 @@ class test_Decimal(ClassChecker):
         o = self.cls('my_number', maxvalue='4.7')
         assert o.maxvalue == Decimal('4.7')
         rule = o._rule_maxvalue
-        translation = u'maxvalue=%(maxvalue)r'
+        translation = 'maxvalue=%(maxvalue)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
 
@@ -1509,27 +1509,27 @@ class test_AccessTime(ClassChecker):
         assert o.type is unicode
         assert isinstance(o, parameters.AccessTime)
         assert o.multivalue is False
-        translation = u'length=%(length)r'
+        translation = 'length=%(length)r'
         dummy = dummy_ugettext(translation)
         assert dummy.translation is translation
         rule = o._rule_required
 
         # Check some good rules
-        for value in (u'absolute 201012161032 ~ 201012161033',
-                      u'periodic monthly week 2 day Sat,Sun 0900-1300',
-                      u'periodic yearly month 4 day 1-31 0800-1400',
-                      u'periodic weekly day 7 0800-1400',
-                      u'periodic daily 0800-1400',
+        for value in ('absolute 201012161032 ~ 201012161033',
+                      'periodic monthly week 2 day Sat,Sun 0900-1300',
+                      'periodic yearly month 4 day 1-31 0800-1400',
+                      'periodic weekly day 7 0800-1400',
+                      'periodic daily 0800-1400',
             ):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # And some bad ones
-        for value in (u'absolute 201012161032 - 201012161033',
-                      u'absolute 201012161032 ~',
-                      u'periodic monthly day Sat,Sun 0900-1300',
-                      u'periodical yearly month 4 day 1-31 0800-1400',
-                      u'periodic weekly day 8 0800-1400',
+        for value in ('absolute 201012161032 - 201012161033',
+                      'absolute 201012161032 ~',
+                      'periodic monthly day Sat,Sun 0900-1300',
+                      'periodical yearly month 4 day 1-31 0800-1400',
+                      'periodic weekly day 8 0800-1400',
             ):
             raises(ValidationError, o._rule_required, None, value)
 
@@ -1592,13 +1592,13 @@ class test_IA5Str(ClassChecker):
         """
         o = self.cls('my_str')
         mthd = o._convert_scalar
-        for value in (u'Hello', 42, 1.2):
+        for value in ('Hello', 42, 1.2):
             assert mthd(value) == unicode(value)
         bad = ['Helloá']
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert_equal(e.error, u"The character 'á' is not allowed.")
+            assert_equal(e.error, "The character 'á' is not allowed.")
 
 
 class test_DateTime(ClassChecker):
@@ -1620,28 +1620,28 @@ class test_DateTime(ClassChecker):
 
         # Check full time formats
         date = datetime.datetime(1991, 12, 7, 6, 30, 5)
-        assert date == o.convert(u'19911207063005Z')
-        assert date == o.convert(u'1991-12-07T06:30:05Z')
-        assert date == o.convert(u'1991-12-07 06:30:05Z')
+        assert date == o.convert('19911207063005Z')
+        assert date == o.convert('1991-12-07T06:30:05Z')
+        assert date == o.convert('1991-12-07 06:30:05Z')
 
         # Check time formats without seconds
         date = datetime.datetime(1991, 12, 7, 6, 30)
-        assert date == o.convert(u'1991-12-07T06:30Z')
-        assert date == o.convert(u'1991-12-07 06:30Z')
+        assert date == o.convert('1991-12-07T06:30Z')
+        assert date == o.convert('1991-12-07 06:30Z')
 
         # Check date formats
         date = datetime.datetime(1991, 12, 7)
-        assert date == o.convert(u'1991-12-07Z')
+        assert date == o.convert('1991-12-07Z')
 
         # Check some wrong formats
-        for value in (u'19911207063005',
-                      u'1991-12-07T06:30:05',
-                      u'1991-12-07 06:30:05',
-                      u'1991-12-07T06:30',
-                      u'1991-12-07 06:30',
-                      u'1991-12-07',
-                      u'1991-31-12Z',
-                      u'1991-12-07T25:30:05Z',
+        for value in ('19911207063005',
+                      '1991-12-07T06:30:05',
+                      '1991-12-07 06:30:05',
+                      '1991-12-07T06:30',
+                      '1991-12-07 06:30',
+                      '1991-12-07',
+                      '1991-31-12Z',
+                      '1991-12-07T25:30:05Z',
             ):
             raises(ConversionError, o.convert, value)
 
@@ -1810,7 +1810,7 @@ class test_DNParam(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_dn'
-            assert_equal(unicode(e.error), u'Only one value is allowed')
+            assert_equal(unicode(e.error), 'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_convert_singlevalued(self):
@@ -1836,7 +1836,7 @@ class test_DNParam(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_dn'
-            assert_equal(unicode(e.error), u'Only one value is allowed')
+            assert_equal(unicode(e.error), 'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_convert_multivalued(self):

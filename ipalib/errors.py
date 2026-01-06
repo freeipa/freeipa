@@ -299,7 +299,7 @@ class UnknownError(PublicError):
 
     For example:
 
-    >>> raise UnknownError(code=57, server='localhost', error=u'a new error')
+    >>> raise UnknownError(code=57, server='localhost', error='a new error')
     ...
     Traceback (most recent call last):
       ...
@@ -388,7 +388,7 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', error=_(u'Connection refused'))
+    >>> raise NetworkError(uri='ldap://localhost:389', error=_('Connection refused'))
     Traceback (most recent call last):
       ...
     NetworkError: cannot connect to 'ldap://localhost:389': Connection refused
@@ -779,7 +779,7 @@ class ConversionError(InvocationError):
 
     For example:
 
-    >>> raise ConversionError(name='age', error=_(u'must be an integer'))
+    >>> raise ConversionError(name='age', error=_('must be an integer'))
     Traceback (most recent call last):
       ...
     ConversionError: invalid 'age': must be an integer
@@ -795,7 +795,7 @@ class ValidationError(InvocationError):
 
     For example:
 
-    >>> raise ValidationError(name='sn', error=_(u'can be at most 128 characters'))
+    >>> raise ValidationError(name='sn', error=_('can be at most 128 characters'))
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'sn': can be at most 128 characters
@@ -1256,7 +1256,7 @@ class ManagedGroupExistsError(ExecutionError):
 
     For example:
 
-    >>> raise ManagedGroupExistsError(group=u'engineering')
+    >>> raise ManagedGroupExistsError(group='engineering')
     Traceback (most recent call last):
       ...
     ManagedGroupExistsError: Unable to create private group. A group 'engineering' already exists.
@@ -1738,7 +1738,7 @@ class CertificateOperationError(CertificateError):
 
     For example:
 
-    >>> raise CertificateOperationError(error=_(u'bad serial number'))
+    >>> raise CertificateOperationError(error=_('bad serial number'))
     Traceback (most recent call last):
       ...
     CertificateOperationError: Certificate operation cannot be completed: bad serial number
@@ -1754,7 +1754,7 @@ class CertificateFormatError(CertificateError):
 
     For example:
 
-    >>> raise CertificateFormatError(error=_(u'improperly formated DER-encoded certificate'))
+    >>> raise CertificateFormatError(error=_('improperly formated DER-encoded certificate'))
     Traceback (most recent call last):
       ...
     CertificateFormatError: Certificate format error: improperly formated DER-encoded certificate
@@ -1771,7 +1771,7 @@ class MutuallyExclusiveError(ExecutionError):
 
     For example:
 
-    >>> raise MutuallyExclusiveError(reason=_(u'hosts may not be added when hostcategory=all'))
+    >>> raise MutuallyExclusiveError(reason=_('hosts may not be added when hostcategory=all'))
     Traceback (most recent call last):
       ...
     MutuallyExclusiveError: hosts may not be added when hostcategory=all
@@ -1788,7 +1788,7 @@ class NonFatalError(ExecutionError):
 
     For example:
 
-    >>> raise NonFatalError(reason=_(u'The host was added but the DNS update failed'))
+    >>> raise NonFatalError(reason=_('The host was added but the DNS update failed'))
     Traceback (most recent call last):
       ...
     NonFatalError: The host was added but the DNS update failed
@@ -1837,7 +1837,7 @@ class DependentEntry(ExecutionError):
     **4307** Raised when an entry being deleted has dependencies
 
     For example:
-    >>> raise DependentEntry(label=u'SELinux User Map', key=u'test', dependent=u'test1')
+    >>> raise DependentEntry(label='SELinux User Map', key='test', dependent='test1')
     Traceback (most recent call last):
       ...
     DependentEntry: test cannot be deleted because SELinux User Map test1 requires it
@@ -1853,7 +1853,7 @@ class LastMemberError(ExecutionError):
     **4308** Raised when an entry being deleted or disabled is last member of a protected group
 
     For example:
-    >>> raise LastMemberError(key=u'admin', label=u'group', container=u'admins')
+    >>> raise LastMemberError(key='admin', label='group', container='admins')
     Traceback (most recent call last):
       ...
     LastMemberError: admin cannot be deleted or disabled because it is the last member of group admins
@@ -1869,7 +1869,7 @@ class ProtectedEntryError(ExecutionError):
     **4309** Raised when an entry being deleted or modified in a forbidden way is protected
 
     For example:
-    >>> raise ProtectedEntryError(label=u'group', key=u'admins', reason=_(u'privileged group'))
+    >>> raise ProtectedEntryError(label='group', key='admins', reason=_('privileged group'))
     Traceback (most recent call last):
       ...
     ProtectedEntryError: group admins cannot be deleted/modified: privileged group
@@ -1886,7 +1886,7 @@ class CertificateInvalidError(CertificateError):
 
     For example:
 
-    >>> raise CertificateInvalidError(name=_(u'CA'))
+    >>> raise CertificateInvalidError(name=_('CA'))
     Traceback (most recent call last):
       ...
     CertificateInvalidError: CA certificate is not valid
@@ -1905,7 +1905,7 @@ class SchemaUpToDate(ExecutionError):
     long (in seconds) before client should check for schema update.
 
     For example:
-    >>> raise SchemaUpToDate(fingerprint=u'deadbeef', ttl=3600)
+    >>> raise SchemaUpToDate(fingerprint='deadbeef', ttl=3600)
     Traceback (most recent call last):
       ...
     SchemaUpToDate: Schema is up to date (FP 'deadbeef', TTL 3600 s)

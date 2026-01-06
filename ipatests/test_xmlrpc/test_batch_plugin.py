@@ -30,8 +30,8 @@ from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
 from ipapython.dn import DN
 import pytest
 
-group1 = u'testgroup1'
-first1 = u'John'
+group1 = 'testgroup1'
+first1 = 'John'
 
 
 def deepequal_list(*expected):
@@ -61,7 +61,7 @@ class test_batch(Declarative):
 
         dict(
             desc='Batch ping',
-            command=('batch', [dict(method=u'ping', params=([], {}))], {}),
+            command=('batch', [dict(method='ping', params=([], {}))], {}),
             expected=dict(
                 count=1,
                 results=[
@@ -72,7 +72,7 @@ class test_batch(Declarative):
 
         dict(
             desc='Batch two pings',
-            command=('batch', [dict(method=u'ping', params=([], {}))] * 2, {}),
+            command=('batch', [dict(method='ping', params=([], {}))] * 2, {}),
             expected=dict(
                 count=2,
                 results=[
@@ -85,19 +85,19 @@ class test_batch(Declarative):
         dict(
             desc='Create and deleting a group',
             command=('batch', [
-                dict(method=u'group_add',
-                    params=([group1], dict(description=u'Test desc 1'))),
-                dict(method=u'group_del', params=([group1], dict())),
+                dict(method='group_add',
+                    params=([group1], dict(description='Test desc 1'))),
+                dict(method='group_del', params=([group1], dict())),
             ], {}),
             expected=dict(
                 count=2,
                 results=deepequal_list(
                     dict(
                         value=group1,
-                        summary=u'Added group "testgroup1"',
+                        summary='Added group "testgroup1"',
                         result=dict(
                             cn=[group1],
-                            description=[u'Test desc 1'],
+                            description=['Test desc 1'],
                             objectclass=fuzzy_set_optional_oc(
                                 objectclasses.posixgroup, 'ipantgroupattrs'),
                             ipauniqueid=[fuzzy_uuid],
@@ -109,7 +109,7 @@ class test_batch(Declarative):
                             ),
                         error=None),
                     dict(
-                        summary=u'Deleted group "%s"' % group1,
+                        summary='Deleted group "%s"' % group1,
                         result=dict(failed=[]),
                         value=[group1],
                         error=None),
@@ -120,26 +120,26 @@ class test_batch(Declarative):
         dict(
             desc='Try to delete nonexistent group twice',
             command=('batch', [
-                dict(method=u'group_del', params=([group1], dict())),
-                dict(method=u'group_del', params=([group1], dict())),
+                dict(method='group_del', params=([group1], dict())),
+                dict(method='group_del', params=([group1], dict())),
             ], {}),
             expected=dict(
                 count=2,
                 results=[
                     dict(
-                        error=u'%s: group not found' % group1,
-                        error_name=u'NotFound',
+                        error='%s: group not found' % group1,
+                        error_name='NotFound',
                         error_code=4001,
                         error_kw=dict(
-                            reason=u'%s: group not found' % group1,
+                            reason='%s: group not found' % group1,
                         ),
                     ),
                     dict(
-                        error=u'%s: group not found' % group1,
-                        error_name=u'NotFound',
+                        error='%s: group not found' % group1,
+                        error_name='NotFound',
                         error_code=4001,
                         error_kw=dict(
-                            reason=u'%s: group not found' % group1,
+                            reason='%s: group not found' % group1,
                         ),
                     ),
                 ],
@@ -149,27 +149,27 @@ class test_batch(Declarative):
         dict(
             desc='Try to delete non-existent group first, then create it',
             command=('batch', [
-                dict(method=u'group_del', params=([group1], dict())),
-                dict(method=u'group_add',
-                    params=([group1], dict(description=u'Test desc 1'))),
+                dict(method='group_del', params=([group1], dict())),
+                dict(method='group_add',
+                    params=([group1], dict(description='Test desc 1'))),
             ], {}),
             expected=dict(
                 count=2,
                 results=deepequal_list(
                     dict(
-                        error=u'%s: group not found' % group1,
-                        error_name=u'NotFound',
+                        error='%s: group not found' % group1,
+                        error_name='NotFound',
                         error_code=4001,
                         error_kw=dict(
-                            reason=u'%s: group not found' % group1,
+                            reason='%s: group not found' % group1,
                         ),
                     ),
                     dict(
                         value=group1,
-                        summary=u'Added group "testgroup1"',
+                        summary='Added group "testgroup1"',
                         result=dict(
                             cn=[group1],
-                            description=[u'Test desc 1'],
+                            description=['Test desc 1'],
                             objectclass=fuzzy_set_optional_oc(
                                 objectclasses.posixgroup, 'ipantgroupattrs'),
                             ipauniqueid=[fuzzy_uuid],
@@ -188,79 +188,79 @@ class test_batch(Declarative):
             desc='Try bad command invocations',
             command=('batch', [
                 # bad command name
-                dict(method=u'nonexistent_ipa_command', params=([], dict())),
+                dict(method='nonexistent_ipa_command', params=([], dict())),
                 # dash, not underscore, in command name
-                dict(method=u'user-del', params=([], dict())),
+                dict(method='user-del', params=([], dict())),
                 # missing command name
                 dict(params=([group1], dict())),
                 # missing params
-                dict(method=u'user_del'),
+                dict(method='user_del'),
                 # missing required argument
-                dict(method=u'user_add', params=([], dict())),
+                dict(method='user_add', params=([], dict())),
                 # missing required option
-                dict(method=u'user_add', params=([], dict(givenname=first1))),
+                dict(method='user_add', params=([], dict(givenname=first1))),
                 # bad type
-                dict(method=u'group_add', params=([group1], dict(
-                        description=u't', gidnumber=u'bad'))),
+                dict(method='group_add', params=([group1], dict(
+                        description='t', gidnumber='bad'))),
             ], {}),
             expected=dict(
                 count=7,
                 results=deepequal_list(
                     dict(
-                        error=u"unknown command 'nonexistent_ipa_command'",
-                        error_name=u'CommandError',
+                        error="unknown command 'nonexistent_ipa_command'",
+                        error_name='CommandError',
                         error_code=905,
                         error_kw=dict(
-                            name=u'nonexistent_ipa_command',
+                            name='nonexistent_ipa_command',
                         ),
                     ),
                     dict(
-                        error=u"unknown command 'user-del'",
-                        error_name=u'CommandError',
+                        error="unknown command 'user-del'",
+                        error_name='CommandError',
                         error_code=905,
                         error_kw=dict(
-                            name=u'user-del',
+                            name='user-del',
                         ),
                     ),
                     dict(
-                        error=u"'method' is required",
-                        error_name=u'RequirementError',
+                        error="'method' is required",
+                        error_name='RequirementError',
                         error_code=3007,
                         error_kw=dict(
-                            name=u'method',
+                            name='method',
                         ),
                     ),
                     dict(
-                        error=u"'params' is required",
-                        error_name=u'RequirementError',
+                        error="'params' is required",
+                        error_name='RequirementError',
                         error_code=3007,
                         error_kw=dict(
-                            name=u'params',
+                            name='params',
                         ),
                     ),
                     dict(
-                        error=u"'givenname' is required",
-                        error_name=u'RequirementError',
+                        error="'givenname' is required",
+                        error_name='RequirementError',
                         error_code=3007,
                         error_kw=dict(
-                            name=u'givenname',
+                            name='givenname',
                         ),
                     ),
                     dict(
-                        error=u"'sn' is required",
-                        error_name=u'RequirementError',
+                        error="'sn' is required",
+                        error_name='RequirementError',
                         error_code=3007,
                         error_kw=dict(
-                            name=u'sn',
+                            name='sn',
                         ),
                     ),
                     dict(
-                        error=Fuzzy(u"invalid 'gid'.*"),
-                        error_name=u'ConversionError',
+                        error=Fuzzy("invalid 'gid'.*"),
+                        error_name='ConversionError',
                         error_code=3008,
                         error_kw=dict(
-                            name=u'gid',
-                            error=Fuzzy(u'.*'),
+                            name='gid',
+                            error=Fuzzy('.*'),
                         ),
                     ),
                 ),

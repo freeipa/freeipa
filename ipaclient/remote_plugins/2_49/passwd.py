@@ -44,7 +44,7 @@ class passwd(Command):
         parameters.Str(
             'principal',
             cli_name='user',
-            label=_(u'User name'),
+            label=_('User name'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
             # lambda: util.get_current_principal()
@@ -53,12 +53,12 @@ class passwd(Command):
         ),
         parameters.Password(
             'password',
-            label=_(u'New Password'),
+            label=_('New Password'),
             confirm=True,
         ),
         parameters.Password(
             'current_password',
-            label=_(u'Current Password'),
+            label=_('Current Password'),
             default_from=DefaultFrom(lambda principal: None, 'principal'),
             # FIXME:
             # lambda principal: get_current_password(principal)
@@ -69,16 +69,16 @@ class passwd(Command):
         output.Output(
             'summary',
             (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
             unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

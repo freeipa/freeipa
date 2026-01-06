@@ -31,7 +31,7 @@ class i18n_messages(Command):
         output.Output(
             'texts',
             dict,
-            doc=_(u'Dict of I18N messages'),
+            doc=_('Dict of I18N messages'),
         ),
     )
 
@@ -46,45 +46,45 @@ class json_metadata(Command):
         parameters.Str(
             'objname',
             required=False,
-            doc=_(u'Name of object to export'),
+            doc=_('Name of object to export'),
         ),
         parameters.Str(
             'methodname',
             required=False,
-            doc=_(u'Name of method to export'),
+            doc=_('Name of method to export'),
         ),
     )
     takes_options = (
         parameters.Str(
             'object',
             required=False,
-            doc=_(u'Name of object to export'),
+            doc=_('Name of object to export'),
         ),
         parameters.Str(
             'method',
             required=False,
-            doc=_(u'Name of method to export'),
+            doc=_('Name of method to export'),
         ),
         parameters.Str(
             'command',
             required=False,
-            doc=_(u'Name of command to export'),
+            doc=_('Name of command to export'),
         ),
     )
     has_output = (
         output.Output(
             'objects',
             dict,
-            doc=_(u'Dict of JSON encoded IPA Objects'),
+            doc=_('Dict of JSON encoded IPA Objects'),
         ),
         output.Output(
             'methods',
             dict,
-            doc=_(u'Dict of JSON encoded IPA Methods'),
+            doc=_('Dict of JSON encoded IPA Methods'),
         ),
         output.Output(
             'commands',
             dict,
-            doc=_(u'Dict of JSON encoded IPA Commands'),
+            doc=_('Dict of JSON encoded IPA Commands'),
         ),
     )

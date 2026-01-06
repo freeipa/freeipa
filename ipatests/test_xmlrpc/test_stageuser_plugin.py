@@ -28,66 +28,66 @@ else:
 
 unicode = str
 
-validuser1 = u'tuser1'
-validuser2 = u'tuser2'
+validuser1 = 'tuser1'
+validuser2 = 'tuser2'
 
-uid = u'123'
-gid = u'456'
-invalidrealm1 = u'suser1@NOTFOUND.ORG'
-invalidrealm2 = u'suser1@BAD@NOTFOUND.ORG'
+uid = '123'
+gid = '456'
+invalidrealm1 = 'suser1@NOTFOUND.ORG'
+invalidrealm2 = 'suser1@BAD@NOTFOUND.ORG'
 
 nonexistentidp = 'IdPDoesNotExist'
 
-invaliduser1 = u'+tuser1'
-invaliduser2 = u'tuser1234567890123456789012345678901234567890'
-invaliduser3 = u'1234'
+invaliduser1 = '+tuser1'
+invaliduser2 = 'tuser1234567890123456789012345678901234567890'
+invaliduser3 = '1234'
 
-sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
+sshpubkey = ('ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
              'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
              'No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNm'
              'cSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM01'
              '9Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF'
              '0L public key test')
-sshpubkeyfp = (u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
+sshpubkeyfp = ('SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
                'public key test (ssh-rsa)')
 
 options_def = OrderedDict([
-    ('full name', {u'cn': u'name'}),
-    ('initials', {u'initials': u'in'}),
-    ('display name', {u'displayname': u'display'}),
-    ('home directory', {u'homedirectory': u'/home/homedir'}),
-    ('GECOS', {u'gecos': u'gecos'}),
-    ('shell', {u'loginshell': platformconstants.DEFAULT_SHELL}),
-    ('email address', {u'mail': u'email@email.email'}),
-    ('job title', {u'title': u'newbie'}),
+    ('full name', {'cn': 'name'}),
+    ('initials', {'initials': 'in'}),
+    ('display name', {'displayname': 'display'}),
+    ('home directory', {'homedirectory': '/home/homedir'}),
+    ('GECOS', {'gecos': 'gecos'}),
+    ('shell', {'loginshell': platformconstants.DEFAULT_SHELL}),
+    ('email address', {'mail': 'email@email.email'}),
+    ('job title', {'title': 'newbie'}),
     ('kerberos principal', {
-        u'krbprincipalname': u'kerberos@%s' % api.env.realm}),
+        'krbprincipalname': 'kerberos@%s' % api.env.realm}),
     ('uppercase kerberos principal', {
-        u'krbprincipalname': u'KERBEROS@%s' % api.env.realm}),
-    ('street address', {u'street': u'first street'}),
-    ('city', {u'l': u'prague'}),
-    ('state', {u'st': u'czech'}),
-    ('zip code', {u'postalcode': u'12345'}),
-    ('telephone number', {u'telephonenumber': u'123456789'}),
-    ('fax number', {u'facsimiletelephonenumber': u'123456789'}),
-    ('mobile tel. number', {u'mobile': u'123456789'}),
-    ('pager number', {u'pager': u'123456789'}),
-    ('organizational unit', {u'ou': u'engineering'}),
-    ('car license', {u'carlicense': u'abc1234'}),
-    ('SSH key', {u'ipasshpubkey': sshpubkey}),
-    ('manager', {u'manager': u'auser1'}),
-    ('group ID number', {u'gidnumber': gid}),
-    ('password', {u'userpassword': u'Secret123'}),
-    ('random password', {u'random': True}),
+        'krbprincipalname': 'KERBEROS@%s' % api.env.realm}),
+    ('street address', {'street': 'first street'}),
+    ('city', {'l': 'prague'}),
+    ('state', {'st': 'czech'}),
+    ('zip code', {'postalcode': '12345'}),
+    ('telephone number', {'telephonenumber': '123456789'}),
+    ('fax number', {'facsimiletelephonenumber': '123456789'}),
+    ('mobile tel. number', {'mobile': '123456789'}),
+    ('pager number', {'pager': '123456789'}),
+    ('organizational unit', {'ou': 'engineering'}),
+    ('car license', {'carlicense': 'abc1234'}),
+    ('SSH key', {'ipasshpubkey': sshpubkey}),
+    ('manager', {'manager': 'auser1'}),
+    ('group ID number', {'gidnumber': gid}),
+    ('password', {'userpassword': 'Secret123'}),
+    ('random password', {'random': True}),
     ])
 
 options_ok = list(options_def.values())
 options_ids = list(options_def.keys())
 
 warn_options_def = OrderedDict([
-    ('user ID number', {u'uidnumber': uid}),
-    ('UID and GID numbers', {u'uidnumber': uid, u'gidnumber': gid}),
+    ('user ID number', {'uidnumber': uid}),
+    ('UID and GID numbers', {'uidnumber': uid, 'gidnumber': gid}),
 ])
 
 warn_options_ok = list(warn_options_def.values())
@@ -95,83 +95,83 @@ warn_options_ids = list(warn_options_def.keys())
 
 @pytest.fixture(scope='class')
 def stageduser(request, xmlrpc_setup):
-    tracker = StageUserTracker(name=u'suser1', givenname=u'staged', sn=u'user')
+    tracker = StageUserTracker(name='suser1', givenname='staged', sn='user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def stageduser_min(request, xmlrpc_setup):
-    tracker = StageUserTracker(givenname=u'stagedmin', sn=u'usermin')
+    tracker = StageUserTracker(givenname='stagedmin', sn='usermin')
     return tracker.make_fixture(request)
 
 @pytest.fixture(scope='class', params=options_ok, ids=options_ids)
 def stageduser2(request, xmlrpc_setup):
-    tracker = StageUserTracker(u'suser2', u'staged', u'user', **request.param)
+    tracker = StageUserTracker('suser2', 'staged', 'user', **request.param)
     return tracker.make_fixture_activate(request)
 
 
 @pytest.fixture(scope='class', params=warn_options_ok, ids=warn_options_ids)
 def warn_stageduser(request, xmlrpc_setup):
-    tracker = StageUserTracker(u'warnuser', u'staged', u'user', **request.param)
+    tracker = StageUserTracker('warnuser', 'staged', 'user', **request.param)
     return tracker.make_fixture_activate(request)
 
 
 @pytest.fixture(scope='class')
 def user_activated(request, xmlrpc_setup):
-    tracker = UserTracker(u'suser2', u'staged', u'user')
+    tracker = UserTracker('suser2', 'staged', 'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def stageduser3(request, xmlrpc_setup):
-    tracker = StageUserTracker(name=u'suser3', givenname=u'staged', sn=u'user')
+    tracker = StageUserTracker(name='suser3', givenname='staged', sn='user')
     return tracker.make_fixture_activate(request)
 
 
 @pytest.fixture(scope='class')
 def stageduser_notposix(request, xmlrpc_setup):
-    tracker = StageUserTracker(u'notposix', u'notposix', u'notposix')
+    tracker = StageUserTracker('notposix', 'notposix', 'notposix')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def stageduser_customattr(request, xmlrpc_setup):
-    tracker = StageUserTracker(u'customattr', u'customattr', u'customattr',
-                               setattr=u'businesscategory=BusinessCat')
+    tracker = StageUserTracker('customattr', 'customattr', 'customattr',
+                               setattr='businesscategory=BusinessCat')
     tracker.track_create()
     tracker.attrs.update(
-        businesscategory=[u'BusinessCat']
+        businesscategory=['BusinessCat']
     )
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user(request, xmlrpc_setup):
-    tracker = UserTracker(u'auser1', u'active', u'user')
+    tracker = UserTracker('auser1', 'active', 'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user2(request, xmlrpc_setup):
-    tracker = UserTracker(u'suser3', u'staged', u'user')
+    tracker = UserTracker('suser3', 'staged', 'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user3(request, xmlrpc_setup):
-    tracker = UserTracker(u'auser2', u'active', u'user')
+    tracker = UserTracker('auser2', 'active', 'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user6(request, xmlrpc_setup):
-    tracker = UserTracker(u'suser2', u'staged', u'user')
+    tracker = UserTracker('suser2', 'staged', 'user')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user7(request, xmlrpc_setup):
-    tracker = UserTracker(u'puser1', u'preserved', u'user')
+    tracker = UserTracker('puser1', 'preserved', 'user')
     return tracker.make_fixture_restore(request)
 
 
@@ -181,22 +181,22 @@ class TestNonexistentStagedUser(XMLRPC_test):
         stageduser.ensure_missing()
         command = stageduser.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % stageduser.uid)):
+                reason='%s: stage user not found' % stageduser.uid)):
             command()
 
     def test_delete_nonexistent(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % stageduser.uid)):
+                reason='%s: stage user not found' % stageduser.uid)):
             command()
 
     def test_update_nonexistent(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_update_command(
-            updates=dict(givenname=u'changed'))
+            updates=dict(givenname='changed'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % stageduser.uid)):
+                reason='%s: stage user not found' % stageduser.uid)):
             command()
 
     def test_find_nonexistent(self, stageduser):
@@ -209,7 +209,7 @@ class TestNonexistentStagedUser(XMLRPC_test):
         stageduser.ensure_missing()
         command = stageduser.make_activate_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % stageduser.uid)):
+                reason='%s: stage user not found' % stageduser.uid)):
             command()
 
 
@@ -225,7 +225,7 @@ class TestStagedUser(XMLRPC_test):
         stageduser.ensure_exists()
         command = stageduser.make_create_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'stage user with name "%s" already exists' %
+                message='stage user with name "%s" already exists' %
                 stageduser.uid)):
             command()
 
@@ -241,7 +241,7 @@ class TestStagedUser(XMLRPC_test):
 
         command = stageduser3.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % stageduser3.uid)):
+                reason='%s: stage user not found' % stageduser3.uid)):
             command()
         user2.delete()
 
@@ -276,7 +276,7 @@ class TestStagedUser(XMLRPC_test):
         # verify the staged user does not exist after activation
         command = stageduser2.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % stageduser2.uid)):
+                reason='%s: stage user not found' % stageduser2.uid)):
             command()
 
         user_activated.delete()
@@ -306,7 +306,7 @@ class TestStagedUser(XMLRPC_test):
         # verify the staged user does not exist after activation
         command = warn_stageduser.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: stage user not found' % warn_stageduser.uid)):
+                reason='%s: stage user not found' % warn_stageduser.uid)):
             command()
 
         user_activated.delete()
@@ -322,8 +322,8 @@ class TestStagedUser(XMLRPC_test):
         stageduser.find(all=True)
 
     def test_update_stageduser(self, stageduser):
-        stageduser.update(updates=dict(givenname=u'changed',),
-                          expected_updates=dict(givenname=[u'changed'],))
+        stageduser.update(updates=dict(givenname='changed',),
+                          expected_updates=dict(givenname=['changed'],))
         stageduser.retrieve()
 
     def test_update_uid(self, stageduser):
@@ -355,7 +355,7 @@ class TestStagedUser(XMLRPC_test):
         ldap.connect()
         ldap.create(
             dn=stageduser_notposix.dn,
-            objectclass=[u'inetorgperson', u'organizationalperson', u'person'],
+            objectclass=['inetorgperson', 'organizationalperson', 'person'],
             uid=stageduser_notposix.uid,
             sn=stageduser_notposix.sn,
             givenname=stageduser_notposix.givenname,
@@ -370,14 +370,14 @@ class TestStagedUser(XMLRPC_test):
     def test_create_withuserauthtype(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'ipauserauthtype': u'password'})
+            options={'ipauserauthtype': 'password'})
         command()
 
 
 @pytest.mark.tier1
 class TestCreateInvalidAttributes(XMLRPC_test):
     def test_create_invalid_uid(self):
-        invalid = StageUserTracker(invaliduser1, u'invalid', u'user')
+        invalid = StageUserTracker(invaliduser1, 'invalid', 'user')
         command = invalid.make_create_command()
         with raises_exact(errors.ValidationError(
             name='login',
@@ -386,8 +386,8 @@ class TestCreateInvalidAttributes(XMLRPC_test):
             command()
 
     def test_create_numeric_only_uid(self):
-        invalid = StageUserTracker(invaliduser3, u'NumFirst1234',
-                                   u'NumSurname1234')
+        invalid = StageUserTracker(invaliduser3, 'NumFirst1234',
+                                   'NumSurname1234')
         command = invalid.make_create_command()
         with raises_exact(errors.ValidationError(
             name='login',
@@ -396,58 +396,58 @@ class TestCreateInvalidAttributes(XMLRPC_test):
             command()
 
     def test_create_long_uid(self):
-        invalid = StageUserTracker(invaliduser2, u'invalid', u'user')
+        invalid = StageUserTracker(invaliduser2, 'invalid', 'user')
         command = invalid.make_create_command()
         with raises_exact(errors.ValidationError(
                 name='login',
-                error=u"can be at most 32 characters")):
+                error="can be at most 32 characters")):
             command()
 
     def test_create_uid_string(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'uidnumber': u'text'})
+            options={'uidnumber': 'text'})
         with raises_exact(errors.ConversionError(
-                message=u'invalid \'uid\': must be an integer')):
+                message='invalid \'uid\': must be an integer')):
             command()
 
     def test_create_gid_string(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'gidnumber': u'text'})
+            options={'gidnumber': 'text'})
         with raises_exact(errors.ConversionError(
-                message=u'invalid \'gidnumber\': must be an integer')):
+                message='invalid \'gidnumber\': must be an integer')):
             command()
 
     def test_create_uid_negative(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'uidnumber': u'-123'})
+            options={'uidnumber': '-123'})
         with raises_exact(errors.ValidationError(
-                message=u'invalid \'uid\': must be at least 1')):
+                message='invalid \'uid\': must be at least 1')):
             command()
 
     def test_create_gid_negative(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'gidnumber': u'-123'})
+            options={'gidnumber': '-123'})
         with raises_exact(errors.ValidationError(
-                message=u'invalid \'gidnumber\': must be at least 1')):
+                message='invalid \'gidnumber\': must be at least 1')):
             command()
 
     def test_create_krbprincipal_bad_realm(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'krbprincipalname': invalidrealm1})
+            options={'krbprincipalname': invalidrealm1})
         with raises_exact(errors.RealmMismatch(
-                message=u'The realm for the principal does not match '
+                message='The realm for the principal does not match '
                 'the realm for this IPA server')):
             command()
 
     def test_create_krbprincipal_malformed(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'krbprincipalname': invalidrealm2})
+            options={'krbprincipalname': invalidrealm2})
         with raises_exact(errors.ConversionError(
                 name='principal', error="Malformed principal: '{}'".format(
                     invalidrealm2))):
@@ -456,7 +456,7 @@ class TestCreateInvalidAttributes(XMLRPC_test):
     def test_create_invalid_idp(self, stageduser):
         stageduser.ensure_missing()
         command = stageduser.make_create_command(
-            options={u'ipaidpconfiglink': nonexistentidp})
+            options={'ipaidpconfiglink': nonexistentidp})
         with raises_exact(errors.NotFound(
                 reason="External IdP configuration {} not found".format(
                     nonexistentidp))):
@@ -468,39 +468,39 @@ class TestUpdateInvalidAttributes(XMLRPC_test):
     def test_update_uid_string(self, stageduser):
         stageduser.ensure_exists()
         command = stageduser.make_update_command(
-            updates={u'uidnumber': u'text'})
+            updates={'uidnumber': 'text'})
         with raises_exact(errors.ConversionError(
-                message=u'invalid \'uid\': must be an integer')):
+                message='invalid \'uid\': must be an integer')):
             command()
 
     def test_update_gid_string(self, stageduser):
         stageduser.ensure_exists()
         command = stageduser.make_update_command(
-            updates={u'gidnumber': u'text'})
+            updates={'gidnumber': 'text'})
         with raises_exact(errors.ConversionError(
-                message=u'invalid \'gidnumber\': must be an integer')):
+                message='invalid \'gidnumber\': must be an integer')):
             command()
 
     def test_update_uid_negative(self, stageduser):
         stageduser.ensure_exists()
         command = stageduser.make_update_command(
-            updates={u'uidnumber': u'-123'})
+            updates={'uidnumber': '-123'})
         with raises_exact(errors.ValidationError(
-                message=u'invalid \'uid\': must be at least 1')):
+                message='invalid \'uid\': must be at least 1')):
             command()
 
     def test_update_gid_negative(self, stageduser):
         stageduser.ensure_exists()
         command = stageduser.make_update_command(
-            updates={u'gidnumber': u'-123'})
+            updates={'gidnumber': '-123'})
         with raises_exact(errors.ValidationError(
-                message=u'invalid \'gidnumber\': must be at least 1')):
+                message='invalid \'gidnumber\': must be at least 1')):
             command()
 
     def test_update_invalididp(self, stageduser):
         stageduser.ensure_exists()
         command = stageduser.make_update_command(
-            updates={u'ipaidpconfiglink': nonexistentidp})
+            updates={'ipaidpconfiglink': nonexistentidp})
         with raises_exact(errors.NotFound(
                 reason="External IdP configuration {} not found".format(
                     nonexistentidp))):
@@ -527,7 +527,7 @@ class TestActive(XMLRPC_test):
         user.ensure_exists()
         command = user.make_delete_command(no_preserve=True, preserve=True)
         with raises_exact(errors.MutuallyExclusiveError(
-                message=u'preserve and no-preserve cannot be both set')):
+                message='preserve and no-preserve cannot be both set')):
             command()
 
     def test_delete_preserve(self, user):
@@ -544,7 +544,7 @@ class TestActive(XMLRPC_test):
 
         command = user.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user.uid)):
+                reason='%s: user not found' % user.uid)):
             command()
 
 
@@ -592,14 +592,14 @@ class TestPreserved(XMLRPC_test):
 
         command = user.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user.uid)):
+                reason='%s: user not found' % user.uid)):
             command()
 
     def test_enable_preserved(self, user):
         user.make_preserved_user()
         command = user.make_enable_command()
         with raises_exact(errors.MidairCollision(
-                message=u'change collided with another change')):
+                message='change collided with another change')):
             command()
         user.delete()
 
@@ -609,9 +609,9 @@ class TestPreserved(XMLRPC_test):
         command = user.make_retrieve_command(all=True)
         result = command()
         attr_check = {
-            u'ipauniqueid': result[u'result'][u'ipauniqueid'],
-            u'uidnumber': result[u'result'][u'uidnumber'],
-            u'gidnumber': result[u'result'][u'gidnumber']
+            'ipauniqueid': result['result']['ipauniqueid'],
+            'uidnumber': result['result']['uidnumber'],
+            'gidnumber': result['result']['gidnumber']
             }
 
         command = user.make_undelete_command()
@@ -634,7 +634,7 @@ class TestPreserved(XMLRPC_test):
 
         command = user7.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % stageduser.uid)):
+                reason='%s: user not found' % stageduser.uid)):
             command()
 
         command = stageduser.make_retrieve_command()
@@ -657,14 +657,14 @@ class TestCustomAttr(XMLRPC_test):
         # --setattr is needed here
         command = stageduser_customattr.make_create_command()
         result = command()
-        stageduser_customattr.check_create(result, [u'businesscategory'])
+        stageduser_customattr.check_create(result, ['businesscategory'])
 
         # Activate the staged user
         user_customattr = UserTracker(
             stageduser_customattr.uid, stageduser_customattr.givenname,
             stageduser_customattr.sn)
         user_customattr.create_from_staged(stageduser_customattr)
-        user_customattr.attrs[u'businesscategory'] = [u'BusinessCat']
+        user_customattr.attrs['businesscategory'] = ['BusinessCat']
 
         command = stageduser_customattr.make_activate_command()
         result = command()
@@ -673,7 +673,7 @@ class TestCustomAttr(XMLRPC_test):
         # Check that the user contains businesscategory
         command = user_customattr.make_retrieve_command(all=True)
         result = command()
-        assert 'BusinessCat' in result['result'][u'businesscategory']
+        assert 'BusinessCat' in result['result']['businesscategory']
 
         # delete the user with --preserve
         user_customattr.track_delete(preserve=True)
@@ -685,7 +685,7 @@ class TestCustomAttr(XMLRPC_test):
         # Check that the preserved user contains businesscategory
         command = user_customattr.make_retrieve_command(all=True)
         result = command()
-        assert 'BusinessCat' in result['result'][u'businesscategory']
+        assert 'BusinessCat' in result['result']['businesscategory']
 
         # Move the user from preserved to stage
         command = user_customattr.make_stage_command()
@@ -695,7 +695,7 @@ class TestCustomAttr(XMLRPC_test):
         # Check that the stage user contains businesscategory
         command = stageduser_customattr.make_retrieve_command(all=True)
         result = command()
-        assert 'BusinessCat' in result['result'][u'businesscategory']
+        assert 'BusinessCat' in result['result']['businesscategory']
 
 
 @pytest.mark.tier1
@@ -707,7 +707,7 @@ class TestManagers(XMLRPC_test):
         command = user.make_update_command(
             updates=dict(manager=stageduser.uid))
         with raises_exact(errors.NotFound(
-                reason=u'manager %s not found' % stageduser.uid)):
+                reason='manager %s not found' % stageduser.uid)):
             command()
         user.delete()
         stageduser.delete()
@@ -718,7 +718,7 @@ class TestManagers(XMLRPC_test):
 
         command = user.make_update_command(updates=dict(manager=user3.uid))
         with raises_exact(errors.NotFound(
-                reason=u'manager %s not found' % user3.uid)):
+                reason='manager %s not found' % user3.uid)):
             command()
 
         user3.delete()
@@ -731,14 +731,14 @@ class TestManagers(XMLRPC_test):
             expected_updates=dict(manager=[user3.uid], nsaccountlock=False))
 
         user3.make_preserved_user()
-        del user.attrs[u'manager']
+        del user.attrs['manager']
 
         command = user.make_retrieve_command(all=True)
         result = command()
         user.check_retrieve(result, all=True)
 
         # verify whether user has a manager attribute
-        if u'manager' in result['result']:
+        if 'manager' in result['result']:
             assert False
 
 
@@ -758,7 +758,7 @@ class TestDuplicates(XMLRPC_test):
         user.make_preserved_user()
         command = user.make_create_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'user with name "%s" already exists' % user.uid)):
+                message='user with name "%s" already exists' % user.uid)):
             command()
 
     def test_staged_same_as_active(self, user, stageduser):
@@ -767,7 +767,7 @@ class TestDuplicates(XMLRPC_test):
 
         command = stageduser.make_activate_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'active user with name "%s" already exists' %
+                message='active user with name "%s" already exists' %
                 user.uid)):
             command()  # cannot be activated
 
@@ -777,7 +777,7 @@ class TestDuplicates(XMLRPC_test):
 
         command = stageduser.make_activate_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'This entry already exists')):
+                message='This entry already exists')):
             command()  # cannot be activated
 
     def test_active_same_as_staged(self, user, stageduser):
@@ -786,14 +786,14 @@ class TestDuplicates(XMLRPC_test):
 
         command = stageduser.make_activate_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'active user with name "%s" already exists' %
+                message='active user with name "%s" already exists' %
                 user.uid)):
             command()  # cannot be activated
 
 
 @pytest.fixture(scope='class')
 def group(request, xmlrpc_setup):
-    tracker = GroupTracker(u'testgroup')
+    tracker = GroupTracker('testgroup')
     return tracker.make_fixture(request)
 
 
@@ -803,14 +803,14 @@ class TestGroups(XMLRPC_test):
         stageduser.ensure_exists()
         group.ensure_exists()
         command = group.make_add_member_command(
-            options={u'user': stageduser.uid})
+            options={'user': stageduser.uid})
         result = command()
         group.check_add_member_negative(result)
 
     def test_remove_preserved_from_group(self, user, group):
         user.ensure_exists()
         group.ensure_exists()
-        command = group.add_member(options={u'user': user.uid})
+        command = group.add_member(options={'user': user.uid})
 
         command = group.make_retrieve_command()
         result = command()
@@ -824,7 +824,7 @@ class TestGroups(XMLRPC_test):
         command = group.make_retrieve_command()
         result = command()
 
-        if (u'member_user' in result[u'result'] and
+        if ('member_user' in result['result'] and
                 user.uid in result['result']['member_user']):
             assert False
 
@@ -834,6 +834,6 @@ class TestGroups(XMLRPC_test):
     def test_preserveduser_membership(self, user, group):
         user.make_preserved_user()
         group.ensure_exists()
-        command = group.make_add_member_command(options={u'user': user.uid})
+        command = group.make_add_member_command(options={'user': user.uid})
         result = command()
         group.check_add_member_negative(result)

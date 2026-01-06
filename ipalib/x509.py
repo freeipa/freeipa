@@ -696,10 +696,10 @@ def _decode_krb5principalname(data):
     realm = (str(principal['realm']).replace('\\', '\\\\')
                                         .replace('@', '\\@'))
     name = principal['principalName']['name-string']
-    name = u'/'.join(str(n).replace('\\', '\\\\')
+    name = '/'.join(str(n).replace('\\', '\\\\')
                                .replace('/', '\\/')
                                .replace('@', '\\@') for n in name)
-    name = u'%s@%s' % (name, realm)
+    name = '%s@%s' % (name, realm)
     return name
 
 
@@ -782,12 +782,12 @@ def chunk(size, s):
     Works on character strings only.
 
     """
-    return (u''.join(span) for span in zip(*[iter(s)] * size))
+    return (''.join(span) for span in zip(*[iter(s)] * size))
 
 
 def add_colons(s):
     """Add colons between each nibble pair in a hex string."""
-    return u':'.join(chunk(2, s))
+    return ':'.join(chunk(2, s))
 
 
 def to_hex_with_colons(bs):

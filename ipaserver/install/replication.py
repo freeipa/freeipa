@@ -1831,12 +1831,12 @@ class ReplicationManager:
         attribute, add replica bind DN directly into the replica entry.
         """
         my_dn = DN(
-            ('krbprincipalname', u'ldap/%s@%s' % (self.hostname, self.realm)),
+            ('krbprincipalname', 'ldap/%s@%s' % (self.hostname, self.realm)),
             api.env.container_service,
             api.env.basedn
         )
         remote_dn = DN(
-            ('krbprincipalname', u'ldap/%s@%s' % (r_hostname, self.realm)),
+            ('krbprincipalname', 'ldap/%s@%s' % (r_hostname, self.realm)),
             api.env.container_service,
             api.env.basedn
         )

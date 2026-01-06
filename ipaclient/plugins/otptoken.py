@@ -91,7 +91,7 @@ class otptoken_add(MethodOverride):
         if 'version' in options:
             pass
         elif self.api.env.skip_version_check:
-            options['version'] = u'2.0'
+            options['version'] = '2.0'
         else:
             options['version'] = API_VERSION
 

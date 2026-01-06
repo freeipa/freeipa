@@ -238,10 +238,10 @@ class test_PublicError(PublicExceptionTester):
     required_classes = Exception, errors.PublicError
 
     def test_init(self):
-        message = u'The translated, interpolated message'
+        message = 'The translated, interpolated message'
         format = 'key=%(key1)r and key2=%(key2)r'
-        val1 = u'Value 1'
-        val2 = u'Value 2'
+        val1 = 'Value 1'
+        val2 = 'Value 2'
         kw = dict(key1=val1, key2=val2)
 
         # Test with format=str, message=None
@@ -299,7 +299,7 @@ class test_PublicError(PublicExceptionTester):
         class subclass(self.klass):
             format = '%(true)r %(text)r %(number)r'
 
-        kw = dict(true=True, text=u'Hello!', number=18)
+        kw = dict(true=True, text='Hello!', number=18)
 
         # Test with format=str, message=None
         e = raises(ValueError, subclass, format, **kw)
@@ -329,7 +329,7 @@ class test_PublicError(PublicExceptionTester):
         # first build up "instructions", then get error and search for
         # lines of instructions appended to the end of the strerror
         # despite the parameter 'instructions' not existing in the format
-        instructions = u"The quick brown fox jumps over the lazy dog".split()
+        instructions = "The quick brown fox jumps over the lazy dog".split()
         # this expression checks if each word of instructions
         # exists in a string as a separate line, with right order
         regexp = re.compile('(?ims).*' +

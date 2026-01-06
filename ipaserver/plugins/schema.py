@@ -44,7 +44,7 @@ class BaseMetaObject(Object):
         Str(
             'name',
             label=_("Name"),
-            normalizer=lambda name: name.replace(u'-', u'_'),
+            normalizer=lambda name: name.replace('-', '_'),
             flags={'no_search'},
         ),
         Str(
@@ -94,7 +94,7 @@ class BaseMetaObject(Object):
             criteria = criteria.lower()
             result = (r for r in result
                       if (criteria in r['name'].lower() or
-                          criteria in r.get('doc', u'').lower()))
+                          criteria in r.get('doc', '').lower()))
 
         if not kwargs.get('all', False) and kwargs.get('pkey_only', False):
             key = self.primary_key.name
@@ -149,7 +149,7 @@ class MetaObject(BaseMetaObject):
                     'full_name',
                     label=_("Full name"),
                     primary_key=True,
-                    normalizer=lambda name: name.replace(u'-', u'_'),
+                    normalizer=lambda name: name.replace('-', '_'),
                     flags={'no_search'},
                 )
 
@@ -239,7 +239,7 @@ class command(metaobject):
             obj['attr_name'] = unicode(cmd.attr_name)
 
         if cmd.NO_CLI:
-            obj['exclude'] = [u'cli']
+            obj['exclude'] = ['cli']
 
         return obj
 
@@ -372,8 +372,8 @@ class topic_(MetaObject):
             topic_name = unicode(topic_value)
 
             while topic_name not in topics_by_key:
-                topic_version = u'1'
-                topic_full_name = u'{}/{}'.format(topic_name,
+                topic_version = '1'
+                topic_full_name = '{}/{}'.format(topic_name,
                                                   topic_version)
                 topic = {
                     'name': topic_name,
@@ -405,7 +405,7 @@ class topic_(MetaObject):
                         continue
                     if topic_value is not None:
                         topic_name = unicode(topic_value)
-                        topic['topic_topic'] = u'{}/{}'.format(topic_name,
+                        topic['topic_topic'] = '{}/{}'.format(topic_name,
                                                                topic_version)
                     else:
                         topic.pop('topic_topic', None)
@@ -571,9 +571,9 @@ class param(BaseParam):
         obj['name'] = unicode(param.name)
 
         if param.type is unicode:
-            obj['type'] = u'str'
+            obj['type'] = 'str'
         elif param.type is bytes:
-            obj['type'] = u'bytes'
+            obj['type'] = 'bytes'
         elif param.type is not None:
             obj['type'] = unicode(param.type.__name__)
 
@@ -626,10 +626,10 @@ class param(BaseParam):
         if ((isinstance(metaobj, Command) and 'no_option' in param.flags) or
                 (isinstance(metaobj, Object) and 'no_output' in param.flags)):
             value = obj.setdefault('exclude', [])
-            if u'cli' not in value:
-                value.append(u'cli')
-            if u'webui' not in value:
-                value.append(u'webui')
+            if 'cli' not in value:
+                value.append('cli')
+            if 'webui' not in value:
+                value.append('webui')
 
         return obj
 
@@ -721,9 +721,9 @@ class output(BaseParam):
         obj['name'] = unicode(output.name)
 
         if type_type is unicode:
-            obj['type'] = u'str'
+            obj['type'] = 'str'
         elif type_type is bytes:
-            obj['type'] = u'bytes'
+            obj['type'] = 'bytes'
         elif type_type is not None:
             obj['type'] = unicode(type_type.__name__)
 

@@ -798,19 +798,19 @@ class xmlserver(KerberosWSGIExecutioner):
         if method_name in self._system_commands:
             # TODO
             # for now let's not go out of our way to document standard XML-RPC
-            return u'undef'
+            return 'undef'
         else:
             self._get_command(method_name)
 
             # All IPA commands return a dict (struct),
             # and take a params, options - list and dict (array, struct)
-            return [[u'struct', u'array', u'struct']]
+            return [['struct', 'array', 'struct']]
 
     def methodHelp(self, *params):
         """get method docstring for XML-RPC introspection"""
         method_name = self._get_method_name('system.methodHelp', *params)
         if method_name in self._system_commands:
-            return u''
+            return ''
         else:
             command = self._get_command(method_name)
             return unicode(command.doc or '')

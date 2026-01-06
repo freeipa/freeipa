@@ -214,7 +214,7 @@ def sync_services_state(fqdn):
     """
     result = api.Command.server_role_find(
         server_server=fqdn,
-        role_servrole=u'IPA master',
+        role_servrole='IPA master',
         status=HIDDEN
     )
     if result['count']:
@@ -739,7 +739,7 @@ class Service:
 
     def _ldap_enable(self, value, name, fqdn, ldap_suffix, config):
         extra_config_opts = [
-            u'startOrder {}'.format(SERVICE_LIST[name].startorder),
+            'startOrder {}'.format(SERVICE_LIST[name].startorder),
         ]
         extra_config_opts.extend(config)
 

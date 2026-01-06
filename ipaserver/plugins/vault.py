@@ -437,7 +437,7 @@ class vaultcontainer_del(LDAPDelete):
         return dn
 
     def execute(self, *keys, **options):
-        keys = keys + (u'',)
+        keys = keys + ('',)
         return super(vaultcontainer_del, self).execute(*keys, **options)
 
 
@@ -601,8 +601,8 @@ class vault(LDAPObject):
             cli_name='type',
             label=_('Type'),
             doc=_('Vault type'),
-            values=(u'standard', u'symmetric', u'asymmetric', ),
-            default=u'symmetric',
+            values=('standard', 'symmetric', 'asymmetric', ),
+            default='symmetric',
             autofill=True,
         ),
         Bytes(
@@ -764,10 +764,10 @@ class vault(LDAPObject):
             raise ValueError('Invalid vault DN: %s' % dn)
 
         # construct the vault ID from the bottom up
-        id = u''
+        id = ''
         for rdn in dn[:-len(container_dn)]:
             name = rdn['cn']
-            id = u'/' + name + id
+            id = '/' + name + id
 
         return 'ipa:' + id
 

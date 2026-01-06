@@ -33,7 +33,7 @@ class domainlevel_get(Command):
         output.Output(
             'result',
             int,
-            doc=_(u'Current domain level:'),
+            doc=_('Current domain level:'),
         ),
     )
 
@@ -48,7 +48,7 @@ class domainlevel_set(Command):
         parameters.Int(
             'ipadomainlevel',
             cli_name='level',
-            label=_(u'Domain Level'),
+            label=_('Domain Level'),
         ),
     )
     takes_options = (
@@ -57,6 +57,6 @@ class domainlevel_set(Command):
         output.Output(
             'result',
             int,
-            doc=_(u'Current domain level:'),
+            doc=_('Current domain level:'),
         ),
     )
