@@ -45,7 +45,6 @@ from ipaserver.install.ldapupdate import LDAPUpdate, run_ldapi_reload_task
 
 logger = logging.getLogger(__name__)
 
-unicode = str
 
 
 def print_msg(message, output_fd=sys.stdout):
@@ -328,7 +327,7 @@ class Service:
                                          self.service_prefix)):
             return None
 
-        return unicode(
+        return str(
             kerberos.Principal(
                 (self.service_prefix, self.fqdn), realm=self.realm))
 

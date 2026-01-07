@@ -34,7 +34,6 @@ EXAMPLES:
    ipa param-find user-find
 """)
 
-unicode = str
 
 register = Registry()
 
@@ -177,12 +176,12 @@ class metaobject(MetaObject):
 
     def _get_obj(self, metaobj, all=False, **kwargs):  # pylint: disable=W0237
         obj = dict()
-        obj['name'] = unicode(metaobj.name)
-        obj['version'] = unicode(metaobj.version)
-        obj['full_name'] = unicode(metaobj.full_name)
+        obj['name'] = str(metaobj.name)
+        obj['version'] = str(metaobj.version)
+        obj['full_name'] = str(metaobj.full_name)
 
         if all:
-            params = [unicode(p.name) for p in self._iter_params(metaobj)]
+            params = [str(p.name) for p in self._iter_params(metaobj)]
             if params:
                 obj['params_param'] = params
 
@@ -224,19 +223,19 @@ class command(metaobject):
         obj = super(command, self)._get_obj(cmd, **kwargs)
 
         if cmd.doc:
-            obj['doc'] = unicode(cmd.doc)
+            obj['doc'] = str(cmd.doc)
 
         if cmd.topic:
             try:
-                topic = self.api.Object.topic.retrieve(unicode(cmd.topic))
+                topic = self.api.Object.topic.retrieve(str(cmd.topic))
             except errors.NotFound:
                 pass
             else:
                 obj['topic_topic'] = topic['full_name']
 
         if isinstance(cmd, Method):
-            obj['obj_class'] = unicode(cmd.obj_full_name)
-            obj['attr_name'] = unicode(cmd.attr_name)
+            obj['obj_class'] = str(cmd.obj_full_name)
+            obj['attr_name'] = str(cmd.attr_name)
 
         if cmd.NO_CLI:
             obj['exclude'] = ['cli']
@@ -369,7 +368,7 @@ class topic_(MetaObject):
             topic_value = command.topic
             if topic_value is None:
                 continue
-            topic_name = unicode(topic_value)
+            topic_name = str(topic_value)
 
             while topic_name not in topics_by_key:
                 topic_version = '1'
@@ -397,14 +396,14 @@ class topic_(MetaObject):
                             continue
 
                     if module.__doc__ is not None:
-                        topic['doc'] = unicode(module.__doc__).strip()
+                        topic['doc'] = str(module.__doc__).strip()
 
                     try:
                         topic_value = module.topic
                     except AttributeError:
                         continue
                     if topic_value is not None:
-                        topic_name = unicode(topic_value)
+                        topic_name = str(topic_value)
                         topic['topic_topic'] = '{}/{}'.format(topic_name,
                                                                topic_version)
                     else:
@@ -568,14 +567,14 @@ class param(BaseParam):
         metaobj, param = obj
 
         obj = dict()
-        obj['name'] = unicode(param.name)
+        obj['name'] = str(param.name)
 
-        if param.type is unicode:
+        if param.type is str:
             obj['type'] = 'str'
         elif param.type is bytes:
             obj['type'] = 'bytes'
         elif param.type is not None:
-            obj['type'] = unicode(param.type.__name__)
+            obj['type'] = str(param.type.__name__)
 
         if not param.required:
             obj['required'] = False
@@ -592,10 +591,10 @@ class param(BaseParam):
         for key, value in param._Param__clonekw.items():
             if key in ('doc',
                        'label'):
-                obj[key] = unicode(value)
+                obj[key] = str(value)
             elif key in ('exclude',
                          'include'):
-                obj[key] = sorted(list(unicode(v) for v in value))
+                obj[key] = sorted(list(str(v) for v in value))
             if isinstance(metaobj, Command):
                 if key == 'alwaysask':
                     obj.setdefault(key, value)
@@ -604,16 +603,16 @@ class param(BaseParam):
                 elif key in ('cli_metavar',
                              'cli_name',
                              'option_group'):
-                    obj[key] = unicode(value)
+                    obj[key] = str(value)
                 elif key == 'default':
                     if param.multivalue:
-                        obj[key] = [unicode(v) for v in value]
+                        obj[key] = [str(v) for v in value]
                     else:
-                        obj[key] = [unicode(value)]
+                        obj[key] = [str(value)]
                     if not param.autofill:
                         obj['alwaysask'] = True
                 elif key == 'default_from':
-                    obj['default_from_param'] = list(unicode(k)
+                    obj['default_from_param'] = list(str(k)
                                                      for k in value.keys)
                     if not param.autofill:
                         obj['alwaysask'] = True
@@ -718,14 +717,14 @@ class output(BaseParam):
             type_type = output.type
 
         obj = dict()
-        obj['name'] = unicode(output.name)
+        obj['name'] = str(output.name)
 
-        if type_type is unicode:
+        if type_type is str:
             obj['type'] = 'str'
         elif type_type is bytes:
             obj['type'] = 'bytes'
         elif type_type is not None:
-            obj['type'] = unicode(type_type.__name__)
+            obj['type'] = str(type_type.__name__)
 
         if not required:
             obj['required'] = False
@@ -734,7 +733,7 @@ class output(BaseParam):
             obj['multivalue'] = True
 
         if 'doc' in output.__dict__:
-            obj['doc'] = unicode(output.doc)
+            obj['doc'] = str(output.doc)
 
         return obj
 
@@ -811,10 +810,10 @@ class schema(Command):
                     to_process.append(key)
                     to_process.append(entry[key])
             else:
-                fingerprint.update(unicode(entry).encode('utf-8'))
+                fingerprint.update(str(entry).encode('utf-8'))
             i += 1
 
-        return unicode(fingerprint.hexdigest()[:8])
+        return str(fingerprint.hexdigest()[:8])
 
     def _generate_schema(self, **kwargs):
         commands = list(self.api.Object.command.search(**kwargs))

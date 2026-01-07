@@ -14,8 +14,6 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
-unicode = str
-
 
 class _JSONPrimer(dict):
     """Fast JSON primer and pre-converter
@@ -39,7 +37,7 @@ class _JSONPrimer(dict):
 
     * bytes -> {'__base64__': b64encode}
     * datetime -> {'__datetime__': LDAP_GENERALIZED_TIME}
-    * DNSName -> {'__dns_name__': unicode}
+    * DNSName -> {'__dns_name__': str}
 
     The _ipa_obj_hook() functions unserializes the marked JSON objects to
     bytes, datetime and DNSName.
@@ -56,14 +54,14 @@ class _JSONPrimer(dict):
         self._cap_datetime = None
         self._cap_dnsname = None
         self.update({
-            unicode: _identity,
+            str: _identity,
             bool: _identity,
             int: _identity,
             type(None): _identity,
             float: _identity,
-            Decimal: unicode,
+            Decimal: str,
             DN: str,
-            Principal: unicode,
+            Principal: str,
             DNSName: self._enc_dnsname,
             datetime.datetime: self._enc_datetime,
             bytes: self._enc_bytes,
@@ -110,9 +108,9 @@ class _JSONPrimer(dict):
                                                      'dns_name_values')
             self._cap_dnsname = cap
         if cap:
-            return {'__dns_name__': unicode(val)}
+            return {'__dns_name__': str(val)}
         else:
-            return unicode(val)
+            return str(val)
 
     def _enc_bytes(self, val):
         encoded = base64.b64encode(val)

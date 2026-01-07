@@ -39,8 +39,6 @@ import datetime
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants as platformconstants
 
-unicode = str
-
 __doc__ = _("""
 Migration to IPA
 
@@ -174,9 +172,9 @@ def _create_kerberos_principals(ldap, pkey, entry_attrs, failed):
         entry_attrs['krbprincipalname'] = principal
         entry_attrs['krbcanonicalname'] = principal
     except errors.LimitsExceeded:
-        failed[pkey] = unicode(_krb_failed_msg % unicode(principal))
+        failed[pkey] = str(_krb_failed_msg % str(principal))
     else:
-        failed[pkey] = unicode(_krb_err_msg % unicode(principal))
+        failed[pkey] = str(_krb_err_msg % str(principal))
 
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
@@ -454,9 +452,9 @@ def _group_exc_callback(ldap, dn, entry_attrs, exc, options):
             return
         elif not options.get('groupoverwritegid', False) and \
              entry_attrs.get('gidnumber') is not None:
-            msg = unicode(exc)
+            msg = str(exc)
             # add information about possibility to overwrite GID
-            msg = msg + unicode(_('. Check GID of the existing group. ' \
+            msg = msg + str(_('. Check GID of the existing group. ' \
                     'Use --group-overwrite-gid option to overwrite the GID'))
             raise errors.DuplicateEntry(message=msg)
 
@@ -849,7 +847,7 @@ migration process might be incomplete\n''')
                         if not entry_attrs.dn:
                             continue
                     except errors.NotFound as e:
-                        failed[ldap_obj_name][pkey] = unicode(e.reason)
+                        failed[ldap_obj_name][pkey] = str(e.reason)
                         continue
 
                 try:
@@ -861,10 +859,10 @@ migration process might be incomplete\n''')
                             callback(
                                 ldap, entry_attrs.dn, entry_attrs, e, options)
                         except errors.ExecutionError as e2:
-                            failed[ldap_obj_name][pkey] = unicode(e2)
+                            failed[ldap_obj_name][pkey] = str(e2)
                             continue
                     else:
-                        failed[ldap_obj_name][pkey] = unicode(e)
+                        failed[ldap_obj_name][pkey] = str(e)
                         continue
 
                 migrated[ldap_obj_name].append(pkey)

@@ -35,8 +35,6 @@ from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request as ipa_request
 from ipapython.version import API_VERSION
 
-unicode = str
-
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)
 
@@ -83,7 +81,7 @@ def test_round_trip():
     assert_equal(round_trip(unicode_str), unicode_str)
     assert_equal(round_trip(binary_bytes), binary_bytes)
     assert type(round_trip(b'hello')) is bytes
-    assert type(round_trip('hello')) is unicode
+    assert type(round_trip('hello')) is str
     assert_equal(round_trip(b''), b'')
     assert_equal(round_trip(''), '')
     assert round_trip(None) is None
@@ -104,7 +102,7 @@ def test_xml_wrap():
     assert isinstance(b, Binary)
     assert b.data == b'hello'
     u = f('hello', API_VERSION)
-    assert type(u) is unicode
+    assert type(u) is str
     assert u == 'hello'
     f([dict(one=False, two='hello'), None, b'hello'], API_VERSION)
 
@@ -124,7 +122,7 @@ def test_xml_unwrap():
     value = f([True, Binary(b'hello'), dict(one=1, two=utf8_bytes, three=None)])
     assert value == (True, b'hello', dict(one=1, two=unicode_str, three=None))
     assert type(value[1]) is bytes
-    assert type(value[2]['two']) is unicode
+    assert type(value[2]['two']) is str
 
 
 def test_xml_dumps():
@@ -186,7 +184,7 @@ def test_xml_loads():
         e = raises(Fault, f, data)
         assert e.faultCode == 69
         assert_equal(e.faultString, error)
-        assert type(e.faultString) is unicode
+        assert type(e.faultString) is str
 
 
 class test_xmlclient(PluginTester):

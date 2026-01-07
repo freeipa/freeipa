@@ -28,8 +28,6 @@ from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
 from ipalib import base
 
-unicode = str
-
 
 pytestmark = pytest.mark.tier0
 

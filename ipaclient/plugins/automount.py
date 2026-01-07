@@ -30,8 +30,6 @@ from ipalib.util import classproperty
 from ipalib import _
 from ipapython.dn import DN
 
-unicode = str
-
 register = Registry()
 
 DEFAULT_MAPS = ('auto.direct', )
@@ -184,11 +182,11 @@ class automountlocation_import(Command):
                 api.Command['automountkey_add'](
                             args[0],
                             'auto.master',
-                            automountkey=unicode(am[0]),
-                            automountinformation=unicode(' '.join(am[1:])))
+                            automountkey=str(am[0]),
+                            automountinformation=str(' '.join(am[1:])))
                 result['keys'].append([am[0], 'auto.master'])
             except errors.DuplicateEntry:
-                if unicode(am[0]) in DEFAULT_KEYS:
+                if str(am[0]) in DEFAULT_KEYS:
                     # ignore conflict when the key was pre-created by the framework
                     pass
                 elif options.get('continue', False):
@@ -200,10 +198,10 @@ class automountlocation_import(Command):
             # Add the new map
             if not am[1].startswith('-'):
                 try:
-                    api.Command['automountmap_add'](args[0], unicode(am[1]))
+                    api.Command['automountmap_add'](args[0], str(am[1]))
                     result['maps'].append(am[1])
                 except errors.DuplicateEntry:
-                    if unicode(am[1]) in DEFAULT_MAPS:
+                    if str(am[1]) in DEFAULT_MAPS:
                         # ignore conflict when the map was pre-created by the framework
                         pass
                     elif options.get('continue', False):
@@ -236,13 +234,13 @@ class automountlocation_import(Command):
                     cont=''
             for x in lines:
                 am = x.split(None)
-                key = unicode(am[0].replace('"',''))
+                key = str(am[0].replace('"',''))
                 try:
                     api.Command['automountkey_add'](
                             args[0],
-                            unicode(m),
+                            str(m),
                             automountkey=key,
-                            automountinformation=unicode(' '.join(am[1:])))
+                            automountinformation=str(' '.join(am[1:])))
                     result['keys'].append([key,m])
                 except errors.DuplicateEntry as e:
                     if options.get('continue', False):

@@ -32,7 +32,6 @@ import dns.reversename
 
 from ipapython.ipautil import UnsafeIPAddress
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -208,7 +207,7 @@ class DNSName(dns.name.Name):
     def __init__(self, labels, origin=None):
         try:
             if isinstance(labels, str):
-                labels = dns.name.from_text(unicode(labels), origin).labels
+                labels = dns.name.from_text(str(labels), origin).labels
             elif isinstance(labels, dns.name.Name):
                 labels = labels.labels
 

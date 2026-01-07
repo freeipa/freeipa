@@ -291,7 +291,7 @@ class CAACLTracker(Tracker):
     def add_host(self, host=None, hostgroup=None, track=True):
         """Associates an host or hostgroup entry with the ACL.
 
-           The command takes an unicode string with the name
+           The command takes a string with the name
            of the entry (RDN).
 
            It is the responsibility of a test writer to provide

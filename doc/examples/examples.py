@@ -41,10 +41,6 @@ from ipalib import Str
 from ipalib import output
 
 
-# To make the example ready for Python 3, we alias "unicode" to strings.
-unicode = str
-
-
 # We're going to create an example command plugin, that takes a name as its
 # only argument. Commands in IPA support input validation by defining
 # functions we're going to call 'validators'. This is an example of such
@@ -156,7 +152,7 @@ class exshowuser(Command):
         # method, but you can always use your own if you plan
         # to override it - I'll show you how later.
         output.Output('result', dict, 'user entry without DN'),
-        output.Output('dn', unicode, 'DN of the user entry', ['no_display']),
+        output.Output('dn', str, 'DN of the user entry', ['no_display']),
     )
 
     # Notice the ** argument notation for options. It is not required, but

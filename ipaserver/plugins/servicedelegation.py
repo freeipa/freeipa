@@ -19,7 +19,6 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipapython import kerberos
 
-unicode = str
 
 __doc__ = _("""
 Service Constrained Delegation
@@ -187,9 +186,9 @@ def normalize_principal_name(name, realm):
             reason=_("Malformed principal: %(error)s") % dict(error=str(e)))
 
     if len(princ.components) == 1 and not princ.components[0].endswith('$'):
-        nprinc = 'host/' + unicode(princ)
+        nprinc = 'host/' + str(princ)
     else:
-        nprinc = unicode(princ)
+        nprinc = str(princ)
     return nprinc
 
 
@@ -250,13 +249,13 @@ class servicedelegation_add_member(LDAPAddMember):
                         base_dn=basedn)
                 except errors.NotFound as e:
                     failed[self.principal_failedattr][
-                        self.principal_attr].append((name, unicode(e)))
+                        self.principal_attr].append((name, str(e)))
                     continue
                 try:
                     # normalize principal as set in krbPrincipalName attribute
                     mprinc = None
                     for p in e_attrs.get('krbprincipalname'):
-                        p = unicode(p)
+                        p = str(p)
                         if p.lower() == princ.lower():
                             mprinc = p
                     if mprinc not in entry_attrs.get(self.principal_attr, []):
@@ -265,7 +264,7 @@ class servicedelegation_add_member(LDAPAddMember):
                         raise errors.AlreadyGroupMember()
                 except errors.PublicError as e:
                     failed[self.principal_failedattr][
-                        self.principal_attr].append((name, unicode(e)))
+                        self.principal_attr].append((name, str(e)))
                 else:
                     completed += 1
 
@@ -327,7 +326,7 @@ class servicedelegation_remove_member(LDAPRemoveMember):
                     try:
                         dns[attr][ldap_obj_name].append(ldap_obj.get_dn(name))
                     except errors.PublicError as e:
-                        failed[attr][ldap_obj_name].append((name, unicode(e)))
+                        failed[attr][ldap_obj_name].append((name, str(e)))
         return dns, failed
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
@@ -355,7 +354,7 @@ class servicedelegation_remove_member(LDAPRemoveMember):
                         raise errors.NotGroupMember()
                 except errors.PublicError as e:
                     failed[self.principal_failedattr][
-                        self.principal_attr].append((name, unicode(e)))
+                        self.principal_attr].append((name, str(e)))
                 else:
                     completed += 1
 

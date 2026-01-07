@@ -33,7 +33,6 @@ from ipapython.dn import DN
 from ipaserver.plugins.baseuser import normalize_user_principal
 from ipaserver.plugins.service import validate_realm
 
-unicode = str
 
 __doc__ = _("""
 Set a user's password
@@ -75,7 +74,7 @@ def get_current_password(principal):
     be ignored later.
     """
     current_principal = krb_utils.get_principal()
-    if current_principal == unicode(normalize_user_principal(principal)):
+    if current_principal == str(normalize_user_principal(principal)):
         return None
     else:
         return MAGIC_VALUE
@@ -132,7 +131,7 @@ class passwd(Command):
         """
         ldap = self.api.Backend.ldap2
 
-        principal = unicode(principal)
+        principal = str(principal)
 
         entry_attrs = ldap.find_entry_by_attr(
             'krbprincipalname', principal, 'posixaccount', [''],

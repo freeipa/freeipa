@@ -9,9 +9,6 @@ from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc import objectclasses
 
 
-unicode = str
-
-
 class IdviewTracker(Tracker):
     """Class for idview tests"""
 
@@ -77,7 +74,7 @@ class IdviewTracker(Tracker):
     def track_create(self):
         self.attrs = dict(
             cn=(self.cn,),
-            dn=unicode(self.dn),
+            dn=str(self.dn),
             idoverrideusers=[],
             objectclass=objectclasses.idview
         )

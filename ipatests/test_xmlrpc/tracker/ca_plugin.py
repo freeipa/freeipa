@@ -18,9 +18,6 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.test_xmlrpc import objectclasses
 
 
-unicode = str
-
-
 class CATracker(Tracker, EnableTracker):
     """Implementation of a Tracker class for CA plugin."""
 
@@ -71,7 +68,7 @@ class CATracker(Tracker, EnableTracker):
 
     def track_create(self):
         self.attrs = dict(
-            dn=unicode(self.dn),
+            dn=str(self.dn),
             cn=[self.name],
             description=[self.description],
             ipacasubjectdn=[self.ipasubjectdn],

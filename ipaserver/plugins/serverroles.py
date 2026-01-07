@@ -50,9 +50,6 @@ from ipaserver.servroles import (
 from ipaserver.servroles import SingleValuedServerAttribute
 
 
-unicode = str
-
-
 register = Registry()
 
 

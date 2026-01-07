@@ -69,8 +69,6 @@ from ipalib.text import _
 from base64 import b64decode, b64encode
 from requests.auth import AuthBase
 
-unicode = str
-
 # time.perf_counter_ns appeared in Python 3.7.
 if version_info < (3, 7):
     time.perf_counter_ns = lambda: int(time.perf_counter() * 10**9)
@@ -540,15 +538,15 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
                 code=error.errno,
                 message=error.strerror,
                 data=error.kw,
-                name=unicode(error.__class__.__name__),
+                name=str(error.__class__.__name__),
             )
         principal = getattr(context, 'principal', 'UNKNOWN')
         response = dict(
             result=result,
             error=error,
             id=_id,
-            principal=unicode(principal),
-            version=unicode(VERSION),
+            principal=str(principal),
+            version=str(VERSION),
         )
         dump = json_encode_binary(
             response, version, pretty_print=self.api.env.debug
@@ -780,8 +778,8 @@ class xmlserver(KerberosWSGIExecutioner):
         """list methods for XML-RPC introspection"""
         if params:
             raise errors.ZeroArgumentError(name='system.listMethods')
-        return (tuple(unicode(cmd.name) for cmd in self.api.Command) +
-                tuple(unicode(name) for name in self._system_commands))
+        return (tuple(str(cmd.name) for cmd in self.api.Command) +
+                tuple(str(name) for name in self._system_commands))
 
     def _get_method_name(self, name, *params):
         """Get a method name for XML-RPC introspection commands"""
@@ -813,7 +811,7 @@ class xmlserver(KerberosWSGIExecutioner):
             return ''
         else:
             command = self._get_command(method_name)
-            return unicode(command.doc or '')
+            return str(command.doc or '')
 
     _system_commands = {
         'system.listMethods': listMethods,
@@ -1130,7 +1128,7 @@ class login_password(Backend, KerberosSession):
 
         try:
             kinit_password(
-                unicode(principal),
+                str(principal),
                 password,
                 ccache_name,
                 armor_ccache_name=armor_path,
@@ -1141,20 +1139,20 @@ class login_password(Backend, KerberosSession):
         except RuntimeError as e:
             if ('kinit: Cannot read password while '
                     'getting initial credentials') in str(e):
-                raise PasswordExpired(principal=principal, message=unicode(e))
+                raise PasswordExpired(principal=principal, message=str(e))
             elif ('kinit: Client\'s entry in database'
                   ' has expired while getting initial credentials') in str(e):
                 raise KrbPrincipalExpired(principal=principal,
-                                          message=unicode(e))
+                                          message=str(e))
             elif ('kinit: Client\'s credentials have been revoked '
                   'while getting initial credentials') in str(e):
                 raise UserLocked(principal=principal,
-                                 message=unicode(e))
+                                 message=str(e))
             elif ('kinit: Error constructing AP-REQ armor: '
                   'Matching credential not found') in str(e):
                 raise KrbPrincipalWrongFAST(principal=principal)
             raise InvalidSessionPassword(principal=principal,
-                                         message=unicode(e))
+                                         message=str(e))
         finally:
             if armor_path:
                 logger.debug('Cleanup the armor ccache')

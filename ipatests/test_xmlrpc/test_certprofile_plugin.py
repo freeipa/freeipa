@@ -16,8 +16,6 @@ from ipatests.util import prepare_config
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
 
-unicode = str
-
 IPA_CERT_SUBJ_BASE = (
     api.Command.config_show()
     ['result']['ipacertificatesubjectbase'][0]
@@ -140,7 +138,7 @@ class TestProfileCRUD(XMLRPC_test):
     def test_export_profile(self, tmpdir, user_profile):
         profile = tmpdir.join('{}.cfg'.format(user_profile.name))
 
-        command = user_profile.make_retrieve_command(out=unicode(profile))
+        command = user_profile.make_retrieve_command(out=str(profile))
         command()
 
         content = profile.read()
@@ -183,7 +181,7 @@ class TestProfileCRUD(XMLRPC_test):
         with open(profile_path, ) as f:
             profile_content = f.read()
         command = user_profile.make_update_command(
-            dict(file=unicode(profile_content)))
+            dict(file=str(profile_content)))
 
         with pytest.raises(errors.ExecutionError):
             command()

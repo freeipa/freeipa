@@ -30,8 +30,6 @@ from ipalib import errors
 
 # pylint: disable=unused-variable
 
-unicode = str
-
 
 @pytest.mark.tier1
 class test_sudorule(XMLRPC_test):
@@ -580,7 +578,7 @@ class test_sudorule(XMLRPC_test):
                 addattr='externalhost=%s' % self.test_invalid_host
             )
         except errors.ValidationError as e:
-            assert unicode(e) == ("invalid 'externalhost': only letters, " +
+            assert str(e) == ("invalid 'externalhost': only letters, " +
                 "numbers, '_', '-' are allowed. " +
                 "DNS label may not start or end with '-'")
         else:

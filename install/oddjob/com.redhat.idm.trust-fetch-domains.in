@@ -16,8 +16,6 @@ import gssapi
 from ipalib.install.kinit import kinit_keytab, kinit_password
 from ipapython.admintool import admin_cleanup_global_argv
 
-unicode = str
-
 
 def parse_options():
     usage = "%prog <trusted domain name>\n"

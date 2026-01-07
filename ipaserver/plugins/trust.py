@@ -58,7 +58,6 @@ from ipaserver.dcerpc_common import (TRUST_ONEWAY,
                                      trust_status_string)
 from ipaserver.plugins.privilege import principal_has_privilege
 
-unicode = str
 
 try:
     import pysss_murmur
@@ -677,8 +676,8 @@ ipa idrange-del before retrying the command with the desired range type.
     ''')
 
     range_types = {
-        'ipa-ad-trust': unicode(_('Active Directory domain range')),
-        'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
+        'ipa-ad-trust': str(_('Active Directory domain range')),
+        'ipa-ad-trust-posix': str(_('Active Directory trust range with '
                                          'POSIX attributes')),
                   }
 
@@ -1410,7 +1409,7 @@ if _nss_idmap_installed:
 
     def idmap_type_string(level):
         string = _idmap_type_dict.get(int(level), 'unknown')
-        return unicode(string)
+        return str(string)
 
 
 @register()
@@ -1445,8 +1444,8 @@ class trust_resolve(Command):
             xlate = pysss_nss_idmap.getnamebysid(sids)
             for sid in xlate:
                 entry = dict()
-                entry['sid'] = [unicode(sid)]
-                entry['name'] = [unicode(xlate[sid][NAME_KEY])]
+                entry['sid'] = [str(sid)]
+                entry['name'] = [str(xlate[sid][NAME_KEY])]
                 entry['type'] = [idmap_type_string(xlate[sid][TYPE_KEY])]
                 result.append(entry)
         except ValueError:
@@ -1839,7 +1838,7 @@ class trust_fetch_domains(LDAPRetrieve):
         # HTTP/ principal because we have no access to its key material.
         # Thus, we'll use DBus call out to oddjobd helper in all cases
         fetch_trusted_domains_over_dbus(self.api, *keys, **options)
-        result['summary'] = unicode(_('List of trust domains successfully '
+        result['summary'] = str(_('List of trust domains successfully '
                                       'refreshed. Use trustdomain-find '
                                       'command to list them.'))
         return result

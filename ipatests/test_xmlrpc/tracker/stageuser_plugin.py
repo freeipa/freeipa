@@ -17,8 +17,6 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.util import assert_deepequal
 from ipapython.dn import DN
 
-unicode = str
-
 sshpubkey = ('ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
              'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
@@ -64,7 +62,7 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
     find_all_keys = retrieve_all_keys - {'has_keytab', 'has_password'}
 
     def __init__(self, name=None, givenname=None, sn=None, **kwargs):
-        """ Check for non-empty unicode string for the required attributes
+        """ Check for non-empty string for the required attributes
         in the init method """
 
         if not (isinstance(givenname, str) and givenname):
@@ -75,9 +73,9 @@ class StageUserTracker(PasskeyMixin, KerberosAliasMixin, Tracker):
             raise ValueError("Invalid second name provided: {!r}".format(sn))
 
         super(StageUserTracker, self).__init__(default_version=None)
-        self.uid = unicode(name)
-        self.givenname = unicode(givenname)
-        self.sn = unicode(sn)
+        self.uid = str(name)
+        self.givenname = str(givenname)
+        self.sn = str(sn)
         self.dn = DN(
             ('uid', self.uid), api.env.container_stageuser, api.env.basedn)
 

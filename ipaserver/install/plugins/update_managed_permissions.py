@@ -95,7 +95,6 @@ from ipapython import ipautil
 from ipaserver.plugins import aci
 from ipaserver.plugins.permission import permission, permission_del
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -374,7 +373,7 @@ class update_managed_permissions(Updater):
 
             self.update_permission(ldap,
                                     obj,
-                                    unicode(name),
+                                    str(name),
                                     template,
                                     anonymous_read_aci)
 
@@ -384,7 +383,7 @@ class update_managed_permissions(Updater):
         for obsolete_name in OBSOLETE_PERMISSIONS:
             logger.debug('Deleting obsolete permission %s', obsolete_name)
             try:
-                self.api.Command[permission_del](unicode(obsolete_name),
+                self.api.Command[permission_del](str(obsolete_name),
                                                  force=True,
                                                  version='2.101')
             except errors.NotFound:
@@ -483,10 +482,10 @@ class update_managed_permissions(Updater):
 
         if remove_legacy:
             logger.debug("Removing legacy permission '%s'", legacy_name)
-            self.api.Command[permission_del](unicode(legacy_name))
+            self.api.Command[permission_del](str(legacy_name))
 
         for name in template.get('replaces_system', ()):
-            name = unicode(name)
+            name = str(name)
             try:
                 entry = ldap.get_entry(permission_plugin.get_dn(name),
                                        ['ipapermissiontype'])

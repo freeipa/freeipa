@@ -14,8 +14,6 @@ from ipaclient.frontend import ClientCommand, ClientMethod
 from ipalib.frontend import Object
 from ipapython.ipautil import APIVersion
 
-unicode = str
-
 
 class CompatCommand(ClientCommand):
     @property

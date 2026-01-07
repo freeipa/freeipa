@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 register = Registry()
 
-unicode = str
 
 
 def entry_to_update(entry):

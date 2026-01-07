@@ -39,8 +39,6 @@ from ipalib import _, ngettext
 from .hbacrule import is_all
 from ipapython.dn import DN
 
-unicode = str
-
 __doc__ = _("""
 Netgroups
 
@@ -242,7 +240,7 @@ class netgroup(LDAPObject):
 
         first_ava = dn.rdns[0][0]
         if first_ava[0] == self.primary_key.name:
-            return unicode(first_ava[1])
+            return str(first_ava[1])
 
         try:
             entry_attrs = self.backend.get_entry(
@@ -253,7 +251,7 @@ class netgroup(LDAPObject):
             except (KeyError, IndexError):
                 return ''
         except errors.NotFound:
-            return unicode(dn)
+            return str(dn)
 
 
 @register()
@@ -274,7 +272,7 @@ class netgroup_add(LDAPCreate):
             test_dn = self.obj.get_dn(keys[-1])
             netgroup = ldap.get_entry(test_dn, ['objectclass'])
             if 'mepManagedEntry' in netgroup.get('objectclass', []):
-                raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
+                raise errors.DuplicateEntry(message=str(self.msg_collision % keys[-1]))
             else:
                 self.obj.handle_duplicate_entry(*keys)
         except errors.NotFound:
@@ -285,7 +283,7 @@ class netgroup_add(LDAPCreate):
             # make sure that we don't create a collision if the plugin is
             # (temporarily) disabled
             api.Object['hostgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=unicode(self.msg_collision % keys[-1]))
+            raise errors.DuplicateEntry(message=str(self.msg_collision % keys[-1]))
         except errors.NotFound:
             pass
 

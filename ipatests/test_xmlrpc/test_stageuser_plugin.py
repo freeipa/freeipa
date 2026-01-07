@@ -26,8 +26,6 @@ except ImportError:
 else:
     have_ldap2 = True
 
-unicode = str
-
 validuser1 = 'tuser1'
 validuser2 = 'tuser2'
 

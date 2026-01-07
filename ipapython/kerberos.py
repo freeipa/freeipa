@@ -9,8 +9,6 @@ import re
 
 from ipapython.ipautil import escape_seq, unescape_seq
 
-unicode = str
-
 REALM_SPLIT_RE = re.compile(r'(?<!\\)@')
 COMPONENT_SPLIT_RE = re.compile(r'(?<!\\)/')
 
@@ -19,7 +17,7 @@ def parse_princ_name_and_realm(principal, realm=None):
     """
     split principal to the <principal_name>, <realm> components
 
-    :param principal: unicode representation of principal
+    :param principal: str representation of principal
     :param realm: if not None, replace the parsed realm with the specified one
 
     :returns: tuple containing the principal name and realm
@@ -51,7 +49,7 @@ def split_principal_name(principal_name):
 
     Enterprise principals (NT-ENTERPRISE, see RFC 6806) are also handled
 
-    :param principal_name: unicode representation of principal name
+    :param principal_name: str representation of principal name
     :returns: tuple of individual components (i.e. primary name for
     NT-PRINCIPAL and NT-ENTERPRISE, primary name and instance for others)
     """
@@ -91,7 +89,7 @@ class Principal:
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return unicode(self) < unicode(other)
+        return str(self) < str(other)
 
     def __le__(self, other):
         return self.__lt__(other) or self.__eq__(other)
@@ -113,7 +111,7 @@ class Principal:
             2.) unescape any leftover '\@' sequences
             3.) split the primary at the unescaped '/'
             4.) unescape leftover '\/'
-        :param principal: unicode representation of the principal name
+        :param principal: str representation of the principal name
         :param realm: if not None, this realm name will be used instead of the
             one parsed from `principal`
 
@@ -181,7 +179,7 @@ class Principal:
 
     def __str__(self):
         """
-        return the unicode representation of principal
+        return the str representation of principal
 
         works in reverse of the `from_text` class method
         """

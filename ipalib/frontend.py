@@ -45,8 +45,6 @@ from ipalib.request import context, context_frame
 from ipalib.util import classproperty, classobjectproperty, json_serialize
 from ipalib.constants import SD_IPA_API_MESSAGE_ID
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 RULE_FLAG = 'validation_rule'
@@ -512,7 +510,7 @@ class Command(HasParam):
     def __do_call(self, *args, **options):
         self.context.__messages = []
         if 'version' in options:
-            self.verify_client_version(unicode(options['version']))
+            self.verify_client_version(str(options['version']))
         elif self.api.env.skip_version_check and not self.api.env.in_server:
             options['version'] = '2.0'
         else:
@@ -716,8 +714,8 @@ class Command(HasParam):
                 return param(raw, **kw)
             except (ValidationError, ConversionError) as e:
                 # Display error and prompt again
-                self.Backend.textui.print_prompt_attribute_error(unicode(label),
-                                                             unicode(e.error))
+                self.Backend.textui.print_prompt_attribute_error(str(label),
+                                                             str(e.error))
 
     def normalize(self, **kw):
         """
@@ -1129,7 +1127,7 @@ class Command(HasParam):
 
         for p in self.output_params():
             order.append(p.name)
-            labels[p.name] = unicode(p.label)
+            labels[p.name] = str(p.label)
             flags[p.name] = p.flags
 
         if options.get('all', False):
@@ -1165,7 +1163,7 @@ class Command(HasParam):
                 textui.print_entry(result, order, labels, flags, print_all)
             elif isinstance(result, dict):
                 textui.print_entry(result, order, labels, flags, print_all)
-            elif isinstance(result, unicode):
+            elif isinstance(result, str):
                 if o == 'summary':
                     textui.print_summary(result)
                 else:
@@ -1175,7 +1173,7 @@ class Command(HasParam):
                 # success or failure. Ignore these.
                 pass
             elif isinstance(result, int):
-                textui.print_count(result, '%s %%d' % unicode(self.output[o].doc))
+                textui.print_count(result, '%s %%d' % str(self.output[o].doc))
 
         return rv
 

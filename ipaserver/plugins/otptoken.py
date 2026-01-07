@@ -35,8 +35,6 @@ import uuid
 import os
 
 
-unicode = str
-
 __doc__ = _("""
 OTP Tokens
 """) + _("""
@@ -84,7 +82,7 @@ class OTPTokenKey(Bytes):
                 raise PasswordMismatch(name=self.name)
             value = p1
 
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             try:
                 value = base64.b32decode(value, True)
             except TypeError as e:

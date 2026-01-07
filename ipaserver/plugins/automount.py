@@ -34,7 +34,6 @@ from .baseldap import (
 from ipalib import _, ngettext
 from ipapython.dn import DN
 
-unicode = str
 
 __doc__ = _("""
 Automount

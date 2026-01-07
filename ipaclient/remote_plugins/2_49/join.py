@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 Joining an IPA domain
 """)
@@ -32,7 +30,7 @@ class join(Command):
             doc=_('The hostname to register as'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
-            # lambda: unicode(installutils.get_fqdn())
+            # lambda: str(installutils.get_fqdn())
             autofill=True,
         ),
     )

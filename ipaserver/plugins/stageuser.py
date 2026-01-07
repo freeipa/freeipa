@@ -60,7 +60,6 @@ from ipaplatform.constants import constants as platformconstants
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 
-unicode = str
 
 __doc__ = _("""
 Stageusers
@@ -426,7 +425,7 @@ class stageuser_add(baseuser_add):
 
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(getattr(context, 'randompassword'))
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass
@@ -612,8 +611,7 @@ class stageuser_activate(LDAPQuery):
         for value in entry_from[attr]:
                 # merge all the values from->to
                 v = self.__value_2_add(args, options, attr, value)
-                if (isinstance(v, str) and v in ('', None)) or \
-                   (isinstance(v, unicode) and v in ('', None)):
+                if (isinstance(v, str) and v in ('', None)):
                     try:
                         v.decode('utf-8')
                         logger.debug("merge: %s:%r wiped", attr, v)
@@ -773,7 +771,7 @@ class stageuser_activate(LDAPQuery):
             raw=options.get('raw', False),
             version=options.get('version'),
         )
-        result['summary'] = unicode(
+        result['summary'] = str(
             _('Stage user %s activated' % staging_dn[0].value))
 
         return result

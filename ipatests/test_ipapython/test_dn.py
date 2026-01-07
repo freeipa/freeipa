@@ -7,9 +7,6 @@ from ipapython.dn import DN, RDN, AVA, str2dn, dn2str, DECODING_ERROR
 from ipapython import dn_ctypes
 
 
-unicode = str
-
-
 def cmp(a, b):
     if a == b:
         assert not a < b
@@ -149,10 +146,10 @@ class TestAVA:
         ava1 = AVA(self.ava1)
 
         assert ava1.attr == self.attr1
-        assert isinstance(ava1.attr, unicode)
+        assert isinstance(ava1.attr, str)
 
         assert ava1.value == self.value1
-        assert isinstance(ava1.value, unicode)
+        assert isinstance(ava1.value, str)
 
     def test_str(self):
         ava1 = AVA(self.ava1)
@@ -416,22 +413,22 @@ class TestRDN:
         rdn3 = RDN(self.rdn3)
 
         assert rdn1.attr == self.attr1
-        assert isinstance(rdn1.attr, unicode)
+        assert isinstance(rdn1.attr, str)
 
         assert rdn1.value == self.value1
-        assert isinstance(rdn1.value, unicode)
+        assert isinstance(rdn1.value, str)
 
         assert rdn2.attr == self.attr2
-        assert isinstance(rdn2.attr, unicode)
+        assert isinstance(rdn2.attr, str)
 
         assert rdn2.value == self.value2
-        assert isinstance(rdn2.value, unicode)
+        assert isinstance(rdn2.value, str)
 
         assert rdn3.attr == self.attr1
-        assert isinstance(rdn3.attr, unicode)
+        assert isinstance(rdn3.attr, str)
 
         assert rdn3.value == self.value1
-        assert isinstance(rdn3.value, unicode)
+        assert isinstance(rdn3.value, str)
 
     def test_str(self):
         rdn1 = RDN(self.rdn1)
@@ -690,8 +687,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-        assert isinstance(dn1[0].attr, unicode)
-        assert isinstance(dn1[0].value, unicode)
+        assert isinstance(dn1[0].attr, str)
+        assert isinstance(dn1[0].value, str)
         assert dn1[0] == self.rdn1
 
         # Create with single attr,value pair passed as a tuple
@@ -702,8 +699,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
 
         # Creation with multiple attr,value string pairs should fail
@@ -718,8 +715,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
         assert dn1[1] == self.rdn2
 
@@ -731,8 +728,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
         assert dn1[1] == self.rdn2
 
@@ -746,8 +743,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn2
         assert dn1[1] == self.rdn1
 
@@ -759,8 +756,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
 
         # Create with multiple RDN objects, assure ordering is preserved.
@@ -771,8 +768,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
         assert dn1[1] == self.rdn2
 
@@ -785,8 +782,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn2
         assert dn1[1] == self.rdn1
 
@@ -798,8 +795,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
 
         # Create with single string with 2 RDN's
@@ -810,8 +807,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
         assert dn1[1] == self.rdn2
 
@@ -823,8 +820,8 @@ class TestDN:
             self.assertExpectedClass(DN, dn1[i], 'RDN')
             for j in range(0, len(dn1[i])):
                 self.assertExpectedClass(DN, dn1[i][j], 'AVA')
-            assert isinstance(dn1[i].attr, unicode)
-            assert isinstance(dn1[i].value, unicode)
+            assert isinstance(dn1[i].attr, str)
+            assert isinstance(dn1[i].value, str)
         assert dn1[0] == self.rdn1
         assert dn1[1] == self.rdn2
 
@@ -1293,8 +1290,8 @@ class TestInternationalization:
         # AVA's
         # test attr i18n
         ava1 = AVA(self.arabic_hello_unicode, 'foo')
-        assert isinstance(ava1.attr, unicode)
-        assert isinstance(ava1.value, unicode)
+        assert isinstance(ava1.attr, str)
+        assert isinstance(ava1.value, str)
         assert ava1.attr == self.arabic_hello_unicode
         self.assert_equal_utf8(ava1, self.arabic_hello_utf8 + b'=foo')
 
@@ -1303,8 +1300,8 @@ class TestInternationalization:
 
         # test value i18n
         ava1 = AVA('cn', self.arabic_hello_unicode)
-        assert isinstance(ava1.attr, unicode)
-        assert isinstance(ava1.value, unicode)
+        assert isinstance(ava1.attr, str)
+        assert isinstance(ava1.value, str)
         assert ava1.value == self.arabic_hello_unicode
         self.assert_equal_utf8(ava1, b'cn=' + self.arabic_hello_utf8)
 
@@ -1314,8 +1311,8 @@ class TestInternationalization:
         # RDN's
         # test attr i18n
         rdn1 = RDN((self.arabic_hello_unicode, 'foo'))
-        assert isinstance(rdn1.attr, unicode)
-        assert isinstance(rdn1.value, unicode)
+        assert isinstance(rdn1.attr, str)
+        assert isinstance(rdn1.value, str)
         assert rdn1.attr == self.arabic_hello_unicode
         self.assert_equal_utf8(rdn1, self.arabic_hello_utf8 + b'=foo')
 
@@ -1324,8 +1321,8 @@ class TestInternationalization:
 
         # test value i18n
         rdn1 = RDN(('cn', self.arabic_hello_unicode))
-        assert isinstance(rdn1.attr, unicode)
-        assert isinstance(rdn1.value, unicode)
+        assert isinstance(rdn1.attr, str)
+        assert isinstance(rdn1.value, str)
         assert rdn1.value == self.arabic_hello_unicode
         self.assert_equal_utf8(rdn1, b'cn=' + self.arabic_hello_utf8)
 
@@ -1335,8 +1332,8 @@ class TestInternationalization:
         # DN's
         # test attr i18n
         dn1 = DN((self.arabic_hello_unicode, 'foo'))
-        assert isinstance(dn1[0].attr, unicode)
-        assert isinstance(dn1[0].value, unicode)
+        assert isinstance(dn1[0].attr, str)
+        assert isinstance(dn1[0].value, str)
         assert dn1[0].attr == self.arabic_hello_unicode
         self.assert_equal_utf8(dn1, self.arabic_hello_utf8 + b'=foo')
 
@@ -1345,8 +1342,8 @@ class TestInternationalization:
 
         # test value i18n
         dn1 = DN(('cn', self.arabic_hello_unicode))
-        assert isinstance(dn1[0].attr, unicode)
-        assert isinstance(dn1[0].value, unicode)
+        assert isinstance(dn1[0].attr, str)
+        assert isinstance(dn1[0].value, str)
         assert dn1[0].value == self.arabic_hello_unicode
         self.assert_equal_utf8(dn1, b'cn=' + self.arabic_hello_utf8)
 

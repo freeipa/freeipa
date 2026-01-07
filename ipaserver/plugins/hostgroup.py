@@ -28,8 +28,6 @@ from ipalib import Str, api, _, ngettext, errors
 from .netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
 from ipapython.dn import DN
 
-unicode = str
-
 __doc__ = _("""
 Groups of hosts.
 
@@ -233,7 +231,7 @@ class hostgroup_add(LDAPCreate):
             # when enabled, a managed netgroup is created for every hostgroup
             # make sure that the netgroup can be created
             api.Object['netgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=unicode(_(
+            raise errors.DuplicateEntry(message=str(_(
                     'netgroup with name "%s" already exists. '
                     'Hostgroups and netgroups share a common namespace'
                     ) % keys[-1]))

@@ -49,8 +49,6 @@ from ipalib.util import (
     check_client_configuration, get_pager, get_terminal_height, open_in_pager
 )
 
-unicode = str
-
 from ipalib import frontend
 from ipalib import backend
 from ipalib import plugable
@@ -160,7 +158,7 @@ class textui(backend.Backend):
         elif type(value) is datetime.datetime:
             return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)
         elif isinstance(value, DNSName):
-            return unicode(value)
+            return str(value)
         else:
             return value
 
@@ -168,7 +166,7 @@ class textui(backend.Backend):
         """
         Print exactly like ``print`` statement would.
         """
-        print(unicode(string))
+        print(str(string))
 
     def print_line(self, text, width=None):
         """
@@ -190,7 +188,7 @@ class textui(backend.Backend):
             width = self.get_tty_width()
         if width is not None and width < len(text):
             text = text[:width - 3] + '...'
-        print(unicode(text))
+        print(str(text))
 
     def print_paragraph(self, text, width=None):
         """
@@ -518,7 +516,7 @@ class textui(backend.Backend):
         )
 
     def print_error(self, text):
-        print('  ** %s **' % unicode(text))
+        print('  ** %s **' % str(text))
 
     def prompt_helper(self, prompt, label, prompt_func=input):
         """Prompt user for input
@@ -594,8 +592,8 @@ class textui(backend.Backend):
         on whether there is a tty or not.
         """
         if sys.stdin.isatty():
-            prompt = '%s: ' % unicode(label)
-            repeat_prompt = unicode(_('Enter %(label)s again to verify: ') % dict(label=label))
+            prompt = '%s: ' % str(label)
+            repeat_prompt = str(_('Enter %(label)s again to verify: ') % dict(label=label))
             while True:
                 pw1 = self.prompt_helper(prompt, label, prompt_func=getpass.getpass)
                 if not confirm:
@@ -686,7 +684,7 @@ class help(frontend.Local):
             return length
 
         def append(self, string=""):
-            self.buffer.append(unicode(string))
+            self.buffer.append(str(string))
 
         def write(self):
             pager = get_pager()
@@ -728,7 +726,7 @@ class help(frontend.Local):
                     continue
 
             if module.__doc__ is not None:
-                doc = unicode(module.__doc__ or '').strip()
+                doc = str(module.__doc__ or '').strip()
             try:
                 parent_topic = module.topic
             except AttributeError:
@@ -1130,7 +1128,7 @@ class CLIOptionParser(IPAOptionParser):
         option_help = IPAOptionParser.format_option_help(self, formatter)
 
         if isinstance(formatter, CLIOptionParserFormatter):
-            heading = unicode(_("Positional arguments"))
+            heading = str(_("Positional arguments"))
             arguments = [formatter.format_heading(heading)]
             formatter.indent()
             for (name, help_string) in self._arguments:
@@ -1166,7 +1164,7 @@ class cli(backend.Executioner):
         name = from_cli(key)
         if name not in self.Command and len(argv) == 0:
             try:
-                self.Command.help(unicode(key), outfile=sys.stderr)
+                self.Command.help(str(key), outfile=sys.stderr)
             except HelpError:
                 pass
         if name not in self.Command or self.Command[name].NO_CLI:
@@ -1232,7 +1230,7 @@ class cli(backend.Executioner):
     def build_parser(self, cmd):
         parser = CLIOptionParser(
             usage=' '.join(self.usage_iter(cmd)),
-            description=unicode(cmd.doc),
+            description=str(cmd.doc),
             formatter=IPAHelpFormatter(),
         )
 
@@ -1250,7 +1248,7 @@ class cli(backend.Executioner):
         for option in cmd.options():
             kw = dict(
                 dest=option.name,
-                help=unicode(option.doc),
+                help=str(option.doc),
             )
             if 'no_option' in option.flags:
                 continue
@@ -1279,7 +1277,7 @@ class cli(backend.Executioner):
                 new_kw['help'] = _('Same as --%s') % cli_name
                 if isinstance(option, Enum):
                     new_kw['metavar'] = 'VAL'
-                group = _get_option_group(unicode(_('Deprecated options')))
+                group = _get_option_group(str(_('Deprecated options')))
                 for alias in option.deprecated_cli_aliases:
                     name = '--%s' % alias
                     group.add_option(make_option(name, **new_kw))
@@ -1288,7 +1286,7 @@ class cli(backend.Executioner):
             name = self.__get_arg_name(arg, format_name=False)
             if 'no_option' in arg.flags or name is None:
                 continue
-            doc = unicode(arg.doc)
+            doc = str(arg.doc)
             parser.add_argument(name, doc)
 
         return parser

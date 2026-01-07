@@ -39,8 +39,6 @@ from configparser import ConfigParser as SafeConfigParser
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 SYSRESTORE_PATH = paths.TMP
@@ -382,8 +380,8 @@ class StateFile:
         by the string @key and with the value @value. @value may be
         a string or boolean.
         """
-        if not isinstance(value, (str, bool, unicode)):
-            raise ValueError("Only strings, booleans or unicode strings "
+        if not isinstance(value, (str, bool)):
+            raise ValueError("Only strings or booleans "
                              "are supported")
 
         self._load()

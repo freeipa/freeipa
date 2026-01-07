@@ -33,8 +33,6 @@ from ipatests.util import assert_equal, raises
 from ipalib import errors
 from ipalib.constants import TYPE_ERROR
 
-unicode = str
-
 
 pytestmark = pytest.mark.tier0
 
@@ -211,7 +209,7 @@ class PublicExceptionTester:
     def new(self, format=None, message=None, **kw):
         # Test that TypeError is raised if message isn't unicode:
         e = raises(TypeError, self.klass, message=b'The message')
-        assert str(e) == TYPE_ERROR % ('message', unicode, b'The message', bytes)
+        assert str(e) == TYPE_ERROR % ('message', str, b'The message', bytes)
 
         # Test the instance:
         for (key, value) in kw.items():
@@ -263,7 +261,7 @@ class test_PublicError(PublicExceptionTester):
 
         # Test with format=None, message=bytes
         e = raises(TypeError, self.klass, message=b'the message', **kw)
-        assert str(e) == TYPE_ERROR % ('message', unicode, b'the message', bytes)
+        assert str(e) == TYPE_ERROR % ('message', str, b'the message', bytes)
 
         # Test with format=None, message=None
         e = raises(ValueError, self.klass, **kw)
@@ -337,7 +335,7 @@ class test_PublicError(PublicExceptionTester):
                             '$')
         inst = subclass(instructions=instructions, **kw)
         assert inst.format is subclass.format
-        assert_equal(inst.instructions, unicode(instructions))
+        assert_equal(inst.instructions, str(instructions))
         inst_match = regexp.match(inst.strerror).groups()
         assert_equal(list(inst_match),list(instructions))
 

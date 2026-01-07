@@ -30,7 +30,6 @@ from ipaserver.install.bindinstance import dns_zone_exists
 from ipaserver.dns_data_management import IPASystemRecords
 
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 

@@ -23,8 +23,6 @@ from ipalib.parameters import File
 from ipalib.plugable import Registry
 from ipalib import _
 
-unicode = str
-
 register = Registry()
 
 
@@ -74,5 +72,5 @@ can use their Kerberos accounts.''')
             textui.print_plain('No users/groups were migrated from %s' %
                                ldapuri)
             return 1
-        textui.print_plain(unicode(self.pwd_migration_msg))
+        textui.print_plain(str(self.pwd_migration_msg))
         return None

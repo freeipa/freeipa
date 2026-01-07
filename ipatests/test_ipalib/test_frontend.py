@@ -33,8 +33,6 @@ from ipalib import output, messages
 from ipalib.parameters import Str
 from ipapython.version import API_VERSION
 
-unicode = str
-
 
 pytestmark = pytest.mark.tier0
 
@@ -413,7 +411,7 @@ class test_Command(ClassChecker):
         o = self.subcls(api)
         o.finalize()
         for (key, value) in o.convert(**kw).items():
-            assert_equal(unicode(kw[key]), value)
+            assert_equal(str(kw[key]), value)
 
     def test_normalize(self):
         """

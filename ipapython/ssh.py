@@ -29,8 +29,6 @@ from hashlib import sha1
 from hashlib import sha256
 
 
-unicode = str
-
 __all__ = ['SSHPublicKey']
 
 OPENSSH_BASE_REGEX = re.compile(r'^[\t ]*(?P<keytype>[^\x00\n\r]+?) [\t ]*(?P<key>[^\x00\n\r]+?)(?:[\t ]+(?P<comment>[^\x00\n\r]*?)[\t ]*)?$')
@@ -52,8 +50,8 @@ class SSHPublicKey:
             self._options = key._options
             return
 
-        if not isinstance(key, (bytes, unicode)):
-            raise TypeError("argument must be bytes or unicode, got %s" % type(key).__name__)
+        if not isinstance(key, (bytes, str)):
+            raise TypeError("argument must be bytes or str, got %s" % type(key).__name__)
 
         # All valid public key blobs start with 3 null bytes (see RFC 4253
         # section 6.6, RFC 4251 section 5 and RFC 4250 section 4.6)
@@ -95,7 +93,7 @@ class SSHPublicKey:
         return True
 
     def _parse_base64(self, key):
-        if not isinstance(key, unicode):
+        if not isinstance(key, str):
             return False
 
         try:
@@ -159,7 +157,7 @@ class SSHPublicKey:
         return True
 
     def _parse_openssh(self, key):
-        if not isinstance(key, unicode):
+        if not isinstance(key, str):
             return False
 
         if self._parse_openssh_without_options(key):

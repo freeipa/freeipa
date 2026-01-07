@@ -37,8 +37,6 @@ from ipalib import _, ngettext
 from ipalib import util
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 register = Registry()
 
 # most used record types, always ask for those in interactive prompt
@@ -49,7 +47,7 @@ _zone_top_record_types = ('NS', 'MX', 'LOC', )
 
 def __get_part_param(rrtype, cmd, part, output_kw, default=None):
     name = part_name_format % (rrtype.lower(), part.name)
-    label = unicode(cmd.params[name].label)
+    label = str(cmd.params[name].label)
     optional = not part.required
 
     output_kw[name] = cmd.prompt_param(part,
@@ -60,7 +58,7 @@ def __get_part_param(rrtype, cmd, part, output_kw, default=None):
 def prompt_parts(rrtype, cmd, mod_dnsvalue=None):
     mod_parts = None
     if mod_dnsvalue is not None:
-        name = record_name_format % unicode(rrtype.lower())
+        name = record_name_format % str(rrtype.lower())
         mod_parts = cmd.api.Command.dnsrecord_split_parts(
             name, mod_dnsvalue)['result']
 
@@ -217,12 +215,12 @@ class dnsrecord_add(MethodOverride):
         try:
             idnsname = DNSName(kw['idnsname'])
         except Exception as e:
-            raise errors.ValidationError(name='idnsname', error=unicode(e))
+            raise errors.ValidationError(name='idnsname', error=str(e))
 
         try:
             zonename = DNSName(kw['dnszoneidnsname'])
         except Exception as e:
-            raise errors.ValidationError(name='dnszoneidnsname', error=unicode(e))
+            raise errors.ValidationError(name='dnszoneidnsname', error=str(e))
 
         # check zone type
         if idnsname.is_empty():
@@ -449,7 +447,7 @@ class dns_update_system_records(MethodOverride):
             return l[0], l[3]
 
         labels = {
-            p.name: unicode(p.label) for p in self.output_params()
+            p.name: str(p.label) for p in self.output_params()
         }
 
         already_removed = set()
@@ -482,7 +480,7 @@ class dns_update_system_records(MethodOverride):
                 with open(out, "w") as f:
                     self._nsupdate_output_file(f, res['result'])
             except (OSError, IOError) as e:
-                raise errors.FileError(reason=unicode(e))
+                raise errors.FileError(reason=str(e))
 
         return res
 
@@ -496,7 +494,7 @@ class dns_update_system_records(MethodOverride):
             textui, output_super, *args, **options)
 
         labels = {
-            p.name: unicode(p.label) for p in self.output_params()
+            p.name: str(p.label) for p in self.output_params()
         }
 
         result = output.get('result', {})

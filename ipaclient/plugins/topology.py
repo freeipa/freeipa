@@ -7,8 +7,6 @@ from ipaclient.frontend import MethodOverride
 from ipalib.plugable import Registry
 from ipalib import _
 
-unicode = str
-
 register = Registry()
 
 
@@ -28,17 +26,17 @@ class topologysuffix_verify(MethodOverride):
             header = _('Replication topology of suffix "%(suffix)s" contains '
                        'errors.')
             textui.print_h1(header % {'suffix': args[0]})
-            textui.print_dashed(unicode(_('Topology is disconnected')))
+            textui.print_dashed(str(_('Topology is disconnected')))
             for err in connect_errors:
                 msg = _("Server %(srv)s can't contact servers: %(replicas)s")
                 msg = msg % {'srv': err[0], 'replicas': ', '.join(err[2])}
                 textui.print_indented(msg)
 
         if max_agmts_errors:
-            textui.print_dashed(unicode(_('Recommended maximum number of '
+            textui.print_dashed(str(_('Recommended maximum number of '
                                           'agreements per replica exceeded')))
             textui.print_attribute(
-                unicode(_("Maximum number of agreements per replica")),
+                str(_("Maximum number of agreements per replica")),
                 [output['result']['max_agmts']]
             )
             for err in max_agmts_errors:
