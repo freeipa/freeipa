@@ -194,7 +194,7 @@ def main():
     try:
         user = api.Command.user_show(
             principal.partition('@')[0].partition('/')[0])['result']
-        group = api.Command.group_show(u'admins')['result']
+        group = api.Command.group_show('admins')['result']
         if not (user['uid'][0] in group['member_user'] and
                 group['cn'][0] in user['memberof_group']):
             raise errors.RequirementError(name='admins group membership')
