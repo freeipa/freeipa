@@ -371,7 +371,7 @@ def master2ldap_master_keys_sync(ldapkeydb, localhsm):
                     uri=wrapped_entry.single_value['ipaWrappingKey'])
             for matching_key in matching_keys.values():
                 label = matching_key['ipk11label']
-                if not label.startswith(u'dnssec-replica:'):
+                if not label.startswith('dnssec-replica:'):
                     raise ValueError(
                         "Wrapped key '%s' refers to PKCS#11 URI '%s' which "
                         "is not a known DNSSEC replica key: label '%s' "

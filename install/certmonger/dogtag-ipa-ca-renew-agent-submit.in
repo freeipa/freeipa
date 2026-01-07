@@ -133,7 +133,7 @@ def call_handler(_handler, *args, **kwargs):
         else:
             # Reconstruct the data for the missing cookie. Sanity checking
             # is done elsewhere, when needed.
-            context = dict(cookie=u'')
+            context = dict(cookie='')
             profile = os.environ.get('CERTMONGER_CA_PROFILE')
             if profile is not None:
                 profile = profile.encode('ascii').decode('raw_unicode_escape')
