@@ -36,8 +36,6 @@ from .baseldap import (
 from ipalib.request import context
 from ipapython.dn import DN
 
-unicode = str
-
 __doc__ = _("""
 Auto Membership Rule.
 """) + _("""
@@ -628,7 +626,7 @@ class automember_default_group_remove(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
-            entry_attrs['automemberdefaultgroup'] = unicode(_('No default (fallback) group set'))
+            entry_attrs['automemberdefaultgroup'] = str(_('No default (fallback) group set'))
         return dn
 
     def execute(self, *keys, **options):
@@ -656,7 +654,7 @@ class automember_default_group_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
-            entry_attrs['automemberdefaultgroup'] = unicode(_('No default (fallback) group set'))
+            entry_attrs['automemberdefaultgroup'] = str(_('No default (fallback) group set'))
         return dn
 
     def execute(self, *keys, **options):
@@ -817,7 +815,7 @@ class automember_rebuild(Method):
 
         return dict(
             result=result,
-            summary=unicode(summary),
+            summary=str(summary),
             value=pkey_to_value(None, options))
 
 

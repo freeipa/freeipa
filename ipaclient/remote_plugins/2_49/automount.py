@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 Automount
 
@@ -227,7 +225,7 @@ class automountkey_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -235,7 +233,7 @@ class automountkey_add(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -281,7 +279,7 @@ class automountkey_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -291,7 +289,7 @@ class automountkey_del(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -362,7 +360,7 @@ class automountkey_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
@@ -469,7 +467,7 @@ class automountkey_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -477,7 +475,7 @@ class automountkey_mod(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -537,7 +535,7 @@ class automountkey_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -545,7 +543,7 @@ class automountkey_show(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -596,7 +594,7 @@ class automountlocation_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -604,7 +602,7 @@ class automountlocation_add(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -634,7 +632,7 @@ class automountlocation_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -644,7 +642,7 @@ class automountlocation_del(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -707,7 +705,7 @@ class automountlocation_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
@@ -764,7 +762,7 @@ class automountlocation_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -772,7 +770,7 @@ class automountlocation_show(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -853,7 +851,7 @@ class automountmap_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -861,7 +859,7 @@ class automountmap_add(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -936,7 +934,7 @@ class automountmap_add_indirect(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -944,7 +942,7 @@ class automountmap_add_indirect(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -979,7 +977,7 @@ class automountmap_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -989,7 +987,7 @@ class automountmap_del(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -1063,7 +1061,7 @@ class automountmap_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
@@ -1152,7 +1150,7 @@ class automountmap_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -1160,7 +1158,7 @@ class automountmap_mod(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -1209,7 +1207,7 @@ class automountmap_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -1217,7 +1215,7 @@ class automountmap_show(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

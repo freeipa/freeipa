@@ -27,8 +27,6 @@ from ipatests import util
 from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
 import pytest
 
-unicode = str
-
 pytestmark = pytest.mark.tier0
 pattern_type = type(re.compile(""))
 
@@ -68,7 +66,7 @@ class test_Fuzzy:
 
         inst = self.klass('(foo|bar)')
         assert inst.regex == '(foo|bar)'
-        assert inst.type is unicode
+        assert inst.type is str
         assert inst.test is None
         assert isinstance(inst.re, pattern_type)
 
@@ -103,7 +101,7 @@ class test_Fuzzy:
         assert repr(inst) == s % (None, None, None)
 
         inst = self.klass('foo')
-        assert repr(inst) == s % ('foo', unicode, None)
+        assert repr(inst) == s % ('foo', str, None)
 
         inst = self.klass(type=(int, float))
         assert repr(inst) == s % (None, (int, float), None)
@@ -133,7 +131,7 @@ class test_Fuzzy:
             return other.endswith('bar')
 
         assert (self.klass(test=t) == 'foobar') is True
-        assert (self.klass(test=t, type=unicode) == b'foobar') is False
+        assert (self.klass(test=t, type=str) == b'foobar') is False
         assert (self.klass(test=t) == 'barfoo') is False
 
         assert (False == self.klass()) is True  # noqa
@@ -160,7 +158,7 @@ def test_assert_deepequal(pytestconfig):
     # Test with good scalar values:
     f('hello', 'hello')
     f(util.Fuzzy(), 'hello')
-    f(util.Fuzzy(type=unicode), 'hello')
+    f(util.Fuzzy(type=str), 'hello')
     f(util.Fuzzy('ell'), 'hello')
     f(util.Fuzzy(test=lambda other: other.endswith('llo')), 'hello')
     f(18, 18)
@@ -176,7 +174,7 @@ def test_assert_deepequal(pytestconfig):
 
     e = raises(AssertionError, f, b'hello', 'hello', 'foo')
     assert str(e) == TYPE % (
-        'foo', bytes, unicode, b'hello', 'hello', tuple()
+        'foo', bytes, str, b'hello', 'hello', tuple()
     )
 
     e = raises(AssertionError, f, 18, 18.0, 'foo')
@@ -205,7 +203,7 @@ def test_assert_deepequal(pytestconfig):
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, bytes, 'hello', b'hello', (0,)
+        'foo', str, bytes, 'hello', b'hello', (0,)
     )
 
     b = [
@@ -215,7 +213,7 @@ def test_assert_deepequal(pytestconfig):
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, bytes, 'nurse', b'nurse', (1, 'profession')
+        'foo', str, bytes, 'nurse', b'nurse', (1, 'profession')
     )
 
     b = [

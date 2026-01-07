@@ -36,7 +36,6 @@ from ipaserver.install import installutils, schemaupdate
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR, BadSyntax
 from ipaserver.install.upgradeinstance import IPAUpgrade
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 

@@ -21,8 +21,6 @@ from ipaclient.frontend import CommandOverride
 from ipalib.plugable import Registry
 
 
-unicode = str
-
 register = Registry()
 
 
@@ -46,8 +44,8 @@ class hbactest(CommandOverride):
                 continue
             result = output[o]
             if isinstance(result, (list, tuple)):
-                textui.print_attribute(unicode(outp.doc), result, '%s: %s', 1, True)
-            elif isinstance(result, unicode):
+                textui.print_attribute(str(outp.doc), result, '%s: %s', 1, True)
+            elif isinstance(result, str):
                 if o == 'summary':
                     textui.print_summary(result)
                 else:

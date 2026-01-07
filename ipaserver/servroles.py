@@ -80,8 +80,6 @@ from ipalib import _, errors
 from ipapython.dn import DN
 from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 
-unicode = str
-
 
 ENABLED = 'enabled'
 CONFIGURED = 'configured'

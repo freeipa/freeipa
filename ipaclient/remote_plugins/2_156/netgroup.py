@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 Netgroups
 
@@ -210,7 +208,7 @@ class netgroup_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -344,7 +342,7 @@ class netgroup_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -574,7 +572,7 @@ class netgroup_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
@@ -695,7 +693,7 @@ class netgroup_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -850,7 +848,7 @@ class netgroup_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(

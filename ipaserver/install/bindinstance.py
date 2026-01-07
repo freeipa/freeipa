@@ -61,9 +61,7 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          normalize_zone, get_reverse_zone_default,
                          zone_is_reverse, validate_dnssec_global_forwarder,
                          DNSSECSignatureMissingError, EDNS0UnsupportedError,
-                         UnresolvableRecordError)
-
-unicode = str
+                           UnresolvableRecordError)
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +251,7 @@ def dns_container_exists(suffix):
 
 def dns_zone_exists(name, api=api):
     try:
-        zone = api.Command.dnszone_show(unicode(name))
+        zone = api.Command.dnszone_show(str(name))
     except ipalib.errors.NotFound:
         return False
 
@@ -359,14 +357,14 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
 
     if ns_hostname:
         ns_hostname = normalize_zone(ns_hostname)
-        ns_hostname = unicode(ns_hostname)
+        ns_hostname = str(ns_hostname)
 
     try:
-        api.Command.dnszone_add(unicode(name),
+        api.Command.dnszone_add(str(name),
                                 idnssoamname=ns_hostname,
-                                idnssoarname=unicode(zonemgr),
+                                idnssoarname=str(zonemgr),
                                 idnsallowdynupdate=True,
-                                idnsupdatepolicy=unicode(update_policy),
+                                idnsupdatepolicy=str(update_policy),
                                 idnsallowquery='any',
                                 idnsallowtransfer='none',
                                 skip_overlap_check=skip_overlap_check,
@@ -376,10 +374,10 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
 
 
 def add_rr(zone, name, type, rdata, dns_backup=None, api=api, **kwargs):
-    addkw = {'%srecord' % str(type.lower()): unicode(rdata)}
+    addkw = {'%srecord' % str(type.lower()): str(rdata)}
     addkw.update(kwargs)
     try:
-        api.Command.dnsrecord_add(unicode(zone), unicode(name), **addkw)
+        api.Command.dnsrecord_add(str(zone), str(name), **addkw)
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
     if dns_backup:
@@ -406,9 +404,9 @@ def add_ns_rr(zone, hostname, dns_backup=None, force=True, api=api):
 
 
 def del_rr(zone, name, type, rdata, api=api):
-    delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
+    delkw = { '%srecord' % str(type.lower()) : str(rdata) }
     try:
-        api.Command.dnsrecord_del(unicode(zone), unicode(name), **delkw)
+        api.Command.dnsrecord_del(str(zone), str(name), **delkw)
     except (errors.NotFound, errors.AttrValueNotFound, errors.EmptyModlist):
         pass
 
@@ -426,8 +424,8 @@ def del_ns_rr(zone, name, rdata, api=api):
 
 
 def get_rr(zone, name, type, api=api):
-    rectype = '%srecord' % unicode(type.lower())
-    ret = api.Command.dnsrecord_find(unicode(zone), unicode(name))
+    rectype = '%srecord' % str(type.lower())
+    ret = api.Command.dnsrecord_find(str(zone), str(name))
     if ret['count'] > 0:
         for r in ret['result']:
             if rectype in r:
@@ -452,13 +450,13 @@ def zonemgr_callback(option, opt_str, value, parser):
             parser.error("invalid zonemgr: {}".format(e))
         else:
             try:
-                # IDNA support requires unicode
+                # IDNA support requires str
                 encoding = getattr(sys.stdin, 'encoding', None)
                 if encoding is None:
                     encoding = 'utf-8'
 
                 # value is of a string type in both py2 and py3
-                if not isinstance(value, unicode):
+                if not isinstance(value, str):
                     value = value.decode(encoding)
 
                 validate_zonemgr_str(value)
@@ -469,7 +467,7 @@ def zonemgr_callback(option, opt_str, value, parser):
                 stderr_encoding = getattr(sys.stderr, 'encoding', None)
                 if stderr_encoding is None:
                     stderr_encoding = 'utf-8'
-                error = unicode(e).encode(stderr_encoding)
+                error = str(e).encode(stderr_encoding)
                 parser.error(b"invalid zonemgr: " + error)
 
     parser.values.zonemgr = value
@@ -630,8 +628,8 @@ class DnsBackup:
                 if have_ldap:
                     type, host, rdata = dns_record.split(" ", 2)
                     try:
-                        delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
-                        api.Command.dnsrecord_del(unicode(zone), unicode(host), **delkw)
+                        delkw = { '%srecord' % str(type.lower()) : str(rdata) }
+                        api.Command.dnsrecord_del(str(zone), str(host), **delkw)
                     except Exception:
                         pass
                 j += 1
@@ -980,7 +978,7 @@ class BindInstance(service.Service):
         ns_hostname = normalize_zone(self.api.env.host)
         result = self.api.Command.dnszone_find()
         for zone in result['result']:
-            zone = unicode(zone['idnsname'][0])  # we need unicode due to backup
+            zone = str(zone['idnsname'][0])  # we need str due to backup
             logger.debug("adding self NS to zone %s apex", zone)
             add_ns_rr(zone, ns_hostname, self.dns_backup, force=True,
                       api=self.api)
@@ -1166,8 +1164,8 @@ class BindInstance(service.Service):
         try:
             self.api.Command.dnsserver_mod(
                 self.fqdn,
-                idnsforwarders=[unicode(f) for f in self.forwarders],
-                idnsforwardpolicy=unicode(self.forward_policy)
+                idnsforwarders=[str(f) for f in self.forwarders],
+                idnsforwardpolicy=str(self.forward_policy)
             )
         except errors.EmptyModlist:
             pass

@@ -51,7 +51,6 @@ else:
     AES_128_CBC_OID = None
     PKIException = Exception
 
-unicode = str
 
 __doc__ = _("""
 Vaults
@@ -368,7 +367,7 @@ class vaultcontainer(LDAPObject):
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
             elif principal.is_service:
-                service = unicode(principal)
+                service = str(principal)
             else:
                 user = principal.username
 
@@ -698,7 +697,7 @@ class vault(LDAPObject):
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
             elif principal.is_service:
-                service = unicode(principal)
+                service = str(principal)
             else:
                 user = principal.username
 
@@ -803,7 +802,7 @@ class vault_add_internal(LDAPCreate):
 
         principal = kerberos.Principal(getattr(context, 'principal'))
         if principal.is_service:
-            owner_dn = self.api.Object.service.get_dn(unicode(principal))
+            owner_dn = self.api.Object.service.get_dn(str(principal))
         else:
             owner_dn = self.api.Object.user.get_dn(principal.username)
 

@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 Plugins not accessible directly through the CLI, commands used internally
 """)

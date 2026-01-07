@@ -10,9 +10,6 @@ from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc.tracker.base import Tracker
 
 
-unicode = str
-
-
 class LocationTracker(Tracker):
     """Tracker for IPA Location tests"""
     retrieve_keys = {
@@ -132,7 +129,7 @@ class LocationTracker(Tracker):
         self.attrs.setdefault('dns_server', []).append(server_name)
         self.servers[server_name] = {
             'cn': [server_name],
-            'ipaserviceweight': [unicode(weight)],
+            'ipaserviceweight': [str(weight)],
             'service_relative_weight': [relative_weight],
             'enabled_role_servrole': lambda other: True
         }

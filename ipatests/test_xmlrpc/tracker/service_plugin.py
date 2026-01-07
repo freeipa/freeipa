@@ -12,8 +12,6 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
 from ipapython.dn import DN
 
-unicode = str
-
 
 class ServiceTracker(KerberosAliasMixin, Tracker):
     """

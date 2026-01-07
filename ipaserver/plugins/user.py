@@ -75,7 +75,6 @@ from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 from ipaserver.masters import get_masters
 
-unicode = str
 
 __doc__ = _("""
 Users
@@ -707,7 +706,7 @@ class user_add(baseuser_add):
 
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(getattr(context, 'randompassword'))
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass
@@ -1330,7 +1329,7 @@ class user_status(LDAPQuery):
                             if newresult[attr][0] == 'N/A':
                                 continue
                             newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
-                            newresult[attr][0] = unicode(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
+                            newresult[attr][0] = str(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
                         except Exception as e:
                             logger.debug("time conversion failed with %s",
                                          str(e))
@@ -1339,7 +1338,7 @@ class user_status(LDAPQuery):
                     time_format = '%Y%m%d%H%M%SZ'
                 else:
                     time_format = '%Y-%m-%dT%H:%M:%SZ'
-                newresult['now'] = unicode(strftime(time_format, gmtime()))
+                newresult['now'] = str(strftime(time_format, gmtime()))
                 convert_nsaccountlock(entry)
                 if 'nsaccountlock' in entry:
                     disabled = entry['nsaccountlock']
@@ -1362,7 +1361,7 @@ class user_status(LDAPQuery):
         return dict(result=entries,
                     count=count,
                     truncated=False,
-                    summary=unicode(_('Account disabled: %(disabled)s' %
+                    summary=str(_('Account disabled: %(disabled)s' %
                         dict(disabled=disabled))),
         )
 

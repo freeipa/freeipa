@@ -48,7 +48,6 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -705,7 +704,7 @@ class ADTRUSTInstance(service.Service):
                     managedBy = entry.single_value.get('managedBy')
                     if managedBy:
                         fqdn = DN(managedBy)['fqdn']
-                        if fqdn != unicode(self.fqdn):
+                        if fqdn != str(self.fqdn):
                             # this is CIFS service of a different host in our
                             # REALM, we need to remember it to announce via
                             # SRV records for _msdcs

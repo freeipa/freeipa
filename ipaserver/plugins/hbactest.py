@@ -42,8 +42,6 @@ except ImportError:
     raise errors.SkipPluginModule(reason=_('pyhbac is not installed.'))
 
 
-unicode = str
-
 __doc__ = _(r"""
 Simulate use of Host-based access controls
 
@@ -390,7 +388,7 @@ class hbactest(Command):
         # Check if there are unresolved rules left
         if len(testrules) > 0:
             # Error, unresolved rules are left in --rules
-            return {'summary' : unicode(_('Unresolved rules in --rules')),
+            return {'summary' : str(_('Unresolved rules in --rules')),
                     'error': testrules, 'matched': None, 'notmatched': None,
                     'warning' : None, 'value' : False}
 

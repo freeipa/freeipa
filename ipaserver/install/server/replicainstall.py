@@ -50,7 +50,6 @@ from ipaserver.masters import find_providing_servers, find_providing_server
 import SSSDConfig
 from subprocess import CalledProcessError
 
-unicode = str
 
 NoneType = type(None)
 
@@ -631,18 +630,18 @@ def enroll_dl0_replica(installer, fstore, remote_api, debug=False):
     try:
         installer._enrollment_performed = True
         host_result = remote_api.Command.host_add(
-            unicode(config.host_name), force=installer.no_host_dns
+            str(config.host_name), force=installer.no_host_dns
         )['result']
         # pylint: enable=E0606
 
-        host_princ = unicode(host_result['krbcanonicalname'][0])
+        host_princ = str(host_result['krbcanonicalname'][0])
         purge_host_keytab(config.realm_name)
 
         getkeytab_args = [
             paths.IPA_GETKEYTAB,
             '-s', config.master_host_name,
             '-p', host_princ,
-            '-D', unicode(ipaldap.DIRMAN_DN),
+            '-D', str(ipaldap.DIRMAN_DN),
             '-w', config.dirman_password,
             '-k', paths.KRB5_KEYTAB,
             '--cacert', os.path.join(config.dir, 'ca.crt')
@@ -1041,7 +1040,7 @@ def promote_check(installer):
         # Check authorization
         result = remote_api.Command['hostgroup_find'](
             cn='ipaservers',
-            host=[unicode(api.env.host)]
+            host=[str(api.env.host)]
         )['result']
         add_to_ipaservers = not result
 
@@ -1333,7 +1332,7 @@ def install(installer):
             conn.connect(ccache=installer._ccache)
             remote_api.Command['hostgroup_add_member'](
                 'ipaservers',
-                host=[unicode(api.env.host)],
+                host=[str(api.env.host)],
             )
         finally:
             if conn.isconnected():

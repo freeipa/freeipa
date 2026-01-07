@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 IPA certificate operations
 
@@ -107,7 +105,7 @@ class ca_is_enabled(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -225,7 +223,7 @@ Search for existing certificates.
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(

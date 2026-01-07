@@ -132,8 +132,6 @@ must include all existing attributes as well. When doing an aci-mod the
 targetattr REPLACES the current attributes, it does not add to them.
 """)
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 register = Registry()
@@ -165,14 +163,14 @@ class ListOfACI(output.Output):
     def validate(self, cmd, entries):
         assert isinstance(entries, self.type)
         for (i, entry) in enumerate(entries):
-            if not isinstance(entry, unicode):
+            if not isinstance(entry, str):
                 raise TypeError(output.emsg %
                     (cmd.name, self.__class__.__name__,
-                    self.name, i, unicode, type(entry), entry)
+                    self.name, i, str, type(entry), entry)
                 )
 
 aci_output = (
-    output.Output('result', unicode, 'A string representing the ACI'),
+    output.Output('result', str, 'A string representing the ACI'),
     output.value,
     output.summary,
 )
@@ -328,7 +326,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
         return kw
     kw['permissions'] = tuple(a.permissions)
     if 'targetattr' in a.target:
-        kw['attrs'] = tuple(unicode(e)
+        kw['attrs'] = tuple(str(e)
                             for e in a.target['targetattr']['expression'])
     if 'targetfilter' in a.target:
         target = a.target['targetfilter']['expression']
@@ -337,18 +335,18 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
             memberof = DN(memberof)
             kw['memberof'] = memberof['cn']
         else:
-            kw['filter'] = unicode(target)
+            kw['filter'] = str(target)
     if 'target' in a.target:
         target = a.target['target']['expression']
         found = False
         for k, value in _type_map.items():
             if value == target:
-                kw['type'] = unicode(k)
+                kw['type'] = str(k)
                 found = True
                 break
         if not found:
             if target.startswith('('):
-                kw['filter'] = unicode(target)
+                kw['filter'] = str(target)
             else:
                 # See if the target is a group. If so we set the
                 # targetgroup attr, otherwise we consider it a subtree
@@ -360,7 +358,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
                 if targetdn.endswith(DN(api.env.container_group, api.env.basedn)):
                     kw['targetgroup'] = targetdn[0]['cn']
                 else:
-                    kw['subtree'] = unicode(target)
+                    kw['subtree'] = str(target)
 
     groupdn = a.bindrule['expression']
     groupdn = groupdn.replace('ldap:///','')
@@ -551,14 +549,14 @@ class aci_add(crud.Create):
             if a.isequal(newaci) or newaci.name == a.name:
                 raise errors.DuplicateEntry()
 
-        newaci_str = unicode(newaci)
+        newaci_str = str(newaci)
         entry.setdefault('aci', []).append(newaci_str)
 
         if not kw.get('test', False):
             ldap.update_entry(entry)
 
         if kw.get('raw', False):
-            result = dict(aci=unicode(newaci_str))
+            result = dict(aci=str(newaci_str))
         else:
             result = _aci_to_kw(ldap, newaci, kw.get('test', False))
         return dict(
@@ -658,7 +656,7 @@ class aci_mod(crud.Update):
             raise e
 
         if kw.get('raw', False):
-            result = dict(aci=unicode(newaci))
+            result = dict(aci=str(newaci))
         else:
             result = _aci_to_kw(ldap, newaci)
         return dict(
@@ -837,7 +835,7 @@ Search for ACIs.
 
         if kw.get('filter'):
             if not kw['filter'].startswith('('):
-                kw['filter'] = unicode('('+kw['filter']+')')
+                kw['filter'] = str('('+kw['filter']+')')
             for a in acis:
                 if 'targetfilter' not in a.target or\
                     not a.target['targetfilter']['expression'] or\
@@ -860,7 +858,7 @@ Search for ACIs.
         acis = []
         for result in results:
             if kw.get('raw', False):
-                aci = dict(aci=unicode(result))
+                aci = dict(aci=str(result))
             else:
                 aci = _aci_to_kw(ldap, result,
                         pkey_only=kw.get('pkey_only', False))
@@ -903,7 +901,7 @@ class aci_show(crud.Retrieve):
 
         aci = _find_aci_by_name(acis, kw['aciprefix'], aciname)
         if kw.get('raw', False):
-            result = dict(aci=unicode(aci))
+            result = dict(aci=str(aci))
         else:
             result = _aci_to_kw(ldap, aci)
         return dict(
@@ -958,7 +956,7 @@ class aci_rename(crud.Update):
         result = self.api.Command['aci_add'](kw['newname'], **newkw)['result']
 
         if kw.get('raw', False):
-            result = dict(aci=unicode(newaci))
+            result = dict(aci=str(newaci))
         else:
             result = _aci_to_kw(ldap, newaci)
         return dict(

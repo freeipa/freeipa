@@ -6,8 +6,6 @@ import pytest
 
 from ipapython.kerberos import Principal
 
-unicode = str
-
 valid_principals = {
     'tuser@REALM.TEST': {
         'components': ('tuser',),
@@ -79,7 +77,7 @@ def test_principals(valid_principal):
     for name, value in data.items():
         assert getattr(princ, name) == value
 
-    assert unicode(princ) == principal_name
+    assert str(princ) == principal_name
     assert repr(princ) == "ipapython.kerberos.Principal('{}')".format(
         principal_name)
 

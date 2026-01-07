@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 register = Registry()
 
 

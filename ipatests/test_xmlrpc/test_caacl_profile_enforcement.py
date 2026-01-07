@@ -30,8 +30,6 @@ from ipatests.test_xmlrpc.tracker.service_plugin import ServiceTracker
 
 from ipapython.ipautil import run
 
-unicode = str
-
 BASE_DIR = os.path.dirname(__file__)
 
 SMIME_PROFILE_TEMPLATE = os.path.join(BASE_DIR, 'data/smime.cfg.tmpl')
@@ -55,7 +53,7 @@ def generate_user_csr(username, domain=None):
                  CERT_OPENSSL_CONFIG_TEMPLATE, csr_values)])
 
         with open(csr_file.name, 'r') as f:
-            csr = unicode(f.read())
+            csr = str(f.read())
 
     return csr
 
@@ -242,7 +240,7 @@ class TestSignWithChangedProfile(XMLRPC_test):
                                                    iparealm=api.env.realm))
 
         with open(updated_profile_path) as f:
-            updated_profile = unicode(f.read())
+            updated_profile = str(f.read())
 
         updates = {'file': updated_profile}
         update_smime_profile = smime_profile.make_update_command(updates)

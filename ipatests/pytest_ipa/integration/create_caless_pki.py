@@ -30,7 +30,6 @@ from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import encoder as der_encoder
 from pyasn1.codec.native import decoder as native_decoder
 
-unicode = str
 
 DAY = datetime.timedelta(days=1)
 YEAR = 365 * DAY

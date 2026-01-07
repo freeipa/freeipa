@@ -17,8 +17,6 @@ from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc.tracker.certmapdata import CertmapdataMixin
 from ipatests.test_xmlrpc.tracker.passkey_plugin import PasskeyMixin
 
-unicode = str
-
 
 class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
                   Tracker):
@@ -68,7 +66,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
     primary_keys = {'uid', 'dn'}
 
     def __init__(self, name=None, givenname=None, sn=None, **kwargs):
-        """ Check for non-empty unicode string for the required attributes
+        """ Check for non-empty string for the required attributes
         in the init method """
 
         if not (isinstance(givenname, str) and givenname):
@@ -79,9 +77,9 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             raise ValueError("Invalid second name provided: {!r}".format(sn))
 
         super(UserTracker, self).__init__(default_version=None)
-        self.uid = unicode(name)
-        self.givenname = unicode(givenname)
-        self.sn = unicode(sn)
+        self.uid = str(name)
+        self.givenname = str(givenname)
+        self.sn = str(sn)
         self.dn = DN(('uid', self.uid), api.env.container_user, api.env.basedn)
 
         self.kwargs = kwargs

@@ -53,7 +53,6 @@ from ipapython import kerberos
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
 
 __doc__ = _("""
 Services
@@ -247,7 +246,7 @@ def normalize_principal(value):
         raise errors.ValidationError(
             name='principal', reason=_("Malformed principal"))
 
-    return unicode(principal)
+    return str(principal)
 
 
 def revoke_certs(certs):
@@ -296,10 +295,10 @@ def set_certificate_attrs(entry_attrs):
         cert = entry_attrs['usercertificate'][0]
     else:
         cert = entry_attrs['usercertificate']
-    entry_attrs['subject'] = unicode(DN(cert.subject))
-    entry_attrs['serial_number'] = unicode(cert.serial_number)
+    entry_attrs['subject'] = str(DN(cert.subject))
+    entry_attrs['serial_number'] = str(cert.serial_number)
     entry_attrs['serial_number_hex'] = '0x%X' % cert.serial_number
-    entry_attrs['issuer'] = unicode(DN(cert.issuer))
+    entry_attrs['issuer'] = str(DN(cert.issuer))
     entry_attrs['valid_not_before'] = x509.format_datetime(
         cert.not_valid_before_utc)
     entry_attrs['valid_not_after'] = x509.format_datetime(
@@ -641,7 +640,7 @@ class service(LDAPObject):
         if isinstance(key, str):
             key = kerberos.Principal(key)
 
-        key = unicode(normalize_principal(key))
+        key = str(normalize_principal(key))
 
         parent_dn = DN(self.container_dn, self.api.env.basedn)
         true_rdn = 'krbprincipalname'
@@ -674,7 +673,7 @@ class service(LDAPObject):
         try:
             return dn['krbprincipalname']
         except KeyError:
-            return unicode(dn)
+            return str(dn)
 
     def populate_krbcanonicalname(self, entry_attrs, options):
         if options.get('raw', False):

@@ -17,7 +17,6 @@ from ipaserver.topology import (
     map_masters_to_suffixes)
 from ipapython.dn import DN
 
-unicode = str
 
 __doc__ = _("""
 Topology

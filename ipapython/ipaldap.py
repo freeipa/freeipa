@@ -52,8 +52,6 @@ from ipapython.kerberos import Principal
 
 from collections.abc import MutableMapping
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 # Global variable to define SASL auth
@@ -735,10 +733,10 @@ class LDAPClient:
         'usercertificate;binary': x509.IPACertificate,
         'cACertificate': x509.IPACertificate,
         'cACertificate;binary': x509.IPACertificate,
-        'nsds5replicalastupdatestart': unicode,
-        'nsds5replicalastupdateend': unicode,
-        'nsds5replicalastinitstart': unicode,
-        'nsds5replicalastinitend': unicode,
+        'nsds5replicalastupdatestart': str,
+        'nsds5replicalastupdateend': str,
+        'nsds5replicalastinitstart': str,
+        'nsds5replicalastinitend': str,
     })
     _SINGLE_VALUE_OVERRIDE = CIDict({
         'nsslapd-ssl-check-hostname': True,
@@ -918,7 +916,7 @@ class LDAPClient:
             if obj is not None and obj.syntax in self._SYNTAX_MAPPING:
                 return self._SYNTAX_MAPPING[obj.syntax]
 
-        return unicode
+        return str
 
     def has_dn_syntax(self, name_or_oid):
         """
@@ -960,7 +958,7 @@ class LDAPClient:
                 return b'TRUE'
             else:
                 return b'FALSE'
-        elif isinstance(val, (unicode, int, Decimal, DN, Principal)):
+        elif isinstance(val, (str, int, Decimal, DN, Principal)):
             return str(val).encode('utf-8')
         elif isinstance(val, DNSName):
             return val.to_text().encode('ascii')
@@ -992,7 +990,7 @@ class LDAPClient:
             try:
                 if target_type is bytes:
                     return val
-                elif target_type is unicode:
+                elif target_type is str:
                     return val.decode('utf-8')
                 elif target_type is bool:
                     return val.decode('utf-8') == 'TRUE'
@@ -1181,7 +1179,7 @@ class LDAPClient:
             elif raise_on_unknown:
                 raise errors.NotFound(
                     reason=_('objectclass %s not found') % oc)
-        return [unicode(a).lower() for a in list(set(allowed_attributes))]
+        return [str(a).lower() for a in list(set(allowed_attributes))]
 
     def __enter__(self):
         return self

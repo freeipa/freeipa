@@ -30,12 +30,10 @@ logger = logging.getLogger(__name__)
 
 FORMAT = '1'
 
-unicode = str
-
 _TYPES = {
     'DN': DN,
     'DNSName': DNSName,
-    'Principal': unicode,
+    'Principal': str,
     'NoneType': type(None),
     'Sequence': Sequence,
     'bool': bool,
@@ -43,7 +41,7 @@ _TYPES = {
     'int': int,
     'list': list,
     'tuple': tuple,
-    'unicode': unicode,
+    'unicode': str,
     'Certificate': crypto_x509.Certificate,
 }
 
@@ -124,8 +122,8 @@ class _SchemaPlugin:
         def get_default(*args):
             kw = dict(zip(keys, args))
             result = api.Command.command_defaults(
-                unicode(cmd_name),
-                params=[unicode(name)],
+                str(cmd_name),
+                params=[str(name)],
                 kw=kw,
             )['result']
             return result.get(name)

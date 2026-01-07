@@ -59,8 +59,6 @@ else:
     import ldap.modlist
     from ipapython.ipaldap import ldap_initialize
 
-unicode = str
-
 
 # settings are configured by conftest
 IPACLIENT_UNITTESTS = None
@@ -274,8 +272,8 @@ class Fuzzy:
         else:
             self.re = re.compile(regex)
             if type is None:
-                type = unicode
-            assert type in (unicode, bytes, str)
+                type = str
+            assert type in (str, bytes)
         self.regex = regex
         self.type = type
         self.test = test
@@ -615,7 +613,7 @@ class dummy_ugettext:
         if translation is None:
             translation = 'The translation'
         self.translation = translation
-        assert type(self.translation) is unicode
+        assert type(self.translation) is str
 
     def __call__(self, message):
         assert self.__called is False
@@ -623,14 +621,14 @@ class dummy_ugettext:
         assert type(message) is str
         assert not hasattr(self, 'message')
         self.message = message
-        assert type(self.translation) is unicode
+        assert type(self.translation) is str
         return self.translation
 
     def called(self):
         return self.__called
 
     def reset(self):
-        assert type(self.translation) is unicode
+        assert type(self.translation) is str
         assert type(self.message) is str
         del self.message
         assert self.__called is True

@@ -36,7 +36,6 @@ from ipalib import _, ngettext
 from ipalib.util import validate_hostmask
 from ipapython.dn import DN
 
-unicode = str
 
 __doc__ = _("""
 Sudo Rules
@@ -307,7 +306,7 @@ class sudorule(LDAPObject):
             flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('hostmask', validate_hostmask,
-            normalizer=lambda x: unicode(netaddr.IPNetwork(x).cidr),
+            normalizer=lambda x: str(netaddr.IPNetwork(x).cidr),
             label=_('Host Masks'),
             flags=['no_create', 'no_update', 'no_search'],
             multivalue=True,
@@ -719,7 +718,7 @@ class sudorule_add_host(LDAPAddMember):
 
         if 'hostmask' in options:
             def norm(x):
-                return unicode(netaddr.IPNetwork(x).cidr)
+                return str(netaddr.IPNetwork(x).cidr)
 
             old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
             new_masks = set(norm(m) for m in options['hostmask'])
@@ -765,7 +764,7 @@ class sudorule_remove_host(LDAPRemoveMember):
 
         if 'hostmask' in options:
             def norm(x):
-                return unicode(netaddr.IPNetwork(x).cidr)
+                return str(netaddr.IPNetwork(x).cidr)
 
             old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
             removed_masks = set(norm(m) for m in options['hostmask'])
@@ -799,7 +798,7 @@ class sudorule_add_runasuser(LDAPAddMember):
         assert isinstance(dn, DN)
 
         def check_validity(runas):
-            v = unicode(runas)
+            v = str(runas)
             if v.upper() == 'ALL':
                 return False
             return True
@@ -820,7 +819,7 @@ class sudorule_add_runasuser(LDAPAddMember):
             for name in options['user']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-user',
-                          error=unicode(_("RunAsUser does not accept "
+                          error=str(_("RunAsUser does not accept "
                                           "'%(name)s' as a user name")) %
                                           dict(name=name))
 
@@ -828,7 +827,7 @@ class sudorule_add_runasuser(LDAPAddMember):
             for name in options['group']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-user',
-                          error=unicode(_("RunAsUser does not accept "
+                          error=str(_("RunAsUser does not accept "
                                           "'%(name)s' as a group name")) %
                                           dict(name=name))
 
@@ -923,7 +922,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
         assert isinstance(dn, DN)
 
         def check_validity(runas):
-            v = unicode(runas)
+            v = str(runas)
             if v.upper() == 'ALL':
                 return False
             return True
@@ -942,7 +941,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
             for name in options['group']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-group',
-                          error=unicode(_("RunAsGroup does not accept "
+                          error=str(_("RunAsGroup does not accept "
                                           "'%(name)s' as a group name")) %
                                           dict(name=name))
 

@@ -85,7 +85,6 @@ try:
 except ImportError:
     from ldap.controls import LDAPControl
 
-unicode = str
 long = int
 
 __doc__ = _("""
@@ -460,7 +459,7 @@ class DomainValidator:
         sid = self.__sid_to_str(entries[0]['objectSid'][0])
         try:
             test_sid = security.dom_sid(sid)
-            return unicode(test_sid)
+            return str(test_sid)
         except (TypeError, ValueError):
             raise errors.ValidationError(name=_('trusted domain object'),
                                          error=_('Trusted domain did not '
@@ -535,7 +534,7 @@ class DomainValidator:
                        domain.lower())
             )
 
-        return unicode(object_name)
+        return str(object_name)
 
     def __get_trusted_domain_user_and_groups(self, object_name):
         """
@@ -643,7 +642,7 @@ class DomainValidator:
     def __sid_to_str(self, sid):
         """
         Converts binary SID to string representation
-        Returns unicode string
+        Returns string
         """
         sid_rev_num = ord(sid[0])
         number_sub_id = ord(sid[1])
@@ -809,9 +808,9 @@ class DomainValidator:
         servers = []
 
         if result:
-            info['name'] = unicode(result.domain_name)
-            info['dns_domain'] = unicode(result.dns_domain)
-            servers = [(unicode(result.pdc_dns_name), 3268)]
+            info['name'] = str(result.domain_name)
+            info['dns_domain'] = str(result.dns_domain)
+            servers = [(str(result.pdc_dns_name), 3268)]
         else:
             info['name'] = self._domains[domain]
             info['dns_domain'] = domain
@@ -948,11 +947,11 @@ class TrustDomainInstance:
 
         if not result:
             return False
-        self.info['name'] = unicode(result.domain_name)
-        self.info['dns_domain'] = unicode(result.dns_domain)
-        self.info['dns_forest'] = unicode(result.forest)
-        self.info['guid'] = unicode(result.domain_uuid)
-        self.info['dc'] = unicode(result.pdc_dns_name)
+        self.info['name'] = str(result.domain_name)
+        self.info['dns_domain'] = str(result.dns_domain)
+        self.info['dns_forest'] = str(result.forest)
+        self.info['guid'] = str(result.domain_uuid)
+        self.info['dc'] = str(result.pdc_dns_name)
         self.info['is_pdc'] = (result.server_type & nbt.NBT_SERVER_PDC) != 0
 
         # Netlogon response doesn't contain SID of the domain.
@@ -977,13 +976,13 @@ class TrustDomainInstance:
         except _ldap.LDAPError as e:
             logger.error(
                 "LDAP error when connecting to %s: %s",
-                unicode(result.pdc_name), str(e))
+                str(result.pdc_name), str(e))
         except KeyError as e:
             logger.error("KeyError: %s, LDAP entry from %s "
                          "returned malformed. Your DNS might be "
                          "misconfigured.",
-                         unicode(e),
-                         unicode(result.pdc_name))
+                         str(e),
+                         str(result.pdc_name))
 
         if search_result:
             self.info['sid'] = self.parse_naming_context(search_result)
@@ -991,7 +990,7 @@ class TrustDomainInstance:
 
     def parse_naming_context(self, context):
         naming_ref = re.compile('.*<SID=(S-.*)>.*')
-        return unicode(naming_ref.match(context).group(1))
+        return str(naming_ref.match(context).group(1))
 
     def retrieve(self, remote_host):
         self.init_lsa_pipe(remote_host)
@@ -1007,11 +1006,11 @@ class TrustDomainInstance:
         except RuntimeError as e:
             raise assess_dcerpc_error(e)
 
-        self.info['name'] = unicode(result.name.string)
-        self.info['dns_domain'] = unicode(result.dns_domain.string)
-        self.info['dns_forest'] = unicode(result.dns_forest.string)
-        self.info['guid'] = unicode(result.domain_guid)
-        self.info['sid'] = unicode(result.sid)
+        self.info['name'] = str(result.name.string)
+        self.info['dns_domain'] = str(result.dns_domain.string)
+        self.info['dns_forest'] = str(result.dns_forest.string)
+        self.info['guid'] = str(result.domain_guid)
+        self.info['sid'] = str(result.sid)
         self.info['dc'] = remote_host
 
         try:
@@ -1555,8 +1554,8 @@ def discover_trust_instance(api, mydomain, trustdomain,
     except RuntimeError as e:
         raise assess_dcerpc_error(e)
 
-    td.info['dc'] = unicode(result.pdc_dns_name)
-    td.info['name'] = unicode(result.dns_domain)
+    td.info['dc'] = str(result.pdc_dns_name)
+    td.info['name'] = str(result.dns_domain)
     if type(creds) is bool:
         # Rely on existing Kerberos credentials in the environment
         td.creds = credentials.Credentials()
@@ -1634,19 +1633,19 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
             record.data.netbios_name.string = \
                 t.forest_trust_data.netbios_domain_name.string
 
-            tname = unicode(t.forest_trust_data.dns_domain_name.string)
+            tname = t.forest_trust_data.dns_domain_name.string
             if tname.lower() != trustdomain.lower():
                 result['domains'][tname] = {
                     'cn': tname,
-                    'ipantflatname': unicode(
+                    'ipantflatname': str(
                         t.forest_trust_data.netbios_domain_name.string),
-                    'ipanttrusteddomainsid': unicode(
+                    'ipanttrusteddomainsid': str(
                         t.forest_trust_data.domain_sid)
                 }
         elif t.type == lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME:
             record.data.string = t.forest_trust_data.string
 
-            tname = unicode(t.forest_trust_data.string)
+            tname = t.forest_trust_data.string
             if tname.lower() == trustdomain.lower():
                 continue
 

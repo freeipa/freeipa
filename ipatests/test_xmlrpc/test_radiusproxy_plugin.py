@@ -26,8 +26,6 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc import objectclasses
 import pytest
 
-unicode = str
-
 radius1 = 'testradius'
 radius1_fqdn = 'testradius.test'
 radius1_dn = DN(('cn=testradius'), ('cn=radiusproxy'), api.env.basedn)
@@ -161,7 +159,7 @@ class test_raduisproxy(Declarative):
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
-                    ipatokenradiustimeout=[unicode(num)],
+                    ipatokenradiustimeout=[str(num)],
                 ),
             ),
         )
@@ -201,7 +199,7 @@ class test_raduisproxy(Declarative):
                 result=dict(
                     cn=[radius1],
                     ipatokenradiusserver=[radius1_fqdn],
-                    ipatokenradiusretries=[unicode(num)],
+                    ipatokenradiusretries=[str(num)],
                 ),
             ),
         )

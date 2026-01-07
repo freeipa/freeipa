@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 Kerberos ticket policy
 
@@ -154,7 +152,7 @@ class krbtpolicy_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -162,7 +160,7 @@ class krbtpolicy_mod(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -200,7 +198,7 @@ class krbtpolicy_reset(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -208,7 +206,7 @@ class krbtpolicy_reset(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
@@ -253,7 +251,7 @@ class krbtpolicy_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -261,7 +259,7 @@ class krbtpolicy_show(Method):
         ),
         output.Output(
             'value',
-            unicode,
+            str,
             doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

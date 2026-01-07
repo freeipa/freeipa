@@ -26,8 +26,6 @@ from ipalib import errors
 from ipaplatform import services
 from ipapython.dn import DN
 
-unicode = str
-
 if api.env.in_server:
     try:
         import ipaserver.dcerpc
@@ -207,13 +205,13 @@ class idrange(LDAPObject):
 
     # The commented range types are planned but not yet supported
     range_types = {
-        'ipa-local': unicode(_('local domain range')),
-        # 'ipa-local-subid': unicode(_('local domain subid range')),
-        # 'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
-        'ipa-ad-trust': unicode(_('Active Directory domain range')),
-        'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
+        'ipa-local': str(_('local domain range')),
+        # 'ipa-local-subid': str(_('local domain subid range')),
+        # 'ipa-ad-winsync': str(_('Active Directory winsync range')),
+        'ipa-ad-trust': str(_('Active Directory domain range')),
+        'ipa-ad-trust-posix': str(_('Active Directory trust range with '
                                         'POSIX attributes')),
-        # 'ipa-ipa-trust': unicode(_('IPA trust range')),
+        # 'ipa-ipa-trust': str(_('IPA trust range')),
                   }
 
     takes_params = (
@@ -370,15 +368,15 @@ class idrange(LDAPObject):
                           'trusted domain'))
 
     def get_trusted_domain_sid_from_name(self, name):
-        """ Returns unicode string representation for given trusted domain name
-        or None if SID forthe given trusted domain name could not be found."""
+        """ Returns string representation for given trusted domain name
+        or None if SID for the given trusted domain name could not be found."""
 
         domain_validator = self.get_domain_validator()
 
         sid = domain_validator.get_sid_from_domain_name(name)
 
         if sid is not None:
-            sid = unicode(sid)
+            sid = str(sid)
 
         return sid
 

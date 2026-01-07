@@ -34,7 +34,6 @@ from ipalib.aci import ACI
 from ipapython.dn import DN
 from ipalib.request import context
 
-unicode = str
 
 __doc__ = _("""
 Permissions
@@ -416,7 +415,7 @@ class permission(baseldap.LDAPObject):
                     continue
 
                 if filt in ipapermtargetfilter:
-                    result['type'] = [unicode(obj.name)]
+                    result['type'] = [str(obj.name)]
                     implicit_targetfilters.add(filt)
                     break
 
@@ -785,7 +784,7 @@ class permission(baseldap.LDAPObject):
             target_entry.single_value['ipapermtarget'] = DN(strip_ldap_prefix(
                 aci.target['target']['expression']))
         if 'targetfilter' in aci.target:
-            target_entry.single_value['ipapermtargetfilter'] = unicode(
+            target_entry.single_value['ipapermtargetfilter'] = str(
                 aci.target['targetfilter']['expression'])
         if aci.bindrule['expression'] == 'ldap:///all':
             target_entry.single_value['ipapermbindruletype'] = 'all'
@@ -796,7 +795,7 @@ class permission(baseldap.LDAPObject):
         target_entry['ipapermright'] = aci.permissions
         if 'targetattr' in aci.target:
             target_entry['ipapermincludedattr'] = [
-                unicode(a) for a in aci.target['targetattr']['expression']]
+                str(a) for a in aci.target['targetattr']['expression']]
 
         if not output_only:
             target_entry['ipapermissiontype'] = ['SYSTEM', 'V2']

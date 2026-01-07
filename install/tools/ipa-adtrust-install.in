@@ -41,8 +41,6 @@ from ipapython.config import IPAOptionParser, SUPPRESS_HELP
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import standard_logging_setup
 
-unicode = str
-
 logger = logging.getLogger(os.path.basename(__file__))
 
 log_file_name = paths.IPASERVER_ADTRUST_INSTALL_LOG

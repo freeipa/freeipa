@@ -31,8 +31,6 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_digits
 import pytest
 
-unicode = str
-
 
 cn = 'Realm Domains'
 dn = DN(('cn', cn), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -55,7 +53,7 @@ def assert_realmdomain_and_txt_record_present(response):
     zone = response['value']
     if isinstance(zone, (tuple, list)):
         zone = zone[0]
-    zone = unicode(zone)
+    zone = str(zone)
     if zone.endswith('.'):
         #realmdomains are without end dot
         zone = zone[:-1]
@@ -73,7 +71,7 @@ def assert_realmdomain_and_txt_record_not_present(response):
     zone = response['value']
     if isinstance(zone, (tuple, list)):
         zone = zone[0]
-    zone = unicode(zone)
+    zone = str(zone)
     if zone.endswith('.'):
         #realmdomains are without end dot
         zone = zone[:-1]

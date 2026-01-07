@@ -47,7 +47,6 @@ from ipaserver.install.installutils import (
     load_pkcs12, read_password, verify_fqdn, update_hosts_file,
     validate_mask)
 
-unicode = str
 
 NoneType = type(None)
 
@@ -546,7 +545,7 @@ def install_check(installer):
         try:
             validate_domain_name(domain_name)
         except ValueError as e:
-            raise ScriptError("Invalid domain name: %s" % unicode(e))
+            raise ScriptError("Invalid domain name: %s" % str(e))
     else:
         domain_name = options.domain_name
 
@@ -562,7 +561,7 @@ def install_check(installer):
         try:
             validate_domain_name(realm_name, entity="realm")
         except ValueError as e:
-            raise ScriptError("Invalid realm name: {}".format(unicode(e)))
+            raise ScriptError("Invalid realm name: {}".format(str(e)))
     else:
         realm_name = options.realm_name.upper()
 

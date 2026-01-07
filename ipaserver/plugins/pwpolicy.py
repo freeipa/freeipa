@@ -36,8 +36,6 @@ from ipalib.request import context
 from ipapython.dn import DN
 
 
-unicode = str
-
 __doc__ = _("""
 Password policy
 
@@ -476,11 +474,11 @@ class pwpolicy(LDAPObject):
         # Convert seconds to hours and days for displaying to user
         if not options.get('raw', False):
             if 'krbmaxpwdlife' in entry_attrs:
-                entry_attrs['krbmaxpwdlife'][0] = unicode(
+                entry_attrs['krbmaxpwdlife'][0] = str(
                     int(entry_attrs['krbmaxpwdlife'][0]) // 86400
                 )
             if 'krbminpwdlife' in entry_attrs:
-                entry_attrs['krbminpwdlife'][0] = unicode(
+                entry_attrs['krbminpwdlife'][0] = str(
                     int(entry_attrs['krbminpwdlife'][0]) // 3600
                 )
 

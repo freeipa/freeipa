@@ -1,5 +1,4 @@
 from ipalib import _
-unicode = str
 
 # Both constants can be used as masks against trust direction
 # because bi-directional has two lower bits set.
@@ -52,7 +51,7 @@ def trust_type_string(level, attrs):
     transitive = int(attrs) & LSA_TRUST_ATTRIBUTE_NON_TRANSITIVE
     string = _trust_type_dict.get(int(level) | (transitive << 3),
                                   _trust_type_dict_unknown)
-    return unicode(string)
+    return string
 
 
 def trust_direction_string(level):
@@ -63,9 +62,9 @@ def trust_direction_string(level):
       LSA_TRUST_DIRECTION_OUTBOUND = 0x00000002
     """
     string = _trust_direction_dict.get(int(level), _trust_type_dict_unknown)
-    return unicode(string)
+    return string
 
 
 def trust_status_string(level):
     string = _trust_status_dict.get(level, _trust_type_dict_unknown)
-    return unicode(string)
+    return string

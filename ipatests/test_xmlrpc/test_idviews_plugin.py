@@ -35,8 +35,6 @@ from ipatests.util import Fuzzy
 from ipapython.dn import DN
 import pytest
 
-unicode = str
-
 
 idview1 = 'idview1'
 idview2 = 'idview2'
@@ -82,9 +80,9 @@ def get_override_dn(view, anchor):
                   "cn={view},"
                   "cn=views,cn=accounts,{suffix}"
                   .format(uuid=uuid_re,
-                          domain=re.escape(unicode(api.env.domain)),
+                          domain=re.escape(str(api.env.domain)),
                           view=re.escape(view),
-                          suffix=re.escape(unicode(api.env.basedn)),
+                          suffix=re.escape(str(api.env.basedn)),
     ))
 
 

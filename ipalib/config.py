@@ -48,8 +48,6 @@ from ipalib.constants import (
 )
 from ipalib import errors
 
-unicode = str
-
 
 class Env:
     """
@@ -266,7 +264,7 @@ class Env:
                 value = int(value)
             elif key == 'basedn':
                 value = DN(value)
-        if type(value) not in (unicode, int, float, bool, type(None), DN):
+        if type(value) not in (str, int, float, bool, type(None), DN):
             raise TypeError(key, value)
         object.__setattr__(self, key, value)
         # pylint: disable=no-member

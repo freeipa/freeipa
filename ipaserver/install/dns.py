@@ -48,7 +48,6 @@ from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
 from ipaserver.install import service
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 

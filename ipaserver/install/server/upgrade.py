@@ -63,7 +63,6 @@ from ipaserver.install.ldapupdate import BadSyntax
 # The SafeConfigParser class has been renamed to ConfigParser in Py3
 from configparser import ConfigParser as SafeConfigParser
 
-unicode = str
 
 
 logger = logging.getLogger(__name__)

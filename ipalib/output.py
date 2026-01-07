@@ -26,8 +26,6 @@ from ipalib.capabilities import client_has_capability
 from ipalib.text import _
 from ipalib.util import apirepr
 
-unicode = str
-
 class Output(ReadOnly):
     """
     Simple description of a member in the return value ``dict``.
@@ -57,7 +55,7 @@ class Output(ReadOnly):
     be returned that while not interesting to us, but may be to others.
 
     >>> from ipalib import crud, output
-    >>> myvalue = output.Output('myvalue', unicode,
+    >>> myvalue = output.Output('myvalue', str,
     ...     'Do not print this value', flags=['no_display'],
     ... )
     >>> class user(crud.Update):
@@ -129,10 +127,10 @@ class PrimaryKey(Output):
             if hasattr(cmd, 'obj') and cmd.obj and cmd.obj.primary_key:
                 types = cmd.obj.primary_key.allowed_types
             else:
-                types = (unicode,)
+                types = (str,)
             types = types + (type(None),)
         else:
-            types = (unicode,)
+            types = (str,)
         if not isinstance(value, types):
             raise TypeError(
                 "%s.validate_output() => %s.validate():\n"
@@ -145,7 +143,7 @@ class ListOfPrimaryKeys(Output):
         if client_has_capability(version, 'primary_key_types'):
             types = (tuple, list)
         else:
-            types = (unicode,)
+            types = (str,)
         if not isinstance(values, types):
             raise TypeError(
                 "%s.validate_output() => %s.validate():\n"
@@ -157,7 +155,7 @@ class ListOfPrimaryKeys(Output):
             if hasattr(cmd, 'obj') and cmd.obj and cmd.obj.primary_key:
                 types = cmd.obj.primary_key.allowed_types
             else:
-                types = (unicode,)
+                types = (str,)
             for (i, value) in enumerate(values):
                 if not isinstance(value, types):
                     raise TypeError(emsg % (
@@ -167,7 +165,7 @@ class ListOfPrimaryKeys(Output):
 
 result = Output('result', doc=_('All commands should at least have a result'))
 
-summary = Output('summary', (unicode, type(None)),
+summary = Output('summary', (str, type(None)),
     _('User-friendly description of action performed')
 )
 
@@ -214,7 +212,7 @@ standard_value = standard_boolean
 simple_value = (
     summary,
     Output('result', bool, _('True means the operation was successful')),
-    Output('value', unicode, flags=['no_display']),
+    Output('value', str, flags=['no_display']),
 )
 
 # custom shim for commands like `trustconfig-show`,
@@ -224,5 +222,5 @@ simple_value = (
 simple_entry = (
     summary,
     Entry('result'),
-    Output('value', unicode, flags=['no_display']),
+    Output('value', str, flags=['no_display']),
 )

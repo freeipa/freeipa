@@ -12,8 +12,6 @@ from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
-unicode = str
-
 __doc__ = _("""
 Users
 
@@ -625,7 +623,7 @@ class user_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -663,7 +661,7 @@ class user_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -695,7 +693,7 @@ class user_disable(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -728,7 +726,7 @@ class user_enable(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
@@ -1112,7 +1110,7 @@ class user_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
@@ -1430,7 +1428,7 @@ class user_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -1489,7 +1487,7 @@ class user_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
@@ -1562,7 +1560,7 @@ Lockout status of a user account
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
@@ -1606,7 +1604,7 @@ Unlock a user account
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
+            (str, type(None)),
             doc=_('User-friendly description of action performed'),
         ),
         output.Output(
