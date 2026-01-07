@@ -12,7 +12,9 @@
     <script type="text/javascript" src="../js/dojo/dojo.js"></script>
 
     <script type="text/javascript">
-        require(['test/details_tests'], function(tests){ tests() });
+        QUnit.config.autostart = false;
+
+        require(['test/details_tests'], function(tests){ tests(); QUnit.start(); });
     </script>
 </head>
 <body>
