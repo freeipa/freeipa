@@ -25,4 +25,4 @@ to fetch files using AJAX and file:// protocol.
 3. Run `grunt --verbose qunit`
 
 For more information about WebUI unit tests please read following:
-https://www.freeipa.org/page/FreeIPAv2:UI_Unit_Tests
+https://www.freeipa.org/page/UI_Unit_Tests.html
