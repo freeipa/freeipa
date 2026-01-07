@@ -110,8 +110,6 @@ except ImportError:
 from http.client import RemoteDisconnected
 
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 COOKIE_NAME = 'ipa_session'
@@ -191,9 +189,9 @@ def xml_wrap(value, version):
         return Binary(value)
     if type(value) is Decimal:
         # transfer Decimal as a string
-        return unicode(value)
+        return str(value)
     if isinstance(value, int) and (value < MININT or value > MAXINT):
-        return unicode(value)
+        return str(value)
     if isinstance(value, DN):
         return str(value)
 
@@ -206,12 +204,12 @@ def xml_wrap(value, version):
 
     if isinstance(value, DNSName):
         if capabilities.client_has_capability(version, 'dns_name_values'):
-            return {'__dns_name__': unicode(value)}
+            return {'__dns_name__': str(value)}
         else:
-            return unicode(value)
+            return str(value)
 
     if isinstance(value, Principal):
-        return unicode(value)
+        return str(value)
 
     if isinstance(value, (crypto_x509.Certificate, IPACertificate)):
         return base64.b64encode(
@@ -221,7 +219,7 @@ def xml_wrap(value, version):
         return base64.b64encode(
             value.public_bytes(x509_Encoding.DER)).decode('ascii')
 
-    assert type(value) in (unicode, float, int, bool, type(None))
+    assert type(value) in (str, float, int, bool, type(None))
     return value
 
 
@@ -243,7 +241,7 @@ def xml_unwrap(value, encoding='UTF-8'):
     :param value: The value to unwrap.
     :param encoding: The Unicode encoding to use (defaults to ``'UTF-8'``).
     """
-    if isinstance(value, (unicode, int, float, bool)):
+    if isinstance(value, (str, int, float, bool)):
         # most common first
         return value
     elif value is None:
@@ -427,7 +425,7 @@ class SSLTransport(LanguageAwareTransport):
             # handle reconnect for us.
             self.close()
             logger.debug("HTTP connection destroyed (%s)", host)
-            raise errors.NetworkError(message=unicode(e))
+            raise errors.NetworkError(message=str(e))
 
         logger.debug("New HTTP connection (%s)", host)
 
@@ -465,7 +463,7 @@ class KerbTransport(SSLTransport):
         elif minor == KRB5_CC_NOTFOUND:
             raise errors.CCacheError()
         else:
-            raise errors.KerberosError(message=unicode(e))
+            raise errors.KerberosError(message=str(e))
 
     def _get_host(self):
         return self._connection[0]
@@ -1087,7 +1085,7 @@ class JSONServerProxy:
 
     def __request(self, name, args):
         print_json = self.__verbose >= 2
-        payload = {'method': unicode(name), 'params': args, 'id': 0}
+        payload = {'method': str(name), 'params': args, 'id': 0}
         version = args[1].get('version', VERSION_WITHOUT_CAPABILITIES)
         payload = json_encode_binary(
             payload, version, pretty_print=print_json)

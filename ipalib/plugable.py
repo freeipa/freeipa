@@ -51,8 +51,6 @@ from ipapython.ipa_log_manager import (
     LOGGING_FORMAT_STDERR)
 from ipapython.version import VERSION, API_VERSION, DEFAULT_PLUGINS
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
@@ -168,7 +166,7 @@ class Plugin(ReadOnly):
         if not _(doc).msg:
             return '<%s.%s>' % (cls.__module__, cls.__name__)
         else:
-            return unicode(doc).split('\n\n', 1)[0].strip()
+            return str(doc).split('\n\n', 1)[0].strip()
 
     summary = classproperty(__summary_getter)
 

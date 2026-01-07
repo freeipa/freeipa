@@ -27,7 +27,6 @@ from ipalib.util import has_soa_or_ns_record, validate_domain_name
 from ipalib.util import detect_dns_zone_realm_type
 from ipapython.dn import DN
 
-unicode = str
 
 __doc__ = _("""
 Realm domains
@@ -69,7 +68,7 @@ def _domain_name_validator(ugettext, value):
     try:
         validate_domain_name(value, allow_slash=False)
     except ValueError as e:
-        return unicode(e)
+        return str(e)
     return None
 
 
@@ -305,7 +304,7 @@ class realmdomains_mod(LDAPUpdate):
 
             try:
                 self.api.Command['dnsrecord_add'](
-                    unicode(domain),
+                    str(domain),
                     '_kerberos',
                     txtrecord=api.env.realm
                 )
@@ -319,7 +318,7 @@ class realmdomains_mod(LDAPUpdate):
                     result,
                     messages.KerberosTXTRecordCreationFailure(
                         domain=domain,
-                        error=unicode(error),
+                        error=str(error),
                         realm=self.api.env.realm
                     )
                 )
@@ -334,7 +333,7 @@ class realmdomains_mod(LDAPUpdate):
 
             try:
                 self.api.Command['dnsrecord_del'](
-                    unicode(domain),
+                    str(domain),
                     '_kerberos',
                     txtrecord=api.env.realm
                 )
@@ -346,7 +345,7 @@ class realmdomains_mod(LDAPUpdate):
                     options['version'],
                     result,
                     messages.KerberosTXTRecordDeletionFailure(
-                        domain=domain, error=unicode(error)
+                        domain=domain, error=str(error)
                     )
                 )
 

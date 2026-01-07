@@ -33,8 +33,6 @@ except ImportError:
     # python-yubico depends on pyusb
     raise SkipPluginModule(reason=_("python-yubico is not installed."))
 
-unicode = str
-
 __doc__ = _("""
 YubiKey Tokens
 """) + _("""
@@ -171,8 +169,8 @@ class otptoken_add_yubikey(Command):
                                                 *args,
                                                 type='hotp',
                                                 ipatokenvendor='YubiCo',
-                                                ipatokenmodel=unicode(yk.model),
-                                                ipatokenserial=unicode(yk.serial()),
+                                                ipatokenmodel=str(yk.model),
+                                                ipatokenserial=str(yk.serial()),
                                                 ipatokenotpalgorithm='sha1',
                                                 ipatokenhotpcounter=0,
                                                 ipatokenotpkey=key,

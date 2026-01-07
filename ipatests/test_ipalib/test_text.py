@@ -32,8 +32,6 @@ from ipatests.i18n import create_po, po_file_iterate
 from ipalib.request import context
 from ipalib import text
 
-unicode = str
-
 pytestmark = pytest.mark.tier0
 
 singular = '%(count)d goose makes a %(dish)s'
@@ -138,7 +136,7 @@ class test_TestLang:
 
         def get_msgstr(msg):
             gt = text.GettextFactory(localedir=self.locale_dir)(msg)
-            return unicode(gt)
+            return str(gt)
 
         def get_msgstr_plural(singular, plural, count):
             ng = text.NGettextFactory(localedir=self.locale_dir)(singular, plural, count)
@@ -174,8 +172,8 @@ class test_FixMe:
 
     def test_unicode(self):
         inst = self.klass('user.label')
-        assert unicode(inst) == '<user.label>'
-        assert type(unicode(inst)) is unicode
+        assert str(inst) == '<user.label>'
+        assert type(str(inst)) is str
 
 
 class test_Gettext:
@@ -195,7 +193,7 @@ class test_Gettext:
 
     def test_unicode(self):
         inst = self.klass('what up?', 'foo', 'bar')
-        assert unicode(inst) == 'what up?'
+        assert str(inst) == 'what up?'
 
     def test_mod(self):
         inst = self.klass('hello %(adj)s nurse', 'foo', 'bar')
@@ -395,7 +393,7 @@ class test_ConcatenatedText:
         lst = ['a', 'b', 'c', 3]
         inst = self.klass(*lst)
         assert inst.components == lst
-        assert unicode(inst) == 'abc3'
+        assert str(inst) == 'abc3'
 
     def test_repr(self):
         lazytext = text.Gettext('foo', 'bar', 'baz')
@@ -404,7 +402,7 @@ class test_ConcatenatedText:
 
     def test_unicode(self):
         inst = self.klass('[', text.Gettext('green', 'foo', 'bar'), 1, ']')
-        assert unicode(inst) == '[green1]'
+        assert str(inst) == '[green1]'
 
     def test_mod(self):
         inst = self.klass('[', text.Gettext('%(color)s', 'foo', 'bar'), ']')
@@ -419,21 +417,21 @@ class test_ConcatenatedText:
     def test_add(self):
         inst = (text.Gettext('pale ', 'foo', 'bar') +
                 text.Gettext('blue', 'foo', 'bar'))
-        assert unicode(inst) == 'pale blue'
+        assert str(inst) == 'pale blue'
 
         inst = (text.Gettext('bright ', 'foo', 'bar') +
                 text.Gettext('pale ', 'foo', 'bar') +
                 text.Gettext('blue', 'foo', 'bar'))
-        assert unicode(inst) == 'bright pale blue'
+        assert str(inst) == 'bright pale blue'
 
         inst = text.Gettext('yellow', 'foo', 'bar') + '!'
-        assert unicode(inst) == 'yellow!'
+        assert str(inst) == 'yellow!'
 
         inst = '!' + text.Gettext('yellow', 'foo', 'bar')
-        assert unicode(inst) == '!yellow'
+        assert str(inst) == '!yellow'
 
         inst = '!' + ('!' + text.Gettext('yellow', 'foo', 'bar'))
-        assert unicode(inst) == '!!yellow'
+        assert str(inst) == '!!yellow'
 
         inst = (text.Gettext('yellow', 'foo', 'bar') + '!') + '!'
-        assert unicode(inst) == 'yellow!!'
+        assert str(inst) == 'yellow!!'

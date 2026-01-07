@@ -432,8 +432,6 @@ else:
     from ldap.dn import str2dn, dn2str
 
 
-unicode = str
-
 __all__ = 'AVA', 'RDN', 'DN'
 
 def _adjust_indices(start, end, length):
@@ -508,7 +506,7 @@ def get_ava(*args):
                 raise TypeError("multiple AVA's specified by \"%s\"" % (arg))
             ava = list(rdn[0])
         else:
-            raise TypeError("with 1 argument, argument must be str, unicode, tuple or list, got %s instead" %
+            raise TypeError("with 1 argument, argument must be str, tuple or list, got %s instead" %
                             arg.__class__.__name__)
     else:
         raise TypeError("invalid number of arguments. 1-3 allowed")
@@ -566,12 +564,12 @@ class AVA:
     The arg sequence may be:
 
     1) With 2 arguments, the first argument will be the attr, the 2nd
-    the value. Each argument must be scalar convertable to unicode.
+    the value. Each argument must be scalar convertable to string.
 
     2) With a sigle list or tuple argument containing exactly 2 items.
-    Each item must be scalar convertable to unicode.
+    Each item must be scalar convertable to string.
 
-    3) With a single string (or unicode) argument, in this case the string will
+    3) With a single string argument, in this case the string will
     be interpretted using the DN syntax described in RFC 4514 to yield a AVA
     <attr,value> pair. The parsing recognizes the DN syntax escaping rules.
 
@@ -587,8 +585,8 @@ class AVA:
     attr:  the attribute name, cn in our exmaple
     value: the attribute's value, Bob in our example
 
-    When attr and value are returned they will always be unicode. When
-    attr or value are set they will be promoted to unicode.
+    When attr and value are returned they will always be string. When
+    attr or value are set they will be promoted to string.
 
     AVA objects support indexing by name, e.g.
 
@@ -724,12 +722,12 @@ class RDN:
 
     * A 2-valued tuple or list denotes the <attr,value> pair of an AVA. The
     first member is the attr and the second member is the value, both members
-    must be strings (or unicode). The tuple or list is passed to the AVA
+    must be strings. The tuple or list is passed to the AVA
     constructor and the resulting AVA is added to the RDN. Multiple tuples or
     lists may appear in the argument list, each adds one additional AVA to the
     RDN.
 
-    * A single string (or unicode) argument, in this case the string will
+    * A single string argument, in this case the string will
     be interpretted using the DN syntax described in RFC 4514 to yield one or
     more AVA <attr,value> pairs. The parsing recognizes the DN syntax escaping
     rules.
@@ -783,8 +781,8 @@ class RDN:
     rdn.attr -> 'cn'      # exactly equivalent to rdn[0].attr
     rdn.value -> 'Bob'    # exactly equivalent to rdn[0].value
 
-    When attr and value are returned they will always be unicode. When
-    attr or value are set they will be promoted to unicode.
+    When attr and value are returned they will always be string. When
+    attr or value are set they will be promoted to string.
 
     If an RDN is multi-valued the attr and value properties still return only
     the first AVA's properties, programmer beware! Recall the AVA's in the RDN
@@ -962,12 +960,12 @@ class DN:
 
     * A 2-valued tuple or list. The first member is the attr and the
       second member is the value of an RDN, both members must be
-      strings (or unicode). The tuple or list is passed to the RDN
+      strings. The tuple or list is passed to the RDN
       constructor and the resulting RDN is appended to the
       DN. Multiple tuples or lists may appear in the argument list,
       each adds one additional RDN to the DN.
 
-    * A single string (or unicode) argument, in this case the string
+    * A single string argument, in this case the string
       will be interpretted using the DN syntax described in RFC 4514
       to yield one or more RDN's which will be appended in order to
       the DN. The parsing recognizes the DN syntax escaping rules.
@@ -1134,7 +1132,7 @@ class DN:
                 sort_avas(rdn)
         else:
             raise TypeError(
-                "must be str, unicode, tuple, Name, RDN or DN, got %s instead"
+                "must be str, tuple, Name, RDN or DN, got %s instead"
                 % type(value))
         return rdns
 

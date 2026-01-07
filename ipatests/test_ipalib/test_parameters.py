@@ -47,8 +47,6 @@ from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 from ipapython.dn import DN
 
-unicode = str
-long = int
 
 NULLS = (None, b'', '', tuple(), [])
 
@@ -170,7 +168,7 @@ def test_parse_param_spec():
 
 class DummyRule:
     def __init__(self, error=None):
-        assert error is None or type(error) is unicode
+        assert error is None or type(error) is str
         self.error = error
         self.reset()
 
@@ -598,7 +596,7 @@ class test_Param(ClassChecker):
                 self.value = None
 
         class Str(self.cls):
-            type = unicode
+            type = str
 
             def __init__(self, name, **kw):
                 # (Pylint complains because the superclass is unknowm)
@@ -909,7 +907,7 @@ class test_Str(ClassChecker):
         Test the `ipalib.parameters.Str.__init__` method.
         """
         o = self.cls('my_str')
-        assert o.type is unicode
+        assert o.type is str
         assert o.password is False
         assert o.minlength is None
         assert o.maxlength is None
@@ -923,17 +921,17 @@ class test_Str(ClassChecker):
         o = self.cls('my_str')
         mthd = o._convert_scalar
         for value in ('Hello', 42, 1.2, unicode_str):
-            assert mthd(value) == unicode(value)
+            assert mthd(value) == str(value)
         bad = [True, b'Hello', dict(one=1), utf8_bytes]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert_equal(unicode(e.error), 'must be Unicode text')
+            assert_equal(str(e.error), 'must be Unicode text')
         bad = [('Hello',), [42.3]]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
-            assert_equal(unicode(e.error), 'Only one value is allowed')
+            assert_equal(str(e.error), 'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_rule_minlength(self):
@@ -1059,7 +1057,7 @@ class test_Password(ClassChecker):
         Test the `ipalib.parameters.Password.__init__` method.
         """
         o = self.cls('my_password')
-        assert o.type is unicode
+        assert o.type is str
         assert o.minlength is None
         assert o.maxlength is None
         assert o.length is None
@@ -1155,7 +1153,7 @@ class test_StrEnum(EnumChecker):
     """
     _cls = parameters.StrEnum
     _name = 'my_strenum'
-    _datatype = unicode
+    _datatype = str
     _test_values = 'Hello', 'tall', 'nurse!'
     _bad_type_values = 'Hello', 1, 'nurse!'
     _bad_type = int
@@ -1176,10 +1174,10 @@ def check_int_scalar_conversions(o):
         e = raises(errors.ConversionError, o._convert_scalar, bad)
         assert e.name == 'my_number'
     # Assure large magnitude values are handled correctly
-    assert type(o._convert_scalar(sys.maxsize * 2)) == long
+    assert type(o._convert_scalar(sys.maxsize * 2)) == int
     assert o._convert_scalar(sys.maxsize * 2) == sys.maxsize * 2
-    assert o._convert_scalar(unicode(sys.maxsize * 2)) == sys.maxsize * 2
-    assert o._convert_scalar(long(16)) == 16
+    assert o._convert_scalar(str(sys.maxsize * 2)) == sys.maxsize * 2
+    assert o._convert_scalar(int(16)) == 16
     # Assure normal conversions produce expected result
     assert o._convert_scalar('16.99') == 16
     assert o._convert_scalar(16.99) == 16
@@ -1506,7 +1504,7 @@ class test_AccessTime(ClassChecker):
         """
         # Test with no kwargs:
         o = self.cls('my_time')
-        assert o.type is unicode
+        assert o.type is str
         assert isinstance(o, parameters.AccessTime)
         assert o.multivalue is False
         translation = 'length=%(length)r'
@@ -1593,7 +1591,7 @@ class test_IA5Str(ClassChecker):
         o = self.cls('my_str')
         mthd = o._convert_scalar
         for value in ('Hello', 42, 1.2):
-            assert mthd(value) == unicode(value)
+            assert mthd(value) == str(value)
         bad = ['Helloá']
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
@@ -1810,7 +1808,7 @@ class test_DNParam(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_dn'
-            assert_equal(unicode(e.error), 'Only one value is allowed')
+            assert_equal(str(e.error), 'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_convert_singlevalued(self):
@@ -1836,7 +1834,7 @@ class test_DNParam(ClassChecker):
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_dn'
-            assert_equal(unicode(e.error), 'Only one value is allowed')
+            assert_equal(str(e.error), 'Only one value is allowed')
         assert o.convert(None) is None
 
     def test_convert_multivalued(self):

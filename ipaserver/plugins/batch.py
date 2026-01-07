@@ -57,8 +57,6 @@ And then a nested response for each IPA command method sent in the request
 
 """)
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 register = Registry()
@@ -202,7 +200,7 @@ class batch(Command):
                 result = dict(
                     error=reported_error.strerror,
                     error_code=reported_error.errno,
-                    error_name=unicode(type(reported_error).__name__),
+                    error_name=str(type(reported_error).__name__),
                     error_kw=reported_error.kw,
                 )
             results.append(result)

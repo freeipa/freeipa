@@ -34,8 +34,6 @@ from ipapython.ipautil import run
 from ipatests.test_xmlrpc.testcert import subject_base
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
-unicode = str
-
 # So we can save the cert from issuance and compare it later
 cert = None
 newcert = None
@@ -169,7 +167,7 @@ class test_cert(BaseCert):
 
         See https://fedorahosted.org/freeipa/ticket/5881
         """
-        result = api.Command.cert_show(sn, out=unicode(self.certfile))
+        result = api.Command.cert_show(sn, out=str(self.certfile))
         with open(self.certfile, "rb") as f:
             pem_cert = f.read().decode('ascii')
         result = run([paths.OPENSSL, 'x509', '-text'],

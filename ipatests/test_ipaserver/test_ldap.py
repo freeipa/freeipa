@@ -38,8 +38,6 @@ from ipaserver.plugins.ldap2 import ldap2, AUTOBIND_DISABLED
 from ipalib import api, create_api, errors
 from ipapython.dn import DN
 
-unicode = str
-
 
 @pytest.mark.tier0
 @pytest.mark.needs_ipaapi

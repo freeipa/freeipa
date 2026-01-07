@@ -11,8 +11,6 @@ from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
 
-unicode = str
-
 
 class CertprofileTracker(Tracker):
     """Tracker class for certprofile plugin.
@@ -53,7 +51,7 @@ class CertprofileTracker(Tracker):
 
         with open(path, 'r') as f:
             content = f.read()
-        return unicode(content)
+        return str(content)
 
     def make_create_command(self, extra_lines=None):
         """
@@ -81,7 +79,7 @@ class CertprofileTracker(Tracker):
 
     def track_create(self):
         self.attrs = dict(
-            dn=unicode(self.dn),
+            dn=str(self.dn),
             cn=[self.name],
             description=[self.description],
             ipacertprofilestoreissued=[self.store],

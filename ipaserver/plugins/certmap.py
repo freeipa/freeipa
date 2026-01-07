@@ -43,8 +43,6 @@ from ipalib import _, ngettext
 from ipalib import output
 
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 __doc__ = _("""

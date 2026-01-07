@@ -12,7 +12,6 @@ from ipatests.test_ipalib.test_x509 import goodcert_headers
 from ipalib import api, errors
 import pytest
 
-unicode = str
 
 TEST_ZONE = 'zoneadd.%(domain)s' % api.env
 
@@ -205,7 +204,7 @@ class TestCLIParsing:
                 idnsname='sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 # passed via cmdline
-                sshfp_part_algorithm=unicode(sshfp_parts[1]),
+                sshfp_part_algorithm=str(sshfp_parts[1]),
                 sshfp_part_fingerprint=sshfp_parts[2],
             )
 
@@ -218,9 +217,9 @@ class TestCLIParsing:
                 dnszoneidnsname=TEST_ZONE,
                 idnsname='sshfp',
                 # passed via cmdline
-                sshfp_part_fp_type=unicode(sshfp_parts[0]),
+                sshfp_part_fp_type=str(sshfp_parts[0]),
                 # passed via cmdline
-                sshfp_part_algorithm=unicode(sshfp_parts[1]),
+                sshfp_part_algorithm=str(sshfp_parts[1]),
                 sshfp_part_fingerprint=sshfp_parts[2],
             )
 

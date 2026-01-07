@@ -34,14 +34,12 @@ import pytest
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipatests.util import assert_deepequal
 
-unicode = str
-
 
 class MockTextui(list):
     """Collects output lines"""
     # Extend the mock object if other textui methods are called
     def print_plain(self, line):
-        self.append(unicode(line))
+        self.append(str(line))
 
 
 class AutomountTest(XMLRPC_test):

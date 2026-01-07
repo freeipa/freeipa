@@ -160,9 +160,9 @@ Basic rules on handling these values
 
         serial_number = int(serial_number, 16)
 
-2. Big integers passed to XMLRPC must be decimal unicode strings
+2. Big integers passed to XMLRPC must be decimal strings
 
-       unicode(serial_number)
+       str(serial_number)
 
 3. Big integers received from XMLRPC must be converted back to int or long
    objects from the decimal string representation.
@@ -203,8 +203,6 @@ import pki.system
 from pki.cert import CertRequestStatus
 import pki.crypto as cryptoutil
 from pki.kra import KRAClient
-
-unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -315,13 +313,13 @@ def parse_error_template_xml(doc):
     +================+===============+==================+===============+
     |requestStatus   |int            |request_status    |int            |
     +----------------+---------------+------------------+---------------+
-    |errorDetails    |string         |error_string [1]_ |unicode        |
+    |errorDetails    |string         |error_string [1]_ |str            |
     +----------------+---------------+------------------+---------------+
-    |unexpectedError |string         |error_string [1]_ |unicode        |
+    |unexpectedError |string         |error_string [1]_ |str            |
     +----------------+---------------+------------------+---------------+
-    |errorDescription|[string]       |error_descriptions|[unicode]      |
+    |errorDescription|[string]       |error_descriptions|[str]          |
     +----------------+---------------+------------------+---------------+
-    |authority       |string         |authority         |unicode        |
+    |authority       |string         |authority         |str            |
     +----------------+---------------+------------------+---------------+
 
     .. [1] errorDetails is the error message string when the requestStatus
@@ -343,27 +341,27 @@ def parse_error_template_xml(doc):
     error_descriptions = []
     for description in doc.xpath('//xml/records[*]/record/errorDescription'):
         error_descriptions.append(etree.tostring(description, method='text',
-                                                 encoding=unicode).strip())
+                                                 encoding=str).strip())
     if len(error_descriptions) > 0:
         response['error_descriptions'] = error_descriptions
 
     authority = doc.xpath('//xml/fixed/authorityName[1]')
     if len(authority) == 1:
         authority = etree.tostring(authority[0], method='text',
-                                   encoding=unicode).strip()
+                                   encoding=str).strip()
         response['authority'] = authority
 
     # Should never get both errorDetail and unexpectedError
     error_detail = doc.xpath('//xml/fixed/errorDetails[1]')
     if len(error_detail) == 1:
         error_detail = etree.tostring(error_detail[0], method='text',
-                                      encoding=unicode).strip()
+                                      encoding=str).strip()
         response['error_string'] = error_detail
 
     unexpected_error = doc.xpath('//xml/fixed/unexpectedError[1]')
     if len(unexpected_error) == 1:
         unexpected_error = etree.tostring(unexpected_error[0], method='text',
-                                          encoding=unicode).strip()
+                                          encoding=str).strip()
         response['error_string'] = unexpected_error
 
     return response
@@ -386,9 +384,9 @@ def parse_updateCRL_xml(doc):
     +-----------------+-------------+-----------------------+---------------+
     |cms name         |cms type     |result name            |result type    |
     +=================+=============+=======================+===============+
-    |crlIssuingPoint  |string       |crl_issuing_point      |unicode        |
+    |crlIssuingPoint  |string       |crl_issuing_point      |str            |
     +-----------------+-------------+-----------------------+---------------+
-    |crlUpdate        |string       |crl_update [1]         |unicode        |
+    |crlUpdate        |string       |crl_update [1]         |str            |
     +-----------------+-------------+-----------------------+---------------+
 
     .. [1] crlUpdate may be one of:
@@ -418,13 +416,13 @@ def parse_updateCRL_xml(doc):
     if len(crl_issuing_point) == 1:
         crl_issuing_point = etree.tostring(
             crl_issuing_point[0], method='text',
-            encoding=unicode).strip()
+            encoding=str).strip()
         response['crl_issuing_point'] = crl_issuing_point
 
     crl_update = doc.xpath('//xml/header/crlUpdate[1]')
     if len(crl_update) == 1:
         crl_update = etree.tostring(crl_update[0], method='text',
-                                    encoding=unicode).strip()
+                                    encoding=str).strip()
         response['crl_update'] = crl_update
 
     return response
@@ -678,13 +676,13 @@ class ra(rabase.rabase, APIClient):
         +-------------------+---------------+---------------+
         |result name        |result type    |comments       |
         +===================+===============+===============+
-        |serial_number      |unicode [1]_   |               |
+        |serial_number      |str [1]_       |               |
         +-------------------+---------------+---------------+
-        |request_id         |unicode [1]_   |               |
+        |request_id         |str [1]_       |               |
         +-------------------+---------------+---------------+
-        |cert_request_status|unicode [2]_   |               |
+        |cert_request_status|str [2]_       |               |
         +-------------------+---------------+---------------+
-        |request_type       |unicode [3]_   |               |
+        |request_type       |str [3]_       |               |
         +-------------------+---------------+---------------+
 
         .. [1] The certID and requestId values are returned as
@@ -767,11 +765,11 @@ class ra(rabase.rabase, APIClient):
         +-----------------+---------------+---------------+
         |result name      |result type    |comments       |
         +=================+===============+===============+
-        |certificate      |unicode [1]_   |               |
+        |certificate      |str [1]_       |               |
         +-----------------+---------------+---------------+
-        |serial_number    |unicode [2]_   |               |
+        |serial_number    |str [2]_       |               |
         +-----------------+---------------+---------------+
-        |serial_number_hex|unicode [2]_   |               |
+        |serial_number_hex|str [2]_       |               |
         +-----------------+---------------+---------------+
         |revocation_reason|int [3]_       |               |
         +-----------------+---------------+---------------+
@@ -856,9 +854,9 @@ class ra(rabase.rabase, APIClient):
         +-----------------+---------------+---------------+
         |result name      |result type    |comments       |
         +=================+===============+===============+
-        |certificate      |unicode [1]_   |               |
+        |certificate      |str [1]_       |               |
         +-----------------+---------------+---------------+
-        |request_id       |unicode [2]_   |               |
+        |request_id       |str [2]_       |               |
         +-----------------+---------------+---------------+
 
         .. [1] base64-encoded value of the certificate
@@ -1022,7 +1020,7 @@ class ra(rabase.rabase, APIClient):
         +===============+===============+===============+
         |unrevoked      |boolean        |               |
         +---------------+---------------+---------------+
-        |error_string   |unicode        |               |
+        |error_string   |str            |               |
         +---------------+---------------+---------------+
         """
 
@@ -1121,7 +1119,7 @@ class ra(rabase.rabase, APIClient):
         for (attr, dattr) in date_types:
             if attr in options:
                 epoch = convert_time(options[attr])
-                cert_search_request[dattr] = unicode(epoch)
+                cert_search_request[dattr] = str(epoch)
 
         payload = json.dumps(cert_search_request, sort_keys=True)
         logger.debug('%s.find(): request: %s', type(self).__name__, payload)

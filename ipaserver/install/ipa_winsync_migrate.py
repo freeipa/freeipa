@@ -33,7 +33,6 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
 from ipaserver.install import replication, installutils
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +92,7 @@ class WinsyncMigrate(admintool.AdminTool):
                 "specified.")
         else:
             try:
-                api.Command['trust_show'](unicode(self.options.realm))
+                api.Command['trust_show'](str(self.options.realm))
             except errors.NotFound:
                 raise admintool.ScriptError(
                     "Trust with the given realm %s could not be found. "

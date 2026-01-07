@@ -35,8 +35,6 @@ import uuid
 import os
 
 
-unicode = str
-
 __doc__ = _("""
 OTP Tokens
 """) + _("""
@@ -88,7 +86,7 @@ class OTPTokenKey(Bytes):
                 raise PasswordMismatch(name=self.name)
             value = p1
 
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             if len(value) > MAX_OTPKEY_B32_CHARS:
                 raise ConversionError(name=self.name, error='OTP key is too large')
             try:

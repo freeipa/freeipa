@@ -148,9 +148,6 @@ def _is_null(value):
         return True
 
 
-unicode = str
-
-
 class DefaultFrom(ReadOnly):
     """
     Derive a default value from other supplied values.
@@ -440,7 +437,7 @@ class Param(ReadOnly):
         ('hint', (str, Gettext), None),
         ('alwaysask', bool, False),
         ('sortorder', int, 2), # see finalize()
-        ('option_group', unicode, None),
+        ('option_group', str, None),
         ('cli_metavar', str, None),
         ('no_convert', bool, False),
         ('deprecated', bool, False),
@@ -801,7 +798,7 @@ class Param(ReadOnly):
 
         >>> scalar = Str('my_scalar')
         >>> scalar.type
-        <type 'unicode'>
+        <type 'str'>
         >>> scalar.convert(43.2)
         '43.2'
 
@@ -843,7 +840,7 @@ class Param(ReadOnly):
             convert = self._convert_scalar
         else:
             def convert(value):
-                if isinstance(value, unicode):
+                if isinstance(value, str):
                     return value
                 return self._convert_scalar(value)
 
@@ -1081,7 +1078,7 @@ class Number(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (unicode, float, int):
+        if type(value) in (str, float, int):
             try:
                 return self.type(value)
             except ValueError:
@@ -1120,7 +1117,7 @@ class Int(Number):
         if type(value) is float:
             return int(value)
 
-        if type(value) is unicode:
+        if type(value) is str:
             if '.' in value:
                 return int(float(value))
             if re.match('0[0-9]+', value):
@@ -1277,7 +1274,7 @@ class Decimal(Number):
                 value = value.quantize(quantize_exp)
             except decimal.DecimalException as e:
                 raise ConversionError(name=self.get_param_name(),
-                                      error=unicode(e))
+                                      error=str(e))
         return value
 
     def _remove_exponent(self, value):
@@ -1291,7 +1288,7 @@ class Decimal(Number):
                         else value.normalize()
             except decimal.DecimalException as e:
                 raise ConversionError(name=self.get_param_name(),
-                                      error=unicode(e))
+                                      error=str(e))
 
         return value
 
@@ -1312,7 +1309,7 @@ class Decimal(Number):
                 value = decimal.Decimal(value)
             except decimal.DecimalException as e:
                 raise ConversionError(name=self.get_param_name(),
-                                      error=unicode(e))
+                                      error=str(e))
 
         if isinstance(value, decimal.Decimal):
             return self._test_and_normalize(value)
@@ -1456,7 +1453,7 @@ class Bytes(Data):
             return None
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             try:
                 value = base64.b64decode(value)
             except (TypeError, ValueError) as e:
@@ -1467,7 +1464,7 @@ class Bytes(Data):
 class Certificate(Param):
     type = crypto_x509.Certificate
     type_error = _('must be a certificate')
-    allowed_types = (IPACertificate, bytes, unicode)
+    allowed_types = (IPACertificate, bytes, str)
 
     def _convert_scalar(self, value, index=None):
         """
@@ -1481,8 +1478,8 @@ class Certificate(Param):
                 # value is possibly a DER-encoded certificate
                 pass
 
-        if isinstance(value, unicode):
-            # if we received unicodes right away or we got them after the
+        if isinstance(value, str):
+            # if we received strs right away or we got them after the
             # decoding, we will now try to receive DER-certificate
             try:
                 value = base64.b64decode(value)
@@ -1503,7 +1500,7 @@ class Certificate(Param):
 class CertificateSigningRequest(Param):
     type = crypto_x509.CertificateSigningRequest
     type_error = _('must be a certificate signing request')
-    allowed_types = (crypto_x509.CertificateSigningRequest, bytes, unicode)
+    allowed_types = (crypto_x509.CertificateSigningRequest, bytes, str)
 
     def __extract_der_from_input(self, value):
         """
@@ -1538,7 +1535,7 @@ class CertificateSigningRequest(Param):
         :returns:
             an object with the cryptography.CertificateSigningRequest interface
         """
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             try:
                 value = value.encode('ascii')
             except UnicodeDecodeError:
@@ -1560,7 +1557,7 @@ class CertificateSigningRequest(Param):
 
 class Str(Data):
     """
-    A parameter for Unicode text (stored in the ``unicode`` type).
+    A parameter for Unicode text (stored in the ``str`` type).
 
     This class is named *Str* instead of *Unicode* so it's aligned with the
     Python v3 ``(str, unicode) => (bytes, str)`` clean-up.  See:
@@ -1575,7 +1572,7 @@ class Str(Data):
         ('noextrawhitespace', bool, True),
     )
 
-    type = unicode
+    type = str
     type_error = _('must be Unicode text')
 
     def __init__(self, name, *rules, **kw):
@@ -1603,7 +1600,7 @@ class Str(Data):
         """
         Do not allow leading/trailing spaces.
         """
-        assert type(value) is unicode
+        assert type(value) is str
         if self.noextrawhitespace is False:
             return None
         if len(value) != len(value.strip()):
@@ -1615,7 +1612,7 @@ class Str(Data):
         """
         Check minlength constraint.
         """
-        assert type(value) is unicode
+        assert type(value) is str
         if len(value) < self.minlength:
             return _('must be at least %(minlength)d characters') % dict(
                 minlength=self.minlength,
@@ -1627,7 +1624,7 @@ class Str(Data):
         """
         Check maxlength constraint.
         """
-        assert type(value) is unicode
+        assert type(value) is str
         if len(value) > self.maxlength:
             return _('can be at most %(maxlength)d characters') % dict(
                 maxlength=self.maxlength,
@@ -1639,7 +1636,7 @@ class Str(Data):
         """
         Check length constraint.
         """
-        assert type(value) is unicode
+        assert type(value) is str
         if len(value) != self.length:
             return _('must be exactly %(length)d characters') % dict(
                 length=self.length,
@@ -1671,7 +1668,7 @@ class IA5Str(Str):
 
 class Password(Str):
     """
-    A parameter for passwords (stored in the ``unicode`` type).
+    A parameter for passwords (stored in the ``str`` type).
     """
 
     kwargs = Data.kwargs + (
@@ -1728,12 +1725,12 @@ class BytesEnum(Enum):
     Enumerable for binary data (stored in the ``str`` type).
     """
 
-    type = unicode
+    type = str
 
 
 class StrEnum(Enum):
     """
-    Enumerable for Unicode text (stored in the ``unicode`` type).
+    Enumerable for Unicode text (stored in the ``str`` type).
 
     For example:
 
@@ -1746,7 +1743,7 @@ class StrEnum(Enum):
     ValidationError: invalid 'my_enum': must be one of 'One', 'Two', 'Three'
     """
 
-    type = unicode
+    type = str
 
 
 class IntEnum(Enum):
@@ -1984,7 +1981,7 @@ class AccessTime(Str):
         return index
 
     def _check_generalized(self, t):
-        assert type(t) is unicode
+        assert type(t) is str
         if len(t) not in (10, 12, 14):
             raise ValueError('incomplete generalized time')
         if not t.isnumeric():
@@ -2110,7 +2107,7 @@ class DNSNameParam(Param):
     Domain name parameter type.
 
     :only_absolute a domain name has to be absolute
-        (makes it absolute from unicode input)
+        (makes it absolute from str input)
     :only_relative a domain name has to be relative
     """
     type = DNSName
@@ -2127,12 +2124,12 @@ class DNSNameParam(Param):
                              self.nice)
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             try:
                 validate_idna_domain(value)
             except ValueError as e:
                 raise ConversionError(name=self.get_param_name(),
-                                      error=unicode(e))
+                                      error=str(e))
             value = DNSName(value)
 
             if self.only_absolute and not value.is_absolute():
@@ -2176,10 +2173,10 @@ class Principal(Param):
 
     @property
     def allowed_types(self):
-        return (self.type, unicode)
+        return (self.type, str)
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             try:
                 value = kerberos.Principal(value)
             except ValueError:

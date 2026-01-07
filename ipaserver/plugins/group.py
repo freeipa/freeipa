@@ -48,8 +48,6 @@ from ipalib import errors
 from ipalib import output
 from ipapython.dn import DN
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 # Defined unconditionally so it is always bound: it is only assigned inside the
@@ -747,7 +745,7 @@ class group_remove_member(LDAPRemoveMember):
                     try:
                         actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
                     except errors.PublicError as e:
-                        failed_sids.append((sid, unicode(e)))
+                        failed_sids.append((sid, str(e)))
                     else:
                         sids.append(actual_sid)
             restore = []

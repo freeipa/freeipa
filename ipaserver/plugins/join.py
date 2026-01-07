@@ -30,8 +30,6 @@ __doc__ = _("""
 Joining an IPA domain
 """)
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 register = Registry()

@@ -54,8 +54,6 @@ from ipalib.util import (
 )
 
 
-unicode = str
-
 __doc__ = _("""
 Baseuser
 
@@ -117,7 +115,7 @@ def normalize_user_principal(value):
     lowercase_components = ((principal.username.lower(),) +
                             principal.components[1:])
 
-    return unicode(
+    return str(
         kerberos.Principal(lowercase_components, realm=principal.realm))
 
 
@@ -829,7 +827,7 @@ class baseuser_mod(LDAPUpdate):
         self.preserve_krbprincipalname_post(ldap, entry_attrs, **options)
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(getattr(context, 'randompassword'))
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass

@@ -32,8 +32,6 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
 from ipatests.util import MockLDAP, change_principal, unlock_principal_password
 import pytest
 
-unicode = str
-
 
 trustconfig_ad_config = DN(('cn', api.env.domain),
         api.env.container_cifsdomains, api.env.basedn)
@@ -155,7 +153,7 @@ class test_trustconfig(Declarative):
         dict(
             desc='Change primary fallback group back to "%s" using DN' % default_group,
             command=('trustconfig_mod', [], {'trust_type': 'ad',
-                 'ipantfallbackprimarygroup': unicode(default_group_dn)}),
+                 'ipantfallbackprimarygroup': str(default_group_dn)}),
             expected={
                 'value': 'ad',
                 'summary': 'Modified "ad" trust configuration',

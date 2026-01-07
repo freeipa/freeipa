@@ -39,8 +39,6 @@ from ipalib.text import _ as ugettext
 from ipalib.text import Gettext, NGettext
 from ipalib.capabilities import client_has_capability
 
-unicode = str
-
 def add_message(version, result, message):
     if client_has_capability(version, 'messages'):
         result.setdefault('messages', []).append(message.to_dict())
@@ -50,7 +48,7 @@ def process_message_arguments(obj, format=None, message=None, **kw):
     for key, value in kw.items():
         if not isinstance(value, int):
             try:
-                kw[key] = unicode(value)
+                kw[key] = str(value)
             except UnicodeError:
                 pass
     obj.kw = kw
@@ -76,18 +74,18 @@ def process_message_arguments(obj, format=None, message=None, **kw):
         if 'instructions' in kw:
             def convert_instructions(value):
                 if isinstance(value, list):
-                    result = '\n'.join(unicode(line) for line in value)
+                    result = '\n'.join(str(line) for line in value)
                     return result
                 return value
-            instructions = '\n'.join((unicode(_('Additional instructions:')),
+            instructions = '\n'.join((str(_('Additional instructions:')),
                                     convert_instructions(kw['instructions'])))
             obj.strerror = '\n'.join((obj.strerror, instructions))
     else:
         if isinstance(message, (Gettext, NGettext)):
-            message = unicode(message)
-        elif type(message) is not unicode:
+            message = str(message)
+        elif type(message) is not str:
             raise TypeError(
-                TYPE_ERROR % ('message', unicode, message, type(message))
+                TYPE_ERROR % ('message', str, message, type(message))
             )
         obj.forwarded = True
         obj.msg = message
@@ -120,8 +118,8 @@ class PublicMessage(UserWarning):
     def to_dict(self):
         """Export this message to a dict that can be sent through RPC"""
         return dict(
-            type=unicode(self.type),
-            name=unicode(type(self).__name__),
+            type=str(self.type),
+            name=str(type(self).__name__),
             message=self.strerror,
             code=self.errno,
             data=self.kw,

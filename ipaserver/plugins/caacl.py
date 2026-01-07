@@ -14,8 +14,6 @@ from .hbacrule import is_all
 from ipalib import _, ngettext
 from ipapython.dn import DN
 
-unicode = str
-
 __doc__ = _("""
 Manage CA ACL rules.
 

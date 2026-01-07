@@ -42,7 +42,6 @@ from ipapython.ipaldap import ldap_initialize
 from ipaplatform.paths import paths
 from ipaserver.install import installutils
 
-unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -1565,7 +1564,7 @@ class ReplicationManager:
 
         # delete DNS server configuration, if any
         try:
-            api.Command.dnsserver_del(unicode(replica))
+            api.Command.dnsserver_del(str(replica))
         except errors.NotFound:
             pass
         except Exception as e:

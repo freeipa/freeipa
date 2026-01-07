@@ -40,8 +40,6 @@ try:
 except ImportError:
     import http.client as httplib
 
-unicode = str
-
 logger = logging.getLogger(__name__)
 
 Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store_issued'])

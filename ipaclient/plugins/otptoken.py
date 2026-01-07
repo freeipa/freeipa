@@ -36,8 +36,6 @@ from io import StringIO
 import urllib.parse
 import urllib.request
 
-unicode = str
-
 register = Registry()
 
 
