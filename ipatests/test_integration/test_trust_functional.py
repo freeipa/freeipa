@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import time
 
+import pytest
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_trust import BaseTestTrust
@@ -329,20 +330,16 @@ class TestTrustFunctionalSudo(BaseTestTrust):
 
     def _run_sudo_command(self, host, command, username, password='Secret123',
                           expected_output=None, raiseonerr=True, timeout=60):
-        """
-        Run a sudo command using spawn_expect with proper error handling.
+        """Run a sudo command using spawn_expect with proper error handling.
 
-        Args:
-            host: Host to run the command on
-            command: Command to execute
-            username: Username for password prompt
-            password: Password to send
-            expected_output: Expected string in output (for assertion)
-            raiseonerr: Whether to raise on error
-            timeout: Timeout for expect_exit
-
-        Returns:
-            Output from the command
+        :param host: Host to run the command on
+        :param command: Command to execute
+        :param username: Username for password prompt
+        :param password: Password to send
+        :param expected_output: Expected string in output (for assertion)
+        :param raiseonerr: Whether to raise on error
+        :param timeout: Timeout for expect_exit
+        :returns: Output from the command
         """
         with host.spawn_expect(command) as e:
             e.expect(r'(?i).*Password for {}.*:'.format(username))
@@ -658,3 +655,1136 @@ class TestTrustFunctionalSudo(BaseTestTrust):
                                        raiseonerr=False)
         finally:
             self._cleanup_srule(srule)
+
+
+class TestTrustFunctionalUser(BaseTestTrust):
+    """
+    Test class for AD user functional tests covering both top domain
+    and subdomain users.
+
+    Tests cover: kinit, su, external group membership, home directory
+    access, and group membership verification.
+    """
+    topology = 'line'
+    num_ad_treedomains = 0
+
+    @classmethod
+    def install(cls, mh):
+        super(TestTrustFunctionalUser, cls).install(mh)
+        # Set fallback_homedir for AD users without home directory in AD.
+        with tasks.remote_sssd_config(cls.master) as sssd_conf:
+            sssd_conf.edit_domain(
+                cls.master.domain, 'fallback_homedir', '/home/%d/%u')
+        tasks.clear_sssd_cache(cls.master)
+
+    def _ad_principal(self, username, realm=False, domain=None):
+        if domain is None:
+            domain = self.ad_domain
+        suffix = domain.upper() if realm else domain.lower()
+        return f"{username}@{suffix}"
+
+    def _kinit_as_ad_admin(self, ad_host=None, domain=None):
+        """Kinit as AD admin for the given domain.
+
+        Sets up Kerberos credentials as the AD Administrator. Call
+        kdestroy_all and kinit_admin after the AD operation is complete.
+
+        :param ad_host: AD host object (default: self.ad)
+        :param domain: AD domain name (default: ad_host.domain.name)
+        :returns: tuple (ad_host, domain) with defaults applied
+        """
+        if ad_host is None:
+            ad_host = self.ad
+        if domain is None:
+            domain = ad_host.domain.name
+        admin = self.master.config.ad_admin_name
+        admin_principal = self._ad_principal(admin, realm=True, domain=domain)
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_as_user(
+            self.master, admin_principal,
+            self.master.config.ad_admin_password
+        )
+        return ad_host, domain
+
+    def _ad_user_add(self, username, password, ad_host=None, domain=None):
+        """Create a user account on the given AD DC and enable it.
+
+        :param username: sAMAccountName of the new user
+        :param password: initial password
+        :param ad_host: AD host object to create the user on (default: self.ad)
+        :param domain: AD domain name (default: self.ad_domain)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+        if domain is None:
+            domain = ad_host.domain.name
+        admin = self.master.config.ad_admin_name
+        ad_realm = domain.upper()
+        admin_principal = self._ad_principal(admin, realm=True, domain=domain)
+        ad_basedn = ','.join(f'DC={part}' for part in domain.split('.'))
+        ad_dirman = f"CN={admin},CN=Users,{ad_basedn}"
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_as_user(
+            self.master, admin_principal,
+            self.master.config.ad_admin_password
+        )
+        self.master.run_command(
+            ['kvno', f'kadmin/changepw@{ad_realm}'], raiseonerr=False)
+        self.master.run_command(
+            ['kvno', f'ldap/{ad_host.hostname}@{ad_realm}'], raiseonerr=False)
+
+        self.master.run_command([
+            'net', '--debuglevel=10', 'ads', 'user', 'add',
+            username, password, '-k', '-S', ad_host.hostname
+        ])
+
+        # net ads user add leaves the account disabled; set
+        # userAccountControl 512 (NORMAL_ACCOUNT) to enable it
+        ldif = (
+            f"dn: CN={username},CN=Users,{ad_basedn}\n"
+            f"changetype: modify\n"
+            f"replace: userAccountControl\n"
+            f"userAccountControl: 512\n"
+        )
+        self.master.run_command(
+            ['ldapmodify', '-Y', 'GSS-SPNEGO',
+             '-H', f'ldap://{ad_host.hostname}',
+             '-D', ad_dirman,
+             '-w', self.master.config.ad_admin_password],
+            stdin_text=ldif
+        )
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ad_user_mod(self, username, options, ad_host=None, domain=None):
+        """Run dsmod user on the given AD DC to modify an AD user account.
+
+        :param username: sAMAccountName of the user to modify
+        :param options: list of dsmod flags, e.g. ['-mustchpwd', 'yes']
+        :param ad_host: AD host object (default: self.ad)
+        :param domain: AD domain name (default: self.ad_domain)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+        if domain is None:
+            domain = ad_host.domain.name
+        ad_realm = domain.upper()
+        ad_basedn = ','.join(f'DC={part}' for part in ad_realm.split('.'))
+        ad_usercn = f"CN={username},CN=Users,{ad_basedn}"
+        ad_host.run_command(['dsmod', 'user', ad_usercn] + options)
+
+    def _ad_user_del(self, username, ad_host=None, domain=None):
+        """Delete a user account from the given AD DC.
+
+        :param username: sAMAccountName of the user to delete
+        :param ad_host: AD host object (default: self.ad)
+        :param domain: AD domain name (default: self.ad_domain)
+        """
+        ad_host, domain = self._kinit_as_ad_admin(ad_host, domain)
+        self.master.run_command([
+            'net', 'ads', 'user', 'delete', username,
+            '-k', '-S', ad_host.hostname
+        ], raiseonerr=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ad_group_add(self, groupname, ad_host=None, domain=None):
+        """Create a group on the given AD DC.
+
+        :param groupname: sAMAccountName of the new group
+        :param ad_host: AD host object (default: self.ad)
+        :param domain: AD domain name (default: self.ad_domain)
+        """
+        ad_host, domain = self._kinit_as_ad_admin(ad_host, domain)
+        self.master.run_command([
+            'net', 'ads', 'group', 'add', groupname,
+            '-k', '-S', ad_host.hostname
+        ])
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ad_group_add_member(self, groupname, username, ad_host=None):
+        """Add a user to an AD group.
+
+        :param groupname: sAMAccountName of the group
+        :param username: sAMAccountName of the user to add
+        :param ad_host: AD host object (default: self.ad)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+
+        ps_cmd = (
+            'Add-ADGroupMember -Identity "{}" -Members "{}"'
+            .format(groupname, username)
+        )
+        ad_host.run_command(['powershell', '-c', ps_cmd])
+
+    def _ad_group_del(self, groupname, ad_host=None, domain=None):
+        """Delete a group from the given AD DC.
+
+        :param groupname: sAMAccountName of the group to delete
+        :param ad_host: AD host object (default: self.ad)
+        :param domain: AD domain name (default: self.ad_domain)
+        """
+        ad_host, domain = self._kinit_as_ad_admin(ad_host, domain)
+        self.master.run_command([
+            'net', 'ads', 'group', 'delete', groupname,
+            '-k', '-S', ad_host.hostname
+        ], raiseonerr=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ensure_ad_group_member(self, ad_host, groupname, username):
+        """Ensure AD group exists and user is a member.
+
+        Creates the group if it doesn't exist and adds the user if not
+        already a member.
+
+        :param ad_host: AD host object
+        :param groupname: sAMAccountName of the group
+        :param username: sAMAccountName of the user to add
+        :returns: tuple (ad_host, groupname) if group was created,
+            None otherwise
+        """
+        ad_host = self._kinit_as_ad_admin(ad_host)[0]
+
+        # Try to create group (will fail if exists, which is fine)
+        result = self.master.run_command([
+            'net', 'ads', 'group', 'add', groupname,
+            '-k', '-S', ad_host.hostname
+        ], raiseonerr=False)
+
+        group_created = None
+        if result.returncode == 0:
+            group_created = (ad_host, groupname)
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        # Check if user is already a member (using PowerShell since
+        # 'net ads group members' is not available)
+        ps_check_member = (
+            'Get-ADGroupMember -Identity "{}" | '
+            'Where-Object {{$_.SamAccountName -eq "{}"}}'
+            .format(groupname, username)
+        )
+        result = ad_host.run_command(
+            ['powershell', '-c', ps_check_member], raiseonerr=False
+        )
+
+        if not result.stdout_text.strip():
+            self._ad_group_add_member(groupname, username, ad_host=ad_host)
+
+        return group_created
+
+    def _expect_password_change_prompts(self, e, current_password,
+                                        new_password, timeout=15):
+        """Drive the current->new->confirm password-change prompt sequence.
+
+        Handles the three-step interactive password-change dialogue that
+        both SSH forced-change and passwd in-session flows share:
+        current password prompt, new password prompt, confirm prompt.
+
+        :param e: the active spawn_expect context
+        :param current_password: the user's current password
+        :param new_password: the desired new password
+        :param timeout: timeout in seconds for each expect (default 15)
+        """
+        e.expect(r'(?i)current password:', timeout=timeout)
+        e.sendline(current_password)
+        e.expect(r'(?i).*password.*:', timeout=timeout)
+        e.sendline(new_password)
+        e.expect(r'(?i).*password.*:', timeout=timeout)
+        e.sendline(new_password)
+
+    def _passwd_change_with_retry(self, user_fqdn, current_password,
+                                  new_password, max_retries=5):
+        """Change password via passwd command with retry logic.
+
+        :param user_fqdn: fully qualified user (e.g. user@domain)
+        :param current_password: the user's current password
+        :param new_password: the desired new password
+        :param max_retries: number of retry attempts (default 5)
+        :raises: pytest.fail if password change fails after all retries
+        """
+        passwd_cmd = f"su - {user_fqdn} -c passwd"
+        last_output = ""
+
+        for _attempt in range(max_retries):
+            with self.clients[0].spawn_expect(passwd_cmd) as e:
+                self._expect_password_change_prompts(
+                    e, current_password, new_password
+                )
+                e.expect_exit(ignore_remaining_output=True, raiseonerr=False)
+                last_output = e.before if e.before else ""
+
+            if "password updated successfully" in last_output:
+                return
+            time.sleep(2)
+
+        pytest.fail(
+            f"Password change for {user_fqdn} failed after "
+            f"{max_retries} attempts. Last output: {last_output}"
+        )
+
+    def test_setup(self):
+        """Setup trust for user functional tests."""
+        tasks.configure_dns_for_trust(self.master, self.ad)
+        tasks.establish_trust_with_ad(
+            self.master, self.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+        tasks.kinit_admin(self.master)
+
+        # Enable automatic home directory creation for AD users
+        # Requires both authselect feature AND oddjobd service running
+        for host in [self.master] + self.clients:
+            host.run_command(
+                ['authselect', 'enable-feature', 'with-mkhomedir']
+            )
+            host.run_command(
+                ['systemctl', 'enable', '--now', 'oddjobd']
+            )
+
+    def test_kinit_realm_case(self):
+        """Test kinit with both uppercase and lowercase realm for AD users.
+
+        Kerberos realm names are case-insensitive, so kinit should succeed
+        regardless of whether the realm is specified in uppercase or lowercase.
+        """
+        for user, domain in [
+            (self.aduser, self.ad_domain),
+            (self.subaduser, self.ad_subdomain)
+        ]:
+            for realm in [domain.upper(), domain.lower()]:
+                tasks.kdestroy_all(self.clients[0])
+                result = self.clients[0].run_command(
+                    ['kinit', f'{user.split("@", maxsplit=1)[0]}@{realm}'],
+                    stdin_text='Secret123\n'
+                )
+                assert result.returncode == 0, f"kinit failed for {realm}"
+
+    def test_kinit_canonical(self):
+        """Test kinit with canonicalization flag for AD users."""
+        tasks.kdestroy_all(self.clients[0])
+        for user in [self.aduser, self.subaduser]:
+            result = self.clients[0].run_command(
+                ['kinit', '-C', user],
+                stdin_text='Secret123\n'
+            )
+            assert result.returncode == 0
+
+    def test_kinit_netbios_fails(self):
+        """
+        Test kinit with netbios format fails for AD users.
+
+        Kinit using NETBIOS\\user format is not supported and should fail.
+        """
+        tasks.kdestroy_all(self.clients[0])
+        # Get netbios names from domain (first part uppercase)
+        ad_netbios = self.ad_domain.split('.')[0].upper()
+        sub_netbios = self.ad_subdomain.split('.')[0].upper()
+        username = self.aduser.split('@', maxsplit=1)[0]
+        subusername = self.subaduser.split('@', maxsplit=1)[0]
+
+        for netbios, user in [
+            (ad_netbios, username),
+            (sub_netbios, subusername)
+        ]:
+            result = self.clients[0].run_command(
+                ['kinit', f'{netbios}\\{user}'],
+                stdin_text='Secret123\n',
+                raiseonerr=False
+            )
+            assert result.returncode != 0
+
+    def test_kinit_disabled_account(self):
+        """
+        Test kinit fails for disabled AD accounts.
+        Related: BZ1162486, test 0006
+
+        Uses pre-existing disabled users:
+        - disabledaduser in forest root
+        - subdomaindisabledadu (self.subaduser2) in subdomain
+        """
+        disabled_users = [
+            f"disabledaduser@{self.ad_domain}",
+            self.subaduser2,
+        ]
+
+        for disabled_user in disabled_users:
+            tasks.kdestroy_all(self.clients[0])
+            tasks.clear_sssd_cache(self.clients[0])
+
+            result = self.clients[0].run_command(
+                ['kinit', disabled_user],
+                stdin_text='Secret123\n',
+                raiseonerr=False
+            )
+            output = f"{result.stdout_text}{result.stderr_text}"
+            assert result.returncode != 0, (
+                f"kinit should fail for disabled user {disabled_user}"
+            )
+            assert (
+                "credentials have been revoked" in output
+                or "locked" in output.lower()
+            ), f"Expected 'revoked' or 'locked' in output for {disabled_user}"
+
+    def test_kinit_expired_account(self):
+        """
+        Test kinit fails for expired AD accounts.
+        Related: test 0007
+        """
+        test_user = "expiredtestuser"
+        test_password = "Passw0rd1"
+
+        for ad_host, ad_domain in [
+            (self.ad, self.ad_domain),
+            (self.child_ad, self.ad_subdomain)
+        ]:
+            try:
+                self._ad_user_add(test_user, "Secret123", ad_host)
+                self._ad_user_mod(
+                    test_user,
+                    ['-pwd', test_password, '-acctexpires', '-1'],
+                    ad_host=ad_host
+                )
+
+                tasks.kdestroy_all(self.clients[0])
+                tasks.clear_sssd_cache(self.clients[0])
+
+                expired_user = f"{test_user}@{ad_domain}"
+                result = self.clients[0].run_command(
+                    ['kinit', expired_user],
+                    stdin_text=f'{test_password}\n',
+                    raiseonerr=False
+                )
+                output = f"{result.stdout_text}{result.stderr_text}"
+                assert result.returncode != 0, (
+                    f"kinit should fail for {ad_domain}"
+                )
+                assert "credentials have been revoked" in output, (
+                    f"Expected 'revoked' or 'expired' in output "
+                    f"for {ad_domain}"
+                )
+            finally:
+                self._ad_user_del(test_user, ad_host)
+
+    def test_su_ad_user(self):
+        """Test su to AD users from top and sub domains."""
+        for user, domain in [
+            (self.aduser, self.ad_domain),
+            (self.subaduser, self.ad_subdomain)
+        ]:
+            username = user.split('@', maxsplit=1)[0]
+            for realm in [domain.upper(), domain.lower()]:
+                result = self.clients[0].run_command(
+                    ['su', '-', f'{username}@{realm}', '-c', 'whoami']
+                )
+                output = result.stdout_text.strip()
+                # whoami returns fully qualified name for AD trust users
+                assert output == f'{username}@{domain}'
+
+    def test_passwd_change_by_user(self):
+        """
+        Test AD user can change their own password.
+        Related: BZ870238, test 0010 (root) and sub_0010 (child)
+        """
+        test_user = "passwdtestuser"
+        current_password = "Passw0rd1"
+        new_password = "Dec3@4smsS3"
+
+        for ad_host, ad_domain in [
+            (self.ad, self.ad_domain),
+            (self.child_ad, self.ad_subdomain),
+        ]:
+            try:
+                # Set MinPasswordAge to 0 to allow immediate password change
+                ad_host.run_command([
+                    'powershell', '-c',
+                    f'Set-ADDefaultDomainPasswordPolicy '
+                    f'-Identity "{ad_domain}" -MinPasswordAge 0'
+                ])
+
+                # Create user directly with current_password
+                self._ad_user_add(test_user, current_password, ad_host)
+                self._ad_user_mod(
+                    test_user,
+                    ['-pwdneverexpires', 'yes', '-canchpwd', 'yes'],
+                    ad_host=ad_host
+                )
+
+                tasks.clear_sssd_cache(self.clients[0])
+                user_fqdn = f"{test_user}@{ad_domain}"
+                self.clients[0].run_command(['id', user_fqdn])
+
+                self._passwd_change_with_retry(
+                    user_fqdn, current_password, new_password
+                )
+
+                tasks.kdestroy_all(self.clients[0])
+                self.clients[0].run_command(
+                    ['kinit', user_fqdn], stdin_text=f'{new_password}\n'
+                )
+            finally:
+                self._ad_user_del(test_user, ad_host)
+                # Restore MinPasswordAge to 1 day
+                ad_host.run_command([
+                    'powershell', '-c',
+                    f'Set-ADDefaultDomainPasswordPolicy '
+                    f'-Identity "{ad_domain}" -MinPasswordAge 1.00:00:00'
+                ], raiseonerr=False)
+
+    def test_homedir_access_commands(self):
+        """Test home directory access commands for AD users."""
+        tasks.clear_sssd_cache(self.clients[0])
+        for user in [self.aduser, self.subaduser]:
+            username = user.split('@', maxsplit=1)[0]
+            domain = user.split('@', maxsplit=1)[1]
+            # pwd
+            tasks.clear_sssd_cache(self.clients[0])
+            result = self.clients[0].run_command(
+                ['su', '-', user, '-c', 'pwd']
+            )
+            assert f'/home/{domain}/{username}' in result.stdout_text
+            # mkdir and file operations
+            testdir = f'testdir_{username}'
+            self.clients[0].run_command(
+                ['su', '-', user, '-c', f'mkdir -p {testdir}']
+            )
+            self.clients[0].run_command(
+                ['su', '-', user, '-c', f'date > {testdir}/date.txt']
+            )
+            result = self.clients[0].run_command(
+                ['su', '-', user, '-c', f'cat {testdir}/date.txt']
+            )
+            assert len(result.stdout_text) > 0
+            # ls -l
+            result = self.clients[0].run_command(
+                ['su', '-', user, '-c', f'ls -l {testdir}/date.txt']
+            )
+            assert user in result.stdout_text
+
+    def test_add_ad_user_to_external_group(self):
+        """Test adding AD users to external group."""
+        ext_group = "user_ext_group"
+        tasks.kinit_admin(self.master)
+        try:
+            tasks.group_add(
+                self.master, ext_group, extra_args=["--external"]
+            )
+            for user in [self.aduser, self.subaduser]:
+                tasks.group_add_member(
+                    self.master, ext_group,
+                    extra_args=['--external', user],
+                    noninteractive=True
+                )
+                result = self.master.run_command(
+                    ['ipa', 'group-show', ext_group]
+                )
+                assert user in result.stdout_text
+        finally:
+            tasks.group_del(self.master, ext_group)
+
+    def test_remove_ad_user_from_external_group(self):
+        """Test removing AD users from external group."""
+        ext_group = "user_ext_group_del"
+        tasks.kinit_admin(self.master)
+        try:
+            tasks.group_add(
+                self.master, ext_group, extra_args=["--external"]
+            )
+            for user in [self.aduser, self.subaduser]:
+                tasks.group_add_member(
+                    self.master, ext_group,
+                    extra_args=['--external', user],
+                    noninteractive=True
+                )
+                self.master.run_command([
+                    'ipa', '-n', 'group-remove-member', ext_group,
+                    '--external', user
+                ])
+                result = self.master.run_command(
+                    ['ipa', 'group-show', ext_group]
+                )
+                assert user not in result.stdout_text
+        finally:
+            tasks.group_del(self.master, ext_group)
+
+    def test_add_ad_group_to_external_group(self):
+        """Test adding AD groups to IPA external group."""
+        ext_group = "grp_ext_group"
+        tasks.kinit_admin(self.master)
+        try:
+            tasks.group_add(
+                self.master, ext_group, extra_args=["--external"]
+            )
+            for ad_grp in [self.ad_group, self.ad_sub_group]:
+                tasks.group_add_member(
+                    self.master, ext_group,
+                    extra_args=['--external', ad_grp],
+                    noninteractive=True
+                )
+                result = self.master.run_command(
+                    ['ipa', 'group-show', ext_group]
+                )
+                assert ad_grp in result.stdout_text
+        finally:
+            tasks.group_del(self.master, ext_group)
+
+    def test_remove_ad_group_from_external_group(self):
+        """Test removing AD groups from IPA external group."""
+        ext_group = "grp_ext_group_del"
+        tasks.kinit_admin(self.master)
+        try:
+            tasks.group_add(
+                self.master, ext_group, extra_args=["--external"]
+            )
+            for ad_grp in [self.ad_group, self.ad_sub_group]:
+                tasks.group_add_member(
+                    self.master, ext_group,
+                    extra_args=['--external', ad_grp],
+                    noninteractive=True
+                )
+                self.master.run_command([
+                    'ipa', '-n', 'group-remove-member', ext_group,
+                    '--external', ad_grp
+                ])
+                result = self.master.run_command(
+                    ['ipa', 'group-show', ext_group]
+                )
+                assert ad_grp not in result.stdout_text
+        finally:
+            tasks.group_del(self.master, ext_group)
+
+    def test_child_user_in_forest_group(self):
+        """
+        Test that users appear in their respective domain groups.
+
+        Verifies that SSSD can resolve users and groups from both root domain
+        and child domain in a transitive trust.
+
+        testgroup (self.ad_group) contains:
+        - testuser (root domain)
+
+        subdomaintestgroup (self.ad_sub_group) contains:
+        - subdomaintestuser (self.subaduser)
+
+        Related: BZ1002597, BZ1171382
+        """
+        tasks.clear_sssd_cache(self.clients[0])
+        time.sleep(60)
+
+        testuser = f"testuser@{self.ad_domain}"
+
+        # SSH with password to resolve users via PAM/SSSD
+        for user in [self.subaduser, testuser]:
+            self._ssh_with_password(
+                user, self.clients[0].hostname, 'Secret123'
+            )
+        # Wait for SSSD to process membership
+        time.sleep(10)
+        # Resolve both users
+        for user in [self.subaduser, testuser]:
+            self.clients[0].run_command(['id', user])
+        # Wait for group membership resolution
+        time.sleep(5)
+
+        # Check root domain: testuser in testgroup
+        result = self.clients[0].run_command(
+            ['getent', 'group', self.ad_group]
+        )
+        assert testuser in result.stdout_text, (
+            f"Root domain user {testuser} not found in "
+            f"group output: {result.stdout_text}"
+        )
+
+        # Check child domain: subdomaintestuser in subdomaintestgroup
+        result = self.clients[0].run_command(
+            ['getent', 'group', self.ad_sub_group]
+        )
+        assert self.subaduser in result.stdout_text, (
+            f"Subdomain user {self.subaduser} not found in "
+            f"group output: {result.stdout_text}"
+        )
+
+    @pytest.mark.skip(reason="SSSD regression, fix pending: "
+                      "https://github.com/SSSD/sssd/pull/8442")
+    def test_ad_user_in_posix_group_fully_qualified(self):
+        """
+        Test that AD users in IPA posix group are shown fully qualified.
+
+        Tests both top domain and subdomain AD users are displayed with
+        fully qualified names when added to IPA external/posix groups.
+
+        Related: BZ877126, BZ1171383
+        """
+        ext_group = "tgroup5_external"
+        posix_group = "tgroup5"
+
+        # Test both top domain and subdomain users
+        test_cases = [
+            ([self.aduser, self.aduser2], "top domain"),
+            ([self.subaduser, self.subaduser2], "subdomain"),
+        ]
+
+        for users, domain_desc in test_cases:
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_admin(self.master)
+            # Setup on master
+            tasks.clear_sssd_cache(self.master)
+            for user in users:
+                self.master.run_command(['id', user], raiseonerr=False)
+
+            try:
+                tasks.group_add(
+                    self.master, ext_group, extra_args=["--external"]
+                )
+                tasks.group_add(self.master, posix_group)
+                tasks.group_add_member(
+                    self.master, posix_group,
+                    extra_args=[f'--groups={ext_group}']
+                )
+                for user in users:
+                    tasks.group_add_member(
+                        self.master, ext_group,
+                        extra_args=[f'--external={user}'],
+                        noninteractive=True
+                    )
+                time.sleep(60)
+
+                # Test on client
+                tasks.clear_sssd_cache(self.clients[0])
+                time.sleep(60)
+                # SSH with password to resolve users
+                for user in users:
+                    self._ssh_with_password(
+                        user, self.clients[0].hostname, 'Secret123'
+                    )
+                # Clear cache again
+                tasks.clear_sssd_cache(self.clients[0])
+                time.sleep(60)
+                # Resolve users
+                for user in users:
+                    self.clients[0].run_command(['id', user])
+                # Check group membership
+                result = self.clients[0].run_command(
+                    ['getent', 'group', posix_group]
+                )
+                for user in users:
+                    assert user in result.stdout_text, (
+                        f"{domain_desc} user {user} not found in "
+                        f"group output: {result.stdout_text}"
+                    )
+            finally:
+                tasks.kdestroy_all(self.master)
+                tasks.kinit_admin(self.master)
+                self.master.run_command(
+                    ['ipa', 'group-del', posix_group], raiseonerr=False
+                )
+                self.master.run_command(
+                    ['ipa', 'group-del', ext_group], raiseonerr=False
+                )
+
+    def test_ad_user_in_multiple_groups(self):
+        """
+        Test that AD users appear in multiple AD groups.
+
+        Tests that getent commands display secondary groups for trusted AD
+        users from both top domain and subdomain. Each user should belong
+        to groups from their own domain.
+
+        Related: BZ878583
+        """
+        # AD users and groups (from AD config)
+        ad_user = 'testuser'
+        ad_primary_group = 'testgroup'
+        ad_secondary_group = 'testgroup1'
+
+        child_user = 'subdomaintestuser'
+        child_primary_group = 'subdomaintestgroup'
+        child_secondary_group = 'subdomaintestgroup1'
+
+        # Secondary groups to ensure exist with their users
+        secondary_groups = [
+            (self.ad, ad_secondary_group, ad_user),
+            (self.child_ad, child_secondary_group, child_user),
+        ]
+        groups_created = []
+
+        try:
+            for ad_host, group, user in secondary_groups:
+                created = self._ensure_ad_group_member(ad_host, group, user)
+                if created:
+                    groups_created.append(created)
+
+            tasks.clear_sssd_cache(self.clients[0])
+
+            # Test cases: (user, domain, expected_groups)
+            test_cases = [
+                (
+                    ad_user,
+                    self.ad_domain,
+                    [ad_primary_group, ad_secondary_group]
+                ),
+                (
+                    child_user,
+                    self.ad_subdomain,
+                    [child_primary_group, child_secondary_group]
+                ),
+            ]
+
+            for user, domain, expected_groups in test_cases:
+                user_fqdn = f'{user}@{domain}'
+                self._ssh_with_password(
+                    user_fqdn, self.clients[0].hostname, 'Secret123'
+                )
+                time.sleep(10)
+
+                for group in expected_groups:
+                    group_fqdn = f'{group}@{domain}'
+                    result = self.clients[0].run_command(
+                        ['getent', 'group', group_fqdn]
+                    )
+                    assert user_fqdn in result.stdout_text, (
+                        f"User {user_fqdn} not found in group {group_fqdn}"
+                    )
+        finally:
+            for ad_host, group in groups_created:
+                self._ad_group_del(group, ad_host=ad_host)
+
+    def test_group_find_external(self):
+        """
+        Test group-find with --external option.
+
+        Tests that group-find command has option for filtering
+        groups by type (external).
+
+        Related: BZ952754
+        """
+        ext_group = "tgroup100_ext"
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+        try:
+            tasks.group_add(
+                self.master, ext_group, extra_args=["--external"]
+            )
+            result = self.master.run_command(
+                ['ipa', 'group-find', '--external']
+            )
+            assert ext_group in result.stdout_text, (
+                f"Group {ext_group} not found in group-find --external output"
+            )
+        finally:
+            self.master.run_command(
+                ['ipa', 'group-del', ext_group], raiseonerr=False
+            )
+
+    def test_group_find_posix(self):
+        """
+        Test group-find with --posix option.
+
+        Tests that group-find command has option for filtering
+        groups by type (posix).
+
+        Related: BZ952754
+        """
+        posix_group = "tgroup100_posix"
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+        try:
+            tasks.group_add(self.master, posix_group)
+            result = self.master.run_command(
+                ['ipa', 'group-find', '--posix']
+            )
+            assert posix_group in result.stdout_text, (
+                f"Group {posix_group} not found in group-find --posix output"
+            )
+        finally:
+            self.master.run_command(
+                ['ipa', 'group-del', posix_group], raiseonerr=False
+            )
+
+    def test_passwd_change_by_root_not_supported(self):
+        """
+        Test that password change by root for AD users is not supported.
+
+        Related: BZ870238
+        """
+        # Check if sss is the first provider in nsswitch.conf for passwd
+        # If sss is not first, SSSD is not reached and test is meaningless
+        result = self.clients[0].run_command(
+            ['grep', '^passwd:', '/etc/nsswitch.conf']
+        )
+        passwd_line = result.stdout_text.strip()
+        # Extract providers after 'passwd:' and check if sss is first
+        if ':' in passwd_line:
+            providers = passwd_line.split(':')[1].split()
+        else:
+            providers = []
+        if not providers or providers[0] != 'sss':
+            pytest.skip("sss is not the first provider in nsswitch.conf")
+
+        for user in [self.aduser, self.subaduser]:
+            # Ensure user is resolved in SSSD first
+            self.clients[0].run_command(['id', user])
+            result = self.clients[0].run_command(
+                ['passwd', user], raiseonerr=False
+            )
+            output = f"{result.stdout_text}{result.stderr_text}"
+            assert (
+                "Password reset by root is not supported" in output
+            )
+
+    def test_external_group_getgrnam_getgrgid(self):
+        """
+        Test external groups work with getgrnam/getgrgid in server mode.
+
+        Creates an external group with AD group as member, then creates
+        posix groups that include the external group. Verifies that AD
+        users appear correctly in both posix groups via id and getent.
+
+        Related: BZ1162486
+        """
+        ext_group = "bz1162486_external"
+        posix_group1 = "bz1162486_1"
+        posix_group2 = "bz1162486_2"
+        testuser = f"testuser@{self.ad_domain}"
+        ad_group = f"domain users@{self.ad_domain}"
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        # Clear SSSD cache on master first (as in bash test)
+        tasks.clear_sssd_cache(self.master)
+
+        try:
+            # Create external group and posix groups
+            tasks.group_add(
+                self.master, ext_group, extra_args=['--desc=0', '--external']
+            )
+            tasks.group_add(self.master, posix_group1, extra_args=['--desc=0'])
+            tasks.group_add(self.master, posix_group2, extra_args=['--desc=0'])
+            # Add external group as member of posix groups
+            tasks.group_add_member(
+                self.master, posix_group1, extra_args=[f'--groups={ext_group}']
+            )
+            tasks.group_add_member(
+                self.master, posix_group2, extra_args=[f'--groups={ext_group}']
+            )
+            # Add AD group as external member
+            tasks.group_add_member(
+                self.master, ext_group,
+                extra_args=[f'--external={ad_group}'],
+                noninteractive=True
+            )
+
+            # Show groups to verify setup (as in bash test)
+            self.master.run_command(['ipa', 'group-show', ext_group])
+            self.master.run_command(['ipa', 'group-show', posix_group1])
+            self.master.run_command(['ipa', 'group-show', posix_group2])
+            time.sleep(5)
+
+            # Clear SSSD cache on client and wait
+            tasks.clear_sssd_cache(self.clients[0])
+            time.sleep(60)
+
+            # Retry loop: wait up to 120 seconds for user to be resolvable
+            for _retry in range(12):
+                result = self.clients[0].run_command(
+                    ['id', testuser], raiseonerr=False
+                )
+                if result.returncode == 0:
+                    break
+                time.sleep(10)
+
+            # Check user appears in both posix groups via id
+            result = self.clients[0].run_command(['id', testuser])
+            assert posix_group1 in result.stdout_text, (
+                f"Group {posix_group1} not in id output: {result.stdout_text}"
+            )
+            assert posix_group2 in result.stdout_text, (
+                f"Group {posix_group2} not in id output: {result.stdout_text}"
+            )
+            assert "domain users" in result.stdout_text, (
+                f"domain users not in id output: {result.stdout_text}"
+            )
+
+            # Check getent group shows the user
+            for grp in [posix_group1, posix_group2]:
+                result = self.clients[0].run_command(['getent', 'group', grp])
+                assert testuser in result.stdout_text, (
+                    f"User {testuser} not in getent group {grp}: "
+                    f"{result.stdout_text}"
+                )
+
+            # Verify again after brief wait (as in bash test)
+            time.sleep(5)
+            for grp in [posix_group1, posix_group2]:
+                self.clients[0].run_command(['getent', 'group', grp])
+            time.sleep(5)
+            result = self.clients[0].run_command(['id', testuser])
+            assert posix_group1 in result.stdout_text
+            assert posix_group2 in result.stdout_text
+            assert "domain users" in result.stdout_text
+
+        finally:
+            tasks.kinit_admin(self.master)
+            for grp in [posix_group1, posix_group2, ext_group]:
+                self.master.run_command(
+                    ['ipa', 'group-del', grp], raiseonerr=False
+                )
+
+    def test_sid_resolution_uncached(self):
+        """
+        Test SID resolution for users/groups not in cache.
+
+        Verifies that SIDs can be resolved to names even when the
+        user or group is not yet cached in SSSD.
+
+        Related: BZ1185188
+        """
+        # Install required package for SID resolution
+        self.clients[0].run_command(
+            ['yum', 'install', '-y', 'python3-libsss_nss_idmap']
+        )
+
+        testuser = f"testuser@{self.ad_domain}"
+        testgroup = f"testgroup@{self.ad_domain}"
+
+        # Get SIDs for user and group
+        # getsidbyname returns dict like {'u': {'sid': 'S-1-...', 'type': N}}
+        # We need to extract just the SID string
+        result = self.clients[0].run_command([
+            'python3', '-c',
+            f"import pysss_nss_idmap; "
+            f"d = pysss_nss_idmap.getsidbyname('{testuser}'); "
+            f"print(d['{testuser}']['sid'])"
+        ])
+        user_sid = result.stdout_text.strip()
+
+        result = self.clients[0].run_command([
+            'python3', '-c',
+            f"import pysss_nss_idmap; "
+            f"d = pysss_nss_idmap.getsidbyname('{testgroup}'); "
+            f"print(d['{testgroup}']['sid'])"
+        ])
+        group_sid = result.stdout_text.strip()
+
+        # Clear SSSD cache
+        tasks.clear_sssd_cache(self.clients[0])
+        time.sleep(5)
+
+        # Resolve SIDs back to names
+        # getnamebysid returns dict like {'S-1-...': {'name': 'u', 'type': N}}
+        result = self.clients[0].run_command([
+            'python3', '-c',
+            f"import pysss_nss_idmap; "
+            f"print(pysss_nss_idmap.getnamebysid('{user_sid}'))"
+        ], raiseonerr=False)
+        assert testuser in result.stdout_text, (
+            f"User {testuser} not resolved from SID: {result.stdout_text}"
+        )
+
+        result = self.clients[0].run_command([
+            'python3', '-c',
+            f"import pysss_nss_idmap; "
+            f"print(pysss_nss_idmap.getnamebysid('{group_sid}'))"
+        ], raiseonerr=False)
+        assert testgroup in result.stdout_text, (
+            f"Group {testgroup} not resolved from SID: {result.stdout_text}"
+        )
+
+    def test_initgroups_unauthenticated_ad_users(self):
+        """
+        Test initgroups for unauthenticated AD users.
+
+        Verifies that all AD user group memberships are shown without
+        requiring authentication first.
+
+        Related: BZ1030699, BZ1168378
+        """
+        ext_group = "bz1030699_external"
+        posix_group = "bz1030699"
+        testuser = f"testuser@{self.ad_domain}"
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        try:
+            # Create external group and posix group
+            tasks.group_add(
+                self.master, ext_group, extra_args=['--desc=0', '--external']
+            )
+            tasks.group_add(self.master, posix_group, extra_args=['--desc=0'])
+            # Add external group as member of posix group
+            tasks.group_add_member(
+                self.master, posix_group, extra_args=[f'--groups={ext_group}']
+            )
+            # Add AD user as external member
+            tasks.group_add_member(
+                self.master, ext_group,
+                extra_args=[f'--external={testuser}'],
+                noninteractive=True
+            )
+
+            # Clear SSSD cache on master
+            tasks.clear_sssd_cache(self.master)
+            time.sleep(5)
+
+            # Check on master without prior authentication
+            result = self.master.run_command(['id', testuser])
+            assert posix_group in result.stdout_text, (
+                f"Group {posix_group} not in id output: {result.stdout_text}"
+            )
+            assert "domain users" in result.stdout_text, (
+                f"domain users not in id output: {result.stdout_text}"
+            )
+
+            # Clear SSSD cache on client
+            tasks.clear_sssd_cache(self.clients[0])
+            time.sleep(5)
+
+            # Check on client without prior authentication
+            result = self.clients[0].run_command(['id', testuser])
+            assert posix_group in result.stdout_text, (
+                f"Group {posix_group} not in id output: {result.stdout_text}"
+            )
+            assert "domain users" in result.stdout_text, (
+                f"domain users not in id output: {result.stdout_text}"
+            )
+
+        finally:
+            tasks.kinit_admin(self.master)
+            for grp in [posix_group, ext_group]:
+                self.master.run_command(
+                    ['ipa', 'group-del', grp], raiseonerr=False
+                )
+
+    def test_group_memberships_resolve_ad_users(self):
+        """
+        Test group memberships resolve for AD users from top and subdomain.
+
+        Verifies that group memberships resolve correctly for AD users
+        when using SSSD client in combination with IPA server with AD trust.
+
+        Related: BZ1280207
+        """
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        # Test cases: user and expected group
+        test_cases = [
+            (f"testuser@{self.ad_domain}", f"testgroup@{self.ad_domain}"),
+            (f"subdomaintestuser@{self.ad_subdomain}",
+             f"subdomaintestgroup@{self.ad_subdomain}"),
+        ]
+
+        for user, expected_group in test_cases:
+            result = self.clients[0].run_command(['id', user])
+            assert expected_group in result.stdout_text, (
+                f"Group {expected_group} not found for user {user}: "
+                f"{result.stdout_text}"
+            )
