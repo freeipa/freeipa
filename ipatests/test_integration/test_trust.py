@@ -6,12 +6,10 @@ import re
 import textwrap
 import time
 import functools
-
 import pytest
 
 from ipaplatform.constants import constants as platformconstants
 from ipaplatform.paths import paths
-
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration import fips
@@ -184,6 +182,90 @@ class BaseTestTrust(IntegrationTest):
         ], raiseonerr=False)
         tasks.kdestroy_all(self.master)
         tasks.kinit_admin(self.master)
+
+    def _ad_group_add_member(self, groupname, username, ad_host=None):
+        """Add a user to an AD group.
+
+        :param groupname: sAMAccountName of the group
+        :param username: sAMAccountName of the user to add
+        :param ad_host: AD host object (default: self.ad)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+
+        ps_cmd = (
+            '$ProgressPreference = "SilentlyContinue"; '
+            'Add-ADGroupMember -Identity "{}" -Members "{}"'
+            .format(groupname, username)
+        )
+        ad_host.run_command(['powershell', '-c', ps_cmd], set_env=False)
+
+    def _ad_group_del(self, groupname, ad_host=None):
+        """Delete a group from the given AD DC.
+
+        :param groupname: sAMAccountName of the group to delete
+        :param ad_host: AD host object (default: self.ad)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+        domain = ad_host.domain.name
+        admin = self.master.config.ad_admin_name
+        admin_password = self.master.config.ad_admin_password
+        self._kinit_as_ad_admin(self.master, domain, admin, admin_password)
+        self.master.run_command([
+            'net', 'ads', 'group', 'delete', groupname,
+            '--use-kerberos=required', '-S', ad_host.hostname
+        ], raiseonerr=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ensure_ad_group_member(self, ad_host, groupname, username):
+        """Ensure AD group exists and user is a member.
+
+        Creates the group if it doesn't exist and adds the user if not
+        already a member.
+
+        :param ad_host: AD host object
+        :param groupname: sAMAccountName of the group
+        :param username: sAMAccountName of the user to add
+        :returns: tuple (ad_host, groupname) if group was created,
+            None otherwise
+        """
+        domain = ad_host.domain.name
+        admin = self.master.config.ad_admin_name
+        admin_password = self.master.config.ad_admin_password
+        self._kinit_as_ad_admin(self.master, domain, admin, admin_password)
+
+        # Try to create group (will fail if exists, which is fine)
+        result = self.master.run_command([
+            'net', 'ads', 'group', 'add', groupname,
+            '--use-kerberos=required', '-S', ad_host.hostname
+        ], raiseonerr=False)
+
+        group_created = None
+        if result.returncode == 0:
+            group_created = (ad_host, groupname)
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        # Check if user is already a member (using PowerShell since
+        # 'net ads group members' is not available)
+        ps_check_member = (
+            '$ProgressPreference = "SilentlyContinue"; '
+            'Get-ADGroupMember -Identity "{}" | '
+            'Where-Object {{$_.SamAccountName -eq "{}"}}'
+            .format(groupname, username)
+        )
+        result = ad_host.run_command(
+            ['powershell', '-c', ps_check_member], raiseonerr=False,
+            set_env=False
+        )
+
+        if not result.stdout_text.strip():
+            self._ad_group_add_member(groupname, username, ad_host=ad_host)
+
+        return group_created
 
     @classmethod
     def check_sid_generation(cls):
