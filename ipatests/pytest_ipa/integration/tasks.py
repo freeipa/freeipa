@@ -2293,10 +2293,11 @@ def group_del(host, groupname, raiseonerr=True):
 
 
 def group_add_member(host, groupname, users=None,
-                     raiseonerr=True, extra_args=()):
-    cmd = [
-        "ipa", "group-add-member", groupname
-    ]
+                     raiseonerr=True, extra_args=(), noninteractive=False):
+    cmd = ["ipa"]
+    if noninteractive:
+        cmd.append("-n")
+    cmd.extend(["group-add-member", groupname])
     if users:
         cmd.append("--users")
         cmd.append(users)
