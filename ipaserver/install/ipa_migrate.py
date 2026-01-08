@@ -1472,7 +1472,9 @@ class IPAMigrate():
                 return
 
         # Skip tombstones
-        if 'nsTombstone' in entry_attrs['objectClass']:
+        # The attributes haven't been normalized yet
+        normalize_attr(entry_attrs, 'objectClass')
+        if 'nstombstone' in [oc.lower() for oc in entry_attrs['objectClass']]:
             return
 
         # Determine entry type: user, group, hbac, etc
