@@ -2293,10 +2293,11 @@ def group_del(host, groupname, raiseonerr=True):
 
 
 def group_add_member(host, groupname, users=None,
-                     raiseonerr=True, extra_args=()):
-    cmd = [
-        "ipa", "group-add-member", groupname
-    ]
+                     raiseonerr=True, extra_args=(), noninteractive=False):
+    cmd = ["ipa"]
+    if noninteractive:
+        cmd.append("-n")
+    cmd.extend(["group-add-member", groupname])
     if users:
         cmd.append("--users")
         cmd.append(users)
@@ -3443,3 +3444,26 @@ def host_add(host, hostname, *extra_args, password=None, raiseonerr=True):
         command.append(f'--password={password}')
     command.extend(extra_args)
     return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def ssh_with_password(source, destination, login, password, cmd,
+                      raiseonerr=True):
+    """Run an SSH command from one test host to another using password auth.
+
+    This function uses sshpass to perform password-based SSH authentication
+    between test hosts.
+
+    :param source: The host to run the SSH command from
+    :param destination: The hostname or IP to SSH into
+    :param login: The username to login as
+    :param password: The password for authentication
+    :param cmd: The command to run on the remote host
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object with returncode, stdout_text, stderr_text
+    """
+    return source.run_command(
+        ['sshpass', '-p', password,
+         'ssh', '-v', '-o', 'StrictHostKeyChecking=no',
+         '-l', login, destination, cmd],
+        raiseonerr=raiseonerr
+    )
