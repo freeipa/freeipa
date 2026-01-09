@@ -6,6 +6,7 @@ ADD dist /root
 RUN echo 'deltarpm = false' >> /etc/dnf/dnf.conf \
     && dnf update -y python3 \
     && (sed -i 's/%_install_langs \(.*\)/\0:fr/g' /etc/rpm/macros.image-language-conf ||:) \
+    && dnf -y copr enable asn/kirmes \
     && dnf install -y systemd \
     && dnf install -y \
         firewalld \
