@@ -32,13 +32,11 @@ from ipapython.version import API_VERSION
 import locale
 import qrcode
 
-import six
 from io import StringIO
 import urllib.parse
 import urllib.request
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 

@@ -2,14 +2,12 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipaclient.frontend import MethodOverride
 from ipalib.plugable import Registry
 from ipalib import _
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 

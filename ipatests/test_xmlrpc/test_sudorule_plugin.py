@@ -22,7 +22,6 @@ Test the `ipaserver/plugins/sudorule.py` module.
 """
 
 import pytest
-import six
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipatests.test_xmlrpc.xmlrpc_test import assert_deepequal
@@ -31,8 +30,7 @@ from ipalib import errors
 
 # pylint: disable=unused-variable
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 @pytest.mark.tier1

@@ -6,12 +6,10 @@
 classes/utils for Kerberos principal name validation/manipulation
 """
 import re
-import six
 
 from ipapython.ipautil import escape_seq, unescape_seq
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 REALM_SPLIT_RE = re.compile(r'(?<!\\)@')
 COMPONENT_SPLIT_RE = re.compile(r'(?<!\\)/')
@@ -60,7 +58,6 @@ def split_principal_name(principal_name):
     return tuple(COMPONENT_SPLIT_RE.split(principal_name))
 
 
-@six.python_2_unicode_compatible
 class Principal:
     """
     Container for the principal name and realm according to RFC 1510

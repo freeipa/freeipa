@@ -24,14 +24,12 @@ Test the `ipaserver.rpc` module.
 import json
 import pytest
 
-import six
 
 from ipatests.util import assert_equal, raises, PluginTester
 from ipalib import errors
 from ipaserver import rpcserver
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 pytestmark = pytest.mark.tier0
 
@@ -215,10 +213,7 @@ class test_jsonserver(PluginTester):
 
         # Test with invalid JSON-data:
         e = raises(errors.JSONError, o.unmarshal, 'this wont work')
-        if six.PY2:
-            assert unicode(e.error) == 'No JSON object could be decoded'
-        else:
-            assert str(e.error).startswith('Expecting value: ')
+        assert str(e.error).startswith('Expecting value: ')
 
         # Test with non-dict type:
         e = raises(errors.JSONError, o.unmarshal, json.dumps([1, 2, 3]))
