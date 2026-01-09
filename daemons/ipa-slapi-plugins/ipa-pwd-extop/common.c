@@ -56,13 +56,6 @@ extern const char *ipa_realm_dn;
 extern const char *ipa_etc_config_dn;
 extern const char *ipa_pwd_config_dn;
 
-/* These are the default enc:salt types if nothing is defined in LDAP */
-static const char *ipapwd_def_encsalts[] = {
-    "aes256-cts:special",
-    "aes128-cts:special",
-    NULL
-};
-
 static struct ipapwd_krbcfg *ipapwd_getConfig(void)
 {
     krb5_error_code krberr;
@@ -78,7 +71,6 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     ber_int_t ttype;
     const struct berval *bval;
     struct berval *mkey = NULL;
-    char **encsalts;
     char **tmparray;
     char *tmpstr;
     int ret;
@@ -166,51 +158,19 @@ static struct ipapwd_krbcfg *ipapwd_getConfig(void)
     mkey = NULL;
     be = NULL;
 
-    /*** get the Supported Enc/Salt types ***/
-
-    encsalts = slapi_entry_attr_get_charray(realm_entry,
-                                            "krbSupportedEncSaltTypes");
-    if (encsalts) {
-        for (i = 0; encsalts[i]; i++) /* count */ ;
-        ret = parse_bval_key_salt_tuples(config->krbctx,
-                                         (const char * const *)encsalts, i,
-                                         &config->supp_encsalts,
-                                         &config->num_supp_encsalts);
-        slapi_ch_array_free(encsalts);
-    } else {
-        LOG("No configured salt types use defaults\n");
-        for (i = 0; ipapwd_def_encsalts[i]; i++) /* count */ ;
-        ret = parse_bval_key_salt_tuples(config->krbctx,
-                                         ipapwd_def_encsalts, i,
-                                         &config->supp_encsalts,
-                                         &config->num_supp_encsalts);
-    }
+    /*** get the Preferred Enc/Salt types ***/
+    ret = ipa_get_default_types(config->krbctx, &config->pref_encsalts,
+                                &config->num_pref_encsalts);
     if (ret) {
-        LOG_FATAL("Can't get Supported EncSalt Types\n");
+        LOG_FATAL("Can't get Preferred EncSalt Types\n");
         goto free_and_error;
     }
 
-    /*** get the Preferred Enc/Salt types ***/
-
-    encsalts = slapi_entry_attr_get_charray(realm_entry,
-                                            "krbDefaultEncSaltTypes");
-    if (encsalts) {
-        for (i = 0; encsalts[i]; i++) /* count */ ;
-        ret = parse_bval_key_salt_tuples(config->krbctx,
-                                         (const char * const *)encsalts, i,
-                                         &config->pref_encsalts,
-                                         &config->num_pref_encsalts);
-        slapi_ch_array_free(encsalts);
-    } else {
-        LOG("No configured salt types use defaults\n");
-        for (i = 0; ipapwd_def_encsalts[i]; i++) /* count */ ;
-        ret = parse_bval_key_salt_tuples(config->krbctx,
-                                         ipapwd_def_encsalts, i,
-                                         &config->pref_encsalts,
-                                         &config->num_pref_encsalts);
-    }
+    /*** get the Random Key Enc/Salt types ***/
+    ret = ipa_get_randkey_types(config->krbctx, &config->randkey_encsalts,
+                                &config->num_randkey_encsalts);
     if (ret) {
-        LOG_FATAL("Can't get Preferred EncSalt Types\n");
+        LOG_FATAL("Can't get Random Key EncSalt Types\n");
         goto free_and_error;
     }
 
@@ -288,7 +248,7 @@ free_and_error:
             krb5_free_context(config->krbctx);
         }
         free(config->pref_encsalts);
-        free(config->supp_encsalts);
+        free(config->randkey_encsalts);
         slapi_ch_array_free(config->passsync_mgrs);
         slapi_ch_array_free(config->sysacct_mgrs);
         free(config);
@@ -1139,8 +1099,8 @@ void free_ipapwd_krbcfg(struct ipapwd_krbcfg **cfg)
         free(c->kmkey->contents);
         free(c->kmkey);
     }
-    free(c->supp_encsalts);
     free(c->pref_encsalts);
+    free(c->randkey_encsalts);
     slapi_ch_array_free(c->passsync_mgrs);
     free(c);
     *cfg = NULL;
