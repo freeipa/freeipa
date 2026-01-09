@@ -12,6 +12,7 @@ steps:
 - script: |
     set -e
     sudo rm -rf /var/cache/dnf/*
+    sudo dnf -y copr enable asn/kirmes
     sudo dnf makecache || :
     echo "Installing base development environment"
     sudo dnf install -y \
