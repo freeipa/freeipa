@@ -12,11 +12,12 @@
 #
 interface(`ipa_domtrans_otpd',`
 	gen_require(`
-		type ipa_otpd_t, ipa_otpd_exec_t;
+		type ipa_otpd_t, ipa_otpd_exec_t, sssd_mfa_exec_t;
 	')
 
 	corecmd_search_bin($1)
 	domtrans_pattern($1, ipa_otpd_exec_t, ipa_otpd_t)
+	domtrans_pattern($1, sssd_mfa_exec_t, ipa_otpd_t)
 ')
 
 ########################################
@@ -108,10 +109,11 @@ interface(`ipa_run_helper',`
 #
 interface(`ipa_search_lib',`
 	gen_require(`
-		type ipa_var_lib_t;
+		type ipa_var_lib_t, ipa_public_pki_t;
 	')
 
     search_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    search_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
 ')
 
 ########################################
@@ -126,11 +128,13 @@ interface(`ipa_search_lib',`
 #
 interface(`ipa_manage_lib',`
 	gen_require(`
-		type ipa_var_lib_t;
+		type ipa_var_lib_t, ipa_public_pki_t;
 	')
 
     manage_files_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
     manage_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    manage_files_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    manage_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
 ')
 
 ########################################
@@ -167,11 +171,14 @@ interface(`ipa_read_lib',`
 	gen_require(`
 		type ipa_http_keytab_t;
 		type ipa_var_lib_t;
+		type ipa_public_pki_t;
 	')
 
     read_files_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    read_files_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
     read_files_pattern($1, ipa_http_keytab_t, ipa_http_keytab_t)
     list_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+    list_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
 ')
 
 ########################################
@@ -193,6 +200,28 @@ interface(`ipa_read_http_keytab',`
 
     read_files_pattern($1, ipa_http_keytab_t, ipa_http_keytab_t)
     list_dirs_pattern($1, ipa_var_lib_t, ipa_var_lib_t)
+')
+
+########################################
+## <summary>
+##      Allow domain to read public PKI files
+##      Also give access to realmd_var_lib_t for upgrade
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`ipa_read_public_pki',`
+	gen_require(`
+		type ipa_public_pki_t, realmd_var_lib_t;
+	')
+
+    read_files_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    list_dirs_pattern($1, ipa_public_pki_t, ipa_public_pki_t)
+    read_files_pattern($1, realmd_var_lib_t, realmd_var_lib_t)
+    list_dirs_pattern($1, realmd_var_lib_t, realmd_var_lib_t)
 ')
 
 ########################################

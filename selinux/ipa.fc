@@ -8,8 +8,8 @@
 
 /usr/libexec/ipa-otpd		--	gen_context(system_u:object_r:ipa_otpd_exec_t,s0)
 /usr/libexec/ipa/ipa-otpd		--	gen_context(system_u:object_r:ipa_otpd_exec_t,s0)
-/usr/libexec/sssd/oidc_child 	-- gen_context(system_u:object_r:ipa_otpd_exec_t,s0)
-/usr/libexec/sssd/passkey_child 	-- gen_context(system_u:object_r:ipa_otpd_exec_t,s0)
+/usr/libexec/sssd/oidc_child 	-- gen_context(system_u:object_r:sssd_mfa_exec_t,s0)
+/usr/libexec/sssd/passkey_child 	-- gen_context(system_u:object_r:sssd_mfa_exec_t,s0)
 
 /usr/libexec/ipa/ipa-ods-exporter	--	gen_context(system_u:object_r:ipa_ods_exporter_exec_t,s0)
 
@@ -20,7 +20,8 @@
 /usr/libexec/ipa/oddjob/org\.freeipa.*  --  gen_context(system_u:object_r:ipa_helper_exec_t,s0)
 
 
-/var/lib/ipa(/.*)?              gen_context(system_u:object_r:ipa_var_lib_t,s0)
+/var/lib/ipa/pki(/.*)?        gen_context(system_u:object_r:ipa_public_pki_t,s0)
+/var/lib/ipa(/.*)?            gen_context(system_u:object_r:ipa_var_lib_t,s0)
 
 /var/lib/ipa/gssproxy/http.keytab -- gen_context(system_u:object_r:ipa_http_keytab_t,s0)
 

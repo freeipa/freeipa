@@ -14,11 +14,14 @@ type ipa_otpd_t, ipa_domain;
 type ipa_otpd_exec_t;
 init_daemon_domain(ipa_otpd_t, ipa_otpd_exec_t)
 
-# for oidc_child communication with IdPs
-corenet_tcp_connect_http_port(ipa_otpd_t)
+type sssd_mfa_t, ipa_domain;
+type sssd_mfa_exec_t;
+can_exec(sssd_mfa_t,sssd_mfa_exec_t)
+
 kernel_dgram_send(ipa_otpd_t)
 allow ipa_otpd_t self:unix_dgram_socket { create getopt setopt };
 allow ipa_otpd_t ipa_otpd_exec_t:file execute_no_trans;
+
 
 type ipa_dnskey_t, ipa_domain;
 type ipa_dnskey_exec_t;
@@ -42,6 +45,9 @@ logging_log_file(ipa_log_t)
 
 type ipa_var_lib_t;
 files_type(ipa_var_lib_t)
+
+type ipa_public_pki_t;
+files_type(ipa_public_pki_t)
 
 type ipa_http_keytab_t;
 files_type(ipa_http_keytab_t)
@@ -88,6 +94,28 @@ type ipa_pki_retrieve_key_t;
 domain_type(ipa_pki_retrieve_key_t)
 init_script_file(ipa_pki_retrieve_key_exec_t)
 
+# Allow dirsrv to operate with Anonymous PKINIT
+optional_policy(`
+  gen_require(`
+     type dirsrv_t;
+  ')
+   
+	ipa_read_lib(dirsrv_t)
+	ipa_search_lib(dirsrv_t)
+        ipa_read_public_pki(dirsrv_t)
+')
+
+# Allow certmonger to operate with Anonymous PKINIT
+optional_policy(`
+  gen_require(`
+     type certmonger_t;
+  ')
+   
+	ipa_read_lib(certmonger_t)
+	ipa_search_lib(certmonger_t)
+        ipa_read_public_pki(certmonger_t)
+')
+
 ########################################
 #
 # ipa_otpd local policy
@@ -99,6 +127,7 @@ allow ipa_otpd_t self:fifo_file rw_fifo_file_perms;
 allow ipa_otpd_t self:unix_stream_socket create_stream_socket_perms;
 
 read_files_pattern(ipa_otpd_t, ipa_cert_t, ipa_cert_t)
+read_files_pattern(ipa_otpd_t, ipa_public_pki_t, ipa_public_pki_t)
 read_lnk_files_pattern(ipa_otpd_t, ipa_cert_t, ipa_cert_t)
 
 manage_dirs_pattern(ipa_otpd_t, ipa_var_run_t, ipa_var_run_t)
@@ -110,7 +139,6 @@ corenet_tcp_connect_radius_port(ipa_otpd_t)
 dev_read_urand(ipa_otpd_t)
 dev_read_rand(ipa_otpd_t)
 dev_read_sysfs(ipa_otpd_t)
-dev_rw_generic_usb_dev(ipa_otpd_t)
 
 sysnet_dns_name_resolve(ipa_otpd_t)
 
@@ -127,6 +155,75 @@ optional_policy(`
 ')
 
 logging_send_syslog_msg(ipa_otpd_t)
+
+########################################
+#
+# sssd_mfa local policy
+# applies to sssd's oidc_child and passkey_child
+#
+
+# for oidc_child communication with IdPs
+corenet_tcp_connect_http_port(sssd_mfa_t)
+kernel_dgram_send(sssd_mfa_t)
+allow sssd_mfa_t self:unix_dgram_socket { create getopt setopt };
+allow sssd_mfa_t sssd_mfa_exec_t:file execute_no_trans;
+allow sssd_mfa_exec_t fs_t:filesystem associate;
+#============= setfiles_t ==============
+# allow relabel of the older files during upgrade
+optional_policy(`
+  gen_require(`
+     type setfiles_t;
+     type rpm_t;
+     type unconfined_t;
+  ')
+  allow setfiles_t sssd_mfa_exec_t:file { getattr open read relabelto rename setattr unlink };
+  allow rpm_t sssd_mfa_exec_t:file { getattr open read relabelto rename setattr unlink };
+  allow unconfined_t sssd_mfa_exec_t:file { getattr open read relabelto rename setattr unlink };
+')
+
+dev_read_urand(sssd_mfa_t)
+dev_read_rand(sssd_mfa_t)
+dev_read_sysfs(sssd_mfa_t)
+dev_rw_generic_usb_dev(sssd_mfa_t)
+
+sysnet_dns_name_resolve(sssd_mfa_t)
+
+optional_policy(`
+    dirsrv_stream_connect(sssd_mfa_t)
+')
+
+optional_policy(`
+    kerberos_use(sssd_mfa_t)
+')
+
+optional_policy(`
+    sssd_stream_connect(sssd_mfa_t)
+')
+
+logging_send_syslog_msg(sssd_mfa_t)
+
+optional_policy(`
+	ipa_read_lib(sssd_mfa_t)
+	ipa_search_lib(sssd_mfa_t)
+        ipa_read_public_pki(sssd_mfa_t)
+')
+
+
+########################################
+#
+# samba local policy extensions
+#
+
+optional_policy(`
+    gen_require(`
+        type smbd_t, winbind_t, samba_net_t;
+    ')
+        ipa_read_public_pki(smbd_t)
+        ipa_read_public_pki(winbind_t)
+        ipa_read_public_pki(samba_net_t)
+')
+
+
 ########################################
 #
 # password policy local policy
@@ -195,6 +292,10 @@ ipa_manage_pid_files(ipa_helper_t)
 ipa_read_lib(ipa_helper_t)
 
 logging_send_syslog_msg(ipa_helper_t)
+
+optional_policy(`
+    ipa_read_public_pki(ipa_helper_t)
+')
 
 optional_policy(`
     dirsrv_stream_connect(ipa_helper_t)
@@ -299,6 +400,10 @@ miscfiles_read_generic_certs(ipa_dnskey_t)
 sysnet_read_config(ipa_dnskey_t)
 
 optional_policy(`
+    ipa_read_public_pki(ipa_dnskey_t)
+')
+
+optional_policy(`
     apache_search_config(ipa_dnskey_t)
 ')
 
@@ -358,6 +463,10 @@ logging_send_syslog_msg(ipa_ods_exporter_t)
 miscfiles_read_generic_certs(ipa_ods_exporter_t)
 
 sysnet_read_config(ipa_ods_exporter_t)
+
+optional_policy(`
+    ipa_read_public_pki(ipa_ods_exporter_t)
+')
 
 optional_policy(`
     bind_search_cache(ipa_ods_exporter_t)
@@ -451,6 +560,7 @@ optional_policy(`
 optional_policy(`
 	ipa_read_lib(ipa_custodia_t)
 	ipa_search_lib(ipa_custodia_t)
+        ipa_read_public_pki(ipa_custodia_t)
 ')
 
 optional_policy(`
@@ -547,6 +657,7 @@ optional_policy(`
         type gssproxy_t;
     ')
     ipa_read_http_keytab(gssproxy_t)
+    ipa_read_public_pki(gssproxy_t)
 ')
 
 # Allow Cockpit to use HTTP keytab on IPA servers for GSSAPI authentication
@@ -555,4 +666,5 @@ optional_policy(`
         type cockpit_session_t;
     ')
     ipa_read_http_keytab(cockpit_session_t)
+    ipa_read_public_pki(cockpit_session_t)
 ')
