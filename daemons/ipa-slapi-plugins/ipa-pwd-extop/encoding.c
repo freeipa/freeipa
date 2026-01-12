@@ -225,7 +225,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
     if (is_krb) {
 
         *svals = ipapwd_encrypt_encode_key(krbcfg, data, NULL,
-                                           krbcfg->num_pref_encsalts,
+                                           (int)krbcfg->num_pref_encsalts,
                                            krbcfg->pref_encsalts,
                                            errMesg);
 
