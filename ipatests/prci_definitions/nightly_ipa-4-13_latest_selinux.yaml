@@ -2066,7 +2066,7 @@ jobs:
       args:
         build_url: '{fedora-latest-ipa-4-13/build_url}'
         selinux_enforcing: True
-        test_suite: test_integration/test_random_serial_numbers.py::TestIPACommand_RSN::test_certificate_out_write_to_file
+        test_suite: test_integration/test_random_serial_numbers.py::TestIPACommand_RSN
         template: *ci-ipa-4-13-latest
         timeout: 5400
         topology: *master_1repl_1client
