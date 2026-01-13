@@ -200,36 +200,6 @@ duplicatesubject = (
 duplicate_serial = "4097"
 
 
-@pytest.fixture()
-def expire_password():
-    """
-    Fixture to expire a user's password far into the future past
-    2038, then revert time back.
-    """
-    hosts = dict()
-
-    def _expire_password(host):
-        hosts['host'] = host
-        tasks.move_date(host, 'stop', '+20Years')
-        host.run_command(
-            ['ipactl', 'restart', '--ignore-service-failures']
-        )
-
-    yield _expire_password
-
-    host = hosts.pop('host')
-    # Prior to uninstall remove all the cert tracking to prevent
-    # errors from certmonger trying to check the status of certs
-    # that don't matter because we are uninstalling.
-    host.run_command(['systemctl', 'stop', 'certmonger'])
-    # Important: run_command with a str argument is able to
-    # perform shell expansion but run_command with a list of
-    # arguments is not
-    host.run_command('rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*')
-    tasks.uninstall_master(host)
-    tasks.move_date(host, 'start', '-20Years')
-
-
 class TestIPACommand(IntegrationTest):
     """
     A lot of commands can be executed against a single IPA installation
@@ -239,6 +209,35 @@ class TestIPACommand(IntegrationTest):
     topology = 'line'
     num_replicas = 1
     num_clients = 1
+
+    @pytest.fixture
+    def expire_password(self):
+        """
+        Fixture to expire a user's password far into the future past
+        2038, then revert time back.
+        """
+        hosts = dict()
+
+        def _expire_password(host):
+            hosts['host'] = host
+            tasks.move_date(host, 'stop', '+20Years')
+            host.run_command(
+                ['ipactl', 'restart', '--ignore-service-failures']
+            )
+
+        yield _expire_password
+
+        host = hosts.pop('host')
+        # Prior to uninstall remove all the cert tracking to prevent
+        # errors from certmonger trying to check the status of certs
+        # that don't matter because we are uninstalling.
+        host.run_command(['systemctl', 'stop', 'certmonger'])
+        # Important: run_command with a str argument is able to
+        # perform shell expansion but run_command with a list of
+        # arguments is not
+        host.run_command('rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*')
+        tasks.uninstall_master(host)
+        tasks.move_date(host, 'start', '-20Years')
 
     @pytest.fixture
     def pwpolicy_global(self):
