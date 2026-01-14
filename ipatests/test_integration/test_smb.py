@@ -239,11 +239,19 @@ class TestSMB(IntegrationTest):
     def test_install_samba(self):
         samba_install_result = self.smbserver.run_command(
             ['ipa-client-samba', '-U'])
+        dropin = """
+        [Service]
+        Environment=KRB5_TRACE=/dev/stderr
+        """
         # smb and winbind are expected to be not running
         for service in ['smb', 'winbind']:
             result = self.smbserver.run_command(
                 ['systemctl', 'status', service], raiseonerr=False)
             assert result.returncode == 3
+
+            self.smbserver.run_command(['systemctl', 'edit', service,
+                                       '--drop-in=kerberos-debug', '--stdin'],
+                                       stdin_text=dropin)
         self.smbserver.run_command([
             'systemctl', 'enable', '--now', 'smb', 'winbind'
         ])
