@@ -437,7 +437,9 @@ static int prepare_rad_reply(struct otpd_queue_item *item)
         goto done;
     }
 
-    jtmp = json_pack("{s:i, s:s, s:o}", "phase", item->passkey->data_out->phase,
+    /* item->passkey->data_out->jdata will be dereferenced later, so we have
+     * to use 'O' to keep the reference. */
+    jtmp = json_pack("{s:i, s:s, s:O}", "phase", item->passkey->data_out->phase,
                                         "state", item->passkey->data_out->state,
                                         "data", item->passkey->data_out->jdata);
     if (jtmp == NULL) {
