@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from typing import Dict
 
+from ipapython import dogtag
 from ipathinca.exceptions import ProfileNotFound
 
 logger = logging.getLogger(__name__)
@@ -19,13 +20,13 @@ class ProfileManager:
     # Whitelist of required profiles for IPAthinCA
     # Only these profiles are installed to LDAP during deployment
     REQUIRED_PROFILES = [
-        "caIPAserviceCert",  # IPA service certificates
+        dogtag.DEFAULT_PROFILE,  # caIPAserviceCert - IPA service certificates
         "IECUserRoles",  # User certificates with IEC roles
-        "KDCs_PKINIT_Certs",  # Kerberos KDC PKINIT
+        dogtag.KDC_PROFILE,  # KDCs_PKINIT_Certs - Kerberos KDC PKINIT
         "acmeIPAServerCert",  # ACME-issued server certificates
-        "caSubsystemCert",  # CA subsystem certificates
-        "caOCSPCert",  # OCSP responder certificates
-        "caSignedLogCert",  # Audit log signing certificates
+        dogtag.SUBSYSTEM_PROFILE,  # caSubsystemCert - CA subsystem certs
+        dogtag.OCSP_PROFILE,  # caOCSPCert - OCSP responder certificates
+        dogtag.AUDIT_PROFILE,  # caSignedLogCert - Audit log signing certs
     ]
 
     def __init__(

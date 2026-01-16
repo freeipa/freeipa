@@ -18,6 +18,7 @@ if __name__ == "__main__":
         package_dir={"ipathinca": ""},
         packages=[
             "ipathinca",
+            "ipathinca.install",
         ],
         install_requires=[
             "cryptography",

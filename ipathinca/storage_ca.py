@@ -1,8 +1,8 @@
 # Copyright (C) 2025  FreeIPA Contributors see COPYING for license
 
 """
-CA storage backend combining all CA storage modules.
-Provides unified interface for CA operations.
+Composite CA storage backend combining all storage modules.
+Provides backward compatibility with existing CAStorageBackend usage.
 """
 
 from __future__ import absolute_import
@@ -14,6 +14,7 @@ from ipathinca.storage_crl import CRLStorage
 from ipathinca.storage_maintenance import MaintenanceStorage
 from ipathinca.storage_subca import SubCAStorage
 from ipathinca.storage_ranges import RangeStorage
+from ipathinca.storage_hsm import HSMStorage
 
 
 class CAStorageBackend(
@@ -23,21 +24,23 @@ class CAStorageBackend(
     MaintenanceStorage,
     SubCAStorage,
     RangeStorage,
+    HSMStorage,
     BaseStorageBackend,
 ):
     """
-    CA storage backend combining all CA storage modules.
+    Complete CA storage backend combining all storage modules.
 
     This class uses multiple inheritance to provide a unified interface
-    to CA storage operations.
+    to all CA storage operations. Maintains backward compatibility.
 
-    Provides:
+    New code should use specific storage classes for better modularity:
     - CertificateStorage for cert/request operations
-    - ProfileStorage for profile operations
     - CRLStorage for CRL operations
-    - MaintenanceStorage for cleanup/pruning
     - SubCAStorage for sub-CA management
+    - ProfileStorage for profile operations
     - RangeStorage for replica range management
+    - HSMStorage for HSM configuration
+    - MaintenanceStorage for cleanup/pruning
     """
 
     def __init__(

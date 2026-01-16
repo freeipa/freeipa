@@ -83,9 +83,11 @@ class BasePathNamespace:
     IPATHINCA_PRIVATE_DIR = IPATHINCA_DIR + "private/"
     IPATHINCA_CA_DIR = IPATHINCA_DIR + "ca/"
     IPATHINCA_SUBCAS_DIR = IPATHINCA_CA_DIR + "subcas/"
+    IPATHINCA_AUDIT_DIR = IPATHINCA_DIR + "audit/"
     IPATHINCA_SIGNING_KEY = IPATHINCA_CA_DIR + "ca_signing.key"
     IPATHINCA_SERVER_CERT = IPATHINCA_CERTS_DIR + "server_cert.pem"
     IPATHINCA_SERVER_KEY = IPATHINCA_PRIVATE_DIR + "server_key.pem"
+    IPATHINCA_AUDIT_SIGNING_KEY = IPATHINCA_AUDIT_DIR + "audit_signing.key"
     # IPA PKI CRL publish directory (served by Apache via Alias directive)
     IPA_PKI_PUBLISH_DIR = "/var/lib/ipa/pki-ca/publish"
     COMMON_KRB5_CONF_DIR = "/etc/krb5.conf.d/"
