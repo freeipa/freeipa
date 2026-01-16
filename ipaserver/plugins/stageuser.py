@@ -23,7 +23,6 @@ import logging
 import posixpath
 from copy import deepcopy
 
-import six
 
 from ipalib import api, errors
 from ipalib import Bool
@@ -61,8 +60,7 @@ from ipaplatform.constants import constants as platformconstants
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 __doc__ = _("""
 Stageusers

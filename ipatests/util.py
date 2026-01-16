@@ -34,7 +34,6 @@ import pytest
 from contextlib import contextmanager
 from pprint import pformat
 
-import six
 
 import ipalib
 from ipalib import api
@@ -60,8 +59,7 @@ else:
     import ldap.modlist
     from ipapython.ipaldap import ldap_initialize
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 # settings are configured by conftest

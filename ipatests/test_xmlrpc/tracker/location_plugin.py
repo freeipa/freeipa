@@ -3,7 +3,6 @@
 #
 from __future__ import absolute_import
 
-import six
 
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
@@ -11,8 +10,7 @@ from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc.tracker.base import Tracker
 
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 class LocationTracker(Tracker):

@@ -26,7 +26,6 @@ from xmlrpc.client import Binary, Fault, dumps, loads
 import urllib
 
 import pytest
-import six
 
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
 from ipatests.util import Fuzzy
@@ -36,8 +35,7 @@ from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request as ipa_request
 from ipapython.version import API_VERSION
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)
@@ -65,13 +63,8 @@ def test_round_trip():
     """
     # We first test that our assumptions about xmlrpc.client module in the Python
     # standard library are correct:
-    if six.PY2:
-        output_binary_type = bytes
-    else:
-        output_binary_type = Binary
+    output_binary_type = Binary
 
-    if six.PY2:
-        assert_equal(dump_n_load(utf8_bytes), unicode_str)
     assert_equal(dump_n_load(unicode_str), unicode_str)
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)

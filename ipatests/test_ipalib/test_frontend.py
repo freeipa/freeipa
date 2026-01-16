@@ -22,7 +22,6 @@ Test the `ipalib.frontend` module.
 """
 
 import pytest
-import six
 
 from ipatests.util import raises, read_only
 from ipatests.util import ClassChecker, create_test_api
@@ -34,8 +33,7 @@ from ipalib import output, messages
 from ipalib.parameters import Str
 from ipapython.version import API_VERSION
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 
 pytestmark = pytest.mark.tier0
@@ -299,14 +297,9 @@ class test_Command(ClassChecker):
         assert ns.source.multivalue is False
 
         # Test TypeError:
-        if six.PY2:
-            e = raises(TypeError, self.get_instance, args=(u'whatever',))
-            assert str(e) == TYPE_ERROR % (
-                'spec', (str, parameters.Param), u'whatever', unicode)
-        else:
-            e = raises(TypeError, self.get_instance, args=(b'whatever',))
-            assert str(e) == TYPE_ERROR % (
-                'spec', (str, parameters.Param), b'whatever', bytes)
+        e = raises(TypeError, self.get_instance, args=(b'whatever',))
+        assert str(e) == TYPE_ERROR % (
+            'spec', (str, parameters.Param), b'whatever', bytes)
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
@@ -627,10 +620,7 @@ class test_Command(ClassChecker):
         api, _home = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd(api)
-        if six.PY2:
-            assert o.run.__func__ is self.cls.run.__func__
-        else:
-            assert o.run.__func__ is self.cls.run
+        assert o.run.__func__ is self.cls.run
         out = o.run(*args, **kw)
         assert ('execute', args, kw) == out
 
@@ -638,10 +628,7 @@ class test_Command(ClassChecker):
         api, _home = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd(api)
-        if six.PY2:
-            assert o.run.__func__ is self.cls.run.__func__
-        else:
-            assert o.run.__func__ is self.cls.run
+        assert o.run.__func__ is self.cls.run
         assert ('forward', args, kw) == o.run(*args, **kw)
 
     def test_messages(self):
@@ -673,20 +660,14 @@ class test_Command(ClassChecker):
         api, _home = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd(api)
-        if six.PY2:
-            assert o.run.__func__ is self.cls.run.__func__
-        else:
-            assert o.run.__func__ is self.cls.run
+        assert o.run.__func__ is self.cls.run
         assert {'name': 'execute', 'messages': expected} == o.run(*args, **kw)
 
         # Test in non-server context
         api, _home = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd(api)
-        if six.PY2:
-            assert o.run.__func__ is self.cls.run.__func__
-        else:
-            assert o.run.__func__ is self.cls.run
+        assert o.run.__func__ is self.cls.run
         assert {'name': 'forward', 'messages': expected} == o.run(*args, **kw)
 
     def test_validate_output_basic(self):

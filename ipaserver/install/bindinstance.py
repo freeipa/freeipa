@@ -31,7 +31,6 @@ import time
 import textwrap
 
 import ldap
-import six
 from dns.exception import DNSException
 
 from ipaserver.dns_data_management import (
@@ -64,8 +63,7 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          DNSSECSignatureMissingError, EDNS0UnsupportedError,
                          UnresolvableRecordError)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -448,11 +446,10 @@ def zonemgr_callback(option, opt_str, value, parser):
     """
     if value is not None:
         # validate the value first
-        if six.PY3:
-            try:
-                validate_zonemgr_str(value)
-            except ValueError as e:
-                parser.error("invalid zonemgr: {}".format(e))
+        try:
+            validate_zonemgr_str(value)
+        except ValueError as e:
+            parser.error("invalid zonemgr: {}".format(e))
         else:
             try:
                 # IDNA support requires unicode

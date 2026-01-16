@@ -20,7 +20,6 @@
 
 from __future__ import absolute_import
 import logging
-import six
 import abc
 
 from ipaplatform.paths import paths
@@ -38,8 +37,7 @@ def get_auth_tool():
     return RedHatAuthSelect()
 
 
-@six.add_metaclass(abc.ABCMeta)
-class RedHatAuthToolBase:
+class RedHatAuthToolBase(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def configure(self, sssd, mkhomedir, statestore, sudo=True):

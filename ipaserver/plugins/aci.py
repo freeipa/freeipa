@@ -21,7 +21,6 @@
 from copy import deepcopy
 import logging
 
-import six
 
 from ipalib import api, crud, errors
 from ipalib import Object
@@ -133,8 +132,7 @@ must include all existing attributes as well. When doing an aci-mod the
 targetattr REPLACES the current attributes, it does not add to them.
 """)
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 logger = logging.getLogger(__name__)
 

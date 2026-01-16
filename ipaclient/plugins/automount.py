@@ -20,7 +20,6 @@
 
 import os
 
-import six
 
 from ipaclient.frontend import MethodOverride
 from ipalib import api, errors
@@ -31,8 +30,7 @@ from ipalib.util import classproperty
 from ipalib import _
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
+unicode = str
 
 register = Registry()
 
