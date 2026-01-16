@@ -293,6 +293,16 @@ def prepare_ipa_server(master):
         ]
     )
 
+    master.run_command(
+        [
+            "ipa", "automountkey-add",
+            "baltimore",
+            "auto.share",
+            "--key=export",
+            "--info=-ro,soft,rsize=8192,wsize=8192 "
+            f"{master.hostname}:/shared/export",
+        ]
+    )
 
 def run_migrate(
     host, mode, remote_host, bind_dn=None, bind_pwd=None, extra_args=None
@@ -1166,11 +1176,17 @@ class TestIPAMigrationProdMode(MigrationTest):
             "  Map: auto.share\n"
         )
         CMD3_OUTPUT = (
-            "-----------------------\n"
-            "1 automount key matched\n"
-            "-----------------------\n"
+            "------------------------\n"
+            "2 automount keys matched\n"
+            "------------------------\n"
+            "  Key: export\n"
+            "  Mount information: -ro,soft,rsize=8192,wsize=8192 "
+            f"{self.master.hostname}:/shared/export\n\n"
             "  Key: sub\n"
             "  Mount information: -fstype=autofs ldap:auto.man\n"
+            "----------------------------\n"
+            "Number of entries returned 2\n"
+            "----------------------------\n"
         )
         cmd1 = self.replicas[0].run_command(
             ["ipa", "automountlocation-show", loc_name])
