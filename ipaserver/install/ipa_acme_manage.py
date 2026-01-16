@@ -4,6 +4,7 @@
 
 
 import enum
+import json
 import pki.acme
 import pki.util
 import pki.subsystem
@@ -217,7 +218,180 @@ class IPAACMEManage(AdminTool):
         cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
         cainstance.check_ipa_ca_san(cert)
 
+    def _detect_backend(self, state):
+        """
+        Detect which CA backend is in use (Dogtag or ipathinca)
+
+        Returns:
+            str: 'ipathinca' or 'dogtag'
+        """
+        try:
+            response = state.pki_client.connection.get('/ca/rest/info')
+            response_json = response.json()
+            if 'backend' in response_json:
+                backend = response_json['backend']
+                logger.debug(f"Detected CA backend: {backend}")
+                return backend
+            return 'dogtag'
+        except Exception as e:
+            logger.warning(f"Failed to detect backend, assuming Dogtag: {e}")
+            return 'dogtag'
+
     def pruning(self):
+        # Detect which backend is in use
+        state = acme_state(api)
+        with state as ca_api:
+            backend = self._detect_backend(state)
+
+        if backend == 'ipathinca':
+            self._pruning_ipathinca(state)
+        else:
+            self._pruning_dogtag()
+
+    def _pruning_ipathinca(self, state):
+        """Manage pruning for ipathinca using REST API"""
+
+        def ca_config_show(directive):
+            """Get configuration value from ipathinca REST API"""
+            try:
+                response = state.pki_client.connection.get('/ca/rest/pruning/config')
+                config = response.json()
+                # Map cron to cronSchedule for ipathinca
+                if directive == 'cron':
+                    return config.get('cronSchedule', '')
+                return config.get(directive, '')
+            except Exception as e:
+                logger.error(f"Failed to get config for {directive}: {e}")
+                return ''
+
+        def ca_config_set(directive, value,
+                          prefix='jobsScheduler.job.pruning'):
+            """Set configuration value via ipathinca REST API"""
+            try:
+                # Map cron to cronSchedule for ipathinca
+                if directive == 'cron':
+                    directive = 'cronSchedule'
+
+                config_updates = {directive: str(value)}
+                state.pki_client.connection.post(
+                    '/ca/rest/pruning/config',
+                    json.dumps(config_updates),
+                    headers={'Content-Type': 'application/json'}
+                )
+
+                # Verify the update
+                newvalue = ca_config_show(directive if directive != 'cronSchedule' else 'cron')
+                if str(value) != newvalue.strip():
+                    raise RuntimeError('Updating %s failed' % directive)
+            except Exception as e:
+                raise RuntimeError(f"Failed to set {directive}: {e}")
+
+        def config_show():
+            """Show current pruning configuration (reuses pruning_labels)"""
+            status = ca_config_show('enabled')
+            if status.strip().upper() == 'TRUE':
+                print("Status: enabled")
+            else:
+                print("Status: disabled")
+            for option in (
+                'certRetentionTime', 'certRetentionUnit',
+                'certSearchSizeLimit', 'certSearchTimeLimit',
+                'requestRetentionTime', 'requestRetentionUnit',
+                'requestSearchSizeLimit', 'requestSearchTimeLimit',
+                'cron',
+            ):
+                value = ca_config_show(option)
+                if value:
+                    print("{}: {}".format(pruning_labels[option], value))
+                else:
+                    print("{}: {}".format(pruning_labels[option],
+                                          default_pruning_options[option]))
+
+        def run_pruning():
+            """Run the pruning job via ipathinca REST API"""
+            try:
+                print("Starting pruning job...")
+                response = state.pki_client.connection.post(
+                    '/ca/rest/pruning/run',
+                    '{}',
+                    headers={'Content-Type': 'application/json'}
+                )
+                results = response.json()
+
+                print("Certificates deleted: {}".format(
+                    results.get('certificates_deleted', 0)))
+                print("Requests deleted: {}".format(
+                    results.get('requests_deleted', 0)))
+
+                errors = results.get('errors', [])
+                if errors:
+                    print("Errors encountered:")
+                    for error in errors:
+                        print("  - {}".format(error))
+                else:
+                    print("Pruning completed successfully")
+
+            except Exception as e:
+                raise RuntimeError('Failed to run pruning job: {}'.format(e))
+
+        # ipathinca doesn't have version restrictions
+        # Random serial numbers are always used in ipathinca
+
+        if self.options.config_show:
+            config_show()
+            return
+
+        if self.options.run:
+            run_pruning()
+            return
+
+        # Don't play the enable/disable at the same time game
+        if self.options.enable:
+            try:
+                state.pki_client.connection.post(
+                    '/ca/rest/pruning/enable',
+                    '{}',
+                    headers={'Content-Type': 'application/json'}
+                )
+            except Exception as e:
+                raise RuntimeError('Failed to enable pruning: {}'.format(e))
+        elif self.options.disable:
+            try:
+                state.pki_client.connection.post(
+                    '/ca/rest/pruning/disable',
+                    '{}',
+                    headers={'Content-Type': 'application/json'}
+                )
+            except Exception as e:
+                raise RuntimeError('Failed to disable pruning: {}'.format(e))
+
+        # Update configuration options
+        if self.options.certretention is not None:
+            ca_config_set('certRetentionTime', self.options.certretention)
+        if self.options.certretentionunit:
+            ca_config_set('certRetentionUnit', self.options.certretentionunit)
+        if self.options.certsearchtimelimit is not None:
+            ca_config_set('certSearchTimeLimit', self.options.certsearchtimelimit)
+        if self.options.certsearchsizelimit is not None:
+            ca_config_set('certSearchSizeLimit', self.options.certsearchsizelimit)
+        if self.options.requestretention is not None:
+            ca_config_set('requestRetentionTime', self.options.requestretention)
+        if self.options.requestretentionunit:
+            ca_config_set('requestRetentionUnit', self.options.requestretentionunit)
+        if self.options.requestsearchsizelimit is not None:
+            ca_config_set('requestSearchSizeLimit', self.options.requestsearchsizelimit)
+        if self.options.requestsearchtimelimit is not None:
+            ca_config_set('requestSearchTimeLimit', self.options.requestsearchtimelimit)
+        if self.options.cron:
+            ca_config_set('cron', self.options.cron)
+
+        config_show()
+
+        print("\nNote: Configuration changes are applied immediately (no restart required)")
+
+    def _pruning_dogtag(self):
+        """Manage pruning for Dogtag using pki-server commands"""
+
         def run_pki_server(command, directive, prefix, value=None):
             """Take a set of arguments to append to pki-server"""
             args = [
