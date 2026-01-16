@@ -23,6 +23,7 @@ from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import service as _service
+from ipaserver.masters import get_ca_service
 
 from . import dogtag
 
@@ -33,12 +34,21 @@ def install_check(api, replica_config, options):
     if replica_config is not None and not replica_config.setup_kra:
         return
 
+    # Check if using ipathinca instead of Dogtag
+    use_ipathinca = getattr(options, 'use_ipathinca', False)
+
     kra = krainstance.KRAInstance(api.env.realm)
     if kra.is_installed():
         raise RuntimeError("KRA is already installed.")
 
     if not options.setup_ca:
-        if cainstance.is_ca_installed_locally():
+        if use_ipathinca:
+            # ipathinca doesn't use Dogtag, so check for ipathinca CA instead
+            ca_service = get_ca_service()
+            if ca_service != "ipathinca":
+                raise RuntimeError(
+                    "ipathinca CA is not installed. Please install the CA first")
+        elif cainstance.is_ca_installed_locally():
             if api.env.dogtag_version >= 10:
                 # correct dogtag version of CA installed
                 pass
@@ -118,6 +128,22 @@ def install_check(api, replica_config, options):
 
 
 def install(api, replica_config, options, custodia):
+    # Check if using ipathinca instead of Dogtag
+    use_ipathinca = getattr(options, 'use_ipathinca', False)
+
+    if use_ipathinca:
+        # Use ipathinca KRA (part of ipathinca service, not separate)
+        logger.info("Configuring KRA in ipathinca")
+        from ipaserver.install.ipathincainstance import IPAThinCAInstance
+
+        # Get hostname same way as Dogtag KRA
+        host_name = api.env.host
+        ca = IPAThinCAInstance(api.env.realm, host_name)
+        ca.enable_kra()
+
+        logger.info("KRA configuration complete")
+        return
+
     if replica_config is None:
         if not options.setup_kra:
             return

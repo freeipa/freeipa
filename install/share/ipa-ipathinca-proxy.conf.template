@@ -1,6 +1,6 @@
 # VERSION 1 - DO NOT REMOVE THIS LINE
 # Apache proxy configuration for ipathinca (Python CA)
-# This proxies CA requests to ipathinca service on port 8443
+# This proxies CA/KRA requests to ipathinca service on port 8443
 
 ProxyRequests Off
 
@@ -61,6 +61,32 @@ SSLProxyMachineCertificateFile /etc/httpd/alias/ipa-proxy.pem
 <LocationMatch "^/ca/ocsp">
     SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
     SSLVerifyClient none
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
+# KRA (Key Recovery Authority) admin and agent endpoints
+<LocationMatch "^/kra/(admin|agent)/">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient require
+    # Forward client certificate to backend for authentication
+    RequestHeader set SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"
+    RequestHeader set SSL_CLIENT_CERT_CHAIN_0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
+    RequestHeader set SSL_CLIENT_VERIFY "%{SSL_CLIENT_VERIFY}s"
+    RequestHeader set SSL_CLIENT_S_DN "%{SSL_CLIENT_S_DN}s"
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
+# KRA REST API
+<LocationMatch "^/kra/(rest|v1|v2)/">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient optional
+    # Forward client certificate to backend for authentication
+    RequestHeader set SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"
+    RequestHeader set SSL_CLIENT_CERT_CHAIN_0 "%{SSL_CLIENT_CERT_CHAIN_0}s"
+    RequestHeader set SSL_CLIENT_VERIFY "%{SSL_CLIENT_VERIFY}s"
+    RequestHeader set SSL_CLIENT_S_DN "%{SSL_CLIENT_S_DN}s"
     ProxyPassMatch https://$FQDN:8443
     ProxyPassReverse https://$FQDN:8443
 </LocationMatch>
