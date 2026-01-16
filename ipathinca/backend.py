@@ -29,12 +29,15 @@ from datetime import datetime, timedelta, timezone
 import uuid
 import os
 import socket
+import hashlib
 import base64
 
 from ipalib import errors
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipathinca import x509_utils, set_global_config, load_config
+from ipathinca.acme import ACMEServer
+from ipathinca.acme_state import ACMEStateManager
 from ipathinca.ca import RevocationReason
 from ipathinca.ca_internal import InternalCA
 from ipathinca.exceptions import ProfileNotFound
@@ -110,7 +113,18 @@ class PythonCABackend:
             random_serial_numbers=random_serial_numbers,
             config=self.config,
         )
-        self.profile_manager = ProfileManager()
+        self.profile_manager = ProfileManager(
+            config=self.config, storage_backend=self.ca.storage
+        )
+
+        # Get CA host from configuration or API
+        ca_host = self._get_ca_host()
+        self.acme_server = ACMEServer(
+            self.ca, f"https://{ca_host}", self.config
+        )
+
+        # Initialize ACME state manager (for enable/disable)
+        self.acme_state = ACMEStateManager(self.config)
 
         # Initialize pruning manager (for certificate/request cleanup)
         self.pruning_manager = PruningManager(self.config, self.ca.storage)
@@ -586,6 +600,81 @@ class PythonCABackend:
             logger.error(f"CRL update failed: {e}")
             raise errors.CertificateOperationError(error=str(e))
 
+    # ACME Operations
+
+    def get_acme_directory(self):
+        """
+        Get ACME directory - replaces ACME subsystem
+        """
+        return self.acme_server.get_directory()
+
+    def process_acme_request(self, endpoint, payload, account_key=None):
+        """
+        Process ACME protocol requests
+
+        Returns:
+            For new-account: tuple of (account_dict, is_new)
+            For other endpoints: response dict
+        """
+        try:
+            if endpoint == "new-account":
+                account, is_new = self.acme_server.create_account(
+                    payload, account_key
+                )
+                return (account.to_dict(), is_new)
+
+            elif endpoint == "new-order":
+                account_id = self._get_account_id_from_key(account_key)
+                order = self.acme_server.create_order(account_id, payload)
+                return order.to_dict(self.acme_server.base_url)
+
+            elif endpoint.startswith("authz/"):
+                auth_id = endpoint.split("/")[1]
+                account_id = self._get_account_id_from_key(account_key)
+                auth = self.acme_server.get_authorization(auth_id, account_id)
+                return auth.to_dict(self.acme_server.base_url)
+
+            elif endpoint.startswith("chall/"):
+                token = endpoint.split("/")[1]
+                account_id = self._get_account_id_from_key(account_key)
+                challenge = self.acme_server.respond_to_challenge(
+                    token, account_id, account_key
+                )
+                return challenge.to_dict(self.acme_server.base_url)
+
+            elif endpoint.startswith("order/") and endpoint.endswith(
+                "/finalize"
+            ):
+                order_id = endpoint.split("/")[1]
+                account_id = self._get_account_id_from_key(account_key)
+                csr_der = payload.get("csr")  # Base64 decoded
+                order = self.acme_server.finalize_order(
+                    order_id, account_id, csr_der
+                )
+                return order.to_dict(self.acme_server.base_url)
+
+            elif endpoint.startswith("cert/"):
+                order_id = endpoint.split("/")[1]
+                account_id = self._get_account_id_from_key(account_key)
+                cert_pem = self.acme_server.get_certificate(
+                    order_id, account_id
+                )
+                return {"certificate": cert_pem}
+
+            else:
+                raise errors.NotFound(
+                    reason=f"Unknown ACME endpoint: {endpoint}"
+                )
+
+        except Exception as e:
+            logger.error(f"ACME request failed: {e}")
+            raise errors.CertificateOperationError(error=str(e))
+
+    def _get_account_id_from_key(self, account_key):
+        """Extract account ID from account key"""
+        key_thumbprint = self.acme_server._get_key_thumbprint(account_key)
+        return hashlib.sha256(key_thumbprint.encode()).hexdigest()
+
     # CA Management Operations
 
     def create_ca_certificate(self, subject, algorithm=None):
@@ -695,6 +784,20 @@ class PythonCABackend:
             logger.error(f"CA certificate creation failed: {e}")
             raise errors.CertificateOperationError(
                 error=f"Failed to create CA certificate: {e}"
+            )
+
+    def setup_acme(self):
+        """
+        Setup ACME service - called during CA configuration
+        """
+        try:
+            logger.debug("Setting up ACME service with Python CA")
+            # Initialize ACME server (already done in __init__)
+            return {"status": "SUCCESS"}
+        except Exception as e:
+            logger.error(f"ACME setup failed: {e}")
+            raise errors.CertificateOperationError(
+                error=f"Failed to setup ACME: {e}"
             )
 
     # System Operations
