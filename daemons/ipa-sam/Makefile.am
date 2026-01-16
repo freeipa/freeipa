@@ -4,6 +4,7 @@ SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			-lsmbldap		\
 			-l$(LIBPDB_NAME)			\
 			-lsmbconf		\
+			-lgse-private-samba	\
 			$(NULL)
 
 AM_CPPFLAGS =						\
