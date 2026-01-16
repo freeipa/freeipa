@@ -17,12 +17,15 @@ from contextlib import contextmanager
 
 from ipalib import errors
 from ipapython import ipaldap
+from ipapython.dn import DN
 from ipathinca import get_config_value
+from ipathinca.exceptions import StorageConnectionError
 
 logger = logging.getLogger(__name__)
 
 # Global cached LDAP connection (legacy - kept for backward compatibility)
 _ldap_connection = None
+_ldap_connection_lock = Lock()
 
 # Connection pool for high-concurrency scenarios
 _connection_pool = None
@@ -138,10 +141,20 @@ class LDAPConnectionPool:
                         conn = self._create_connection()
                         self._created_count += 1
                     else:
-                        # Wait longer for a connection to become available
-                        conn = self._pool.get(timeout=timeout * 2)
+                        # At max connections — must wait for one to return
+                        try:
+                            conn = self._pool.get(timeout=timeout * 2)
+                        except Empty:
+                            raise StorageConnectionError(
+                                "LDAP connection pool exhausted "
+                                f"(max={self.max_connections})"
+                            )
                         if not self._is_connection_healthy(conn):
-                            conn.close()
+                            # Replace unhealthy connection (count stays same)
+                            try:
+                                conn.close()
+                            except (AttributeError, RuntimeError):
+                                pass
                             conn = self._create_connection()
 
             yield conn
@@ -150,7 +163,13 @@ class LDAPConnectionPool:
             # Return connection to pool
             if conn is not None:
                 try:
-                    if self._is_connection_healthy(conn):
+                    try:
+                        is_healthy = self._is_connection_healthy(conn)
+                    except Exception as e:
+                        logger.warning("Connection health check failed: %s", e)
+                        is_healthy = False
+
+                    if is_healthy:
                         self._pool.put_nowait(conn)
                     else:
                         # Don't return unhealthy connection to pool
@@ -212,7 +231,7 @@ def init_connection_pool(min_connections=None, max_connections=None):
                 try:
                     min_connections = int(
                         get_config_value(
-                            "ldap", "pool_min_connections", fallback="2"
+                            "ldap", "pool_min_connections", default="2"
                         )
                     )
                 except (ValueError, TypeError):
@@ -222,7 +241,7 @@ def init_connection_pool(min_connections=None, max_connections=None):
                 try:
                     max_connections = int(
                         get_config_value(
-                            "ldap", "pool_max_connections", fallback="10"
+                            "ldap", "pool_max_connections", default="10"
                         )
                     )
                 except (ValueError, TypeError):
@@ -288,74 +307,87 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
             init_connection_pool()
         return _connection_pool.get_connection()
 
-    # Check if we need to reconnect
-    if force_reconnect and _ldap_connection is not None:
-        try:
-            _ldap_connection.close()
-        except (AttributeError, RuntimeError) as e:
-            # Connection may already be closed or invalid
-            logger.debug(
-                "Error closing connection during force_reconnect: %s", e
-            )
-        _ldap_connection = None
-
-    # Check if we already have a valid connection
-    if _ldap_connection is not None:
-        try:
-            if _ldap_connection.isconnected():
-                logger.debug("Reusing existing LDAP connection")
-                return _ldap_connection
-        except Exception:
-            logger.debug("Cached LDAP connection is not valid, reconnecting")
+    # Thread-safe singleton connection management
+    with _ldap_connection_lock:
+        # Check if we need to reconnect
+        if force_reconnect and _ldap_connection is not None:
+            try:
+                _ldap_connection.close()
+            except (AttributeError, RuntimeError) as e:
+                # Connection may already be closed or invalid
+                logger.debug(
+                    "Error closing connection during force_reconnect: %s", e
+                )
             _ldap_connection = None
 
-    # Create new LDAP connection
-    try:
-        realm = get_config_value("global", "realm")
-        logger.debug(f"Connecting to LDAP via LDAPI socket for realm {realm}")
+        # Check if we already have a valid connection
+        if _ldap_connection is not None:
+            try:
+                if _ldap_connection.isconnected():
+                    logger.debug("Reusing existing LDAP connection")
+                    return _ldap_connection
+            except Exception:
+                logger.debug(
+                    "Cached LDAP connection is not valid, reconnecting"
+                )
+                _ldap_connection = None
 
-        # Use from_realm() which properly configures LDAPI connection
-        ldap_client = ipaldap.LDAPClient.from_realm(
-            realm, force_schema_updates=False
-        )
-
-        # Try simple bind with Directory Manager credentials from /etc/dirsrv
-        # This is more reliable than EXTERNAL bind which requires SSL
+        # Create new LDAP connection
         try:
-            realm_name = str(realm).replace(".", "-")
-            dm_password_file = f"/etc/dirsrv/slapd-{realm_name}/dse.ldif"
-
-            # Read DM password from dse.ldif (nsslapd-rootpw attribute)
-            if os.path.exists(dm_password_file):
-                with open(dm_password_file, "r") as f:
-                    for line in f:
-                        if line.startswith("nsslapd-rootpw:"):
-                            # This is hashed, we need the plain password
-                            # For now, fall back to EXTERNAL with proper setup
-                            break
-
-            # Use EXTERNAL bind with STARTTLS to satisfy SSL requirement
-            # Even though it's a Unix socket, the LDAP server requires SSL/TLS
-            ldap_client.external_bind()
-
-        except Exception as bind_err:
-            logger.error(f"EXTERNAL bind failed: {bind_err}")
-            # Simple bind as cn=Directory Manager is not available in
-            # production
-            raise errors.DatabaseError(
-                desc="Cannot connect to LDAP database",
-                info=f"EXTERNAL bind failed: {bind_err}",
+            realm = get_config_value("global", "realm")
+            logger.debug(
+                f"Connecting to LDAP via LDAPI socket for realm {realm}"
             )
 
-        logger.debug("Successfully connected to LDAP via LDAPI")
+            # Use from_realm() which properly configures LDAPI connection
+            ldap_client = ipaldap.LDAPClient.from_realm(
+                realm, force_schema_updates=False
+            )
 
-        # Cache the connection
-        _ldap_connection = ldap_client
-        return _ldap_connection
+            # Try simple bind with Directory Manager credentials from
+            # /etc/dirsrv. This is more reliable than EXTERNAL bind which
+            # requires SSL
+            try:
+                realm_name = str(realm).replace(".", "-")
+                dm_password_file = f"/etc/dirsrv/slapd-{realm_name}/dse.ldif"
 
-    except Exception as e:
-        logger.error(f"Failed to create LDAP connection: {e}", exc_info=True)
-        raise Exception(f"Cannot connect to LDAP database: {e}")
+                # Read DM password from dse.ldif (nsslapd-rootpw attribute)
+                if os.path.exists(dm_password_file):
+                    with open(dm_password_file, "r") as f:
+                        for line in f:
+                            if line.startswith("nsslapd-rootpw:"):
+                                # This is hashed, we need the plain
+                                # password. For now, fall back to EXTERNAL
+                                # with proper setup
+                                break
+
+                # Use EXTERNAL bind with STARTTLS to satisfy SSL requirement
+                # Even though it's a Unix socket, the LDAP server requires
+                # SSL/TLS
+                ldap_client.external_bind()
+
+            except Exception as bind_err:
+                logger.error(f"EXTERNAL bind failed: {bind_err}")
+                # Simple bind as cn=Directory Manager is not available in
+                # production
+                raise errors.DatabaseError(
+                    desc="Cannot connect to LDAP database",
+                    info=f"EXTERNAL bind failed: {bind_err}",
+                )
+
+            logger.debug("Successfully connected to LDAP via LDAPI")
+
+            # Cache the connection
+            _ldap_connection = ldap_client
+            return _ldap_connection
+
+        except Exception as e:
+            logger.error(
+                f"Failed to create LDAP connection: {e}", exc_info=True
+            )
+            raise StorageConnectionError(
+                f"Cannot connect to LDAP database: {e}"
+            )
 
 
 def close_ldap_connection():
@@ -416,7 +448,6 @@ def is_main_ca_id(ca_id, ca_name="ipa", config=None):
     # Check if this is the UUID of the main IPA CA by querying LDAP
     try:
         import ldap as python_ldap
-        from ipathinca import get_config_value
 
         # Get realm and basedn from config
         if config:
@@ -434,7 +465,7 @@ def is_main_ca_id(ca_id, ca_name="ipa", config=None):
         conn.sasl_interactive_bind_s("", python_ldap.sasl.external())
 
         # Read the main CA's UUID from IPA's CA entry
-        ca_dn = f"cn=ipa,cn=cas,cn=ca,{basedn}"
+        ca_dn = str(DN(("cn", "ipa"), ("cn", "cas"), ("cn", "ca"), basedn))
         result = conn.search_s(
             ca_dn, python_ldap.SCOPE_BASE, "(objectClass=*)", ["ipaCaId"]
         )
@@ -454,5 +485,30 @@ def is_main_ca_id(ca_id, ca_name="ipa", config=None):
         conn.unbind()
     except Exception as e:
         logger.debug("Could not check if %s is main CA UUID: %s", ca_id, e)
+
+    return False
+
+
+def is_internal_token(token_name):
+    """Check if token is internal NSS database (software) or HSM
+
+    This matches Dogtag's token detection logic from pki/nssdb.py.
+    Internal tokens are identified as empty string, 'internal', or
+    'Internal Key Storage Token'.
+
+    Args:
+        token_name: Token name to check (string or None)
+
+    Returns:
+        bool: True if token is internal (software), False if HSM
+    """
+    if not token_name:
+        return True
+
+    if token_name.lower() == "internal":
+        return True
+
+    if token_name.lower() == "internal key storage token":
+        return True
 
     return False

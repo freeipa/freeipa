@@ -311,7 +311,6 @@ def print_ca_configuration(options):
 
 def uninstall_check(options):
     """IPA needs to be running so pkidestroy can unregister CA"""
-    use_ipathinca = get_ca_service() == "ipathinca"
 
     ca = cainstance.CAInstance(api.env.realm)
     if not ca.is_installed():
@@ -637,6 +636,15 @@ def install_step_0(standalone, replica_config, options, custodia):
             cert_file=cert_file,
             cert_chain_file=cert_chain_file,
             pki_config_override=options.pki_config_override,
+            token_name=token_name,
+            token_library_path=(
+                options.token_library_path
+                if hasattr(options, 'token_library_path') else None
+            ),
+            token_password=(
+                options.token_password
+                if hasattr(options, 'token_password') else None
+                ),
             pkcs12_info=pkcs12_info,
             master_host=master_host,
             promote=promote,
@@ -698,7 +706,9 @@ def install_step_1(standalone, replica_config, options, custodia):
             # Store the IPA CA cert chain in DS NSS database and LDAP
             # For ipathinca, CA cert is in /etc/ipa/ca.crt
             with open(paths.IPA_CA_CRT, 'rb') as f:
-                cacert_der = x509.load_pem_x509_certificate(f.read()).public_bytes(
+                cacert_der = x509.load_pem_x509_certificate(
+                    f.read()
+                ).public_bytes(
                     serialization.Encoding.DER
                 )
 
@@ -797,7 +807,7 @@ def enable_ca_service(options):
 
     if use_ipathinca:
         logger.info("Registering ipathinca CA service in LDAP")
-        from ipaserver.install.ipathincainstance import IPAThinCAInstance
+        from ipaserver.install.ipathincainstance import IPAThinCAInstance  # pylint: disable=reimported
         ca_instance = IPAThinCAInstance(
             realm=options.realm_name,
             host_name=options.host_name,
