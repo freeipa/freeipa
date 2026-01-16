@@ -17,10 +17,18 @@ import secrets
 
 from flask import Flask, request, Response, make_response, jsonify
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import pkcs7
+
 from ipathinca.backend import get_python_ca_backend
+from ipathinca import x509_utils
 from ipathinca.exceptions import ProfileNotFound
+from ipathinca.ldap_utils import is_main_ca_id
+from ipathinca.ocsp import get_ocsp_manager
+from ipathinca.x509_utils import get_subject_dn, get_issuer_dn
 from ipalib import errors
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 
 # Import REST API helpers
 from ipathinca.rest_api_helpers import (
@@ -33,6 +41,7 @@ from ipathinca.rest_api_helpers import (
     validate_serial_number,
     validate_profile_id,
     validate_ca_id,
+    validate_dn,
     # Response helpers
     error_response,
     success_response,
@@ -1682,6 +1691,1184 @@ def run_pruning():
     except Exception as e:
         logger.error(f"Error running pruning job: {e}", exc_info=True)
         return error_response("ServerError", str(e), 500)
+
+
+# ============================================================================
+# OCSP Endpoints
+# ============================================================================
+
+
+@app.route("/ca/ocsp", methods=["POST", "GET"])
+@app.route("/ca/ocsp/<path:ocsp_data>", methods=["GET"])
+@app.route("/ca/ee/ca/ocsp", methods=["POST", "GET"])
+@app.route("/ca/ee/ca/ocsp/<path:ocsp_data>", methods=["GET"])
+def ocsp_request(ocsp_data=None):
+    """
+    OCSP responder endpoint (RFC 6960)
+
+    Supports both POST and GET methods:
+    - POST: OCSP request in request body (DER-encoded)
+    - GET: OCSP request in URL (base64-encoded)
+    """
+    try:
+        init_ca()
+
+        # Get OCSP manager
+        ocsp_manager = get_ocsp_manager()
+
+        # Get OCSP responder for main CA
+        ocsp_responder = ocsp_manager.get_responder(ca_backend.ca, ca_id="ipa")
+
+        # Parse OCSP request
+        if request.method == "POST":
+            # POST request - DER-encoded in body
+            ocsp_request_der = request.get_data()
+
+        else:  # GET
+            # GET request - base64-encoded in URL path
+            # Extract base64-encoded request from URL (RFC 6960 section 2.1)
+            request_b64 = ocsp_data if ocsp_data else request.path.split("/")[-1]
+            if len(request_b64) > 8192:
+                return Response(
+                    ocsp_responder._create_error_response(),
+                    mimetype="application/ocsp-response",
+                    status=400,
+                )
+            try:
+                ocsp_request_der = base64.b64decode(request_b64)
+            except Exception as e:
+                logger.error(f"Failed to decode OCSP request from URL: {e}")
+                return Response(
+                    ocsp_responder._create_error_response(),
+                    mimetype="application/ocsp-response",
+                    status=400,
+                )
+
+        if not ocsp_request_der:
+            logger.warning("Empty OCSP request received")
+            return Response(
+                ocsp_responder._create_error_response(),
+                mimetype="application/ocsp-response",
+                status=400,
+            )
+
+        # Create OCSP response
+        ocsp_response_der = ocsp_responder.create_response(ocsp_request_der)
+
+        # Return OCSP response
+        return Response(
+            ocsp_response_der,
+            mimetype="application/ocsp-response",
+            status=200,
+        )
+
+    except Exception as e:
+        logger.error(f"Error in OCSP request handler: {e}", exc_info=True)
+        # Return error response
+        try:
+            ocsp_manager = get_ocsp_manager()
+            ocsp_responder = ocsp_manager.get_responder(
+                ca_backend.ca, ca_id="ipa"
+            )
+            error_response_der = ocsp_responder._create_error_response()
+            return Response(
+                error_response_der,
+                mimetype="application/ocsp-response",
+                status=500,
+            )
+        except Exception:
+            return Response(
+                b"", mimetype="application/ocsp-response", status=500
+            )
+
+
+@app.route("/ca/rest/ocsp/stats", methods=["GET"])
+def ocsp_stats():
+    """Get OCSP responder statistics"""
+    try:
+        init_ca()
+
+        ocsp_manager = get_ocsp_manager()
+
+        stats = ocsp_manager.get_all_stats()
+
+        return success_response(stats)
+
+    except Exception as e:
+        logger.error(f"Error getting OCSP stats: {e}")
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/ocsp/cache/clear", methods=["POST"])
+def ocsp_clear_cache():
+    """Clear OCSP response cache"""
+    try:
+        init_ca()
+
+        ocsp_manager = get_ocsp_manager()
+        ocsp_manager.clear_all_caches()
+
+        return success_response(
+            {"Status": "SUCCESS", "Message": "OCSP cache cleared"}
+        )
+
+    except Exception as e:
+        logger.error(f"Error clearing OCSP cache: {e}")
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/ocsp/cert", methods=["GET"])
+def get_ocsp_cert():
+    """Get OCSP signing certificate for main CA"""
+    try:
+        init_ca()
+
+        ca_id = request.args.get("ca_id", "ipa")
+
+        # Get OCSP cert from LDAP
+        if (
+            hasattr(ca_backend.ca, "ldap_storage")
+            and ca_backend.ca.ldap_storage
+        ):
+            ocsp_data = ca_backend.ca.ldap_storage.get_ocsp_cert(ca_id)
+
+            if ocsp_data:
+                return success_response(
+                    {
+                        "ca_id": ocsp_data["ca_id"],
+                        "serial_number": ocsp_data["serial_number"],
+                        "not_before": ocsp_data["not_before"],
+                        "not_after": ocsp_data["not_after"],
+                        "enabled": ocsp_data["enabled"],
+                        "certificate": ocsp_data["ocsp_cert"],
+                        "cache_timeout": ocsp_data["cache_timeout"],
+                    }
+                )
+            else:
+                return error_response(
+                    "NotFound",
+                    f"OCSP signing certificate for CA {ca_id} not found",
+                    404,
+                )
+        else:
+            return error_response(
+                "NotSupported", "LDAP storage not enabled", 400
+            )
+
+    except Exception as e:
+        logger.error(f"Error getting OCSP certificate: {e}")
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/ocsp/cert/renew", methods=["POST"])
+def renew_ocsp_cert():
+    """Regenerate OCSP signing certificate"""
+    try:
+        init_ca()
+
+        ca_id = request.args.get("ca_id", "ipa")
+
+        ocsp_manager = get_ocsp_manager()
+
+        # TODO: responder needed?
+        # Get responder for this CA
+        # responder = ocsp_manager.get_responder(ca_backend.ca, ca_id=ca_id)
+
+        # Delete old cert from LDAP if present
+        if (
+            hasattr(ca_backend.ca, "ldap_storage")
+            and ca_backend.ca.ldap_storage
+        ):
+            try:
+                ca_backend.ca.ldap_storage.delete_ocsp_cert(ca_id)
+            except Exception:
+                pass
+
+        # Force regeneration by creating a new responder
+        del ocsp_manager.responders[ca_id]
+        # TODO: new_responder needed?
+        # new_responder = ocsp_manager.get_responder(ca_backend.ca,
+        #                                            ca_id=ca_id)
+
+        # Get the new certificate info
+        if (
+            hasattr(ca_backend.ca, "ldap_storage")
+            and ca_backend.ca.ldap_storage
+        ):
+            ocsp_data = ca_backend.ca.ldap_storage.get_ocsp_cert(ca_id)
+            if ocsp_data:
+                return success_response(
+                    {
+                        "Status": "SUCCESS",
+                        "Message": "OCSP signing certificate renewed",
+                        "serial_number": ocsp_data["serial_number"],
+                        "not_before": ocsp_data["not_before"],
+                        "not_after": ocsp_data["not_after"],
+                    }
+                )
+
+        return success_response(
+            {
+                "Status": "SUCCESS",
+                "Message": "OCSP signing certificate renewed",
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error renewing OCSP certificate: {e}")
+        return error_response("ServerError", str(e), 500)
+
+
+@app.route("/ca/rest/ocsp/responders", methods=["GET"])
+def list_ocsp_responders():
+    """List all OCSP responders (multi-CA support)"""
+    try:
+        init_ca()
+
+        # Get all OCSP certs from LDAP
+        if (
+            hasattr(ca_backend.ca, "ldap_storage")
+            and ca_backend.ca.ldap_storage
+        ):
+            ocsp_certs = ca_backend.ca.ldap_storage.list_ocsp_certs()
+
+            return success_response(
+                {"total": len(ocsp_certs), "entries": ocsp_certs}
+            )
+
+        # Fallback: get active responders (should not reach here with
+        # InternalCA)
+        ocsp_manager = get_ocsp_manager()
+
+        responders = []
+        for ca_id, responder in ocsp_manager.responders.items():
+            responders.append({"ca_id": ca_id, "enabled": True})
+
+            return success_response(
+                {"total": len(responders), "entries": responders}
+            )
+
+    except Exception as e:
+        logger.error(f"Error listing OCSP responders: {e}")
+        return error_response("ServerError", str(e), 500)
+
+
+# ============================================================================
+# Certificate Chain Endpoints
+# ============================================================================
+
+
+@app.route("/ca/rest/certs/chain", methods=["GET"])
+@app.route("/ca/ee/ca/getCertChain", methods=["GET"])
+def get_cert_chain():
+    """Get CA certificate chain"""
+    try:
+        init_ca()
+
+        result = ca_backend.get_certificate_chain()
+        cert_chain = result["certificate_chain"]
+
+        # Return as PKCS7 chain or PEM
+        output_format = request.args.get("format", "pem")
+
+        if output_format == "pkcs7":
+            # DEFERRED: PKCS7 format implementation
+            # PEM format is sufficient for current IPA requirements and is
+            # more widely supported. PKCS7 can be added later if needed. For
+            # now, return PEM even if PKCS7 is requested (Dogtag compatibility
+            # - it also falls back to PEM).
+            logger.debug(
+                "PKCS7 format requested but not yet implemented, returning PEM"
+            )
+            return Response(cert_chain, mimetype="application/x-pem-file")
+        else:
+            return Response(cert_chain, mimetype="application/x-pem-file")
+
+    except Exception as e:
+        logger.error(f"Error in get_cert_chain: {e}")
+        return error_response("ServerError", str(e), 500)
+
+
+# ============================================================================
+# Lightweight CA (Authorities) Endpoints
+# ============================================================================
+
+
+@app.route("/ca/rest/authorities", methods=["GET"])
+@app.route("/ca/rest/ca/authorities", methods=["GET"])
+@app.route("/ca/v2/authorities", methods=["GET"])
+@app.route("/ca/v2/ca/authorities", methods=["GET"])
+def list_authorities():
+    """
+    List all certificate authorities (lightweight CAs)
+
+    Dogtag API compatibility endpoint for listing authorities
+    """
+    try:
+        ca_backend = get_python_ca_backend()
+
+        # Ensure CA certificate is loaded
+        ca_backend.ca._ensure_ca_loaded()
+
+        # Get all sub-CAs
+        subcas = ca_backend.ca.subca_manager.list_subcas()
+
+        # Build authorities list
+        authorities = []
+
+        # Add the main IPA CA as host-authority
+        # Convert subject and issuer to IPA DN format using shared utility
+        main_subject_dn = get_subject_dn(ca_backend.ca.ca_cert)
+        main_issuer_dn = get_issuer_dn(ca_backend.ca.ca_cert)
+
+        main_ca_info = {
+            "id": "host-authority",
+            "dn": str(main_subject_dn),
+            "issuerDN": str(main_issuer_dn),
+            "description": "IPA CA",
+            "enabled": True,
+            "isHostAuthority": "TRUE",  # PKI client expects string "TRUE"
+            "serial": str(ca_backend.ca.ca_cert.serial_number),
+        }
+        authorities.append(main_ca_info)
+
+        # Add sub-CAs
+        for subca in subcas:
+            ca_info = {
+                "id": subca.ca_id,
+                "dn": subca.subject_dn,
+                "issuerDN": (
+                    x509_utils.get_subject_dn_str(subca.parent_ca.ca_cert)
+                    if subca.parent_ca
+                    else subca.subject_dn
+                ),
+                "description": f"Sub-CA {subca.ca_id}",
+                "enabled": True,
+                "isHostAuthority": "FALSE",  # Sub-CAs are not host authority
+            }
+            if subca.ca_cert:
+                ca_info["serial"] = str(subca.ca_cert.serial_number)
+            authorities.append(ca_info)
+
+        # PKI client expects just the list of authorities, not wrapped in a
+        # response object
+        # Return the authorities list directly
+        return jsonify(authorities), 200
+
+    except Exception as e:
+        logger.error(f"Error listing authorities: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to list authorities: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities/<authority_id>", methods=["GET"])
+@app.route("/ca/rest/ca/authorities/<authority_id>", methods=["GET"])
+@app.route("/ca/v2/authorities/<authority_id>", methods=["GET"])
+def get_authority(authority_id):
+    """
+    Get details of a specific authority
+
+    Args:
+        authority_id: Authority identifier
+    """
+    try:
+        ca_backend = get_python_ca_backend()
+
+        # Ensure CA certificate is loaded
+        ca_backend.ca._ensure_ca_loaded()
+
+        # Check if authority_id refers to the main IPA CA (by name or UUID)
+        is_main_ca = is_main_ca_id(
+            authority_id, ca_backend.ca.ca_id, ca_backend.config
+        )
+
+        if is_main_ca:
+            ca_cert = ca_backend.ca.ca_cert
+
+            # Convert subject and issuer to IPA DN format using shared utility
+            # This avoids RFC4514 escaping issues when stored in LDAP
+            subject_dn = get_subject_dn(ca_cert)
+            issuer_dn = get_issuer_dn(ca_cert)
+
+            authority_info = {
+                "id": ca_backend.ca.ca_id or "host-authority",
+                "dn": str(subject_dn),
+                "issuerDN": str(issuer_dn),
+                "description": "IPA CA",
+                "enabled": True,
+                "serial": str(ca_cert.serial_number),
+                "notBefore": ca_cert.not_valid_before_utc.isoformat(),
+                "notAfter": ca_cert.not_valid_after_utc.isoformat(),
+            }
+            return success_response(authority_info)
+
+        # Get sub-CA (force reload to get latest enabled status from LDAP)
+        subca = ca_backend.ca.subca_manager.get_subca(
+            authority_id, force_reload=True
+        )
+        if not subca:
+            return error_response(
+                "CANotFound", f"Authority {authority_id} not found", 404
+            )
+
+        # Convert issuer DN to string (if parent exists, use RFC4514 format)
+        if subca.parent_ca and subca.parent_ca.ca_cert:
+            issuer_dn = subca.parent_ca.ca_cert.subject.rfc4514_string()
+        else:
+            issuer_dn = str(subca.subject_dn)
+
+        authority_info = {
+            "id": subca.ca_id,
+            "dn": str(subca.subject_dn),
+            "issuerDN": issuer_dn,
+            "description": f"Sub-CA {subca.ca_id}",
+            "enabled": subca.enabled,
+        }
+
+        if subca.ca_cert:
+            not_before = subca.ca_cert.not_valid_before_utc.isoformat()
+            authority_info.update(
+                {
+                    "serial": str(subca.ca_cert.serial_number),
+                    "notBefore": not_before,
+                    "notAfter": subca.ca_cert.not_valid_after_utc.isoformat(),
+                }
+            )
+
+        return success_response(authority_info)
+
+    except Exception as e:
+        logger.error(
+            f"Error getting authority {authority_id}: {e}", exc_info=True
+        )
+        return error_response(
+            "InternalError", f"Failed to get authority: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities", methods=["POST"])
+@app.route("/ca/rest/ca/authorities", methods=["POST"])
+@app.route("/ca/v2/authorities", methods=["POST"])
+@app.route("/ca/v2/ca/authorities", methods=["POST"])
+@require_agent_auth
+def create_authority():
+    """
+    Create a new lightweight CA
+
+    Request body should contain:
+        - id: CA identifier (optional, will be extracted from CN if not
+              provided)
+        - dn: Subject DN for the new CA
+        - description: Description (optional)
+        - parentID: Parent authority ID (optional, defaults to host-authority)
+    """
+    try:
+        data = request.get_json() or {}
+
+        # Validate required fields
+        subject_dn = data.get("dn")
+        if not subject_dn:
+            return error_response(
+                "BadRequest", "Missing required field: dn", 400
+            )
+
+        # Validate DN format
+        if not validate_dn(subject_dn):
+            return error_response(
+                "BadRequest", f"Invalid DN format: {subject_dn}", 400
+            )
+
+        # Get CA ID from request, or fall back to extracting from subject CN
+        ca_id = data.get("id")
+
+        if not ca_id:
+            # Fall back to extracting from subject CN (backward compatibility)
+            dn_obj = DN(subject_dn)
+            for rdn in dn_obj:
+                if rdn.attr.lower() == "cn":
+                    ca_id = rdn.value
+                    break
+
+        if not ca_id:
+            return error_response(
+                "BadRequest",
+                "Missing required field: id (or subject DN must contain CN)",
+                400,
+            )
+
+        # Get parent CA ID
+        parent_id = data.get("parentID", "host-authority")
+        if parent_id == "host-authority":
+            parent_id = None  # None means issued by main CA
+
+        ca_backend = get_python_ca_backend()
+
+        # Create sub-CA
+        subca = ca_backend.ca.subca_manager.create_subca(
+            ca_id=ca_id,
+            subject_dn=subject_dn,
+            parent_ca_id=parent_id,
+            key_size=2048,
+            validity_days=3650,
+        )
+
+        # Convert issuer DN from cryptography Name to string
+        if subca.parent_ca and subca.parent_ca.ca_cert:
+            issuer_cert = subca.parent_ca.ca_cert
+        else:
+            issuer_cert = ca_backend.ca.ca_cert
+
+        # Convert cryptography Name to RFC4514 DN string
+        issuer_dn = issuer_cert.subject.rfc4514_string()
+
+        # Return created authority info
+        authority_info = {
+            "id": subca.ca_id,
+            "dn": subca.subject_dn,
+            "issuerDN": issuer_dn,
+            "description": data.get("description", f"Sub-CA {subca.ca_id}"),
+            "enabled": True,
+            "serial": (
+                str(subca.ca_cert.serial_number) if subca.ca_cert else None
+            ),
+        }
+
+        return success_response(authority_info, status_code=201)
+
+    except Exception as e:
+        logger.error(f"Error creating authority: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to create authority: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities/<authority_id>/cert", methods=["GET"])
+@app.route("/ca/rest/ca/authorities/<authority_id>/cert", methods=["GET"])
+@app.route("/ca/v2/authorities/<authority_id>/cert", methods=["GET"])
+def get_authority_cert(authority_id):
+    """
+    Get the certificate of a specific authority
+
+    Args:
+        authority_id: Authority identifier
+    """
+    logger.debug(f"get_authority_cert called for authority_id={authority_id}")
+
+    try:
+        # Initialize backend
+        try:
+            init_ca()
+        except Exception as e:
+            logger.error(f"Failed to initialize backend: {e}", exc_info=True)
+            return error_response(
+                "BackendError", f"CA backend not initialized: {str(e)}", 503
+            )
+
+        # Handle main IPA CA - special identifiers
+        if authority_id in ("host-authority", "ipa"):
+            try:
+                logger.debug(
+                    "Returning main IPA CA certificate (special ID: "
+                    f"{authority_id})"
+                )
+                # CRITICAL FIX: Ensure CA cert is loaded before accessing it
+                ca_backend.ca._ensure_ca_loaded()
+
+                ca_cert = ca_backend.ca.ca_cert
+                cert_pem = ca_cert.public_bytes(
+                    serialization.Encoding.PEM
+                ).decode("utf-8")
+                return Response(cert_pem, mimetype="application/pkix-cert")
+            except Exception as e:
+                logger.error(f"Failed to get main CA cert: {e}", exc_info=True)
+                return error_response(
+                    "InternalError",
+                    f"Failed to get main CA certificate: {str(e)}",
+                    500,
+                )
+
+        # Try to look up as a sub-CA first
+        # If lookup fails or returns None, fall back to main CA (Dogtag
+        # compatibility)
+        try:
+            logger.debug(f"Looking up sub-CA with ID: {authority_id}")
+            subca = ca_backend.ca.subca_manager.get_subca(authority_id)
+            logger.debug(f"Sub-CA lookup result: {subca}")
+        except Exception as lookup_error:
+            # Exception during lookup - could be LDAP error or missing entry
+            # In Dogtag, if a UUID doesn't match a sub-CA, it might be the
+            # main CA's UUID
+            # So log the error but fall through to try main CA
+            logger.warning(
+                f"Sub-CA lookup failed for {authority_id}, trying main CA: "
+                f"{lookup_error}"
+            )
+            logger.warning("Traceback:", exc_info=True)
+            subca = None
+
+        # If sub-CA found, return it
+        if subca:
+            if not subca.ca_cert:
+                logger.warning(
+                    f"Sub-CA {authority_id} exists but has no certificate"
+                )
+                return error_response(
+                    "CANotFound",
+                    f"Authority {authority_id} has no certificate",
+                    404,
+                )
+
+            try:
+                logger.debug(
+                    f"Returning sub-CA certificate for {authority_id}"
+                )
+                cert_pem = subca.ca_cert.public_bytes(
+                    serialization.Encoding.PEM
+                ).decode("utf-8")
+                return Response(cert_pem, mimetype="application/pkix-cert")
+            except Exception as e:
+                logger.error(
+                    f"Failed to serialize sub-CA cert: {e}", exc_info=True
+                )
+                return error_response(
+                    "InternalError",
+                    f"Failed to serialize certificate: {str(e)}",
+                    500,
+                )
+
+        # No sub-CA found - assume this is the main CA's UUID (Dogtag
+        # compatibility)
+        # In Dogtag, the main CA also has a UUID that can be queried
+        logger.debug(
+            f"No sub-CA found for {authority_id}, returning main CA "
+            "certificate"
+        )
+        try:
+            # CRITICAL FIX: Ensure CA cert is loaded before accessing it
+            ca_backend.ca._ensure_ca_loaded()
+
+            ca_cert = ca_backend.ca.ca_cert
+            cert_pem = ca_cert.public_bytes(serialization.Encoding.PEM).decode(
+                "utf-8"
+            )
+            return Response(cert_pem, mimetype="application/pkix-cert")
+        except Exception as e:
+            logger.error(f"Failed to get main CA cert: {e}", exc_info=True)
+            return error_response(
+                "InternalError",
+                f"Failed to get main CA certificate: {str(e)}",
+                500,
+            )
+
+    except Exception as e:
+        # Catch-all for any unexpected errors
+        logger.error(
+            f"Unexpected error getting authority cert {authority_id}: {e}",
+            exc_info=True,
+        )
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return error_response(
+            "InternalError", f"Unexpected error: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities/<authority_id>/chain", methods=["GET"])
+@app.route("/ca/rest/ca/authorities/<authority_id>/chain", methods=["GET"])
+@app.route("/ca/v2/authorities/<authority_id>/chain", methods=["GET"])
+def get_authority_chain(authority_id):
+    """
+    Get the certificate chain of a specific authority (PKCS#7)
+
+    Args:
+        authority_id: Authority identifier
+    """
+    try:
+        ca_backend = get_python_ca_backend()
+
+        # Ensure CA cert is loaded
+        ca_backend.ca._ensure_ca_loaded()
+
+        # Build certificate chain
+        chain_certs = []
+
+        if authority_id in ("host-authority", "ipa"):
+            # Main CA - just return its cert
+            chain_certs = [ca_backend.ca.ca_cert]
+        else:
+            # Try to find sub-CA
+            subca = ca_backend.ca.subca_manager.get_subca(authority_id)
+
+            if subca and subca.ca_cert:
+                # Sub-CA found - build chain up to root
+                chain_certs.append(subca.ca_cert)
+
+                # Add parent certs up to root
+                current = subca
+                while current.parent_ca:
+                    chain_certs.append(current.parent_ca.ca_cert)
+                    current = current.parent_ca
+            else:
+                # No sub-CA found - assume this is the main CA's UUID (Dogtag
+                # compatibility)
+                # In Dogtag, the main CA also has a UUID that can be queried
+                logger.debug(
+                    f"No sub-CA found for {authority_id}, returning main CA "
+                    "chain"
+                )
+                chain_certs = [ca_backend.ca.ca_cert]
+
+        # Serialize as PKCS#7 in PEM format (Dogtag compatibility)
+        # The IPA plugin expects PEM format with ----BEGIN PKCS7---- headers
+        pkcs7_pem = pkcs7.serialize_certificates(
+            chain_certs, encoding=serialization.Encoding.PEM
+        )
+
+        # Return as text/plain (PEM format)
+        return Response(pkcs7_pem, mimetype="text/plain")
+
+    except Exception as e:
+        logger.error(
+            f"Error getting authority chain {authority_id}: {e}",
+            exc_info=True,
+        )
+        return error_response(
+            "InternalError", f"Failed to get authority chain: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities/<authority_id>/disable", methods=["POST"])
+@app.route("/ca/rest/ca/authorities/<authority_id>/disable", methods=["POST"])
+@app.route("/ca/v2/authorities/<authority_id>/disable", methods=["POST"])
+@app.route("/ca/v2/ca/authorities/<authority_id>/disable", methods=["POST"])
+@require_agent_auth
+def disable_authority(authority_id):
+    """
+    Disable a lightweight CA
+
+    Args:
+        authority_id: Authority identifier
+    """
+    try:
+        ca_backend = get_python_ca_backend()
+
+        # Prevent disabling the main IPA CA
+        if authority_id in ("host-authority", "ipa"):
+            return error_response(
+                "BadRequest", "Cannot disable the main IPA CA", 400
+            )
+
+        # Get sub-CA
+        subca = ca_backend.ca.subca_manager.get_subca(authority_id)
+        if not subca:
+            return error_response(
+                "CANotFound", f"Authority {authority_id} not found", 404
+            )
+
+        # Check if already disabled
+        if not subca.enabled:
+            return error_response(
+                "BadRequest",
+                f"Authority {authority_id} is already disabled",
+                400,
+            )
+
+        # Disable the CA (mark as disabled in LDAP)
+        subca.enabled = False
+        ca_backend.ca.subca_manager.update_subca_status(
+            authority_id, enabled=False
+        )
+
+        return success_response(
+            {
+                "Status": "SUCCESS",
+                "Message": f"Authority {authority_id} disabled successfully",
+            }
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Error disabling authority {authority_id}: {e}", exc_info=True
+        )
+        return error_response(
+            "InternalError", f"Failed to disable authority: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities/<authority_id>/enable", methods=["POST"])
+@app.route("/ca/rest/ca/authorities/<authority_id>/enable", methods=["POST"])
+@app.route("/ca/v2/authorities/<authority_id>/enable", methods=["POST"])
+@app.route("/ca/v2/ca/authorities/<authority_id>/enable", methods=["POST"])
+@require_agent_auth
+def enable_authority(authority_id):
+    """
+    Enable a lightweight CA
+
+    Args:
+        authority_id: Authority identifier
+    """
+    try:
+        ca_backend = get_python_ca_backend()
+
+        # Get sub-CA
+        subca = ca_backend.ca.subca_manager.get_subca(authority_id)
+        if not subca:
+            return error_response(
+                "CANotFound", f"Authority {authority_id} not found", 404
+            )
+
+        # Check if already enabled
+        if subca.enabled:
+            return error_response(
+                "BadRequest",
+                f"Authority {authority_id} is already enabled",
+                400,
+            )
+
+        # Enable the CA (mark as enabled in LDAP)
+        subca.enabled = True
+        ca_backend.ca.subca_manager.update_subca_status(
+            authority_id, enabled=True
+        )
+
+        return success_response(
+            {
+                "Status": "SUCCESS",
+                "Message": f"Authority {authority_id} enabled successfully",
+            }
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Error enabling authority {authority_id}: {e}", exc_info=True
+        )
+        return error_response(
+            "InternalError", f"Failed to enable authority: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/authorities/<authority_id>", methods=["DELETE"])
+@app.route("/ca/rest/ca/authorities/<authority_id>", methods=["DELETE"])
+@app.route("/ca/v2/authorities/<authority_id>", methods=["DELETE"])
+@app.route("/ca/v2/ca/authorities/<authority_id>", methods=["DELETE"])
+@require_agent_auth
+def delete_authority(authority_id):
+    """
+    Delete a lightweight CA (includes LDAP deletion)
+
+    Args:
+        authority_id: Authority identifier
+    """
+    try:
+        ca_backend = get_python_ca_backend()
+
+        # Prevent deleting the main IPA CA
+        if authority_id in ("host-authority", "ipa"):
+            return error_response(
+                "BadRequest", "Cannot delete the main IPA CA", 400
+            )
+
+        # Get sub-CA
+        subca = ca_backend.ca.subca_manager.get_subca(authority_id)
+        if not subca:
+            return error_response(
+                "CANotFound", f"Authority {authority_id} not found", 404
+            )
+
+        # Delete the CA (includes LDAP deletion)
+        ca_backend.ca.subca_manager.delete_subca(authority_id)
+
+        return success_response(
+            {
+                "Status": "SUCCESS",
+                "Message": f"Authority {authority_id} deleted successfully",
+            }
+        )
+
+    except Exception as e:
+        logger.error(
+            f"Error deleting authority {authority_id}: {e}", exc_info=True
+        )
+        return error_response(
+            "InternalError", f"Failed to delete authority: {str(e)}", 500
+        )
+
+
+# ============================================================================
+# Range Management Endpoints (Multi-Master Replication)
+# ============================================================================
+
+
+@app.route("/ca/rest/ranges", methods=["GET"])
+@app.route("/ca/v2/ranges", methods=["GET"])
+@require_ca_backend
+@handle_ca_errors
+def list_all_ranges():
+    """
+    List all serial number ranges across all replicas
+
+    Returns comprehensive range information for multi-master deployments
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "list_all_ranges"):
+            ranges = storage.list_all_ranges()
+            return jsonify({"entries": ranges, "total": len(ranges)}), 200
+        else:
+            return error_response(
+                "NotImplemented", "Range management not available", 501
+            )
+
+    except Exception as e:
+        logger.error(f"Error listing ranges: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to list ranges: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/ranges/replica/<replica_id>", methods=["GET"])
+@app.route("/ca/v2/ranges/replica/<replica_id>", methods=["GET"])
+@require_ca_backend
+@handle_ca_errors
+def get_replica_ranges(replica_id):
+    """
+    Get all serial ranges allocated to a specific replica
+
+    Args:
+        replica_id: Replica identifier
+
+    Returns list of (begin_range, end_range) tuples
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "get_replica_ranges"):
+            ranges = storage.get_replica_ranges(replica_id)
+            return (
+                jsonify(
+                    {
+                        "replica_id": replica_id,
+                        "ranges": ranges,
+                        "total": len(ranges),
+                    }
+                ),
+                200,
+            )
+        else:
+            return error_response(
+                "NotImplemented", "Range management not available", 501
+            )
+
+    except Exception as e:
+        logger.error(f"Error getting replica ranges: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to get replica ranges: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/ranges/allocate", methods=["POST"])
+@app.route("/ca/v2/ranges/allocate", methods=["POST"])
+@require_agent_auth
+@require_ca_backend
+@handle_ca_errors
+def allocate_serial_range():
+    """
+    Allocate a new serial number range for a replica
+
+    Request body:
+    {
+        "replica_id": "replica1",
+        "range_size": 10000  (optional, default: 10000)
+    }
+
+    Returns:
+    {
+        "replica_id": "replica1",
+        "begin_range": 1,
+        "end_range": 10000,
+        "range_size": 10000
+    }
+    """
+    try:
+        data = request.get_json() or {}
+        replica_id = data.get("replica_id")
+        range_size = data.get("range_size", 10000)
+
+        if not replica_id:
+            return error_response("BadRequest", "replica_id is required", 400)
+
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "allocate_serial_range"):
+            begin, end = storage.allocate_serial_range(replica_id, range_size)
+            return (
+                jsonify(
+                    {
+                        "replica_id": replica_id,
+                        "begin_range": begin,
+                        "end_range": end,
+                        "range_size": end - begin + 1,
+                    }
+                ),
+                201,
+            )
+        else:
+            return error_response(
+                "NotImplemented", "Range allocation not available", 501
+            )
+
+    except Exception as e:
+        logger.error(f"Error allocating range: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to allocate range: {str(e)}", 500
+        )
+
+
+@app.route(
+    "/ca/rest/ranges/replica/<replica_id>/<int:begin_range>", methods=["PUT"]
+)
+@app.route(
+    "/ca/v2/ranges/replica/<replica_id>/<int:begin_range>", methods=["PUT"]
+)
+@require_agent_auth
+@require_ca_backend
+@handle_ca_errors
+def update_serial_range(replica_id, begin_range):
+    """
+    Update (extend) a serial number range
+
+    Request body:
+    {
+        "new_end_range": 20000
+    }
+
+    This extends the range endpoint, useful when a range is running low.
+    """
+    try:
+        data = request.get_json() or {}
+        new_end_range = data.get("new_end_range")
+
+        if not new_end_range:
+            return error_response(
+                "BadRequest", "new_end_range is required", 400
+            )
+
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "update_range"):
+            storage.update_range(replica_id, begin_range, new_end_range)
+            return (
+                success_response(
+                    {
+                        "message": "Range updated successfully",
+                        "replica_id": replica_id,
+                        "begin_range": begin_range,
+                        "new_end_range": new_end_range,
+                    }
+                ),
+                200,
+            )
+        else:
+            return error_response(
+                "NotImplemented", "Range update not available", 501
+            )
+
+    except ValueError as e:
+        return error_response("BadRequest", str(e), 400)
+    except Exception as e:
+        logger.error(f"Error updating range: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to update range: {str(e)}", 500
+        )
+
+
+@app.route(
+    "/ca/rest/ranges/replica/<replica_id>/<int:begin_range>",
+    methods=["DELETE"],
+)
+@app.route(
+    "/ca/v2/ranges/replica/<replica_id>/<int:begin_range>", methods=["DELETE"]
+)
+@require_agent_auth
+@require_ca_backend
+@handle_ca_errors
+def delete_serial_range(replica_id, begin_range):
+    """
+    Delete a specific serial range allocation
+
+    Args:
+        replica_id: Replica identifier
+        begin_range: Beginning of the range to delete
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "delete_range"):
+            storage.delete_range(replica_id, begin_range)
+            return (
+                success_response(
+                    {
+                        "message": (
+                            f"Range {replica_id}-{begin_range} deleted"
+                            " successfully"
+                        )
+                    }
+                ),
+                200,
+            )
+        else:
+            return error_response(
+                "NotImplemented", "Range deletion not available", 501
+            )
+
+    except Exception as e:
+        logger.error(f"Error deleting range: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to delete range: {str(e)}", 500
+        )
+
+
+@app.route("/ca/rest/ranges/replica/<replica_id>", methods=["DELETE"])
+@app.route("/ca/v2/ranges/replica/<replica_id>", methods=["DELETE"])
+@require_agent_auth
+@require_ca_backend
+@handle_ca_errors
+def delete_all_replica_ranges(replica_id):
+    """
+    Delete all serial ranges allocated to a specific replica
+
+    Args:
+        replica_id: Replica identifier
+
+    This is useful when decommissioning a replica.
+    """
+    try:
+        storage = ca_backend.ca.storage
+
+        if hasattr(storage, "delete_replica_ranges"):
+            storage.delete_replica_ranges(replica_id)
+            return (
+                success_response(
+                    {
+                        "message": (
+                            f"All ranges for replica {replica_id} deleted"
+                            " successfully"
+                        )
+                    }
+                ),
+                200,
+            )
+        else:
+            return error_response(
+                "NotImplemented", "Range deletion not available", 501
+            )
+
+    except Exception as e:
+        logger.error(f"Error deleting replica ranges: {e}", exc_info=True)
+        return error_response(
+            "InternalError", f"Failed to delete replica ranges: {str(e)}", 500
+        )
 
 
 # ============================================================================
