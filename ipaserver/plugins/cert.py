@@ -1738,6 +1738,9 @@ class cert_find(Search, CertMethod):
         except KeyError:
             return result, False, False
 
+        if cert is None:
+            return result, False, True
+
         obj = {'serial_number': cert.serial_number}
         if not pkey_only:
             obj['certificate'] = base64.b64encode(
