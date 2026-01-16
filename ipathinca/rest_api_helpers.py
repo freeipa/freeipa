@@ -417,6 +417,26 @@ def validate_ca_id(ca_id: str) -> bool:
     return bool(re.match(r"^[a-zA-Z0-9-]+$", ca_id))
 
 
+def validate_dn(dn_str: str) -> bool:
+    """
+    Basic validation of DN string format
+
+    Args:
+        dn_str: Distinguished Name string
+
+    Returns:
+        True if format appears valid, False otherwise
+    """
+    if not dn_str or len(dn_str) > 1024:
+        return False
+
+    # Basic check: should contain '=' and standard DN components
+    # More thorough validation happens in ipapython.dn.DN() parsing
+    return "=" in dn_str and bool(
+        re.search(r"(CN|O|OU|DC|C|L|ST)=", dn_str, re.IGNORECASE)
+    )
+
+
 # ============================================================================
 # Response Helpers
 # ============================================================================

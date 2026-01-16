@@ -132,6 +132,21 @@ case "$NICKNAME" in
         chmod 600 "$PEM_DIR/private/ca_subsystem.key"
         ;;
 
+    "ocspSigningCert cert-pki-ca")
+        echo "Syncing OCSP signing certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update OCSP certificate and key
+        cp "$TEMP_CERT" "$PEM_DIR/certs/ocsp_subsystem.crt"
+        cp "$TEMP_KEY" "$PEM_DIR/private/ocsp_subsystem.key"
+
+        # Set ownership and permissions
+        chown ipaca:ipaca "$PEM_DIR/certs/ocsp_subsystem.crt"
+        chown ipaca:ipaca "$PEM_DIR/private/ocsp_subsystem.key"
+        chmod 644 "$PEM_DIR/certs/ocsp_subsystem.crt"
+        chmod 600 "$PEM_DIR/private/ocsp_subsystem.key"
+        ;;
+
     "ipaCert")
         echo "Syncing RA agent certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1

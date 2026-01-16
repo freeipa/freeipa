@@ -57,6 +57,14 @@ SSLProxyMachineCertificateFile /etc/httpd/alias/ipa-proxy.pem
     ProxyPassReverse https://$FQDN:8443
 </LocationMatch>
 
+# OCSP responder endpoint
+<LocationMatch "^/ca/ocsp">
+    SSLOptions +StdEnvVars +ExportCertData +StrictRequire +OptRenegotiate
+    SSLVerifyClient none
+    ProxyPassMatch https://$FQDN:8443
+    ProxyPassReverse https://$FQDN:8443
+</LocationMatch>
+
 # CRL Distribution Point
 # Note: CRLs are published to /var/lib/ipa/pki-ca/publish/ and served by
 # Apache using the Alias directive in ipa.conf (same as Dogtag).
