@@ -4,6 +4,7 @@
     <title>Complete Test Suite</title>
     <link rel="stylesheet" href="qunit.css" type="text/css" media="screen">
 
+    <script type="text/javascript" src="qunit.js"></script>
     <script type="text/javascript" src="../js/libs/loader.js"></script>
     <script type="text/javascript" src="../js/libs/jquery.js"></script>
     <script type="text/javascript" src="../js/libs/jquery.ordered-map.js"></script>
@@ -12,8 +13,9 @@
     <script type="text/javascript" src="../js/dojo/dojo.js"></script>
 
     <script type="text/javascript">
+        QUnit.config.autostart = false;
+
         require([
-            'qunit',
             'test/ordered_map_tests',
             'test/ipa_tests',
             'test/details_tests',
@@ -27,8 +29,7 @@
             'test/build_tests',
             'test/binding_tests',
             'test/topology_tests',
-        ], function(qunit, om, ipa, details, entity, as, cert, aci, wid, ip, ut, bt, bi, topo){
-            QUnit.start();
+        ], function(om, ipa, details, entity, as, cert, aci, wid, ip, ut, bt, bi, topo){
             om();
             ipa();
             details();
@@ -42,6 +43,7 @@
             bt();
             bi();
             topo();
+            QUnit.start();
         });
     </script>
 </head>
