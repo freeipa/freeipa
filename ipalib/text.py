@@ -56,7 +56,7 @@ perform the translation till `Gettext.__unicode__()` is called.  For example:
 
 >>> my_plugin.my_string
 Gettext('Hello, %(name)s.', domain='ipa', localedir=None)
->>> unicode(my_plugin.my_string)
+>>> str(my_plugin.my_string)
 'Hello, %(name)s.'
 
 Translation can also be performed via the `Gettext.__mod__()` convenience
@@ -64,7 +64,7 @@ method.  For example, these two are equivalent:
 
 >>> my_plugin.my_string % dict(name='Joe')
 'Hello, Joe.'
->>> unicode(my_plugin.my_string) % dict(name='Joe')  # Long form
+>>> str(my_plugin.my_string) % dict(name='Joe')  # Long form
 'Hello, Joe.'
 
 Translation can also be performed via the `Gettext.format()` convenience
@@ -136,8 +136,6 @@ import gettext
 
 
 from ipalib.request import context
-
-unicode = str
 
 
 def create_translation(key):
@@ -227,9 +225,9 @@ class Gettext(LazyText):
 
     No translation is performed till `Gettext.__unicode__()` is called.  This
     will translate *msg* using ``gettext.ugettext()``, which will return the
-    translated string as a Python ``unicode`` instance.  For example:
+    translated string as a Python ``str`` instance.  For example:
 
-    >>> unicode(msg)
+    >>> str(msg)
     'Hello, %(name)s.'
 
     `Gettext.__unicode__()` should be called at request time, which in a
@@ -244,7 +242,7 @@ class Gettext(LazyText):
 
     >>> msg % dict(name='Joe')
     'Hello, Joe.'
-    >>> unicode(msg) % dict(name='Joe')  # Long form
+    >>> str(msg) % dict(name='Joe')  # Long form
     'Hello, Joe.'
 
     `Gettext.format()` is a convenience method for Python string formatting.
@@ -287,16 +285,16 @@ class Gettext(LazyText):
         return t.gettext(self.msg)
 
     def __str__(self):
-        return unicode(self.as_unicode())
+        return str(self.as_unicode())
 
     def __json__(self):
-        return unicode(self)
+        return str(self)
 
     def __mod__(self, kw):
-        return unicode(self) % kw
+        return str(self) % kw
 
     def format(self, *args, **kwargs):
-        return unicode(self).format(*args, **kwargs)
+        return str(self).format(*args, **kwargs)
 
     def expandtabs(self, tabsize=8):
         """Compatibility for sphinx prepare_docstring()"""
@@ -337,7 +335,7 @@ class FixMe(Gettext):
     Calling `FixMe.__unicode__()` performs no translation, but instead returns
     said conspicuous looking label:
 
-    >>> unicode(u.label)
+    >>> str(u.label)
     '<user.label>'
 
     For more examples of how `FixMe` is used, see `ipalib.parameters`.
@@ -492,16 +490,16 @@ class ConcatenatedLazyText:
         return '%s(%r)' % (self.__class__.__name__, self.components)
 
     def __str__(self):
-        return ''.join(unicode(c) for c in self.components)
+        return ''.join(str(c) for c in self.components)
 
     def __json__(self):
-        return unicode(self)
+        return str(self)
 
     def __mod__(self, kw):
-        return unicode(self) % kw
+        return str(self) % kw
 
     def format(self, *args, **kwargs):
-        return unicode(self).format(*args, **kwargs)
+        return str(self).format(*args, **kwargs)
 
     def __add__(self, other):
         if isinstance(other, ConcatenatedLazyText):
