@@ -126,7 +126,12 @@ class ca_is_enabled(Command):
 
 @register()
 class cert_find(Command):
-    __doc__ = _("Search for existing certificates.")
+    __doc__ = _("""
+Search for existing certificates.
+
+    For certificates not issued by IPA CA,
+    only --certificate option is supported.
+    """)
 
     takes_options = (
         parameters.Str(
