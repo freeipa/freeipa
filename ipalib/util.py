@@ -77,8 +77,6 @@ if sys.version_info >= (3, 2):
 else:
     reprlib = None
 
-unicode = str
-
 _IPA_CLIENT_SYSRESTORE = "/var/lib/ipa-client/sysrestore"
 _IPA_DEFAULT_CONF = "/etc/ipa/default.conf"
 
@@ -90,7 +88,7 @@ def json_serialize(obj):
         return [json_serialize(o) for o in obj]
     if isinstance(obj, dict):
         return {k: json_serialize(v) for (k, v) in obj.items()}
-    if isinstance(obj, (int, bool, float, unicode, type(None))):
+    if isinstance(obj, (int, bool, float, str, type(None))):
         return obj
     if isinstance(obj, str):
         return obj.decode('utf-8')
@@ -135,15 +133,15 @@ def normalize_name(name):
     result = dict()
     components = name.split('@')
     if len(components) == 2:
-        result['domain'] = unicode(components[1]).lower()
-        result['name'] = unicode(components[0]).lower()
+        result['domain'] = str(components[1]).lower()
+        result['name'] = str(components[0]).lower()
     else:
         components = name.split('\\')
         if len(components) == 2:
-            result['flatname'] = unicode(components[0]).lower()
-            result['name'] = unicode(components[1]).lower()
+            result['flatname'] = str(components[0]).lower()
+            result['name'] = str(components[1]).lower()
         else:
-            result['name'] = unicode(name).lower()
+            result['name'] = str(name).lower()
     return result
 
 def isvalid_base64(data):
@@ -1105,7 +1103,7 @@ def hostname_validator(ugettext, value, maxlen=255):
     try:
         validate_hostname(value, maxlen=maxlen)
     except ValueError as e:
-        return _('invalid domain-name: %s') % unicode(e)
+        return _('invalid domain-name: %s') % str(e)
 
     return None
 
@@ -1395,7 +1393,7 @@ if reprlib is not None:
 
         def repr_type(self, x, level):
             if x is str:
-                return "<type 'unicode'>"
+                return "<type 'str'>"
             if x in self.builtin_types:
                 return "<type '{}'>".format(x.__name__)
             else:
