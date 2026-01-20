@@ -1,6 +1,11 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
 # cert_find
+
 Search for existing certificates.
+
+For certificates not issued by IPA CA,
+only --certificate option is supported.
+
 
 ### Arguments
 |Name|Type|Required
