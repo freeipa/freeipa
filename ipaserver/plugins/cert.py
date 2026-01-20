@@ -1605,7 +1605,12 @@ class cert_remove_hold(PKQuery, CertMethod, VirtualCommand):
 
 @register()
 class cert_find(Search, CertMethod):
-    __doc__ = _('Search for existing certificates.')
+    __doc__ = _("""
+Search for existing certificates.
+
+    For certificates not issued by IPA CA,
+    only --certificate option is supported.
+    """)
 
     takes_options = (
         Str('subject?',
@@ -1781,7 +1786,6 @@ class cert_find(Search, CertMethod):
             ra_options['sizelimit'] = self.api.Backend.ldap2.size_limit
 
         result = collections.OrderedDict()
-        complete = bool(ra_options)
 
         # workaround for RHBZ#1669012 and RHBZ#1695685
         # Improve performance for service, host and user case by also
@@ -1811,7 +1815,7 @@ class cert_find(Search, CertMethod):
         except errors.NotFound:
             if ra_options:
                 raise
-            return result, False, complete
+            return result, False, False
 
         ca_objs = self.api.Command.ca_find(
             timelimit=0,
@@ -1849,9 +1853,10 @@ class cert_find(Search, CertMethod):
 
             result[issuer, serial_number] = obj
 
-        return result, False, complete
+        return result, False, len(ca_objs) >= len(result)
 
-    def _ldap_search(self, all, pkey_only, no_members, **options):
+    def _ldap_search(self, all, pkey_only, no_members, current_result,
+                     **options):
         ldap = self.api.Backend.ldap2
 
         filters = []
@@ -1907,7 +1912,6 @@ class cert_find(Search, CertMethod):
 
             truncated = bool(truncated)
 
-        ca_enabled = getattr(context, 'ca_enabled')
         for entry in entries:
             for attr in ('usercertificate', 'usercertificate;binary'):
                 for der in entry.raw.get(attr, []):
@@ -1917,7 +1921,7 @@ class cert_find(Search, CertMethod):
                         obj = result[cert_key]
                     except KeyError:
                         obj = {'serial_number': cert.serial_number}
-                        if not pkey_only and (all or not ca_enabled):
+                        if not pkey_only and cert_key not in current_result:
                             # Retrieving certificate details is now deferred
                             # until after all certificates are collected.
                             # For the case of CA-less we need to keep
@@ -1968,10 +1972,23 @@ class cert_find(Search, CertMethod):
 
         # Do not execute the CA sub-search in CA-less deployment.
         # See https://pagure.io/freeipa/issue/8369.
+        searches = [self._cert_search]
         if ca_enabled:
-            searches = [self._cert_search, self._ca_search, self._ldap_search]
-        else:
-            searches = [self._cert_search, self._ldap_search]
+            searches.append(self._ca_search)
+        # If we set any search option, we skip the LDAP search
+        # ideally we would want to perform narrowing search there as well
+        if not any(name in options for name in [
+                   'issuer', 'revocation_reason',
+                   'cacn', 'subject',
+                   'min_serial_number', 'max_serial_number',
+                   'validnotafter_from', 'validnotafter_to',
+                   'validnotbefore_from', 'validnotbefore_to',
+                   'issuedon_from', 'issuedon_to',
+                   'revokedon_from', 'revokedon_to',
+                   'status', 'users', 'no_users',
+                   'hosts', 'no_hosts',
+                   'services', 'no_services']):
+            searches.append(self._ldap_search)
 
         for sub_search in searches:
             sub_result, sub_truncated, sub_complete = sub_search(
@@ -1979,6 +1996,7 @@ class cert_find(Search, CertMethod):
                 raw=raw,
                 pkey_only=pkey_only,
                 no_members=no_members,
+                current_result=result,
                 **options)
 
             if sub_complete:
@@ -2037,7 +2055,7 @@ class cert_find(Search, CertMethod):
 
                 if not raw:
                     self.obj._parse(obj, all)
-                    if not ca_enabled and not all:
+                    if not all:
                         # For the case of CA-less don't display the full
                         # certificate unless requested. It is kept in the
                         # entry from _ldap_search() so its attributes can
