@@ -529,6 +529,16 @@ class test_dns(Declarative):
         ),
 
 
+        # Test for BZ 783272: proper error for record add to nonexistent zone
+        dict(
+            desc='Try to add record to non-existent zone (BZ 783272)',
+            command=('dnsrecord_add', [u'unknowndomain.test.', u'testrecord'],
+                     {'locrecord': u'49 11 42.4 N 16 36 29.6 E 227.64m'}),
+            expected=errors.NotFound(
+                reason=u'unknowndomain.test.: DNS zone not found'),
+        ),
+
+
         dict(
             desc='Create zone %r' % zone1,
             command=(
@@ -1267,6 +1277,18 @@ class test_dns(Declarative):
         ),
 
 
+        # Test for BZ 789919: IP address with three octets should be rejected
+        dict(
+            desc='Try to add A record with 3-octet IP to %r in zone %r '
+                 '(BZ 789919)' % (name1, zone1),
+            command=('dnsrecord_add', [zone1, name1],
+                     {'arecord': u'1.1.1'}),
+            expected=errors.ValidationError(
+                name='ip_address',
+                error=u'invalid IP address format'),
+        ),
+
+
         dict(
             desc='Add AAAA record to %r in zone %r using dnsrecord_add' % (
                 name1, zone1),
@@ -1297,6 +1319,17 @@ class test_dns(Declarative):
                     'arecord': [arec3],
                 },
             },
+        ),
+
+        # Test for BZ 789987: error when deleting non-existent AAAA value
+        dict(
+            desc='Try to delete non-existent AAAA record value from %r '
+                 '(BZ 789987)' % name1,
+            command=('dnsrecord_del', [zone1, name1],
+                     {'aaaarecord': u'2620:52:0:41c9:5054:ff:fe62:65'}),
+            expected=errors.AttrValueNotFound(
+                attr='AAAA record',
+                value=u'2620:52:0:41c9:5054:ff:fe62:65'),
         ),
 
         dict(
@@ -1653,6 +1686,26 @@ class test_dns(Declarative):
             expected=errors.ValidationError(name='kx_rec',
                 error=u'format must be specified as "PREFERENCE EXCHANGER" ' +
                     u' (see RFC 2230 for details)'),
+        ),
+
+        # Test for BZ 738788: KX record with negative preference
+        dict(
+            desc='Try to add KX record with negative preference (BZ 738788)',
+            command=('dnsrecord_add', [zone1, name1],
+                     {'kxrecord': u'-1 1.2.3.4'}),
+            expected=errors.ValidationError(
+                name='preference',
+                error=u'must be at least 0'),
+        ),
+
+        # Test for BZ 738788: KX record with preference exceeding max
+        dict(
+            desc='Try to add KX record with preference > max (BZ 738788)',
+            command=('dnsrecord_add', [zone1, name1],
+                     {'kxrecord': u'333383838383 1.2.3.4'}),
+            expected=errors.ValidationError(
+                name='preference',
+                error=u'can be at most 65535'),
         ),
 
         dict(
@@ -6597,6 +6650,95 @@ class test_dns_soa(Declarative):
                 name='name',
                 error=u'empty DNS label'
             ),
+        ),
+
+        # BZ 817413: Test middle label longer than 63 chars
+        dict(
+            desc='Try to add zone with middle label > 63 chars (BZ 817413)',
+            command=(
+                'dnszone_add',
+                [u'domain.sixthreemax.'
+                 u'12345678901234567890123345678901234567890'
+                 u'123456789012345678901234567890.com'],
+                {}
+            ),
+            expected=errors.ConversionError(
+                name='name',
+                error=u'DNS label cannot be longer than 63 characters'
+            ),
+        ),
+
+        # BZ 817413: Test first label longer than 63 chars
+        dict(
+            desc='Try to add zone with first label > 63 chars (BZ 817413)',
+            command=(
+                'dnszone_add',
+                [u'firstlkjhjklasghduygasiudfygvq7i6ertf78q6t4871y8347y2r8734'
+                 u'y87aylfisduhcvkljasnkljnasdljdnclakj.long.com'],
+                {}
+            ),
+            expected=errors.ConversionError(
+                name='name',
+                error=u'DNS label cannot be longer than 63 characters'
+            ),
+        ),
+
+        # BZ 817413: Test TLD longer than 63 chars
+        dict(
+            desc='Try to add zone with TLD > 63 chars (BZ 817413)',
+            command=(
+                'dnszone_add',
+                [u'long.tld.tldlkjhjklasghduygasiudfygvq7i6ertf78q6t4871y8347'
+                 u'y2r8734y87aylfisduhcvkljasnkljnasdljdnclakj'],
+                {}
+            ),
+            expected=errors.ConversionError(
+                name='name',
+                error=u'DNS label cannot be longer than 63 characters'
+            ),
+        ),
+
+        # BZ 817413: Test numeric TLD is allowed (success case)
+        dict(
+            desc='Add zone with numeric TLD (BZ 817413)',
+            command=('dnszone_add', [u'domain.numeric.123.'], {}),
+            expected={
+                'value': DNSName(u'domain.numeric.123.'),
+                'summary': None,
+                'result': {
+                    'dn': DN(('idnsname', 'domain.numeric.123.'),
+                             api.env.container_dns, api.env.basedn),
+                    'idnsname': [DNSName(u'domain.numeric.123.')],
+                    'idnszoneactive': [True],
+                    'idnssoamname': [DNSName(api.env.host)],
+                    'nsrecord': lambda x: True,
+                    'idnssoarname': lambda x: True,
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [False],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        # BZ 817413: Delete zone with numeric TLD (cleanup)
+        dict(
+            desc='Delete zone with numeric TLD (BZ 817413)',
+            command=('dnszone_del', [u'domain.numeric.123.'], {}),
+            expected={
+                'value': [DNSName(u'domain.numeric.123.')],
+                'summary': u'Deleted DNS zone "domain.numeric.123."',
+                'result': {'failed': []},
+            },
         ),
 
         dict(
