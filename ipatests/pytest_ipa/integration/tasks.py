@@ -1629,7 +1629,7 @@ def add_a_record(master, host):
 
 
 def add_dns_record(master, zone, name, record_type, record_value,
-                   raiseonerr=True):
+                   *extra_args, raiseonerr=True):
     """Add DNS record of any type.
 
     :param master: The IPA master host to run command on
@@ -1639,6 +1639,7 @@ def add_dns_record(master, zone, name, record_type, record_value,
                         'txt', 'srv', 'mx', 'ptr', 'naptr', 'dname',
                         'cert', 'loc', 'kx', etc.
     :param record_value: List of values for the record
+    :param extra_args: Additional arguments (variable positional args)
     :param raiseonerr: If True, raise exception on command failure
     :return: Command result object
     """
@@ -1646,6 +1647,7 @@ def add_dns_record(master, zone, name, record_type, record_value,
     opt = f'--{record_type}-rec'
     for val in record_value:
         command.extend([opt, val])
+    command.extend(extra_args)
     return master.run_command(command, raiseonerr=raiseonerr)
 
 
@@ -1678,19 +1680,31 @@ def find_dns_record(master, zone, name=None, raiseonerr=True):
     return master.run_command(command, raiseonerr=raiseonerr)
 
 
-def mod_dns_record(master, zone, name, record_type, old_value, new_value,
-                   raiseonerr=True):
+def show_dns_record(master, zone, name, *extra_args, raiseonerr=True):
+    """Show DNS record details.
+
+    :param master: The IPA host to run command on
+    :param zone: DNS zone name
+    :param name: Record name
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'dnsrecord-show', zone, name]
+    command.extend(extra_args)
+    return master.run_command(command, raiseonerr=raiseonerr)
+
+
+def mod_dns_record(master, zone, name, *extra_args, raiseonerr=True):
     """Modify DNS record value.
 
-    :param record_type: Record type like 'a', 'aaaa', 'txt', etc.
-    :param old_value: Current record value
-    :param new_value: New record value
+    :param zone: DNS zone name
+    :param name: Record name
+    :param extra_args: Additional arguments for dnsrecord-mod command
     """
-    return master.run_command([
-        'ipa', 'dnsrecord-mod', zone, name,
-        f'--{record_type}-rec={old_value}',
-        f'--{record_type}-data={new_value}'
-    ], raiseonerr=raiseonerr)
+    command = ['ipa', 'dnsrecord-mod', zone, name]
+    command.extend(extra_args)
+    return master.run_command(command, raiseonerr=raiseonerr)
 
 
 def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
@@ -2121,11 +2135,36 @@ def find_dns_zone(host, zone, all_attrs=False, raiseonerr=True):
     return host.run_command(command, raiseonerr=raiseonerr)
 
 
-def show_dns_zone(host, zone, all_attrs=False, raiseonerr=True):
-    """Show DNS zone."""
+def show_dns_zone(host, zone, all_attrs=False, raw=False,
+                  *extra_args, raiseonerr=True):
+    """Show DNS zone.
+
+    :param host: The IPA host to run command on
+    :param zone: DNS zone name
+    :param all_attrs: If True, show all attributes
+    :param raw: If True, show raw LDAP attributes
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
     command = ['ipa', 'dnszone-show', zone]
     if all_attrs:
         command.append('--all')
+    if raw:
+        command.append('--raw')
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def mod_dns_zone(host, zone, *extra_args, raiseonerr=True):
+    """Modify DNS zone.
+
+    :param host: The IPA host to run command on
+    :param zone: DNS zone name
+    :param extra_args: Additional arguments (variable positional args)
+    """
+    command = ['ipa', 'dnszone-mod', zone]
+    command.extend(extra_args)
     return host.run_command(command, raiseonerr=raiseonerr)
 
 
