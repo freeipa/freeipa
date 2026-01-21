@@ -60,13 +60,17 @@ class TestAdvice(IntegrationTest):
         )
         tasks.install_client(cls.master, cls.clients[0])
 
-    def execute_advise(self, host, advice_id, *args):
+    def execute_advise(self, host, advice_id, *args, kinit=True):
         # ipa-advise script is only available on a server
         tasks.kinit_admin(self.master)
         advice = self.master.run_command(['ipa-advise', advice_id])
         # execute script on host (client or master)
         if host is not self.master:
-            tasks.kinit_admin(host)
+            if kinit:
+                tasks.kinit_admin(host)
+            else:
+                # Make sure we don't have any ticket
+                tasks.kdestroy_all(host)
         filename = tasks.upload_temp_contents(host, advice.stdout_text)
         cmd = ['sh', filename]
         cmd.extend(args)
@@ -181,7 +185,7 @@ class TestAdvice(IntegrationTest):
         ca_pem = ExternalCA().create_ca()
         ca_file = tasks.upload_temp_contents(client, ca_pem)
         try:
-            self.execute_advise(client, advice_id, ca_file)
+            self.execute_advise(client, advice_id, ca_file, kinit=False)
         finally:
             client.run_command(['rm', '-f', ca_file])
 
