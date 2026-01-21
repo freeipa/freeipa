@@ -2,7 +2,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
 
 from . import Command, Method, Object
 from ipalib import api, parameters, output
