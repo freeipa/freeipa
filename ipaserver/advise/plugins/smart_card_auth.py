@@ -34,6 +34,26 @@ class common_smart_card_auth_config(Advice):
                 'Use kinit as privileged user to obtain Kerberos credentials'
             ])
 
+    def check_ccache_not_empty_if_old_version(self):
+        self.log.comment("On version before IPA 4.9, "
+                         "check that the credential cache is not empty")
+        self.log.command(
+            "python3 -c \"from ipapython.version import VERSION;"
+            "from ipaplatform.tasks import tasks;"
+            "exit(tasks.parse_ipa_version(VERSION) >= "
+            "tasks.parse_ipa_version('4.9.0'))\"")
+        with self.log.if_branch('[ "$?" -eq "0" ]'):
+            self.log.exit_on_failed_command(
+                'klist',
+                [
+                    "Credential cache is empty",
+                    'Use kinit as privileged user to obtain Kerberos '
+                    'credentials'
+                ])
+        with self.log.else_branch():
+            self.log.command(
+                "echo 'Version 4.9.0+ does not require Kerberos credentials'")
+
     def check_and_set_ca_cert_paths(self):
         ca_paths_variable = self.smart_card_ca_certs_variable_name
         single_ca_path_variable = self.single_ca_cert_variable_name
@@ -260,7 +280,7 @@ class config_client_for_smart_card_auth(common_smart_card_auth_config):
     def get_info(self):
         self.log.exit_on_nonroot_euid()
         self.check_and_set_ca_cert_paths()
-        self.check_ccache_not_empty()
+        self.check_ccache_not_empty_if_old_version()
         self.check_and_remove_pam_pkcs11()
         self.install_opensc_and_dconf_packages()
         self.install_krb5_client_dependencies()
