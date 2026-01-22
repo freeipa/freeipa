@@ -1635,7 +1635,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
                 t.forest_trust_data.netbios_domain_name.string
 
             tname = unicode(t.forest_trust_data.dns_domain_name.string)
-            if tname != trustdomain:
+            if tname.lower() != trustdomain.lower():
                 result['domains'][tname] = {
                     'cn': tname,
                     'ipantflatname': unicode(
@@ -1647,7 +1647,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
             record.data.string = t.forest_trust_data.string
 
             tname = unicode(t.forest_trust_data.string)
-            if tname == trustdomain:
+            if tname.lower() == trustdomain.lower():
                 continue
 
             result['suffixes'][tname] = {'cn': tname}
