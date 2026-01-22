@@ -333,4 +333,375 @@ class test_delegation(Declarative):
                 summary=u'Deleted delegation "%s"' % delegation1,
             )
         ),
+
+
+        dict(
+            desc='Create delegation with mobile attr and write permission',
+            command=(
+                'delegation_add', [u'test_mobile_delegation'], dict(
+                    attrs=[u'mobile'],
+                    permissions=u'write',
+                    group=u'editors',
+                    memberof=u'admins',
+                )
+            ),
+            expected=dict(
+                value=u'test_mobile_delegation',
+                summary=u'Added delegation "test_mobile_delegation"',
+                result=dict(
+                    attrs=[u'mobile'],
+                    permissions=[u'write'],
+                    aciname=u'test_mobile_delegation',
+                    group=u'editors',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create delegation with --all flag',
+            command=(
+                'delegation_add', [u'test_all_flag'], dict(
+                    attrs=[u'mobile'],
+                    permissions=u'write',
+                    group=u'editors',
+                    memberof=u'admins',
+                    all=True,
+                )
+            ),
+            expected=dict(
+                value=u'test_all_flag',
+                summary=u'Added delegation "test_all_flag"',
+                result=dict(
+                    attrs=[u'mobile'],
+                    permissions=[u'write'],
+                    aciname=u'test_all_flag',
+                    group=u'editors',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Create delegation with --raw flag',
+            command=(
+                'delegation_add', [u'test_raw_flag'], dict(
+                    attrs=[u'mobile'],
+                    permissions=u'write',
+                    group=u'editors',
+                    memberof=u'admins',
+                    raw=True,
+                )
+            ),
+            expected=dict(
+                value=u'test_raw_flag',
+                summary=u'Added delegation "test_raw_flag"',
+                result={
+                    'aci': u'(targetattr = "mobile")(targetfilter = '
+                           u'"(memberOf=%s)")(version 3.0;acl '
+                           u'"delegation:test_raw_flag";allow (write) '
+                           u'groupdn = "ldap:///%s";)' % (
+                               DN(('cn', 'admins'), ('cn', 'groups'),
+                                   ('cn', 'accounts'), api.env.basedn),
+                               DN(('cn', 'editors'), ('cn', 'groups'),
+                                   ('cn', 'accounts'), api.env.basedn))
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Delete test_mobile_delegation',
+            command=('delegation_del', [u'test_mobile_delegation'], {}),
+            expected=dict(
+                result=True,
+                value=u'test_mobile_delegation',
+                summary=u'Deleted delegation "test_mobile_delegation"',
+            )
+        ),
+
+
+        dict(
+            desc='Delete test_all_flag',
+            command=('delegation_del', [u'test_all_flag'], {}),
+            expected=dict(
+                result=True,
+                value=u'test_all_flag',
+                summary=u'Deleted delegation "test_all_flag"',
+            )
+        ),
+
+
+        dict(
+            desc='Delete test_raw_flag',
+            command=('delegation_del', [u'test_raw_flag'], {}),
+            expected=dict(
+                result=True,
+                value=u'test_raw_flag',
+                summary=u'Deleted delegation "test_raw_flag"',
+            )
+        ),
+
+
+        dict(
+            desc='Create delegation for ipausers group',
+            command=(
+                'delegation_add', [u'delegation_del_positive_1001'], dict(
+                    attrs=[u'mobile'],
+                    group=u'ipausers',
+                    memberof=u'admins',
+                )
+            ),
+            expected=dict(
+                value=u'delegation_del_positive_1001',
+                summary=u'Added delegation "delegation_del_positive_1001"',
+                result=dict(
+                    attrs=[u'mobile'],
+                    permissions=[u'write'],
+                    aciname=u'delegation_del_positive_1001',
+                    group=u'ipausers',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete delegation_del_positive_1001',
+            command=('delegation_del', [u'delegation_del_positive_1001'], {}),
+            expected=dict(
+                result=True,
+                value=u'delegation_del_positive_1001',
+                summary=u'Deleted delegation "delegation_del_positive_1001"',
+            )
+        ),
+
+
+        dict(
+            desc='Create delegation for find, show, and mod tests',
+            command=(
+                'delegation_add', [u'delegation_find_show_mod_test'], dict(
+                    attrs=[u'mobile'],
+                    permissions=u'write',
+                    group=u'editors',
+                    memberof=u'admins',
+                )
+            ),
+            expected=dict(
+                value=u'delegation_find_show_mod_test',
+                summary=u'Added delegation "delegation_find_show_mod_test"',
+                result=dict(
+                    attrs=[u'mobile'],
+                    permissions=[u'write'],
+                    aciname=u'delegation_find_show_mod_test',
+                    group=u'editors',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Find delegation by name',
+            command=('delegation_find', [u'delegation_find_show_mod_test'], {}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                        'attrs': [u'mobile'],
+                        'permissions': [u'write'],
+                        'aciname': u'delegation_find_show_mod_test',
+                        'group': u'editors',
+                        'memberof': member1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Find delegation by membergroup',
+            command=('delegation_find', [], {'memberof': member1}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                        'attrs': [u'mobile'],
+                        'permissions': [u'write'],
+                        'aciname': u'delegation_find_show_mod_test',
+                        'group': u'editors',
+                        'memberof': member1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Show delegation by name',
+            command=('delegation_show', [u'delegation_find_show_mod_test'], {}),
+            expected=dict(
+                value=u'delegation_find_show_mod_test',
+                summary=None,
+                result={
+                    'attrs': [u'mobile'],
+                    'permissions': [u'write'],
+                    'aciname': u'delegation_find_show_mod_test',
+                    'group': u'editors',
+                    'memberof': member1,
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Modify delegation attrs',
+            command=(
+                'delegation_mod', [u'delegation_find_show_mod_test'],
+                dict(attrs=[u'l'])
+            ),
+            expected=dict(
+                value=u'delegation_find_show_mod_test',
+                summary=u'Modified delegation "delegation_find_show_mod_test"',
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    aciname=u'delegation_find_show_mod_test',
+                    group=u'editors',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Modify delegation permissions',
+            command=(
+                'delegation_mod', [u'delegation_find_show_mod_test'],
+                dict(permissions=u'read')
+            ),
+            expected=dict(
+                value=u'delegation_find_show_mod_test',
+                summary=u'Modified delegation "delegation_find_show_mod_test"',
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'read'],
+                    aciname=u'delegation_find_show_mod_test',
+                    group=u'editors',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Delete delegation_find_show_mod_test',
+            command=('delegation_del', [u'delegation_find_show_mod_test'], {}),
+            expected=dict(
+                result=True,
+                value=u'delegation_find_show_mod_test',
+                summary=u'Deleted delegation "delegation_find_show_mod_test"',
+            )
+        ),
+
+
+        dict(
+            desc='Create delegation for BZ tests',
+            command=(
+                'delegation_add', [u'delegation_bz_test'], dict(
+                    attrs=[u'mobile'],
+                    permissions=u'write',
+                    group=u'ipausers',
+                    memberof=u'admins',
+                )
+            ),
+            expected=dict(
+                value=u'delegation_bz_test',
+                summary=u'Added delegation "delegation_bz_test"',
+                result=dict(
+                    attrs=[u'mobile'],
+                    permissions=[u'write'],
+                    aciname=u'delegation_bz_test',
+                    group=u'ipausers',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Try to modify with non-existent membergroup (BZ 783548)',
+            command=(
+                'delegation_mod', [u'delegation_bz_test'],
+                dict(memberof=u'badmembergroup')
+            ),
+            expected=errors.NotFound(
+                reason=u'badmembergroup: group not found'),
+        ),
+
+
+        dict(
+            desc='Try to modify attrs with empty value (BZ 783554)',
+            command=(
+                'delegation_mod', [u'delegation_bz_test'], dict(attrs=u'')
+            ),
+            expected=errors.RequirementError(name='attrs'),
+        ),
+
+
+        dict(
+            desc='Modify attrs to prepare for next BZ test',
+            command=(
+                'delegation_mod', [u'delegation_bz_test'], dict(attrs=[u'l'])
+            ),
+            expected=dict(
+                value=u'delegation_bz_test',
+                summary=u'Modified delegation "delegation_bz_test"',
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    aciname=u'delegation_bz_test',
+                    group=u'ipausers',
+                    memberof=member1,
+                ),
+            ),
+        ),
+
+
+        dict(
+            desc='Find delegation by group filter (BZ 888524)',
+            command=('delegation_find', [], {'group': u'ipausers'}),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 delegation matched',
+                result=[
+                    {
+                        'attrs': [u'l'],
+                        'permissions': [u'write'],
+                        'aciname': u'delegation_bz_test',
+                        'group': u'ipausers',
+                        'memberof': member1,
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Delete delegation_bz_test',
+            command=('delegation_del', [u'delegation_bz_test'], {}),
+            expected=dict(
+                result=True,
+                value=u'delegation_bz_test',
+                summary=u'Deleted delegation "delegation_bz_test"',
+            )
+        ),
+
     ]
