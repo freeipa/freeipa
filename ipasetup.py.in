@@ -84,7 +84,7 @@ PACKAGE_VERSION = {
 
 common_args = dict(
     version=VERSION,
-    license="GPLv3",
+    license="GPL-3.0-or-later",
     author="FreeIPA Developers",
     author_email="freeipa-devel@lists.fedorahosted.org",
     maintainer="FreeIPA Developers",
@@ -96,8 +96,6 @@ common_args = dict(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: System Administrators",
-        ("License :: OSI Approved :: "
-         "GNU General Public License v3 (GPLv3)"),
         "Programming Language :: C",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
