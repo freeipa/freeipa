@@ -17,7 +17,7 @@ option: Flag('test?', autofill=True, default=False)
 option: StrEnum('type?', cli_name='type', values=['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: aci_del/1
 args: 1,2,3
@@ -25,7 +25,7 @@ arg: Str('aciname', cli_name='name')
 option: StrEnum('aciprefix', cli_name='prefix', values=['permission', 'delegation', 'selfservice', 'none'])
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: aci_find/1
 args: 1,16,4
@@ -48,7 +48,7 @@ option: StrEnum('type?', autofill=False, cli_name='type', values=['user', 'group
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: aci_mod/1
 args: 1,14,3
@@ -68,7 +68,7 @@ option: Str('targetgroup?', autofill=False, cli_name='targetgroup')
 option: StrEnum('type?', autofill=False, cli_name='type', values=['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: aci_rename/1
 args: 1,15,3
@@ -89,7 +89,7 @@ option: Str('targetgroup?', autofill=False, cli_name='targetgroup')
 option: StrEnum('type?', autofill=False, cli_name='type', values=['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: aci_show/1
 args: 1,5,3
@@ -100,7 +100,7 @@ option: DNParam('location?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: adtrust_is_enabled/1
 args: 0,1,1
@@ -117,7 +117,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automember_add_condition/1
 args: 1,8,5
@@ -133,7 +133,7 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automember_default_group_remove/1
 args: 0,4,3
@@ -142,8 +142,8 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: automember_default_group_set/1
 args: 0,5,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -152,8 +152,8 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: automember_default_group_show/1
 args: 0,4,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -161,15 +161,15 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: automember_del/1
 args: 1,2,3
 arg: Str('cn+', cli_name='automember_rule')
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: automember_find/1
 args: 1,6,4
@@ -182,7 +182,7 @@ option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: automember_find_orphans/1
 args: 1,7,4
@@ -196,7 +196,7 @@ option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: automember_mod/1
 args: 1,9,3
@@ -211,7 +211,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automember_rebuild/1
 args: 0,7,3
@@ -223,7 +223,7 @@ option: StrEnum('type?', values=['group', 'hostgroup'])
 option: Str('users*')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automember_remove_condition/1
 args: 1,8,5
@@ -239,7 +239,7 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automember_show/1
 args: 1,4,3
@@ -249,7 +249,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: StrEnum('type', values=['group', 'hostgroup'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountkey_add/1
 args: 2,7,3
@@ -263,7 +263,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountkey_del/1
 args: 2,4,3
@@ -274,7 +274,7 @@ option: IA5Str('automountkey', cli_name='key')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: automountkey_find/1
 args: 3,7,4
@@ -290,7 +290,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: automountkey_mod/1
 args: 2,11,3
@@ -308,7 +308,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountkey_show/1
 args: 2,6,3
@@ -321,7 +321,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountlocation_add/1
 args: 1,5,3
@@ -332,7 +332,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountlocation_del/1
 args: 1,2,3
@@ -340,7 +340,7 @@ arg: Str('cn+', cli_name='location')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: automountlocation_find/1
 args: 1,7,4
@@ -354,7 +354,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: automountlocation_show/1
 args: 1,4,3
@@ -364,7 +364,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountlocation_tofiles/1
 args: 1,1,1
@@ -382,7 +382,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountmap_add_indirect/1
 args: 2,8,3
@@ -397,7 +397,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountmap_del/1
 args: 2,2,3
@@ -406,7 +406,7 @@ arg: IA5Str('automountmapname+', cli_name='map')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: automountmap_find/1
 args: 2,8,4
@@ -422,7 +422,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: automountmap_mod/1
 args: 2,8,3
@@ -437,7 +437,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: automountmap_show/1
 args: 2,4,3
@@ -448,7 +448,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: batch/1
 args: 1,2,2
@@ -469,7 +469,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ca_del/1
 args: 1,2,3
@@ -477,21 +477,21 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: ca_disable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ca_enable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ca_find/1
 args: 1,12,4
@@ -510,13 +510,13 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: ca_is_enabled/1
 args: 0,1,3
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ca_mod/1
 args: 1,9,3
@@ -531,7 +531,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ca_show/1
 args: 1,5,3
@@ -542,7 +542,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: caacl_add/1
 args: 1,13,3
@@ -561,7 +561,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('usercategory?', cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: caacl_add_ca/1
 args: 1,5,3
@@ -626,21 +626,21 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: caacl_disable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: caacl_enable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: caacl_find/1
 args: 1,15,4
@@ -662,7 +662,7 @@ option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['al
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: caacl_mod/1
 args: 1,15,3
@@ -683,7 +683,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: caacl_remove_ca/1
 args: 1,5,3
@@ -751,7 +751,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cert_find/1
 args: 1,30,4
@@ -788,7 +788,7 @@ option: DateTime('validnotbefore_to?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: cert_remove_hold/1
 args: 1,2,1
@@ -809,7 +809,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('request_type', autofill=True, default='pkcs10')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cert_revoke/1
 args: 1,3,1
@@ -829,7 +829,7 @@ option: Str('out?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cert_status/1
 args: 1,4,3
@@ -839,7 +839,7 @@ option: Str('cacn?', autofill=True, cli_name='ca', default='ipa')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmap_match/1
 args: 1,3,4
@@ -849,7 +849,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: certmapconfig_mod/1
 args: 0,8,3
@@ -862,7 +862,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmapconfig_show/1
 args: 0,4,3
@@ -871,7 +871,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmaprule_add/1
 args: 1,11,3
@@ -888,7 +888,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmaprule_del/1
 args: 1,2,3
@@ -896,21 +896,21 @@ arg: Str('cn+', cli_name='rulename')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: certmaprule_disable/1
 args: 1,1,3
 arg: Str('cn', cli_name='rulename')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmaprule_enable/1
 args: 1,1,3
 arg: Str('cn', cli_name='rulename')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmaprule_find/1
 args: 1,13,4
@@ -930,7 +930,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: certmaprule_mod/1
 args: 1,13,3
@@ -949,7 +949,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certmaprule_show/1
 args: 1,4,3
@@ -959,7 +959,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certprofile_del/1
 args: 1,2,3
@@ -967,7 +967,7 @@ arg: Str('cn+', cli_name='id')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: certprofile_find/1
 args: 1,9,4
@@ -983,7 +983,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: certprofile_import/1
 args: 1,6,3
@@ -995,7 +995,7 @@ option: Bool('ipacertprofilestoreissued', cli_name='store', default=True)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certprofile_mod/1
 args: 1,10,3
@@ -1011,7 +1011,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: certprofile_show/1
 args: 1,5,3
@@ -1022,7 +1022,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: class_find/1
 args: 1,4,4
@@ -1033,7 +1033,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: class_show/1
 args: 1,3,3
@@ -1042,7 +1042,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: command_defaults/1
 args: 1,3,1
@@ -1060,7 +1060,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: command_show/1
 args: 1,3,3
@@ -1069,7 +1069,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: compat_is_enabled/1
 args: 0,1,1
@@ -1111,7 +1111,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: config_show/1
 args: 0,4,3
@@ -1120,7 +1120,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cosentry_add/1
 args: 1,7,3
@@ -1133,7 +1133,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cosentry_del/1
 args: 1,2,3
@@ -1141,7 +1141,7 @@ arg: Str('cn+')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: cosentry_find/1
 args: 1,9,4
@@ -1157,7 +1157,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: cosentry_mod/1
 args: 1,9,3
@@ -1172,7 +1172,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: cosentry_show/1
 args: 1,4,3
@@ -1182,7 +1182,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: delegation_add/1
 args: 1,7,3
@@ -1195,14 +1195,14 @@ option: Str('permissions*', cli_name='permissions')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: delegation_del/1
 args: 1,1,3
 arg: Str('aciname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: delegation_find/1
 args: 1,9,4
@@ -1218,7 +1218,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: delegation_mod/1
 args: 1,7,3
@@ -1231,7 +1231,7 @@ option: Str('permissions*', autofill=False, cli_name='permissions')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: delegation_show/1
 args: 1,3,3
@@ -1240,21 +1240,21 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dns_is_enabled/1
 args: 0,1,3
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dns_resolve/1
 args: 1,1,3
 arg: Str('hostname')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: dns_update_system_records/1
 args: 0,4,2
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -1277,7 +1277,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsconfig_show/1
 args: 0,4,3
@@ -1286,7 +1286,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsforwardzone_add/1
 args: 1,9,3
@@ -1301,36 +1301,36 @@ option: Str('setattr*', cli_name='setattr')
 option: Flag('skip_overlap_check', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsforwardzone_add_permission/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: dnsforwardzone_del/1
 args: 1,2,3
 arg: DNSNameParam('idnsname+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: dnsforwardzone_disable/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsforwardzone_enable/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsforwardzone_find/1
 args: 1,11,4
@@ -1348,7 +1348,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: dnsforwardzone_mod/1
 args: 1,10,3
@@ -1364,15 +1364,15 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsforwardzone_remove_permission/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: dnsforwardzone_show/1
 args: 1,4,3
 arg: DNSNameParam('idnsname', cli_name='name')
@@ -1381,7 +1381,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsrecord_add/1
 args: 2,99,3
@@ -1487,7 +1487,7 @@ option: Int('uri_part_weight?', cli_name='uri_weight', option_group='URI Record'
 option: URIRecord('urirecord*', cli_name='uri_rec', option_group='URI Record')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsrecord_del/1
 args: 2,36,3
@@ -1530,7 +1530,7 @@ option: TXTRecord('txtrecord*', autofill=False, cli_name='txt_rec')
 option: URIRecord('urirecord*', autofill=False, cli_name='uri_rec')
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: dnsrecord_delentry/1
 args: 2,2,3
@@ -1539,7 +1539,7 @@ arg: DNSNameParam('idnsname+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: dnsrecord_find/1
 args: 2,40,4
@@ -1587,7 +1587,7 @@ option: URIRecord('urirecord*', autofill=False, cli_name='uri_rec')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: dnsrecord_mod/1
 args: 2,99,3
@@ -1693,7 +1693,7 @@ option: Int('uri_part_weight?', autofill=False, cli_name='uri_weight', option_gr
 option: URIRecord('urirecord*', autofill=False, cli_name='uri_rec', option_group='URI Record')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsrecord_show/1
 args: 2,5,3
@@ -1705,7 +1705,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Flag('structured', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsrecord_split_parts/1
 args: 2,1,1
@@ -1725,7 +1725,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsserver_del/1
 args: 1,2,3
@@ -1733,7 +1733,7 @@ arg: Str('idnsserverid+', cli_name='hostname')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: dnsserver_find/1
 args: 1,10,4
@@ -1750,7 +1750,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: dnsserver_mod/1
 args: 1,10,3
@@ -1766,7 +1766,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnsserver_show/1
 args: 1,4,3
@@ -1776,7 +1776,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnszone_add/1
 args: 1,29,3
@@ -1811,36 +1811,36 @@ option: Flag('skip_nameserver_check', autofill=True, default=False)
 option: Flag('skip_overlap_check', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnszone_add_permission/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: dnszone_del/1
 args: 1,2,3
 arg: DNSNameParam('idnsname+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: dnszone_disable/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnszone_enable/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnszone_find/1
 args: 1,29,4
@@ -1876,7 +1876,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: dnszone_mod/1
 args: 1,28,3
@@ -1910,15 +1910,15 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: dnszone_remove_permission/1
 args: 1,1,3
 arg: DNSNameParam('idnsname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: dnszone_show/1
 args: 1,4,3
 arg: DNSNameParam('idnsname', cli_name='name')
@@ -1927,7 +1927,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: domainlevel_get/1
 args: 0,1,1
@@ -1946,7 +1946,7 @@ option: Flag('server?', autofill=True, default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('total', type=[<type 'int'>])
 command: group_add/1
 args: 1,10,3
@@ -1962,7 +1962,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: group_add_member/1
 args: 1,9,3
@@ -1997,14 +1997,14 @@ arg: Str('cn+', cli_name='group_name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: group_detach/1
 args: 1,1,3
 arg: Str('cn', cli_name='group_name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: group_find/1
 args: 1,36,4
@@ -2047,7 +2047,7 @@ option: Str('user*', cli_name='users')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: group_mod/1
 args: 1,13,3
@@ -2066,7 +2066,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: group_remove_member/1
 args: 1,9,3
@@ -2104,7 +2104,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacrule_add/1
 args: 1,14,3
@@ -2124,7 +2124,7 @@ option: StrEnum('sourcehostcategory?', cli_name='srchostcat', deprecated=True, v
 option: StrEnum('usercategory?', cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacrule_add_host/1
 args: 1,6,3
@@ -2180,21 +2180,21 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: hbacrule_disable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacrule_enable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacrule_find/1
 args: 1,16,4
@@ -2217,7 +2217,7 @@ option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['al
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: hbacrule_mod/1
 args: 1,17,3
@@ -2240,7 +2240,7 @@ option: StrEnum('sourcehostcategory?', autofill=False, cli_name='srchostcat', de
 option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacrule_remove_host/1
 args: 1,6,3
@@ -2299,7 +2299,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacsvc_add/1
 args: 1,7,3
@@ -2312,7 +2312,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacsvc_del/1
 args: 1,2,3
@@ -2320,7 +2320,7 @@ arg: Str('cn+', cli_name='service')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: hbacsvc_find/1
 args: 1,9,4
@@ -2336,7 +2336,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: hbacsvc_mod/1
 args: 1,9,3
@@ -2351,7 +2351,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacsvc_show/1
 args: 1,5,3
@@ -2362,7 +2362,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacsvcgroup_add/1
 args: 1,7,3
@@ -2375,7 +2375,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacsvcgroup_add_member/1
 args: 1,5,3
@@ -2394,7 +2394,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: hbacsvcgroup_find/1
 args: 1,9,4
@@ -2410,7 +2410,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: hbacsvcgroup_mod/1
 args: 1,9,3
@@ -2425,7 +2425,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbacsvcgroup_remove_member/1
 args: 1,5,3
@@ -2447,7 +2447,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hbactest/1
 args: 0,10,6
@@ -2464,7 +2464,7 @@ option: Str('version?')
 output: Output('error', type=[<type 'list'>, <type 'tuple'>, <type 'NoneType'>])
 output: Output('matched', type=[<type 'list'>, <type 'tuple'>, <type 'NoneType'>])
 output: Output('notmatched', type=[<type 'list'>, <type 'tuple'>, <type 'NoneType'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('value', type=[<type 'bool'>])
 output: Output('warning', type=[<type 'list'>, <type 'tuple'>, <type 'NoneType'>])
 command: host_add/1
@@ -2496,7 +2496,7 @@ option: Str('userclass*', cli_name='class')
 option: HostPassword('userpassword?', cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_add_cert/1
 args: 1,5,3
@@ -2507,7 +2507,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_add_delegation/1
 args: 2,4,3
@@ -2518,7 +2518,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_add_managedby/1
 args: 1,5,3
@@ -2540,7 +2540,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_allow_add_delegation/1
 args: 1,8,3
@@ -2591,14 +2591,14 @@ option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Flag('updatedns?', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: host_disable/1
 args: 1,1,3
 arg: Str('fqdn', cli_name='hostname')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_disallow_add_delegation/1
 args: 1,8,3
@@ -2681,7 +2681,7 @@ option: Str('userclass*', autofill=False, cli_name='class')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: host_mod/1
 args: 1,26,3
@@ -2713,7 +2713,7 @@ option: Str('userclass*', autofill=False, cli_name='class')
 option: HostPassword('userpassword?', autofill=False, cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_remove_cert/1
 args: 1,5,3
@@ -2724,7 +2724,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_remove_delegation/1
 args: 2,4,3
@@ -2735,7 +2735,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_remove_managedby/1
 args: 1,5,3
@@ -2757,7 +2757,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: host_show/1
 args: 1,6,3
@@ -2769,7 +2769,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hostgroup_add/1
 args: 1,7,3
@@ -2782,7 +2782,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hostgroup_add_member/1
 args: 1,6,3
@@ -2814,7 +2814,7 @@ arg: Str('cn+', cli_name='hostgroup_name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: hostgroup_find/1
 args: 1,25,4
@@ -2846,7 +2846,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: hostgroup_mod/1
 args: 1,10,3
@@ -2862,7 +2862,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: hostgroup_remove_member/1
 args: 1,6,3
@@ -2897,7 +2897,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: i18n_messages/1
 args: 0,1,1
@@ -2917,7 +2917,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverridegroup_del/1
 args: 2,3,3
@@ -2927,7 +2927,7 @@ option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: idoverridegroup_find/1
 args: 2,11,4
@@ -2946,7 +2946,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: idoverridegroup_mod/1
 args: 2,12,3
@@ -2965,7 +2965,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverridegroup_show/1
 args: 2,5,3
@@ -2977,7 +2977,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverrideuser_add/1
 args: 2,17,3
@@ -3001,7 +3001,7 @@ option: Int('uidnumber?', cli_name='uid')
 option: Certificate('usercertificate*', cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverrideuser_add_cert/1
 args: 2,6,3
@@ -3014,7 +3014,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverrideuser_del/1
 args: 2,3,3
@@ -3024,7 +3024,7 @@ option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: idoverrideuser_find/1
 args: 2,17,4
@@ -3049,7 +3049,7 @@ option: Int('uidnumber?', autofill=False, cli_name='uid')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: idoverrideuser_mod/1
 args: 2,20,3
@@ -3076,7 +3076,7 @@ option: Int('uidnumber?', autofill=False, cli_name='uid')
 option: Certificate('usercertificate*', autofill=False, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverrideuser_remove_cert/1
 args: 2,6,3
@@ -3089,7 +3089,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idoverrideuser_show/1
 args: 2,6,3
@@ -3102,7 +3102,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idp_add/1
 args: 1,18,3
@@ -3126,7 +3126,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idp_del/1
 args: 1,2,3
@@ -3134,7 +3134,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: idp_find/1
 args: 1,17,4
@@ -3158,7 +3158,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: idp_mod/1
 args: 1,18,3
@@ -3182,7 +3182,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idp_show/1
 args: 1,4,3
@@ -3192,7 +3192,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idrange_add/1
 args: 1,13,3
@@ -3211,7 +3211,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idrange_del/1
 args: 1,2,3
@@ -3219,7 +3219,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: idrange_find/1
 args: 1,14,4
@@ -3240,7 +3240,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: idrange_mod/1
 args: 1,14,3
@@ -3260,7 +3260,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idrange_show/1
 args: 1,4,3
@@ -3270,7 +3270,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idview_add/1
 args: 1,7,3
@@ -3283,7 +3283,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idview_apply/1
 args: 1,3,4
@@ -3294,14 +3294,14 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Output('succeeded', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 command: idview_del/1
 args: 1,2,3
 arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: idview_find/1
 args: 1,8,4
@@ -3316,7 +3316,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: idview_mod/1
 args: 1,10,3
@@ -3332,7 +3332,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idview_show/1
 args: 1,5,3
@@ -3343,7 +3343,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Flag('show_hosts?', autofill=True, cli_name='show_hosts', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: idview_unapply/1
 args: 0,3,4
@@ -3353,7 +3353,7 @@ option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Output('succeeded', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 command: join/1
 args: 1,4,0
 arg: Str('cn', autofill=True, cli_name='hostname')
@@ -3376,7 +3376,7 @@ command: kra_is_enabled/1
 args: 0,1,3
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: krbtpolicy_mod/1
 args: 1,21,3
@@ -3403,7 +3403,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: krbtpolicy_reset/1
 args: 1,3,3
@@ -3412,7 +3412,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: krbtpolicy_show/1
 args: 1,4,3
@@ -3422,7 +3422,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: location_add/1
 args: 1,6,3
@@ -3434,7 +3434,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: location_del/1
 args: 1,2,3
@@ -3442,7 +3442,7 @@ arg: DNSNameParam('idnsname+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: location_find/1
 args: 1,8,4
@@ -3457,7 +3457,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: location_mod/1
 args: 1,8,3
@@ -3471,7 +3471,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: location_show/1
 args: 1,4,4
@@ -3482,7 +3482,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
 output: Output('servers', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: migrate_ds/1
 args: 2,20,4
@@ -3527,7 +3527,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('usercategory?', cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: netgroup_add_member/1
 args: 1,9,3
@@ -3550,7 +3550,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: netgroup_find/1
 args: 1,28,4
@@ -3585,7 +3585,7 @@ option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['al
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: netgroup_mod/1
 args: 1,13,3
@@ -3604,7 +3604,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: netgroup_remove_member/1
 args: 1,9,3
@@ -3630,7 +3630,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: otpconfig_mod/1
 args: 0,11,3
@@ -3646,7 +3646,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: otpconfig_show/1
 args: 0,4,3
@@ -3655,7 +3655,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: otptoken_add/1
 args: 1,23,3
@@ -3684,7 +3684,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('type?', autofill=True, default='totp', values=['totp', 'hotp', 'TOTP', 'HOTP'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: otptoken_add_managedby/1
 args: 1,5,3
@@ -3703,7 +3703,7 @@ arg: Str('ipatokenuniqueid+', cli_name='id')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: otptoken_find/1
 args: 1,22,4
@@ -3732,7 +3732,7 @@ option: StrEnum('type?', autofill=False, default='totp', values=['totp', 'hotp',
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: otptoken_mod/1
 args: 1,17,3
@@ -3755,7 +3755,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: otptoken_remove_managedby/1
 args: 1,5,3
@@ -3777,7 +3777,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: output_find/1
 args: 2,4,4
@@ -3789,7 +3789,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: output_show/1
 args: 2,3,3
@@ -3799,7 +3799,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: param_find/1
 args: 2,4,4
@@ -3811,7 +3811,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: param_show/1
 args: 2,3,3
@@ -3821,7 +3821,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: passkeyconfig_mod/1
 args: 0,8,3
@@ -3834,7 +3834,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: passkeyconfig_show/1
 args: 0,4,3
@@ -3843,7 +3843,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: passwd/1
 args: 3,2,3
@@ -3853,8 +3853,8 @@ arg: Password('current_password', autofill=True, confirm=False)
 option: Password('otp?', confirm=False)
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: permission_add/1
 args: 1,21,3
 arg: Str('cn', cli_name='name')
@@ -3880,7 +3880,7 @@ option: Str('targetgroup?', alwaysask=True, autofill=False)
 option: Str('type?', alwaysask=True, autofill=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: permission_add_member/1
 args: 1,5,3
@@ -3902,7 +3902,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: permission_del/1
 args: 1,3,3
@@ -3911,7 +3911,7 @@ option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Flag('force', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: permission_find/1
 args: 1,26,4
@@ -3944,7 +3944,7 @@ option: Str('type?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: permission_mod/1
 args: 1,26,3
@@ -3976,7 +3976,7 @@ option: Str('targetgroup?', autofill=False)
 option: Str('type?', autofill=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: permission_remove_member/1
 args: 1,5,3
@@ -3998,12 +3998,12 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: ping/1
 args: 0,1,1
 option: Str('version?')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 command: pkinit_status/1
 args: 1,7,4
 arg: Str('criteria?')
@@ -4016,7 +4016,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: plugins/1
 args: 0,3,3
@@ -4025,7 +4025,7 @@ option: Flag('server?', autofill=True, default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 command: privilege_add/1
 args: 1,7,3
 arg: Str('cn', cli_name='name')
@@ -4037,7 +4037,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: privilege_add_member/1
 args: 1,5,3
@@ -4067,7 +4067,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: privilege_find/1
 args: 1,9,4
@@ -4083,7 +4083,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: privilege_mod/1
 args: 1,10,3
@@ -4099,7 +4099,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: privilege_remove_member/1
 args: 1,5,3
@@ -4132,7 +4132,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: pwpolicy_add/1
 args: 1,23,3
@@ -4161,7 +4161,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: pwpolicy_del/1
 args: 1,2,3
@@ -4169,7 +4169,7 @@ arg: Str('cn+', cli_name='group')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: pwpolicy_find/1
 args: 1,25,4
@@ -4201,7 +4201,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: pwpolicy_mod/1
 args: 1,25,3
@@ -4232,7 +4232,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: pwpolicy_show/1
 args: 1,5,3
@@ -4243,7 +4243,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('user?')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: radiusproxy_add/1
 args: 1,11,3
@@ -4260,7 +4260,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: radiusproxy_del/1
 args: 1,2,3
@@ -4268,7 +4268,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: radiusproxy_find/1
 args: 1,13,4
@@ -4288,7 +4288,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: radiusproxy_mod/1
 args: 1,14,3
@@ -4308,7 +4308,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: radiusproxy_show/1
 args: 1,4,3
@@ -4318,7 +4318,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: realmdomains_mod/1
 args: 0,11,3
@@ -4334,7 +4334,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: realmdomains_show/1
 args: 0,4,3
@@ -4343,7 +4343,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: role_add/1
 args: 1,7,3
@@ -4356,7 +4356,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: role_add_member/1
 args: 1,11,3
@@ -4392,7 +4392,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: role_find/1
 args: 1,9,4
@@ -4408,7 +4408,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: role_mod/1
 args: 1,10,3
@@ -4424,7 +4424,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: role_remove_member/1
 args: 1,11,3
@@ -4463,7 +4463,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: schema/1
 args: 0,2,1
@@ -4479,14 +4479,14 @@ option: Str('permissions*', cli_name='permissions')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selfservice_del/1
 args: 1,1,3
 arg: Str('aciname', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selfservice_find/1
 args: 1,7,4
@@ -4500,7 +4500,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: selfservice_mod/1
 args: 1,5,3
@@ -4511,7 +4511,7 @@ option: Str('permissions*', autofill=False, cli_name='permissions')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selfservice_show/1
 args: 1,3,3
@@ -4520,7 +4520,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selinuxusermap_add/1
 args: 1,12,3
@@ -4538,7 +4538,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('usercategory?', cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selinuxusermap_add_host/1
 args: 1,6,3
@@ -4570,21 +4570,21 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: selinuxusermap_disable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selinuxusermap_enable/1
 args: 1,1,3
 arg: Str('cn', cli_name='name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selinuxusermap_find/1
 args: 1,14,4
@@ -4605,7 +4605,7 @@ option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['al
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: selinuxusermap_mod/1
 args: 1,14,3
@@ -4625,7 +4625,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: selinuxusermap_remove_host/1
 args: 1,6,3
@@ -4660,7 +4660,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: server_conncheck/1
 args: 2,1,3
@@ -4668,7 +4668,7 @@ arg: Str('cn', cli_name='name')
 arg: Str('remote_cn', cli_name='remote_name')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: server_del/1
 args: 1,5,3
@@ -4679,7 +4679,7 @@ option: Flag('ignore_last_of_role?', autofill=True, default=False)
 option: Flag('ignore_topology_disconnect?', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: server_find/1
 args: 1,15,4
@@ -4701,7 +4701,7 @@ option: Str('topologysuffix*', cli_name='topologysuffixes')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: server_mod/1
 args: 1,10,3
@@ -4717,7 +4717,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: server_role_find/1
 args: 1,9,4
@@ -4733,7 +4733,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: server_role_show/1
 args: 2,3,3
@@ -4743,7 +4743,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: server_show/1
 args: 1,5,3
@@ -4754,7 +4754,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: server_state/1
 args: 1,2,3
@@ -4762,7 +4762,7 @@ arg: Str('cn', cli_name='name')
 option: StrEnum('state', values=['enabled', 'hidden'])
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add/1
 args: 1,14,3
@@ -4782,7 +4782,7 @@ option: Flag('skip_host_check', autofill=True, default=False)
 option: Certificate('usercertificate*', cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add_cert/1
 args: 1,5,3
@@ -4793,7 +4793,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add_delegation/1
 args: 2,4,3
@@ -4804,7 +4804,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add_host/1
 args: 1,5,3
@@ -4826,7 +4826,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_add_smb/1
 args: 2,9,3
@@ -4842,7 +4842,7 @@ option: Str('setattr*', cli_name='setattr')
 option: Certificate('usercertificate*', cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_allow_add_delegation/1
 args: 1,8,3
@@ -4892,14 +4892,14 @@ arg: Principal('krbcanonicalname+', cli_name='canonical_principal')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: service_disable/1
 args: 1,1,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_disallow_add_delegation/1
 args: 1,8,3
@@ -4961,7 +4961,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: service_mod/1
 args: 1,15,3
@@ -4982,7 +4982,7 @@ option: Str('setattr*', cli_name='setattr')
 option: Certificate('usercertificate*', autofill=False, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_remove_cert/1
 args: 1,5,3
@@ -4993,7 +4993,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_remove_delegation/1
 args: 2,4,3
@@ -5004,7 +5004,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_remove_host/1
 args: 1,5,3
@@ -5026,7 +5026,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: service_show/1
 args: 1,6,3
@@ -5038,7 +5038,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: servicedelegationrule_add/1
 args: 1,6,3
@@ -5050,7 +5050,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: servicedelegationrule_add_member/1
 args: 1,5,3
@@ -5080,7 +5080,7 @@ arg: Str('cn+', cli_name='delegation_name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: servicedelegationrule_find/1
 args: 1,8,4
@@ -5095,7 +5095,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: servicedelegationrule_remove_member/1
 args: 1,5,3
@@ -5128,7 +5128,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: servicedelegationtarget_add/1
 args: 1,5,3
@@ -5139,7 +5139,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: servicedelegationtarget_add_member/1
 args: 1,4,3
@@ -5157,7 +5157,7 @@ arg: Str('cn+', cli_name='delegation_name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: servicedelegationtarget_find/1
 args: 1,7,4
@@ -5171,7 +5171,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: servicedelegationtarget_remove_member/1
 args: 1,4,3
@@ -5191,7 +5191,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: session_logout/1
 args: 0,1,1
@@ -5209,7 +5209,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_add/1
 args: 1,47,3
@@ -5262,7 +5262,7 @@ option: Str('userclass*', cli_name='class')
 option: Password('userpassword?', cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_add_cert/1
 args: 1,5,3
@@ -5273,7 +5273,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_add_certmapdata/1
 args: 2,7,3
@@ -5287,7 +5287,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: DNParam('subject?', cli_name='subject')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_add_manager/1
 args: 1,5,3
@@ -5309,7 +5309,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_add_principal/1
 args: 2,4,3
@@ -5320,7 +5320,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_del/1
 args: 1,2,3
@@ -5328,7 +5328,7 @@ arg: Str('uid+', cli_name='login')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: stageuser_find/1
 args: 1,62,4
@@ -5397,7 +5397,7 @@ option: Password('userpassword?', autofill=False, cli_name='password')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: stageuser_mod/1
 args: 1,53,3
@@ -5456,7 +5456,7 @@ option: Str('userclass*', autofill=False, cli_name='class')
 option: Password('userpassword?', autofill=False, cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_remove_cert/1
 args: 1,5,3
@@ -5467,7 +5467,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_remove_certmapdata/1
 args: 2,7,3
@@ -5481,7 +5481,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: DNParam('subject?', cli_name='subject')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_remove_manager/1
 args: 1,5,3
@@ -5503,7 +5503,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_remove_principal/1
 args: 2,4,3
@@ -5514,7 +5514,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: stageuser_show/1
 args: 1,5,3
@@ -5525,7 +5525,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: subid_add/1
 args: 1,8,3
@@ -5539,7 +5539,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: subid_del/1
 args: 1,2,3
@@ -5547,7 +5547,7 @@ arg: Str('ipauniqueid+', cli_name='id')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: subid_find/1
 args: 1,11,4
@@ -5565,7 +5565,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: subid_generate/1
 args: 0,4,3
@@ -5574,7 +5574,7 @@ option: Str('ipaowner?', cli_name='owner')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: subid_match/1
 args: 1,7,4
@@ -5588,7 +5588,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: subid_mod/1
 args: 1,8,3
@@ -5602,7 +5602,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: subid_show/1
 args: 1,4,3
@@ -5612,7 +5612,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: subid_stats/1
 args: 0,3,2
@@ -5620,7 +5620,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 command: sudocmd_add/1
 args: 1,7,3
 arg: Str('sudocmd', cli_name='command')
@@ -5632,7 +5632,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudocmd_del/1
 args: 1,2,3
@@ -5640,7 +5640,7 @@ arg: Str('sudocmd+', cli_name='command')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: sudocmd_find/1
 args: 1,9,4
@@ -5656,7 +5656,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: sudocmd_mod/1
 args: 1,9,3
@@ -5671,7 +5671,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudocmd_show/1
 args: 1,5,3
@@ -5682,7 +5682,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudocmdgroup_add/1
 args: 1,7,3
@@ -5695,7 +5695,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudocmdgroup_add_member/1
 args: 1,5,3
@@ -5714,7 +5714,7 @@ arg: Str('cn+', cli_name='sudocmdgroup_name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: sudocmdgroup_find/1
 args: 1,9,4
@@ -5730,7 +5730,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: sudocmdgroup_mod/1
 args: 1,9,3
@@ -5745,7 +5745,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudocmdgroup_remove_member/1
 args: 1,5,3
@@ -5767,7 +5767,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudorule_add/1
 args: 1,18,3
@@ -5791,7 +5791,7 @@ option: Int('sudoorder?', cli_name='order', default=0)
 option: StrEnum('usercategory?', cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudorule_add_allow_command/1
 args: 1,6,3
@@ -5839,7 +5839,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudorule_add_runasgroup/1
 args: 1,5,3
@@ -5882,7 +5882,7 @@ arg: Str('cn+', cli_name='sudorule_name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: sudorule_disable/1
 args: 1,1,1
@@ -5919,7 +5919,7 @@ option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['al
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: sudorule_mod/1
 args: 1,21,3
@@ -5946,7 +5946,7 @@ option: Int('sudoorder?', autofill=False, cli_name='order', default=0)
 option: StrEnum('usercategory?', autofill=False, cli_name='usercat', values=['all'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudorule_remove_allow_command/1
 args: 1,6,3
@@ -5994,7 +5994,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sudorule_remove_runasgroup/1
 args: 1,5,3
@@ -6040,7 +6040,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_add/1
 args: 1,11,3
@@ -6057,7 +6057,7 @@ option: Str('setattr*', cli_name='setattr')
 option: Password('userpassword?', cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_del/1
 args: 1,2,3
@@ -6065,21 +6065,21 @@ arg: Str('uid+', cli_name='login')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: sysaccount_disable/1
 args: 1,1,3
 arg: Str('uid', cli_name='login')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_enable/1
 args: 1,1,3
 arg: Str('uid', cli_name='login')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_find/1
 args: 1,10,4
@@ -6096,7 +6096,7 @@ option: Str('uid?', autofill=False, cli_name='login')
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: sysaccount_mod/1
 args: 1,13,3
@@ -6115,7 +6115,7 @@ option: Str('setattr*', cli_name='setattr')
 option: Password('userpassword?', autofill=False, cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_policy/1
 args: 1,6,3
@@ -6127,7 +6127,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: sysaccount_show/1
 args: 1,5,3
@@ -6138,7 +6138,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topic_find/1
 args: 1,4,4
@@ -6149,7 +6149,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: topic_show/1
 args: 1,3,3
@@ -6158,7 +6158,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysegment_add/1
 args: 2,13,3
@@ -6178,7 +6178,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysegment_del/1
 args: 2,2,3
@@ -6187,7 +6187,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: topologysegment_find/1
 args: 2,15,4
@@ -6210,7 +6210,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: topologysegment_mod/1
 args: 2,12,3
@@ -6229,7 +6229,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysegment_reinitialize/1
 args: 2,4,3
@@ -6240,7 +6240,7 @@ option: Flag('right?', autofill=True, default=False)
 option: Flag('stop?', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysegment_show/1
 args: 2,4,3
@@ -6251,7 +6251,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysuffix_add/1
 args: 1,6,3
@@ -6263,7 +6263,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysuffix_del/1
 args: 1,2,3
@@ -6271,7 +6271,7 @@ arg: Str('cn+', cli_name='name')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: topologysuffix_find/1
 args: 1,8,4
@@ -6286,7 +6286,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: topologysuffix_mod/1
 args: 1,8,3
@@ -6300,7 +6300,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysuffix_show/1
 args: 1,4,3
@@ -6310,7 +6310,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: topologysuffix_verify/1
 args: 1,1,1
@@ -6336,7 +6336,7 @@ option: Password('trust_secret?', cli_name='trust_secret', confirm=False)
 option: StrEnum('trust_type', autofill=True, cli_name='type', default='ad', values=['ad'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trust_del/1
 args: 1,2,3
@@ -6344,7 +6344,7 @@ arg: Str('cn+', cli_name='realm')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: trust_enable_agent/1
 args: 1,2,3
@@ -6352,7 +6352,7 @@ arg: Str('remote_cn', cli_name='remote_name')
 option: Flag('enable_compat', autofill=True, default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trust_fetch_domains/1
 args: 1,7,4
@@ -6366,7 +6366,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: trust_find/1
 args: 1,11,4
@@ -6384,7 +6384,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: trust_mod/1
 args: 1,10,3
@@ -6400,7 +6400,7 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trust_resolve/1
 args: 0,4,1
@@ -6417,7 +6417,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trustconfig_mod/1
 args: 0,9,3
@@ -6431,8 +6431,8 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('trust_type', autofill=True, cli_name='type', default='ad', values=['ad'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: trustconfig_show/1
 args: 0,5,3
 option: Flag('all', autofill=True, cli_name='all', default=False)
@@ -6441,8 +6441,8 @@ option: Flag('rights', autofill=True, default=False)
 option: StrEnum('trust_type', autofill=True, cli_name='type', default='ad', values=['ad'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
-output: Output('value', type=[<type 'unicode'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
+output: Output('value', type=[<type 'str'>])
 command: trustdomain_add/1
 args: 2,8,3
 arg: Str('trustcn', cli_name='trust')
@@ -6456,7 +6456,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('trust_type', autofill=True, cli_name='type', default='ad', values=['ad'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trustdomain_del/1
 args: 2,2,3
@@ -6465,7 +6465,7 @@ arg: Str('cn+', cli_name='domain')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: trustdomain_disable/1
 args: 2,1,3
@@ -6473,7 +6473,7 @@ arg: Str('trustcn', cli_name='trust')
 arg: Str('cn', cli_name='domain')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trustdomain_enable/1
 args: 2,1,3
@@ -6481,7 +6481,7 @@ arg: Str('trustcn', cli_name='trust')
 arg: Str('cn', cli_name='domain')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: trustdomain_find/1
 args: 2,9,4
@@ -6498,7 +6498,7 @@ option: Int('timelimit?', autofill=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: trustdomain_mod/1
 args: 2,10,3
@@ -6515,7 +6515,7 @@ option: Str('setattr*', cli_name='setattr')
 option: StrEnum('trust_type', autofill=True, cli_name='type', default='ad', values=['ad'])
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_add/1
 args: 1,48,3
@@ -6569,7 +6569,7 @@ option: Str('userclass*', cli_name='class')
 option: Password('userpassword?', cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_add_cert/1
 args: 1,5,3
@@ -6580,7 +6580,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_add_certmapdata/1
 args: 2,7,3
@@ -6594,7 +6594,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: DNParam('subject?', cli_name='subject')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_add_manager/1
 args: 1,5,3
@@ -6616,7 +6616,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_add_principal/1
 args: 2,4,3
@@ -6627,7 +6627,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_del/1
 args: 1,3,3
@@ -6636,21 +6636,21 @@ option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Bool('preserve?')
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: user_disable/1
 args: 1,1,3
 arg: Str('uid', cli_name='login')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_enable/1
 args: 1,1,3
 arg: Str('uid', cli_name='login')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_find/1
 args: 1,65,4
@@ -6722,7 +6722,7 @@ option: Str('version?')
 option: Flag('whoami', autofill=True, default=False)
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: user_mod/1
 args: 1,54,3
@@ -6782,7 +6782,7 @@ option: Str('userclass*', autofill=False, cli_name='class')
 option: Password('userpassword?', autofill=False, cli_name='password')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_remove_cert/1
 args: 1,5,3
@@ -6793,7 +6793,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Certificate('usercertificate+', alwaysask=True, cli_name='certificate')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_remove_certmapdata/1
 args: 2,7,3
@@ -6807,7 +6807,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: DNParam('subject?', cli_name='subject')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_remove_manager/1
 args: 1,5,3
@@ -6829,7 +6829,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_remove_principal/1
 args: 2,4,3
@@ -6840,7 +6840,7 @@ option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_show/1
 args: 1,6,3
@@ -6852,7 +6852,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_stage/1
 args: 1,2,3
@@ -6860,7 +6860,7 @@ arg: Str('uid+', cli_name='login')
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: user_status/1
 args: 1,3,4
@@ -6870,21 +6870,21 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: user_undel/1
 args: 1,1,3
 arg: Str('uid', cli_name='login')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: user_unlock/1
 args: 1,1,3
 arg: Str('uid', cli_name='login')
 option: Str('version?')
 output: Output('result', type=[<type 'bool'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vault_add_internal/1
 args: 1,13,3
@@ -6903,7 +6903,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vault_add_member/1
 args: 1,10,3
@@ -6951,7 +6951,7 @@ option: Bytes('vault_data')
 option: Str('version?')
 option: StrEnum('wrapping_algo?', autofill=True, default='des-ede3-cbc', values=['aes-128-cbc', 'des-ede3-cbc'])
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vault_del/1
 args: 1,5,3
@@ -6962,7 +6962,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: vault_find/1
 args: 1,15,4
@@ -6984,7 +6984,7 @@ option: Flag('users?', autofill=True, default=False)
 option: Str('version?')
 output: Output('count', type=[<type 'int'>])
 output: ListOfEntries('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: Output('truncated', type=[<type 'bool'>])
 command: vault_mod_internal/1
 args: 1,15,3
@@ -7005,7 +7005,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vault_remove_member/1
 args: 1,10,3
@@ -7051,7 +7051,7 @@ option: Str('username?', cli_name='user')
 option: Str('version?')
 option: StrEnum('wrapping_algo?', autofill=True, default='des-ede3-cbc', values=['aes-128-cbc', 'des-ede3-cbc'])
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vault_show/1
 args: 1,8,3
@@ -7065,7 +7065,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vaultconfig_show/1
 args: 0,4,3
@@ -7074,7 +7074,7 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('transport_out?')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: vaultcontainer_add_owner/1
 args: 0,10,3
@@ -7099,7 +7099,7 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
 output: Output('result', type=[<type 'dict'>])
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: ListOfPrimaryKeys('value')
 command: vaultcontainer_remove_owner/1
 args: 0,10,3
@@ -7127,14 +7127,14 @@ option: Flag('shared?', autofill=True, default=False)
 option: Str('username?', cli_name='user')
 option: Str('version?')
 output: Entry('result')
-output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('summary', type=[<type 'str'>, <type 'NoneType'>])
 output: PrimaryKey('value')
 command: whoami/1
 args: 0,1,3
 option: Str('version?')
 output: Output('arguments', type=[<type 'list'>, <type 'tuple'>])
-output: Output('command', type=[<type 'unicode'>])
-output: Output('object', type=[<type 'unicode'>])
+output: Output('command', type=[<type 'str'>])
+output: Output('object', type=[<type 'str'>])
 default: aci/1
 default: aci_add/1
 default: aci_del/1
