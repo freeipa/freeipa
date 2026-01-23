@@ -13,6 +13,7 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_trust import BaseTestTrust
 
 
 class TestSubordinateId(IntegrationTest):
@@ -306,3 +307,54 @@ class TestSubordinateId(IntegrationTest):
         )
         subid = cmd.stdout_text.split()
         assert ['subid:', 'sss'] == subid
+
+
+class TestSubidInTrustEnv(TestSubordinateId, BaseTestTrust):
+    """
+    Tests to check subordinate ID functionality
+    in IPA-AD trust environment
+    """
+    topology = 'line'
+    num_ad_domains = 1
+
+    @classmethod
+    def install(cls, mh):
+        super(BaseTestTrust, cls).install(mh)
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.establish_trust_with_ad(cls.master, cls.ad.domain.name)
+
+    def test_subid_generate_disabled_in_trust_env(self):
+        """
+        Test that subid-generate fails with appropriate error message
+        when subordinate IDs are disabled in IPA-AD trust environment
+        """
+        master = self.master
+        tasks.kinit_admin(master)
+
+        try:
+            # Create a test user
+            tasks.user_add(master, 'ipauser')
+
+            # Enable automatic subid assignment
+            master.run_command(
+                ["ipa", "config-mod", "--user-default-subid=true"]
+            )
+
+            # Try to generate subids for the user
+            result = master.run_command(
+                ["ipa", "subid-generate", "--owner=ipauser"], raiseonerr=False
+            )
+
+            # Verify that the command fails with the expected error
+            assert result.returncode > 0
+            assert "Support for subordinate IDs is disabled" in result.stderr_text
+        finally:
+            # Clean up
+            tasks.user_del(master, 'ipauser')
+            # Restore default configuration
+            master.run_command(
+                ["ipa", "config-mod", "--user-default-subid=false"]
+            )
