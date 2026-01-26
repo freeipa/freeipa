@@ -1415,12 +1415,9 @@ if reprlib is not None:
                     setattr(self, k, sys.maxsize)
 
         def repr_str(self, x, level):
-            """Output with u'' prefix"""
-            return 'u' + repr(x)
+            return repr(x)
 
         def repr_type(self, x, level):
-            if x is str:
-                return "<type 'str'>"
             if x in self.builtin_types:
                 return "<type '{}'>".format(x.__name__)
             else:
