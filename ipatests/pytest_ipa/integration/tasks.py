@@ -3355,3 +3355,52 @@ def host_add_with_random_password(host, new_host):
                        re.MULTILINE)
     randpasswd1 = result.group('password')
     return randpasswd1
+
+
+def ipa_join(host, *extra_args, raiseonerr=True):
+    """Run ipa-join command.
+
+    :param host: The host to run command on
+    :param extra_args: Additional arguments (variable positional args)
+                       e.g., '--hostname=client.example.com',
+                             '--server=master.example.com',
+                             '--keytab=/tmp/test.keytab',
+                             '--bindpw=password',
+                             '-u' (for unenroll)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa-join']
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def host_del(host, hostname, *extra_args, raiseonerr=True):
+    """Delete a host from IPA.
+
+    :param host: The IPA host to run command on
+    :param hostname: Hostname to delete
+    :param extra_args: Additional arguments (variable positional args)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'host-del', hostname]
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def host_add(host, hostname, *extra_args, password=None, raiseonerr=True):
+    """Add a host to IPA.
+
+    :param host: The IPA host to run command on
+    :param hostname: Hostname to add
+    :param extra_args: Additional arguments (variable positional args)
+    :param password: OTP/enrollment password for the host (optional)
+    :param raiseonerr: If True, raise exception on command failure
+    :return: Command result object
+    """
+    command = ['ipa', 'host-add', hostname]
+    if password:
+        command.append(f'--password={password}')
+    command.extend(extra_args)
+    return host.run_command(command, raiseonerr=raiseonerr)
