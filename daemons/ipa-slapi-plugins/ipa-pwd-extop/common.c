@@ -407,7 +407,7 @@ int ipapwd_getPolicy(const char *dn,
     }
 
     /* read data out of policy object */
-    policy->min_pwd_life = slapi_entry_attr_get_int(pe, "krbMinPwdLife");
+    policy->min_pwd_life = slapi_entry_attr_get_uint(pe, "krbMinPwdLife");
 
     policy->max_pwd_life = slapi_entry_attr_get_int(pe, "krbMaxPwdLife");
 

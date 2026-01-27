@@ -561,6 +561,7 @@ int ipapwd_check_policy(struct ipapwd_policy *policy,
              * policy is set */
 
             if (cur_time < last_pwd_change + policy->min_pwd_life) {
+                syslog(LOG_ERR, "Password too young. %d seconds since last change, policy requires %u seconds.\n", (cur_time - last_pwd_change), policy->min_pwd_life);
                 return IPAPWD_POLICY_PWD_TOO_YOUNG;
             }
         }
