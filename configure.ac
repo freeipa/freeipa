@@ -267,6 +267,13 @@ AC_ARG_WITH([systemdtmpfilesdir],
         [systemdtmpfilesdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=tmpfilesdir systemd)])
 AC_SUBST([systemdtmpfilesdir])
 
+AC_ARG_WITH([systemdsysusersdir],
+            AS_HELP_STRING([--with-systemdsysusersdir=DIR],
+               [Directory for systemd-sysusers configuration files]),
+            [systemdsysusersdir=$with_systemdsysusersdir],
+        [systemdsysusersdir=$($PKG_CONFIG --define-variable=prefix='${prefix}' --variable=sysusersdir systemd)])
+AC_SUBST([systemdsysusersdir])
+
 AC_ARG_WITH([systemdcatalogdir],
             AS_HELP_STRING([--with-systemdcatalogdir=DIR],
                [Directory for systemd journal catalog files]),
@@ -398,21 +405,28 @@ AC_SUBST([IPAPLATFORM])
 AC_MSG_RESULT([${IPAPLATFORM}])
 
 if test "x${IPAPLATFORM}" == "xdebian"; then
-    HTTPD_GROUP="www-data"
-    KRB5KDC_SERVICE="krb5-kdc.service"
-    NAMED_GROUP="bind"
-    ODS_USER="opendnssec"
-    ODS_GROUP="opendnssec"
-    # see https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html
-    PYTHON_INSTALL_EXTRA_OPTIONS="--install-layout=deb"
+	dnl Ubuntu http user is www-data
+	HTTPD_USER="www-data"
+	HTTPD_GROUP="www-data"
+	KRB5KDC_SERVICE="krb5-kdc.service"
+	NAMED_GROUP="bind"
+	ODS_USER="opendnssec"
+	ODS_GROUP="opendnssec"
+	# see https://www.debian.org/doc/packaging-manuals/python-policy/ap-packaging_tools.html
+	PYTHON_INSTALL_EXTRA_OPTIONS="--install-layout=deb"
 else
-    HTTPD_GROUP="apache"
-    KRB5KDC_SERVICE="krb5kdc.service"
-    NAMED_GROUP="named"
-    ODS_USER="ods"
-    ODS_GROUP="ods"
-    PYTHON_INSTALL_EXTRA_OPTIONS=""
+	HTTPD_USER="apache"
+	HTTPD_GROUP="apache"
+	KRB5KDC_SERVICE="krb5kdc.service"
+	NAMED_GROUP="named"
+	ODS_USER="ods"
+	ODS_GROUP="ods"
+	PYTHON_INSTALL_EXTRA_OPTIONS=""
 fi
+
+AC_MSG_CHECKING([HTTPD_USER])
+AC_SUBST([HTTPD_USER])
+AC_MSG_RESULT([${HTTPD_USER}])
 
 AC_MSG_CHECKING([HTTPD_GROUP])
 AC_SUBST([HTTPD_GROUP])
@@ -654,6 +668,7 @@ AC_CONFIG_FILES([
     daemons/ipa-slapi-plugins/topology/Makefile
     init/systemd/Makefile
     init/tmpfilesd/Makefile
+    init/sysusersd/Makefile
     init/Makefile
     install/Makefile
     install/certmonger/Makefile
@@ -735,6 +750,7 @@ AM_COND_IF([ENABLE_SERVER], [
         KRAD libs:                ${KRAD_LIBS}
         krb5rundir:               ${krb5rundir}
         systemdtmpfilesdir:       ${systemdtmpfilesdir}
+        systemdsysusersdir:       ${systemdsysusersdir}
         build mode:               server & client"
 ], [
     echo "\

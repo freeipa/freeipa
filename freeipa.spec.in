@@ -1244,6 +1244,7 @@ fi
 /bin/systemctl reload-or-try-restart dbus
 /bin/systemctl reload-or-try-restart oddjobd
 
+%sysusers_create %{_sysusersdir}/ipa.conf
 %tmpfiles_create ipa.conf
 %journal_catalog_update
 
@@ -1299,18 +1300,6 @@ if [ -e /usr/sbin/ipa_kpasswd ]; then
     /bin/systemctl stop ipa_kpasswd.service >/dev/null 2>&1 || :
 # END
 fi
-
-
-%pre server-common
-# create users and groups
-# create kdcproxy group and user
-getent group kdcproxy >/dev/null || groupadd -f -r kdcproxy
-getent passwd kdcproxy >/dev/null || useradd -r -g kdcproxy -s /sbin/nologin -d / -c "IPA KDC Proxy User" kdcproxy
-# create ipaapi group and user
-getent group ipaapi >/dev/null || groupadd -f -r ipaapi
-getent passwd ipaapi >/dev/null || useradd -r -g ipaapi -s /sbin/nologin -d / -c "IPA Framework User" ipaapi
-# add apache to ipaaapi group
-id -Gn apache | grep '\bipaapi\b' >/dev/null || usermod apache -a -G ipaapi
 
 
 %post server-dns
@@ -1704,6 +1693,7 @@ fi
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
 %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
 # NOTE: systemd specific section
+%{_sysusersdir}/ipa.conf
 %{_tmpfilesdir}/ipa.conf
 %attr(644,root,root) %{_unitdir}/ipa-custodia.service
 %ghost %attr(644,root,root) %{etc_systemd_dir}/httpd.d/ipa.conf
