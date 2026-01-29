@@ -16,7 +16,7 @@ krbSubTrees: $SUFFIX
 krbSearchScope: 2
 krbMaxTicketLife: 86400
 krbMaxRenewableAge: 604800
-${LDIF_SUPPORTED_ENCTYPES}${LDIF_DEFAULT_ENCTYPES}
+
 # Default password Policy
 dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
 changetype: add

@@ -20,16 +20,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE /* for qsort_r() */
+
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <lber.h>
-#include <errno.h>
 
 #include <libintl.h>
 #define _(STRING) gettext(STRING)
 
 #include "ipa_krb5.h"
+
+#define ENC_BUF_SIZE 64
+#define SALT_BUF_SIZE 32
 
 #define TOSTR(x) STR(x)
 #define STR(x) #x
@@ -46,6 +50,9 @@ static const char *const conf_yes[] = {
 
 /* Salt types */
 #define KRB5P_SALT_SIZE 16
+
+#define IPA_ADD_SALTTYPE_NORMAL (1 << 0)
+#define IPA_ADD_SALTTYPE_SPECIAL (1 << 1)
 
 static krb5_error_code ipa_get_random_salt(krb5_context krbctx,
                                            krb5_data *salt)
@@ -686,39 +693,6 @@ fail:
     return kerr;
 }
 
-krb5_error_code filter_key_salt_tuples(krb5_context context,
-                                       krb5_key_salt_tuple *req, int n_req,
-                                       krb5_key_salt_tuple *supp, int n_supp,
-                                       krb5_key_salt_tuple **res, int *n_res)
-{
-    krb5_key_salt_tuple *ks = NULL;
-    int n_ks;
-    int i, j;
-
-    ks = calloc(n_req, sizeof(krb5_key_salt_tuple));
-    if (!ks) {
-        return ENOMEM;
-    }
-    n_ks = 0;
-
-    for (i = 0; i < n_req; i++) {
-        for (j = 0; j < n_supp; j++) {
-            if (req[i].ks_enctype == supp[j].ks_enctype &&
-                req[i].ks_salttype == supp[j].ks_salttype) {
-                break;
-            }
-        }
-        if (j < n_supp) {
-            ks[n_ks] = req[i];
-            n_ks++;
-        }
-    }
-
-    *res = ks;
-    *n_res = n_ks;
-    return 0;
-}
-
 struct berval *create_key_control(struct keys_container *keys,
                                   const char *principalName)
 {
@@ -810,8 +784,9 @@ void free_keys_contents(krb5_context krbctx, struct keys_container *keys)
     keys->nkeys = 0;
 }
 
-int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
-                           int *num_encsalts, char **err_msg)
+int ipa_string_to_enctypes(const char *str, krb5_int32 default_salttype,
+                           struct krb_key_salt **encsalts, int *num_encsalts,
+                           char **err_msg)
 {
     struct krb_key_salt *ksdata;
     krb5_error_code krberr;
@@ -833,7 +808,6 @@ int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
         count++;
         t++;
     }
-    count++; /* count the last one that is 0 terminated instead */
 
     /* at the end we will have at most count entries + 1 terminating */
     ksdata = calloc(count + 1, sizeof(struct krb_key_salt));
@@ -863,7 +837,7 @@ int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
         if (p) t = p + 1;
 
         if (!q) {
-            ksdata[num].salttype = KRB5_KDB_SALTTYPE_NORMAL;
+            ksdata[num].salttype = default_salttype;
             num++;
             continue;
         }
@@ -888,7 +862,7 @@ int ipa_string_to_enctypes(const char *str, struct krb_key_salt **encsalts,
  * filters out equivalent encodings,
  * returns 0 if no enctypes available, >0 if enctypes are available */
 static int prep_ksdata(krb5_context krbctx, const char *str,
-                       struct keys_container *keys,
+                       krb5_int32 default_salttype, struct keys_container *keys,
                        char **err_msg)
 {
     struct krb_key_salt *ksdata;
@@ -925,7 +899,8 @@ static int prep_ksdata(krb5_context krbctx, const char *str,
         nkeys = i;
 
     } else {
-        krberr = ipa_string_to_enctypes(str, &ksdata, &nkeys, err_msg);
+        krberr = ipa_string_to_enctypes(str, default_salttype, &ksdata, &nkeys,
+                                        err_msg);
         if (krberr) {
             return 0;
         }
@@ -981,6 +956,7 @@ int create_keys(krb5_context krbctx,
                 char **err_msg)
 {
     struct krb_key_salt *ksdata;
+    krb5_int32 default_salttype;
     krb5_error_code krberr;
     krb5_data key_password;
     krb5_data *realm = NULL;
@@ -989,7 +965,9 @@ int create_keys(krb5_context krbctx,
 
     *err_msg = NULL;
 
-    ret = prep_ksdata(krbctx, enctypes_string, keys, err_msg);
+    default_salttype = password ? KRB5_KDB_SALTTYPE_SPECIAL
+                                : KRB5_KDB_SALTTYPE_NORMAL;
+    ret = prep_ksdata(krbctx, enctypes_string, default_salttype, keys, err_msg);
     if (ret == 0) return 0;
 
     ksdata = keys->ksdata;
@@ -1107,149 +1085,77 @@ int create_keys(krb5_context krbctx,
     return nkeys;
 }
 
-/* in older versions of libkrb5 the krb5_salttype_to_string() function is
- * faulty and returns strings that do not match the expected format.
- * Later version of krb5 were fixed to return the proper string.
- * Do lazy detection the first time the function is invoked to determine
- * if we can use the library provided function or if we have to use a
- * fallback map which includes the salt types known up to krb5 1.12 (the
- * fault is fixed upstream in 1.13). */
-static int ipa_salttype_to_string(krb5_int32 salttype,
-                                  char *buffer, size_t buflen)
+krb5_error_code
+ipa_kstuples_to_string(const krb5_key_salt_tuple *keysalts, size_t n_keysalts,
+                       char separator, char **out, size_t *n_out)
 {
-    static int faulty_function = -1;
+    krb5_error_code err;
+    char encbuf[ENC_BUF_SIZE], saltbuf[SALT_BUF_SIZE], *str = NULL, *p;
+    size_t i, n = 0;
 
-    static const struct {
-        krb5_int32 salttype;
-        const char *name;
-    } fallback_map[] = {
-        { KRB5_KDB_SALTTYPE_NORMAL, "normal" },
-        { KRB5_KDB_SALTTYPE_V4, "v4" },
-        { KRB5_KDB_SALTTYPE_NOREALM, "norealm" },
-        { KRB5_KDB_SALTTYPE_ONLYREALM, "onlyrealm" },
-        { KRB5_KDB_SALTTYPE_SPECIAL, "special" },
-        { KRB5_KDB_SALTTYPE_AFS3, "afs3" },
-        { -1, NULL }
-    };
-
-    if (faulty_function == -1) {
-        /* haven't checked yet, let's find out */
-        char testbuf[100];
-        size_t len = 100;
-        int ret;
-
-        ret = krb5_salttype_to_string(KRB5_KDB_SALTTYPE_NORMAL, testbuf, len);
-        if (ret) return ret;
-
-        if (strcmp(buffer, "normal") == 0) {
-            faulty_function = 0;
-        } else {
-            faulty_function = 1;
-        }
-    }
-
-    if (faulty_function == 0) {
-        return krb5_salttype_to_string(salttype, buffer, buflen);
+    /* Count output string length */
+    if (n_keysalts == 0) {
+        n = 1; /* output string will contain '\0' only */
     } else {
-        size_t len;
-        int i;
-        for (i = 0; fallback_map[i].name != NULL; i++) {
-            if (salttype == fallback_map[i].salttype) break;
+        for (i = 0; i < n_keysalts; ++i) {
+            err = krb5_enctype_to_name(keysalts[i].ks_enctype, false, encbuf,
+                                       ENC_BUF_SIZE);
+            if (err) goto end;
+
+            n += strnlen(encbuf, ENC_BUF_SIZE); /* enctype */
+
+            ++n; /* colon */
+
+            err = krb5_salttype_to_string(keysalts[i].ks_salttype, saltbuf,
+                                          SALT_BUF_SIZE);
+            if (err) goto end;
+
+            n += strnlen(saltbuf, SALT_BUF_SIZE); /* salt type */
+
+            ++n; /* separator or \0 */
         }
-        if (fallback_map[i].name == NULL) return EINVAL;
-
-        len = strlen(fallback_map[i].name);
-        if (len >= buflen) return ENOMEM;
-
-        memcpy(buffer, fallback_map[i].name, len + 1);
-        return 0;
-    }
-}
-
-int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str)
-{
-    char *buf = NULL;
-    char *tmp;
-    int buf_avail;
-    int buf_size;
-    int buf_cur;
-    int len;
-    int ret = 0;
-    int i;
-
-    buf_size = 512; /* should be enough for the default supported enctypes */
-    buf = malloc(buf_size);
-    if (!buf) {
-        ret = ENOMEM;
-        goto done;
     }
 
-    buf_cur = 0;
-    for (i = 0; i < n_kst; i++) {
-        /* grow if too tight */
-        if (ret == ENOMEM) {
-            buf_size *= 2;
-            /* hard limit at 8k, do not eat all memory by mistake */
-            if (buf_size > 8192) goto done;
-            tmp = realloc(buf, buf_size);
-            if (!tmp) {
-                ret = ENOMEM;
-                goto done;
-            }
-            buf = tmp;
+
+    /* If "out" is not set, the purpose of this call was just to count the
+     * required string length. So skip memory allocation. */
+    if (out) {
+        str = malloc(n * sizeof(*str));
+        if (!str) {
+            err = ENOMEM;
+            goto end;
         }
 
-        buf_avail = buf_size - buf_cur;
-        len = 0;
+        /* Write string to output buffer */
+        for (i = 0, p = str; i < n_keysalts; ++i) {
+            if (i > 0) *(p++) = separator; /* separator */
 
-        /* append separator if necessary */
-        if (buf_cur > 0) {
-            buf[buf_cur] = ',';
-            len++;
+            err = krb5_enctype_to_name(keysalts[i].ks_enctype, false, p,
+                                       ENC_BUF_SIZE);
+            if (err) goto end;
+
+            p += strnlen(p, ENC_BUF_SIZE); /* enctype */
+
+            *(p++) = ':'; /* colon */
+
+            err = krb5_salttype_to_string(keysalts[i].ks_salttype, p,
+                                          SALT_BUF_SIZE);
+            if (err) goto end;
+
+            p += strnlen(p, SALT_BUF_SIZE); /* salt type */
         }
 
-        ret = krb5_enctype_to_name(kst[i].ks_enctype, 0,
-                                   &buf[buf_cur + len], buf_avail - len);
-        if (ret == ENOMEM) {
-            i--;
-            continue;
-        } else if (ret != 0) {
-            goto done;
-        }
+        str[n-1] = '\0'; /* required for empty list */
 
-        len += strlen(&buf[buf_cur + len]);
-        buf[buf_cur + len] = ':';
-        len++;
-
-        ret = ipa_salttype_to_string(kst[i].ks_salttype,
-                                     &buf[buf_cur + len], buf_avail - len);
-        if (ret == ENOMEM) {
-            i--;
-            continue;
-        } else if (ret != 0) {
-            goto done;
-        }
-
-        len += strlen(&buf[buf_cur + len]);
-
-        if (buf_avail - len < 2) {
-            ret = ENOMEM;
-            i--;
-            continue;
-        }
-
-        buf_cur += len;
+        *out = str;
     }
 
-    buf[buf_cur] = '\0';
-    *str = buf;
-    ret = 0;
+    if (n_out) *n_out = n - 1; /* do not count \0 */
 
-done:
-    if (ret) {
-        free(buf);
-    }
-    return ret;
+end:
+    if (err) free(str);
+
+    return err;
 }
 
 bool ipa_krb5_parse_bool(const char *str)
@@ -1262,4 +1168,498 @@ bool ipa_krb5_parse_bool(const char *str)
     }
 
     return false;
+}
+
+bool
+ipa_is_cifs_princname(const char *princname)
+{
+    return 0 == strncmp("cifs/", princname, 5);
+}
+
+bool
+ipa_is_cifs_dn(const char *dn)
+{
+#define CIFS_PRINC_PRIMARY "krbprincipalname=cifs/"
+    return 0 == strncmp(CIFS_PRINC_PRIMARY, dn, sizeof(CIFS_PRINC_PRIMARY) - 1);
+}
+
+bool
+ipa_is_cifs_princ(krb5_context kctx, krb5_const_principal princ)
+{
+    krb5_data *primary;
+
+    if (2 != krb5_princ_size(kctx, princ)) {
+        return false;
+    }
+
+    primary = krb5_princ_component(kctx, princ, 0);
+
+    if (4 != primary->length) {
+        return false;
+    }
+
+    return 0 == memcmp(primary->data, "cifs", 4);
+}
+
+static krb5_error_code
+get_enctype_rank(krb5_context kctx, const krb5_enctype *ptypes,
+                 const krb5_enctype *ftypes /* optional */,
+                 krb5_enctype enctype, int *rank, bool *unknown)
+{
+    int i = 0, j = 0;
+    krb5_boolean similar;
+    krb5_error_code err = 0;
+
+    /* Search enctype in permitted types */
+    for (; ptypes[i]; ++i) {
+        err = krb5_c_enctype_compare(kctx, enctype, ptypes[i], &similar);
+        if (err) return err;
+        if (similar) {
+            if (unknown) *unknown = false;
+            break;
+        }
+    }
+    if (!ptypes[i]) {
+        /* If not found, search enctype in fallback types (if provided) */
+        if (ftypes) {
+            for (; ftypes[j]; ++j) {
+                err = krb5_c_enctype_compare(kctx, enctype, ftypes[j],
+                                             &similar);
+                if (err) return err;
+                if (similar) {
+                    if (unknown) *unknown = false;
+                    i += j;
+                    break;
+                }
+            }
+        }
+        if (!ftypes || !ftypes[j]) {
+            /* If unknown, use value of the enctype identifier */
+            if (unknown) *unknown = true;
+            i = (INT_MAX / 2) - (int)enctype;
+        }
+    }
+
+    *rank = i;
+    return err;
+}
+
+static int
+get_salttype_rank(const krb5_int16 *stypes, size_t n_stypes,
+                  krb5_int16 salttype)
+{
+    size_t i;
+
+    /* Search salttype in prioritized list */
+    for (i = 0; i < n_stypes; ++i) {
+        if (salttype == stypes[i]) {
+            return (int)i;
+        }
+    }
+
+    /* If unknown, use value of the salttype identifier */
+    return (INT_MAX / 2) - (int)salttype;
+}
+
+struct cmp_krb5_keys_ctx {
+    krb5_error_code err;
+    krb5_context kctx;
+    bool filter_mode;
+    krb5_enctype *permitted_enctypes;
+    const krb5_enctype *fallback_enctypes;
+    const krb5_int16 *salttypes_priority;
+    size_t n_salttypes_priority;
+};
+
+enum keys_op {
+    SORT_ONLY,
+    SORT_FILTER,
+    SORT_FILTER_NTHASH,
+};
+
+static krb5_error_code
+init_cmp_ctx(krb5_context kctx, enum keys_op op,
+               struct cmp_krb5_keys_ctx *cmpctx)
+{
+    static const krb5_enctype full_ftypes[] = {
+        ENCTYPE_AES256_CTS_HMAC_SHA384_192,
+        ENCTYPE_AES128_CTS_HMAC_SHA256_128,
+        ENCTYPE_AES256_CTS_HMAC_SHA1_96,
+        ENCTYPE_AES128_CTS_HMAC_SHA1_96,
+        ENCTYPE_CAMELLIA256_CTS_CMAC,
+        ENCTYPE_CAMELLIA128_CTS_CMAC,
+        ENCTYPE_ARCFOUR_HMAC,
+        ENCTYPE_ARCFOUR_HMAC_EXP,
+        0
+    };
+
+    static const krb5_enctype nthash_ftypes[] = {
+        ENCTYPE_ARCFOUR_HMAC,
+        0
+    };
+
+    static const krb5_int16 stypes[] = {
+        KRB5_KDB_SALTTYPE_SPECIAL,
+        KRB5_KDB_SALTTYPE_NORMAL,
+        KRB5_KDB_SALTTYPE_NOREALM,
+        KRB5_KDB_SALTTYPE_ONLYREALM,
+        KRB5_KDB_SALTTYPE_CERTHASH,
+    };
+
+    memset(cmpctx, 0, sizeof(*cmpctx));
+
+    cmpctx->kctx = kctx;
+    cmpctx->filter_mode = op != SORT_ONLY;
+
+    switch (op) {
+    /* Sort non-permitted keys nonetheless because they won't be removed */
+    case SORT_ONLY:          cmpctx->fallback_enctypes = full_ftypes;   break;
+    /* Fallback not needed, non-permitted types will be removed anyway */
+    case SORT_FILTER:        cmpctx->fallback_enctypes = NULL;          break;
+    /* RC4 will be kept, even if not permitted */
+    case SORT_FILTER_NTHASH: cmpctx->fallback_enctypes = nthash_ftypes; break;
+    }
+
+    cmpctx->salttypes_priority = stypes;
+    cmpctx->n_salttypes_priority = sizeof(stypes) / sizeof(*stypes);
+
+    return krb5_get_permitted_enctypes(kctx, &cmpctx->permitted_enctypes);
+}
+
+static void
+deinit_cmp_ctx(struct cmp_krb5_keys_ctx *cmpctx)
+{
+    krb5_free_enctypes(cmpctx->kctx, cmpctx->permitted_enctypes);
+}
+
+static int
+cmp_krb5_keysalts_ext(const krb5_key_salt_tuple *ka,
+                      const krb5_key_salt_tuple *kb,
+                      struct cmp_krb5_keys_ctx *cmpctx,
+                      bool *a_unknown, bool *b_unknown)
+{
+    int rka, rkb;
+    krb5_error_code err;
+
+    if (ka->ks_enctype != kb->ks_enctype) {
+        /* Enctypes are different */
+        err = get_enctype_rank(cmpctx->kctx, cmpctx->permitted_enctypes,
+                               cmpctx->fallback_enctypes, ka->ks_enctype, &rka,
+                               a_unknown);
+        if (err) {
+            cmpctx->err = err;
+            return 0;
+        }
+
+        err = get_enctype_rank(cmpctx->kctx, cmpctx->permitted_enctypes,
+                               cmpctx->fallback_enctypes, kb->ks_enctype, &rkb,
+                               b_unknown);
+        if (err) {
+            cmpctx->err = err;
+            return 0;
+        }
+
+        return rka - rkb;
+    }
+
+    if (ka->ks_salttype != kb->ks_salttype) {
+        /* Salt types are different */
+        rka = get_salttype_rank(cmpctx->salttypes_priority,
+                                cmpctx->n_salttypes_priority, ka->ks_salttype);
+        rkb = get_salttype_rank(cmpctx->salttypes_priority,
+                                cmpctx->n_salttypes_priority, kb->ks_salttype);
+        return rka - rkb;
+    }
+
+    /* Types are identical */
+    return 0;
+}
+
+static int
+cmp_krb5_keysalts(const void *a, const void *b, void *arg)
+{
+    const krb5_key_salt_tuple *ka, *kb;
+    struct cmp_krb5_keys_ctx *cmpctx;
+
+    ka = (krb5_key_salt_tuple *)a;
+    kb = (krb5_key_salt_tuple *)b;
+    cmpctx = arg;
+
+    /* If an error was raised, stop sorting */
+    if (cmpctx->err) {
+        return 0;
+    }
+
+    return cmp_krb5_keysalts_ext(ka, kb, cmpctx, NULL, NULL);
+}
+
+static int
+cmp_krb5_keys(const void *a, const void *b, void *arg)
+{
+    const krb5_key_data *ka, *kb;
+    struct cmp_krb5_keys_ctx *cmpctx;
+    krb5_key_salt_tuple ksta, kstb;
+    bool a_unknown, b_unknown;
+    int ret;
+
+    ka = (krb5_key_data *)a;
+    kb = (krb5_key_data *)b;
+    cmpctx = arg;
+
+    /* If an error was raised, stop sorting */
+    if (cmpctx->err) {
+        return 0;
+    }
+
+    if (!cmpctx->filter_mode && ka->key_data_kvno != kb->key_data_kvno) {
+        /* If not in filter mode and KVNOs are different, compare KVNOs only */
+        return (int)ka->key_data_kvno - (int)kb->key_data_kvno;
+    }
+
+    ksta = (krb5_key_salt_tuple){ ka->key_data_type[0], ka->key_data_type[1] };
+    kstb = (krb5_key_salt_tuple){ kb->key_data_type[0], kb->key_data_type[1] };
+
+    ret = cmp_krb5_keysalts_ext(&ksta, &kstb, cmpctx, &a_unknown, &b_unknown);
+
+    if (cmpctx->filter_mode) {
+        /* In filter mode, unknown types go to the end of the list (unsorted) */
+        if (a_unknown) {
+            return 1;
+        } else if (b_unknown) {
+            return -1;
+        }
+
+        if (ka->key_data_kvno != kb->key_data_kvno) {
+            /* In filter mode, sort by KVNOs only if both types known */
+            return (int)ka->key_data_kvno - (int)kb->key_data_kvno;
+        }
+    }
+    return ret;
+}
+
+static bool
+is_permitted(enum keys_op op, krb5_enctype *ptypes, krb5_enctype e)
+{
+    size_t i;
+
+    if (op == SORT_FILTER_NTHASH && e == ENCTYPE_ARCFOUR_HMAC) {
+        return true;
+    }
+
+    for (i=0; ptypes[i] && ptypes[i] != e; ++i);
+
+    return ptypes[i] == e;
+}
+
+static krb5_error_code
+process_keys_by_pref(enum keys_op op, krb5_context kctx, krb5_key_data *keys,
+                     size_t *n_keys)
+{
+    krb5_error_code err;
+    struct cmp_krb5_keys_ctx cmpctx;
+    size_t i, n;
+
+    err = init_cmp_ctx(kctx, op, &cmpctx);
+    if (err) goto end;
+
+    /* Sort keys by decreasing order of preference */
+    qsort_r(keys, *n_keys, sizeof(*keys), cmp_krb5_keys, &cmpctx);
+
+    if (cmpctx.err) {
+        /* An error occurred while sorting, raise and abort */
+        err = cmpctx.err;
+        goto end;
+    }
+
+    if (op != SORT_ONLY) {
+        /* If there are non-permitted key types, the sorting moved them to the
+         * end of the list. So we can reverse-iterate on the list to count them,
+         * and decrement the number of keys accordingly to remove them. */
+        n = *n_keys;
+        for (i = n; i-- > 0; ) {
+            if (is_permitted(op, cmpctx.permitted_enctypes,
+                             keys[i].key_data_type[0])) {
+                break;
+            } else {
+                --n;
+            }
+        }
+        *n_keys = n;
+    }
+
+end:
+    deinit_cmp_ctx(&cmpctx);
+    return err;
+}
+
+static krb5_error_code
+process_keysalt_types_by_pref(enum keys_op op, krb5_context kctx,
+                              krb5_key_salt_tuple *ks, size_t *n_ks)
+{
+    krb5_error_code err;
+    struct cmp_krb5_keys_ctx cmpctx;
+    size_t i, n;
+
+    err = init_cmp_ctx(kctx, op, &cmpctx);
+    if (err) goto end;
+
+    /* Sort types by decreasing order of preference */
+    qsort_r(ks, *n_ks, sizeof(*ks), cmp_krb5_keysalts, &cmpctx);
+
+    if (cmpctx.err) {
+        /* An error occurred while sorting, raise and abort */
+        err = cmpctx.err;
+        goto end;
+    }
+
+    if (op != SORT_ONLY) {
+        /* If there are non-permitted key types, the sorting moved them to the
+         * end of the list. So we can reverse-iterate on the list to count them,
+         * and decrement the number of types accordingly to remove them. */
+        n = *n_ks;
+        for (i = n; i-- > 0; ) {
+            if (is_permitted(op, cmpctx.permitted_enctypes,
+                             ks[i].ks_enctype)) {
+                break;
+            } else {
+                --n;
+            }
+        }
+        *n_ks = n;
+    }
+
+end:
+    deinit_cmp_ctx(&cmpctx);
+    return err;
+}
+
+krb5_error_code
+ipa_sort_keys(krb5_context kctx, krb5_key_data *keys, size_t n_keys)
+{
+    return process_keys_by_pref(SORT_ONLY, kctx, keys, &n_keys);
+}
+
+krb5_error_code
+ipa_sort_and_filter_keys(krb5_context kctx, krb5_key_data *keys, size_t *n_keys,
+                         bool allow_nthash)
+{
+    return process_keys_by_pref(allow_nthash ? SORT_FILTER_NTHASH : SORT_FILTER,
+                                kctx, keys, n_keys);
+}
+
+krb5_error_code
+ipa_sort_keysalt_types(krb5_context kctx, krb5_key_salt_tuple *ks, size_t n_ks)
+{
+    return process_keysalt_types_by_pref(SORT_ONLY, kctx, ks, &n_ks);
+}
+
+krb5_error_code
+ipa_sort_and_filter_keysalt_types(krb5_context kctx, krb5_key_salt_tuple *ks,
+                                  size_t *n_ks, bool allow_nthash)
+{
+    return process_keysalt_types_by_pref(
+        allow_nthash ? SORT_FILTER_NTHASH : SORT_FILTER, kctx, ks, n_ks);
+}
+
+krb5_error_code
+ipa_sort_and_filter_keysalt_types_i(krb5_context kctx, krb5_key_salt_tuple *ks,
+                                    int *n_ks, bool allow_nthash)
+{
+    krb5_error_code err;
+    size_t in_n_ks = *n_ks;
+
+    err = ipa_sort_and_filter_keysalt_types(kctx, ks, &in_n_ks, allow_nthash);
+    if (!err) {
+        *n_ks = (int)in_n_ks;
+    }
+
+    return err;
+}
+
+krb5_error_code
+ipa_sort_and_filter_keys_i(krb5_context kctx, krb5_key_data *keys, int *n_keys,
+                           bool allow_nthash)
+{
+    krb5_error_code err;
+    size_t in_n_keys = *n_keys;
+
+    err = ipa_sort_and_filter_keys(kctx, keys, &in_n_keys, allow_nthash);
+    if (!err) {
+        *n_keys = (int)in_n_keys;
+    }
+
+    return err;
+}
+
+static krb5_error_code
+permitted_to_keysalt_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
+                           size_t *n_keysalts, unsigned int add_salt_types)
+{
+    krb5_error_code err;
+    krb5_enctype *ptypes;
+    /* Index and number of enctypes and key/salt pairs */
+    size_t ie, n_enctypes, iks, n_ks;
+    krb5_key_salt_tuple *ksts = NULL;
+    bool add_normal = add_salt_types & IPA_ADD_SALTTYPE_NORMAL;
+    bool add_special = add_salt_types & IPA_ADD_SALTTYPE_SPECIAL;
+
+    err = krb5_get_permitted_enctypes(kctx, &ptypes);
+    if (err) goto end;
+
+    for (n_enctypes = 0; ptypes[n_enctypes]; ++n_enctypes);
+
+    n_ks = 0;
+    if (add_normal) n_ks += n_enctypes;
+    if (add_special) n_ks += n_enctypes;
+
+    ksts = calloc(n_ks, sizeof(*ksts));
+    if (!ksts) {
+        err = ENOMEM;
+        goto end;
+    }
+
+    iks = 0;
+    for (ie = 0; ie < n_enctypes; ++ie) {
+        /* Special salt type is prioritized over normal type. */
+        if (add_special) {
+            ksts[iks++] = (krb5_key_salt_tuple){
+                ptypes[ie], KRB5_KDB_SALTTYPE_SPECIAL };
+        }
+        if (add_normal) {
+            ksts[iks++] = (krb5_key_salt_tuple){
+                ptypes[ie], KRB5_KDB_SALTTYPE_NORMAL };
+        }
+    }
+
+    *keysalts = ksts;
+    *n_keysalts = n_ks;
+
+end:
+    krb5_free_enctypes(kctx, ptypes);
+    return err;
+}
+
+krb5_error_code
+ipa_get_default_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
+                      size_t *n_keysalts)
+{
+    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts,
+                                      IPA_ADD_SALTTYPE_SPECIAL);
+}
+
+krb5_error_code
+ipa_get_supported_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
+                        size_t *n_keysalts)
+{
+    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts,
+                                      IPA_ADD_SALTTYPE_NORMAL |
+                                      IPA_ADD_SALTTYPE_SPECIAL);
+}
+
+krb5_error_code
+ipa_get_randkey_types(krb5_context kctx, krb5_key_salt_tuple **keysalts,
+                      size_t *n_keysalts)
+{
+    return permitted_to_keysalt_types(kctx, keysalts, n_keysalts,
+                                      IPA_ADD_SALTTYPE_NORMAL);
 }
