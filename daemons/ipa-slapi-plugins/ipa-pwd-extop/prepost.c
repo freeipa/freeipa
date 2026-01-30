@@ -378,6 +378,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                 break;
             }
         }
+        slapi_ch_free_string(&binddn);
     }
 
     pwdop->pwdata.dn = slapi_ch_strdup(slapi_sdn_get_dn(sdn));
@@ -873,6 +874,7 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
 
         slapi_sdn_free(&bdn);
         slapi_sdn_free(&tdn);
+        slapi_ch_free_string(&binddn);
 
     }
 
