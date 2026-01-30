@@ -861,7 +861,7 @@ class DsInstance(service.Service):
                     keyfile = os.path.join(tmpdb.secdir, "key.pem")
                     certfile = os.path.join(tmpdb.secdir, "cert.pem")
                     tmpdb.pki_issue_certificate(
-                        "ldap", dogtag.DEFAULT_PROFILE,
+                        "ldap", installutils.get_default_profile(api),
                         keyfile, certfile
                     )
 
@@ -892,7 +892,7 @@ class DsInstance(service.Service):
                     passwd_fname=dsdb.passwd_fname,
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
-                    profile=dogtag.DEFAULT_PROFILE,
+                    profile=installutils.get_default_profile(api),
                     dns=[self.fqdn],
                     post_command=cmd,
                     resubmit_timeout=api.env.certmonger_wait_timeout,

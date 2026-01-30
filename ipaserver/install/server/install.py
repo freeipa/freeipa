@@ -770,12 +770,14 @@ def install_check(installer):
             options.ntp_servers or options.ntp_pool):
         options.ntp_servers, options.ntp_pool = timeconf.get_time_source()
 
+    (keytype, keysize) = api.env.key_type_size.split(':', 1)
     print()
     print("The IPA Master Server will be configured with:")
     print("Hostname:       %s" % host_name)
     print("IP address(es): %s" % ", ".join(str(ip) for ip in ip_addresses))
     print("Domain name:    %s" % domain_name)
     print("Realm name:     %s" % realm_name)
+    print("Key type/size   %s:%s" % (keytype.upper(), keysize))
     print()
 
     if setup_ca:
