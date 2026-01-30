@@ -37,7 +37,6 @@ from ipaserver.install import service
 from ipaserver.install import certs
 from ipaserver.install import installutils
 from ipapython import directivesetter
-from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
 import ipapython.errors
@@ -345,7 +344,7 @@ class HTTPInstance(service.Service):
                     tmpdb.create_from_cacert()
                     dns_2 = f"DNS.2={IPA_CA_RECORD}.{api.env.domain}"
                     tmpdb.pki_issue_certificate(
-                        "HTTP", dogtag.DEFAULT_PROFILE,
+                        "HTTP", certs.get_default_profile(api),
                         paths.HTTPD_KEY_FILE, paths.HTTPD_CERT_FILE,
                         key_passwd_file, dns_2_san=dns_2
                     )
@@ -362,7 +361,7 @@ class HTTPInstance(service.Service):
                     principal=self.principal,
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
-                    profile=dogtag.DEFAULT_PROFILE,
+                    profile=certs.get_default_profile(api),
                     dns=[self.fqdn, f'{IPA_CA_RECORD}.{api.env.domain}'],
                     post_command='restart_httpd',
                     storage='FILE',
@@ -567,7 +566,7 @@ class HTTPInstance(service.Service):
             request_id = certmonger.start_tracking(
                 certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
                 post_command='restart_httpd', storage='FILE',
-                profile=dogtag.DEFAULT_PROFILE,
+                profile=certs.get_default_profile(api),
                 pinfile=key_passwd_file,
                 dns=[self.fqdn, f'{IPA_CA_RECORD}.{api.env.domain}'],
             )

@@ -1601,7 +1601,7 @@ def validate_key_type_size(value):
     types = {
         'rsa': (2048, 3072, 4096, 7168, 8192),
         'ec': tuple(),
-        'ml-dsa': tuple(),
+        'mldsa': (44, 65, 87),
     }
     if len(value.split(':', 1)) != 2:
         return _('Must be of the form type:size')
@@ -1619,7 +1619,7 @@ def validate_key_type_size(value):
                 "types": ", ".join(types)
             }
 
-    if type == 'rsa':
+    if type in ('rsa', 'mldsa'):
         try:
             size = int(size)
         except ValueError:
