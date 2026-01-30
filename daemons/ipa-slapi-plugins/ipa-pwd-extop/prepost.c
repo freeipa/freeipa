@@ -282,6 +282,7 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                 if (rc) {
                     goto done;
                 }
+                slapi_ch_free_string(&userpw);
                 userpw = slapi_ch_strdup(userpw_clear);
             }
 
@@ -293,8 +294,11 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                 if (NULL == enabled) {
                     LOG("no ipaMigrationEnabled in config, assuming FALSE\n");
                 } else if (0 == strcmp(enabled, "TRUE")) {
-                    return 0;
+                    slapi_ch_free_string(&enabled);
+                    rc = LDAP_SUCCESS;
+                    goto done;
                 }
+                slapi_ch_free_string(&enabled);
 
                 /* With User Life Cycle, it could be a stage user that is activated.
                  * The userPassword and krb keys were set while the user was a stage user.
@@ -306,7 +310,8 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                     LOG("User Life Cycle: %s is a activated stage user "
                         "(with prehashed password and krb keys)\n",
                         sdn ? slapi_sdn_get_dn(sdn) : "unknown");
-                    return 0;
+                    rc = LDAP_SUCCESS;
+                    goto done;
                 }
 
                 LOG("pre-hashed passwords are not valid\n");
