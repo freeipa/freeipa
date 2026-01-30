@@ -45,7 +45,7 @@ from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
 from ipapython.ipautil import log_level_override
-from ipalib import x509, api, constants
+from ipalib import x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
 from ipalib.util import strip_csr_header
@@ -145,6 +145,42 @@ def is_ipa_issued_cert(api, cert):
         api.env.basedn)
 
     return DN(cert.issuer) == cacert_subject
+
+
+def get_ra_agent_profile(api):
+    """This is suitable during installation. I doubt at runtime.
+
+       FIXME: This will need a conditional on whether
+       api.env.key_type_size available or not. If not then
+       retrieve the value from LDAP.
+
+       The caller is expected to handle None.
+    """
+    (keytype, _keysize) = api.env.key_type_size.split(':', 1)
+    if keytype == "rsa":
+        return "caSubsystemCert"
+    elif keytype == "mldsa":
+        return "caMLDSASubsystemCert"
+    else:
+        return None
+
+
+def get_default_profile(api):
+    """This is suitable during installation. I doubt at runtime.
+
+       FIXME: This will need a conditional on whether
+       api.env.key_type_size available or not. If not then
+       retrieve the value from LDAP.
+
+       The caller is expected to handle None.
+    """
+    (keytype, _keysize) = api.env.key_type_size.split(':', 1)
+    if keytype == "rsa":
+        return "caIPAserviceCert"
+    elif keytype == "mldsa":
+        return "caMLDSAServerCert"
+    else:
+        return None
 
 
 class CertDB:
@@ -779,13 +815,13 @@ class CertDB:
         ca_client = pki.ca.CAClient(pki_client)
         cert_client = pki.cert.CertClient(ca_client)
 
+        profile = get_ra_agent_profile(api)
         inputs = dict()
         inputs['cert_request_type'] = 'pkcs10'
         with open(csrfile, 'r') as f:
             inputs['cert_request'] = f.read()
         with log_level_override():
-            result = cert_client.enroll_cert(
-                constants.RA_AGENT_PROFILE, inputs)[0]
+            result = cert_client.enroll_cert(profile, inputs)[0]
 
         request_data = result.request
         if request_data.request_status != pki.cert.CertRequestStatus.COMPLETE:
@@ -806,8 +842,14 @@ class CertDB:
         """Use openssl to generate a CSR and submit it using the pki
            Python API, using the IPA RA certificate.
         """
+        (keytype, keysize) = api.env.key_type_size.split(':', 1)
+
+        # Generate a private key
         if service == 'krbtgt':
             principal = api.env.realm
+            # PKINIT doesn't support ML-DSA yet, force RSA.
+            keytype = "rsa"
+            keysize = 2048
         else:
             principal = api.env.host
         template = os.path.join(
@@ -829,21 +871,23 @@ class CertDB:
             os.fchmod(f.fileno(), 0o600)
             f.write(conf)
 
-        (keytype, keysize) = api.env.key_type_size.split(':', 1)
-
-        # Generate a private key
-        if (keytype.lower() == 'rsa'):
-            args = ["openssl", "genrsa",
-                    "-out", keyfile]
-            if key_passwd_file:
-                args.extend(
-                    ["-aes256",
-                     "-passout", "file:{}".format(key_passwd_file)]
-                )
-            args.extend([keysize])  # must be the last argument
-            result = ipautil.run(args, capture_output=True)
+        opts = []
+        if keytype.lower() == 'rsa':
+            opts = ["-pkeyopt", "rsa_keygen_bits:{}".format(keysize)]
+        elif keytype.lower() == 'mldsa':
+            keytype = "ML-DSA-{}".format(keysize)
         else:
             raise RuntimeError(f"Key type not supported: {keytype}")
+        args = ["openssl", "genpkey", "-algorithm", keytype,
+                "-out", keyfile]
+        args.extend(opts)
+
+        if key_passwd_file:
+            args.extend(
+                ["-aes256",
+                 "-pass", "file:{}".format(key_passwd_file)]
+            )
+        result = ipautil.run(args, capture_output=True)
 
         # Generate a CSR using the private key
         args = ["openssl", "req", "-new",

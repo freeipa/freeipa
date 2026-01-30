@@ -39,7 +39,6 @@ from ipapython.certdb import (IPA_CA_TRUST_FLAGS,
                               EXTERNAL_CA_TRUST_FLAGS,
                               TrustFlags)
 from ipapython import ipautil, ipaldap
-from ipapython import dogtag
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import certs
@@ -861,7 +860,7 @@ class DsInstance(service.Service):
                     keyfile = os.path.join(tmpdb.secdir, "key.pem")
                     certfile = os.path.join(tmpdb.secdir, "cert.pem")
                     tmpdb.pki_issue_certificate(
-                        "ldap", dogtag.DEFAULT_PROFILE,
+                        "ldap", certs.get_default_profile(api),
                         keyfile, certfile
                     )
 
@@ -892,7 +891,7 @@ class DsInstance(service.Service):
                     passwd_fname=dsdb.passwd_fname,
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
-                    profile=dogtag.DEFAULT_PROFILE,
+                    profile=certs.get_default_profile(api),
                     dns=[self.fqdn],
                     post_command=cmd,
                     resubmit_timeout=api.env.certmonger_wait_timeout,
@@ -1206,7 +1205,7 @@ class DsInstance(service.Service):
                 self.principal,
                 password_file=dsdb.passwd_fname,
                 command='restart_dirsrv %s' % serverid,
-                profile=dogtag.DEFAULT_PROFILE)
+                profile=certs.get_default_profile(api))
         else:
             logger.debug("Will not track DS server certificate %s as it is "
                          "not issued by IPA", nickname)
