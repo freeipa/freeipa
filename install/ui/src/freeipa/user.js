@@ -1222,7 +1222,14 @@ IPA.user.is_locked_evaluator = function(spec) {
         if (user.krbloginfailedcount) {
             // In case there is no permission to check password policy we
             // allow to unlock user even if he has only one failed login.
-            var max_failure = pw_policy ? pw_policy.krbpwdmaxfailure[0] : 1;
+            var max_failure = 1;
+            if (pw_policy) {
+                if (pw_policy.krbpwdmaxfailure !== undefined && 
+                    Array.isArray(pw_policy.krbpwdmaxfailure) && 
+                    pw_policy.krbpwdmaxfailure.length > 0) {
+                    max_failure = pw_policy.krbpwdmaxfailure[0];
+                }
+            }
 
             if (user.krbloginfailedcount[0] >= max_failure) {
                 that.state.push('is-locked');
