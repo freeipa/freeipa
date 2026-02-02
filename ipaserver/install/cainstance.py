@@ -1421,12 +1421,22 @@ class CAInstance(DogtagInstance):
         try:
             cache = directivesetter.get_directive(
                 self.config, 'ca.crl.MasterCRL.enableCRLCache', '=')
+
+            if cache is None:
+                raise InconsistentCRLGenConfigException(
+                    "Configuration is inconsistent, please check "
+                    "ca.crl.MasterCRL.enableCRLCache, "
+                    "ca.crl.MasterCRL.enableCRLUpdates and "
+                    "ca.listenToCloneModifications in {} and "
+                    "run ipa-crlgen-manage [enable|disable] to repair".format(
+                        self.config))
+
             enableCRLCache = cache.lower() == 'true'
             updates = directivesetter.get_directive(
-                self.config, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
+                self.config, 'ca.crl.MasterCRL.enableCRLUpdates', '=') or ''
             enableCRLUpdates = updates.lower() == 'true'
             listen = directivesetter.get_directive(
-                self.config, 'ca.listenToCloneModifications', '=')
+                self.config, 'ca.listenToCloneModifications', '=') or ''
             enableToClone = listen.lower() == 'true'
             updateinterval = directivesetter.get_directive(
                 self.config, 'ca.certStatusUpdateInterval', '=')

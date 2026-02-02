@@ -237,3 +237,44 @@ class TestUninstallReinstall(IntegrationTest):
 
     def test_reinstall_server(self):
         tasks.install_master(self.master, setup_dns=False)
+
+
+class TestUninstallCRLGen(IntegrationTest):
+    """Test uninstallation of a replica with broken CRL configuration.
+
+       Removing ca.crl.MasterCRL.enableCRLCache from CS.cfg crashed.
+       https://pagure.io/freeipa/issue/9921
+    """
+
+    num_replicas = 1
+    topology = 'line'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_replica(cls.master, cls.replicas[0])
+
+    def test_uninstall_replica_with_broken_crlgen(self):
+        self.replicas[0].run_command(['ipa-crlgen-manage', 'enable'])
+
+        self.replicas[0].run_command([
+            '/bin/sed',
+            '-i',
+            '/ca.crl.MasterCRL.enableCRLCache=true/d',
+            paths.CA_CS_CFG_PATH,
+        ])
+
+        result = self.replicas[0].run_command([
+            'ipa-server-install',
+            '--ignore-last-of-role',
+            '--uninstall', '-U',
+        ])
+
+        expected_msg = "Configuration is inconsistent, please check " \
+                       "ca.crl.MasterCRL.enableCRLCache, " \
+                       "ca.crl.MasterCRL.enableCRLUpdates and " \
+                       "ca.listenToCloneModifications in {} and run " \
+                       "ipa-crlgen-manage [enable|disable] to repair".format(
+                           paths.CA_CS_CFG_PATH)
+
+        assert expected_msg in result.stdout_text
