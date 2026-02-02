@@ -1712,7 +1712,8 @@ def upgrade_configuration():
         if ca.is_configured():
             crl = directivesetter.get_directive(
                 paths.CA_CS_CFG_PATH, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
-            sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
+            sub_dict['CLONE'] = '#' if crl is not None and \
+                                crl.lower() == 'true' else ''
 
         ds_dirname = dsinstance.config_dirname(ds.serverid)
 

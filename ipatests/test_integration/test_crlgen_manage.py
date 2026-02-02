@@ -302,7 +302,8 @@ class TestCRLGenManage(IntegrationTest):
             ['ipa-server-install', '--uninstall', '-U'], raiseonerr=False)
         assert result.returncode == 1
         expected_msg = "Deleting this server will leave your installation " \
-                       "without a CRL generation master"
+                       "without a CRL generation master. Use " \
+                       "--ignore-last-of-role to bypass this check."
         assert expected_msg in result.stdout_text
 
     def test_uninstall_with_ignore_last_of_role(self):
