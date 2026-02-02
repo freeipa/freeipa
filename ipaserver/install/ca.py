@@ -340,14 +340,20 @@ def uninstall_crl_check(options):
 
     try:
         crlgen_enabled = ca.is_crlgen_enabled()
-    except cainstance.InconsistentCRLGenConfigException:
+    except cainstance.InconsistentCRLGenConfigException as e:
         # If config is inconsistent, let's be safe and act as if
         # crl gen was enabled
+        print(e)
         crlgen_enabled = True
 
     if crlgen_enabled:
-        print("Deleting this server will leave your installation "
-              "without a CRL generation master.")
+        if not options.ignore_last_of_role:
+            print("Deleting this server will leave your installation "
+                  "without a CRL generation master. Use --ignore-last-of-role "
+                  "to bypass this check.")
+        else:
+            print("Deleting this server will leave your installation "
+                  "without a CRL generation master.")
         if (options.unattended and not options.ignore_last_of_role) or \
            not (options.unattended or ipautil.user_input(
                 "Are you sure you want to continue with the uninstall "
