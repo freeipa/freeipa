@@ -39,24 +39,24 @@ import base64
 from ipapython.dn import DN
 import pytest
 
-fqdn1 = u'testhost1.%s' % api.env.domain
-fqdn2 = u'testhost2.%s' % api.env.domain
-fqdn3 = u'TestHost3.%s' % api.env.domain
-service1_no_realm = u'HTTP/%s' % fqdn1
-service1 = u'%s@%s' % (service1_no_realm, api.env.realm)
-badservice = u'badservice@%s' % api.env.realm  # no hostname
-hostprincipal1 = u'host/%s@%s'  % (fqdn1, api.env.realm)
+fqdn1 = 'testhost1.%s' % api.env.domain
+fqdn2 = 'testhost2.%s' % api.env.domain
+fqdn3 = 'TestHost3.%s' % api.env.domain
+service1_no_realm = 'HTTP/%s' % fqdn1
+service1 = '%s@%s' % (service1_no_realm, api.env.realm)
+badservice = 'badservice@%s' % api.env.realm  # no hostname
+hostprincipal1 = 'host/%s@%s'  % (fqdn1, api.env.realm)
 service1dn = DN(('krbprincipalname',service1),('cn','services'),('cn','accounts'),api.env.basedn)
 host1dn = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),api.env.basedn)
 host2dn = DN(('fqdn',fqdn2),('cn','computers'),('cn','accounts'),api.env.basedn)
 host3dn = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),api.env.basedn)
-d_service_no_realm = u'some/at.some.arbitrary.name'
-d_service = u'%s@%s' % (d_service_no_realm, api.env.realm)
+d_service_no_realm = 'some/at.some.arbitrary.name'
+d_service = '%s@%s' % (d_service_no_realm, api.env.realm)
 d_servicedn = DN(('krbprincipalname', d_service),
                  ('cn', 'services'), ('cn', 'accounts'),
                  api.env.basedn)
 
-role1 = u'Test Role'
+role1 = 'Test Role'
 role1_dn = DN(('cn', role1), api.env.container_rolegroup, api.env.basedn)
 
 servercert = get_testcert(DN(('CN', api.env.host), subject_base()),
@@ -76,13 +76,13 @@ randomissuercert = (
     "DGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv")
 randomissuer = DN(('CN', 'puma.greyoak.com'), 'O=IPA')
 
-user1 = u'tuser1'
-user2 = u'tuser2'
-group1 = u'group1'
+user1 = 'tuser1'
+user2 = 'tuser2'
+group1 = 'group1'
 group1_dn = get_group_dn(group1)
-group2 = u'group2'
+group2 = 'group2'
 group2_dn = get_group_dn(group2)
-hostgroup1 = u'testhostgroup1'
+hostgroup1 = 'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
@@ -103,7 +103,7 @@ class test_service(Declarative):
             desc='Try to retrieve non-existent %r' % service1,
             command=('service_show', [service1], {}),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % service1),
+                reason='%s: service not found' % service1),
         ),
 
 
@@ -111,7 +111,7 @@ class test_service(Declarative):
             desc='Try to update non-existent %r' % service1,
             command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % service1),
+                reason='%s: service not found' % service1),
         ),
 
 
@@ -119,38 +119,38 @@ class test_service(Declarative):
             desc='Try to delete non-existent %r' % service1,
             command=('service_del', [service1], {}),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % service1),
+                reason='%s: service not found' % service1),
         ),
 
         dict(
             desc='Try to delete service without hostname %r' % badservice,
             command=('service_del', [badservice], {}),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % badservice),
+                reason='%s: service not found' % badservice),
         ),
 
         dict(
             desc='Create %r' % fqdn1,
             command=('host_add', [fqdn1],
                 dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
+                    description='Test host 1',
+                    l='Undisclosed location 1',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
+                summary='Added host "%s"' % fqdn1,
                 result=dict(
                     dn=host1dn,
                     fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    krbcanonicalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
+                    krbprincipalname=['host/%s@%s' % (fqdn1, api.env.realm)],
+                    krbcanonicalname=['host/%s@%s' % (fqdn1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn1],
+                    managedby_host=['%s' % fqdn1],
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -162,24 +162,24 @@ class test_service(Declarative):
             desc='Create %r' % fqdn2,
             command=('host_add', [fqdn2],
                 dict(
-                    description=u'Test host 2',
-                    l=u'Undisclosed location 2',
+                    description='Test host 2',
+                    l='Undisclosed location 2',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=fqdn2,
-                summary=u'Added host "%s"' % fqdn2,
+                summary='Added host "%s"' % fqdn2,
                 result=dict(
                     dn=host2dn,
                     fqdn=[fqdn2],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
-                    krbcanonicalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
+                    description=['Test host 2'],
+                    l=['Undisclosed location 2'],
+                    krbprincipalname=['host/%s@%s' % (fqdn2, api.env.realm)],
+                    krbcanonicalname=['host/%s@%s' % (fqdn2, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn2],
+                    managedby_host=['%s' % fqdn2],
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -191,25 +191,25 @@ class test_service(Declarative):
             desc='Create %r' % fqdn3,
             command=('host_add', [fqdn3],
                 dict(
-                    description=u'Test host 3',
-                    l=u'Undisclosed location 3',
+                    description='Test host 3',
+                    l='Undisclosed location 3',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=fqdn3.lower(),
-                summary=u'Added host "%s"' % fqdn3.lower(),
+                summary='Added host "%s"' % fqdn3.lower(),
                 result=dict(
                     dn=host3dn,
                     fqdn=[fqdn3.lower()],
-                    description=[u'Test host 3'],
-                    l=[u'Undisclosed location 3'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3.lower(), api.env.realm)],
-                    krbcanonicalname=[u'host/%s@%s' % (
+                    description=['Test host 3'],
+                    l=['Undisclosed location 3'],
+                    krbprincipalname=['host/%s@%s' % (fqdn3.lower(), api.env.realm)],
+                    krbcanonicalname=['host/%s@%s' % (
                         fqdn3.lower(), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn3.lower()],
+                    managedby_host=['%s' % fqdn3.lower()],
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -226,7 +226,7 @@ class test_service(Declarative):
             ),
             expected=dict(
                 value=service1,
-                summary=u'Added service "%s"' % service1,
+                summary='Added service "%s"' % service1,
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
@@ -247,7 +247,7 @@ class test_service(Declarative):
                 ),
             ),
             expected=errors.DuplicateEntry(
-                message=u'service with name "%s" already exists' % service1),
+                message='service with name "%s" already exists' % service1),
         ),
 
 
@@ -287,7 +287,7 @@ class test_service(Declarative):
                     ipakrbokasdelegate=False,
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Service Password Policy',
+                        'cn=Default Service Password Policy',
                         api.env.container_service,
                         api.env.basedn,
                     )],
@@ -298,7 +298,7 @@ class test_service(Declarative):
         dict(
             desc='Allow admin to create keytab for %r' % service1,
             command=('service_allow_create_keytab', [service1],
-                     dict(user=u'admin'),
+                     dict(user='admin'),
                      ),
             expected=dict(
                 completed=1,
@@ -312,7 +312,7 @@ class test_service(Declarative):
                 ),
                 result=dict(
                     dn=service1dn,
-                    ipaallowedtoperform_write_keys_user=[u'admin'],
+                    ipaallowedtoperform_write_keys_user=['admin'],
                     krbprincipalname=[service1],
                     krbcanonicalname=[service1],
                     managedby_host=[fqdn1],
@@ -328,12 +328,12 @@ class test_service(Declarative):
                 summary=None,
                 result=dict(
                     dn=service1dn,
-                    ipaallowedtoperform_write_keys_user=[u'admin'],
+                    ipaallowedtoperform_write_keys_user=['admin'],
                     krbprincipalname=[service1],
                     ipakrbprincipalalias=[service1],
                     krbcanonicalname=[service1],
                     objectclass=objectclasses.service + [
-                        u'ipaallowedoperations'
+                        'ipaallowedoperations'
                     ],
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[fqdn1],
@@ -342,7 +342,7 @@ class test_service(Declarative):
                     ipakrbokasdelegate=False,
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Service Password Policy',
+                        'cn=Default Service Password Policy',
                         api.env.container_service,
                         api.env.basedn,
                     )],
@@ -356,11 +356,11 @@ class test_service(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 service matched',
+                summary='1 service matched',
                 result=[
                     dict(
                         dn=service1dn,
-                        ipaallowedtoperform_write_keys_user=[u'admin'],
+                        ipaallowedtoperform_write_keys_user=['admin'],
                         krbprincipalname=[service1],
                         krbcanonicalname=[service1],
                         managedby_host=[fqdn1],
@@ -374,7 +374,7 @@ class test_service(Declarative):
             desc='Disallow admin to create keytab for %r' % service1,
             command=(
                 'service_disallow_create_keytab', [service1],
-                dict(user=u'admin'),
+                dict(user='admin'),
             ),
             expected=dict(
                 completed=1,
@@ -401,7 +401,7 @@ class test_service(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 service matched',
+                summary='1 service matched',
                 result=[
                     dict(
                         dn=service1dn,
@@ -420,7 +420,7 @@ class test_service(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 service matched',
+                summary='1 service matched',
                 result=[
                     dict(
                         dn=service1dn,
@@ -428,7 +428,7 @@ class test_service(Declarative):
                         ipakrbprincipalalias=[service1],
                         krbcanonicalname=[service1],
                         objectclass=objectclasses.service + [
-                            u'ipaallowedoperations'
+                            'ipaallowedoperations'
                         ],
                         ipauniqueid=[fuzzy_uuid],
                         has_keytab=False,
@@ -437,7 +437,7 @@ class test_service(Declarative):
                         ipakrbokasdelegate=False,
                         ipakrboktoauthasdelegate=False,
                         krbpwdpolicyreference=[DN(
-                            u'cn=Default Service Password Policy',
+                            'cn=Default Service Password Policy',
                             api.env.container_service,
                             api.env.basedn,
                         )],
@@ -449,9 +449,9 @@ class test_service(Declarative):
 
         dict(
             desc='Add non-existent host to %r' % service1,
-            command=('service_add_host', [service1], dict(host=u'notfound')),
+            command=('service_add_host', [service1], dict(host='notfound')),
             expected=dict(
-                failed=dict(managedby=dict(host=[(u'notfound', u'no such entry')])),
+                failed=dict(managedby=dict(host=[('notfound', 'no such entry')])),
                 completed=0,
                 result=dict(
                     dn=service1dn,
@@ -465,9 +465,9 @@ class test_service(Declarative):
 
         dict(
             desc='Remove non-existent host from %r' % service1,
-            command=('service_remove_host', [service1], dict(host=u'notfound')),
+            command=('service_remove_host', [service1], dict(host='notfound')),
             expected=dict(
-                failed=dict(managedby=dict(host=[(u'notfound', u'This entry is not a member')])),
+                failed=dict(managedby=dict(host=[('notfound', 'This entry is not a member')])),
                 completed=0,
                 result=dict(
                     dn=service1dn,
@@ -551,7 +551,7 @@ class test_service(Declarative):
                 dict(usercertificate=base64.b64decode(randomissuercert))),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     usercertificate=[base64.b64decode(randomissuercert)],
                     krbprincipalname=[service1],
@@ -574,7 +574,7 @@ class test_service(Declarative):
             command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
@@ -597,9 +597,9 @@ class test_service(Declarative):
             desc='Try to update %r with invalid ipakrbauthz data '
                  'combination' % service1,
             command=('service_mod', [service1],
-                dict(ipakrbauthzdata=[u'MS-PAC', u'NONE'])),
+                dict(ipakrbauthzdata=['MS-PAC', 'NONE'])),
             expected=errors.ValidationError(name='ipakrbauthzdata',
-                error=u'NONE value cannot be combined with other PAC types')
+                error='NONE value cannot be combined with other PAC types')
         ),
 
 
@@ -607,16 +607,16 @@ class test_service(Declarative):
             desc='Update %r with valid ipakrbauthz data '
                  'combination' % service1,
             command=('service_mod', [service1],
-                dict(ipakrbauthzdata=[u'MS-PAC'])),
+                dict(ipakrbauthzdata=['MS-PAC'])),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     krbcanonicalname=[service1],
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
+                    ipakrbauthzdata=['MS-PAC'],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=DN(('CN', api.env.host), subject_base()),
@@ -643,7 +643,7 @@ class test_service(Declarative):
                     krbcanonicalname=[service1],
                     has_keytab=False,
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
+                    ipakrbauthzdata=['MS-PAC'],
                     # These values come from the servercert that is in this
                     # test case.
                     valid_not_before=fuzzy_date,
@@ -664,13 +664,13 @@ class test_service(Declarative):
             command=('service_mod', [service1], dict(ipakrbokasdelegate=True)),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     krbcanonicalname=[service1],
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
+                    ipakrbauthzdata=['MS-PAC'],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=DN(('CN', api.env.host), subject_base()),
@@ -679,7 +679,7 @@ class test_service(Declarative):
                     sha1_fingerprint=fuzzy_hash,
                     sha256_fingerprint=fuzzy_hash,
                     issuer=fuzzy_issuer,
-                    krbticketflags=[u'1048704'],
+                    krbticketflags=['1048704'],
                     ipakrbokasdelegate=True,
                 ),
             ),
@@ -689,16 +689,16 @@ class test_service(Declarative):
         dict(
             desc='Update %r Kerberos ticket flags with setattr' % service1,
             command=('service_mod', [service1],
-                     dict(setattr=[u'krbTicketFlags=1048577'])),
+                     dict(setattr=['krbTicketFlags=1048577'])),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     krbcanonicalname=[service1],
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
+                    ipakrbauthzdata=['MS-PAC'],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=DN(('CN', api.env.host), subject_base()),
@@ -707,7 +707,7 @@ class test_service(Declarative):
                     sha1_fingerprint=fuzzy_hash,
                     sha256_fingerprint=fuzzy_hash,
                     issuer=fuzzy_issuer,
-                    krbticketflags=[u'1048577'],
+                    krbticketflags=['1048577'],
                 ),
             ),
         ),
@@ -718,13 +718,13 @@ class test_service(Declarative):
             command=('service_mod', [service1], dict(ipakrbokasdelegate=False)),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     krbcanonicalname=[service1],
                     managedby_host=[fqdn1],
-                    ipakrbauthzdata=[u'MS-PAC'],
+                    ipakrbauthzdata=['MS-PAC'],
                     valid_not_before=fuzzy_date,
                     valid_not_after=fuzzy_date,
                     subject=DN(('CN', api.env.host), subject_base()),
@@ -733,7 +733,7 @@ class test_service(Declarative):
                     sha1_fingerprint=fuzzy_hash,
                     sha256_fingerprint=fuzzy_hash,
                     issuer=fuzzy_issuer,
-                    krbticketflags=[u'1'],
+                    krbticketflags=['1'],
                     ipakrbokasdelegate=False,
                 ),
             ),
@@ -745,7 +745,7 @@ class test_service(Declarative):
             command=('service_del', [service1], {}),
             expected=dict(
                 value=[service1],
-                summary=u'Deleted service "%s"' % service1,
+                summary='Deleted service "%s"' % service1,
                 result=dict(failed=[]),
             ),
         ),
@@ -755,7 +755,7 @@ class test_service(Declarative):
             desc='Try to retrieve non-existent %r' % service1,
             command=('service_show', [service1], {}),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % service1),
+                reason='%s: service not found' % service1),
         ),
 
 
@@ -763,7 +763,7 @@ class test_service(Declarative):
             desc='Try to update non-existent %r' % service1,
             command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % service1),
+                reason='%s: service not found' % service1),
         ),
 
         dict(
@@ -774,20 +774,20 @@ class test_service(Declarative):
                 dict(usercertificate=servercert)
             ),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % badservice),
+                reason='%s: service not found' % badservice),
         ),
 
         dict(
             desc='Try to delete non-existent %r' % service1,
             command=('service_del', [service1], {}),
             expected=errors.NotFound(
-                reason=u'%s: service not found' % service1),
+                reason='%s: service not found' % service1),
         ),
 
 
         dict(
             desc='Create service with malformed principal "foo"',
-            command=('service_add', [u'foo'], {}),
+            command=('service_add', ['foo'], {}),
             expected=errors.ValidationError(
                 name='canonical_principal',
                 error='Service principal is required')
@@ -796,7 +796,7 @@ class test_service(Declarative):
 
         dict(
             desc='Create service with bad realm "HTTP/foo@FOO.NET"',
-            command=('service_add', [u'HTTP/foo@FOO.NET'], {}),
+            command=('service_add', ['HTTP/foo@FOO.NET'], {}),
             expected=errors.RealmMismatch(),
         ),
 
@@ -952,7 +952,7 @@ class test_service(Declarative):
                      dict(force=True, skip_host_check=True),),
             expected=dict(
                 value=d_service,
-                summary=u'Added service "%s"' % d_service,
+                summary='Added service "%s"' % d_service,
                 result=dict(
                     dn=d_servicedn,
                     krbprincipalname=[d_service],
@@ -978,24 +978,24 @@ class test_service_in_role(Declarative):
             desc='Create %r' % fqdn1,
             command=('host_add', [fqdn1],
                 dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
+                    description='Test host 1',
+                    l='Undisclosed location 1',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
+                summary='Added host "%s"' % fqdn1,
                 result=dict(
                     dn=host1dn,
                     fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    krbcanonicalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
+                    krbprincipalname=['host/%s@%s' % (fqdn1, api.env.realm)],
+                    krbcanonicalname=['host/%s@%s' % (fqdn1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn1],
+                    managedby_host=['%s' % fqdn1],
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -1007,7 +1007,7 @@ class test_service_in_role(Declarative):
             command=('service_add', [service1_no_realm], dict(force=True)),
             expected=dict(
                 value=service1,
-                summary=u'Added service "%s"' % service1,
+                summary='Added service "%s"' % service1,
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
@@ -1021,14 +1021,14 @@ class test_service_in_role(Declarative):
 
         dict(
             desc='Create %r' % role1,
-            command=('role_add', [role1], dict(description=u'role desc 1')),
+            command=('role_add', [role1], dict(description='role desc 1')),
             expected=dict(
                 value=role1,
-                summary=u'Added role "%s"' % role1,
+                summary='Added role "%s"' % role1,
                 result=dict(
                     dn=role1_dn,
                     cn=[role1],
-                    description=[u'role desc 1'],
+                    description=['role desc 1'],
                     objectclass=objectclasses.role,
                 ),
             ),
@@ -1054,7 +1054,7 @@ class test_service_in_role(Declarative):
                 result=dict(
                     dn=role1_dn,
                     cn=[role1],
-                    description=[u'role desc 1'],
+                    description=['role desc 1'],
                     member_service=[service1],
                 ),
             ),
@@ -1086,7 +1086,7 @@ class test_service_in_role(Declarative):
                 result=dict(
                     dn=role1_dn,
                     cn=[role1],
-                    description=[u'role desc 1'],
+                    description=['role desc 1'],
                     member_service=[service1],
                 ),
             ),
@@ -1112,23 +1112,23 @@ class test_service_allowed_to(Declarative):
         dict(
             desc='Create %r' % user1,
             command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+                'user_add', [], dict(givenname='Test', sn='User1')
             ),
             expected=dict(
                 value=user1,
-                summary=u'Added user "%s"' % user1,
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
+                summary='Added user "%s"' % user1,
+                result=get_user_result(user1, 'Test', 'User1', 'add'),
             ),
         ),
         dict(
             desc='Create %r' % user2,
             command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User2')
+                'user_add', [], dict(givenname='Test', sn='User2')
             ),
             expected=dict(
                 value=user2,
-                summary=u'Added user "%s"' % user2,
-                result=get_user_result(user2, u'Test', u'User2', 'add'),
+                summary='Added user "%s"' % user2,
+                result=get_user_result(user2, 'Test', 'User2', 'add'),
             ),
         ),
         dict(
@@ -1138,7 +1138,7 @@ class test_service_allowed_to(Declarative):
             ),
             expected=dict(
                 value=group1,
-                summary=u'Added group "%s"' % group1,
+                summary='Added group "%s"' % group1,
                 result=dict(
                     cn=[group1],
                     objectclass=fuzzy_set_optional_oc(
@@ -1156,7 +1156,7 @@ class test_service_allowed_to(Declarative):
                      dict(force=True, skip_host_check=True)),
             expected=dict(
                 value=d_service,
-                summary=u'Added service "%s"' % d_service,
+                summary='Added service "%s"' % d_service,
                 result=dict(
                     dn=d_servicedn,
                     krbprincipalname=[d_service],
@@ -1191,7 +1191,7 @@ class test_service_allowed_to(Declarative):
             ),
             expected=dict(
                 value=group2,
-                summary=u'Added group "%s"' % group2,
+                summary='Added group "%s"' % group2,
                 result=dict(
                     cn=[group2],
                     objectclass=fuzzy_set_optional_oc(
@@ -1207,24 +1207,24 @@ class test_service_allowed_to(Declarative):
             command=(
                 'host_add', [fqdn1],
                 dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
+                    description='Test host 1',
+                    l='Undisclosed location 1',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
+                summary='Added host "%s"' % fqdn1,
                 result=dict(
                     dn=host1dn,
                     fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    krbcanonicalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
+                    krbprincipalname=['host/%s@%s' % (fqdn1, api.env.realm)],
+                    krbcanonicalname=['host/%s@%s' % (fqdn1, api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn1],
+                    managedby_host=['%s' % fqdn1],
                     has_keytab=False,
                     has_password=False,
                 ),
@@ -1233,16 +1233,16 @@ class test_service_allowed_to(Declarative):
         dict(
             desc='Create %r' % hostgroup1,
             command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
+                dict(description='Test hostgroup 1')
             ),
             expected=dict(
                 value=hostgroup1,
-                summary=u'Added hostgroup "testhostgroup1"',
+                summary='Added hostgroup "testhostgroup1"',
                 result=dict(
                     dn=hostgroup1_dn,
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 1'],
+                    description=['Test hostgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
                     mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
                                         api.env.basedn)],
@@ -1254,7 +1254,7 @@ class test_service_allowed_to(Declarative):
             command=('service_add', [service1_no_realm], dict(force=True)),
             expected=dict(
                 value=service1,
-                summary=u'Added service "%s"' % service1,
+                summary='Added service "%s"' % service1,
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
@@ -1301,7 +1301,7 @@ class test_service_allowed_to(Declarative):
                         group=[],
                         host=[],
                         hostgroup=[],
-                        user=[[user1, u'This entry is already a member']],
+                        user=[[user1, 'This entry is already a member']],
                     ),
                 ),
                 completed=0,
@@ -1354,7 +1354,7 @@ class test_service_allowed_to(Declarative):
                         group=[],
                         host=[],
                         hostgroup=[],
-                        user=[[user2, u'This entry is not a member']],
+                        user=[[user2, 'This entry is not a member']],
                     ),
                 ),
                 completed=0,
@@ -1439,10 +1439,10 @@ class test_service_allowed_to(Declarative):
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
-                        group=[[group1, u'This entry is already a member']],
-                        host=[[fqdn1, u'This entry is already a member']],
-                        user=[[user1, u'This entry is already a member']],
-                        hostgroup=[[hostgroup1, u'This entry is already a member']],
+                        group=[[group1, 'This entry is already a member']],
+                        host=[[fqdn1, 'This entry is already a member']],
+                        user=[[user1, 'This entry is already a member']],
+                        hostgroup=[[hostgroup1, 'This entry is already a member']],
                     ),
                 ),
                 completed=0,
@@ -1473,7 +1473,7 @@ class test_service_allowed_to(Declarative):
                         group=[],
                         host=[],
                         hostgroup=[],
-                        user=[[user2, u'This entry is not a member']],
+                        user=[[user2, 'This entry is not a member']],
                     ),
                 ),
                 completed=0,
@@ -1556,7 +1556,7 @@ class test_service_allowed_to(Declarative):
                 dict(ipakrbokasdelegate=True)),
             expected=dict(
                 value=service1,
-                summary=u'Modified service "%s"' % service1,
+                summary='Modified service "%s"' % service1,
                 result=dict(
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
@@ -1569,7 +1569,7 @@ class test_service_allowed_to(Declarative):
                     ipakrbokasdelegate=True,
                     krbprincipalname=[service1],
                     krbcanonicalname=[service1],
-                    krbticketflags=[u'1048704'],
+                    krbticketflags=['1048704'],
                     managedby_host=[fqdn1],
                 ),
             ),
@@ -1579,7 +1579,7 @@ class test_service_allowed_to(Declarative):
 
 @pytest.fixture(scope='function')
 def indicators_host(request):
-    tracker = HostTracker(name=u'testhost1', fqdn=fqdn1)
+    tracker = HostTracker(name='testhost1', fqdn=fqdn1)
     return tracker.make_fixture(request)
 
 
@@ -1595,8 +1595,8 @@ def this_host(request):
 @pytest.fixture(scope='function')
 def indicators_service(request):
     tracker = ServiceTracker(
-        name=u'SRV1', host_fqdn=fqdn1, options={
-            u'krbprincipalauthind': u'otp'})
+        name='SRV1', host_fqdn=fqdn1, options={
+            'krbprincipalauthind': 'otp'})
     return tracker.make_fixture(request)
 
 
@@ -1613,9 +1613,9 @@ class TestAuthenticationIndicators(XMLRPC_test):
         indicators_service.create()
         indicators_service.update(
             updates={
-                u'krbprincipalauthind': [
-                    u'otp', u'radius', u'pkinit', u'hardened', u'idp',
-                    u'passkey',
+                'krbprincipalauthind': [
+                    'otp', 'radius', 'pkinit', 'hardened', 'idp',
+                    'passkey',
                 ]
             }
         )
@@ -1624,8 +1624,8 @@ class TestAuthenticationIndicators(XMLRPC_test):
         indicators_host.create()
         indicators_service.create()
         indicators_service.update(
-            updates={u'krbprincipalauthind': u'radius'},
-            expected_updates={u'krbprincipalauthind': [u'radius']}
+            updates={'krbprincipalauthind': 'radius'},
+            expected_updates={'krbprincipalauthind': ['radius']}
         )
 
     def test_update_indicator_internal_service(self, this_host):
@@ -1634,7 +1634,7 @@ class TestAuthenticationIndicators(XMLRPC_test):
                                          **dict(krbprincipalauthind='otp'))
         with raises_exact(errors.ValidationError(
             name='krbprincipalauthind',
-            error=u'authentication indicators not allowed '
+            error='authentication indicators not allowed '
                  'in service "ldap"'
         )):
             command()
@@ -1642,14 +1642,14 @@ class TestAuthenticationIndicators(XMLRPC_test):
 
 @pytest.fixture(scope='function')
 def managing_host(request):
-    tracker = HostTracker(name=u'managinghost2', fqdn=fqdn2)
+    tracker = HostTracker(name='managinghost2', fqdn=fqdn2)
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='function')
 def managed_service(request):
     tracker = ServiceTracker(
-        name=u'managed-service', host_fqdn=fqdn2)
+        name='managed-service', host_fqdn=fqdn2)
     return tracker.make_fixture(request)
 
 

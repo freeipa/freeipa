@@ -214,7 +214,7 @@ class location_show(LDAPRetrieve):
                 servers_additional_info[s_name] = {
                     'cn': server['cn'],
                     'ipaserviceweight': server.get(
-                        'ipaserviceweight', [u'100']),
+                        'ipaserviceweight', ['100']),
                 }
 
                 s_roles = server.get('enabled_role_servrole', ())
@@ -247,7 +247,7 @@ class location_show(LDAPRetrieve):
                         dividend / weight_sum
                     )
                 server['service_relative_weight'] = [
-                    u'{:.1f}%'.format(val)
+                    '{:.1f}%'.format(val)
                 ]
             if servers_name:
                 result['result']['servers_server'] = servers_name

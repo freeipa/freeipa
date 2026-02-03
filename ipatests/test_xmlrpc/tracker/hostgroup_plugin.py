@@ -14,26 +14,26 @@ from ipapython.dn import DN
 
 class HostGroupTracker(Tracker):
     """ Class for tracking hostgroups """
-    retrieve_keys = {u'dn', u'cn', u'member_host', u'description',
-                     u'member_hostgroup', u'memberindirect_host'}
-    retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass',
-                                         u'mepmanagedentry'}
+    retrieve_keys = {'dn', 'cn', 'member_host', 'description',
+                     'member_hostgroup', 'memberindirect_host'}
+    retrieve_all_keys = retrieve_keys | {'ipauniqueid', 'objectclass',
+                                         'mepmanagedentry'}
 
     create_keys = retrieve_all_keys
-    update_keys = retrieve_keys - {u'dn'}
+    update_keys = retrieve_keys - {'dn'}
 
-    add_member_keys = retrieve_keys | {u'member_host'}
+    add_member_keys = retrieve_keys | {'member_host'}
 
     find_keys = {
-        u'dn', u'cn', u'description',
+        'dn', 'cn', 'description',
     }
     find_all_keys = {
-        u'dn', u'cn', u'member_host', u'description', u'member_hostgroup',
-        u'memberindirect_host', u'ipauniqueid', u'objectclass',
-        u'mepmanagedentry',
+        'dn', 'cn', 'member_host', 'description', 'member_hostgroup',
+        'memberindirect_host', 'ipauniqueid', 'objectclass',
+        'mepmanagedentry',
     }
 
-    def __init__(self, name, description=u'HostGroup desc'):
+    def __init__(self, name, description='HostGroup desc'):
         super(HostGroupTracker, self).__init__(default_version=None)
         self.cn = name
         self.description = description
@@ -87,20 +87,20 @@ class HostGroupTracker(Tracker):
 
     def add_member(self, options):
         """ Add a member host to hostgroup and perform check """
-        if u'host' in options:
+        if 'host' in options:
             try:
-                self.attrs[u'member_host'] =\
-                    self.attrs[u'member_host'] + [options[u'host']]
+                self.attrs['member_host'] =\
+                    self.attrs['member_host'] + [options['host']]
             except KeyError:
-                self.attrs[u'member_host'] = [options[u'host']]
+                self.attrs['member_host'] = [options['host']]
             # search for hosts in the target hostgroup and
             # add them as memberindirect hosts
-        elif u'hostgroup' in options:
+        elif 'hostgroup' in options:
             try:
-                self.attrs[u'member_hostgroup'] =\
-                    self.attrs[u'member_hostgroup'] + [options[u'hostgroup']]
+                self.attrs['member_hostgroup'] =\
+                    self.attrs['member_hostgroup'] + [options['hostgroup']]
             except KeyError:
-                self.attrs[u'member_hostgroup'] = [options[u'hostgroup']]
+                self.attrs['member_hostgroup'] = [options['hostgroup']]
 
         command = self.make_add_member_command(options)
         result = command()
@@ -108,19 +108,19 @@ class HostGroupTracker(Tracker):
 
     def remove_member(self, options):
         """ Remove a member host from hostgroup and perform check """
-        if u'host' in options:
-            self.attrs[u'member_host'].remove(options[u'host'])
-        elif u'hostgroup' in options:
-            self.attrs[u'member_hostgroup'].remove(options[u'hostgroup'])
+        if 'host' in options:
+            self.attrs['member_host'].remove(options['host'])
+        elif 'hostgroup' in options:
+            self.attrs['member_hostgroup'].remove(options['hostgroup'])
 
         try:
-            if not self.attrs[u'member_host']:
-                del self.attrs[u'member_host']
+            if not self.attrs['member_host']:
+                del self.attrs['member_host']
         except KeyError:
             pass
         try:
-            if not self.attrs[u'member_hostgroup']:
-                del self.attrs[u'member_hostgroup']
+            if not self.attrs['member_hostgroup']:
+                del self.attrs['member_hostgroup']
         except KeyError:
             pass
 
@@ -163,7 +163,7 @@ class HostGroupTracker(Tracker):
         """ Checks 'hostgroup_add' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Added hostgroup "%s"' % self.cn,
+            summary='Added hostgroup "%s"' % self.cn,
             result=self.filter_attrs(self.create_keys)
             ), result)
 
@@ -171,7 +171,7 @@ class HostGroupTracker(Tracker):
         """ Checks 'hostgroup_del' command result """
         assert_deepequal(dict(
             value=[self.cn],
-            summary=u'Deleted hostgroup "%s"' % self.cn,
+            summary='Deleted hostgroup "%s"' % self.cn,
             result=dict(failed=[]),
             ), result)
 
@@ -198,7 +198,7 @@ class HostGroupTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 hostgroup matched',
+            summary='1 hostgroup matched',
             result=[expected],
         ), result)
 
@@ -206,7 +206,7 @@ class HostGroupTracker(Tracker):
         """ Checks 'hostgroup_mod' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Modified hostgroup "%s"' % self.cn,
+            summary='Modified hostgroup "%s"' % self.cn,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 
@@ -214,7 +214,7 @@ class HostGroupTracker(Tracker):
         """ Checks 'hostgroup_add_member' command result """
         assert_deepequal(dict(
             completed=1,
-            failed={u'member': {u'host': (), u'hostgroup': ()}},
+            failed={'member': {'host': (), 'hostgroup': ()}},
             result=self.filter_attrs(self.add_member_keys)
         ), result)
 
@@ -223,15 +223,15 @@ class HostGroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'hostgroup': (), u'user': ()}},
+            failed={'member': {'hostgroup': (), 'user': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        if u'host' in options:
-            expected[u'failed'][u'member'][u'host'] = [(
-                options[u'host'], u'no such entry')]
-        elif u'hostgroup' in options:
-            expected[u'failed'][u'member'][u'hostgroup'] = [(
-                options[u'hostgroup'], u'no such entry')]
+        if 'host' in options:
+            expected['failed']['member']['host'] = [(
+                options['host'], 'no such entry')]
+        elif 'hostgroup' in options:
+            expected['failed']['member']['hostgroup'] = [(
+                options['hostgroup'], 'no such entry')]
 
         assert_deepequal(expected, result)
 
@@ -240,15 +240,15 @@ class HostGroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'hostgroup': (), u'host': ()}},
+            failed={'member': {'hostgroup': (), 'host': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        if u'user' in options:
-            expected[u'failed'][u'member'][u'host'] = [(
-                options[u'user'], u'This entry is not a member')]
-        elif u'hostgroup' in options:
-            expected[u'failed'][u'member'][u'hostgroup'] = [(
-                options[u'hostgroup'], u'This entry is not a member')]
+        if 'user' in options:
+            expected['failed']['member']['host'] = [(
+                options['user'], 'This entry is not a member')]
+        elif 'hostgroup' in options:
+            expected['failed']['member']['hostgroup'] = [(
+                options['hostgroup'], 'This entry is not a member')]
 
         assert_deepequal(expected, result)
 

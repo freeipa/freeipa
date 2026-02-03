@@ -2,8 +2,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
 from . import Command, Method, Object
 from ipalib import api, parameters, output
@@ -12,9 +10,6 @@ from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Directory Server Access Control Instructions (ACIs)
@@ -125,68 +120,68 @@ class aci(Object):
         parameters.Str(
             'aciname',
             primary_key=True,
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
         parameters.Str(
             'permission',
             required=False,
-            label=_(u'Permission'),
-            doc=_(u'Permission ACI grants access to'),
+            label=_('Permission'),
+            doc=_('Permission ACI grants access to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Str(
             'permissions',
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant(read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant(read, write, add, delete, all)'),
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes to which the permission applies'),
-            doc=_(u'Attributes'),
+            label=_('Attributes to which the permission applies'),
+            doc=_('Attributes'),
         ),
         parameters.Str(
             'type',
             required=False,
-            label=_(u'Type'),
-            doc=_(u'type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            label=_('Type'),
+            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of'),
-            doc=_(u'Member of a group'),
+            label=_('Member of'),
+            doc=_('Member of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply ACI to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply ACI to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'Group to apply ACI to'),
+            label=_('Target group'),
+            doc=_('Group to apply ACI to'),
         ),
         parameters.Flag(
             'selfaci',
             required=False,
-            label=_(u'Target your own entry (self)'),
-            doc=_(u'Apply ACI to your own entry (self)'),
+            label=_('Target your own entry (self)'),
+            doc=_('Apply ACI to your own entry (self)'),
         ),
     )
 
@@ -201,73 +196,73 @@ class aci_add(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'permission',
             required=False,
-            label=_(u'Permission'),
-            doc=_(u'Permission ACI grants access to'),
+            label=_('Permission'),
+            doc=_('Permission ACI grants access to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Str(
             'permissions',
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant(read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant(read, write, add, delete, all)'),
             no_convert=True,
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes to which the permission applies'),
-            doc=_(u'Attributes'),
+            label=_('Attributes to which the permission applies'),
+            doc=_('Attributes'),
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            label=_('Type'),
+            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of'),
-            doc=_(u'Member of a group'),
+            label=_('Member of'),
+            doc=_('Member of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply ACI to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply ACI to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'Group to apply ACI to'),
+            label=_('Target group'),
+            doc=_('Group to apply ACI to'),
         ),
         parameters.Flag(
             'selfaci',
             required=False,
             cli_name='self',
-            label=_(u'Target your own entry (self)'),
-            doc=_(u'Apply ACI to your own entry (self)'),
+            label=_('Target your own entry (self)'),
+            doc=_('Apply ACI to your own entry (self)'),
             default=False,
             autofill=True,
         ),
@@ -275,26 +270,26 @@ class aci_add(Method):
             'aciprefix',
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
-            label=_(u'ACI prefix'),
-            doc=_(u'Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            label=_('ACI prefix'),
+            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
         ),
         parameters.Flag(
             'test',
             required=False,
-            doc=_(u"Test the ACI syntax but don't write anything"),
+            doc=_("Test the ACI syntax but don't write anything"),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -303,15 +298,15 @@ class aci_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -326,7 +321,7 @@ class aci_del(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
     )
     takes_options = (
@@ -334,24 +329,24 @@ class aci_del(Method):
             'aciprefix',
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
-            label=_(u'ACI prefix'),
-            doc=_(u'Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            label=_('ACI prefix'),
+            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -384,7 +379,7 @@ Search for ACIs.
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -392,72 +387,72 @@ Search for ACIs.
             'aciname',
             required=False,
             cli_name='name',
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
         parameters.Str(
             'permission',
             required=False,
-            label=_(u'Permission'),
-            doc=_(u'Permission ACI grants access to'),
+            label=_('Permission'),
+            doc=_('Permission ACI grants access to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant(read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant(read, write, add, delete, all)'),
             no_convert=True,
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes to which the permission applies'),
-            doc=_(u'Attributes'),
+            label=_('Attributes to which the permission applies'),
+            doc=_('Attributes'),
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            label=_('Type'),
+            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of'),
-            doc=_(u'Member of a group'),
+            label=_('Member of'),
+            doc=_('Member of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply ACI to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply ACI to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'Group to apply ACI to'),
+            label=_('Target group'),
+            doc=_('Group to apply ACI to'),
         ),
         parameters.Bool(
             'selfaci',
             required=False,
             cli_name='self',
-            label=_(u'Target your own entry (self)'),
-            doc=_(u'Apply ACI to your own entry (self)'),
+            label=_('Target your own entry (self)'),
+            doc=_('Apply ACI to your own entry (self)'),
             default=False,
         ),
         parameters.Str(
@@ -465,27 +460,27 @@ Search for ACIs.
             required=False,
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
-            label=_(u'ACI prefix'),
-            doc=_(u'Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            label=_('ACI prefix'),
+            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
         ),
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -494,8 +489,8 @@ Search for ACIs.
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -503,12 +498,12 @@ Search for ACIs.
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -523,74 +518,74 @@ class aci_mod(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'permission',
             required=False,
-            label=_(u'Permission'),
-            doc=_(u'Permission ACI grants access to'),
+            label=_('Permission'),
+            doc=_('Permission ACI grants access to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant(read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant(read, write, add, delete, all)'),
             no_convert=True,
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes to which the permission applies'),
-            doc=_(u'Attributes'),
+            label=_('Attributes to which the permission applies'),
+            doc=_('Attributes'),
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            label=_('Type'),
+            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of'),
-            doc=_(u'Member of a group'),
+            label=_('Member of'),
+            doc=_('Member of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply ACI to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply ACI to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'Group to apply ACI to'),
+            label=_('Target group'),
+            doc=_('Group to apply ACI to'),
         ),
         parameters.Flag(
             'selfaci',
             required=False,
             cli_name='self',
-            label=_(u'Target your own entry (self)'),
-            doc=_(u'Apply ACI to your own entry (self)'),
+            label=_('Target your own entry (self)'),
+            doc=_('Apply ACI to your own entry (self)'),
             default=False,
             autofill=True,
         ),
@@ -598,19 +593,19 @@ class aci_mod(Method):
             'aciprefix',
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
-            label=_(u'ACI prefix'),
-            doc=_(u'Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            label=_('ACI prefix'),
+            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -619,15 +614,15 @@ class aci_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -642,74 +637,74 @@ class aci_rename(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
     )
     takes_options = (
         parameters.Str(
             'permission',
             required=False,
-            label=_(u'Permission'),
-            doc=_(u'Permission ACI grants access to'),
+            label=_('Permission'),
+            doc=_('Permission ACI grants access to'),
         ),
         parameters.Str(
             'group',
             required=False,
-            label=_(u'User group'),
-            doc=_(u'User group ACI grants access to'),
+            label=_('User group'),
+            doc=_('User group ACI grants access to'),
         ),
         parameters.Str(
             'permissions',
             required=False,
             multivalue=True,
-            label=_(u'Permissions'),
-            doc=_(u'Permissions to grant(read, write, add, delete, all)'),
+            label=_('Permissions'),
+            doc=_('Permissions to grant(read, write, add, delete, all)'),
             no_convert=True,
         ),
         parameters.Str(
             'attrs',
             required=False,
             multivalue=True,
-            label=_(u'Attributes to which the permission applies'),
-            doc=_(u'Attributes'),
+            label=_('Attributes to which the permission applies'),
+            doc=_('Attributes'),
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
-            label=_(u'Type'),
-            doc=_(u'type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            label=_('Type'),
+            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
         ),
         parameters.Str(
             'memberof',
             required=False,
-            label=_(u'Member of'),
-            doc=_(u'Member of a group'),
+            label=_('Member of'),
+            doc=_('Member of a group'),
         ),
         parameters.Str(
             'filter',
             required=False,
-            label=_(u'Filter'),
-            doc=_(u'Legal LDAP filter (e.g. ou=Engineering)'),
+            label=_('Filter'),
+            doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
         ),
         parameters.Str(
             'subtree',
             required=False,
-            label=_(u'Subtree'),
-            doc=_(u'Subtree to apply ACI to'),
+            label=_('Subtree'),
+            doc=_('Subtree to apply ACI to'),
         ),
         parameters.Str(
             'targetgroup',
             required=False,
-            label=_(u'Target group'),
-            doc=_(u'Group to apply ACI to'),
+            label=_('Target group'),
+            doc=_('Group to apply ACI to'),
         ),
         parameters.Flag(
             'selfaci',
             required=False,
             cli_name='self',
-            label=_(u'Target your own entry (self)'),
-            doc=_(u'Apply ACI to your own entry (self)'),
+            label=_('Target your own entry (self)'),
+            doc=_('Apply ACI to your own entry (self)'),
             default=False,
             autofill=True,
         ),
@@ -717,23 +712,23 @@ class aci_rename(Method):
             'aciprefix',
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
-            label=_(u'ACI prefix'),
-            doc=_(u'Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            label=_('ACI prefix'),
+            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
         ),
         parameters.Str(
             'newname',
-            doc=_(u'New ACI name'),
+            doc=_('New ACI name'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -742,15 +737,15 @@ class aci_rename(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -765,7 +760,7 @@ class aci_show(Method):
         parameters.Str(
             'aciname',
             cli_name='name',
-            label=_(u'ACI name'),
+            label=_('ACI name'),
         ),
     )
     takes_options = (
@@ -773,24 +768,24 @@ class aci_show(Method):
             'aciprefix',
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
-            label=_(u'ACI prefix'),
-            doc=_(u'Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            label=_('ACI prefix'),
+            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
         ),
         parameters.DNParam(
             'location',
             required=False,
-            label=_(u'Location of the ACI'),
+            label=_('Location of the ACI'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_('Print entries as stored on the server. Only affects output format.'),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -799,14 +794,14 @@ class aci_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

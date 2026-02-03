@@ -19,13 +19,13 @@ logger = logging.getLogger(__name__)
 
 IPA_DEFAULT_MASTER_SRV_REC = (
     # srv record name, port
-    (DNSName(u'_ldap._tcp'), 389),
-    (DNSName(u'_kerberos._tcp'), 88),
-    (DNSName(u'_kerberos._udp'), 88),
-    (DNSName(u'_kerberos-master._tcp'), 88),
-    (DNSName(u'_kerberos-master._udp'), 88),
-    (DNSName(u'_kpasswd._tcp'), 464),
-    (DNSName(u'_kpasswd._udp'), 464),
+    (DNSName('_ldap._tcp'), 389),
+    (DNSName('_kerberos._tcp'), 88),
+    (DNSName('_kerberos._udp'), 88),
+    (DNSName('_kerberos-master._tcp'), 88),
+    (DNSName('_kerberos-master._udp'), 88),
+    (DNSName('_kpasswd._tcp'), 464),
+    (DNSName('_kpasswd._udp'), 464),
 )
 
 IPA_DEFAULT_MASTER_URI_REC = (
@@ -41,12 +41,12 @@ IPA_DEFAULT_MASTER_URI_REC = (
 
 IPA_DEFAULT_ADTRUST_SRV_REC = (
     # srv record name, port
-    (DNSName(u'_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs'), 389),
-    (DNSName(u'_ldap._tcp.dc._msdcs'), 389),
-    (DNSName(u'_kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs'), 88),
-    (DNSName(u'_kerberos._udp.Default-First-Site-Name._sites.dc._msdcs'), 88),
-    (DNSName(u'_kerberos._tcp.dc._msdcs'), 88),
-    (DNSName(u'_kerberos._udp.dc._msdcs'), 88),
+    (DNSName('_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs'), 389),
+    (DNSName('_ldap._tcp.dc._msdcs'), 389),
+    (DNSName('_kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs'), 88),
+    (DNSName('_kerberos._udp.Default-First-Site-Name._sites.dc._msdcs'), 88),
+    (DNSName('_kerberos._tcp.dc._msdcs'), 88),
+    (DNSName('_kerberos._udp.dc._msdcs'), 88),
 )
 
 IPA_CA_A_REC = (
@@ -127,8 +127,8 @@ class TestDNSLocations(IntegrationTest):
     num_replicas = 2
     topology = 'star'
 
-    LOC_PRAGUE = u'prague'
-    LOC_PARIS = u'paris'
+    LOC_PRAGUE = 'prague'
+    LOC_PARIS = 'paris'
 
     PRIO_HIGH = 0
     PRIO_LOW = 50

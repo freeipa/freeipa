@@ -7,14 +7,10 @@ import ctypes.util
 import binascii
 import struct
 
-import six
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
-
-if six.PY3:
-    unicode = str
 
 
 _ffi = FFI()
@@ -838,7 +834,7 @@ class P11_Helper:
         self.module_handle = None
 
         # Parse method args
-        if isinstance(user_pin, unicode):
+        if isinstance(user_pin, str):
             user_pin = user_pin.encode()
         self.token_label = token_label
 
@@ -969,7 +965,7 @@ class P11_Helper:
 
         :return: master key handle
         """
-        if isinstance(id, unicode):
+        if isinstance(id, str):
             id = id.encode()
 
         attrs = (
@@ -1071,7 +1067,7 @@ class P11_Helper:
 
         :returns: tuple (public_key_handle, private_key_handle)
         """
-        if isinstance(id, unicode):
+        if isinstance(id, str):
             id = id.encode()
 
         attrs_pub = (
@@ -1190,9 +1186,9 @@ class P11_Helper:
         """
         Find key
         """
-        if isinstance(id, unicode):
+        if isinstance(id, str):
             id = id.encode()
-        if isinstance(uri, unicode):
+        if isinstance(uri, str):
             uri = uri.encode()
 
         class_ = objclass
@@ -1424,9 +1420,9 @@ class P11_Helper:
         """
         Import RSA public key
         """
-        if isinstance(id, unicode):
+        if isinstance(id, str):
             id = id.encode()
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             data = data.encode()
 
         label_unicode = label
@@ -1525,9 +1521,9 @@ class P11_Helper:
         """
         Import wrapped secret key
         """
-        if isinstance(id, unicode):
+        if isinstance(id, str):
             id = id.encode()
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             data = data.encode()
 
         wrapped_key = new_array(CK_BYTE, data)
@@ -1615,9 +1611,9 @@ class P11_Helper:
         """
         Import wrapped private key
         """
-        if isinstance(id, unicode):
+        if isinstance(id, str):
             id = id.encode()
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             data = data.encode()
 
         wrapped_key = new_array(CK_BYTE, data)
@@ -1727,7 +1723,7 @@ class P11_Helper:
             attribute_ptr.pValue = new_array(CK_BYTE, value)
             attribute_ptr.ulValueLen = len(value)
         elif attr == CKA_LABEL:
-            if not isinstance(value, unicode):
+            if not isinstance(value, str):
                 raise Error("Unicode value expected")
             label, label_length = unicode_to_char_array(value)
             attribute_ptr.pValue = label
@@ -1832,7 +1828,7 @@ def gen_key_id(key_id_len=16):
     )
 
 
-def generate_master_key(p11, keylabel=u"dnssec-master", key_length=16,
+def generate_master_key(p11, keylabel="dnssec-master", key_length=16,
                         disable_old_keys=True):
     assert isinstance(p11, P11_Helper)
 

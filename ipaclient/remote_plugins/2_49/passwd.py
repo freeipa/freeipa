@@ -2,8 +2,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
 from . import Command, Method, Object
 from ipalib import api, parameters, output
@@ -12,9 +10,6 @@ from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Set a user's password
@@ -46,7 +41,7 @@ class passwd(Command):
         parameters.Str(
             'principal',
             cli_name='user',
-            label=_(u'User name'),
+            label=_('User name'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
             # lambda: util.get_current_principal()
@@ -55,12 +50,12 @@ class passwd(Command):
         ),
         parameters.Password(
             'password',
-            label=_(u'New Password'),
+            label=_('New Password'),
             confirm=True,
         ),
         parameters.Password(
             'current_password',
-            label=_(u'Current Password'),
+            label=_('Current Password'),
             default_from=DefaultFrom(lambda principal: None, 'principal'),
             # FIXME:
             # lambda principal: get_current_password(principal)
@@ -70,17 +65,17 @@ class passwd(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

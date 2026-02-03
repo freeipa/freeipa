@@ -23,15 +23,15 @@ class GroupTracker(Tracker):
         'idoverrideuser'
     }
 
-    retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass',
+    retrieve_all_keys = retrieve_keys | {'ipauniqueid', 'objectclass',
                                          'ipantsecurityidentifier'}
 
-    create_keys = retrieve_all_keys - {u'ipantsecurityidentifier'}
-    update_keys = retrieve_keys - {u'dn'}
+    create_keys = retrieve_all_keys - {'ipantsecurityidentifier'}
+    update_keys = retrieve_keys - {'dn'}
 
-    add_member_keys = retrieve_keys | {u'description'}
+    add_member_keys = retrieve_keys | {'description'}
 
-    def __init__(self, name, description=u'Group desc'):
+    def __init__(self, name, description='Group desc'):
         super(GroupTracker, self).__init__(default_version=None)
         self.cn = name
         self.description = description
@@ -135,32 +135,32 @@ class GroupTracker(Tracker):
         """ Add a member (group OR user OR service OR idoverrideuser)
             and performs check
         """
-        if u'user' in options:
+        if 'user' in options:
             try:
-                self.attrs[u'member_user'] =\
-                    self.attrs[u'member_user'] + [options[u'user']]
+                self.attrs['member_user'] =\
+                    self.attrs['member_user'] + [options['user']]
             except KeyError:
-                self.attrs[u'member_user'] = [options[u'user']]
-        elif u'group' in options:
+                self.attrs['member_user'] = [options['user']]
+        elif 'group' in options:
             try:
-                self.attrs[u'member_group'] =\
-                    self.attrs[u'member_group'] + [options[u'group']]
+                self.attrs['member_group'] =\
+                    self.attrs['member_group'] + [options['group']]
             except KeyError:
-                self.attrs[u'member_group'] = [options[u'group']]
-        elif u'service' in options:
+                self.attrs['member_group'] = [options['group']]
+        elif 'service' in options:
             try:
-                self.attrs[u'member_service'] =\
-                    self.attrs[u'member_service'] + [options[u'service']]
+                self.attrs['member_service'] =\
+                    self.attrs['member_service'] + [options['service']]
             except KeyError:
-                self.attrs[u'member_service'] = [options[u'service']]
-        elif u'idoverrideuser' in options:
+                self.attrs['member_service'] = [options['service']]
+        elif 'idoverrideuser' in options:
             try:
-                self.attrs[u'member_idoverrideuser'] =\
-                    self.attrs[u'member_idoverrideuser'] + \
-                    [options[u'idoverrideuser']]
+                self.attrs['member_idoverrideuser'] =\
+                    self.attrs['member_idoverrideuser'] + \
+                    [options['idoverrideuser']]
             except KeyError:
-                self.attrs[u'member_idoverrideuser'] =\
-                    [options[u'idoverrideuser']]
+                self.attrs['member_idoverrideuser'] =\
+                    [options['idoverrideuser']]
 
         command = self.make_add_member_command(options)
         result = command()
@@ -168,31 +168,31 @@ class GroupTracker(Tracker):
 
     def remove_member(self, options):
         """ Remove a member (group OR user) and performs check """
-        if u'user' in options:
-            self.attrs[u'member_user'].remove(options[u'user'])
-        elif u'group' in options:
-            self.attrs[u'member_group'].remove(options[u'group'])
-        elif u'service' in options:
-            self.attrs[u'member_service'].remove(options[u'service'])
+        if 'user' in options:
+            self.attrs['member_user'].remove(options['user'])
+        elif 'group' in options:
+            self.attrs['member_group'].remove(options['group'])
+        elif 'service' in options:
+            self.attrs['member_service'].remove(options['service'])
 
         try:
-            if not self.attrs[u'member_user']:
-                del self.attrs[u'member_user']
+            if not self.attrs['member_user']:
+                del self.attrs['member_user']
         except KeyError:
             pass
         try:
-            if not self.attrs[u'member_group']:
-                del self.attrs[u'member_group']
+            if not self.attrs['member_group']:
+                del self.attrs['member_group']
         except KeyError:
             pass
         try:
-            if not self.attrs[u'member_service']:
-                del self.attrs[u'member_service']
+            if not self.attrs['member_service']:
+                del self.attrs['member_service']
         except KeyError:
             pass
         try:
-            if not self.attrs[u'member_idoverrideuser']:
-                del self.attrs[u'member_idoverrideuser']
+            if not self.attrs['member_idoverrideuser']:
+                del self.attrs['member_idoverrideuser']
         except KeyError:
             pass
 
@@ -238,7 +238,7 @@ class GroupTracker(Tracker):
         """ Checks 'group_add' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Added group "%s"' % self.cn,
+            summary='Added group "%s"' % self.cn,
             result=self.filter_attrs(self.create_keys)
             ), result)
 
@@ -246,7 +246,7 @@ class GroupTracker(Tracker):
         """ Checks 'group_del' command result """
         assert_deepequal(dict(
             value=[self.cn],
-            summary=u'Deleted group "%s"' % self.cn,
+            summary='Deleted group "%s"' % self.cn,
             result=dict(failed=[]),
             ), result)
 
@@ -273,7 +273,7 @@ class GroupTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 group matched',
+            summary='1 group matched',
             result=[expected],
         ), result)
 
@@ -281,7 +281,7 @@ class GroupTracker(Tracker):
         """ Checks 'group_mod' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Modified group "%s"' % self.cn,
+            summary='Modified group "%s"' % self.cn,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 
@@ -289,8 +289,8 @@ class GroupTracker(Tracker):
         """ Checks 'group_add_member' command result """
         assert_deepequal(dict(
             completed=1,
-            failed={u'member': {u'group': (), u'user': (),
-                                u'service': (), u'idoverrideuser': ()}},
+            failed={'member': {'group': (), 'user': (),
+                                'service': (), 'idoverrideuser': ()}},
             result=self.filter_attrs(self.add_member_keys)
         ), result)
 
@@ -299,8 +299,8 @@ class GroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'group': (), u'user': (),
-                                u'service': (), u'idoverrideuser': ()}},
+            failed={'member': {'group': (), 'user': (),
+                                'service': (), 'idoverrideuser': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
         if not options:
@@ -308,18 +308,18 @@ class GroupTracker(Tracker):
                 options = self.adds
             except NameError:
                 pass
-        if u'user' in options:
-            expected[u'failed'][u'member'][u'user'] = [(
-                options[u'user'], u'no such entry')]
-        elif u'group' in options:
-            expected[u'failed'][u'member'][u'group'] = [(
-                options[u'group'], u'no such entry')]
-        elif u'service' in options:
-            expected[u'failed'][u'member'][u'service'] = [(
-                options[u'service'], u'no such entry')]
-        elif u'idoverrideuser' in options:
-            expected[u'failed'][u'member'][u'idoverrideuser'] = [(
-                options[u'idoverrideuser'], u'no such entry')]
+        if 'user' in options:
+            expected['failed']['member']['user'] = [(
+                options['user'], 'no such entry')]
+        elif 'group' in options:
+            expected['failed']['member']['group'] = [(
+                options['group'], 'no such entry')]
+        elif 'service' in options:
+            expected['failed']['member']['service'] = [(
+                options['service'], 'no such entry')]
+        elif 'idoverrideuser' in options:
+            expected['failed']['member']['idoverrideuser'] = [(
+                options['idoverrideuser'], 'no such entry')]
 
         assert_deepequal(expected, result)
 
@@ -328,22 +328,22 @@ class GroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'group': (), u'user': (),
-                                u'service': (), u'idoverrideuser': ()}},
+            failed={'member': {'group': (), 'user': (),
+                                'service': (), 'idoverrideuser': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        if u'user' in options:
-            expected[u'failed'][u'member'][u'user'] = [(
-                options[u'user'], u'This entry is not a member')]
-        elif u'group' in options:
-            expected[u'failed'][u'member'][u'group'] = [(
-                options[u'group'], u'This entry is not a member')]
-        elif u'service' in options:
-            expected[u'failed'][u'member'][u'service'] = [(
-                options[u'service'], u'This entry is not a member')]
-        elif u'idoverrideuser' in options:
-            expected[u'failed'][u'member'][u'idoverrideuser'] = [(
-                options[u'service'], u'This entry is not a member')]
+        if 'user' in options:
+            expected['failed']['member']['user'] = [(
+                options['user'], 'This entry is not a member')]
+        elif 'group' in options:
+            expected['failed']['member']['group'] = [(
+                options['group'], 'This entry is not a member')]
+        elif 'service' in options:
+            expected['failed']['member']['service'] = [(
+                options['service'], 'This entry is not a member')]
+        elif 'idoverrideuser' in options:
+            expected['failed']['member']['idoverrideuser'] = [(
+                options['service'], 'This entry is not a member')]
 
         assert_deepequal(expected, result)
 
@@ -365,7 +365,7 @@ class GroupTracker(Tracker):
         """ Checks 'group_detach' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Detached group "%s" from user "%s"' % (
+            summary='Detached group "%s" from user "%s"' % (
                 self.cn, self.cn),
             result=True
         ), result)

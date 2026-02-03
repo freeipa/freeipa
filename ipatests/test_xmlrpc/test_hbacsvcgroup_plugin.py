@@ -27,11 +27,11 @@ from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
 import pytest
 
-hbacsvcgroup1 = u'testhbacsvcgroup1'
+hbacsvcgroup1 = 'testhbacsvcgroup1'
 dn1 = DN(('cn',hbacsvcgroup1),('cn','hbacservicegroups'),('cn','hbac'),
          api.env.basedn)
 
-hbacsvc1 = u'sshd'
+hbacsvc1 = 'sshd'
 hbacsvc_dn1 = DN(('cn',hbacsvc1),('cn','hbacservices'),('cn','hbac'),
                  api.env.basedn)
 
@@ -50,17 +50,17 @@ class test_hbacsvcgroup(Declarative):
             desc='Try to retrieve non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_show', [hbacsvcgroup1], {}),
             expected=errors.NotFound(
-                reason=u'%s: HBAC service group not found' % hbacsvcgroup1),
+                reason='%s: HBAC service group not found' % hbacsvcgroup1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_mod', [hbacsvcgroup1],
-                dict(description=u'Updated hbacsvcgroup 1')
+                dict(description='Updated hbacsvcgroup 1')
             ),
             expected=errors.NotFound(
-                reason=u'%s: HBAC service group not found' % hbacsvcgroup1),
+                reason='%s: HBAC service group not found' % hbacsvcgroup1),
         ),
 
 
@@ -68,23 +68,23 @@ class test_hbacsvcgroup(Declarative):
             desc='Try to delete non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
             expected=errors.NotFound(
-                reason=u'%s: HBAC service group not found' % hbacsvcgroup1),
+                reason='%s: HBAC service group not found' % hbacsvcgroup1),
         ),
 
 
         dict(
             desc='Create %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_add', [hbacsvcgroup1],
-                dict(description=u'Test hbacsvcgroup 1')
+                dict(description='Test hbacsvcgroup 1')
             ),
             expected=dict(
                 value=hbacsvcgroup1,
-                summary=u'Added HBAC service group "testhbacsvcgroup1"',
+                summary='Added HBAC service group "testhbacsvcgroup1"',
                 result=dict(
                     dn=dn1,
                     cn=[hbacsvcgroup1],
                     objectclass=objectclasses.hbacsvcgroup,
-                    description=[u'Test hbacsvcgroup 1'],
+                    description=['Test hbacsvcgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
@@ -94,10 +94,10 @@ class test_hbacsvcgroup(Declarative):
         dict(
             desc='Try to create duplicate %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_add', [hbacsvcgroup1],
-                dict(description=u'Test hbacsvcgroup 1')
+                dict(description='Test hbacsvcgroup 1')
             ),
             expected=errors.DuplicateEntry(
-                message=u'HBAC service group with name "%s" already exists' %
+                message='HBAC service group with name "%s" already exists' %
                     hbacsvcgroup1),
         ),
 
@@ -106,16 +106,16 @@ class test_hbacsvcgroup(Declarative):
             desc='Create service %r' % hbacsvc1,
             command=('hbacsvc_add', [hbacsvc1],
                 dict(
-                    description=u'Test service 1',
+                    description='Test service 1',
                 ),
             ),
             expected=dict(
                 value=hbacsvc1,
-                summary=u'Added HBAC service "%s"' % hbacsvc1,
+                summary='Added HBAC service "%s"' % hbacsvc1,
                 result=dict(
                     dn=hbacsvc_dn1,
                     cn=[hbacsvc1],
-                    description=[u'Test service 1'],
+                    description=['Test service 1'],
                     objectclass=objectclasses.hbacsvc,
                     ipauniqueid=[fuzzy_uuid],
                 ),
@@ -124,7 +124,7 @@ class test_hbacsvcgroup(Declarative):
 
 
         dict(
-            desc=u'Add service %r to %r' % (hbacsvc1, hbacsvcgroup1),
+            desc='Add service %r to %r' % (hbacsvc1, hbacsvcgroup1),
             command=(
                 'hbacsvcgroup_add_member', [hbacsvcgroup1], dict(hbacsvc=hbacsvc1)
             ),
@@ -138,7 +138,7 @@ class test_hbacsvcgroup(Declarative):
                 result={
                     'dn': dn1,
                     'cn': [hbacsvcgroup1],
-                    'description': [u'Test hbacsvcgroup 1'],
+                    'description': ['Test hbacsvcgroup 1'],
                     'member_hbacsvc': [hbacsvc1],
                 },
             ),
@@ -155,7 +155,7 @@ class test_hbacsvcgroup(Declarative):
                     'dn': dn1,
                     'member_hbacsvc': [hbacsvc1],
                     'cn': [hbacsvcgroup1],
-                    'description': [u'Test hbacsvcgroup 1'],
+                    'description': ['Test hbacsvcgroup 1'],
                 },
             ),
         ),
@@ -168,13 +168,13 @@ class test_hbacsvcgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 HBAC service group matched',
+                summary='1 HBAC service group matched',
                 result=[
                     {
                         'dn': dn1,
                         'member_hbacsvc': [hbacsvc1],
                         'cn': [hbacsvcgroup1],
-                        'description': [u'Test hbacsvcgroup 1'],
+                        'description': ['Test hbacsvcgroup 1'],
                     },
                 ],
             ),
@@ -187,12 +187,12 @@ class test_hbacsvcgroup(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 HBAC service group matched',
+                summary='1 HBAC service group matched',
                 result=[
                     {
                         'dn': dn1,
                         'cn': [hbacsvcgroup1],
-                        'description': [u'Test hbacsvcgroup 1'],
+                        'description': ['Test hbacsvcgroup 1'],
                     },
                 ],
             ),
@@ -202,14 +202,14 @@ class test_hbacsvcgroup(Declarative):
         dict(
             desc='Update %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_mod', [hbacsvcgroup1],
-                dict(description=u'Updated hbacsvcgroup 1')
+                dict(description='Updated hbacsvcgroup 1')
             ),
             expected=dict(
                 value=hbacsvcgroup1,
-                summary=u'Modified HBAC service group "testhbacsvcgroup1"',
+                summary='Modified HBAC service group "testhbacsvcgroup1"',
                 result=dict(
                     cn=[hbacsvcgroup1],
-                    description=[u'Updated hbacsvcgroup 1'],
+                    description=['Updated hbacsvcgroup 1'],
                     member_hbacsvc=[hbacsvc1],
                 ),
             ),
@@ -226,7 +226,7 @@ class test_hbacsvcgroup(Declarative):
                     'dn': dn1,
                     'member_hbacsvc': [hbacsvc1],
                     'cn': [hbacsvcgroup1],
-                    'description': [u'Updated hbacsvcgroup 1'],
+                    'description': ['Updated hbacsvcgroup 1'],
                 },
             ),
         ),
@@ -247,7 +247,7 @@ class test_hbacsvcgroup(Declarative):
                 result={
                     'dn': dn1,
                     'cn': [hbacsvcgroup1],
-                    'description': [u'Updated hbacsvcgroup 1'],
+                    'description': ['Updated hbacsvcgroup 1'],
                 },
             ),
         ),
@@ -258,7 +258,7 @@ class test_hbacsvcgroup(Declarative):
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
             expected=dict(
                 value=[hbacsvcgroup1],
-                summary=u'Deleted HBAC service group "testhbacsvcgroup1"',
+                summary='Deleted HBAC service group "testhbacsvcgroup1"',
                 result=dict(failed=[]),
             ),
         ),
@@ -269,7 +269,7 @@ class test_hbacsvcgroup(Declarative):
             command=('hbacsvc_del', [hbacsvc1], {}),
             expected=dict(
                 value=[hbacsvc1],
-                summary=u'Deleted HBAC service "%s"' % hbacsvc1,
+                summary='Deleted HBAC service "%s"' % hbacsvc1,
                 result=dict(failed=[]),
             ),
         )

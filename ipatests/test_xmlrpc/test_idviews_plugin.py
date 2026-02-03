@@ -23,7 +23,6 @@ Test the `ipalib.plugins.idviews` module.
 
 import re
 
-import six
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
@@ -36,66 +35,63 @@ from ipatests.util import Fuzzy
 from ipapython.dn import DN
 import pytest
 
-if six.PY3:
-    unicode = str
 
+idview1 = 'idview1'
+idview2 = 'idview2'
 
-idview1 = u'idview1'
-idview2 = u'idview2'
+hostgroup1 = 'hostgroup1'
+hostgroup2 = 'hostgroup2'
 
-hostgroup1 = u'hostgroup1'
-hostgroup2 = u'hostgroup2'
+idoverrideuser1 = 'testuser'
+idoverridegroup1 = 'testgroup'
 
-idoverrideuser1 = u'testuser'
-idoverridegroup1 = u'testgroup'
+idoverrideuser_removed = 'testuser-removed'
+idoverridegroup_removed = 'testgroup-removed'
 
-idoverrideuser_removed = u'testuser-removed'
-idoverridegroup_removed = u'testgroup-removed'
+nonexistentuser = 'nonexistentuser'
+nonexistentgroup = 'nonexistentgroup'
 
-nonexistentuser = u'nonexistentuser'
-nonexistentgroup = u'nonexistentgroup'
+host1 = 'testhost1'
+host2 = 'testhost2'
+host3 = 'testhost3'
+host4 = 'testhost4'
 
-host1 = u'testhost1'
-host2 = u'testhost2'
-host3 = u'testhost3'
-host4 = u'testhost4'
-
-sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
+sshpubkey = ('ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
               'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
               'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
               'No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNm'
               'cSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM01'
               '9Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF'
               '0L public key test')
-sshpubkeyfp = (u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
+sshpubkeyfp = ('SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
                 'public key test (ssh-rsa)')
 
 
 # Test helpers
 def get_idview_dn(name):
-    return u"cn={name},cn=views,cn=accounts,{suffix}".format(
+    return "cn={name},cn=views,cn=accounts,{suffix}".format(
             name=name,
             suffix=api.env.basedn,
         )
 
 
 def get_override_dn(view, anchor):
-    return Fuzzy(u"ipaanchoruuid=:IPA:{domain}:{uuid},"
+    return Fuzzy("ipaanchoruuid=:IPA:{domain}:{uuid},"
                   "cn={view},"
                   "cn=views,cn=accounts,{suffix}"
                   .format(uuid=uuid_re,
-                          domain=re.escape(unicode(api.env.domain)),
+                          domain=re.escape(str(api.env.domain)),
                           view=re.escape(view),
-                          suffix=re.escape(unicode(api.env.basedn)),
+                          suffix=re.escape(str(api.env.basedn)),
     ))
 
 
 def get_fqdn(host):
-    return u'{short}.{domain}'.format(short=host, domain=api.env.domain)
+    return '{short}.{domain}'.format(short=host, domain=api.env.domain)
 
 
 def get_host_principal(host):
-    return u'host/%s@%s' % (get_fqdn(host), api.env.realm)
+    return 'host/%s@%s' % (get_fqdn(host), api.env.realm)
 
 
 def get_host_dn(host):
@@ -139,15 +135,15 @@ class test_idviews(Declarative):
             desc='Try to retrieve non-existent ID View "%s"' % idview1,
             command=('idview_show', [idview1], {}),
             expected=errors.NotFound(
-                reason=u'%s: ID View not found' % idview1
+                reason='%s: ID View not found' % idview1
             ),
         ),
 
         dict(
             desc='Try to update non-existent ID View "%s"' % idview1,
-            command=('idview_mod', [idview1], dict(description=u'description')),
+            command=('idview_mod', [idview1], dict(description='description')),
             expected=errors.NotFound(
-                reason=u'%s: ID View not found' % idview1
+                reason='%s: ID View not found' % idview1
             ),
         ),
 
@@ -155,15 +151,15 @@ class test_idviews(Declarative):
             desc='Try to delete non-existent ID View "%s"' % idview1,
             command=('idview_del', [idview1], {}),
             expected=errors.NotFound(
-                reason=u'%s: ID View not found' % idview1
+                reason='%s: ID View not found' % idview1
             ),
         ),
 
         dict(
             desc='Try to rename non-existent ID View "%s"' % idview1,
-            command=('idview_mod', [idview1], dict(setattr=u'cn=renamedview')),
+            command=('idview_mod', [idview1], dict(setattr='cn=renamedview')),
             expected=errors.NotFound(
-                reason=u'%s: ID View not found' % idview1
+                reason='%s: ID View not found' % idview1
             ),
         ),
 
@@ -176,7 +172,7 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idview1,
-                summary=u'Added ID View "%s"' % idview1,
+                summary='Added ID View "%s"' % idview1,
                 result=dict(
                     dn=get_idview_dn(idview1),
                     objectclass=objectclasses.idview,
@@ -193,7 +189,7 @@ class test_idviews(Declarative):
                 {}
             ),
             expected=errors.DuplicateEntry(
-                message=u'ID View with name "%s" already exists' % idview1
+                message='ID View with name "%s" already exists' % idview1
             ),
         ),
 
@@ -205,17 +201,17 @@ class test_idviews(Declarative):
                 'user_add',
                 [idoverrideuser1],
                 dict(
-                    givenname=u'Test',
-                    sn=u'User1',
+                    givenname='Test',
+                    sn='User1',
                 )
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Added user "%s"' % idoverrideuser1,
+                summary='Added user "%s"' % idoverrideuser1,
                 result=get_user_result(
                     idoverrideuser1,
-                    u'Test',
-                    u'User1',
+                    'Test',
+                    'User1',
                     'add',
                     objectclass=fuzzy_set_optional_oc(
                         objectclasses.user, 'ipantuserattrs'),
@@ -228,14 +224,14 @@ class test_idviews(Declarative):
             command=(
                 'group_add',
                 [idoverridegroup1],
-                dict(description=u'Test desc 1')
+                dict(description='Test desc 1')
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Added group "%s"' % idoverridegroup1,
+                summary='Added group "%s"' % idoverridegroup1,
                 result=dict(
                     cn=[idoverridegroup1],
-                    description=[u'Test desc 1'],
+                    description=['Test desc 1'],
                     objectclass=fuzzy_set_optional_oc(
                         objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
@@ -261,7 +257,7 @@ class test_idviews(Declarative):
                  'for non-existent object "%s"' % nonexistentuser,
             command=('idoverrideuser_mod',
                      [idview1, nonexistentuser],
-                     dict(uid=u'randomuser')),
+                     dict(uid='randomuser')),
             expected=errors.NotFound(
                 reason="%s: user not found" % nonexistentuser
             ),
@@ -283,7 +279,7 @@ class test_idviews(Declarative):
                  'for non-existent object "%s"' % nonexistentuser,
             command=('idoverrideuser_mod',
                      [idview1, nonexistentuser],
-                     dict(setattr=u'ipaanchoruuid=:IPA:dom:renamedoverride')),
+                     dict(setattr='ipaanchoruuid=:IPA:dom:renamedoverride')),
             expected=errors.NotFound(
                 reason="%s: user not found" % nonexistentuser
             ),
@@ -303,7 +299,7 @@ class test_idviews(Declarative):
                  'for non-existent object "%s"' % nonexistentgroup,
             command=('idoverridegroup_mod',
                      [idview1, nonexistentgroup],
-                     dict(cn=u'randomnewname')),
+                     dict(cn='randomnewname')),
             expected=errors.NotFound(
                 reason="%s: group not found" % nonexistentgroup
             ),
@@ -325,7 +321,7 @@ class test_idviews(Declarative):
                  'for non-existent object "%s"' % nonexistentgroup,
             command=('idoverridegroup_mod',
                      [idview1, nonexistentgroup],
-                     dict(setattr=u'ipaanchoruuid=:IPA:dom:renamedoverride')),
+                     dict(setattr='ipaanchoruuid=:IPA:dom:renamedoverride')),
             expected=errors.NotFound(
                 reason="%s: group not found" % nonexistentgroup
             ),
@@ -339,7 +335,7 @@ class test_idviews(Declarative):
                   % idoverrideuser1,
             command=('idoverrideuser_show', [idview1, idoverrideuser1], {}),
             expected=errors.NotFound(
-                reason=u'%s: User ID override not found' % idoverrideuser1
+                reason='%s: User ID override not found' % idoverrideuser1
             ),
         ),
 
@@ -348,8 +344,8 @@ class test_idviews(Declarative):
                   % idoverrideuser1,
             command=('idoverrideuser_mod',
                      [idview1, idoverrideuser1],
-                     dict(uid=u'randomuser')),
-            expected=errors.NotFound(reason=u'no such entry'),
+                     dict(uid='randomuser')),
+            expected=errors.NotFound(reason='no such entry'),
         ),
 
         dict(
@@ -359,7 +355,7 @@ class test_idviews(Declarative):
                      [idview1, idoverrideuser1],
                      {}),
             expected=errors.NotFound(
-                reason=u'%s: User ID override not found' % idoverrideuser1
+                reason='%s: User ID override not found' % idoverrideuser1
             ),
         ),
 
@@ -368,8 +364,8 @@ class test_idviews(Declarative):
                   % idoverrideuser1,
             command=('idoverrideuser_mod',
                      [idview1, idoverrideuser1],
-                     dict(setattr=u'ipaanchoruuid=:IPA:dom:renamedoverride')),
-            expected=errors.NotFound(reason=u'no such entry'),
+                     dict(setattr='ipaanchoruuid=:IPA:dom:renamedoverride')),
+            expected=errors.NotFound(reason='no such entry'),
         ),
 
         dict(
@@ -377,7 +373,7 @@ class test_idviews(Declarative):
                   % idoverridegroup1,
             command=('idoverridegroup_show', [idview1, idoverridegroup1], {}),
             expected=errors.NotFound(
-                reason=u'%s: Group ID override not found' % idoverridegroup1
+                reason='%s: Group ID override not found' % idoverridegroup1
             ),
         ),
 
@@ -386,9 +382,9 @@ class test_idviews(Declarative):
                   % idoverridegroup1,
             command=('idoverridegroup_mod',
                      [idview1, idoverridegroup1],
-                     dict(cn=u'randomnewname')),
+                     dict(cn='randomnewname')),
             expected=errors.NotFound(
-                reason=u'%s: Group ID override not found' % idoverridegroup1
+                reason='%s: Group ID override not found' % idoverridegroup1
             ),
         ),
 
@@ -399,7 +395,7 @@ class test_idviews(Declarative):
                      [idview1, idoverridegroup1],
                      {}),
             expected=errors.NotFound(
-                reason=u'%s: Group ID override not found' % idoverridegroup1
+                reason='%s: Group ID override not found' % idoverridegroup1
             ),
         ),
 
@@ -408,9 +404,9 @@ class test_idviews(Declarative):
                   % idoverridegroup1,
             command=('idoverridegroup_mod',
                      [idview1, idoverridegroup1],
-                     dict(setattr=u'ipaanchoruuid=:IPA:dom:renamedoverride')),
+                     dict(setattr='ipaanchoruuid=:IPA:dom:renamedoverride')),
             expected=errors.NotFound(
-                reason=u'%s: Group ID override not found' % idoverridegroup1
+                reason='%s: Group ID override not found' % idoverridegroup1
             ),
         ),
 
@@ -421,17 +417,17 @@ class test_idviews(Declarative):
             command=(
                 'idoverrideuser_add',
                 [idview1, idoverrideuser1],
-                dict(description=u'description')
+                dict(description='description')
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Added User ID override "%s"' % idoverrideuser1,
+                summary='Added User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description']
+                    description=['description']
                 )
             ),
         ),
@@ -441,10 +437,10 @@ class test_idviews(Declarative):
             command=(
                 'idoverrideuser_add',
                 [idview1, idoverrideuser1],
-                dict(description=u'description')
+                dict(description='description')
             ),
             expected=errors.DuplicateEntry(
-                message=(u'User ID override with name "%s" '
+                message=('User ID override with name "%s" '
                           'already exists' % idoverrideuser1)
             ),
         ),
@@ -459,14 +455,14 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                summary='Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description'],
-                    uidnumber=[u'12345'],
+                    description=['description'],
+                    uidnumber=['12345'],
                 )
             ),
         ),
@@ -481,13 +477,13 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                summary='Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description']
+                    description=['description']
                 )
             ),
         ),
@@ -497,18 +493,18 @@ class test_idviews(Declarative):
             command=(
                 'idoverrideuser_mod',
                 [idview1, idoverrideuser1],
-                dict(uid=u'newlogin', all=True)
+                dict(uid='newlogin', all=True)
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                summary='Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description'],
-                    uid=[u'newlogin'],
+                    description=['description'],
+                    uid=['newlogin'],
                 )
             ),
         ),
@@ -520,19 +516,19 @@ class test_idviews(Declarative):
             command=(
                 'idoverrideuser_mod',
                 [idview1, idoverrideuser1],
-                dict(homedirectory=u'/home/newhome', all=True)
+                dict(homedirectory='/home/newhome', all=True)
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                summary='Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description'],
-                    homedirectory=[u'/home/newhome'],
-                    uid=[u'newlogin'],
+                    description=['description'],
+                    homedirectory=['/home/newhome'],
+                    uid=['newlogin'],
                 )
             ),
         ),
@@ -547,15 +543,15 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                summary='Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description'],
-                    homedirectory=[u'/home/newhome'],
-                    uid=[u'newlogin'],
+                    description=['description'],
+                    homedirectory=['/home/newhome'],
+                    uid=['newlogin'],
                     ipasshpubkey=[sshpubkey],
                     sshpubkeyfp=[sshpubkeyfp],
                 )
@@ -572,15 +568,15 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                summary='Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description'],
-                    homedirectory=[u'/home/newhome'],
-                    uid=[u'newlogin'],
+                    description=['description'],
+                    homedirectory=['/home/newhome'],
+                    uid=['newlogin'],
                 )
             ),
         ),
@@ -591,7 +587,7 @@ class test_idviews(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[idoverrideuser1],
-                summary=u'Deleted User ID override "%s"' % idoverrideuser1,
+                summary='Deleted User ID override "%s"' % idoverrideuser1,
             ),
         ),
 
@@ -600,25 +596,25 @@ class test_idviews(Declarative):
             command=(
                 'idoverrideuser_add',
                 [idview1, idoverrideuser1],
-                dict(description=u'description',
-                     homedirectory=u'/home/newhome',
-                     uid=u'newlogin',
+                dict(description='description',
+                     homedirectory='/home/newhome',
+                     uid='newlogin',
                      uidnumber=12345,
                      ipasshpubkey=sshpubkey,
                 )
             ),
             expected=dict(
                 value=idoverrideuser1,
-                summary=u'Added User ID override "%s"' % idoverrideuser1,
+                summary='Added User ID override "%s"' % idoverrideuser1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
-                    description=[u'description'],
-                    homedirectory=[u'/home/newhome'],
-                    uidnumber=[u'12345'],
-                    uid=[u'newlogin'],
+                    description=['description'],
+                    homedirectory=['/home/newhome'],
+                    uidnumber=['12345'],
+                    uid=['newlogin'],
                     ipasshpubkey=[sshpubkey],
                     sshpubkeyfp=[sshpubkeyfp],
                 )
@@ -630,16 +626,16 @@ class test_idviews(Declarative):
             command=(
                 'idoverridegroup_add',
                 [idview1, idoverridegroup1],
-                dict(description=u'description')
+                dict(description='description')
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Added Group ID override "%s"' % idoverridegroup1,
+                summary='Added Group ID override "%s"' % idoverridegroup1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
-                    description=[u'description']
+                    description=['description']
                 )
             ),
         ),
@@ -650,10 +646,10 @@ class test_idviews(Declarative):
             command=(
                 'idoverridegroup_add',
                 [idview1, idoverridegroup1],
-                dict(description=u'description')
+                dict(description='description')
             ),
             expected=errors.DuplicateEntry(
-                message=(u'Group ID override with name "%s" '
+                message=('Group ID override with name "%s" '
                           'already exists' % idoverridegroup1)
             ),
         ),
@@ -668,14 +664,14 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Modified an Group ID override "%s"'
+                summary='Modified an Group ID override "%s"'
                         % idoverridegroup1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
-                    description=[u'description'],
-                    gidnumber=[u'54321'],
+                    description=['description'],
+                    gidnumber=['54321'],
                 )
             ),
         ),
@@ -690,13 +686,13 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Modified an Group ID override "%s"'
+                summary='Modified an Group ID override "%s"'
                         % idoverridegroup1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
-                    description=[u'description']
+                    description=['description']
                 )
             ),
         ),
@@ -707,18 +703,18 @@ class test_idviews(Declarative):
             command=(
                 'idoverridegroup_mod',
                 [idview1, idoverridegroup1],
-                dict(cn=u'newgroup', all=True)
+                dict(cn='newgroup', all=True)
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Modified an Group ID override "%s"'
+                summary='Modified an Group ID override "%s"'
                         % idoverridegroup1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
-                    description=[u'description'],
-                    cn=[u'newgroup'],
+                    description=['description'],
+                    cn=['newgroup'],
                 )
             ),
         ),
@@ -729,7 +725,7 @@ class test_idviews(Declarative):
             expected=dict(
                 result=dict(failed=[]),
                 value=[idoverridegroup1],
-                summary=u'Deleted Group ID override "%s"' % idoverridegroup1,
+                summary='Deleted Group ID override "%s"' % idoverridegroup1,
             ),
         ),
 
@@ -738,21 +734,21 @@ class test_idviews(Declarative):
             command=(
                 'idoverridegroup_add',
                 [idview1, idoverridegroup1],
-                dict(description=u'description',
-                     cn=u'newgroup',
+                dict(description='description',
+                     cn='newgroup',
                      gidnumber=12345,
                 )
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Added Group ID override "%s"' % idoverridegroup1,
+                summary='Added Group ID override "%s"' % idoverridegroup1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
-                    description=[u'description'],
-                    gidnumber=[u'12345'],
-                    cn=[u'newgroup'],
+                    description=['description'],
+                    gidnumber=['12345'],
+                    cn=['newgroup'],
                 )
             ),
         ),
@@ -781,7 +777,7 @@ class test_idviews(Declarative):
         # Test ID View applying to a master
         # Try to apply to the localhost = master
         dict(
-            desc=u'Apply %s to %s' % (idview1, api.env.host),
+            desc='Apply %s to %s' % (idview1, api.env.host),
             command=(
                 'idview_apply',
                 [idview1],
@@ -795,20 +791,20 @@ class test_idviews(Declarative):
                 failed=dict(
                     memberhost=dict(
                         host=([api.env.host,
-                               u'ID View cannot be applied to IPA master'],),
+                               'ID View cannot be applied to IPA master'],),
                         hostgroup=tuple(),
                     ),
                 ),
-                summary=u'Applied ID View "%s"' % idview1,
+                summary='Applied ID View "%s"' % idview1,
             ),
         ),
         # Try to apply to the group ipaservers = all masters
         dict(
-            desc=u'Apply %s to %s' % (idview1, 'ipaservers'),
+            desc='Apply %s to %s' % (idview1, 'ipaservers'),
             command=(
                 'idview_apply',
                 [idview1],
-                dict(hostgroup=u'ipaservers')
+                dict(hostgroup='ipaservers')
             ),
             expected=dict(
                 completed=0,
@@ -818,11 +814,11 @@ class test_idviews(Declarative):
                 failed=dict(
                     memberhost=dict(
                         host=([api.env.host,
-                               u'ID View cannot be applied to IPA master'],),
+                               'ID View cannot be applied to IPA master'],),
                         hostgroup=tuple(),
                     ),
                 ),
-                summary=u'Applied ID View "%s"' % idview1,
+                summary='Applied ID View "%s"' % idview1,
             ),
         ),
 
@@ -832,23 +828,23 @@ class test_idviews(Declarative):
             desc='Create %r' % host1,
             command=('host_add', [get_fqdn(host1)],
                 dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
+                    description='Test host 1',
+                    l='Undisclosed location 1',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=get_fqdn(host1),
-                summary=u'Added host "%s"' % get_fqdn(host1),
+                summary='Added host "%s"' % get_fqdn(host1),
                 result=dict(
                     dn=get_host_dn(host1),
                     fqdn=[get_fqdn(host1)],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
                     krbprincipalname=[
-                        u'host/%s@%s' % (get_fqdn(host1), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host1), api.env.realm)],
                     krbcanonicalname=[
-                        u'host/%s@%s' % (get_fqdn(host1), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host1), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[get_fqdn(host1)],
@@ -862,23 +858,23 @@ class test_idviews(Declarative):
             desc='Create %r' % host2,
             command=('host_add', [get_fqdn(host2)],
                 dict(
-                    description=u'Test host 2',
-                    l=u'Undisclosed location 2',
+                    description='Test host 2',
+                    l='Undisclosed location 2',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=get_fqdn(host2),
-                summary=u'Added host "%s"' % get_fqdn(host2),
+                summary='Added host "%s"' % get_fqdn(host2),
                 result=dict(
                     dn=get_host_dn(host2),
                     fqdn=[get_fqdn(host2)],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
+                    description=['Test host 2'],
+                    l=['Undisclosed location 2'],
                     krbprincipalname=[
-                        u'host/%s@%s' % (get_fqdn(host2), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host2), api.env.realm)],
                     krbcanonicalname=[
-                        u'host/%s@%s' % (get_fqdn(host2), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host2), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[get_fqdn(host2)],
@@ -892,23 +888,23 @@ class test_idviews(Declarative):
             desc='Create %r' % host3,
             command=('host_add', [get_fqdn(host3)],
                 dict(
-                    description=u'Test host 3',
-                    l=u'Undisclosed location 3',
+                    description='Test host 3',
+                    l='Undisclosed location 3',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=get_fqdn(host3),
-                summary=u'Added host "%s"' % get_fqdn(host3),
+                summary='Added host "%s"' % get_fqdn(host3),
                 result=dict(
                     dn=get_host_dn(host3),
                     fqdn=[get_fqdn(host3)],
-                    description=[u'Test host 3'],
-                    l=[u'Undisclosed location 3'],
+                    description=['Test host 3'],
+                    l=['Undisclosed location 3'],
                     krbprincipalname=[
-                        u'host/%s@%s' % (get_fqdn(host3), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host3), api.env.realm)],
                     krbcanonicalname=[
-                        u'host/%s@%s' % (get_fqdn(host3), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host3), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[get_fqdn(host3)],
@@ -921,16 +917,16 @@ class test_idviews(Declarative):
         dict(
             desc='Create %r' % hostgroup1,
             command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
+                dict(description='Test hostgroup 1')
             ),
             expected=dict(
                 value=hostgroup1,
-                summary=u'Added hostgroup "%s"' % hostgroup1,
+                summary='Added hostgroup "%s"' % hostgroup1,
                 result=dict(
                     dn=get_hostgroup_dn(hostgroup1),
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 1'],
+                    description=['Test hostgroup 1'],
                     ipauniqueid=[fuzzy_uuid],
                     mepmanagedentry=[get_hostgroup_netgroup_dn(hostgroup1)],
                 ),
@@ -940,16 +936,16 @@ class test_idviews(Declarative):
         dict(
             desc='Create %r' % hostgroup1,
             command=('hostgroup_add', [hostgroup2],
-                dict(description=u'Test hostgroup 2')
+                dict(description='Test hostgroup 2')
             ),
             expected=dict(
                 value=hostgroup2,
-                summary=u'Added hostgroup "%s"' % hostgroup2,
+                summary='Added hostgroup "%s"' % hostgroup2,
                 result=dict(
                     dn=get_hostgroup_dn(hostgroup2),
                     cn=[hostgroup2],
                     objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 2'],
+                    description=['Test hostgroup 2'],
                     ipauniqueid=[fuzzy_uuid],
                     mepmanagedentry=[get_hostgroup_netgroup_dn(hostgroup2)],
                 ),
@@ -957,7 +953,7 @@ class test_idviews(Declarative):
         ),
 
         dict(
-            desc=u'Add host %r to %r' % (host1, hostgroup1),
+            desc='Add host %r to %r' % (host1, hostgroup1),
             command=(
                 'hostgroup_add_member',
                 [hostgroup1],
@@ -974,14 +970,14 @@ class test_idviews(Declarative):
                 result={
                     'dn': get_hostgroup_dn(hostgroup1),
                     'cn': [hostgroup1],
-                    'description': [u'Test hostgroup 1'],
+                    'description': ['Test hostgroup 1'],
                     'member_host': [get_fqdn(host1)],
                 },
             ),
         ),
 
         dict(
-            desc=u'Add host %r to %r' % (host2, hostgroup2),
+            desc='Add host %r to %r' % (host2, hostgroup2),
             command=(
                 'hostgroup_add_member',
                 [hostgroup2],
@@ -998,14 +994,14 @@ class test_idviews(Declarative):
                 result={
                     'dn': get_hostgroup_dn(hostgroup2),
                     'cn': [hostgroup2],
-                    'description': [u'Test hostgroup 2'],
+                    'description': ['Test hostgroup 2'],
                     'member_host': [get_fqdn(host2)],
                 },
             ),
         ),
 
         dict(
-            desc=u'Add hostgroup %r to %r' % (hostgroup2, hostgroup1),
+            desc='Add hostgroup %r to %r' % (hostgroup2, hostgroup1),
             command=(
                 'hostgroup_add_member',
                 [hostgroup1],
@@ -1022,7 +1018,7 @@ class test_idviews(Declarative):
                 result={
                     'dn': get_hostgroup_dn(hostgroup1),
                     'cn': [hostgroup1],
-                    'description': [u'Test hostgroup 1'],
+                    'description': ['Test hostgroup 1'],
                     'member_host': [get_fqdn(host1)],
                     'memberindirect_host': [get_fqdn(host2)],
                     'member_hostgroup': [hostgroup2],
@@ -1031,7 +1027,7 @@ class test_idviews(Declarative):
         ),
 
         dict(
-            desc=u'Apply %s to %s' % (idview1, host3),
+            desc='Apply %s to %s' % (idview1, host3),
             command=(
                 'idview_apply',
                 [idview1],
@@ -1048,7 +1044,7 @@ class test_idviews(Declarative):
                         hostgroup=tuple(),
                     ),
                 ),
-                summary=u'Applied ID View "%s"' % idview1,
+                summary='Applied ID View "%s"' % idview1,
             ),
         ),
 
@@ -1062,8 +1058,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host3)],
                     dn=get_host_dn(host3),
                     fqdn=[get_fqdn(host3)],
-                    description=[u'Test host 3'],
-                    l=[u'Undisclosed location 3'],
+                    description=['Test host 3'],
+                    l=['Undisclosed location 3'],
                     krbprincipalname=[get_host_principal(host3)],
                     krbcanonicalname=[get_host_principal(host3)],
                     has_keytab=False,
@@ -1078,7 +1074,7 @@ class test_idviews(Declarative):
                     ipaassignedidview=[idview1],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1096,8 +1092,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host2)],
                     dn=get_host_dn(host2),
                     fqdn=[get_fqdn(host2)],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
+                    description=['Test host 2'],
+                    l=['Undisclosed location 2'],
                     krbprincipalname=[get_host_principal(host2)],
                     krbcanonicalname=[get_host_principal(host2)],
                     has_keytab=False,
@@ -1113,7 +1109,7 @@ class test_idviews(Declarative):
                     memberofindirect_hostgroup=[hostgroup1],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1123,7 +1119,7 @@ class test_idviews(Declarative):
 
 
         dict(
-            desc=u'Apply %s to %s' % (idview1, hostgroup1),
+            desc='Apply %s to %s' % (idview1, hostgroup1),
             command=(
                 'idview_apply',
                 [idview1],
@@ -1140,7 +1136,7 @@ class test_idviews(Declarative):
                         hostgroup=tuple(),
                     ),
                 ),
-                summary=u'Applied ID View "%s"' % idview1,
+                summary='Applied ID View "%s"' % idview1,
             ),
         ),
 
@@ -1154,8 +1150,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host2)],
                     dn=get_host_dn(host2),
                     fqdn=[get_fqdn(host2)],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
+                    description=['Test host 2'],
+                    l=['Undisclosed location 2'],
                     krbprincipalname=[get_host_principal(host2)],
                     krbcanonicalname=[get_host_principal(host2)],
                     has_keytab=False,
@@ -1172,7 +1168,7 @@ class test_idviews(Declarative):
                     ipaassignedidview=[idview1],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1190,8 +1186,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host1)],
                     dn=get_host_dn(host1),
                     fqdn=[get_fqdn(host1)],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
                     krbprincipalname=[get_host_principal(host1)],
                     krbcanonicalname=[get_host_principal(host1)],
                     has_keytab=False,
@@ -1207,7 +1203,7 @@ class test_idviews(Declarative):
                     ipaassignedidview=[idview1],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1238,7 +1234,7 @@ class test_idviews(Declarative):
         ),
 
         dict(
-            desc=u'Unapply %s from %s and %s' % (idview1, host1, host3),
+            desc='Unapply %s from %s and %s' % (idview1, host1, host3),
             command=(
                 'idview_unapply',
                 [],
@@ -1255,7 +1251,7 @@ class test_idviews(Declarative):
                         hostgroup=tuple(),
                     ),
                 ),
-                summary=u'Cleared ID Views',
+                summary='Cleared ID Views',
             ),
         ),
 
@@ -1269,8 +1265,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host1)],
                     dn=get_host_dn(host1),
                     fqdn=[get_fqdn(host1)],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
+                    description=['Test host 1'],
+                    l=['Undisclosed location 1'],
                     krbprincipalname=[get_host_principal(host1)],
                     krbcanonicalname=[get_host_principal(host1)],
                     has_keytab=False,
@@ -1285,7 +1281,7 @@ class test_idviews(Declarative):
                     memberof_hostgroup=[hostgroup1],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1303,8 +1299,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host3)],
                     dn=get_host_dn(host3),
                     fqdn=[get_fqdn(host3)],
-                    description=[u'Test host 3'],
-                    l=[u'Undisclosed location 3'],
+                    description=['Test host 3'],
+                    l=['Undisclosed location 3'],
                     krbprincipalname=[get_host_principal(host3)],
                     krbcanonicalname=[get_host_principal(host3)],
                     has_keytab=False,
@@ -1318,7 +1314,7 @@ class test_idviews(Declarative):
                     serverhostname=[host3],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1348,7 +1344,7 @@ class test_idviews(Declarative):
         ),
 
         dict(
-            desc=u'Unapply %s from %s' % (idview1, hostgroup2),
+            desc='Unapply %s from %s' % (idview1, hostgroup2),
             command=(
                 'idview_unapply',
                 [],
@@ -1365,7 +1361,7 @@ class test_idviews(Declarative):
                         hostgroup=tuple(),
                     ),
                 ),
-                summary=u'Cleared ID Views',
+                summary='Cleared ID Views',
             ),
         ),
 
@@ -1396,7 +1392,7 @@ class test_idviews(Declarative):
             command=('idoverrideuser_del', [idview1, idoverrideuser1], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted User ID override "%s"' % idoverrideuser1,
+                summary='Deleted User ID override "%s"' % idoverrideuser1,
                 value=[idoverrideuser1],
             ),
         ),
@@ -1406,7 +1402,7 @@ class test_idviews(Declarative):
             command=('idoverridegroup_del', [idview1, idoverridegroup1], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted Group ID override "%s"' % idoverridegroup1,
+                summary='Deleted Group ID override "%s"' % idoverridegroup1,
                 value=[idoverridegroup1],
             ),
         ),
@@ -1418,7 +1414,7 @@ class test_idviews(Declarative):
             command=('idview_del', [idview1], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted ID View "%s"' % idview1,
+                summary='Deleted ID View "%s"' % idview1,
                 value=[idview1],
             ),
         ),
@@ -1434,7 +1430,7 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idview1,
-                summary=u'Added ID View "%s"' % idview1,
+                summary='Added ID View "%s"' % idview1,
                 result=dict(
                     dn=get_idview_dn(idview1),
                     objectclass=objectclasses.idview,
@@ -1448,17 +1444,17 @@ class test_idviews(Declarative):
                 command=(
                     'idoverrideuser_add',
                     [idview1, idoverrideuser1],
-                    dict(description=u'description')
+                    dict(description='description')
                 ),
                 expected=dict(
                     value=idoverrideuser1,
-                    summary=u'Added User ID override "%s"' % idoverrideuser1,
+                    summary='Added User ID override "%s"' % idoverrideuser1,
                     result=dict(
                         dn=get_override_dn(idview1, idoverrideuser1),
                         objectclass=objectclasses.idoverrideuser,
                         ipaanchoruuid=[idoverrideuser1],
                         ipaoriginaluid=[idoverrideuser1],
-                        description=[u'description']
+                        description=['description']
                     )
                 ),
             ),
@@ -1468,16 +1464,16 @@ class test_idviews(Declarative):
             command=(
                 'idoverridegroup_add',
                 [idview1, idoverridegroup1],
-                dict(description=u'description')
+                dict(description='description')
             ),
             expected=dict(
                 value=idoverridegroup1,
-                summary=u'Added Group ID override "%s"' % idoverridegroup1,
+                summary='Added Group ID override "%s"' % idoverridegroup1,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
-                    description=[u'description'],
+                    description=['description'],
                 )
             ),
         ),
@@ -1487,7 +1483,7 @@ class test_idviews(Declarative):
             command=('idview_del', [idview1], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted ID View "%s"' % idview1,
+                summary='Deleted ID View "%s"' % idview1,
                 value=[idview1],
             ),
         ),
@@ -1504,7 +1500,7 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idview1,
-                summary=u'Added ID View "%s"' % idview1,
+                summary='Added ID View "%s"' % idview1,
                 result=dict(
                     dn=get_idview_dn(idview1),
                     objectclass=objectclasses.idview,
@@ -1517,23 +1513,23 @@ class test_idviews(Declarative):
             desc='Create %r' % host4,
             command=('host_add', [get_fqdn(host4)],
                 dict(
-                    description=u'Test host 4',
-                    l=u'Undisclosed location 4',
+                    description='Test host 4',
+                    l='Undisclosed location 4',
                     force=True,
                 ),
             ),
             expected=dict(
                 value=get_fqdn(host4),
-                summary=u'Added host "%s"' % get_fqdn(host4),
+                summary='Added host "%s"' % get_fqdn(host4),
                 result=dict(
                     dn=get_host_dn(host4),
                     fqdn=[get_fqdn(host4)],
-                    description=[u'Test host 4'],
-                    l=[u'Undisclosed location 4'],
+                    description=['Test host 4'],
+                    l=['Undisclosed location 4'],
                     krbprincipalname=[
-                        u'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
                     krbcanonicalname=[
-                        u'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
+                        'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
                     objectclass=objectclasses.host,
                     ipauniqueid=[fuzzy_uuid],
                     managedby_host=[get_fqdn(host4)],
@@ -1548,7 +1544,7 @@ class test_idviews(Declarative):
             command=('idview_del', [idview1], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted ID View "%s"' % idview1,
+                summary='Deleted ID View "%s"' % idview1,
                 value=[idview1],
             ),
         ),
@@ -1563,8 +1559,8 @@ class test_idviews(Declarative):
                     cn=[get_fqdn(host4)],
                     dn=get_host_dn(host4),
                     fqdn=[get_fqdn(host4)],
-                    description=[u'Test host 4'],
-                    l=[u'Undisclosed location 4'],
+                    description=['Test host 4'],
+                    l=['Undisclosed location 4'],
                     krbprincipalname=[get_host_principal(host4)],
                     krbcanonicalname=[get_host_principal(host4)],
                     has_keytab=False,
@@ -1578,7 +1574,7 @@ class test_idviews(Declarative):
                     serverhostname=[host4],
                     ipakrboktoauthasdelegate=False,
                     krbpwdpolicyreference=[DN(
-                        u'cn=Default Host Password Policy',
+                        'cn=Default Host Password Policy',
                         api.env.container_host,
                         api.env.basedn,
                     )],
@@ -1597,7 +1593,7 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 value=idview1,
-                summary=u'Added ID View "%s"' % idview1,
+                summary='Added ID View "%s"' % idview1,
                 result=dict(
                     dn=get_idview_dn(idview1),
                     objectclass=objectclasses.idview,
@@ -1612,17 +1608,17 @@ class test_idviews(Declarative):
                 'user_add',
                 [idoverrideuser_removed],
                 dict(
-                    givenname=u'Removed',
-                    sn=u'User',
+                    givenname='Removed',
+                    sn='User',
                 )
             ),
             expected=dict(
                 value=idoverrideuser_removed,
-                summary=u'Added user "%s"' % idoverrideuser_removed,
+                summary='Added user "%s"' % idoverrideuser_removed,
                 result=get_user_result(
                     idoverrideuser_removed,
-                    u'Removed',
-                    u'User',
+                    'Removed',
+                    'User',
                     'add',
                     objectclass=fuzzy_set_optional_oc(
                         objectclasses.user, 'ipantuserattrs'),
@@ -1635,14 +1631,14 @@ class test_idviews(Declarative):
             command=(
                 'group_add',
                 [idoverridegroup_removed],
-                dict(description=u'Removed group')
+                dict(description='Removed group')
             ),
             expected=dict(
                 value=idoverridegroup_removed,
-                summary=u'Added group "%s"' % idoverridegroup_removed,
+                summary='Added group "%s"' % idoverridegroup_removed,
                 result=dict(
                     cn=[idoverridegroup_removed],
-                    description=[u'Removed group'],
+                    description=['Removed group'],
                     objectclass=fuzzy_set_optional_oc(
                         objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
@@ -1657,25 +1653,25 @@ class test_idviews(Declarative):
             command=(
                 'idoverrideuser_add',
                 [idview1, idoverrideuser_removed],
-                dict(description=u'description',
-                     homedirectory=u'/home/newhome',
-                     uid=u'newlogin',
+                dict(description='description',
+                     homedirectory='/home/newhome',
+                     uid='newlogin',
                      uidnumber=12345,
                      ipasshpubkey=sshpubkey,
                 )
             ),
             expected=dict(
                 value=idoverrideuser_removed,
-                summary=u'Added User ID override "%s"' % idoverrideuser_removed,
+                summary='Added User ID override "%s"' % idoverrideuser_removed,
                 result=dict(
                     dn=get_override_dn(idview1, idoverrideuser_removed),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser_removed],
                     ipaoriginaluid=[idoverrideuser_removed],
-                    description=[u'description'],
-                    homedirectory=[u'/home/newhome'],
-                    uidnumber=[u'12345'],
-                    uid=[u'newlogin'],
+                    description=['description'],
+                    homedirectory=['/home/newhome'],
+                    uidnumber=['12345'],
+                    uid=['newlogin'],
                     ipasshpubkey=[sshpubkey],
                     sshpubkeyfp=[sshpubkeyfp],
                 )
@@ -1687,16 +1683,16 @@ class test_idviews(Declarative):
             command=(
                 'idoverridegroup_add',
                 [idview1, idoverridegroup_removed],
-                dict(description=u'description')
+                dict(description='description')
             ),
             expected=dict(
                 value=idoverridegroup_removed,
-                summary=u'Added Group ID override "%s"' % idoverridegroup_removed,
+                summary='Added Group ID override "%s"' % idoverridegroup_removed,
                 result=dict(
                     dn=get_override_dn(idview1, idoverridegroup_removed),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup_removed],
-                    description=[u'description'],
+                    description=['description'],
                 )
             ),
         ),
@@ -1706,7 +1702,7 @@ class test_idviews(Declarative):
             command=('user_del', [idoverrideuser_removed], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted user "%s"' % idoverrideuser_removed,
+                summary='Deleted user "%s"' % idoverrideuser_removed,
                 value=[idoverrideuser_removed],
             ),
         ),
@@ -1716,7 +1712,7 @@ class test_idviews(Declarative):
             command=('group_del', [idoverridegroup_removed], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted group "%s"' % idoverridegroup_removed,
+                summary='Deleted group "%s"' % idoverridegroup_removed,
                 value=[idoverridegroup_removed],
             ),
         ),
@@ -1730,7 +1726,7 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 result=[],
-                summary=u'0 User ID overrides matched',
+                summary='0 User ID overrides matched',
                 count=0,
                 truncated=False,
             ),
@@ -1745,7 +1741,7 @@ class test_idviews(Declarative):
             ),
             expected=dict(
                 result=[],
-                summary=u'0 Group ID overrides matched',
+                summary='0 Group ID overrides matched',
                 count=0,
                 truncated=False,
             ),
@@ -1758,7 +1754,7 @@ class test_idviews(Declarative):
             command=('idview_del', [idview1], {}),
             expected=dict(
                 result=dict(failed=[]),
-                summary=u'Deleted ID View "%s"' % idview1,
+                summary='Deleted ID View "%s"' % idview1,
                 value=[idview1],
             ),
         ),
@@ -1771,15 +1767,15 @@ class test_idviews(Declarative):
             command=(
                 'idview_add',
                 [idview1],
-                dict(ipadomainresolutionorder=u'%s' % api.env.domain)
+                dict(ipadomainresolutionorder='%s' % api.env.domain)
             ),
             expected=dict(
                 value=idview1,
-                summary=u'Added ID View "%s"' % idview1,
+                summary='Added ID View "%s"' % idview1,
                 result=dict(
                     dn=get_idview_dn(idview1),
                     objectclass=objectclasses.idview +
-                    [u'ipanameresolutiondata'],
+                    ['ipanameresolutiondata'],
                     cn=[idview1],
                     ipadomainresolutionorder=[api.env.domain]
                 )

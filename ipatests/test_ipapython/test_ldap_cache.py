@@ -37,7 +37,7 @@ def class_cache(request):
     if not was_connected:
         rpcclient.connect()
 
-    api.Command.user_add('testuser', givenname=u'Test', sn=u'User')
+    api.Command.user_add('testuser', givenname='Test', sn='User')
 
     yield
 

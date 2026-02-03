@@ -41,7 +41,7 @@ class test_config(Declarative):
         dict(
             desc='Try to add an unrelated objectclass to ipauserobjectclasses',
             command=('config_mod', [],
-                dict(addattr=u'ipauserobjectclasses=ipahost')),
+                dict(addattr='ipauserobjectclasses=ipahost')),
             expected=dict(
                     result=lambda d: 'ipahost' in d['ipauserobjectclasses'],
                     value=None,
@@ -52,7 +52,7 @@ class test_config(Declarative):
         dict(
             desc='Remove the unrelated objectclass from ipauserobjectclasses',
             command=('config_mod', [],
-                dict(delattr=u'ipauserobjectclasses=ipahost')),
+                dict(delattr='ipauserobjectclasses=ipahost')),
             expected=dict(
                     result=lambda d: 'ipahost' not in d['ipauserobjectclasses'],
                     value=None,
@@ -63,7 +63,7 @@ class test_config(Declarative):
         dict(
             desc='Try to remove ipausersearchfields',
             command=('config_mod', [],
-                dict(delattr=u'ipausersearchfields=uid,givenname,sn,telephonenumber,ou,title')),
+                dict(delattr='ipausersearchfields=uid,givenname,sn,telephonenumber,ou,title')),
             expected=errors.RequirementError(name='usersearch'),
         ),
 
@@ -71,12 +71,12 @@ class test_config(Declarative):
             desc='Add uppercased attribute to ipausersearchfields',
             command=('config_mod', [], dict(
                 ipausersearchfields=
-                u'uid,givenname,sn,telephonenumber,ou,title,Description')
+                'uid,givenname,sn,telephonenumber,ou,title,Description')
             ),
             expected=dict(
                 result=lambda d: (
                     d['ipausersearchfields'] ==
-                    (u'uid,givenname,sn,telephonenumber,ou,title,description',)
+                    ('uid,givenname,sn,telephonenumber,ou,title,description',)
                 ),
                 value=None,
                 summary=None,
@@ -87,11 +87,11 @@ class test_config(Declarative):
             desc='Remove uppercased attribute from ipausersearchfields',
             command=('config_mod', [], dict(
                      ipausersearchfields=
-                     u'uid,givenname,sn,telephonenumber,ou,title',)),
+                     'uid,givenname,sn,telephonenumber,ou,title',)),
             expected=dict(
                 result=lambda d: (
                     d['ipausersearchfields'] ==
-                    (u'uid,givenname,sn,telephonenumber,ou,title',)
+                    ('uid,givenname,sn,telephonenumber,ou,title',)
                 ),
                 value=None,
                 summary=None,
@@ -101,7 +101,7 @@ class test_config(Declarative):
         dict(
             desc='Try to set ipaselinuxusermapdefault not in selinux order list',
             command=('config_mod', [],
-                dict(ipaselinuxusermapdefault=u'unknown_u:s0')),
+                dict(ipaselinuxusermapdefault='unknown_u:s0')),
             expected=errors.ValidationError(name='ipaselinuxusermapdefault',
                 error='SELinux user map default user not in order list'),
         ),
@@ -109,7 +109,7 @@ class test_config(Declarative):
         dict(
             desc='Try to set invalid ipaselinuxusermapdefault',
             command=('config_mod', [],
-                dict(ipaselinuxusermapdefault=u'foo')),
+                dict(ipaselinuxusermapdefault='foo')),
             expected=errors.ValidationError(
                 name='ipaselinuxusermapdefault',
                 error='Invalid MLS value, must match {}, where max level '
@@ -120,7 +120,7 @@ class test_config(Declarative):
         dict(
             desc='Try to set invalid ipaselinuxusermapdefault with setattr',
             command=('config_mod', [],
-                dict(setattr=u'ipaselinuxusermapdefault=unknown_u:s0')),
+                dict(setattr='ipaselinuxusermapdefault=unknown_u:s0')),
             expected=errors.ValidationError(name='ipaselinuxusermapdefault',
                 error='SELinux user map default user not in order list'),
         ),
@@ -128,7 +128,7 @@ class test_config(Declarative):
         dict(
             desc='Try to set ipaselinuxusermaporder without ipaselinuxusermapdefault out of it',
             command=('config_mod', [],
-                dict(ipaselinuxusermaporder=u'notfound_u:s0')),
+                dict(ipaselinuxusermaporder='notfound_u:s0')),
             expected=errors.ValidationError(name='ipaselinuxusermaporder',
                 error='SELinux user map default user not in order list'),
         ),
@@ -136,7 +136,7 @@ class test_config(Declarative):
         dict(
             desc='Try to set invalid ipaselinuxusermaporder',
             command=('config_mod', [],
-                dict(ipaselinuxusermaporder=u'$')),
+                dict(ipaselinuxusermaporder='$')),
             expected=errors.ValidationError(name='ipaselinuxusermaporder',
                 error='A list of SELinux users delimited by $ expected'),
         ),
@@ -144,7 +144,7 @@ class test_config(Declarative):
         dict(
             desc='Try to set invalid selinux user in ipaselinuxusermaporder',
             command=('config_mod', [],
-                     dict(ipaselinuxusermaporder=u'baduser')),
+                     dict(ipaselinuxusermaporder='baduser')),
             expected=errors.ValidationError(
                 name='ipaselinuxusermaporder',
                 error='SELinux user \'baduser\' is not valid: Invalid MLS '
@@ -158,17 +158,17 @@ class test_config(Declarative):
             command=(
                 'config_mod', [],
                 dict(
-                    ipaselinuxusermaporder=u'foo:s0',
-                    ipaselinuxusermapdefault=u'unknown_u:s0')),
+                    ipaselinuxusermaporder='foo:s0',
+                    ipaselinuxusermapdefault='unknown_u:s0')),
             expected=errors.ValidationError(name='ipaselinuxusermapdefault',
                 error='SELinux user map default user not in order list'),
         ),
 
         dict(
             desc='Set user auth type',
-            command=('config_mod', [], dict(ipauserauthtype=u'password')),
+            command=('config_mod', [], dict(ipauserauthtype='password')),
             expected=dict(
-                    result=lambda d: d['ipauserauthtype'] == (u'password',),
+                    result=lambda d: d['ipauserauthtype'] == ('password',),
                     value=None,
                     summary=None,
                 ),
@@ -178,7 +178,7 @@ class test_config(Declarative):
             desc='Check user auth type',
             command=('config_show', [], {}),
             expected=dict(
-                    result=lambda d: d['ipauserauthtype'] == (u'password',),
+                    result=lambda d: d['ipauserauthtype'] == ('password',),
                     value=None,
                     summary=None,
                 ),
@@ -186,9 +186,9 @@ class test_config(Declarative):
 
         dict(
             desc='Set user auth type to passkey',
-            command=('config_mod', [], dict(ipauserauthtype=u'passkey')),
+            command=('config_mod', [], dict(ipauserauthtype='passkey')),
             expected=dict(
-                result=lambda d: d['ipauserauthtype'] == (u'passkey',),
+                result=lambda d: d['ipauserauthtype'] == ('passkey',),
                 value=None,
                 summary=None,
             ),
@@ -198,7 +198,7 @@ class test_config(Declarative):
             desc='Check user auth type is passkey',
             command=('config_show', [], {}),
             expected=dict(
-                result=lambda d: d['ipauserauthtype'] == (u'passkey',),
+                result=lambda d: d['ipauserauthtype'] == ('passkey',),
                 value=None,
                 summary=None,
             ),
@@ -225,7 +225,7 @@ class test_config(Declarative):
             desc='Set maximum username length equal to limit 255',
             command=('config_mod', [], dict(ipamaxusernamelength=255)),
             expected=dict(
-                result=lambda d: d['ipamaxusernamelength'] == (u'255',),
+                result=lambda d: d['ipamaxusernamelength'] == ('255',),
                 value=None,
                 summary=None,
                 ),
@@ -236,7 +236,7 @@ class test_config(Declarative):
             desc='Return maximum username length to default value',
             command=('config_mod', [], dict(ipamaxusernamelength=32)),
             expected=dict(
-                result=lambda d: d['ipamaxusernamelength'] == (u'32',),
+                result=lambda d: d['ipamaxusernamelength'] == ('32',),
                 value=None,
                 summary=None,
                 ),
@@ -245,12 +245,12 @@ class test_config(Declarative):
             desc='Check if domain resolution order does not accept SLD',
             command=(
                 'config_mod', [], {
-                    'ipadomainresolutionorder': u'{domain}:{sl_domain}'.format(
+                    'ipadomainresolutionorder': '{domain}:{sl_domain}'.format(
                         domain=domain, sl_domain=sl_domain)}),
             expected=errors.ValidationError(
-                name=u'ipadomainresolutionorder',
+                name='ipadomainresolutionorder',
                 error=(
-                    u"Invalid domain name '{}': "
+                    "Invalid domain name '{}': "
                     "single label domains are not supported").format(
                         sl_domain),
             ),
@@ -259,11 +259,11 @@ class test_config(Declarative):
             desc='Set the number of search records to -1 (unlimited)',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'-1',
+                    'ipasearchrecordslimit': '-1',
                 },
             ),
             expected={
-                'result': lambda d: d['ipasearchrecordslimit'] == (u'-1',),
+                'result': lambda d: d['ipasearchrecordslimit'] == ('-1',),
                 'summary': None,
                 'value': None,
             },
@@ -272,11 +272,11 @@ class test_config(Declarative):
             desc='Set the number of search records to greater than 10',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'100',
+                    'ipasearchrecordslimit': '100',
                 },
             ),
             expected={
-                'result': lambda d: d['ipasearchrecordslimit'] == (u'100',),
+                'result': lambda d: d['ipasearchrecordslimit'] == ('100',),
                 'summary': None,
                 'value': None,
             },
@@ -285,35 +285,35 @@ class test_config(Declarative):
             desc='Set the number of search records to lower than -1',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'-10',
+                    'ipasearchrecordslimit': '-10',
                 },
             ),
             expected=errors.ValidationError(
-                name=u'searchrecordslimit',
-                error=u'must be at least 10',
+                name='searchrecordslimit',
+                error='must be at least 10',
             ),
         ),
         dict(
             desc='Set the number of search records to lower than 10',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'1',
+                    'ipasearchrecordslimit': '1',
                 },
             ),
             expected=errors.ValidationError(
-                name=u'searchrecordslimit',
-                error=u'must be at least 10',
+                name='searchrecordslimit',
+                error='must be at least 10',
             ),
         ),
         dict(
             desc='Set the number of search records to zero (unlimited)',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'0',
+                    'ipasearchrecordslimit': '0',
                 },
             ),
             expected={
-                'result': lambda d: d['ipasearchrecordslimit'] == (u'-1',),
+                'result': lambda d: d['ipasearchrecordslimit'] == ('-1',),
                 'summary': None,
                 'value': None,
             },
@@ -322,11 +322,11 @@ class test_config(Declarative):
             desc='Set the number of search records back to 100',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'100',
+                    'ipasearchrecordslimit': '100',
                 },
             ),
             expected={
-                'result': lambda d: d['ipasearchrecordslimit'] == (u'100',),
+                'result': lambda d: d['ipasearchrecordslimit'] == ('100',),
                 'summary': None,
                 'value': None,
             },
@@ -335,7 +335,7 @@ class test_config(Declarative):
             desc='Set the value to the already set value, no modifications',
             command=(
                 'config_mod', [], {
-                    'ipasearchrecordslimit': u'100',
+                    'ipasearchrecordslimit': '100',
                 },
             ),
             expected=errors.EmptyModlist(),

@@ -19,7 +19,6 @@
 
 import logging
 
-import six
 
 from ipalib import api, errors, krb_utils
 from ipalib import Command
@@ -34,8 +33,6 @@ from ipapython.dn import DN
 from ipaserver.plugins.baseuser import normalize_user_principal
 from ipaserver.plugins.service import validate_realm
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Set a user's password
@@ -68,7 +65,7 @@ register = Registry()
 
 # We only need to prompt for the current password when changing a password
 # for yourself, but the parameter is still required
-MAGIC_VALUE = u'CHANGING_PASSWORD_FOR_ANOTHER_USER'
+MAGIC_VALUE = 'CHANGING_PASSWORD_FOR_ANOTHER_USER'
 
 def get_current_password(principal):
     """
@@ -77,7 +74,7 @@ def get_current_password(principal):
     be ignored later.
     """
     current_principal = krb_utils.get_principal()
-    if current_principal == unicode(normalize_user_principal(principal)):
+    if current_principal == str(normalize_user_principal(principal)):
         return None
     else:
         return MAGIC_VALUE
@@ -134,7 +131,7 @@ class passwd(Command):
         """
         ldap = self.api.Backend.ldap2
 
-        principal = unicode(principal)
+        principal = str(principal)
 
         entry_attrs = ldap.find_entry_by_attr(
             'krbprincipalname', principal, 'posixaccount', [''],

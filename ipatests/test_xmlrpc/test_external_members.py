@@ -28,8 +28,8 @@ from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_uuid,
                                               fuzzy_user_or_group_sid)
 import pytest
 
-group_name = u'external_group'
-group_desc = u'Test external group'
+group_name = 'external_group'
+group_desc = 'Test external group'
 group_dn = DN(('cn', group_name), api.env.container_group, api.env.basedn)
 
 
@@ -65,7 +65,7 @@ class test_external_members(Declarative):
                 ),
             expected=dict(
                 value=group_name,
-                summary=u'Added group "%s"' % group_name,
+                summary='Added group "%s"' % group_name,
                 result=dict(
                     cn=[group_name],
                     description=[group_desc],
@@ -105,7 +105,7 @@ class test_external_members(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        group=[(fuzzy_user_or_group_sid, u'This entry is already a member')],
+                        group=[(fuzzy_user_or_group_sid, 'This entry is already a member')],
                         user=tuple(),
                     ),
                 ),
@@ -147,7 +147,7 @@ class test_external_members(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        group=[(fuzzy_user_or_group_sid, u'This entry is not a member')],
+                        group=[(fuzzy_user_or_group_sid, 'This entry is not a member')],
                         user=tuple(),
                     ),
                 ),

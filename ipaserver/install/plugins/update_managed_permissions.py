@@ -85,7 +85,6 @@ The plugin also deletes permissions specified in OBSOLETE_PERMISSIONS.
 
 import logging
 
-import six
 
 from ipalib import api, errors
 from ipapython.dn import DN
@@ -96,8 +95,6 @@ from ipapython import ipautil
 from ipaserver.plugins import aci
 from ipaserver.plugins.permission import permission, permission_del
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -312,8 +309,8 @@ class update_managed_permissions(Updater):
     """
 
     def get_anonymous_read_aci(self, ldap):
-        aciname = u'Enable Anonymous access'
-        aciprefix = u'none'
+        aciname = 'Enable Anonymous access'
+        aciprefix = 'none'
 
         base_entry = ldap.get_entry(self.api.env.basedn, ['aci'])
 
@@ -376,7 +373,7 @@ class update_managed_permissions(Updater):
 
             self.update_permission(ldap,
                                     obj,
-                                    unicode(name),
+                                    str(name),
                                     template,
                                     anonymous_read_aci)
 
@@ -386,9 +383,9 @@ class update_managed_permissions(Updater):
         for obsolete_name in OBSOLETE_PERMISSIONS:
             logger.debug('Deleting obsolete permission %s', obsolete_name)
             try:
-                self.api.Command[permission_del](unicode(obsolete_name),
+                self.api.Command[permission_del](str(obsolete_name),
                                                  force=True,
-                                                 version=u'2.101')
+                                                 version='2.101')
             except errors.NotFound:
                 logger.debug('Obsolete permission not found')
             else:
@@ -485,10 +482,10 @@ class update_managed_permissions(Updater):
 
         if remove_legacy:
             logger.debug("Removing legacy permission '%s'", legacy_name)
-            self.api.Command[permission_del](unicode(legacy_name))
+            self.api.Command[permission_del](str(legacy_name))
 
         for name in template.get('replaces_system', ()):
-            name = unicode(name)
+            name = str(name)
             try:
                 entry = ldap.get_entry(permission_plugin.get_dn(name),
                                        ['ipapermissiontype'])
@@ -601,7 +598,7 @@ class update_managed_permissions(Updater):
         if template.pop('non_object', False):
             obj = None
 
-        entry['ipapermissiontype'] = [u'SYSTEM', u'V2', u'MANAGED']
+        entry['ipapermissiontype'] = ['SYSTEM', 'V2', 'MANAGED']
 
         # Attributes with defaults
         objectclass = template.pop('objectclass', None)

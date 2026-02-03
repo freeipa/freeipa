@@ -47,7 +47,7 @@ def ldap_bool(val):
 def get_default_attrs(object_classes):
     # object class -> default attribute values mapping
     defaults = {
-        u'ipk11publickey': {
+        'ipk11publickey': {
             'ipk11copyable': True,
             'ipk11derive': False,
             'ipk11encrypt': False,
@@ -59,7 +59,7 @@ def get_default_attrs(object_classes):
             'ipk11verifyrecover': True,
             'ipk11wrap': False
         },
-        u'ipk11privatekey': {
+        'ipk11privatekey': {
             'ipk11alwaysauthenticate': False,
             'ipk11alwayssensitive': True,
             'ipk11copyable': True,
@@ -76,7 +76,7 @@ def get_default_attrs(object_classes):
             'ipk11unwrap': False,
             'ipk11wrapwithtrusted': False
         },
-        u'ipk11secretkey': {
+        'ipk11secretkey': {
             'ipk11alwaysauthenticate': False,
             'ipk11alwayssensitive': True,
             'ipk11copyable': True,

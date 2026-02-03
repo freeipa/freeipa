@@ -23,7 +23,6 @@ import logging
 import itertools
 
 import re
-import six
 import time
 import datetime
 import sys
@@ -43,8 +42,6 @@ from ipapython.ipaldap import ldap_initialize
 from ipaplatform.paths import paths
 from ipaserver.install import installutils
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -1567,7 +1564,7 @@ class ReplicationManager:
 
         # delete DNS server configuration, if any
         try:
-            api.Command.dnsserver_del(unicode(replica))
+            api.Command.dnsserver_del(str(replica))
         except errors.NotFound:
             pass
         except Exception as e:
@@ -1833,12 +1830,12 @@ class ReplicationManager:
         attribute, add replica bind DN directly into the replica entry.
         """
         my_dn = DN(
-            ('krbprincipalname', u'ldap/%s@%s' % (self.hostname, self.realm)),
+            ('krbprincipalname', 'ldap/%s@%s' % (self.hostname, self.realm)),
             api.env.container_service,
             api.env.basedn
         )
         remote_dn = DN(
-            ('krbprincipalname', u'ldap/%s@%s' % (r_hostname, self.realm)),
+            ('krbprincipalname', 'ldap/%s@%s' % (r_hostname, self.realm)),
             api.env.container_service,
             api.env.basedn
         )
