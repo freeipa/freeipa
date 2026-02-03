@@ -56,7 +56,7 @@ from ipalib.errors import (errors_by_code, UnknownError, NetworkError,
                            XMLRPCMarshallError, JSONError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
-from ipalib.x509 import Encoding as x509_Encoding
+from ipalib.x509 import Encoding as x509_Encoding, IPACertificate
 from ipapython import ipautil
 from ipapython import session_storage
 from ipapython.cookie import Cookie
@@ -220,7 +220,7 @@ def xml_wrap(value, version):
     if isinstance(value, Principal):
         return unicode(value)
 
-    if isinstance(value, crypto_x509.Certificate):
+    if isinstance(value, (crypto_x509.Certificate, IPACertificate)):
         return base64.b64encode(
             value.public_bytes(x509_Encoding.DER)).decode('ascii')
 
