@@ -129,8 +129,8 @@ ipa_join(Slapi_PBlock *pb)
     Slapi_PBlock *pbte = NULL;
     Slapi_PBlock *pbtm = NULL;
     Slapi_Entry *targetEntry=NULL;
-    Slapi_DN *sdn;
-    Slapi_Backend *be;
+    Slapi_DN *sdn=NULL;
+    Slapi_Backend *be=NULL;
     Slapi_Entry **es = NULL;
     int rc=0, ret=0, res, i;
     int is_root=0;
@@ -138,7 +138,7 @@ ipa_join(Slapi_PBlock *pb)
     char *fqdn = NULL;
     Slapi_Mods *smods = NULL;
     char *attrlist[] = {"fqdn", "krbPrincipalKey", "krbLastPwdChange", "krbPrincipalName", NULL };
-    char * filter;
+    char * filter=NULL;
 
     int scope = LDAP_SCOPE_SUBTREE;
     char *principal = NULL;
