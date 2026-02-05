@@ -16,12 +16,22 @@ import re
 import textwrap
 
 
+# Test SSH public key used for migration testing
+TEST_SSHKEY = (
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB5PsFqMAqac5uvri73wVp9B8r1oElyVMlBV"
+    "pNdTZgcI test@example.com"
+)
+
+# Expected SSH key fingerprint for TEST_SSHKEY
+TEST_SSHKEY_FP = "SHA256:PSDEIT8MJGMMLpyjFS1oFNcnPNB1cWf10LeJGyI2h7M"
+
+
 def prepare_ipa_server(master):
     """
     Setup remote IPA server environment
     """
     # Setup IPA users
-    for i in range(1, 5):
+    for i in range(1, 6):
         master.run_command(
             [
                 "ipa",
@@ -53,6 +63,24 @@ def prepare_ipa_server(master):
             "tuser1",
         ]
     )
+
+    # Add SSH key to normal user
+    master.run_command([
+        "ipa", "user-mod", "testuser1", "--sshpubkey", TEST_SSHKEY
+    ])
+
+    # Add SSH key to staged user
+    master.run_command([
+        "ipa", "stageuser-mod", "tuser1", "--sshpubkey", TEST_SSHKEY
+    ])
+
+    # Add SSH key to testuser5 and preserve it
+    master.run_command([
+        "ipa", "user-mod", "testuser5", "--sshpubkey", TEST_SSHKEY
+    ])
+    master.run_command([
+        "ipa", "user-del", "testuser5", "--preserve"
+    ])
 
     # Add Custom idrange
     master.run_command(
@@ -186,6 +214,7 @@ def prepare_ipa_server(master):
             "idview1",
             "testuser1",
             "--shell=/bin/sh",
+            "--sshpubkey", TEST_SSHKEY,
         ]
     )
 
@@ -1202,6 +1231,74 @@ class TestIPAMigrationProdMode(MigrationTest):
         assert CMD2_OUTPUT in cmd2.stdout_text
         assert CMD3_OUTPUT in cmd3.stdout_text
         assert DEBUG_LOG in install_msg
+
+    def test_sshpubkey_migration_for_user(self):
+        """
+        This testcase checks that SSH public key is migrated
+        for a normal user.
+        """
+        username = "testuser1"
+        result = self.replicas[0].run_command(
+            ["ipa", "user-show", username]
+        )
+        # Default output shows fingerprint, not the full key
+        expected_fp = "SSH public key fingerprint: {}".format(
+            TEST_SSHKEY_FP
+        )
+        assert expected_fp in result.stdout_text
+        assert "test@example.com" in result.stdout_text
+        assert "(ssh-ed25519)" in result.stdout_text
+
+    def test_sshpubkey_migration_for_stageuser(self):
+        """
+        This testcase checks that SSH public key is migrated
+        for a staged user.
+        """
+        username = "tuser1"
+        result = self.replicas[0].run_command(
+            ["ipa", "stageuser-show", username]
+        )
+        # Default output shows fingerprint, not the full key
+        expected_fp = "SSH public key fingerprint: {}".format(
+            TEST_SSHKEY_FP
+        )
+        assert expected_fp in result.stdout_text
+        assert "test@example.com" in result.stdout_text
+        assert "(ssh-ed25519)" in result.stdout_text
+
+    def test_sshpubkey_migration_for_preserved_user(self):
+        """
+        This testcase checks that SSH public key is migrated
+        for a preserved user (deleted with --preserve).
+        """
+        username = "testuser5"
+        result = self.replicas[0].run_command(
+            ["ipa", "user-show", username]
+        )
+        # Default output shows fingerprint, not the full key
+        expected_fp = "SSH public key fingerprint: {}".format(
+            TEST_SSHKEY_FP
+        )
+        assert expected_fp in result.stdout_text
+        assert "test@example.com" in result.stdout_text
+        assert "(ssh-ed25519)" in result.stdout_text
+
+    def test_sshpubkey_migration_for_idoverride(self):
+        """
+        This testcase checks that SSH public key is migrated
+        for a user ID override.
+        Note: Outputs are different from user's ones
+        """
+        idview_name = "idview1"
+        username = "testuser1"
+        result = self.replicas[0].run_command(
+            ["ipa", "idoverrideuser-show", idview_name, username]
+        )
+        # Default output shows fingerprint, not the full key
+        expected_fp = "SSH public key: {}".format(TEST_SSHKEY)
+        assert expected_fp in result.stdout_text
+        assert "test@example.com" in result.stdout_text
+        assert "ssh-ed25519" in result.stdout_text
 
 
 class TestIPAMigrationWithADtrust(IntegrationTest):
