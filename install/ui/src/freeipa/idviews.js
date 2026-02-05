@@ -448,21 +448,6 @@ idviews.id_override_user_details_facet = function(spec) {
 
         batch.add_command(user_command);
 
-        var pkey = that.get_pkey();
-
-        var certs = rpc.command({
-            entity: 'cert',
-            method: 'find',
-            retry: false,
-            options: {
-                idoverrideuser: [ pkey ],
-                sizelimit: 0,
-                all: true
-            }
-        });
-
-        batch.add_command(certs);
-
         return batch;
     };
 
