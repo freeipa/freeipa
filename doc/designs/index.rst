@@ -24,3 +24,4 @@ FreeIPA design documentation
    client-install-pkinit.md
    prci_checker.md
    audit-ipa-api.md
+   master-key-upgrade.md
