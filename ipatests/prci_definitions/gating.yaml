@@ -27,6 +27,10 @@ topologies:
     name: adroot_adchild_adtree_master_1client
     cpu: 8
     memory: 14466
+  ad_master_1repl_1client: &ad_master_1repl_1client
+    name: ad_master_1repl_1client
+    cpu: 6
+    memory: 12096
   ipaserver: &ipaserver
     name: ipaserver
     cpu: 2
@@ -39,6 +43,7 @@ jobs:
     job:
       class: Build
       args:
+        copr: 'asn/kirmes'
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
@@ -53,6 +58,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_installation.py::TestInstallMaster
         template: *ci-master-latest
@@ -65,6 +71,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_simple_replication.py
         template: *ci-master-latest
@@ -77,6 +84,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_caless.py::TestServerReplicaCALessToCAFull
         template: *ci-master-latest
@@ -89,6 +97,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCA test_integration/test_external_ca.py::TestExternalCAConstraints
         template: *ci-master-latest
@@ -101,6 +110,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_external_ca.py::TestSelfExternalSelf test_integration/test_external_ca.py::TestExternalCAInstall
         template: *ci-master-latest
@@ -113,6 +123,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_external_ca.py::TestExternalCAProfileScenarios
         template: *ci-master-latest
@@ -125,6 +136,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_topologies.py
         template: *ci-master-latest
@@ -137,6 +149,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_sudo.py
         template: *ci-master-latest
@@ -149,6 +162,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_commands.py
         template: *ci-master-latest
@@ -161,6 +175,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_idm_api.py
         template: *ci-master-latest
@@ -173,6 +188,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_kerberos_flags.py
         template: *ci-master-latest
@@ -185,6 +201,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_forced_client_reenrollment.py
         template: *ci-master-latest
@@ -197,6 +214,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_advise.py
         template: *ci-master-latest
@@ -209,6 +227,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_testconfig.py
         template: *ci-master-latest
@@ -221,6 +240,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_service_permissions.py
         template: *ci-master-latest
@@ -233,6 +253,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_netgroup.py
         template: *ci-master-latest
@@ -245,6 +266,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_authselect.py
         template: *ci-master-latest
@@ -257,6 +279,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_replica_promotion.py::TestSubCAkeyReplication
         template: *ci-master-latest
@@ -269,6 +292,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_dnssec.py::TestInstallDNSSECFirst
         template: *ci-master-latest
@@ -281,6 +305,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_membermanager.py
         template: *ci-master-latest
@@ -293,6 +318,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_adtrust_install.py
         template: *ci-master-latest
@@ -305,6 +331,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_cert.py
         template: *ci-master-latest
@@ -317,6 +344,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_upgrade.py
         template: *ci-master-latest
@@ -329,6 +357,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_subids.py
         template: *ci-master-latest
@@ -341,6 +370,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_ipalib_install/test_kinit.py
         template: *ci-master-latest
@@ -353,6 +383,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_idp.py
         template: *ci-master-latest
@@ -365,6 +396,7 @@ jobs:
     job:
       class: RunADTests
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_ipahealthcheck.py::TestIpaHealthCheckWithADtrust
         template: *ci-master-latest
@@ -377,6 +409,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_sysaccounts.py
         template: *ci-master-latest
@@ -389,6 +422,7 @@ jobs:
     job:
       class: RunPytest
       args:
+        copr: 'asn/kirmes'
         build_url: '{fedora-latest/build_url}'
         test_suite: test_integration/test_hbac_functional.py
         template: *ci-master-latest
@@ -406,3 +440,55 @@ jobs:
         template: *ci-master-latest
         timeout: 3600
         topology: *master_1repl_1client
+
+  fedora-latest/test_http_kdc_proxy:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        copr: 'asn/kirmes'
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_http_kdc_proxy.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_2client
+
+  fedora-latest/test_smb:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        copr: 'asn/kirmes'
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_smb.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_2client
+
+  fedora-latest/test_IPAMigrateADTrust:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        copr: 'asn/kirmes'
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_ipa_ipa_migration.py::TestIPAMigrationWithADtrust
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_1repl_1client
+
+  fedora-latest/test_idviews:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunADTests
+      args:
+        copr: 'asn/kirmes'
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_idviews.py
+        template: *ci-master-latest
+        timeout: 7200
+        topology: *ad_master_2client
