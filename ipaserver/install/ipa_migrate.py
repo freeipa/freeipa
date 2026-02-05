@@ -1204,6 +1204,11 @@ class IPAMigrate():
         if self.args.mode != "prod-mode":
             remove_attrs += PROD_ATTRS
 
+        # Keep sshpubkey for users and user overrides
+        if entry_type in ("users", "provisioning", "views"):
+            if 'ipasshpubkey' in remove_attrs:
+                remove_attrs.remove('ipasshpubkey')
+
         # Need to remove the remote host member from the ipaserver host group
         remove_member = False
         if entry_type == "host_groups" and \
