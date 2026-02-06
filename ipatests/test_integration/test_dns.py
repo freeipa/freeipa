@@ -7,7 +7,9 @@ from __future__ import absolute_import
 
 import time
 
+import dns.exception
 import dns.resolver
+from ipapython.dn import DN
 from ipapython.dnsutil import DNSResolver
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -188,8 +190,7 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # Single A record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'allll',
-                             record_type='a', record_value=[A_RECORD])
+        tasks.add_dns_record(self.master, ZONE, 'allll', 'a', [A_RECORD])
         ans = self.resolver.resolve(f'allll.{ZONE}', 'A')
         assert A_RECORD in [r.address for r in ans]
 
@@ -204,8 +205,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # Multiple A records: add, verify, delete, verify deleted
         multi_recs = [MULTI_A_RECORD1, MULTI_A_RECORD2]
-        tasks.add_dns_record(self.master, ZONE, 'aa2',
-                             record_type='a', record_value=multi_recs)
+        tasks.add_dns_record(self.master, ZONE, 'aa2', 'a', multi_recs)
         ans = self.resolver.resolve(f'aa2.{ZONE}', 'A')
         assert MULTI_A_RECORD1 in [r.address for r in ans]
         assert MULTI_A_RECORD2 in [r.address for r in ans]
@@ -224,12 +224,12 @@ class TestDNSAcceptance(IntegrationTest):
     # =========================================================================
 
     def test_aaaa_record(self):
-        """Test AAAA record add, verify, delete, and invalid values."""
+        """Test AAAA record add, verify, delete, and invalid values.
+        """
         tasks.kinit_admin(self.master)
 
         # AAAA record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'aaaa',
-                             record_type='aaaa', record_value=[AAAA])
+        tasks.add_dns_record(self.master, ZONE, 'aaaa', 'aaaa', [AAAA])
         ans = self.resolver.resolve(f'aaaa.{ZONE}', 'AAAA')
         assert AAAA in [r.address for r in ans]
 
@@ -244,9 +244,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # Invalid AAAA record should fail and not be created
         result = tasks.add_dns_record(self.master, ZONE, 'aaaab',
-                                      record_type='aaaa',
-                                      record_value=[AAAA_BAD1],
-                                      raiseonerr=False)
+                                      'aaaa', [AAAA_BAD1], raiseonerr=False)
         assert result.returncode != 0
         try:
             self.resolver.resolve(f'aaaab.{ZONE}', 'AAAA')
@@ -265,8 +263,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # AFSDB record: add, verify, delete, verify deleted
         tasks.add_dns_record(self.master, ZONE, 'afsdb',
-                             record_type='afsdb',
-                             record_value=[f'0 {AFSDB}'])
+                             'afsdb', [f'0 {AFSDB}'])
         ans = self.resolver.resolve(f'afsdb.{ZONE}', 'AFSDB')
         assert AFSDB in [str(r.hostname) for r in ans]
 
@@ -289,15 +286,13 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # CNAME record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'cname',
-                             record_type='cname', record_value=[CNAME])
+        tasks.add_dns_record(self.master, ZONE, 'cname', 'cname', [CNAME])
         ans = self.resolver.resolve(f'cname.{ZONE}', 'CNAME')
         assert CNAME in [str(r.target) for r in ans]
 
         # Duplicate CNAME should fail and not be created (bz915807)
         result = tasks.add_dns_record(self.master, ZONE, 'cname',
-                                      record_type='cname',
-                                      record_value=['a.b.c'], raiseonerr=False)
+                                      'cname', ['a.b.c'], raiseonerr=False)
         assert result.returncode != 0
         ans = self.resolver.resolve(f'cname.{ZONE}', 'CNAME')
         assert 'a.b.c' not in [str(r.target) for r in ans]
@@ -320,8 +315,7 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # TXT record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'txt',
-                             record_type='txt', record_value=[TXT])
+        tasks.add_dns_record(self.master, ZONE, 'txt', 'txt', [TXT])
         ans = self.resolver.resolve(f'txt.{ZONE}', 'TXT')
         assert any(TXT in str(r) for r in ans)
 
@@ -344,8 +338,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # SRV record: add, verify, delete, verify deleted
         tasks.add_dns_record(self.master, ZONE, '_srv',
-                             record_type='srv',
-                             record_value=[f'{SRV_A} {SRV}'])
+                             'srv', [f'{SRV_A} {SRV}'])
         ans = self.resolver.resolve(f'_srv.{ZONE}', 'SRV')
         assert SRV in [str(r.target) for r in ans]
 
@@ -367,8 +360,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # MX record: add, verify, delete, verify deleted
         tasks.add_dns_record(self.master, ZONE, '@',
-                             record_type='mx',
-                             record_value=[f'10 {self.MX}.'])
+                             'mx', [f'10 {self.MX}.'])
         ans = self.resolver.resolve(ZONE, 'MX')
         assert f'{self.MX}.' in [str(r.exchange) for r in ans]
 
@@ -430,8 +422,7 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # PTR record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, PTR_ZONE, PTR,
-                             record_type='ptr', record_value=[PTR_VALUE])
+        tasks.add_dns_record(self.master, PTR_ZONE, PTR, 'ptr', [PTR_VALUE])
         ans = self.resolver.resolve(f'{PTR}.{PTR_ZONE}', 'PTR')
         assert PTR_VALUE in [str(r.target) for r in ans]
 
@@ -454,8 +445,7 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # NAPTR record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'naptr',
-                             record_type='naptr', record_value=[NAPTR])
+        tasks.add_dns_record(self.master, ZONE, 'naptr', 'naptr', [NAPTR])
         ans = self.resolver.resolve(f'naptr.{ZONE}', 'NAPTR')
         assert any(NAPTR_FIND in str(r.regexp) for r in ans)
 
@@ -477,16 +467,13 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # DNAME record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'dname',
-                             record_type='dname', record_value=[DNAME])
+        tasks.add_dns_record(self.master, ZONE, 'dname', 'dname', [DNAME])
         ans = self.resolver.resolve(f'dname.{ZONE}', 'DNAME')
         assert DNAME in [str(r.target) for r in ans]
 
         # Duplicate DNAME should fail (bz915797)
         result = tasks.add_dns_record(self.master, ZONE, 'dname',
-                                      record_type='dname',
-                                      record_value=[DNAME2],
-                                      raiseonerr=False)
+                                      'dname', [DNAME2], raiseonerr=False)
         assert result.returncode != 0
 
         tasks.del_dns_record(self.master, ZONE, 'dname',
@@ -499,8 +486,7 @@ class TestDNSAcceptance(IntegrationTest):
             pass  # Record deleted - expected
 
         # DNAME with underscore: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, 'dname',
-                             record_type='dname', record_value=[DNAME2])
+        tasks.add_dns_record(self.master, ZONE, 'dname', 'dname', [DNAME2])
         ans = self.resolver.resolve(f'dname.{ZONE}', 'DNAME')
         assert DNAME2 in [str(r.target) for r in ans]
 
@@ -523,8 +509,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # CERT record: add, verify, delete, verify deleted
         tasks.add_dns_record(self.master, ZONE, 'cert',
-                             record_type='cert',
-                             record_value=[f'{CERT_B} {CERT}'])
+                             'cert', [f'{CERT_B} {CERT}'])
         ans = self.resolver.resolve(f'cert.{ZONE}', 'CERT')
         assert any(CERT in str(r) for r in ans)
 
@@ -547,8 +532,7 @@ class TestDNSAcceptance(IntegrationTest):
         tasks.kinit_admin(self.master)
 
         # LOC record: add, verify, delete, verify deleted
-        tasks.add_dns_record(self.master, ZONE, '@',
-                             record_type='loc', record_value=[LOC])
+        tasks.add_dns_record(self.master, ZONE, '@', 'loc', [LOC])
         ans = self.resolver.resolve(ZONE, 'LOC')
         assert any(LOC in str(r) for r in ans)
 
@@ -571,8 +555,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # KX record: add, verify, delete, verify deleted
         kx_val = f'{KX_PREF1} {self.A_HOST}'
-        tasks.add_dns_record(self.master, ZONE, '@',
-                             record_type='kx', record_value=[kx_val])
+        tasks.add_dns_record(self.master, ZONE, '@', 'kx', [kx_val])
         ans = self.resolver.resolve(ZONE, 'KX')
         assert int(KX_PREF1) in [r.preference for r in ans]
 
@@ -592,8 +575,8 @@ class TestDNSAcceptance(IntegrationTest):
         ]
         for bad_pref, bad_target in bad_vals:
             result = tasks.add_dns_record(
-                self.master, ZONE, '@', record_type='kx',
-                record_value=[f'{bad_pref} {bad_target}'], raiseonerr=False)
+                self.master, ZONE, '@', 'kx',
+                [f'{bad_pref} {bad_target}'], raiseonerr=False)
             assert result.returncode != 0
             try:
                 self.resolver.resolve(ZONE, 'KX')
@@ -718,15 +701,14 @@ class TestDNSAcceptance(IntegrationTest):
         assert len(ans) > 0
 
         # Add TXT record and verify
-        tasks.add_dns_record(self.master, self.ZONE_PSEARCH, 'txt',
-                             record_type='txt', record_value=[TXT])
+        tasks.add_dns_record(
+            self.master, self.ZONE_PSEARCH, 'txt', 'txt', [TXT])
         ans = self.resolver.resolve(f'txt.{self.ZONE_PSEARCH}', 'TXT')
         assert any(TXT in str(r) for r in ans)
 
         # Update TXT record and verify
         tasks.mod_dns_record(self.master, self.ZONE_PSEARCH, 'txt',
-                             record_type='txt', old_value=TXT,
-                             new_value=NEW_TXT)
+                             f'--txt-rec={TXT}', f'--txt-data={NEW_TXT}')
         ans = self.resolver.resolve(f'txt.{self.ZONE_PSEARCH}', 'TXT')
         assert any(NEW_TXT in str(r) for r in ans)
 
@@ -736,8 +718,7 @@ class TestDNSAcceptance(IntegrationTest):
 
         # Update TXT record again
         tasks.mod_dns_record(self.master, self.ZONE_PSEARCH, 'txt',
-                             record_type='txt', old_value=NEW_TXT,
-                             new_value=NEWER_TXT)
+                             f'--txt-rec={NEW_TXT}', f'--txt-data={NEWER_TXT}')
 
         # Verify serial increased
         ans = self.resolver.resolve(self.ZONE_PSEARCH, 'SOA')
@@ -745,3 +726,1070 @@ class TestDNSAcceptance(IntegrationTest):
         assert new_serial > old_serial, (
             f"New serial ({new_serial}) should be higher "
             f"than old ({old_serial})")
+
+
+class TestDNSMisc(IntegrationTest):
+    """Tests for DNS related bugzilla fixes.
+
+    This test class covers various DNS bugzilla fixes ported from
+    the shell-based test suite (t.dns_bz.sh).
+
+    Tests are ordered to match the sequence in the original bash test file.
+    """
+    topology = 'line'
+    num_clients = 0
+
+    # Test zone constants
+    ZONE = "newbzzone"
+    EMAIL = "ipaqar.redhat.com"
+
+    @classmethod
+    def install(cls, mh):
+        super(TestDNSMisc, cls).install(mh)
+        tasks.kinit_admin(cls.master)
+        # Create test zone for bug tests
+        tasks.add_dns_zone(
+            cls.master, cls.ZONE,
+            skip_overlap_check=True,
+            admin_email=cls.EMAIL,
+            raiseonerr=False
+        )
+        # Setup DNS resolver for test queries
+        cls.resolver = DNSResolver()
+        cls.resolver.nameservers = [cls.master.ip]
+        cls.resolver.lifetime = 10
+
+    @classmethod
+    def uninstall(cls, mh):
+        tasks.kinit_admin(cls.master)
+        # Cleanup test zone
+        tasks.del_dns_zone(cls.master, cls.ZONE)
+        super(TestDNSMisc, cls).uninstall(mh)
+
+    def test_dns_local_zone_query_no_ldap_error(self):
+        """Test DNS server handles local zone queries without LDAP errors.
+
+        Verify that DNS queries to local zone with invalid characters
+        (like commas) do not cause LDAP connection loss or DN syntax errors.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=814495
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        # Restart IPA and wait for services
+        self.master.run_command(['ipactl', 'restart'])
+
+        # Query with invalid characters - should not cause LDAP errors
+        try:
+            self.resolver.resolve(f'abc,xyz.{domain}', 'A')
+        except dns.exception.DNSException:
+            pass
+        time.sleep(10)
+
+        # Check recent logs for LDAP errors (use journalctl for compatibility)
+        result = self.master.run_command([
+            'journalctl', '-u', 'named', '-n', '40', '--no-pager'
+        ], raiseonerr=False)
+        log_tail = result.stdout_text
+        ldap_err1 = 'connection to the ldap server was lost'
+        ldap_err2 = 'LDAP error: Invalid DN syntax'
+        assert (ldap_err1 not in log_tail.lower()
+                and ldap_err2 not in log_tail), "LDAP error found in logs"
+
+    def test_dns_special_chars_no_crash(self):
+        """Test DNS queries with special characters don't cause crash.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=841900
+        CVE-2012-3429 bind dyndb ldap named DoS via special chars.
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        # Query with various special characters
+        # Using self.resolver which targets self.master.ip
+        special_chars = ['$', '@', '"', '(', ')', '..', ';', '\\']
+        for char in special_chars:
+            try:
+                self.resolver.resolve(f'{char}.{domain}', 'A')
+            except dns.exception.DNSException:
+                pass
+
+        # Check recent logs for crashes (use journalctl for compatibility)
+        result = self.master.run_command([
+            'journalctl', '-u', 'named', '-n', '40', '--no-pager'
+        ], raiseonerr=False)
+        log_tail = result.stdout_text
+        has_crash = 'REQUIRE' in log_tail and 'failed, back trace' in log_tail
+        assert not has_crash and '/var/named/core' not in log_tail, \
+            "Crash or core dump found in logs"
+
+    def test_dynamic_update_flag_preserved(self):
+        """Test DNS zone dynamic flag is not changed unexpectedly.
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=766075
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example766075.com"
+
+        try:
+            # Create zone with dynamic update enabled
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                dynamic_update=True,
+                admin_email='admin@example.com'
+            )
+
+            # Verify dynamic update is True
+            result = tasks.show_dns_zone(self.master, zone)
+            assert "Dynamic update: True" in result.stdout_text
+
+            # Modify another attribute, dynamic update should remain True
+            tasks.mod_dns_zone(self.master, zone, '--retry=600')
+            result = tasks.show_dns_zone(self.master, zone, all_attrs=True)
+            assert "Dynamic update: True" in result.stdout_text
+
+            # Explicitly disable dynamic update
+            tasks.mod_dns_zone(
+                self.master, zone, '--dynamic-update=false'
+            )
+            result = tasks.show_dns_zone(self.master, zone, all_attrs=True)
+            assert "Dynamic update: False" in result.stdout_text
+
+        finally:
+            tasks.del_dns_zone(self.master, zone)
+
+    def test_skip_invalid_record_in_zone(self):
+        """Test invalid record is skipped instead of refusing entire zone.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=751776
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example751776.com"
+
+        try:
+            # Add zone and a valid A record
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email=f'admin@{zone}'
+            )
+            tasks.add_dns_record(
+                self.master, zone, 'foo', 'a', ['10.0.0.1']
+            )
+
+            # Verify A record resolves
+            result = self.resolver.resolve(f'foo.{zone}', 'A')
+            assert '10.0.0.1' in [r.to_text() for r in result]
+
+            # Add a valid KX record
+            tasks.add_dns_record(
+                self.master, zone, '@', 'kx', [f'1 foo.{zone}']
+            )
+
+            # Corrupt the KX record via LDAP (invalid format, no preference)
+            ldap = self.master.ldap_connect()
+            dn = DN(
+                ('idnsname', f'{zone}.'),
+                ('cn', 'dns'),
+                self.master.domain.basedn
+            )
+            entry = ldap.get_entry(dn)
+            entry['kXRecord'] = [f'foo.{zone}']
+            ldap.update_entry(entry)
+
+            time.sleep(5)
+
+            # Verify A record still resolves despite invalid KX record
+            result = self.resolver.resolve(f'foo.{zone}', 'A')
+            assert '10.0.0.1' in [r.to_text() for r in result]
+
+        finally:
+            tasks.del_dns_zone(self.master, zone, raiseonerr=False)
+
+    def test_bool_attributes_encoded_properly(self):
+        """Test bool attributes are encoded properly in setattr/addattr.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=797561
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example797561.com"
+
+        try:
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email='admin@example.com'
+            )
+
+            # Check initial state (raw output needed for attribute name)
+            result = tasks.show_dns_zone(
+                self.master, zone, all_attrs=True, raw=True
+            )
+            assert "idnsallowdynupdate: FALSE" in result.stdout_text
+
+            # setattr should not allow adding when value exists
+            result = tasks.mod_dns_zone(
+                self.master, zone,
+                '--addattr=idnsAllowDynUpdate=true',
+                raiseonerr=False
+            )
+            assert result.returncode != 0
+            err_msg = "idnsallowdynupdate: Only one value allowed."
+            assert err_msg in result.stderr_text
+
+            # setattr should work
+            tasks.mod_dns_zone(
+                self.master, zone,
+                '--setattr=idnsAllowDynUpdate=true'
+            )
+            result = tasks.show_dns_zone(
+                self.master, zone, all_attrs=True, raw=True
+            )
+            assert "idnsallowdynupdate: TRUE" in result.stdout_text
+
+        finally:
+            tasks.del_dns_zone(self.master, zone)
+
+    def test_admin_email_formatting(self):
+        """Test dnszone mod formats administrator's email properly.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=750806
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example750806.com"
+
+        try:
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email='admin@example.com'
+            )
+
+            # Modify admin email with dots
+            tasks.mod_dns_zone(
+                self.master, zone,
+                '--admin-email=foo.bar@example.com'
+            )
+
+            result = tasks.show_dns_zone(self.master, zone)
+            # The dot in foo.bar should be escaped
+            assert "foo\\.bar.example.com" in result.stdout_text
+
+        finally:
+            tasks.del_dns_zone(self.master, zone)
+
+    def test_dns_zone_allow_query_transfer(self):
+        """Test DNS zones load when idnsAllowQuery/idnsAllowTransfer is filled.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=733371
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example733371.com"
+        master_ip = self.master.ip
+
+        try:
+            # Add zone
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email="admin@example.com"
+            )
+
+            # Add a record
+            tasks.add_dns_record(
+                self.master, zone, 'foo', 'a', ['10.0.1.1']
+            )
+
+            # Set allow-query to master IP
+            tasks.mod_dns_zone(
+                self.master, zone,
+                f'--allow-query={master_ip}'
+            )
+            tasks.restart_named(self.master)
+
+            # Query should work from allowed IP
+            result = self.master.run_command([
+                'dig', '+short', '-t', 'A', f'foo.{zone}', f'@{master_ip}'
+            ])
+            assert '10.0.1.1' in result.stdout_text
+
+            # Set allow-query to different IP (not master)
+            tasks.mod_dns_zone(
+                self.master, zone,
+                '--allow-query=10.0.1.1'
+            )
+            tasks.restart_named(self.master)
+
+            # Query should fail/be refused from master IP
+            result = self.master.run_command([
+                'dig', '+short', '-t', 'A', f'foo.{zone}', f'@{master_ip}'
+            ], raiseonerr=False)
+            # Should not return the IP when query is not allowed
+            assert '10.0.1.1' not in result.stdout_text
+
+        finally:
+            tasks.del_dns_zone(self.master, zone, raiseonerr=False)
+
+    def test_zone_deleted_when_removed_from_ldap(self):
+        """Test plugin deletes zone when removed from LDAP with zonerefresh.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=767492
+        """
+        tasks.kinit_admin(self.master)
+        zone = "unknownexample767492.com"
+
+        try:
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email='admin@unknownexample.com'
+            )
+            tasks.mod_dns_zone(self.master, zone, '--refresh=30')
+            tasks.add_dns_record(
+                self.master, zone, 'foo', 'a', ['10.0.2.2']
+            )
+
+            time.sleep(35)
+            # Verify record is resolvable
+            ans = self.resolver.resolve(f'foo.{zone}', 'A')
+            assert '10.0.2.2' in [r.address for r in ans]
+
+            # Delete zone
+            tasks.del_dns_zone(self.master, zone, raiseonerr=True)
+
+            # Verify zone is gone
+            result = tasks.find_dns_zone(self.master, zone, raiseonerr=False)
+            assert result.returncode != 0
+
+            time.sleep(35)
+            # Record should no longer resolve after zone deletion
+            try:
+                self.resolver.resolve(f'foo.{zone}', 'A')
+                raise AssertionError(
+                    f"Resolving foo.{zone} should have failed")
+            except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers,
+                    dns.resolver.NoAnswer):
+                pass  # Expected - zone was deleted
+
+        finally:
+            tasks.del_dns_zone(self.master, zone)
+
+    def test_auto_ptr_record(self):
+        """Test automatic PTR record creation for A and AAAA records.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=767494
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        # IPv4 test variables
+        ipv4_rev = "1.1.10.in-addr.arpa."
+        ipv4_addr = "10.1.1.10"
+
+        # IPv6 test variables
+        ipv6_rev = "7.4.2.2.0.0.0.0.2.5.0.0.0.2.6.2.ip6.arpa."
+        ipv6_addr = "2620:52:0:2247:221:5eff:fe86:16b4"
+        ipv6_ptr = "4.b.6.1.6.8.e.f.f.f.e.5.1.2.2.0"
+
+        # === IPv4 Test ===
+        try:
+            tasks.add_dns_zone(
+                self.master, ipv4_rev,
+                skip_overlap_check=True, admin_email=self.EMAIL
+            )
+            tasks.add_dns_record(
+                self.master, domain, 'foo', 'a', [ipv4_addr],
+                '--a-create-reverse'
+            )
+            result = tasks.show_dns_record(self.master, ipv4_rev, '10')
+            assert f"foo.{domain}" in result.stdout_text
+
+            # Duplicate should fail
+            result = tasks.add_dns_record(
+                self.master, domain, 'foo', 'a', [ipv4_addr],
+                '--a-create-reverse', raiseonerr=False
+            )
+            assert result.returncode != 0
+            assert "already exists" in result.stderr_text
+
+        finally:
+            for zone, rec in [(ipv4_rev, '10'), (domain, 'foo')]:
+                tasks.del_dns_record(
+                    self.master, zone, rec, del_all=True, raiseonerr=False
+                )
+            tasks.del_dns_zone(self.master, ipv4_rev, raiseonerr=False)
+
+        # === IPv6 Test ===
+        try:
+            tasks.add_dns_zone(
+                self.master, ipv6_rev,
+                skip_overlap_check=True, admin_email=self.EMAIL
+            )
+            tasks.add_dns_record(
+                self.master, domain, 'bar', 'aaaa', [ipv6_addr],
+                '--aaaa-create-reverse'
+            )
+            result = tasks.show_dns_record(self.master, ipv6_rev, ipv6_ptr)
+            assert f"bar.{domain}" in result.stdout_text
+
+            # Duplicate should fail
+            result = tasks.add_dns_record(
+                self.master, domain, 'bar', 'aaaa', [ipv6_addr],
+                '--aaaa-create-reverse', raiseonerr=False
+            )
+            assert result.returncode != 0
+            assert "already exists" in result.stderr_text
+
+        finally:
+            for zone, rec in [(ipv6_rev, ipv6_ptr), (domain, 'bar')]:
+                tasks.del_dns_record(
+                    self.master, zone, rec, del_all=True, raiseonerr=False
+                )
+            tasks.del_dns_zone(self.master, ipv6_rev, raiseonerr=False)
+
+    def test_serial_number_updates(self):
+        """Test DNS zone serial number updates when record changes.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=804619
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        try:
+            # Get initial serial number (raw output needed)
+            result = tasks.show_dns_zone(
+                self.master, domain, all_attrs=True, raw=True
+            )
+            serial_line = [
+                line for line in result.stdout_text.split('\n')
+                if 'idnssoaserial' in line.lower()
+            ][0]
+            initial_serial = int(serial_line.split(':')[1].strip())
+
+            # Add a record
+            tasks.add_dns_record(
+                self.master, domain, 'dns175', 'a', ['192.168.0.1']
+            )
+
+            # Get new serial number
+            result = tasks.show_dns_zone(
+                self.master, domain, all_attrs=True, raw=True
+            )
+            serial_line = [
+                line for line in result.stdout_text.split('\n')
+                if 'idnssoaserial' in line.lower()
+            ][0]
+            new_serial = int(serial_line.split(':')[1].strip())
+
+            assert new_serial > initial_serial, (
+                f"Serial should have increased: "
+                f"{initial_serial} -> {new_serial}"
+            )
+
+        finally:
+            tasks.del_dns_record(
+                self.master, domain, 'dns175',
+                record_type='a', record_value=['192.168.0.1']
+            )
+
+    def test_ns_hostname_requires_a_aaaa(self):
+        """Test NS record hostname must have A or AAAA record.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=804562
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        result = tasks.add_dns_record(
+            self.master, domain, 'dns176',
+            'ns', [f'ns1.shanks.{domain}.'], raiseonerr=False
+        )
+        assert result.returncode != 0
+        assert "does not have a corresponding A/AAAA record" in \
+            result.stderr_text
+
+    def test_zone_forwarder_settings(self):
+        """Test zone forwarder settings can be modified.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=795414
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        try:
+            # Set forwarders
+            tasks.mod_dns_zone(
+                self.master, domain,
+                '--forwarder=10.65.202.128',
+                '--forwarder=10.65.202.129',
+                '--forward-policy=first'
+            )
+
+            # Remove forwarders
+            tasks.mod_dns_zone(
+                self.master, domain,
+                '--forwarder=', '--forward-policy='
+            )
+
+        finally:
+            # Ensure cleanup happens
+            tasks.mod_dns_zone(
+                self.master, domain,
+                '--forwarder=', '--forward-policy=',
+                raiseonerr=False
+            )
+
+    def test_soa_serial_length(self):
+        """Test correct SOA serial number length during installation.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=805871
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        result = tasks.show_dns_zone(self.master, domain)
+
+        # Extract serial from output
+        for line in result.stdout_text.splitlines():
+            if 'Serial' in line:
+                serial = line.split(':')[1].strip()
+                # Serial should be 10 digits (YYYYMMDDNN format)
+                assert len(serial) == 10, \
+                    f"Serial length should be 10, got {len(serial)}"
+                break
+
+    def test_dnsrecord_mod_error_messages(self):
+        """Test proper error message in dnsrecord-mod operations.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=804572
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example804572.com"
+
+        try:
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email=self.EMAIL
+            )
+
+            # Test error when cname-hostname and cname-rec both provided
+            result = tasks.add_dns_record(
+                self.master, zone, 'bz804572', 'cname', [''],
+                f'--cname-hostname=bz804572.{zone}', raiseonerr=False
+            )
+            assert result.returncode != 0
+            err_msg = ("invalid 'cname_hostname': Raw value of a DNS record "
+                       'was already set by "cname_rec" option')
+            assert err_msg in result.stderr_text
+
+            # Test error when modifying without specifying record
+            result = tasks.mod_dns_record(
+                self.master, zone, 'testbz804572',
+                '--a-ip-address=1.2.3.4',
+                raiseonerr=False
+            )
+            assert result.returncode != 0
+            assert "'a_rec' is required" in result.stderr_text
+
+        finally:
+            tasks.del_dns_zone(self.master, zone)
+
+    def test_reverse_dns_creation_option(self):
+        """Test option for adding Reverse DNS record upon forward creation.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=772301
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        # IPv4 test variables
+        ipv4_addr = "10.1.1.10"
+        ipv4_rev = "1.1.10.in-addr.arpa."
+
+        # IPv6 test variables
+        ipv6_addr = "2620:52:0:2247:221:5eff:fe86:16b4"
+        ipv6_rev = "7.4.2.2.0.0.0.0.2.5.0.0.0.2.6.2.ip6.arpa."
+        ipv6_ptr = "4.b.6.1.6.8.e.f.f.f.e.5.1.2.2.0"
+
+        # === IPv4 Test ===
+        try:
+            tasks.add_dns_zone(
+                self.master, ipv4_rev,
+                skip_overlap_check=True, admin_email=self.EMAIL
+            )
+            tasks.add_dns_record(
+                self.master, domain, 'myhost', 'a', [ipv4_addr],
+                '--a-create-reverse'
+            )
+
+            # Verify forward record
+            result = tasks.find_dns_record(self.master, domain, 'myhost')
+            assert result.returncode == 0
+
+            # Verify reverse record
+            result = tasks.find_dns_record(self.master, ipv4_rev, '10')
+            assert result.returncode == 0
+
+        finally:
+            tasks.del_dns_record(
+                self.master, ipv4_rev, '10', del_all=True, raiseonerr=False
+            )
+            tasks.del_dns_zone(self.master, ipv4_rev, raiseonerr=False)
+
+        # === IPv6 Test ===
+        try:
+            tasks.add_dns_zone(
+                self.master, ipv6_rev,
+                skip_overlap_check=True, admin_email=self.EMAIL
+            )
+            tasks.add_dns_record(
+                self.master, domain, 'myhost', 'aaaa', [ipv6_addr],
+                '--aaaa-create-reverse'
+            )
+
+            # Verify forward record (now has AAAA)
+            result = tasks.find_dns_record(self.master, domain, 'myhost')
+            assert result.returncode == 0
+
+            # Verify reverse record
+            result = tasks.find_dns_record(self.master, ipv6_rev, ipv6_ptr)
+            assert result.returncode == 0
+
+        finally:
+            for zone, rec in [(ipv6_rev, ipv6_ptr), (domain, 'myhost')]:
+                tasks.del_dns_record(
+                    self.master, zone, rec, del_all=True, raiseonerr=False
+                )
+            tasks.del_dns_zone(self.master, ipv6_rev, raiseonerr=False)
+
+    def test_non_ascii_chars_escaping(self):
+        """Test bind dyndb ldap escapes non ASCII characters correctly.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=818933
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        # Query with comma in hostname
+        try:
+            self.resolver.resolve(f'foo,bar.{domain}', 'A')
+        except dns.exception.DNSException:
+            pass
+
+        # Check logs for handle_connection_error bug (use journalctl)
+        result = self.master.run_command([
+            'journalctl', '-u', 'named', '-n', '100', '--no-pager'
+        ], raiseonerr=False)
+        assert 'bug in handle_connection_error' not in result.stdout_text, \
+            "Bug in handle_connection_error found"
+
+    def test_forwarder_help_text(self):
+        """Test proper help page for forwarder option.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=819635
+        """
+        tasks.kinit_admin(self.master)
+
+        result = self.master.run_command([
+            'ipa', 'dnszone-mod', '--help'
+        ])
+        # Should mention per-zone forwarders, not global
+        assert "global forwarders" not in result.stdout_text.lower() or \
+               "per-zone forwarders" in result.stdout_text.lower()
+
+    def test_delete_host_updates_dns(self):
+        """Test DNS is updated when deleting host with --updatedns.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=828687
+        """
+        tasks.kinit_admin(self.master)
+        ip_base = self.master.ip.rsplit('.', 1)[0]
+        test_ip = f"{ip_base}.252"
+        test_zone = "llnewzone."
+        # Reverse zone: take first 3 octets, reverse, join
+        rev = '.'.join(self.master.ip.split('.')[:3][::-1])
+        reverse_zone = f"{rev}.in-addr.arpa."
+
+        try:
+            tasks.add_dns_zone(self.master, test_zone, skip_overlap_check=True,
+                               admin_email=self.EMAIL)
+            self.master.run_command([
+                'ipa', 'host-add', f'--ip-address={test_ip}', f'tt.{test_zone}'
+            ])
+
+            # Verify PTR record was added
+            result = self.master.run_command([
+                'ipa', 'dnsrecord-find', reverse_zone, '252'
+            ], raiseonerr=False)
+            if result.returncode == 0:
+                assert test_zone in result.stdout_text
+
+            # Delete host with --updatedns
+            self.master.run_command([
+                'ipa', 'host-del', f'tt.{test_zone}', '--updatedns'
+            ])
+
+        finally:
+            self.master.run_command([
+                'ipa', 'host-del', f'tt.{test_zone}'
+            ], raiseonerr=False)
+            tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+
+    def test_ns_record_nonfqdn_validation(self):
+        """Test NS record validation appends zone name to non-FQDN.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=813380
+        """
+        tasks.kinit_admin(self.master)
+        host_ip = self.master.ip.rsplit('.', 1)[0] + '.253'
+        zone = "llnewzone813380.com"
+        host = f'nsnew.{zone}'
+
+        try:
+            tasks.add_dns_zone(self.master, zone, skip_overlap_check=True,
+                               admin_email=self.EMAIL)
+
+            # Create host for NS
+            self.master.run_command([
+                'ipa', 'host-add', host, f'--ip-address={host_ip}'
+            ])
+
+            # Add non-FQDN NS record (should work by appending zone)
+            tasks.add_dns_record(self.master, zone, '@', 'ns', ['nsnew'])
+
+            # Verify NS record
+            result = tasks.show_dns_record(self.master, zone, '@')
+            assert 'nsnew' in result.stdout_text
+
+        finally:
+            self.master.run_command([
+                'ipa', 'host-del', host, '--updatedns'
+            ], raiseonerr=False)
+            tasks.del_dns_zone(self.master, zone, raiseonerr=False)
+
+    def test_reverse_zone_creation(self):
+        """Test reverse zones are created correctly from IP prefix.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=798493
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        test_cases = [
+            ('10.11.12.0/24', '12.11.10.in-addr.arpa.'),
+            ('10.11.12.0/20', '11.10.in-addr.arpa.'),
+            ('10.11.12.0/16', '11.10.in-addr.arpa.'),
+        ]
+
+        for forward, reverse in test_cases:
+            try:
+                # Create reverse zone from IP (special --name-from-ip option)
+                self.master.run_command([
+                    'ipa', 'dnszone-add',
+                    f'--admin-email=admin@{domain}',
+                    f'--name-from-ip={forward}',
+                    '--skip-overlap-check'
+                ], stdin_text='\n')
+
+                # Verify zone was created
+                result = tasks.find_dns_zone(self.master, reverse)
+                assert f"Zone name: {reverse}" in result.stdout_text
+
+            finally:
+                tasks.del_dns_zone(self.master, reverse)
+
+    def test_rndc_reload_no_crash(self):
+        """Test rndc reload does not cause crash with persistent search.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=829728
+        """
+        tasks.kinit_admin(self.master)
+
+        # Verify named is running
+        assert tasks.host_service_active(self.master, 'named')
+
+        # Run rndc reload
+        result = self.master.run_command(['rndc', 'reload'])
+        assert result.returncode == 0
+
+        # Verify named is still running
+        assert tasks.host_service_active(self.master, 'named')
+
+    def test_zone_transfer_non_fqdn(self):
+        """Test zone transfers work for certain non-FQDNs.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=829388
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        host = "bz829388"
+
+        try:
+            # Enable zone transfers
+            tasks.mod_dns_zone(
+                self.master, domain,
+                "--allow-transfer=any;"
+            )
+
+            # Add a CNAME record without FQDN
+            tasks.add_dns_record(
+                self.master, domain, host, 'cname', [host]
+            )
+
+            # Restart IPA
+            self.master.run_command(['ipactl', 'restart'])
+
+            # Check zone transfer includes FQDN
+            result = self.master.run_command([
+                'dig', '-t', 'AXFR', f'@{self.master.hostname}', domain
+            ])
+            assert f'{host}.{domain}.' in result.stdout_text
+
+        finally:
+            tasks.del_dns_record(
+                self.master, domain, host,
+                record_type='cname', record_value=[host],
+                raiseonerr=False
+            )
+            tasks.mod_dns_zone(
+                self.master, domain,
+                "--allow-transfer=none;",
+                raiseonerr=False
+            )
+
+    def test_dname_cname_conflict(self):
+        """Test DNAME record validation and conflict with CNAME.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=915805
+        """
+        tasks.kinit_admin(self.master)
+        zone = "newzonebz915805"
+        cname = "m.l.k."
+        dname = f"bar.{zone}."
+        dname2 = f"bar_underscore.{zone}."
+
+        try:
+            # Create zone
+            tasks.add_dns_zone(
+                self.master, zone,
+                admin_email=self.EMAIL,
+                refresh=303, retry=101,
+                expire=1202, minimum=33, ttl=55
+            )
+
+            # Add CNAME
+            tasks.add_dns_record(
+                self.master, zone, 'cname', 'cname', [cname]
+            )
+
+            # DNAME on same name should fail (conflicts with CNAME)
+            result = tasks.add_dns_record(
+                self.master, zone, 'cname', 'dname', [dname], raiseonerr=False
+            )
+            assert result.returncode != 0
+
+            # DNAME on different name should succeed
+            tasks.add_dns_record(
+                self.master, zone, 'dname', 'dname', [dname]
+            )
+
+            # Second DNAME on same name should fail
+            result = tasks.add_dns_record(
+                self.master, zone, 'dname', 'dname', [dname2], raiseonerr=False
+            )
+            assert result.returncode != 0
+
+        finally:
+            tasks.del_dns_zone(self.master, zone)
+
+    def test_soa_serial_increments(self):
+        """Test SOA serial number increments for external changes.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=840383
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        zone = f"zone840383.{domain}"
+        txt_value = "bug test"
+        new_txt_value = "Bug Test for 840383"
+
+        try:
+            # Add zone
+            tasks.add_dns_zone(
+                self.master, zone,
+                skip_overlap_check=True,
+                admin_email=self.EMAIL
+            )
+
+            # Add TXT record
+            tasks.add_dns_record(
+                self.master, zone, 'txt', 'txt', [f'"{txt_value}"']
+            )
+
+            # Enable zone transfers
+            tasks.mod_dns_zone(
+                self.master, zone,
+                "--allow-transfer=any;"
+            )
+
+            self.master.run_command(['ipactl', 'restart'])
+
+            # Verify TXT record is part of zone transfer
+            result = self.master.run_command([
+                'dig', f'@{self.master.ip}', '-t', 'AXFR', zone
+            ])
+            assert 'TXT' in result.stdout_text
+
+            # Get old serial
+            result = self.master.run_command([
+                'dig', zone, '+multiline', '-t', 'SOA'
+            ])
+            old_serial = next(
+                int(ln.split()[0]) for ln in result.stdout_text.splitlines()
+                if 'serial' in ln.lower()
+            )
+
+            # Modify TXT record
+            tasks.mod_dns_record(
+                self.master, zone, 'txt',
+                f'--txt-rec="{txt_value}"', f'--txt-data="{new_txt_value}"'
+            )
+
+            # Get new serial - should increment after record modification
+            result = self.master.run_command([
+                'dig', zone, '+multiline', '-t', 'SOA'
+            ])
+            new_serial = next(
+                int(ln.split()[0]) for ln in result.stdout_text.splitlines()
+                if 'serial' in ln.lower()
+            )
+            assert new_serial > old_serial
+
+            # Enable dynamic updates - serial should NOT change
+            tasks.mod_dns_zone(
+                self.master, zone,
+                "--dynamic-update=true"
+            )
+
+            # Get current serial - should NOT change for zone attr update
+            result = self.master.run_command([
+                'dig', zone, '+multiline', '-t', 'SOA'
+            ])
+            current_serial = next(
+                int(ln.split()[0]) for ln in result.stdout_text.splitlines()
+                if 'serial' in ln.lower()
+            )
+            assert current_serial == new_serial
+
+        finally:
+            tasks.del_dns_zone(self.master, zone, raiseonerr=False)
+
+    def test_allow_query_transfer_ipv6(self):
+        """Test allow-query and allow-transfer with IPv4 and IPv6.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=701677
+        """
+        tasks.kinit_admin(self.master)
+        zone = "example.com"
+        ipv4 = self.master.ip
+        ipv6_added = False
+        temp_ipv6 = '2001:0db8:0:f101::1/64'
+
+        # Get default network interface
+        result = self.master.run_command([
+            'sh', '-c',
+            "/sbin/ip -4 route show | grep ^default | "
+            "awk '{print $5}' | head -1"
+        ])
+        eth = result.stdout_text.strip()
+
+        # Add temporary IPv6 if none exists
+        result = self.master.run_command(
+            ['ip', 'addr', 'show', 'scope', 'global'], raiseonerr=False
+        )
+        if 'inet6' not in result.stdout_text:
+            self.master.run_command([
+                '/sbin/ip', '-6', 'addr', 'add', temp_ipv6, 'dev', eth
+            ])
+            ipv6_added = True
+
+        # Get IPv6 address
+        result = self.master.run_command([
+            'sh', '-c',
+            "ip addr show scope global | "
+            "sed -e's/^.*inet6 \\([^ ]*\\)\\/.*/\\1/;t;d'"
+        ])
+        ipv6 = result.stdout_text.strip().split('\n')[0]
+
+        try:
+            tasks.add_dns_zone(self.master, zone, skip_overlap_check=True,
+                               admin_email=self.EMAIL)
+
+            # Test allow-query: IPv4 allowed, IPv6 denied
+            tasks.mod_dns_zone(
+                self.master, zone,
+                f"--allow-query={ipv4};!{ipv6};"
+            )
+            result = self.master.run_command(
+                ['dig', f'@{ipv4}', '-t', 'soa', zone], raiseonerr=False
+            )
+            assert 'ANSWER SECTION' in result.stdout_text
+            result = self.master.run_command(
+                ['dig', f'@{ipv6}', '-t', 'soa', zone], raiseonerr=False
+            )
+            assert 'ANSWER SECTION' not in result.stdout_text
+
+            # Test allow-query: IPv6 allowed, IPv4 denied
+            tasks.mod_dns_zone(
+                self.master, zone,
+                f"--allow-query={ipv6};!{ipv4};"
+            )
+            result = self.master.run_command(
+                ['dig', f'@{ipv4}', '-t', 'soa', zone], raiseonerr=False
+            )
+            assert 'ANSWER SECTION' not in result.stdout_text
+            result = self.master.run_command(
+                ['dig', f'@{ipv6}', '-t', 'soa', zone], raiseonerr=False
+            )
+            assert 'ANSWER SECTION' in result.stdout_text
+
+            # Reset allow-query to any
+            tasks.mod_dns_zone(
+                self.master, zone, "--allow-query=any;"
+            )
+
+            # Test allow-transfer: IPv4 allowed, IPv6 denied
+            tasks.mod_dns_zone(
+                self.master, zone,
+                f"--allow-transfer={ipv4};!{ipv6};"
+            )
+            result = self.master.run_command(
+                ['dig', f'@{ipv4}', zone, 'axfr'], raiseonerr=False
+            )
+            assert 'Transfer failed' not in result.stdout_text
+            result = self.master.run_command(
+                ['dig', f'@{ipv6}', zone, 'axfr'], raiseonerr=False
+            )
+            assert 'Transfer failed' in result.stdout_text
+
+            # Test allow-transfer: IPv6 allowed, IPv4 denied
+            tasks.mod_dns_zone(
+                self.master, zone,
+                f"--allow-transfer={ipv6};!{ipv4};"
+            )
+            result = self.master.run_command(
+                ['dig', f'@{ipv4}', zone, 'axfr'], raiseonerr=False
+            )
+            assert 'Transfer failed' in result.stdout_text
+            result = self.master.run_command(
+                ['dig', f'@{ipv6}', zone, 'axfr'], raiseonerr=False
+            )
+            assert 'Transfer failed' not in result.stdout_text
+
+        finally:
+            tasks.del_dns_zone(self.master, zone, raiseonerr=False)
+            if ipv6_added:
+                self.master.run_command([
+                    '/sbin/ip', '-6', 'addr', 'del', temp_ipv6, 'dev', eth
+                ], raiseonerr=False)
