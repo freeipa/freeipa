@@ -765,8 +765,8 @@ class UI_driver:
 
         # The small timeout (up to 5 seconds) allows to prevent exceptions when
         # driver attempts to click a button before it is rendered.
-        WebDriverWait(self.driver, 5, 0.2).until(
-            lambda d: btn.is_displayed(),
+        WebDriverWait(self.driver, 5).until(
+            lambda d: btn.is_displayed() and btn.is_enabled(),
             'Button is not displayed: %s' % (name or selector)
         )
         self.move_to_element_in_page(btn)
@@ -819,6 +819,9 @@ class UI_driver:
             s = ".modal.fade.in .modal-header button.close"
             btn = self.find(s, By.CSS_SELECTOR)
             if btn:
+                WebDriverWait(self.driver, 5).until(
+                    lambda d: btn.is_displayed() and btn.is_enabled(),
+                )
                 btn.click()
                 self.wait(0.5)
             else:
