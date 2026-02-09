@@ -45,15 +45,13 @@ LDAP Storage:
 import datetime
 import enum
 import logging
+import os
+import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-import uuid
-
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import ExtensionOID
-from cryptography.hazmat.backends import default_backend
-
 from ipalib import errors
 from ipathinca.profiles import ProfileManager
 from ipathinca.certificate_lifecycle import (
@@ -65,6 +63,9 @@ from ipathinca.certificate_lifecycle import (
 from ipathinca.storage_factory import get_storage_backend
 from ipathinca.hsm import HSMConfig, HSMKeyBackend, HSMPrivateKeyProxy
 from ipathinca.ldap_utils import is_internal_token
+from ipathinca.nss_utils import NSSDatabase
+from ipathinca import x509_utils
+import ipathinca
 
 # Try to import cachetools for bounded request cache
 try:
@@ -101,19 +102,95 @@ class RevocationReason(enum.Enum):
     REMOVE_FROM_CRL = 8  # Special case for unrevoke
 
 
+# Canonical mappings for RevocationReason — used by CertificateRecord,
+# CRL generation, and REST API.  Defined once to avoid drift.
+
+REVOCATION_REASON_TO_STRING = {
+    RevocationReason.UNSPECIFIED: "unspecified",
+    RevocationReason.KEY_COMPROMISE: "keyCompromise",
+    RevocationReason.CA_COMPROMISE: "CACompromise",
+    RevocationReason.AFFILIATION_CHANGED: "affiliationChanged",
+    RevocationReason.SUPERSEDED: "superseded",
+    RevocationReason.CESSATION_OF_OPERATION: "cessationOfOperation",
+    RevocationReason.CERTIFICATE_HOLD: "certificateHold",
+    RevocationReason.PRIVILEGE_WITHDRAWN: "privilegeWithdrawn",
+    RevocationReason.AA_COMPROMISE: "AACompromise",
+}
+
+REVOCATION_STRING_TO_REASON = {
+    v: k for k, v in REVOCATION_REASON_TO_STRING.items()
+}
+
+REVOCATION_REASON_TO_FLAG = {
+    RevocationReason.UNSPECIFIED: x509.ReasonFlags.unspecified,
+    RevocationReason.KEY_COMPROMISE: x509.ReasonFlags.key_compromise,
+    RevocationReason.CA_COMPROMISE: x509.ReasonFlags.ca_compromise,
+    RevocationReason.AFFILIATION_CHANGED: x509.ReasonFlags.affiliation_changed,
+    RevocationReason.SUPERSEDED: x509.ReasonFlags.superseded,
+    RevocationReason.CESSATION_OF_OPERATION: (
+        x509.ReasonFlags.cessation_of_operation
+    ),
+    RevocationReason.CERTIFICATE_HOLD: x509.ReasonFlags.certificate_hold,
+    RevocationReason.PRIVILEGE_WITHDRAWN: (
+        x509.ReasonFlags.privilege_withdrawn
+    ),
+    RevocationReason.AA_COMPROMISE: x509.ReasonFlags.aa_compromise,
+    RevocationReason.REMOVE_FROM_CRL: x509.ReasonFlags.remove_from_crl,
+}
+
+
 class CertificateRequest:
     """Container for certificate request data"""
+
+    # Monotonic counter for generating Dogtag-compatible integer request IDs.
+    # Seeded from current time in microseconds plus PID-based offset to
+    # avoid collisions across restarts AND across gunicorn worker processes
+    # (which are forked from the master and would otherwise share the same
+    # seed).  Thread-safe via threading.Lock.
+    _request_counter_lock = threading.Lock()
+    _request_counter = 0
+    _request_counter_pid = 0
+
+    @classmethod
+    def _next_request_id(cls) -> str:
+        with cls._request_counter_lock:
+            pid = os.getpid()
+            if cls._request_counter_pid != pid:
+                # (Re-)seed after fork: time-in-microseconds * 65536 + PID
+                # gives each worker a unique starting range.
+                cls._request_counter = int(
+                    datetime.datetime.now(
+                        datetime.timezone.utc
+                    ).timestamp() * 1_000_000
+                ) * 65536 + pid
+                cls._request_counter_pid = pid
+            cls._request_counter += 1
+            return str(cls._request_counter)
 
     def __init__(
         self, csr: x509.CertificateSigningRequest, profile: str = None
     ):
         self.csr = csr
         self.profile = profile or "caIPAserviceCert"
-        self.request_id = str(uuid.uuid4())
+        # Use integer-based request IDs for PKI client compatibility.
+        # IPA's dogtag.py calls int(request_id, 0), which crashes on UUIDs.
+        self.request_id = self._next_request_id()
         # Use lowercase status to match PKI CertRequestStatus constants
         self.status = "pending"
         self.serial_number = None
         self.submitted_at = datetime.datetime.now(datetime.timezone.utc)
+
+    @classmethod
+    def for_subca(cls, ca_id: str, profile: str = "caSubCACert"):
+        """Create a CertificateRequest for sub-CA certificate storage."""
+        obj = cls.__new__(cls)
+        obj.csr = None
+        obj.profile = profile
+        obj.request_id = f"subca-{ca_id}"
+        obj.status = "complete"
+        obj.serial_number = None
+        obj.submitted_at = datetime.datetime.now(datetime.timezone.utc)
+        return obj
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for storage/API"""
@@ -123,9 +200,11 @@ class CertificateRequest:
             "status": self.status,
             "serial_number": self.serial_number,
             "submitted_at": self.submitted_at.isoformat(),
-            "csr_pem": self.csr.public_bytes(
-                serialization.Encoding.PEM
-            ).decode(),
+            "csr_pem": (
+                self.csr.public_bytes(serialization.Encoding.PEM).decode()
+                if self.csr
+                else None
+            ),
         }
 
 
@@ -220,20 +299,9 @@ class CertificateRecord:
         revocation_info = self.lifecycle.get_revocation_info()
         if revocation_info and revocation_info.get("reason"):
             reason_str = revocation_info["reason"]
-            cessationOfOperation = RevocationReason.CESSATION_OF_OPERATION
-            # Map reason string to RevocationReason enum
-            reason_mapping = {
-                "keyCompromise": RevocationReason.KEY_COMPROMISE,
-                "CACompromise": RevocationReason.CA_COMPROMISE,
-                "affiliationChanged": RevocationReason.AFFILIATION_CHANGED,
-                "superseded": RevocationReason.SUPERSEDED,
-                "cessationOfOperation": cessationOfOperation,
-                "certificateHold": RevocationReason.CERTIFICATE_HOLD,
-                "privilegeWithdrawn": RevocationReason.PRIVILEGE_WITHDRAWN,
-                "AACompromise": RevocationReason.AA_COMPROMISE,
-                "unspecified": RevocationReason.UNSPECIFIED,
-            }
-            return reason_mapping.get(reason_str, RevocationReason.UNSPECIFIED)
+            return REVOCATION_STRING_TO_REASON.get(
+                reason_str, RevocationReason.UNSPECIFIED
+            )
         return None
 
     def revoke(
@@ -262,19 +330,7 @@ class CertificateRecord:
         if reason == RevocationReason.CERTIFICATE_HOLD:
             return self.put_on_hold(principal=principal)
 
-        # Map RevocationReason enum to RFC 5280 camelCase reason string
-        reason_mapping = {
-            RevocationReason.UNSPECIFIED: "unspecified",
-            RevocationReason.KEY_COMPROMISE: "keyCompromise",
-            RevocationReason.CA_COMPROMISE: "CACompromise",
-            RevocationReason.AFFILIATION_CHANGED: "affiliationChanged",
-            RevocationReason.SUPERSEDED: "superseded",
-            RevocationReason.CESSATION_OF_OPERATION: "cessationOfOperation",
-            RevocationReason.CERTIFICATE_HOLD: "certificateHold",
-            RevocationReason.PRIVILEGE_WITHDRAWN: "privilegeWithdrawn",
-            RevocationReason.AA_COMPROMISE: "AACompromise",
-        }
-        reason_str = reason_mapping.get(reason, "unspecified")
+        reason_str = REVOCATION_REASON_TO_STRING.get(reason, "unspecified")
 
         try:
             self.lifecycle.transition(
@@ -343,7 +399,7 @@ class CertificateRecord:
             )
             logger.info(
                 f"Certificate {self.serial_number} released from hold by "
-                f"{principal}"
+                f"{principal or 'system'}"
             )
         except InvalidStateTransition as e:
             logger.error(
@@ -498,6 +554,10 @@ class PythonCA:
         # Initialize CA cert and key as None - will be loaded on demand
         self.ca_cert = None
         self.ca_private_key = None
+        self._ca_load_lock = threading.Lock()
+
+        # Cached CRL timing (populated on first call to _get_crl_timing)
+        self._crl_timing = None
 
         # Initialize storage backend (LDAP required for ipathinca)
         # Uses factory to select backend based on configuration
@@ -553,9 +613,7 @@ class PythonCA:
             # Load CA certificate (always from file for ipathinca)
             with open(self.ca_cert_path, "rb") as f:
                 ca_cert_data = f.read()
-                self.ca_cert = x509.load_pem_x509_certificate(
-                    ca_cert_data, default_backend()
-                )
+                self.ca_cert = x509.load_pem_x509_certificate(ca_cert_data)
 
             # Load CA private key - conditional based on HSM configuration
             hsm_config = None
@@ -600,8 +658,6 @@ class PythonCA:
                     f"Extracting CA private key from NSSDB for CA {self.ca_id}"
                 )
 
-                from ipathinca.nss_utils import NSSDatabase
-
                 # Determine nickname based on CA ID
                 if self.ca_id == "ipa":
                     ca_nickname = "caSigningCert cert-pki-ca"
@@ -637,13 +693,58 @@ class PythonCA:
     def _ensure_ca_loaded(self):
         """Ensure CA certificate and key are loaded"""
         if self.ca_cert is None or self.ca_private_key is None:
-            if not self._load_ca_cert_and_key():
-                raise errors.CertificateOperationError(
-                    error=(
-                        "CA certificate and/or private key not available. "
-                        "CA may not be configured yet."
+            with self._ca_load_lock:
+                # Double-check under lock
+                if (
+                    self.ca_cert is not None
+                    and self.ca_private_key is not None
+                ):
+                    return
+                if not self._load_ca_cert_and_key():
+                    raise errors.CertificateOperationError(
+                        error=(
+                            "CA certificate and/or private key not available. "
+                            "CA may not be configured yet."
+                        )
                     )
-                )
+
+    def ensure_ca_loaded(self):
+        """Public wrapper: ensure CA certificate and key are loaded."""
+        self._ensure_ca_loaded()
+
+    def _get_crl_timing(self):
+        """Get CRL update interval and grace period from config.
+
+        Returns:
+            tuple: (update_interval_minutes, next_update_minutes)
+        """
+        if self._crl_timing is not None:
+            return self._crl_timing
+
+        update_interval = int(
+            ipathinca.get_config_value(
+                "ca", "crl_update_interval", default="240"
+            )
+        )
+        grace_period = int(
+            ipathinca.get_config_value(
+                "ca", "crl_next_update_grace_period", default="0"
+            )
+        )
+        if update_interval < 1:
+            logger.warning(
+                "crl_update_interval=%d is invalid, using 240 minutes",
+                update_interval,
+            )
+            update_interval = 240
+        if grace_period < 0:
+            logger.warning(
+                "crl_next_update_grace_period=%d is invalid, using 0",
+                grace_period,
+            )
+            grace_period = 0
+        self._crl_timing = (update_interval, update_interval + grace_period)
+        return self._crl_timing
 
     def _get_next_serial_number(self) -> int:
         """Generate next serial number for certificate via LDAP storage
@@ -664,8 +765,12 @@ class PythonCA:
             Request ID for tracking
         """
         try:
-            # Parse CSR
-            csr = x509.load_pem_x509_csr(csr_pem.encode(), default_backend())
+            # Parse and validate CSR
+            csr = x509.load_pem_x509_csr(csr_pem.encode())
+            if not csr.is_signature_valid:
+                raise errors.CertificateOperationError(
+                    error="CSR signature verification failed"
+                )
 
             # Create request record
             request = CertificateRequest(csr, profile)
@@ -714,49 +819,94 @@ class PythonCA:
             # This ensures the profile exists and CSR meets requirements
             self.profile_manager.validate_profile_for_csr(request.profile, csr)
 
-            # Generate serial number
-            serial_number = self._get_next_serial_number()
-
-            # Build certificate
-            builder = x509.CertificateBuilder()
-            builder = builder.subject_name(csr.subject)
-            builder = builder.issuer_name(self.ca_cert.subject)
-            builder = builder.public_key(csr.public_key())
-            builder = builder.serial_number(serial_number)
-
             # Get profile to determine validity period
             profile_obj = self.profile_manager.get_profile(request.profile)
             validity_days = profile_obj.validity_days if profile_obj else 365
 
-            # Set validity period from profile configuration
-            now = datetime.datetime.now(datetime.timezone.utc)
-            builder = builder.not_valid_before(now)
-            builder = builder.not_valid_after(
-                now + datetime.timedelta(days=validity_days)
-            )
-
-            # Add extensions based on profile
-            builder = self._add_extensions_for_profile(
-                builder, request.profile, csr
-            )
-
             # Sign certificate with algorithm matching CA certificate
             # Note: This is the legacy/simple CA class. For full Dogtag profile
             # support with per-profile algorithm selection, use CAInternal.
-            from ipathinca import x509_utils
-
             signing_alg = x509_utils.get_certificate_signature_algorithm(
                 self.ca_cert
             )
             hash_alg = x509_utils.parse_signature_algorithm(signing_alg)
-            certificate = builder.sign(
-                self.ca_private_key, hash_alg, default_backend()
-            )
 
-            # Store certificate record in LDAP
-            # Use allow_update=False to detect serial number collisions
-            cert_record = CertificateRecord(certificate, request)
-            self.storage.store_certificate(cert_record, allow_update=False)
+            # Retry loop for LDAP collisions (multi-worker).
+            # MidairCollision can occur at serial allocation or cert
+            # storage when multiple workers race on the same LDAP entry.
+            max_retries = 10
+            for attempt in range(max_retries):
+                try:
+                    serial_number = self._get_next_serial_number()
+                except errors.MidairCollision:
+                    if attempt < max_retries - 1:
+                        logger.debug(
+                            "Serial allocation collision (attempt %d/%d)",
+                            attempt + 1,
+                            max_retries,
+                        )
+                        continue
+                    raise
+
+                # Build certificate
+                builder = x509.CertificateBuilder()
+                builder = builder.subject_name(csr.subject)
+                builder = builder.issuer_name(self.ca_cert.subject)
+                builder = builder.public_key(csr.public_key())
+                builder = builder.serial_number(serial_number)
+
+                now = datetime.datetime.now(datetime.timezone.utc)
+                not_after = now + datetime.timedelta(days=validity_days)
+
+                # Enforce parent CA validity constraint (RFC 5280):
+                # issued certificate must not extend beyond CA's notAfter
+                ca_not_after = self.ca_cert.not_valid_after_utc
+                if not_after > ca_not_after:
+                    logger.warning(
+                        "Certificate validity (%s) would exceed CA validity "
+                        "(%s), clamping to CA notAfter",
+                        not_after.isoformat(),
+                        ca_not_after.isoformat(),
+                    )
+                    not_after = ca_not_after
+
+                builder = builder.not_valid_before(now)
+                builder = builder.not_valid_after(not_after)
+
+                # Add extensions based on profile
+                builder = self._add_extensions_for_profile(
+                    builder, request.profile, csr
+                )
+
+                certificate = builder.sign(self.ca_private_key, hash_alg)
+
+                # Store certificate record in LDAP
+                # Use allow_update=False to detect serial number collisions
+                cert_record = CertificateRecord(certificate, request)
+                try:
+                    self.storage.store_certificate(
+                        cert_record, allow_update=False
+                    )
+                    break
+                except errors.DuplicateEntry:
+                    if attempt < max_retries - 1:
+                        logger.warning(
+                            "Serial number %d collision, retrying (%d/%d)",
+                            serial_number,
+                            attempt + 1,
+                            max_retries,
+                        )
+                        continue
+                    raise
+                except errors.MidairCollision:
+                    if attempt < max_retries - 1:
+                        logger.debug(
+                            "LDAP collision storing cert (attempt %d/%d)",
+                            attempt + 1,
+                            max_retries,
+                        )
+                        continue
+                    raise
 
             # Update request status (lowercase to match PKI CertRequestStatus
             # constants)
@@ -926,22 +1076,11 @@ class PythonCA:
         # Ensure CA cert and key are loaded
         self._ensure_ca_loaded()
 
-        # Read CRL update interval from config (default: 240 minutes = 4 hours)
-        import ipathinca
+        # Read CRL timing from config
+        _, next_update_minutes = self._get_crl_timing()
 
-        update_interval = int(
-            ipathinca.get_config_value(
-                "ca", "crl_update_interval", default="240"
-            )
-        )
-        grace_period = int(
-            ipathinca.get_config_value(
-                "ca", "crl_next_update_grace_period", default="0"
-            )
-        )
-
-        # Calculate next update time (interval + grace period)
-        next_update_minutes = update_interval + grace_period
+        # Get next CRL number from storage (RFC 5280 §5.2.3 requirement)
+        crl_number = self.storage.get_next_crl_number()
 
         builder = x509.CertificateRevocationListBuilder()
         builder = builder.issuer_name(self.ca_cert.subject)
@@ -950,6 +1089,19 @@ class PythonCA:
         builder = builder.last_update(now)
         builder = builder.next_update(
             now + datetime.timedelta(minutes=next_update_minutes)
+        )
+
+        # Add CRL Number extension (RFC 5280 §5.2.3 requirement)
+        builder = builder.add_extension(
+            x509.CRLNumber(crl_number), critical=False
+        )
+
+        # Add Authority Key Identifier extension (RFC 5280 §5.2.1)
+        builder = builder.add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(
+                self.ca_cert.public_key()
+            ),
+            critical=False,
         )
 
         # Get all revoked certificates from LDAP storage
@@ -965,13 +1117,20 @@ class PythonCA:
             revoked_certs = [
                 c
                 for c in revoked_certs
-                if c.not_valid_after is None
-                or c.not_valid_after >= now.replace(tzinfo=None)
+                if c.certificate is not None
+                and c.certificate.not_valid_after_utc > now
             ]
 
         # Add revoked certificates to CRL
         for cert_record in revoked_certs:
             if cert_record.status == CertificateStatus.REVOKED:
+                if cert_record.revoked_at is None:
+                    logger.warning(
+                        "Revoked certificate %s has no revocation date, "
+                        "skipping in CRL",
+                        cert_record.serial_number,
+                    )
+                    continue
                 revoked_cert = x509.RevokedCertificateBuilder()
                 revoked_cert = revoked_cert.serial_number(
                     cert_record.serial_number
@@ -981,8 +1140,12 @@ class PythonCA:
                 )
 
                 if cert_record.revocation_reason:
+                    reason_flag = REVOCATION_REASON_TO_FLAG.get(
+                        cert_record.revocation_reason,
+                        x509.ReasonFlags.unspecified,
+                    )
                     revoked_cert = revoked_cert.add_extension(
-                        x509.CRLReason(cert_record.revocation_reason),
+                        x509.CRLReason(reason_flag),
                         critical=False,
                     )
 
@@ -990,13 +1153,11 @@ class PythonCA:
 
         # Sign CRL with algorithm matching CA certificate
         # Extract algorithm from the CA cert that will sign this CRL
-        from ipathinca import x509_utils
-
         signing_alg = x509_utils.get_certificate_signature_algorithm(
             self.ca_cert
         )
         hash_alg = x509_utils.parse_signature_algorithm(signing_alg)
-        crl = builder.sign(self.ca_private_key, hash_alg, default_backend())
+        crl = builder.sign(self.ca_private_key, hash_alg)
         return crl
 
     def find_certificates(
@@ -1041,3 +1202,17 @@ class PythonCA:
             )
 
         return request
+
+    def shutdown(self):
+        """
+        Shutdown CA and cleanup resources
+
+        Matches Dogtag's shutdown() method for ProfileSubsystem
+        """
+        logger.info("Shutting down CA")
+
+        # Stop profile change monitor
+        if hasattr(self, "profile_manager") and self.profile_manager:
+            self.profile_manager.stop_monitoring()
+
+        logger.info("CA shutdown complete")
