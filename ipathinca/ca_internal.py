@@ -53,21 +53,24 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta, timezone
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 
 from ipalib import errors
 
 import ipathinca
+from ipathinca.exceptions import StorageConnectionError
 from ipathinca.ca import (
     PythonCA,
     CertificateRequest,
     CertificateRecord,
+    CertificateStatus,
     RevocationReason,
+    REVOCATION_REASON_TO_FLAG,
 )
 from ipathinca.subca import SubCAManager
 from ipathinca import x509_utils
 from ipathinca.audit import audit_logger, AuditOutcome
 from ipathinca.ldap_utils import is_main_ca_id
+from ipathinca.profile import Profile
 
 logger = logging.getLogger(__name__)
 
@@ -119,14 +122,21 @@ class InternalCA(PythonCA):
             logger.debug("LDAP storage backend initialized successfully")
         except Exception as e:
             logger.error(
-                f"Failed to initialize LDAP schema: {e}", exc_info=True
+                "Failed to initialize LDAP schema: %s", e, exc_info=True
             )
-            raise Exception(
+            raise StorageConnectionError(
                 f"LDAP storage is required but failed to initialize: {e}"
             )
 
         # Initialize sub-CA manager with reference to main CA
         self.subca_manager = SubCAManager(main_ca=self)
+
+        # Start profile change monitoring for production CA
+        # This enables automatic profile replication across multi-master
+        # deployments
+        logger.debug("Starting profile change monitoring for production CA")
+        self.profile_manager._start_monitoring()
+        logger.debug("Profile change monitoring started")
 
     def _get_next_serial_number(self) -> int:
         """Generate next serial number for certificate via LDAP"""
@@ -153,7 +163,7 @@ class InternalCA(PythonCA):
         """
         try:
             # Parse CSR
-            csr = x509.load_pem_x509_csr(csr_pem.encode(), default_backend())
+            csr = x509.load_pem_x509_csr(csr_pem.encode())
             subject = str(x509_utils.cert_name_to_ipa_dn(csr.subject))
 
             # Create request record
@@ -161,7 +171,7 @@ class InternalCA(PythonCA):
             # Store CA ID with the request
             request.ca_id = ca_id
             logger.debug(
-                f"Storing request {request.request_id} with ca_id={ca_id}"
+                "Storing request %s with ca_id=%s", request.request_id, ca_id
             )
 
             # Store request in LDAP
@@ -177,8 +187,9 @@ class InternalCA(PythonCA):
             )
 
             logger.debug(
-                f"Certificate request {request.request_id} submitted with "
-                f"profile {profile}"
+                "Certificate request %s submitted with profile %s",
+                request.request_id,
+                profile,
             )
             return request.request_id
 
@@ -192,7 +203,7 @@ class InternalCA(PythonCA):
                 outcome=AuditOutcome.FAILURE,
             )
 
-            logger.error(f"Failed to submit certificate request: {e}")
+            logger.error("Failed to submit certificate request: %s", e)
             raise errors.CertificateOperationError(
                 error=f"Failed to submit certificate request: {e}"
             )
@@ -255,95 +266,150 @@ class InternalCA(PythonCA):
                         signing_cert = subca.ca_cert
                         signing_key = subca.ca_key
                         logger.debug(
-                            f"Using sub-CA {ca_id} to sign certificate"
+                            "Using sub-CA %s to sign certificate", ca_id
                         )
                 except Exception as e:
-                    logger.debug(
-                        f"Sub-CA lookup failed, falling back to main CA: {e}"
+                    logger.warning(
+                        "Sub-CA '%s' lookup failed, "
+                        "falling back to main CA: %s",
+                        ca_id,
+                        e,
                     )
 
-            # Generate serial number
-            serial_number = self._get_next_serial_number()
+            # Retry loop for LDAP collisions (multi-worker).
+            # MidairCollision can occur at any LDAP write step:
+            # serial number allocation, certificate storage, or request
+            # update.  Retry the entire sign-and-store sequence.
+            max_retries = 10
+            for attempt in range(max_retries):
+                try:
+                    # Generate serial number
+                    serial_number = self._get_next_serial_number()
+                except errors.MidairCollision:
+                    if attempt < max_retries - 1:
+                        logger.debug(
+                            "Serial allocation collision (attempt %d/%d)",
+                            attempt + 1,
+                            max_retries,
+                        )
+                        continue
+                    raise
 
-            # Build certificate
-            builder = x509.CertificateBuilder()
-            builder = builder.serial_number(serial_number)
-            builder = builder.issuer_name(signing_cert.subject)
+                # Build certificate
+                builder = x509.CertificateBuilder()
+                builder = builder.serial_number(serial_number)
+                builder = builder.issuer_name(signing_cert.subject)
 
-            # Try to load Dogtag profile for full compatibility
-            from ipathinca.profile import Profile
-            from ipathinca import x509_utils
+                # Try to load Dogtag profile for full compatibility
 
-            try:
-                profile = self.profile_manager.get_profile_for_signing(
-                    request.profile
-                )
-                is_dogtag = isinstance(profile, Profile)
-            except Exception as e:
-                logger.warning(
-                    f"Failed to load profile {request.profile}: {e}"
-                )
-                profile = None
-                is_dogtag = False
+                try:
+                    profile = self.profile_manager.get_profile_for_signing(
+                        request.profile
+                    )
+                    is_dogtag = isinstance(profile, Profile)
+                except Exception as e:
+                    logger.warning(
+                        "Failed to load profile %s: %s", request.profile, e
+                    )
+                    profile = None
+                    is_dogtag = False
 
-            if is_dogtag:
-                # Use Dogtag profile policy chain
-                context = {
-                    "request": {
-                        "csr": csr,
-                    },
-                    "principal": principal,
-                    "signing_algorithm": None,  # Will be set by
-                    # SigningAlgDefault
-                    "ca_certificate": signing_cert,
-                }
+                if is_dogtag:
+                    # Use Dogtag profile policy chain
+                    context = {
+                        "request": {
+                            "csr": csr,
+                        },
+                        "principal": principal,
+                        "signing_algorithm": None,  # Will be set by
+                        # SigningAlgDefault
+                        "ca_certificate": signing_cert,
+                    }
 
-                # Execute policy chain (sets subject, validity, extensions,
-                # etc.)
-                builder = self._execute_policy_chain(
-                    profile, builder, csr, context
-                )
+                    # Execute policy chain (sets subject, validity, extensions,
+                    # etc.)
+                    builder = self._execute_policy_chain(
+                        profile, builder, csr, context
+                    )
 
-                # Get signing algorithm from context (with config fallback)
-                default_alg = ipathinca.get_config_value(
-                    "ca", "default_signing_algorithm", default="SHA256withRSA"
-                )
-                signing_alg = context.get("signing_algorithm", default_alg)
-            else:
-                # Legacy profile path
-                builder = builder.subject_name(csr.subject)
-                builder = builder.public_key(csr.public_key())
+                    # Get signing algorithm from context (with config fallback)
+                    default_alg = ipathinca.get_config_value(
+                        "ca",
+                        "default_signing_algorithm",
+                        default="SHA256withRSA",
+                    )
+                    signing_alg = context.get("signing_algorithm", default_alg)
+                else:
+                    # Legacy profile path
+                    builder = builder.subject_name(csr.subject)
+                    builder = builder.public_key(csr.public_key())
 
-                # Set validity period (1 year by default)
-                now = datetime.now(timezone.utc)
-                builder = builder.not_valid_before(now)
-                builder = builder.not_valid_after(now + timedelta(days=365))
+                    # Set validity period (1 year by default)
+                    now = datetime.now(timezone.utc)
+                    not_after = now + timedelta(days=365)
 
-                # Add extensions based on profile
-                builder = self._add_extensions_for_profile(
-                    builder, request.profile, csr, signing_cert
-                )
+                    # Enforce parent CA validity constraint (RFC 5280):
+                    # issued cert must not extend beyond signing CA's notAfter
+                    ca_not_after = signing_cert.not_valid_after_utc
+                    if not_after > ca_not_after:
+                        logger.warning(
+                            "Certificate validity (%s) would exceed CA "
+                            "validity (%s), clamping to CA notAfter",
+                            not_after.isoformat(),
+                            ca_not_after.isoformat(),
+                        )
+                        not_after = ca_not_after
 
-                # Default for legacy profiles (read from config)
-                signing_alg = ipathinca.get_config_value(
-                    "ca", "default_signing_algorithm", default="SHA256withRSA"
-                )
+                    builder = builder.not_valid_before(now)
+                    builder = builder.not_valid_after(not_after)
 
-            # Sign certificate with algorithm from profile
-            hash_alg = x509_utils.parse_signature_algorithm(signing_alg)
-            certificate = builder.sign(
-                signing_key, hash_alg, default_backend()
-            )
+                    # Add extensions based on profile
+                    builder = self._add_extensions_for_profile(
+                        builder, request.profile, csr, signing_cert
+                    )
 
-            # Store certificate record in LDAP
-            # Use allow_update=False to detect serial number collisions
-            cert_record = CertificateRecord(certificate, request)
-            self.ldap_storage.store_certificate(
-                cert_record, allow_update=False
-            )
+                    # Default for legacy profiles (read from config)
+                    signing_alg = ipathinca.get_config_value(
+                        "ca",
+                        "default_signing_algorithm",
+                        default="SHA256withRSA",
+                    )
+
+                # Sign certificate with algorithm from profile
+                hash_alg = x509_utils.parse_signature_algorithm(signing_alg)
+                certificate = builder.sign(signing_key, hash_alg)
+
+                # Store certificate record in LDAP
+                # Use allow_update=False to detect serial number collisions
+                cert_record = CertificateRecord(certificate, request)
+                try:
+                    self.ldap_storage.store_certificate(
+                        cert_record, allow_update=False
+                    )
+                    break
+                except errors.DuplicateEntry:
+                    if attempt < max_retries - 1:
+                        logger.warning(
+                            "Serial number %d collision, retrying (%d/%d)",
+                            serial_number,
+                            attempt + 1,
+                            max_retries,
+                        )
+                        continue
+                    raise
+                except errors.MidairCollision:
+                    if attempt < max_retries - 1:
+                        logger.debug(
+                            "LDAP collision storing cert (attempt %d/%d)",
+                            attempt + 1,
+                            max_retries,
+                        )
+                        continue
+                    raise
+
             logger.debug(
-                f"Certificate {cert_record.serial_number} stored in LDAP "
-                "successfully"
+                "Certificate %s stored in LDAP successfully",
+                cert_record.serial_number,
             )
 
             # Update request status (lowercase to match PKI CertRequestStatus
@@ -366,7 +432,9 @@ class InternalCA(PythonCA):
             )
 
             logger.debug(
-                f"Certificate {serial_number} issued for request {request_id}"
+                "Certificate %s issued for request %s",
+                serial_number,
+                request_id,
             )
             return serial_number
 
@@ -381,7 +449,7 @@ class InternalCA(PythonCA):
                 outcome=AuditOutcome.FAILURE,
             )
 
-            logger.error(f"Failed to sign certificate: {e}")
+            logger.error("Failed to sign certificate: %s", e)
             # Use lowercase to match PKI CertRequestStatus constants
             request.status = "rejected"
             self.ldap_storage.store_request(request)
@@ -408,8 +476,6 @@ class InternalCA(PythonCA):
         Raises:
             ValueError: If constraint validation fails
         """
-        from ipathinca.profile import Profile
-
         # Check if this is a Dogtag profile with policy chain
         if not isinstance(profile, Profile):
             # Legacy profile - use old extension method
@@ -417,8 +483,9 @@ class InternalCA(PythonCA):
             return builder
 
         logger.debug(
-            "Executing Dogtag profile policy chain for "
-            f"'{profile.profile_id}': {len(profile.policies)} policies"
+            "Executing Dogtag profile policy chain for %s: %d policies",
+            profile.profile_id,
+            len(profile.policies),
         )
 
         # Execute each policy in order
@@ -428,30 +495,32 @@ class InternalCA(PythonCA):
         for policy in profile.policies:
             # Apply default first (provides values)
             logger.debug(
-                f"Policy {policy.number}: Applying "
-                f"{policy.default.__class__.__name__}"
+                "Policy %s: Applying %s",
+                policy.number,
+                policy.default.__class__.__name__,
             )
             builder = policy.default.apply(builder, csr, context)
 
             # Run constraint validation on the result
             logger.debug(
-                f"Policy {policy.number}: Validating with "
-                f"{policy.constraint.__class__.__name__}"
+                "Policy %s: Validating with %s",
+                policy.number,
+                policy.constraint.__class__.__name__,
             )
-            errors = policy.constraint.validate(csr, context)
-            if errors:
+            validation_errors = policy.constraint.validate(csr, context)
+            if validation_errors:
                 logger.error(
-                    f"Policy {policy.number} constraint validation FAILED: "
-                    f"{errors}"
+                    "Policy %s constraint validation FAILED: %s",
+                    policy.number,
+                    ", ".join(validation_errors),
                 )
                 raise ValueError(
-                    "Constraint validation failed for policy "
-                    f"{policy.number}: {', '.join(errors)}"
+                    "Constraint validation failed for policy %s"
+                    % policy.number
                 )
 
         logger.debug(
-            "Policy chain completed. "
-            "Signing algorithm: %s",
+            "Policy chain completed. Signing algorithm: %s",
             context.get("signing_algorithm", "not set"),
         )
 
@@ -503,8 +572,9 @@ class InternalCA(PythonCA):
             )
 
             logger.debug(
-                f"Certificate {serial_number} revoked with reason "
-                f"{reason.name}"
+                "Certificate %s revoked with reason %s",
+                serial_number,
+                reason.name,
             )
 
         except Exception as e:
@@ -514,7 +584,9 @@ class InternalCA(PythonCA):
                 reason=reason.name,
                 outcome=AuditOutcome.FAILURE,
             )
-            logger.error(f"Failed to revoke certificate {serial_number}: {e}")
+            logger.error(
+                "Failed to revoke certificate %s: %s", serial_number, e
+            )
             raise
 
     def take_certificate_off_hold(
@@ -536,7 +608,7 @@ class InternalCA(PythonCA):
             )
 
         try:
-            cert_record.take_off_hold()
+            cert_record.take_off_hold(principal=principal)
             self.ldap_storage.store_certificate(cert_record)
 
             # Audit log
@@ -546,7 +618,7 @@ class InternalCA(PythonCA):
                 outcome=AuditOutcome.SUCCESS,
             )
 
-            logger.debug(f"Certificate {serial_number} taken off hold")
+            logger.debug("Certificate %s taken off hold", serial_number)
 
         except Exception as e:
             audit_logger.log_certificate_unrevoked(
@@ -555,7 +627,7 @@ class InternalCA(PythonCA):
                 outcome=AuditOutcome.FAILURE,
             )
             logger.error(
-                f"Failed to take certificate {serial_number} off hold: {e}"
+                "Failed to take certificate %s off hold: %s", serial_number, e
             )
             raise
 
@@ -575,12 +647,17 @@ class InternalCA(PythonCA):
             # Get next CRL number from LDAP storage
             crl_number = self.ldap_storage.get_next_crl_number()
 
+            # Read CRL timing from config
+            next_update_minutes = self._get_crl_timing()[1]
+
             builder = x509.CertificateRevocationListBuilder()
             builder = builder.issuer_name(self.ca_cert.subject)
 
             now = datetime.now(timezone.utc)
             builder = builder.last_update(now)
-            builder = builder.next_update(now + timedelta(days=1))
+            builder = builder.next_update(
+                now + timedelta(minutes=next_update_minutes)
+            )
 
             # Add CRL Number extension (RFC 5280 requirement)
             builder = builder.add_extension(
@@ -593,7 +670,14 @@ class InternalCA(PythonCA):
             # Add revoked certificates
             num_revoked = 0
             for cert_record in revoked_certs:
-                if cert_record.status == cert_record.status.REVOKED:
+                if cert_record.status == CertificateStatus.REVOKED:
+                    if cert_record.revoked_at is None:
+                        logger.warning(
+                            "Revoked certificate %s has no revocation "
+                            "date, skipping in CRL",
+                            cert_record.serial_number,
+                        )
+                        continue
                     revoked_cert = x509.RevokedCertificateBuilder()
                     revoked_cert = revoked_cert.serial_number(
                         cert_record.serial_number
@@ -603,41 +687,7 @@ class InternalCA(PythonCA):
                     )
 
                     if cert_record.revocation_reason:
-                        # Convert RevocationReason enum to cryptography
-                        # ReasonFlags
-                        reason_map = {
-                            RevocationReason.UNSPECIFIED: (
-                                x509.ReasonFlags.unspecified
-                            ),
-                            RevocationReason.KEY_COMPROMISE: (
-                                x509.ReasonFlags.key_compromise
-                            ),
-                            RevocationReason.CA_COMPROMISE: (
-                                x509.ReasonFlags.ca_compromise
-                            ),
-                            RevocationReason.AFFILIATION_CHANGED: (
-                                x509.ReasonFlags.affiliation_changed
-                            ),
-                            RevocationReason.SUPERSEDED: (
-                                x509.ReasonFlags.superseded
-                            ),
-                            RevocationReason.CESSATION_OF_OPERATION: (
-                                x509.ReasonFlags.cessation_of_operation
-                            ),
-                            RevocationReason.CERTIFICATE_HOLD: (
-                                x509.ReasonFlags.certificate_hold
-                            ),
-                            RevocationReason.PRIVILEGE_WITHDRAWN: (
-                                x509.ReasonFlags.privilege_withdrawn
-                            ),
-                            RevocationReason.AA_COMPROMISE: (
-                                x509.ReasonFlags.aa_compromise
-                            ),
-                            RevocationReason.REMOVE_FROM_CRL: (
-                                x509.ReasonFlags.remove_from_crl
-                            ),
-                        }
-                        reason_flag = reason_map.get(
+                        reason_flag = REVOCATION_REASON_TO_FLAG.get(
                             cert_record.revocation_reason,
                             x509.ReasonFlags.unspecified,
                         )
@@ -653,15 +703,12 @@ class InternalCA(PythonCA):
 
             # Sign CRL with algorithm matching CA certificate
             # Extract algorithm from the CA cert that will sign this CRL
-            from ipathinca import x509_utils
 
             signing_alg = x509_utils.get_certificate_signature_algorithm(
                 self.ca_cert
             )
             hash_alg = x509_utils.parse_signature_algorithm(signing_alg)
-            crl = builder.sign(
-                self.ca_private_key, hash_alg, default_backend()
-            )
+            crl = builder.sign(self.ca_private_key, hash_alg)
 
             # Audit log
             audit_logger.log_crl_generation(
@@ -672,8 +719,9 @@ class InternalCA(PythonCA):
             )
 
             logger.debug(
-                f"Generated CRL #{crl_number} with {num_revoked} revoked "
-                "certificates"
+                "Generated CRL #%s with %s revoked certificates",
+                crl_number,
+                num_revoked,
             )
             return crl
 
@@ -685,8 +733,9 @@ class InternalCA(PythonCA):
                 outcome=AuditOutcome.FAILURE,
             )
             logger.error(
-                "Failed to generate certificate revocation list "
-                f"{principal}: {e}"
+                "Failed to generate certificate revocation list %s: %s",
+                principal,
+                e,
             )
             raise
 

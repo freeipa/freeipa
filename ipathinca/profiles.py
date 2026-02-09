@@ -5,11 +5,13 @@ Certificate profile management for Python CA
 """
 
 import logging
+import threading
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 from ipapython import dogtag
 from ipathinca.exceptions import ProfileNotFound
+from ipathinca.profile_monitor import ProfileChangeMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,11 @@ class ProfileManager:
     ]
 
     def __init__(
-        self, profiles_dir: str = None, config=None, storage_backend=None
+        self,
+        profiles_dir: str = None,
+        config=None,
+        storage_backend=None,
+        enable_monitoring: bool = False,
     ):
         """Initialize ProfileManager
 
@@ -39,6 +45,8 @@ class ProfileManager:
             config: ConfigParser object with IPAthinCA configuration (optional)
             storage_backend: LDAP storage backend for profile persistence
                             (optional)
+            enable_monitoring: Enable profile change monitoring thread
+                              (default: False - only enabled for production CA)
         """
         # Primary directory: IPA-specific customized profiles
         if profiles_dir is None:
@@ -55,13 +63,27 @@ class ProfileManager:
         self.storage_backend = storage_backend
 
         # Profile cache (Profile objects)
+        # Thread-safe access via self.lock
         self.profiles = {}
+
+        # Thread safety lock
+        # Matches Dogtag's synchronized methods
+        self.lock = threading.RLock()
 
         # Profile aliases mapping (alias_name -> actual_profile_id)
         self.profile_aliases: Dict[str, str] = {
             # caServerCert is alias for service cert
             "caServerCert": "caIPAserviceCert",
         }
+
+        # Profile change monitor thread
+        # Matches Dogtag's Monitor inner class
+        self.monitor: Optional["ProfileChangeMonitor"] = None
+
+        # Start profile change monitoring if enabled and storage backend
+        # available
+        if enable_monitoring and storage_backend:
+            self._start_monitoring()
 
     def get_profile(self, profile_id: str, use_cache: bool = True):
         """Get profile from cache, LDAP, or filesystem
@@ -70,6 +92,8 @@ class ProfileManager:
         1. Check cache first
         2. If not cached, load from LDAP (production)
         3. If not in LDAP, load from filesystem (installation only)
+
+        Thread-safe implementation matching Dogtag's synchronized readProfile()
 
         Args:
             profile_id: Profile identifier
@@ -91,9 +115,12 @@ class ProfileManager:
             )
 
         # Check cache first (but only if use_cache is True)
-        if use_cache and actual_profile_id in self.profiles:
-            logger.debug(f"Using cached profile: {actual_profile_id}")
-            return self.profiles[actual_profile_id]
+        # Thread-safe cache check
+        if use_cache:
+            with self.lock:
+                if actual_profile_id in self.profiles:
+                    logger.debug(f"Using cached profile: {actual_profile_id}")
+                    return self.profiles[actual_profile_id]
 
         # Build variable context for substitution
         context = self._get_variable_context()
@@ -125,8 +152,9 @@ class ProfileManager:
 
                         os.unlink(tmp_path)
 
-                    # Cache and return
-                    self.profiles[actual_profile_id] = profile
+                    # Cache and return (thread-safe)
+                    with self.lock:
+                        self.profiles[actual_profile_id] = profile
                     logger.debug(
                         f"Cached profile from LDAP: {actual_profile_id}"
                     )
@@ -171,8 +199,9 @@ class ProfileManager:
         parser = ProfileParser(str(cfg_path))
         profile = parser.parse(context)
 
-        # Cache and return
-        self.profiles[actual_profile_id] = profile
+        # Cache and return (thread-safe)
+        with self.lock:
+            self.profiles[actual_profile_id] = profile
         logger.debug(f"Cached profile from filesystem: {actual_profile_id}")
         return profile
 
@@ -381,10 +410,74 @@ class ProfileManager:
         This forces profiles to be reloaded with fresh variable context.
         Useful after API bootstrap or configuration changes.
         """
-        logger.debug(
-            f"Clearing profile cache ({len(self.profiles)} " "profiles)"
-        )
-        self.profiles.clear()
+        with self.lock:
+            logger.debug(
+                f"Clearing profile cache ({len(self.profiles)} profiles)"
+            )
+            self.profiles.clear()
+
+    def _start_monitoring(self):
+        """
+        Start profile change monitoring thread
+
+        Matches Dogtag's monitor thread initialization (line 117-118)
+        """
+        try:
+            from ipathinca.profile_monitor import ProfileChangeMonitor
+
+            logger.info("Starting profile change monitoring")
+            self.monitor = ProfileChangeMonitor(self, self.storage_backend)
+            self.monitor.start()
+            logger.info("Profile change monitor started successfully")
+        except Exception as e:
+            logger.warning(
+                f"Failed to start profile change monitor: {e}. "
+                "Profile replication will not work until CA restart."
+            )
+            self.monitor = None
+
+    def stop_monitoring(self):
+        """
+        Stop profile change monitoring thread
+
+        Matches Dogtag's shutdown() method (line 381-385)
+        """
+        if self.monitor:
+            logger.info("Stopping profile change monitor")
+            self.monitor.shutdown()
+            self.monitor = None
+            logger.info("Profile change monitor stopped")
+
+    def invalidate_profile(self, profile_id: str):
+        """
+        Invalidate cached profile (called by monitor thread)
+
+        Thread-safe method to remove a profile from cache, forcing reload
+        on next access.
+
+        Args:
+            profile_id: Profile identifier to invalidate
+        """
+        with self.lock:
+            if profile_id in self.profiles:
+                del self.profiles[profile_id]
+                logger.debug(f"Invalidated cached profile: {profile_id}")
+
+    def remove_profile(self, profile_id: str):
+        """
+        Remove profile from cache (called by monitor thread on DELETE)
+
+        Thread-safe method to remove a deleted profile from cache.
+
+        Args:
+            profile_id: Profile identifier to remove
+        """
+        with self.lock:
+            if profile_id in self.profiles:
+                del self.profiles[profile_id]
+                logger.info(
+                    f"Removed deleted profile from cache: {profile_id}"
+                )
 
     def get_profile_for_signing(self, profile_id: str):
         """Get profile for certificate signing
