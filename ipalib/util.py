@@ -1391,8 +1391,6 @@ if reprlib is not None:
             return repr(x)
 
         def repr_type(self, x, level):
-            if x is str:
-                return "<type 'str'>"
             if x in self.builtin_types:
                 return "<type '{}'>".format(x.__name__)
             else:
