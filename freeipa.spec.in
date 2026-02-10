@@ -1265,6 +1265,9 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 %if ! %{ONLY_CLIENT}
 
 %post server
+# Drop the systemd users file BEFORE restarting dbus and oddjob
+# Otherwise dbus doesn't recognize ipaapi user
+%sysusers_create %{_sysusersdir}/ipa.conf
 # NOTE: systemd specific section
     /bin/systemctl --system daemon-reload 2>&1 || :
 # END
@@ -1274,7 +1277,6 @@ fi
 /bin/systemctl reload-or-try-restart dbus
 /bin/systemctl reload-or-try-restart oddjobd
 
-%sysusers_create %{_sysusersdir}/ipa.conf
 %tmpfiles_create ipa.conf
 %journal_catalog_update
 
