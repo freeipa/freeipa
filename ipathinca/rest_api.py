@@ -11,15 +11,17 @@ replacement for Dogtag PKI's pki-tomcat service.
 import logging
 import os
 import base64
+import re
+import threading
 import traceback
 import argparse
 import json
 import secrets
+from xml.sax.saxutils import escape as xml_escape
 
 from flask import Flask, request, Response, make_response, jsonify
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import padding as sym_padding
 from cryptography.hazmat.primitives.serialization import pkcs7
@@ -29,8 +31,10 @@ from cryptography.hazmat.primitives.ciphers import (
     modes,
 )
 
+import ipathinca
 from ipathinca.backend import get_python_ca_backend
 from ipathinca import x509_utils
+from ipathinca.nss_utils import NSSDatabase
 from ipathinca.exceptions import ProfileNotFound
 from ipathinca.hsm import HSMConfig, HSMKeyBackend, list_pkcs11_slots
 from ipathinca.hsm import get_hsm_info as get_hsm_device_info
@@ -44,9 +48,10 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 # Import REST API helpers
+from functools import wraps
+
 from ipathinca.rest_api_helpers import (
     # Decorators
-    require_ca_backend,
     handle_ca_errors,
     validate_input,
     require_agent_auth,
@@ -58,6 +63,7 @@ from ipathinca.rest_api_helpers import (
     # Response helpers
     error_response,
     success_response,
+    build_profile_response,
     # Handler classes
     CertificateHandler,
     RequestHandler,
@@ -83,16 +89,35 @@ kra_backend = None
 # Global configuration (loaded from ipathinca.conf)
 ipa_ca_config = None
 
+# Locks for thread-safe initialization
+_ca_init_lock = threading.Lock()
+_kra_init_lock = threading.Lock()
+
 
 # ============================================================================
 # Initializors
 # ============================================================================
 
 
+def require_ca_backend(f):
+    """Decorator to auto-initialize backend before endpoint execution"""
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        init_ca()
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 def init_ca():
     """Initialize CA backend"""
     global ca_backend
-    if ca_backend is None:
+    if ca_backend is not None:
+        return
+    with _ca_init_lock:
+        if ca_backend is not None:
+            return
         try:
             logger.debug("Initializing Python CA backend...")
             ca_backend = get_python_ca_backend()
@@ -100,7 +125,7 @@ def init_ca():
                 "Python CA backend initialized successfully with LDAP storage"
             )
         except Exception as e:
-            logger.error(f"Failed to initialize CA backend: {e}")
+            logger.error("Failed to initialize CA backend: %s", e)
             logger.error(traceback.format_exc())
             raise
 
@@ -108,7 +133,11 @@ def init_ca():
 def init_kra():
     """Initialize KRA backend"""
     global kra_backend
-    if kra_backend is None:
+    if kra_backend is not None:
+        return
+    with _kra_init_lock:
+        if kra_backend is not None:
+            return
         try:
             logger.info("Initializing KRA backend...")
 
@@ -123,19 +152,16 @@ def init_kra():
             # Load CA certificate and key from disk (same as enable_kra does)
             # This is needed for signing the KRA transport certificate
             try:
-                logger.debug(f"Loading CA cert from {paths.IPA_CA_CRT}")
+                logger.debug("Loading CA cert from %s", paths.IPA_CA_CRT)
                 with open(paths.IPA_CA_CRT, "rb") as f:
-                    ca_cert = x509.load_pem_x509_certificate(
-                        f.read(), default_backend()
-                    )
+                    ca_cert = x509.load_pem_x509_certificate(f.read())
 
+                # Extract CA key from NSSDB (consistent with ca.py)
                 logger.debug(
-                    f"Loading CA key from {paths.IPATHINCA_SIGNING_KEY}"
+                    "Extracting CA key from NSSDB for KRA initialization"
                 )
-                with open(paths.IPATHINCA_SIGNING_KEY, "rb") as f:
-                    ca_key = serialization.load_pem_private_key(
-                        f.read(), password=None, backend=default_backend()
-                    )
+                nssdb = NSSDatabase()
+                ca_key = nssdb.extract_private_key("caSigningCert cert-pki-ca")
 
                 # Initialize KRA with CA keys and storage
                 logger.debug("Calling kra.initialize()...")
@@ -149,15 +175,15 @@ def init_kra():
 
             except FileNotFoundError as e:
                 logger.error(
-                    f"CA keys not found, KRA initialization failed: {e}"
+                    "CA keys not found, KRA initialization failed: %s", e
                 )
                 logger.error(traceback.format_exc())
             except Exception as e:
-                logger.error(f"Failed to load CA keys for KRA: {e}")
+                logger.error("Failed to load CA keys for KRA: %s", e)
                 logger.error(traceback.format_exc())
 
         except Exception as e:
-            logger.error(f"Failed to initialize KRA backend: {e}")
+            logger.error("Failed to initialize KRA backend: %s", e)
             logger.error(traceback.format_exc())
             # Don't raise - KRA is optional
 
@@ -178,7 +204,7 @@ def not_found(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 errors"""
-    logger.error(f"Internal server error: {error}")
+    logger.error("Internal server error: %s", error)
     return error_response("InternalServerError", "Internal server error", 500)
 
 
@@ -282,7 +308,7 @@ def _account_logout():
     """
     response = make_response(success_response({"Status": "success"}))
     # Clear the session cookie
-    response.set_cookie("JSESSIONID", "", expires=0)
+    response.set_cookie("JSESSIONID", "", max_age=0)
     return response
 
 
@@ -293,7 +319,7 @@ def _account_logout_v2():
     """
     response = make_response("", 204)
     # Clear the session cookie
-    response.set_cookie("JSESSIONID", "", expires=0)
+    response.set_cookie("JSESSIONID", "", max_age=0)
     return response
 
 
@@ -421,7 +447,7 @@ def get_security_domain_info():
         return success_response(domain_info)
 
     except Exception as e:
-        logger.error(f"Error getting security domain info: {e}")
+        logger.error("Error getting security domain info: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -443,21 +469,37 @@ def remove_security_domain_host(host_id):
     to our pure Python CA.
     """
     try:
-        logger.info(f"Security domain host removal requested: {host_id}")
+        logger.info("Security domain host removal requested")
+
+        # Validate host_id contains only safe characters
+        if not re.match(r"^[a-zA-Z0-9.\-\s]+$", host_id):
+            return error_response(
+                "BadRequest",
+                "Invalid host ID format (invalid characters)",
+                400,
+            )
 
         # Parse host_id: "{subsystem} {hostname} {port}"
         parts = host_id.split(" ")
         if len(parts) != 3:
             return error_response(
                 "BadRequest",
-                f"Invalid host ID format: {host_id}. Expected 'subsystem"
+                "Invalid host ID format. Expected 'subsystem"
                 " hostname port'",
                 400,
             )
 
         subsystem, hostname, port = parts
+
+        if subsystem not in ("CA", "KRA", "OCSP", "TKS", "TPS"):
+            return error_response("BadRequest", "Invalid subsystem type", 400)
+        if not port.isdigit() or not (0 < int(port) < 65536):
+            return error_response("BadRequest", "Invalid port number", 400)
         logger.info(
-            f"Removing {subsystem} host {hostname}:{port} from security domain"
+            "Removing %s host %s:%s from security domain",
+            subsystem,
+            hostname,
+            port,
         )
 
         # In ipathinca, we don't need to track security domain hosts
@@ -473,7 +515,7 @@ def remove_security_domain_host(host_id):
         )
 
     except Exception as e:
-        logger.error(f"Error removing security domain host: {e}")
+        logger.error("Error removing security domain host: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -533,16 +575,18 @@ def submit_certificate_request():
 
     if not csr_data:
         logger.error(
-            f"No CSR data found in request. Data keys: {list(data.keys())}"
+            "No CSR data found in request. Data keys: %s", list(data.keys())
         )
         return error_response("BadRequest", "No CSR data provided", 400)
 
     # Decode CSR if base64 encoded
     if not csr_data.startswith("-----BEGIN"):
+        if len(csr_data) > 65536:
+            return error_response("BadRequest", "CSR data too large", 400)
         try:
             csr_data = base64.b64decode(csr_data).decode("utf-8")
-        except Exception:
-            pass
+        except (ValueError, UnicodeDecodeError) as e:
+            logger.warning("Failed to base64-decode CSR data: %s", e)
 
     # Fix PEM formatting - ensure proper line breaks
     # The CSR from Dogtag REST API often has headers/footers/data all on one
@@ -574,6 +618,8 @@ def submit_certificate_request():
                     .replace("\r", "")
                     .strip()
                 )
+                if not b64_data:
+                    raise ValueError("Empty CSR data between PEM markers")
                 # Reformat with proper line breaks (64 chars per line)
                 lines = [
                     b64_data[i : i + 64] for i in range(0, len(b64_data), 64)
@@ -630,7 +676,7 @@ def delete_certificate_request(request_id):
 
     except Exception as e:
         logger.error(
-            f"Error deleting request {request_id}: {e}", exc_info=True
+            "Error deleting request %s: %s", request_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to delete request: {str(e)}", 500
@@ -1059,7 +1105,7 @@ def bulk_revoke_certificates():
             )
 
     except Exception as e:
-        logger.error(f"Error in bulk revoke: {e}", exc_info=True)
+        logger.error("Error in bulk revoke: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to bulk revoke: {str(e)}", 500
         )
@@ -1082,8 +1128,24 @@ def get_revoked_certificates():
     Returns list of revoked certificate serial numbers and revocation info
     """
     try:
-        limit = int(request.args.get("limit", 1000))
-        offset = int(request.args.get("offset", 0))
+        # Read max search returns from config
+        # (matching Dogtag ca.maxSearchReturns)
+        default_limit = int(
+            ipathinca.get_config_value(
+                "ca", "max_search_returns", default="1000"
+            )
+        )
+        try:
+            limit = int(request.args.get("limit", default_limit))
+            offset = int(request.args.get("offset", 0))
+        except (ValueError, TypeError):
+            return error_response(
+                "BadRequest", "Invalid limit or offset parameter", 400
+            )
+        if limit < 1 or offset < 0:
+            return error_response(
+                "BadRequest", "limit must be >= 1 and offset must be >= 0", 400
+            )
 
         storage = ca_backend.ca.storage
 
@@ -1113,7 +1175,9 @@ def get_revoked_certificates():
             )
 
     except Exception as e:
-        logger.error(f"Error getting revoked certificates: {e}", exc_info=True)
+        logger.error(
+            "Error getting revoked certificates: %s", e, exc_info=True
+        )
         return error_response(
             "InternalError",
             f"Failed to get revoked certificates: {str(e)}",
@@ -1185,8 +1249,8 @@ def legacy_profile_list():
             profile_entries = []
             for profile in profiles:
                 profile_entries.append(
-                    f'<profile id="{profile.profile_id}">{profile.name}'
-                    "</profile>"
+                    f'<profile id="{xml_escape(profile.profile_id)}">'
+                    f"{xml_escape(profile.name)}</profile>"
                 )
 
             profiles_xml = "\n".join(profile_entries)
@@ -1206,7 +1270,7 @@ def legacy_profile_list():
             return Response(profile_list, mimetype="text/plain")
 
     except Exception as e:
-        logger.error(f"Error in legacy_profile_list: {e}")
+        logger.error("Error in legacy_profile_list: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1217,6 +1281,111 @@ def legacy_profile_list():
 def list_profiles():
     """List certificate profiles"""
     return ProfileHandler.list_all(ca_backend)
+
+
+@app.route("/ca/rest/profiles", methods=["POST"])
+@app.route("/ca/v2/profiles", methods=["POST"])
+@require_ca_backend
+@handle_ca_errors
+def create_profile():
+    """Create new certificate profile
+
+    Accepts:
+    - JSON format with profileId field (Dogtag REST API style)
+    - Plain text .cfg format (IPA certprofile-import style)
+    """
+    logger.info(
+        "create_profile called, content-type: %s", request.content_type
+    )
+
+    # Try JSON format first (most common for IPA)
+    try:
+        data = request.get_json(silent=True)
+        if data:
+            logger.info("Parsed JSON data, keys: %s", list(data.keys()))
+            profile_id = data.get("profileId") or data.get("ProfileId")
+
+            # Check if profileData contains .cfg content
+            if "profileData" in data:
+                cfg_content = data["profileData"]
+                logger.info(
+                    "Found profileData field with %s chars", len(cfg_content)
+                )
+                if not profile_id:
+                    # Extract from .cfg content
+                    match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+                    if match:
+                        profile_id = match.group(1)
+                        logger.info(
+                            "Extracted profile ID from .cfg: '%s'", profile_id
+                        )
+
+                if not profile_id:
+                    return error_response(
+                        "BadRequest", "profileId field required", 400
+                    )
+
+                result = ProfileHandler.create_raw(
+                    profile_id, cfg_content, ca_backend
+                )
+                return result
+            elif profile_id:
+                # Standard JSON profile creation
+                return ProfileHandler.create_or_update(
+                    profile_id, data, ca_backend, is_update=False
+                )
+    except Exception as e:
+        logger.warning("Failed to parse as JSON: %s", e)
+
+    # Try plain text .cfg format
+    content_type = request.content_type or ""
+    if (
+        "text/plain" in content_type
+        or "application/octet-stream" in content_type
+    ):
+        cfg_content = request.get_data(as_text=True)
+        logger.info(
+            "Plain text content-type, got %d chars",
+            len(cfg_content) if cfg_content else 0,
+        )
+        if not cfg_content:
+            return error_response(
+                "BadRequest", "No profile data provided", 400
+            )
+
+        # Extract profile ID from .cfg content
+        match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+        if match:
+            profile_id = match.group(1)
+            logger.info("Extracted profile ID from .cfg: '%s'", profile_id)
+        else:
+            return error_response(
+                "BadRequest", "Profile ID not found in configuration", 400
+            )
+
+        result = ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+        return result
+
+    # Last resort: get raw data
+    cfg_content = request.get_data(as_text=True)
+    logger.info(
+        "Fallback: raw data, got %d chars",
+        len(cfg_content) if cfg_content else 0,
+    )
+    if not cfg_content:
+        return error_response("BadRequest", "No profile data provided", 400)
+
+    # Extract profile ID from .cfg content
+    match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+    if match:
+        profile_id = match.group(1)
+        logger.info("Extracted profile ID from .cfg: '%s'", profile_id)
+    else:
+        return error_response(
+            "BadRequest", "Profile ID not found in configuration", 400
+        )
+
+    return ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
 
 
 @app.route("/ca/rest/profiles/<profile_id>", methods=["GET"])
@@ -1230,20 +1399,137 @@ def get_profile(profile_id):
     return ProfileHandler.get(profile_id, ca_backend)
 
 
+@app.route("/ca/rest/profiles/raw", methods=["POST"])
+@app.route("/ca/v2/profiles/raw", methods=["POST"])
+@require_ca_backend
+@handle_ca_errors
+def create_profile_from_raw():
+    """
+    Create certificate profile from .cfg format
+
+    POST /ca/v2/profiles/raw
+
+    Used by: ipa certprofile-import --file <file>
+    Profile ID is extracted from the .cfg content
+
+    Request body: text/plain .cfg file content
+    """
+    logger.info("create_profile_from_raw called")
+    logger.info("Request content-type: %s", request.content_type)
+    logger.info("Request content-length: %s", request.content_length)
+
+    # Try different ways to get the data
+    cfg_content = request.get_data(as_text=True)
+    logger.info(
+        "get_data result: %s chars", len(cfg_content) if cfg_content else 0
+    )
+
+    if not cfg_content:
+        # Try form data
+        if request.form:
+            logger.info(
+                "Found form data with keys: %s", list(request.form.keys())
+            )
+            cfg_content = request.form.get("file") or request.form.get(
+                "profileData"
+            )
+
+        if not cfg_content:
+            logger.error("No profile data found in request")
+            return error_response(
+                "BadRequest", "No profile data provided", 400
+            )
+
+    # Extract profile ID from .cfg content
+    match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+    if match:
+        profile_id = match.group(1)
+        logger.info(
+            "Creating profile %s from .cfg content (%s chars)",
+            profile_id,
+            len(cfg_content),
+        )
+    else:
+        return error_response(
+            "BadRequest", "Profile ID not found in configuration", 400
+        )
+
+    return ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+
+
 @app.route("/ca/rest/profiles/<profile_id>", methods=["POST", "PUT"])
 @app.route("/ca/v2/profiles/<profile_id>", methods=["POST", "PUT"])
+@require_agent_auth  # Enable/disable actions require agent auth
 @require_ca_backend
 @validate_input(profile_id=validate_profile_id)
 @handle_ca_errors
 def update_profile(profile_id):
-    """Create or update certificate profile"""
-    data = request.get_json()
-    if not data:
+    """Create or update certificate profile
+
+    Accepts both:
+    - JSON format (Dogtag REST API style)
+    - Plain text .cfg format (IPA certprofile-import style)
+    - Query parameter action=enable/disable for state changes (requires agent
+      auth)
+    """
+    # Check for action query parameter (enable/disable)
+    action = request.args.get("action")
+    if action == "enable":
+        logger.info("update_profile: Routing to enable for %s", profile_id)
+        # Return full profile object like enable_profile does
+        profile_data = ca_backend.read_profile(profile_id)
+        return success_response(build_profile_response(profile_data))
+    elif action == "disable":
+        logger.info("update_profile: Routing to disable for %s", profile_id)
+        # Return full profile object like disable_profile does
+        profile_data = ca_backend.read_profile(profile_id)
+        return success_response(build_profile_response(profile_data))
+
+    # Check Content-Type to determine format
+    content_type = request.content_type or ""
+
+    # If Content-Type is text/plain or if JSON parsing fails, treat as .cfg
+    # content
+    if (
+        "text/plain" in content_type
+        or "application/octet-stream" in content_type
+    ):
+        # Plain text .cfg format (ipa certprofile-import)
+        cfg_content = request.get_data(as_text=True)
+        if not cfg_content:
+            return error_response(
+                "BadRequest", "No profile data provided", 400
+            )
+
+        is_update = request.method == "PUT"
+        return (
+            ProfileHandler.update_raw(profile_id, cfg_content, ca_backend)
+            if is_update
+            else ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+        )
+
+    # Try JSON format first (Dogtag REST API)
+    try:
+        data = request.get_json()
+        if data:
+            is_update = request.method == "PUT"
+            return ProfileHandler.create_or_update(
+                profile_id, data, ca_backend, is_update
+            )
+    except Exception:
+        # Not valid JSON, try as .cfg content
+        pass
+
+    # Fall back to treating as .cfg content
+    cfg_content = request.get_data(as_text=True)
+    if not cfg_content:
         return error_response("BadRequest", "No profile data provided", 400)
 
     is_update = request.method == "PUT"
-    return ProfileHandler.create_or_update(
-        profile_id, data, ca_backend, is_update
+    return (
+        ProfileHandler.update_raw(profile_id, cfg_content, ca_backend)
+        if is_update
+        else ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
     )
 
 
@@ -1270,26 +1556,26 @@ def enable_profile(profile_id):
 
     This allows the profile to be used for certificate requests.
     Requires agent authentication.
+
+    Returns the full profile object like Dogtag PKI does.
     """
+    logger.info("enable_profile called for %s", profile_id)
     try:
         # For now, profiles are always enabled in ipathinca
         # This endpoint is provided for Dogtag API compatibility
         # In a full implementation, you would call storage.enable_profile()
 
-        return (
-            success_response(
-                {
-                    "message": f"Profile {profile_id} enabled successfully",
-                    "profile_id": profile_id,
-                    "enabled": True,
-                }
-            ),
-            200,
-        )
+        # Return the full profile object like Dogtag does
+        logger.info("Reading profile %s for enable response", profile_id)
+        profile_data = ca_backend.read_profile(profile_id)
+        logger.info("Profile data: %s", profile_data)
+        response = build_profile_response(profile_data)
+        logger.info("Built response: %s", response)
+        return success_response(response)
 
     except Exception as e:
         logger.error(
-            f"Error enabling profile {profile_id}: {e}", exc_info=True
+            "Error enabling profile %s: %s", profile_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to enable profile: {str(e)}", 500
@@ -1327,11 +1613,52 @@ def disable_profile(profile_id):
 
     except Exception as e:
         logger.error(
-            f"Error disabling profile {profile_id}: {e}", exc_info=True
+            "Error disabling profile %s: %s", profile_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to disable profile: {str(e)}", 500
         )
+
+
+@app.route("/ca/rest/profiles/<profile_id>/raw", methods=["GET"])
+@app.route("/ca/v2/profiles/<profile_id>/raw", methods=["GET"])
+@require_ca_backend
+@validate_input(profile_id=validate_profile_id)
+@handle_ca_errors
+def get_profile_raw(profile_id):
+    """
+    Export certificate profile configuration in .cfg format
+
+    GET /ca/v2/profiles/{profile_id}/raw
+
+    Used by: ipa certprofile-show --out <file>
+
+    Returns:
+        text/plain: Profile .cfg file content
+    """
+    return ProfileHandler.get_raw(profile_id, ca_backend)
+
+
+@app.route("/ca/rest/profiles/<profile_id>/raw", methods=["PUT"])
+@app.route("/ca/v2/profiles/<profile_id>/raw", methods=["PUT"])
+@require_ca_backend
+@validate_input(profile_id=validate_profile_id)
+@handle_ca_errors
+def update_profile_raw(profile_id):
+    """
+    Update certificate profile configuration from .cfg format
+
+    PUT /ca/v2/profiles/{profile_id}/raw
+
+    Used by: ipa certprofile-mod --file <file>
+
+    Request body: text/plain .cfg file content
+    """
+    cfg_content = request.get_data(as_text=True)
+    if not cfg_content:
+        return error_response("BadRequest", "No profile data provided", 400)
+
+    return ProfileHandler.update_raw(profile_id, cfg_content, ca_backend)
 
 
 # ============================================================================
@@ -1414,8 +1741,8 @@ def profile_submit_ssl_client():
         logger.error("Certificate request failed: %s", e, exc_info=True)
         error_xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
-            f"<XMLResponse>\n<Status>1</Status>\n<Error>{str(e)}"
-            "</Error>\n</XMLResponse>"
+            f"<XMLResponse>\n<Status>1</Status>\n"
+            f"<Error>{xml_escape(str(e))}</Error>\n</XMLResponse>"
         )
         return Response(error_xml, mimetype="application/xml", status=400)
 
@@ -1426,7 +1753,7 @@ def profile_submit_ssl_client():
         error_xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             "<XMLResponse>\n<Status>1</Status>\n"
-            f"<Error>{str(e)}</Error>\n</XMLResponse>"
+            f"<Error>{xml_escape(str(e))}</Error>\n</XMLResponse>"
         )
         return Response(error_xml, mimetype="application/xml", status=500)
 
@@ -1450,13 +1777,13 @@ def get_crl():
     # Generate fresh CRL
     ca_backend.update_crl()
 
-    # Read CRL from file
+    # Read CRL from file (avoid TOCTOU race with direct open)
     crl_path = os.path.join(paths.IPATHINCA_CERTS_DIR, "ca_crl.der")
-    if os.path.exists(crl_path):
+    try:
         with open(crl_path, "rb") as f:
             crl_data = f.read()
         return Response(crl_data, mimetype="application/pkix-crl")
-    else:
+    except FileNotFoundError:
         return error_response("CRLNotFound", "CRL file not found", 404)
 
 
@@ -1507,7 +1834,7 @@ def update_crl_legacy():
     <requestStatus>2</requestStatus>
   </fixed>
   <header>
-    <crlIssuingPoint>{crl_issuing_point}</crlIssuingPoint>
+    <crlIssuingPoint>{xml_escape(crl_issuing_point)}</crlIssuingPoint>
     <crlUpdate>{crl_update_status}</crlUpdate>
   </header>
 </xml>"""
@@ -1521,14 +1848,14 @@ def update_crl_legacy():
             )
 
     except Exception as e:
-        logger.error(f"Error in updateCRL (legacy): {e}", exc_info=True)
+        logger.error("Error in updateCRL (legacy): %s", e, exc_info=True)
 
         # Return XML error response
         error_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <xml>
   <fixed>
     <requestStatus>6</requestStatus>
-    <errorDetails>{str(e)}</errorDetails>
+    <errorDetails>{xml_escape(str(e))}</errorDetails>
   </fixed>
 </xml>"""
         return Response(error_xml, mimetype="application/xml", status=500)
@@ -1562,7 +1889,7 @@ def list_crl_issuing_points():
             return jsonify({"entries": ["MasterCRL"], "total": 1}), 200
 
     except Exception as e:
-        logger.error(f"Error listing CRL issuing points: {e}", exc_info=True)
+        logger.error("Error listing CRL issuing points: %s", e, exc_info=True)
         return error_response(
             "InternalError",
             f"Failed to list CRL issuing points: {str(e)}",
@@ -1605,7 +1932,7 @@ def get_crl_issuing_point_info(crl_name):
 
     except Exception as e:
         logger.error(
-            f"Error getting CRL issuing point info: {e}", exc_info=True
+            "Error getting CRL issuing point info: %s", e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to get CRL info: {str(e)}", 500
@@ -1648,7 +1975,7 @@ def delete_crl_issuing_point(crl_name):
             )
 
     except Exception as e:
-        logger.error(f"Error deleting CRL issuing point: {e}", exc_info=True)
+        logger.error("Error deleting CRL issuing point: %s", e, exc_info=True)
         return error_response(
             "InternalError",
             f"Failed to delete CRL issuing point: {str(e)}",
@@ -1676,7 +2003,7 @@ def get_pruning_config():
         return success_response(config)
 
     except Exception as e:
-        logger.error(f"Error getting pruning config: {e}", exc_info=True)
+        logger.error("Error getting pruning config: %s", e, exc_info=True)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1712,7 +2039,7 @@ def update_pruning_config():
         return success_response(config)
 
     except Exception as e:
-        logger.error(f"Error updating pruning config: {e}", exc_info=True)
+        logger.error("Error updating pruning config: %s", e, exc_info=True)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1735,7 +2062,7 @@ def enable_pruning():
         )
 
     except Exception as e:
-        logger.error(f"Error enabling pruning: {e}", exc_info=True)
+        logger.error("Error enabling pruning: %s", e, exc_info=True)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1758,7 +2085,7 @@ def disable_pruning():
         )
 
     except Exception as e:
-        logger.error(f"Error disabling pruning: {e}", exc_info=True)
+        logger.error("Error disabling pruning: %s", e, exc_info=True)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1788,7 +2115,7 @@ def run_pruning():
         # Pruning not enabled
         return error_response("PruningNotEnabled", str(e), 400)
     except Exception as e:
-        logger.error(f"Error running pruning job: {e}", exc_info=True)
+        logger.error("Error running pruning job: %s", e, exc_info=True)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1826,7 +2153,9 @@ def ocsp_request(ocsp_data=None):
         else:  # GET
             # GET request - base64-encoded in URL path
             # Extract base64-encoded request from URL (RFC 6960 section 2.1)
-            request_b64 = ocsp_data if ocsp_data else request.path.split("/")[-1]
+            request_b64 = (
+                ocsp_data if ocsp_data else request.path.split("/")[-1]
+            )
             if len(request_b64) > 8192:
                 return Response(
                     ocsp_responder._create_error_response(),
@@ -1836,7 +2165,7 @@ def ocsp_request(ocsp_data=None):
             try:
                 ocsp_request_der = base64.b64decode(request_b64)
             except Exception as e:
-                logger.error(f"Failed to decode OCSP request from URL: {e}")
+                logger.error("Failed to decode OCSP request from URL: %s", e)
                 return Response(
                     ocsp_responder._create_error_response(),
                     mimetype="application/ocsp-response",
@@ -1862,7 +2191,7 @@ def ocsp_request(ocsp_data=None):
         )
 
     except Exception as e:
-        logger.error(f"Error in OCSP request handler: {e}", exc_info=True)
+        logger.error("Error in OCSP request handler: %s", e, exc_info=True)
         # Return error response
         try:
             ocsp_manager = get_ocsp_manager()
@@ -1894,7 +2223,7 @@ def ocsp_stats():
         return success_response(stats)
 
     except Exception as e:
-        logger.error(f"Error getting OCSP stats: {e}")
+        logger.error("Error getting OCSP stats: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1912,7 +2241,7 @@ def ocsp_clear_cache():
         )
 
     except Exception as e:
-        logger.error(f"Error clearing OCSP cache: {e}")
+        logger.error("Error clearing OCSP cache: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1924,38 +2253,41 @@ def get_ocsp_cert():
 
         ca_id = request.args.get("ca_id", "ipa")
 
-        # Get OCSP cert from LDAP
-        if (
-            hasattr(ca_backend.ca, "ldap_storage")
-            and ca_backend.ca.ldap_storage
-        ):
-            ocsp_data = ca_backend.ca.ldap_storage.get_ocsp_cert(ca_id)
-
-            if ocsp_data:
-                return success_response(
-                    {
-                        "ca_id": ocsp_data["ca_id"],
-                        "serial_number": ocsp_data["serial_number"],
-                        "not_before": ocsp_data["not_before"],
-                        "not_after": ocsp_data["not_after"],
-                        "enabled": ocsp_data["enabled"],
-                        "certificate": ocsp_data["ocsp_cert"],
-                        "cache_timeout": ocsp_data["cache_timeout"],
-                    }
-                )
-            else:
-                return error_response(
-                    "NotFound",
-                    f"OCSP signing certificate for CA {ca_id} not found",
-                    404,
-                )
-        else:
+        ocsp_manager = get_ocsp_manager()
+        if ca_id not in ocsp_manager.responders:
             return error_response(
-                "NotSupported", "LDAP storage not enabled", 400
+                "NotFound",
+                f"OCSP signing certificate for CA {ca_id} not found",
+                404,
             )
 
+        responder = ocsp_manager.responders[ca_id]
+        if responder.ocsp_cert is None:
+            return error_response(
+                "NotFound",
+                f"OCSP signing certificate for CA {ca_id} not found",
+                404,
+            )
+
+        cert = responder.ocsp_cert
+        cert_pem = cert.public_bytes(serialization.Encoding.PEM).decode(
+            "ascii"
+        )
+
+        return success_response(
+            {
+                "ca_id": ca_id,
+                "serial_number": cert.serial_number,
+                "not_before": cert.not_valid_before_utc.isoformat(),
+                "not_after": cert.not_valid_after_utc.isoformat(),
+                "enabled": True,
+                "certificate": cert_pem,
+                "cache_timeout": responder.cache_timeout,
+            }
+        )
+
     except Exception as e:
-        logger.error(f"Error getting OCSP certificate: {e}")
+        logger.error("Error getting OCSP certificate: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -1969,46 +2301,30 @@ def renew_ocsp_cert():
 
         ocsp_manager = get_ocsp_manager()
 
-        # Delete old cert from LDAP if present
-        if (
-            hasattr(ca_backend.ca, "ldap_storage")
-            and ca_backend.ca.ldap_storage
-        ):
-            try:
-                ca_backend.ca.ldap_storage.delete_ocsp_cert(ca_id)
-            except Exception:
-                pass
-
         # Force regeneration by deleting cached responder
         # (new responder will be created on next OCSP request)
-        del ocsp_manager.responders[ca_id]
+        if ca_id in ocsp_manager.responders:
+            del ocsp_manager.responders[ca_id]
+        else:
+            logger.debug("No cached OCSP responder for %s to remove", ca_id)
 
-        # Get the new certificate info
-        if (
-            hasattr(ca_backend.ca, "ldap_storage")
-            and ca_backend.ca.ldap_storage
-        ):
-            ocsp_data = ca_backend.ca.ldap_storage.get_ocsp_cert(ca_id)
-            if ocsp_data:
-                return success_response(
-                    {
-                        "Status": "SUCCESS",
-                        "Message": "OCSP signing certificate renewed",
-                        "serial_number": ocsp_data["serial_number"],
-                        "not_before": ocsp_data["not_before"],
-                        "not_after": ocsp_data["not_after"],
-                    }
-                )
+        # Create a fresh responder which generates a new OCSP cert
+        responder = ocsp_manager.get_responder(ca_backend.ca, ca_id)
+        cert = responder.ocsp_cert
 
-        return success_response(
-            {
-                "Status": "SUCCESS",
-                "Message": "OCSP signing certificate renewed",
-            }
-        )
+        result = {
+            "Status": "SUCCESS",
+            "Message": "OCSP signing certificate renewed",
+        }
+        if cert is not None:
+            result["serial_number"] = cert.serial_number
+            result["not_before"] = cert.not_valid_before_utc.isoformat()
+            result["not_after"] = cert.not_valid_after_utc.isoformat()
+
+        return success_response(result)
 
     except Exception as e:
-        logger.error(f"Error renewing OCSP certificate: {e}")
+        logger.error("Error renewing OCSP certificate: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -2018,31 +2334,23 @@ def list_ocsp_responders():
     try:
         init_ca()
 
-        # Get all OCSP certs from LDAP
-        if (
-            hasattr(ca_backend.ca, "ldap_storage")
-            and ca_backend.ca.ldap_storage
-        ):
-            ocsp_certs = ca_backend.ca.ldap_storage.list_ocsp_certs()
-
-            return success_response(
-                {"total": len(ocsp_certs), "entries": ocsp_certs}
-            )
-
-        # Fallback: get active responders (should not reach here with
-        # InternalCA)
         ocsp_manager = get_ocsp_manager()
 
         responders = []
         for ca_id, responder in ocsp_manager.responders.items():
-            responders.append({"ca_id": ca_id, "enabled": True})
+            entry = {"ca_id": ca_id, "enabled": True}
+            if responder.ocsp_cert is not None:
+                cert = responder.ocsp_cert
+                entry["serial_number"] = cert.serial_number
+                entry["not_after"] = cert.not_valid_after_utc.isoformat()
+            responders.append(entry)
 
-            return success_response(
-                {"total": len(responders), "entries": responders}
-            )
+        return success_response(
+            {"total": len(responders), "entries": responders}
+        )
 
     except Exception as e:
-        logger.error(f"Error listing OCSP responders: {e}")
+        logger.error("Error listing OCSP responders: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -2078,7 +2386,7 @@ def get_cert_chain():
             return Response(cert_chain, mimetype="application/x-pem-file")
 
     except Exception as e:
-        logger.error(f"Error in get_cert_chain: {e}")
+        logger.error("Error in get_cert_chain: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -2149,7 +2457,7 @@ def list_authorities():
         return jsonify(authorities), 200
 
     except Exception as e:
-        logger.error(f"Error listing authorities: {e}", exc_info=True)
+        logger.error("Error listing authorities: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to list authorities: {str(e)}", 500
         )
@@ -2233,7 +2541,7 @@ def get_authority(authority_id):
 
     except Exception as e:
         logger.error(
-            f"Error getting authority {authority_id}: {e}", exc_info=True
+            "Error getting authority %s: %s", authority_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to get authority: {str(e)}", 500
@@ -2330,7 +2638,7 @@ def create_authority():
         return success_response(authority_info, status_code=201)
 
     except Exception as e:
-        logger.error(f"Error creating authority: {e}", exc_info=True)
+        logger.error("Error creating authority: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to create authority: {str(e)}", 500
         )
@@ -2346,14 +2654,14 @@ def get_authority_cert(authority_id):
     Args:
         authority_id: Authority identifier
     """
-    logger.debug(f"get_authority_cert called for authority_id={authority_id}")
+    logger.debug("get_authority_cert called for authority_id=%s", authority_id)
 
     try:
         # Initialize backend
         try:
             init_ca()
         except Exception as e:
-            logger.error(f"Failed to initialize backend: {e}", exc_info=True)
+            logger.error("Failed to initialize backend: %s", e, exc_info=True)
             return error_response(
                 "BackendError", f"CA backend not initialized: {str(e)}", 503
             )
@@ -2362,8 +2670,8 @@ def get_authority_cert(authority_id):
         if authority_id in ("host-authority", "ipa"):
             try:
                 logger.debug(
-                    "Returning main IPA CA certificate (special ID: "
-                    f"{authority_id})"
+                    "Returning main IPA CA certificate (special ID: %s)",
+                    authority_id,
                 )
                 # CRITICAL FIX: Ensure CA cert is loaded before accessing it
                 ca_backend.ca._ensure_ca_loaded()
@@ -2374,7 +2682,9 @@ def get_authority_cert(authority_id):
                 ).decode("utf-8")
                 return Response(cert_pem, mimetype="application/pkix-cert")
             except Exception as e:
-                logger.error(f"Failed to get main CA cert: {e}", exc_info=True)
+                logger.error(
+                    "Failed to get main CA cert: %s", e, exc_info=True
+                )
                 return error_response(
                     "InternalError",
                     f"Failed to get main CA certificate: {str(e)}",
@@ -2385,26 +2695,32 @@ def get_authority_cert(authority_id):
         # If lookup fails or returns None, fall back to main CA (Dogtag
         # compatibility)
         try:
-            logger.debug(f"Looking up sub-CA with ID: {authority_id}")
+            logger.debug("Looking up sub-CA with ID: %s", authority_id)
             subca = ca_backend.ca.subca_manager.get_subca(authority_id)
-            logger.debug(f"Sub-CA lookup result: {subca}")
-        except Exception as lookup_error:
-            # Exception during lookup - could be LDAP error or missing entry
-            # In Dogtag, if a UUID doesn't match a sub-CA, it might be the
-            # main CA's UUID
-            # So log the error but fall through to try main CA
-            logger.warning(
-                f"Sub-CA lookup failed for {authority_id}, trying main CA: "
-                f"{lookup_error}"
-            )
-            logger.warning("Traceback:", exc_info=True)
+            logger.debug("Sub-CA lookup result: %s", subca)
+        except errors.NotFound:
+            # Sub-CA not found by ID — fall through to try main CA
+            logger.debug("Sub-CA %s not found, trying main CA", authority_id)
             subca = None
+        except Exception as lookup_error:
+            # LDAP or other infrastructure error — don't silently fall back
+            logger.error(
+                "Sub-CA lookup failed for %s: %s",
+                authority_id,
+                lookup_error,
+                exc_info=True,
+            )
+            return error_response(
+                "ServiceUnavailable",
+                "Unable to verify CA identity at this time",
+                503,
+            )
 
         # If sub-CA found, return it
         if subca:
             if not subca.ca_cert:
                 logger.warning(
-                    f"Sub-CA {authority_id} exists but has no certificate"
+                    "Sub-CA %s exists but has no certificate", authority_id
                 )
                 return error_response(
                     "CANotFound",
@@ -2414,7 +2730,7 @@ def get_authority_cert(authority_id):
 
             try:
                 logger.debug(
-                    f"Returning sub-CA certificate for {authority_id}"
+                    "Returning sub-CA certificate for %s", authority_id
                 )
                 cert_pem = subca.ca_cert.public_bytes(
                     serialization.Encoding.PEM
@@ -2422,7 +2738,7 @@ def get_authority_cert(authority_id):
                 return Response(cert_pem, mimetype="application/pkix-cert")
             except Exception as e:
                 logger.error(
-                    f"Failed to serialize sub-CA cert: {e}", exc_info=True
+                    "Failed to serialize sub-CA cert: %s", e, exc_info=True
                 )
                 return error_response(
                     "InternalError",
@@ -2434,8 +2750,8 @@ def get_authority_cert(authority_id):
         # compatibility)
         # In Dogtag, the main CA also has a UUID that can be queried
         logger.debug(
-            f"No sub-CA found for {authority_id}, returning main CA "
-            "certificate"
+            "No sub-CA found for %s, returning main CA certificate",
+            authority_id,
         )
         try:
             # CRITICAL FIX: Ensure CA cert is loaded before accessing it
@@ -2447,7 +2763,7 @@ def get_authority_cert(authority_id):
             )
             return Response(cert_pem, mimetype="application/pkix-cert")
         except Exception as e:
-            logger.error(f"Failed to get main CA cert: {e}", exc_info=True)
+            logger.error("Failed to get main CA cert: %s", e, exc_info=True)
             return error_response(
                 "InternalError",
                 f"Failed to get main CA certificate: {str(e)}",
@@ -2457,10 +2773,12 @@ def get_authority_cert(authority_id):
     except Exception as e:
         # Catch-all for any unexpected errors
         logger.error(
-            f"Unexpected error getting authority cert {authority_id}: {e}",
+            "Unexpected error getting authority cert %s: %s",
+            authority_id,
+            e,
             exc_info=True,
         )
-        logger.error(f"Traceback: {traceback.format_exc()}")
+        logger.error("Traceback: %s", traceback.format_exc())
         return error_response(
             "InternalError", f"Unexpected error: {str(e)}", 500
         )
@@ -2506,8 +2824,8 @@ def get_authority_chain(authority_id):
                 # compatibility)
                 # In Dogtag, the main CA also has a UUID that can be queried
                 logger.debug(
-                    f"No sub-CA found for {authority_id}, returning main CA "
-                    "chain"
+                    "No sub-CA found for %s, returning main CA certificate",
+                    authority_id,
                 )
                 chain_certs = [ca_backend.ca.ca_cert]
 
@@ -2522,7 +2840,9 @@ def get_authority_chain(authority_id):
 
     except Exception as e:
         logger.error(
-            f"Error getting authority chain {authority_id}: {e}",
+            "Error getting authority chain %s: %s",
+            authority_id,
+            e,
             exc_info=True,
         )
         return error_response(
@@ -2581,7 +2901,7 @@ def disable_authority(authority_id):
 
     except Exception as e:
         logger.error(
-            f"Error disabling authority {authority_id}: {e}", exc_info=True
+            "Error disabling authority %s: %s", authority_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to disable authority: {str(e)}", 500
@@ -2633,7 +2953,7 @@ def enable_authority(authority_id):
 
     except Exception as e:
         logger.error(
-            f"Error enabling authority {authority_id}: {e}", exc_info=True
+            "Error enabling authority %s: %s", authority_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to enable authority: {str(e)}", 500
@@ -2680,7 +3000,7 @@ def delete_authority(authority_id):
 
     except Exception as e:
         logger.error(
-            f"Error deleting authority {authority_id}: {e}", exc_info=True
+            "Error deleting authority %s: %s", authority_id, e, exc_info=True
         )
         return error_response(
             "InternalError", f"Failed to delete authority: {str(e)}", 500
@@ -2714,7 +3034,7 @@ def list_all_ranges():
             )
 
     except Exception as e:
-        logger.error(f"Error listing ranges: {e}", exc_info=True)
+        logger.error("Error listing ranges: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to list ranges: {str(e)}", 500
         )
@@ -2754,7 +3074,7 @@ def get_replica_ranges(replica_id):
             )
 
     except Exception as e:
-        logger.error(f"Error getting replica ranges: {e}", exc_info=True)
+        logger.error("Error getting replica ranges: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to get replica ranges: {str(e)}", 500
         )
@@ -2812,7 +3132,7 @@ def allocate_serial_range():
             )
 
     except Exception as e:
-        logger.error(f"Error allocating range: {e}", exc_info=True)
+        logger.error("Error allocating range: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to allocate range: {str(e)}", 500
         )
@@ -2870,7 +3190,7 @@ def update_serial_range(replica_id, begin_range):
     except ValueError as e:
         return error_response("BadRequest", str(e), 400)
     except Exception as e:
-        logger.error(f"Error updating range: {e}", exc_info=True)
+        logger.error("Error updating range: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to update range: {str(e)}", 500
         )
@@ -2916,7 +3236,7 @@ def delete_serial_range(replica_id, begin_range):
             )
 
     except Exception as e:
-        logger.error(f"Error deleting range: {e}", exc_info=True)
+        logger.error("Error deleting range: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to delete range: {str(e)}", 500
         )
@@ -2958,7 +3278,7 @@ def delete_all_replica_ranges(replica_id):
             )
 
     except Exception as e:
-        logger.error(f"Error deleting replica ranges: {e}", exc_info=True)
+        logger.error("Error deleting replica ranges: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to delete replica ranges: {str(e)}", 500
         )
@@ -2992,7 +3312,7 @@ def kra_info():
         )
 
     except Exception as e:
-        logger.error(f"Error in kra_info: {e}", exc_info=True)
+        logger.error("Error in kra_info: %s", e, exc_info=True)
         return error_response("ServerError", str(e), 500)
 
 
@@ -3084,7 +3404,9 @@ def submit_key_request():
         data = request.get_json() or {}
 
         # Log the request for debugging
-        logger.debug(f"KRA key request received: {json.dumps(data, indent=2)}")
+        logger.debug(
+            "KRA key request received: %s", json.dumps(data, indent=2)
+        )
 
         # The request comes as a ResourceMessage with ClassName and Attributes
         # ClassName is like "com.netscape.certsrv.key.KeyArchivalRequest"
@@ -3153,21 +3475,38 @@ def submit_key_request():
                     if sym_alg_params_b64:
                         iv = base64.b64decode(sym_alg_params_b64)
                     else:
-                        iv = b"\x00" * 16  # Default IV if not provided
+                        return error_response(
+                            "BadRequest",
+                            "Missing algorithmOID parameters (IV) for "
+                            "symmetric decryption",
+                            400,
+                        )
 
                     # Decrypt using AES-CBC
                     cipher = Cipher(
                         algorithms.AES(session_key),
                         modes.CBC(iv),
-                        backend=default_backend(),
                     )
                     decryptor = cipher.decryptor()
                     plaintext_padded = (
                         decryptor.update(wrapped_data) + decryptor.finalize()
                     )
 
-                    # Remove PKCS7 padding
+                    # Remove and validate PKCS7 padding
+                    if not plaintext_padded:
+                        raise ValueError("Decrypted data is empty")
                     padding_length = plaintext_padded[-1]
+                    if padding_length < 1 or padding_length > 16:
+                        raise ValueError(
+                            f"Invalid PKCS7 padding length: {padding_length}"
+                        )
+                    if len(plaintext_padded) < padding_length:
+                        raise ValueError("Padding length exceeds data length")
+                    if not all(
+                        b == padding_length
+                        for b in plaintext_padded[-padding_length:]
+                    ):
+                        raise ValueError("Invalid PKCS7 padding bytes")
                     plaintext = plaintext_padded[:-padding_length]
 
                     # Now plaintext is the actual secret - store it directly
@@ -3200,7 +3539,7 @@ def submit_key_request():
 
             except Exception as e:
                 logger.error(
-                    f"Error processing archival request: {e}", exc_info=True
+                    "Error processing archival request: %s", e, exc_info=True
                 )
                 return error_response(
                     "BadRequest", f"Failed to process archival: {e}", 400
@@ -3233,8 +3572,8 @@ def submit_key_request():
             # Use key_id or request_id for retrieval
             retrieval_id = request_id if request_id else key_id
 
-            # Get requester from authentication (placeholder)
-            requester = "admin"
+            # Get requester from authenticated client certificate
+            requester = getattr(request, "auth_principal", "unknown")
 
             # Retrieve the secret (wrapped for transmission)
             wrapped_secret = kra_backend.retrieve_secret(
@@ -3280,7 +3619,7 @@ def submit_key_request():
     except ValueError as e:
         return error_response("KeyNotFound", str(e), 404)
     except Exception as e:
-        logger.error(f"Error processing key request: {e}", exc_info=True)
+        logger.error("Error processing key request: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to process key request: {str(e)}", 500
         )
@@ -3321,14 +3660,16 @@ def list_key_requests():
         # For now, return empty list as we auto-complete requests
         # In a full implementation, this would query LDAP for request records
         logger.debug(
-            f"List key requests: state={request_state}, type={request_type}, "
-            f"client={client_key_id}"
+            "List key requests: state=%s, type=%s, client=%s",
+            request_state,
+            request_type,
+            client_key_id,
         )
 
         return jsonify({"entries": [], "total": 0}), 200
 
     except Exception as e:
-        logger.error(f"Error listing key requests: {e}", exc_info=True)
+        logger.error("Error listing key requests: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to list key requests: {str(e)}", 500
         )
@@ -3395,7 +3736,7 @@ def get_key_request_info(request_id):
             )
 
     except Exception as e:
-        logger.error(f"Error getting key request info: {e}", exc_info=True)
+        logger.error("Error getting key request info: %s", e, exc_info=True)
         return error_response(
             "InternalError",
             f"Failed to get key request info: {str(e)}",
@@ -3443,7 +3784,7 @@ def approve_key_request(request_id):
         )
 
     except Exception as e:
-        logger.error(f"Error approving key request: {e}", exc_info=True)
+        logger.error("Error approving key request: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to approve key request: {str(e)}", 500
         )
@@ -3484,7 +3825,7 @@ def reject_key_request(request_id):
         )
 
     except Exception as e:
-        logger.error(f"Error rejecting key request: {e}", exc_info=True)
+        logger.error("Error rejecting key request: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to reject key request: {str(e)}", 500
         )
@@ -3532,7 +3873,7 @@ def cancel_key_request(request_id):
             )
 
     except Exception as e:
-        logger.error(f"Error cancelling key request: {e}", exc_info=True)
+        logger.error("Error cancelling key request: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to cancel key request: {str(e)}", 500
         )
@@ -3592,7 +3933,12 @@ def archive_key():
 
         # Get key parameters
         algorithm = data.get("keyAlgorithm", "AES")
-        key_size = int(data.get("keySize", 256))
+        try:
+            key_size = int(data.get("keySize", 256))
+        except (ValueError, TypeError):
+            return error_response(
+                "BadRequest", "Invalid keySize parameter", 400
+            )
 
         # Archive the secret
         key_id = kra_backend.archive_secret(
@@ -3615,7 +3961,7 @@ def archive_key():
         )
 
     except Exception as e:
-        logger.error(f"Error archiving key: {e}", exc_info=True)
+        logger.error("Error archiving key: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to archive key: {str(e)}", 500
         )
@@ -3655,7 +4001,9 @@ def retrieve_key():
         data = request.get_json() or {}
 
         # Debug logging to see actual request structure
-        logger.debug(f"KRA retrieve_key request: {json.dumps(data, indent=2)}")
+        logger.debug(
+            "KRA retrieve_key request: %s", json.dumps(data, indent=2)
+        )
 
         # python-pki sends KeyRecoveryRequest as ResourceMessage format
         # Extract keyId from Attributes if present (ResourceMessage format)
@@ -3677,7 +4025,7 @@ def retrieve_key():
             trans_wrapped_key_b64 = None
 
         if not key_id:
-            logger.error(f"Missing keyId in request. Request data: {data}")
+            logger.error("Missing keyId in request. Request data: %s", data)
             return error_response("BadRequest", "Missing keyId", 400)
 
         # Get requester from authentication (TODO: implement proper auth)
@@ -3718,7 +4066,6 @@ def retrieve_key():
             cipher = Cipher(
                 algorithms.AES(session_key),
                 modes.CBC(iv),
-                backend=default_backend(),
             )
             encryptor = cipher.encryptor()
             wrapped_secret = (
@@ -3760,7 +4107,7 @@ def retrieve_key():
     except ValueError as e:
         return error_response("KeyNotFound", str(e), 404)
     except Exception as e:
-        logger.error(f"Error retrieving key: {e}", exc_info=True)
+        logger.error("Error retrieving key: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to retrieve key: {str(e)}", 500
         )
@@ -3793,7 +4140,10 @@ def list_keys():
         # Parse query parameters
         owner = request.args.get("owner")
         status = request.args.get("status")
-        size = int(request.args.get("size", 100))
+        try:
+            size = int(request.args.get("size", 100))
+        except (ValueError, TypeError):
+            return error_response("BadRequest", "Invalid size parameter", 400)
 
         # List keys
         keys = kra_backend.list_keys(owner=owner, status=status)
@@ -3818,7 +4168,7 @@ def list_keys():
         return jsonify({"entries": entries, "total": len(entries)}), 200
 
     except Exception as e:
-        logger.error(f"Error listing keys: {e}", exc_info=True)
+        logger.error("Error listing keys: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to list keys: {str(e)}", 500
         )
@@ -3863,7 +4213,7 @@ def get_key_info(key_id):
         )
 
     except Exception as e:
-        logger.error(f"Error getting key info: {e}", exc_info=True)
+        logger.error("Error getting key info: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to get key info: {str(e)}", 500
         )
@@ -3921,7 +4271,7 @@ def modify_key_status(key_id):
         )
 
     except Exception as e:
-        logger.error(f"Error modifying key status: {e}", exc_info=True)
+        logger.error("Error modifying key status: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to modify key status: {str(e)}", 500
         )
@@ -3971,7 +4321,7 @@ def get_active_key_info(client_key_id):
         )
 
     except Exception as e:
-        logger.error(f"Error getting active key info: {e}", exc_info=True)
+        logger.error("Error getting active key info: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to get active key info: {str(e)}", 500
         )
@@ -4008,7 +4358,7 @@ def get_transport_cert():
         return Response(transport_cert_pem, mimetype="application/x-pem-file")
 
     except Exception as e:
-        logger.error(f"Error getting transport cert: {e}", exc_info=True)
+        logger.error("Error getting transport cert: %s", e, exc_info=True)
         return error_response(
             "InternalError",
             f"Failed to get transport certificate: {str(e)}",
@@ -4047,7 +4397,7 @@ def get_transport_cert_config():
         return success_response(cert_data)
 
     except Exception as e:
-        logger.error(f"Error getting transport cert: {e}", exc_info=True)
+        logger.error("Error getting transport cert: %s", e, exc_info=True)
         return error_response(
             "InternalError",
             f"Failed to get transport certificate: {str(e)}",
@@ -4077,7 +4427,7 @@ def kra_stats():
         return success_response(stats)
 
     except Exception as e:
-        logger.error(f"Error getting KRA stats: {e}", exc_info=True)
+        logger.error("Error getting KRA stats: %s", e, exc_info=True)
         return error_response(
             "InternalError", f"Failed to get KRA statistics: {str(e)}", 500
         )
@@ -4104,7 +4454,7 @@ def acme_directory():
         return success_response(directory)
 
     except Exception as e:
-        logger.error(f"Error in acme_directory: {e}")
+        logger.error("Error in acme_directory: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4122,7 +4472,7 @@ def acme_new_nonce():
         return response
 
     except Exception as e:
-        logger.error(f"Error in acme_new_nonce: {e}")
+        logger.error("Error in acme_new_nonce: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4176,7 +4526,7 @@ def acme_endpoint(endpoint):
         account_key = protected_header.get("jwk")
 
         # Call backend to process the request
-        logger.debug(f"Processing ACME endpoint: {endpoint}")
+        logger.debug("Processing ACME endpoint: %s", endpoint)
         result = ca_backend.process_acme_request(
             endpoint, payload, account_key
         )
@@ -4185,18 +4535,20 @@ def acme_endpoint(endpoint):
             if not isinstance(result, tuple)
             else f"tuple of {len(result)} elements"
         )
-        logger.debug(f"Result type: {type(result)}, value: {result_value}")
+        logger.debug("Result type: %s, value: %s", type(result), result_value)
 
         # Handle special case for new-account (returns tuple)
         # RFC 8555: HTTP 201 for new account, HTTP 200 for existing
         if endpoint == "new-account":
             logger.debug(
-                f"Handling new-account endpoint, result type={type(result)}"
+                "Handling new-account endpoint, result type=%s", type(result)
             )
             account_dict, is_new = result
             status_code = 201 if is_new else 200
             logger.info(
-                f"ACME new-account: is_new={is_new}, status_code={status_code}"
+                "ACME new-account: is_new=%s, status_code=%s",
+                is_new,
+                status_code,
             )
             result = account_dict
         else:
@@ -4220,7 +4572,7 @@ def acme_endpoint(endpoint):
 
     except Exception as e:
         logger.error(
-            f"Error in acme_endpoint ({endpoint}): {e}", exc_info=True
+            "Error in acme_endpoint (%s): %s", endpoint, e, exc_info=True
         )
         # Return ACME-formatted error
         return error_response("serverInternal", str(e), 500)
@@ -4244,7 +4596,7 @@ def acme_enable():
         return Response("", status=200)
 
     except Exception as e:
-        logger.error(f"Error enabling ACME: {e}")
+        logger.error("Error enabling ACME: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4262,7 +4614,7 @@ def acme_disable():
         return Response("", status=200)
 
     except Exception as e:
-        logger.error(f"Error disabling ACME: {e}")
+        logger.error("Error disabling ACME: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4308,7 +4660,7 @@ def get_hsm_config():
         )
 
     except Exception as e:
-        logger.error(f"Error getting HSM configuration: {e}")
+        logger.error("Error getting HSM configuration: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4356,7 +4708,7 @@ def update_hsm_config():
         )
 
     except Exception as e:
-        logger.error(f"Error updating HSM configuration: {e}")
+        logger.error("Error updating HSM configuration: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4408,7 +4760,7 @@ def delete_hsm_config():
             )
 
     except Exception as e:
-        logger.error(f"Error deleting HSM configuration: {e}")
+        logger.error("Error deleting HSM configuration: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4468,7 +4820,7 @@ def test_hsm_connection():
             )
 
     except Exception as e:
-        logger.error(f"Error testing HSM connection: {e}")
+        logger.error("Error testing HSM connection: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4509,13 +4861,13 @@ def list_hsm_slots():
             )
 
         except Exception as hsm_error:
-            logger.error(f"Error listing HSM slots: {hsm_error}")
+            logger.error("Error listing HSM slots: %s", hsm_error)
             return error_response(
                 "HSMError", f"Failed to list HSM slots: {str(hsm_error)}", 503
             )
 
     except Exception as e:
-        logger.error(f"Error in list_hsm_slots: {e}")
+        logger.error("Error in list_hsm_slots: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4561,13 +4913,13 @@ def get_hsm_info():
             return success_response(hsm_info)
 
         except Exception as hsm_error:
-            logger.error(f"Error getting HSM info: {hsm_error}")
+            logger.error("Error getting HSM info: %s", hsm_error)
             return error_response(
                 "HSMError", f"Failed to get HSM info: {str(hsm_error)}", 503
             )
 
     except Exception as e:
-        logger.error(f"Error in get_hsm_info: {e}")
+        logger.error("Error in get_hsm_info: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4612,13 +4964,13 @@ def list_hsm_keys():
             )
 
         except Exception as hsm_error:
-            logger.error(f"Error listing HSM keys: {hsm_error}")
+            logger.error("Error listing HSM keys: %s", hsm_error)
             return error_response(
                 "HSMError", f"Failed to list HSM keys: {str(hsm_error)}", 503
             )
 
     except Exception as e:
-        logger.error(f"Error in list_hsm_keys: {e}")
+        logger.error("Error in list_hsm_keys: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4706,7 +5058,7 @@ def generate_hsm_key():
             )
 
         except Exception as hsm_error:
-            logger.error(f"Error generating HSM key: {hsm_error}")
+            logger.error("Error generating HSM key: %s", hsm_error)
             return error_response(
                 "HSMError",
                 f"Failed to generate HSM key: {str(hsm_error)}",
@@ -4714,7 +5066,7 @@ def generate_hsm_key():
             )
 
     except Exception as e:
-        logger.error(f"Error in generate_hsm_key: {e}")
+        logger.error("Error in generate_hsm_key: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4785,13 +5137,13 @@ def delete_hsm_key(key_label):
             )
 
         except Exception as hsm_error:
-            logger.error(f"Error deleting HSM key: {hsm_error}")
+            logger.error("Error deleting HSM key: %s", hsm_error)
             return error_response(
                 "HSMError", f"Failed to delete HSM key: {str(hsm_error)}", 503
             )
 
     except Exception as e:
-        logger.error(f"Error in delete_hsm_key: {e}")
+        logger.error("Error in delete_hsm_key: %s", e)
         return error_response("ServerError", str(e), 500)
 
 
@@ -4820,7 +5172,8 @@ def create_app(config=None):
             logger.setLevel(getattr(logging, log_level.upper(), logging.INFO))
             logger.debug(
                 "Stored ipathinca.conf configuration for application use "
-                f"(log level: {log_level})"
+                "(log level: %s)",
+                log_level,
             )
 
         # Update Flask's internal config
@@ -4853,10 +5206,10 @@ def main():
     ssl_context = None
     if args.ssl_cert and args.ssl_key:
         ssl_context = (args.ssl_cert, args.ssl_key)
-        logger.debug(f"SSL enabled with cert: {args.ssl_cert}")
+        logger.debug("SSL enabled with cert: %s", args.ssl_cert)
 
     logger.debug(
-        f"Starting Python CA REST API server on {args.host}:{args.port}"
+        "Starting Python CA REST API server on %s:%s", args.host, args.port
     )
 
     # Run Flask application

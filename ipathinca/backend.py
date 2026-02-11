@@ -25,6 +25,7 @@ See SERVICE_ARCHITECTURE.md for complete documentation.
 """
 
 import logging
+import threading
 from datetime import datetime, timedelta, timezone
 import uuid
 import os
@@ -35,12 +36,13 @@ import base64
 from ipalib import errors
 from ipapython.dn import DN
 from ipaplatform.paths import paths
+import ipathinca
 from ipathinca import x509_utils, set_global_config, load_config
 from ipathinca.acme import ACMEServer
 from ipathinca.acme_state import ACMEStateManager
 from ipathinca.ca import RevocationReason
 from ipathinca.ca_internal import InternalCA
-from ipathinca.exceptions import ProfileNotFound
+from ipathinca.exceptions import InvalidCAConfiguration, ProfileNotFound
 from ipathinca.profiles import ProfileManager
 from ipathinca.pruning import PruningManager
 from ipathinca.x509_utils import (
@@ -49,7 +51,6 @@ from ipathinca.x509_utils import (
     get_issuer_dn_str,
 )
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -142,7 +143,7 @@ class PythonCABackend:
                        FQDN
         """
         if not self.config.has_option("global", "host"):
-            raise Exception(
+            raise InvalidCAConfiguration(
                 "Hostname not configured in ipathinca.conf [global] section. "
                 "Add 'host = <fqdn>' to the configuration file."
             )
@@ -187,7 +188,7 @@ class PythonCABackend:
 
     def request_certificate(
         self, csr, profile_id="caIPAserviceCert", ca_id="ipa"
-    ):
+    ) -> dict:
         """
         Submit certificate request - replaces dogtag.request_certificate()
 
@@ -202,9 +203,7 @@ class PythonCABackend:
         try:
             # Parse CSR from PEM format
             if isinstance(csr, str):
-                csr_obj = x509.load_pem_x509_csr(
-                    csr.encode("utf-8"), default_backend()
-                )
+                csr_obj = x509.load_pem_x509_csr(csr.encode("utf-8"))
             else:
                 csr_obj = csr
 
@@ -275,7 +274,7 @@ class PythonCABackend:
             error_msg = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
             raise errors.CertificateOperationError(error=error_msg)
 
-    def check_request_status(self, request_id):
+    def check_request_status(self, request_id) -> dict:
         """
         Check certificate request status
 
@@ -291,24 +290,34 @@ class PythonCABackend:
             # Return serial number in hex format with 0x prefix to match Dogtag
             "serial_number": (
                 f"0x{request.serial_number:x}"
-                if request.serial_number
+                if request.serial_number is not None
                 else None
             ),
         }
 
-    def get_certificate(self, serial_number):
+    def get_certificate(self, serial_number) -> dict:
         """
         Retrieve certificate by serial number
 
         Replaces dogtag.get_certificate()
         """
-        cert_record = self.ca.get_certificate(int(serial_number))
+        try:
+            serial_int = (
+                int(serial_number, 0)
+                if isinstance(serial_number, str)
+                else int(serial_number)
+            )
+        except (ValueError, TypeError):
+            raise errors.NotFound(
+                reason=f"Invalid serial number: {serial_number}"
+            )
+        cert_record = self.ca.get_certificate(serial_int)
         logger.debug(f"CA returned cert_record: {cert_record}")
         logger.debug(f"cert_record type: {type(cert_record)}")
 
         if not cert_record:
             # Format serial number as hex to match Dogtag behavior
-            serial_hex = f"0x{int(serial_number):x}"
+            serial_hex = f"0x{serial_int:x}"
             logger.error(
                 "Certificate not found, raising NotFound error for "
                 f"{serial_hex}"
@@ -360,7 +369,7 @@ class PythonCABackend:
 
     # Certificate Revocation Operations
 
-    def revoke_certificate(self, serial_number, revocation_reason=0):
+    def revoke_certificate(self, serial_number, revocation_reason=0) -> dict:
         """
         Revoke certificate - replaces dogtag.revoke_certificate()
         """
@@ -381,7 +390,17 @@ class PythonCABackend:
             reason = reason_map.get(
                 revocation_reason, RevocationReason.UNSPECIFIED
             )
-            self.ca.revoke_certificate(int(serial_number), reason)
+            try:
+                serial_int = (
+                    int(serial_number, 0)
+                    if isinstance(serial_number, str)
+                    else int(serial_number)
+                )
+            except (ValueError, TypeError):
+                raise errors.NotFound(
+                    reason=f"Invalid serial number: {serial_number}"
+                )
+            self.ca.revoke_certificate(serial_int, reason)
 
             return {"status": "SUCCESS"}
 
@@ -392,14 +411,24 @@ class PythonCABackend:
             logger.error(f"Certificate revocation failed: {e}")
             raise errors.CertificateOperationError(error=str(e))
 
-    def take_certificate_off_hold(self, serial_number):
+    def take_certificate_off_hold(self, serial_number) -> dict:
         """
         Remove certificate from hold
 
         Replaces dogtag.take_certificate_off_hold()
         """
         try:
-            self.ca.take_certificate_off_hold(int(serial_number))
+            try:
+                serial_int = (
+                    int(serial_number, 0)
+                    if isinstance(serial_number, str)
+                    else int(serial_number)
+                )
+            except (ValueError, TypeError):
+                raise errors.NotFound(
+                    reason=f"Invalid serial number: {serial_number}"
+                )
+            self.ca.take_certificate_off_hold(serial_int)
             return {"status": "SUCCESS"}
 
         except errors.NotFound:
@@ -411,7 +440,7 @@ class PythonCABackend:
 
     # Certificate Search Operations
 
-    def find_certificates(self, criteria=None):
+    def find_certificates(self, criteria=None) -> dict:
         """
         Search certificates - replaces dogtag.find_certificates()
         """
@@ -470,7 +499,7 @@ class PythonCABackend:
 
     # Profile Management Operations
 
-    def create_profile(self, profile_data):
+    def create_profile(self, profile_data) -> dict:
         """
         Create certificate profile
 
@@ -482,7 +511,7 @@ class PythonCABackend:
             "from .cfg files"
         )
 
-    def read_profile(self, profile_id):
+    def read_profile(self, profile_id) -> dict:
         """
         Read certificate profile
         """
@@ -508,7 +537,7 @@ class PythonCABackend:
             logger.error(f"Profile read failed: {e}")
             raise errors.CertificateOperationError(error=str(e))
 
-    def update_profile(self, profile_data):
+    def update_profile(self, profile_data) -> dict:
         """
         Update certificate profile
 
@@ -519,20 +548,30 @@ class PythonCABackend:
             error="Profile updates not supported - profiles are read-only"
         )
 
-    def delete_profile(self, profile_id):
-        """Delete certificate profile - NOT SUPPORTED"""
-        raise errors.CertificateOperationError(
-            error="Profile deletion not supported - profiles are managed by "
-            "installation"
-        )
+    def delete_profile(self, profile_id) -> dict:
+        """
+        Delete certificate profile
 
-    def enable_profile(self, profile_id):
+        Args:
+            profile_id: Profile identifier to delete
+
+        Returns:
+            Dictionary with deletion status
+        """
+        try:
+            self.profile_manager.delete_profile(profile_id)
+            return {"status": "deleted", "profile_id": profile_id}
+        except Exception as e:
+            error_msg = f"Failed to delete profile {profile_id}: {str(e)}"
+            raise errors.CertificateOperationError(error=error_msg)
+
+    def enable_profile(self, profile_id) -> None:
         """Enable certificate profile - NOT SUPPORTED"""
         raise errors.CertificateOperationError(
             error="Profile enable/disable not supported"
         )
 
-    def disable_profile(self, profile_id):
+    def disable_profile(self, profile_id) -> None:
         """Disable certificate profile - NOT SUPPORTED"""
         raise errors.CertificateOperationError(
             error="Profile enable/disable not supported"
@@ -540,7 +579,7 @@ class PythonCABackend:
 
     # CRL Operations
 
-    def update_crl(self):
+    def update_crl(self) -> dict:
         """
         Update Certificate Revocation List - replaces updateCRL operation
 
@@ -572,7 +611,7 @@ class PythonCABackend:
             # Generate timestamped filename
             # (Dogtag format: MasterCRL-YYYYMMDD-HHMMSS.der)
 
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
             timestamped_filename = f"MasterCRL-{timestamp}.der"
             timestamped_path = os.path.join(publish_dir, timestamped_filename)
 
@@ -582,13 +621,23 @@ class PythonCABackend:
             # Set world-readable permissions for Apache to serve
             os.chmod(timestamped_path, 0o644)
 
-            # Create/update symlink MasterCRL.bin -> timestamped file
+            # Atomically update symlink MasterCRL.bin -> timestamped file
+            # Create temp symlink then replace to avoid TOCTOU race
             symlink_path = os.path.join(publish_dir, "MasterCRL.bin")
-            # Remove old symlink if exists
-            if os.path.islink(symlink_path) or os.path.exists(symlink_path):
-                os.unlink(symlink_path)
-            # Create new symlink (use absolute path for symlink target)
-            os.symlink(timestamped_path, symlink_path)
+            tmp_symlink = symlink_path + ".tmp"
+            try:
+                # Remove stale temp symlink if it exists
+                if os.path.islink(tmp_symlink):
+                    os.unlink(tmp_symlink)
+                os.symlink(timestamped_path, tmp_symlink)
+                os.replace(tmp_symlink, symlink_path)
+            except OSError:
+                # Clean up temp symlink on failure
+                try:
+                    os.unlink(tmp_symlink)
+                except OSError:
+                    pass
+                raise
 
             logger.debug(
                 f"CRL updated successfully: {crl_path} and {symlink_path} "
@@ -602,13 +651,15 @@ class PythonCABackend:
 
     # ACME Operations
 
-    def get_acme_directory(self):
+    def get_acme_directory(self) -> dict:
         """
         Get ACME directory - replaces ACME subsystem
         """
         return self.acme_server.get_directory()
 
-    def process_acme_request(self, endpoint, payload, account_key=None):
+    def process_acme_request(
+        self, endpoint, payload, account_key=None
+    ) -> dict:
         """
         Process ACME protocol requests
 
@@ -629,13 +680,23 @@ class PythonCABackend:
                 return order.to_dict(self.acme_server.base_url)
 
             elif endpoint.startswith("authz/"):
-                auth_id = endpoint.split("/")[1]
+                parts = endpoint.split("/", 2)
+                if len(parts) < 2 or not parts[1]:
+                    raise errors.NotFound(
+                        reason=f"Invalid ACME endpoint: {endpoint}"
+                    )
+                auth_id = parts[1]
                 account_id = self._get_account_id_from_key(account_key)
                 auth = self.acme_server.get_authorization(auth_id, account_id)
                 return auth.to_dict(self.acme_server.base_url)
 
             elif endpoint.startswith("chall/"):
-                token = endpoint.split("/")[1]
+                parts = endpoint.split("/", 2)
+                if len(parts) < 2 or not parts[1]:
+                    raise errors.NotFound(
+                        reason=f"Invalid ACME endpoint: {endpoint}"
+                    )
+                token = parts[1]
                 account_id = self._get_account_id_from_key(account_key)
                 challenge = self.acme_server.respond_to_challenge(
                     token, account_id, account_key
@@ -645,16 +706,30 @@ class PythonCABackend:
             elif endpoint.startswith("order/") and endpoint.endswith(
                 "/finalize"
             ):
-                order_id = endpoint.split("/")[1]
+                parts = endpoint.split("/")
+                if len(parts) < 2 or not parts[1]:
+                    raise errors.NotFound(
+                        reason=f"Invalid ACME endpoint: {endpoint}"
+                    )
+                order_id = parts[1]
                 account_id = self._get_account_id_from_key(account_key)
-                csr_der = payload.get("csr")  # Base64 decoded
+                csr_der = payload.get("csr")
+                if csr_der is None:
+                    raise errors.CertificateOperationError(
+                        error="Missing 'csr' in finalize payload"
+                    )
                 order = self.acme_server.finalize_order(
                     order_id, account_id, csr_der
                 )
                 return order.to_dict(self.acme_server.base_url)
 
             elif endpoint.startswith("cert/"):
-                order_id = endpoint.split("/")[1]
+                parts = endpoint.split("/", 2)
+                if len(parts) < 2 or not parts[1]:
+                    raise errors.NotFound(
+                        reason=f"Invalid ACME endpoint: {endpoint}"
+                    )
+                order_id = parts[1]
                 account_id = self._get_account_id_from_key(account_key)
                 cert_pem = self.acme_server.get_certificate(
                     order_id, account_id
@@ -677,7 +752,7 @@ class PythonCABackend:
 
     # CA Management Operations
 
-    def create_ca_certificate(self, subject, algorithm=None):
+    def create_ca_certificate(self, subject, algorithm=None) -> dict:
         """
         Create CA certificate and private key - used during CA installation
 
@@ -691,9 +766,14 @@ class PythonCABackend:
         try:
             logger.debug(f"Creating CA certificate with subject: {subject}")
 
-            # Generate private key
+            # Generate private key (key size from config, default 3072)
+            ca_key_size = int(
+                ipathinca.get_config_value(
+                    "ca", "ca_signing_key_size", default="3072"
+                )
+            )
             private_key = rsa.generate_private_key(
-                public_exponent=65537, key_size=2048
+                public_exponent=65537, key_size=ca_key_size
             )
 
             # Parse subject DN
@@ -786,7 +866,7 @@ class PythonCABackend:
                 error=f"Failed to create CA certificate: {e}"
             )
 
-    def setup_acme(self):
+    def setup_acme(self) -> None:
         """
         Setup ACME service - called during CA configuration
         """
@@ -802,13 +882,13 @@ class PythonCABackend:
 
     # System Operations
 
-    def get_ca_info(self):
+    def get_ca_info(self) -> dict:
         """
         Get CA information - replaces various Dogtag info endpoints
         """
         try:
             # Try to ensure CA is loaded
-            self.ca._ensure_ca_loaded()
+            self.ca.ensure_ca_loaded()
 
             # Use x509_utils helper to convert certificate subject to IPA DN
             # string
@@ -836,13 +916,13 @@ class PythonCABackend:
                 "status": "NOT_CONFIGURED",
             }
 
-    def get_certificate_chain(self):
+    def get_certificate_chain(self) -> dict:
         """
         Get CA certificate chain - replaces getCertChain operation
         """
         try:
             # Try to ensure CA is loaded
-            self.ca._ensure_ca_loaded()
+            self.ca.ensure_ca_loaded()
 
             # Convert to PEM with CRLF line endings to match Dogtag
             ca_cert_pem = (
@@ -865,11 +945,13 @@ class PythonCABackend:
 
 # Global backend instance
 _python_ca_backend = None
+_backend_lock = threading.Lock()
 
 
-def get_python_ca_backend():
+def get_python_ca_backend() -> "PythonCABackend":
     """Get singleton Python CA backend instance"""
     global _python_ca_backend
-    if _python_ca_backend is None:
-        _python_ca_backend = PythonCABackend()
-    return _python_ca_backend
+    with _backend_lock:
+        if _python_ca_backend is None:
+            _python_ca_backend = PythonCABackend()
+        return _python_ca_backend

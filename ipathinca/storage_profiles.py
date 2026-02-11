@@ -66,20 +66,20 @@ class ProfileStorage(BaseStorageBackend):
                 existing_entry = ldap.get_entry(profile_dn)
 
                 # Update existing profile
-                logger.debug(f"Updating profile {profile_id}")
+                logger.debug("Updating profile %s", profile_id)
                 for key, value in entry_attrs.items():
-                    if key != "objectClass" and key != "cn":
+                    if key not in ["objectClass", "cn"]:
                         existing_entry[key] = value
 
                 ldap.update_entry(existing_entry)
-                logger.debug(f"Updated profile {profile_id}")
+                logger.debug("Updated profile %s", profile_id)
 
             except errors.NotFound:
                 # Create new profile
-                logger.debug(f"Creating profile {profile_id}")
+                logger.debug("Creating profile %s", profile_id)
                 entry = ldap.make_entry(profile_dn, **entry_attrs)
                 ldap.add_entry(entry)
-                logger.debug(f"Created profile {profile_id}")
+                logger.debug("Created profile %s", profile_id)
 
     def get_profile(self, profile_id: str) -> Any:
         """
@@ -133,7 +133,7 @@ class ProfileStorage(BaseStorageBackend):
                 return result
 
             except errors.NotFound:
-                logger.debug(f"Profile {profile_id} not found")
+                logger.debug("Profile %s not found", profile_id)
                 return None
 
     def delete_profile(self, profile_id: str):
@@ -150,7 +150,7 @@ class ProfileStorage(BaseStorageBackend):
             profile_dn = DN(("cn", profile_id), profiles_container_dn)
 
             ldap.delete_entry(profile_dn)
-            logger.info(f"Deleted profile {profile_id}")
+            logger.info("Deleted profile %s", profile_id)
 
     def list_profiles(self) -> List[str]:
         """
@@ -182,3 +182,108 @@ class ProfileStorage(BaseStorageBackend):
 
             except errors.NotFound:
                 return []
+
+    def get_profile_cfg(self, profile_id: str) -> str:
+        """Get raw .cfg file content from LDAP
+
+        Args:
+            profile_id: Profile identifier
+
+        Returns:
+            Profile .cfg file content as string
+
+        Raises:
+            errors.NotFound: If profile not found
+        """
+        with self._get_ldap_connection() as ldap:
+            profiles_container_dn = DN(
+                ("ou", "certificateProfiles"), self.ca_base_dn
+            )
+            profile_dn = DN(("cn", profile_id), profiles_container_dn)
+
+            entry = ldap.get_entry(
+                profile_dn, attrs_list=["certProfileConfig"]
+            )
+
+            # certProfileConfig is stored as binary
+            cfg_bytes = entry.get("certProfileConfig", [b""])[0]
+            if isinstance(cfg_bytes, bytes):
+                return cfg_bytes.decode("utf-8")
+            return cfg_bytes
+
+    def update_profile_cfg(self, profile_id: str, cfg_content: str):
+        """Update profile .cfg content in LDAP
+
+        Args:
+            profile_id: Profile identifier
+            cfg_content: New .cfg file content
+
+        Raises:
+            errors.NotFound: If profile not found
+        """
+        with self._get_ldap_connection() as ldap:
+            profiles_container_dn = DN(
+                ("ou", "certificateProfiles"), self.ca_base_dn
+            )
+            profile_dn = DN(("cn", profile_id), profiles_container_dn)
+
+            entry = ldap.get_entry(profile_dn)
+            entry["certProfileConfig"] = [cfg_content.encode("utf-8")]
+            ldap.update_entry(entry)
+            logger.info("Updated profile %s .cfg content", profile_id)
+
+    def create_profile(
+        self, profile_id: str, cfg_content: str, description: str = ""
+    ):
+        """Create new profile in LDAP
+
+        Args:
+            profile_id: New profile identifier
+            cfg_content: Profile .cfg file content
+            description: Profile description (optional, ignored - certProfile
+                         objectClass doesn't support it)
+
+        Raises:
+            errors.DuplicateEntry: If profile already exists
+        """
+        with self._get_ldap_connection() as ldap:
+            profiles_container_dn = DN(
+                ("ou", "certificateProfiles"), self.ca_base_dn
+            )
+            profile_dn = DN(("cn", profile_id), profiles_container_dn)
+
+            logger.info("Attempting to create profile with DN: %s", profile_dn)
+
+            # Check if entry already exists (including tombstones)
+            try:
+                existing = ldap.get_entry(profile_dn)
+                logger.error(
+                    "Profile %s already exists: %s", profile_id, existing.dn
+                )
+                raise errors.DuplicateEntry()
+            except errors.NotFound:
+                # Good - entry doesn't exist
+                pass
+
+            entry_attrs = {
+                "objectclass": ["top", "certProfile"],
+                "cn": [profile_id],
+                "certProfileConfig": [cfg_content.encode("utf-8")],
+            }
+
+            # Note: description not added - certProfile objectClass doesn't
+            # allow it
+            # Only cn, classId, and certProfileConfig are allowed
+
+            entry = ldap.make_entry(profile_dn, **entry_attrs)
+            logger.info("Adding LDAP entry for profile %s", profile_id)
+            ldap.add_entry(entry)
+            logger.info("Created new profile %s", profile_id)
+
+    def list_profile_ids(self) -> List[str]:
+        """List all profile IDs in LDAP
+
+        Returns:
+            List of profile identifiers
+        """
+        return self.list_profiles()
