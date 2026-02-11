@@ -11,15 +11,17 @@ replacement for Dogtag PKI's pki-tomcat service.
 import logging
 import os
 import base64
+import re
+import threading
 import traceback
 import argparse
 import json
 import secrets
+from xml.sax.saxutils import escape as xml_escape
 
 from flask import Flask, request, Response, make_response, jsonify
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import padding as sym_padding
 from cryptography.hazmat.primitives.serialization import pkcs7
@@ -29,8 +31,10 @@ from cryptography.hazmat.primitives.ciphers import (
     modes,
 )
 
+import ipathinca
 from ipathinca.backend import get_python_ca_backend
 from ipathinca import x509_utils
+from ipathinca.nss_utils import NSSDatabase
 from ipathinca.exceptions import ProfileNotFound
 from ipathinca.hsm import HSMConfig, HSMKeyBackend, list_pkcs11_slots
 from ipathinca.hsm import get_hsm_info as get_hsm_device_info
@@ -58,6 +62,7 @@ from ipathinca.rest_api_helpers import (
     # Response helpers
     error_response,
     success_response,
+    build_profile_response,
     # Handler classes
     CertificateHandler,
     RequestHandler,
@@ -83,6 +88,10 @@ kra_backend = None
 # Global configuration (loaded from ipathinca.conf)
 ipa_ca_config = None
 
+# Locks for thread-safe initialization
+_ca_init_lock = threading.Lock()
+_kra_init_lock = threading.Lock()
+
 
 # ============================================================================
 # Initializors
@@ -92,7 +101,11 @@ ipa_ca_config = None
 def init_ca():
     """Initialize CA backend"""
     global ca_backend
-    if ca_backend is None:
+    if ca_backend is not None:
+        return
+    with _ca_init_lock:
+        if ca_backend is not None:
+            return
         try:
             logger.debug("Initializing Python CA backend...")
             ca_backend = get_python_ca_backend()
@@ -108,7 +121,11 @@ def init_ca():
 def init_kra():
     """Initialize KRA backend"""
     global kra_backend
-    if kra_backend is None:
+    if kra_backend is not None:
+        return
+    with _kra_init_lock:
+        if kra_backend is not None:
+            return
         try:
             logger.info("Initializing KRA backend...")
 
@@ -125,17 +142,14 @@ def init_kra():
             try:
                 logger.debug(f"Loading CA cert from {paths.IPA_CA_CRT}")
                 with open(paths.IPA_CA_CRT, "rb") as f:
-                    ca_cert = x509.load_pem_x509_certificate(
-                        f.read(), default_backend()
-                    )
+                    ca_cert = x509.load_pem_x509_certificate(f.read())
 
+                # Extract CA key from NSSDB (consistent with ca.py)
                 logger.debug(
-                    f"Loading CA key from {paths.IPATHINCA_SIGNING_KEY}"
+                    "Extracting CA key from NSSDB for KRA initialization"
                 )
-                with open(paths.IPATHINCA_SIGNING_KEY, "rb") as f:
-                    ca_key = serialization.load_pem_private_key(
-                        f.read(), password=None, backend=default_backend()
-                    )
+                nssdb = NSSDatabase()
+                ca_key = nssdb.extract_private_key("caSigningCert cert-pki-ca")
 
                 # Initialize KRA with CA keys and storage
                 logger.debug("Calling kra.initialize()...")
@@ -282,7 +296,7 @@ def _account_logout():
     """
     response = make_response(success_response({"Status": "success"}))
     # Clear the session cookie
-    response.set_cookie("JSESSIONID", "", expires=0)
+    response.set_cookie("JSESSIONID", "", max_age=0)
     return response
 
 
@@ -293,7 +307,7 @@ def _account_logout_v2():
     """
     response = make_response("", 204)
     # Clear the session cookie
-    response.set_cookie("JSESSIONID", "", expires=0)
+    response.set_cookie("JSESSIONID", "", max_age=0)
     return response
 
 
@@ -443,19 +457,32 @@ def remove_security_domain_host(host_id):
     to our pure Python CA.
     """
     try:
-        logger.info(f"Security domain host removal requested: {host_id}")
+        logger.info("Security domain host removal requested")
+
+        # Validate host_id contains only safe characters
+        if not re.match(r"^[a-zA-Z0-9.\-\s]+$", host_id):
+            return error_response(
+                "BadRequest",
+                "Invalid host ID format (invalid characters)",
+                400,
+            )
 
         # Parse host_id: "{subsystem} {hostname} {port}"
         parts = host_id.split(" ")
         if len(parts) != 3:
             return error_response(
                 "BadRequest",
-                f"Invalid host ID format: {host_id}. Expected 'subsystem"
+                "Invalid host ID format. Expected 'subsystem"
                 " hostname port'",
                 400,
             )
 
         subsystem, hostname, port = parts
+
+        if subsystem not in ("CA", "KRA", "OCSP", "TKS", "TPS"):
+            return error_response("BadRequest", "Invalid subsystem type", 400)
+        if not port.isdigit() or not (0 < int(port) < 65536):
+            return error_response("BadRequest", "Invalid port number", 400)
         logger.info(
             f"Removing {subsystem} host {hostname}:{port} from security domain"
         )
@@ -539,10 +566,12 @@ def submit_certificate_request():
 
     # Decode CSR if base64 encoded
     if not csr_data.startswith("-----BEGIN"):
+        if len(csr_data) > 65536:
+            return error_response("BadRequest", "CSR data too large", 400)
         try:
             csr_data = base64.b64decode(csr_data).decode("utf-8")
-        except Exception:
-            pass
+        except (ValueError, UnicodeDecodeError) as e:
+            logger.warning("Failed to base64-decode CSR data: %s", e)
 
     # Fix PEM formatting - ensure proper line breaks
     # The CSR from Dogtag REST API often has headers/footers/data all on one
@@ -574,6 +603,8 @@ def submit_certificate_request():
                     .replace("\r", "")
                     .strip()
                 )
+                if not b64_data:
+                    raise ValueError("Empty CSR data between PEM markers")
                 # Reformat with proper line breaks (64 chars per line)
                 lines = [
                     b64_data[i : i + 64] for i in range(0, len(b64_data), 64)
@@ -1082,8 +1113,24 @@ def get_revoked_certificates():
     Returns list of revoked certificate serial numbers and revocation info
     """
     try:
-        limit = int(request.args.get("limit", 1000))
-        offset = int(request.args.get("offset", 0))
+        # Read max search returns from config
+        # (matching Dogtag ca.maxSearchReturns)
+        default_limit = int(
+            ipathinca.get_config_value(
+                "ca", "max_search_returns", default="1000"
+            )
+        )
+        try:
+            limit = int(request.args.get("limit", default_limit))
+            offset = int(request.args.get("offset", 0))
+        except (ValueError, TypeError):
+            return error_response(
+                "BadRequest", "Invalid limit or offset parameter", 400
+            )
+        if limit < 1 or offset < 0:
+            return error_response(
+                "BadRequest", "limit must be >= 1 and offset must be >= 0", 400
+            )
 
         storage = ca_backend.ca.storage
 
@@ -1185,8 +1232,8 @@ def legacy_profile_list():
             profile_entries = []
             for profile in profiles:
                 profile_entries.append(
-                    f'<profile id="{profile.profile_id}">{profile.name}'
-                    "</profile>"
+                    f'<profile id="{xml_escape(profile.profile_id)}">'
+                    f"{xml_escape(profile.name)}</profile>"
                 )
 
             profiles_xml = "\n".join(profile_entries)
@@ -1219,6 +1266,115 @@ def list_profiles():
     return ProfileHandler.list_all(ca_backend)
 
 
+@app.route("/ca/rest/profiles", methods=["POST"])
+@app.route("/ca/v2/profiles", methods=["POST"])
+@require_ca_backend
+@handle_ca_errors
+def create_profile():
+    """Create new certificate profile
+
+    Accepts:
+    - JSON format with profileId field (Dogtag REST API style)
+    - Plain text .cfg format (IPA certprofile-import style)
+    """
+    logger.info(f"create_profile called, content-type: {request.content_type}")
+
+    # Try JSON format first (most common for IPA)
+    try:
+        data = request.get_json(silent=True)
+        if data:
+            logger.info(f"Parsed JSON data, keys: {list(data.keys())}")
+            profile_id = data.get("profileId") or data.get("ProfileId")
+
+            # Check if profileData contains .cfg content
+            if "profileData" in data:
+                cfg_content = data["profileData"]
+                logger.info(
+                    f"Found profileData field with {len(cfg_content)} chars"
+                )
+                if not profile_id:
+                    # Extract from .cfg content
+                    import re
+
+                    match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+                    if match:
+                        profile_id = match.group(1)
+                        logger.info(
+                            f"Extracted profile ID from .cfg: '{profile_id}'"
+                        )
+
+                if not profile_id:
+                    return error_response(
+                        "BadRequest", "profileId field required", 400
+                    )
+
+                result = ProfileHandler.create_raw(
+                    profile_id, cfg_content, ca_backend
+                )
+                return result
+            elif profile_id:
+                # Standard JSON profile creation
+                return ProfileHandler.create_or_update(
+                    profile_id, data, ca_backend, is_update=False
+                )
+    except Exception as e:
+        logger.warning(f"Failed to parse as JSON: {e}")
+
+    # Try plain text .cfg format
+    content_type = request.content_type or ""
+    if (
+        "text/plain" in content_type
+        or "application/octet-stream" in content_type
+    ):
+        cfg_content = request.get_data(as_text=True)
+        logger.info(
+            "Plain text content-type, got "
+            f"{len(cfg_content) if cfg_content else 0} chars"
+        )
+        if not cfg_content:
+            return error_response(
+                "BadRequest", "No profile data provided", 400
+            )
+
+        # Extract profile ID from .cfg content
+        import re
+
+        match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+        if match:
+            profile_id = match.group(1)
+            logger.info(f"Extracted profile ID from .cfg: '{profile_id}'")
+        else:
+            return error_response(
+                "BadRequest", "Profile ID not found in configuration", 400
+            )
+
+        result = ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+        return result
+
+    # Last resort: get raw data
+    cfg_content = request.get_data(as_text=True)
+    logger.info(
+        "Fallback: raw data, got "
+        f"{len(cfg_content) if cfg_content else 0} chars"
+    )
+    if not cfg_content:
+        return error_response("BadRequest", "No profile data provided", 400)
+
+    # Extract profile ID from .cfg content
+    import re
+
+    match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+    if match:
+        profile_id = match.group(1)
+        logger.info(f"Extracted profile ID from .cfg: '{profile_id}'")
+    else:
+        return error_response(
+            "BadRequest", "Profile ID not found in configuration", 400
+        )
+
+    return ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+
+
 @app.route("/ca/rest/profiles/<profile_id>", methods=["GET"])
 @app.route("/ca/v2/profiles/<profile_id>", methods=["GET"])
 @require_ca_backend
@@ -1230,20 +1386,138 @@ def get_profile(profile_id):
     return ProfileHandler.get(profile_id, ca_backend)
 
 
+@app.route("/ca/rest/profiles/raw", methods=["POST"])
+@app.route("/ca/v2/profiles/raw", methods=["POST"])
+@require_ca_backend
+@handle_ca_errors
+def create_profile_from_raw():
+    """
+    Create certificate profile from .cfg format
+
+    POST /ca/v2/profiles/raw
+
+    Used by: ipa certprofile-import --file <file>
+    Profile ID is extracted from the .cfg content
+
+    Request body: text/plain .cfg file content
+    """
+    logger.info("create_profile_from_raw called")
+    logger.info(f"Request content-type: {request.content_type}")
+    logger.info(f"Request content-length: {request.content_length}")
+
+    # Try different ways to get the data
+    cfg_content = request.get_data(as_text=True)
+    logger.info(
+        f"get_data result: {len(cfg_content) if cfg_content else 0} chars"
+    )
+
+    if not cfg_content:
+        # Try form data
+        if request.form:
+            logger.info(
+                f"Found form data with keys: {list(request.form.keys())}"
+            )
+            cfg_content = request.form.get("file") or request.form.get(
+                "profileData"
+            )
+
+        if not cfg_content:
+            logger.error("No profile data found in request")
+            return error_response(
+                "BadRequest", "No profile data provided", 400
+            )
+
+    # Extract profile ID from .cfg content
+    import re
+
+    match = re.search(r"profileId\s*=\s*(\S+)", cfg_content)
+    if match:
+        profile_id = match.group(1)
+        logger.info(
+            f"Creating profile {profile_id} from .cfg content "
+            f"({len(cfg_content)} chars)"
+        )
+    else:
+        return error_response(
+            "BadRequest", "Profile ID not found in configuration", 400
+        )
+
+    return ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+
+
 @app.route("/ca/rest/profiles/<profile_id>", methods=["POST", "PUT"])
 @app.route("/ca/v2/profiles/<profile_id>", methods=["POST", "PUT"])
+@require_agent_auth  # Enable/disable actions require agent auth
 @require_ca_backend
 @validate_input(profile_id=validate_profile_id)
 @handle_ca_errors
 def update_profile(profile_id):
-    """Create or update certificate profile"""
-    data = request.get_json()
-    if not data:
+    """Create or update certificate profile
+
+    Accepts both:
+    - JSON format (Dogtag REST API style)
+    - Plain text .cfg format (IPA certprofile-import style)
+    - Query parameter action=enable/disable for state changes (requires agent
+      auth)
+    """
+    # Check for action query parameter (enable/disable)
+    action = request.args.get("action")
+    if action == "enable":
+        logger.info(f"update_profile: Routing to enable for {profile_id}")
+        # Return full profile object like enable_profile does
+        profile_data = ca_backend.read_profile(profile_id)
+        return success_response(build_profile_response(profile_data))
+    elif action == "disable":
+        logger.info(f"update_profile: Routing to disable for {profile_id}")
+        # Return full profile object like disable_profile does
+        profile_data = ca_backend.read_profile(profile_id)
+        return success_response(build_profile_response(profile_data))
+
+    # Check Content-Type to determine format
+    content_type = request.content_type or ""
+
+    # If Content-Type is text/plain or if JSON parsing fails, treat as .cfg
+    # content
+    if (
+        "text/plain" in content_type
+        or "application/octet-stream" in content_type
+    ):
+        # Plain text .cfg format (ipa certprofile-import)
+        cfg_content = request.get_data(as_text=True)
+        if not cfg_content:
+            return error_response(
+                "BadRequest", "No profile data provided", 400
+            )
+
+        is_update = request.method == "PUT"
+        return (
+            ProfileHandler.update_raw(profile_id, cfg_content, ca_backend)
+            if is_update
+            else ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
+        )
+
+    # Try JSON format first (Dogtag REST API)
+    try:
+        data = request.get_json()
+        if data:
+            is_update = request.method == "PUT"
+            return ProfileHandler.create_or_update(
+                profile_id, data, ca_backend, is_update
+            )
+    except Exception:
+        # Not valid JSON, try as .cfg content
+        pass
+
+    # Fall back to treating as .cfg content
+    cfg_content = request.get_data(as_text=True)
+    if not cfg_content:
         return error_response("BadRequest", "No profile data provided", 400)
 
     is_update = request.method == "PUT"
-    return ProfileHandler.create_or_update(
-        profile_id, data, ca_backend, is_update
+    return (
+        ProfileHandler.update_raw(profile_id, cfg_content, ca_backend)
+        if is_update
+        else ProfileHandler.create_raw(profile_id, cfg_content, ca_backend)
     )
 
 
@@ -1270,22 +1544,22 @@ def enable_profile(profile_id):
 
     This allows the profile to be used for certificate requests.
     Requires agent authentication.
+
+    Returns the full profile object like Dogtag PKI does.
     """
+    logger.info(f"enable_profile called for {profile_id}")
     try:
         # For now, profiles are always enabled in ipathinca
         # This endpoint is provided for Dogtag API compatibility
         # In a full implementation, you would call storage.enable_profile()
 
-        return (
-            success_response(
-                {
-                    "message": f"Profile {profile_id} enabled successfully",
-                    "profile_id": profile_id,
-                    "enabled": True,
-                }
-            ),
-            200,
-        )
+        # Return the full profile object like Dogtag does
+        logger.info(f"Reading profile {profile_id} for enable response")
+        profile_data = ca_backend.read_profile(profile_id)
+        logger.info(f"Profile data: {profile_data}")
+        response = build_profile_response(profile_data)
+        logger.info(f"Built response: {response}")
+        return success_response(response)
 
     except Exception as e:
         logger.error(
@@ -1332,6 +1606,47 @@ def disable_profile(profile_id):
         return error_response(
             "InternalError", f"Failed to disable profile: {str(e)}", 500
         )
+
+
+@app.route("/ca/rest/profiles/<profile_id>/raw", methods=["GET"])
+@app.route("/ca/v2/profiles/<profile_id>/raw", methods=["GET"])
+@require_ca_backend
+@validate_input(profile_id=validate_profile_id)
+@handle_ca_errors
+def get_profile_raw(profile_id):
+    """
+    Export certificate profile configuration in .cfg format
+
+    GET /ca/v2/profiles/{profile_id}/raw
+
+    Used by: ipa certprofile-show --out <file>
+
+    Returns:
+        text/plain: Profile .cfg file content
+    """
+    return ProfileHandler.get_raw(profile_id, ca_backend)
+
+
+@app.route("/ca/rest/profiles/<profile_id>/raw", methods=["PUT"])
+@app.route("/ca/v2/profiles/<profile_id>/raw", methods=["PUT"])
+@require_ca_backend
+@validate_input(profile_id=validate_profile_id)
+@handle_ca_errors
+def update_profile_raw(profile_id):
+    """
+    Update certificate profile configuration from .cfg format
+
+    PUT /ca/v2/profiles/{profile_id}/raw
+
+    Used by: ipa certprofile-mod --file <file>
+
+    Request body: text/plain .cfg file content
+    """
+    cfg_content = request.get_data(as_text=True)
+    if not cfg_content:
+        return error_response("BadRequest", "No profile data provided", 400)
+
+    return ProfileHandler.update_raw(profile_id, cfg_content, ca_backend)
 
 
 # ============================================================================
@@ -1414,8 +1729,8 @@ def profile_submit_ssl_client():
         logger.error("Certificate request failed: %s", e, exc_info=True)
         error_xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
-            f"<XMLResponse>\n<Status>1</Status>\n<Error>{str(e)}"
-            "</Error>\n</XMLResponse>"
+            f"<XMLResponse>\n<Status>1</Status>\n"
+            f"<Error>{xml_escape(str(e))}</Error>\n</XMLResponse>"
         )
         return Response(error_xml, mimetype="application/xml", status=400)
 
@@ -1426,7 +1741,7 @@ def profile_submit_ssl_client():
         error_xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
             "<XMLResponse>\n<Status>1</Status>\n"
-            f"<Error>{str(e)}</Error>\n</XMLResponse>"
+            f"<Error>{xml_escape(str(e))}</Error>\n</XMLResponse>"
         )
         return Response(error_xml, mimetype="application/xml", status=500)
 
@@ -1450,13 +1765,13 @@ def get_crl():
     # Generate fresh CRL
     ca_backend.update_crl()
 
-    # Read CRL from file
+    # Read CRL from file (avoid TOCTOU race with direct open)
     crl_path = os.path.join(paths.IPATHINCA_CERTS_DIR, "ca_crl.der")
-    if os.path.exists(crl_path):
+    try:
         with open(crl_path, "rb") as f:
             crl_data = f.read()
         return Response(crl_data, mimetype="application/pkix-crl")
-    else:
+    except FileNotFoundError:
         return error_response("CRLNotFound", "CRL file not found", 404)
 
 
@@ -1507,7 +1822,7 @@ def update_crl_legacy():
     <requestStatus>2</requestStatus>
   </fixed>
   <header>
-    <crlIssuingPoint>{crl_issuing_point}</crlIssuingPoint>
+    <crlIssuingPoint>{xml_escape(crl_issuing_point)}</crlIssuingPoint>
     <crlUpdate>{crl_update_status}</crlUpdate>
   </header>
 </xml>"""
@@ -1528,7 +1843,7 @@ def update_crl_legacy():
 <xml>
   <fixed>
     <requestStatus>6</requestStatus>
-    <errorDetails>{str(e)}</errorDetails>
+    <errorDetails>{xml_escape(str(e))}</errorDetails>
   </fixed>
 </xml>"""
         return Response(error_xml, mimetype="application/xml", status=500)
@@ -1981,7 +2296,10 @@ def renew_ocsp_cert():
 
         # Force regeneration by deleting cached responder
         # (new responder will be created on next OCSP request)
-        del ocsp_manager.responders[ca_id]
+        if ca_id in ocsp_manager.responders:
+            del ocsp_manager.responders[ca_id]
+        else:
+            logger.debug("No cached OCSP responder for %s to remove", ca_id)
 
         # Get the new certificate info
         if (
@@ -2037,9 +2355,9 @@ def list_ocsp_responders():
         for ca_id, responder in ocsp_manager.responders.items():
             responders.append({"ca_id": ca_id, "enabled": True})
 
-            return success_response(
-                {"total": len(responders), "entries": responders}
-            )
+        return success_response(
+            {"total": len(responders), "entries": responders}
+        )
 
     except Exception as e:
         logger.error(f"Error listing OCSP responders: {e}")
@@ -2388,17 +2706,23 @@ def get_authority_cert(authority_id):
             logger.debug(f"Looking up sub-CA with ID: {authority_id}")
             subca = ca_backend.ca.subca_manager.get_subca(authority_id)
             logger.debug(f"Sub-CA lookup result: {subca}")
-        except Exception as lookup_error:
-            # Exception during lookup - could be LDAP error or missing entry
-            # In Dogtag, if a UUID doesn't match a sub-CA, it might be the
-            # main CA's UUID
-            # So log the error but fall through to try main CA
-            logger.warning(
-                f"Sub-CA lookup failed for {authority_id}, trying main CA: "
-                f"{lookup_error}"
-            )
-            logger.warning("Traceback:", exc_info=True)
+        except errors.NotFound:
+            # Sub-CA not found by ID — fall through to try main CA
+            logger.debug("Sub-CA %s not found, trying main CA", authority_id)
             subca = None
+        except Exception as lookup_error:
+            # LDAP or other infrastructure error — don't silently fall back
+            logger.error(
+                "Sub-CA lookup failed for %s: %s",
+                authority_id,
+                lookup_error,
+                exc_info=True,
+            )
+            return error_response(
+                "ServiceUnavailable",
+                "Unable to verify CA identity at this time",
+                503,
+            )
 
         # If sub-CA found, return it
         if subca:
@@ -3153,21 +3477,38 @@ def submit_key_request():
                     if sym_alg_params_b64:
                         iv = base64.b64decode(sym_alg_params_b64)
                     else:
-                        iv = b"\x00" * 16  # Default IV if not provided
+                        return error_response(
+                            "BadRequest",
+                            "Missing algorithmOID parameters (IV) for "
+                            "symmetric decryption",
+                            400,
+                        )
 
                     # Decrypt using AES-CBC
                     cipher = Cipher(
                         algorithms.AES(session_key),
                         modes.CBC(iv),
-                        backend=default_backend(),
                     )
                     decryptor = cipher.decryptor()
                     plaintext_padded = (
                         decryptor.update(wrapped_data) + decryptor.finalize()
                     )
 
-                    # Remove PKCS7 padding
+                    # Remove and validate PKCS7 padding
+                    if not plaintext_padded:
+                        raise ValueError("Decrypted data is empty")
                     padding_length = plaintext_padded[-1]
+                    if padding_length < 1 or padding_length > 16:
+                        raise ValueError(
+                            f"Invalid PKCS7 padding length: {padding_length}"
+                        )
+                    if len(plaintext_padded) < padding_length:
+                        raise ValueError("Padding length exceeds data length")
+                    if not all(
+                        b == padding_length
+                        for b in plaintext_padded[-padding_length:]
+                    ):
+                        raise ValueError("Invalid PKCS7 padding bytes")
                     plaintext = plaintext_padded[:-padding_length]
 
                     # Now plaintext is the actual secret - store it directly
@@ -3233,8 +3574,8 @@ def submit_key_request():
             # Use key_id or request_id for retrieval
             retrieval_id = request_id if request_id else key_id
 
-            # Get requester from authentication (placeholder)
-            requester = "admin"
+            # Get requester from authenticated client certificate
+            requester = getattr(request, "auth_principal", "unknown")
 
             # Retrieve the secret (wrapped for transmission)
             wrapped_secret = kra_backend.retrieve_secret(
@@ -3592,7 +3933,12 @@ def archive_key():
 
         # Get key parameters
         algorithm = data.get("keyAlgorithm", "AES")
-        key_size = int(data.get("keySize", 256))
+        try:
+            key_size = int(data.get("keySize", 256))
+        except (ValueError, TypeError):
+            return error_response(
+                "BadRequest", "Invalid keySize parameter", 400
+            )
 
         # Archive the secret
         key_id = kra_backend.archive_secret(
@@ -3718,7 +4064,6 @@ def retrieve_key():
             cipher = Cipher(
                 algorithms.AES(session_key),
                 modes.CBC(iv),
-                backend=default_backend(),
             )
             encryptor = cipher.encryptor()
             wrapped_secret = (
@@ -3793,7 +4138,10 @@ def list_keys():
         # Parse query parameters
         owner = request.args.get("owner")
         status = request.args.get("status")
-        size = int(request.args.get("size", 100))
+        try:
+            size = int(request.args.get("size", 100))
+        except (ValueError, TypeError):
+            return error_response("BadRequest", "Invalid size parameter", 400)
 
         # List keys
         keys = kra_backend.list_keys(owner=owner, status=status)

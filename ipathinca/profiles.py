@@ -5,6 +5,7 @@ Certificate profile management for Python CA
 """
 
 import logging
+import re
 import threading
 from pathlib import Path
 from typing import Dict, Optional
@@ -107,12 +108,21 @@ class ProfileManager:
         """
         from ipathinca.profile_parser import ProfileParser
 
+        # Validate input profile ID format
+        if not re.match(r"^[a-zA-Z][a-zA-Z0-9_.-]*$", profile_id):
+            raise ValueError(f"Invalid profile ID: {profile_id}")
+
         # Resolve alias first (e.g., caServerCert -> caIPAserviceCert)
         actual_profile_id = self.profile_aliases.get(profile_id, profile_id)
         if actual_profile_id != profile_id:
             logger.debug(
                 f"Resolved profile alias: {profile_id} -> {actual_profile_id}"
             )
+            # Validate resolved profile ID as well
+            if not re.match(r"^[a-zA-Z][a-zA-Z0-9_.-]*$", actual_profile_id):
+                raise ValueError(
+                    f"Invalid resolved profile ID: {actual_profile_id}"
+                )
 
         # Check cache first (but only if use_cache is True)
         # Thread-safe cache check
@@ -135,22 +145,21 @@ class ProfileManager:
                     logger.debug(
                         f"Loading profile {actual_profile_id} from LDAP"
                     )
-                    # Parse from LDAP-stored .cfg content
-                    import tempfile
-
-                    with tempfile.NamedTemporaryFile(
-                        mode="w", suffix=".cfg", delete=False
-                    ) as tmp:
-                        tmp.write(profile_data["config"])
-                        tmp_path = tmp.name
-
-                    try:
-                        parser = ProfileParser(tmp_path)
-                        profile = parser.parse(context)
-                    finally:
-                        import os
-
-                        os.unlink(tmp_path)
+                    # Parse from LDAP-stored .cfg content directly
+                    # (no temp file needed — ProfileParser accepts content
+                    # string).  A synthetic path is used so that
+                    # ProfileParser can extract the profile ID from the
+                    # filename when profileId is absent from the .cfg.
+                    synthetic_path = f"{actual_profile_id}.cfg"
+                    parser = ProfileParser(
+                        synthetic_path,
+                        content=profile_data["config"],
+                    )
+                    profile = parser.parse(context)
+                    # Override profile_id from parsed data to ensure it
+                    # matches what was requested (in case .cfg doesn't
+                    # have profileId)
+                    profile.profile_id = actual_profile_id
 
                     # Cache and return (thread-safe)
                     with self.lock:
@@ -341,37 +350,22 @@ class ProfileManager:
         Raises:
             RuntimeError: If configuration is not available
         """
-        # Try to get realm and domain from config first
-        realm = None
-        domain = None
-
-        if self.config:
-            try:
-                # Read from ipathinca.conf [global] section
-                realm = self.config.get("global", "realm")
-                domain = self.config.get("global", "domain")
-            except Exception:
-                pass
-
-        # Fall back to IPA API if config not available (e.g., during
-        # installation)
-        if not realm or not domain:
-            try:
-                from ipalib import api
-
-                if api.isdone("bootstrap"):
-                    realm = api.env.realm
-                    domain = api.env.domain
-            except Exception:
-                pass
-
-        # If still not available, raise error
-        if not realm or not domain:
+        # realm and domain must be present in the ipathinca config file
+        if not self.config:
             raise RuntimeError(
-                "Cannot load profiles: No configuration provided. "
-                "ProfileManager requires realm and domain to be available "
-                "from config or IPA API."
+                "Cannot load profiles: no configuration available. "
+                "ProfileManager requires an ipathinca config with "
+                "[global] realm and domain set."
             )
+
+        try:
+            realm = self.config.get("global", "realm")
+            domain = self.config.get("global", "domain")
+        except Exception as e:
+            raise RuntimeError(
+                "Cannot load profiles: [global] realm/domain missing "
+                f"from ipathinca config: {e}"
+            ) from e
 
         # Build variable substitution context
         context = {
@@ -472,12 +466,156 @@ class ProfileManager:
         Args:
             profile_id: Profile identifier to remove
         """
-        with self.lock:
-            if profile_id in self.profiles:
-                del self.profiles[profile_id]
-                logger.info(
-                    f"Removed deleted profile from cache: {profile_id}"
-                )
+        self.invalidate_profile(profile_id)
+        logger.info(f"Removed deleted profile from cache: {profile_id}")
+
+    def export_profile_cfg(self, profile_id: str) -> str:
+        """Export profile configuration as .cfg file content
+
+        Args:
+            profile_id: Profile identifier
+
+        Returns:
+            Profile .cfg file content as string
+
+        Raises:
+            ProfileNotFound: If profile not found
+        """
+        if not self.storage_backend:
+            raise RuntimeError(
+                "No storage backend available for profile export"
+            )
+
+        # Get profile from LDAP storage
+        cfg_content = self.storage_backend.get_profile_cfg(profile_id)
+        logger.info(f"Exported profile {profile_id} (.cfg format)")
+        return cfg_content
+
+    def update_profile_cfg(self, profile_id: str, cfg_content: str):
+        """Update profile configuration from .cfg file content
+
+        Args:
+            profile_id: Profile identifier
+            cfg_content: New .cfg file content
+
+        Raises:
+            ProfileNotFound: If profile not found
+            ValueError: If .cfg content is invalid
+        """
+        if not self.storage_backend:
+            raise RuntimeError(
+                "No storage backend available for profile update"
+            )
+
+        # Parse to validate content (in-memory, no temp file needed)
+        from ipathinca.profile_parser import ProfileParser
+
+        parser = ProfileParser(f"{profile_id}.cfg", content=cfg_content)
+        _ = parser.parse()  # Validate the content
+
+        # Update in LDAP storage
+        self.storage_backend.update_profile_cfg(profile_id, cfg_content)
+
+        # Invalidate cache
+        self.invalidate_profile(profile_id)
+        logger.info(f"Updated profile {profile_id} from .cfg content")
+
+    def create_profile(
+        self, profile_id: str, cfg_content: str, description: str = ""
+    ):
+        """Create new profile from .cfg content
+
+        Args:
+            profile_id: New profile identifier
+            cfg_content: Profile .cfg file content
+            description: Profile description
+
+        Raises:
+            ValueError: If .cfg content is invalid or profile already exists
+        """
+        if not self.storage_backend:
+            raise RuntimeError(
+                "No storage backend available for profile creation"
+            )
+
+        # Parse to validate content (in-memory, no temp file needed)
+        from ipathinca.profile_parser import ProfileParser
+
+        parser = ProfileParser(f"{profile_id}.cfg", content=cfg_content)
+        _ = parser.parse()  # Validate the content
+
+        # Store in LDAP
+        self.storage_backend.create_profile(
+            profile_id, cfg_content, description
+        )
+        logger.info(f"Created new profile {profile_id} from .cfg content")
+
+    def delete_profile(self, profile_id: str):
+        """Delete profile
+
+        Args:
+            profile_id: Profile identifier to delete
+
+        Raises:
+            ProfileNotFound: If profile not found
+        """
+        if not self.storage_backend:
+            raise RuntimeError(
+                "No storage backend available for profile deletion"
+            )
+
+        # Remove from LDAP
+        self.storage_backend.delete_profile(profile_id)
+
+        # Remove from cache
+        self.remove_profile(profile_id)
+        logger.info(f"Deleted profile {profile_id}")
+
+    def list_profiles(self, required_only=False):
+        """List available certificate profiles
+
+        Args:
+            required_only: Only applies during installation (no LDAP storage).
+                          If True, only list required profiles to avoid loading
+                          100+ PKI profiles from filesystem.
+                          If False, list all filesystem profiles.
+                          When LDAP storage is available, this parameter is
+                          ignored and all LDAP profiles are returned.
+
+        Returns:
+            List of Profile objects
+        """
+        if not self.storage_backend:
+            # During installation, no LDAP storage available yet
+            if required_only:
+                # Only return required profiles that exist
+                profile_ids = []
+                for profile_id in self.REQUIRED_PROFILES:
+                    ipa_path = self.profiles_dir / f"{profile_id}.cfg"
+                    pki_path = self.pki_profiles_dir / f"{profile_id}.cfg"
+                    if ipa_path.exists() or pki_path.exists():
+                        profile_ids.append(profile_id)
+            else:
+                # List all available filesystem profiles
+                profile_ids = []
+                for cfg_file in self.profiles_dir.glob("*.cfg"):
+                    profile_ids.append(cfg_file.stem)
+        else:
+            # LDAP storage available - list all profiles in LDAP
+            # (required_only is ignored; LDAP only contains explicitly
+            # stored profiles)
+            profile_ids = self.storage_backend.list_profiles()
+
+        # Load each profile
+        profiles = []
+        for profile_id in profile_ids:
+            try:
+                profile = self.get_profile(profile_id)
+                profiles.append(profile)
+            except Exception as e:
+                logger.warning(f"Failed to load profile {profile_id}: {e}")
+
+        return profiles
 
     def get_profile_for_signing(self, profile_id: str):
         """Get profile for certificate signing
@@ -500,38 +638,6 @@ class ProfileManager:
 
         logger.debug(f"Using profile for signing: {actual_profile_id}")
         return self.get_profile(actual_profile_id)
-
-    def list_profiles(self):
-        """List all available certificate profiles
-
-        Returns:
-            List of Profile objects
-        """
-        if not self.storage_backend:
-            # During installation, only list required profiles
-            # This prevents attempting to load all 100+ PKI profiles
-
-            # Only return profiles that exist
-            profile_ids = []
-            for profile_id in self.REQUIRED_PROFILES:
-                ipa_path = self.profiles_dir / f"{profile_id}.cfg"
-                pki_path = self.pki_profiles_dir / f"{profile_id}.cfg"
-                if ipa_path.exists() or pki_path.exists():
-                    profile_ids.append(profile_id)
-        else:
-            # Query LDAP for profile IDs
-            profile_ids = self.storage_backend.list_profiles()
-
-        # Load each profile
-        profiles = []
-        for profile_id in profile_ids:
-            try:
-                profile = self.get_profile(profile_id)
-                profiles.append(profile)
-            except Exception as e:
-                logger.warning(f"Failed to load profile {profile_id}: {e}")
-
-        return profiles
 
     def get_extensions_for_profile(self, profile_id: str):
         """Get certificate extensions from profile (for legacy PythonCA)

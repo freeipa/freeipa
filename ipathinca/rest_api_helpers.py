@@ -24,6 +24,9 @@ from flask import jsonify, request
 
 from ipalib import errors
 
+from ipathinca import get_config_value
+from ipathinca.exceptions import ProfileNotFound
+
 logger = logging.getLogger(__name__)
 
 
@@ -48,7 +51,6 @@ def require_ca_backend(f):
 
 def handle_ca_errors(f):
     """Decorator to handle common CA errors consistently"""
-    from ipathinca.exceptions import ProfileNotFound
 
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -88,6 +90,11 @@ def handle_ca_errors(f):
                 or str(e)
             )
             return error_response("CertificateOperationError", error_msg, 400)
+        except errors.NetworkError as e:
+            logger.error("LDAP connection error in %s: %s", f.__name__, e)
+            return error_response(
+                "ServerError", "LDAP connection temporarily unavailable", 503
+            )
         except Exception as e:
             logger.error(f"Error in {f.__name__}: {e}", exc_info=True)
             return error_response("ServerError", str(e), 500)
@@ -289,7 +296,6 @@ def _validate_ra_agent_cert(cert_subject_dn: str) -> bool:
     """
     try:
         from ipapython.dn import DN
-        from ipathinca import get_config_value
 
         # Parse certificate subject DN
         try:
@@ -361,15 +367,20 @@ def validate_serial_number(serial_str: str) -> Optional[int]:
     Returns:
         Integer serial number or None if invalid
     """
-    if not serial_str:
+    if not serial_str or len(serial_str) > 100:
         return None
 
     try:
         # Handle hex format (0x prefix)
         if serial_str.startswith(("0x", "0X")):
-            return int(serial_str, 16)
-        # Handle decimal format
-        return int(serial_str)
+            value = int(serial_str, 16)
+        else:
+            # Handle decimal format
+            value = int(serial_str)
+        # RFC 5280: serial numbers must be positive and at most 20 octets
+        if value < 0 or value >= (1 << 159):
+            return None
+        return value
     except (ValueError, OverflowError):
         return None
 
@@ -499,11 +510,23 @@ def build_certificate_response(
     """
     # Handle both dict (from backend) and object (from CertificateRecord)
     if isinstance(cert_data, dict):
+        serial = cert_data["serial_number"]
+        # serial is already hex "0x..." from backend — pass through as-is.
+        # PKI client maps CertData.id -> serial_number.
+        # IPA's dogtag.py:829 does cert.serial_number[2:] then
+        # int(hex_value, 16).
+        serial_hex = serial
         response = {
-            "id": cert_data["serial_number"],
-            "SerialNumber": cert_data["serial_number"],
+            "id": serial_hex,
+            "SerialNumber": serial_hex,
             "Status": cert_data["status"],
         }
+
+        # PKI client CertData maps SubjectDN->subject_dn, IssuerDN->issuer_dn
+        if "subject" in cert_data:
+            response["SubjectDN"] = cert_data["subject"]
+        if "issuer" in cert_data:
+            response["IssuerDN"] = cert_data["issuer"]
 
         if include_pem and "certificate" in cert_data:
             # Backend returns PEM format (base64 with headers and line breaks)
@@ -519,11 +542,19 @@ def build_certificate_response(
             response["RevocationReason"] = cert_data["revocation_reason"]
     else:
         # Object with attributes (CertificateRecord)
+        serial = cert_data.serial_number
+        # serial_number is an int on CertificateRecord objects
+        serial_hex = hex(serial) if serial is not None else None
         response = {
-            "id": cert_data.serial_number,
-            "SerialNumber": cert_data.serial_number,
+            "id": serial_hex,
+            "SerialNumber": serial_hex,
             "Status": cert_data.status,
         }
+
+        if hasattr(cert_data, "subject"):
+            response["SubjectDN"] = cert_data.subject
+        if hasattr(cert_data, "issuer"):
+            response["IssuerDN"] = cert_data.issuer
 
         if include_pem:
             cert_b64 = base64.b64encode(
@@ -556,20 +587,20 @@ def build_request_response(
     Returns:
         Standardized request response dict
     """
+    # PKI client (CertRequestInfo.from_json) extracts request_id from the
+    # last path segment of requestURL.  IPA's dogtag.py:716 then calls
+    # int(request_id, 0), so the ID must be an integer string.
+    # certId must be hex (IPA's dogtag.py:745 does int(cert_id, 16)).
+    serial = result.get("serial_number")
+    # serial is already hex "0x..." from backend — pass through as-is
+    cert_id_hex = serial
     response = {
         "requestId": result["request_id"],
         "requestURL": f"/ca/rest/certrequests/{result['request_id']}",
         "requestType": "enrollment",
         "requestStatus": result["status"],
-        "certId": (
-            str(result["serial_number"])
-            if result.get("serial_number")
-            else None
-        ),
-        # CRITICAL FIX: Always include operationResult for PKI client
-        # compatibility
-        # The PKI client library expects this field to be present in the
-        # response (see pki.cert.CertRequestInfo.operation_result)
+        "certId": cert_id_hex,
+        # PKI client library expects this field (pki.cert.CertRequestInfo)
         "operationResult": "success",
     }
 
@@ -587,20 +618,31 @@ def build_request_response(
 
 def build_profile_response(profile_data) -> Dict[str, Any]:
     """
-    Build standardized profile response
+    Build standardized profile response matching Dogtag PKI format
+
+    The PKI Python client (pki.profile.ProfileDataInfo) expects specific
+    field names to deserialize the JSON response correctly.
 
     Args:
         profile_data: Profile data (dict or object)
 
     Returns:
-        Standardized profile response dict
+        Standardized profile response dict with Dogtag-compatible field names
     """
     # Handle both dict (from backend) and object (Profile)
     if isinstance(profile_data, dict):
+        profile_id = profile_data.get("profile_id") or profile_data.get("id")
         return {
-            "id": profile_data.get("profile_id") or profile_data.get("id"),
-            "ProfileId": profile_data.get("profile_id")
-            or profile_data.get("id"),
+            # PKI client expects these exact field names (case-sensitive)
+            "id": profile_id,
+            "profile_id": profile_id,  # Used by ProfileDataInfo
+            "profile_name": profile_data.get("name")
+            or profile_id,  # Used by ProfileDataInfo
+            "profileEnable": profile_data.get(
+                "enabled", True
+            ),  # Boolean, not string
+            # Legacy/alternate names for compatibility
+            "ProfileId": profile_id,
             "Name": profile_data.get("name"),
             "Description": profile_data.get("description"),
             "Enabled": profile_data.get("enabled", True),
@@ -608,7 +650,13 @@ def build_profile_response(profile_data) -> Dict[str, Any]:
     else:
         # Object with attributes (Profile)
         return {
+            # PKI client expects these exact field names (case-sensitive)
             "id": profile_data.profile_id,
+            "profile_id": profile_data.profile_id,  # Used by ProfileDataInfo
+            "profile_name": profile_data.name
+            or profile_data.profile_id,  # Used by ProfileDataInfo
+            "profileEnable": profile_data.enabled,  # Boolean, not string
+            # Legacy/alternate names for compatibility
             "ProfileId": profile_data.profile_id,
             "Name": profile_data.name,
             "Description": profile_data.description,
@@ -648,13 +696,18 @@ class CertificateHandler:
     def revoke(serial_number: str, revocation_reason: int, ca_backend):
         """Revoke certificate"""
         ca_backend.revoke_certificate(serial_number, revocation_reason)
-        # Return Dogtag-compatible response format
+        # Return Dogtag-compatible CertRequestInfo response.
+        # PKI client parses this with CertRequestInfo.from_json() which
+        # extracts request_id from requestURL (or falls back to requestID).
+        # Without one of these, from_json crashes on NoneType.startswith().
+        cert_id_hex = hex(serial_number)
         return success_response(
             {
+                "requestURL": f"/ca/rest/certrequests/revoke-{serial_number}",
                 "operationResult": "success",
                 "requestType": "revocation",
                 "requestStatus": "complete",
-                "certId": hex(int(serial_number)),
+                "certId": cert_id_hex,
             }
         )
 
@@ -662,9 +715,14 @@ class CertificateHandler:
     def unrevoke(serial_number: str, ca_backend):
         """Take certificate off hold"""
         ca_backend.take_certificate_off_hold(serial_number)
-        # Return Dogtag-compatible response format
+        # Return Dogtag-compatible CertRequestInfo response.
+        # PKI client parses with CertRequestInfo.from_json() — needs
+        # requestURL to avoid NoneType crash on requestID fallback path.
         return success_response(
             {
+                "requestURL": (
+                    f"/ca/rest/certrequests/unrevoke-{serial_number}"
+                ),
                 "operationResult": "success",
                 "requestType": "unrevocation",
                 "requestStatus": "complete",
@@ -727,7 +785,8 @@ class ProfileHandler:
             result = ca_backend.create_profile(data)
 
         return success_response(
-            {"Status": result["status"], "ProfileId": profile_id}
+            {"Status": result["status"], "ProfileId": profile_id},
+            status_code=200 if is_update else 201,
         )
 
     @staticmethod
@@ -737,6 +796,41 @@ class ProfileHandler:
         return success_response(
             {"Status": result["status"], "ProfileId": profile_id}
         )
+
+    @staticmethod
+    def get_raw(profile_id: str, ca_backend):
+        """Get profile .cfg file content"""
+        from flask import Response
+
+        cfg_content = ca_backend.profile_manager.export_profile_cfg(profile_id)
+        return Response(cfg_content, mimetype="text/plain")
+
+    @staticmethod
+    def update_raw(profile_id: str, cfg_content: str, ca_backend):
+        """Update profile from .cfg file content"""
+        ca_backend.profile_manager.update_profile_cfg(profile_id, cfg_content)
+        return success_response({"Status": "success", "ProfileId": profile_id})
+
+    @staticmethod
+    def create_raw(profile_id: str, cfg_content: str, ca_backend):
+        """Create new profile from .cfg file content
+
+        Returns the full profile object like Dogtag PKI does.
+        """
+        logger.info(f"create_raw: Creating profile {profile_id}")
+        # Extract description from .cfg if present, or use default
+        description = f"Profile {profile_id}"
+        ca_backend.profile_manager.create_profile(
+            profile_id, cfg_content, description
+        )
+
+        # Return the full profile object (like Dogtag does)
+        logger.info(f"create_raw: Reading profile {profile_id} for response")
+        profile_data = ca_backend.read_profile(profile_id)
+        logger.info(f"create_raw: Profile data = {profile_data}")
+        response_data = build_profile_response(profile_data)
+        logger.info(f"create_raw: Response data = {response_data}")
+        return success_response(response_data, status_code=201)
 
 
 # ============================================================================
