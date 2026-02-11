@@ -718,12 +718,8 @@ class TestACMEPrune(IntegrationTest):
            < tasks.parse_version('11.3.0')):
             raise pytest.skip("Certificate pruning is not available")
 
-        # Pruning is enabled by default when the host supports lmdb
-        if get_389ds_backend(self.master) == 'bdb':
-            cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
-            assert "jobsScheduler.job.pruning.enabled=false".encode() in cs_cfg
-            self.master.run_command(['ipa-acme-manage', 'pruning', '--enable'])
-
+        # Pruning is enabled by default when server is installed
+        # with --random-serial-numbers
         cs_cfg = self.master.get_file_contents(paths.CA_CS_CFG_PATH)
         assert "jobsScheduler.enabled=true".encode() in cs_cfg
         assert "jobsScheduler.job.pruning.enabled=true".encode() in cs_cfg
