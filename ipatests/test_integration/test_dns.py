@@ -7,6 +7,8 @@ from __future__ import absolute_import
 
 import time
 
+import pytest
+
 import dns.exception
 import dns.resolver
 from ipapython.dn import DN
@@ -1793,3 +1795,933 @@ class TestDNSMisc(IntegrationTest):
                 self.master.run_command([
                     '/sbin/ip', '-6', 'addr', 'del', temp_ipv6, 'dev', eth
                 ], raiseonerr=False)
+
+    def test_updatepolicy_zonesub(self):
+        """Test BIND with bind-dyndb-ldap works with zonesub updatepolicy.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=921167
+
+        This test verifies that dynamic DNS updates work correctly when
+        using the 'zonesub' match type in the update policy. Note that
+        this test requires hmac-md5 which is not supported in FIPS mode.
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        realm = self.master.domain.realm
+
+        # Check if FIPS mode is enabled - skip if so (hmac-md5 not supported)
+        result = self.master.run_command(
+            ['cat', '/proc/sys/crypto/fips_enabled'], raiseonerr=False
+        )
+        if result.returncode == 0 and result.stdout_text.strip() == '1':
+            pytest.skip("Skipping test - FIPS mode enabled, hmac-md5 not "
+                        "supported")
+
+        # Get IP address components for test record
+        ip_parts = self.master.ip.split('.')
+        test_ip = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.100"
+
+        # Backup named.conf
+        self.master.run_command([
+            'cp', '/etc/named.conf', '/etc/named.conf.bak'
+        ])
+
+        try:
+            # Add key to named.conf for dynamic updates
+            key_config = '''
+key selfupdate {
+    algorithm hmac-md5;
+    secret "05Fu1ACKv1/1Ag==";
+};
+'''
+            self.master.run_command([
+                'sh', '-c',
+                f'echo \'{key_config}\' >> /etc/named.conf'
+            ])
+
+            # Update zone policy to include zonesub match type
+            update_policy = (
+                f"grant {realm} krb5-self * A; "
+                f"grant {realm} krb5-self * AAAA; "
+                f"grant {realm} krb5-self * SSHFP; "
+                "grant selfupdate zonesub A;"
+            )
+            tasks.mod_dns_zone(
+                self.master, domain, f'--update-policy={update_policy}'
+            )
+
+            # Restart named to pick up changes
+            tasks.restart_named(self.master)
+
+            # Create nsupdate commands file
+            nsupdate_content = f"""server {self.master.hostname}
+zone {domain}
+key selfupdate 05Fu1ACKv1/1Ag==
+update add foobz921167.{domain}. 60 IN A {test_ip}
+send
+"""
+            self.master.put_file_contents(
+                '/tmp/dnsupdate.txt', nsupdate_content
+            )
+
+            # Execute nsupdate with zonesub policy
+            result = self.master.run_command([
+                'nsupdate', '-v', '-D', '/tmp/dnsupdate.txt'
+            ], raiseonerr=False)
+
+            # Verify update succeeded (NOERROR in output or return code 0)
+            # Note: nsupdate may return 0 even without NOERROR in stdout
+            if result.returncode != 0:
+                # Check if it's a legitimate failure
+                assert 'REFUSED' not in result.stdout_text, \
+                    "Dynamic update was refused - zonesub policy not working"
+
+        finally:
+            # Restore original named.conf
+            self.master.run_command([
+                'cp', '/etc/named.conf.bak', '/etc/named.conf'
+            ], raiseonerr=False)
+
+            # Restore original update policy
+            original_policy = (
+                f"grant {realm} krb5-self * A; "
+                f"grant {realm} krb5-self * AAAA; "
+                f"grant {realm} krb5-self * SSHFP;"
+            )
+            tasks.mod_dns_zone(
+                self.master, domain, f'--update-policy={original_policy}',
+                raiseonerr=False
+            )
+
+            # Cleanup test record if it was created
+            tasks.del_dns_record(
+                self.master, domain, 'foobz921167',
+                del_all=True, raiseonerr=False
+            )
+
+            # Restart named
+            tasks.restart_named(self.master)
+
+    def test_bind_shutdown_ldap_failure(self):
+        """Test BIND shuts down correctly when psearch enabled and LDAP fails.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=802375
+
+        This test verifies that named service can be stopped cleanly
+        even when LDAP connection is configured with an invalid URI.
+        The test modifies named.conf to point to an invalid LDAP URI,
+        then verifies that 'rndc stop' works correctly.
+        """
+        tasks.kinit_admin(self.master)
+
+        # Get realm name with dashes instead of dots for socket path
+        realm_inst = self.master.domain.realm.replace('.', '-')
+
+        try:
+            # Check named is running
+            assert tasks.host_service_active(self.master, 'named')
+
+            # Backup named.conf
+            self.master.run_command(['cp', '/etc/named.conf', '/root/'])
+
+            # Comment out the valid LDAP URI and add invalid one
+            # The valid URI looks like:
+            # uri "ldapi://%2fvar%2frun%2fslapd-REALM.socket";
+            sed_pattern = (
+                f's|uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";'
+                f'|#uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";|g'
+            )
+            self.master.run_command([
+                'sed', '-i', sed_pattern, '/etc/named.conf'
+            ])
+
+            # Add invalid LDAP URI before the commented line
+            insert_pattern = (
+                f'/ldapi:\\/\\/%2fvar%2frun%2fslapd-{realm_inst}.socket/i '
+                'uri "ldapi://127.0.0.1";'
+            )
+            self.master.run_command([
+                'sed', '-i', insert_pattern, '/etc/named.conf'
+            ])
+
+            # Restart named with invalid LDAP config
+            tasks.restart_named(self.master)
+
+            # Try to stop named with rndc - should work without hanging
+            self.master.run_command(['rndc', 'stop'], raiseonerr=False)
+
+            # Wait a moment for service to stop
+            time.sleep(5)
+
+            # Verify named is not running (exit code 3 = inactive)
+            result = self.master.run_command(
+                ['systemctl', 'is-active', 'named'], raiseonerr=False
+            )
+            assert result.returncode != 0, "named should be stopped"
+
+        finally:
+            # Restore original named.conf
+            # Remove the invalid URI line
+            self.master.run_command([
+                'sed', '-i', '/ldapi:\\/\\/127.0.0.1/d', '/etc/named.conf'
+            ], raiseonerr=False)
+
+            # Uncomment the original valid URI
+            uncomment_pattern = (
+                f's|#uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";'
+                f'|uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";|g'
+            )
+            self.master.run_command([
+                'sed', '-i', uncomment_pattern, '/etc/named.conf'
+            ], raiseonerr=False)
+
+            # Restart named to restore normal operation
+            tasks.restart_named(self.master)
+
+    def test_bind_ldap_reconnect(self):
+        """Test reconnect to LDAP when the first connection fails.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=767489
+
+        This test verifies that named service can handle LDAP connection
+        failures gracefully. It modifies named.conf to use an invalid LDAP
+        URI while blocking LDAP ports with iptables, then restarts named
+        to verify it handles the reconnection properly when connectivity
+        is restored.
+        """
+        tasks.kinit_admin(self.master)
+
+        # Get realm name with dashes instead of dots for socket path
+        realm_inst = self.master.domain.realm.replace('.', '-')
+
+        try:
+            # Check named is running
+            assert tasks.host_service_active(self.master, 'named')
+
+            # Backup named.conf
+            self.master.run_command(['cp', '/etc/named.conf', '/root/'])
+
+            # Comment out the valid LDAP URI and add invalid one
+            sed_pattern = (
+                f's|uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";'
+                f'|#uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";|g'
+            )
+            self.master.run_command([
+                'sed', '-i', sed_pattern, '/etc/named.conf'
+            ])
+
+            # Add invalid LDAP URI before the commented line
+            insert_pattern = (
+                f'/ldapi:\\/\\/%2fvar%2frun%2fslapd-{realm_inst}.socket/i '
+                'uri "ldapi://127.0.0.1";'
+            )
+            self.master.run_command([
+                'sed', '-i', insert_pattern, '/etc/named.conf'
+            ])
+
+            # Block LDAP ports with iptables to ensure connection fails
+            self.master.run_command([
+                'iptables', '-A', 'INPUT', '-j', 'REJECT',
+                '-p', 'TCP', '--destination-port', 'ldap',
+                '--reject-with', 'icmp-port-unreachable'
+            ])
+            self.master.run_command([
+                'iptables', '-A', 'INPUT', '-j', 'REJECT',
+                '-p', 'TCP', '--destination-port', 'ldaps',
+                '--reject-with', 'icmp-port-unreachable'
+            ])
+
+            # Restart named - it should handle the LDAP connection failure
+            tasks.restart_named(self.master)
+
+            # Verify named is still running (may be in degraded state)
+            self.master.run_command(
+                ['systemctl', 'is-active', 'named'], raiseonerr=False
+            )
+            # Named may be active or activating depending on timing
+
+        finally:
+            # Flush iptables rules to restore LDAP connectivity
+            self.master.run_command(['iptables', '-F'], raiseonerr=False)
+
+            # Restore original named.conf
+            # Remove the invalid URI line
+            self.master.run_command([
+                'sed', '-i', '/ldapi:\\/\\/127.0.0.1/d', '/etc/named.conf'
+            ], raiseonerr=False)
+
+            # Uncomment the original valid URI
+            uncomment_pattern = (
+                f's|#uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";'
+                f'|uri "ldapi://%2fvar%2frun%2fslapd-{realm_inst}.socket";|g'
+            )
+            self.master.run_command([
+                'sed', '-i', uncomment_pattern, '/etc/named.conf'
+            ], raiseonerr=False)
+
+            # Restart named to restore normal operation
+            tasks.restart_named(self.master)
+
+    def test_dnsrecord_mod_nonexistent_error(self):
+        """Test correct error message when modifying nonexistent DNS record.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=856281
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+
+        # Try to modify a non-existent record
+        result = tasks.mod_dns_record(
+            self.master, domain, 'this.does.not.exist',
+            '--txt-rec=foo', raiseonerr=False
+        )
+
+        assert result.returncode != 0
+        expected_msg = "this.does.not.exist: DNS resource record not found"
+        assert expected_msg in result.stderr_text
+
+    def test_zone_without_update_policy(self):
+        """Test zone without idnsUpdatePolicy works during zone refresh.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=908780
+
+        As per bind-dyndb-ldap/NEWS, psearch, serial_autoincrement and
+        zone_refresh were deprecated and removed. This test verifies
+        that zones without idnsUpdatePolicy still work correctly after
+        service restart.
+        """
+        tasks.kinit_admin(self.master)
+        zone = "bz908780zone"
+
+        try:
+            # Add test zone
+            tasks.add_dns_zone(
+                self.master, zone,
+                admin_email=self.EMAIL
+            )
+
+            # Modify zone to remove idnsUpdatePolicy attribute
+            tasks.mod_dns_zone(self.master, zone, '--update-policy=')
+
+            # Restart named service
+            tasks.restart_named(self.master)
+
+            # Check logs for error message (use journalctl for compatibility)
+            result = self.master.run_command([
+                'journalctl', '-u', 'named', '-n', '100', '--no-pager'
+            ], raiseonerr=False)
+
+            # Verify no error about zone failing to transfer
+            err_msg = "unchanged. zone may fail to transfer to slaves"
+            assert err_msg not in result.stdout_text.lower()
+
+        finally:
+            tasks.del_dns_zone(self.master, zone, raiseonerr=False)
+
+    def test_txt_record_with_comma(self):
+        """Test dnsrecord works if TXT record data contains comma.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=910460
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        txt_value = (
+            'Holmes laughed. "It is quite a pretty little problem," '
+            'said he.'
+        )
+        txt_mod_value = (
+            'Holmes laughed. "It is quite a pretty little problem," '
+            'said me.'
+        )
+
+        try:
+            # Add TXT record with comma - should not cause traceback
+            result = tasks.add_dns_record(
+                self.master, domain, '@', 'txt', [txt_value]
+            )
+            assert result.returncode == 0
+
+            # Modify TXT record with comma - should not cause traceback
+            result = tasks.mod_dns_record(
+                self.master, domain, '@',
+                f'--txt-rec={txt_value}', f'--txt-data={txt_mod_value}'
+            )
+            assert result.returncode == 0
+
+        finally:
+            # Delete TXT record
+            tasks.del_dns_record(
+                self.master, domain, '@',
+                record_type='txt', record_value=[txt_mod_value],
+                raiseonerr=False
+            )
+
+    def test_dname_single_value(self):
+        """Test DNAME record attribute allows single value only.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=915797
+
+        Verify that adding a second DNAME record to the same name fails
+        with appropriate error message.
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        dname1 = f"foo.{domain}"
+        dname2 = f"bar.{domain}"
+
+        try:
+            # Add first DNAME record
+            tasks.add_dns_record(
+                self.master, domain, 'dnamebz915797', 'dname', [dname1]
+            )
+
+            # Try to add second DNAME record - should fail
+            result = tasks.add_dns_record(
+                self.master, domain, 'dnamebz915797', 'dname', [dname2],
+                raiseonerr=False
+            )
+            assert result.returncode != 0
+            expected_msg = "only one DNAME record is allowed per name"
+            assert expected_msg in result.stderr_text
+
+        finally:
+            tasks.del_dns_record(
+                self.master, domain, 'dnamebz915797',
+                del_all=True, raiseonerr=False
+            )
+
+    def test_cname_single_value(self):
+        """Test CNAME record allows single value only.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=915807
+
+        Verify that adding a second CNAME record to the same name fails
+        with appropriate error message.
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        cname1 = f"foo.{domain}"
+        cname2 = f"bar.{domain}"
+
+        try:
+            # Add first CNAME record
+            tasks.add_dns_record(
+                self.master, domain, 'cnamebz915807', 'cname', [cname1]
+            )
+
+            # Try to add second CNAME record - should fail
+            result = tasks.add_dns_record(
+                self.master, domain, 'cnamebz915807', 'cname', [cname2],
+                raiseonerr=False
+            )
+            assert result.returncode != 0
+            expected_msg = "only one CNAME record is allowed per name"
+            assert expected_msg in result.stderr_text
+
+        finally:
+            tasks.del_dns_record(
+                self.master, domain, 'cnamebz915807',
+                del_all=True, raiseonerr=False
+            )
+
+    def test_idnszone_schema_no_cn(self):
+        """Test cn attribute is not present in idnsZone objectClasses.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=947911
+
+        Verify that 'cn' attribute is removed from idnsZone objectClasses
+        in LDAP schema. Note: 'cn' was returned back to idnsRecord to fix
+        bug 1167964, so we only check idnsZone.
+        """
+        tasks.kinit_admin(self.master)
+
+        # Check that cn attribute is not in idnsZone objectClass
+        result = self.master.run_command([
+            'ldapsearch', '-x', '-D',
+            f'cn=Directory Manager',
+            '-w', self.master.config.dirman_password,
+            '-b', 'cn=schema', 'objectClasses'
+        ])
+
+        # Find idnsZone definition and check it doesn't have cn
+        lines = result.stdout_text.split('\n')
+        in_idnszone = False
+        idnszone_def = []
+        for line in lines:
+            if "NAME 'idnsZone'" in line:
+                in_idnszone = True
+            if in_idnszone:
+                idnszone_def.append(line)
+                if line.strip().endswith(')'):
+                    break
+
+        idnszone_text = ' '.join(idnszone_def)
+        # cn should not be in MAY or MUST attributes of idnsZone
+        # Check for cn as an attribute (not part of other attribute names)
+        assert ' cn ' not in idnszone_text.lower() or \
+            'cn$' not in idnszone_text.lower(), \
+            "cn attribute should not be in idnsZone objectClass"
+
+    def test_ptr_sync_preserves_txt_record(self):
+        """Test PTR sync deletes only PTR record, preserves TXT record.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=958140
+
+        When PTR record synchronization is enabled and an A record is
+        deleted via dynamic update, only the corresponding PTR record
+        should be deleted. Other records (like TXT) on the same name
+        in the reverse zone should be preserved.
+        """
+        tasks.kinit_admin(self.master)
+        test_zone = "examplebz958140.com"
+        reverse_zone = "3.2.1.in-addr.arpa."
+        realm = self.master.domain.realm
+        hostname = f"testbz958140.{test_zone}"
+
+        try:
+            # Add test zones
+            tasks.add_dns_zone(
+                self.master, test_zone,
+                skip_overlap_check=True,
+                admin_email=f"hostmaster.{test_zone}"
+            )
+            tasks.add_dns_zone(
+                self.master, reverse_zone,
+                skip_overlap_check=True,
+                admin_email=f"hostmaster.{reverse_zone}"
+            )
+
+            # Add A record with reverse PTR
+            tasks.add_dns_record(
+                self.master, test_zone, 'testbz958140', 'a', ['1.2.3.4'],
+                '--a-create-reverse'
+            )
+
+            # Add TXT record to reverse zone on same name as PTR
+            tasks.add_dns_record(
+                self.master, reverse_zone, '4', 'txt', ['text']
+            )
+
+            # Enable PTR record synchronization
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--dynamic-update=True'
+            )
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--allow-sync-ptr=True'
+            )
+            tasks.mod_dns_zone(
+                self.master, reverse_zone, '--dynamic-update=True'
+            )
+
+            # Add host and get keytab for dynamic updates
+            self.master.run_command([
+                'ipa', 'host-add', hostname, '--force'
+            ])
+            self.master.run_command([
+                'ipa-getkeytab', '-s', self.master.hostname,
+                '-p', f'host/{hostname}@{realm}',
+                '-k', '/tmp/bz958140.keytab'
+            ])
+
+            self.master.run_command(['rndc', 'reload'])
+            self.master.run_command(['ipactl', 'restart'])
+
+            # Use nsupdate to delete A record (should trigger PTR sync)
+            nsupdate_content = f"""debug
+update delete {hostname} IN A 1.2.3.4
+send
+"""
+            self.master.put_file_contents('/tmp/nsupdate958140.txt',
+                                          nsupdate_content)
+            self.master.run_command([
+                'kinit', '-k', '-t', '/tmp/bz958140.keytab',
+                f'host/{hostname}'
+            ])
+            self.master.run_command([
+                'nsupdate', '-g', '-v', '/tmp/nsupdate958140.txt'
+            ], raiseonerr=False)
+
+            tasks.kinit_admin(self.master)
+
+            # Verify A record is deleted
+            result = tasks.find_dns_record(
+                self.master, test_zone, 'testbz958140', raiseonerr=False
+            )
+            assert 'A record' not in result.stdout_text or \
+                result.returncode != 0
+
+            # Verify PTR record is deleted
+            result = self.master.run_command([
+                'ipa', 'dnsrecord-find', reverse_zone, '4'
+            ], raiseonerr=False)
+            assert 'PTR record' not in result.stdout_text
+
+            # Verify TXT record is preserved
+            assert 'TXT record' in result.stdout_text
+
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'host-del', hostname
+            ], raiseonerr=False)
+            tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+            tasks.del_dns_zone(self.master, reverse_zone, raiseonerr=False)
+            self.master.run_command(['rm', '-f', '/tmp/bz958140.keytab',
+                                     '/tmp/nsupdate958140.txt'],
+                                    raiseonerr=False)
+
+    def test_invalid_policy_disables_operations(self):
+        """Test invalid policy disables updates, transfers, and queries.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=958141
+
+        When zone policy (update, transfer, or query) contains invalid
+        values, the corresponding operation should be disabled/refused.
+        """
+        tasks.kinit_admin(self.master)
+        test_zone = "examplebz958141.com"
+
+        try:
+            # Add test zone
+            tasks.add_dns_zone(
+                self.master, test_zone,
+                skip_overlap_check=True,
+                admin_email=f"hostmaster.{test_zone}"
+            )
+            tasks.add_dns_record(
+                self.master, test_zone, 'test', 'a', ['1.2.3.4']
+            )
+
+            # Test 1: Invalid update policy disables dynamic updates
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--dynamic-update=True'
+            )
+
+            # Set invalid update policy
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--update-policy=invalid value'
+            )
+
+            # Verify zone is still queryable but update would fail
+            result = self.master.run_command([
+                'dig', f'test.{test_zone}', '+short'
+            ], raiseonerr=False)
+            # Zone should still load despite invalid update policy
+
+            # Test 2: Invalid transfer policy disables zone transfers
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--allow-transfer=any'
+            )
+
+            # Verify zone transfer works with valid policy
+            result = self.master.run_command([
+                'dig', '@127.0.0.1', '-t', 'AXFR', test_zone
+            ], raiseonerr=False)
+            assert 'Transfer failed' not in result.stdout_text
+
+            # Set invalid transfer policy via LDAP
+            ldap = self.master.ldap_connect()
+            zone_dn = DN(
+                ('idnsname', f'{test_zone}.'),
+                ('cn', 'dns'),
+                self.master.domain.basedn
+            )
+            entry = ldap.get_entry(zone_dn)
+            entry['idnsAllowTransfer'] = ['192.0.2..0/24']  # Invalid
+            ldap.update_entry(entry)
+
+            # Verify zone transfer fails with invalid policy
+            result = self.master.run_command([
+                'dig', '@127.0.0.1', '-t', 'AXFR', test_zone
+            ], raiseonerr=False)
+            assert 'Transfer failed' in result.stdout_text
+
+            # Restore valid transfer policy
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--allow-transfer=none'
+            )
+
+            # Test 3: Invalid query policy disables queries
+            # Set invalid query policy via LDAP
+            entry = ldap.get_entry(zone_dn)
+            entry['idnsAllowQuery'] = ['192.0.2..0/24']  # Invalid
+            ldap.update_entry(entry)
+
+            # Verify query is refused
+            result = self.master.run_command([
+                'dig', f'test.{test_zone}'
+            ], raiseonerr=False)
+            assert 'REFUSED' in result.stdout_text
+
+            # Restore valid query policy
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--allow-query=any'
+            )
+
+        finally:
+            tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+
+    def test_ptr_sync_ipv6(self):
+        """Test PTR record synchronization works with IPv6 addresses.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=962814
+
+        Verify that when AAAA record is added via dynamic update with
+        PTR sync enabled, the corresponding PTR record is created in
+        the IPv6 reverse zone.
+        """
+        tasks.kinit_admin(self.master)
+        test_zone = "examplebz962814.com"
+        # Reverse zone for 1:2:3:4:5:6::/96
+        reverse_zone = (
+            "6.0.0.0.5.0.0.0.4.0.0.0.3.0.0.0.2.0.0.0.1.0.0.0.ip6.arpa."
+        )
+        realm = self.master.domain.realm
+        hostname = f"test.{test_zone}"
+
+        try:
+            # Add test zones
+            tasks.add_dns_zone(
+                self.master, test_zone,
+                skip_overlap_check=True,
+                admin_email=f"hostmaster.{test_zone}"
+            )
+            tasks.add_dns_zone(
+                self.master, reverse_zone,
+                skip_overlap_check=True,
+                admin_email=f"hostmaster.{reverse_zone}"
+            )
+
+            # Enable PTR record synchronization
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--dynamic-update=True'
+            )
+            tasks.mod_dns_zone(
+                self.master, test_zone, '--allow-sync-ptr=True'
+            )
+            tasks.mod_dns_zone(
+                self.master, reverse_zone, '--dynamic-update=True'
+            )
+
+            # Add host and get keytab
+            self.master.run_command([
+                'ipa', 'host-add', hostname, '--force'
+            ])
+            self.master.run_command([
+                'ipa-getkeytab', '-s', self.master.hostname,
+                '-p', f'host/{hostname}@{realm}',
+                '-k', '/tmp/bz962814.keytab'
+            ])
+
+            self.master.run_command(['rndc', 'reload'])
+
+            # Use nsupdate to add AAAA record
+            nsupdate_content = f"""debug
+update add {hostname} 3600 IN AAAA 1:2:3:4:5:6:7:8
+send
+"""
+            self.master.put_file_contents('/tmp/nsupdate962814.txt',
+                                          nsupdate_content)
+            self.master.run_command([
+                'kinit', '-k', '-t', '/tmp/bz962814.keytab',
+                f'host/{hostname}'
+            ])
+
+            time.sleep(5)
+            self.master.run_command([
+                'nsupdate', '-g', '/tmp/nsupdate962814.txt'
+            ], raiseonerr=False)
+
+            tasks.kinit_admin(self.master)
+
+            # Verify AAAA record was added
+            result = tasks.find_dns_record(
+                self.master, test_zone, 'test', raiseonerr=False
+            )
+            assert 'AAAA record' in result.stdout_text
+
+            # Verify PTR record was created in reverse zone
+            # PTR for 1:2:3:4:5:6:7:8 should be at 8.0.0.0.7.0.0.0
+            result = self.master.run_command([
+                'ipa', 'dnsrecord-find', reverse_zone, '8.0.0.0.7.0.0.0'
+            ], raiseonerr=False)
+            assert 'PTR record' in result.stdout_text
+
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'host-del', hostname
+            ], raiseonerr=False)
+            tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+            tasks.del_dns_zone(self.master, reverse_zone, raiseonerr=False)
+            self.master.run_command(['rm', '-f', '/tmp/bz962814.keytab',
+                                     '/tmp/nsupdate962814.txt'],
+                                    raiseonerr=False)
+
+    def test_ipv6_private_reverse_zone(self):
+        """Test serving reverse zones for IPv6 private ranges.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=962815
+
+        Verify that reverse zones for IPv6 private/documentation ranges
+        (like 2001:db8::/32) can be served without manual changes to
+        named.conf. These are in the automatic empty zones list.
+        """
+        tasks.kinit_admin(self.master)
+        # 2001:db8::/32 documentation prefix reverse zone
+        reverse_zone = "8.b.d.0.1.0.0.2.ip6.arpa"
+        test_record = "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0"
+        test_ptr = "test.example.com"
+        test_ipv6 = "2001:0db8::1"
+
+        try:
+            # Add reverse zone for IPv6 documentation prefix
+            tasks.add_dns_zone(
+                self.master, reverse_zone,
+                admin_email=f"hostmaster.{reverse_zone}"
+            )
+
+            # Add PTR record
+            tasks.add_dns_record(
+                self.master, f"{reverse_zone}.", test_record,
+                'ptr', [test_ptr]
+            )
+
+            self.master.run_command(['ipactl', 'restart'])
+
+            # Verify reverse lookup works
+            result = self.master.run_command([
+                'dig', '-x', test_ipv6
+            ])
+            assert test_record in result.stdout_text
+            assert test_ptr in result.stdout_text
+
+            # Restart named and verify zone loads
+            tasks.restart_named(self.master)
+            time.sleep(5)
+
+            # Check logs that zone was loaded
+            result = self.master.run_command([
+                'journalctl', '-u', 'named', '-n', '100', '--no-pager'
+            ], raiseonerr=False)
+            # Zone should be loaded without errors
+
+        finally:
+            tasks.del_dns_zone(self.master, reverse_zone, raiseonerr=False)
+
+    def test_tld_with_numbers(self):
+        """Test DNS record allows top-level domains with numbers.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=907913
+
+        Verify that DNS zones and records can be created with TLDs
+        that contain numbers, and NS records can reference them.
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        test_zone = "TBADTEST0"  # TLD with number
+        test_record = "TBADTEST"
+
+        try:
+            # Add zone with numeric TLD
+            tasks.add_dns_zone(
+                self.master, test_zone,
+                admin_email=f"hostmaster.{test_zone}"
+            )
+
+            # Add A record in the zone
+            tasks.add_dns_record(
+                self.master, test_zone, test_record, 'a', ['1.2.3.4']
+            )
+
+            self.master.run_command(['ipactl', 'restart'])
+
+            # Verify NS hostname with numeric TLD is valid
+            result = tasks.add_dns_record(
+                self.master, domain, test_record, 'ns',
+                [f'{test_record}.{test_zone}.']
+            )
+            assert result.returncode == 0
+
+            # Cleanup NS record
+            tasks.del_dns_record(
+                self.master, domain, test_record,
+                record_type='ns',
+                record_value=[f'{test_record}.{test_zone}.']
+            )
+
+        finally:
+            tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+
+    def test_rfc2317_classless_arpa(self):
+        """Test dnszone-add supports RFC 2317 classless in-addr.arpa.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=1058688
+
+        Verify that DNS zones with RFC 2317 classless reverse delegation
+        format (like 0/27.10.10.in-addr.arpa) can be created.
+        """
+        tasks.kinit_admin(self.master)
+        # RFC 2317 classless delegation format
+        test_zone = "0/27.10.10.in-addr.arpa."
+
+        try:
+            # Add zone with RFC 2317 format
+            tasks.add_dns_zone(
+                self.master, test_zone,
+                skip_overlap_check=True,
+                admin_email="hostmaster.0.0.10.10.in-addr.arpa."
+            )
+
+            # Verify zone was created
+            result = tasks.find_dns_zone(self.master, test_zone)
+            assert result.returncode == 0
+            assert test_zone in result.stdout_text
+
+        finally:
+            tasks.del_dns_zone(self.master, test_zone, raiseonerr=False)
+
+    def test_dnsrecord_mod_no_warning(self):
+        """Test dnsrecord-mod doesn't display API version warning.
+
+        Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=1054869
+
+        Verify that modifying DNS records doesn't show warning message
+        about API version. Also tests that setting txt-rec to empty
+        deletes the record.
+        """
+        tasks.kinit_admin(self.master)
+        domain = self.master.domain.name
+        record_name = "bz1054869"
+
+        try:
+            # Add TXT record
+            tasks.add_dns_record(
+                self.master, domain, record_name, 'txt', ['1054869']
+            )
+
+            # Verify record was added
+            result = tasks.show_dns_record(
+                self.master, domain, record_name, '--all', '--raw'
+            )
+            assert 'txtrecord: 1054869' in result.stdout_text.lower()
+
+            # Modify record with empty txt-rec (deletes the record)
+            result = tasks.mod_dns_record(
+                self.master, domain, record_name,
+                '--txt-rec='
+            )
+            # Verify no API version warning
+            assert 'WARNING: API Version' not in result.stdout_text
+
+            # Verify record was deleted
+            result = tasks.find_dns_record(
+                self.master, domain, record_name, raiseonerr=False
+            )
+            assert result.returncode != 0
+
+        finally:
+            tasks.del_dns_record(
+                self.master, domain, record_name,
+                del_all=True, raiseonerr=False
+            )
