@@ -80,17 +80,21 @@ class TestAttrOnUser(XMLRPC_test):
         update1 = '410-555-1212'
         update2 = '301-555-1212'
         user.update(
-            dict(setattr='telephoneNumber='+update1,
-                 addattr='telephoneNumber='+update2),
-            dict(addattr='', setattr='',
-                 telephonenumber=[update1, update2]))
+            dict(
+                setattr='telephoneNumber=' + update1,
+                addattr='telephoneNumber=' + update2,
+            ),
+            dict(addattr='', setattr='', telephonenumber=[update1, update2]),
+        )
 
     def test_go_from_two_phone_numbers_to_one(self, user):
         """ Go from two phone numbers to one for user """
         update = '301-555-1212'
         user.ensure_exists()
-        user.update(dict(setattr='telephoneNumber='+update),
-                    dict(setattr='', telephonenumber=[update]))
+        user.update(
+            dict(setattr='telephoneNumber=' + update),
+            dict(setattr='', telephonenumber=[update]),
+        )
 
     def test_add_two_more_phone_numbers(self, user):
         """ Add two more phone numbers to user """
@@ -98,23 +102,30 @@ class TestAttrOnUser(XMLRPC_test):
         update1 = '703-555-1212'
         update2 = '202-888-9833'
         user.attrs['telephonenumber'].extend([update1, update2])
-        user.update(dict(addattr=('telephoneNumber='+update1,
-                                  'telephoneNumber='+update2)),
-                    dict(addattr=''))
+        user.update(
+            dict(
+                addattr=(
+                    'telephoneNumber=' + update1,
+                    'telephoneNumber=' + update2,
+                )
+            ),
+            dict(addattr=''),
+        )
 
     def test_delete_one_phone_number(self, user):
         """ Delete one phone number for user """
         user.ensure_exists()
         update = '301-555-1212'
         user.attrs['telephonenumber'].remove(update)
-        user.update(dict(delattr='telephoneNumber='+update), dict(delattr=''))
+        user.update(dict(delattr='telephoneNumber=' + update), dict(delattr=''))
 
     def test_delete_the_number_again(self, user):
         """ Try deleting the number again for user """
         user.ensure_exists()
         update = '301-555-1212'
         command = user.make_update_command(
-            dict(delattr='telephoneNumber='+update))
+            dict(delattr='telephoneNumber=' + update)
+        )
         with raises_exact(errors.AttrValueNotFound(
                 attr='telephonenumber', value=update)):
             command()
@@ -126,9 +137,13 @@ class TestAttrOnUser(XMLRPC_test):
         update2 = '301-555-1212'
         user.attrs['telephonenumber'].remove(update1)
         user.attrs['telephonenumber'].append(update2)
-        user.update(dict(addattr='telephoneNumber='+update2,
-                         delattr='telephoneNumber='+update1),
-                    dict(addattr='', delattr=''))
+        user.update(
+            dict(
+                addattr='telephoneNumber=' + update2,
+                delattr='telephoneNumber=' + update1,
+            ),
+            dict(addattr='', delattr=''),
+        )
 
     def test_add_and_delete_the_same_phone_number(self, user):
         """ Add and delete the same phone number for user """
@@ -136,10 +151,16 @@ class TestAttrOnUser(XMLRPC_test):
         update1 = '301-555-1212'
         update2 = '202-888-9833'
         user.attrs['telephonenumber'].append(update2)
-        user.update(dict(addattr=('telephoneNumber='+update1,
-                                  'telephoneNumber='+update2),
-                         delattr='telephoneNumber='+update1),
-                    dict(addattr='', delattr=''))
+        user.update(
+            dict(
+                addattr=(
+                    'telephoneNumber=' + update1,
+                    'telephoneNumber=' + update2,
+                ),
+                delattr='telephoneNumber=' + update1,
+            ),
+            dict(addattr='', delattr=''),
+        )
 
     def test_set_and_delete_a_phone_number(self, user):
         """ Set and delete a phone number for user """
@@ -147,10 +168,16 @@ class TestAttrOnUser(XMLRPC_test):
         update1 = '301-555-1212'
         update2 = '202-888-9833'
         user.attrs.update(telephonenumber=[update2])
-        user.update(dict(setattr=('telephoneNumber='+update1,
-                                  'telephoneNumber='+update2),
-                         delattr='telephoneNumber='+update1),
-                    dict(setattr='', delattr=''))
+        user.update(
+            dict(
+                setattr=(
+                    'telephoneNumber=' + update1,
+                    'telephoneNumber=' + update2,
+                ),
+                delattr='telephoneNumber=' + update1,
+            ),
+            dict(setattr='', delattr=''),
+        )
 
     def test_set_givenname_to_none_with_setattr(self, user):
         """ Try setting givenname to None with setattr in user """

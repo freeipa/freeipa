@@ -16,33 +16,32 @@ from ipatests.util import change_principal, unlock_principal_password
 
 
 certmaprule_create_params = {
-        'cn': 'test_rule',
-        'description': 'Certificate mapping and matching rule for test '
-                        'purposes',
-        'ipacertmapmaprule': 'arbitrary free-form mapping rule defined and '
-                              'consumed by SSSD',
-        'ipacertmapmatchrule': 'arbitrary free-form matching rule defined '
-                                'and consumed by SSSD',
-        'associateddomain': api.env.domain,
-        'ipacertmappriority': '1',
+    'cn': 'test_rule',
+    'description': 'Certificate mapping and matching rule for test purposes',
+    'ipacertmapmaprule': 'arbitrary free-form mapping rule defined and '
+    'consumed by SSSD',
+    'ipacertmapmatchrule': 'arbitrary free-form matching rule defined '
+    'and consumed by SSSD',
+    'associateddomain': api.env.domain,
+    'ipacertmappriority': '1',
 }
 
 certmaprule_create_trusted_params = {
     'cn': 'test_trusted_rule',
     'description': 'Certificate mapping and matching rule for test '
-                    'purposes for trusted domain',
+    'purposes for trusted domain',
     'ipacertmapmaprule': 'altsecurityidentities=X509:<some map>',
     'ipacertmapmatchrule': 'arbitrary free-form matching rule defined '
-                            'and consumed by SSSD',
+    'and consumed by SSSD',
     'associateddomain': api.env.domain,
     'ipacertmappriority': '1',
 }
 
 certmaprule_update_params = {
-        'description': 'Changed description',
-        'ipacertmapmaprule': 'changed arbitrary mapping rule',
-        'ipacertmapmatchrule': 'changed arbitrary maching rule',
-        'ipacertmappriority': '5',
+    'description': 'Changed description',
+    'ipacertmapmaprule': 'changed arbitrary mapping rule',
+    'ipacertmapmatchrule': 'changed arbitrary maching rule',
+    'ipacertmappriority': '5',
 }
 
 certmaprule_optional_params = (
@@ -176,8 +175,9 @@ class TestConfig(XMLRPC_test):
 certmapdata_create_params = {
     'issuer': 'CN=CA,O=EXAMPLE.ORG',
     'subject': 'CN={},O=EXAMPLE.ORG'.format(CERTMAP_USER),
-    'ipacertmapdata': ('X509:<I>O=EXAMPLE.ORG,CN=CA'
-                        '<S>O=EXAMPLE.ORG,CN={}'.format(CERTMAP_USER)),
+    'ipacertmapdata': (
+        'X509:<I>O=EXAMPLE.ORG,CN=CA<S>O=EXAMPLE.ORG,CN={}'.format(CERTMAP_USER)
+    ),
     'certificate': (
         'MIICwzCCAaugAwIBAgICP9wwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChMLRVhB\n\r'
         'TVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDIxMDEzMjAyNVoXDTE3MDUxMDEz\n\r'

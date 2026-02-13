@@ -50,8 +50,10 @@ def is_db_configured():
     """
     aliasdir = api.env.dot_ipa + os.sep + 'alias' + os.sep + '.pwd'
 
-    if (api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml' and
-       not os.path.isfile(aliasdir)):
+    if (
+        api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml'
+        and not os.path.isfile(aliasdir)
+    ):
         pytest.skip('developer CA not configured in %s' % aliasdir)
 
 # Test setup
@@ -443,7 +445,9 @@ class test_cert_find(XMLRPC_test):
         """
         Search for certs created in other tests
         """
-        res = api.Command['cert_find'](subject='ipatestcert.%s' % api.env.domain)
+        res = api.Command['cert_find'](
+            subject='ipatestcert.%s' % api.env.domain
+        )
         assert 'count' in res and res['count'] >= 1
 
     def test_0031_search_on_invalid_date(self):

@@ -86,8 +86,18 @@ ipv6_fromip_ptr = '9.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0'
 ipv6_fromip_ptr_dnsname = DNSName(ipv6_fromip_ptr)
 ipv6_fromip_ptr_dn = DN(('idnsname', ipv6_fromip_ptr), revipv6zone_dn)
 
-sshpubkey = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
-sshpubkeyfp = 'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE public key test (ssh-rsa)'
+sshpubkey = (
+    'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGM'
+    'zEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9'
+    'WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQ'
+    'kFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD2'
+    '6QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8'
+    'MSEayQvFkZkiF0L public key test'
+)
+sshpubkeyfp = (
+    'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
+    'public key test (ssh-rsa)'
+)
 
 user1 = 'tuser1'
 user2 = 'tuser2'
@@ -309,10 +319,13 @@ class TestCRUD(XMLRPC_test):
     def test_try_illegal_mac(self, host):
         command = host.make_update_command(
             updates=dict(macaddress=['xx']))
-        with raises_exact(errors.ValidationError(
+        with raises_exact(
+            errors.ValidationError(
                 name='macaddress',
-                error='Must be of the form HH:HH:HH:HH:HH:HH, where ' +
-                      'each H is a hexadecimal character.')):
+                error='Must be of the form HH:HH:HH:HH:HH:HH, where '
+                + 'each H is a hexadecimal character.',
+            )
+        ):
             command()
 
     def test_add_ssh_pubkey(self, host):
@@ -631,10 +644,13 @@ class TestProtectedMaster(XMLRPC_test):
 class TestValidation(XMLRPC_test):
     def test_try_validate_create(self, invalid_host):
         command = invalid_host.make_create_command()
-        with raises_exact(errors.ValidationError(
+        with raises_exact(
+            errors.ValidationError(
                 name='hostname',
-                error="invalid domain-name: only letters, numbers, '-' are " +
-                      "allowed. DNS label may not start or end with '-'")):
+                error="invalid domain-name: only letters, numbers, '-' are "
+                + "allowed. DNS label may not start or end with '-'",
+            )
+        ):
             command()
 
     # The assumption on these next 4 tests is that if we don't get a

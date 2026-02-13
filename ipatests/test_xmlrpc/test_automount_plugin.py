@@ -696,8 +696,9 @@ class test_automount_indirect_no_parent(AutomountTest):
         """
         Test adding an indirect map with default parent.
         """
-        res = api.Command['automountmap_add_indirect'](self.locname,
-            'auto.direct2', parentmap=self.mapname, **self.map_kw2)['result']
+        res = api.Command['automountmap_add_indirect'](
+            self.locname, 'auto.direct2', parentmap=self.mapname, **self.map_kw2
+        )['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname2)
 

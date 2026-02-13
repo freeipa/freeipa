@@ -122,9 +122,13 @@ class TestCLIParsing:
         except errors.NotFound:
             pytest.skip('DNS is not configured')
         try:
-            self.run_command('dnsrecord_add',
+            self.run_command(
+                'dnsrecord_add',
                 dnszoneidnsname=TEST_ZONE,
-                idnsname='ns', arecord='1.2.3.4', force=True)
+                idnsname='ns',
+                arecord='1.2.3.4',
+                force=True,
+            )
             with self.fake_stdin('yes\n'):
                 self.check_command(
                     'dnsrecord_del %s ns' % TEST_ZONE,
@@ -153,9 +157,12 @@ class TestCLIParsing:
             records = ('1 1 E3B72BA346B90570EED94BE9334E34AA795CED23',
                        '2 1 FD2693C1EFFC11A8D2BE57229212A04B45663791')
             for record in records:
-                self.run_command('dnsrecord_add',
-                    dnszoneidnsname=TEST_ZONE, idnsname='ns',
-                    sshfprecord=record)
+                self.run_command(
+                    'dnsrecord_add',
+                    dnszoneidnsname=TEST_ZONE,
+                    idnsname='ns',
+                    sshfprecord=record,
+                )
             with self.fake_stdin('no\nyes\nyes\n'):
                 self.check_command(
                     'dnsrecord_del %s ns' % TEST_ZONE,

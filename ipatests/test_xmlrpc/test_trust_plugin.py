@@ -49,7 +49,7 @@ class test_trustconfig(Declarative):
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect()
         try:
-           api.Command['trustconfig_show'](trust_type='ad')
+            api.Command['trustconfig_show'](trust_type='ad')
         except errors.NotFound:
             pytest.skip('Trusts are not configured')
 
@@ -60,7 +60,6 @@ class test_trustconfig(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Retrieve trust configuration for AD domains',
             command=('trustconfig_show', [], {'trust_type': 'ad'}),
@@ -75,11 +74,10 @@ class test_trustconfig(Declarative):
                     'ipantflatname': [fuzzy_string],
                     'ipantsecurityidentifier': [fuzzy_domain_sid],
                     'ad_trust_agent_server': [api.env.host],
-                    'ad_trust_controller_server': [api.env.host]
+                    'ad_trust_controller_server': [api.env.host],
                 },
             },
         ),
-
         dict(
             desc='Retrieve trust configuration for AD domains with --raw',
             command=('trustconfig_show', [], {'trust_type': 'ad', 'raw': True}),
@@ -92,16 +90,13 @@ class test_trustconfig(Declarative):
                     'ipantdomainguid': [fuzzy_guid],
                     'ipantfallbackprimarygroup': [default_group_dn],
                     'ipantflatname': [fuzzy_string],
-                    'ipantsecurityidentifier': [fuzzy_domain_sid]
+                    'ipantsecurityidentifier': [fuzzy_domain_sid],
                 },
             },
         ),
-
         dict(
             desc='Create auxiliary group %r' % testgroup,
-            command=(
-                'group_add', [testgroup], dict(description='Test group')
-            ),
+            command=('group_add', [testgroup], dict(description='Test group')),
             expected=dict(
                 value=testgroup,
                 summary='Added group "%s"' % testgroup,
@@ -110,31 +105,48 @@ class test_trustconfig(Declarative):
                     description=['Test group'],
                     gidnumber=[fuzzy_digits],
                     objectclass=fuzzy_set_optional_oc(
-                        objectclasses.posixgroup, 'ipantgroupattrs'),
+                        objectclasses.posixgroup, 'ipantgroupattrs'
+                    ),
                     ipauniqueid=[fuzzy_uuid],
                     dn=testgroup_dn,
                 ),
             ),
         ),
-
         dict(
             desc='Try to change primary fallback group to nonexistent group',
-            command=('trustconfig_mod', [],
-                {'trust_type': 'ad', 'ipantfallbackprimarygroup': 'doesnotexist'}),
-            expected=errors.NotFound(reason='%s: group not found' % 'doesnotexist')
+            command=(
+                'trustconfig_mod',
+                [],
+                {
+                    'trust_type': 'ad',
+                    'ipantfallbackprimarygroup': 'doesnotexist',
+                },
+            ),
+            expected=errors.NotFound(
+                reason='%s: group not found' % 'doesnotexist'
+            ),
         ),
-
         dict(
             desc='Try to change primary fallback group to nonexistent group DN',
-            command=('trustconfig_mod', [], {'trust_type': 'ad',
-                'ipantfallbackprimarygroup': 'cn=doesnotexist,dc=test'}),
-            expected=errors.NotFound(reason='%s: group not found' % 'cn=doesnotexist,dc=test')
+            command=(
+                'trustconfig_mod',
+                [],
+                {
+                    'trust_type': 'ad',
+                    'ipantfallbackprimarygroup': 'cn=doesnotexist,dc=test',
+                },
+            ),
+            expected=errors.NotFound(
+                reason='%s: group not found' % 'cn=doesnotexist,dc=test'
+            ),
         ),
-
         dict(
             desc='Change primary fallback group to "%s"' % testgroup,
-            command=('trustconfig_mod', [], {'trust_type': 'ad',
-                'ipantfallbackprimarygroup': testgroup}),
+            command=(
+                'trustconfig_mod',
+                [],
+                {'trust_type': 'ad', 'ipantfallbackprimarygroup': testgroup},
+            ),
             expected={
                 'value': 'ad',
                 'summary': 'Modified "ad" trust configuration',
@@ -145,15 +157,21 @@ class test_trustconfig(Declarative):
                     'ipantflatname': [fuzzy_string],
                     'ipantsecurityidentifier': [fuzzy_domain_sid],
                     'ad_trust_agent_server': [api.env.host],
-                    'ad_trust_controller_server': [api.env.host]
+                    'ad_trust_controller_server': [api.env.host],
                 },
             },
         ),
-
         dict(
-            desc='Change primary fallback group back to "%s" using DN' % default_group,
-            command=('trustconfig_mod', [], {'trust_type': 'ad',
-                 'ipantfallbackprimarygroup': str(default_group_dn)}),
+            desc='Change primary fallback group back to "%s" using DN'
+            % default_group,
+            command=(
+                'trustconfig_mod',
+                [],
+                {
+                    'trust_type': 'ad',
+                    'ipantfallbackprimarygroup': str(default_group_dn),
+                },
+            ),
             expected={
                 'value': 'ad',
                 'summary': 'Modified "ad" trust configuration',
@@ -164,7 +182,7 @@ class test_trustconfig(Declarative):
                     'ipantflatname': [fuzzy_string],
                     'ipantsecurityidentifier': [fuzzy_domain_sid],
                     'ad_trust_agent_server': [api.env.host],
-                    'ad_trust_controller_server': [api.env.host]
+                    'ad_trust_controller_server': [api.env.host],
                 },
             },
         ),

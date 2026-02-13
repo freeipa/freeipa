@@ -190,8 +190,9 @@ class CertmapconfigTracker(ConfigurationTracker):
             'cn': [self.api.env.container_certmap[0].value],
             'objectclass': objectclasses.certmapconfig,
             'aci': [fuzzy_string],
-            'ipacertmappromptusername': self.api.Command.certmapconfig_show(
-                )['result']['ipacertmappromptusername']
+            'ipacertmappromptusername': self.api.Command.certmapconfig_show()[
+                'result'
+            ]['ipacertmappromptusername'],
         }
 
     def make_update_command(self, updates):

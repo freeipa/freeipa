@@ -403,9 +403,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             self.attrs['uidnumber'] = [fuzzy_digits]
 
         if 'ipasshpubkey' in self.kwargs:
-                self.attrs['ipasshpubkey'] = [str(
-                    self.kwargs['ipasshpubkey']
-                    )]
+            self.attrs['ipasshpubkey'] = [self.kwargs['ipasshpubkey']]
         self.attrs['nsaccountlock'] = ['false']
 
     def check_activate(self, result):
@@ -484,8 +482,9 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             gidnumber=result['result']['gidnumber']
             ), expected)
 
-        if ('memberof_group' not in result['result'] or
-                result['result']['memberof_group'] != ('ipausers',)):
+        if 'memberof_group' not in result['result'] or result['result'][
+            'memberof_group'
+        ] != ('ipausers',):
             assert False
 
     def make_fixture_restore(self, request):

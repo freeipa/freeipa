@@ -339,7 +339,9 @@ class CAACLTracker(Tracker):
         options = {
             'memberservice_service': {'service': service}}
 
-        return self._remove_acl_component('caacl_remove_service', options, track)
+        return self._remove_acl_component(
+            'caacl_remove_service', options, track
+        )
 
     def add_profile(self, certprofile=None, track=True):
         options = {
@@ -353,7 +355,9 @@ class CAACLTracker(Tracker):
             'ipamembercertprofile_certprofile':
                 {'certprofile': certprofile}}
 
-        return self._remove_acl_component('caacl_remove_profile', options, track)
+        return self._remove_acl_component(
+            'caacl_remove_profile', options, track
+        )
 
     def add_ca(self, ca=None, track=True):
         options = {

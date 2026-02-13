@@ -822,8 +822,10 @@ class TestGroups(XMLRPC_test):
         command = group.make_retrieve_command()
         result = command()
 
-        if ('member_user' in result['result'] and
-                user.uid in result['result']['member_user']):
+        if (
+            'member_user' in result['result']
+            and user.uid in result['result']['member_user']
+        ):
             assert False
 
         user.delete()

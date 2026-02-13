@@ -52,31 +52,27 @@ class test_privilege(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Try to retrieve non-existent %r' % privilege1,
             command=('privilege_show', [privilege1], {}),
             expected=errors.NotFound(
-                reason='%s: privilege not found' % privilege1),
+                reason='%s: privilege not found' % privilege1
+            ),
         ),
-
-
         dict(
             desc='Try to update non-existent %r' % privilege1,
             command=('privilege_mod', [privilege1], dict(description='Foo')),
             expected=errors.NotFound(
-                reason='%s: privilege not found' % privilege1),
+                reason='%s: privilege not found' % privilege1
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
             expected=errors.NotFound(
-                reason='%s: privilege not found' % privilege1),
+                reason='%s: privilege not found' % privilege1
+            ),
         ),
-
-
         dict(
             desc='Search for non-existent %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
@@ -87,15 +83,15 @@ class test_privilege(Declarative):
                 result=[],
             ),
         ),
-
-
         dict(
             desc='Create %r' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright=['add', 'delete'],
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -112,12 +108,12 @@ class test_privilege(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(description='privilege desc. 1'),
             ),
             expected=dict(
                 value=privilege1,
@@ -130,12 +126,13 @@ class test_privilege(Declarative):
                 ),
             ),
         ),
-
-
         dict(
-            desc='Add permission %r to privilege %r' % (permission1, privilege1),
-            command=('privilege_add_permission', [privilege1],
-                dict(permission=permission1)
+            desc='Add permission %r to privilege %r'
+            % (permission1, privilege1),
+            command=(
+                'privilege_add_permission',
+                [privilege1],
+                dict(permission=permission1),
             ),
             expected=dict(
                 completed=1,
@@ -149,11 +146,9 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r' % privilege1,
             command=('privilege_show', [privilege1], {}),
@@ -168,8 +163,6 @@ class test_privilege(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % privilege1,
             command=('privilege_find', [privilege1], {'no_members': False}),
@@ -187,8 +180,6 @@ class test_privilege(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
@@ -205,8 +196,6 @@ class test_privilege(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % privilege1,
             command=('privilege_find', [privilege1], {'no_members': False}),
@@ -224,8 +213,6 @@ class test_privilege(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
@@ -242,29 +229,31 @@ class test_privilege(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Create %r' % permission2,
             command=(
-                'permission_add', [permission2], dict(
+                'permission_add',
+                [permission2],
+                dict(
                     type='user',
                     ipapermright='write',
-                )
+                ),
             ),
             expected=dict(
                 value=permission2,
                 summary='Added permission "%s"' % permission2,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -279,12 +268,13 @@ class test_privilege(Declarative):
                 ),
             ),
         ),
-
-
         dict(
-            desc='Add permission %r to privilege %r' % (permission2, privilege1),
-            command=('privilege_add_permission', [privilege1],
-                dict(permission=permission2)
+            desc='Add permission %r to privilege %r'
+            % (permission2, privilege1),
+            command=(
+                'privilege_add_permission',
+                [privilege1],
+                dict(permission=permission2),
             ),
             expected=dict(
                 completed=1,
@@ -298,21 +288,24 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
-                }
+                },
             ),
         ),
-
-
         dict(
-            desc='Add permission %r to privilege %r again' % (permission2, privilege1),
-            command=('privilege_add_permission', [privilege1],
-                dict(permission=permission2)
+            desc='Add permission %r to privilege %r again'
+            % (permission2, privilege1),
+            command=(
+                'privilege_add_permission',
+                [privilege1],
+                dict(permission=permission2),
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     member=dict(
-                        permission=[('testperm2', 'This entry is already a member'),],
+                        permission=[
+                            ('testperm2', 'This entry is already a member'),
+                        ],
                     ),
                 ),
                 result={
@@ -320,11 +313,9 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1, permission2],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Search for %r with memebers' % privilege1,
             command=('privilege_find', [privilege1], {'no_members': False}),
@@ -342,8 +333,6 @@ class test_privilege(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
@@ -360,12 +349,12 @@ class test_privilege(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Update %r' % privilege1,
             command=(
-                'privilege_mod', [privilege1], dict(description='New desc 1')
+                'privilege_mod',
+                [privilege1],
+                dict(description='New desc 1'),
             ),
             expected=dict(
                 value=privilege1,
@@ -377,11 +366,11 @@ class test_privilege(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Remove permission from %r' % privilege1,
-            command=('privilege_remove_permission', [privilege1],
+            command=(
+                'privilege_remove_permission',
+                [privilege1],
                 dict(permission=permission1),
             ),
             expected=dict(
@@ -396,21 +385,23 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['New desc 1'],
                     'memberof_permission': [permission2],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Remove permission from %r again' % privilege1,
-            command=('privilege_remove_permission', [privilege1],
+            command=(
+                'privilege_remove_permission',
+                [privilege1],
                 dict(permission=permission1),
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     member=dict(
-                        permission=[('testperm', 'This entry is not a member'),],
+                        permission=[
+                            ('testperm', 'This entry is not a member'),
+                        ],
                     ),
                 ),
                 result={
@@ -418,14 +409,14 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['New desc 1'],
                     'memberof_permission': [permission2],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Add zero permissions to %r' % privilege1,
-            command=('privilege_add_permission', [privilege1],
+            command=(
+                'privilege_add_permission',
+                [privilege1],
                 dict(permission=None),
             ),
             expected=dict(
@@ -440,14 +431,14 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['New desc 1'],
                     'memberof_permission': [permission2],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Remove zero permissions from %r' % privilege1,
-            command=('privilege_remove_permission', [privilege1],
+            command=(
+                'privilege_remove_permission',
+                [privilege1],
                 dict(permission=None),
             ),
             expected=dict(
@@ -462,11 +453,9 @@ class test_privilege(Declarative):
                     'cn': [privilege1],
                     'description': ['New desc 1'],
                     'memberof_permission': [permission2],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Delete %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
@@ -474,8 +463,6 @@ class test_privilege(Declarative):
                 result=dict(failed=[]),
                 value=[privilege1],
                 summary='Deleted privilege "%s"' % privilege1,
-            )
+            ),
         ),
-
-
     ]

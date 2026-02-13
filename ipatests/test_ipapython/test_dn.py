@@ -624,7 +624,7 @@ class TestDN:
     def dn_setup(self):
         # ava1 must sort before ava2
         self.attr1    = 'cn'
-        self.value1   = 'Bob'
+        self.value1 = 'Bob'
         self.str_ava1 = '%s=%s' % (self.attr1, self.value1)
         self.ava1     = AVA(self.attr1, self.value1)
 
@@ -632,7 +632,7 @@ class TestDN:
         self.rdn1     = RDN((self.attr1, self.value1))
 
         self.attr2    = 'ou'
-        self.value2   = 'people'
+        self.value2 = 'people'
         self.str_ava2 = '%s=%s' % (self.attr2, self.value2)
         self.ava2     = AVA(self.attr2, self.value2)
 
