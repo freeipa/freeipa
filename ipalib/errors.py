@@ -290,7 +290,9 @@ class VersionError(PublicError):
     """
 
     errno = 901
-    format = _("%(cver)s client incompatible with %(sver)s server at '%(server)s'")
+    format = _(
+        "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
+    )
 
 
 class UnknownError(PublicError):
@@ -388,7 +390,8 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', error=_('Connection refused'))
+    >>> raise NetworkError(uri='ldap://localhost:389',
+    ... error=_('Connection refused'))
     Traceback (most recent call last):
       ...
     NetworkError: cannot connect to 'ldap://localhost:389': Connection refused
@@ -795,7 +798,8 @@ class ValidationError(InvocationError):
 
     For example:
 
-    >>> raise ValidationError(name='sn', error=_('can be at most 128 characters'))
+    >>> raise ValidationError(name='sn',
+    ... error=_('can be at most 128 characters'))
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'sn': can be at most 128 characters
@@ -885,7 +889,10 @@ class NotAForestRootError(InvocationError):
     """
 
     errno = 3016
-    format = _("Domain '%(domain)s' is not a root domain for forest '%(forest)s'")
+    format = _(
+        "Domain '%(domain)s' is not a root domain for forest '%(forest)s'"
+    )
+
 
 ##############################################################################
 # 4000 - 4999: Execution errors
@@ -960,7 +967,11 @@ class MalformedServicePrincipal(ExecutionError):
     """
 
     errno = 4004
-    format = _('Service principal is not of the form: service/fully-qualified host name: %(reason)s')
+    format = _(
+        'Service principal is not of the form: service/fully-qualified '
+        'host name: %(reason)s'
+    )
+
 
 class RealmMismatch(ExecutionError):
     """
@@ -976,7 +987,11 @@ class RealmMismatch(ExecutionError):
     """
 
     errno = 4005
-    format = _('The realm for the principal does not match the realm for this IPA server')
+    format = _(
+        'The realm for the principal does not match the realm for this '
+        'IPA server'
+    )
+
 
 class RequiresRoot(ExecutionError):
     """
@@ -1200,7 +1215,10 @@ class ManagedGroupError(ExecutionError):
     """
 
     errno = 4020
-    format = _('Deleting a managed group is not allowed. It must be detached first.')
+    format = _(
+        'Deleting a managed group is not allowed. It must be detached first.'
+    )
+
 
 class ManagedPolicyError(ExecutionError):
     """
@@ -1263,7 +1281,9 @@ class ManagedGroupExistsError(ExecutionError):
     """
 
     errno = 4024
-    format = _('Unable to create private group. A group \'%(group)s\' already exists.')
+    format = _(
+        "Unable to create private group. A group '%(group)s' already exists."
+    )
 
 
 class ReverseMemberError(ExecutionError):
@@ -1279,7 +1299,10 @@ class ReverseMemberError(ExecutionError):
     """
 
     errno = 4025
-    format = _('A problem was encountered when verifying that all members were %(verb)s: %(exc)s')
+    format = _(
+        'A problem was encountered when verifying that all members were '
+        '%(verb)s: %(exc)s'
+    )
 
 
 class AttrValueNotFound(ExecutionError):
@@ -1314,7 +1337,10 @@ class SingleMatchExpected(ExecutionError):
 
     errno = 4027
     rval = 1
-    format = _('The search criteria was not specific enough. Expected 1 and found %(found)d.')
+    format = _(
+        'The search criteria was not specific enough. '
+        'Expected 1 and found %(found)d.'
+    )
 
 
 class AlreadyExternalGroup(ExecutionError):
@@ -1365,7 +1391,10 @@ class PosixGroupViolation(ExecutionError):
     """
 
     errno = 4030
-    format = _('This is already a posix group and cannot be converted to external one')
+    format = _(
+        'This is already a posix group and cannot be converted to external one'
+    )
+
 
 class EmptyResult(NotFound):
     """
@@ -1754,7 +1783,8 @@ class CertificateFormatError(CertificateError):
 
     For example:
 
-    >>> raise CertificateFormatError(error=_('improperly formated DER-encoded certificate'))
+    >>> raise CertificateFormatError(error=_(
+    ... 'improperly formated DER-encoded certificate'))
     Traceback (most recent call last):
       ...
     CertificateFormatError: Certificate format error: improperly formated DER-encoded certificate
@@ -1771,7 +1801,8 @@ class MutuallyExclusiveError(ExecutionError):
 
     For example:
 
-    >>> raise MutuallyExclusiveError(reason=_('hosts may not be added when hostcategory=all'))
+    >>> raise MutuallyExclusiveError(reason=_(
+    ... 'hosts may not be added when hostcategory=all'))
     Traceback (most recent call last):
       ...
     MutuallyExclusiveError: hosts may not be added when hostcategory=all
@@ -1788,7 +1819,8 @@ class NonFatalError(ExecutionError):
 
     For example:
 
-    >>> raise NonFatalError(reason=_('The host was added but the DNS update failed'))
+    >>> raise NonFatalError(reason=_(
+    ... 'The host was added but the DNS update failed'))
     Traceback (most recent call last):
       ...
     NonFatalError: The host was added but the DNS update failed
@@ -1837,7 +1869,8 @@ class DependentEntry(ExecutionError):
     **4307** Raised when an entry being deleted has dependencies
 
     For example:
-    >>> raise DependentEntry(label='SELinux User Map', key='test', dependent='test1')
+    >>> raise DependentEntry(label='SELinux User Map',
+    ... key='test', dependent='test1')
     Traceback (most recent call last):
       ...
     DependentEntry: test cannot be deleted because SELinux User Map test1 requires it
@@ -1845,7 +1878,9 @@ class DependentEntry(ExecutionError):
     """
 
     errno = 4307
-    format = _('%(key)s cannot be deleted because %(label)s %(dependent)s requires it')
+    format = _(
+        '%(key)s cannot be deleted because %(label)s %(dependent)s requires it'
+    )
 
 
 class LastMemberError(ExecutionError):
@@ -1861,7 +1896,10 @@ class LastMemberError(ExecutionError):
     """
 
     errno = 4308
-    format = _('%(key)s cannot be deleted or disabled because it is the last member of %(label)s %(container)s')
+    format = _(
+        '%(key)s cannot be deleted or disabled because it is the last '
+        'member of %(label)s %(container)s'
+    )
 
 
 class ProtectedEntryError(ExecutionError):
@@ -1869,7 +1907,8 @@ class ProtectedEntryError(ExecutionError):
     **4309** Raised when an entry being deleted or modified in a forbidden way is protected
 
     For example:
-    >>> raise ProtectedEntryError(label='group', key='admins', reason=_('privileged group'))
+    >>> raise ProtectedEntryError(label='group', key='admins',
+    ... reason=_('privileged group'))
     Traceback (most recent call last):
       ...
     ProtectedEntryError: group admins cannot be deleted/modified: privileged group

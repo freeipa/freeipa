@@ -714,8 +714,9 @@ class Command(HasParam):
                 return param(raw, **kw)
             except (ValidationError, ConversionError) as e:
                 # Display error and prompt again
-                self.Backend.textui.print_prompt_attribute_error(str(label),
-                                                             str(e.error))
+                self.Backend.textui.print_prompt_attribute_error(
+                    str(label), str(e.error)
+                )
 
     def normalize(self, **kw):
         """

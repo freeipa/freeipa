@@ -133,7 +133,8 @@ class VersionMissing(PublicMessage):
     For example:
 
     >>> VersionMissing(server_version='2.123').strerror
-    "API Version number was not sent, forward compatibility not guaranteed. Assuming server's API version, 2.123"
+    "API Version number was not sent, forward compatibility not guaranteed. "
+    "Assuming server's API version, 2.123"
 
     """
 

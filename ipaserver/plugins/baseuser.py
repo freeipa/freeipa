@@ -827,7 +827,9 @@ class baseuser_mod(LDAPUpdate):
         self.preserve_krbprincipalname_post(ldap, entry_attrs, **options)
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = str(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(
+                    getattr(context, 'randompassword')
+                )
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass

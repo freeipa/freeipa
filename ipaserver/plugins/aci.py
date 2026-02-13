@@ -164,9 +164,17 @@ class ListOfACI(output.Output):
         assert isinstance(entries, self.type)
         for (i, entry) in enumerate(entries):
             if not isinstance(entry, str):
-                raise TypeError(output.emsg %
-                    (cmd.name, self.__class__.__name__,
-                    self.name, i, str, type(entry), entry)
+                raise TypeError(
+                    output.emsg
+                    % (
+                        cmd.name,
+                        self.__class__.__name__,
+                        self.name,
+                        i,
+                        str,
+                        type(entry),
+                        entry,
+                    )
                 )
 
 aci_output = (
@@ -446,77 +454,100 @@ class aci(Object):
     label = _('ACIs')
 
     takes_params = (
-        Str('aciname',
+        Str(
+            'aciname',
             cli_name='name',
             label=_('ACI name'),
             primary_key=True,
             flags=('virtual_attribute',),
         ),
-        Str('permission?',
+        Str(
+            'permission?',
             cli_name='permission',
             label=_('Permission'),
             doc=_('Permission ACI grants access to'),
             flags=('virtual_attribute',),
         ),
-        Str('group?',
+        Str(
+            'group?',
             cli_name='group',
             label=_('User group'),
             doc=_('User group ACI grants access to'),
             flags=('virtual_attribute',),
         ),
-        Str('permissions+', validate_permissions,
+        Str(
+            'permissions+',
+            validate_permissions,
             cli_name='permissions',
             label=_('Permissions'),
-            doc=_('Permissions to grant' \
-                '(read, write, add, delete, all)'),
+            doc=_('Permissions to grant(read, write, add, delete, all)'),
             normalizer=_normalize_permissions,
             flags=('virtual_attribute',),
         ),
-        Str('attrs*',
+        Str(
+            'attrs*',
             cli_name='attrs',
             label=_('Attributes to which the permission applies'),
             doc=_('Attributes'),
             flags=('virtual_attribute',),
         ),
-        StrEnum('type?',
+        StrEnum(
+            'type?',
             cli_name='type',
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
-            values=('user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord'),
+            doc=_(
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
+            ),
+            values=(
+                'user',
+                'group',
+                'host',
+                'service',
+                'hostgroup',
+                'netgroup',
+                'dnsrecord',
+            ),
             flags=('virtual_attribute',),
         ),
-        Str('memberof?',
+        Str(
+            'memberof?',
             cli_name='memberof',
             label=_('Member of'),  # FIXME: Does this label make sense?
             doc=_('Member of a group'),
             flags=('virtual_attribute',),
         ),
-        Str('filter?',
+        Str(
+            'filter?',
             cli_name='filter',
             label=_('Filter'),
             doc=_('Legal LDAP filter (e.g. ou=Engineering)'),
             flags=('virtual_attribute',),
         ),
-        Str('subtree?',
+        Str(
+            'subtree?',
             cli_name='subtree',
             label=_('Subtree'),
             doc=_('Subtree to apply ACI to'),
             flags=('virtual_attribute',),
         ),
-        Str('targetgroup?',
+        Str(
+            'targetgroup?',
             cli_name='targetgroup',
             label=_('Target group'),
             doc=_('Group to apply ACI to'),
             flags=('virtual_attribute',),
         ),
-        Flag('selfaci?',
-             cli_name='self',
-             label=_('Target your own entry (self)'),
-             doc=_('Apply ACI to your own entry (self)'),
-             flags=('virtual_attribute',),
+        Flag(
+            'selfaci?',
+            cli_name='self',
+            label=_('Target your own entry (self)'),
+            doc=_('Apply ACI to your own entry (self)'),
+            flags=('virtual_attribute',),
         ),
         _prefix_option,
-        Str('aci',
+        Str(
+            'aci',
             label=_('ACI'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
@@ -845,7 +876,7 @@ Search for ACIs.
 
         if kw.get('filter'):
             if not kw['filter'].startswith('('):
-                kw['filter'] = str('('+kw['filter']+')')
+                kw['filter'] = '(' + kw['filter'] + ')'
             for a in acis:
                 if 'targetfilter' not in a.target or\
                     not a.target['targetfilter']['expression'] or\

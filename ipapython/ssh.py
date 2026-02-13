@@ -51,7 +51,9 @@ class SSHPublicKey:
             return
 
         if not isinstance(key, (bytes, str)):
-            raise TypeError("argument must be bytes or str, got %s" % type(key).__name__)
+            raise TypeError(
+                'argument must be bytes or str, got %s' % type(key).__name__
+            )
 
         # All valid public key blobs start with 3 null bytes (see RFC 4253
         # section 6.6, RFC 4251 section 5 and RFC 4250 section 4.6)

@@ -67,4 +67,7 @@ class ping(Command):
         A possible enhancement would be to take an argument and echo it
         back but a fixed value works for now.
         """
-        return dict(summary='IPA server version %s. API version %s' % (VERSION, API_VERSION))
+        return dict(
+            summary='IPA server version %s. API version %s'
+            % (VERSION, API_VERSION)
+        )

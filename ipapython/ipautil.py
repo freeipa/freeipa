@@ -1143,9 +1143,16 @@ $)''', re.VERBOSE)
                         if appendvars and option in appendvars:
                             # append new value unless it is already existing in the original one
                             if not value:
-                                new_line = "%s=%s\n" % (option, appendvars[option])
+                                new_line = '%s=%s\n' % (
+                                    option,
+                                    appendvars[option],
+                                )
                             elif value.find(appendvars[option]) == -1:
-                                new_line = "%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = '%s=%s %s\n' % (
+                                    option,
+                                    value,
+                                    appendvars[option],
+                                )
                             old_values[option] = value
                         if removevars and option in removevars:
                             old_values[option] = value
@@ -1245,9 +1252,16 @@ $)''', re.VERBOSE)
                         if appendvars and option in appendvars:
                             # append a new value unless it is already existing in the original one
                             if not value:
-                                new_line = "%s=%s\n" % (option, appendvars[option])
+                                new_line = '%s=%s\n' % (
+                                    option,
+                                    appendvars[option],
+                                )
                             elif value.find(appendvars[option]) == -1:
-                                new_line = "%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = '%s=%s %s\n' % (
+                                    option,
+                                    value,
+                                    appendvars[option],
+                                )
                             old_values[option] = value
                     new_config.write(new_line)
             # We have finished parsing the original file.

@@ -176,10 +176,14 @@ regex_key = (
 )
 
 group_type = (
-    StrEnum('type',
+    StrEnum(
+        'type',
         label=_('Grouping Type'),
         doc=_('Grouping to which the rule applies'),
-        values=('group', 'hostgroup', ),
+        values=(
+            'group',
+            'hostgroup',
+        ),
     ),
 )
 
@@ -364,7 +368,9 @@ class automember_add_condition(LDAPUpdate):
         try:
             dn = ldap.get_entry(dn, []).dn
         except errors.NotFound:
-            raise errors.NotFound(reason=_('Auto member rule: %s not found!') % keys[0])
+            raise errors.NotFound(
+                reason=_('Auto member rule: %s not found!') % keys[0]
+            )
         # Define container key
         key = options['key']
         # Check to see if the attribute is valid
@@ -448,7 +454,9 @@ class automember_remove_condition(LDAPUpdate):
         try:
             ldap.get_entry(dn, [])
         except errors.NotFound:
-            raise errors.NotFound(reason=_('Auto member rule: %s not found!') % keys[0])
+            raise errors.NotFound(
+                reason=_('Auto member rule: %s not found!') % keys[0]
+            )
 
         # Define container key
         type_attr_default = {'group': 'manager', 'hostgroup': 'fqdn'}
@@ -626,7 +634,9 @@ class automember_default_group_remove(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
-            entry_attrs['automemberdefaultgroup'] = str(_('No default (fallback) group set'))
+            entry_attrs['automemberdefaultgroup'] = str(
+                _('No default (fallback) group set')
+            )
         return dn
 
     def execute(self, *keys, **options):
@@ -654,7 +664,9 @@ class automember_default_group_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
-            entry_attrs['automemberdefaultgroup'] = str(_('No default (fallback) group set'))
+            entry_attrs['automemberdefaultgroup'] = str(
+                _('No default (fallback) group set')
+            )
         return dn
 
     def execute(self, *keys, **options):

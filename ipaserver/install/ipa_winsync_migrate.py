@@ -287,7 +287,10 @@ class WinsyncMigrate(admintool.AdminTool):
 
             # Add the user to the external group. Membership is migrated
             # at this point.
-            user_identifier = "%s@%s" % (user_entry['uid'][0], self.options.realm)
+            user_identifier = '%s@%s' % (
+                user_entry['uid'][0],
+                self.options.realm,
+            )
             api.Command['group_add_member'](name, ipaexternalmember=[user_identifier])
 
     def migrate_group_memberships(self, user_entry):

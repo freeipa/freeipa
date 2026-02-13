@@ -232,7 +232,9 @@ def _convert_to_ipa_rule(rule):
         )
     for element in structure:
         category = '%scategory' % (element[0])
-        if (category in rule and rule[category][0] == 'all') or (element[0] == 'sourcehost'):
+        if (category in rule and rule[category][0] == 'all') or (
+            element[0] == 'sourcehost'
+        ):
             # rule applies to all elements
             # sourcehost is always set to 'all'
             element[4].category = set([pyhbac.HBAC_CATEGORY_ALL])

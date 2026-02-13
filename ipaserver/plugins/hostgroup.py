@@ -231,10 +231,15 @@ class hostgroup_add(LDAPCreate):
             # when enabled, a managed netgroup is created for every hostgroup
             # make sure that the netgroup can be created
             api.Object['netgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=str(_(
-                    'netgroup with name "%s" already exists. '
-                    'Hostgroups and netgroups share a common namespace'
-                    ) % keys[-1]))
+            raise errors.DuplicateEntry(
+                message=str(
+                    _(
+                        'netgroup with name "%s" already exists. '
+                        'Hostgroups and netgroups share a common namespace'
+                    )
+                    % keys[-1]
+                )
+            )
         except errors.NotFound:
             pass
 

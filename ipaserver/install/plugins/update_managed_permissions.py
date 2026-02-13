@@ -371,11 +371,9 @@ class update_managed_permissions(Updater):
                     logger.debug('Updating non-object managed permissions')
                 current_obj = obj
 
-            self.update_permission(ldap,
-                                    obj,
-                                    str(name),
-                                    template,
-                                    anonymous_read_aci)
+            self.update_permission(
+                ldap, obj, name, template, anonymous_read_aci
+            )
 
         if anonymous_read_aci:
             self.remove_anonymous_read_aci(ldap, anonymous_read_aci)

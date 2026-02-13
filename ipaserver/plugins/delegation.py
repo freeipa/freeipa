@@ -54,7 +54,7 @@ EXAMPLES:
 
 register = Registry()
 
-ACI_PREFIX="delegation"
+ACI_PREFIX = 'delegation'
 
 
 @register()

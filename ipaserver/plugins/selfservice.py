@@ -55,7 +55,7 @@ EXAMPLES:
 
 register = Registry()
 
-ACI_PREFIX="selfservice"
+ACI_PREFIX = 'selfservice'
 
 
 @register()

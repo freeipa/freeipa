@@ -101,16 +101,16 @@ def convertHashName(value):
     default_hash = "sha1"
     known_prefixes = ("", "hmac-",)
     known_hashes = {
-        "sha1":    "sha1",
-        "sha224":  "sha224",
-        "sha256":  "sha256",
-        "sha384":  "sha384",
-        "sha512":  "sha512",
-        "sha-1":   "sha1",
-        "sha-224": "sha224",
-        "sha-256": "sha256",
-        "sha-384": "sha384",
-        "sha-512": "sha512",
+        'sha1': 'sha1',
+        'sha224': 'sha224',
+        'sha256': 'sha256',
+        'sha384': 'sha384',
+        'sha512': 'sha512',
+        'sha-1': 'sha1',
+        'sha-224': 'sha224',
+        'sha-256': 'sha256',
+        'sha-384': 'sha384',
+        'sha-512': 'sha512',
     }
 
     if value is None:
