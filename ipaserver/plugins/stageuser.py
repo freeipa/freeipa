@@ -425,7 +425,9 @@ class stageuser_add(baseuser_add):
 
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = getattr(context, 'randompassword')
+                entry_attrs['randompassword'] = getattr(
+                    context, 'randompassword'
+                )
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass

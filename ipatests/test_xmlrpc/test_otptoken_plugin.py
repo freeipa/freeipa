@@ -65,17 +65,18 @@ def id_function(arg):
 class TestDeleteLastOtpToken(XMLRPC_test):
 
     @pytest.mark.parametrize(
-        "globalCfg,userCfg,allowDelLast", [
+        'globalCfg,userCfg,allowDelLast',
+        [
             # When Global config is not set and prevents user override,
             # it is possible to delete last token
-            (['disabled'],  None, True),
+            (['disabled'], None, True),
             (['disabled'], ['otp'], True),
             (['disabled'], ['password'], True),
             (['disabled'], ['password', 'otp'], True),
             # When Global config is not set and allows user override,
             # the userCfg applies
             # Deletion is forbidden only when usercfg = otp only
-            (None,  None, True),
+            (None, None, True),
             (None, ['otp'], False),
             (None, ['password'], True),
             (None, ['password', 'otp'], True),
@@ -119,7 +120,8 @@ class TestDeleteLastOtpToken(XMLRPC_test):
             (['password', 'otp'], ['password'], True),
             (['password', 'otp'], ['password', 'otp'], True),
         ],
-        ids=id_function)
+        ids=id_function,
+    )
     def test_delete(self, globalCfg, userCfg, allowDelLast, user):
         """
         Test the deletion of the last otp token

@@ -608,25 +608,31 @@ Modify a trust (for future use).
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. '
-            'Format is attr=value.\nFor multi-valued attributes, '
-            'the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. '
-            'The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. '
-            'The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
@@ -1037,8 +1043,9 @@ class trustdomain_add(Method):
 
 @register()
 class trustdomain_del(Method):
-    __doc__ = _("Remove information about the domain associated with the "
-    "trust.")
+    __doc__ = _(
+        'Remove information about the domain associated with the trust.'
+    )
 
     takes_args = (
         parameters.Str(
@@ -1227,8 +1234,9 @@ class trustdomain_find(Method):
             'pkey_only',
             required=False,
             label=_('Primary key only'),
-            doc=_('Results should contain primary key attribute only '
-            '("domain")'),
+            doc=_(
+                'Results should contain primary key attribute only ("domain")'
+            ),
             default=False,
             autofill=True,
         ),

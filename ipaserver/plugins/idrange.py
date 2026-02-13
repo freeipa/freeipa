@@ -746,8 +746,10 @@ class idrange_mod(LDAPUpdate):
                         name='ID Range setup',
                         error=_('Options dom-sid and rid-base must '
                                 'be used together'))
-            elif (range_type == 'ipa-ad-trust-posix' and
-                  'ipabaserid' in entry_attrs):
+            elif (
+                range_type == 'ipa-ad-trust-posix'
+                and 'ipabaserid' in entry_attrs
+            ):
                 if entry_attrs['ipabaserid'] is None:
                     entry_attrs['ipabaserid'] = 0
                 elif entry_attrs['ipabaserid'] != 0:

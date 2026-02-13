@@ -60,35 +60,26 @@ class test_role(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Try to retrieve non-existent %r' % role1,
             command=('role_show', [role1], {}),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Try to update non-existent %r' % role1,
             command=('role_mod', [role1], dict(description='Foo')),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Try to delete non-existent %r' % role1,
             command=('role_del', [role1], {}),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Try to rename non-existent %r' % role1,
             command=('role_mod', [role1], dict(setattr='cn=%s' % renamedrole1)),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Search for non-existent %r' % role1,
             command=('role_find', [role1], {}),
@@ -99,23 +90,20 @@ class test_role(Declarative):
                 result=[],
             ),
         ),
-
-
         dict(
             desc='Create invalid %r' % invalidrole1,
-            command=('role_add', [invalidrole1],
-                dict(description='role desc 1')
+            command=(
+                'role_add',
+                [invalidrole1],
+                dict(description='role desc 1'),
             ),
-            expected=errors.ValidationError(name='name',
-                error='Leading and trailing spaces are not allowed'),
+            expected=errors.ValidationError(
+                name='name', error='Leading and trailing spaces are not allowed'
+            ),
         ),
-
-
         dict(
             desc='Create %r' % role1,
-            command=('role_add', [role1],
-                dict(description='role desc 1')
-            ),
+            command=('role_add', [role1], dict(description='role desc 1')),
             expected=dict(
                 value=role1,
                 summary='Added role "%s"' % role1,
@@ -127,8 +115,6 @@ class test_role(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Retrieve %r' % role1,
             command=('role_show', [role1], {}),
@@ -142,13 +128,15 @@ class test_role(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Create %r' % group1,
             command=(
-                'group_add', [group1], dict(description='group desc 1',
-                nonposix=True,)
+                'group_add',
+                [group1],
+                dict(
+                    description='group desc 1',
+                    nonposix=True,
+                ),
             ),
             expected=dict(
                 value=group1,
@@ -162,12 +150,12 @@ class test_role(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(description='privilege desc. 1'),
             ),
             expected=dict(
                 value=privilege1,
@@ -180,13 +168,9 @@ class test_role(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Add privilege %r to role %r' % (privilege1, role1),
-            command=('role_add_privilege', [role1],
-                dict(privilege=privilege1)
-            ),
+            command=('role_add_privilege', [role1], dict(privilege=privilege1)),
             expected=dict(
                 completed=1,
                 failed=dict(
@@ -199,15 +183,12 @@ class test_role(Declarative):
                     'cn': [role1],
                     'description': ['role desc 1'],
                     'memberof_privilege': [privilege1],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Add zero privileges to role %r' % role1,
-            command=('role_add_privilege', [role1], dict(privilege=None)
-            ),
+            command=('role_add_privilege', [role1], dict(privilege=None)),
             expected=dict(
                 completed=0,
                 failed=dict(
@@ -220,15 +201,12 @@ class test_role(Declarative):
                     'cn': [role1],
                     'description': ['role desc 1'],
                     'memberof_privilege': [privilege1],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Remove zero privileges from role %r' % role1,
-            command=('role_remove_privilege', [role1], dict(privilege=None)
-            ),
+            command=('role_remove_privilege', [role1], dict(privilege=None)),
             expected=dict(
                 completed=0,
                 failed=dict(
@@ -241,11 +219,9 @@ class test_role(Declarative):
                     'cn': [role1],
                     'description': ['role desc 1'],
                     'memberof_privilege': [privilege1],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Add member %r to %r' % (group1, role1),
             command=('role_add_member', [role1], dict(group=group1)),
@@ -268,11 +244,9 @@ class test_role(Declarative):
                     'description': ['role desc 1'],
                     'member_group': [group1],
                     'memberof_privilege': [privilege1],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r to verify member-add' % role1,
             command=('role_show', [role1], {}),
@@ -288,8 +262,6 @@ class test_role(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % role1,
             command=('role_find', [role1], {'no_members': False}),
@@ -308,8 +280,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % role1,
             command=('role_find', [role1], {}),
@@ -326,8 +296,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % search,
             command=('role_find', [search], {'no_members': False}),
@@ -346,8 +314,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % search,
             command=('role_find', [search], {}),
@@ -364,13 +330,9 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Create %r' % role2,
-            command=('role_add', [role2],
-                dict(description='role desc 2')
-            ),
+            command=('role_add', [role2], dict(description='role desc 2')),
             expected=dict(
                 value=role2,
                 summary='Added role "%s"' % role2,
@@ -382,8 +344,6 @@ class test_role(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % role1,
             command=('role_find', [role1], {'no_members': False}),
@@ -402,8 +362,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % role1,
             command=('role_find', [role1], {}),
@@ -420,8 +378,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % search,
             command=('role_find', [search], {'no_members': False}),
@@ -445,8 +401,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % search,
             command=('role_find', [search], {}),
@@ -468,13 +422,9 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Update %r' % role1,
-            command=(
-                'role_mod', [role1], dict(description='New desc 1')
-            ),
+            command=('role_mod', [role1], dict(description='New desc 1')),
             expected=dict(
                 value=role1,
                 summary='Modified role "%s"' % role1,
@@ -486,8 +436,6 @@ class test_role(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Retrieve %r to verify update' % role1,
             command=('role_show', [role1], {}),
@@ -503,8 +451,6 @@ class test_role(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Remove member %r from %r' % (group1, role1),
             command=('role_remove_member', [role1], dict(group=group1)),
@@ -529,8 +475,6 @@ class test_role(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r to verify member-del' % role1,
             command=('role_show', [role1], {}),
@@ -545,8 +489,6 @@ class test_role(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Delete %r' % group1,
             command=('group_del', [group1], {}),
@@ -554,10 +496,8 @@ class test_role(Declarative):
                 result=dict(failed=[]),
                 value=[group1],
                 summary='Deleted group "testgroup1"',
-            )
+            ),
         ),
-
-
         dict(
             desc='Rename %r' % role1,
             command=('role_mod', [role1], dict(setattr='cn=%s' % renamedrole1)),
@@ -568,11 +508,9 @@ class test_role(Declarative):
                     description=['New desc 1'],
                     memberof_privilege=[privilege1],
                 ),
-                summary='Modified role "%s"' % role1
-            )
+                summary='Modified role "%s"' % role1,
+            ),
         ),
-
-
         dict(
             desc='Rename %r back' % renamedrole1,
             command=('role_mod', [renamedrole1], dict(setattr='cn=%s' % role1)),
@@ -583,15 +521,15 @@ class test_role(Declarative):
                     description=['New desc 1'],
                     memberof_privilege=[privilege1],
                 ),
-                summary='Modified role "%s"' % renamedrole1
-            )
+                summary='Modified role "%s"' % renamedrole1,
+            ),
         ),
-
-
         dict(
             desc='Remove privilege %r from role %r' % (privilege1, role1),
-            command=('role_remove_privilege', [role1],
-                dict(privilege=privilege1)
+            command=(
+                'role_remove_privilege',
+                [role1],
+                dict(privilege=privilege1),
             ),
             expected=dict(
                 completed=1,
@@ -604,33 +542,32 @@ class test_role(Declarative):
                     'dn': role1_dn,
                     'cn': [role1],
                     'description': ['New desc 1'],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Remove privilege %r from role %r again' % (privilege1, role1),
-            command=('role_remove_privilege', [role1],
-                dict(privilege=privilege1)
+            command=(
+                'role_remove_privilege',
+                [role1],
+                dict(privilege=privilege1),
             ),
             expected=dict(
                 completed=0,
                 failed=dict(
                     member=dict(
-                        privilege=[('%s' % privilege1, 'This entry is not a member'),],
+                        privilege=[
+                            ('%s' % privilege1, 'This entry is not a member'),
+                        ],
                     ),
                 ),
                 result={
                     'dn': role1_dn,
                     'cn': [role1],
                     'description': ['New desc 1'],
-                }
+                },
             ),
         ),
-
-
-
         dict(
             desc='Delete %r' % role1,
             command=('role_del', [role1], {}),
@@ -638,31 +575,23 @@ class test_role(Declarative):
                 result=dict(failed=[]),
                 value=[role1],
                 summary='Deleted role "%s"' % role1,
-            )
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent %r' % role1,
             command=('role_del', [role1], {}),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Try to show non-existent %r' % role1,
             command=('role_show', [role1], {}),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Try to update non-existent %r' % role1,
             command=('role_mod', [role1], dict(description='Foo')),
             expected=errors.NotFound(reason='%s: role not found' % role1),
         ),
-
-
         dict(
             desc='Search for %r' % search,
             command=('role_find', [search], {}),
@@ -679,8 +608,6 @@ class test_role(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Delete %r' % role2,
             command=('role_del', [role2], {}),
@@ -688,10 +615,8 @@ class test_role(Declarative):
                 result=dict(failed=[]),
                 value=[role2],
                 summary='Deleted role "%s"' % role2,
-            )
+            ),
         ),
-
-
         dict(
             desc='Search for %r' % search,
             command=('role_find', [search], {}),
@@ -702,5 +627,4 @@ class test_role(Declarative):
                 result=[],
             ),
         ),
-
     ]

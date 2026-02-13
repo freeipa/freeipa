@@ -1345,8 +1345,10 @@ class vault_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). '
-            'See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -1706,8 +1708,10 @@ class vaultcontainer_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). '
-            'See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),

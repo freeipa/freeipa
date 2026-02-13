@@ -193,7 +193,8 @@ class netgroup(LDAPObject):
     label_singular = _('Netgroup')
 
     takes_params = (
-        Str('cn',
+        Str(
+            'cn',
             pattern=NETGROUP_PATTERN,
             pattern_errmsg=NETGROUP_PATTERN_ERRMSG,
             cli_name='name',
@@ -201,34 +202,39 @@ class netgroup(LDAPObject):
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
-        Str('description?',
+        Str(
+            'description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('Netgroup description'),
         ),
-        Str('nisdomainname?',
+        Str(
+            'nisdomainname?',
             pattern=NISDOMAIN_PATTERN,
             pattern_errmsg=NISDOMAIN_PATTERN_ERRMSG,
             cli_name='nisdomain',
             label=_('NIS domain name'),
         ),
-        Str('ipauniqueid?',
+        Str(
+            'ipauniqueid?',
             cli_name='uuid',
             label='IPA unique ID',
             doc=_('IPA unique ID'),
             flags=['no_create', 'no_update'],
         ),
-        StrEnum('usercategory?',
+        StrEnum(
+            'usercategory?',
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the rule applies to'),
-            values=('all', ),
+            values=('all',),
         ),
-        StrEnum('hostcategory?',
+        StrEnum(
+            'hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the rule applies to'),
-            values=('all', ),
+            values=('all',),
         ),
         external_host_param,
     )
@@ -261,8 +267,10 @@ class netgroup_add(LDAPCreate):
     has_output_params = LDAPCreate.has_output_params + output_params
     msg_summary = _('Added netgroup "%(value)s"')
 
-    msg_collision = _('hostgroup with name "%s" already exists. ' \
-                      'Hostgroups and netgroups share a common namespace')
+    msg_collision = _(
+        'hostgroup with name "%s" already exists. '
+        'Hostgroups and netgroups share a common namespace'
+    )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -272,7 +280,9 @@ class netgroup_add(LDAPCreate):
             test_dn = self.obj.get_dn(keys[-1])
             netgroup = ldap.get_entry(test_dn, ['objectclass'])
             if 'mepManagedEntry' in netgroup.get('objectclass', []):
-                raise errors.DuplicateEntry(message=str(self.msg_collision % keys[-1]))
+                raise errors.DuplicateEntry(
+                    message=str(self.msg_collision % keys[-1])
+                )
             else:
                 self.obj.handle_duplicate_entry(*keys)
         except errors.NotFound:
@@ -283,7 +293,9 @@ class netgroup_add(LDAPCreate):
             # make sure that we don't create a collision if the plugin is
             # (temporarily) disabled
             api.Object['hostgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=str(self.msg_collision % keys[-1]))
+            raise errors.DuplicateEntry(
+                message=str(self.msg_collision % keys[-1])
+            )
         except errors.NotFound:
             pass
 

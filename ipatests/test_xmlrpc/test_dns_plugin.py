@@ -254,8 +254,12 @@ tlsa = 'tlsa'
 tlsa_dnsname = DNSName(tlsa)
 tlsa_dn = DN(('idnsname', tlsa), zone1_dn)
 
-tlsarec_err1 = '300 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
-tlsarec_err2 = '0 300 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+tlsarec_err1 = (
+    '300 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+)
+tlsarec_err2 = (
+    '0 300 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+)
 tlsarec_err3 = '0 0 300 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
 tlsarec_ok = '0 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
 
@@ -498,53 +502,54 @@ class test_dns(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Try to retrieve non-existent zone %r' % zone1,
             command=('dnszone_show', [zone1], {}),
             expected=errors.NotFound(
-                reason='%s: DNS zone not found' % zone1_absolute),
+                reason='%s: DNS zone not found' % zone1_absolute
+            ),
         ),
-
         dict(
             desc='Try to retrieve non-existent IDN zone %r' % idnzone1,
             command=('dnszone_show', [idnzone1], {}),
             expected=errors.NotFound(
-                reason='%s: DNS zone not found' % idnzone1),
+                reason='%s: DNS zone not found' % idnzone1
+            ),
         ),
-
         dict(
             desc='Try to update non-existent zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnssoaminimum': 3500}),
             expected=errors.NotFound(
-                reason='%s: DNS zone not found' % zone1_absolute),
+                reason='%s: DNS zone not found' % zone1_absolute
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
             expected=errors.NotFound(
-                reason='%s: DNS zone not found' % zone1_absolute),
+                reason='%s: DNS zone not found' % zone1_absolute
+            ),
         ),
-
-
         # Test for BZ 783272: proper error for record add to nonexistent zone
         dict(
             desc='Try to add record to non-existent zone (BZ 783272)',
-            command=('dnsrecord_add', [u'unknowndomain.test.', u'testrecord'],
-                     {'locrecord': u'49 11 42.4 N 16 36 29.6 E 227.64m'}),
+            command=(
+                'dnsrecord_add',
+                ['unknowndomain.test.', 'testrecord'],
+                {'locrecord': '49 11 42.4 N 16 36 29.6 E 227.64m'},
+            ),
             expected=errors.NotFound(
-                reason=u'unknowndomain.test.: DNS zone not found'),
+                reason='unknowndomain.test.: DNS zone not found'
+            ),
         ),
-
-
         dict(
             desc='Create zone %r' % zone1,
             command=(
-                'dnszone_add', [zone1], {
+                'dnszone_add',
+                [zone1],
+                {
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
             expected={
                 'value': zone1_absolute_dnsname,
@@ -562,63 +567,70 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
-
         dict(
             desc='Try to create duplicate zone %r' % zone1,
             command=(
-                'dnszone_add', [zone1], {
+                'dnszone_add',
+                [zone1],
+                {
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
             expected=errors.DuplicateEntry(
-                message='DNS zone with name "%s" already exists' % zone1_absolute),
+                message='DNS zone with name "%s" already exists'
+                % zone1_absolute
+            ),
         ),
-
         dict(
-            desc=f"Parent zone for {zone2} tests",
+            desc=f'Parent zone for {zone2} tests',
             command=(
-                'dnszone_add', [zone2], {
+                'dnszone_add',
+                [zone2],
+                {
                     'idnssoarname': zone2_rname,
-                }
+                },
             ),
             expected=lambda x, y: True,
         ),
-
         dict(
-            desc="Try to create a zone with nonexistent NS entry",
+            desc='Try to create a zone with nonexistent NS entry',
             command=(
-                "dnszone_add", [zone2_sub], {
-                    "idnssoamname": zone2_sub_ns,
-                    "idnssoarname": zone2_sub_rname,
-                }
+                'dnszone_add',
+                [zone2_sub],
+                {
+                    'idnssoamname': zone2_sub_ns,
+                    'idnssoarname': zone2_sub_rname,
+                },
             ),
             expected=errors.NotFound(
                 reason=(
                     "Nameserver '%s' does not have a corresponding A/AAAA "
-                    "record" % zone2_sub_ns
+                    'record' % zone2_sub_ns
                 ),
             ),
         ),
-
         dict(
             desc='Create a zone with nonexistent NS entry with --force',
             command=(
-                "dnszone_add", [zone2_sub], {
-                    "idnssoamname": zone2_sub_ns,
-                    "idnssoarname": zone2_sub_rname,
-                    "force": True,
-                }
+                'dnszone_add',
+                [zone2_sub],
+                {
+                    'idnssoamname': zone2_sub_ns,
+                    'idnssoarname': zone2_sub_rname,
+                    'force': True,
+                },
             ),
             expected={
                 'value': zone2_sub_absolute_dnsname,
@@ -636,51 +648,59 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
                 'messages': (
-                    {'message': "Semantic of setting Authoritative nameserver "
-                                "was changed. "
-                                "It is used only for setting the SOA MNAME "
-                                "attribute.\n"
-                                "NS record(s) can be edited in zone "
-                                "apex - '@'. ",
-                     'code': 13005,
-                     'type': 'warning',
-                     'name': 'OptionSemanticChangedWarning',
-                     'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver"
-                     }},
-                )
+                    {
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    },
+                ),
             },
         ),
-
         dict(
             desc='Try to remove value of "idnssomrname" attribute using dnszone-mod --name-server=',
             command=(
-                'dnszone_mod', [zone2], {
+                'dnszone_mod',
+                [zone2],
+                {
                     'idnssoamname': None,
-                }
+                },
             ),
-            expected=errors.ValidationError(name='name_server', error="is required"),
+            expected=errors.ValidationError(
+                name='name_server', error='is required'
+            ),
         ),
-
         dict(
             desc='Create a zone with upper case name',
             command=(
-                'dnszone_add', [zone4_upper], {
+                'dnszone_add',
+                [zone4_upper],
+                {
                     'idnssoarname': zone4_rname,
-                }
+                },
             ),
             expected={
                 'value': zone4_dnsname,
@@ -698,24 +718,26 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
-
         dict(  # https://fedorahosted.org/freeipa/ticket/4268
             desc='Create a zone with consecutive dash characters',
             command=(
-                'dnszone_add', [zone5], {
+                'dnszone_add',
+                [zone5],
+                {
                     'idnssoarname': zone5_rname,
-                }
+                },
             ),
             expected={
                 'value': zone5_dnsname,
@@ -733,32 +755,33 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
-
         dict(
             desc='Try to create a zone w/ a name and name-from-ipa %r' % zone1,
             command=(
-                'dnszone_add', [zone1], {
+                'dnszone_add',
+                [zone1],
+                {
                     'idnssoarname': zone1_rname,
                     'name_from_ip': revzone1_ip,
-                }
+                },
             ),
             expected=errors.ValidationError(
-                message='invalid \'name-from-ip\': cannot be used when a '
-                        'zone is specified'),
+                message="invalid 'name-from-ip': cannot be used when a "
+                'zone is specified'
+            ),
         ),
-
-
         dict(
             desc='Retrieve zone %r' % zone1,
             command=('dnszone_show', [zone1], {}),
@@ -779,16 +802,16 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
                 },
             },
         ),
-
-
         dict(
             desc='Update zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnssoarefresh': 5478}),
@@ -808,72 +831,77 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
                 },
             },
         ),
-
         dict(
             desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': '0 0 0 0 X'}),
-            expected=errors.ValidationError(name="nsec3param_rec",
-                        error=('expected format: <0-255> <0-255> <0-65535> '
-                               'even-length_hexadecimal_digits_or_hyphen')
-            )
+            expected=errors.ValidationError(
+                name='nsec3param_rec',
+                error=(
+                    'expected format: <0-255> <0-255> <0-65535> '
+                    'even-length_hexadecimal_digits_or_hyphen'
+                ),
+            ),
         ),
-
-
         dict(
             desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': '0 0 0 X'}),
-            expected=errors.ValidationError(name="nsec3param_rec",
-                        error=('expected format: <0-255> <0-255> <0-65535> '
-                               'even-length_hexadecimal_digits_or_hyphen')
-            )
+            expected=errors.ValidationError(
+                name='nsec3param_rec',
+                error=(
+                    'expected format: <0-255> <0-255> <0-65535> '
+                    'even-length_hexadecimal_digits_or_hyphen'
+                ),
+            ),
         ),
-
-
         dict(
             desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': '333 0 0 -'}),
-            expected=errors.ValidationError(name="nsec3param_rec",
-                        error='algorithm value: allowed interval 0-255'
-            )
+            expected=errors.ValidationError(
+                name='nsec3param_rec',
+                error='algorithm value: allowed interval 0-255',
+            ),
         ),
-
-
         dict(
             desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': '0 333 0 -'}),
-            expected=errors.ValidationError(name="nsec3param_rec",
-                        error='flags value: allowed interval 0-255'
-            )
+            expected=errors.ValidationError(
+                name='nsec3param_rec',
+                error='flags value: allowed interval 0-255',
+            ),
         ),
-
-
         dict(
             desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
-            command=('dnszone_mod', [zone1], {'nsec3paramrecord': '0 0 65536 -'}),
-            expected=errors.ValidationError(name="nsec3param_rec",
-                        error='iterations value: allowed interval 0-65535'
-            )
+            command=(
+                'dnszone_mod',
+                [zone1],
+                {'nsec3paramrecord': '0 0 65536 -'},
+            ),
+            expected=errors.ValidationError(
+                name='nsec3param_rec',
+                error='iterations value: allowed interval 0-65535',
+            ),
         ),
-
-
         dict(
             desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': '0 0 0 A'}),
-            expected=errors.ValidationError(name="nsec3param_rec",
-                        error=('expected format: <0-255> <0-255> <0-65535> '
-                               'even-length_hexadecimal_digits_or_hyphen')
-            )
+            expected=errors.ValidationError(
+                name='nsec3param_rec',
+                error=(
+                    'expected format: <0-255> <0-255> <0-65535> '
+                    'even-length_hexadecimal_digits_or_hyphen'
+                ),
+            ),
         ),
-
-
         dict(
             desc='Add NSEC3PARAM record to zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': '0 0 0 -'}),
@@ -893,17 +921,17 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
                     'nsec3paramrecord': ['0 0 0 -'],
                 },
             },
         ),
-
-
         dict(
             desc='Delete NSEC3PARAM record from zone %s' % (zone1),
             command=('dnszone_mod', [zone1], {'nsec3paramrecord': ''}),
@@ -923,35 +951,40 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
                 },
             },
         ),
-
-
         dict(
-            desc='Try to create reverse zone %r with NS record in it' % revzone1,
+            desc='Try to create reverse zone %r with NS record in it'
+            % revzone1,
             command=(
-                'dnszone_add', [revzone1], {
+                'dnszone_add',
+                [revzone1],
+                {
                     'idnssoamname': 'ns',
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
-            expected=errors.ValidationError(name='name-server',
-                error="Nameserver for reverse zone cannot be a relative DNS name"),
+            expected=errors.ValidationError(
+                name='name-server',
+                error='Nameserver for reverse zone cannot be a relative DNS name',
+            ),
         ),
-
-
         dict(
             desc='Create reverse zone %r' % revzone1,
             command=(
-                'dnszone_add', [revzone1], {
+                'dnszone_add',
+                [revzone1],
+                {
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
             expected={
                 'value': revzone1_dnsname,
@@ -969,16 +1002,16 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revzone1)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                        % dict(realm=api.env.realm, zone=revzone1)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
-
         dict(
             desc='Search for zones with admin email %r' % (zone1_rname),
             command=('dnszone_find', [], {'idnssoarname': zone1_rname}),
@@ -986,82 +1019,90 @@ class test_dns(Declarative):
                 'summary': None,
                 'count': 2,
                 'truncated': False,
-                'result': [{
-                    'dn': revzone1_dn,
-                    'idnsname': [revzone1_dnsname],
-                    'idnszoneactive': [True],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy':
-                        ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                            % dict(
-                                realm=api.env.realm, zone=revzone1_dnsname
-                            )],
-                    'idnsallowtransfer': ['none;'],
-                    'idnsallowquery': ['any;'],
-                },
-                {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [True],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': ['5478'],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': ['none;'],
-                    'idnsallowquery': ['any;'],
-                    'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                }],
+                'result': [
+                    {
+                        'dn': revzone1_dn,
+                        'idnsname': [revzone1_dnsname],
+                        'idnszoneactive': [True],
+                        'nsrecord': nameservers,
+                        'idnssoamname': [self_server_ns_dnsname],
+                        'idnssoarname': [zone1_rname_dnsname],
+                        'idnssoaserial': [fuzzy_digits],
+                        'idnssoarefresh': [fuzzy_digits],
+                        'idnssoaretry': [fuzzy_digits],
+                        'idnssoaexpire': [fuzzy_digits],
+                        'idnssoaminimum': [fuzzy_digits],
+                        'idnsallowdynupdate': [False],
+                        'idnsupdatepolicy': [
+                            'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                            % dict(realm=api.env.realm, zone=revzone1_dnsname)
+                        ],
+                        'idnsallowtransfer': ['none;'],
+                        'idnsallowquery': ['any;'],
+                    },
+                    {
+                        'dn': zone1_dn,
+                        'idnsname': [zone1_absolute_dnsname],
+                        'idnszoneactive': [True],
+                        'nsrecord': nameservers,
+                        'idnssoamname': [self_server_ns_dnsname],
+                        'idnssoarname': [zone1_rname_dnsname],
+                        'idnssoaserial': [fuzzy_digits],
+                        'idnssoarefresh': ['5478'],
+                        'idnssoaretry': [fuzzy_digits],
+                        'idnssoaexpire': [fuzzy_digits],
+                        'idnssoaminimum': [fuzzy_digits],
+                        'idnsallowtransfer': ['none;'],
+                        'idnsallowquery': ['any;'],
+                        'idnsallowdynupdate': [False],
+                        'idnsupdatepolicy': [
+                            'grant %(realm)s krb5-self * A; '
+                            'grant %(realm)s krb5-self * AAAA; '
+                            'grant %(realm)s krb5-self * SSHFP;'
+                            % dict(realm=api.env.realm)
+                        ],
+                    },
+                ],
             },
         ),
-
-
         dict(
-            desc='Search for zones with admin email %r with --forward-only' % zone1_rname,
-            command=('dnszone_find', [], {'idnssoarname': zone1_rname, 'forward_only' : True}),
+            desc='Search for zones with admin email %r with --forward-only'
+            % zone1_rname,
+            command=(
+                'dnszone_find',
+                [],
+                {'idnssoarname': zone1_rname, 'forward_only': True},
+            ),
             expected={
                 'summary': None,
                 'count': 1,
                 'truncated': False,
-                'result': [{
-                    'dn': zone1_dn,
-                    'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [True],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': ['5478'],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': ['none;'],
-                    'idnsallowquery': ['any;'],
-                    'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                }],
+                'result': [
+                    {
+                        'dn': zone1_dn,
+                        'idnsname': [zone1_absolute_dnsname],
+                        'idnszoneactive': [True],
+                        'nsrecord': nameservers,
+                        'idnssoamname': [self_server_ns_dnsname],
+                        'idnssoarname': [zone1_rname_dnsname],
+                        'idnssoaserial': [fuzzy_digits],
+                        'idnssoarefresh': ['5478'],
+                        'idnssoaretry': [fuzzy_digits],
+                        'idnssoaexpire': [fuzzy_digits],
+                        'idnssoaminimum': [fuzzy_digits],
+                        'idnsallowtransfer': ['none;'],
+                        'idnsallowquery': ['any;'],
+                        'idnsallowdynupdate': [False],
+                        'idnsupdatepolicy': [
+                            'grant %(realm)s krb5-self * A; '
+                            'grant %(realm)s krb5-self * AAAA; '
+                            'grant %(realm)s krb5-self * SSHFP;'
+                            % dict(realm=api.env.realm)
+                        ],
+                    }
+                ],
             },
         ),
-
-
         dict(
             desc='Delete reverse zone %r' % revzone1,
             command=('dnszone_del', [revzone1], {}),
@@ -1071,32 +1112,29 @@ class test_dns(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Try to retrieve non-existent record %r in zone %r' % (name1, zone1),
+            desc='Try to retrieve non-existent record %r in zone %r'
+            % (name1, zone1),
             command=('dnsrecord_show', [zone1, name1], {}),
             expected=errors.NotFound(
-                reason='%s: DNS resource record not found' % name1),
+                reason='%s: DNS resource record not found' % name1
+            ),
         ),
-
-
         dict(
-            desc='Try to delete non-existent record %r in zone %r' % (name1, zone1),
-            command=('dnsrecord_del', [zone1, name1], {'del_all' : True}),
+            desc='Try to delete non-existent record %r in zone %r'
+            % (name1, zone1),
+            command=('dnsrecord_del', [zone1, name1], {'del_all': True}),
             expected=errors.NotFound(
-                reason='%s: DNS resource record not found' % name1),
+                reason='%s: DNS resource record not found' % name1
+            ),
         ),
-
-
         dict(
-            desc='Try to delete root zone record \'@\' in %r' % (zone1),
-            command=('dnsrecord_del', [zone1, '@'], {'del_all' : True}),
-            expected=errors.ValidationError(name='del_all',
-                error="Zone record '@' cannot be deleted"),
+            desc="Try to delete root zone record '@' in %r" % (zone1),
+            command=('dnsrecord_del', [zone1, '@'], {'del_all': True}),
+            expected=errors.ValidationError(
+                name='del_all', error="Zone record '@' cannot be deleted"
+            ),
         ),
-
-
         dict(
             desc='Create single A record %r in zone %r' % (name1, zone1),
             command=('dnsrecord_add', [zone1, name1], {'arecord': arec2}),
@@ -1111,8 +1149,6 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Search for all records in zone %r' % zone1,
             command=('dnsrecord_find', [zone1], {}),
@@ -1139,23 +1175,22 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Delete single A record from %r in zone %r' % (name1, zone1),
             command=('dnsrecord_del', [zone1, name1], {'arecord': arec2}),
             expected={
                 'value': [name1_dnsname],
-                'summary': u'Deleted record "%s"' % name1,
+                'summary': 'Deleted record "%s"' % name1,
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Add multiple A records to %r in zone %r' % (name1, zone1),
-            command=('dnsrecord_add', [zone1, name1],
-                     {'arecord': [arec2, arec3]}),
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'arecord': [arec2, arec3]},
+            ),
             expected={
                 'value': name1_dnsname,
                 'summary': None,
@@ -1167,21 +1202,20 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Delete multiple A records from %r in zone %r' % (
-                name1, zone1),
-            command=('dnsrecord_del', [zone1, name1],
-                     {'arecord': [arec2, arec3]}),
+            desc='Delete multiple A records from %r in zone %r'
+            % (name1, zone1),
+            command=(
+                'dnsrecord_del',
+                [zone1, name1],
+                {'arecord': [arec2, arec3]},
+            ),
             expected={
                 'value': [name1_dnsname],
-                'summary': u'Deleted record "%s"' % name1,
+                'summary': 'Deleted record "%s"' % name1,
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Re-add A record %r for subsequent tests' % arec3,
             command=('dnsrecord_add', [zone1, name1], {'arecord': arec3}),
@@ -1196,10 +1230,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Add AAAA record to %r in zone %r using dnsrecord_mod' % (name1, zone1),
+            desc='Add AAAA record to %r in zone %r using dnsrecord_mod'
+            % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'aaaarecord': '::1'}),
             expected={
                 'value': name1_dnsname,
@@ -1211,23 +1244,20 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Try to modify nonexistent record in zone %r' % zone1,
-            command=('dnsrecord_mod',
+            command=(
+                'dnsrecord_mod',
                 [zone1, 'ghostname'],
-                {'aaaarecord': 'f001:baad::1'}),
+                {'aaaarecord': 'f001:baad::1'},
+            ),
             expected=errors.NotFound(
-                reason='ghostname: DNS resource record not found'),
+                reason='ghostname: DNS resource record not found'
+            ),
         ),
-
-
         dict(
             desc='Modify AAAA record in %r in zone %r' % (name1, zone1),
-            command=(
-                'dnsrecord_mod', [zone1, name1], {'aaaarecord': aaaarec1}
-            ),
+            command=('dnsrecord_mod', [zone1, name1], {'aaaarecord': aaaarec1}),
             expected={
                 'value': name1_dnsname,
                 'summary': None,
@@ -1238,22 +1268,31 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
-            desc=('Show record %r in zone %r with --structured and --all '
-                  'options' % (name1, zone1)),
-            command=('dnsrecord_show', [zone1, name1],
-                     {'structured': True, 'all': True}),
+            desc=(
+                'Show record %r in zone %r with --structured and --all '
+                'options' % (name1, zone1)
+            ),
+            command=(
+                'dnsrecord_show',
+                [zone1, name1],
+                {'structured': True, 'all': True},
+            ),
             expected=lambda o, x: (
-                'result' in x and
-                'dnsrecords' in x['result'] and
-                (len(x['result']['dnsrecords']) in (1, 2)) and
-                (any(y['dnsdata'] in (aaaarec1, arec3)
-                     for y in x['result']['dnsrecords']))),
+                'result' in x
+                and 'dnsrecords' in x['result']
+                and (len(x['result']['dnsrecords']) in (1, 2))
+                and (
+                    any(
+                        y['dnsdata'] in (aaaarec1, arec3)
+                        for y in x['result']['dnsrecords']
+                    )
+                )
+            ),
         ),
-
         dict(
-            desc='Remove AAAA record from %r in zone %r using dnsrecord_mod' % (name1, zone1),
+            desc='Remove AAAA record from %r in zone %r using dnsrecord_mod'
+            % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'aaaarecord': ''}),
             expected={
                 'value': name1_dnsname,
@@ -1264,34 +1303,30 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Try to add invalid AAAA record to %r in zone %r' % (
-                name1, zone1),
-            command=('dnsrecord_add', [zone1, name1],
-                     {'aaaarecord': u'invalid:ipv6:addr'}),
+            desc='Try to add invalid AAAA record to %r in zone %r'
+            % (name1, zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'aaaarecord': 'invalid:ipv6:addr'},
+            ),
             expected=errors.ValidationError(
-                name='ip_address',
-                error=u'invalid IP address format'),
+                name='ip_address', error='invalid IP address format'
+            ),
         ),
-
-
         # Test for BZ 789919: IP address with three octets should be rejected
         dict(
             desc='Try to add A record with 3-octet IP to %r in zone %r '
-                 '(BZ 789919)' % (name1, zone1),
-            command=('dnsrecord_add', [zone1, name1],
-                     {'arecord': u'1.1.1'}),
+            '(BZ 789919)' % (name1, zone1),
+            command=('dnsrecord_add', [zone1, name1], {'arecord': '1.1.1'}),
             expected=errors.ValidationError(
-                name='ip_address',
-                error=u'invalid IP address format'),
+                name='ip_address', error='invalid IP address format'
+            ),
         ),
-
-
         dict(
-            desc='Add AAAA record to %r in zone %r using dnsrecord_add' % (
-                name1, zone1),
+            desc='Add AAAA record to %r in zone %r using dnsrecord_add'
+            % (name1, zone1),
             command=('dnsrecord_add', [zone1, name1], {'aaaarecord': aaaarec1}),
             expected={
                 'value': name1_dnsname,
@@ -1305,11 +1340,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Delete AAAA record from %r in zone %r using dnsrecord_del' % (
-                name1, zone1),
+            desc='Delete AAAA record from %r in zone %r using dnsrecord_del'
+            % (name1, zone1),
             command=('dnsrecord_del', [zone1, name1], {'aaaarecord': aaaarec1}),
             expected={
                 'value': [name1_dnsname],
@@ -1320,29 +1353,36 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         # Test for BZ 789987: error when deleting non-existent AAAA value
         dict(
             desc='Try to delete non-existent AAAA record value from %r '
-                 '(BZ 789987)' % name1,
-            command=('dnsrecord_del', [zone1, name1],
-                     {'aaaarecord': u'2620:52:0:41c9:5054:ff:fe62:65'}),
+            '(BZ 789987)' % name1,
+            command=(
+                'dnsrecord_del',
+                [zone1, name1],
+                {'aaaarecord': '2620:52:0:41c9:5054:ff:fe62:65'},
+            ),
             expected=errors.AttrValueNotFound(
-                attr='AAAA record',
-                value=u'2620:52:0:41c9:5054:ff:fe62:65'),
+                attr='AAAA record', value='2620:52:0:41c9:5054:ff:fe62:65'
+            ),
         ),
-
         dict(
-            desc='Try to add invalid MX record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, '@'], {'mxrecord': zone1_ns }),
-            expected=errors.ValidationError(name='mx_rec',
-                error='format must be specified as "PREFERENCE EXCHANGER" ' +
-                    ' (see RFC 1035 for details)'),
+            desc='Try to add invalid MX record to zone %r using dnsrecord_add'
+            % (zone1),
+            command=('dnsrecord_add', [zone1, '@'], {'mxrecord': zone1_ns}),
+            expected=errors.ValidationError(
+                name='mx_rec',
+                error='format must be specified as "PREFERENCE EXCHANGER" '
+                + ' (see RFC 1035 for details)',
+            ),
         ),
-
         dict(
             desc='Add MX record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, '@'], {'mxrecord': "0 %s" % zone1_ns }),
+            command=(
+                'dnsrecord_add',
+                [zone1, '@'],
+                {'mxrecord': '0 %s' % zone1_ns},
+            ),
             expected={
                 'value': _dns_zone_record,
                 'summary': None,
@@ -1350,39 +1390,54 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                     'dn': zone1_dn,
                     'idnsname': [_dns_zone_record],
-                    'mxrecord': ["0 %s" % zone1_ns],
+                    'mxrecord': ['0 %s' % zone1_ns],
                     'nsrecord': nameservers,
                 },
             },
         ),
-
         dict(
-            desc='Try to add invalid SRV record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, '_foo._tcp'], {'srvrecord': zone1_ns}),
-            expected=errors.ValidationError(name='srv_rec',
-                error='format must be specified as "PRIORITY WEIGHT PORT TARGET" ' +
-                    ' (see RFC 2782 for details)'),
-        ),
-
-
-        dict(
-            desc='Try to add SRV record to zone %r both via parts and a raw value' % (zone1),
-            command=('dnsrecord_add', [zone1, '_foo._tcp'], {'srv_part_priority': 0,
-                                                                 'srv_part_weight' : 0,
-                                                                 'srv_part_port' : 123,
-                                                                 'srv_part_target' : 'foo.bar.',
-                                                                 'srvrecord': ["1 100 1234 %s" \
-                                                                     % zone1_ns]}),
-            expected=lambda x, output: (
-                type(x) == errors.ValidationError and
-                str(x).endswith('Raw value of a DNS record was already '
-                                'set by "srv_rec" option'),
+            desc='Try to add invalid SRV record to zone %r using dnsrecord_add'
+            % (zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, '_foo._tcp'],
+                {'srvrecord': zone1_ns},
+            ),
+            expected=errors.ValidationError(
+                name='srv_rec',
+                error='format must be specified as "PRIORITY WEIGHT PORT TARGET" '
+                + ' (see RFC 2782 for details)',
             ),
         ),
-
+        dict(
+            desc='Try to add SRV record to zone %r both via parts and a raw value'
+            % (zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, '_foo._tcp'],
+                {
+                    'srv_part_priority': 0,
+                    'srv_part_weight': 0,
+                    'srv_part_port': 123,
+                    'srv_part_target': 'foo.bar.',
+                    'srvrecord': ['1 100 1234 %s' % zone1_ns],
+                },
+            ),
+            expected=lambda x, output: (
+                type(x) == errors.ValidationError
+                and str(x).endswith(
+                    'Raw value of a DNS record was already '
+                    'set by "srv_rec" option'
+                ),
+            ),
+        ),
         dict(
             desc='Add SRV record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, '_foo._tcp'], {'srvrecord': "0 100 1234 %s" % zone1_ns}),
+            command=(
+                'dnsrecord_add',
+                [zone1, '_foo._tcp'],
+                {'srvrecord': '0 100 1234 %s' % zone1_ns},
+            ),
             expected={
                 'value': DNSName('_foo._tcp'),
                 'summary': None,
@@ -1390,56 +1445,92 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnsrecord,
                     'dn': DN(('idnsname', '_foo._tcp'), zone1_dn),
                     'idnsname': [DNSName('_foo._tcp')],
-                    'srvrecord': ["0 100 1234 %s" % zone1_ns],
+                    'srvrecord': ['0 100 1234 %s' % zone1_ns],
                 },
             },
         ),
-
         dict(
-            desc='Try to modify SRV record in zone %r without specifying modified value' % (zone1),
-            command=('dnsrecord_mod', [zone1, '_foo._tcp'], {'srv_part_priority': 1,}),
+            desc='Try to modify SRV record in zone %r without specifying modified value'
+            % (zone1),
+            command=(
+                'dnsrecord_mod',
+                [zone1, '_foo._tcp'],
+                {
+                    'srv_part_priority': 1,
+                },
+            ),
             expected=errors.RequirementError(name='srv_rec'),
         ),
-
         dict(
-            desc='Try to modify SRV record in zone %r with non-existent modified value' % (zone1),
-            command=('dnsrecord_mod', [zone1, '_foo._tcp'], {'srv_part_priority': 1,
-                                                  'srvrecord' : ["0 100 1234 %s" % absnxname] }),
-            expected=errors.AttrValueNotFound(attr='SRV record',
-                value='0 100 1234 %s' % absnxname),
+            desc='Try to modify SRV record in zone %r with non-existent modified value'
+            % (zone1),
+            command=(
+                'dnsrecord_mod',
+                [zone1, '_foo._tcp'],
+                {
+                    'srv_part_priority': 1,
+                    'srvrecord': ['0 100 1234 %s' % absnxname],
+                },
+            ),
+            expected=errors.AttrValueNotFound(
+                attr='SRV record', value='0 100 1234 %s' % absnxname
+            ),
         ),
-
         dict(
-            desc='Try to modify SRV record in zone %r with invalid part value' % (zone1),
-            command=('dnsrecord_mod', [zone1, '_foo._tcp'], {'srv_part_priority': 100000,
-                                                  'srvrecord' : ["0 100 1234 %s" % zone1_ns] }),
-            expected=errors.ValidationError(name='srv_priority', error='can be at most 65535'),
+            desc='Try to modify SRV record in zone %r with invalid part value'
+            % (zone1),
+            command=(
+                'dnsrecord_mod',
+                [zone1, '_foo._tcp'],
+                {
+                    'srv_part_priority': 100000,
+                    'srvrecord': ['0 100 1234 %s' % zone1_ns],
+                },
+            ),
+            expected=errors.ValidationError(
+                name='srv_priority', error='can be at most 65535'
+            ),
         ),
-
         dict(
             desc='Modify SRV record in zone %r using parts' % (zone1),
-            command=('dnsrecord_mod', [zone1, '_foo._tcp'], {'srv_part_priority': 1,
-                                                  'srvrecord' : ["0 100 1234 %s" % zone1_ns] }),
+            command=(
+                'dnsrecord_mod',
+                [zone1, '_foo._tcp'],
+                {
+                    'srv_part_priority': 1,
+                    'srvrecord': ['0 100 1234 %s' % zone1_ns],
+                },
+            ),
             expected={
                 'value': DNSName('_foo._tcp'),
                 'summary': None,
                 'result': {
                     'idnsname': [DNSName('_foo._tcp')],
-                    'srvrecord': ["1 100 1234 %s" % zone1_ns],
+                    'srvrecord': ['1 100 1234 %s' % zone1_ns],
                 },
             },
         ),
-
         dict(
-            desc='Try to add invalid LOC record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, '@'], {'locrecord': "91 11 42.4 N 16 36 29.6 E 227.64" }),
-            expected=errors.ValidationError(name='lat_deg',
-                error='can be at most 90'),
+            desc='Try to add invalid LOC record to zone %r using dnsrecord_add'
+            % (zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, '@'],
+                {'locrecord': '91 11 42.4 N 16 36 29.6 E 227.64'},
+            ),
+            expected=errors.ValidationError(
+                name='lat_deg', error='can be at most 90'
+            ),
         ),
-
         dict(
             desc='Add LOC record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, '@'], {'locrecord': "49 11 42.4 N 16 36 29.6 E 227.64m 10m 10.0m 0.1"}),
+            command=(
+                'dnsrecord_add',
+                [zone1, '@'],
+                {
+                    'locrecord': '49 11 42.4 N 16 36 29.6 E 227.64m 10m 10.0m 0.1'
+                },
+            ),
             expected={
                 'value': _dns_zone_record,
                 'summary': None,
@@ -1447,63 +1538,79 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                     'dn': zone1_dn,
                     'idnsname': [_dns_zone_record],
-                    'mxrecord': ["0 %s" % zone1_ns],
+                    'mxrecord': ['0 %s' % zone1_ns],
                     'nsrecord': nameservers,
-                    'locrecord': ["49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                    'locrecord': [
+                        '49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10'
+                    ],
                 },
             },
         ),
-
-
         dict(
             desc='Add NAPTR record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, u'_naptr'],
-                     {'naptrrecord': u'100 10 "U" "E2U+sip" "" _sip._udp'}),
+            command=(
+                'dnsrecord_add',
+                [zone1, '_naptr'],
+                {'naptrrecord': '100 10 "U" "E2U+sip" "" _sip._udp'},
+            ),
             expected={
-                'value': DNSName(u'_naptr'),
+                'value': DNSName('_naptr'),
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': DN(('idnsname', '_naptr'), zone1_dn),
-                    'idnsname': [DNSName(u'_naptr')],
-                    'naptrrecord': [u'100 10 "U" "E2U+sip" "" _sip._udp'],
+                    'idnsname': [DNSName('_naptr')],
+                    'naptrrecord': ['100 10 "U" "E2U+sip" "" _sip._udp'],
                 },
             },
         ),
-
-
         dict(
-            desc='Delete NAPTR record from zone %r using dnsrecord_del' % (
-                zone1),
-            command=('dnsrecord_del', [zone1, u'_naptr'],
-                     {'naptrrecord': u'100 10 "U" "E2U+sip" "" _sip._udp'}),
+            desc='Delete NAPTR record from zone %r using dnsrecord_del'
+            % (zone1),
+            command=(
+                'dnsrecord_del',
+                [zone1, '_naptr'],
+                {'naptrrecord': '100 10 "U" "E2U+sip" "" _sip._udp'},
+            ),
             expected={
-                'value': [DNSName(u'_naptr')],
-                'summary': u'Deleted record "%s"' % u'_naptr',
+                'value': [DNSName('_naptr')],
+                'summary': 'Deleted record "%s"' % '_naptr',
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Try to add CNAME record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'cnamerecord': absnxname}),
-            expected=errors.ValidationError(name='cnamerecord',
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'cnamerecord': absnxname},
+            ),
+            expected=errors.ValidationError(
+                name='cnamerecord',
                 error='CNAME record is not allowed to coexist with any other '
-                      'record (RFC 1034, section 3.6.2)'),
+                'record (RFC 1034, section 3.6.2)',
+            ),
         ),
-
         dict(
-            desc='Try to add multiple CNAME record %r using dnsrecord_add' % (cname),
-            command=('dnsrecord_add', [zone1, cname], {'cnamerecord':
-                ['1.%s' % absnxname, '2.%s' % absnxname]}),
-            expected=errors.ValidationError(name='cnamerecord',
-                error='only one CNAME record is allowed per name (RFC 2136, section 1.1.5)'),
+            desc='Try to add multiple CNAME record %r using dnsrecord_add'
+            % (cname),
+            command=(
+                'dnsrecord_add',
+                [zone1, cname],
+                {'cnamerecord': ['1.%s' % absnxname, '2.%s' % absnxname]},
+            ),
+            expected=errors.ValidationError(
+                name='cnamerecord',
+                error='only one CNAME record is allowed per name (RFC 2136, section 1.1.5)',
+            ),
         ),
-
         dict(
             desc='Add CNAME record to %r using dnsrecord_add' % (cname),
-            command=('dnsrecord_add', [zone1, cname], {'cnamerecord': absnxname}),
+            command=(
+                'dnsrecord_add',
+                [zone1, cname],
+                {'cnamerecord': absnxname},
+            ),
             expected={
                 'value': cname_dnsname,
                 'summary': None,
@@ -1515,27 +1622,34 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
-            desc='Try to add other record to CNAME record %r using dnsrecord_add' % (cname),
+            desc='Try to add other record to CNAME record %r using dnsrecord_add'
+            % (cname),
             command=('dnsrecord_add', [zone1, cname], {'arecord': arec1}),
-            expected=errors.ValidationError(name='cnamerecord',
+            expected=errors.ValidationError(
+                name='cnamerecord',
                 error='CNAME record is not allowed to coexist with any other '
-                      'record (RFC 1034, section 3.6.2)'),
+                'record (RFC 1034, section 3.6.2)',
+            ),
         ),
-
         dict(
-            desc='Try to add other record to CNAME record %r using dnsrecord_mod' % (cname),
+            desc='Try to add other record to CNAME record %r using dnsrecord_mod'
+            % (cname),
             command=('dnsrecord_mod', [zone1, cname], {'arecord': arec1}),
-            expected=errors.ValidationError(name='cnamerecord',
+            expected=errors.ValidationError(
+                name='cnamerecord',
                 error='CNAME record is not allowed to coexist with any other '
-                      'record (RFC 1034, section 3.6.2)'),
+                'record (RFC 1034, section 3.6.2)',
+            ),
         ),
-
         dict(
-            desc='Add A record and delete CNAME record in %r with dnsrecord_mod' % (cname),
-            command=('dnsrecord_mod', [zone1, cname], {'arecord': arec1,
-                                                                'cnamerecord': None}),
+            desc='Add A record and delete CNAME record in %r with dnsrecord_mod'
+            % (cname),
+            command=(
+                'dnsrecord_mod',
+                [zone1, cname],
+                {'arecord': arec1, 'cnamerecord': None},
+            ),
             expected={
                 'value': cname_dnsname,
                 'summary': None,
@@ -1545,20 +1659,31 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
-            desc='Try to add multiple DNAME records to %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, name1], {'dnamerecord':
-                ['foo-1.%s' % absnxname, 'foo-2.%s' % absnxname]}),
-            expected=errors.ValidationError(name='dnamerecord',
-                error='only one DNAME record is allowed per name (RFC 6672, section 2.4)'),
+            desc='Try to add multiple DNAME records to %r using dnsrecord_add'
+            % (dname),
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {
+                    'dnamerecord': [
+                        'foo-1.%s' % absnxname,
+                        'foo-2.%s' % absnxname,
+                    ]
+                },
+            ),
+            expected=errors.ValidationError(
+                name='dnamerecord',
+                error='only one DNAME record is allowed per name (RFC 6672, section 2.4)',
+            ),
         ),
-
-
         dict(
             desc='Add DNAME record to %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, dname],
-                {'dnamerecord': 'd.%s' % absnxname, 'arecord': arec1}),
+            command=(
+                'dnsrecord_add',
+                [zone1, dname],
+                {'dnamerecord': 'd.%s' % absnxname, 'arecord': arec1},
+            ),
             expected={
                 'value': dname_dnsname,
                 'summary': None,
@@ -1571,92 +1696,109 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Try to add CNAME record to %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, dname], {'cnamerecord': 'foo-1.%s'
-                % absnxname}),
-            expected=errors.ValidationError(name='cnamerecord',
+            command=(
+                'dnsrecord_add',
+                [zone1, dname],
+                {'cnamerecord': 'foo-1.%s' % absnxname},
+            ),
+            expected=errors.ValidationError(
+                name='cnamerecord',
                 error='CNAME record is not allowed to coexist with any other '
-                      'record (RFC 1034, section 3.6.2)'),
+                'record (RFC 1034, section 3.6.2)',
+            ),
         ),
-
         dict(
             desc='Try to add NS record to %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, dname],
-                {'nsrecord': '%s.%s.' % (name1, zone1)}),
-            expected=errors.ValidationError(name='nsrecord',
+            command=(
+                'dnsrecord_add',
+                [zone1, dname],
+                {'nsrecord': '%s.%s.' % (name1, zone1)},
+            ),
+            expected=errors.ValidationError(
+                name='nsrecord',
                 error='NS record is not allowed to coexist with an DNAME '
-                      'record except when located in a zone root record '
-                      '(RFC 2181, section 6.1)'),
+                'record except when located in a zone root record '
+                '(RFC 2181, section 6.1)',
+            ),
         ),
-
-
         dict(
             desc='Add DNAME record with underscore to zone %r' % (zone1),
-            command=('dnsrecord_add', [zone1, u'bar_underscore'],
-                     {'dnamerecord': absnxname}),
+            command=(
+                'dnsrecord_add',
+                [zone1, 'bar_underscore'],
+                {'dnamerecord': absnxname},
+            ),
             expected={
-                'value': DNSName(u'bar_underscore'),
+                'value': DNSName('bar_underscore'),
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': DN(('idnsname', 'bar_underscore'), zone1_dn),
-                    'idnsname': [DNSName(u'bar_underscore')],
+                    'idnsname': [DNSName('bar_underscore')],
                     'dnamerecord': [absnxname],
                 },
             },
         ),
-
-
         dict(
             desc='Delete DNAME record with underscore from zone %r' % (zone1),
-            command=('dnsrecord_del', [zone1, u'bar_underscore'],
-                     {'dnamerecord': absnxname}),
+            command=(
+                'dnsrecord_del',
+                [zone1, 'bar_underscore'],
+                {'dnamerecord': absnxname},
+            ),
             expected={
-                'value': [DNSName(u'bar_underscore')],
-                'summary': u'Deleted record "%s"' % u'bar_underscore',
+                'value': [DNSName('bar_underscore')],
+                'summary': 'Deleted record "%s"' % 'bar_underscore',
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Add CERT record to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, u'_cert'],
-                     {'certrecord': u'1 1 1 F835EDA21E94B565716F'}),
+            command=(
+                'dnsrecord_add',
+                [zone1, '_cert'],
+                {'certrecord': '1 1 1 F835EDA21E94B565716F'},
+            ),
             expected={
-                'value': DNSName(u'_cert'),
+                'value': DNSName('_cert'),
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': DN(('idnsname', '_cert'), zone1_dn),
-                    'idnsname': [DNSName(u'_cert')],
-                    'certrecord': [u'1 1 1 F835EDA21E94B565716F'],
+                    'idnsname': [DNSName('_cert')],
+                    'certrecord': ['1 1 1 F835EDA21E94B565716F'],
                 },
             },
         ),
-
-
         dict(
-            desc='Delete CERT record from zone %r using dnsrecord_del' % (
-                zone1),
-            command=('dnsrecord_del', [zone1, u'_cert'],
-                     {'certrecord': u'1 1 1 F835EDA21E94B565716F'}),
+            desc='Delete CERT record from zone %r using dnsrecord_del'
+            % (zone1),
+            command=(
+                'dnsrecord_del',
+                [zone1, '_cert'],
+                {'certrecord': '1 1 1 F835EDA21E94B565716F'},
+            ),
             expected={
-                'value': [DNSName(u'_cert')],
-                'summary': u'Deleted record "%s"' % u'_cert',
+                'value': [DNSName('_cert')],
+                'summary': 'Deleted record "%s"' % '_cert',
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Add NS+DNAME record to %r zone record using dnsrecord_add' % (zone2),
-            command=('dnsrecord_add', [zone2, '@'],
-                {'dnamerecord': 'd.%s' % absnxname,
-                 'nsrecord': zone1_ns, 'force': True}),
-            expected = {
+            desc='Add NS+DNAME record to %r zone record using dnsrecord_add'
+            % (zone2),
+            command=(
+                'dnsrecord_add',
+                [zone2, '@'],
+                {
+                    'dnamerecord': 'd.%s' % absnxname,
+                    'nsrecord': zone1_ns,
+                    'force': True,
+                },
+            ),
+            expected={
                 'value': _dns_zone_record,
                 'summary': None,
                 'result': {
@@ -1664,12 +1806,10 @@ class test_dns(Declarative):
                     'dnamerecord': ['d.%s' % absnxname],
                     'dn': zone2_dn,
                     'nsrecord': [zone1_ns] + nameservers,
-                    'idnsname': [_dns_zone_record]
-                }
+                    'idnsname': [_dns_zone_record],
+                },
             },
         ),
-
-
         dict(
             desc='Delete zone %r' % zone2,
             command=('dnszone_del', [zone2], {}),
@@ -1679,38 +1819,43 @@ class test_dns(Declarative):
                 'result': {'failed': []},
             },
         ),
-
         dict(
-            desc='Try to add invalid KX record %r using dnsrecord_add' % (name1),
+            desc='Try to add invalid KX record %r using dnsrecord_add'
+            % (name1),
             command=('dnsrecord_add', [zone1, name1], {'kxrecord': absnxname}),
-            expected=errors.ValidationError(name='kx_rec',
-                error='format must be specified as "PREFERENCE EXCHANGER" ' +
-                    ' (see RFC 2230 for details)'),
+            expected=errors.ValidationError(
+                name='kx_rec',
+                error='format must be specified as "PREFERENCE EXCHANGER" '
+                + ' (see RFC 2230 for details)',
+            ),
         ),
-
         # Test for BZ 738788: KX record with negative preference
         dict(
             desc='Try to add KX record with negative preference (BZ 738788)',
-            command=('dnsrecord_add', [zone1, name1],
-                     {'kxrecord': u'-1 1.2.3.4'}),
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'kxrecord': '-1 1.2.3.4'},
+            ),
             expected=errors.ValidationError(
-                name='preference',
-                error=u'must be at least 0'),
+                name='preference', error='must be at least 0'
+            ),
         ),
-
         # Test for BZ 738788: KX record with preference exceeding max
         dict(
             desc='Try to add KX record with preference > max (BZ 738788)',
-            command=('dnsrecord_add', [zone1, name1],
-                     {'kxrecord': u'333383838383 1.2.3.4'}),
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'kxrecord': '333383838383 1.2.3.4'},
+            ),
             expected=errors.ValidationError(
-                name='preference',
-                error=u'can be at most 65535'),
+                name='preference', error='can be at most 65535'
+            ),
         ),
-
         dict(
             desc='Add KX record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'kxrecord': '1 foo-1' }),
+            command=('dnsrecord_add', [zone1, name1], {'kxrecord': '1 foo-1'}),
             expected={
                 'value': name1_dnsname,
                 'summary': None,
@@ -1723,10 +1868,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Add TXT record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'txtrecord': 'foo bar' }),
+            command=('dnsrecord_add', [zone1, name1], {'txtrecord': 'foo bar'}),
             expected={
                 'value': name1_dnsname,
                 'summary': None,
@@ -1740,50 +1884,55 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Delete TXT record from %r using dnsrecord_del' % (name1),
-            command=('dnsrecord_del', [zone1, name1],
-                     {'txtrecord': u'foo bar'}),
+            command=('dnsrecord_del', [zone1, name1], {'txtrecord': 'foo bar'}),
             expected={
                 'value': [name1_dnsname],
                 'summary': None,
                 'result': {
                     'idnsname': [name1_dnsname],
                     'arecord': [arec3],
-                    'kxrecord': [u'1 foo-1'],
+                    'kxrecord': ['1 foo-1'],
                 },
             },
         ),
-
-
         dict(
-            desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (name_ns),
+            desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add'
+            % (name_ns),
             command=(
-                "dnsrecord_add",
+                'dnsrecord_add',
                 [zone1, name_ns],
-                {"nsrecord": "notexisted.%s" % zone1_absolute},
+                {'nsrecord': 'notexisted.%s' % zone1_absolute},
             ),
             expected=errors.NotFound(
                 reason=(
                     "Nameserver '%s' does not have a corresponding A/AAAA "
-                    "record" % "notexisted.%s" % zone1_absolute
+                    'record' % 'notexisted.%s' % zone1_absolute
                 ),
             ),
         ),
-
         dict(
-            desc='Try to add unresolvable relative NS record to %r using dnsrecord_add' % (name_ns),
-            command=('dnsrecord_add', [zone1, name_ns], {'nsrecord': relnxname}),
-            expected=errors.NotFound(reason="Nameserver '%s.%s.' does not "
-                "have a corresponding A/AAAA record" % (relnxname, zone1)),
+            desc='Try to add unresolvable relative NS record to %r using dnsrecord_add'
+            % (name_ns),
+            command=(
+                'dnsrecord_add',
+                [zone1, name_ns],
+                {'nsrecord': relnxname},
+            ),
+            expected=errors.NotFound(
+                reason="Nameserver '%s.%s.' does not "
+                'have a corresponding A/AAAA record' % (relnxname, zone1)
+            ),
         ),
-
         dict(
-            desc='Add unresolvable NS record with --force to %r using dnsrecord_add' % (name_ns),
-            command=('dnsrecord_add', [zone1, name_ns], {'nsrecord': absnxname,
-                                                            'force' : True}),
+            desc='Add unresolvable NS record with --force to %r using dnsrecord_add'
+            % (name_ns),
+            command=(
+                'dnsrecord_add',
+                [zone1, name_ns],
+                {'nsrecord': absnxname, 'force': True},
+            ),
             expected={
                 'value': name_ns_dnsname,
                 'summary': None,
@@ -1795,41 +1944,46 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Try to to rename DNS zone %r root record' % (zone1),
-            command=('dnsrecord_mod', [zone1, '@'], {'rename': 'renamed-zone',}),
-            expected=errors.ValidationError(name='rename',
-                           error='DNS zone root record cannot be renamed')
+            command=(
+                'dnsrecord_mod',
+                [zone1, '@'],
+                {
+                    'rename': 'renamed-zone',
+                },
+            ),
+            expected=errors.ValidationError(
+                name='rename', error='DNS zone root record cannot be renamed'
+            ),
         ),
-
-
         dict(
             desc='Rename DNS record %r to %r' % (name_ns, name_ns_renamed),
-            command=('dnsrecord_mod', [zone1, name_ns], {'rename': name_ns_renamed,}),
+            command=(
+                'dnsrecord_mod',
+                [zone1, name_ns],
+                {
+                    'rename': name_ns_renamed,
+                },
+            ),
             expected={
                 'value': name_ns_dnsname,
                 'summary': None,
                 'result': {
-                'idnsname': [name_ns_renamed_dnsname],
-                'nsrecord': [absnxname],
+                    'idnsname': [name_ns_renamed_dnsname],
+                    'nsrecord': [absnxname],
                 },
             },
         ),
-
-
         dict(
             desc='Delete record %r in zone %r' % (name1, zone1),
-            command=('dnsrecord_del', [zone1, name1],
-                     {'del_all': True}),
+            command=('dnsrecord_del', [zone1, name1], {'del_all': True}),
             expected={
                 'value': [name1_dnsname],
                 'summary': 'Deleted record "%s"' % name1,
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Add DLV record to %r using dnsrecord_add' % (dlv),
             command=('dnsrecord_add', [zone1, dlv], {'dlvrecord': dlvrec}),
@@ -1844,32 +1998,35 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Try to add DS record to zone %r apex, using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, zone1_absolute], {'dsrecord': ds_rec}),
+            desc='Try to add DS record to zone %r apex, using dnsrecord_add'
+            % (zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, zone1_absolute],
+                {'dsrecord': ds_rec},
+            ),
             expected=errors.ValidationError(
-                name="dsrecord",
-                error='DS record must not be in zone apex (RFC 4035 section 2.4)'
+                name='dsrecord',
+                error='DS record must not be in zone apex (RFC 4035 section 2.4)',
             ),
         ),
-
-
         dict(
-            desc='Try to add DS record %r without NS record in RRset, using dnsrecord_add' % (ds),
+            desc='Try to add DS record %r without NS record in RRset, using dnsrecord_add'
+            % (ds),
             command=('dnsrecord_add', [zone1, ds], {'dsrecord': ds_rec}),
             expected=errors.ValidationError(
-                name="dsrecord",
-                error='DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC 4035 section 2.4)'
+                name='dsrecord',
+                error='DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC 4035 section 2.4)',
             ),
         ),
-
-
         dict(
             desc='Add NS record to %r using dnsrecord_add' % (ds),
-            command=('dnsrecord_add', [zone1, ds],
-                     {'nsrecord': zone1_ns, 'force': True}),
+            command=(
+                'dnsrecord_add',
+                [zone1, ds],
+                {'nsrecord': zone1_ns, 'force': True},
+            ),
             expected={
                 'value': ds_dnsname,
                 'summary': None,
@@ -1881,12 +2038,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Add DS record to %r using dnsrecord_add' % (ds),
-            command=('dnsrecord_add', [zone1, ds],
-                     {'dsrecord': ds_rec}),
+            command=('dnsrecord_add', [zone1, ds], {'dsrecord': ds_rec}),
             expected={
                 'value': ds_dnsname,
                 'summary': None,
@@ -1899,30 +2053,28 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Try to delete NS record (with DS record) %r using dnsrecord_del' % (ds),
-            command=('dnsrecord_del', [zone1, ds],
-                     {'nsrecord': zone1_ns}),
+            desc='Try to delete NS record (with DS record) %r using dnsrecord_del'
+            % (ds),
+            command=('dnsrecord_del', [zone1, ds], {'nsrecord': zone1_ns}),
             expected=errors.ValidationError(
-                name="dsrecord",
-                error='DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC 4035 section 2.4)'
+                name='dsrecord',
+                error='DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC 4035 section 2.4)',
             ),
         ),
-
-
         dict(
             desc='Delete NS+DS record %r in zone %r' % (ds, zone1),
-            command=('dnsrecord_del', [zone1, ds], {'nsrecord': zone1_ns, 'dsrecord': ds_rec}),
+            command=(
+                'dnsrecord_del',
+                [zone1, ds],
+                {'nsrecord': zone1_ns, 'dsrecord': ds_rec},
+            ),
             expected={
                 'value': [ds_dnsname],
                 'summary': 'Deleted record "%s"' % ds,
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Delete record %r in zone %r' % (dlv, zone1),
             command=('dnsrecord_del', [zone1, dlv], {'del_all': True}),
@@ -1932,41 +2084,49 @@ class test_dns(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Try to add invalid TLSA record to %r using dnsrecord_add (1)' % (tlsa),
-            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_err1}),
+            desc='Try to add invalid TLSA record to %r using dnsrecord_add (1)'
+            % (tlsa),
+            command=(
+                'dnsrecord_add',
+                [zone1, tlsa],
+                {'tlsarecord': tlsarec_err1},
+            ),
             expected=errors.ValidationError(
-                name="cert_usage",
-                error='can be at most 255'
+                name='cert_usage', error='can be at most 255'
             ),
         ),
-
-
         dict(
-            desc='Try to add invalid TLSA record to %r using dnsrecord_add (2)' % (tlsa),
-            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_err2}),
+            desc='Try to add invalid TLSA record to %r using dnsrecord_add (2)'
+            % (tlsa),
+            command=(
+                'dnsrecord_add',
+                [zone1, tlsa],
+                {'tlsarecord': tlsarec_err2},
+            ),
             expected=errors.ValidationError(
-                name="selector",
-                error='can be at most 255'
+                name='selector', error='can be at most 255'
             ),
         ),
-
-
         dict(
-            desc='Try to add invalid TLSA record to %r using dnsrecord_add (3)' % (tlsa),
-            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_err3}),
+            desc='Try to add invalid TLSA record to %r using dnsrecord_add (3)'
+            % (tlsa),
+            command=(
+                'dnsrecord_add',
+                [zone1, tlsa],
+                {'tlsarecord': tlsarec_err3},
+            ),
             expected=errors.ValidationError(
-                name="matching_type",
-                error='can be at most 255'
+                name='matching_type', error='can be at most 255'
             ),
         ),
-
-
         dict(
             desc='Add TLSA record to %r using dnsrecord_add' % (tlsa),
-            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_ok}),
+            command=(
+                'dnsrecord_add',
+                [zone1, tlsa],
+                {'tlsarecord': tlsarec_ok},
+            ),
             expected={
                 'value': tlsa_dnsname,
                 'summary': None,
@@ -1978,10 +2138,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Remove record using dnsrecord-mod %r in zone %r' % (tlsa, zone1),
+            desc='Remove record using dnsrecord-mod %r in zone %r'
+            % (tlsa, zone1),
             command=('dnsrecord_mod', [zone1, tlsa], {'tlsarecord': ''}),
             expected={
                 'value': tlsa_dnsname,
@@ -1989,28 +2148,31 @@ class test_dns(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Try to create a reverse zone from invalid IP',
             command=(
-                'dnszone_add', [], {
+                'dnszone_add',
+                [],
+                {
                     'name_from_ip': 'foo',
                     'idnssoamname': zone1_ns,
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
-            expected=errors.ValidationError(name='name_from_ip',
-                error='invalid IP network format'),
+            expected=errors.ValidationError(
+                name='name_from_ip', error='invalid IP network format'
+            ),
         ),
-
         dict(
-            desc='Create reverse zone from IP/netmask %r using name_from_ip option' % revzone1_ip,
+            desc='Create reverse zone from IP/netmask %r using name_from_ip option'
+            % revzone1_ip,
             command=(
-                'dnszone_add', [], {
+                'dnszone_add',
+                [],
+                {
                     'name_from_ip': revzone1_ip,
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
             expected={
                 'value': revzone1_dnsname,
@@ -2028,23 +2190,26 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revzone1)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                        % dict(realm=api.env.realm, zone=revzone1)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
-
         dict(
-            desc='Create reverse zone from IP %r using name_from_ip option' % revzone2_ip,
+            desc='Create reverse zone from IP %r using name_from_ip option'
+            % revzone2_ip,
             command=(
-                'dnszone_add', [], {
+                'dnszone_add',
+                [],
+                {
                     'name_from_ip': revzone2_ip,
                     'idnssoarname': zone1_rname,
-                }
+                },
             ),
             expected={
                 'value': revzone2_dnsname,
@@ -2062,19 +2227,24 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revzone2)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                        % dict(realm=api.env.realm, zone=revzone2)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
-
         dict(
-            desc='Add PTR record %r to %r using dnsrecord_add' % (revname1, revzone1),
-            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': absnxname}),
+            desc='Add PTR record %r to %r using dnsrecord_add'
+            % (revname1, revzone1),
+            command=(
+                'dnsrecord_add',
+                [revzone1, revname1],
+                {'ptrrecord': absnxname},
+            ),
             expected={
                 'value': revname1_dnsname,
                 'summary': None,
@@ -2086,12 +2256,14 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
-            desc='Show record %r in zone %r with --structured and --all options'\
-                    % (revname1, revzone1),
-            command=('dnsrecord_show', [revzone1, revname1],
-                {'structured': True, 'all': True}),
+            desc='Show record %r in zone %r with --structured and --all options'
+            % (revname1, revzone1),
+            command=(
+                'dnsrecord_show',
+                [revzone1, revname1],
+                {'structured': True, 'all': True},
+            ),
             expected={
                 'value': revname1_dnsname,
                 'summary': None,
@@ -2109,26 +2281,28 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Delete PTR record %r from %r using dnsrecord_del' % (
-                revname1, revzone1),
-            command=('dnsrecord_del', [revzone1, revname1],
-                     {'ptrrecord': absnxname}),
+            desc='Delete PTR record %r from %r using dnsrecord_del'
+            % (revname1, revzone1),
+            command=(
+                'dnsrecord_del',
+                [revzone1, revname1],
+                {'ptrrecord': absnxname},
+            ),
             expected={
                 'value': [revname1_dnsname],
-                'summary': u'Deleted record "%s"' % revname1,
+                'summary': 'Deleted record "%s"' % revname1,
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Re-add PTR record %r to %r for subsequent tests' % (
-                revname1, revzone1),
-            command=('dnsrecord_add', [revzone1, revname1],
-                     {'ptrrecord': absnxname}),
+            desc='Re-add PTR record %r to %r for subsequent tests'
+            % (revname1, revzone1),
+            command=(
+                'dnsrecord_add',
+                [revzone1, revname1],
+                {'ptrrecord': absnxname},
+            ),
             expected={
                 'value': revname1_dnsname,
                 'summary': None,
@@ -2140,31 +2314,41 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Update global DNS settings',
-            command=('dnsconfig_mod', [], {'idnsforwarders' : [fwd_ip],}),
+            command=(
+                'dnsconfig_mod',
+                [],
+                {
+                    'idnsforwarders': [fwd_ip],
+                },
+            ),
             expected={
                 'value': None,
                 'summary': None,
                 'messages': (
-                    {'message': lambda x: x.startswith(
-                        "Forwarding policy conflicts with some "
-                        "automatic empty zones."),
-                     'code': 13021,
-                     'type': 'warning',
-                     'name': 'DNSForwardPolicyConflictWithEmptyZone',
-                     'data': {}},
-                    {'message': lambda x: x.startswith(
-                        "DNS server %s: query '. SOA':" % fwd_ip),
-                     'code': 13006,
-                     'type':'warning',
-                     'name': 'DNSServerValidationWarning',
-                     'data': {
-                        'error': lambda x: x.startswith("query '. SOA':"),
-                        'server': "%s" % fwd_ip
-                     }},
+                    {
+                        'message': lambda x: x.startswith(
+                            'Forwarding policy conflicts with some '
+                            'automatic empty zones.'
+                        ),
+                        'code': 13021,
+                        'type': 'warning',
+                        'name': 'DNSForwardPolicyConflictWithEmptyZone',
+                        'data': {},
+                    },
+                    {
+                        'message': lambda x: x.startswith(
+                            "DNS server %s: query '. SOA':" % fwd_ip
+                        ),
+                        'code': 13006,
+                        'type': 'warning',
+                        'name': 'DNSServerValidationWarning',
+                        'data': {
+                            'error': lambda x: x.startswith("query '. SOA':"),
+                            'server': '%s' % fwd_ip,
+                        },
+                    },
                 ),
                 'result': {
                     'dns_server_server': [api.env.host],
@@ -2172,27 +2356,36 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Update global DNS settings - rollback',
-            command=('dnsconfig_mod', [], {'idnsforwarders' : None,}),
+            command=(
+                'dnsconfig_mod',
+                [],
+                {
+                    'idnsforwarders': None,
+                },
+            ),
             expected={
                 'value': None,
                 'summary': 'Global DNS configuration is empty',
                 'result': {'dns_server_server': [api.env.host]},
             },
         ),
-
         dict(
             desc='Try to add invalid allow-query to zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnsallowquery': 'foo'}),
-            expected=errors.ValidationError(name='allow_query',
-                error="failed to detect a valid IP address from 'foo'"),
+            expected=errors.ValidationError(
+                name='allow_query',
+                error="failed to detect a valid IP address from 'foo'",
+            ),
         ),
-
         dict(
             desc='Add allow-query ACL to zone %r' % zone1,
-            command=('dnszone_mod', [zone1], {'idnsallowquery': allowquery_restricted_in}),
+            command=(
+                'dnszone_mod',
+                [zone1],
+                {'idnsallowquery': allowquery_restricted_in},
+            ),
             expected={
                 'value': zone1_absolute_dnsname,
                 'summary': None,
@@ -2201,7 +2394,9 @@ class test_dns(Declarative):
                     'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'mxrecord': ['0 ns1.dnszone.test.'],
-                    'locrecord': ["49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                    'locrecord': [
+                        '49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10'
+                    ],
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
@@ -2212,22 +2407,23 @@ class test_dns(Declarative):
                     'idnsallowquery': [allowquery_restricted_out],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': (False,),
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
             },
         ),
-
-
         dict(
             desc='Try to add invalid allow-transfer to zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnsallowtransfer': '10.'}),
-            expected=errors.ValidationError(name='allow_transfer',
-                error="failed to detect a valid IP address from '10.'"),
+            expected=errors.ValidationError(
+                name='allow_transfer',
+                error="failed to detect a valid IP address from '10.'",
+            ),
         ),
-
         dict(
             desc='Add allow-transfer ACL to zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnsallowtransfer': fwd_ip}),
@@ -2239,7 +2435,9 @@ class test_dns(Declarative):
                     'idnszoneactive': [True],
                     'nsrecord': nameservers,
                     'mxrecord': ['0 ns1.dnszone.test.'],
-                    'locrecord': ["49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                    'locrecord': [
+                        '49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10'
+                    ],
                     'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
@@ -2250,39 +2448,45 @@ class test_dns(Declarative):
                     'idnsallowquery': [allowquery_restricted_out],
                     'idnsallowtransfer': [allowtransfer_tofwd],
                     'idnsallowdynupdate': (False,),
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
             },
         ),
-
-
         dict(
             desc='Set SOA serial of zone %r to high number' % zone1,
             command=('dnszone_mod', [zone1], {'idnssoaserial': 4294967295}),
             expected=errors.ValidationError(
                 name='serial',
-                error="this option is deprecated",
+                error='this option is deprecated',
             ),
         ),
-
-
         dict(
-            desc='Try to create duplicate PTR record for %r with --a-create-reverse' % name1,
-            command=('dnsrecord_add', [zone1, name1], {'arecord': revname1_ip,
-                                                            'a_extra_create_reverse' : True}),
-            expected=errors.DuplicateEntry(message='Reverse record for IP '
+            desc='Try to create duplicate PTR record for %r with --a-create-reverse'
+            % name1,
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'arecord': revname1_ip, 'a_extra_create_reverse': True},
+            ),
+            expected=errors.DuplicateEntry(
+                message='Reverse record for IP '
                 'address %s already exists in reverse zone '
-                '%s.' % (revname1_ip, revzone1)),
+                '%s.' % (revname1_ip, revzone1)
+            ),
         ),
-
-
         dict(
-            desc='Create A record %r in zone %r with --a-create-reverse' % (name1, zone1),
-            command=('dnsrecord_add', [zone1, name1], {'arecord': revname2_ip,
-                                                            'a_extra_create_reverse' : True}),
+            desc='Create A record %r in zone %r with --a-create-reverse'
+            % (name1, zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'arecord': revname2_ip, 'a_extra_create_reverse': True},
+            ),
             expected={
                 'value': name1_dnsname,
                 'summary': None,
@@ -2294,10 +2498,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Check reverse record for %r created via --a-create-reverse' % name1,
+            desc='Check reverse record for %r created via --a-create-reverse'
+            % name1,
             command=('dnsrecord_show', [revzone1, revname2], {}),
             expected={
                 'value': revname2_dnsname,
@@ -2309,7 +2512,6 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Modify ttl of record %r in zone %r' % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'dnsttl': 500}),
@@ -2323,8 +2525,6 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Delete ttl of record %r in zone %r' % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'dnsttl': None}),
@@ -2337,42 +2537,33 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Try to add per-zone permission for unknown zone',
             command=('dnszone_add_permission', [absnxname], {}),
-            expected=errors.NotFound(reason='%s: DNS zone not found' % absnxname)
+            expected=errors.NotFound(
+                reason='%s: DNS zone not found' % absnxname
+            ),
         ),
-
-
         dict(
             desc='Add per-zone permission for zone %r' % zone1,
-            command=(
-                'dnszone_add_permission', [zone1], {}
-            ),
+            command=('dnszone_add_permission', [zone1], {}),
             expected=dict(
                 result=True,
                 value=zone1_permission,
                 summary='Added system permission "%s"' % zone1_permission,
             ),
         ),
-
-
         dict(
             desc='Try to add duplicate per-zone permission for zone %r' % zone1,
-            command=(
-                'dnszone_add_permission', [zone1], {}
+            command=('dnszone_add_permission', [zone1], {}),
+            expected=errors.DuplicateEntry(
+                message='permission with name '
+                '"%s" already exists' % zone1_permission
             ),
-            expected=errors.DuplicateEntry(message='permission with name '
-                '"%s" already exists' % zone1_permission)
         ),
-
         dict(
             desc='Make sure the permission was created %r' % zone1,
-            command=(
-                'permission_show', [zone1_permission], {}
-            ),
+            command=('permission_show', [zone1_permission], {}),
             expected=dict(
                 value=zone1_permission,
                 summary=None,
@@ -2384,12 +2575,9 @@ class test_dns(Declarative):
                 },
             ),
         ),
-
         dict(
             desc='Retrieve the permission %r with --all --raw' % zone1,
-            command=(
-                'permission_show', [zone1_permission], {}
-            ),
+            command=('permission_show', [zone1_permission], {}),
             expected=dict(
                 value=zone1_permission,
                 summary=None,
@@ -2401,98 +2589,93 @@ class test_dns(Declarative):
                 },
             ),
         ),
-
         dict(
             desc='Try to remove per-zone permission for unknown zone',
             command=('dnszone_remove_permission', [absnxname], {}),
-            expected=errors.NotFound(reason='%s: DNS zone not found'
-                % absnxname)
+            expected=errors.NotFound(
+                reason='%s: DNS zone not found' % absnxname
+            ),
         ),
-
         dict(
             desc='Remove per-zone permission for zone %r' % zone1,
-            command=(
-                'dnszone_remove_permission', [zone1], {}
-            ),
+            command=('dnszone_remove_permission', [zone1], {}),
             expected=dict(
                 result=True,
                 value=zone1_permission,
                 summary='Removed system permission "%s"' % zone1_permission,
             ),
         ),
-
-
         dict(
             desc='Make sure the permission for zone %r was deleted' % zone1,
-            command=(
-                'permission_show', [zone1_permission], {}
+            command=('permission_show', [zone1_permission], {}),
+            expected=errors.NotFound(
+                reason='%s: permission not found' % zone1_permission
             ),
-            expected=errors.NotFound(reason='%s: permission not found'
-                                     % zone1_permission)
         ),
-
-
         dict(
-            desc='Try to remove non-existent per-zone permission for zone %r' % zone1,
-            command=(
-                'dnszone_remove_permission', [zone1], {}
+            desc='Try to remove non-existent per-zone permission for zone %r'
+            % zone1,
+            command=('dnszone_remove_permission', [zone1], {}),
+            expected=errors.NotFound(
+                reason='%s: permission not found' % zone1_permission
             ),
-            expected=errors.NotFound(reason='%s: permission not found'
-                                     % zone1_permission)
         ),
-
         dict(
-            desc=f"Parent zone for {zone3a} tests",
+            desc=f'Parent zone for {zone3a} tests',
             command=(
-                "dnszone_add", [zone3a], {
-                    "idnssoarname": zone3a_rname,
-                }
+                'dnszone_add',
+                [zone3a],
+                {
+                    'idnssoarname': zone3a_rname,
+                },
             ),
             expected=lambda x, y: True,
         ),
-
         dict(
-            desc="Try to create zone %r with relative nameserver" % zone3a_sub,
+            desc='Try to create zone %r with relative nameserver' % zone3a_sub,
             command=(
-                "dnszone_add", [zone3a_sub], {
-                    "idnssoamname": "ns",
-                    "idnssoarname": zone3a_sub_rname,
-                }
+                'dnszone_add',
+                [zone3a_sub],
+                {
+                    'idnssoamname': 'ns',
+                    'idnssoarname': zone3a_sub_rname,
+                },
             ),
             expected=errors.NotFound(
                 reason=(
                     "Nameserver 'ns.%s' does not have a corresponding A/AAAA "
-                    "record" % zone3a_sub
+                    'record' % zone3a_sub
                 )
             ),
         ),
-
         dict(
             desc=(
-                "Try to create zone %r with nameserver in the zone itself"
+                'Try to create zone %r with nameserver in the zone itself'
                 % zone3a_sub
             ),
             command=(
-                "dnszone_add", [zone3a_sub], {
-                    "idnssoamname": zone3a_sub,
-                    "idnssoarname": zone3a_sub_rname,
-                }
+                'dnszone_add',
+                [zone3a_sub],
+                {
+                    'idnssoamname': zone3a_sub,
+                    'idnssoarname': zone3a_sub_rname,
+                },
             ),
             expected=errors.NotFound(
                 reason=(
                     "Nameserver '%s' does not have a corresponding A/AAAA "
-                    "record" % zone3a_sub
+                    'record' % zone3a_sub
                 )
             ),
         ),
-
-
         dict(
             desc='Create zone %r' % zone3,
             command=(
-                'dnszone_add', [zone3], {
+                'dnszone_add',
+                [zone3],
+                {
                     'idnssoarname': zone3_rname,
-                }
+                },
             ),
             expected={
                 'value': zone3_absolute_dnsname,
@@ -2510,20 +2693,25 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
             desc='Add A record to %r in zone %r' % (zone3_ns2_arec, zone3),
-            command=('dnsrecord_add', [zone3, zone3_ns2_arec], {'arecord': zone3_ip2}),
+            command=(
+                'dnsrecord_add',
+                [zone3, zone3_ns2_arec],
+                {'arecord': zone3_ip2},
+            ),
             expected={
                 'value': zone3_ns2_arec_dnsname,
                 'summary': None,
@@ -2535,13 +2723,14 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Create reverse zone %r' % revzone3_classless1,
             command=(
-                'dnszone_add', [revzone3_classless1], {
+                'dnszone_add',
+                [revzone3_classless1],
+                {
                     'idnssoarname': zone3_rname,
-                }
+                },
             ),
             expected={
                 'value': revzone3_classless1_dnsname,
@@ -2559,21 +2748,24 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revzone3_classless1)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                        % dict(realm=api.env.realm, zone=revzone3_classless1)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
             desc='Create classless reverse zone %r' % revzone3_classless2,
             command=(
-                'dnszone_add', [revzone3_classless2], {
+                'dnszone_add',
+                [revzone3_classless2],
+                {
                     'idnssoarname': zone3_rname,
-                }
+                },
             ),
             expected={
                 'value': revzone3_classless2_dnsname,
@@ -2591,53 +2783,54 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revzone3_classless2)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                        % dict(realm=api.env.realm, zone=revzone3_classless2)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
-            desc=f"Create zone {zone1!r} specifying the SOA serial",
+            desc=f'Create zone {zone1!r} specifying the SOA serial',
             command=('dnszone_add', [zone1], {'idnssoaserial': 4294967298}),
             expected=errors.ValidationError(
                 name='serial',
-                error="this option is deprecated",
+                error='this option is deprecated',
             ),
         ),
-
         dict(
-            desc='Add per-zone permission for classless zone %r' % revzone3_classless2,
-            command=(
-                'dnszone_add_permission', [revzone3_classless2], {}
-            ),
+            desc='Add per-zone permission for classless zone %r'
+            % revzone3_classless2,
+            command=('dnszone_add_permission', [revzone3_classless2], {}),
             expected=dict(
                 result=True,
                 value=revzone3_classless2_permission,
-                summary='Added system permission "%s"' % revzone3_classless2_permission,
+                summary='Added system permission "%s"'
+                % revzone3_classless2_permission,
             ),
         ),
-
-
         dict(
-            desc='Remove per-zone permission for classless zone %r' % revzone3_classless2,
-            command=(
-                'dnszone_remove_permission', [revzone3_classless2], {}
-            ),
+            desc='Remove per-zone permission for classless zone %r'
+            % revzone3_classless2,
+            command=('dnszone_remove_permission', [revzone3_classless2], {}),
             expected=dict(
                 result=True,
                 value=revzone3_classless2_permission,
-                summary='Removed system permission "%s"' % revzone3_classless2_permission,
+                summary='Removed system permission "%s"'
+                % revzone3_classless2_permission,
             ),
         ),
-
-
         dict(
-            desc='Add NS record to %r in revzone %r' % (nsrev, revzone3_classless1),
-            command=('dnsrecord_add', [revzone3_classless1, nsrev], {'nsrecord': zone3_ns2_arec_absolute}),
+            desc='Add NS record to %r in revzone %r'
+            % (nsrev, revzone3_classless1),
+            command=(
+                'dnsrecord_add',
+                [revzone3_classless1, nsrev],
+                {'nsrecord': zone3_ns2_arec_absolute},
+            ),
             expected={
                 'value': nsrev_dnsname,
                 'summary': None,
@@ -2646,13 +2839,17 @@ class test_dns(Declarative):
                     'idnsname': [nsrev_dnsname],
                     'nsrecord': [zone3_ns2_arec_absolute],
                     'objectclass': objectclasses.dnsrecord,
-                    },
+                },
             },
         ),
-
         dict(
-            desc='Add CNAME record to %r in revzone %r' % (cnamerev, revzone3_classless1),
-            command=('dnsrecord_add', [revzone3_classless1, cnamerev], {'cnamerecord': cnamerev_hostname}),
+            desc='Add CNAME record to %r in revzone %r'
+            % (cnamerev, revzone3_classless1),
+            command=(
+                'dnsrecord_add',
+                [revzone3_classless1, cnamerev],
+                {'cnamerecord': cnamerev_hostname},
+            ),
             expected={
                 'value': cnamerev_dnsname,
                 'summary': None,
@@ -2664,11 +2861,14 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
-            desc='Add PTR record to %r in revzone %r' % (ptr_revzone3, revzone3_classless2),
-            command=('dnsrecord_add', [revzone3_classless2, cnamerev],
-                     {'ptrrecord': ptr_revzone3_hostname}),
+            desc='Add PTR record to %r in revzone %r'
+            % (ptr_revzone3, revzone3_classless2),
+            command=(
+                'dnsrecord_add',
+                [revzone3_classless2, cnamerev],
+                {'ptrrecord': ptr_revzone3_hostname},
+            ),
             expected={
                 'value': ptr_revzone3_dnsname,
                 'summary': None,
@@ -2680,13 +2880,14 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Create IDN zone %r' % idnzone1,
             command=(
-                'dnszone_add', [idnzone1], {
+                'dnszone_add',
+                [idnzone1],
+                {
                     'idnssoarname': idnzone1_rname,
-                }
+                },
             ),
             expected={
                 'value': idnzone1_dnsname,
@@ -2704,22 +2905,21 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
             desc='Retrieve zone %r' % idnzone1,
-            command=(
-                'dnszone_show', [idnzone1], {}
-            ),
+            command=('dnszone_show', [idnzone1], {}),
             expected={
                 'value': idnzone1_dnsname,
                 'summary': None,
@@ -2738,18 +2938,23 @@ class test_dns(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
             },
         ),
-
         dict(
             desc='Retrieve zone raw %r' % idnzone1,
             command=(
-                'dnszone_show', [idnzone1], {'raw' : True,}
+                'dnszone_show',
+                [idnzone1],
+                {
+                    'raw': True,
+                },
             ),
             expected={
                 'value': idnzone1_dnsname,
@@ -2769,26 +2974,25 @@ class test_dns(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': ['FALSE'],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
             },
         ),
-
-
         dict(
             desc='Find zone %r' % idnzone1,
-            command=(
-                'dnszone_find', [idnzone1], {}
-            ),
+            command=('dnszone_find', [idnzone1], {}),
             expected={
                 'summary': None,
                 'count': 1,
                 'truncated': False,
                 'result': [
-                    {   'dn': idnzone1_dn,
+                    {
+                        'dn': idnzone1_dn,
                         'idnsname': [idnzone1_dnsname],
                         'idnszoneactive': [True],
                         'nsrecord': nameservers,
@@ -2802,29 +3006,33 @@ class test_dns(Declarative):
                         'idnsallowtransfer': ['none;'],
                         'idnsallowquery': ['any;'],
                         'idnsallowdynupdate': [False],
-                        'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                             'grant %(realm)s krb5-self '
-                                             '* AAAA; '
-                                             'grant %(realm)s krb5-self '
-                                             '* SSHFP;'
-                                             % dict(realm=api.env.realm)],
+                        'idnsupdatepolicy': [
+                            'grant %(realm)s krb5-self * A; '
+                            'grant %(realm)s krb5-self '
+                            '* AAAA; '
+                            'grant %(realm)s krb5-self '
+                            '* SSHFP;' % dict(realm=api.env.realm)
+                        ],
                     },
                 ],
             },
         ),
-
-
         dict(
             desc='Find zone %r raw' % idnzone1_punycoded,
             command=(
-                'dnszone_find', [idnzone1_punycoded], {'raw': True,}
+                'dnszone_find',
+                [idnzone1_punycoded],
+                {
+                    'raw': True,
+                },
             ),
             expected={
                 'summary': None,
                 'count': 1,
                 'truncated': False,
                 'result': [
-                    {   'dn': idnzone1_dn,
+                    {
+                        'dn': idnzone1_dn,
                         'idnsname': [idnzone1_punycoded],
                         'idnszoneactive': ['TRUE'],
                         'nsrecord': nameservers,
@@ -2838,17 +3046,17 @@ class test_dns(Declarative):
                         'idnsallowtransfer': ['none;'],
                         'idnsallowquery': ['any;'],
                         'idnsallowdynupdate': ['FALSE'],
-                        'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                             'grant %(realm)s krb5-self '
-                                             '* AAAA; '
-                                             'grant %(realm)s krb5-self '
-                                             '* SSHFP;'
-                                             % dict(realm=api.env.realm)],
+                        'idnsupdatepolicy': [
+                            'grant %(realm)s krb5-self * A; '
+                            'grant %(realm)s krb5-self '
+                            '* AAAA; '
+                            'grant %(realm)s krb5-self '
+                            '* SSHFP;' % dict(realm=api.env.realm)
+                        ],
                     },
                 ],
             },
         ),
-
         dict(
             desc='Update zone %r' % idnzone1,
             command=('dnszone_mod', [idnzone1], {'idnssoarefresh': 5478}),
@@ -2869,20 +3077,23 @@ class test_dns(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
             },
         ),
-
         dict(
             desc='Create reverse zone %r' % revidnzone1,
             command=(
-                'dnszone_add', [revidnzone1], {
+                'dnszone_add',
+                [revidnzone1],
+                {
                     'idnssoarname': idnzone1_rname,
-                }
+                },
             ),
             expected={
                 'value': revidnzone1_dnsname,
@@ -2900,15 +3111,16 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revidnzone1)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                        % dict(realm=api.env.realm, zone=revidnzone1)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
             desc='Delete reverse zone %r' % revidnzone1,
             command=('dnszone_del', [revidnzone1], {}),
@@ -2918,7 +3130,6 @@ class test_dns(Declarative):
                 'result': {'failed': []},
             },
         ),
-
         dict(
             desc='Search for zones with name %r' % idnzone1,
             command=('dnszone_find', [idnzone1], {}),
@@ -2926,39 +3137,47 @@ class test_dns(Declarative):
                 'summary': None,
                 'count': 1,
                 'truncated': False,
-                'result': [{
-                    'dn': idnzone1_dn,
-                    'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [True],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [idnzone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': ['5478'],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': ['none;'],
-                    'idnsallowquery': ['any;'],
-                    'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                }],
+                'result': [
+                    {
+                        'dn': idnzone1_dn,
+                        'idnsname': [idnzone1_dnsname],
+                        'idnszoneactive': [True],
+                        'nsrecord': nameservers,
+                        'idnssoamname': [self_server_ns_dnsname],
+                        'idnssoarname': [idnzone1_rname_dnsname],
+                        'idnssoaserial': [fuzzy_digits],
+                        'idnssoarefresh': ['5478'],
+                        'idnssoaretry': [fuzzy_digits],
+                        'idnssoaexpire': [fuzzy_digits],
+                        'idnssoaminimum': [fuzzy_digits],
+                        'idnsallowtransfer': ['none;'],
+                        'idnsallowquery': ['any;'],
+                        'idnsallowdynupdate': [False],
+                        'idnsupdatepolicy': [
+                            'grant %(realm)s krb5-self * A; '
+                            'grant %(realm)s krb5-self * AAAA; '
+                            'grant %(realm)s krb5-self * SSHFP;'
+                            % dict(realm=api.env.realm)
+                        ],
+                    }
+                ],
             },
         ),
-
         dict(
-            desc='Try to retrieve non-existent record %r in zone %r' % (idnres1, idnzone1),
+            desc='Try to retrieve non-existent record %r in zone %r'
+            % (idnres1, idnzone1),
             command=('dnsrecord_show', [idnzone1, idnres1], {}),
             expected=errors.NotFound(
-                reason='%s: DNS resource record not found' % idnres1),
+                reason='%s: DNS resource record not found' % idnres1
+            ),
         ),
-
         dict(
             desc='Create record %r in zone %r' % (idnzone1, idnres1),
-            command=('dnsrecord_add', [idnzone1, idnres1], {'arecord': '127.0.0.1'}),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, idnres1],
+                {'arecord': '127.0.0.1'},
+            ),
             expected={
                 'value': idnres1_dnsname,
                 'summary': None,
@@ -2970,8 +3189,6 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Search for all records in zone %r' % idnzone1,
             command=('dnsrecord_find', [idnzone1], {}),
@@ -2993,11 +3210,16 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
-            desc='Search for all records in zone %r with --pkey-only' % idnzone1,
-            command=('dnsrecord_find', [idnzone1], {'pkey_only':True,}),
+            desc='Search for all records in zone %r with --pkey-only'
+            % idnzone1,
+            command=(
+                'dnsrecord_find',
+                [idnzone1],
+                {
+                    'pkey_only': True,
+                },
+            ),
             expected={
                 'summary': None,
                 'count': 2,
@@ -3014,8 +3236,6 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Find %r record in zone %r' % (idnzone1, idnzone1),
             command=('dnsrecord_find', [idnzone1, idnzone1], {}),
@@ -3032,8 +3252,6 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Find %r record in zone %r' % (idnres1, idnzone1),
             command=('dnsrecord_find', [idnzone1, idnres1], {}),
@@ -3050,11 +3268,16 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
-            desc='Find %r record in zone %r with --pkey-only' % (idnres1, idnzone1),
-            command=('dnsrecord_find', [idnzone1, idnres1], {'pkey_only':True,}),
+            desc='Find %r record in zone %r with --pkey-only'
+            % (idnres1, idnzone1),
+            command=(
+                'dnsrecord_find',
+                [idnzone1, idnres1],
+                {
+                    'pkey_only': True,
+                },
+            ),
             expected={
                 'summary': None,
                 'count': 1,
@@ -3067,12 +3290,17 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
-            desc='Find raw %r record in zone %r with --pkey-only' % (idnres1, idnzone1),
-            command=('dnsrecord_find', [idnzone1, idnres1],
-                     {'pkey_only' : True, 'raw' : True,}),
+            desc='Find raw %r record in zone %r with --pkey-only'
+            % (idnres1, idnzone1),
+            command=(
+                'dnsrecord_find',
+                [idnzone1, idnres1],
+                {
+                    'pkey_only': True,
+                    'raw': True,
+                },
+            ),
             expected={
                 'summary': None,
                 'count': 1,
@@ -3085,11 +3313,14 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
-            desc='Find raw %r record in zone %r with --pkey-only' % (idnres1_punycoded, idnzone1),
-            command=('dnsrecord_find', [idnzone1, idnres1_punycoded], {'pkey_only':True, 'raw' : True}),
+            desc='Find raw %r record in zone %r with --pkey-only'
+            % (idnres1_punycoded, idnzone1),
+            command=(
+                'dnsrecord_find',
+                [idnzone1, idnres1_punycoded],
+                {'pkey_only': True, 'raw': True},
+            ),
             expected={
                 'summary': None,
                 'count': 1,
@@ -3102,11 +3333,13 @@ class test_dns(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Add A record to %r in zone %r' % (idnres1, idnzone1),
-            command=('dnsrecord_add', [idnzone1, idnres1], {'arecord': '10.10.0.1'}),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, idnres1],
+                {'arecord': '10.10.0.1'},
+            ),
             expected={
                 'value': idnres1_dnsname,
                 'summary': None,
@@ -3118,11 +3351,13 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Remove A record from %r in zone %r' % (idnres1, idnzone1),
-            command=('dnsrecord_del', [idnzone1, idnres1], {'arecord': '127.0.0.1'}),
+            command=(
+                'dnsrecord_del',
+                [idnzone1, idnres1],
+                {'arecord': '127.0.0.1'},
+            ),
             expected={
                 'value': [idnres1_dnsname],
                 'summary': None,
@@ -3132,10 +3367,13 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Add MX record to zone %r using dnsrecord_add' % (idnzone1),
-            command=('dnsrecord_add', [idnzone1, '@'], {'mxrecord': "0 %s" % idnzone1_mname }),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, '@'],
+                {'mxrecord': '0 %s' % idnzone1_mname},
+            ),
             expected={
                 'value': _dns_zone_record,
                 'summary': None,
@@ -3143,17 +3381,20 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                     'dn': idnzone1_dn,
                     'idnsname': [_dns_zone_record],
-                    'mxrecord': ["0 %s" % idnzone1_mname],
+                    'mxrecord': ['0 %s' % idnzone1_mname],
                     'nsrecord': nameservers,
                 },
             },
         ),
-
-
-        #https://fedorahosted.org/freeipa/ticket/4232
+        # https://fedorahosted.org/freeipa/ticket/4232
         dict(
-            desc='Add MX record (2) to zone %r using dnsrecord_add' % (idnzone1),
-            command=('dnsrecord_add', [idnzone1, idnzone1], {'mxrecord': "10 %s" % idnzone1_mname }),
+            desc='Add MX record (2) to zone %r using dnsrecord_add'
+            % (idnzone1),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, idnzone1],
+                {'mxrecord': '10 %s' % idnzone1_mname},
+            ),
             expected={
                 'value': idnzone1_dnsname,
                 'summary': None,
@@ -3161,31 +3402,39 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                     'dn': idnzone1_dn,
                     'idnsname': [_dns_zone_record],
-                    'mxrecord': ["0 %s" % idnzone1_mname, "10 %s" % idnzone1_mname],
+                    'mxrecord': [
+                        '0 %s' % idnzone1_mname,
+                        '10 %s' % idnzone1_mname,
+                    ],
                     'nsrecord': nameservers,
                 },
             },
         ),
-
-
         dict(
-            desc='Remove MX record (2) from zone %r using dnsrecord_add' % (idnzone1),
-            command=('dnsrecord_del', [idnzone1, idnzone1], {'mxrecord': "10 %s" % idnzone1_mname }),
+            desc='Remove MX record (2) from zone %r using dnsrecord_add'
+            % (idnzone1),
+            command=(
+                'dnsrecord_del',
+                [idnzone1, idnzone1],
+                {'mxrecord': '10 %s' % idnzone1_mname},
+            ),
             expected={
                 'value': [idnzone1_dnsname],
                 'summary': None,
                 'result': {
                     'idnsname': [_dns_zone_record],
-                    'mxrecord': ["0 %s" % idnzone1_mname],
+                    'mxrecord': ['0 %s' % idnzone1_mname],
                     'nsrecord': nameservers,
                 },
             },
         ),
-
-
         dict(
             desc='Add KX record to zone %r using dnsrecord_add' % (idnzone1),
-            command=('dnsrecord_add', [idnzone1, '@'], {'kxrecord': "0 %s" % idnzone1_mname }),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, '@'],
+                {'kxrecord': '0 %s' % idnzone1_mname},
+            ),
             expected={
                 'value': _dns_zone_record,
                 'summary': None,
@@ -3193,32 +3442,35 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                     'dn': idnzone1_dn,
                     'idnsname': [_dns_zone_record],
-                    'mxrecord': ["0 %s" % idnzone1_mname],
-                    'kxrecord': ["0 %s" % idnzone1_mname],
+                    'mxrecord': ['0 %s' % idnzone1_mname],
+                    'kxrecord': ['0 %s' % idnzone1_mname],
                     'nsrecord': nameservers,
                 },
             },
         ),
-
         dict(
-            desc='Retrieve raw zone record of zone %r using dnsrecord_show' % (idnzone1),
-            command=('dnsrecord_show', [idnzone1, '@'], {'raw' : True}),
+            desc='Retrieve raw zone record of zone %r using dnsrecord_show'
+            % (idnzone1),
+            command=('dnsrecord_show', [idnzone1, '@'], {'raw': True}),
             expected={
                 'value': _dns_zone_record,
                 'summary': None,
                 'result': {
                     'dn': idnzone1_dn,
                     'idnsname': ['@'],
-                    'mxrecord': ["0 %s" % idnzone1_mname_punycoded],
-                    'kxrecord': ["0 %s" % idnzone1_mname_punycoded],
+                    'mxrecord': ['0 %s' % idnzone1_mname_punycoded],
+                    'kxrecord': ['0 %s' % idnzone1_mname_punycoded],
                     'nsrecord': nameservers,
                 },
             },
         ),
-
         dict(
             desc='Add CNAME record to %r using dnsrecord_add' % (idnrescname1),
-            command=('dnsrecord_add', [idnzone1, idnrescname1], {'cnamerecord': idndomain1 + '.'}),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, idnrescname1],
+                {'cnamerecord': idndomain1 + '.'},
+            ),
             expected={
                 'value': idnrescname1_dnsname,
                 'summary': None,
@@ -3230,10 +3482,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Show raw record %r in zone %r' % (idnrescname1, idnzone1),
-            command=('dnsrecord_show', [idnzone1, idnrescname1], {'raw' : True}),
+            command=('dnsrecord_show', [idnzone1, idnrescname1], {'raw': True}),
             expected={
                 'value': idnrescname1_dnsname,
                 'summary': None,
@@ -3244,10 +3495,13 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Add DNAME record to %r using dnsrecord_add' % (idnresdname1),
-            command=('dnsrecord_add', [idnzone1, idnresdname1], {'dnamerecord': idndomain1 + '.'}),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, idnresdname1],
+                {'dnamerecord': idndomain1 + '.'},
+            ),
             expected={
                 'value': idnresdname1_dnsname,
                 'summary': None,
@@ -3259,10 +3513,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Show raw record %r in zone %r' % (idnresdname1, idnzone1),
-            command=('dnsrecord_show', [idnzone1, idnresdname1], {'raw' : True}),
+            command=('dnsrecord_show', [idnzone1, idnresdname1], {'raw': True}),
             expected={
                 'value': idnresdname1_dnsname,
                 'summary': None,
@@ -3273,10 +3526,13 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Add SRV record to zone %r using dnsrecord_add' % (idnzone1),
-            command=('dnsrecord_add', [idnzone1, '_foo._tcp'], {'srvrecord': "0 100 1234 %s" % idnzone1_mname}),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, '_foo._tcp'],
+                {'srvrecord': '0 100 1234 %s' % idnzone1_mname},
+            ),
             expected={
                 'value': DNSName('_foo._tcp'),
                 'summary': None,
@@ -3284,46 +3540,44 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnsrecord,
                     'dn': DN(('idnsname', '_foo._tcp'), idnzone1_dn),
                     'idnsname': [DNSName('_foo._tcp')],
-                    'srvrecord': ["0 100 1234 %s" % idnzone1_mname],
+                    'srvrecord': ['0 100 1234 %s' % idnzone1_mname],
                 },
             },
         ),
-
         dict(
             desc='Show raw record %r in zone %r' % ('_foo._tcp', idnzone1),
-            command=('dnsrecord_show', [idnzone1, '_foo._tcp'], {'raw' : True}),
+            command=('dnsrecord_show', [idnzone1, '_foo._tcp'], {'raw': True}),
             expected={
                 'value': DNSName('_foo._tcp'),
                 'summary': None,
                 'result': {
                     'dn': DN(('idnsname', '_foo._tcp'), idnzone1_dn),
                     'idnsname': ['_foo._tcp'],
-                    'srvrecord': ["0 100 1234 %s" % idnzone1_mname_punycoded],
+                    'srvrecord': ['0 100 1234 %s' % idnzone1_mname_punycoded],
                 },
             },
         ),
-
         dict(
-            desc='Show raw record %r in zone %r' % ('_foo._tcp', idnzone1_punycoded),
-            command=('dnsrecord_show', [idnzone1, '_foo._tcp'], {'raw' : True}),
+            desc='Show raw record %r in zone %r'
+            % ('_foo._tcp', idnzone1_punycoded),
+            command=('dnsrecord_show', [idnzone1, '_foo._tcp'], {'raw': True}),
             expected={
                 'value': DNSName('_foo._tcp'),
                 'summary': None,
                 'result': {
                     'dn': DN(('idnsname', '_foo._tcp'), idnzone1_dn),
                     'idnsname': ['_foo._tcp'],
-                    'srvrecord': ["0 100 1234 %s" % idnzone1_mname_punycoded],
+                    'srvrecord': ['0 100 1234 %s' % idnzone1_mname_punycoded],
                 },
             },
         ),
-
         dict(
-            desc='Show structured record %r in zone %r' % (
-                '_foo._tcp', idnzone1
-            ),
+            desc='Show structured record %r in zone %r'
+            % ('_foo._tcp', idnzone1),
             command=(
-                'dnsrecord_show', [idnzone1, '_foo._tcp'],
-                {'structured': True, 'all': True}
+                'dnsrecord_show',
+                [idnzone1, '_foo._tcp'],
+                {'structured': True, 'all': True},
             ),
             expected={
                 'value': DNSName('_foo._tcp'),
@@ -3331,25 +3585,32 @@ class test_dns(Declarative):
                 'result': {
                     'dn': DN(('idnsname', '_foo._tcp'), idnzone1_dn),
                     'idnsname': [DNSName('_foo._tcp')],
-                    'dnsrecords': [{
-                        'dnsdata': '0 100 1234 {}'.format(
-                            idnzone1_mname_punycoded),
-                        'dnstype': 'SRV',
-                        'srv_part_port': '1234',
-                        'srv_part_priority': '0',
-                        'srv_part_target': idnzone1_mname,
-                        'srv_part_weight': '100'
-                    }],
+                    'dnsrecords': [
+                        {
+                            'dnsdata': '0 100 1234 {}'.format(
+                                idnzone1_mname_punycoded
+                            ),
+                            'dnstype': 'SRV',
+                            'srv_part_port': '1234',
+                            'srv_part_priority': '0',
+                            'srv_part_target': idnzone1_mname,
+                            'srv_part_weight': '100',
+                        }
+                    ],
                     'objectclass': objectclasses.dnsrecord,
                 },
             },
         ),
-
         dict(
             desc='Add AFSDB record to %r using dnsrecord_add' % (dnsafsdbres1),
-            command=('dnsrecord_add', [idnzone1, dnsafsdbres1], {
-                'afsdb_part_subtype': 0,
-                'afsdb_part_hostname' : idnzone1_mname}),
+            command=(
+                'dnsrecord_add',
+                [idnzone1, dnsafsdbres1],
+                {
+                    'afsdb_part_subtype': 0,
+                    'afsdb_part_hostname': idnzone1_mname,
+                },
+            ),
             expected={
                 'value': dnsafsdbres1_dnsname,
                 'summary': None,
@@ -3361,10 +3622,9 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Show raw record %r in zone %r' % (dnsafsdbres1, idnzone1),
-            command=('dnsrecord_show', [idnzone1, dnsafsdbres1], {'raw' : True}),
+            command=('dnsrecord_show', [idnzone1, dnsafsdbres1], {'raw': True}),
             expected={
                 'value': dnsafsdbres1_dnsname,
                 'summary': None,
@@ -3375,32 +3635,39 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Delete AFSDB record from %r in zone %r' % (
-                dnsafsdbres1, idnzone1),
-            command=('dnsrecord_del', [idnzone1, dnsafsdbres1],
-                     {'afsdbrecord': u'0 ' + idnzone1_mname}),
+            desc='Delete AFSDB record from %r in zone %r'
+            % (dnsafsdbres1, idnzone1),
+            command=(
+                'dnsrecord_del',
+                [idnzone1, dnsafsdbres1],
+                {'afsdbrecord': '0 ' + idnzone1_mname},
+            ),
             expected={
                 'value': [dnsafsdbres1_dnsname],
-                'summary': u'Deleted record "%s"' % dnsafsdbres1,
+                'summary': 'Deleted record "%s"' % dnsafsdbres1,
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Add A denormalized record in zone %r' % (idnzone1),
-            command=('dnsrecord_add', [idnzone1, 'gro\xdf'], {'arecord': '172.16.0.1'}),
-            expected=errors.ConversionError(name='name',
-                error='domain name \'gro\xdf\' should be normalized to: gross')
+            command=(
+                'dnsrecord_add',
+                [idnzone1, 'gro\xdf'],
+                {'arecord': '172.16.0.1'},
+            ),
+            expected=errors.ConversionError(
+                name='name',
+                error="domain name 'gro\xdf' should be normalized to: gross",
+            ),
         ),
-
-
         dict(
             desc='Add A record to %r in zone %r' % (wildcard_rec1, zone1),
-            command=('dnsrecord_add', [zone1, wildcard_rec1], {'arecord': wildcard_rec1_addr}),
+            command=(
+                'dnsrecord_add',
+                [zone1, wildcard_rec1],
+                {'arecord': wildcard_rec1_addr},
+            ),
             expected={
                 'value': wildcard_rec1_dnsname,
                 'summary': None,
@@ -3412,97 +3679,110 @@ class test_dns(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Resolve name %r (wildcard)' % (wildcard_rec1_test1),
             command=('dns_resolve', [wildcard_rec1_test1], {}),
             expected={
-                    'result': True,
-                    'summary': "Found '%s'" % wildcard_rec1_test1,
-                    'value': wildcard_rec1_test1,
-                    'messages': ({
+                'result': True,
+                'summary': "Found '%s'" % wildcard_rec1_test1,
+                'value': wildcard_rec1_test1,
+                'messages': (
+                    {
                         'message': "'dns-resolve' is deprecated. The "
-                                   "command may return an unexpected result, "
-                                   "the resolution of the DNS domain is done "
-                                   "on a randomly chosen IPA server.",
+                        'command may return an unexpected result, '
+                        'the resolution of the DNS domain is done '
+                        'on a randomly chosen IPA server.',
                         'code': 13015,
                         'type': 'warning',
                         'name': 'CommandDeprecatedWarning',
                         'data': {
-                            'command': "dns-resolve",
-                            'additional_info': "The command may return an "
-                                               "unexpected result, the "
-                                               "resolution of the DNS domain "
-                                               "is done on a randomly chosen "
-                                               "IPA server."
-                        }
-                    },)
+                            'command': 'dns-resolve',
+                            'additional_info': 'The command may return an '
+                            'unexpected result, the '
+                            'resolution of the DNS domain '
+                            'is done on a randomly chosen '
+                            'IPA server.',
+                        },
+                    },
+                ),
             },
         ),
-
-
         dict(
             desc='Resolve name %r (wildcard)' % (wildcard_rec1_test2),
             command=('dns_resolve', [wildcard_rec1_test2], {}),
             expected={
-                    'result': True,
-                    'summary': "Found '%s'" % wildcard_rec1_test2,
-                    'value': wildcard_rec1_test2,
-                    'messages': ({
+                'result': True,
+                'summary': "Found '%s'" % wildcard_rec1_test2,
+                'value': wildcard_rec1_test2,
+                'messages': (
+                    {
                         'message': "'dns-resolve' is deprecated. The "
-                                   "command may return an unexpected result, "
-                                   "the resolution of the DNS domain is done "
-                                   "on a randomly chosen IPA server.",
+                        'command may return an unexpected result, '
+                        'the resolution of the DNS domain is done '
+                        'on a randomly chosen IPA server.',
                         'code': 13015,
                         'type': 'warning',
                         'name': 'CommandDeprecatedWarning',
                         'data': {
-                            'command': "dns-resolve",
-                            'additional_info': "The command may return an "
-                                               "unexpected result, the "
-                                               "resolution of the DNS domain "
-                                               "is done on a randomly chosen "
-                                               "IPA server."
-                        }
-                    },)
+                            'command': 'dns-resolve',
+                            'additional_info': 'The command may return an '
+                            'unexpected result, the '
+                            'resolution of the DNS domain '
+                            'is done on a randomly chosen '
+                            'IPA server.',
+                        },
+                    },
+                ),
             },
         ),
-
-
         dict(
-            desc='Try to add NS record to wildcard owner %r in zone %r' % (wildcard_rec1, zone1),
-            command=('dnsrecord_add', [zone1, wildcard_rec1], {'nsrecord': zone2_ns, 'force': True}),
+            desc='Try to add NS record to wildcard owner %r in zone %r'
+            % (wildcard_rec1, zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, wildcard_rec1],
+                {'nsrecord': zone2_ns, 'force': True},
+            ),
             expected=errors.ValidationError(
                 name='idnsname',
-                error=('owner of DNAME, DS, NS records '
-                    'should not be a wildcard domain name (RFC 4592 section 4)')
-            )
+                error=(
+                    'owner of DNAME, DS, NS records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)'
+                ),
+            ),
         ),
-
-
         dict(
-            desc='Try to add DNAME record to wildcard owner %r in zone %r' % (wildcard_rec1, zone1),
-            command=('dnsrecord_add', [zone1, wildcard_rec1], {'dnamerecord': 'dname.test.'}),
+            desc='Try to add DNAME record to wildcard owner %r in zone %r'
+            % (wildcard_rec1, zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, wildcard_rec1],
+                {'dnamerecord': 'dname.test.'},
+            ),
             expected=errors.ValidationError(
                 name='idnsname',
-                error=('owner of DNAME, DS, NS records '
-                    'should not be a wildcard domain name (RFC 4592 section 4)')
-            )
+                error=(
+                    'owner of DNAME, DS, NS records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)'
+                ),
+            ),
         ),
-
-
         dict(
-            desc='Try to add DS record to wildcard owner %r in zone %r' % (wildcard_rec1, zone1),
-            command=('dnsrecord_add', [zone1, wildcard_rec1], {'dsrecord': '0 0 0 00'}),
+            desc='Try to add DS record to wildcard owner %r in zone %r'
+            % (wildcard_rec1, zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, wildcard_rec1],
+                {'dsrecord': '0 0 0 00'},
+            ),
             expected=errors.ValidationError(
                 name='idnsname',
-                error=('owner of DNAME, DS, NS records '
-                    'should not be a wildcard domain name (RFC 4592 section 4)')
-            )
+                error=(
+                    'owner of DNAME, DS, NS records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)'
+                ),
+            ),
         ),
-
-
         dict(
             desc='Disable zone %r' % zone1,
             command=('dnszone_disable', [zone1], {}),
@@ -3512,8 +3792,6 @@ class test_dns(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Check if zone %r is really disabled' % zone1,
             command=('dnszone_show', [zone1], {}),
@@ -3534,18 +3812,20 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['172.16.31.80;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': [allowquery_restricted_out],
                     'mxrecord': ['0 ns1.dnszone.test.'],
-                    'locrecord': ["49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                    'locrecord': [
+                        '49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10'
+                    ],
                 },
             },
         ),
-
-
         dict(
             desc='Enable zone %r' % zone1,
             command=('dnszone_enable', [zone1], {}),
@@ -3555,8 +3835,6 @@ class test_dns(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Check if zone %r is really enabled' % zone1,
             command=('dnszone_show', [zone1_absolute], {}),
@@ -3577,17 +3855,20 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['172.16.31.80;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': [allowquery_restricted_out],
                     'mxrecord': ['0 ns1.dnszone.test.'],
-                    'locrecord': ["49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                    'locrecord': [
+                        '49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10'
+                    ],
                 },
             },
         ),
-
         dict(
             desc='Disable zone %r' % idnzone1,
             command=('dnszone_disable', [idnzone1], {}),
@@ -3597,8 +3878,6 @@ class test_dns(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Check if zone %r is really disabled' % idnzone1,
             command=('dnszone_show', [idnzone1], {}),
@@ -3619,18 +3898,18 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
-                    'mxrecord': ["0 %s" % idnzone1_mname],
-                    'kxrecord': ["0 %s" % idnzone1_mname],
+                    'mxrecord': ['0 %s' % idnzone1_mname],
+                    'kxrecord': ['0 %s' % idnzone1_mname],
                 },
             },
         ),
-
-
         dict(
             desc='Enable zone %r' % idnzone1,
             command=('dnszone_enable', [idnzone1], {}),
@@ -3640,8 +3919,6 @@ class test_dns(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Check if zone %r is really enabled' % idnzone1,
             command=('dnszone_show', [idnzone1], {}),
@@ -3662,17 +3939,18 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
-                    'mxrecord': ["0 %s" % idnzone1_mname],
-                    'kxrecord': ["0 %s" % idnzone1_mname],
+                    'mxrecord': ['0 %s' % idnzone1_mname],
+                    'kxrecord': ['0 %s' % idnzone1_mname],
                 },
             },
         ),
-
         dict(
             desc='Add PTR record in a non-.arpa zone [DNS-SD]',
             command=(
@@ -3691,47 +3969,54 @@ class test_dns(Declarative):
                 },
             },
         ),
-
         dict(
-            desc="Ensure --raw and --structure does not work "
-                 "for ipa dnsrecord-add",
-            command=('dnsrecord_add', [zone1, name1],
-                     {'arecord': arec2, 'raw': True, 'structured': True}),
+            desc='Ensure --raw and --structure does not work '
+            'for ipa dnsrecord-add',
+            command=(
+                'dnsrecord_add',
+                [zone1, name1],
+                {'arecord': arec2, 'raw': True, 'structured': True},
+            ),
             expected=errors.MutuallyExclusiveError(
-                reason="cannot use structured together with raw"
+                reason='cannot use structured together with raw'
             ),
         ),
-
         dict(
-            desc="Ensure --raw and --structure does not work "
-                 "for ipa dnsrecord-mod",
-            command=('dnsrecord_mod', [zone1, name1],
-                     {'arecord': arec1, 'raw': True, 'structured': True}),
+            desc='Ensure --raw and --structure does not work '
+            'for ipa dnsrecord-mod',
+            command=(
+                'dnsrecord_mod',
+                [zone1, name1],
+                {'arecord': arec1, 'raw': True, 'structured': True},
+            ),
             expected=errors.MutuallyExclusiveError(
-                reason="cannot use structured together with raw"
+                reason='cannot use structured together with raw'
             ),
         ),
-
         dict(
-            desc="Ensure --raw and --structure does not work "
-                 "for ipa dnsrecord-show",
-            command=('dnsrecord_show', [zone1, name1],
-                     {'raw': True, 'structured': True}),
+            desc='Ensure --raw and --structure does not work '
+            'for ipa dnsrecord-show',
+            command=(
+                'dnsrecord_show',
+                [zone1, name1],
+                {'raw': True, 'structured': True},
+            ),
             expected=errors.MutuallyExclusiveError(
-                reason="cannot use structured together with raw"
+                reason='cannot use structured together with raw'
             ),
         ),
-
         dict(
-            desc="Ensure --raw and --structure does not work "
-                 "for ipa dnsrecord-find",
-            command=('dnsrecord_find', [zone1],
-                     {'raw': True, 'structured': True}),
+            desc='Ensure --raw and --structure does not work '
+            'for ipa dnsrecord-find',
+            command=(
+                'dnsrecord_find',
+                [zone1],
+                {'raw': True, 'structured': True},
+            ),
             expected=errors.MutuallyExclusiveError(
-                reason="cannot use structured together with raw"
+                reason='cannot use structured together with raw'
             ),
         ),
-
         dict(
             desc='Delete zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
@@ -3855,7 +4140,6 @@ class test_forward_zones(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Search for forward zone with --forward-policy=none (no zones)',
             command=('dnsforwardzone_find', [], {'idnsforwardpolicy': 'none'}),
@@ -3866,8 +4150,6 @@ class test_forward_zones(Declarative):
                 'result': [],
             },
         ),
-
-
         dict(
             desc='Search for forward zone with --forward-policy=only (no zones)',
             command=('dnsforwardzone_find', [], {'idnsforwardpolicy': 'only'}),
@@ -3878,8 +4160,6 @@ class test_forward_zones(Declarative):
                 'result': [],
             },
         ),
-
-
         dict(
             desc='Search for forward zone with --forward-policy=first (no zones)',
             command=('dnsforwardzone_find', [], {'idnsforwardpolicy': 'first'}),
@@ -3890,114 +4170,125 @@ class test_forward_zones(Declarative):
                 'result': [],
             },
         ),
-
-
         dict(
-            desc='Try to create forward zone %r with wildcard domain name' % zone_fw_wildcard,
+            desc='Try to create forward zone %r with wildcard domain name'
+            % zone_fw_wildcard,
             command=(
-                'dnsforwardzone_add', [zone_fw_wildcard], {'idnsforwardpolicy': 'none'}
+                'dnsforwardzone_add',
+                [zone_fw_wildcard],
+                {'idnsforwardpolicy': 'none'},
             ),
-            expected=errors.ValidationError(name='name',
-                                        error='should not be a wildcard domain name (RFC 4592 section 4)')
+            expected=errors.ValidationError(
+                name='name',
+                error='should not be a wildcard domain name (RFC 4592 section 4)',
+            ),
         ),
-
-
         dict(
             desc='Try to create forward zone with empty name',
-            command=(
-                'dnsforwardzone_add', [''], {}
-            ),
-            expected=errors.RequirementError(name='name')
+            command=('dnsforwardzone_add', [''], {}),
+            expected=errors.RequirementError(name='name'),
         ),
-
-
         dict(
-            desc='Try to create forward zone %r with invalid name' % 'invalid..name.fwzone.test.',
+            desc='Try to create forward zone %r with invalid name'
+            % 'invalid..name.fwzone.test.',
             command=(
-                'dnsforwardzone_add', ['invalid..name.fwzone.test.', ], {}
+                'dnsforwardzone_add',
+                [
+                    'invalid..name.fwzone.test.',
+                ],
+                {},
             ),
             expected=errors.ConversionError(
-                name='name',
-                error='empty DNS label')
-        ),
-
-
-        dict(
-            desc='Try to create forward zone %r without forwarders with default "(first)" policy' % fwzone1,
-            command=(
-                'dnsforwardzone_add', [fwzone1], {}
+                name='name', error='empty DNS label'
             ),
-            expected=errors.ValidationError(name='idnsforwarders',
-                                        error='Please specify forwarders.')
         ),
-
-
         dict(
-            desc='Try to create forward zone %r without forwarders with "only" policy' % fwzone1,
-            command=(
-                'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': 'only'}
+            desc='Try to create forward zone %r without forwarders with default "(first)" policy'
+            % fwzone1,
+            command=('dnsforwardzone_add', [fwzone1], {}),
+            expected=errors.ValidationError(
+                name='idnsforwarders', error='Please specify forwarders.'
             ),
-            expected=errors.ValidationError(name='idnsforwarders',
-                                        error='Please specify forwarders.')
         ),
-
-
         dict(
-            desc='Try to create forward zone %r without forwarders with "first" policy' % fwzone1,
+            desc='Try to create forward zone %r without forwarders with "only" policy'
+            % fwzone1,
             command=(
-                'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': 'first'}
+                'dnsforwardzone_add',
+                [fwzone1],
+                {'idnsforwardpolicy': 'only'},
             ),
             expected=errors.ValidationError(
-                name='idnsforwarders',
-                error='Please specify forwarders.')
+                name='idnsforwarders', error='Please specify forwarders.'
+            ),
         ),
-
-
         dict(
-            desc='Try to create forward zone %r with "only" policy and invalid IP address' % fwzone1,
+            desc='Try to create forward zone %r without forwarders with "first" policy'
+            % fwzone1,
             command=(
-                'dnsforwardzone_add', [fwzone1], {
+                'dnsforwardzone_add',
+                [fwzone1],
+                {'idnsforwardpolicy': 'first'},
+            ),
+            expected=errors.ValidationError(
+                name='idnsforwarders', error='Please specify forwarders.'
+            ),
+        ),
+        dict(
+            desc='Try to create forward zone %r with "only" policy and invalid IP address'
+            % fwzone1,
+            command=(
+                'dnsforwardzone_add',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'only',
-                    'idnsforwarders': ['127.0.0.999', ]
-                }
+                    'idnsforwarders': [
+                        '127.0.0.999',
+                    ],
+                },
             ),
             expected=errors.ValidationError(
-                name='forwarder',
-                error='invalid IP address format')
+                name='forwarder', error='invalid IP address format'
+            ),
         ),
-
-
         dict(
-            desc='Try to create forward zone %r with "first" policy and invalid IP address' % fwzone1,
+            desc='Try to create forward zone %r with "first" policy and invalid IP address'
+            % fwzone1,
             command=(
-                'dnsforwardzone_add', [fwzone1], {
+                'dnsforwardzone_add',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'first',
-                    'idnsforwarders': ['127.0.0.999', ]
-                }
+                    'idnsforwarders': [
+                        '127.0.0.999',
+                    ],
+                },
             ),
             expected=errors.ValidationError(
-                name='forwarder',
-                error='invalid IP address format')
+                name='forwarder', error='invalid IP address format'
+            ),
         ),
-
-
         dict(
             desc='Try to create forward zone %r with invalid policy' % fwzone1,
             command=(
-                'dnsforwardzone_add', [fwzone1], {
+                'dnsforwardzone_add',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'invalid',
-                }
+                },
             ),
             expected=errors.ValidationError(
                 name='forward_policy',
-                error="must be one of 'only', 'first', 'none'")
+                error="must be one of 'only', 'first', 'none'",
+            ),
         ),
-
-
         dict(
-            desc='Create forward zone %r without forwarders with "none" policy' % fwzone1,
+            desc='Create forward zone %r without forwarders with "none" policy'
+            % fwzone1,
             command=(
-                'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': 'none'}
+                'dnsforwardzone_add',
+                [fwzone1],
+                {'idnsforwardpolicy': 'none'},
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4011,37 +4302,45 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Try to create duplicate forward zone %r' % fwzone1,
             command=(
-                'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': 'none'}
+                'dnsforwardzone_add',
+                [fwzone1],
+                {'idnsforwardpolicy': 'none'},
             ),
             expected=errors.DuplicateEntry(
-                message='DNS forward zone with name "%s" already exists' % fwzone1),
+                message='DNS forward zone with name "%s" already exists'
+                % fwzone1
+            ),
         ),
-
-
         dict(
-            desc='Create forward zone %r with forwarders with default ("first") policy' % fwzone2,
+            desc='Create forward zone %r with forwarders with default ("first") policy'
+            % fwzone2,
             command=(
-                'dnsforwardzone_add', [fwzone2], {'idnsforwarders': [forwarder1]}
+                'dnsforwardzone_add',
+                [fwzone2],
+                {'idnsforwarders': [forwarder1]},
             ),
             expected={
                 'value': fwzone2_dnsname,
                 'summary': None,
-                'messages': ({'message': lambda x: x.startswith(
-                        "DNS server %s: query '%s SOA':" %
-                        (forwarder1, fwzone2)),
-                     'code': 13006,
-                     'type':'warning',
-                     'name': 'DNSServerValidationWarning',
-                     'data': {
-                        'error': lambda x: x.startswith(
-                            "query '%s SOA':" % fwzone2),
-                        'server': "%s" % forwarder1
-                     }},
+                'messages': (
+                    {
+                        'message': lambda x: x.startswith(
+                            "DNS server %s: query '%s SOA':"
+                            % (forwarder1, fwzone2)
+                        ),
+                        'code': 13006,
+                        'type': 'warning',
+                        'name': 'DNSServerValidationWarning',
+                        'data': {
+                            'error': lambda x: x.startswith(
+                                "query '%s SOA':" % fwzone2
+                            ),
+                            'server': '%s' % forwarder1,
+                        },
+                    },
                 ),
                 'result': {
                     'dn': fwzone2_dn,
@@ -4053,8 +4352,6 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Delete forward zone %r (cleanup)' % fwzone2,
             command=('dnsforwardzone_del', [fwzone2], {}),
@@ -4064,15 +4361,16 @@ class test_forward_zones(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Create forward zone %r with three forwarders with "only" policy' % fwzone2,
+            desc='Create forward zone %r with three forwarders with "only" policy'
+            % fwzone2,
             command=(
-                'dnsforwardzone_add', [fwzone2], {
+                'dnsforwardzone_add',
+                [fwzone2],
+                {
                     'idnsforwarders': [forwarder1, forwarder2, forwarder3],
-                    'idnsforwardpolicy': 'only'
-                }
+                    'idnsforwardpolicy': 'only',
+                },
             ),
             expected={
                 'value': fwzone2_dnsname,
@@ -4088,8 +4386,6 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Delete forward zone %r (cleanup)' % fwzone2,
             command=('dnsforwardzone_del', [fwzone2], {}),
@@ -4099,14 +4395,13 @@ class test_forward_zones(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Create forward zone %r with one forwarder with "only" policy' % fwzone2,
+            desc='Create forward zone %r with one forwarder with "only" policy'
+            % fwzone2,
             command=(
-                'dnsforwardzone_add', [fwzone2], {
-                    'idnsforwarders': forwarder2, 'idnsforwardpolicy': 'only'
-                }
+                'dnsforwardzone_add',
+                [fwzone2],
+                {'idnsforwarders': forwarder2, 'idnsforwardpolicy': 'only'},
             ),
             expected={
                 'value': fwzone2_dnsname,
@@ -4122,15 +4417,16 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Create forward zone %r with three forwarders with "first" policy' % fwzone3,
+            desc='Create forward zone %r with three forwarders with "first" policy'
+            % fwzone3,
             command=(
-                'dnsforwardzone_add', [fwzone3], {
+                'dnsforwardzone_add',
+                [fwzone3],
+                {
                     'idnsforwarders': [forwarder1, forwarder2, forwarder3],
-                    'idnsforwardpolicy': 'first'
-                }
+                    'idnsforwardpolicy': 'first',
+                },
             ),
             expected={
                 'value': fwzone3_dnsname,
@@ -4146,8 +4442,6 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Delete forward zone %r (cleanup)' % fwzone3,
             command=('dnsforwardzone_del', [fwzone3], {}),
@@ -4157,14 +4451,13 @@ class test_forward_zones(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
-            desc='Create forward zone %r with one forwarder with "first" policy' % fwzone3,
+            desc='Create forward zone %r with one forwarder with "first" policy'
+            % fwzone3,
             command=(
-                'dnsforwardzone_add', [fwzone3], {
-                    'idnsforwarders': forwarder3, 'idnsforwardpolicy': 'first'
-                }
+                'dnsforwardzone_add',
+                [fwzone3],
+                {'idnsforwarders': forwarder3, 'idnsforwardpolicy': 'first'},
             ),
             expected={
                 'value': fwzone3_dnsname,
@@ -4180,15 +4473,14 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
-
         dict(
             desc='Modify forward zone %r change one forwarder' % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone3], {
+                'dnsforwardzone_mod',
+                [fwzone3],
+                {
                     'idnsforwarders': forwarder1,
-                }
+                },
             ),
             expected={
                 'value': fwzone3_dnsname,
@@ -4202,14 +4494,12 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Modify forward zone %r add one forwarder' % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone3], {
-                    'idnsforwarders': [forwarder1, forwarder2]
-                }
+                'dnsforwardzone_mod',
+                [fwzone3],
+                {'idnsforwarders': [forwarder1, forwarder2]},
             ),
             expected={
                 'value': fwzone3_dnsname,
@@ -4223,14 +4513,13 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r change one forwarder if two exists' % fwzone3,
+            desc='Modify forward zone %r change one forwarder if two exists'
+            % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone3], {
-                    'idnsforwarders': [forwarder1, forwarder3]
-                }
+                'dnsforwardzone_mod',
+                [fwzone3],
+                {'idnsforwarders': [forwarder1, forwarder3]},
             ),
             expected={
                 'value': fwzone3_dnsname,
@@ -4244,14 +4533,13 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r change two forwarders if two exists' % fwzone3,
+            desc='Modify forward zone %r change two forwarders if two exists'
+            % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone3], {
-                    'idnsforwarders': [forwarder2, forwarder4]
-                }
+                'dnsforwardzone_mod',
+                [fwzone3],
+                {'idnsforwarders': [forwarder2, forwarder4]},
             ),
             expected={
                 'value': fwzone3_dnsname,
@@ -4265,15 +4553,16 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r with --policy=none, add forwarders' % fwzone1,
+            desc='Modify forward zone %r with --policy=none, add forwarders'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'none',
                     'idnsforwarders': [forwarder3],
-                }
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4287,14 +4576,14 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Modify forward zone %r change --policy=none' % fwzone2,
             command=(
-                'dnsforwardzone_mod', [fwzone2], {
+                'dnsforwardzone_mod',
+                [fwzone2],
+                {
                     'idnsforwardpolicy': 'none',
-                }
+                },
             ),
             expected={
                 'value': fwzone2_dnsname,
@@ -4307,14 +4596,15 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r change --policy=only (was "none", FW exists)' % fwzone2,
+            desc='Modify forward zone %r change --policy=only (was "none", FW exists)'
+            % fwzone2,
             command=(
-                'dnsforwardzone_mod', [fwzone2], {
+                'dnsforwardzone_mod',
+                [fwzone2],
+                {
                     'idnsforwardpolicy': 'only',
-                }
+                },
             ),
             expected={
                 'value': fwzone2_dnsname,
@@ -4327,15 +4617,16 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r with --policy=first (was "none", FW exists)' % fwzone1,
+            desc='Modify forward zone %r with --policy=first (was "none", FW exists)'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'first',
                     'idnsforwarders': [forwarder3],
-                }
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4349,15 +4640,16 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r with --policy=none, forwarder empty' % fwzone1,
+            desc='Modify forward zone %r with --policy=none, forwarder empty'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'none',
                     'idnsforwarders': [],
-                }
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4369,15 +4661,16 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r --policy=only, add forwarders"' % fwzone1,
+            desc='Modify forward zone %r --policy=only, add forwarders"'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'only',
-                    'idnsforwarders': [forwarder1, forwarder2]
-                }
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4391,14 +4684,14 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Modify forward zone %r --policy=first (was "only")' % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'first',
-                }
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4411,14 +4704,14 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Modify forward zone %r --policy=only (was "first")' % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'only',
-                }
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4431,15 +4724,16 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Modify forward zone %r with --policy=none, forwarder empty (cleanup)' % fwzone1,
+            desc='Modify forward zone %r with --policy=none, forwarder empty (cleanup)'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'none',
                     'idnsforwarders': [],
-                }
+                },
             ),
             expected={
                 'value': fwzone1_dnsname,
@@ -4451,114 +4745,119 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Try to modify non-existent forward zone %r' % nonexistent_fwzone,
+            desc='Try to modify non-existent forward zone %r'
+            % nonexistent_fwzone,
             command=(
-                'dnsforwardzone_mod', [nonexistent_fwzone], {
-                    'idnsforwardpolicy': 'only'
-                }
+                'dnsforwardzone_mod',
+                [nonexistent_fwzone],
+                {'idnsforwardpolicy': 'only'},
             ),
-            expected=errors.NotFound(reason="%s: DNS forward zone not found" %
-                                     nonexistent_fwzone)
-        ),
-
-
-        dict(
-            desc='Try to modify forward zone %r without forwarders with "only" policy' % fwzone1,
-            command=(
-                'dnsforwardzone_mod', [fwzone1], {
-                    'idnsforwardpolicy': 'only'
-                }
+            expected=errors.NotFound(
+                reason='%s: DNS forward zone not found' % nonexistent_fwzone
             ),
-            expected=errors.ValidationError(name='idnsforwarders',
-                                        error='Please specify forwarders.')
         ),
-
-
         dict(
-            desc='Try to modify forward zone %r without forwarders with "first" policy' % fwzone1,
+            desc='Try to modify forward zone %r without forwarders with "only" policy'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
-                    'idnsforwardpolicy': 'first'
-                }
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {'idnsforwardpolicy': 'only'},
             ),
-            expected=errors.ValidationError(name='idnsforwarders',
-                                        error='Please specify forwarders.')
+            expected=errors.ValidationError(
+                name='idnsforwarders', error='Please specify forwarders.'
+            ),
         ),
-
-
         dict(
-            desc='Try to modify forward zone %r with "only" policy change empty forwarders' % fwzone2,
+            desc='Try to modify forward zone %r without forwarders with "first" policy'
+            % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone2], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {'idnsforwardpolicy': 'first'},
+            ),
+            expected=errors.ValidationError(
+                name='idnsforwarders', error='Please specify forwarders.'
+            ),
+        ),
+        dict(
+            desc='Try to modify forward zone %r with "only" policy change empty forwarders'
+            % fwzone2,
+            command=(
+                'dnsforwardzone_mod',
+                [fwzone2],
+                {
                     'idnsforwarders': [],
-                }
+                },
             ),
             expected=errors.ValidationError(
-                name='idnsforwarders',
-                error='Please specify forwarders.')
+                name='idnsforwarders', error='Please specify forwarders.'
+            ),
         ),
-
-
         dict(
-            desc='Try to modify forward zone %r with "first" policy change empty forwarders' % fwzone3,
+            desc='Try to modify forward zone %r with "first" policy change empty forwarders'
+            % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone3], {
+                'dnsforwardzone_mod',
+                [fwzone3],
+                {
                     'idnsforwarders': [],
-                }
+                },
             ),
             expected=errors.ValidationError(
-                name='idnsforwarders',
-                error='Please specify forwarders.')
+                name='idnsforwarders', error='Please specify forwarders.'
+            ),
         ),
-
-
         dict(
-            desc='Try to modify forward zone %r with "only" policy change invalid forwarder IP' % fwzone2,
+            desc='Try to modify forward zone %r with "only" policy change invalid forwarder IP'
+            % fwzone2,
             command=(
-                'dnsforwardzone_mod', [fwzone2], {
-                    'idnsforwarders': ['127.0.0.999', ],
-                }
+                'dnsforwardzone_mod',
+                [fwzone2],
+                {
+                    'idnsforwarders': [
+                        '127.0.0.999',
+                    ],
+                },
             ),
             expected=errors.ValidationError(
-                name='forwarder',
-                error='invalid IP address format')
+                name='forwarder', error='invalid IP address format'
+            ),
         ),
-
-
         dict(
-            desc='Try to modify forward zone %r with "first" policy change invalid forwarder IP' % fwzone3,
+            desc='Try to modify forward zone %r with "first" policy change invalid forwarder IP'
+            % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone3], {
-                    'idnsforwarders': ['127.0.0.999', ],
-                }
+                'dnsforwardzone_mod',
+                [fwzone3],
+                {
+                    'idnsforwarders': [
+                        '127.0.0.999',
+                    ],
+                },
             ),
             expected=errors.ValidationError(
-                name='forwarder',
-                error='invalid IP address format')
+                name='forwarder', error='invalid IP address format'
+            ),
         ),
-
-
         dict(
             desc='Try to modify forward zone %r with invalid policy' % fwzone1,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
+                'dnsforwardzone_mod',
+                [fwzone1],
+                {
                     'idnsforwardpolicy': 'invalid',
-                }
+                },
             ),
             expected=errors.ValidationError(
                 name='forward_policy',
-                error="must be one of 'only', 'first', 'none'")
+                error="must be one of 'only', 'first', 'none'",
+            ),
         ),
-
-
         dict(
             desc='Retrieve forward zone %r' % fwzone1,
-            command=(
-                'dnsforwardzone_show', [fwzone1], {}
-            ),
+            command=('dnsforwardzone_show', [fwzone1], {}),
             expected={
                 'value': fwzone1_dnsname,
                 'summary': None,
@@ -4570,18 +4869,14 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Try to retrieve nonexistent forward zone %r' % nonexistent_fwzone,
-            command=(
-                'dnsforwardzone_show', [nonexistent_fwzone], {}
+            desc='Try to retrieve nonexistent forward zone %r'
+            % nonexistent_fwzone,
+            command=('dnsforwardzone_show', [nonexistent_fwzone], {}),
+            expected=errors.NotFound(
+                reason='%s: DNS forward zone not found' % nonexistent_fwzone
             ),
-            expected=errors.NotFound(reason="%s: DNS forward zone not found" %
-                                     nonexistent_fwzone)
         ),
-
-
         dict(
             desc='Search for all forward zones',
             command=('dnsforwardzone_find', [], {}),
@@ -4613,8 +4908,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Search for all forward zones with --pkey-only',
             command=('dnsforwardzone_find', [], {'pkey_only': True}),
@@ -4638,8 +4931,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Search for forward zone %r' % fwzone1,
             command=('dnsforwardzone_find', [fwzone1], {}),
@@ -4647,18 +4938,19 @@ class test_forward_zones(Declarative):
                 'summary': None,
                 'count': 1,
                 'truncated': False,
-                'result': [{
-                    'dn': fwzone1_dn,
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [True],
-                    'idnsforwardpolicy': ['none'],
-                }],
+                'result': [
+                    {
+                        'dn': fwzone1_dn,
+                        'idnsname': [fwzone1_dnsname],
+                        'idnszoneactive': [True],
+                        'idnsforwardpolicy': ['none'],
+                    }
+                ],
             },
         ),
-
-
         dict(
-            desc='Search for 3 forward zones search with criteria "%r"' % fwzone_search_all_name,
+            desc='Search for 3 forward zones search with criteria "%r"'
+            % fwzone_search_all_name,
             command=('dnsforwardzone_find', [fwzone_search_all_name], {}),
             expected={
                 'summary': None,
@@ -4688,8 +4980,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Search for forward zone with --name %r' % fwzone1,
             command=('dnsforwardzone_find', [], {'idnsname': fwzone1}),
@@ -4707,8 +4997,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Search for forward zone with --forward-policy=none',
             command=('dnsforwardzone_find', [], {'idnsforwardpolicy': 'none'}),
@@ -4726,8 +5014,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Search for forward zone with --forward-policy=only',
             command=('dnsforwardzone_find', [], {'idnsforwardpolicy': 'only'}),
@@ -4746,8 +5032,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Search for forward zone with --forward-policy=first',
             command=('dnsforwardzone_find', [], {'idnsforwardpolicy': 'first'}),
@@ -4766,8 +5050,6 @@ class test_forward_zones(Declarative):
                 ],
             },
         ),
-
-
         dict(
             desc='Try to search for non-existent forward zone',
             command=('dnsforwardzone_find', [nonexistent_fwzone], {}),
@@ -4778,11 +5060,13 @@ class test_forward_zones(Declarative):
                 'result': [],
             },
         ),
-
-
         dict(
             desc='Try to search for non-existent forward zone with --name',
-            command=('dnsforwardzone_find', [], {'idnsname': nonexistent_fwzone}),
+            command=(
+                'dnsforwardzone_find',
+                [],
+                {'idnsname': nonexistent_fwzone},
+            ),
             expected={
                 'summary': None,
                 'count': 0,
@@ -4790,8 +5074,6 @@ class test_forward_zones(Declarative):
                 'result': [],
             },
         ),
-
-
         dict(
             desc='Delete forward zone %r' % fwzone2,
             command=('dnsforwardzone_del', [fwzone2], {}),
@@ -4801,8 +5083,6 @@ class test_forward_zones(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Delete forward zone %r with --continue' % fwzone3,
             command=('dnsforwardzone_del', [fwzone3], {'continue': True}),
@@ -4812,63 +5092,56 @@ class test_forward_zones(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Try to delete non-existent forward zone',
             command=('dnsforwardzone_del', [nonexistent_fwzone], {}),
-            expected=errors.NotFound(reason="%s: DNS forward zone not found" %
-                                     nonexistent_fwzone)
+            expected=errors.NotFound(
+                reason='%s: DNS forward zone not found' % nonexistent_fwzone
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent forward zone with --continue',
-            command=('dnsforwardzone_del', [nonexistent_fwzone], {'continue': True}),
+            command=(
+                'dnsforwardzone_del',
+                [nonexistent_fwzone],
+                {'continue': True},
+            ),
             expected={
                 'value': [],
                 'summary': 'Deleted DNS forward zone ""',
                 'result': {
                     'failed': [nonexistent_fwzone_dnsname],
-                }
-            }
+                },
+            },
         ),
-
-
         dict(
             desc='Try to add per-zone permission for unknown forward zone',
             command=('dnsforwardzone_add_permission', [absnxname], {}),
-            expected=errors.NotFound(reason='%s: DNS forward zone not found' % absnxname)
+            expected=errors.NotFound(
+                reason='%s: DNS forward zone not found' % absnxname
+            ),
         ),
-
-
         dict(
             desc='Add per-zone permission for forward zone %r' % fwzone1,
-            command=(
-                'dnsforwardzone_add_permission', [fwzone1], {}
-            ),
+            command=('dnsforwardzone_add_permission', [fwzone1], {}),
             expected=dict(
                 result=True,
                 value=fwzone1_permission,
                 summary='Added system permission "%s"' % fwzone1_permission,
             ),
         ),
-
-
         dict(
-            desc='Try to add duplicate per-zone permission for forward zone %r' % fwzone1,
-            command=(
-                'dnsforwardzone_add_permission', [fwzone1], {}
+            desc='Try to add duplicate per-zone permission for forward zone %r'
+            % fwzone1,
+            command=('dnsforwardzone_add_permission', [fwzone1], {}),
+            expected=errors.DuplicateEntry(
+                message='permission with name '
+                '"%s" already exists' % fwzone1_permission
             ),
-            expected=errors.DuplicateEntry(message='permission with name '
-                '"%s" already exists' % fwzone1_permission)
         ),
-
         dict(
             desc='Make sure the permission was created %r' % fwzone1,
-            command=(
-                'permission_show', [fwzone1_permission], {}
-            ),
+            command=('permission_show', [fwzone1_permission], {}),
             expected=dict(
                 value=fwzone1_permission,
                 summary=None,
@@ -4880,12 +5153,9 @@ class test_forward_zones(Declarative):
                 },
             ),
         ),
-
         dict(
             desc='Retrieve the permission %r with --all --raw' % fwzone1,
-            command=(
-                'permission_show', [fwzone1_permission], {}
-            ),
+            command=('permission_show', [fwzone1_permission], {}),
             expected=dict(
                 value=fwzone1_permission,
                 summary=None,
@@ -4897,47 +5167,38 @@ class test_forward_zones(Declarative):
                 },
             ),
         ),
-
         dict(
             desc='Try to remove per-zone permission for unknown forward zone',
             command=('dnsforwardzone_remove_permission', [absnxname], {}),
-            expected=errors.NotFound(reason='%s: DNS forward zone not found'
-                % absnxname)
+            expected=errors.NotFound(
+                reason='%s: DNS forward zone not found' % absnxname
+            ),
         ),
-
         dict(
             desc='Remove per-zone permission for forward zone %r' % fwzone1,
-            command=(
-                'dnsforwardzone_remove_permission', [fwzone1], {}
-            ),
+            command=('dnsforwardzone_remove_permission', [fwzone1], {}),
             expected=dict(
                 result=True,
                 value=fwzone1_permission,
                 summary='Removed system permission "%s"' % fwzone1_permission,
             ),
         ),
-
-
         dict(
-            desc='Make sure the permission for forward zone %r was deleted' % fwzone1,
-            command=(
-                'permission_show', [fwzone1_permission], {}
+            desc='Make sure the permission for forward zone %r was deleted'
+            % fwzone1,
+            command=('permission_show', [fwzone1_permission], {}),
+            expected=errors.NotFound(
+                reason='%s: permission not found' % fwzone1_permission
             ),
-            expected=errors.NotFound(reason='%s: permission not found'
-                                     % fwzone1_permission)
         ),
-
-
         dict(
-            desc='Try to remove per-zone permission for forward zone %r (permission does not exist)' % fwzone1,
-            command=(
-                'dnsforwardzone_remove_permission', [fwzone1], {}
+            desc='Try to remove per-zone permission for forward zone %r (permission does not exist)'
+            % fwzone1,
+            command=('dnsforwardzone_remove_permission', [fwzone1], {}),
+            expected=errors.NotFound(
+                reason='%s: permission not found' % fwzone1_permission
             ),
-            expected=errors.NotFound(reason='%s: permission not found'
-                                     % fwzone1_permission)
         ),
-
-
         dict(
             desc='Disable forward zone %r' % fwzone1,
             command=('dnsforwardzone_disable', [fwzone1], {}),
@@ -4947,8 +5208,6 @@ class test_forward_zones(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Check if forward zone %r is really disabled' % fwzone1,
             command=('dnsforwardzone_show', [fwzone1], {}),
@@ -4963,8 +5222,6 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Disable already disabled forward zone %r' % fwzone1,
             command=('dnsforwardzone_disable', [fwzone1], {}),
@@ -4974,17 +5231,13 @@ class test_forward_zones(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Try to disable non-existent forward zone',
             command=('dnsforwardzone_disable', [nonexistent_fwzone], {}),
             expected=errors.NotFound(
                 reason='%s: DNS forward zone not found' % nonexistent_fwzone
-                )
+            ),
         ),
-
-
         dict(
             desc='Enable forward zone %r' % fwzone1,
             command=('dnsforwardzone_enable', [fwzone1], {}),
@@ -4994,8 +5247,6 @@ class test_forward_zones(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Check if forward zone %r is really enabled' % fwzone1,
             command=('dnsforwardzone_show', [fwzone1], {}),
@@ -5010,8 +5261,6 @@ class test_forward_zones(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Enable already enabled forward zone %r' % fwzone1,
             command=('dnsforwardzone_enable', [fwzone1], {}),
@@ -5021,16 +5270,13 @@ class test_forward_zones(Declarative):
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Try to enable non-existent forward zone',
             command=('dnsforwardzone_enable', [nonexistent_fwzone], {}),
             expected=errors.NotFound(
                 reason='%s: DNS forward zone not found' % nonexistent_fwzone
-                )
+            ),
         ),
-
     ]
 
 
@@ -5441,13 +5687,13 @@ class test_forwardzone_delegation_warnings(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Create forward zone %r without forwarders with "none" '
-                 'policy' % zone1_sub_fw,
+            'policy' % zone1_sub_fw,
             command=(
-                'dnsforwardzone_add', [zone1_sub_fw],
-                {'idnsforwardpolicy': 'none'}
+                'dnsforwardzone_add',
+                [zone1_sub_fw],
+                {'idnsforwardpolicy': 'none'},
             ),
             expected={
                 'value': zone1_sub_fw_dnsname,
@@ -5461,14 +5707,10 @@ class test_forwardzone_delegation_warnings(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Create zone %r (expected warning for %r)' % (zone1,
-                                                               zone1_sub_fw),
-            command=(
-                'dnszone_add', [zone1_absolute], {}
-            ),
+            desc='Create zone %r (expected warning for %r)'
+            % (zone1, zone1_sub_fw),
+            command=('dnszone_add', [zone1_absolute], {}),
             expected={
                 'value': zone1_absolute_dnsname,
                 'summary': None,
@@ -5485,35 +5727,36 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': lambda x: True,  # don't care in this test
+                    'idnsupdatepolicy': lambda x: (
+                        True
+                    ),  # don't care in this test
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                 'effective because of missing proper NS '
-                                 'delegation in authoritative zone '
-                                 '"dnszone.test.". Please add NS record '
-                                 '"fw.sub" to parent zone "dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_absolute,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
-                     }},),
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"dnszone.test.". Please add NS record '
+                        '"fw.sub" to parent zone "dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_absolute,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_absolute) - 1],
+                        },
+                    },
+                ),
             },
         ),
-
-
         dict(
-            desc='Create zone %r (expected warning for %r)' % (zone1_sub,
-                                                               zone1_sub_fw),
-            command=(
-                'dnszone_add', [zone1_sub], {}
-            ),
+            desc='Create zone %r (expected warning for %r)'
+            % (zone1_sub, zone1_sub_fw),
+            command=('dnszone_add', [zone1_sub], {}),
             expected={
                 'value': zone1_sub_dnsname,
                 'summary': None,
@@ -5530,135 +5773,130 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': lambda x: True,  # don't care in this test
+                    'idnsupdatepolicy': lambda x: (
+                        True
+                    ),  # don't care in this test
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"sub.dnszone.test.". Please add NS record '
-                                '"fw" to parent zone "sub.dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_sub,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"sub.dnszone.test.". Please add NS record '
+                        '"fw" to parent zone "sub.dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_sub,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_sub) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
-            desc='Disable zone %r (expected warning for %r)' % (zone1_sub,
-                                                                zone1_sub_fw),
-            command=(
-                'dnszone_disable', [zone1_sub], {}
-            ),
+            desc='Disable zone %r (expected warning for %r)'
+            % (zone1_sub, zone1_sub_fw),
+            command=('dnszone_disable', [zone1_sub], {}),
             expected={
                 'value': zone1_sub_dnsname,
                 'summary': 'Disabled DNS zone "%s"' % zone1_sub,
                 'result': True,
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"dnszone.test.". Please add NS record '
-                                '"fw.sub" to parent zone "dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_absolute,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"dnszone.test.". Please add NS record '
+                        '"fw.sub" to parent zone "dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_absolute,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_absolute) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
-            desc='Enable zone %r (expected warning for %r)' % (zone1_sub,
-                                                               zone1_sub_fw),
-            command=(
-                'dnszone_enable', [zone1_sub], {}
-            ),
+            desc='Enable zone %r (expected warning for %r)'
+            % (zone1_sub, zone1_sub_fw),
+            command=('dnszone_enable', [zone1_sub], {}),
             expected={
                 'value': zone1_sub_dnsname,
                 'summary': 'Enabled DNS zone "%s"' % zone1_sub,
                 'result': True,
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"sub.dnszone.test.". Please add NS record '
-                                '"fw" to parent zone "sub.dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_sub,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"sub.dnszone.test.". Please add NS record '
+                        '"fw" to parent zone "sub.dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_sub,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_sub) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
             desc='Disable forward zone %r' % (zone1_sub_fw),
-            command=(
-                'dnsforwardzone_disable', [zone1_sub_fw], {}
-            ),
+            command=('dnsforwardzone_disable', [zone1_sub_fw], {}),
             expected={
                 'value': zone1_sub_fw_dnsname,
                 'summary': 'Disabled DNS forward zone "%s"' % zone1_sub_fw,
                 'result': True,
             },
         ),
-
-
         dict(
-            desc='Enable forward zone %r (expected warning for %r)' % (
-                zone1_sub_fw, zone1_sub_fw),
-            command=(
-                'dnsforwardzone_enable', [zone1_sub_fw], {}
-            ),
+            desc='Enable forward zone %r (expected warning for %r)'
+            % (zone1_sub_fw, zone1_sub_fw),
+            command=('dnsforwardzone_enable', [zone1_sub_fw], {}),
             expected={
                 'value': zone1_sub_fw_dnsname,
                 'summary': 'Enabled DNS forward zone "%s"' % zone1_sub_fw,
                 'result': True,
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"sub.dnszone.test.". Please add NS record '
-                                '"fw" to parent zone "sub.dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_sub,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"sub.dnszone.test.". Please add NS record '
+                        '"fw" to parent zone "sub.dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_sub,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_sub) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
-            desc='Delegate zone %r from zone %r using NS record' % (
-                zone1_sub_fw, zone1_sub),
-            command=('dnsrecord_add', [zone1_sub, 'fw'],
-                     {'nsrecord': self_server_ns}),
+            desc='Delegate zone %r from zone %r using NS record'
+            % (zone1_sub_fw, zone1_sub),
+            command=(
+                'dnsrecord_add',
+                [zone1_sub, 'fw'],
+                {'nsrecord': self_server_ns},
+            ),
             expected={
                 'value': DNSName('fw'),
                 'summary': None,
@@ -5670,56 +5908,47 @@ class test_forwardzone_delegation_warnings(Declarative):
                 },
             },
         ),
-
-
         dict(
-            desc='Disable zone %r (expected warning for %r)' % (zone1_sub,
-                                                                zone1_sub_fw),
-            command=(
-                'dnszone_disable', [zone1_sub], {}
-            ),
+            desc='Disable zone %r (expected warning for %r)'
+            % (zone1_sub, zone1_sub_fw),
+            command=('dnszone_disable', [zone1_sub], {}),
             expected={
                 'value': zone1_sub_dnsname,
                 'summary': 'Disabled DNS zone "%s"' % zone1_sub,
                 'result': True,
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"dnszone.test.". Please add NS record '
-                                '"fw.sub" to parent zone "dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_absolute,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"dnszone.test.". Please add NS record '
+                        '"fw.sub" to parent zone "dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_absolute,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_absolute) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
             desc='Enable zone %r' % (zone1_sub),
-            command=(
-                'dnszone_enable', [zone1_sub], {}
-            ),
+            command=('dnszone_enable', [zone1_sub], {}),
             expected={
                 'value': zone1_sub_dnsname,
                 'summary': 'Enabled DNS zone "%s"' % zone1_sub,
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Delete NS record which delegates zone %r from zone %r '
-                 '(expected warning for %r)' % (zone1_sub_fw,
-                                                zone1_sub, zone1_sub_fw),
-            command=('dnsrecord_del', [zone1_sub, 'fw'],
-                     {'del_all': True}),
+            '(expected warning for %r)'
+            % (zone1_sub_fw, zone1_sub, zone1_sub_fw),
+            command=('dnsrecord_del', [zone1_sub, 'fw'], {'del_all': True}),
             expected={
                 'value': [DNSName('fw')],
                 'summary': 'Deleted record "fw"',
@@ -5727,30 +5956,31 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'failed': [],
                 },
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"sub.dnszone.test.". Please add NS record '
-                                '"fw" to parent zone "sub.dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_sub,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_sub) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"sub.dnszone.test.". Please add NS record '
+                        '"fw" to parent zone "sub.dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_sub,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_sub) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
             desc='Create forward zone %r without forwarders with "none" '
-                 'policy (expected warning)' % zone1_sub2_fw,
+            'policy (expected warning)' % zone1_sub2_fw,
             command=(
-                'dnsforwardzone_add', [zone1_sub2_fw],
-                {'idnsforwardpolicy': 'none'}
+                'dnsforwardzone_add',
+                [zone1_sub2_fw],
+                {'idnsforwardpolicy': 'none'},
             ),
             expected={
                 'value': zone1_sub2_fw_dnsname,
@@ -5763,30 +5993,33 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'objectclass': objectclasses.dnsforwardzone,
                 },
                 'messages': (
-                    {'message': 'forward zone "fw.sub2.sub.dnszone.test." '
-                                'is not effective because of missing proper '
-                                'NS delegation in authoritative zone '
-                                '"sub.dnszone.test.". Please add NS record '
-                                '"fw.sub2" to parent zone '
-                                '"sub.dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_sub,
-                        'fwzone': zone1_sub2_fw,
-                        'ns_rec': zone1_sub2_fw[:-len(zone1_sub) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub2.sub.dnszone.test." '
+                        'is not effective because of missing proper '
+                        'NS delegation in authoritative zone '
+                        '"sub.dnszone.test.". Please add NS record '
+                        '"fw.sub2" to parent zone '
+                        '"sub.dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_sub,
+                            'fwzone': zone1_sub2_fw,
+                            'ns_rec': zone1_sub2_fw[: -len(zone1_sub) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
-            desc='Delegate zone %r from zone %r using NS record' % (
-                zone1_sub2_fw, zone1_sub),
-            command=('dnsrecord_add', [zone1_sub, 'fw.sub2'],
-                     {'nsrecord': self_server_ns}),
+            desc='Delegate zone %r from zone %r using NS record'
+            % (zone1_sub2_fw, zone1_sub),
+            command=(
+                'dnsrecord_add',
+                [zone1_sub, 'fw.sub2'],
+                {'nsrecord': self_server_ns},
+            ),
             expected={
                 'value': DNSName('fw.sub2'),
                 'summary': None,
@@ -5798,80 +6031,75 @@ class test_forwardzone_delegation_warnings(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Disable forward zone %r' % (zone1_sub2_fw),
-            command=(
-                'dnsforwardzone_disable', [zone1_sub2_fw], {}
-            ),
+            command=('dnsforwardzone_disable', [zone1_sub2_fw], {}),
             expected={
                 'value': zone1_sub2_fw_dnsname,
                 'summary': 'Disabled DNS forward zone "%s"' % zone1_sub2_fw,
                 'result': True,
             },
         ),
-
-
         dict(
             desc='Enable forward zone %r' % (zone1_sub2_fw),
-            command=(
-                'dnsforwardzone_enable', [zone1_sub2_fw], {}
-            ),
+            command=('dnsforwardzone_enable', [zone1_sub2_fw], {}),
             expected={
                 'value': zone1_sub2_fw_dnsname,
                 'summary': 'Enabled DNS forward zone "%s"' % zone1_sub2_fw,
                 'result': True,
             },
         ),
-
-
         dict(
-            desc='Delete zone %r (expected warning for %r, %r)' % (
-                zone1_sub, zone1_sub_fw, zone1_sub2_fw),
+            desc='Delete zone %r (expected warning for %r, %r)'
+            % (zone1_sub, zone1_sub_fw, zone1_sub2_fw),
             command=('dnszone_del', [zone1_sub], {}),
             expected={
                 'value': [zone1_sub_dnsname],
                 'summary': 'Deleted DNS zone "%s"' % zone1_sub,
                 'result': {'failed': []},
                 'messages': (
-                    {'message': 'forward zone "fw.sub.dnszone.test." is not '
-                                'effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"dnszone.test.". Please add NS record '
-                                '"fw.sub" to parent zone "dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_absolute,
-                        'fwzone': zone1_sub_fw,
-                        'ns_rec': zone1_sub_fw[:-len(zone1_absolute) - 1]
-                     }},
-                    {'message': 'forward zone "fw.sub2.sub.dnszone.test." '
-                                 'is not effective because of missing proper '
-                                 'NS delegation in authoritative zone '
-                                 '"dnszone.test.". Please add NS record '
-                                 '"fw.sub2.sub" to parent zone '
-                                 '"dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_absolute,
-                        'fwzone': zone1_sub2_fw,
-                        'ns_rec': zone1_sub2_fw[:-len(zone1_absolute) - 1]
-                     }}
+                    {
+                        'message': 'forward zone "fw.sub.dnszone.test." is not '
+                        'effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"dnszone.test.". Please add NS record '
+                        '"fw.sub" to parent zone "dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_absolute,
+                            'fwzone': zone1_sub_fw,
+                            'ns_rec': zone1_sub_fw[: -len(zone1_absolute) - 1],
+                        },
+                    },
+                    {
+                        'message': 'forward zone "fw.sub2.sub.dnszone.test." '
+                        'is not effective because of missing proper '
+                        'NS delegation in authoritative zone '
+                        '"dnszone.test.". Please add NS record '
+                        '"fw.sub2.sub" to parent zone '
+                        '"dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_absolute,
+                            'fwzone': zone1_sub2_fw,
+                            'ns_rec': zone1_sub2_fw[: -len(zone1_absolute) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
-
         dict(
-            desc='Delegate zone %r from zone %r using NS record' % (
-                zone1_sub2_fw, zone1),
-            command=('dnsrecord_add', [zone1, 'fw.sub2.sub'],
-                     {'nsrecord': self_server_ns}),
+            desc='Delegate zone %r from zone %r using NS record'
+            % (zone1_sub2_fw, zone1),
+            command=(
+                'dnsrecord_add',
+                [zone1, 'fw.sub2.sub'],
+                {'nsrecord': self_server_ns},
+            ),
             expected={
                 'value': DNSName('fw.sub2.sub'),
                 'summary': None,
@@ -5883,14 +6111,15 @@ class test_forwardzone_delegation_warnings(Declarative):
                 },
             },
         ),
-
-
         dict(
             desc='Delete (using dnsrecord-mod) NS record which delegates '
-                 'zone %r from zone %r (expected warning for %r)' % (
-                zone1_sub2_fw, zone1, zone1_sub2_fw),
-            command=('dnsrecord_mod', [zone1, 'fw.sub2.sub'],
-                     {'nsrecord': None}),
+            'zone %r from zone %r (expected warning for %r)'
+            % (zone1_sub2_fw, zone1, zone1_sub2_fw),
+            command=(
+                'dnsrecord_mod',
+                [zone1, 'fw.sub2.sub'],
+                {'nsrecord': None},
+            ),
             expected={
                 'value': DNSName('fw.sub2.sub'),
                 'summary': 'Deleted record "fw.sub2.sub"',
@@ -5898,24 +6127,25 @@ class test_forwardzone_delegation_warnings(Declarative):
                     'failed': [],
                 },
                 'messages': (
-                    {'message': 'forward zone "fw.sub2.sub.dnszone.test." is '
-                                'not effective because of missing proper NS '
-                                'delegation in authoritative zone '
-                                '"dnszone.test.". Please add NS record '
-                                '"fw.sub2.sub" to parent zone '
-                                '"dnszone.test.".',
-                     'code': 13008,
-                     'type': 'warning',
-                     'name': 'ForwardzoneIsNotEffectiveWarning',
-                     'data': {
-                        'authzone': zone1_absolute,
-                        'fwzone': zone1_sub2_fw,
-                        'ns_rec': zone1_sub2_fw[:-len(zone1_absolute) - 1]
-                     }},
+                    {
+                        'message': 'forward zone "fw.sub2.sub.dnszone.test." is '
+                        'not effective because of missing proper NS '
+                        'delegation in authoritative zone '
+                        '"dnszone.test.". Please add NS record '
+                        '"fw.sub2.sub" to parent zone '
+                        '"dnszone.test.".',
+                        'code': 13008,
+                        'type': 'warning',
+                        'name': 'ForwardzoneIsNotEffectiveWarning',
+                        'data': {
+                            'authzone': zone1_absolute,
+                            'fwzone': zone1_sub2_fw,
+                            'ns_rec': zone1_sub2_fw[: -len(zone1_absolute) - 1],
+                        },
+                    },
                 ),
             },
         ),
-
     ]
 
 
@@ -5949,20 +6179,21 @@ class test_dns_soa(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Try to retrieve non-existent zone %r' % zone6,
             command=('dnszone_show', [zone6], {}),
             expected=errors.NotFound(
-                reason='%s: DNS zone not found' % zone6_absolute),
+                reason='%s: DNS zone not found' % zone6_absolute
             ),
-
+        ),
         dict(
             desc='Create zone %r' % zone6b,
             command=(
-                'dnszone_add', [zone6b], {
+                'dnszone_add',
+                [zone6b],
+                {
                     'idnssoarname': zone6b_rname,
-                }
+                },
             ),
             expected={
                 'value': zone6b_absolute_dnsname,
@@ -5980,22 +6211,25 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
             desc='Add A record to %r in zone %r' % (zone6b_ns_arec, zone6b),
-            command=('dnsrecord_add',
-                     [zone6b, zone6b_ns],
-                     {'arecord': zone6b_ip}),
+            command=(
+                'dnsrecord_add',
+                [zone6b, zone6b_ns],
+                {'arecord': zone6b_ip},
+            ),
             expected={
                 'value': zone6b_ns_dnsname,
                 'summary': None,
@@ -6007,7 +6241,6 @@ class test_dns_soa(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Adding a zone - %r - just with zone name' % zone6,
             command=('dnszone_add', [zone6], {}),
@@ -6027,25 +6260,26 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         dict(
-            desc='Updating a zone - %r - with relative '
-                 'admin\'s e-mail' %
-                 zone6,
+            desc="Updating a zone - %r - with relative admin's e-mail" % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_relative_dnsname,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6063,23 +6297,24 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
                 },
             },
         ),
-
         dict(
-            desc='Updating a zone - %r - with absolute '
-                 'admin\'s e-mail' %
-                 zone6,
+            desc="Updating a zone - %r - with absolute admin's e-mail" % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_absolute_dnsname,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6097,21 +6332,24 @@ class test_dns_soa(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowquery': ['any;'],
                 },
             },
         ),
-
         dict(
-            desc='Updating a zone - %r - with default admin\'s e-mail' % zone6,
+            desc="Updating a zone - %r - with default admin's e-mail" % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_default_dnsname,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6130,20 +6368,23 @@ class test_dns_soa(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
             },
         ),
-
         dict(
             desc='Updating a zone - %r - with name-server absolute' % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6b_ns,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6162,37 +6403,42 @@ class test_dns_soa(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
-                'messages': [{
-                    'message': "Semantic of setting Authoritative nameserver "
-                               "was changed. "
-                               "It is used only for setting the SOA MNAME "
-                               "attribute.\n"
-                               "NS record(s) can be edited in zone "
-                               "apex - '@'. ",
-                    'code': 13005,
-                    'type': 'warning',
-                    'name': 'OptionSemanticChangedWarning',
-                    'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver",
-                    },
-                }],
+                'messages': [
+                    {
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    }
+                ],
             },
         ),
-
         dict(
             desc='Add A record to %r in zone %r' % (zone6_ns, zone6),
-            command=('dnsrecord_add',
-                     [zone6, zone6_ns],
-                     {'arecord': zone6b_ip}),
+            command=(
+                'dnsrecord_add',
+                [zone6, zone6_ns],
+                {'arecord': zone6b_ip},
+            ),
             expected={
                 'value': zone6_ns_dnsname,
                 'summary': None,
@@ -6204,13 +6450,14 @@ class test_dns_soa(Declarative):
                 },
             },
         ),
-
         dict(
             desc='Updating a zone - %r - with name-server relative' % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6_ns_relative,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6229,41 +6476,45 @@ class test_dns_soa(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
-                'messages': [{
-                    'message': "Semantic of setting Authoritative nameserver "
-                               "was changed. "
-                               "It is used only for setting the SOA MNAME "
-                               "attribute.\n"
-                               "NS record(s) can be edited in zone "
-                               "apex - '@'. ",
-                    'code': 13005,
-                    'type': 'warning',
-                    'name': 'OptionSemanticChangedWarning',
-                    'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver",
-                    },
-                }],
+                'messages': [
+                    {
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    }
+                ],
             },
         ),
-
         dict(
             desc='Updating a zone - %r - with unresolvable name-server '
-                 'absolute with --force' %
-                 zone6,
+            'absolute with --force' % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns,
                     'force': True,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6282,41 +6533,45 @@ class test_dns_soa(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
-                'messages': [{
-                    'message': "Semantic of setting Authoritative nameserver "
-                               "was changed. "
-                               "It is used only for setting the SOA MNAME "
-                               "attribute.\n"
-                               "NS record(s) can be edited in zone "
-                               "apex - '@'. ",
-                    'code': 13005,
-                    'type': 'warning',
-                    'name': 'OptionSemanticChangedWarning',
-                    'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver",
-                    },
-                }],
+                'messages': [
+                    {
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    }
+                ],
             },
         ),
-
         dict(
             desc='Updating a zone - %r - with unresolvable name-server '
-                 'relative with --force' %
-                 zone6,
+            'relative with --force' % zone6,
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns_relative,
                     'force': True,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6335,94 +6590,107 @@ class test_dns_soa(Declarative):
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                 },
-                'messages': [{
-                    'message': "Semantic of setting Authoritative nameserver "
-                               "was changed. "
-                               "It is used only for setting the SOA MNAME "
-                               "attribute.\n"
-                               "NS record(s) can be edited in zone "
-                               "apex - '@'. ",
-                    'code': 13005,
-                    'type': 'warning',
-                    'name': 'OptionSemanticChangedWarning',
-                    'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver",
-                    },
-                }],
+                'messages': [
+                    {
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    }
+                ],
             },
         ),
-
         dict(
-            desc='Updating a zone - %r - with invalid s e-mail - %r' %
-                 (zone6, zone6_rname_invalid_dnsname),
+            desc='Updating a zone - %r - with invalid s e-mail - %r'
+            % (zone6, zone6_rname_invalid_dnsname),
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_invalid_dnsname,
-                }),
+                },
+            ),
             expected=errors.ConversionError(
-                name='admin_email',
-                error='empty DNS label'),
+                name='admin_email', error='empty DNS label'
+            ),
         ),
-
         dict(
-            desc='Updating a zone - %r - with invalid name-server - %r' %
-                 (zone6, zone6_ns_invalid_dnsname),
+            desc='Updating a zone - %r - with invalid name-server - %r'
+            % (zone6, zone6_ns_invalid_dnsname),
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6_ns_invalid_dnsname,
-                }),
+                },
+            ),
             expected=errors.ConversionError(
-                name='name_server',
-                error='empty DNS label'),
+                name='name_server', error='empty DNS label'
+            ),
         ),
-
         dict(
-            desc='Updating a zone - %r - with unresolvable name-server - %r' %
-                 (zone6, zone6_unresolvable_ns),
+            desc='Updating a zone - %r - with unresolvable name-server - %r'
+            % (zone6, zone6_unresolvable_ns),
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns,
-                }),
+                },
+            ),
             expected=errors.NotFound(
                 reason="Nameserver '%s' does not have a corresponding "
-                       "A/AAAA record" %
-                       zone6_unresolvable_ns_dnsname,),
+                'A/AAAA record' % zone6_unresolvable_ns_dnsname,
+            ),
         ),
-
         dict(
             desc='Updating a zone - %r - with unresolvable relative '
-                 'name-server - %r' %
-                 (zone6, zone6_unresolvable_ns_relative),
+            'name-server - %r' % (zone6, zone6_unresolvable_ns_relative),
             command=(
-                'dnszone_mod', [zone6], {
+                'dnszone_mod',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns_relative,
-                }),
+                },
+            ),
             expected=errors.NotFound(
                 reason="Nameserver '%s' does not have a corresponding "
-                       "A/AAAA record" %
-                       zone6_unresolvable_ns_dnsname,),
+                'A/AAAA record' % zone6_unresolvable_ns_dnsname,
+            ),
         ),
-
         dict(
-            desc='Updating a zone - %r - with empty name-server - %r' %
-                 (zone6, zone6_unresolvable_ns_relative),
+            desc='Updating a zone - %r - with empty name-server - %r'
+            % (zone6, zone6_unresolvable_ns_relative),
             command=(
-                'dnszone_mod', [zone6], {
-                    'idnssoamname': "",
-                }),
-            expected=errors.ValidationError(name='name_server',
-                                            error='is required'),
+                'dnszone_mod',
+                [zone6],
+                {
+                    'idnssoamname': '',
+                },
+            ),
+            expected=errors.ValidationError(
+                name='name_server', error='is required'
+            ),
         ),
-
         dict(
             desc='Deleting a zone - %r' % zone6,
             command=('dnszone_del', [zone6], {}),
@@ -6432,13 +6700,14 @@ class test_dns_soa(Declarative):
                 'result': {'failed': []},
             },
         ),
-
         dict(
-            desc='Adding a zone - %r - with relative admin\'s e-mail' % zone6,
+            desc="Adding a zone - %r - with relative admin's e-mail" % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_relative_dnsname,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6456,10 +6725,12 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
@@ -6475,13 +6746,14 @@ class test_dns_soa(Declarative):
                 'result': {'failed': []},
             },
         ),
-
         dict(
-            desc='Adding a zone - %r - with absolute admin\'s e-mail' % zone6,
+            desc="Adding a zone - %r - with absolute admin's e-mail" % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_absolute_dnsname,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6499,10 +6771,12 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
@@ -6518,14 +6792,16 @@ class test_dns_soa(Declarative):
                 'result': {'failed': []},
             },
         ),
-
         dict(
-            desc='Adding a zone - %r - with name-server %r' %
-                 (zone6, zone6_ns_dnsname),
+            desc='Adding a zone - %r - with name-server %r'
+            % (zone6, zone6_ns_dnsname),
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoamname': zone6b_ns,
-                }),
+                },
+            ),
             expected={
                 'value': zone6_absolute_dnsname,
                 'summary': None,
@@ -6542,32 +6818,37 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
                 'messages': [
                     {
-                    'message': "Semantic of setting Authoritative nameserver "
-                               "was changed. "
-                               "It is used only for setting the SOA MNAME "
-                               "attribute.\n"
-                               "NS record(s) can be edited in zone "
-                               "apex - '@'. ",
-                    'code': 13005,
-                    'type': 'warning',
-                    'name': 'OptionSemanticChangedWarning',
-                    'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver",
-                    }},], },
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    },
+                ],
+            },
         ),
         dict(
             desc='Deleting a zone - %r' % zone6,
@@ -6578,16 +6859,16 @@ class test_dns_soa(Declarative):
                 'result': {'failed': []},
             },
         ),
-
         dict(
             desc='Adding a zone - %r - with unresolvable name-server '
-                 'relative with --force' %
-                 zone6,
+            'relative with --force' % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns_relative,
                     'force': True,
-                }
+                },
             ),
             expected={
                 'value': zone6_absolute_dnsname,
@@ -6605,32 +6886,37 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
-                                         'grant %(realm)s krb5-self * AAAA; '
-                                         'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
                     'idnsallowtransfer': ['none;'],
                     'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
                 'messages': [
                     {
-                    'message': "Semantic of setting Authoritative nameserver "
-                               "was changed. "
-                               "It is used only for setting the SOA MNAME "
-                               "attribute.\n"
-                               "NS record(s) can be edited in zone "
-                               "apex - '@'. ",
-                    'code': 13005,
-                    'type': 'warning',
-                    'name': 'OptionSemanticChangedWarning',
-                    'data': {
-                        'current_behavior': "It is used only for setting the "
-                                            "SOA MNAME attribute.",
-                        'hint': "NS record(s) can be edited in zone apex - "
-                                "'@'. ",
-                        'label': "setting Authoritative nameserver",
-                    }},], },
+                        'message': 'Semantic of setting Authoritative nameserver '
+                        'was changed. '
+                        'It is used only for setting the SOA MNAME '
+                        'attribute.\n'
+                        'NS record(s) can be edited in zone '
+                        "apex - '@'. ",
+                        'code': 13005,
+                        'type': 'warning',
+                        'name': 'OptionSemanticChangedWarning',
+                        'data': {
+                            'current_behavior': 'It is used only for setting the '
+                            'SOA MNAME attribute.',
+                            'hint': 'NS record(s) can be edited in zone apex - '
+                            "'@'. ",
+                            'label': 'setting Authoritative nameserver',
+                        },
+                    },
+                ],
+            },
         ),
         dict(
             desc='Deleting a zone - %r' % zone6,
@@ -6641,74 +6927,76 @@ class test_dns_soa(Declarative):
                 'result': {'failed': []},
             },
         ),
-
-
         dict(
             desc='Adding zone with invalid zone name - %r' % zone6_invalid,
             command=('dnszone_add', [zone6_invalid], {}),
             expected=errors.ConversionError(
-                name='name',
-                error='empty DNS label'
+                name='name', error='empty DNS label'
             ),
         ),
-
         # BZ 817413: Test middle label longer than 63 chars
         dict(
             desc='Try to add zone with middle label > 63 chars (BZ 817413)',
             command=(
                 'dnszone_add',
-                [u'domain.sixthreemax.'
-                 u'12345678901234567890123345678901234567890'
-                 u'123456789012345678901234567890.com'],
-                {}
+                [
+                    'domain.sixthreemax.'
+                    '12345678901234567890123345678901234567890'
+                    '123456789012345678901234567890.com'
+                ],
+                {},
             ),
             expected=errors.ConversionError(
                 name='name',
-                error=u'DNS label cannot be longer than 63 characters'
+                error='DNS label cannot be longer than 63 characters',
             ),
         ),
-
         # BZ 817413: Test first label longer than 63 chars
         dict(
             desc='Try to add zone with first label > 63 chars (BZ 817413)',
             command=(
                 'dnszone_add',
-                [u'firstlkjhjklasghduygasiudfygvq7i6ertf78q6t4871y8347y2r8734'
-                 u'y87aylfisduhcvkljasnkljnasdljdnclakj.long.com'],
-                {}
+                [
+                    'firstlkjhjklasghduygasiudfygvq7i6ertf78q6t4871y8347y2r8734'
+                    'y87aylfisduhcvkljasnkljnasdljdnclakj.long.com'
+                ],
+                {},
             ),
             expected=errors.ConversionError(
                 name='name',
-                error=u'DNS label cannot be longer than 63 characters'
+                error='DNS label cannot be longer than 63 characters',
             ),
         ),
-
         # BZ 817413: Test TLD longer than 63 chars
         dict(
             desc='Try to add zone with TLD > 63 chars (BZ 817413)',
             command=(
                 'dnszone_add',
-                [u'long.tld.tldlkjhjklasghduygasiudfygvq7i6ertf78q6t4871y8347'
-                 u'y2r8734y87aylfisduhcvkljasnkljnasdljdnclakj'],
-                {}
+                [
+                    'long.tld.tldlkjhjklasghduygasiudfygvq7i6ertf78q6t4871y8347'
+                    'y2r8734y87aylfisduhcvkljasnkljnasdljdnclakj'
+                ],
+                {},
             ),
             expected=errors.ConversionError(
                 name='name',
-                error=u'DNS label cannot be longer than 63 characters'
+                error='DNS label cannot be longer than 63 characters',
             ),
         ),
-
         # BZ 817413: Test numeric TLD is allowed (success case)
         dict(
             desc='Add zone with numeric TLD (BZ 817413)',
-            command=('dnszone_add', [u'domain.numeric.123.'], {}),
+            command=('dnszone_add', ['domain.numeric.123.'], {}),
             expected={
-                'value': DNSName(u'domain.numeric.123.'),
+                'value': DNSName('domain.numeric.123.'),
                 'summary': None,
                 'result': {
-                    'dn': DN(('idnsname', 'domain.numeric.123.'),
-                             api.env.container_dns, api.env.basedn),
-                    'idnsname': [DNSName(u'domain.numeric.123.')],
+                    'dn': DN(
+                        ('idnsname', 'domain.numeric.123.'),
+                        api.env.container_dns,
+                        api.env.basedn,
+                    ),
+                    'idnsname': [DNSName('domain.numeric.123.')],
                     'idnszoneactive': [True],
                     'idnssoamname': [DNSName(api.env.host)],
                     'nsrecord': lambda x: True,
@@ -6719,133 +7007,151 @@ class test_dns_soa(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
+                    'idnsupdatepolicy': [
+                        'grant %(realm)s krb5-self * A; '
+                        'grant %(realm)s krb5-self * AAAA; '
+                        'grant %(realm)s krb5-self * SSHFP;'
+                        % dict(realm=api.env.realm)
+                    ],
+                    'idnsallowtransfer': ['none;'],
+                    'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
         ),
-
         # BZ 817413: Delete zone with numeric TLD (cleanup)
         dict(
             desc='Delete zone with numeric TLD (BZ 817413)',
-            command=('dnszone_del', [u'domain.numeric.123.'], {}),
+            command=('dnszone_del', ['domain.numeric.123.'], {}),
             expected={
-                'value': [DNSName(u'domain.numeric.123.')],
-                'summary': u'Deleted DNS zone "domain.numeric.123."',
+                'value': [DNSName('domain.numeric.123.')],
+                'summary': 'Deleted DNS zone "domain.numeric.123."',
                 'result': {'failed': []},
             },
         ),
-
         dict(
-            desc='Adding a zone - %r - with invalid s e-mail - %r' %
-                 (zone6, zone6_rname_invalid_dnsname),
+            desc='Adding a zone - %r - with invalid s e-mail - %r'
+            % (zone6, zone6_rname_invalid_dnsname),
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoarname': zone6_rname_invalid_dnsname,
-                }),
+                },
+            ),
             expected=errors.ConversionError(
-                name='admin_email',
-                error='empty DNS label'),
+                name='admin_email', error='empty DNS label'
+            ),
         ),
-
         dict(
-            desc='Adding a zone - %r - with invalid name-server - %r' %
-                 (zone6, zone6_ns_invalid_dnsname),
+            desc='Adding a zone - %r - with invalid name-server - %r'
+            % (zone6, zone6_ns_invalid_dnsname),
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoamname': zone6_ns_invalid_dnsname,
-                }),
+                },
+            ),
             expected=errors.ConversionError(
-                name='name_server',
-                error='empty DNS label'),
+                name='name_server', error='empty DNS label'
+            ),
         ),
-
         dict(
-            desc='Adding a zone - %r - with unresolvable name-server - %r' %
-                 (zone6, zone6_unresolvable_ns),
+            desc='Adding a zone - %r - with unresolvable name-server - %r'
+            % (zone6, zone6_unresolvable_ns),
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns,
-                }),
+                },
+            ),
             expected=errors.NotFound(
                 reason="Nameserver '%s' does not have a corresponding "
-                       "A/AAAA record" %
-                       zone6_unresolvable_ns_dnsname,),
+                'A/AAAA record' % zone6_unresolvable_ns_dnsname,
+            ),
         ),
-
         dict(
             desc='Adding a zone - %r - with unresolvable '
-                 'relative name-server - %r' %
-                 (zone6,
-                  zone6_unresolvable_ns_relative),
+            'relative name-server - %r'
+            % (zone6, zone6_unresolvable_ns_relative),
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoamname': zone6_unresolvable_ns_relative,
-                }),
+                },
+            ),
             expected=errors.NotFound(
                 reason="Nameserver '%s' does not have a corresponding "
-                       "A/AAAA record" %
-                       zone6_unresolvable_ns_dnsname,),
+                'A/AAAA record' % zone6_unresolvable_ns_dnsname,
+            ),
         ),
-
         dict(
             desc='Adding a zone - %r - with invalid SOA refresh value' % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoarefresh': 12345678901234,
-                }),
+                },
+            ),
             expected=errors.ValidationError(
-                name='refresh',
-                error=u'can be at most 2147483647'),
+                name='refresh', error='can be at most 2147483647'
+            ),
         ),
-
         dict(
             desc='Adding a zone - %r - with invalid SOA retry value' % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoaretry': 12345678901234,
-                }),
+                },
+            ),
             expected=errors.ValidationError(
-                name='retry',
-                error=u'can be at most 2147483647'),
+                name='retry', error='can be at most 2147483647'
+            ),
         ),
-
         dict(
             desc='Adding a zone - %r - with invalid SOA expire value' % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoaexpire': 12345678901234,
-                }),
+                },
+            ),
             expected=errors.ValidationError(
-                name='expire',
-                error=u'can be at most 2147483647'),
+                name='expire', error='can be at most 2147483647'
+            ),
         ),
-
         dict(
             desc='Adding a zone - %r - with invalid SOA minimum value' % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'idnssoaminimum': 12345678901234,
-                }),
+                },
+            ),
             expected=errors.ValidationError(
-                name='minimum',
-                error=u'can be at most 2147483647'),
+                name='minimum', error='can be at most 2147483647'
+            ),
         ),
-
         dict(
             desc='Adding a zone - %r - with invalid TTL value' % zone6,
             command=(
-                'dnszone_add', [zone6], {
+                'dnszone_add',
+                [zone6],
+                {
                     'dnsttl': 12345678901234,
-                }),
+                },
+            ),
             expected=errors.ValidationError(
-                name='ttl',
-                error=u'can be at most 2147483647'),
+                name='ttl', error='can be at most 2147483647'
+            ),
         ),
     ]
 

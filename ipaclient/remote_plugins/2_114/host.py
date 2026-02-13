@@ -909,8 +909,10 @@ class host_disallow_create_keytab(Method):
 
 @register()
 class host_disallow_retrieve_keytab(Method):
-    __doc__ = _("Disallow users, groups, "
-    "hosts or host groups to retrieve a keytab of this host.")
+    __doc__ = _(
+        'Disallow users, groups, '
+        'hosts or host groups to retrieve a keytab of this host.'
+    )
 
     takes_args = (
         parameters.Str(

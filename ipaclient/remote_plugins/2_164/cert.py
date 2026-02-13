@@ -255,8 +255,9 @@ class cert_remove_hold(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in '
-            'hexadecimal'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
@@ -324,8 +325,9 @@ class cert_revoke(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in '
-            'hexadecimal'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
@@ -353,8 +355,9 @@ class cert_show(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in '
-            'hexadecimal'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )

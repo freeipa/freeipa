@@ -251,8 +251,9 @@ class certprofile_import(Method):
         ),
         parameters.Str(
             'file',
-            label=_('Filename of a raw profile. '
-            'The XML format is not supported.'),
+            label=_(
+                'Filename of a raw profile. The XML format is not supported.'
+            ),
         ),
         parameters.Flag(
             'all',

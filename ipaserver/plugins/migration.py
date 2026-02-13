@@ -147,7 +147,11 @@ _dn_err_msg = _('Malformed DN')
 _supported_schemas = ('RFC2307bis', 'RFC2307')
 
 # search scopes for users and groups when migrating
-_supported_scopes = {'base': SCOPE_BASE, 'onelevel': SCOPE_ONELEVEL, 'subtree': SCOPE_SUBTREE}
+_supported_scopes = {
+    'base': SCOPE_BASE,
+    'onelevel': SCOPE_ONELEVEL,
+    'subtree': SCOPE_SUBTREE,
+}
 _default_scope = 'onelevel'
 
 
@@ -454,8 +458,12 @@ def _group_exc_callback(ldap, dn, entry_attrs, exc, options):
              entry_attrs.get('gidnumber') is not None:
             msg = str(exc)
             # add information about possibility to overwrite GID
-            msg = msg + str(_('. Check GID of the existing group. ' \
-                    'Use --group-overwrite-gid option to overwrite the GID'))
+            msg = msg + str(
+                _(
+                    '. Check GID of the existing group. '
+                    'Use --group-overwrite-gid option to overwrite the GID'
+                )
+            )
             raise errors.DuplicateEntry(message=msg)
 
     raise exc

@@ -1709,9 +1709,11 @@ class dnsforwardzone_mod(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. '
-            'A custom port can be specified for each forwarder using a '
-            'standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -1719,33 +1721,41 @@ class dnsforwardzone_mod(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. '
-            'Set to "none" to disable forwarding to global forwarder for this '
-            'zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for this '
+                'zone. In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. '
-            'Format is attr=value.\nFor multi-valued attributes, '
-            'the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. '
-            'The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. '
-            'The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
@@ -3805,8 +3815,10 @@ class dnsrecord_mod(Method):
             cli_name='kx_preference',
             option_group='KX Record',
             label=_('KX Preference'),
-            doc=_('Preference given to this exchanger. '
-            'Lower values are more preferred'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
@@ -3944,8 +3956,10 @@ class dnsrecord_mod(Method):
             cli_name='mx_preference',
             option_group='MX Record',
             label=_('MX Preference'),
-            doc=_('Preference given to this exchanger. '
-            'Lower values are more preferred'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
@@ -4136,8 +4150,10 @@ class dnsrecord_mod(Method):
             cli_name='srv_target',
             option_group='SRV Record',
             label=_('SRV Target'),
-            doc=_("The domain name of the target host or '.' if the service is "
-            "decidedly not available at this domain"),
+            doc=_(
+                "The domain name of the target host or '.' if the service is "
+                'decidedly not available at this domain'
+            ),
         ),
         parameters.Str(
             'sshfprecord',
@@ -4234,32 +4250,40 @@ class dnsrecord_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. '
-            'Format is attr=value.\nFor multi-valued attributes, '
-            'the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. '
-            'The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. '
-            'The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). '
-            'See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),

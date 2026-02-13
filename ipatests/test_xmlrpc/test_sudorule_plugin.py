@@ -121,26 +121,28 @@ class test_sudorule(XMLRPC_test):
         """
         Initialize data for more Sudo rule plugin testing.
         """
-        self.failsafe_add(api.Object.user,
-            self.test_user, givenname='first', sn='last'
+        self.failsafe_add(
+            api.Object.user, self.test_user, givenname='first', sn='last'
         )
         self.failsafe_add(api.Object.user,
             self.test_runasuser, givenname='first', sn='last'
         )
-        self.failsafe_add(api.Object.group,
-            self.test_group, description='description'
+        self.failsafe_add(
+            api.Object.group, self.test_group, description='description'
         )
         self.failsafe_add(api.Object.host,
             self.test_host, force=True
         )
-        self.failsafe_add(api.Object.hostgroup,
-            self.test_hostgroup, description='description'
+        self.failsafe_add(
+            api.Object.hostgroup, self.test_hostgroup, description='description'
         )
         self.failsafe_add(api.Object.sudocmdgroup,
             self.test_sudoallowcmdgroup, description='desc'
         )
-        self.failsafe_add(api.Object.sudocmdgroup,
-            self.test_sudodenycmdgroup, description='desc'
+        self.failsafe_add(
+            api.Object.sudocmdgroup,
+            self.test_sudodenycmdgroup,
+            description='desc',
         )
         self.failsafe_add(api.Object.sudocmd,
             self.test_command, description='desc'
@@ -578,9 +580,11 @@ class test_sudorule(XMLRPC_test):
                 addattr='externalhost=%s' % self.test_invalid_host
             )
         except errors.ValidationError as e:
-            assert str(e) == ("invalid 'externalhost': only letters, " +
-                "numbers, '_', '-' are allowed. " +
-                "DNS label may not start or end with '-'")
+            assert str(e) == (
+                "invalid 'externalhost': only letters, "
+                + "numbers, '_', '-' are allowed. "
+                + "DNS label may not start or end with '-'"
+            )
         else:
             assert False
 
@@ -761,14 +765,18 @@ class test_sudorule(XMLRPC_test):
         """
         Test adding a runasuser to an Sudo rule when ipasudorunasusercategory='all'
         """
-        api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory='all')
+        api.Command['sudorule_mod'](
+            self.rule_name, ipasudorunasusercategory='all'
+        )
         try:
             with pytest.raises(errors.MutuallyExclusiveError):
                 api.Command['sudorule_add_runasuser'](
                     self.rule_name, user=self.test_user
                 )
         finally:
-            api.Command['sudorule_mod'](self.rule_name, ipasudorunasusercategory='')
+            api.Command['sudorule_mod'](
+                self.rule_name, ipasudorunasusercategory=''
+            )
 
     def test_j_1_sudorule_exclusiverunas(self):
         """

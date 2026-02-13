@@ -263,7 +263,10 @@ class test_Param(ClassChecker):
             Subclass('my_param', **kw)
 
         # Test when using unknown kwargs:
-        e = raises(TypeError, self.cls, 'my_param',
+        e = raises(
+            TypeError,
+            self.cls,
+            'my_param',
             flags=['hello', 'world'],
             whatever='Hooray!',
         )
@@ -605,7 +608,8 @@ class test_Param(ClassChecker):
                 super(Str, self).__init__(name, **kw)
 
         # Test with only a static default:
-        o = Str('my_str',
+        o = Str(
+            'my_str',
             normalizer=PassThrough(),
             default='Static Default',
         )
@@ -614,7 +618,8 @@ class test_Param(ClassChecker):
         assert o.normalizer.value is None
 
         # Test with default_from:
-        o = Str('my_str',
+        o = Str(
+            'my_str',
             normalizer=PassThrough(),
             default='Static Default',
             default_from=lambda first, last: first[0] + last,

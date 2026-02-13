@@ -55,13 +55,19 @@ from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
-                         get_dns_forward_zone_update_policy,
-                         get_dns_reverse_zone_update_policy,
-                         normalize_zone, get_reverse_zone_default,
-                         zone_is_reverse, validate_dnssec_global_forwarder,
-                         DNSSECSignatureMissingError, EDNS0UnsupportedError,
-                           UnresolvableRecordError)
+from ipalib.util import (
+    validate_zonemgr_str,
+    normalize_zonemgr,
+    get_dns_forward_zone_update_policy,
+    get_dns_reverse_zone_update_policy,
+    normalize_zone,
+    get_reverse_zone_default,
+    zone_is_reverse,
+    validate_dnssec_global_forwarder,
+    DNSSECSignatureMissingError,
+    EDNS0UnsupportedError,
+    UnresolvableRecordError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -404,7 +410,7 @@ def add_ns_rr(zone, hostname, dns_backup=None, force=True, api=api):
 
 
 def del_rr(zone, name, type, rdata, api=api):
-    delkw = { '%srecord' % str(type.lower()) : str(rdata) }
+    delkw = {'%srecord' % str(type.lower()): str(rdata)}
     try:
         api.Command.dnsrecord_del(str(zone), str(name), **delkw)
     except (errors.NotFound, errors.AttrValueNotFound, errors.EmptyModlist):
@@ -628,7 +634,7 @@ class DnsBackup:
                 if have_ldap:
                     type, host, rdata = dns_record.split(" ", 2)
                     try:
-                        delkw = { '%srecord' % str(type.lower()) : str(rdata) }
+                        delkw = {'%srecord' % str(type.lower()): str(rdata)}
                         api.Command.dnsrecord_del(str(zone), str(host), **delkw)
                     except Exception:
                         pass

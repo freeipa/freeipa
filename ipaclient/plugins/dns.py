@@ -324,7 +324,7 @@ class dnsrecord_mod(MethodOverride):
                     if rec_values:
                         self.Backend.textui.print_plain(
                             ngettext(
-                                '%(count)d %(type)s record skipped. Only one ' 
+                                '%(count)d %(type)s record skipped. Only one '
                                 ' value per DNS record type can be modified '
                                 'at one time.',
                                 '%(count)d %(type)s records skipped. Only one '

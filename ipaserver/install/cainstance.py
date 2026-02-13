@@ -2421,8 +2421,9 @@ def ensure_default_caacl():
             hostcategory='all',
             servicecategory='all',
         )
-        api.Command.caacl_add_profile('hosts_services_caIPAserviceCert',
-            certprofile=('caIPAserviceCert',))
+        api.Command.caacl_add_profile(
+            'hosts_services_caIPAserviceCert', certprofile=('caIPAserviceCert',)
+        )
 
 
 def add_lightweight_ca_tracking_requests(lwcas):

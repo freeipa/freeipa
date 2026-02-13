@@ -1032,7 +1032,9 @@ class host_mod(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if options.get('random', False):
-            entry_attrs['randompassword'] = str(getattr(context, 'randompassword'))
+            entry_attrs['randompassword'] = str(
+                getattr(context, 'randompassword')
+            )
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)

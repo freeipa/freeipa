@@ -103,12 +103,14 @@ class TestCRUD(XMLRPC_test):
         location.find(all=True)
 
     def test_update_simple(self, location):
-        location.update(dict(
+        location.update(
+            dict(
                 description='Updated description',
             ),
             expected_updates=dict(
                 description=['Updated description'],
-            ))
+            ),
+        )
         location.retrieve()
 
     def test_try_rename(self, location):
@@ -126,16 +128,22 @@ class TestCRUD(XMLRPC_test):
 @pytest.mark.skipif(
     not api.Command.dns_is_enabled()['result'], reason='DNS not configured')
 class TestLocationsServer(XMLRPC_test):
-    messages = [{
-        'data': {'service': knownservices.named.systemd_name,
-                  'server': api.env.host},
-        'message': ('Service %s requires restart '
-                     'on IPA server %s to apply configuration '
-                     'changes.' % (knownservices.named.systemd_name,
-                                    api.env.host)),
-        'code': 13025,
-        'type': 'warning',
-        'name': 'ServiceRestartRequired'}]
+    messages = [
+        {
+            'data': {
+                'service': knownservices.named.systemd_name,
+                'server': api.env.host,
+            },
+            'message': (
+                'Service %s requires restart '
+                'on IPA server %s to apply configuration '
+                'changes.' % (knownservices.named.systemd_name, api.env.host)
+            ),
+            'code': 13025,
+            'type': 'warning',
+            'name': 'ServiceRestartRequired',
+        }
+    ]
 
     def test_add_nonexistent_location_to_server(self, server):
         nonexistent_loc = DNSName('nonexistent-location')

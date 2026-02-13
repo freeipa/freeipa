@@ -309,10 +309,13 @@ class TestCRUD(XMLRPC_test):
     def test_try_illegal_mac(self, host):
         command = host.make_update_command(
             updates=dict(macaddress=['xx']))
-        with raises_exact(errors.ValidationError(
+        with raises_exact(
+            errors.ValidationError(
                 name='macaddress',
-                error='Must be of the form HH:HH:HH:HH:HH:HH, where ' +
-                      'each H is a hexadecimal character.')):
+                error='Must be of the form HH:HH:HH:HH:HH:HH, where '
+                + 'each H is a hexadecimal character.',
+            )
+        ):
             command()
 
     def test_add_ssh_pubkey(self, host):
@@ -631,10 +634,13 @@ class TestProtectedMaster(XMLRPC_test):
 class TestValidation(XMLRPC_test):
     def test_try_validate_create(self, invalid_host):
         command = invalid_host.make_create_command()
-        with raises_exact(errors.ValidationError(
+        with raises_exact(
+            errors.ValidationError(
                 name='hostname',
-                error="invalid domain-name: only letters, numbers, '-' are " +
-                      "allowed. DNS label may not start or end with '-'")):
+                error="invalid domain-name: only letters, numbers, '-' are "
+                + "allowed. DNS label may not start or end with '-'",
+            )
+        ):
             command()
 
     # The assumption on these next 4 tests is that if we don't get a

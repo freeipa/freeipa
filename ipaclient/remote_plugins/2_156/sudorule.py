@@ -1250,39 +1250,48 @@ class sudorule_mod(Method):
             required=False,
             cli_name='runasexternalgroup',
             label=_('RunAs External Group'),
-            doc=_('External Group the commands can run as (sudorule-find '
-            'only)'),
+            doc=_(
+                'External Group the commands can run as (sudorule-find only)'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. '
-            'Format is attr=value.\nFor multi-valued attributes, '
-            'the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. '
-            'The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. '
-            'The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). '
-            'See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -1332,8 +1341,9 @@ class sudorule_mod(Method):
 
 @register()
 class sudorule_remove_allow_command(Method):
-    __doc__ = _("Remove commands and sudo command groups affected by Sudo "
-    "Rule.")
+    __doc__ = _(
+        'Remove commands and sudo command groups affected by Sudo Rule.'
+    )
 
     takes_args = (
         parameters.Str(
@@ -1408,8 +1418,9 @@ class sudorule_remove_allow_command(Method):
 
 @register()
 class sudorule_remove_deny_command(Method):
-    __doc__ = _("Remove commands and sudo command groups affected by Sudo "
-    "Rule.")
+    __doc__ = _(
+        'Remove commands and sudo command groups affected by Sudo Rule.'
+    )
 
     takes_args = (
         parameters.Str(
@@ -1855,8 +1866,10 @@ class sudorule_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). '
-            'See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),

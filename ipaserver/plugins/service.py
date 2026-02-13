@@ -529,7 +529,7 @@ class service(LDAPObject):
             doc=_('Service principal'),
             primary_key=True,
             normalizer=normalize_principal,
-            require_service=True
+            require_service=True,
         ),
         Principal(
             'krbprincipalname*',
@@ -539,7 +539,7 @@ class service(LDAPObject):
             doc=_('Service principal alias'),
             normalizer=normalize_principal,
             require_service=True,
-            flags={'no_create'}
+            flags={'no_create'},
         ),
         Str(
             'memberprincipal*',
@@ -547,76 +547,92 @@ class service(LDAPObject):
             label=_('Delegation principal'),
             doc=_('Delegation principal'),
             normalizer=normalize_principal,
-            flags={'no_create', 'no_update', 'no_search'}
+            flags={'no_create', 'no_update', 'no_search'},
         ),
-        Certificate('usercertificate*',
+        Certificate(
+            'usercertificate*',
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded service certificate'),
-            flags=['no_search',],
+            flags=[
+                'no_search',
+            ],
         ),
-        Str('subject',
+        Str(
+            'subject',
             label=_('Subject'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('serial_number',
+        Str(
+            'serial_number',
             label=_('Serial Number'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('serial_number_hex',
+        Str(
+            'serial_number_hex',
             label=_('Serial Number (hex)'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('issuer',
+        Str(
+            'issuer',
             label=_('Issuer'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('valid_not_before',
+        Str(
+            'valid_not_before',
             label=_('Not Before'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('valid_not_after',
+        Str(
+            'valid_not_after',
             label=_('Not After'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('sha1_fingerprint',
+        Str(
+            'sha1_fingerprint',
             label=_('Fingerprint (SHA1)'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('sha256_fingerprint',
+        Str(
+            'sha256_fingerprint',
             label=_('Fingerprint (SHA256)'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        Str('revocation_reason?',
+        Str(
+            'revocation_reason?',
             label=_('Revocation reason'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
-        StrEnum('ipakrbauthzdata*',
+        StrEnum(
+            'ipakrbauthzdata*',
             cli_name='pac_type',
             label=_('PAC type'),
-            doc=_("Override default list of supported PAC types."
-                  " Use 'NONE' to disable PAC support for this service,"
-                  " e.g. this might be necessary for NFS services."),
+            doc=_(
+                'Override default list of supported PAC types.'
+                " Use 'NONE' to disable PAC support for this service,"
+                ' e.g. this might be necessary for NFS services.'
+            ),
             values=('MS-PAC', 'PAD', 'NONE'),
         ),
         StrEnum(
             'krbprincipalauthind*',
             cli_name='auth_ind',
             label=_('Authentication Indicators'),
-            doc=_("Defines an allow list for Authentication Indicators."
-                  " Use 'otp' to allow OTP-based 2FA authentications."
-                  " Use 'radius' to allow RADIUS-based 2FA authentications."
-                  " Use 'pkinit' to allow PKINIT-based 2FA authentications."
-                  " Use 'hardened' to allow brute-force hardened password"
-                  " authentication by SPAKE or FAST."
-                  " Use 'idp' to allow authentication against an external"
-                  " Identity Provider supporting OAuth 2.0 Device"
-                  " Authorization Flow (RFC 8628)."
-                  " Use 'passkey' to allow passkey-based 2FA authentications."
-                  " With no indicator specified,"
-                  " all authentication mechanisms are allowed."),
-            values=('radius', 'otp', 'pkinit', 'hardened', 'idp',
-                    'passkey'),
+            doc=_(
+                'Defines an allow list for Authentication Indicators.'
+                " Use 'otp' to allow OTP-based 2FA authentications."
+                " Use 'radius' to allow RADIUS-based 2FA authentications."
+                " Use 'pkinit' to allow PKINIT-based 2FA authentications."
+                " Use 'hardened' to allow brute-force hardened password"
+                ' authentication by SPAKE or FAST.'
+                " Use 'idp' to allow authentication against an external"
+                ' Identity Provider supporting OAuth 2.0 Device'
+                ' Authorization Flow (RFC 8628).'
+                " Use 'passkey' to allow passkey-based 2FA authentications."
+                ' With no indicator specified,'
+                ' all authentication mechanisms are allowed.'
+            ),
+            values=('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey'),
         ),
     ) + ticket_flags_params
 

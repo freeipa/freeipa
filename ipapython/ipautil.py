@@ -1148,7 +1148,11 @@ $)''', re.VERBOSE)
                                     appendvars[option],
                                 )
                             elif value.find(appendvars[option]) == -1:
-                                new_line = "%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = '%s=%s %s\n' % (
+                                    option,
+                                    value,
+                                    appendvars[option],
+                                )
                             old_values[option] = value
                         if removevars and option in removevars:
                             old_values[option] = value
@@ -1253,7 +1257,11 @@ $)''', re.VERBOSE)
                                     appendvars[option],
                                 )
                             elif value.find(appendvars[option]) == -1:
-                                new_line = "%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = '%s=%s %s\n' % (
+                                    option,
+                                    value,
+                                    appendvars[option],
+                                )
                             old_values[option] = value
                     new_config.write(new_line)
             # We have finished parsing the original file.

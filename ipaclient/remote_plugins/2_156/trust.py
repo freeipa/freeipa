@@ -1251,8 +1251,9 @@ class trustdomain_find(Method):
             'pkey_only',
             required=False,
             label=_('Primary key only'),
-            doc=_('Results should contain primary key attribute only '
-            '("domain")'),
+            doc=_(
+                'Results should contain primary key attribute only ("domain")'
+            ),
             default=False,
             autofill=True,
         ),

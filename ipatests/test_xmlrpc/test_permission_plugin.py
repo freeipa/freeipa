@@ -61,33 +61,33 @@ permission3 = 'testperm3'
 permission3_dn = DN(('cn',permission3),
                     api.env.container_permission,api.env.basedn)
 permission3_attributelevelrights = {
-                                    'member': 'rscwo',
-                                    'seealso': 'rscwo',
-                                    'ipapermissiontype': 'rscwo',
-                                    'cn': 'rscwo',
-                                    'businesscategory': 'rscwo',
-                                    'objectclass': 'rscwo',
-                                    'memberof': 'rscwo',
-                                    'aci': 'rscwo',
-                                    'ipapermlocation': 'rscwo',
-                                    'o': 'rscwo',
-                                    'ipapermincludedattr': 'rscwo',
-                                    'ipapermdefaultattr': 'rscwo',
-                                    'ipapermexcludedattr': 'rscwo',
-                                    'owner': 'rscwo',
-                                    'ou': 'rscwo',
-                                    'ipapermright': 'rscwo',
-                                    'nsaccountlock': 'rscwo',
-                                    'description': 'rscwo',
-                                    'ipapermtargetfilter': 'rscwo',
-                                    'ipapermtargetto': 'rscwo',
-                                    'ipapermtargetfrom': 'rscwo',
-                                    'ipapermbindruletype': 'rscwo',
-                                    'ipapermtarget': 'rscwo',
-                                    'type': 'rscwo',
-                                    'targetgroup': 'rscwo',
-                                    'attrs': 'rscwo',
-                                   }
+    'member': 'rscwo',
+    'seealso': 'rscwo',
+    'ipapermissiontype': 'rscwo',
+    'cn': 'rscwo',
+    'businesscategory': 'rscwo',
+    'objectclass': 'rscwo',
+    'memberof': 'rscwo',
+    'aci': 'rscwo',
+    'ipapermlocation': 'rscwo',
+    'o': 'rscwo',
+    'ipapermincludedattr': 'rscwo',
+    'ipapermdefaultattr': 'rscwo',
+    'ipapermexcludedattr': 'rscwo',
+    'owner': 'rscwo',
+    'ou': 'rscwo',
+    'ipapermright': 'rscwo',
+    'nsaccountlock': 'rscwo',
+    'description': 'rscwo',
+    'ipapermtargetfilter': 'rscwo',
+    'ipapermtargetto': 'rscwo',
+    'ipapermtargetfrom': 'rscwo',
+    'ipapermbindruletype': 'rscwo',
+    'ipapermtarget': 'rscwo',
+    'type': 'rscwo',
+    'targetgroup': 'rscwo',
+    'attrs': 'rscwo',
+}
 
 privilege1 = 'testpriv1'
 privilege1_dn = DN(('cn',privilege1),
@@ -156,24 +156,23 @@ class test_permission_negative(Declarative):
             desc='Try to retrieve non-existent %r' % permission1,
             command=('permission_show', [permission1], {}),
             expected=errors.NotFound(
-                reason='%s: permission not found' % permission1),
+                reason='%s: permission not found' % permission1
+            ),
         ),
-
         dict(
             desc='Try to update non-existent %r' % permission1,
             command=('permission_mod', [permission1], dict(ipapermright='all')),
             expected=errors.NotFound(
-                reason='%s: permission not found' % permission1),
+                reason='%s: permission not found' % permission1
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent %r' % permission1,
             command=('permission_del', [permission1], {}),
             expected=errors.NotFound(
-                reason='%s: permission not found' % permission1),
+                reason='%s: permission not found' % permission1
+            ),
         ),
-
         dict(
             desc='Search for non-existent %r' % permission1,
             command=('permission_find', [permission1], {}),
@@ -184,105 +183,119 @@ class test_permission_negative(Declarative):
                 result=[],
             ),
         ),
-
         dict(
             desc='Try creating %r with no ipapermright' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     attrs=['sn'],
-                )
+                ),
             ),
             expected=errors.RequirementError(name='right'),
         ),
-
         dict(
             desc='Try creating %r with no target option' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     ipapermright='write',
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='target',
                 error='there must be at least one target entry specifier '
-                      '(e.g. target, targetfilter, attrs)'),
+                '(e.g. target, targetfilter, attrs)',
+            ),
         ),
-
         verify_permission_aci_missing(permission1, api.env.basedn),
-
         dict(
             desc='Try to create invalid %r' % invalid_permission1,
-            command=('permission_add', [invalid_permission1], dict(
+            command=(
+                'permission_add',
+                [invalid_permission1],
+                dict(
                     type='user',
                     ipapermright='write',
-                )),
-            expected=errors.ValidationError(name='name',
-                error='May only contain letters, numbers, -, _, ., and space'),
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='name',
+                error='May only contain letters, numbers, -, _, ., and space',
+            ),
         ),
-
         verify_permission_aci_missing(permission1, users_dn),
-
         dict(
             desc='Try creating %r with bad attribute name' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright='write',
                     attrs='bogusattr',
-                )
+                ),
             ),
             expected=errors.InvalidSyntax(
                 attr=r'targetattr "bogusattr" does not exist in schema. '
-                     r'Please add attributeTypes "bogusattr" to '
-                     r'schema if necessary. '
-                     r'ACL Syntax Error(-5):'
-                     r'(targetattr = \22bogusattr\22)'
-                     r'(targetfilter = \22(objectclass=posixaccount)\22)'
-                     r'(version 3.0;acl \22permission:%(name)s\22;'
-                     r'allow (write) groupdn = \22ldap:///%(dn)s\22;)' % dict(
-                        name=permission1,
-                        dn=permission1_dn),
+                r'Please add attributeTypes "bogusattr" to '
+                r'schema if necessary. '
+                r'ACL Syntax Error(-5):'
+                r'(targetattr = \22bogusattr\22)'
+                r'(targetfilter = \22(objectclass=posixaccount)\22)'
+                r'(version 3.0;acl \22permission:%(name)s\22;'
+                r'allow (write) groupdn = \22ldap:///%(dn)s\22;)'
+                % dict(name=permission1, dn=permission1_dn),
             ),
         ),
-
         verify_permission_aci_missing(permission1, users_dn),
-
         dict(
             desc='Try to create permission with : in the name',
-            command=('permission_add', ['bad:' + permission1], dict(
+            command=(
+                'permission_add',
+                ['bad:' + permission1],
+                dict(
                     type='user',
                     ipapermright='write',
-                )),
-            expected=errors.ValidationError(name='name',
-                error='May only contain letters, numbers, -, _, ., and space'),
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='name',
+                error='May only contain letters, numbers, -, _, ., and space',
+            ),
         ),
-
         verify_permission_aci_missing(permission1, users_dn),
-
         dict(
             desc='Try to create permission with full and extra target filter',
-            command=('permission_add', [permission1], dict(
+            command=(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright='write',
                     ipapermtargetfilter='(cn=*)',
                     extratargetfilter='(sn=*)',
-                )),
-            expected=errors.ValidationError(name='ipapermtargetfilter',
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='ipapermtargetfilter',
                 error='cannot specify full target filter and extra target '
-                      'filter simultaneously'),
+                'filter simultaneously',
+            ),
         ),
-
         verify_permission_aci_missing(permission1, users_dn),
-
         dict(
             desc='Create %r so we can try breaking it' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright=['write'],
                     attrs=['sn'],
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -300,88 +313,107 @@ class test_permission_negative(Declarative):
                 ),
             ),
         ),
-
         dict(
             desc='Try remove ipapermright from %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     ipapermright=None,
-                )
+                ),
             ),
             expected=errors.RequirementError(name='right'),
         ),
-
         dict(
             desc='Try to remove type from %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     attrs=None,
                     type=None,
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='target',
                 error='there must be at least one target entry specifier '
-                      '(e.g. target, targetfilter, attrs)'),
+                '(e.g. target, targetfilter, attrs)',
+            ),
         ),
-
         dict(
             desc='Try to "remove" empty memberof from %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     memberof=None,
-                )
+                ),
             ),
             expected=errors.EmptyModlist(),
         ),
-
         dict(
-            desc='Try to remove targetfilter and memberof from %r' % permission1,
+            desc='Try to remove targetfilter and memberof from %r'
+            % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     attrs=None,
                     ipapermtargetfilter=None,
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='target',
                 error='there must be at least one target entry specifier '
-                      '(e.g. target, targetfilter, attrs)'),
+                '(e.g. target, targetfilter, attrs)',
+            ),
         ),
-
         dict(
-            desc='Try to rename %r to invalid %r' % (
-                permission1, invalid_permission1),
-            command=('permission_mod', [permission1], dict(
+            desc='Try to rename %r to invalid %r'
+            % (permission1, invalid_permission1),
+            command=(
+                'permission_mod',
+                [permission1],
+                dict(
                     rename=invalid_permission1,
-                )),
-            expected=errors.ValidationError(name='rename',
-                error='May only contain letters, numbers, -, _, ., and space'),
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='rename',
+                error='May only contain letters, numbers, -, _, ., and space',
+            ),
         ),
-
         dict(
             desc='Try setting ipapermexcludedattr on %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     ipapermexcludedattr=['cn'],
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='ipapermexcludedattr',
-                error='only available on managed permissions'),
+                error='only available on managed permissions',
+            ),
         ),
-
         dict(
-            desc='Try to setting both full and extra target filter on %s' % permission1,
-            command=('permission_mod', [permission1], dict(
+            desc='Try to setting both full and extra target filter on %s'
+            % permission1,
+            command=(
+                'permission_mod',
+                [permission1],
+                dict(
                     ipapermtargetfilter='(cn=*)',
                     extratargetfilter='(sn=*)',
-                )),
-            expected=errors.ValidationError(name='ipapermtargetfilter',
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='ipapermtargetfilter',
                 error='cannot specify full target filter and extra target '
-                      'filter simultaneously'),
+                'filter simultaneously',
+            ),
         ),
-
     ]
 
 
@@ -398,15 +430,16 @@ class test_permission(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Create %r' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright=['write'],
                     attrs=['sn'],
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -424,33 +457,35 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Try to create duplicate %r' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright=['write'],
                     attrs=['sn'],
                 ),
             ),
             expected=errors.DuplicateEntry(
-                message='permission with name "%s" already exists' % permission1),
+                message='permission with name "%s" already exists' % permission1
+            ),
         ),
-
-
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(description='privilege desc. 1'),
             ),
             expected=dict(
                 value=privilege1,
@@ -463,12 +498,13 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
-
         dict(
-            desc='Add permission %r to privilege %r' % (permission1, privilege1),
-            command=('privilege_add_permission', [privilege1],
-                dict(permission=permission1)
+            desc='Add permission %r to privilege %r'
+            % (permission1, privilege1),
+            command=(
+                'privilege_add_permission',
+                [privilege1],
+                dict(permission=permission1),
             ),
             expected=dict(
                 completed=1,
@@ -482,11 +518,9 @@ class test_permission(Declarative):
                     'cn': [privilege1],
                     'description': ['privilege desc. 1'],
                     'memberof_permission': [permission1],
-                }
+                },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r' % permission1,
             command=('permission_show', [permission1], {}),
@@ -507,8 +541,6 @@ class test_permission(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r with --raw' % permission1,
             command=('permission_show', [permission1], {'raw': True}),
@@ -526,17 +558,16 @@ class test_permission(Declarative):
                     'ipapermissiontype': ['SYSTEM', 'V2'],
                     'ipapermlocation': [users_dn],
                     'ipapermtargetfilter': ['(objectclass=posixaccount)'],
-                    'aci': ['(targetattr = "sn")'
-                            '(targetfilter = "(objectclass=posixaccount)")' +
-                            '(version 3.0;acl "permission:%(name)s";'
-                            'allow (write) groupdn = "ldap:///%(pdn)s";)' %
-                            {'name': permission1,
-                             'pdn': permission1_dn}],
+                    'aci': [
+                        '(targetattr = "sn")'
+                        '(targetfilter = "(objectclass=posixaccount)")'
+                        + '(version 3.0;acl "permission:%(name)s";'
+                        'allow (write) groupdn = "ldap:///%(pdn)s";)'
+                        % {'name': permission1, 'pdn': permission1_dn}
+                    ],
                 },
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % permission1,
             command=('permission_find', [permission1], {'no_members': False}),
@@ -560,8 +591,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % permission1,
             command=('permission_find', [permission1], {}),
@@ -584,12 +613,13 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r using --name with members' % permission1,
-            command=('permission_find', [], {
-                'cn': permission1, 'no_members': False}),
+            command=(
+                'permission_find',
+                [],
+                {'cn': permission1, 'no_members': False},
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -610,8 +640,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r using --name' % permission1,
             command=('permission_find', [], {'cn': permission1}),
@@ -634,8 +662,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for non-existent permission using --name',
             command=('permission_find', [], {'cn': 'notfound'}),
@@ -646,8 +672,6 @@ class test_permission(Declarative):
                 result=[],
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % privilege1,
             command=('permission_find', [privilege1], {'no_members': False}),
@@ -671,8 +695,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % privilege1,
             command=('permission_find', [privilege1], {}),
@@ -695,12 +717,13 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with --raw with members' % permission1,
-            command=('permission_find', [permission1], {
-                'raw': True, 'no_members': False}),
+            command=(
+                'permission_find',
+                [permission1],
+                {'raw': True, 'no_members': False},
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -717,18 +740,17 @@ class test_permission(Declarative):
                         'ipapermissiontype': ['SYSTEM', 'V2'],
                         'ipapermlocation': [users_dn],
                         'ipapermtargetfilter': ['(objectclass=posixaccount)'],
-                        'aci': ['(targetattr = "sn")'
-                                '(targetfilter = "(objectclass=posixaccount)")' +
-                                '(version 3.0;acl "permission:%(name)s";'
-                                'allow (write) groupdn = "ldap:///%(pdn)s";)' %
-                                {'name': permission1,
-                                 'pdn': permission1_dn}],
+                        'aci': [
+                            '(targetattr = "sn")'
+                            '(targetfilter = "(objectclass=posixaccount)")'
+                            + '(version 3.0;acl "permission:%(name)s";'
+                            'allow (write) groupdn = "ldap:///%(pdn)s";)'
+                            % {'name': permission1, 'pdn': permission1_dn}
+                        ],
                     },
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with --raw' % permission1,
             command=('permission_find', [permission1], {'raw': True}),
@@ -747,28 +769,29 @@ class test_permission(Declarative):
                         'ipapermissiontype': ['SYSTEM', 'V2'],
                         'ipapermlocation': [users_dn],
                         'ipapermtargetfilter': ['(objectclass=posixaccount)'],
-                        'aci': ['(targetattr = "sn")'
-                                '(targetfilter = "(objectclass=posixaccount)")' +
-                                '(version 3.0;acl "permission:%(name)s";'
-                                'allow (write) groupdn = "ldap:///%(pdn)s";)' %
-                                {'name': permission1,
-                                 'pdn': permission1_dn}],
+                        'aci': [
+                            '(targetattr = "sn")'
+                            '(targetfilter = "(objectclass=posixaccount)")'
+                            + '(version 3.0;acl "permission:%(name)s";'
+                            'allow (write) groupdn = "ldap:///%(pdn)s";)'
+                            % {'name': permission1, 'pdn': permission1_dn}
+                        ],
                     },
                 ],
             ),
         ),
-
-
         dict(
             desc='Create %r' % permission2,
             command=(
-                'permission_add', [permission2], dict(
+                'permission_add',
+                [permission2],
+                dict(
                     type='user',
                     ipapermright='write',
                     setattr='owner=cn=test',
                     addattr='owner=cn=test2',
                     attrs=['cn'],
-                )
+                ),
             ),
             expected=dict(
                 value=permission2,
@@ -787,19 +810,17 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission2, users_dn,
-            '(targetattr = "cn")' +
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission2 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
+            permission2,
+            users_dn,
+            '(targetattr = "cn")'
+            + '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission2
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
         ),
-
         dict(
             desc='Search for %r with members' % permission1,
-            command=('permission_find', [permission1], {
-                'no_members': False}),
+            command=('permission_find', [permission1], {'no_members': False}),
             expected=dict(
                 count=2,
                 truncated=False,
@@ -831,8 +852,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % permission1,
             command=('permission_find', [permission1], {}),
@@ -866,11 +885,9 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with --pkey-only' % permission1,
-            command=('permission_find', [permission1], {'pkey_only' : True}),
+            command=('permission_find', [permission1], {'pkey_only': True}),
             expected=dict(
                 count=2,
                 truncated=False,
@@ -887,32 +904,37 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search by ACI attribute with --pkey-only',
-            command=('permission_find', [], {'pkey_only': True,
-                                             'attrs': ['krbminpwdlife']}),
+            command=(
+                'permission_find',
+                [],
+                {'pkey_only': True, 'attrs': ['krbminpwdlife']},
+            ),
             expected=dict(
                 count=2,
                 truncated=False,
                 summary='2 permissions matched',
                 result=[
                     {
-                        'dn': DN(('cn', 'System: Modify Group Password Policy'),
-                                 api.env.container_permission, api.env.basedn),
+                        'dn': DN(
+                            ('cn', 'System: Modify Group Password Policy'),
+                            api.env.container_permission,
+                            api.env.basedn,
+                        ),
                         'cn': ['System: Modify Group Password Policy'],
                     },
                     {
-                        'dn': DN(('cn', 'System: Read Group Password Policy'),
-                                 api.env.container_permission, api.env.basedn),
+                        'dn': DN(
+                            ('cn', 'System: Read Group Password Policy'),
+                            api.env.container_permission,
+                            api.env.basedn,
+                        ),
                         'cn': ['System: Read Group Password Policy'],
                     },
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % privilege1,
             command=('privilege_find', [privilege1], {'no_members': False}),
@@ -930,8 +952,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % privilege1,
             command=('privilege_find', [privilege1], {}),
@@ -948,13 +968,16 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
-            desc=('Search for %r with a limit of 1 (truncated) with members' %
-                  permission1),
-            command=('permission_find', [permission1],
-                dict(sizelimit=1, no_members=False)),
+            desc=(
+                'Search for %r with a limit of 1 (truncated) with members'
+                % permission1
+            ),
+            command=(
+                'permission_find',
+                [permission1],
+                dict(sizelimit=1, no_members=False),
+            ),
             expected=dict(
                 count=1,
                 truncated=True,
@@ -975,20 +998,18 @@ class test_permission(Declarative):
                 ],
                 messages=(
                     {
-                        'message': ('Search result has been truncated: '
-                                    'Configured size limit exceeded'),
+                        'message': (
+                            'Search result has been truncated: '
+                            'Configured size limit exceeded'
+                        ),
                         'code': 13017,
                         'type': 'warning',
                         'name': 'SearchResultTruncated',
-                        'data': {
-                            'reason': "Configured size limit exceeded"
-                        }
+                        'data': {'reason': 'Configured size limit exceeded'},
                     },
                 ),
             ),
         ),
-
-
         dict(
             desc='Search for %r with a limit of 1 (truncated)' % permission1,
             command=('permission_find', [permission1], dict(sizelimit=1)),
@@ -1011,20 +1032,18 @@ class test_permission(Declarative):
                 ],
                 messages=(
                     {
-                        'message': ('Search result has been truncated: '
-                                    'Configured size limit exceeded'),
+                        'message': (
+                            'Search result has been truncated: '
+                            'Configured size limit exceeded'
+                        ),
                         'code': 13017,
                         'type': 'warning',
                         'name': 'SearchResultTruncated',
-                        'data': {
-                            'reason': "Configured size limit exceeded"
-                        }
+                        'data': {'reason': 'Configured size limit exceeded'},
                     },
                 ),
             ),
         ),
-
-
         dict(
             desc='Search for %r with a limit of 2' % permission1,
             command=('permission_find', [permission1], dict(sizelimit=2)),
@@ -1058,47 +1077,53 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         # This tests setting truncated to True in the post_callback of
         # permission_find(). The return order in LDAP is not guaranteed
         # so do not check the actual entry.
         dict(
             desc='Search for permissions by attr with a limit of 1 (truncated)',
-            command=('permission_find', ['Modify'],
-                     dict(attrs='ipaenabledflag', sizelimit=1)),
+            command=(
+                'permission_find',
+                ['Modify'],
+                dict(attrs='ipaenabledflag', sizelimit=1),
+            ),
             expected=dict(
                 count=1,
                 truncated=True,
                 summary='1 permission matched',
-                result=[lambda res:
-                    DN(res['dn']).endswith(DN(api.env.container_permission,
-                                              api.env.basedn)) and
-                    'ipapermission' in res['objectclass']],
+                result=[
+                    lambda res: (
+                        DN(res['dn']).endswith(
+                            DN(api.env.container_permission, api.env.basedn)
+                        )
+                        and 'ipapermission' in res['objectclass']
+                    )
+                ],
                 messages=(
                     {
-                        'message': ('Search result has been truncated: '
-                                    'Configured size limit exceeded'),
+                        'message': (
+                            'Search result has been truncated: '
+                            'Configured size limit exceeded'
+                        ),
                         'code': 13017,
                         'type': 'warning',
                         'name': 'SearchResultTruncated',
-                        'data': {
-                            'reason': "Configured size limit exceeded"
-                        }
+                        'data': {'reason': 'Configured size limit exceeded'},
                     },
                 ),
             ),
         ),
-
         dict(
             desc='Update %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     ipapermright='read',
                     memberof='ipausers',
                     setattr='owner=cn=other-test',
                     addattr='owner=cn=other-test2',
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -1119,17 +1144,16 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(memberOf=%s)' % DN('cn=ipausers', groups_dn) +
-                '(objectclass=posixaccount))")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(&'
+            + '(memberOf=%s)' % DN('cn=ipausers', groups_dn)
+            + '(objectclass=posixaccount))")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Retrieve %r to verify update' % permission1,
             command=('permission_show', [permission1], {}),
@@ -1151,27 +1175,33 @@ class test_permission(Declarative):
                 },
             ),
         ),
-
         dict(
-            desc='Try to rename %r to existing permission %r' % (permission1,
-                                                                 permission2),
+            desc='Try to rename %r to existing permission %r'
+            % (permission1, permission2),
             command=(
-                'permission_mod', [permission1], dict(rename=permission2,
-                                                      ipapermright='all',)
+                'permission_mod',
+                [permission1],
+                dict(
+                    rename=permission2,
+                    ipapermright='all',
+                ),
             ),
             expected=errors.DuplicateEntry(),
         ),
-
         dict(
             desc='Try to rename %r to empty name' % (permission1),
             command=(
-                'permission_mod', [permission1], dict(rename='',
-                                                      ipapermright='all',)
+                'permission_mod',
+                [permission1],
+                dict(
+                    rename='',
+                    ipapermright='all',
+                ),
             ),
-            expected=errors.ValidationError(name='rename',
-                                    error='New name can not be empty'),
+            expected=errors.ValidationError(
+                name='rename', error='New name can not be empty'
+            ),
         ),
-
         dict(
             desc='Check integrity of original permission %r' % permission1,
             command=('permission_show', [permission1], {}),
@@ -1193,14 +1223,16 @@ class test_permission(Declarative):
                 },
             ),
         ),
-
-
         dict(
-            desc='Rename %r to permission %r' % (permission1,
-                                                 permission1_renamed),
+            desc='Rename %r to permission %r'
+            % (permission1, permission1_renamed),
             command=(
-                'permission_mod', [permission1], dict(rename=permission1_renamed,
-                                                      ipapermright= 'all',)
+                'permission_mod',
+                [permission1],
+                dict(
+                    rename=permission1_renamed,
+                    ipapermright='all',
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -1220,26 +1252,27 @@ class test_permission(Declarative):
                 },
             ),
         ),
-
         verify_permission_aci_missing(permission1, users_dn),
-
         verify_permission_aci(
-            permission1_renamed, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(memberOf=%s)' % DN('cn=ipausers', groups_dn) +
-                '(objectclass=posixaccount))")' +
-            '(version 3.0;acl "permission:%s";' % permission1_renamed +
-            'allow (all) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
+            permission1_renamed,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(&'
+            + '(memberOf=%s)' % DN('cn=ipausers', groups_dn)
+            + '(objectclass=posixaccount))")'
+            + '(version 3.0;acl "permission:%s";' % permission1_renamed
+            + 'allow (all) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
         ),
-
-
         dict(
-            desc='Rename %r to permission %r' % (permission1_renamed,
-                                                 permission1_renamed_ucase),
+            desc='Rename %r to permission %r'
+            % (permission1_renamed, permission1_renamed_ucase),
             command=(
-                'permission_mod', [permission1_renamed], dict(rename=permission1_renamed_ucase,
-                                                      ipapermright= 'write',)
+                'permission_mod',
+                [permission1_renamed],
+                dict(
+                    rename=permission1_renamed_ucase,
+                    ipapermright='write',
+                ),
             ),
             expected=dict(
                 value=permission1_renamed,
@@ -1259,25 +1292,24 @@ class test_permission(Declarative):
                 },
             ),
         ),
-
         verify_permission_aci_missing(permission1_renamed, users_dn),
-
         verify_permission_aci(
-            permission1_renamed_ucase, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(memberOf=%s)' % DN('cn=ipausers', groups_dn) +
-                '(objectclass=posixaccount))")' +
-            '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
-            'allow (write) groupdn = "ldap:///%s";)' %
-                permission1_renamed_ucase_dn,
+            permission1_renamed_ucase,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(&'
+            + '(memberOf=%s)' % DN('cn=ipausers', groups_dn)
+            + '(objectclass=posixaccount))")'
+            + '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase
+            + 'allow (write) groupdn = "ldap:///%s";)'
+            % permission1_renamed_ucase_dn,
         ),
-
         dict(
             desc='Change %r to a subtree type' % permission1_renamed_ucase,
             command=(
-                'permission_mod', [permission1_renamed_ucase],
-                dict(ipapermlocation=users_dn, type=None)
+                'permission_mod',
+                [permission1_renamed_ucase],
+                dict(ipapermlocation=users_dn, type=None),
             ),
             expected=dict(
                 value=permission1_renamed_ucase,
@@ -1296,21 +1328,21 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1_renamed_ucase, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
-            '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
-            'allow (write) groupdn = "ldap:///%s";)' %
-                permission1_renamed_ucase_dn,
+            permission1_renamed_ucase,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn)
+            + '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase
+            + 'allow (write) groupdn = "ldap:///%s";)'
+            % permission1_renamed_ucase_dn,
         ),
-
         dict(
             desc='Reset --subtree of %r' % permission2,
             command=(
-                'permission_mod', [permission2],
-                dict(ipapermlocation=api.env.basedn)
+                'permission_mod',
+                [permission2],
+                dict(ipapermlocation=api.env.basedn),
             ),
             expected=dict(
                 value=permission2,
@@ -1328,20 +1360,20 @@ class test_permission(Declarative):
                 },
             ),
         ),
-
         verify_permission_aci(
-            permission2, api.env.basedn,
-            '(targetattr = "cn")' +
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission2 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
+            permission2,
+            api.env.basedn,
+            '(targetattr = "cn")'
+            + '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission2
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission2_dn,
         ),
-
         dict(
             desc='Change subtree of %r to admin' % permission1_renamed_ucase,
             command=(
-                'permission_mod', [permission1_renamed_ucase],
-                dict(ipapermlocation=admin_dn)
+                'permission_mod',
+                [permission1_renamed_ucase],
+                dict(ipapermlocation=admin_dn),
             ),
             expected=dict(
                 value=permission1_renamed_ucase,
@@ -1360,35 +1392,41 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1_renamed_ucase, admin_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
-            '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
-            'allow (write) groupdn = "ldap:///%s";)' %
-                permission1_renamed_ucase_dn,
+            permission1_renamed_ucase,
+            admin_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn)
+            + '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase
+            + 'allow (write) groupdn = "ldap:///%s";)'
+            % permission1_renamed_ucase_dn,
         ),
-
         dict(
-            desc=('Search for %r using --subtree with membes' %
-                  permission1_renamed_ucase),
-            command=('permission_find', [],
-                     {'ipapermlocation': 'ldap:///%s' % admin_dn,
-                     'no_members': False}),
+            desc=(
+                'Search for %r using --subtree with membes'
+                % permission1_renamed_ucase
+            ),
+            command=(
+                'permission_find',
+                [],
+                {
+                    'ipapermlocation': 'ldap:///%s' % admin_dn,
+                    'no_members': False,
+                },
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
                 summary='1 permission matched',
                 result=[
                     {
-                        'dn':permission1_renamed_ucase_dn,
-                        'cn':[permission1_renamed_ucase],
+                        'dn': permission1_renamed_ucase_dn,
+                        'cn': [permission1_renamed_ucase],
                         'objectclass': objectclasses.permission,
-                        'member_privilege':[privilege1],
+                        'member_privilege': [privilege1],
                         'ipapermlocation': [admin_dn],
-                        'ipapermright':['write'],
-                        'memberof':['ipausers'],
+                        'ipapermright': ['write'],
+                        'memberof': ['ipausers'],
                         'attrs': ['sn'],
                         'ipapermbindruletype': ['permission'],
                         'ipapermissiontype': ['SYSTEM', 'V2'],
@@ -1396,24 +1434,25 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r using --subtree' % permission1_renamed_ucase,
-            command=('permission_find', [],
-                     {'ipapermlocation': 'ldap:///%s' % admin_dn}),
+            command=(
+                'permission_find',
+                [],
+                {'ipapermlocation': 'ldap:///%s' % admin_dn},
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
                 summary='1 permission matched',
                 result=[
                     {
-                        'dn':permission1_renamed_ucase_dn,
-                        'cn':[permission1_renamed_ucase],
+                        'dn': permission1_renamed_ucase_dn,
+                        'cn': [permission1_renamed_ucase],
                         'objectclass': objectclasses.permission,
                         'ipapermlocation': [admin_dn],
-                        'ipapermright':['write'],
-                        'memberof':['ipausers'],
+                        'ipapermright': ['write'],
+                        'memberof': ['ipausers'],
                         'attrs': ['sn'],
                         'ipapermbindruletype': ['permission'],
                         'ipapermissiontype': ['SYSTEM', 'V2'],
@@ -1421,28 +1460,31 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search using nonexistent --subtree',
             command=('permission_find', [], {'ipapermlocation': 'foo'}),
             expected=errors.ConversionError(
-                name='subtree', error='malformed RDN string = "foo"'),
+                name='subtree', error='malformed RDN string = "foo"'
+            ),
         ),
-
-
         dict(
             desc='Search using --targetgroup with members',
-            command=('permission_find', [], {
-                'targetgroup': 'ipausers', 'no_members': False}),
+            command=(
+                'permission_find',
+                [],
+                {'targetgroup': 'ipausers', 'no_members': False},
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
                 summary='1 permission matched',
                 result=[
                     {
-                        'dn': DN(('cn', 'System: Add User to default group'),
-                                 api.env.container_permission, api.env.basedn),
+                        'dn': DN(
+                            ('cn', 'System: Add User to default group'),
+                            api.env.container_permission,
+                            api.env.basedn,
+                        ),
                         'cn': ['System: Add User to default group'],
                         'objectclass': objectclasses.permission,
                         'member_privilege': ['User Administrators'],
@@ -1451,9 +1493,13 @@ class test_permission(Declarative):
                         'memberindirect_role': ['User Administrator'],
                         'ipapermright': ['write'],
                         'ipapermbindruletype': ['permission'],
-                        'ipapermtarget': [DN(
-                            'cn=ipausers', api.env.container_group,
-                            api.env.basedn)],
+                        'ipapermtarget': [
+                            DN(
+                                'cn=ipausers',
+                                api.env.container_group,
+                                api.env.basedn,
+                            )
+                        ],
                         'ipapermlocation': [groups_dn],
                         'ipapermdefaultattr': ['member'],
                         'ipapermissiontype': ['V2', 'MANAGED', 'SYSTEM'],
@@ -1461,8 +1507,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search using --targetgroup',
             command=('permission_find', [], {'targetgroup': 'ipausers'}),
@@ -1472,17 +1516,24 @@ class test_permission(Declarative):
                 summary='1 permission matched',
                 result=[
                     {
-                        'dn': DN(('cn', 'System: Add User to default group'),
-                                 api.env.container_permission, api.env.basedn),
+                        'dn': DN(
+                            ('cn', 'System: Add User to default group'),
+                            api.env.container_permission,
+                            api.env.basedn,
+                        ),
                         'cn': ['System: Add User to default group'],
                         'objectclass': objectclasses.permission,
                         'attrs': ['member'],
                         'targetgroup': ['ipausers'],
                         'ipapermright': ['write'],
                         'ipapermbindruletype': ['permission'],
-                        'ipapermtarget': [DN(
-                            'cn=ipausers', api.env.container_group,
-                            api.env.basedn)],
+                        'ipapermtarget': [
+                            DN(
+                                'cn=ipausers',
+                                api.env.container_group,
+                                api.env.basedn,
+                            )
+                        ],
                         'ipapermlocation': [groups_dn],
                         'ipapermdefaultattr': ['member'],
                         'ipapermissiontype': ['V2', 'MANAGED', 'SYSTEM'],
@@ -1490,7 +1541,6 @@ class test_permission(Declarative):
                 ],
             ),
         ),
-
         dict(
             desc='Delete %r' % permission1_renamed_ucase,
             command=('permission_del', [permission1_renamed_ucase], {}),
@@ -1498,35 +1548,30 @@ class test_permission(Declarative):
                 result=dict(failed=[]),
                 value=[permission1_renamed_ucase],
                 summary='Deleted permission "%s"' % permission1_renamed_ucase,
-            )
+            ),
         ),
-
         verify_permission_aci_missing(permission1_renamed_ucase, users_dn),
-
         dict(
             desc='Try to delete non-existent %r' % permission1,
             command=('permission_del', [permission1], {}),
             expected=errors.NotFound(
-                reason='%s: permission not found' % permission1),
+                reason='%s: permission not found' % permission1
+            ),
         ),
-
-
         dict(
             desc='Try to retrieve non-existent %r' % permission1,
             command=('permission_show', [permission1], {}),
             expected=errors.NotFound(
-                reason='%s: permission not found' % permission1),
+                reason='%s: permission not found' % permission1
+            ),
         ),
-
-
         dict(
             desc='Try to update non-existent %r' % permission1,
             command=('permission_mod', [permission1], dict(rename='Foo')),
             expected=errors.NotFound(
-                reason='%s: permission not found' % permission1),
+                reason='%s: permission not found' % permission1
+            ),
         ),
-
-
         dict(
             desc='Delete %r' % permission2,
             command=('permission_del', [permission2], {}),
@@ -1534,11 +1579,9 @@ class test_permission(Declarative):
                 result=dict(failed=[]),
                 value=[permission2],
                 summary='Deleted permission "%s"' % permission2,
-            )
+            ),
         ),
-
         verify_permission_aci_missing(permission2, users_dn),
-
         dict(
             desc='Search for %r' % permission1,
             command=('permission_find', [permission1], {}),
@@ -1549,8 +1592,6 @@ class test_permission(Declarative):
                 result=[],
             ),
         ),
-
-
         dict(
             desc='Delete %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
@@ -1558,30 +1599,33 @@ class test_permission(Declarative):
                 result=dict(failed=[]),
                 value=[privilege1],
                 summary='Deleted privilege "%s"' % privilege1,
-            )
+            ),
         ),
-
         dict(
-            desc='Try to create permission %r with non-existing memberof' % permission1,
+            desc='Try to create permission %r with non-existing memberof'
+            % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     memberof='nonexisting',
                     ipapermright='write',
                     attrs=['cn'],
-                )
+                ),
             ),
             expected=errors.NotFound(reason='nonexisting: group not found'),
         ),
-
         dict(
             desc='Create memberof permission %r' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     memberof='editors',
                     ipapermright='write',
                     type='user',
                     attrs=['sn'],
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -1600,29 +1644,32 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&(memberOf=%s)' % DN('cn=editors', groups_dn) +
-                '(objectclass=posixaccount))")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(&(memberOf=%s)' % DN('cn=editors', groups_dn)
+            + '(objectclass=posixaccount))")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Try to update non-existent memberof of %r' % permission1,
-            command=('permission_mod', [permission1], dict(
-                memberof='nonexisting')),
+            command=(
+                'permission_mod',
+                [permission1],
+                dict(memberof='nonexisting'),
+            ),
             expected=errors.NotFound(reason='nonexisting: group not found'),
         ),
-
         dict(
             desc='Update memberof permission %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     memberof='admins',
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -1641,23 +1688,24 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
-                '(objectclass=posixaccount))")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(&'
+            + '(memberOf=%s)' % DN('cn=admins', groups_dn)
+            + '(objectclass=posixaccount))")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Unset memberof of permission %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     memberof=None,
-                )
+                ),
             ),
             expected=dict(
                 summary='Modified permission "%s"' % permission1,
@@ -1675,15 +1723,14 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetattr = "sn")'
+            + '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Delete %r' % permission1,
             command=('permission_del', [permission1], {}),
@@ -1691,19 +1738,19 @@ class test_permission(Declarative):
                 result=dict(failed=[]),
                 value=[permission1],
                 summary='Deleted permission "%s"' % permission1,
-            )
+            ),
         ),
-
         verify_permission_aci_missing(permission1, users_dn),
-
         dict(
             desc='Create targetgroup permission %r' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     targetgroup='editors',
                     ipapermright='write',
                     attrs=['sn'],
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
@@ -1722,23 +1769,20 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, api.env.basedn,
-            '(target = "ldap:///%s")' % DN('cn=editors', groups_dn) +
-            '(targetattr = "sn")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            api.env.basedn,
+            '(target = "ldap:///%s")' % DN('cn=editors', groups_dn)
+            + '(targetattr = "sn")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Create %r' % permission3,
             command=(
-                'permission_add', [permission3], dict(
-                    type='user',
-                    ipapermright='write',
-                    attrs=['cn']
-                )
+                'permission_add',
+                [permission3],
+                dict(type='user', ipapermright='write', attrs=['cn']),
             ),
             expected=dict(
                 value=permission3,
@@ -1756,18 +1800,21 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission3, users_dn,
-            '(targetattr = "cn")' +
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission3 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
+            permission3,
+            users_dn,
+            '(targetattr = "cn")'
+            + '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission3
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
         ),
-
         dict(
             desc='Retrieve %r with --all --rights' % permission3,
-            command=('permission_show', [permission3], {'all' : True, 'rights' : True}),
+            command=(
+                'permission_show',
+                [permission3],
+                {'all': True, 'rights': True},
+            ),
             expected=dict(
                 value=permission3,
                 summary=None,
@@ -1787,12 +1834,13 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         dict(
             desc='Modify %r with --all --rights' % permission3,
-            command=('permission_mod', [permission3], {
-                'all': True, 'rights': True,
-                'attrs': ['cn', 'uid']}),
+            command=(
+                'permission_mod',
+                [permission3],
+                {'all': True, 'rights': True, 'attrs': ['cn', 'uid']},
+            ),
             expected=dict(
                 value=permission3,
                 summary='Modified permission "%s"' % permission3,
@@ -1812,50 +1860,53 @@ class test_permission(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission3, users_dn,
-            '(targetattr = "cn || uid")' +
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission3 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
+            permission3,
+            users_dn,
+            '(targetattr = "cn || uid")'
+            + '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission3
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission3_dn,
         ),
-
         dict(
             desc='Try to modify %r with naked targetfilter' % permission1,
-            command=('permission_mod', [permission1],
-                     {'ipapermtargetfilter': "cn=admin"}),
+            command=(
+                'permission_mod',
+                [permission1],
+                {'ipapermtargetfilter': 'cn=admin'},
+            ),
             expected=errors.ValidationError(
-                name='rawfilter',
-                error='must be enclosed in parentheses'),
+                name='rawfilter', error='must be enclosed in parentheses'
+            ),
         ),
-
         dict(
             desc='Try to modify %r with invalid targetfilter' % permission1,
-            command=('permission_mod', [permission1],
-                     {'ipapermtargetfilter': "(ceci n'est pas un filtre)"}),
+            command=(
+                'permission_mod',
+                [permission1],
+                {'ipapermtargetfilter': "(ceci n'est pas un filtre)"},
+            ),
             expected=errors.ValidationError(
-                name='ipapermtargetfilter',
-                error='Bad search filter'),
+                name='ipapermtargetfilter', error='Bad search filter'
+            ),
         ),
-
         dict(
             desc='Try setting nonexisting location on %r' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     ipapermlocation=nonexistent_dn,
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='ipapermlocation',
-                error='Entry %s does not exist' % nonexistent_dn)
+                error='Entry %s does not exist' % nonexistent_dn,
+            ),
         ),
-
         dict(
             desc='Search for nonexisting permission with ":" in the name',
-            command=(
-                'permission_find', ['doesnotexist:' + permission1], {}
-            ),
+            command=('permission_find', ['doesnotexist:' + permission1], {}),
             expected=dict(
                 count=0,
                 truncated=False,
@@ -2536,482 +2587,515 @@ class test_permission_targetfilter(Declarative):
         'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
     )
 
-    tests = [
-        dict(
-            desc='Create %r' % permission1,
-            command=(
-                'permission_add', [permission1], dict(
-                    type='user',
-                    ipapermright='write',
-                    attrs='sn',
-                    memberof='admins',
-                    extratargetfilter=['(cn=*)', '(sn=*)'],
-                    all=True,
-                )
-            ),
-            expected=dict(
-                value=permission1,
-                summary='Added permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)', '(sn=*)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)', '(sn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
+    tests = (
+        [
+            dict(
+                desc='Create %r' % permission1,
+                command=(
+                    'permission_add',
+                    [permission1],
+                    dict(
+                        type='user',
+                        ipapermright='write',
+                        attrs='sn',
+                        memberof='admins',
+                        extratargetfilter=['(cn=*)', '(sn=*)'],
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Added permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        type=['user'],
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)', '(sn=*)'],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(sn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(permission1, users_dn, _initial_aci),
-
-        dict(
-            desc='Retrieve %r' % permission1,
-            command=(
-                'permission_show', [permission1], dict()
-            ),
-            expected=dict(
-                value=permission1,
-                summary=None,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)', '(sn=*)'],
+            verify_permission_aci(permission1, users_dn, _initial_aci),
+            dict(
+                desc='Retrieve %r' % permission1,
+                command=('permission_show', [permission1], dict()),
+                expected=dict(
+                    value=permission1,
+                    summary=None,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        type=['user'],
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)', '(sn=*)'],
+                    ),
                 ),
             ),
-        ),
-
-        dict(
-            desc='Retrieve %r with --all' % permission1,
-            command=(
-                'permission_show', [permission1], dict(all=True)
-            ),
-            expected=dict(
-                value=permission1,
-                summary=None,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)', '(sn=*)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)', '(sn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
+            dict(
+                desc='Retrieve %r with --all' % permission1,
+                command=('permission_show', [permission1], dict(all=True)),
+                expected=dict(
+                    value=permission1,
+                    summary=None,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        type=['user'],
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)', '(sn=*)'],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(sn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        dict(
-            desc='Retrieve %r with --raw' % permission1,
-            command=(
-                'permission_show', [permission1], dict(raw=True)
-            ),
-            expected=dict(
-                value=permission1,
-                summary=None,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    aci=[_initial_aci],
-                    objectclass=objectclasses.permission,
-                    ipapermright=['write'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    ipapermtargetfilter=[
-                        '(cn=*)', '(sn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
+            dict(
+                desc='Retrieve %r with --raw' % permission1,
+                command=('permission_show', [permission1], dict(raw=True)),
+                expected=dict(
+                    value=permission1,
+                    summary=None,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        aci=[_initial_aci],
+                        objectclass=objectclasses.permission,
+                        ipapermright=['write'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(sn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        dict(
-            desc='Retrieve %r with --all and --raw' % permission1,
-            command=(
-                'permission_show', [permission1], dict(all=True, raw=True)
-            ),
-            expected=dict(
-                value=permission1,
-                summary=None,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    aci=[_initial_aci],
-                    objectclass=objectclasses.permission,
-                    ipapermright=['write'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    ipapermtargetfilter=[
-                        '(cn=*)', '(sn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
+            dict(
+                desc='Retrieve %r with --all and --raw' % permission1,
+                command=(
+                    'permission_show',
+                    [permission1],
+                    dict(all=True, raw=True),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary=None,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        aci=[_initial_aci],
+                        objectclass=objectclasses.permission,
+                        ipapermright=['write'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(sn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        dict(
-            desc='Modify extratargetfilter of %r' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    extratargetfilter=['(cn=*)', '(l=*)'],
-                    all=True,
-                )
-            ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)', '(l=*)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)', '(l=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
+            dict(
+                desc='Modify extratargetfilter of %r' % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        extratargetfilter=['(cn=*)', '(l=*)'],
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        type=['user'],
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)', '(l=*)'],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(l=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(cn=*)' +
-                '(l=*)' +
-                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
-                '(objectclass=posixaccount)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-        dict(
-            desc='Remove raw targetfilter of %r' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    ipapermtargetfilter=None,
-                    all=True,
-                )
+            verify_permission_aci(
+                permission1,
+                users_dn,
+                '(targetattr = "sn")'
+                + '(targetfilter = "(&'
+                + '(cn=*)'
+                + '(l=*)'
+                + '(memberOf=%s)' % DN('cn=admins', groups_dn)
+                + '(objectclass=posixaccount)'
+                + ')")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
             ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
+            dict(
+                desc='Remove raw targetfilter of %r' % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        ipapermtargetfilter=None,
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-        dict(
-            desc='Set extra targetfilter on %r to restore' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    extratargetfilter=[
-                        '(cn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
-                    all=True,
-                )
+            verify_permission_aci(
+                permission1,
+                users_dn,
+                '(targetattr = "sn")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
             ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
+            dict(
+                desc='Set extra targetfilter on %r to restore' % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        extratargetfilter=[
+                            '(cn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        type=['user'],
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)'],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(cn=*)' +
-                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
-                '(objectclass=posixaccount)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-    ] + [
-        dict(
-            desc='Search for %r using %s %s' % (permission1, value_name, option_name),
-            command=(
-                'permission_find', [permission1],
-                {option_name: value, 'all': True}
+            verify_permission_aci(
+                permission1,
+                users_dn,
+                '(targetattr = "sn")'
+                + '(targetfilter = "(&'
+                + '(cn=*)'
+                + '(memberOf=%s)' % DN('cn=admins', groups_dn)
+                + '(objectclass=posixaccount)'
+                + ')")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
             ),
-            expected=dict(
-                summary='1 permission matched' if should_find else '0 permissions matched',
-                truncated=False,
-                count=1 if should_find else 0,
-                result=[dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)'],
-                )] if should_find else [],
-            ),
-        )
-        for option_name in (
-            'extratargetfilter',
-            'ipapermtargetfilter',
-        )
-        for value_name, value, should_find in (
-            ('"extra"', '(cn=*)', True),
-            ('"non-extra"', '(objectclass=posixaccount)', True),
-            ('non-existing', '(sn=insert a very improbable last name)', False),
-        )
-    ] + [
-
-        dict(
-            desc='Set extra objectclass filter on %r' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    extratargetfilter=['(cn=*)', '(objectclass=top)'],
-                    all=True,
-                )
-            ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    type=['user'],
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[users_dn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)', '(objectclass=top)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=posixaccount)',
-                        '(objectclass=top)'],
+        ]
+        + [
+            dict(
+                desc='Search for %r using %s %s'
+                % (permission1, value_name, option_name),
+                command=(
+                    'permission_find',
+                    [permission1],
+                    {option_name: value, 'all': True},
+                ),
+                expected=dict(
+                    summary='1 permission matched'
+                    if should_find
+                    else '0 permissions matched',
+                    truncated=False,
+                    count=1 if should_find else 0,
+                    result=[
+                        dict(
+                            dn=permission1_dn,
+                            cn=[permission1],
+                            objectclass=objectclasses.permission,
+                            type=['user'],
+                            ipapermright=['write'],
+                            attrs=['sn'],
+                            ipapermincludedattr=['sn'],
+                            ipapermbindruletype=['permission'],
+                            ipapermissiontype=['SYSTEM', 'V2'],
+                            ipapermlocation=[users_dn],
+                            memberof=['admins'],
+                            extratargetfilter=['(cn=*)'],
+                            ipapermtargetfilter=[
+                                '(cn=*)',
+                                '(memberOf=%s)'
+                                % DN(('cn', 'admins'), groups_dn),
+                                '(objectclass=posixaccount)',
+                            ],
+                        )
+                    ]
+                    if should_find
+                    else [],
+                ),
+            )
+            for option_name in (
+                'extratargetfilter',
+                'ipapermtargetfilter',
+            )
+            for value_name, value, should_find in (
+                ('"extra"', '(cn=*)', True),
+                ('"non-extra"', '(objectclass=posixaccount)', True),
+                (
+                    'non-existing',
+                    '(sn=insert a very improbable last name)',
+                    False,
+                ),
+            )
+        ]
+        + [
+            dict(
+                desc='Set extra objectclass filter on %r' % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        extratargetfilter=['(cn=*)', '(objectclass=top)'],
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        type=['user'],
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[users_dn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)', '(objectclass=top)'],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=posixaccount)',
+                            '(objectclass=top)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, users_dn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(cn=*)' +
-                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
-                '(objectclass=posixaccount)' +
-                '(objectclass=top)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-        dict(
-            desc='Unset type on %r to verify extra objectclass filter stays' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    type=None,
-                    all=True,
-                )
+            verify_permission_aci(
+                permission1,
+                users_dn,
+                '(targetattr = "sn")'
+                + '(targetfilter = "(&'
+                + '(cn=*)'
+                + '(memberOf=%s)' % DN('cn=admins', groups_dn)
+                + '(objectclass=posixaccount)'
+                + '(objectclass=top)'
+                + ')")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
             ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[api.env.basedn],
-                    memberof=['admins'],
-                    extratargetfilter=['(cn=*)', '(objectclass=top)'],
-                    ipapermtargetfilter=[
-                        '(cn=*)',
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(objectclass=top)'],
+            dict(
+                desc='Unset type on %r to verify extra objectclass filter stays'
+                % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        type=None,
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[api.env.basedn],
+                        memberof=['admins'],
+                        extratargetfilter=['(cn=*)', '(objectclass=top)'],
+                        ipapermtargetfilter=[
+                            '(cn=*)',
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(objectclass=top)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, api.env.basedn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(cn=*)' +
-                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
-                '(objectclass=top)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-        dict(
-            desc='Set wildcard memberof filter on %r' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    extratargetfilter='(memberof=*)',
-                    all=True,
-                )
+            verify_permission_aci(
+                permission1,
+                api.env.basedn,
+                '(targetattr = "sn")'
+                + '(targetfilter = "(&'
+                + '(cn=*)'
+                + '(memberOf=%s)' % DN('cn=admins', groups_dn)
+                + '(objectclass=top)'
+                + ')")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
             ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[api.env.basedn],
-                    memberof=['admins'],
-                    extratargetfilter=['(memberof=*)'],
-                    ipapermtargetfilter=[
-                        '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
-                        '(memberof=*)'],
+            dict(
+                desc='Set wildcard memberof filter on %r' % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        extratargetfilter='(memberof=*)',
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[api.env.basedn],
+                        memberof=['admins'],
+                        extratargetfilter=['(memberof=*)'],
+                        ipapermtargetfilter=[
+                            '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn),
+                            '(memberof=*)',
+                        ],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, api.env.basedn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(&' +
-                '(memberOf=%s)' % DN('cn=admins', groups_dn) +
-                '(memberof=*)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-        dict(
-            desc='Remove --memberof on %r to verify wildcard is still there' % permission1,
-            command=(
-                'permission_mod', [permission1], dict(
-                    memberof=[],
-                    all=True,
-                )
+            verify_permission_aci(
+                permission1,
+                api.env.basedn,
+                '(targetattr = "sn")'
+                + '(targetfilter = "(&'
+                + '(memberOf=%s)' % DN('cn=admins', groups_dn)
+                + '(memberof=*)'
+                + ')")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
             ),
-            expected=dict(
-                value=permission1,
-                summary='Modified permission "%s"' % permission1,
-                result=dict(
-                    dn=permission1_dn,
-                    cn=[permission1],
-                    objectclass=objectclasses.permission,
-                    ipapermright=['write'],
-                    attrs=['sn'],
-                    ipapermincludedattr=['sn'],
-                    ipapermbindruletype=['permission'],
-                    ipapermissiontype=['SYSTEM', 'V2'],
-                    ipapermlocation=[api.env.basedn],
-                    extratargetfilter=['(memberof=*)'],
-                    ipapermtargetfilter=['(memberof=*)'],
+            dict(
+                desc='Remove --memberof on %r to verify wildcard is still there'
+                % permission1,
+                command=(
+                    'permission_mod',
+                    [permission1],
+                    dict(
+                        memberof=[],
+                        all=True,
+                    ),
+                ),
+                expected=dict(
+                    value=permission1,
+                    summary='Modified permission "%s"' % permission1,
+                    result=dict(
+                        dn=permission1_dn,
+                        cn=[permission1],
+                        objectclass=objectclasses.permission,
+                        ipapermright=['write'],
+                        attrs=['sn'],
+                        ipapermincludedattr=['sn'],
+                        ipapermbindruletype=['permission'],
+                        ipapermissiontype=['SYSTEM', 'V2'],
+                        ipapermlocation=[api.env.basedn],
+                        extratargetfilter=['(memberof=*)'],
+                        ipapermtargetfilter=['(memberof=*)'],
+                    ),
                 ),
             ),
-        ),
-
-        verify_permission_aci(
-            permission1, api.env.basedn,
-            '(targetattr = "sn")' +
-            '(targetfilter = "(memberof=*)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn
-        ),
-
-    ]
+            verify_permission_aci(
+                permission1,
+                api.env.basedn,
+                '(targetattr = "sn")'
+                + '(targetfilter = "(memberof=*)")'
+                + '(version 3.0;acl "permission:%s";' % permission1
+                + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            ),
+        ]
+    )
 
 
 def _make_permission_flag_tests(flags, expected_message):
@@ -3091,8 +3175,10 @@ class test_permission_flags(Declarative):
     tests = [
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(description='privilege desc. 1'),
             ),
             expected=dict(
                 value=privilege1,
@@ -3105,17 +3191,19 @@ class test_permission_flags(Declarative):
                 ),
             ),
         ),
-
     ] + (
         _make_permission_flag_tests(
-            ['SYSTEM'],
-            'A SYSTEM permission may not be modified or removed') +
-        _make_permission_flag_tests(
+            ['SYSTEM'], 'A SYSTEM permission may not be modified or removed'
+        )
+        + _make_permission_flag_tests(
             ['??'],
-            'Permission with unknown flag ?? may not be modified or removed') +
-        _make_permission_flag_tests(
+            'Permission with unknown flag ?? may not be modified or removed',
+        )
+        + _make_permission_flag_tests(
             ['SYSTEM', '??'],
-            'Permission with unknown flag ?? may not be modified or removed'))
+            'Permission with unknown flag ?? may not be modified or removed',
+        )
+    )
 
 
 def check_legacy_results(results):
@@ -3158,25 +3246,29 @@ class test_permission_bindtype(Declarative):
         dict(
             desc='Create anonymous %r' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright='write',
                     ipapermbindruletype='anonymous',
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
                 summary='Added permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -3191,18 +3283,19 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) userdn = "ldap:///anyone";)',
+            permission1,
+            users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) userdn = "ldap:///anyone";)',
         ),
-
         dict(
             desc='Create %r' % privilege1,
-            command=('privilege_add', [privilege1],
-                dict(description='privilege desc. 1')
+            command=(
+                'privilege_add',
+                [privilege1],
+                dict(description='privilege desc. 1'),
             ),
             expected=dict(
                 value=privilege1,
@@ -3215,41 +3308,46 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         dict(
             desc='Try to add %r to %r' % (permission1, privilege1),
             command=(
-                'privilege_add_permission', [privilege1], dict(
+                'privilege_add_permission',
+                [privilege1],
+                dict(
                     permission=[permission1],
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='permission',
                 error='cannot add permission "%s" with bindtype "%s" to a '
-                       'privilege' % (permission1, 'anonymous')),
+                'privilege' % (permission1, 'anonymous'),
+            ),
         ),
-
         dict(
             desc='Change binddn of %r to all' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     type='user',
                     ipapermbindruletype='all',
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -3264,31 +3362,35 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) userdn = "ldap:///all";)',
+            permission1,
+            users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) userdn = "ldap:///all";)',
         ),
-
         dict(
             desc='Try to add %r to %r' % (permission1, privilege1),
             command=(
-                'privilege_add_permission', [privilege1], dict(
+                'privilege_add_permission',
+                [privilege1],
+                dict(
                     permission=[permission1],
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='permission',
                 error='cannot add permission "%s" with bindtype "%s" to a '
-                       'privilege' % (permission1, 'all')),
+                'privilege' % (permission1, 'all'),
+            ),
         ),
-
         dict(
             desc='Search for %r using --bindtype' % permission1,
-            command=('permission_find', [permission1],
-                     {'ipapermbindruletype': 'all'}),
+            command=(
+                'permission_find',
+                [permission1],
+                {'ipapermbindruletype': 'all'},
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -3307,11 +3409,13 @@ class test_permission_bindtype(Declarative):
                 ],
             ),
         ),
-
         dict(
             desc='Search for %r using bad --bindtype' % permission1,
-            command=('permission_find', [permission1],
-                     {'ipapermbindruletype': 'anonymous'}),
+            command=(
+                'permission_find',
+                [permission1],
+                {'ipapermbindruletype': 'anonymous'},
+            ),
             expected=dict(
                 count=0,
                 truncated=False,
@@ -3319,7 +3423,6 @@ class test_permission_bindtype(Declarative):
                 result=[],
             ),
         ),
-
         dict(
             desc='Add zero permissions to %r' % (privilege1),
             command=('privilege_add_permission', [privilege1], {}),
@@ -3333,26 +3436,29 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         dict(
-            desc='Rename %r to permission %r' % (permission1,
-                                                 permission1_renamed),
+            desc='Rename %r to permission %r'
+            % (permission1, permission1_renamed),
             command=(
-                'permission_mod', [permission1], dict(rename=permission1_renamed)
+                'permission_mod',
+                [permission1],
+                dict(rename=permission1_renamed),
             ),
             expected=dict(
                 value=permission1,
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -3367,35 +3473,38 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1_renamed, users_dn,
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1_renamed +
-            'allow (write) userdn = "ldap:///all";)',
+            permission1_renamed,
+            users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1_renamed
+            + 'allow (write) userdn = "ldap:///all";)',
         ),
-
         dict(
             desc='Reset binddn of %r to permission' % permission1_renamed,
             command=(
-                'permission_mod', [permission1_renamed], dict(
+                'permission_mod',
+                [permission1_renamed],
+                dict(
                     type='user',
                     ipapermbindruletype='permission',
-                )
+                ),
             ),
             expected=dict(
                 value=permission1_renamed,
                 summary='Modified permission "%s"' % permission1_renamed,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -3410,33 +3519,35 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1_renamed, users_dn,
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1_renamed +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
+            permission1_renamed,
+            users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1_renamed
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
         ),
-
         dict(
             desc='Rename %r back to %r' % (permission1_renamed, permission1),
             command=(
-                'permission_mod', [permission1_renamed],
-                dict(rename=permission1)
+                'permission_mod',
+                [permission1_renamed],
+                dict(rename=permission1),
             ),
             expected=dict(
                 value=permission1_renamed,
                 summary='Modified permission "%s"' % permission1_renamed,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -3451,20 +3562,21 @@ class test_permission_bindtype(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Add %r to %r' % (permission1, privilege1),
             command=(
-                'privilege_add_permission', [privilege1], dict(
+                'privilege_add_permission',
+                [privilege1],
+                dict(
                     permission=[permission1],
-                )
+                ),
             ),
             expected=dict(
                 completed=1,
@@ -3474,22 +3586,24 @@ class test_permission_bindtype(Declarative):
                     cn=[privilege1],
                     description=['privilege desc. 1'],
                     memberof_permission=[permission1],
-                )
+                ),
             ),
         ),
-
         dict(
             desc='Try to change binddn of %r to anonymous' % permission1,
             command=(
-                'permission_mod', [permission1], dict(
+                'permission_mod',
+                [permission1],
+                dict(
                     type='user',
                     ipapermbindruletype='anonymous',
-                )
+                ),
             ),
             expected=errors.ValidationError(
                 name='ipapermbindruletype',
                 error='cannot set bindtype for a permission that is '
-                    'assigned to a privilege')
+                'assigned to a privilege',
+            ),
         ),
     ]
 
@@ -4057,29 +4171,33 @@ class test_permission_filters(Declarative):
         dict(
             desc='Create %r with many filters' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     memberof='ipausers',
                     ipapermright='write',
                     ipapermtargetfilter=[
                         '(objectclass=top)',
                         '(memberof=%s)' % DN(('cn', 'admins'), groups_dn),
-                        ]
-                )
+                    ],
+                ),
             ),
             expected=dict(
                 value=permission1,
                 summary='Added permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4098,22 +4216,24 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
+            permission1,
+            users_dn,
             '(targetfilter = "(&'
-                '(memberOf=%s)' % DN(('cn', 'ipausers'), groups_dn) +
-                '(memberof=%s)' % DN(('cn', 'admins'), groups_dn) +
-                '(objectclass=posixaccount)(objectclass=top)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            '(memberOf=%s)'
+            % DN(('cn', 'ipausers'), groups_dn)
+            + '(memberof=%s)' % DN(('cn', 'admins'), groups_dn)
+            + '(objectclass=posixaccount)(objectclass=top)'
+            + ')")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
-            desc='Remove type from %r while setting other filters' % permission1,
+            desc='Remove type from %r while setting other filters'
+            % permission1,
             command=(
-                'permission_mod', [permission1],
+                'permission_mod',
+                [permission1],
                 dict(
                     type=None,
                     memberof='ipausers',
@@ -4128,14 +4248,16 @@ class test_permission_filters(Declarative):
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4153,22 +4275,23 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, api.env.basedn,
+            permission1,
+            api.env.basedn,
             '(targetfilter = "(&'
-                '(memberOf=%s)' % DN(('cn', 'ipausers'), groups_dn) +
-                '(memberof=%s)' % DN(('cn', 'admins'), groups_dn) +
-                '(objectclass=ipauser)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            '(memberOf=%s)'
+            % DN(('cn', 'ipausers'), groups_dn)
+            + '(memberof=%s)' % DN(('cn', 'admins'), groups_dn)
+            + '(objectclass=ipauser)'
+            + ')")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Remove memberof from %r while adding a filter' % permission1,
             command=(
-                'permission_mod', [permission1],
+                'permission_mod',
+                [permission1],
                 dict(
                     memberof=None,
                     addattr='ipapermtargetfilter=(cn=xyz)',
@@ -4179,14 +4302,16 @@ class test_permission_filters(Declarative):
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4204,21 +4329,21 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, api.env.basedn,
+            permission1,
+            api.env.basedn,
             '(targetfilter = "(&'
-                '(cn=xyz)' +
-                '(objectclass=ipauser)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            '(cn=xyz)'
+            + '(objectclass=ipauser)'
+            + ')")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Set memberof, type and filter on %r at once' % permission1,
             command=(
-                'permission_mod', [permission1],
+                'permission_mod',
+                [permission1],
                 dict(
                     type='user',
                     memberof='admins',
@@ -4230,14 +4355,16 @@ class test_permission_filters(Declarative):
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4256,22 +4383,23 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
+            permission1,
+            users_dn,
             '(targetfilter = "(&'
-                '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn) +
-                '(objectclass=posixaccount)' +
-                '(uid=abc)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            '(memberOf=%s)'
+            % DN(('cn', 'admins'), groups_dn)
+            + '(objectclass=posixaccount)'
+            + '(uid=abc)'
+            + ')")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Remove memberof & type from %r at once' % permission1,
             command=(
-                'permission_mod', [permission1],
+                'permission_mod',
+                [permission1],
                 dict(
                     type=None,
                     memberof=None,
@@ -4282,14 +4410,16 @@ class test_permission_filters(Declarative):
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4306,18 +4436,18 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, api.env.basedn,
-            '(targetfilter = "(uid=abc)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            api.env.basedn,
+            '(targetfilter = "(uid=abc)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Add multiple memberof to %r' % permission1,
             command=(
-                'permission_mod', [permission1],
+                'permission_mod',
+                [permission1],
                 dict(
                     memberof=['admins', 'editors'],
                 ),
@@ -4327,14 +4457,16 @@ class test_permission_filters(Declarative):
                 summary='Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4350,18 +4482,18 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, api.env.basedn,
+            permission1,
+            api.env.basedn,
             '(targetfilter = "(&'
-                '(memberOf=%s)' % DN(('cn', 'admins'), groups_dn) +
-                '(memberOf=%s)' % DN(('cn', 'editors'), groups_dn) +
-                '(uid=abc)' +
-            ')")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            '(memberOf=%s)'
+            % DN(('cn', 'admins'), groups_dn)
+            + '(memberOf=%s)' % DN(('cn', 'editors'), groups_dn)
+            + '(uid=abc)'
+            + ')")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
-
         dict(
             desc='Delete %r' % permission1,
             command=('permission_del', [permission1], {}),
@@ -4369,33 +4501,35 @@ class test_permission_filters(Declarative):
                 result=dict(failed=[]),
                 value=[permission1],
                 summary='Deleted permission "%s"' % permission1,
-            )
+            ),
         ),
-
         verify_permission_aci_missing(permission1, api.env.basedn),
-
         dict(
             desc='Create %r with empty filters [#4206]' % permission1,
             command=(
-                'permission_add', [permission1], dict(
+                'permission_add',
+                [permission1],
+                dict(
                     type='user',
                     ipapermright='write',
                     ipapermtargetfilter='',
-                )
+                ),
             ),
             expected=dict(
                 value=permission1,
                 summary='Added permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
+                        'message': (
+                            'The permission has write rights but no '
+                            'attributes are set.'
+                        ),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
                             'right': 'write',
-                        }
+                        },
                     },
                 ),
                 result=dict(
@@ -4410,12 +4544,12 @@ class test_permission_filters(Declarative):
                 ),
             ),
         ),
-
         verify_permission_aci(
-            permission1, users_dn,
-            '(targetfilter = "(objectclass=posixaccount)")' +
-            '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            permission1,
+            users_dn,
+            '(targetfilter = "(objectclass=posixaccount)")'
+            + '(version 3.0;acl "permission:%s";' % permission1
+            + 'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
     ]
 

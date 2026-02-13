@@ -618,15 +618,19 @@ class automember_mod(Method):
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. '
-            'The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). '
-            'See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),

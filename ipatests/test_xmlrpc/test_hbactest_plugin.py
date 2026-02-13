@@ -63,8 +63,8 @@ class test_hbactest(XMLRPC_test):
         Prepare data by adding test HBAC rules using `xmlrpc.hbacrule_add'.
         """
 
-        self.failsafe_add(api.Object.user,
-            self.test_user, givenname='first', sn='last'
+        self.failsafe_add(
+            api.Object.user, self.test_user, givenname='first', sn='last'
         )
         self.failsafe_add(api.Object.group,
             self.test_group, description='description'
@@ -72,14 +72,14 @@ class test_hbactest(XMLRPC_test):
         self.failsafe_add(api.Object.host,
             self.test_host, force=True
         )
-        self.failsafe_add(api.Object.hostgroup,
-            self.test_hostgroup, description='description'
+        self.failsafe_add(
+            api.Object.hostgroup, self.test_hostgroup, description='description'
         )
         self.failsafe_add(api.Object.host,
             self.test_sourcehost, force=True
         )
-        self.failsafe_add(api.Object.hostgroup,
-            self.test_sourcehostgroup, description='desc'
+        self.failsafe_add(
+            api.Object.hostgroup, self.test_sourcehostgroup, description='desc'
         )
         self.failsafe_add(api.Object.hbacsvc,
             self.test_service, description='desc'

@@ -44,38 +44,38 @@ class test_hbacsvcgroup(Declarative):
         ('hbacsvc_del', [hbacsvc1], {}),
     ]
 
-    tests=[
-
+    tests = [
         dict(
             desc='Try to retrieve non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_show', [hbacsvcgroup1], {}),
             expected=errors.NotFound(
-                reason='%s: HBAC service group not found' % hbacsvcgroup1),
+                reason='%s: HBAC service group not found' % hbacsvcgroup1
+            ),
         ),
-
-
         dict(
             desc='Try to update non-existent %r' % hbacsvcgroup1,
-            command=('hbacsvcgroup_mod', [hbacsvcgroup1],
-                dict(description='Updated hbacsvcgroup 1')
+            command=(
+                'hbacsvcgroup_mod',
+                [hbacsvcgroup1],
+                dict(description='Updated hbacsvcgroup 1'),
             ),
             expected=errors.NotFound(
-                reason='%s: HBAC service group not found' % hbacsvcgroup1),
+                reason='%s: HBAC service group not found' % hbacsvcgroup1
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
             expected=errors.NotFound(
-                reason='%s: HBAC service group not found' % hbacsvcgroup1),
+                reason='%s: HBAC service group not found' % hbacsvcgroup1
+            ),
         ),
-
-
         dict(
             desc='Create %r' % hbacsvcgroup1,
-            command=('hbacsvcgroup_add', [hbacsvcgroup1],
-                dict(description='Test hbacsvcgroup 1')
+            command=(
+                'hbacsvcgroup_add',
+                [hbacsvcgroup1],
+                dict(description='Test hbacsvcgroup 1'),
             ),
             expected=dict(
                 value=hbacsvcgroup1,
@@ -89,22 +89,23 @@ class test_hbacsvcgroup(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Try to create duplicate %r' % hbacsvcgroup1,
-            command=('hbacsvcgroup_add', [hbacsvcgroup1],
-                dict(description='Test hbacsvcgroup 1')
+            command=(
+                'hbacsvcgroup_add',
+                [hbacsvcgroup1],
+                dict(description='Test hbacsvcgroup 1'),
             ),
             expected=errors.DuplicateEntry(
-                message='HBAC service group with name "%s" already exists' %
-                    hbacsvcgroup1),
+                message='HBAC service group with name "%s" already exists'
+                % hbacsvcgroup1
+            ),
         ),
-
-
         dict(
             desc='Create service %r' % hbacsvc1,
-            command=('hbacsvc_add', [hbacsvc1],
+            command=(
+                'hbacsvc_add',
+                [hbacsvc1],
                 dict(
                     description='Test service 1',
                 ),
@@ -121,12 +122,12 @@ class test_hbacsvcgroup(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Add service %r to %r' % (hbacsvc1, hbacsvcgroup1),
             command=(
-                'hbacsvcgroup_add_member', [hbacsvcgroup1], dict(hbacsvc=hbacsvc1)
+                'hbacsvcgroup_add_member',
+                [hbacsvcgroup1],
+                dict(hbacsvc=hbacsvc1),
             ),
             expected=dict(
                 completed=1,
@@ -143,8 +144,6 @@ class test_hbacsvcgroup(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_show', [hbacsvcgroup1], {}),
@@ -159,12 +158,13 @@ class test_hbacsvcgroup(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Search for %r with members' % hbacsvcgroup1,
-            command=('hbacsvcgroup_find', [], dict(
-                cn=hbacsvcgroup1, no_members=False)),
+            command=(
+                'hbacsvcgroup_find',
+                [],
+                dict(cn=hbacsvcgroup1, no_members=False),
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -179,8 +179,6 @@ class test_hbacsvcgroup(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_find', [], dict(cn=hbacsvcgroup1)),
@@ -197,12 +195,12 @@ class test_hbacsvcgroup(Declarative):
                 ],
             ),
         ),
-
-
         dict(
             desc='Update %r' % hbacsvcgroup1,
-            command=('hbacsvcgroup_mod', [hbacsvcgroup1],
-                dict(description='Updated hbacsvcgroup 1')
+            command=(
+                'hbacsvcgroup_mod',
+                [hbacsvcgroup1],
+                dict(description='Updated hbacsvcgroup 1'),
             ),
             expected=dict(
                 value=hbacsvcgroup1,
@@ -214,8 +212,6 @@ class test_hbacsvcgroup(Declarative):
                 ),
             ),
         ),
-
-
         dict(
             desc='Retrieve %r to verify update' % hbacsvcgroup1,
             command=('hbacsvcgroup_show', [hbacsvcgroup1], {}),
@@ -230,12 +226,12 @@ class test_hbacsvcgroup(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Remove service %r from %r' % (hbacsvc1, hbacsvcgroup1),
-            command=('hbacsvcgroup_remove_member', [hbacsvcgroup1],
-                dict(hbacsvc=hbacsvc1)
+            command=(
+                'hbacsvcgroup_remove_member',
+                [hbacsvcgroup1],
+                dict(hbacsvc=hbacsvc1),
             ),
             expected=dict(
                 failed=dict(
@@ -251,8 +247,6 @@ class test_hbacsvcgroup(Declarative):
                 },
             ),
         ),
-
-
         dict(
             desc='Delete %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
@@ -262,8 +256,6 @@ class test_hbacsvcgroup(Declarative):
                 result=dict(failed=[]),
             ),
         ),
-
-
         dict(
             desc='Delete service %r' % hbacsvc1,
             command=('hbacsvc_del', [hbacsvc1], {}),
@@ -272,6 +264,5 @@ class test_hbacsvcgroup(Declarative):
                 summary='Deleted HBAC service "%s"' % hbacsvc1,
                 result=dict(failed=[]),
             ),
-        )
-
+        ),
     ]

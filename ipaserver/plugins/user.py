@@ -706,7 +706,9 @@ class user_add(baseuser_add):
 
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = str(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(
+                    getattr(context, 'randompassword')
+                )
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass
@@ -1331,7 +1333,9 @@ class user_status(LDAPQuery):
                             if newresult[attr][0] == 'N/A':
                                 continue
                             newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
-                            newresult[attr][0] = time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime)
+                            newresult[attr][0] = time.strftime(
+                                '%Y-%m-%dT%H:%M:%SZ', newtime
+                            )
                         except Exception as e:
                             logger.debug(
                                 'time conversion failed with %s', str(e)

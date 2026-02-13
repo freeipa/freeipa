@@ -151,13 +151,15 @@ class otptoken(LDAPObject):
     label_singular = _('OTP Token')
 
     takes_params = (
-        Str('ipatokenuniqueid',
+        Str(
+            'ipatokenuniqueid',
             cli_name='id',
             label=_('Unique ID'),
             primary_key=True,
             flags=('optional_create'),
         ),
-        StrEnum('type?',
+        StrEnum(
+            'type?',
             label=_('Type'),
             doc=_('Type of the token'),
             default='totp',
@@ -165,52 +167,62 @@ class otptoken(LDAPObject):
             values=tuple(list(TOKEN_TYPES) + [x.upper() for x in TOKEN_TYPES]),
             flags=('virtual_attribute', 'no_update'),
         ),
-        Str('description?',
+        Str(
+            'description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('Token description (informational only)'),
         ),
-        Str('ipatokenowner?',
+        Str(
+            'ipatokenowner?',
             cli_name='owner',
             label=_('Owner'),
             doc=_('Assigned user of the token (default: self)'),
         ),
-        Str('managedby_user?',
+        Str(
+            'managedby_user?',
             label=_('Manager'),
             doc=_('Assigned manager of the token (default: self)'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Bool('ipatokendisabled?',
+        Bool(
+            'ipatokendisabled?',
             cli_name='disabled',
             label=_('Disabled'),
-            doc=_('Mark the token as disabled (default: false)')
+            doc=_('Mark the token as disabled (default: false)'),
         ),
-        DateTime('ipatokennotbefore?',
+        DateTime(
+            'ipatokennotbefore?',
             cli_name='not_before',
             label=_('Validity start'),
             doc=_('First date/time the token can be used'),
         ),
-        DateTime('ipatokennotafter?',
+        DateTime(
+            'ipatokennotafter?',
             cli_name='not_after',
             label=_('Validity end'),
             doc=_('Last date/time the token can be used'),
         ),
-        Str('ipatokenvendor?',
+        Str(
+            'ipatokenvendor?',
             cli_name='vendor',
             label=_('Vendor'),
             doc=_('Token vendor name (informational only)'),
         ),
-        Str('ipatokenmodel?',
+        Str(
+            'ipatokenmodel?',
             cli_name='model',
             label=_('Model'),
             doc=_('Token model (informational only)'),
         ),
-        Str('ipatokenserial?',
+        Str(
+            'ipatokenserial?',
             cli_name='serial',
             label=_('Serial'),
             doc=_('Token serial (informational only)'),
         ),
-        OTPTokenKey('ipatokenotpkey?',
+        OTPTokenKey(
+            'ipatokenotpkey?',
             cli_name='key',
             label=_('Key'),
             doc=_('Token secret (Base32; default: random)'),
@@ -220,7 +232,8 @@ class otptoken(LDAPObject):
             normalizer=lambda x: x,
             flags=('no_display', 'no_update', 'no_search'),
         ),
-        StrEnum('ipatokenotpalgorithm?',
+        StrEnum(
+            'ipatokenotpalgorithm?',
             cli_name='algo',
             label=_('Algorithm'),
             doc=_('Token hash algorithm'),
@@ -229,7 +242,8 @@ class otptoken(LDAPObject):
             flags=('no_update'),
             values=('sha1', 'sha256', 'sha384', 'sha512'),
         ),
-        IntEnum('ipatokenotpdigits?',
+        IntEnum(
+            'ipatokenotpdigits?',
             cli_name='digits',
             label=_('Digits'),
             doc=_('Number of digits each token code will have'),
@@ -238,7 +252,8 @@ class otptoken(LDAPObject):
             autofill=True,
             flags=('no_update'),
         ),
-        Int('ipatokentotpclockoffset?',
+        Int(
+            'ipatokentotpclockoffset?',
             cli_name='offset',
             label=_('Clock offset'),
             doc=_('TOTP token / IPA server time difference'),
@@ -246,7 +261,8 @@ class otptoken(LDAPObject):
             autofill=True,
             flags=('no_update'),
         ),
-        Int('ipatokentotptimestep?',
+        Int(
+            'ipatokentotptimestep?',
             cli_name='interval',
             label=_('Clock interval'),
             doc=_('Length of TOTP token code validity'),
@@ -255,7 +271,8 @@ class otptoken(LDAPObject):
             minvalue=5,
             flags=('no_update'),
         ),
-        Int('ipatokenhotpcounter?',
+        Int(
+            'ipatokenhotpcounter?',
             cli_name='counter',
             label=_('Counter'),
             doc=_('Initial counter for the HOTP token'),
@@ -264,7 +281,8 @@ class otptoken(LDAPObject):
             minvalue=0,
             flags=('no_update'),
         ),
-        Str('uri?',
+        Str(
+            'uri?',
             label=_('URI'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
@@ -344,7 +362,12 @@ class otptoken_add(LDAPCreate):
         # Build the URI
         label = urllib.parse.quote(entry_attrs['ipatokenuniqueid'])
         parameters = urllib.parse.urlencode(args)
-        uri = 'otpauth://%s/%s:%s?%s' % (options['type'], issuer, label, parameters)
+        uri = 'otpauth://%s/%s:%s?%s' % (
+            options['type'],
+            issuer,
+            label,
+            parameters,
+        )
         setattr(context, 'uri', uri)
 
         attrs_list.append("objectclass")

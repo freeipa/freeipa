@@ -58,7 +58,6 @@ class test_batch(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Batch ping',
             command=('batch', [dict(method='ping', params=([], {}))], {}),
@@ -66,10 +65,9 @@ class test_batch(Declarative):
                 count=1,
                 results=[
                     dict(summary=Fuzzy('IPA server version .*'), error=None),
-                ]
+                ],
             ),
         ),
-
         dict(
             desc='Batch two pings',
             command=('batch', [dict(method='ping', params=([], {}))] * 2, {}),
@@ -78,17 +76,22 @@ class test_batch(Declarative):
                 results=[
                     dict(summary=Fuzzy('IPA server version .*'), error=None),
                     dict(summary=Fuzzy('IPA server version .*'), error=None),
-                ]
+                ],
             ),
         ),
-
         dict(
             desc='Create and deleting a group',
-            command=('batch', [
-                dict(method='group_add',
-                    params=([group1], dict(description='Test desc 1'))),
-                dict(method='group_del', params=([group1], dict())),
-            ], {}),
+            command=(
+                'batch',
+                [
+                    dict(
+                        method='group_add',
+                        params=([group1], dict(description='Test desc 1')),
+                    ),
+                    dict(method='group_del', params=([group1], dict())),
+                ],
+                {},
+            ),
             expected=dict(
                 count=2,
                 results=deepequal_list(
@@ -99,30 +102,38 @@ class test_batch(Declarative):
                             cn=[group1],
                             description=['Test desc 1'],
                             objectclass=fuzzy_set_optional_oc(
-                                objectclasses.posixgroup, 'ipantgroupattrs'),
+                                objectclasses.posixgroup, 'ipantgroupattrs'
+                            ),
                             ipauniqueid=[fuzzy_uuid],
                             gidnumber=[fuzzy_digits],
-                            dn=DN(('cn', 'testgroup1'),
-                                  ('cn', 'groups'),
-                                  ('cn', 'accounts'),
-                                  api.env.basedn),
+                            dn=DN(
+                                ('cn', 'testgroup1'),
+                                ('cn', 'groups'),
+                                ('cn', 'accounts'),
+                                api.env.basedn,
                             ),
-                        error=None),
+                        ),
+                        error=None,
+                    ),
                     dict(
                         summary='Deleted group "%s"' % group1,
                         result=dict(failed=[]),
                         value=[group1],
-                        error=None),
+                        error=None,
+                    ),
                 ),
             ),
         ),
-
         dict(
             desc='Try to delete nonexistent group twice',
-            command=('batch', [
-                dict(method='group_del', params=([group1], dict())),
-                dict(method='group_del', params=([group1], dict())),
-            ], {}),
+            command=(
+                'batch',
+                [
+                    dict(method='group_del', params=([group1], dict())),
+                    dict(method='group_del', params=([group1], dict())),
+                ],
+                {},
+            ),
             expected=dict(
                 count=2,
                 results=[
@@ -145,14 +156,19 @@ class test_batch(Declarative):
                 ],
             ),
         ),
-
         dict(
             desc='Try to delete non-existent group first, then create it',
-            command=('batch', [
-                dict(method='group_del', params=([group1], dict())),
-                dict(method='group_add',
-                    params=([group1], dict(description='Test desc 1'))),
-            ], {}),
+            command=(
+                'batch',
+                [
+                    dict(method='group_del', params=([group1], dict())),
+                    dict(
+                        method='group_add',
+                        params=([group1], dict(description='Test desc 1')),
+                    ),
+                ],
+                {},
+            ),
             expected=dict(
                 count=2,
                 results=deepequal_list(
@@ -171,38 +187,52 @@ class test_batch(Declarative):
                             cn=[group1],
                             description=['Test desc 1'],
                             objectclass=fuzzy_set_optional_oc(
-                                objectclasses.posixgroup, 'ipantgroupattrs'),
+                                objectclasses.posixgroup, 'ipantgroupattrs'
+                            ),
                             ipauniqueid=[fuzzy_uuid],
                             gidnumber=[fuzzy_digits],
-                            dn=DN(('cn', 'testgroup1'),
-                                  ('cn', 'groups'),
-                                  ('cn', 'accounts'),
-                                  api.env.basedn),
+                            dn=DN(
+                                ('cn', 'testgroup1'),
+                                ('cn', 'groups'),
+                                ('cn', 'accounts'),
+                                api.env.basedn,
                             ),
-                        error=None),
+                        ),
+                        error=None,
+                    ),
                 ),
             ),
         ),
-
         dict(
             desc='Try bad command invocations',
-            command=('batch', [
-                # bad command name
-                dict(method='nonexistent_ipa_command', params=([], dict())),
-                # dash, not underscore, in command name
-                dict(method='user-del', params=([], dict())),
-                # missing command name
-                dict(params=([group1], dict())),
-                # missing params
-                dict(method='user_del'),
-                # missing required argument
-                dict(method='user_add', params=([], dict())),
-                # missing required option
-                dict(method='user_add', params=([], dict(givenname=first1))),
-                # bad type
-                dict(method='group_add', params=([group1], dict(
-                        description='t', gidnumber='bad'))),
-            ], {}),
+            command=(
+                'batch',
+                [
+                    # bad command name
+                    dict(method='nonexistent_ipa_command', params=([], dict())),
+                    # dash, not underscore, in command name
+                    dict(method='user-del', params=([], dict())),
+                    # missing command name
+                    dict(params=([group1], dict())),
+                    # missing params
+                    dict(method='user_del'),
+                    # missing required argument
+                    dict(method='user_add', params=([], dict())),
+                    # missing required option
+                    dict(
+                        method='user_add', params=([], dict(givenname=first1))
+                    ),
+                    # bad type
+                    dict(
+                        method='group_add',
+                        params=(
+                            [group1],
+                            dict(description='t', gidnumber='bad'),
+                        ),
+                    ),
+                ],
+                {},
+            ),
             expected=dict(
                 count=7,
                 results=deepequal_list(
@@ -266,5 +296,4 @@ class test_batch(Declarative):
                 ),
             ),
         ),
-
     ]

@@ -775,8 +775,10 @@ class aci_rename(Method):
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, '
-            'delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, '
+                'delegation, selfservice, none)'
+            ),
         ),
         parameters.Str(
             'newname',
@@ -784,16 +786,20 @@ class aci_rename(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. '
-            'Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. '
-            'Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

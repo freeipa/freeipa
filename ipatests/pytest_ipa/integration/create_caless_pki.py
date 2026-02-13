@@ -569,24 +569,32 @@ def gen_subtree(nick_base, org, ca=None):
 
 def create_pki():
 
-    gen_cert(profile_server, 'server-selfsign',
-             x509.Name([
+    gen_cert(
+        profile_server,
+        'server-selfsign',
+        x509.Name(
+            [
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Self-signed'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server1)
-             ])
-             )
+                x509.NameAttribute(NameOID.COMMON_NAME, server1),
+            ]
+        ),
+    )
     gen_cert(profile_server, 'replica-selfsign',
              x509.Name([
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Self-signed'),
                 x509.NameAttribute(NameOID.COMMON_NAME, server2)
              ])
              )
-    gen_cert(profile_server, 'noca',
-             x509.Name([
+    gen_cert(
+        profile_server,
+        'noca',
+        x509.Name(
+            [
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'No-CA'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server1)
-             ])
-             )
+                x509.NameAttribute(NameOID.COMMON_NAME, server1),
+            ]
+        ),
+    )
     gen_cert(profile_kdc, 'server-kdc-selfsign',
              x509.Name([
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Self-signed'),
@@ -594,13 +602,17 @@ def create_pki():
                 x509.NameAttribute(NameOID.COMMON_NAME, server1)
              ])
              )
-    gen_cert(profile_kdc, 'replica-kdc-selfsign',
-             x509.Name([
+    gen_cert(
+        profile_kdc,
+        'replica-kdc-selfsign',
+        x509.Name(
+            [
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Self-signed'),
                 x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, 'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server2)
-             ])
-             )
+                x509.NameAttribute(NameOID.COMMON_NAME, server2),
+            ]
+        ),
+    )
     ca1 = gen_subtree('ca1', 'Example Organization Espa\xf1a')
     gen_subtree('subca', 'Subsidiary Example Organization', ca1)
     gen_subtree('ca2', 'Other Example Organization')

@@ -366,8 +366,7 @@ class textui(backend.Backend):
                 label = labels.get(key, key)
                 flag = flags.get(key, [])
                 value = entry[key]
-                if ('suppress_empty' in flag and
-                    value in ['', '', (), [], None]):
+                if 'suppress_empty' in flag and value in ['', '', (), [], None]:
                     continue
                 if isinstance(value, dict):
                     if frontend.entry_count(value) == 0:
@@ -579,7 +578,7 @@ class textui(backend.Backend):
 
             if data in ('yes', 'y'):
                 return True
-            elif data in ( 'n', 'no'):
+            elif data in ('n', 'no'):
                 return False
             elif default is not None and data == '':
                 return default
@@ -593,7 +592,9 @@ class textui(backend.Backend):
         """
         if sys.stdin.isatty():
             prompt = '%s: ' % str(label)
-            repeat_prompt = str(_('Enter %(label)s again to verify: ') % dict(label=label))
+            repeat_prompt = str(
+                _('Enter %(label)s again to verify: ') % dict(label=label)
+            )
             while True:
                 pw1 = self.prompt_helper(prompt, label, prompt_func=getpass.getpass)
                 if not confirm:

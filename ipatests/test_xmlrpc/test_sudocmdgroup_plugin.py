@@ -131,9 +131,12 @@ class TestSudoCmdGroupSCRUD(XMLRPC_test):
         """ Try to create duplicate sudocmdgroup """
         sudocmdgroup1.ensure_exists()
         command = sudocmdgroup1.make_create_command()
-        with raises_exact(errors.DuplicateEntry(
-                message='sudo command group ' +
-                        'with name "%s" already exists' % sudocmdgroup1.cn)):
+        with raises_exact(
+            errors.DuplicateEntry(
+                message='sudo command group '
+                + 'with name "%s" already exists' % sudocmdgroup1.cn
+            )
+        ):
             command()
 
     def test_retrieve(self, sudocmdgroup1):
