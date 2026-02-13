@@ -327,7 +327,7 @@ class test_x509:
 
         assert len(ext.value) == 1
         assert ext.value[0].policy_identifier.dotted_string == (
-            u'1.3.6.1.4.1.311.21.8.8950086.10656446.2706058.12775672.480128.'
+            '1.3.6.1.4.1.311.21.8.8950086.10656446.2706058.12775672.480128.'
             '147.13466065.13029902')
 
     def test_ipa_demo_letsencrypt(self):
@@ -445,7 +445,7 @@ class test_ExternalCAProfile:
             x509.MSCSTemplateV2)
 
     def test_write_pkispawn_config_file_MSCSTemplateV1(self):
-        template = x509.MSCSTemplateV1(u"SubCA")
+        template = x509.MSCSTemplateV1("SubCA")
         expected = (
             '[CA]\n'
             'pki_req_ext_oid = 1.3.6.1.4.1.311.20.2\n'
@@ -454,7 +454,7 @@ class test_ExternalCAProfile:
         self._test_write_pkispawn_config_file(template, expected)
 
     def test_write_pkispawn_config_file_MSCSTemplateV2(self):
-        template = x509.MSCSTemplateV2(u"1.2.3.4:4294967295")
+        template = x509.MSCSTemplateV2("1.2.3.4:4294967295")
         expected = (
             '[CA]\n'
             'pki_req_ext_oid = 1.3.6.1.4.1.311.21.7\n'

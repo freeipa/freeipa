@@ -55,7 +55,7 @@ EXAMPLES:
 
 register = Registry()
 
-ACI_PREFIX=u"selfservice"
+ACI_PREFIX = 'selfservice'
 
 
 @register()
@@ -125,7 +125,7 @@ class selfservice_add(crud.Create):
 
     def execute(self, aciname, **kw):
         if 'permissions' not in kw:
-            kw['permissions'] = (u'write',)
+            kw['permissions'] = ('write',)
         kw['selfaci'] = True
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']

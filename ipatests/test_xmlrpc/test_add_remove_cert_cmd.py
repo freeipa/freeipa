@@ -17,24 +17,24 @@ from ipatests.test_xmlrpc.tracker.idview_plugin import IdviewTracker
 
 @pytest.fixture(scope='class')
 def idview(request, xmlrpc_setup):
-    tracker = IdviewTracker(cn=u'MyView')
+    tracker = IdviewTracker(cn='MyView')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def testuser(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'testuser', givenname=u'John', sn=u'Donne')
+    tracker = UserTracker(name='testuser', givenname='John', sn='Donne')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def cert1(request, xmlrpc_setup):
-    return get_testcert(DN(('CN', u'testuser')), u'testuser')
+    return get_testcert(DN(('CN', 'testuser')), 'testuser')
 
 
 @pytest.fixture(scope='class')
 def cert2(request, xmlrpc_setup):
-    return get_testcert(DN(('CN', u'testuser')), u'testuser')
+    return get_testcert(DN(('CN', 'testuser')), 'testuser')
 
 
 @pytest.mark.tier1
@@ -46,8 +46,8 @@ class CertManipCmdTestBase(XMLRPC_test):
     non_existent_entity = None
 
     profile_store_orig = True
-    default_profile_id = u'caIPAserviceCert'
-    default_caacl = u'hosts_services_%s' % default_profile_id
+    default_profile_id = 'caIPAserviceCert'
+    default_caacl = 'hosts_services_%s' % default_profile_id
     cmd_options = dict(
         entity_add=None,
         caacl=None,
@@ -64,8 +64,8 @@ class CertManipCmdTestBase(XMLRPC_test):
     cert_add_cmd = None
     cert_del_cmd = None
 
-    cert_add_summary = u''
-    cert_del_summary = u''
+    cert_add_summary = ''
+    cert_del_summary = ''
 
     entity_attrs = None
 
@@ -122,7 +122,7 @@ class CertManipCmdTestBase(XMLRPC_test):
 
         # list of certificates to add to entry
         cls.certs = [
-            u"MIICszCCAZugAwIBAgICM24wDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "MIICszCCAZugAwIBAgICM24wDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
             "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjUyOVoXDTE3M\r\n"
             "DQxOTEwMjUyOVowFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTEwggEiMA0GCSqGSI\r\n"
             "b3DQEBAQUAA4IBDwAwggEKAoIBAQCq03FRQQBvq4HwYMKP8USLZuOkKzuIs2V\r\n"
@@ -138,7 +138,7 @@ class CertManipCmdTestBase(XMLRPC_test):
             "2fc4zWZVbGq5nFXy1k+d/bgkHbVzf255eFZOKKy0NgZwig+uSlhVWPJjS4Z1w\r\n"
             "LbpBKxTZp/xD0yEARs0u1ZcCELO/BkgQM50EDKmahIM4mdCs/7j1B/DdWs2i3\r\n"
             "5lnbjxYYiUiyA=",
-            u"MIICszCCAZugAwIBAgICJGMwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "MIICszCCAZugAwIBAgICJGMwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
             "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjcyN1oXDTE3M\r\n"
             "DQxOTEwMjcyN1owFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTIwggEiMA0GCSqGSI\r\n"
             "b3DQEBAQUAA4IBDwAwggEKAoIBAQDsEuTITzsRiUHXb8LxduokAEHwStCveKV\r\n"
@@ -154,7 +154,7 @@ class CertManipCmdTestBase(XMLRPC_test):
             "RmajT3BqAASoixEqfMWYv2AqZnJ84JoI4reP0uZGjz5Cy32xQuenQckr8Faki\r\n"
             "p28buFp46C34AWifbRERE396xocc9/Oc7dx9DyjeYqa9CuNo/pYlC4r8QCOkm\r\n"
             "0xMWjoGcVUtUw=",
-            u"MIICszCCAZugAwIBAgICFpYwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "MIICszCCAZugAwIBAgICFpYwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
             "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjczMVoXDTE3M\r\n"
             "DQxOTEwMjczMVowFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTMwggEiMA0GCSqGSI\r\n"
             "b3DQEBAQUAA4IBDwAwggEKAoIBAQDEIMvN8aElxMSyfqIj91nDuuvli/RKNhF\r\n"
@@ -174,7 +174,7 @@ class CertManipCmdTestBase(XMLRPC_test):
 
         # list of certificates for testing of removal of non-existent certs
         cls.nonexistent_certs = [
-            u"MIICszCCAZugAwIBAgICYDAwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "MIICszCCAZugAwIBAgICYDAwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
             "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjczNVoXDTE3M\r\n"
             "DQxOTEwMjczNVowFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTQwggEiMA0GCSqGSI\r\n"
             "b3DQEBAQUAA4IBDwAwggEKAoIBAQDAw12yHMBzQd27/Zv5STUlrkgGaClC4/U\r\n"
@@ -190,7 +190,7 @@ class CertManipCmdTestBase(XMLRPC_test):
             "IGEZi8QwEnOsSpLUobWPhRENbxwTMwlMspk9QG7NvTfisqFRXkAov0R/rHPqr\r\n"
             "AXJTZmkPP+MhrsrbnT0CV2f6bxPkvXknuf+7Xi3h900BLQOSY+jqmtmGrYjln\r\n"
             "tsqX1gL4y2e98=",
-            u"MIICszCCAZugAwIBAgICeicwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "MIICszCCAZugAwIBAgICeicwDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
             "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjczOVoXDTE3M\r\n"
             "DQxOTEwMjczOVowFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTUwggEiMA0GCSqGSI\r\n"
             "b3DQEBAQUAA4IBDwAwggEKAoIBAQCd1VDwUwkwieLqngX1q2HoOe/tKnPxnr/\r\n"
@@ -218,7 +218,7 @@ class CertManipCmdTestBase(XMLRPC_test):
         cls.mixed_certs = cls.certs[:2] + cls.nonexistent_certs[:1]
 
         # invalid base64 encoding
-        cls.invalid_b64 = [u'few4w24gvrae54y6463234f']
+        cls.invalid_b64 = ['few4w24gvrae54y6463234f']
 
         # malformed certificate
         cls.malformed_cert = [base64.b64encode(b'malformed cert')]
@@ -383,21 +383,21 @@ class CertManipCmdTestBase(XMLRPC_test):
 @pytest.mark.tier1
 class TestCertManipCmdUser(CertManipCmdTestBase):
     entity_class = 'user'
-    entity_pkey = u'tuser'
+    entity_pkey = 'tuser'
     entity_subject = entity_pkey
-    entity_principal = u'tuser'
-    non_existent_entity = u'nonexistentuser'
+    entity_principal = 'tuser'
+    non_existent_entity = 'nonexistentuser'
 
     cmd_options = dict(
-        entity_add=dict(givenname=u'Test', sn=u'User'),
-        caacl=dict(user=[u'tuser']),
+        entity_add=dict(givenname='Test', sn='User'),
+        caacl=dict(user=['tuser']),
     )
 
     cert_add_cmd = api.Command.user_add_cert
     cert_del_cmd = api.Command.user_remove_cert
 
-    cert_add_summary = u'Added certificates to user "%s"'
-    cert_del_summary = u'Removed certificates from user "%s"'
+    cert_add_summary = 'Added certificates to user "%s"'
+    cert_del_summary = 'Removed certificates from user "%s"'
 
     @classmethod
     def add_caacl(cls):
@@ -413,29 +413,29 @@ class TestCertManipCmdUser(CertManipCmdTestBase):
 @pytest.mark.tier1
 class TestCertManipCmdStageuser(CertManipCmdTestBase):
     entity_class = 'stageuser'
-    entity_pkey = u'suser'
+    entity_pkey = 'suser'
     entity_subject = entity_pkey
-    entity_principal = u'suser'
-    non_existent_entity = u'nonexistentstageuser'
+    entity_principal = 'suser'
+    non_existent_entity = 'nonexistentstageuser'
 
     cmd_options = dict(
-        entity_add=dict(givenname=u'Stage', sn=u'User'),
+        entity_add=dict(givenname='Stage', sn='User'),
     )
 
     cert_add_cmd = api.Command.stageuser_add_cert
     cert_del_cmd = api.Command.stageuser_remove_cert
 
-    cert_add_summary = u'Added certificates to stageuser "%s"'
-    cert_del_summary = u'Removed certificates from stageuser "%s"'
+    cert_add_summary = 'Added certificates to stageuser "%s"'
+    cert_del_summary = 'Removed certificates from stageuser "%s"'
 
 
 @pytest.mark.tier1
 class TestCertManipCmdHost(CertManipCmdTestBase):
     entity_class = 'host'
-    entity_pkey = u'host.example.com'
+    entity_pkey = 'host.example.com'
     entity_subject = entity_pkey
-    entity_principal = u'host/%s' % entity_pkey
-    non_existent_entity = u'non.existent.host.com'
+    entity_principal = 'host/%s' % entity_pkey
+    non_existent_entity = 'non.existent.host.com'
 
     cmd_options = dict(
         entity_add=dict(force=True),
@@ -444,18 +444,18 @@ class TestCertManipCmdHost(CertManipCmdTestBase):
     cert_add_cmd = api.Command.host_add_cert
     cert_del_cmd = api.Command.host_remove_cert
 
-    cert_add_summary = u'Added certificates to host "%s"'
-    cert_del_summary = u'Removed certificates from host "%s"'
+    cert_add_summary = 'Added certificates to host "%s"'
+    cert_del_summary = 'Removed certificates from host "%s"'
 
 
 @pytest.mark.tier1
 class TestCertManipCmdService(CertManipCmdTestBase):
     entity_class = 'service'
-    entity_pkey = u'testservice/%s@%s' % (TestCertManipCmdHost.entity_pkey,
+    entity_pkey = 'testservice/%s@%s' % (TestCertManipCmdHost.entity_pkey,
                                           api.env.realm)
     entity_subject = TestCertManipCmdHost.entity_pkey
     entity_principal = entity_pkey
-    non_existent_entity = u'testservice/non.existent.host.com'
+    non_existent_entity = 'testservice/non.existent.host.com'
 
     cmd_options = dict(
         entity_add=dict(force=True),
@@ -464,8 +464,8 @@ class TestCertManipCmdService(CertManipCmdTestBase):
     cert_add_cmd = api.Command.service_add_cert
     cert_del_cmd = api.Command.service_remove_cert
 
-    cert_add_summary = u'Added certificates to service principal "%s"'
-    cert_del_summary = u'Removed certificates from service principal "%s"'
+    cert_add_summary = 'Added certificates to service principal "%s"'
+    cert_del_summary = 'Removed certificates from service principal "%s"'
 
     @classmethod
     def add_entity(cls):
@@ -483,8 +483,8 @@ class TestCertManipCmdService(CertManipCmdTestBase):
 
 @pytest.mark.tier1
 class TestCertManipIdOverride(XMLRPC_test):
-    entity_subject = u'testuser'
-    entity_principal = u'testuser'
+    entity_subject = 'testuser'
+    entity_principal = 'testuser'
 
     def test_00_add_idoverrideuser(self, testuser, idview):
         testuser.create()
@@ -494,7 +494,7 @@ class TestCertManipIdOverride(XMLRPC_test):
     def test_01_add_cert_to_idoverride(self, testuser, idview, cert1):
         assert_deepequal(
             dict(usercertificate=(base64.b64decode(cert1),),
-                 summary=u'Added certificates to'
+                 summary='Added certificates to'
                          ' idoverrideuser \"%s\"' % testuser.name,
                  value=testuser.name,
                  ),
@@ -507,7 +507,7 @@ class TestCertManipIdOverride(XMLRPC_test):
             dict(
                 usercertificate=(base64.b64decode(cert1),
                                  base64.b64decode(cert2)),
-                summary=u'Added certificates to'
+                summary='Added certificates to'
                         ' idoverrideuser \"%s\"' % testuser.name,
                 value=testuser.name,
             ),
@@ -532,7 +532,7 @@ class TestCertManipIdOverride(XMLRPC_test):
             dict(
                 usercertificate=(base64.b64decode(cert2),),
                 value=testuser.name,
-                summary=u'Removed certificates from'
+                summary='Removed certificates from'
                         ' idoverrideuser "%s"' % testuser.name
             ),
             idview.del_cert_from_idoverrideuser(testuser.name, cert1)

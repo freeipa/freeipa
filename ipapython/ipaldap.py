@@ -29,7 +29,6 @@ from copy import deepcopy
 import contextlib
 import os
 import pwd
-import warnings
 
 from collections import OrderedDict
 
@@ -40,7 +39,6 @@ import ldap.sasl
 import ldap.filter
 from ldap.controls import SimplePagedResultsControl, GetEffectiveRightsControl
 import ldapurl
-import six
 
 # pylint: disable=ipa-forbidden-import
 from ipalib import errors, x509, _
@@ -53,9 +51,6 @@ from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
 
 from collections.abc import MutableMapping
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -77,14 +72,6 @@ TRUNCATED_TIME_LIMIT = object()
 TRUNCATED_ADMIN_LIMIT = object()
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
-
-
-if six.PY2 and hasattr(ldap, 'LDAPBytesWarning'):
-    # XXX silence python-ldap's BytesWarnings
-    warnings.filterwarnings(
-        action="ignore",
-        category=ldap.LDAPBytesWarning,
-    )
 
 
 def realm_to_serverid(realm_name):
@@ -214,13 +201,17 @@ class SchemaCache:
                 schema_entry = conn.search_s('cn=subschema', ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
         except ldap.SERVER_DOWN:
-            raise errors.NetworkError(uri=url,
-                               error=u'LDAP Server Down, unable to retrieve LDAP schema')
+            raise errors.NetworkError(
+                uri=url,
+                error='LDAP Server Down, unable to retrieve LDAP schema',
+            )
         except ldap.LDAPError as e:
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info', '').strip()
-            raise errors.DatabaseError(desc = u'uri=%s' % url,
-                                info = u'Unable to retrieve LDAP schema: %s: %s' % (desc, info))
+            raise errors.DatabaseError(
+                desc='uri=%s' % url,
+                info='Unable to retrieve LDAP schema: %s: %s' % (desc, info),
+            )
 
         # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
         # TODO: DS uses 'cn=schema', support for other server?
@@ -399,16 +390,11 @@ class LDAPEntry(MutableMapping):
             return self._names[name]
 
         if self._conn.schema is not None:
-            if six.PY2:
-                encoded_name = name.encode('utf-8')
-            else:
-                encoded_name = name
+            encoded_name = name
             attrtype = self._conn.schema.get_obj(
                 ldap.schema.AttributeType, encoded_name)
             if attrtype is not None:
                 for altname in attrtype.names:
-                    if six.PY2:
-                        altname = altname.decode('utf-8')
                     self._names[altname] = name
 
         self._names[name] = name
@@ -751,10 +737,10 @@ class LDAPClient:
         'usercertificate;binary': x509.IPACertificate,
         'cACertificate': x509.IPACertificate,
         'cACertificate;binary': x509.IPACertificate,
-        'nsds5replicalastupdatestart': unicode,
-        'nsds5replicalastupdateend': unicode,
-        'nsds5replicalastinitstart': unicode,
-        'nsds5replicalastinitend': unicode,
+        'nsds5replicalastupdatestart': str,
+        'nsds5replicalastupdateend': str,
+        'nsds5replicalastinitstart': str,
+        'nsds5replicalastinitend': str,
     })
     _SINGLE_VALUE_OVERRIDE = CIDict({
         'nsslapd-ssl-check-hostname': True,
@@ -923,10 +909,6 @@ class LDAPClient:
         if not self._decode_attrs:
             return bytes
 
-        if six.PY2:
-            if isinstance(name_or_oid, unicode):
-                name_or_oid = name_or_oid.encode('utf-8')
-
         # Is this a special case attribute?
         if name_or_oid in self._SYNTAX_OVERRIDE:
             return self._SYNTAX_OVERRIDE[name_or_oid]
@@ -938,7 +920,7 @@ class LDAPClient:
             if obj is not None and obj.syntax in self._SYNTAX_MAPPING:
                 return self._SYNTAX_MAPPING[obj.syntax]
 
-        return unicode
+        return str
 
     def has_dn_syntax(self, name_or_oid):
         """
@@ -957,9 +939,6 @@ class LDAPClient:
         If there is a problem loading the schema or the attribute is
         not in the schema return None
         """
-        if six.PY2 and isinstance(name_or_oid, unicode):
-            name_or_oid = name_or_oid.encode('utf-8')
-
         if name_or_oid in self._SINGLE_VALUE_OVERRIDE:
             return self._SINGLE_VALUE_OVERRIDE[name_or_oid]
 
@@ -983,7 +962,7 @@ class LDAPClient:
                 return b'TRUE'
             else:
                 return b'FALSE'
-        elif isinstance(val, (unicode, int, Decimal, DN, Principal)):
+        elif isinstance(val, (str, int, Decimal, DN, Principal)):
             return str(val).encode('utf-8')
         elif isinstance(val, DNSName):
             return val.to_text().encode('ascii')
@@ -1015,7 +994,7 @@ class LDAPClient:
             try:
                 if target_type is bytes:
                     return val
-                elif target_type is unicode:
+                elif target_type is str:
                     return val.decode('utf-8')
                 elif target_type is bool:
                     return val.decode('utf-8') == 'TRUE'
@@ -1204,7 +1183,7 @@ class LDAPClient:
             elif raise_on_unknown:
                 raise errors.NotFound(
                     reason=_('objectclass %s not found') % oc)
-        return [unicode(a).lower() for a in list(set(allowed_attributes))]
+        return [str(a).lower() for a in list(set(allowed_attributes))]
 
     def __enter__(self):
         return self
@@ -1316,12 +1295,12 @@ class LDAPClient:
 
     # generating filters for find_entry
     # some examples:
-    # f1 = ldap2.make_filter_from_attr(u'firstName', u'Pavel')
-    # f2 = ldap2.make_filter_from_attr(u'lastName', u'Zuna')
+    # f1 = ldap2.make_filter_from_attr('firstName', 'Pavel')
+    # f2 = ldap2.make_filter_from_attr('lastName', 'Zuna')
     # f = ldap2.combine_filters([f1, f2], ldap2.MATCH_ALL)
     # # f should be (&(firstName=Pavel)(lastName=Zuna))
     # # it should be equivalent to:
-    # entry_attrs = {u'firstName': u'Pavel', u'lastName': u'Zuna'}
+    # entry_attrs = {'firstName': 'Pavel', 'lastName': 'Zuna'}
     # f = ldap2.make_filter(entry_attrs, rules=ldap2.MATCH_ALL)
 
     @classmethod
@@ -1385,8 +1364,8 @@ class LDAPClient:
             if isinstance(value, bytes):
                 value = binascii.hexlify(value).decode('ascii')
                 # value[-2:0] is empty string for the initial '\\'
-                value = u'\\'.join(
-                    value[i:i+2] for i in six.moves.range(-2, len(value), 2))
+                value = '\\'.join(
+                    value[i:i + 2] for i in range(-2, len(value), 2))
             elif isinstance(value, datetime):
                 value = value.strftime(
                     LDAP_GENERALIZED_TIME_FORMAT)
@@ -1545,10 +1524,6 @@ class LDAPClient:
 
         # pass arguments to python-ldap
         with self.error_handler():
-            if six.PY2:
-                filter = self.encode(filter)
-                attrs_list = self.encode(attrs_list)
-
             while True:
                 if paged_search:
                     sctrls = base_sctrls + [

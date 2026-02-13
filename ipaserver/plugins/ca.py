@@ -4,7 +4,6 @@
 
 import base64
 
-import six
 
 from ipalib import api, errors, messages, output
 from ipalib import Bytes, DNParam, Flag, Str, Int
@@ -320,7 +319,7 @@ class ca_add(LDAPCreate):
         }
         x509_attrs = {
             attr.lower()
-            for attr in six.viewvalues(ATTR_NAME_BY_OID)
+            for attr in ATTR_NAME_BY_OID.values()
         }
         unknown_attrs = dn_attrs - x509_attrs
         if len(unknown_attrs) > 0:
@@ -427,7 +426,7 @@ class ca_mod(LDAPUpdate):
                 raise errors.ProtectedEntryError(
                     label=_("CA"),
                     key=keys[0],
-                    reason=u'IPA CA cannot be renamed')
+                    reason='IPA CA cannot be renamed')
 
         return dn
 

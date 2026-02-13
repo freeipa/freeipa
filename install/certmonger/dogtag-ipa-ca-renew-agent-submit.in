@@ -37,8 +37,6 @@ import json
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 
-import six
-
 from ipalib.install.kinit import kinit_keytab
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -60,9 +58,6 @@ UNREACHABLE = 3
 UNCONFIGURED = 4
 WAIT_WITH_DELAY = 5
 OPERATION_NOT_SUPPORTED_BY_HELPER = 6
-
-if six.PY3:
-    unicode = str
 
 
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
@@ -136,7 +131,7 @@ def call_handler(_handler, *args, **kwargs):
         else:
             # Reconstruct the data for the missing cookie. Sanity checking
             # is done elsewhere, when needed.
-            context = dict(cookie=u'')
+            context = dict(cookie='')
             profile = os.environ.get('CERTMONGER_CA_PROFILE')
             if profile is not None:
                 profile = profile.encode('ascii').decode('raw_unicode_escape')
@@ -146,7 +141,7 @@ def call_handler(_handler, *args, **kwargs):
             profile = context.pop('profile')
             try:
                 if profile is not None:
-                    if not isinstance(profile, unicode):
+                    if not isinstance(profile, str):
                         raise TypeError
                     profile = (profile.encode('raw_unicode_escape')
                                .decode('ascii'))
@@ -164,7 +159,7 @@ def call_handler(_handler, *args, **kwargs):
         if 'cookie' in context:
             cookie = context.pop('cookie')
             try:
-                if not isinstance(cookie, unicode):
+                if not isinstance(cookie, str):
                     raise TypeError
                 cookie = cookie.encode('raw_unicode_escape').decode('ascii')
             except (TypeError, UnicodeEncodeError):
@@ -221,11 +216,8 @@ def request_cert(reuse_existing, **kwargs):
     )
     result = ipautil.run(args, raiseonerr=False, env=os.environ,
                          capture_output=True)
-    if six.PY2:
-        sys.stderr.write(result.raw_error_output)
-    else:
-        # Write bytes directly
-        sys.stderr.buffer.write(result.raw_error_output)
+    # Write bytes directly
+    sys.stderr.buffer.write(result.raw_error_output)
     sys.stderr.flush()
 
     syslog.syslog(syslog.LOG_NOTICE,

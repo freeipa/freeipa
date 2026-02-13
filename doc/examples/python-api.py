@@ -47,7 +47,7 @@ def example():
 
     # Now that you're connected, you can make calls to api.Command.whatever():
     print('The admin user:')
-    print(api.Command.user_show(u'admin'))
+    print(api.Command.user_show('admin'))
 
 
 if __name__ == '__main__':

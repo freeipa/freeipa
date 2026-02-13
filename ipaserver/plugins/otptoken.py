@@ -34,10 +34,6 @@ import urllib
 import uuid
 import os
 
-import six
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 OTP Tokens
@@ -67,8 +63,8 @@ register = Registry()
 topic = 'otp'
 
 TOKEN_TYPES = {
-    u'totp': ['ipatokentotpclockoffset', 'ipatokentotptimestep'],
-    u'hotp': ['ipatokenhotpcounter']
+    'totp': ['ipatokentotpclockoffset', 'ipatokentotptimestep'],
+    'hotp': ['ipatokenhotpcounter']
 }
 
 # NOTE: For maximum compatibility, KEY_LENGTH % 5 == 0
@@ -86,7 +82,7 @@ class OTPTokenKey(Bytes):
                 raise PasswordMismatch(name=self.name)
             value = p1
 
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             try:
                 value = base64.b32decode(value, True)
             except TypeError as e:
@@ -164,7 +160,7 @@ class otptoken(LDAPObject):
         StrEnum('type?',
             label=_('Type'),
             doc=_('Type of the token'),
-            default=u'totp',
+            default='totp',
             autofill=True,
             values=tuple(list(TOKEN_TYPES) + [x.upper() for x in TOKEN_TYPES]),
             flags=('virtual_attribute', 'no_update'),
@@ -228,10 +224,10 @@ class otptoken(LDAPObject):
             cli_name='algo',
             label=_('Algorithm'),
             doc=_('Token hash algorithm'),
-            default=u'sha1',
+            default='sha1',
             autofill=True,
             flags=('no_update'),
-            values=(u'sha1', u'sha256', u'sha384', u'sha512'),
+            values=('sha1', 'sha256', 'sha384', 'sha512'),
         ),
         IntEnum('ipatokenotpdigits?',
             cli_name='digits',
@@ -332,7 +328,7 @@ class otptoken_add(LDAPCreate):
 
         # Check if key is not empty
         if entry_attrs['ipatokenotpkey'] is None:
-            raise ValidationError(name='key', error=_(u'cannot be empty'))
+            raise ValidationError(name='key', error=_('cannot be empty'))
 
         # Build the URI parameters
         args = {}
@@ -348,7 +344,7 @@ class otptoken_add(LDAPCreate):
         # Build the URI
         label = urllib.parse.quote(entry_attrs['ipatokenuniqueid'])
         parameters = urllib.parse.urlencode(args)
-        uri = u'otpauth://%s/%s:%s?%s' % (options['type'], issuer, label, parameters)
+        uri = 'otpauth://%s/%s:%s?%s' % (options['type'], issuer, label, parameters)
         setattr(context, 'uri', uri)
 
         attrs_list.append("objectclass")

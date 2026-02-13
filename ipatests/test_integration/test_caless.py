@@ -29,7 +29,6 @@ import glob
 import contextlib
 
 import pytest
-import six
 
 from ipalib import x509
 from ipapython import ipautil
@@ -41,8 +40,6 @@ from ipatests.create_external_ca import ExternalCA
 from ipatests.pytest_ipa.integration import create_caless_pki
 from ipalib.constants import DOMAIN_LEVEL_0
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -149,13 +146,13 @@ class CALessBase(IntegrationTest):
         else:
             client_hostname = 'unused-client.test'
 
-        create_caless_pki.domain = unicode(cls.master.domain.name)
-        create_caless_pki.realm = unicode(cls.master.domain.name.upper())
-        create_caless_pki.server1 = unicode(cls.master.hostname)
-        create_caless_pki.server2 = unicode(replica_hostname)
-        create_caless_pki.client = unicode(client_hostname)
-        create_caless_pki.password = unicode(cls.master.config.dirman_password)
-        create_caless_pki.cert_dir = unicode(cls.cert_dir)
+        create_caless_pki.domain = str(cls.master.domain.name)
+        create_caless_pki.realm = str(cls.master.domain.name.upper())
+        create_caless_pki.server1 = str(cls.master.hostname)
+        create_caless_pki.server2 = str(replica_hostname)
+        create_caless_pki.client = str(client_hostname)
+        create_caless_pki.password = str(cls.master.config.dirman_password)
+        create_caless_pki.cert_dir = str(cls.cert_dir)
 
         # here we generate our certificates (not yet converted to .p12)
         logger.info('Generating certificates to %s', cls.cert_dir)

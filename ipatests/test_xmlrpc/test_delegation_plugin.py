@@ -26,8 +26,8 @@ from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 import pytest
 
-delegation1 = u'testdelegation'
-member1 = u'admins'
+delegation1 = 'testdelegation'
+member1 = 'admins'
 
 
 @pytest.mark.tier1
@@ -43,15 +43,15 @@ class test_delegation(Declarative):
             desc='Try to retrieve non-existent %r' % delegation1,
             command=('delegation_show', [delegation1], {}),
             expected=errors.NotFound(
-                reason=u'ACI with name "%s" not found' % delegation1),
+                reason='ACI with name "%s" not found' % delegation1),
         ),
 
 
         dict(
             desc='Try to update non-existent %r' % delegation1,
-            command=('delegation_mod', [delegation1], dict(group=u'admins')),
+            command=('delegation_mod', [delegation1], dict(group='admins')),
             expected=errors.NotFound(
-                reason=u'ACI with name "%s" not found' % delegation1),
+                reason='ACI with name "%s" not found' % delegation1),
         ),
 
 
@@ -59,7 +59,7 @@ class test_delegation(Declarative):
             desc='Try to delete non-existent %r' % delegation1,
             command=('delegation_del', [delegation1], {}),
             expected=errors.NotFound(
-                reason=u'ACI with name "%s" not found' % delegation1),
+                reason='ACI with name "%s" not found' % delegation1),
         ),
 
 
@@ -69,7 +69,7 @@ class test_delegation(Declarative):
             expected=dict(
                 count=0,
                 truncated=False,
-                summary=u'0 delegations matched',
+                summary='0 delegations matched',
                 result=[],
             ),
         ),
@@ -78,13 +78,13 @@ class test_delegation(Declarative):
             desc='Try to create %r for non-existing member group' % delegation1,
             command=(
                 'delegation_add', [delegation1], dict(
-                     attrs=u'street,c,l,st,postalCode',
-                     permissions=u'write',
-                     group=u'editors',
-                     memberof=u'nonexisting',
+                     attrs='street,c,l,st,postalCode',
+                     permissions='write',
+                     group='editors',
+                     memberof='nonexisting',
                 ),
             ),
-            expected=errors.NotFound(reason=u'nonexisting: group not found'),
+            expected=errors.NotFound(reason='nonexisting: group not found'),
         ),
 
         # Note that we add postalCode but expect postalcode. This tests
@@ -93,20 +93,20 @@ class test_delegation(Declarative):
             desc='Create %r' % delegation1,
             command=(
                 'delegation_add', [delegation1], dict(
-                     attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
-                     permissions=u'write',
-                     group=u'editors',
-                     memberof=u'admins',
+                     attrs=['street', 'c', 'l', 'st', 'postalCode'],
+                     permissions='write',
+                     group='editors',
+                     memberof='admins',
                 )
             ),
             expected=dict(
                 value=delegation1,
-                summary=u'Added delegation "%s"' % delegation1,
+                summary='Added delegation "%s"' % delegation1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=[u'write'],
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions=['write'],
                     aciname=delegation1,
-                    group=u'editors',
+                    group='editors',
                     memberof=member1,
                 ),
             ),
@@ -117,10 +117,10 @@ class test_delegation(Declarative):
             desc='Try to create duplicate %r' % delegation1,
             command=(
                 'delegation_add', [delegation1], dict(
-                     attrs=[u'street', u'c', u'l', u'st', u'postalCode'],
-                     permissions=u'write',
-                     group=u'editors',
-                     memberof=u'admins',
+                     attrs=['street', 'c', 'l', 'st', 'postalCode'],
+                     permissions='write',
+                     group='editors',
+                     memberof='admins',
                 ),
             ),
             expected=errors.DuplicateEntry(),
@@ -134,10 +134,10 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                    'permissions': [u'write'],
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['write'],
                     'aciname': delegation1,
-                    'group': u'editors',
+                    'group': 'editors',
                     'memberof': member1,
                 },
             ),
@@ -151,7 +151,7 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)' % \
+                    'aci': '(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)' % \
                         (DN(('cn', 'admins'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn),
                          DN(('cn', 'editors'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn))
                 },
@@ -165,13 +165,13 @@ class test_delegation(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 delegation matched',
+                summary='1 delegation matched',
                 result=[
                     {
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                    'permissions': [u'write'],
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['write'],
                     'aciname': delegation1,
-                    'group': u'editors',
+                    'group': 'editors',
                     'memberof': member1,
                     },
                 ],
@@ -181,17 +181,17 @@ class test_delegation(Declarative):
 
         dict(
             desc='Search for %r using --group filter' % delegation1,
-            command=('delegation_find', [delegation1], {'group': u'editors'}),
+            command=('delegation_find', [delegation1], {'group': 'editors'}),
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 delegation matched',
+                summary='1 delegation matched',
                 result=[
                     {
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                    'permissions': [u'write'],
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['write'],
                     'aciname': delegation1,
-                    'group': u'editors',
+                    'group': 'editors',
                     'memberof': member1,
                     },
                 ],
@@ -205,13 +205,13 @@ class test_delegation(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 delegation matched',
+                summary='1 delegation matched',
                 result=[
                     {
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                    'permissions': [u'write'],
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['write'],
                     'aciname': delegation1,
-                    'group': u'editors',
+                    'group': 'editors',
                     'memberof': member1,
                     },
                 ],
@@ -225,7 +225,7 @@ class test_delegation(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 delegation matched',
+                summary='1 delegation matched',
                 result=[
                     {
                     'aciname': delegation1,
@@ -241,10 +241,10 @@ class test_delegation(Declarative):
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 delegation matched',
+                summary='1 delegation matched',
                 result=[
                     {
-                    'aci': u'(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)' % \
+                    'aci': '(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)' % \
                         (DN(('cn', 'admins'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn),
                          DN(('cn', 'editors'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn)),
                     },
@@ -256,16 +256,16 @@ class test_delegation(Declarative):
         dict(
             desc='Update %r' % delegation1,
             command=(
-                'delegation_mod', [delegation1], dict(permissions=u'read')
+                'delegation_mod', [delegation1], dict(permissions='read')
             ),
             expected=dict(
                 value=delegation1,
-                summary=u'Modified delegation "%s"' % delegation1,
+                summary='Modified delegation "%s"' % delegation1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=[u'read'],
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions=['read'],
                     aciname=delegation1,
-                    group=u'editors',
+                    group='editors',
                     memberof=member1,
                 ),
             ),
@@ -279,10 +279,10 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                    'permissions': [u'read'],
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['read'],
                     'aciname': delegation1,
-                    'group': u'editors',
+                    'group': 'editors',
                     'memberof': member1,
                 },
             ),
@@ -295,7 +295,7 @@ class test_delegation(Declarative):
             expected=dict(
                 result=True,
                 value=delegation1,
-                summary=u'Deleted delegation "%s"' % delegation1,
+                summary='Deleted delegation "%s"' % delegation1,
             )
         ),
 
@@ -304,20 +304,20 @@ class test_delegation(Declarative):
             desc='Create %r with duplicate attrs & perms' % delegation1,
             command=(
                 'delegation_add', [delegation1], dict(
-                    attrs=[u'street', u'street'],
-                    permissions=[u'write', u'write'],
-                    group=u'editors',
-                    memberof=u'admins',
+                    attrs=['street', 'street'],
+                    permissions=['write', 'write'],
+                    group='editors',
+                    memberof='admins',
                 )
             ),
             expected=dict(
                 value=delegation1,
-                summary=u'Added delegation "%s"' % delegation1,
+                summary='Added delegation "%s"' % delegation1,
                 result=dict(
-                    attrs=[u'street'],
-                    permissions=[u'write'],
+                    attrs=['street'],
+                    permissions=['write'],
                     aciname=delegation1,
-                    group=u'editors',
+                    group='editors',
                     memberof=member1,
                 ),
             ),
@@ -330,7 +330,7 @@ class test_delegation(Declarative):
             expected=dict(
                 result=True,
                 value=delegation1,
-                summary=u'Deleted delegation "%s"' % delegation1,
+                summary='Deleted delegation "%s"' % delegation1,
             )
         ),
 

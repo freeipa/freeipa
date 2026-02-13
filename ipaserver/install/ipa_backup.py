@@ -26,7 +26,6 @@ import sys
 import tempfile
 import time
 
-import six
 
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -42,13 +41,8 @@ from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from lib389.cli_ctl.dblib import run_dbscan
 
-# pylint: disable=import-error
-if six.PY3:
-    # The SafeConfigParser class has been renamed to ConfigParser in Py3
-    from configparser import ConfigParser as SafeConfigParser
-else:
-    from ConfigParser import SafeConfigParser
-# pylint: enable=import-error
+# The SafeConfigParser class has been renamed to ConfigParser in Py3
+from configparser import ConfigParser as SafeConfigParser
 ISO8601_DATETIME_FMT = '%Y-%m-%dT%H:%M:%S'
 
 logger = logging.getLogger(__name__)

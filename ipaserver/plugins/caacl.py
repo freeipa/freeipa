@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
@@ -14,9 +13,6 @@ from .baseldap import (
 from .hbacrule import is_all
 from ipalib import _, ngettext
 from ipapython.dn import DN
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Manage CA ACL rules.
@@ -182,31 +178,31 @@ class caacl(LDAPObject):
             cli_name='cacat',
             label=_('CA category'),
             doc=_('CA category the ACL applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('ipacertprofilecategory?',
             cli_name='profilecat',
             label=_('Profile category'),
             doc=_('Profile category the ACL applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('usercategory?',
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the ACL applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the ACL applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         StrEnum('servicecategory?',
             cli_name='servicecat',
             label=_('Service category'),
             doc=_('Service category the ACL applies to'),
-            values=(u'all', ),
+            values=('all', ),
         ),
         Str('ipamemberca_ca?',
             label=_('CAs'),

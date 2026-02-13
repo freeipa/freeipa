@@ -32,7 +32,6 @@ import dns.name
 import dns.exception
 import dns.rdatatype
 import dns.resolver
-import six
 
 from ipalib.dns import (extra_name_format,
                         get_extra_rrtype,
@@ -93,9 +92,6 @@ from ipaserver.dns_data_management import (
     IPADomainIsNotManagedByIPAError,
 )
 from ipaserver.masters import find_providing_servers, is_service_enabled
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Domain Name System (DNS)
@@ -326,10 +322,10 @@ register = Registry()
 
 # supported resource record types
 _record_types = (
-    u'A', u'AAAA', u'A6', u'AFSDB', u'APL', u'CERT', u'CNAME', u'DHCID', u'DLV',
-    u'DNAME', u'DS', u'HIP', u'HINFO', u'IPSECKEY', u'KEY', u'KX', u'LOC',
-    u'MD', u'MINFO', u'MX', u'NAPTR', u'NS', u'NSEC', u'NXT', u'PTR', u'RRSIG',
-    u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TLSA', u'TXT', u"URI"
+    'A', 'AAAA', 'A6', 'AFSDB', 'APL', 'CERT', 'CNAME', 'DHCID', 'DLV',
+    'DNAME', 'DS', 'HIP', 'HINFO', 'IPSECKEY', 'KEY', 'KX', 'LOC',
+    'MD', 'MINFO', 'MX', 'NAPTR', 'NS', 'NSEC', 'NXT', 'PTR', 'RRSIG',
+    'RP', 'SIG', 'SPF', 'SRV', 'SSHFP', 'TLSA', 'TXT', "URI"
 )
 
 # DNS zone record identificator
@@ -341,7 +337,7 @@ _record_attributes = [str(record_name_format % t.lower())
 
 # Deprecated
 # supported DNS classes, IN = internet, rest is almost never used
-_record_classes = (u'IN', u'CS', u'CH', u'HS')
+_record_classes = ('IN', 'CS', 'CH', 'HS')
 
 # IN record class
 _IN = dns.rdataclass.IN
@@ -352,7 +348,7 @@ _NS = dns.rdatatype.from_text('NS')
 _output_permissions = (
     output.summary,
     output.Output('result', bool, _('True means the operation was successful')),
-    output.Output('value', unicode, _('Permission value')),
+    output.Output('value', str, _('Permission value')),
 )
 
 
@@ -360,7 +356,7 @@ def _rname_validator(ugettext, zonemgr):
     try:
         DNSName(zonemgr)  # test only if it is valid domain name
     except (ValueError, dns.exception.SyntaxError) as e:
-        return unicode(e)
+        return str(e)
     return None
 
 def _create_zone_serial():
@@ -381,14 +377,14 @@ def _reverse_zone_name(netstr):
         pass
     else:
         # use more sensible default prefix than netaddr default
-        return unicode(get_reverse_zone_default(netstr))
+        return str(get_reverse_zone_default(netstr))
 
     net = netaddr.IPNetwork(netstr)
     items = net.ip.reverse_dns.split('.')
     if net.version == 4:
-        return u'.'.join(items[4 - net.prefixlen // 8:])
+        return '.'.join(items[4 - net.prefixlen // 8:])
     elif net.version == 6:
-        return u'.'.join(items[32 - net.prefixlen // 4:])
+        return '.'.join(items[32 - net.prefixlen // 4:])
     else:
         return None
 
@@ -426,9 +422,9 @@ def _validate_bind_aci(ugettext, bind_acis):
         try:
             CheckedIPAddress(bind_aci, parse_netmask=True, allow_loopback=True)
         except (netaddr.AddrFormatError, ValueError) as e:
-            return unicode(e)
+            return str(e)
         except UnboundLocalError:
-            return _(u"invalid address format")
+            return _("invalid address format")
     return None
 
 def _normalize_bind_aci(bind_acis):
@@ -455,14 +451,14 @@ def _normalize_bind_aci(bind_acis):
                 netmask = "/%s" % ip.prefixlen
             else:
                 netmask = ""
-            normalized.append(u"%s%s%s" % (prefix, str(ip), netmask))
+            normalized.append("%s%s%s" % (prefix, str(ip), netmask))
             continue
         except Exception:
             normalized.append(bind_aci)
             continue
 
-    acis = u';'.join(normalized)
-    acis += u';'
+    acis = ';'.join(normalized)
+    acis += ';'
     return acis
 
 def _validate_nsec3param_record(ugettext, value):
@@ -472,7 +468,7 @@ def _validate_nsec3param_record(ugettext, value):
     result = rec.match(value)
 
     if result is None:
-        return _(u'expected format: <0-255> <0-255> <0-65535> '
+        return _('expected format: <0-255> <0-255> <0-65535> '
                  'even-length_hexadecimal_digits_or_hyphen')
 
     alg = int(result.group('alg'))
@@ -489,7 +485,7 @@ def _validate_nsec3param_record(ugettext, value):
     if iterations > 65535:
         return _('iterations value: allowed interval 0-65535')
 
-    if salt == u'-':
+    if salt == '-':
         return None
 
     try:
@@ -546,7 +542,7 @@ def get_reverse_zone(ipaddr):
     record
     """
     ip = netaddr.IPAddress(str(ipaddr))
-    revdns = DNSName(unicode(ip.reverse_dns))
+    revdns = DNSName(str(ip.reverse_dns))
     try:
         revzone = DNSName(zone_for_name(revdns))
     except dns.resolver.NoNameservers:
@@ -595,12 +591,12 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
             ip = CheckedIPAddress(
                 ip_address, allow_multicast=True)
         except Exception as e:
-            raise errors.ValidationError(name=option_name, error=unicode(e))
+            raise errors.ValidationError(name=option_name, error=str(e))
 
         if check_forward:
-            if is_forward_record(domain, unicode(ip)):
+            if is_forward_record(domain, str(ip)):
                 raise errors.DuplicateEntry(
-                        message=_(u'IP address %(ip)s is already assigned in domain %(domain)s.')\
+                        message=_('IP address %(ip)s is already assigned in domain %(domain)s.')\
                             % dict(ip=str(ip), domain=domain))
 
         if check_reverse:
@@ -610,7 +606,7 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
                 reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
                 if reverse['count'] > 0:
                     raise errors.DuplicateEntry(
-                            message=_(u'Reverse record for IP address %(ip)s already exists in reverse zone %(zone)s.')\
+                            message=_('Reverse record for IP address %(ip)s already exists in reverse zone %(zone)s.')\
                             % dict(ip=str(ip), zone=revzone))
             except errors.NotFound:
                 pass
@@ -628,7 +624,7 @@ def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_rever
             ip_address, allow_multicast=True)
 
         if add_forward:
-            add_forward_record(domain, host, unicode(ip))
+            add_forward_record(domain, host, str(ip))
 
         if add_reverse:
             try:
@@ -640,7 +636,7 @@ def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_rever
                 pass
 
 def _dns_name_to_string(value, raw=False):
-    if isinstance(value, unicode):
+    if isinstance(value, str):
         try:
             value = DNSName(value)
         except Exception:
@@ -650,7 +646,7 @@ def _dns_name_to_string(value, raw=False):
     if raw:
         return value.ToASCII()
     else:
-        return unicode(value)
+        return str(value)
 
 
 def _check_entry_objectclass(entry, objectclasses):
@@ -670,7 +666,7 @@ def _check_entry_objectclass(entry, objectclasses):
 
 def _check_DN_objectclass(ldap, dn, objectclasses):
     try:
-        entry = ldap.get_entry(dn, [u'objectclass', ])
+        entry = ldap.get_entry(dn, ['objectclass', ])
     except Exception:
         return False
     else:
@@ -732,11 +728,11 @@ class DNSRecord(Str):
                 continue
             if isinstance(v, DNSName) and idna:
                 v = v.ToASCII()
-            elif not isinstance(v, unicode):
-                v = unicode(v)
+            elif not isinstance(v, str):
+                v = str(v)
             parts.append(v)
 
-        return u" ".join(parts)
+        return " ".join(parts)
 
     def get_parts_from_kw(self, kw, raise_on_none=True):
         part_names = tuple(part_name_format % (self.rrtype.lower(), part.name)
@@ -846,7 +842,7 @@ class DNSRecord(Str):
         """
         name = part_name_format % (self.rrtype.lower(), part.name)
         cli_name = self.cli_name_format % (self.rrtype.lower(), part.name)
-        label = self.part_label_format % (self.rrtype, unicode(part.label))
+        label = self.part_label_format % (self.rrtype, str(part.label))
         option_group = self.option_group_format % self.rrtype
         flags = list(part.flags) + ['virtual_attribute']
         if not part.required:
@@ -868,7 +864,7 @@ class DNSRecord(Str):
         """
         name = extra_name_format % (self.rrtype.lower(), extra.name)
         cli_name = self.cli_name_format % (self.rrtype.lower(), extra.name)
-        label = self.part_label_format % (self.rrtype, unicode(extra.label))
+        label = self.part_label_format % (self.rrtype, str(extra.label))
         option_group = self.option_group_format % self.rrtype
         flags = list(extra.flags) + ['virtual_attribute']
 
@@ -938,7 +934,7 @@ class ForwardRecord(DNSRecord):
                 except Exception as e:
                     raise errors.NonFatalError(
                         reason=_('Cannot create reverse record for "%(value)s": %(exc)s') \
-                                % dict(value=record, exc=unicode(e)))
+                                % dict(value=record, exc=str(e)))
 
 class UnsupportedDNSRecord(DNSRecord):
     """
@@ -1072,7 +1068,7 @@ class DSRecord(DNSRecord):
         Str('digest',
             label=_('Digest'),
             pattern=r'^[0-9a-fA-F]+$',
-            pattern_errmsg=u'only hexadecimal digits are allowed'
+            pattern_errmsg='only hexadecimal digits are allowed'
         ),
     )
 
@@ -1139,7 +1135,7 @@ class LOCRecord(DNSRecord):
         ),
         StrEnum('lat_dir',
             label=_('Direction Latitude'),
-            values=(u'N', u'S',),
+            values=('N', 'S',),
         ),
         Int('lon_deg',
             label=_('Degrees Longitude'),
@@ -1159,7 +1155,7 @@ class LOCRecord(DNSRecord):
         ),
         StrEnum('lon_dir',
             label=_('Direction Longitude'),
-            values=(u'E', u'W',),
+            values=('E', 'W',),
         ),
         Decimal('altitude',
             label=_('Altitude'),
@@ -1291,7 +1287,7 @@ class NSECRecord(UnsupportedDNSRecord):
 
 
 def _validate_naptr_flags(ugettext, flags):
-    allowed_flags = u'SAUP'
+    allowed_flags = 'SAUP'
     flags = flags.replace('"','').replace('\'','')
 
     for flag in flags:
@@ -1479,7 +1475,7 @@ def _normalize_uri_target(uri_target):
     # minlength in param will detect this
     if not uri_target:
         return None
-    return u'"{0}"'.format(uri_target)
+    return '"{0}"'.format(uri_target)
 
 
 class URIRecord(DNSRecord):
@@ -1619,25 +1615,25 @@ def default_zone_update_policy(zone):
 
 def _convert_to_idna(value):
     """
-    Function converts a unicode value to idna, without extra validation.
+    Function converts a str value to idna, without extra validation.
     If conversion fails, None is returned
     """
-    assert isinstance(value, unicode)
+    assert isinstance(value, str)
 
     try:
         idna_val = value
-        start_dot = u''
-        end_dot = u''
-        if idna_val.startswith(u'.'):
+        start_dot = ''
+        end_dot = ''
+        if idna_val.startswith('.'):
             idna_val = idna_val[1:]
-            start_dot = u'.'
-        if idna_val.endswith(u'.'):
+            start_dot = '.'
+        if idna_val.endswith('.'):
             idna_val = idna_val[:-1]
-            end_dot = u'.'
+            end_dot = '.'
         idna_val = encodings.idna.nameprep(idna_val)
         idna_val = re.split(r'(?<!\\)\.', idna_val)
-        idna_val = u'%s%s%s' % (start_dot,
-                                u'.'.join(
+        idna_val = '%s%s%s' % (start_dot,
+                                '.'.join(
                                     encodings.idna.ToASCII(x).decode('ascii')
                                     for x in idna_val),
                                 end_dot)
@@ -1744,7 +1740,7 @@ def _records_idn_postprocess(record, **options):
         record[attr] = rrs
 
 def _normalize_zone(zone):
-    if isinstance(zone, unicode):
+    if isinstance(zone, str):
         # normalize only non-IDNA zones
         try:
             zone.encode('ascii')
@@ -1889,7 +1885,7 @@ def _find_subtree_forward_zones_ldap(api, name, child_zones_only=False):
     ldap = api.Backend.ldap2
 
     # prepare for filter "*.<name>."
-    search_name = u".%s" % name.make_absolute().ToASCII()
+    search_name = ".%s" % name.make_absolute().ToASCII()
 
     # we need to search zone with and without last dot, due compatibility
     # with IPA < 4.0
@@ -1991,10 +1987,10 @@ def _add_warning_fw_zone_is_not_effective(api, result, fwzone, version):
 
 def _add_warning_fw_policy_conflict_aez(result, fwzone, **options):
     """Warn if forwarding policy conflicts with an automatic empty zone."""
-    fwd_policy = result['result'].get(u'idnsforwardpolicy',
+    fwd_policy = result['result'].get('idnsforwardpolicy',
                                       dnsforwardzone.default_forward_policy)
     if (
-        fwd_policy != [u'only']
+        fwd_policy != ['only']
         and related_to_auto_empty_zone(DNSName(fwzone))
     ):
         messages.add_message(
@@ -2050,7 +2046,7 @@ class DNSZoneBase(LDAPObject):
             doc=_('Per-zone conditional forwarding policy. Set to "none" to '
                   'disable forwarding to global forwarder for this zone. In '
                   'that case, conditional zone forwarders are disregarded.'),
-            values=(u'only', u'first', u'none'),
+            values=('only', 'first', 'none'),
         ),
         Str('managedby',
             label=_('Managedby permission'),
@@ -2078,14 +2074,14 @@ class DNSZoneBase(LDAPObject):
         try:
             self.backend.get_entry(dn, [''])
         except errors.NotFound:
-            zone_a = u"%s." % zone_a
+            zone_a = "%s." % zone_a
             dn = super(DNSZoneBase, self).get_dn(zone_a, **options)
 
         return dn
 
     def permission_name(self, zone):
         assert isinstance(zone, DNSName)
-        return u"Manage DNS zone %s" % zone.ToASCII()
+        return "Manage DNS zone %s" % zone.ToASCII()
 
     def get_name_in_zone(self, zone, hostname):
         """
@@ -2166,7 +2162,7 @@ class DNSZoneBase_add(LDAPCreate):
                 self.obj.handle_duplicate_entry(*keys)
             else:
                 raise errors.DuplicateEntry(
-                    message=_(u'Only one zone type is allowed per zone name')
+                    message=_('Only one zone type is allowed per zone name')
                 )
 
         entry_attrs['idnszoneactive'] = True
@@ -2215,7 +2211,7 @@ class DNSZoneBase_find(LDAPSearch):
         #        parameter type will handle the validation itself (see
         #        <https://fedorahosted.org/freeipa/ticket/2266>).
         if 'name_from_ip' in options:
-            self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
+            self.obj.params['name_from_ip'](str(options['name_from_ip']))
         return super(DNSZoneBase_find, self).args_options_2_params(*args, **options)
 
     def args_options_2_entry(self, *args, **options):
@@ -2345,7 +2341,7 @@ class DNSZoneBase_add_permission(LDAPQuery):
                 )
 
         permission = self.api.Command['permission_add_noaci'](permission_name,
-                         ipapermissiontype=u'SYSTEM'
+                         ipapermissiontype='SYSTEM'
                      )['result']
 
         dnszone_ocs = entry_attrs.get('objectclass')
@@ -2427,7 +2423,7 @@ class dnszone(DNSZoneBase):
             cli_name='admin_email',
             label=_('Administrator e-mail address'),
             doc=_('Administrator e-mail address'),
-            default=DNSName(u'hostmaster'),
+            default=DNSName('hostmaster'),
             normalizer=normalize_zonemgr,
             autofill=True,
         ),
@@ -2518,7 +2514,7 @@ class dnszone(DNSZoneBase):
             cli_name='allow_query',
             label=_('Allow query'),
             doc=_('Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
-            default=u'any;',   # anyone can issue queries by default
+            default='any;',   # anyone can issue queries by default
             autofill=True,
         ),
         Str('idnsallowtransfer?',
@@ -2527,7 +2523,7 @@ class dnszone(DNSZoneBase):
             cli_name='allow_transfer',
             label=_('Allow transfer'),
             doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
-            default=u'none;',  # no one can issue queries by default
+            default='none;',  # no one can issue queries by default
             autofill=True,
         ),
         Bool('idnsallowsyncptr?',
@@ -2547,7 +2543,7 @@ class dnszone(DNSZoneBase):
             label=_('NSEC3PARAM record'),
             doc=_('NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
             pattern=r'^\d+ \d+ \d+ (([0-9a-fA-F]{2})+|-)$',
-            pattern_errmsg=(u'expected format: <0-255> <0-255> <0-65535> '
+            pattern_errmsg=('expected format: <0-255> <0-255> <0-65535> '
                  'even-length_hexadecimal_digits_or_hyphen'),
         ),
     )
@@ -2702,10 +2698,10 @@ class dnszone(DNSZoneBase):
             messages.add_message(
                 options['version'],
                 result, messages.OptionSemanticChangedWarning(
-                    label=_(u"setting Authoritative nameserver"),
-                    current_behavior=_(u"It is used only for setting the "
-                                       u"SOA MNAME attribute."),
-                    hint=_(u"NS record(s) can be edited in zone apex - '@'. ")
+                    label=_("setting Authoritative nameserver"),
+                    current_behavior=_("It is used only for setting the "
+                                       "SOA MNAME attribute."),
+                    hint=_("NS record(s) can be edited in zone apex - '@'. ")
                 )
             )
 
@@ -2775,7 +2771,7 @@ class dnszone_add(DNSZoneBase_add):
                 result,
                 messages.OptionDeprecatedWarning(
                     option='ip-address',
-                    additional_info=u"Value will be ignored.")
+                    additional_info="Value will be ignored.")
             )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -2838,7 +2834,7 @@ class dnszone_add(DNSZoneBase_add):
                 not zone.is_reverse() and
                 zone != DNSName.root):
             try:
-                self.api.Command['realmdomains_mod'](add_domain=unicode(zone),
+                self.api.Command['realmdomains_mod'](add_domain=str(zone),
                                                 force=True)
             except (errors.EmptyModlist, errors.ValidationError):
                 pass
@@ -2873,7 +2869,7 @@ class dnszone_del(DNSZoneBase_del):
         ):
             try:
                 self.api.Command['realmdomains_mod'](
-                    del_domain=unicode(zone), force=True)
+                    del_domain=str(zone), force=True)
             except (errors.AttrValueNotFound, errors.ValidationError):
                 pass
 
@@ -2905,7 +2901,7 @@ class dnszone_mod(DNSZoneBase_mod):
                 # empty value, this option is required by ldap
                 raise errors.ValidationError(
                     name='name_server',
-                    error=_(u"is required"))
+                    error=_("is required"))
 
         return dn
 
@@ -3066,7 +3062,7 @@ class dnsrecord(LDAPObject):
         if dsrecords and self.is_pkey_zone_record(*keys):
             raise errors.ValidationError(
                 name='dsrecord',
-                error=unicode(_('DS record must not be in zone apex (RFC 4035 section 2.4)')))
+                error=str(_('DS record must not be in zone apex (RFC 4035 section 2.4)')))
 
     def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -3083,7 +3079,7 @@ class dnsrecord(LDAPObject):
                 entry_attrs['idnsname'] = [keys[-1].relativize(keys[-2])]
             elif not self.is_pkey_zone_record(*keys):
                 raise errors.ValidationError(name='idnsname',
-                        error=unicode(_('out-of-zone data: record name must '
+                        error=str(_('out-of-zone data: record name must '
                                         'be a subdomain of the zone or a '
                                         'relative name')))
         # dissallowed wildcard (RFC 4592 section 4)
@@ -3139,7 +3135,7 @@ class dnsrecord(LDAPObject):
         ip_addr_comp_count = addr_len + len(zone.labels)
         if ip_addr_comp_count != zone_len:
             raise errors.ValidationError(name='ptrrecord',
-                error=unicode(_('Reverse zone %(name)s requires exactly '
+                error=str(_('Reverse zone %(name)s requires exactly '
                                 '%(count)d IP address components, '
                                 '%(user_count)d given')
                 % dict(name=zone_name,
@@ -3181,7 +3177,7 @@ class dnsrecord(LDAPObject):
                                   for x in entry.get('objectclass', [])]:
                 raise errors.ValidationError(
                     name='dnszoneidnsname',
-                    error=_(u'only master zones can contain records')
+                    error=_('only master zones can contain records')
                 )
         return dn
 
@@ -3234,8 +3230,8 @@ class dnsrecord(LDAPObject):
 
                 for dnsvalue in record[attr]:
                     dnsentry = {
-                            u'dnstype' : unicode(param.rrtype),
-                            u'dnsdata' : dnsvalue
+                            'dnstype' : str(param.rrtype),
+                            'dnsdata' : dnsvalue
                     }
                     values = param._get_part_values(dnsvalue)
                     if values is None:
@@ -3783,7 +3779,7 @@ class dnsrecord_mod(LDAPUpdate):
                 old_dnsvalue, new_parts = attr_vals
 
                 if old_dnsvalue not in old_entry.get(attr, []):
-                    attr_name = unicode(param.label or param.name)
+                    attr_name = str(param.label or param.name)
                     raise errors.AttrValueNotFound(attr=attr_name,
                                                    value=old_dnsvalue)
                 old_entry[attr].remove(old_dnsvalue)
@@ -3916,7 +3912,7 @@ class dnsrecord_del(LDAPUpdate):
                 except (KeyError, ValueError):
                     try:
                         param = self.params[attr]
-                        attr_name = unicode(param.label or param.name)
+                        attr_name = str(param.label or param.name)
                     except Exception:
                         attr_name = attr
                     raise errors.AttrValueNotFound(attr=attr_name, value=val)
@@ -4133,7 +4129,7 @@ class dnsconfig(LDAPObject):
             label=_('Forward policy'),
             doc=_('Global forwarding policy. Set to "none" to disable '
                   'any configured global forwarders.'),
-            values=(u'only', u'first', u'none'),
+            values=('only', 'first', 'none'),
         ),
         Bool('idnsallowsyncptr?',
             cli_name='allow_sync_ptr',
@@ -4208,10 +4204,10 @@ class dnsconfig(LDAPObject):
     def postprocess_result(self, result):
         is_config_empty = not any(
             param.name in result['result'] for param in self.params() if
-            u'virtual_attribute' not in param.flags
+            'virtual_attribute' not in param.flags
         )
         if is_config_empty:
-            result['summary'] = unicode(_('Global DNS configuration is empty'))
+            result['summary'] = str(_('Global DNS configuration is empty'))
 
 @register()
 class dnsconfig_mod(LDAPUpdate):
@@ -4297,7 +4293,7 @@ class dnsforwardzone(DNSZoneBase):
     object_class = DNSZoneBase.object_class + ['idnsforwardzone']
     label = _('DNS Forward Zones')
     label_singular = _('DNS Forward Zone')
-    default_forward_policy = u'first'
+    default_forward_policy = 'first'
 
     # managed_permissions: permissions was apllied in dnszone class, do NOT
     # add them here, they should not be applied twice.
@@ -4401,8 +4397,8 @@ class dnsforwardzone_add(DNSZoneBase_add):
             entry_attrs['idnsforwardpolicy'] = self.obj.default_forward_policy
 
         if (not entry_attrs.get('idnsforwarders') and
-                entry_attrs['idnsforwardpolicy'] != u'none'):
-            raise errors.ValidationError(name=u'idnsforwarders',
+                entry_attrs['idnsforwardpolicy'] != 'none'):
+            raise errors.ValidationError(name='idnsforwarders',
                                          error=_('Please specify forwarders.'))
 
         return dn
@@ -4451,8 +4447,8 @@ class dnsforwardzone_mod(DNSZoneBase_mod):
         elif 'idnsforwardpolicy' in entry:
             policy = entry['idnsforwardpolicy']
 
-        if not forwarders and policy != u'none':
-            raise errors.ValidationError(name=u'idnsforwarders',
+        if not forwarders and policy != 'none':
+            raise errors.ValidationError(name='idnsforwarders',
                                          error=_('Please specify forwarders.'))
 
         return dn
@@ -4555,7 +4551,7 @@ class dns_update_system_records(Method):
             err_rec_list = []
             for name, node, error in iterable:
                 err_rec_list.extend([
-                        (v, unicode(error)) for v in
+                        (v, str(error)) for v in
                         IPASystemRecords.records_list_from_node(name, node)
                     ])
             return err_rec_list

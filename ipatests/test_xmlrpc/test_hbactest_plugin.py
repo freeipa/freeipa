@@ -38,18 +38,18 @@ class test_hbactest(XMLRPC_test):
     """
     Test the `hbactest` plugin.
     """
-    rule_names = [u'testing_rule1234_%d' % (d) for d in [1,2,3,4]]
-    rule_type = u'allow'
-    rule_service = u'ssh'
-    rule_descs = [u'description %d' % (d) for d in [1,2,3,4]]
+    rule_names = ['testing_rule1234_%d' % (d) for d in [1,2,3,4]]
+    rule_type = 'allow'
+    rule_service = 'ssh'
+    rule_descs = ['description %d' % (d) for d in [1,2,3,4]]
 
-    test_user = u'hbacrule_test_user'
-    test_group = u'hbacrule_test_group'
-    test_host = u'hbacrule.testhost'
-    test_hostgroup = u'hbacrule_test_hostgroup'
-    test_sourcehost = u'hbacrule.testsrchost'
-    test_sourcehostgroup = u'hbacrule_test_src_hostgroup'
-    test_service = u'ssh'
+    test_user = 'hbacrule_test_user'
+    test_group = 'hbacrule_test_group'
+    test_host = 'hbacrule.testhost'
+    test_hostgroup = 'hbacrule_test_hostgroup'
+    test_sourcehost = 'hbacrule.testsrchost'
+    test_sourcehostgroup = 'hbacrule_test_src_hostgroup'
+    test_service = 'ssh'
 
     # Auxiliary funcion for checking existence of warning for specified rule
     def check_rule_presence(self,rule_name,warnings):
@@ -64,25 +64,25 @@ class test_hbactest(XMLRPC_test):
         """
 
         self.failsafe_add(api.Object.user,
-            self.test_user, givenname=u'first', sn=u'last'
+            self.test_user, givenname='first', sn='last'
         )
         self.failsafe_add(api.Object.group,
-            self.test_group, description=u'description'
+            self.test_group, description='description'
         )
         self.failsafe_add(api.Object.host,
             self.test_host, force=True
         )
         self.failsafe_add(api.Object.hostgroup,
-            self.test_hostgroup, description=u'description'
+            self.test_hostgroup, description='description'
         )
         self.failsafe_add(api.Object.host,
             self.test_sourcehost, force=True
         )
         self.failsafe_add(api.Object.hostgroup,
-            self.test_sourcehostgroup, description=u'desc'
+            self.test_sourcehostgroup, description='desc'
         )
         self.failsafe_add(api.Object.hbacsvc,
-            self.test_service, description=u'desc'
+            self.test_service, description='desc'
         )
 
         for i in [0,1,2,3]:
@@ -177,7 +177,7 @@ class test_hbactest(XMLRPC_test):
             user=self.test_user,
             targethost=self.test_host,
             service=self.test_service,
-            rules=[u'%s_1x1' % (rule) for rule in self.rule_names],
+            rules=['%s_1x1' % (rule) for rule in self.rule_names],
             nodetail=True
         )
 
@@ -185,7 +185,7 @@ class test_hbactest(XMLRPC_test):
         assert ret['matched'] is None
         assert ret['notmatched'] is None
         for rule in self.rule_names:
-            assert u'%s_1x1' % (rule) in ret['error']
+            assert '%s_1x1' % (rule) in ret['error']
 
     def test_f_hbactest_check_sourcehost_option_is_deprecated(self):
         """
@@ -197,7 +197,7 @@ class test_hbactest(XMLRPC_test):
                 targethost=self.test_host,
                 sourcehost=self.test_sourcehost,
                 service=self.test_service,
-                rules=[u'%s_1x1' % rule for rule in self.rule_names],
+                rules=['%s_1x1' % rule for rule in self.rule_names],
                 nodetail=True
             )
 

@@ -2,8 +2,6 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
 from . import Command, Method, Object
 from ipalib import api, parameters, output
@@ -12,9 +10,6 @@ from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 register = Registry()
 

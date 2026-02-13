@@ -6,7 +6,6 @@ from ipalib import api, errors
 from ipaplatform.constants import constants as platformconstants
 from ipapython.dn import DN
 
-import six
 
 from ipatests.util import assert_deepequal, get_group_dn
 from ipatests.test_xmlrpc import objectclasses
@@ -18,59 +17,56 @@ from ipatests.test_xmlrpc.tracker.kerberos_aliases import KerberosAliasMixin
 from ipatests.test_xmlrpc.tracker.certmapdata import CertmapdataMixin
 from ipatests.test_xmlrpc.tracker.passkey_plugin import PasskeyMixin
 
-if six.PY3:
-    unicode = str
-
 
 class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
                   Tracker):
     """ Class for host plugin like tests """
 
     retrieve_keys = {
-        u'dn', u'uid', u'givenname', u'sn', u'homedirectory', u'loginshell',
-        u'uidnumber', u'gidnumber', u'mail', u'ou',
-        u'telephonenumber', u'title', u'memberof', u'nsaccountlock',
-        u'memberofindirect', u'ipauserauthtype', u'userclass',
-        u'ipatokenradiusconfiglink', u'ipatokenradiususername',
-        u'krbprincipalexpiration', u'usercertificate;binary',
-        u'has_keytab', u'has_password', u'memberof_group', u'sshpubkeyfp',
-        u'krbcanonicalname', 'krbprincipalname'
+        'dn', 'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
+        'uidnumber', 'gidnumber', 'mail', 'ou',
+        'telephonenumber', 'title', 'memberof', 'nsaccountlock',
+        'memberofindirect', 'ipauserauthtype', 'userclass',
+        'ipatokenradiusconfiglink', 'ipatokenradiususername',
+        'krbprincipalexpiration', 'usercertificate;binary',
+        'has_keytab', 'has_password', 'memberof_group', 'sshpubkeyfp',
+        'krbcanonicalname', 'krbprincipalname'
     }
 
     retrieve_all_keys = retrieve_keys | {
-        u'usercertificate', u'street', u'postalcode',
-        u'facsimiletelephonenumber', u'carlicense', u'ipasshpubkey',
-        u'l', u'mobile', u'krbextradata', u'krblastpwdchange',
-        u'krbpasswordexpiration', u'pager', u'st', u'manager', u'cn',
-        u'ipauniqueid', u'objectclass', u'mepmanagedentry',
-        u'displayname', u'gecos', u'initials', u'preserved',
+        'usercertificate', 'street', 'postalcode',
+        'facsimiletelephonenumber', 'carlicense', 'ipasshpubkey',
+        'l', 'mobile', 'krbextradata', 'krblastpwdchange',
+        'krbpasswordexpiration', 'pager', 'st', 'manager', 'cn',
+        'ipauniqueid', 'objectclass', 'mepmanagedentry',
+        'displayname', 'gecos', 'initials', 'preserved',
         'ipantsecurityidentifier'}
 
-    retrieve_preserved_keys = (retrieve_keys - {u'memberof_group'}) | {
-        u'preserved'}
-    retrieve_preserved_all_keys = retrieve_all_keys - {u'memberof_group'}
+    retrieve_preserved_keys = (retrieve_keys - {'memberof_group'}) | {
+        'preserved'}
+    retrieve_preserved_all_keys = retrieve_all_keys - {'memberof_group'}
 
     create_keys = retrieve_all_keys | {
-        u'krbextradata', u'krbpasswordexpiration', u'krblastpwdchange',
-        u'krbprincipalkey', u'userpassword', u'randompassword'}
-    create_keys = create_keys - {u'nsaccountlock'}
+        'krbextradata', 'krbpasswordexpiration', 'krblastpwdchange',
+        'krbprincipalkey', 'userpassword', 'randompassword'}
+    create_keys = create_keys - {'nsaccountlock'}
     create_keys = create_keys - {'ipantsecurityidentifier'}
 
-    update_keys = retrieve_keys - {u'dn'}
+    update_keys = retrieve_keys - {'dn'}
     activate_keys = retrieve_keys
 
     find_keys = retrieve_keys - {
-        u'mepmanagedentry', u'memberof_group', u'has_keytab', u'has_password',
-        u'manager',
+        'mepmanagedentry', 'memberof_group', 'has_keytab', 'has_password',
+        'manager',
     }
     find_all_keys = retrieve_all_keys - {
-        u'has_keytab', u'has_password'
+        'has_keytab', 'has_password'
     }
 
-    primary_keys = {u'uid', u'dn'}
+    primary_keys = {'uid', 'dn'}
 
     def __init__(self, name=None, givenname=None, sn=None, **kwargs):
-        """ Check for non-empty unicode string for the required attributes
+        """ Check for non-empty string for the required attributes
         in the init method """
 
         if not (isinstance(givenname, str) and givenname):
@@ -81,9 +77,9 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             raise ValueError("Invalid second name provided: {!r}".format(sn))
 
         super(UserTracker, self).__init__(default_version=None)
-        self.uid = unicode(name)
-        self.givenname = unicode(givenname)
-        self.sn = unicode(sn)
+        self.uid = str(name)
+        self.givenname = str(givenname)
+        self.sn = str(sn)
         self.dn = DN(('uid', self.uid), api.env.container_user, api.env.basedn)
 
         self.kwargs = kwargs
@@ -122,12 +118,12 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             # --preserve=True and --no-preserve=False - user is moved to
             # another container, hence it is necessary to change some user
             # attributes
-            self.attrs[u'dn'] = DN(
+            self.attrs['dn'] = DN(
                 ('uid', self.uid),
                 api.env.container_deleteuser,
                 api.env.basedn
                 )
-            self.attrs[u'objectclass'] = objectclasses.user_base \
+            self.attrs['objectclass'] = objectclasses.user_base \
                 + ['ipantuserattrs']
 
         return self.make_command(
@@ -175,26 +171,26 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             uid=[self.uid],
             givenname=[self.givenname],
             sn=[self.sn],
-            homedirectory=[u'/home/%s' % self.uid],
-            displayname=[u'%s %s' % (self.givenname, self.sn)],
-            cn=[u'%s %s' % (self.givenname, self.sn)],
-            initials=[u'%s%s' % (self.givenname[0], self.sn[0])],
+            homedirectory=['/home/%s' % self.uid],
+            displayname=['%s %s' % (self.givenname, self.sn)],
+            cn=['%s %s' % (self.givenname, self.sn)],
+            initials=['%s%s' % (self.givenname[0], self.sn[0])],
             objectclass=fuzzy_set_optional_oc(
                 objectclasses.user, 'ipantuserattrs'),
-            description=[u'__no_upg__'],
+            description=['__no_upg__'],
             ipauniqueid=[fuzzy_uuid],
             uidnumber=[fuzzy_digits],
             gidnumber=[fuzzy_digits],
-            krbprincipalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
-            krbcanonicalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
-            mail=[u'%s@%s' % (self.uid, self.api.env.domain)],
-            gecos=[u'%s %s' % (self.givenname, self.sn)],
+            krbprincipalname=['%s@%s' % (self.uid, self.api.env.realm)],
+            krbcanonicalname=['%s@%s' % (self.uid, self.api.env.realm)],
+            mail=['%s@%s' % (self.uid, self.api.env.domain)],
+            gecos=['%s %s' % (self.givenname, self.sn)],
             loginshell=[platformconstants.DEFAULT_SHELL],
             has_keytab=False,
             has_password=False,
             mepmanagedentry=[get_group_dn(self.uid)],
-            memberof_group=[u'ipausers'],
-            nsaccountlock=[u'false'],
+            memberof_group=['ipausers'],
+            nsaccountlock=['false'],
             ipantsecurityidentifier=[fuzzy_user_or_group_sid],
             )
 
@@ -240,7 +236,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
             if value is None or value == '':
                 del self.attrs[key]
             elif key == 'rename':
-                new_principal = u'{0}@{1}'.format(value, self.api.env.realm)
+                new_principal = '{0}@{1}'.format(value, self.api.env.realm)
                 self.attrs['uid'] = [value]
                 self.attrs['krbcanonicalname'] = [new_principal]
                 if new_principal not in self.attrs['krbprincipalname']:
@@ -269,16 +265,16 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         expected = self.filter_attrs(self.create_keys | set(extra_keys))
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Added user "%s"' % self.uid,
+            summary='Added user "%s"' % self.uid,
             result=self.filter_attrs(expected),
             ), result)
 
     def check_delete(self, result):
         """ Check 'user-del' command result """
-        if u'preserved' in self.attrs and self.attrs[u'preserved']:
-            summary = u'Preserved user "%s"' % self.uid
+        if 'preserved' in self.attrs and self.attrs['preserved']:
+            summary = 'Preserved user "%s"' % self.uid
         else:
-            summary = u'Deleted user "%s"' % self.uid
+            summary = 'Deleted user "%s"' % self.uid
 
         assert_deepequal(dict(
             value=[self.uid],
@@ -288,11 +284,11 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
 
     def check_retrieve(self, result, all=False, raw=False):
         """ Check 'user-show' command result """
-        if u'preserved' in self.attrs and self.attrs[u'preserved']:
+        if 'preserved' in self.attrs and self.attrs['preserved']:
             self.retrieve_all_keys = self.retrieve_preserved_all_keys
             self.retrieve_keys = self.retrieve_preserved_keys
-        elif u'preserved' not in self.attrs and all:
-            self.attrs[u'preserved'] = False
+        elif 'preserved' not in self.attrs and all:
+            self.attrs['preserved'] = False
 
         if all:
             expected = self.filter_attrs(self.retrieve_all_keys)
@@ -302,11 +298,11 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         # small override because stageuser-find returns different type
         # of nsaccountlock value than DS, but overall the value fits
         # expected result
-        if u'nsaccountlock' in expected:
-            if expected[u'nsaccountlock'] == [u'true']:
-                expected[u'nsaccountlock'] = True
-            elif expected[u'nsaccountlock'] == [u'false']:
-                expected[u'nsaccountlock'] = False
+        if 'nsaccountlock' in expected:
+            if expected['nsaccountlock'] == ['true']:
+                expected['nsaccountlock'] = True
+            elif expected['nsaccountlock'] == ['false']:
+                expected['nsaccountlock'] = False
 
         assert_deepequal(dict(
             value=self.uid,
@@ -318,7 +314,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
                    expected_override=None):
         """ Check 'user-find' command result """
         if all:
-            if u'preserved' not in self.attrs:
+            if 'preserved' not in self.attrs:
                 self.attrs.update(preserved=False)
             expected = self.filter_attrs(self.find_all_keys)
         elif pkey_only:
@@ -326,14 +322,14 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         else:
             expected = self.filter_attrs(self.find_keys)
 
-        if all and self.attrs[u'preserved']:
-            del expected[u'mepmanagedentry']
+        if all and self.attrs['preserved']:
+            del expected['mepmanagedentry']
 
-        if u'nsaccountlock' in expected:
-            if expected[u'nsaccountlock'] == [u'true']:
-                expected[u'nsaccountlock'] = True
-            elif expected[u'nsaccountlock'] == [u'false']:
-                expected[u'nsaccountlock'] = False
+        if 'nsaccountlock' in expected:
+            if expected['nsaccountlock'] == ['true']:
+                expected['nsaccountlock'] = True
+            elif expected['nsaccountlock'] == ['false']:
+                expected['nsaccountlock'] = False
 
         if expected_override:
             assert isinstance(expected_override, dict)
@@ -342,7 +338,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 user matched',
+            summary='1 user matched',
             result=[expected],
         ), result)
 
@@ -351,21 +347,21 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         assert_deepequal(dict(
             count=0,
             truncated=False,
-            summary=u'0 users matched',
+            summary='0 users matched',
             result=[],
         ), result)
 
     def check_update(self, result, extra_keys=()):
         """ Check 'user-mod' command result """
         expected = self.filter_attrs(self.update_keys | set(extra_keys))
-        if expected[u'nsaccountlock'] == [u'true']:
-            expected[u'nsaccountlock'] = True
-        elif expected[u'nsaccountlock'] == [u'false']:
-            expected[u'nsaccountlock'] = False
+        if expected['nsaccountlock'] == ['true']:
+            expected['nsaccountlock'] = True
+        elif expected['nsaccountlock'] == ['false']:
+            expected['nsaccountlock'] = False
 
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Modified user "%s"' % self.uid,
+            summary='Modified user "%s"' % self.uid,
             result=expected
         ), result)
 
@@ -373,7 +369,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         """ Check result of enable user operation """
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Enabled user account "%s"' % self.name,
+            summary='Enabled user account "%s"' % self.name,
             result=True
         ), result)
 
@@ -381,7 +377,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         """ Check result of disable user operation """
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Disabled user account "%s"' % self.name,
+            summary='Disabled user account "%s"' % self.name,
             result=True
         ), result)
 
@@ -393,39 +389,37 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         self.givenname = stageduser.givenname
         self.sn = stageduser.sn
 
-        self.attrs[u'mepmanagedentry'] = None
-        self.attrs[u'dn'] = self.dn
-        self.attrs[u'ipauniqueid'] = [fuzzy_uuid]
-        self.attrs[u'memberof_group'] = [u'ipausers']
-        self.attrs[u'mepmanagedentry'] = [u'cn=%s,%s,%s' % (
+        self.attrs['mepmanagedentry'] = None
+        self.attrs['dn'] = self.dn
+        self.attrs['ipauniqueid'] = [fuzzy_uuid]
+        self.attrs['memberof_group'] = ['ipausers']
+        self.attrs['mepmanagedentry'] = ['cn=%s,%s,%s' % (
             self.uid, api.env.container_group, api.env.basedn
             )]
-        self.attrs[u'objectclass'] = objectclasses.user
-        if self.attrs[u'gidnumber'] == [u'-1']:
-            self.attrs[u'gidnumber'] = [fuzzy_digits]
-        if self.attrs[u'uidnumber'] == [u'-1']:
-            self.attrs[u'uidnumber'] = [fuzzy_digits]
+        self.attrs['objectclass'] = objectclasses.user
+        if self.attrs['gidnumber'] == ['-1']:
+            self.attrs['gidnumber'] = [fuzzy_digits]
+        if self.attrs['uidnumber'] == ['-1']:
+            self.attrs['uidnumber'] = [fuzzy_digits]
 
-        if u'ipasshpubkey' in self.kwargs:
-                self.attrs[u'ipasshpubkey'] = [str(
-                    self.kwargs[u'ipasshpubkey']
-                    )]
-        self.attrs[u'nsaccountlock'] = [u'false']
+        if 'ipasshpubkey' in self.kwargs:
+            self.attrs['ipasshpubkey'] = [self.kwargs['ipasshpubkey']]
+        self.attrs['nsaccountlock'] = ['false']
 
     def check_activate(self, result):
         """ Check 'stageuser-activate' command result """
         expected = dict(
             value=self.uid,
-            summary=u'Stage user %s activated' % self.uid,
+            summary='Stage user %s activated' % self.uid,
             result=self.filter_attrs(self.activate_keys))
 
         # small override because stageuser-find returns different
         # type of nsaccountlock value than DS, but overall the value
         # fits expected result
-        if expected['result'][u'nsaccountlock'] == [u'true']:
-            expected['result'][u'nsaccountlock'] = True
-        elif expected['result'][u'nsaccountlock'] == [u'false']:
-            expected['result'][u'nsaccountlock'] = False
+        if expected['result']['nsaccountlock'] == ['true']:
+            expected['result']['nsaccountlock'] = True
+        elif expected['result']['nsaccountlock'] == ['false']:
+            expected['result']['nsaccountlock'] = False
 
         assert_deepequal(expected, result)
 
@@ -435,14 +429,14 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         """ Check 'user-undel' command result """
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Undeleted user account "%s"' % self.uid,
+            summary='Undeleted user account "%s"' % self.uid,
             result=True
             ), result)
 
     def enable(self):
         """ Enable user account if it was disabled """
         if (self.attrs['nsaccountlock'] is True or
-                self.attrs['nsaccountlock'] == [u'true']):
+                self.attrs['nsaccountlock'] == ['true']):
             self.attrs.update(nsaccountlock=False)
             result = self.make_enable_command()()
             self.check_enable(result)
@@ -450,7 +444,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
     def disable(self):
         """ Disable user account if it was enabled """
         if (self.attrs['nsaccountlock'] is False or
-                self.attrs['nsaccountlock'] == [u'false']):
+                self.attrs['nsaccountlock'] == ['false']):
             self.attrs.update(nsaccountlock=True)
             result = self.make_disable_command()()
             self.check_disable(result)
@@ -459,10 +453,10 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         """Update expected state for host deletion"""
         if preserve:
             self.exists = True
-            if u'memberof_group' in self.attrs:
-                del self.attrs[u'memberof_group']
-            self.attrs[u'nsaccountlock'] = True
-            self.attrs[u'preserved'] = True
+            if 'memberof_group' in self.attrs:
+                del self.attrs['memberof_group']
+            self.attrs['nsaccountlock'] = True
+            self.attrs['preserved'] = True
         else:
             self.exists = False
             self.attrs = {}
@@ -483,13 +477,14 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
         result = command()
 
         assert_deepequal(dict(
-            ipauniqueid=result[u'result'][u'ipauniqueid'],
-            uidnumber=result[u'result'][u'uidnumber'],
-            gidnumber=result[u'result'][u'gidnumber']
+            ipauniqueid=result['result']['ipauniqueid'],
+            uidnumber=result['result']['uidnumber'],
+            gidnumber=result['result']['gidnumber']
             ), expected)
 
-        if (u'memberof_group' not in result[u'result'] or
-                result[u'result'][u'memberof_group'] != (u'ipausers',)):
+        if 'memberof_group' not in result['result'] or result['result'][
+            'memberof_group'
+        ] != ('ipausers',):
             assert False
 
     def make_fixture_restore(self, request):
@@ -510,17 +505,17 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
 
         def finish():
             with raises_exact(errors.NotFound(
-                    reason=u'%s: user not found' % self.uid)):
+                    reason='%s: user not found' % self.uid)):
                 del_command()
 
         request.addfinalizer(finish)
 
         return self
 
-    def make_admin(self, admin_group=u'admins'):
+    def make_admin(self, admin_group='admins'):
         """ Add user to the administrator's group """
         result = self.run_command('group_show', admin_group)
-        admin_group_content = result[u'result'][u'member_user']
+        admin_group_content = result['result']['member_user']
         admin_group_expected = list(admin_group_content) + [self.name]
 
         command = self.make_group_add_member_command(
@@ -538,7 +533,7 @@ class UserTracker(PasskeyMixin, CertmapdataMixin, KerberosAliasMixin,
                 'member_user': admin_group_expected,
                 'gidnumber': [fuzzy_digits],
                 'cn': [admin_group],
-                'description': [u'Account administrators group'],
+                'description': ['Account administrators group'],
             },
         ), result)
 
