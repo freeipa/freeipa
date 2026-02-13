@@ -723,6 +723,9 @@ class CASigningAlgorithm(enum.Enum):
     SHA_256_WITH_RSA = 'SHA256withRSA'
     SHA_384_WITH_RSA = 'SHA384withRSA'
     SHA_512_WITH_RSA = 'SHA512withRSA'
+    ML_DSA_44 = 'ML-DSA-44'
+    ML_DSA_65 = 'ML-DSA-65'
+    ML_DSA_87 = 'ML-DSA-87'
 
 
 @group
