@@ -940,6 +940,10 @@ class TestReplicaInForwardZone(IntegrationTest):
         update_etc_hosts(replica, replica.ip, replica.hostname,
                          r_new_hostname)
 
+        # Backup resolver configuration as it will be modified
+        # during client/replica installation
+        replica.resolver.backup()
+
         try:
             # install client with a hostname in the forward zone
             tasks.install_client(self.master, replica,
@@ -959,6 +963,8 @@ class TestReplicaInForwardZone(IntegrationTest):
             # Restore /etc/hosts on master and replica
             restore_etc_hosts(master)
             restore_etc_hosts(replica)
+            # Restore resolver configuration
+            replica.resolver.restore()
 
 
 class TestHiddenReplicaPromotion(IntegrationTest):
