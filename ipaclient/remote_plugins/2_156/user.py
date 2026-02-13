@@ -230,7 +230,10 @@ class user(Object):
             required=False,
             multivalue=True,
             label=_('Class'),
-            doc=_('User category (semantics placed on this attribute are for local interpretation)'),
+            doc=_(
+                'User category (semantics placed on this attribute are for '
+                'local interpretation)'
+            ),
         ),
         parameters.Str(
             'ipatokenradiusconfiglink',
@@ -548,7 +551,10 @@ class user_add(Method):
             multivalue=True,
             cli_name='class',
             label=_('Class'),
-            doc=_('User category (semantics placed on this attribute are for local interpretation)'),
+            doc=_(
+                'User category (semantics placed on this attribute are for '
+                'local interpretation)'
+            ),
         ),
         parameters.Str(
             'ipatokenradiusconfiglink',
@@ -601,14 +607,21 @@ class user_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
@@ -619,14 +632,20 @@ class user_add(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -671,14 +690,20 @@ class user_add_cert(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1022,7 +1047,10 @@ class user_find(Method):
             multivalue=True,
             cli_name='class',
             label=_('Class'),
-            doc=_('User category (semantics placed on this attribute are for local interpretation)'),
+            doc=_(
+                'User category (semantics placed on this attribute are for '
+                'local interpretation)'
+            ),
         ),
         parameters.Str(
             'ipatokenradiusconfiglink',
@@ -1098,14 +1126,20 @@ class user_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1121,7 +1155,9 @@ class user_find(Method):
             'pkey_only',
             required=False,
             label=_('Primary key only'),
-            doc=_('Results should contain primary key attribute only ("login")'),
+            doc=_(
+                'Results should contain primary key attribute only ("login")'
+            ),
             default=False,
             autofill=True,
         ),
@@ -1425,7 +1461,10 @@ class user_mod(Method):
             multivalue=True,
             cli_name='class',
             label=_('Class'),
-            doc=_('User category (semantics placed on this attribute are for local interpretation)'),
+            doc=_(
+                'User category (semantics placed on this attribute are for '
+                'local interpretation)'
+            ),
         ),
         parameters.Str(
             'ipatokenradiusconfiglink',
@@ -1478,40 +1517,59 @@ class user_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1564,14 +1622,20 @@ class user_remove_cert(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1626,7 +1690,10 @@ class user_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -1637,14 +1704,20 @@ class user_show(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1749,14 +1822,20 @@ Lockout status of a user account
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

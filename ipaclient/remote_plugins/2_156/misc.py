@@ -39,7 +39,10 @@ class env(Command):
         ),
         parameters.Flag(
             'all',
-            doc=_('retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=True,
             autofill=True,
@@ -83,7 +86,10 @@ class plugins(Command):
         ),
         parameters.Flag(
             'all',
-            doc=_('retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=True,
             autofill=True,

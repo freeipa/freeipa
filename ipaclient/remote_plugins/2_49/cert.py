@@ -81,7 +81,9 @@ class cert_remove_hold(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
@@ -108,7 +110,10 @@ class cert_request(Command):
         parameters.Str(
             'principal',
             label=_('Principal'),
-            doc=_('Service principal for this certificate (e.g. HTTP/test.example.com)'),
+            doc=_(
+                'Service principal for this certificate (e.g. '
+                'HTTP/test.example.com)'
+            ),
         ),
         parameters.Str(
             'request_type',
@@ -139,7 +144,9 @@ class cert_revoke(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
@@ -167,7 +174,9 @@ class cert_show(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
