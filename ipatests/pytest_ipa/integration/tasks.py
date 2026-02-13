@@ -612,6 +612,15 @@ def install_adtrust(host):
     kinit_admin(host)
     if is_fips_enabled(host):
         enable_crypto_subpolicy(host, "AD-SUPPORT")
+
+    dropin = """
+    [Service]
+    Environment=KRB5_TRACE=/dev/stderr
+    """
+    for service in ['smb', 'winbind']:
+        host.run_command(['systemctl', 'edit', service,
+                         '--drop-in=kerberos-debug', '--stdin'],
+                         stdin_text=dropin)
     host.run_command(['ipa-adtrust-install', '-U',
                       '--enable-compat',
                       '--netbios-name', host.netbios,
