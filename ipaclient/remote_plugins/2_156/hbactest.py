@@ -220,7 +220,9 @@ class hbactest(Command):
         parameters.Flag(
             'nodetail',
             required=False,
-            label=_('Hide details which rules are matched, not matched, or invalid'),
+            label=_(
+                'Hide details which rules are matched, not matched, or invalid'
+            ),
             default=False,
             autofill=True,
         ),
@@ -242,7 +244,10 @@ class hbactest(Command):
             'sizelimit',
             required=False,
             label=_('Size Limit'),
-            doc=_('Maximum number of rules to process when no --rules is specified'),
+            doc=_(
+                'Maximum number of rules to process when no --rules is '
+                'specified'
+            ),
         ),
     )
     has_output = (

@@ -287,21 +287,36 @@ class GroupTracker(Tracker):
 
     def check_add_member(self, result):
         """ Checks 'group_add_member' command result """
-        assert_deepequal(dict(
-            completed=1,
-            failed={'member': {'group': (), 'user': (),
-                                'service': (), 'idoverrideuser': ()}},
-            result=self.filter_attrs(self.add_member_keys)
-        ), result)
+        assert_deepequal(
+            dict(
+                completed=1,
+                failed={
+                    'member': {
+                        'group': (),
+                        'user': (),
+                        'service': (),
+                        'idoverrideuser': (),
+                    }
+                },
+                result=self.filter_attrs(self.add_member_keys),
+            ),
+            result,
+        )
 
     def check_add_member_negative(self, result, options={}):
         """ Checks 'group_add_member' command result
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={'member': {'group': (), 'user': (),
-                                'service': (), 'idoverrideuser': ()}},
-            result=self.filter_attrs(self.add_member_keys)
+            failed={
+                'member': {
+                    'group': (),
+                    'user': (),
+                    'service': (),
+                    'idoverrideuser': (),
+                }
+            },
+            result=self.filter_attrs(self.add_member_keys),
         )
         if not options:
             try:
@@ -328,9 +343,15 @@ class GroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={'member': {'group': (), 'user': (),
-                                'service': (), 'idoverrideuser': ()}},
-            result=self.filter_attrs(self.add_member_keys)
+            failed={
+                'member': {
+                    'group': (),
+                    'user': (),
+                    'service': (),
+                    'idoverrideuser': (),
+                }
+            },
+            result=self.filter_attrs(self.add_member_keys),
         )
         if 'user' in options:
             expected['failed']['member']['user'] = [(

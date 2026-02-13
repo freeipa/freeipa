@@ -791,8 +791,10 @@ ipa idrange-del before retrying the command with the desired range type.
         # for AD trusts, regardless of the type of idranges associated with it
         # Note that add_new_domains_from_trust will add needed ranges for
         # the algorithmic ID mapping case.
-        if (options.get('trust_type') == 'ad' and
-                options.get('trust_secret') is None):
+        if (
+            options.get('trust_type') == 'ad'
+            and options.get('trust_secret') is None
+        ):
 
             if options.get('bidirectional'):
                 # Bidirectional trust allows us to use cross-realm TGT,

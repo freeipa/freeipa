@@ -2416,8 +2416,11 @@ def ensure_default_caacl():
     )
 
     if not api.Command.caacl_find()['result']:
-        api.Command.caacl_add('hosts_services_caIPAserviceCert',
-            hostcategory='all', servicecategory='all')
+        api.Command.caacl_add(
+            'hosts_services_caIPAserviceCert',
+            hostcategory='all',
+            servicecategory='all',
+        )
         api.Command.caacl_add_profile('hosts_services_caIPAserviceCert',
             certprofile=('caIPAserviceCert',))
 

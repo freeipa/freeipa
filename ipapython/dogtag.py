@@ -46,14 +46,14 @@ Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store
 
 INCLUDED_PROFILES = {
     Profile('caIPAserviceCert', 'Standard profile for network services', True),
-    Profile('IECUserRoles', 'User profile that includes IECUserRoles extension from request', True),
-    Profile('KDCs_PKINIT_Certs',
-            'Profile for PKINIT support by KDCs',
-            False),
-    Profile('acmeIPAServerCert',
-            'ACME IPA service certificate profile',
-            False),
-    }
+    Profile(
+        'IECUserRoles',
+        'User profile that includes IECUserRoles extension from request',
+        True,
+    ),
+    Profile('KDCs_PKINIT_Certs', 'Profile for PKINIT support by KDCs', False),
+    Profile('acmeIPAServerCert', 'ACME IPA service certificate profile', False),
+}
 
 DEFAULT_PROFILE = 'caIPAserviceCert'
 KDC_PROFILE = 'KDCs_PKINIT_Certs'

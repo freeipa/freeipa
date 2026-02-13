@@ -290,7 +290,8 @@ class VersionError(PublicError):
     """
 
     errno = 901
-    format = _("%(cver)s client incompatible with %(sver)s server at '%(server)s'")
+    format = _("%(cver)s client incompatible with %(sver)s server at "
+    "'%(server)s'")
 
 
 class UnknownError(PublicError):
@@ -885,7 +886,8 @@ class NotAForestRootError(InvocationError):
     """
 
     errno = 3016
-    format = _("Domain '%(domain)s' is not a root domain for forest '%(forest)s'")
+    format = _("Domain '%(domain)s' is not a root domain for forest "
+    "'%(forest)s'")
 
 ##############################################################################
 # 4000 - 4999: Execution errors
@@ -960,7 +962,8 @@ class MalformedServicePrincipal(ExecutionError):
     """
 
     errno = 4004
-    format = _('Service principal is not of the form: service/fully-qualified host name: %(reason)s')
+    format = _('Service principal is not of the form: service/fully-qualified '
+    'host name: %(reason)s')
 
 class RealmMismatch(ExecutionError):
     """
@@ -976,7 +979,8 @@ class RealmMismatch(ExecutionError):
     """
 
     errno = 4005
-    format = _('The realm for the principal does not match the realm for this IPA server')
+    format = _('The realm for the principal does not match the realm for this '
+    'IPA server')
 
 class RequiresRoot(ExecutionError):
     """
@@ -1200,7 +1204,8 @@ class ManagedGroupError(ExecutionError):
     """
 
     errno = 4020
-    format = _('Deleting a managed group is not allowed. It must be detached first.')
+    format = _('Deleting a managed group is not allowed. '
+    'It must be detached first.')
 
 class ManagedPolicyError(ExecutionError):
     """
@@ -1263,7 +1268,8 @@ class ManagedGroupExistsError(ExecutionError):
     """
 
     errno = 4024
-    format = _('Unable to create private group. A group \'%(group)s\' already exists.')
+    format = _('Unable to create private group. '
+    'A group \'%(group)s\' already exists.')
 
 
 class ReverseMemberError(ExecutionError):
@@ -1279,7 +1285,8 @@ class ReverseMemberError(ExecutionError):
     """
 
     errno = 4025
-    format = _('A problem was encountered when verifying that all members were %(verb)s: %(exc)s')
+    format = _('A problem was encountered when verifying that all members were '
+    '%(verb)s: %(exc)s')
 
 
 class AttrValueNotFound(ExecutionError):
@@ -1314,7 +1321,8 @@ class SingleMatchExpected(ExecutionError):
 
     errno = 4027
     rval = 1
-    format = _('The search criteria was not specific enough. Expected 1 and found %(found)d.')
+    format = _('The search criteria was not specific enough. '
+    'Expected 1 and found %(found)d.')
 
 
 class AlreadyExternalGroup(ExecutionError):
@@ -1365,7 +1373,8 @@ class PosixGroupViolation(ExecutionError):
     """
 
     errno = 4030
-    format = _('This is already a posix group and cannot be converted to external one')
+    format = _('This is already a posix group and cannot be converted to '
+    'external one')
 
 class EmptyResult(NotFound):
     """
@@ -1845,7 +1854,8 @@ class DependentEntry(ExecutionError):
     """
 
     errno = 4307
-    format = _('%(key)s cannot be deleted because %(label)s %(dependent)s requires it')
+    format = _('%(key)s cannot be deleted because %(label)s %(dependent)s '
+    'requires it')
 
 
 class LastMemberError(ExecutionError):
@@ -1861,7 +1871,8 @@ class LastMemberError(ExecutionError):
     """
 
     errno = 4308
-    format = _('%(key)s cannot be deleted or disabled because it is the last member of %(label)s %(container)s')
+    format = _('%(key)s cannot be deleted or disabled because it is the last '
+    'member of %(label)s %(container)s')
 
 
 class ProtectedEntryError(ExecutionError):

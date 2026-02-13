@@ -245,19 +245,29 @@ class dnsconfig(Object):
             required=False,
             multivalue=True,
             label=_('Global forwarders'),
-            doc=_('Global forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Global forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             label=_('Forward policy'),
-            doc=_('Global forwarding policy. Set to "none" to disable any configured global forwarders.'),
+            doc=_(
+                'Global forwarding policy. '
+                'Set to "none" to disable any configured global forwarders.'
+            ),
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
             label=_('Allow PTR sync'),
-            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records'
+            ),
         ),
         parameters.Int(
             'idnszonerefresh',
@@ -293,13 +303,22 @@ class dnsforwardzone(Object):
             required=False,
             multivalue=True,
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
     )
 
@@ -571,7 +590,10 @@ class dnsrecord(Object):
             'kx_part_preference',
             required=False,
             label=_('KX Preference'),
-            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
@@ -669,7 +691,10 @@ class dnsrecord(Object):
             'mx_part_preference',
             required=False,
             label=_('MX Preference'),
-            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
@@ -810,7 +835,10 @@ class dnsrecord(Object):
             'srv_part_target',
             required=False,
             label=_('SRV Target'),
-            doc=_("The domain name of the target host or '.' if the service is decidedly not available at this domain"),
+            doc=_(
+                "The domain name of the target host or '.' if the service is "
+                "decidedly not available at this domain"
+            ),
         ),
         parameters.Str(
             'sshfprecord',
@@ -910,13 +938,22 @@ class dnszone(Object):
             required=False,
             multivalue=True,
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
             required=False,
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
@@ -978,19 +1015,28 @@ class dnszone(Object):
             'idnsallowquery',
             required=False,
             label=_('Allow query'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
         ),
         parameters.Str(
             'idnsallowtransfer',
             required=False,
             label=_('Allow transfer'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
             label=_('Allow PTR sync'),
-            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
@@ -1002,7 +1048,10 @@ class dnszone(Object):
             'nsec3paramrecord',
             required=False,
             label=_('NSEC3PARAM record'),
-            doc=_('NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
     )
 
@@ -1074,7 +1123,11 @@ class dnsconfig_mod(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Global forwarders'),
-            doc=_('Global forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Global forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -1082,14 +1135,20 @@ class dnsconfig_mod(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Global forwarding policy. Set to "none" to disable any configured global forwarders.'),
+            doc=_(
+                'Global forwarding policy. '
+                'Set to "none" to disable any configured global forwarders.'
+            ),
         ),
         parameters.Bool(
             'idnsallowsyncptr',
             required=False,
             cli_name='allow_sync_ptr',
             label=_('Allow PTR sync'),
-            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records'
+            ),
         ),
         parameters.Int(
             'idnszonerefresh',
@@ -1103,40 +1162,59 @@ class dnsconfig_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1166,20 +1244,29 @@ class dnsconfig_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1230,7 +1317,11 @@ class dnsforwardzone_add(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -1238,32 +1329,50 @@ class dnsforwardzone_add(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1478,7 +1587,11 @@ class dnsforwardzone_find(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -1486,7 +1599,12 @@ class dnsforwardzone_find(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.Int(
             'timelimit',
@@ -1502,14 +1620,20 @@ class dnsforwardzone_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1574,7 +1698,9 @@ class dnsforwardzone_mod(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_('Per-zone forwarders. '
+            'A custom port can be specified for each forwarder using a '
+            'standard format "IP_ADDRESS port PORT"'),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -1582,46 +1708,61 @@ class dnsforwardzone_mod(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_('Per-zone conditional forwarding policy. '
+            'Set to "none" to disable forwarding to global forwarder for this '
+            'zone. In that case, conditional zone forwarders are disregarded.'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. '
+            'Format is attr=value.\nFor multi-valued attributes, '
+            'the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. '
+            'The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. '
+            'The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1700,20 +1841,29 @@ class dnsforwardzone_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -2088,7 +2238,10 @@ class dnsrecord_add(Method):
             cli_name='kx_preference',
             option_group='KX Record',
             label=_('KX Preference'),
-            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
@@ -2226,7 +2379,10 @@ class dnsrecord_add(Method):
             cli_name='mx_preference',
             option_group='MX Record',
             label=_('MX Preference'),
-            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            doc=_(
+                'Preference given to this exchanger. '
+                'Lower values are more preferred'
+            ),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
@@ -2417,7 +2573,10 @@ class dnsrecord_add(Method):
             cli_name='srv_target',
             option_group='SRV Record',
             label=_('SRV Target'),
-            doc=_("The domain name of the target host or '.' if the service is decidedly not available at this domain"),
+            doc=_(
+                "The domain name of the target host or '.' if the service is "
+                "decidedly not available at this domain"
+            ),
         ),
         parameters.Str(
             'sshfprecord',
@@ -2514,20 +2673,29 @@ class dnsrecord_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'force',
             label=_('Force'),
-            doc=_('force NS record creation even if its hostname is not in DNS'),
+            doc=_(
+                'force NS record creation even if its hostname is not in DNS'
+            ),
             exclude=('cli', 'webui'),
             default=False,
             autofill=True,
@@ -2535,21 +2703,29 @@ class dnsrecord_add(Method):
         parameters.Flag(
             'structured',
             label=_('Structured'),
-            doc=_('Parse all raw DNS records and return them in a '
-                  'structured way. Can not be used with --raw.'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -3227,21 +3403,29 @@ class dnsrecord_find(Method):
         parameters.Flag(
             'structured',
             label=_('Structured'),
-            doc=_('Parse all raw DNS records and return them in a '
-                  'structured way. Can not be used with --raw.'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -3610,7 +3794,8 @@ class dnsrecord_mod(Method):
             cli_name='kx_preference',
             option_group='KX Record',
             label=_('KX Preference'),
-            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            doc=_('Preference given to this exchanger. '
+            'Lower values are more preferred'),
         ),
         parameters.DNSNameParam(
             'kx_part_exchanger',
@@ -3748,7 +3933,8 @@ class dnsrecord_mod(Method):
             cli_name='mx_preference',
             option_group='MX Record',
             label=_('MX Preference'),
-            doc=_('Preference given to this exchanger. Lower values are more preferred'),
+            doc=_('Preference given to this exchanger. '
+            'Lower values are more preferred'),
         ),
         parameters.DNSNameParam(
             'mx_part_exchanger',
@@ -3939,7 +4125,8 @@ class dnsrecord_mod(Method):
             cli_name='srv_target',
             option_group='SRV Record',
             label=_('SRV Target'),
-            doc=_("The domain name of the target host or '.' if the service is decidedly not available at this domain"),
+            doc=_("The domain name of the target host or '.' if the service is "
+            "decidedly not available at this domain"),
         ),
         parameters.Str(
             'sshfprecord',
@@ -4036,48 +4223,61 @@ class dnsrecord_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. '
+            'Format is attr=value.\nFor multi-valued attributes, '
+            'the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. '
+            'The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. '
+            'The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_('Display the access rights of this entry (requires --all). '
+            'See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'structured',
             label=_('Structured'),
-            doc=_('Parse all raw DNS records and return them in a '
-                  'structured way. Can not be used with --raw.'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4130,28 +4330,39 @@ class dnsrecord_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'structured',
             label=_('Structured'),
-            doc=_('Parse all raw DNS records and return them in a '
-                  'structured way. Can not be used with --raw.'),
+            doc=_(
+                'Parse all raw DNS records and return them in a '
+                'structured way. Can not be used with --raw.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4202,7 +4413,11 @@ class dnszone_add(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -4210,7 +4425,12 @@ class dnszone_add(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
@@ -4316,7 +4536,10 @@ class dnszone_add(Method):
             required=False,
             cli_name='allow_query',
             label=_('Allow query'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
             default='any;',
             autofill=True,
             no_convert=True,
@@ -4326,7 +4549,10 @@ class dnszone_add(Method):
             required=False,
             cli_name='allow_transfer',
             label=_('Allow transfer'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
             default='none;',
             autofill=True,
             no_convert=True,
@@ -4336,7 +4562,10 @@ class dnszone_add(Method):
             required=False,
             cli_name='allow_sync_ptr',
             label=_('Allow PTR sync'),
-            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
@@ -4351,26 +4580,38 @@ class dnszone_add(Method):
             required=False,
             cli_name='nsec3param_rec',
             label=_('NSEC3PARAM record'),
-            doc=_('NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'force',
             label=_('Force'),
-            doc=_('Force DNS zone creation even if nameserver is not resolvable.'),
+            doc=_(
+                'Force DNS zone creation even if nameserver is not resolvable.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -4381,14 +4622,20 @@ class dnszone_add(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4603,7 +4850,11 @@ class dnszone_find(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -4611,7 +4862,12 @@ class dnszone_find(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
@@ -4715,7 +4971,10 @@ class dnszone_find(Method):
             required=False,
             cli_name='allow_query',
             label=_('Allow query'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
             default='any;',
             no_convert=True,
         ),
@@ -4724,7 +4983,10 @@ class dnszone_find(Method):
             required=False,
             cli_name='allow_transfer',
             label=_('Allow transfer'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
             default='none;',
             no_convert=True,
         ),
@@ -4733,7 +4995,10 @@ class dnszone_find(Method):
             required=False,
             cli_name='allow_sync_ptr',
             label=_('Allow PTR sync'),
-            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
@@ -4748,7 +5013,10 @@ class dnszone_find(Method):
             required=False,
             cli_name='nsec3param_rec',
             label=_('NSEC3PARAM record'),
-            doc=_('NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
         parameters.Int(
             'timelimit',
@@ -4771,14 +5039,20 @@ class dnszone_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -4843,7 +5117,11 @@ class dnszone_mod(Method):
             multivalue=True,
             cli_name='forwarder',
             label=_('Zone forwarders'),
-            doc=_('Per-zone forwarders. A custom port can be specified for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            doc=_(
+                'Per-zone forwarders. '
+                'A custom port can be specified for each forwarder using a '
+                'standard format "IP_ADDRESS port PORT"'
+            ),
         ),
         parameters.Str(
             'idnsforwardpolicy',
@@ -4851,7 +5129,12 @@ class dnszone_mod(Method):
             cli_name='forward_policy',
             cli_metavar="['only', 'first', 'none']",
             label=_('Forward policy'),
-            doc=_('Per-zone conditional forwarding policy. Set to "none" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.'),
+            doc=_(
+                'Per-zone conditional forwarding policy. '
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
+            ),
         ),
         parameters.DNSNameParam(
             'idnssoamname',
@@ -4955,7 +5238,10 @@ class dnszone_mod(Method):
             required=False,
             cli_name='allow_query',
             label=_('Allow query'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to issue queries'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to issue queries'
+            ),
             default='any;',
             no_convert=True,
         ),
@@ -4964,7 +5250,10 @@ class dnszone_mod(Method):
             required=False,
             cli_name='allow_transfer',
             label=_('Allow transfer'),
-            doc=_('Semicolon separated list of IP addresses or networks which are allowed to transfer the zone'),
+            doc=_(
+                'Semicolon separated list of IP addresses or networks which '
+                'are allowed to transfer the zone'
+            ),
             default='none;',
             no_convert=True,
         ),
@@ -4973,7 +5262,10 @@ class dnszone_mod(Method):
             required=False,
             cli_name='allow_sync_ptr',
             label=_('Allow PTR sync'),
-            doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+            doc=_(
+                'Allow synchronization of forward (A, '
+                'AAAA) and reverse (PTR) records in the zone'
+            ),
         ),
         parameters.Bool(
             'idnssecinlinesigning',
@@ -4988,33 +5280,49 @@ class dnszone_mod(Method):
             required=False,
             cli_name='nsec3param_rec',
             label=_('NSEC3PARAM record'),
-            doc=_('NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            doc=_(
+                'NSEC3PARAM record for zone in format: hash_algorithm flags '
+                'iterations salt'
+            ),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -5027,14 +5335,20 @@ class dnszone_mod(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -5113,20 +5427,29 @@ class dnszone_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

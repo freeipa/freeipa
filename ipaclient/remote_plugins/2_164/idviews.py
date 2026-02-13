@@ -167,34 +167,50 @@ class idoverridegroup_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -244,7 +260,10 @@ class idoverridegroup_del(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -325,20 +344,29 @@ class idoverridegroup_find(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -347,7 +375,9 @@ class idoverridegroup_find(Method):
             'pkey_only',
             required=False,
             label=_('Primary key only'),
-            doc=_('Results should contain primary key attribute only ("anchor")'),
+            doc=_(
+                'Results should contain primary key attribute only ("anchor")'
+            ),
             default=False,
             autofill=True,
         ),
@@ -415,27 +445,40 @@ class idoverridegroup_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -443,20 +486,29 @@ class idoverridegroup_mod(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -504,7 +556,10 @@ class idoverridegroup_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -512,20 +567,29 @@ class idoverridegroup_show(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -624,34 +688,50 @@ class idoverrideuser_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -701,7 +781,10 @@ class idoverrideuser_del(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -810,20 +893,29 @@ class idoverrideuser_find(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -832,7 +924,9 @@ class idoverrideuser_find(Method):
             'pkey_only',
             required=False,
             label=_('Primary key only'),
-            doc=_('Results should contain primary key attribute only ("anchor")'),
+            doc=_(
+                'Results should contain primary key attribute only ("anchor")'
+            ),
             default=False,
             autofill=True,
         ),
@@ -936,27 +1030,40 @@ class idoverrideuser_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -964,20 +1071,29 @@ class idoverrideuser_mod(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1025,7 +1141,8 @@ class idoverrideuser_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_('Display the access rights of this entry (requires --all). '
+            'See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
@@ -1033,20 +1150,29 @@ class idoverrideuser_show(Method):
             'fallback_to_ldap',
             required=False,
             label=_('Fallback to AD DC LDAP'),
-            doc=_('Allow falling back to AD DC LDAP when resolving AD trusted objects. For two-way trusts only.'),
+            doc=_(
+                'Allow falling back to AD DC LDAP when resolving AD trusted '
+                'objects. For two-way trusts only.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1090,26 +1216,39 @@ class idview_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1157,7 +1296,12 @@ class idview_apply(Method):
             multivalue=True,
             cli_name='hostgroups',
             label=_('hostgroups'),
-            doc=_('Hostgroups to whose hosts apply the ID View to. Please note that view is not applied automatically to any hosts added to the hostgroup after running the idview-apply command.'),
+            doc=_(
+                'Hostgroups to whose hosts apply the ID View to. '
+                'Please note that view is not applied automatically to any '
+                'hosts added to the hostgroup after running the idview-apply '
+                'command.'
+            ),
         ),
     )
     has_output = (
@@ -1174,7 +1318,9 @@ class idview_apply(Method):
         output.Output(
             'failed',
             dict,
-            doc=_('Hosts or hostgroups that this ID View could not be applied to.'),
+            doc=_(
+                'Hosts or hostgroups that this ID View could not be applied to.'
+            ),
         ),
         output.Output(
             'completed',
@@ -1259,14 +1405,20 @@ class idview_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1324,40 +1476,59 @@ class idview_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1400,7 +1571,10 @@ class idview_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
@@ -1413,14 +1587,20 @@ class idview_show(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1461,7 +1641,11 @@ class idview_unapply(Method):
             multivalue=True,
             cli_name='hostgroups',
             label=_('hostgroups'),
-            doc=_('Hostgroups whose hosts should have ID Views cleared. Note that view is not cleared automatically from any host added to the hostgroup after running idview-unapply command.'),
+            doc=_(
+                'Hostgroups whose hosts should have ID Views cleared. '
+                'Note that view is not cleared automatically from any host '
+                'added to the hostgroup after running idview-unapply command.'
+            ),
         ),
     )
     has_output = (
@@ -1478,7 +1662,9 @@ class idview_unapply(Method):
         output.Output(
             'failed',
             dict,
-            doc=_('Hosts or hostgroups that ID View could not be cleared from.'),
+            doc=_(
+                'Hosts or hostgroups that ID View could not be cleared from.'
+            ),
         ),
         output.Output(
             'completed',

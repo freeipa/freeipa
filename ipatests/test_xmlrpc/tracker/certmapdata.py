@@ -23,8 +23,10 @@ class CertmapdataMixin:
         if not self.certmapdata_options & set(options):
             raise RequirementError(name='certmapdata')
 
-        if ({'issuer', 'subject'} & set(options) and
-                {'ipacertmapdata', 'certificate'} & set(options)):
+        if {'issuer', 'subject'} & set(options) and {
+            'ipacertmapdata',
+            'certificate',
+        } & set(options):
             raise MutuallyExclusiveError(reason='Mutually exclusive options '
                                                 'provided at the same time.')
 

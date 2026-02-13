@@ -164,9 +164,17 @@ class ListOfACI(output.Output):
         assert isinstance(entries, self.type)
         for (i, entry) in enumerate(entries):
             if not isinstance(entry, str):
-                raise TypeError(output.emsg %
-                    (cmd.name, self.__class__.__name__,
-                    self.name, i, str, type(entry), entry)
+                raise TypeError(
+                    output.emsg
+                    % (
+                        cmd.name,
+                        self.__class__.__name__,
+                        self.name,
+                        i,
+                        str,
+                        type(entry),
+                        entry,
+                    )
                 )
 
 aci_output = (
@@ -472,7 +480,15 @@ class aci(Object):
             cli_name='type',
             label=_('Type'),
             doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
-            values=('user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord'),
+            values=(
+                'user',
+                'group',
+                'host',
+                'service',
+                'hostgroup',
+                'netgroup',
+                'dnsrecord',
+            ),
             flags=('virtual_attribute',),
         ),
         Str('memberof?',
@@ -835,7 +851,7 @@ Search for ACIs.
 
         if kw.get('filter'):
             if not kw['filter'].startswith('('):
-                kw['filter'] = str('('+kw['filter']+')')
+                kw['filter'] = '(' + kw['filter'] + ')'
             for a in acis:
                 if 'targetfilter' not in a.target or\
                     not a.target['targetfilter']['expression'] or\

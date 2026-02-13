@@ -155,7 +155,10 @@ class migrate_ds(Command):
             multivalue=True,
             cli_name='user_objectclass',
             label=_('User object class'),
-            doc=_('Comma-separated list of objectclasses used to search for user entries in DS'),
+            doc=_(
+                'Comma-separated list of objectclasses used to search for user '
+                'entries in DS'
+            ),
             default=('person',),
             autofill=True,
         ),
@@ -164,7 +167,10 @@ class migrate_ds(Command):
             multivalue=True,
             cli_name='group_objectclass',
             label=_('Group object class'),
-            doc=_('Comma-separated list of objectclasses used to search for group entries in DS'),
+            doc=_(
+                'Comma-separated list of objectclasses used to search for '
+                'group entries in DS'
+            ),
             default=('groupOfUniqueNames', 'groupOfNames'),
             autofill=True,
         ),
@@ -174,7 +180,10 @@ class migrate_ds(Command):
             multivalue=True,
             cli_name='user_ignore_objectclass',
             label=_('Ignore user object class'),
-            doc=_('Comma-separated list of objectclasses to be ignored for user entries in DS'),
+            doc=_(
+                'Comma-separated list of objectclasses to be ignored for user '
+                'entries in DS'
+            ),
             default=(),
             autofill=True,
         ),
@@ -184,7 +193,10 @@ class migrate_ds(Command):
             multivalue=True,
             cli_name='user_ignore_attribute',
             label=_('Ignore user attribute'),
-            doc=_('Comma-separated list of attributes to be ignored for user entries in DS'),
+            doc=_(
+                'Comma-separated list of attributes to be ignored for user '
+                'entries in DS'
+            ),
             default=(),
             autofill=True,
         ),
@@ -194,7 +206,10 @@ class migrate_ds(Command):
             multivalue=True,
             cli_name='group_ignore_objectclass',
             label=_('Ignore group object class'),
-            doc=_('Comma-separated list of objectclasses to be ignored for group entries in DS'),
+            doc=_(
+                'Comma-separated list of objectclasses to be ignored for group '
+                'entries in DS'
+            ),
             default=(),
             autofill=True,
         ),
@@ -204,7 +219,10 @@ class migrate_ds(Command):
             multivalue=True,
             cli_name='group_ignore_attribute',
             label=_('Ignore group attribute'),
-            doc=_('Comma-separated list of attributes to be ignored for group entries in DS'),
+            doc=_(
+                'Comma-separated list of attributes to be ignored for group '
+                'entries in DS'
+            ),
             default=(),
             autofill=True,
         ),
@@ -212,7 +230,10 @@ class migrate_ds(Command):
             'groupoverwritegid',
             cli_name='group_overwrite_gid',
             label=_('Overwrite GID'),
-            doc=_('When migrating a group already existing in IPA domain overwrite the group GID and report as success'),
+            doc=_(
+                'When migrating a group already existing in IPA domain '
+                'overwrite the group GID and report as success'
+            ),
             default=False,
             autofill=True,
         ),
@@ -221,7 +242,11 @@ class migrate_ds(Command):
             required=False,
             cli_metavar="['RFC2307bis', 'RFC2307']",
             label=_('LDAP schema'),
-            doc=_('The schema used on the LDAP server. Supported values are RFC2307 and RFC2307bis. The default is RFC2307bis'),
+            doc=_(
+                'The schema used on the LDAP server. '
+                'Supported values are RFC2307 and RFC2307bis. '
+                'The default is RFC2307bis'
+            ),
             default='RFC2307bis',
             autofill=True,
         ),
@@ -229,7 +254,10 @@ class migrate_ds(Command):
             'continue',
             required=False,
             label=_('Continue'),
-            doc=_('Continuous operation mode. Errors are reported but the process continues'),
+            doc=_(
+                'Continuous operation mode. '
+                'Errors are reported but the process continues'
+            ),
             default=False,
             autofill=True,
         ),
@@ -275,7 +303,10 @@ class migrate_ds(Command):
         output.Output(
             'failed',
             dict,
-            doc=_('Lists of objects that could not be migrated; categorized by type.'),
+            doc=_(
+                'Lists of objects that could not be migrated; categorized by '
+                'type.'
+            ),
         ),
         output.Output(
             'enabled',
@@ -285,6 +316,9 @@ class migrate_ds(Command):
         output.Output(
             'compat',
             bool,
-            doc=_('False if migration fails because the compatibility plug-in is enabled.'),
+            doc=_(
+                'False if migration fails because the compatibility plug-in is '
+                'enabled.'
+            ),
         ),
     )

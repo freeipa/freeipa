@@ -53,7 +53,10 @@ class selfservice(Object):
             required=False,
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write). '
+                'Default is write.'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -81,7 +84,10 @@ class selfservice_add(Method):
             required=False,
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write). '
+                'Default is write.'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -92,14 +98,20 @@ class selfservice_add(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -174,7 +186,10 @@ class selfservice_find(Method):
             required=False,
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write). '
+                'Default is write.'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -194,14 +209,20 @@ class selfservice_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -246,7 +267,10 @@ class selfservice_mod(Method):
             required=False,
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write). Default is write.'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write). '
+                'Default is write.'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -258,14 +282,20 @@ class selfservice_mod(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -302,14 +332,20 @@ class selfservice_show(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

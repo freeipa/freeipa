@@ -90,7 +90,10 @@ class config(Object):
         parameters.Int(
             'ipasearchtimelimit',
             label=_('Search time limit'),
-            doc=_('Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)'),
+            doc=_(
+                'Maximum amount of time (seconds) for a search (> 0, '
+                'or -1 for unlimited)'
+            ),
         ),
         parameters.Int(
             'ipasearchrecordslimit',
@@ -100,12 +103,18 @@ class config(Object):
         parameters.Str(
             'ipausersearchfields',
             label=_('User search fields'),
-            doc=_('A comma-separated list of fields to search in when searching for users'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for users'
+            ),
         ),
         parameters.Str(
             'ipagroupsearchfields',
             label=_('Group search fields'),
-            doc=_('A comma-separated list of fields to search in when searching for groups'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for groups'
+            ),
         ),
         parameters.Bool(
             'ipamigrationenabled',
@@ -143,13 +152,18 @@ class config(Object):
         parameters.Str(
             'ipaselinuxusermaporder',
             label=_('SELinux user map order'),
-            doc=_('Order in increasing priority of SELinux users, delimited by $'),
+            doc=_(
+                'Order in increasing priority of SELinux users, delimited by $'
+            ),
         ),
         parameters.Str(
             'ipaselinuxusermapdefault',
             required=False,
             label=_('Default SELinux user'),
-            doc=_('Default SELinux user when no match is found in SELinux map rule'),
+            doc=_(
+                'Default SELinux user when no match is found in SELinux map '
+                'rule'
+            ),
         ),
         parameters.Str(
             'ipakrbauthzdata',
@@ -211,7 +225,10 @@ class config_mod(Method):
             required=False,
             cli_name='searchtimelimit',
             label=_('Search time limit'),
-            doc=_('Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)'),
+            doc=_(
+                'Maximum amount of time (seconds) for a search (> 0, '
+                'or -1 for unlimited)'
+            ),
         ),
         parameters.Int(
             'ipasearchrecordslimit',
@@ -225,14 +242,20 @@ class config_mod(Method):
             required=False,
             cli_name='usersearch',
             label=_('User search fields'),
-            doc=_('A comma-separated list of fields to search in when searching for users'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for users'
+            ),
         ),
         parameters.Str(
             'ipagroupsearchfields',
             required=False,
             cli_name='groupsearch',
             label=_('Group search fields'),
-            doc=_('A comma-separated list of fields to search in when searching for groups'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for groups'
+            ),
         ),
         parameters.Bool(
             'ipamigrationenabled',
@@ -267,7 +290,8 @@ class config_mod(Method):
             'ipaconfigstring',
             required=False,
             multivalue=True,
-            cli_metavar="['AllowNThash', 'KDC:Disable Last Success', 'KDC:Disable Lockout']",
+            cli_metavar="['AllowNThash', 'KDC:Disable Last Success', "
+            "'KDC:Disable Lockout']",
             label=_('Password plugin features'),
             doc=_('Extra hashes to generate in password plug-in'),
         ),
@@ -275,13 +299,18 @@ class config_mod(Method):
             'ipaselinuxusermaporder',
             required=False,
             label=_('SELinux user map order'),
-            doc=_('Order in increasing priority of SELinux users, delimited by $'),
+            doc=_(
+                'Order in increasing priority of SELinux users, delimited by $'
+            ),
         ),
         parameters.Str(
             'ipaselinuxusermapdefault',
             required=False,
             label=_('Default SELinux user'),
-            doc=_('Default SELinux user when no match is found in SELinux map rule'),
+            doc=_(
+                'Default SELinux user when no match is found in SELinux map '
+                'rule'
+            ),
         ),
         parameters.Str(
             'ipakrbauthzdata',
@@ -305,40 +334,59 @@ class config_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -368,20 +416,29 @@ class config_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

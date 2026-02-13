@@ -213,8 +213,9 @@ class update_dnszones(Updater):
 
             if update:
                 # FIXME: https://fedorahosted.org/freeipa/ticket/4722
-                self.api.Command.dnszone_mod(zone['idnsname'][0].make_absolute(),
-                                        **update)
+                self.api.Command.dnszone_mod(
+                    zone['idnsname'][0].make_absolute(), **update
+                )
 
         return False, []
 
@@ -324,8 +325,8 @@ class update_master_to_dnsforwardzones(DNSUpdater):
 
         for zone in zones:
             if (
-                zone.get('idnsforwardpolicy', ['first'])[0] == 'none' or
-                zone.get('idnsforwarders', []) == []
+                zone.get('idnsforwardpolicy', ['first'])[0] == 'none'
+                or zone.get('idnsforwarders', []) == []
             ):
                 continue  # don't update zone
 

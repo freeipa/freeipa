@@ -1320,7 +1320,9 @@ class user_status(LDAPQuery):
                 newresult = {'dn': dn}
                 for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
                     newresult[attr] = entry.get(attr, ['N/A'])
-                newresult['krbloginfailedcount'] = entry.get('krbloginfailedcount', '0')
+                newresult['krbloginfailedcount'] = entry.get(
+                    'krbloginfailedcount', '0'
+                )
                 newresult['passwordgraceusertime'] = \
                     entry.get('passwordgraceusertime', '0')
                 if not options.get('raw', False):
@@ -1329,10 +1331,11 @@ class user_status(LDAPQuery):
                             if newresult[attr][0] == 'N/A':
                                 continue
                             newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
-                            newresult[attr][0] = str(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
+                            newresult[attr][0] = time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime)
                         except Exception as e:
-                            logger.debug("time conversion failed with %s",
-                                         str(e))
+                            logger.debug(
+                                'time conversion failed with %s', str(e)
+                            )
                 newresult['server'] = host
                 if options.get('raw', False):
                     time_format = '%Y%m%d%H%M%SZ'

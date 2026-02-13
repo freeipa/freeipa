@@ -206,14 +206,20 @@ Search for existing certificates.
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -249,7 +255,8 @@ class cert_remove_hold(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            doc=_('Serial number in decimal or if prefixed with 0x in '
+            'hexadecimal'),
             no_convert=True,
         ),
     )
@@ -278,7 +285,10 @@ class cert_request(Command):
         parameters.Str(
             'principal',
             label=_('Principal'),
-            doc=_('Service principal for this certificate (e.g. HTTP/test.example.com)'),
+            doc=_(
+                'Service principal for this certificate (e.g. '
+                'HTTP/test.example.com)'
+            ),
         ),
         parameters.Str(
             'request_type',
@@ -309,7 +319,8 @@ class cert_revoke(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            doc=_('Serial number in decimal or if prefixed with 0x in '
+            'hexadecimal'),
             no_convert=True,
         ),
     )
@@ -337,7 +348,8 @@ class cert_show(Command):
         parameters.Str(
             'serial_number',
             label=_('Serial number'),
-            doc=_('Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            doc=_('Serial number in decimal or if prefixed with 0x in '
+            'hexadecimal'),
             no_convert=True,
         ),
     )

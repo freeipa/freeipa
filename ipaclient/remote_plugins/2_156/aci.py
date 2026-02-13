@@ -151,7 +151,10 @@ class aci(Object):
             'type',
             required=False,
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            doc=_(
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -231,7 +234,10 @@ class aci_add(Method):
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            doc=_(
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -271,7 +277,10 @@ class aci_add(Method):
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, delegation, '
+                'selfservice, none)'
+            ),
         ),
         parameters.Flag(
             'test',
@@ -282,14 +291,20 @@ class aci_add(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -330,7 +345,10 @@ class aci_del(Method):
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, delegation, '
+                'selfservice, none)'
+            ),
         ),
     )
     has_output = (
@@ -421,7 +439,10 @@ Search for ACIs.
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            doc=_(
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -461,7 +482,10 @@ Search for ACIs.
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, delegation, '
+                'selfservice, none)'
+            ),
         ),
         parameters.Flag(
             'pkey_only',
@@ -473,14 +497,20 @@ Search for ACIs.
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -554,7 +584,10 @@ class aci_mod(Method):
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            doc=_(
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -594,18 +627,27 @@ class aci_mod(Method):
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, delegation, '
+                'selfservice, none)'
+            ),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -673,7 +715,10 @@ class aci_rename(Method):
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('type of IPA object (user, group, host, hostgroup, service, netgroup)'),
+            doc=_(
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -713,7 +758,10 @@ class aci_rename(Method):
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, delegation, '
+                'selfservice, none)'
+            ),
         ),
         parameters.Str(
             'newname',
@@ -721,14 +769,20 @@ class aci_rename(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -769,7 +823,10 @@ class aci_show(Method):
             cli_name='prefix',
             cli_metavar="['permission', 'delegation', 'selfservice', 'none']",
             label=_('ACI prefix'),
-            doc=_('Prefix used to distinguish ACI types (permission, delegation, selfservice, none)'),
+            doc=_(
+                'Prefix used to distinguish ACI types (permission, delegation, '
+                'selfservice, none)'
+            ),
         ),
         parameters.DNParam(
             'location',
@@ -778,14 +835,20 @@ class aci_show(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

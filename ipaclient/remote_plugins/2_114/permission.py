@@ -94,7 +94,10 @@ class permission(Object):
             required=False,
             multivalue=True,
             label=_('Granted rights'),
-            doc=_('Rights to grant (read, search, compare, write, add, delete, all)'),
+            doc=_(
+                'Rights to grant (read, search, compare, write, add, delete, '
+                'all)'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -115,7 +118,10 @@ class permission(Object):
             required=False,
             multivalue=True,
             label=_('Excluded attributes'),
-            doc=_('User-specified attributes to which the permission explicitly does not apply'),
+            doc=_(
+                'User-specified attributes to which the permission explicitly '
+                'does not apply'
+            ),
         ),
         parameters.Str(
             'ipapermdefaultattr',
@@ -145,13 +151,19 @@ class permission(Object):
             required=False,
             multivalue=True,
             label=_('Raw target filter'),
-            doc=_('All target filters, including those implied by type and memberof'),
+            doc=_(
+                'All target filters, '
+                'including those implied by type and memberof'
+            ),
         ),
         parameters.DNParam(
             'ipapermtarget',
             required=False,
             label=_('Target DN'),
-            doc=_('Optional DN to apply the permission to (must be in the subtree, but may not yet exist)'),
+            doc=_(
+                'Optional DN to apply the permission to (must be in the '
+                'subtree, but may not yet exist)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -170,7 +182,9 @@ class permission(Object):
             'type',
             required=False,
             label=_('Type'),
-            doc=_('Type of IPA object (sets subtree and objectClass targetfilter)'),
+            doc=_(
+                'Type of IPA object (sets subtree and objectClass targetfilter)'
+            ),
         ),
         parameters.Str(
             'filter',
@@ -222,7 +236,10 @@ class permission_add(Method):
             cli_name='right',
             cli_metavar="['read', 'search', 'compare', 'write', 'add', 'delete', 'all']",
             label=_('Granted rights'),
-            doc=_('Rights to grant (read, search, compare, write, add, delete, all)'),
+            doc=_(
+                'Rights to grant (read, search, compare, write, add, delete, '
+                'all)'
+            ),
             alwaysask=True,
         ),
         parameters.Str(
@@ -261,14 +278,20 @@ class permission_add(Method):
             multivalue=True,
             cli_name='rawfilter',
             label=_('Raw target filter'),
-            doc=_('All target filters, including those implied by type and memberof'),
+            doc=_(
+                'All target filters, '
+                'including those implied by type and memberof'
+            ),
         ),
         parameters.DNParam(
             'ipapermtarget',
             required=False,
             cli_name='target',
             label=_('Target DN'),
-            doc=_('Optional DN to apply the permission to (must be in the subtree, but may not yet exist)'),
+            doc=_(
+                'Optional DN to apply the permission to (must be in the '
+                'subtree, but may not yet exist)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -289,7 +312,9 @@ class permission_add(Method):
             'type',
             required=False,
             label=_('Type'),
-            doc=_('Type of IPA object (sets subtree and objectClass targetfilter)'),
+            doc=_(
+                'Type of IPA object (sets subtree and objectClass targetfilter)'
+            ),
             alwaysask=True,
         ),
         parameters.Str(
@@ -317,26 +342,39 @@ class permission_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -381,14 +419,20 @@ class permission_add_member(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -448,14 +492,20 @@ class permission_add_noaci(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -552,9 +602,13 @@ class permission_find(Method):
             required=False,
             multivalue=True,
             cli_name='right',
-            cli_metavar="['read', 'search', 'compare', 'write', 'add', 'delete', 'all']",
+            cli_metavar="['read', 'search', 'compare', 'write', 'add', "
+            "'delete', 'all']",
             label=_('Granted rights'),
-            doc=_('Rights to grant (read, search, compare, write, add, delete, all)'),
+            doc=_(
+                'Rights to grant (read, search, compare, write, add, delete, '
+                'all)'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -577,7 +631,10 @@ class permission_find(Method):
             multivalue=True,
             cli_name='excludedattrs',
             label=_('Excluded attributes'),
-            doc=_('User-specified attributes to which the permission explicitly does not apply'),
+            doc=_(
+                'User-specified attributes to which the permission explicitly '
+                'does not apply'
+            ),
         ),
         parameters.Str(
             'ipapermdefaultattr',
@@ -615,14 +672,20 @@ class permission_find(Method):
             multivalue=True,
             cli_name='rawfilter',
             label=_('Raw target filter'),
-            doc=_('All target filters, including those implied by type and memberof'),
+            doc=_(
+                'All target filters, '
+                'including those implied by type and memberof'
+            ),
         ),
         parameters.DNParam(
             'ipapermtarget',
             required=False,
             cli_name='target',
             label=_('Target DN'),
-            doc=_('Optional DN to apply the permission to (must be in the subtree, but may not yet exist)'),
+            doc=_(
+                'Optional DN to apply the permission to (must be in the '
+                'subtree, but may not yet exist)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -641,7 +704,9 @@ class permission_find(Method):
             'type',
             required=False,
             label=_('Type'),
-            doc=_('Type of IPA object (sets subtree and objectClass targetfilter)'),
+            doc=_(
+                'Type of IPA object (sets subtree and objectClass targetfilter)'
+            ),
         ),
         parameters.Str(
             'filter',
@@ -678,14 +743,20 @@ class permission_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -745,9 +816,11 @@ class permission_mod(Method):
             required=False,
             multivalue=True,
             cli_name='right',
-            cli_metavar="['read', 'search', 'compare', 'write', 'add', 'delete', 'all']",
+            cli_metavar="['read', 'search', 'compare', 'write', 'add', "
+            "'delete', 'all']",
             label=_('Granted rights'),
-            doc=_('Rights to grant (read, search, compare, write, add, delete, all)'),
+            doc=_('Rights to grant (read, search, compare, write, add, delete, '
+            'all)'),
         ),
         parameters.Str(
             'attrs',
@@ -770,7 +843,8 @@ class permission_mod(Method):
             multivalue=True,
             cli_name='excludedattrs',
             label=_('Excluded attributes'),
-            doc=_('User-specified attributes to which the permission explicitly does not apply'),
+            doc=_('User-specified attributes to which the permission '
+            'explicitly does not apply'),
         ),
         parameters.Str(
             'ipapermbindruletype',
@@ -800,14 +874,16 @@ class permission_mod(Method):
             multivalue=True,
             cli_name='rawfilter',
             label=_('Raw target filter'),
-            doc=_('All target filters, including those implied by type and memberof'),
+            doc=_('All target filters, '
+            'including those implied by type and memberof'),
         ),
         parameters.DNParam(
             'ipapermtarget',
             required=False,
             cli_name='target',
             label=_('Target DN'),
-            doc=_('Optional DN to apply the permission to (must be in the subtree, but may not yet exist)'),
+            doc=_('Optional DN to apply the permission to (must be in the '
+            'subtree, but may not yet exist)'),
         ),
         parameters.Str(
             'memberof',
@@ -826,7 +902,8 @@ class permission_mod(Method):
             'type',
             required=False,
             label=_('Type'),
-            doc=_('Type of IPA object (sets subtree and objectClass targetfilter)'),
+            doc=_('Type of IPA object (sets subtree and objectClass '
+            'targetfilter)'),
         ),
         parameters.Str(
             'filter',
@@ -853,40 +930,51 @@ class permission_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. '
+            'Format is attr=value.\nFor multi-valued attributes, '
+            'the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. '
+            'The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. '
+            'The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_('Display the access rights of this entry (requires --all). '
+            'See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -937,14 +1025,20 @@ class permission_remove_member(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -998,20 +1092,29 @@ class permission_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

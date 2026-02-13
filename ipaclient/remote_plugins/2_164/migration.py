@@ -212,7 +212,10 @@ class migrate_ds(Command):
             'groupoverwritegid',
             cli_name='group_overwrite_gid',
             label=_('Overwrite GID'),
-            doc=_('When migrating a group already existing in IPA domain overwrite the group GID and report as success'),
+            doc=_(
+                'When migrating a group already existing in IPA domain '
+                'overwrite the group GID and report as success'
+            ),
             default=False,
             autofill=True,
         ),
@@ -221,7 +224,11 @@ class migrate_ds(Command):
             required=False,
             cli_metavar="['RFC2307bis', 'RFC2307']",
             label=_('LDAP schema'),
-            doc=_('The schema used on the LDAP server. Supported values are RFC2307 and RFC2307bis. The default is RFC2307bis'),
+            doc=_(
+                'The schema used on the LDAP server. '
+                'Supported values are RFC2307 and RFC2307bis. '
+                'The default is RFC2307bis'
+            ),
             default='RFC2307bis',
             autofill=True,
         ),
@@ -229,7 +236,10 @@ class migrate_ds(Command):
             'continue',
             required=False,
             label=_('Continue'),
-            doc=_('Continuous operation mode. Errors are reported but the process continues'),
+            doc=_(
+                'Continuous operation mode. '
+                'Errors are reported but the process continues'
+            ),
             default=False,
             autofill=True,
         ),
@@ -261,7 +271,10 @@ class migrate_ds(Command):
             required=False,
             cli_name='use_default_group',
             label=_('Add to default group'),
-            doc=_('Add migrated users without a group to a default group (default: true)'),
+            doc=_(
+                'Add migrated users without a group to a default group '
+                '(default: true)'
+            ),
             default=True,
             autofill=True,
         ),
@@ -269,7 +282,10 @@ class migrate_ds(Command):
             'scope',
             cli_metavar="['base', 'subtree', 'onelevel']",
             label=_('Search scope'),
-            doc=_('LDAP search scope for users and groups: base, onelevel, or subtree. Defaults to onelevel'),
+            doc=_(
+                'LDAP search scope for users and groups: base, onelevel, '
+                'or subtree. Defaults to onelevel'
+            ),
             default='onelevel',
             autofill=True,
         ),
@@ -299,7 +315,10 @@ class migrate_ds(Command):
         output.Output(
             'failed',
             dict,
-            doc=_('Lists of objects that could not be migrated; categorized by type.'),
+            doc=_(
+                'Lists of objects that could not be migrated; categorized by '
+                'type.'
+            ),
         ),
         output.Output(
             'enabled',
@@ -309,6 +328,9 @@ class migrate_ds(Command):
         output.Output(
             'compat',
             bool,
-            doc=_('False if migration fails because the compatibility plug-in is enabled.'),
+            doc=_(
+                'False if migration fails because the compatibility plug-in is '
+                'enabled.'
+            ),
         ),
     )

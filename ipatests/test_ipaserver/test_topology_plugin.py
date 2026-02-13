@@ -42,21 +42,22 @@ class TestTopologyPlugin:
             'nsslapd-pluginPath': ['libtopology'],
             'nsslapd-pluginVendor': ['freeipa'],
             'cn': ['IPA Topology Configuration'],
-            'nsslapd-plugin-depends-on-named':
-                [supplier, 'ldbm database'],
+            'nsslapd-plugin-depends-on-named': [supplier, 'ldbm database'],
             'nsslapd-topo-plugin-shared-replica-root': ['dc=example,dc=com'],
             'nsslapd-pluginVersion': ['1.0'],
-            'nsslapd-topo-plugin-shared-config-base':
-                ['cn=ipa,cn=etc,dc=example,dc=com'],
+            'nsslapd-topo-plugin-shared-config-base': [
+                'cn=ipa,cn=etc,dc=example,dc=com'
+            ],
             'nsslapd-pluginDescription': ['ipa-topology-plugin'],
             'nsslapd-pluginEnabled': ['on'],
             'nsslapd-pluginId': ['ipa-topology-plugin'],
             'objectClass': ['top', 'nsSlapdPlugin', 'extensibleObject'],
             'nsslapd-topo-plugin-startup-delay': ['20'],
-            'nsslapd-topo-plugin-shared-binddngroup':
-                ['cn=replication managers,cn=sysaccounts,cn=etc,dc=example,dc=com'],
+            'nsslapd-topo-plugin-shared-binddngroup': [
+                'cn=replication managers,cn=sysaccounts,cn=etc,dc=example,dc=com'
+            ],
             'nsslapd-pluginType': ['object'],
-            'nsslapd-pluginInitfunc': ['ipa_topo_init']
+            'nsslapd-pluginInitfunc': ['ipa_topo_init'],
         }
         variable_attrs = {'nsslapd-topo-plugin-shared-replica-root',
                           'nsslapd-topo-plugin-shared-config-base',

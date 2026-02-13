@@ -2298,7 +2298,9 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                 except errors.NotFound as e:
                     msg = str(e)
                     (attr, msg) = msg.split(':', 1)
-                    failed['member'][self.reverse_attr].append((attr, str(msg.strip())))
+                    failed['member'][self.reverse_attr].append(
+                        (attr, msg.strip())
+                    )
 
             except errors.PublicError as e:
                 failed['member'][self.reverse_attr].append((attr, str(e)))
@@ -2397,7 +2399,9 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                 except errors.NotFound as e:
                     msg = str(e)
                     (attr, msg) = msg.split(':', 1)
-                    failed['member'][self.reverse_attr].append((attr, str(msg.strip())))
+                    failed['member'][self.reverse_attr].append(
+                        (attr, msg.strip())
+                    )
 
             except errors.PublicError as e:
                 failed['member'][self.reverse_attr].append((attr, str(e)))

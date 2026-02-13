@@ -80,7 +80,10 @@ class permission(Object):
             'permissions',
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write, '
+                'add, delete, all)'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -93,7 +96,10 @@ class permission(Object):
             'type',
             required=False,
             label=_('Type'),
-            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            doc=_(
+                'Type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup, dns)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -148,7 +154,10 @@ class permission_add(Method):
             'permissions',
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write, '
+                'add, delete, all)'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -164,7 +173,10 @@ class permission_add(Method):
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            doc=_(
+                'Type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup, dns)'
+            ),
             alwaysask=True,
         ),
         parameters.Str(
@@ -199,26 +211,39 @@ class permission_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -257,14 +282,20 @@ class permission_add_member(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -318,14 +349,20 @@ class permission_add_noaci(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -418,7 +455,10 @@ class permission_find(Method):
             required=False,
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write, '
+                'add, delete, all)'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -433,7 +473,10 @@ class permission_find(Method):
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            doc=_(
+                'Type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup, dns)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -473,14 +516,20 @@ class permission_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -533,7 +582,10 @@ class permission_mod(Method):
             required=False,
             multivalue=True,
             label=_('Permissions'),
-            doc=_('Comma-separated list of permissions to grant (read, write, add, delete, all)'),
+            doc=_(
+                'Comma-separated list of permissions to grant (read, write, '
+                'add, delete, all)'
+            ),
         ),
         parameters.Str(
             'attrs',
@@ -548,7 +600,10 @@ class permission_mod(Method):
             required=False,
             cli_metavar="['user', 'group', 'host', 'service', 'hostgroup', 'netgroup', 'dnsrecord']",
             label=_('Type'),
-            doc=_('Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)'),
+            doc=_(
+                'Type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup, dns)'
+            ),
         ),
         parameters.Str(
             'memberof',
@@ -578,40 +633,51 @@ class permission_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. '
+            'Format is attr=value.\nFor multi-valued attributes, '
+            'the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. '
+            'The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. '
+            'The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_('Display the access rights of this entry (requires --all). '
+            'See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -656,14 +722,20 @@ class permission_remove_member(Method):
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -710,20 +782,27 @@ class permission_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_('Display the access rights of this entry (requires --all). '
+            'See ipa man page for details.'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

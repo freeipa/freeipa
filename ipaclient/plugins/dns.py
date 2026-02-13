@@ -230,9 +230,13 @@ class dnsrecord_add(MethodOverride):
         else:
             common_types = ', '.join(_top_record_types)
 
-        self.Backend.textui.print_plain(_('Please choose a type of DNS resource record to be added'))
-        self.Backend.textui.print_plain(_('The most common types for this type of zone are: %s\n') %\
-                                          common_types)
+        self.Backend.textui.print_plain(
+            _('Please choose a type of DNS resource record to be added')
+        )
+        self.Backend.textui.print_plain(
+            _('The most common types for this type of zone are: %s\n')
+            % common_types
+        )
 
         ok = False
         while not ok:
@@ -254,7 +258,10 @@ class dnsrecord_add(MethodOverride):
                                        for p in self.params()
                                        if (get_record_rrtype(p.name) and
                                            'no_option' not in p.flags))
-                self.Backend.textui.print_plain(_('Invalid or unsupported type. Allowed values are: %s') % all_types)
+                self.Backend.textui.print_plain(
+                    _('Invalid or unsupported type. Allowed values are: %s')
+                    % all_types
+                )
                 continue
             ok = True
 
@@ -296,7 +303,9 @@ class dnsrecord_mod(MethodOverride):
 
             record_params.append((param, rrtype))
             rec_type_content = ', '.join(dns_record[param.name])
-            self.Backend.textui.print_plain('%s: %s' % (param.label, rec_type_content))
+            self.Backend.textui.print_plain(
+                '%s: %s' % (param.label, rec_type_content)
+            )
         self.Backend.textui.print_plain('')
 
         # ask what records to remove
@@ -313,11 +322,19 @@ class dnsrecord_mod(MethodOverride):
                     kw.update(user_options)
 
                     if rec_values:
-                         self.Backend.textui.print_plain(ngettext(
-                            '%(count)d %(type)s record skipped. Only one value per DNS record type can be modified at one time.',
-                            '%(count)d %(type)s records skipped. Only one value per DNS record type can be modified at one time.',
-                            0) % dict(count=len(rec_values), type=rrtype))
-                         break
+                        self.Backend.textui.print_plain(
+                            ngettext(
+                                '%(count)d %(type)s record skipped. Only one ' 
+                                ' value per DNS record type can be modified '
+                                'at one time.',
+                                '%(count)d %(type)s records skipped. Only one '
+                                'value per DNS record type can be modified '
+                                'at one time.',
+                                0,
+                            )
+                            % dict(count=len(rec_values), type=rrtype)
+                        )
+                        break
 
 
 @register(override=True, no_fail=True)
@@ -361,7 +378,9 @@ class dnsrecord_del(MethodOverride):
 
             present_params.append(param)
             rec_type_content = ', '.join(dns_record[param.name])
-            self.Backend.textui.print_plain('%s: %s' % (param.label, rec_type_content))
+            self.Backend.textui.print_plain(
+                '%s: %s' % (param.label, rec_type_content)
+            )
         self.Backend.textui.print_plain('')
 
         # ask what records to remove

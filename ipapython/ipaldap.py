@@ -201,13 +201,17 @@ class SchemaCache:
                 schema_entry = conn.search_s('cn=subschema', ldap.SCOPE_BASE,
                     attrlist=['attributetypes', 'objectclasses'])[0]
         except ldap.SERVER_DOWN:
-            raise errors.NetworkError(uri=url,
-                               error='LDAP Server Down, unable to retrieve LDAP schema')
+            raise errors.NetworkError(
+                uri=url,
+                error='LDAP Server Down, unable to retrieve LDAP schema',
+            )
         except ldap.LDAPError as e:
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info', '').strip()
-            raise errors.DatabaseError(desc = 'uri=%s' % url,
-                                info = 'Unable to retrieve LDAP schema: %s: %s' % (desc, info))
+            raise errors.DatabaseError(
+                desc='uri=%s' % url,
+                info='Unable to retrieve LDAP schema: %s: %s' % (desc, info),
+            )
 
         # no 'cn=schema' entry in LDAP? some servers use 'cn=subschema'
         # TODO: DS uses 'cn=schema', support for other server?

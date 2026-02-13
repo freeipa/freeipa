@@ -44,37 +44,57 @@ class topologysegment(Object):
         parameters.Str(
             'iparepltoposegmentdirection',
             label=_('Connectivity'),
-            doc=_('Direction of replication between left and right replication node'),
+            doc=_(
+                'Direction of replication between left and right replication '
+                'node'
+            ),
         ),
         parameters.Str(
             'nsds5replicastripattrs',
             required=False,
             label=_('Attributes to strip'),
-            doc=_('A space separated list of attributes which are removed from replication updates.'),
+            doc=_(
+                'A space separated list of attributes which are removed from '
+                'replication updates.'
+            ),
         ),
         parameters.Str(
             'nsds5replicatedattributelist',
             required=False,
             label=_('Attributes to replicate'),
-            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a fractional update. '
+                'E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'
+            ),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             label=_('Attributes for total update'),
-            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a total update. E.g. '
+                '(objectclass=*) $ EXCLUDE accountlockout'
+            ),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             label=_('Session timeout'),
-            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            doc=_(
+                'Number of seconds outbound LDAP operations waits for a '
+                'response from the remote replica before timing out and failing'
+            ),
         ),
         parameters.Str(
             'nsds5replicaenabled',
             required=False,
             label=_('Replication agreement enabled'),
-            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            doc=_(
+                'Whether a replication agreement is active, '
+                'meaning whether replication is occurring per that agreement'
+            ),
         ),
     )
 
@@ -137,7 +157,10 @@ class topologysegment_add(Method):
             cli_name='direction',
             cli_metavar="['both', 'left-right', 'right-left']",
             label=_('Connectivity'),
-            doc=_('Direction of replication between left and right replication node'),
+            doc=_(
+                'Direction of replication between left and right replication '
+                'node'
+            ),
             exclude=('cli', 'webui'),
             default='both',
         ),
@@ -146,7 +169,10 @@ class topologysegment_add(Method):
             required=False,
             cli_name='stripattrs',
             label=_('Attributes to strip'),
-            doc=_('A space separated list of attributes which are removed from replication updates.'),
+            doc=_(
+                'A space separated list of attributes which are removed from '
+                'replication updates.'
+            ),
             no_convert=True,
         ),
         parameters.Str(
@@ -154,21 +180,32 @@ class topologysegment_add(Method):
             required=False,
             cli_name='replattrs',
             label=_('Attributes to replicate'),
-            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a fractional update. '
+                'E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'
+            ),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             cli_name='replattrstotal',
             label=_('Attributes for total update'),
-            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a total update. E.g. '
+                '(objectclass=*) $ EXCLUDE accountlockout'
+            ),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             cli_name='timeout',
             label=_('Session timeout'),
-            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            doc=_(
+                'Number of seconds outbound LDAP operations waits for a '
+                'response from the remote replica before timing out and failing'
+            ),
         ),
         parameters.Str(
             'nsds5replicaenabled',
@@ -176,33 +213,49 @@ class topologysegment_add(Method):
             cli_name='enabled',
             cli_metavar="['on', 'off']",
             label=_('Replication agreement enabled'),
-            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            doc=_(
+                'Whether a replication agreement is active, '
+                'meaning whether replication is occurring per that agreement'
+            ),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -325,7 +378,10 @@ class topologysegment_find(Method):
             cli_name='direction',
             cli_metavar="['both', 'left-right', 'right-left']",
             label=_('Connectivity'),
-            doc=_('Direction of replication between left and right replication node'),
+            doc=_(
+                'Direction of replication between left and right replication '
+                'node'
+            ),
             exclude=('cli', 'webui'),
             default='both',
         ),
@@ -334,7 +390,10 @@ class topologysegment_find(Method):
             required=False,
             cli_name='stripattrs',
             label=_('Attributes to strip'),
-            doc=_('A space separated list of attributes which are removed from replication updates.'),
+            doc=_(
+                'A space separated list of attributes which are removed from '
+                'replication updates.'
+            ),
             no_convert=True,
         ),
         parameters.Str(
@@ -342,21 +401,32 @@ class topologysegment_find(Method):
             required=False,
             cli_name='replattrs',
             label=_('Attributes to replicate'),
-            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a fractional update. '
+                'E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'
+            ),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             cli_name='replattrstotal',
             label=_('Attributes for total update'),
-            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a total update. E.g. '
+                '(objectclass=*) $ EXCLUDE accountlockout'
+            ),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             cli_name='timeout',
             label=_('Session timeout'),
-            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            doc=_(
+                'Number of seconds outbound LDAP operations waits for a '
+                'response from the remote replica before timing out and failing'
+            ),
         ),
         parameters.Str(
             'nsds5replicaenabled',
@@ -364,7 +434,10 @@ class topologysegment_find(Method):
             cli_name='enabled',
             cli_metavar="['on', 'off']",
             label=_('Replication agreement enabled'),
-            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            doc=_(
+                'Whether a replication agreement is active, '
+                'meaning whether replication is occurring per that agreement'
+            ),
             exclude=('cli', 'webui'),
         ),
         parameters.Int(
@@ -381,14 +454,20 @@ class topologysegment_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -453,7 +532,10 @@ class topologysegment_mod(Method):
             required=False,
             cli_name='stripattrs',
             label=_('Attributes to strip'),
-            doc=_('A space separated list of attributes which are removed from replication updates.'),
+            doc=_(
+                'A space separated list of attributes which are removed from '
+                'replication updates.'
+            ),
             no_convert=True,
         ),
         parameters.Str(
@@ -461,21 +543,32 @@ class topologysegment_mod(Method):
             required=False,
             cli_name='replattrs',
             label=_('Attributes to replicate'),
-            doc=_('Attributes that are not replicated to a consumer server during a fractional update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a fractional update. '
+                'E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof'
+            ),
         ),
         parameters.Str(
             'nsds5replicatedattributelisttotal',
             required=False,
             cli_name='replattrstotal',
             label=_('Attributes for total update'),
-            doc=_('Attributes that are not replicated to a consumer server during a total update. E.g. (objectclass=*) $ EXCLUDE accountlockout'),
+            doc=_(
+                'Attributes that are not replicated to a consumer server '
+                'during a total update. E.g. '
+                '(objectclass=*) $ EXCLUDE accountlockout'
+            ),
         ),
         parameters.Int(
             'nsds5replicatimeout',
             required=False,
             cli_name='timeout',
             label=_('Session timeout'),
-            doc=_('Number of seconds outbound LDAP operations waits for a response from the remote replica before timing out and failing'),
+            doc=_(
+                'Number of seconds outbound LDAP operations waits for a '
+                'response from the remote replica before timing out and failing'
+            ),
         ),
         parameters.Str(
             'nsds5replicaenabled',
@@ -483,47 +576,69 @@ class topologysegment_mod(Method):
             cli_name='enabled',
             cli_metavar="['on', 'off']",
             label=_('Replication agreement enabled'),
-            doc=_('Whether a replication agreement is active, meaning whether replication is occurring per that agreement'),
+            doc=_(
+                'Whether a replication agreement is active, '
+                'meaning whether replication is occurring per that agreement'
+            ),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -636,20 +751,29 @@ class topologysegment_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -695,26 +819,39 @@ class topologysuffix_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -816,14 +953,20 @@ class topologysuffix_find(Method):
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -884,40 +1027,53 @@ class topologysuffix_mod(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_('Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_('Set an attribute to a name/value pair. '
+            'Format is attr=value.\nFor multi-valued attributes, '
+            'the command replaces the values already present.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_('Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_('Add an attribute/value pair. Format is attr=value. '
+            'The attribute\nmust be part of the schema.'),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_('Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_('Delete an attribute/value pair. '
+            'The option will be evaluated\nlast, after all sets and adds.'),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -956,20 +1112,29 @@ class topologysuffix_show(Method):
         parameters.Flag(
             'rights',
             label=_('Rights'),
-            doc=_('Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_('Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_('Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,

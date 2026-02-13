@@ -1327,9 +1327,7 @@ def ntpd_cleanup(fqdn, fstore):
         logger.debug("NTP service entry was not found in LDAP.")
 
     ntp_role_instance = servroles.ServiceBasedRole(
-         "ntp_server_server",
-         "NTP server",
-         component_services=['NTP']
+        'ntp_server_server', 'NTP server', component_services=['NTP']
     )
 
     updated_role_instances = tuple()
