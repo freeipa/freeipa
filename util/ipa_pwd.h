@@ -54,7 +54,7 @@ enum ipapwd_error {
 };
 
 struct ipapwd_policy {
-    int min_pwd_life;
+    unsigned int min_pwd_life;
     int max_pwd_life;
     int min_pwd_length;
     int history_length;
