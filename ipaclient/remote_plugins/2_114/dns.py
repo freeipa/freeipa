@@ -1747,8 +1747,9 @@ class dnsforwardzone_mod(Method):
             label=_('Forward policy'),
             doc=_(
                 'Per-zone conditional forwarding policy. '
-                'Set to "none" to disable forwarding to global forwarder for this '
-                'zone. In that case, conditional zone forwarders are disregarded.'
+                'Set to "none" to disable forwarding to global forwarder for '
+                'this zone. '
+                'In that case, conditional zone forwarders are disregarded.'
             ),
         ),
         parameters.Str(
