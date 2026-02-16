@@ -145,7 +145,10 @@ class test_delegation(Declarative):
                 value=delegation1,
                 summary=None,
                 result={
-                    'aci': '(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)'
+                    'aci': '(targetattr = "street || c || l || st || '
+                    'postalcode")(targetfilter = "(memberOf=%s)")(version '
+                    '3.0;acl "delegation:testdelegation";allow (write) groupdn '
+                    '= "ldap:///%s";)'
                     % (
                         DN(
                             ('cn', 'admins'),
@@ -240,7 +243,10 @@ class test_delegation(Declarative):
                 summary='1 delegation matched',
                 result=[
                     {
-                        'aci': '(targetattr = "street || c || l || st || postalcode")(targetfilter = "(memberOf=%s)")(version 3.0;acl "delegation:testdelegation";allow (write) groupdn = "ldap:///%s";)'
+                        'aci': '(targetattr = "street || c || l || st || '
+                        'postalcode")(targetfilter = "(memberOf=%s)")(version '
+                        '3.0;acl "delegation:testdelegation";allow (write) '
+                        'groupdn = "ldap:///%s";)'
                         % (
                             DN(
                                 ('cn', 'admins'),

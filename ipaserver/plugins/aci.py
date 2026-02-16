@@ -486,7 +486,8 @@ class aci(Object):
             cli_name='type',
             label=_('Type'),
             doc=_(
-                'type of IPA object (user, group, host, hostgroup, service, netgroup)'
+                'type of IPA object (user, group, host, hostgroup, service, '
+                'netgroup)'
             ),
             values=(
                 'user',

@@ -390,7 +390,8 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', error=_('Connection refused'))
+    >>> raise NetworkError(uri='ldap://localhost:389', 
+    ... error=_('Connection refused'))
     Traceback (most recent call last):
       ...
     NetworkError: cannot connect to 'ldap://localhost:389': Connection refused

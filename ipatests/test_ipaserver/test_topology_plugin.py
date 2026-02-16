@@ -54,7 +54,8 @@ class TestTopologyPlugin:
             'objectClass': ['top', 'nsSlapdPlugin', 'extensibleObject'],
             'nsslapd-topo-plugin-startup-delay': ['20'],
             'nsslapd-topo-plugin-shared-binddngroup': [
-                'cn=replication managers,cn=sysaccounts,cn=etc,dc=example,dc=com'
+                'cn=replication managers,cn=sysaccounts,cn=etc,'
+                'dc=example,dc=com'
             ],
             'nsslapd-pluginType': ['object'],
             'nsslapd-pluginInitfunc': ['ipa_topo_init'],

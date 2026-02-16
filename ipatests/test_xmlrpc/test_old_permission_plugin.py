@@ -440,7 +440,10 @@ class test_old_permission(Declarative):
                         'objectclass': objectclasses.permission,
                         'member': [privilege1_dn],
                         'aci': [
-                            '(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///%s";)'
+                            '(targetfilter = '
+                            '"(objectclass=posixaccount)")(version 3.0;acl '
+                            '"permission:testperm";allow (write) groupdn = '
+                            '"ldap:///%s";)'
                             % DN(
                                 ('cn', 'testperm'),
                                 ('cn', 'permissions'),

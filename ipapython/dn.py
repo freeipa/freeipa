@@ -507,8 +507,8 @@ def get_ava(*args):
             ava = list(rdn[0])
         else:
             raise TypeError(
-                'with 1 argument, argument must be str, tuple or list, got %s instead'
-                % arg.__class__.__name__
+                'with 1 argument, argument must be str, tuple or list, '
+                'got %s instead' % arg.__class__.__name__
             )
     else:
         raise TypeError("invalid number of arguments. 1-3 allowed")

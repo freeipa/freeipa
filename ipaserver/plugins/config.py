@@ -225,7 +225,8 @@ class config(LDAPObject):
             cli_name='searchtimelimit',
             label=_('Search time limit'),
             doc=_(
-                'Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)'
+                'Maximum amount of time (seconds) for a search '
+                '(-1 or 0 is unlimited)'
             ),
             minvalue=-1,
         ),
@@ -241,7 +242,8 @@ class config(LDAPObject):
             cli_name='usersearch',
             label=_('User search fields'),
             doc=_(
-                'A comma-separated list of fields to search in when searching for users'
+                'A comma-separated list of fields to search in when searching '
+                'for users'
             ),
         ),
         IA5Str(
@@ -249,7 +251,8 @@ class config(LDAPObject):
             cli_name='groupsearch',
             label=_('Group search fields'),
             doc=_(
-                'A comma-separated list of fields to search in when searching for groups'
+                'A comma-separated list of fields to search in when searching '
+                'for groups'
             ),
         ),
         Bool(
@@ -309,7 +312,8 @@ class config(LDAPObject):
             'ipaselinuxusermapdefault?',
             label=_('Default SELinux user'),
             doc=_(
-                'Default SELinux user when no match is found in SELinux map rule'
+                'Default SELinux user when no match is found in SELinux map '
+                'rule'
             ),
         ),
         StrEnum(

@@ -128,7 +128,9 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                    'aci': '(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)',
+                    'aci': '(targetattr = "street || c || l || st || '
+                    'postalcode")(version 3.0;acl "selfservice:testself";allow '
+                    '(write) userdn = "ldap:///self";)',
                 },
             ),
         ),
@@ -194,7 +196,10 @@ class test_selfservice(Declarative):
                 summary='1 selfservice matched',
                 result=[
                     {
-                        'aci': '(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)'
+                        'aci': '(targetattr = "street || c || l || st || '
+                        'postalcode")(version 3.0;acl '
+                        '"selfservice:testself";allow (write) userdn = '
+                        '"ldap:///self";)'
                     },
                 ],
             ),

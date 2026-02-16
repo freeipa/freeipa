@@ -597,7 +597,8 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
             if is_forward_record(domain, str(ip)):
                 raise errors.DuplicateEntry(
                     message=_(
-                        'IP address %(ip)s is already assigned in domain %(domain)s.'
+                        'IP address %(ip)s is already assigned in domain '
+                        '%(domain)s.'
                     )
                     % dict(ip=str(ip), domain=domain)
                 )
@@ -610,7 +611,8 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
                 if reverse['count'] > 0:
                     raise errors.DuplicateEntry(
                         message=_(
-                            'Reverse record for IP address %(ip)s already exists in reverse zone %(zone)s.'
+                            'Reverse record for IP address %(ip)s already '
+                            'exists in reverse zone %(zone)s.'
                         )
                         % dict(ip=str(ip), zone=revzone)
                     )
@@ -940,7 +942,8 @@ class ForwardRecord(DNSRecord):
                 except Exception as e:
                     raise errors.NonFatalError(
                         reason=_(
-                            'Cannot create reverse record for "%(value)s": %(exc)s'
+                            'Cannot create reverse record for "%(value)s": '
+                            '%(exc)s'
                         )
                         % dict(value=record, exc=str(e))
                     )
@@ -2074,7 +2077,8 @@ class DNSZoneBase(LDAPObject):
             label=_('Zone forwarders'),
             doc=_(
                 'Per-zone forwarders. A custom port can be specified '
-                'for each forwarder using a standard format "IP_ADDRESS port PORT"'
+                'for each forwarder using a standard format "IP_ADDRESS port '
+                'PORT"'
             ),
         ),
         StrEnum(
@@ -3105,7 +3109,8 @@ class dnsrecord(LDAPObject):
                 name='dsrecord',
                 error=str(
                     _(
-                        'DS record must not be in zone apex (RFC 4035 section 2.4)'
+                        'DS record must not be in zone apex '
+                        '(RFC 4035 section 2.4)'
                     )
                 ),
             )
@@ -4202,7 +4207,8 @@ class dnsconfig(LDAPObject):
             cli_name='allow_sync_ptr',
             label=_('Allow PTR sync'),
             doc=_(
-                'Allow synchronization of forward (A, AAAA) and reverse (PTR) records'
+                'Allow synchronization of forward '
+                '(A, AAAA) and reverse (PTR) records'
             ),
         ),
         Int(
@@ -4211,7 +4217,8 @@ class dnsconfig(LDAPObject):
             cli_name='zone_refresh',
             label=_('Zone refresh interval'),
             doc=_(
-                'An interval between regular polls of the name server for new DNS zones'
+                'An interval between regular polls of the name server for new '
+                'DNS zones'
             ),
             minvalue=0,
             flags={'no_option'},

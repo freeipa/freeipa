@@ -252,7 +252,12 @@ class test_realmdomains(Declarative):
                 },
             ),
             expected=errors.MutuallyExclusiveError(
-                reason='The --domain option cannot be used together with --add-domain or --del-domain. Use --domain to specify the whole realm domain list explicitly, to add/remove individual domains, use --add-domain/del-domain.'
+                reason=(
+                    'The --domain option cannot be used together with '
+                    '--add-domain or --del-domain. Use --domain to specify '
+                    'the whole realm domain list explicitly, to add/remove '
+                    'individual domains, use --add-domain/del-domain.'
+                )
             ),
         ),
         dict(

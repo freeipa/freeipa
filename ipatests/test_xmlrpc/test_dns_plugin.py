@@ -664,8 +664,8 @@ class test_dns(Declarative):
                 },
                 'messages': (
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -674,8 +674,8 @@ class test_dns(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
@@ -978,7 +978,7 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='name-server',
-                error='Nameserver for reverse zone cannot be a relative DNS name',
+                error='Nameserver for reverse zone cannot be a relative DNS name', # FIXME: E501
             ),
         ),
         dict(

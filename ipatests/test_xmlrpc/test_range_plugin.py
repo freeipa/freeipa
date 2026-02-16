@@ -676,7 +676,10 @@ class test_range(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify ID range %r so that its rid ranges are overlapping themselves'
+            desc=(
+                'Try to modify ID range %r so that its '
+                'rid ranges are overlapping themselves'
+            )
             % (testrange2),
             command=(
                 'idrange_mod',

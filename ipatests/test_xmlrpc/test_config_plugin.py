@@ -69,7 +69,10 @@ class test_config(Declarative):
                 'config_mod',
                 [],
                 dict(
-                    delattr='ipausersearchfields=uid,givenname,sn,telephonenumber,ou,title'
+                    delattr=(
+                        'ipausersearchfields=uid,givenname,sn,'
+                        'telephonenumber,ou,title'
+                    )
                 ),
             ),
             expected=errors.RequirementError(name='usersearch'),

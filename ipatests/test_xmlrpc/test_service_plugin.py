@@ -784,8 +784,10 @@ class test_service(Declarative):
         # These tests will only succeed when running against lite-server.py
         # on same box as IPA install.
         dict(
-            desc='Delete the current host (master?) %s HTTP service, should be caught'
-            % api.env.host,
+            desc=(
+                'Delete the current host (master?) %s '
+                'HTTP service, should be caught'
+            ) % api.env.host,
             command=('service_del', ['HTTP/%s' % api.env.host], {}),
             expected=errors.ValidationError(
                 name='principal',

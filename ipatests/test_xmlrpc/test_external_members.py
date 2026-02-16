@@ -155,8 +155,10 @@ class test_external_members(Declarative):
             ),
         ),
         dict(
-            desc='Try to remove external entry "%s" which is not a member of group "%s" from group "%s"'
-            % (get_trusted_group_name(), group_name, group_name),
+            desc=(
+                'Try to remove external entry "%s" which is not a member '
+                'of group "%s" from group "%s"'
+            ) % (get_trusted_group_name(), group_name, group_name),
             command=(
                 'group_remove_member',
                 [group_name],
