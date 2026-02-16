@@ -43,7 +43,7 @@ from dns import rrset, rdatatype, rdataclass
 from dns.exception import DNSException
 import ldap
 
-from ipalib import facts, _
+from ipalib import facts
 from ipalib.install.kinit import kinit_password
 import ipaplatform
 from ipapython import ipautil, admintool, version, ipaldap
@@ -1598,46 +1598,6 @@ def get_replication_plugin_name(dirsrv_get_entry):
             )
 
 
-def validate_key_type_size(value):
-    """Do some basic validation of key type and size.
-
-       Returns None on success and an error string on failure.
-    """
-    types = {
-        'rsa': (2048, 3072, 4096, 7168, 8192),
-        'ec': tuple(),
-        'mldsa': (44, 65, 87),
-    }
-    if len(value.split(':', 1)) != 2:
-        return _('Must be of the form type:size')
-    (type, size) = value.split(':', 1)
-    type = type.strip()
-    size = size.strip()
-
-    if type not in types:
-        if len(types) == 1:
-            return _('Key type must be "%(type)s"') % {
-                'type': next(iter(types))
-            }
-        else:
-            return _("Key type must be one of: %(types)s") % {
-                "types": ", ".join(types)
-            }
-
-    if type in ('rsa', 'mldsa'):
-        try:
-            size = int(size)
-        except ValueError:
-            return _('Not an integer: %(size)s') % {'size': size}
-    else:
-        return _('%(type)s keys are not supported yet') % {'type': type}
-
-    if size not in types.get(type):
-        return _('Invalid size {}. Allowed {}').format(size, types.get(type))
-
-    return None
-
-
 def lookup_key_type(api):
     """
     Retrieve the key type and size configuration.
@@ -1658,7 +1618,7 @@ def lookup_key_type(api):
     if ret:
         type_size = ret['result'].get('ipaservicekeytypesize')
         if type_size:
-            (keytype, keysize) = type_size[0].split(':', 1)
+            (keytype, keysize) = certs.get_key_type_and_strength(type_size[0])
 
     return (keytype, keysize)
 
