@@ -59,8 +59,8 @@ group1 = 'testgroup'
 
 invalidnetgroup1 = '+badnetgroup'
 invalidnisdomain1 = 'domain1,domain2'
-invalidnisdomain2='+invalidnisdomain'
-invalidhost='+invalid&host'
+invalidnisdomain2 = '+invalidnisdomain'
+invalidhost = '+invalid&host'
 
 
 @pytest.mark.tier1

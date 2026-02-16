@@ -260,8 +260,12 @@ tlsarec_err1 = (
 tlsarec_err2 = (
     '0 300 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
 )
-tlsarec_err3 = '0 0 300 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
-tlsarec_ok = '0 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+tlsarec_err3 = (
+    '0 0 300 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+)
+tlsarec_ok = (
+    '0 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+)
 
 wildcard_rec1 = '*.test'
 wildcard_rec1_dnsname = DNSName(wildcard_rec1)

@@ -124,8 +124,8 @@ class test_sudorule(XMLRPC_test):
         self.failsafe_add(
             api.Object.user, self.test_user, givenname='first', sn='last'
         )
-        self.failsafe_add(api.Object.user,
-            self.test_runasuser, givenname='first', sn='last'
+        self.failsafe_add(
+            api.Object.user, self.test_runasuser, givenname='first', sn='last'
         )
         self.failsafe_add(
             api.Object.group, self.test_group, description='description'
@@ -136,16 +136,18 @@ class test_sudorule(XMLRPC_test):
         self.failsafe_add(
             api.Object.hostgroup, self.test_hostgroup, description='description'
         )
-        self.failsafe_add(api.Object.sudocmdgroup,
-            self.test_sudoallowcmdgroup, description='desc'
+        self.failsafe_add(
+            api.Object.sudocmdgroup,
+            self.test_sudoallowcmdgroup,
+            description='desc',
         )
         self.failsafe_add(
             api.Object.sudocmdgroup,
             self.test_sudodenycmdgroup,
             description='desc',
         )
-        self.failsafe_add(api.Object.sudocmd,
-            self.test_command, description='desc'
+        self.failsafe_add(
+            api.Object.sudocmd, self.test_command, description='desc'
         )
 
     def test_8_sudorule_add_user(self):

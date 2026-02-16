@@ -579,12 +579,16 @@ def create_pki():
             ]
         ),
     )
-    gen_cert(profile_server, 'replica-selfsign',
-             x509.Name([
+    gen_cert(
+        profile_server,
+        'replica-selfsign',
+        x509.Name(
+            [
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Self-signed'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server2)
-             ])
-             )
+                x509.NameAttribute(NameOID.COMMON_NAME, server2),
+            ]
+        ),
+    )
     gen_cert(
         profile_server,
         'noca',
@@ -595,13 +599,17 @@ def create_pki():
             ]
         ),
     )
-    gen_cert(profile_kdc, 'server-kdc-selfsign',
-             x509.Name([
+    gen_cert(
+        profile_kdc,
+        'server-kdc-selfsign',
+        x509.Name(
+            [
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Self-signed'),
                 x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, 'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server1)
-             ])
-             )
+                x509.NameAttribute(NameOID.COMMON_NAME, server1),
+            ]
+        ),
+    )
     gen_cert(
         profile_kdc,
         'replica-kdc-selfsign',

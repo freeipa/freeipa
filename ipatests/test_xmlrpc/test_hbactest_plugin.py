@@ -66,8 +66,8 @@ class test_hbactest(XMLRPC_test):
         self.failsafe_add(
             api.Object.user, self.test_user, givenname='first', sn='last'
         )
-        self.failsafe_add(api.Object.group,
-            self.test_group, description='description'
+        self.failsafe_add(
+            api.Object.group, self.test_group, description='description'
         )
         self.failsafe_add(api.Object.host,
             self.test_host, force=True
@@ -81,8 +81,8 @@ class test_hbactest(XMLRPC_test):
         self.failsafe_add(
             api.Object.hostgroup, self.test_sourcehostgroup, description='desc'
         )
-        self.failsafe_add(api.Object.hbacsvc,
-            self.test_service, description='desc'
+        self.failsafe_add(
+            api.Object.hbacsvc, self.test_service, description='desc'
         )
 
         for i in [0,1,2,3]:
