@@ -21,9 +21,12 @@ class BasePWpolicy(IntegrationTest):
     Base class for testing password policies including libpwquality
     """
 
+    num_replicas = 0
+    topology = 'line'
+
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
+        super(BasePWpolicy, cls).install(mh)
 
         tasks.kinit_admin(cls.master)
         cls.master.run_command(['ipa', 'user-add', USER,
