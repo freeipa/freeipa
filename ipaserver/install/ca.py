@@ -553,6 +553,9 @@ def install_step_0(standalone, replica_config, options, custodia):
 
     if replica_config is None:
         ca_signing_algorithm = options.ca_signing_algorithm
+        ca_key_type = options.ca_key_type
+        if ca_key_type is None:
+            ca_key_type = "rsa"
         if options.external_ca:
             ca_type = options.external_ca_type
             external_ca_profile = options.external_ca_profile
@@ -619,6 +622,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         subject_base=subject_base,
         ca_subject=ca_subject,
         ca_signing_algorithm=ca_signing_algorithm,
+        ca_key_type=ca_key_type,
         ca_type=ca_type,
         external_ca_profile=external_ca_profile,
         csr_file=csr_file,
@@ -728,6 +732,14 @@ class CASigningAlgorithm(enum.Enum):
     ML_DSA_87 = 'ML-DSA-87'
 
 
+class CAKeyType(enum.Enum):
+    rsa = 'rsa'
+    mldsa = 'mldsa'
+    mldsa_44 = 'mldsa:44'
+    mldsa_65 = 'mldsa:65'
+    mldsa_87 = 'mldsa:87'
+
+
 @group
 class CAInstallInterface(dogtag.DogtagInstallInterface,
                          conncheck.ConnCheckInterface):
@@ -827,6 +839,12 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
         description="Signing algorithm of the IPA CA certificate",
     )
     ca_signing_algorithm = master_install_only(ca_signing_algorithm)
+
+    ca_key_type = knob(
+        CAKeyType, None,
+        description="CA private key type",
+    )
+    ca_key_type = master_install_only(ca_key_type)
 
     skip_schema_check = knob(
         None,

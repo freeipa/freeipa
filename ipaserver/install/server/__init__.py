@@ -23,7 +23,7 @@ from ipapython.install.core import group, knob, extend_knob
 from ipapython.install.common import step
 from ipaplatform import services
 
-from ipaserver.install.installutils import validate_key_type_size
+from ipaserver.install.certs import validate_key_type_size
 from .install import validate_admin_password, validate_dm_password
 from .install import get_min_idstart
 from .install import init as master_init

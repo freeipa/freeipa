@@ -175,6 +175,8 @@ Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SH
 .TP
 \fB\-\-key\-type\-size\fR=\fITYPE:SIZE\fR
 Specifies the key type and size for the HTTP, LDAP, PKINIT and RA certificates (if configured with a CA). The format is type:size where type is the type of key and size is the number represents the number of bits. Currently type only supports RSA keys. The sizes will depend on what the crypto engines and CA profiles support. Typical RSA sizes are 2048, 3072, 4096, 7168 and 8192. The default is rsa:2048.
+\fB\-\-ca-key\-typefR=\fITYPE[:STRENGTH]\fR
+Specifies the private key algorithm to use for the Certificate Authority (CA). The format is type with an optional key strength delimited with a colon. The RSA and ML-DSA algorithms are supported with strengths of 2048, 3072, 4096, 8192 and 44, 65 and 87 respectively. This setting also sets the algorithm used by CA subsystem certificate keys. RSA:3072 is the default.
 
 .SS "HSM OPTIONS"
 .TP
