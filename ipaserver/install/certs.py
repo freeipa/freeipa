@@ -57,6 +57,16 @@ from ipaserver.masters import find_providing_server
 
 logger = logging.getLogger(__name__)
 
+default_ca_key_strength = dict(
+    rsa="3072",
+    mldsa="65"  # FIXME, should be 87
+)
+
+default_cert_key_strength = dict(
+    rsa="2048",
+    mldsa="65"
+)
+
 
 def get_cert_nickname(cert):
     """
@@ -147,6 +157,82 @@ def is_ipa_issued_cert(api, cert):
     return DN(cert.issuer) == cacert_subject
 
 
+def validate_key_type_size(value):
+    """Do some basic format and value validation of key type and size.
+
+       Raises an exception on failure.
+    """
+    types = {
+        'rsa': (2048, 3072, 4096, 7168, 8192),
+        'ec': tuple(),
+        'mldsa': (44, 65, 87),
+    }
+    values = value.split(':', 1)
+    if len(values) == 1:
+        type = values[0].strip()
+        size = None
+    elif len(values) == 2:
+        (type, size) = value.split(':', 1)
+        type = type.strip()
+        size = size.strip()
+    else:
+        return _('Must be of the form type:size')
+
+    if type not in types:
+        if len(types) == 1:
+            raise ValueError('Key type must be "%(type)s"' % {
+                'type': next(iter(types))
+            })
+        else:
+            raise ValueError("Key type must be one of: %(types)s" % {
+                "types": ", ".join(types)
+            })
+
+    if size is not None:
+        if type in ('rsa', 'mldsa'):
+            try:
+                size = int(size)
+            except ValueError:
+                raise ValueError('Not an integer: %(size)s' % {'size': size})
+        else:
+            raise ValueError(
+                '%(type)s keys are not supported yet' % {'type': type})
+
+        if size not in types.get(type):
+            raise ValueError('Invalid size {}. Allowed {}'.format(
+                size, types.get(type))
+            )
+
+    return None
+
+
+def get_key_type_and_strength(input, is_ca=False):
+    """Take a colon-delimited string with an optional strength component,
+       validate it if appropriate, and return the key type and strength.
+
+       Strength is optional so if there is no colon, or the value is
+       empty, return the IPA default value.
+
+       :param is_ca: Is this for a CA key?
+       "return: tuple (key_type, key_strength)
+    """
+    key_strength = None
+    if ':' in input:
+        (key_type, key_strength) = input.lower().split(':', 1)
+        if ':' in key_strength:
+            raise ValueError("Unexpected colon in input %s" % input)
+        validate_key_type_size(input)
+    else:
+        key_type = input.lower()
+        if is_ca:
+            key_strength = default_ca_key_strength[key_type]
+        else:
+            key_strength = default_cert_key_strength[key_type]
+        validate_key_type_size(f"{key_type}:{key_strength}")
+
+    return (key_type, key_strength)
+
+
 def get_ra_agent_profile(api):
     """This is suitable during installation. I doubt at runtime.
 
@@ -156,7 +242,7 @@ def get_ra_agent_profile(api):
 
        The caller is expected to handle None.
     """
-    (keytype, _keysize) = api.env.key_type_size.split(':', 1)
+    (keytype, _keysize) = get_key_type_and_strength(api.env.key_type_size)
     if keytype == "rsa":
         return "caSubsystemCert"
     elif keytype == "mldsa":
@@ -174,7 +260,7 @@ def get_default_profile(api):
 
        The caller is expected to handle None.
     """
-    (keytype, _keysize) = api.env.key_type_size.split(':', 1)
+    (keytype, _keysize) = get_key_type_and_strength(api.env.key_type_size)
     if keytype == "rsa":
         return "caIPAserviceCert"
     elif keytype == "mldsa":
@@ -842,7 +928,9 @@ class CertDB:
         """Use openssl to generate a CSR and submit it using the pki
            Python API, using the IPA RA certificate.
         """
-        (keytype, keysize) = api.env.key_type_size.split(':', 1)
+        (keytype, keysize) = (
+            get_key_type_and_strength(api.env.key_type_size)
+        )
 
         # Generate a private key
         if service == 'krbtgt':
