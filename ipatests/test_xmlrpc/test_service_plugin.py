@@ -787,7 +787,8 @@ class test_service(Declarative):
             desc=(
                 'Delete the current host (master?) %s '
                 'HTTP service, should be caught'
-            ) % api.env.host,
+            )
+            % api.env.host,
             command=('service_del', ['HTTP/%s' % api.env.host], {}),
             expected=errors.ValidationError(
                 name='principal',

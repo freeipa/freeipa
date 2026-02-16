@@ -390,7 +390,7 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', 
+    >>> raise NetworkError(uri='ldap://localhost:389',
     ... error=_('Connection refused'))
     Traceback (most recent call last):
       ...
@@ -798,7 +798,7 @@ class ValidationError(InvocationError):
 
     For example:
 
-    >>> raise ValidationError(name='sn', error=_('can be at most 128 characters'))
+    >>> raise ValidationError(name='sn', error=_('can be at most 128 characters')) # FIXME: E501
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'sn': can be at most 128 characters
@@ -1782,7 +1782,7 @@ class CertificateFormatError(CertificateError):
 
     For example:
 
-    >>> raise CertificateFormatError(error=_('improperly formated DER-encoded certificate'))
+    >>> raise CertificateFormatError(error=_('improperly formated DER-encoded certificate')) # FIXME: E501
     Traceback (most recent call last):
       ...
     CertificateFormatError: Certificate format error: improperly formated DER-encoded certificate
@@ -1799,7 +1799,7 @@ class MutuallyExclusiveError(ExecutionError):
 
     For example:
 
-    >>> raise MutuallyExclusiveError(reason=_('hosts may not be added when hostcategory=all'))
+    >>> raise MutuallyExclusiveError(reason=_('hosts may not be added when hostcategory=all')) # FIXME: E501
     Traceback (most recent call last):
       ...
     MutuallyExclusiveError: hosts may not be added when hostcategory=all
@@ -1816,7 +1816,7 @@ class NonFatalError(ExecutionError):
 
     For example:
 
-    >>> raise NonFatalError(reason=_('The host was added but the DNS update failed'))
+    >>> raise NonFatalError(reason=_('The host was added but the DNS update failed')) # FIXME: E501
     Traceback (most recent call last):
       ...
     NonFatalError: The host was added but the DNS update failed
@@ -1865,7 +1865,7 @@ class DependentEntry(ExecutionError):
     **4307** Raised when an entry being deleted has dependencies
 
     For example:
-    >>> raise DependentEntry(label='SELinux User Map', key='test', dependent='test1')
+    >>> raise DependentEntry(label='SELinux User Map', key='test', dependent='test1') # FIXME: E501
     Traceback (most recent call last):
       ...
     DependentEntry: test cannot be deleted because SELinux User Map test1 requires it
@@ -1902,7 +1902,7 @@ class ProtectedEntryError(ExecutionError):
     **4309** Raised when an entry being deleted or modified in a forbidden way is protected
 
     For example:
-    >>> raise ProtectedEntryError(label='group', key='admins', reason=_('privileged group'))
+    >>> raise ProtectedEntryError(label='group', key='admins', reason=_('privileged group')) # FIXME: E501
     Traceback (most recent call last):
       ...
     ProtectedEntryError: group admins cannot be deleted/modified: privileged group

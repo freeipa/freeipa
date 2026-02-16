@@ -269,7 +269,7 @@ class textui(backend.Backend):
         >>> ui.print_attribute(attr, 'dc=example,dc=com')
           dn: dc=example,dc=com
         >>> attr = 'objectClass'
-        >>> ui.print_attribute(attr, ['top', 'someClass'], 
+        >>> ui.print_attribute(attr, ['top', 'someClass'],
         ... one_value_per_line=False)
           objectClass: top, someClass
         >>> ui.print_attribute(attr, ['top', 'someClass'])
