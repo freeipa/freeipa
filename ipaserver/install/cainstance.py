@@ -342,6 +342,7 @@ class CAInstance(DogtagInstance):
                            master_replication_port=389,
                            subject_base=None, ca_subject=None,
                            ca_signing_algorithm=None,
+                           ca_key_type="rsa",
                            ca_type=None, external_ca_profile=None,
                            ra_p12=None, ra_only=False,
                            promote=False, use_ldaps=False,
@@ -383,6 +384,7 @@ class CAInstance(DogtagInstance):
             ca_subject or installutils.default_ca_subject_dn(self.subject_base)
 
         self.ca_signing_algorithm = ca_signing_algorithm
+        self.ca_key_type = ca_key_type
         if ca_type is not None:
             self.ca_type = ca_type
         else:
@@ -564,8 +566,53 @@ class CAInstance(DogtagInstance):
             cfg['pki_token_password'] = self.token_password
             cfg['pki_sslserver_token'] = 'internal'
 
-        if self.ca_signing_algorithm is not None:
-            cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
+        ipa_ca_key_size = None
+        if self.ca_key_type:
+            (self.ca_key_type, ipa_ca_key_size) = (
+                certs.get_key_type_and_strength(self.ca_key_type, True)
+            )
+
+        (key_type, key_size) = (
+            certs.get_key_type_and_strength(api.env.key_type_size)
+        )
+
+        if self.ca_key_type == "rsa":
+            if self.ca_signing_algorithm is not None:
+                ipa_ca_key_algorithm = self.ca_signing_algorithm
+            else:
+                ipa_ca_key_algorithm = "SHA256withRSA"
+            if ipa_ca_key_size is None:
+                # the default
+                ipa_ca_key_size = "3072"
+            ipa_key_algorithm = "SHA256withRSA"
+            ipa_key_size = "2048"
+            ipa_signing_algorithm = "SHA256withRSA"
+        elif self.ca_key_type == "mldsa":
+            if ipa_ca_key_size is None:
+                # the default
+                ipa_ca_key_size = "65"
+                # ipa_ca_key_size = "87"  # FIXME
+            ipa_key_size = "65"
+            ipa_ca_key_algorithm = f"ML-DSA-{ipa_ca_key_size}"
+            if self.ca_signing_algorithm is not None:
+                cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
+            else:
+                ipa_signing_algorithm = ipa_ca_key_algorithm
+            #ipa_key_algorithm = f"ML-DSA-{ipa_key_size}"
+            ipa_key_algorithm = ipa_ca_key_algorithm
+            ipa_signing_algorithm = ipa_ca_key_algorithm
+        else:
+            raise RuntimeError("CA key type unknown")
+
+        # FIXME: add some validation that the options are compatible.
+        #        e.g. that an ML-DSA key doesn't have an RSA signing method.
+        cfg['ipa_ca_key_size'] = ipa_ca_key_size
+        cfg['ipa_ca_key_algorithm'] = ipa_ca_key_algorithm
+
+        cfg['ipa_key_size'] = ipa_key_size
+        cfg['ipa_key_algorithm'] = ipa_key_algorithm
+        cfg['ipa_key_type'] = self.ca_key_type
+        cfg['ipa_signing_algorithm'] = ipa_signing_algorithm
 
         cfg['pki_random_serial_numbers_enable'] = self.random_serial_numbers
         if self.random_serial_numbers:
@@ -952,7 +999,9 @@ class CAInstance(DogtagInstance):
             tmpdb.import_pkcs12(
                 paths.DOGTAG_ADMIN_P12, pkcs12_passwd=self.dm_password)
 
-            (keytype, keysize) = api.env.key_type_size.split(':', 1)
+            (keytype, keysize) = (
+                certs.get_key_type_and_strength(api.env.key_type_size)
+            )
 
             if keytype == "mldsa":
                 # convert to the format NSS expects
