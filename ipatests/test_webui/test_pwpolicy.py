@@ -151,6 +151,10 @@ class test_pwpolicy(UI_driver):
             elif field == 'krbpwdmindiffchars':
                 self.check_expected_error(field, 'Maximum value is 5',
                                           maximum_value)
+            # verifying if field value is more than 480000
+            elif field == 'krbminpwdlife':
+                self.check_expected_error(field, 'Maximum value is 480000',
+                                          maximum_value)
             # verifying if field value is more than 2147483647
             else:
                 self.check_expected_error(field, 'Maximum value is 2147483647',
