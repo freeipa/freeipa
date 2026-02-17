@@ -3,13 +3,10 @@
 #
 
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Command
+from ipalib import output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
 
 register = Registry()
 
