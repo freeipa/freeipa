@@ -3,13 +3,11 @@
 #
 
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
+from . import Command
+from ipalib import parameters
 from ipalib.parameters import DefaultFrom
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
 
 __doc__ = _("""
 Joining an IPA domain

@@ -4,12 +4,10 @@
 
 
 from . import Command, Method, Object
-from ipalib import api, parameters, output
+from ipalib import parameters, output
 from ipalib.parameters import DefaultFrom
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
 
 __doc__ = _("""
 Domain Name System (DNS)
