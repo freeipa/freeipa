@@ -1620,7 +1620,10 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='cnamerecord',
-                error='only one CNAME record is allowed per name (RFC 2136, section 1.1.5)', # FIXME: E501
+                error=(
+                    'only one CNAME record is allowed per name '
+                    '(RFC 2136, section 1.1.5)',
+                )
             ),
         ),
         dict(
@@ -1643,8 +1646,7 @@ class test_dns(Declarative):
         ),
         dict(
             desc=(
-                'Try to add other record to CNAME record %r '
-                'using dnsrecord_add'
+                'Try to add other record to CNAME record %r using dnsrecord_add'
             )
             % (cname),
             command=('dnsrecord_add', [zone1, cname], {'arecord': arec1}),
@@ -1656,8 +1658,7 @@ class test_dns(Declarative):
         ),
         dict(
             desc=(
-                'Try to add other record to CNAME record %r '
-                'using dnsrecord_mod'
+                'Try to add other record to CNAME record %r using dnsrecord_mod'
             )
             % (cname),
             command=('dnsrecord_mod', [zone1, cname], {'arecord': arec1}),
@@ -1702,7 +1703,7 @@ class test_dns(Declarative):
                 error=(
                     'only one DNAME record is allowed per name '
                     '(RFC 6672, section 2.4)'
-                )
+                ),
             ),
         ),
         dict(
@@ -2046,9 +2047,8 @@ class test_dns(Declarative):
             expected=errors.ValidationError(
                 name='dsrecord',
                 error=(
-                    'DS record must not be in zone apex '
-                    '(RFC 4035 section 2.4)'
-                )
+                    'DS record must not be in zone apex (RFC 4035 section 2.4)'
+                ),
             ),
         ),
         dict(
@@ -2063,7 +2063,7 @@ class test_dns(Declarative):
                 error=(
                     'DS record requires to coexist with an NS record '
                     '(RFC 4592 section 4.6, RFC 4035 section 2.4)'
-                )
+                ),
             ),
         ),
         dict(
@@ -2111,7 +2111,7 @@ class test_dns(Declarative):
                 error=(
                     'DS record requires to coexist with an NS record '
                     '(RFC 4592 section 4.6, RFC 4035 section 2.4)'
-                )
+                ),
             ),
         ),
         dict(
