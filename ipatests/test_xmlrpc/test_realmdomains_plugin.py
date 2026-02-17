@@ -273,7 +273,10 @@ class test_realmdomains(Declarative):
             ),
         ),
         dict(
-            desc='Try to replace list of realm domains with a list with an invalid domain "%s"'
+            desc=(
+                'Try to replace list of realm domains with a list '
+                'with an invalid domain "%s"'
+            )
             % bad_domain,
             command=(
                 'realmdomains_mod',
@@ -282,7 +285,10 @@ class test_realmdomains(Declarative):
             ),
             expected=errors.ValidationError(
                 name='domain',
-                error='DNS zone for each realmdomain must contain SOA or NS records. No records found for: %s'
+                error=(
+                    'DNS zone for each realmdomain must contain '
+                    'SOA or NS records. No records found for: %s'
+                )
                 % bad_domain,
             ),
         ),
@@ -291,7 +297,10 @@ class test_realmdomains(Declarative):
             command=('realmdomains_mod', [], {'add_domain': bad_domain}),
             expected=errors.ValidationError(
                 name='domain',
-                error='DNS zone for each realmdomain must contain SOA or NS records. No records found for: %s'
+                error=(
+                    'DNS zone for each realmdomain must contain '
+                    'SOA or NS records. No records found for: %s'
+                )
                 % bad_domain,
             ),
         ),

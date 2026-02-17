@@ -703,11 +703,17 @@ class test_range(Declarative):
             ),
             expected=errors.DatabaseError(
                 desc='Constraint violation',
-                info='New primary rid range overlaps with existing primary rid range.',
+                info=(
+                    'New primary rid range overlaps with '
+                    'existing primary rid range.'
+                )
             ),
         ),
         dict(
-            desc='Try to create ID range %r with overlapping secondary rid range'
+            desc=(
+                'Try to create ID range %r with overlapping '
+                'secondary rid range'
+            )
             % (testrange4),
             command=(
                 'idrange_add',
@@ -721,11 +727,17 @@ class test_range(Declarative):
             ),
             expected=errors.DatabaseError(
                 desc='Constraint violation',
-                info='New secondary rid range overlaps with existing secondary rid range.',
+                info=(
+                    'New secondary rid range overlaps with '
+                    'existing secondary rid range.'
+                )
             ),
         ),
         dict(
-            desc='Try to create ID range %r with primary range overlapping secondary rid range'
+            desc=(
+                'Try to create ID range %r with primary range '
+                'overlapping secondary rid range'
+            )
             % (testrange5),
             command=(
                 'idrange_add',
@@ -739,7 +751,10 @@ class test_range(Declarative):
             ),
             expected=errors.DatabaseError(
                 desc='Constraint violation',
-                info='New primary rid range overlaps with existing secondary rid range.',
+                info=(
+                    'New primary rid range overlaps with '
+                    'existing secondary rid range.'
+                )
             ),
         ),
         dict(
@@ -761,7 +776,10 @@ class test_range(Declarative):
             ),
         ),
         dict(
-            desc='Try to create ID range %r with rid ranges overlapping themselves'
+            desc=(
+                'Try to create ID range %r with rid ranges '
+                'overlapping themselves'
+            )
             % (testrange7),
             command=(
                 'idrange_add',
@@ -775,7 +793,10 @@ class test_range(Declarative):
             ),
             expected=errors.ValidationError(
                 name='ID Range setup',
-                error='Primary RID range and secondary RID range cannot overlap',
+                error=(
+                    'Primary RID range and secondary RID '
+                    'range cannot overlap'
+                )
             ),
         ),
         dict(

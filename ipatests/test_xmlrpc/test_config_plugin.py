@@ -83,7 +83,9 @@ class test_config(Declarative):
                 'config_mod',
                 [],
                 dict(
-                    ipausersearchfields='uid,givenname,sn,telephonenumber,ou,title,Description'
+                    ipausersearchfields=(
+                        'uid,givenname,sn,telephonenumber,ou,title,Description'
+                    )
                 ),
             ),
             expected=dict(
@@ -103,7 +105,9 @@ class test_config(Declarative):
                 'config_mod',
                 [],
                 dict(
-                    ipausersearchfields='uid,givenname,sn,telephonenumber,ou,title',
+                    ipausersearchfields=(
+                        'uid,givenname,sn,telephonenumber,ou,title'
+                    )
                 ),
             ),
             expected=dict(

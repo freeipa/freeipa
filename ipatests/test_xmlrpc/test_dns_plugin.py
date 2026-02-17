@@ -978,7 +978,9 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='name-server',
-                error='Nameserver for reverse zone cannot be a relative DNS name', # FIXME: E501
+                error=(
+                    'Nameserver for reverse zone cannot be a relative DNS name'
+                ),
             ),
         ),
         dict(
@@ -1409,12 +1411,18 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='srv_rec',
-                error='format must be specified as "PRIORITY WEIGHT PORT TARGET" '
-                + ' (see RFC 2782 for details)',
+                error=(
+                    'format must be specified as '
+                    '"PRIORITY WEIGHT PORT TARGET" '
+                    ' (see RFC 2782 for details)'
+                ),
             ),
         ),
         dict(
-            desc='Try to add SRV record to zone %r both via parts and a raw value'
+            desc=(
+                'Try to add SRV record to zone %r '
+                'both via parts and a raw value'
+            )
             % (zone1),
             command=(
                 'dnsrecord_add',
@@ -1454,7 +1462,10 @@ class test_dns(Declarative):
             },
         ),
         dict(
-            desc='Try to modify SRV record in zone %r without specifying modified value'
+            desc=(
+                'Try to modify SRV record in zone %r without '
+                'specifying modified value'
+            )
             % (zone1),
             command=(
                 'dnsrecord_mod',
@@ -1466,7 +1477,10 @@ class test_dns(Declarative):
             expected=errors.RequirementError(name='srv_rec'),
         ),
         dict(
-            desc='Try to modify SRV record in zone %r with non-existent modified value'
+            desc=(
+                'Try to modify SRV record in zone %r with '
+                'non-existent modified value'
+            )
             % (zone1),
             command=(
                 'dnsrecord_mod',
@@ -1532,7 +1546,8 @@ class test_dns(Declarative):
                 'dnsrecord_add',
                 [zone1, '@'],
                 {
-                    'locrecord': '49 11 42.4 N 16 36 29.6 E 227.64m 10m 10.0m 0.1'
+                    'locrecord': '49 11 42.4 N 16 36 29.6 E '
+                    '227.64m 10m 10.0m 0.1'
                 },
             ),
             expected={
@@ -1605,7 +1620,7 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='cnamerecord',
-                error='only one CNAME record is allowed per name (RFC 2136, section 1.1.5)',
+                error='only one CNAME record is allowed per name (RFC 2136, section 1.1.5)', # FIXME: E501
             ),
         ),
         dict(
@@ -1627,7 +1642,10 @@ class test_dns(Declarative):
             },
         ),
         dict(
-            desc='Try to add other record to CNAME record %r using dnsrecord_add'
+            desc=(
+                'Try to add other record to CNAME record %r '
+                'using dnsrecord_add'
+            )
             % (cname),
             command=('dnsrecord_add', [zone1, cname], {'arecord': arec1}),
             expected=errors.ValidationError(
@@ -1637,7 +1655,10 @@ class test_dns(Declarative):
             ),
         ),
         dict(
-            desc='Try to add other record to CNAME record %r using dnsrecord_mod'
+            desc=(
+                'Try to add other record to CNAME record %r '
+                'using dnsrecord_mod'
+            )
             % (cname),
             command=('dnsrecord_mod', [zone1, cname], {'arecord': arec1}),
             expected=errors.ValidationError(
@@ -1678,7 +1699,10 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='dnamerecord',
-                error='only one DNAME record is allowed per name (RFC 6672, section 2.4)',
+                error=(
+                    'only one DNAME record is allowed per name '
+                    '(RFC 6672, section 2.4)'
+                )
             ),
         ),
         dict(
@@ -1902,7 +1926,10 @@ class test_dns(Declarative):
             },
         ),
         dict(
-            desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add'
+            desc=(
+                'Try to add unresolvable absolute NS record to %r '
+                'using dnsrecord_add'
+            )
             % (name_ns),
             command=(
                 'dnsrecord_add',
@@ -1917,7 +1944,10 @@ class test_dns(Declarative):
             ),
         ),
         dict(
-            desc='Try to add unresolvable relative NS record to %r using dnsrecord_add'
+            desc=(
+                'Try to add unresolvable relative NS record to %r '
+                'using dnsrecord_add'
+            )
             % (name_ns),
             command=(
                 'dnsrecord_add',
@@ -1930,7 +1960,10 @@ class test_dns(Declarative):
             ),
         ),
         dict(
-            desc='Add unresolvable NS record with --force to %r using dnsrecord_add'
+            desc=(
+                'Add unresolvable NS record with --force to %r '
+                'using dnsrecord_add'
+            )
             % (name_ns),
             command=(
                 'dnsrecord_add',
@@ -2012,16 +2045,25 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='dsrecord',
-                error='DS record must not be in zone apex (RFC 4035 section 2.4)',
+                error=(
+                    'DS record must not be in zone apex '
+                    '(RFC 4035 section 2.4)'
+                )
             ),
         ),
         dict(
-            desc='Try to add DS record %r without NS record in RRset, using dnsrecord_add'
+            desc=(
+                'Try to add DS record %r without NS record in '
+                'RRset, using dnsrecord_add'
+            )
             % (ds),
             command=('dnsrecord_add', [zone1, ds], {'dsrecord': ds_rec}),
             expected=errors.ValidationError(
                 name='dsrecord',
-                error='DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC 4035 section 2.4)',
+                error=(
+                    'DS record requires to coexist with an NS record '
+                    '(RFC 4592 section 4.6, RFC 4035 section 2.4)'
+                )
             ),
         ),
         dict(
@@ -2058,12 +2100,18 @@ class test_dns(Declarative):
             },
         ),
         dict(
-            desc='Try to delete NS record (with DS record) %r using dnsrecord_del'
+            desc=(
+                'Try to delete NS record (with DS record) %r '
+                'using dnsrecord_del'
+            )
             % (ds),
             command=('dnsrecord_del', [zone1, ds], {'nsrecord': zone1_ns}),
             expected=errors.ValidationError(
                 name='dsrecord',
-                error='DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC 4035 section 2.4)',
+                error=(
+                    'DS record requires to coexist with an NS record '
+                    '(RFC 4592 section 4.6, RFC 4035 section 2.4)'
+                )
             ),
         ),
         dict(
@@ -2168,7 +2216,10 @@ class test_dns(Declarative):
             ),
         ),
         dict(
-            desc='Create reverse zone from IP/netmask %r using name_from_ip option'
+            desc=(
+                'Create reverse zone from IP/netmask %r '
+                'using name_from_ip option'
+            )
             % revzone1_ip,
             command=(
                 'dnszone_add',
@@ -2470,7 +2521,10 @@ class test_dns(Declarative):
             ),
         ),
         dict(
-            desc='Try to create duplicate PTR record for %r with --a-create-reverse'
+            desc=(
+                'Try to create duplicate PTR record for '
+                '%r with --a-create-reverse'
+            )
             % name1,
             command=(
                 'dnsrecord_add',
@@ -4184,7 +4238,10 @@ class test_forward_zones(Declarative):
             ),
             expected=errors.ValidationError(
                 name='name',
-                error='should not be a wildcard domain name (RFC 4592 section 4)',
+                error=(
+                    'should not be a wildcard domain name '
+                    '(RFC 4592 section 4)'
+                )
             ),
         ),
         dict(
@@ -4207,7 +4264,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to create forward zone %r without forwarders with default "(first)" policy'
+            desc=(
+                'Try to create forward zone %r without forwarders '
+                'with default "(first)" policy'
+            )
             % fwzone1,
             command=('dnsforwardzone_add', [fwzone1], {}),
             expected=errors.ValidationError(
@@ -4215,7 +4275,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to create forward zone %r without forwarders with "only" policy'
+            desc=(
+                'Try to create forward zone %r without '
+                'forwarders with "only" policy'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_add',
@@ -4227,7 +4290,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to create forward zone %r without forwarders with "first" policy'
+            desc=(
+                'Try to create forward zone %r without forwarders '
+                'with "first" policy'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_add',
@@ -4239,7 +4305,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to create forward zone %r with "only" policy and invalid IP address'
+            desc=(
+                'Try to create forward zone %r with "only" policy '
+                'and invalid IP address'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_add',
@@ -4256,7 +4325,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to create forward zone %r with "first" policy and invalid IP address'
+            desc=(
+                'Try to create forward zone %r with "first" '
+                'policy and invalid IP address'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_add',
@@ -4319,7 +4391,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Create forward zone %r with forwarders with default ("first") policy'
+            desc=(
+                'Create forward zone %r with forwarders with '
+                'default ("first") policy'
+            )
             % fwzone2,
             command=(
                 'dnsforwardzone_add',
@@ -4366,7 +4441,10 @@ class test_forward_zones(Declarative):
             },
         ),
         dict(
-            desc='Create forward zone %r with three forwarders with "only" policy'
+            desc=(
+                'Create forward zone %r with three forwarders '
+                'with "only" policy'
+            )
             % fwzone2,
             command=(
                 'dnsforwardzone_add',
@@ -4422,7 +4500,10 @@ class test_forward_zones(Declarative):
             },
         ),
         dict(
-            desc='Create forward zone %r with three forwarders with "first" policy'
+            desc=(
+                'Create forward zone %r with three forwarders '
+                'with "first" policy'
+            )
             % fwzone3,
             command=(
                 'dnsforwardzone_add',
@@ -4601,7 +4682,10 @@ class test_forward_zones(Declarative):
             },
         ),
         dict(
-            desc='Modify forward zone %r change --policy=only (was "none", FW exists)'
+            desc=(
+                'Modify forward zone %r change --policy=only '
+                '(was "none", FW exists)'
+            )
             % fwzone2,
             command=(
                 'dnsforwardzone_mod',
@@ -4622,7 +4706,10 @@ class test_forward_zones(Declarative):
             },
         ),
         dict(
-            desc='Modify forward zone %r with --policy=first (was "none", FW exists)'
+            desc=(
+                'Modify forward zone %r with --policy=first '
+                '(was "none", FW exists)'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_mod',
@@ -4729,7 +4816,10 @@ class test_forward_zones(Declarative):
             },
         ),
         dict(
-            desc='Modify forward zone %r with --policy=none, forwarder empty (cleanup)'
+            desc=(
+                'Modify forward zone %r with --policy=none, '
+                'forwarder empty (cleanup)'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_mod',
@@ -4762,7 +4852,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify forward zone %r without forwarders with "only" policy'
+            desc=(
+                'Try to modify forward zone %r without '
+                'forwarders with "only" policy'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_mod',
@@ -4774,7 +4867,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify forward zone %r without forwarders with "first" policy'
+            desc=(
+                'Try to modify forward zone %r without forwarders '
+                'with "first" policy'
+            )
             % fwzone1,
             command=(
                 'dnsforwardzone_mod',
@@ -4786,7 +4882,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify forward zone %r with "only" policy change empty forwarders'
+            desc=(
+                'Try to modify forward zone %r with "only" '
+                'policy change empty forwarders'
+            )
             % fwzone2,
             command=(
                 'dnsforwardzone_mod',
@@ -4800,7 +4899,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify forward zone %r with "first" policy change empty forwarders'
+            desc=(
+                'Try to modify forward zone %r with "first" '
+                'policy change empty forwarders'
+            )
             % fwzone3,
             command=(
                 'dnsforwardzone_mod',
@@ -4814,7 +4916,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify forward zone %r with "only" policy change invalid forwarder IP'
+            desc=(
+                'Try to modify forward zone %r with "only" '
+                'policy change invalid forwarder IP'
+            )
             % fwzone2,
             command=(
                 'dnsforwardzone_mod',
@@ -4830,7 +4935,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to modify forward zone %r with "first" policy change invalid forwarder IP'
+            desc=(
+                'Try to modify forward zone %r with "first" '
+                'policy change invalid forwarder IP'
+            )
             % fwzone3,
             command=(
                 'dnsforwardzone_mod',
@@ -5196,7 +5304,10 @@ class test_forward_zones(Declarative):
             ),
         ),
         dict(
-            desc='Try to remove per-zone permission for forward zone %r (permission does not exist)'
+            desc=(
+                'Try to remove per-zone permission for forward '
+                'zone %r (permission does not exist)'
+            )
             % fwzone1,
             command=('dnsforwardzone_remove_permission', [fwzone1], {}),
             expected=errors.NotFound(
@@ -6132,8 +6243,8 @@ class test_forwardzone_delegation_warnings(Declarative):
                 },
                 'messages': (
                     {
-                        'message': 'forward zone "fw.sub2.sub.dnszone.test." is '
-                        'not effective because of missing proper NS '
+                        'message': 'forward zone "fw.sub2.sub.dnszone.test." '
+                        'is not effective because of missing proper NS '
                         'delegation in authoritative zone '
                         '"dnszone.test.". Please add NS record '
                         '"fw.sub2.sub" to parent zone '
@@ -6416,8 +6527,8 @@ class test_dns_soa(Declarative):
                 },
                 'messages': [
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -6426,8 +6537,8 @@ class test_dns_soa(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
@@ -6489,8 +6600,8 @@ class test_dns_soa(Declarative):
                 },
                 'messages': [
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -6499,8 +6610,8 @@ class test_dns_soa(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
@@ -6546,8 +6657,8 @@ class test_dns_soa(Declarative):
                 },
                 'messages': [
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -6556,8 +6667,8 @@ class test_dns_soa(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
@@ -6603,8 +6714,8 @@ class test_dns_soa(Declarative):
                 },
                 'messages': [
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -6613,8 +6724,8 @@ class test_dns_soa(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
@@ -6834,8 +6945,8 @@ class test_dns_soa(Declarative):
                 },
                 'messages': [
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -6844,8 +6955,8 @@ class test_dns_soa(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
@@ -6902,8 +7013,8 @@ class test_dns_soa(Declarative):
                 },
                 'messages': [
                     {
-                        'message': 'Semantic of setting Authoritative nameserver '
-                        'was changed. '
+                        'message': 'Semantic of setting Authoritative '
+                        'nameserver was changed. '
                         'It is used only for setting the SOA MNAME '
                         'attribute.\n'
                         'NS record(s) can be edited in zone '
@@ -6912,8 +7023,8 @@ class test_dns_soa(Declarative):
                         'type': 'warning',
                         'name': 'OptionSemanticChangedWarning',
                         'data': {
-                            'current_behavior': 'It is used only for setting the '
-                            'SOA MNAME attribute.',
+                            'current_behavior': 'It is used only for setting '
+                            'the SOA MNAME attribute.',
                             'hint': 'NS record(s) can be edited in zone apex - '
                             "'@'. ",
                             'label': 'setting Authoritative nameserver',
