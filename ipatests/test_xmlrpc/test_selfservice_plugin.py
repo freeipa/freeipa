@@ -28,6 +28,12 @@ import pytest
 selfservice1 = u'testself'
 invalid_selfservice1 = u'bad+name'
 
+selfservice_bz1 = u'selfservice_bz_1'
+selfservice_bz2 = u'selfservice_bz_2'
+selfservice_bz3 = u'selfservice_bz_3'
+selfservice_bz4 = u'selfservice_bz_4'
+selfservice_bz5 = u'selfservice_bz_5'
+
 
 @pytest.mark.tier1
 class test_selfservice(Declarative):
@@ -287,6 +293,288 @@ class test_selfservice(Declarative):
             ),
             expected=errors.ValidationError(name='name',
                 error='May only contain letters, numbers, -, _, and space'),
+        ),
+
+    ]
+
+
+@pytest.mark.tier1
+class TestSelfserviceMisc(Declarative):
+    """Bugzilla regression tests for selfservice plugin."""
+
+    cleanup_commands = [
+        ('selfservice_del', [selfservice_bz1], {}),
+        ('selfservice_del', [selfservice_bz2], {}),
+        ('selfservice_del', [selfservice_bz3], {}),
+        ('selfservice_del', [selfservice_bz4], {}),
+        ('selfservice_del', [selfservice_bz5], {}),
+    ]
+
+    tests = [
+
+        # BZ 772106: selfservice-add with --raw must not return internal error
+
+        dict(
+            desc='Create %r with --raw for BZ 772106' % selfservice_bz1,
+            command=(
+                'selfservice_add', [selfservice_bz1],
+                dict(attrs=[u'l'], raw=True),
+            ),
+            expected=dict(
+                value=selfservice_bz1,
+                summary=u'Added selfservice "%s"' % selfservice_bz1,
+                result={
+                    'aci': u'(targetattr = "l")(version 3.0;acl '
+                           u'"selfservice:%s";allow (write) '
+                           u'userdn = "ldap:///self";)'
+                           % selfservice_bz1,
+                },
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz1,
+            command=('selfservice_del', [selfservice_bz1], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz1,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz1,
+            ),
+        ),
+
+
+        # BZ 772675: selfservice-mod with --raw must not return internal error
+
+        dict(
+            desc='Create %r for BZ 772675' % selfservice_bz2,
+            command=(
+                'selfservice_add', [selfservice_bz2],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz2,
+                summary=u'Added selfservice "%s"' % selfservice_bz2,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz2,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with --raw for BZ 772675' % selfservice_bz2,
+            command=(
+                'selfservice_mod', [selfservice_bz2],
+                dict(attrs=[u'mobile'], raw=True),
+            ),
+            expected=dict(
+                value=selfservice_bz2,
+                summary=u'Modified selfservice "%s"' % selfservice_bz2,
+                result={
+                    'aci': u'(targetattr = "mobile")(version 3.0;acl '
+                           u'"selfservice:%s";allow (write) '
+                           u'userdn = "ldap:///self";)'
+                           % selfservice_bz2,
+                },
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz2,
+            command=('selfservice_del', [selfservice_bz2], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz2,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz2,
+            ),
+        ),
+
+
+        # BZ 747730: selfservice-mod --permissions="" must not delete the entry
+
+        dict(
+            desc='Create %r for BZ 747730' % selfservice_bz3,
+            command=(
+                'selfservice_add', [selfservice_bz3],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz3,
+                summary=u'Added selfservice "%s"' % selfservice_bz3,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz3,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with empty permissions for BZ 747730'
+                 % selfservice_bz3,
+            command=(
+                'selfservice_mod', [selfservice_bz3],
+                dict(permissions=u''),
+            ),
+            # mod may succeed or fail; the only requirement is that the
+            # entry must not be deleted (callable accepts any outcome)
+            expected=lambda got, output: True,
+        ),
+
+        dict(
+            desc='Verify %r still exists after BZ 747730' % selfservice_bz3,
+            command=('selfservice_show', [selfservice_bz3], {}),
+            # entry must still be retrievable (not deleted by the mod)
+            expected=lambda got, output: (
+                got is None
+                and output.get('result', {}).get('aciname')
+                == selfservice_bz3
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz3,
+            command=('selfservice_del', [selfservice_bz3], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz3,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz3,
+            ),
+        ),
+
+
+        # BZ 747741: selfservice-mod --attrs=badattrs must not delete the entry
+
+        dict(
+            desc='Create %r for BZ 747741' % selfservice_bz4,
+            command=(
+                'selfservice_add', [selfservice_bz4],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz4,
+                summary=u'Added selfservice "%s"' % selfservice_bz4,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz4,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with bad attrs for BZ 747741'
+                 % selfservice_bz4,
+            command=(
+                'selfservice_mod', [selfservice_bz4],
+                dict(attrs=[u'badattrs']),
+            ),
+            # mod may succeed or fail; the only requirement is that the
+            # entry must not be deleted (callable accepts any outcome)
+            expected=lambda got, output: True,
+        ),
+
+        dict(
+            desc='Verify %r still exists after BZ 747741' % selfservice_bz4,
+            command=('selfservice_show', [selfservice_bz4], {}),
+            # entry must still be retrievable (not deleted by the mod)
+            expected=lambda got, output: (
+                got is None
+                and output.get('result', {}).get('aciname')
+                == selfservice_bz4
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz4,
+            command=('selfservice_del', [selfservice_bz4], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz4,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz4,
+            ),
+        ),
+
+
+        # BZ 747693: selfservice-find with --raw must not return internal error
+
+        dict(
+            desc='Create %r for BZ 747693' % selfservice_bz5,
+            command=(
+                'selfservice_add', [selfservice_bz5],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz5,
+                summary=u'Added selfservice "%s"' % selfservice_bz5,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz5,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Find %r with --raw for BZ 747693' % selfservice_bz5,
+            command=('selfservice_find', [selfservice_bz5],
+                dict(raw=True)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 selfservice matched',
+                result=[
+                    {
+                        'aci': u'(targetattr = "l")(version 3.0;acl '
+                               u'"selfservice:%s";allow (write) '
+                               u'userdn = "ldap:///self";)'
+                               % selfservice_bz5,
+                    },
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz5,
+            command=('selfservice_del', [selfservice_bz5], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz5,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz5,
+            ),
+        ),
+
+
+        # BZ 747720: selfservice-find --permissions="" must not return
+        # internal error
+
+        dict(
+            desc='BZ 747720: selfservice-find with empty permissions',
+            command=('selfservice_find', [], dict(permissions=u'')),
+            # must succeed and return a result list, not an internal error
+            expected=lambda got, output: (
+                got is None
+                and isinstance(output.get('result'), (list, tuple))
+            ),
+        ),
+
+
+        # BZ 747722: selfservice-find --attrs="" must not return
+        # internal error
+
+        dict(
+            desc='BZ 747722: selfservice-find with empty attrs',
+            command=('selfservice_find', [], dict(attrs=u'')),
+            # must succeed and return a result list, not an internal error
+            expected=lambda got, output: (
+                got is None
+                and isinstance(output.get('result'), (list, tuple))
+            ),
         ),
 
     ]
