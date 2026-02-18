@@ -27,6 +27,7 @@ from __future__ import absolute_import
 
 from ipaplatform.redhat.paths import RedHatPathNamespace
 from ipaplatform.fedora.constants import HAS_NFS_CONF
+from ipaplatform.osinfo import osinfo
 
 
 class FedoraPathNamespace(RedHatPathNamespace):
@@ -36,6 +37,8 @@ class FedoraPathNamespace(RedHatPathNamespace):
     NAMED_CRYPTO_POLICY_FILE = "/etc/crypto-policies/back-ends/bind.config"
     if HAS_NFS_CONF:
         SYSCONFIG_NFS = '/etc/nfs.conf'
+    if osinfo.version_number >= (43,):
+        BIN_TOMCAT = "/usr/share/tomcat/bin/version.sh"
 
 
 paths = FedoraPathNamespace()
