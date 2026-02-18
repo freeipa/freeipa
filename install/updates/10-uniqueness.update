@@ -134,3 +134,47 @@ default:nsslapd-pluginVendor: Fedora Project
 # A unique ipaCertSubject is no longer required
 dn: cn=certificate store subject uniqueness,cn=plugins,cn=config
 deleteentry: cn=certificate store subject uniqueness,cn=plugins,cn=config
+
+dn: cn=POSIX GID uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: POSIX GID uniqueness
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+default:nsslapd-pluginDescription: Enforce unique attribute values
+default:uniqueness-attribute-name: gidNumber
+default:uniqueness-subtrees: $SUFFIX
+default:uniqueness-exclude-subtrees: cn=compat,$SUFFIX
+default:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+default:uniqueness-exclude-subtrees: cn=trusts,$SUFFIX
+default:uniqueness-across-all-subtrees: on
+default:uniqueness-subtree-entries-oc: posixAccount
+
+dn: cn=POSIX UID uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: POSIX UID uniqueness
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+default:nsslapd-pluginDescription: Enforce unique attribute values
+default:uniqueness-attribute-name: uidNumber
+default:uniqueness-subtrees: $SUFFIX
+default:uniqueness-exclude-subtrees: cn=compat,$SUFFIX
+default:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+default:uniqueness-exclude-subtrees: cn=trusts,$SUFFIX
+default:uniqueness-across-all-subtrees: on
+default:uniqueness-subtree-entries-oc: posixAccount
