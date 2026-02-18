@@ -4895,7 +4895,7 @@ static krb5_error_code bind_callback_obtain_creds(struct ipasam_sasl_interact_pr
 	return rc;
 }
 
-extern const char * lp_dedicated_keytab_file(void);
+extern krb5_error_code gse_krb5_get_server_keytab(krb5_context krbctx, krb5_keytab *keytab);
 static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, void* ipasam_priv) {
 	krb5_error_code rc;
 	krb5_creds *out_creds = NULL;
@@ -4937,7 +4937,8 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 		return LDAP_LOCAL_ERROR;
 	}
 
-	rc = krb5_kt_resolve(data.context, lp_dedicated_keytab_file(), &data.keytab);
+
+	rc = gse_krb5_get_server_keytab(data.context, &data.keytab);
 	if (rc) {
 		bind_callback_cleanup(&data, rc);
 		return LDAP_LOCAL_ERROR;
