@@ -1622,7 +1622,7 @@ class test_dns(Declarative):
                 name='cnamerecord',
                 error=(
                     'only one CNAME record is allowed per name '
-                    '(RFC 2136, section 1.1.5)',
+                    '(RFC 2136, section 1.1.5)'
                 )
             ),
         ),
@@ -1652,8 +1652,10 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [zone1, cname], {'arecord': arec1}),
             expected=errors.ValidationError(
                 name='cnamerecord',
-                error='CNAME record is not allowed to coexist with any other '
-                'record (RFC 1034, section 3.6.2)',
+                error=(
+                    'CNAME record is not allowed to coexist with any other '
+                    'record (RFC 1034, section 3.6.2)'
+                )
             ),
         ),
         dict(
@@ -1664,8 +1666,10 @@ class test_dns(Declarative):
             command=('dnsrecord_mod', [zone1, cname], {'arecord': arec1}),
             expected=errors.ValidationError(
                 name='cnamerecord',
-                error='CNAME record is not allowed to coexist with any other '
-                'record (RFC 1034, section 3.6.2)',
+                error=(
+                    'CNAME record is not allowed to coexist with any other '
+                    'record (RFC 1034, section 3.6.2)'
+                )
             ),
         ),
         dict(
@@ -1734,8 +1738,10 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='cnamerecord',
-                error='CNAME record is not allowed to coexist with any other '
-                'record (RFC 1034, section 3.6.2)',
+                error=(
+                    'CNAME record is not allowed to coexist with any other '
+                    'record (RFC 1034, section 3.6.2)'
+                )
             ),
         ),
         dict(
@@ -1747,9 +1753,11 @@ class test_dns(Declarative):
             ),
             expected=errors.ValidationError(
                 name='nsrecord',
-                error='NS record is not allowed to coexist with an DNAME '
-                'record except when located in a zone root record '
-                '(RFC 2181, section 6.1)',
+                error=(
+                    'NS record is not allowed to coexist with an DNAME '
+                    'record except when located in a zone root record '
+                    '(RFC 2181, section 6.1)'
+                )
             ),
         ),
         dict(
