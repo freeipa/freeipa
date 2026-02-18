@@ -21,12 +21,18 @@
 Test the `ipaserver/plugins/selfservice.py` module.
 """
 
-from ipalib import api, errors
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative, XMLRPC_test
+from ipalib import errors
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
 selfservice1 = u'testself'
 invalid_selfservice1 = u'bad+name'
+
+selfservice_bz1 = u'selfservice_bz_1'
+selfservice_bz2 = u'selfservice_bz_2'
+selfservice_bz3 = u'selfservice_bz_3'
+selfservice_bz4 = u'selfservice_bz_4'
+selfservice_bz5 = u'selfservice_bz_5'
 
 
 @pytest.mark.tier1
@@ -292,146 +298,283 @@ class test_selfservice(Declarative):
     ]
 
 
-def _selfservice_del_if_exists(name):
-    """Remove selfservice entry if it exists."""
-    try:
-        api.Command.selfservice_del(name)
-    except errors.NotFound:
-        pass
-
-
 @pytest.mark.tier1
-class TestSelfserviceBZs(XMLRPC_test):
+class TestSelfserviceMisc(Declarative):
+    """Bugzilla regression tests for selfservice plugin."""
 
-    # Verify selfservice-add with --raw does not trigger an internal error
-    def test_add_raw_no_internal_error_bz772106(self):
-        """BZ 772106: selfservice-add --raw must not return internal error."""
-        name = u"selfservice_bz_772106"
-        try:
-            result = api.Command.selfservice_add(
-                name, attrs=[u'l'], raw=True
-            )
-            assert 'result' in result
-        except Exception as e:
-            if "internal error" in str(e).lower():
-                pytest.fail(
-                    "BZ 772106: selfservice-add --raw returns "
-                    "internal error message"
-                )
-            raise
-        finally:
-            _selfservice_del_if_exists(name)
+    cleanup_commands = [
+        ('selfservice_del', [selfservice_bz1], {}),
+        ('selfservice_del', [selfservice_bz2], {}),
+        ('selfservice_del', [selfservice_bz3], {}),
+        ('selfservice_del', [selfservice_bz4], {}),
+        ('selfservice_del', [selfservice_bz5], {}),
+    ]
 
-    # Verify selfservice-mod with --raw does not trigger an internal error
-    def test_mod_raw_no_internal_error_bz772675(self):
-        """BZ 772675: selfservice-mod --raw must not return internal error."""
-        name = u"selfservice_bz_772675"
-        try:
-            api.Command.selfservice_add(name, attrs=[u'l'])
-            result = api.Command.selfservice_mod(
-                name, attrs=[u'mobile'], raw=True
-            )
-            assert 'result' in result
-        except Exception as e:
-            if "internal error" in str(e).lower():
-                pytest.fail(
-                    "BZ 772675: selfservice-mod --raw returns "
-                    "internal error message"
-                )
-            raise
-        finally:
-            _selfservice_del_if_exists(name)
+    tests = [
 
-    # Verify selfservice-mod with empty permissions does not delete the ACI
-    def test_mod_empty_permissions_does_not_delete_bz747730(self):
-        """BZ 747730: selfservice-mod --permissions="" must not delete
-        the selfservice."""
-        name = u"selfservice_bz_747730"
-        try:
-            api.Command.selfservice_add(name, attrs=[u'l'])
-            try:
-                api.Command.selfservice_mod(name, permissions=u'')
-            except Exception:
-                pass  # mod may fail; we only care it does not delete the ACI
-            # The selfservice must still exist after the mod attempt
-            try:
-                result = api.Command.selfservice_show(name)
-                assert result['result']['aciname'] == name
-            except errors.NotFound:
-                pytest.fail(
-                    "BZ 747730: selfservice-mod with empty permissions "
-                    "deleted the selfservice"
-                )
-        finally:
-            _selfservice_del_if_exists(name)
+        # BZ 772106: selfservice-add with --raw must not return internal error
 
-    # Verify selfservice-mod with invalid attrs does not delete the ACI
-    def test_mod_bad_attrs_does_not_delete_bz747741(self):
-        """BZ 747741: selfservice-mod --attrs=badattrs must not delete
-        the selfservice."""
-        name = u"selfservice_bz_747741"
-        try:
-            api.Command.selfservice_add(name, attrs=[u'l'])
-            try:
-                api.Command.selfservice_mod(name, attrs=[u'badattrs'])
-            except Exception:
-                pass  # mod may fail; we only care it does not delete the ACI
-            # The selfservice must still exist after the mod attempt
-            try:
-                result = api.Command.selfservice_show(name)
-                assert result['result']['aciname'] == name
-            except errors.NotFound:
-                pytest.fail(
-                    "BZ 747741: selfservice-mod with wrong attrs "
-                    "deleted the selfservice"
-                )
-        finally:
-            _selfservice_del_if_exists(name)
+        dict(
+            desc='Create %r with --raw for BZ 772106' % selfservice_bz1,
+            command=(
+                'selfservice_add', [selfservice_bz1],
+                dict(attrs=[u'l'], raw=True),
+            ),
+            expected=dict(
+                value=selfservice_bz1,
+                summary=u'Added selfservice "%s"' % selfservice_bz1,
+                result={
+                    'aci': u'(targetattr = "l")(version 3.0;acl '
+                           u'"selfservice:%s";allow (write) '
+                           u'userdn = "ldap:///self";)'
+                           % selfservice_bz1,
+                },
+            ),
+        ),
 
-    # Verify selfservice-find with --raw does not trigger an internal error
-    def test_find_raw_no_internal_error_bz747693(self):
-        """BZ 747693: selfservice-find --raw must not return internal error."""
-        name = u"selfservice_bz_747693"
-        try:
-            api.Command.selfservice_add(name, attrs=[u'l'])
-            result = api.Command.selfservice_find(name, raw=True)
-            assert 'result' in result
-        except Exception as e:
-            if "internal error" in str(e).lower():
-                pytest.fail(
-                    "BZ 747693: selfservice-find --raw returns "
-                    "internal error"
-                )
-            raise
-        finally:
-            _selfservice_del_if_exists(name)
+        dict(
+            desc='Delete %r' % selfservice_bz1,
+            command=('selfservice_del', [selfservice_bz1], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz1,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz1,
+            ),
+        ),
 
-    # Verify selfservice-find with empty permission does not return internal error
-    def test_find_empty_permission_no_internal_error_bz747720(self):
-        """BZ 747720: selfservice-find --permission="" must not return
-        internal error."""
-        try:
-            result = api.Command.selfservice_find(permissions=u'')
-            assert 'result' in result
-        except Exception as e:
-            if "internal error" in str(e).lower():
-                pytest.fail(
-                    "BZ 747720: selfservice-find with empty permission "
-                    "returns internal error"
-                )
-            raise
 
-    # Verify selfservice-find with empty attrs does not return internal error
-    def test_find_empty_attrs_no_internal_error_bz747722(self):
-        """BZ 747722: selfservice-find --attrs="" must not return
-        internal error."""
-        try:
-            result = api.Command.selfservice_find(attrs=u'')
-            assert 'result' in result
-        except Exception as e:
-            if "internal error" in str(e).lower():
-                pytest.fail(
-                    "BZ 747722: selfservice-find with empty attrs "
-                    "returns internal error"
-                )
-            raise
+        # BZ 772675: selfservice-mod with --raw must not return internal error
+
+        dict(
+            desc='Create %r for BZ 772675' % selfservice_bz2,
+            command=(
+                'selfservice_add', [selfservice_bz2],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz2,
+                summary=u'Added selfservice "%s"' % selfservice_bz2,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz2,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with --raw for BZ 772675' % selfservice_bz2,
+            command=(
+                'selfservice_mod', [selfservice_bz2],
+                dict(attrs=[u'mobile'], raw=True),
+            ),
+            expected=dict(
+                value=selfservice_bz2,
+                summary=u'Modified selfservice "%s"' % selfservice_bz2,
+                result={
+                    'aci': u'(targetattr = "mobile")(version 3.0;acl '
+                           u'"selfservice:%s";allow (write) '
+                           u'userdn = "ldap:///self";)'
+                           % selfservice_bz2,
+                },
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz2,
+            command=('selfservice_del', [selfservice_bz2], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz2,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz2,
+            ),
+        ),
+
+
+        # BZ 747730: selfservice-mod --permissions="" must not delete the entry
+
+        dict(
+            desc='Create %r for BZ 747730' % selfservice_bz3,
+            command=(
+                'selfservice_add', [selfservice_bz3],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz3,
+                summary=u'Added selfservice "%s"' % selfservice_bz3,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz3,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with empty permissions for BZ 747730'
+                 % selfservice_bz3,
+            command=(
+                'selfservice_mod', [selfservice_bz3],
+                dict(permissions=u''),
+            ),
+            # mod may succeed or fail; the only requirement is that the
+            # entry must not be deleted (callable accepts any outcome)
+            expected=lambda got, output: True,
+        ),
+
+        dict(
+            desc='Verify %r still exists after BZ 747730' % selfservice_bz3,
+            command=('selfservice_show', [selfservice_bz3], {}),
+            # entry must still be retrievable (not deleted by the mod)
+            expected=lambda got, output: (
+                got is None
+                and output.get('result', {}).get('aciname')
+                == selfservice_bz3
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz3,
+            command=('selfservice_del', [selfservice_bz3], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz3,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz3,
+            ),
+        ),
+
+
+        # BZ 747741: selfservice-mod --attrs=badattrs must not delete the entry
+
+        dict(
+            desc='Create %r for BZ 747741' % selfservice_bz4,
+            command=(
+                'selfservice_add', [selfservice_bz4],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz4,
+                summary=u'Added selfservice "%s"' % selfservice_bz4,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz4,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Modify %r with bad attrs for BZ 747741'
+                 % selfservice_bz4,
+            command=(
+                'selfservice_mod', [selfservice_bz4],
+                dict(attrs=[u'badattrs']),
+            ),
+            # mod may succeed or fail; the only requirement is that the
+            # entry must not be deleted (callable accepts any outcome)
+            expected=lambda got, output: True,
+        ),
+
+        dict(
+            desc='Verify %r still exists after BZ 747741' % selfservice_bz4,
+            command=('selfservice_show', [selfservice_bz4], {}),
+            # entry must still be retrievable (not deleted by the mod)
+            expected=lambda got, output: (
+                got is None
+                and output.get('result', {}).get('aciname')
+                == selfservice_bz4
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz4,
+            command=('selfservice_del', [selfservice_bz4], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz4,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz4,
+            ),
+        ),
+
+
+        # BZ 747693: selfservice-find with --raw must not return internal error
+
+        dict(
+            desc='Create %r for BZ 747693' % selfservice_bz5,
+            command=(
+                'selfservice_add', [selfservice_bz5],
+                dict(attrs=[u'l']),
+            ),
+            expected=dict(
+                value=selfservice_bz5,
+                summary=u'Added selfservice "%s"' % selfservice_bz5,
+                result=dict(
+                    attrs=[u'l'],
+                    permissions=[u'write'],
+                    selfaci=True,
+                    aciname=selfservice_bz5,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Find %r with --raw for BZ 747693' % selfservice_bz5,
+            command=('selfservice_find', [selfservice_bz5],
+                dict(raw=True)),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 selfservice matched',
+                result=[
+                    {
+                        'aci': u'(targetattr = "l")(version 3.0;acl '
+                               u'"selfservice:%s";allow (write) '
+                               u'userdn = "ldap:///self";)'
+                               % selfservice_bz5,
+                    },
+                ],
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_bz5,
+            command=('selfservice_del', [selfservice_bz5], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_bz5,
+                summary=u'Deleted selfservice "%s"' % selfservice_bz5,
+            ),
+        ),
+
+
+        # BZ 747720: selfservice-find --permissions="" must not return
+        # internal error
+
+        dict(
+            desc='BZ 747720: selfservice-find with empty permissions',
+            command=('selfservice_find', [], dict(permissions=u'')),
+            # must succeed and return a result list, not an internal error
+            expected=lambda got, output: (
+                got is None
+                and isinstance(output.get('result'), (list, tuple))
+            ),
+        ),
+
+
+        # BZ 747722: selfservice-find --attrs="" must not return
+        # internal error
+
+        dict(
+            desc='BZ 747722: selfservice-find with empty attrs',
+            command=('selfservice_find', [], dict(attrs=u'')),
+            # must succeed and return a result list, not an internal error
+            expected=lambda got, output: (
+                got is None
+                and isinstance(output.get('result'), (list, tuple))
+            ),
+        ),
+
+    ]

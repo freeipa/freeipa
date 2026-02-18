@@ -210,3 +210,5 @@ ipatests/ipa-test-task
 selinux/tmp
 selinux/*.pp
 selinux/*.pp.bz2
+
+.cursor/
