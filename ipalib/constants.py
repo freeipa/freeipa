@@ -314,7 +314,7 @@ MAX_DOMAIN_LEVEL = DOMAIN_LEVEL_1
 DOMAIN_SUFFIX_NAME = 'domain'
 CA_SUFFIX_NAME = 'ca'
 PKI_GSSAPI_SERVICE_NAME = 'dogtag'
-IPA_CA_CN = u'ipa'
+IPA_CA_CN = 'ipa'
 IPA_CA_RECORD = "ipa-ca"
 IPA_CA_NICKNAME = 'caSigningCert cert-pki-ca'
 RENEWAL_CA_NAME = 'dogtag-ipa-ca-renew-agent'
@@ -356,7 +356,7 @@ USER_CACHE_PATH = (
     os.path.expanduser('~/.cache')
 )
 
-SOFTHSM_DNSSEC_TOKEN_LABEL = u'ipaDNSSEC'
+SOFTHSM_DNSSEC_TOKEN_LABEL = 'ipaDNSSEC'
 # Apache's mod_ssl SSLVerifyDepth value (Maximum depth of CA
 # Certificates in Client Certificate verification)
 MOD_SSL_VERIFY_DEPTH = '5'

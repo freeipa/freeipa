@@ -15,7 +15,7 @@ def generate_csr(cn, is_hostname=True):
     """
     Generate certificate signing request
 
-    :param cn: common name (str|unicode)
+    :param cn: common name (str)
     :param is_hostname: is the common name a hostname (default: True)
     """
     key = rsa.generate_private_key(
@@ -44,7 +44,7 @@ def generate_certificate(hostname):
     Generate self-signed certificate for some DNS name.
     The certificate is valid for 100 days from moment of generation.
 
-    :param hostname: DNS name (str|unicode)
+    :param hostname: DNS name (str)
     """
     key = rsa.generate_private_key(
         public_exponent=65537,

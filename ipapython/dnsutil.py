@@ -30,12 +30,8 @@ import dns.rdatatype
 import dns.reversename
 
 
-import six
-
 from ipapython.ipautil import UnsafeIPAddress
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -197,11 +193,10 @@ class DNSResolver(dns.resolver.Resolver):
 
 class DNSZoneAlreadyExists(dns.exception.DNSException):
     supp_kwargs = {'zone', 'ns'}
-    fmt = (u"DNS zone {zone} already exists in DNS "
+    fmt = ("DNS zone {zone} already exists in DNS "
            "and is handled by server(s): {ns}")
 
 
-@six.python_2_unicode_compatible
 class DNSName(dns.name.Name):
     labels = None  # make pylint happy
 
@@ -212,7 +207,7 @@ class DNSName(dns.name.Name):
     def __init__(self, labels, origin=None):
         try:
             if isinstance(labels, str):
-                labels = dns.name.from_text(unicode(labels), origin).labels
+                labels = dns.name.from_text(str(labels), origin).labels
             elif isinstance(labels, dns.name.Name):
                 labels = labels.labels
 
@@ -239,13 +234,8 @@ class DNSName(dns.name.Name):
         return self.to_unicode()
 
     # method ToASCII named by RFC 3490 and python standard library
-    if six.PY2:
-        def ToASCII(self):
-            # must be unicode string in Py2
-            return self.to_text().decode('ascii')
-    else:
-        def ToASCII(self):
-            return self.to_text()
+    def ToASCII(self):
+        return self.to_text()
 
     def canonicalize(self):
         return DNSName(super(DNSName, self).canonicalize())

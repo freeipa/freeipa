@@ -34,7 +34,6 @@ import pytest
 from contextlib import contextmanager
 from pprint import pformat
 
-import six
 
 import ipalib
 from ipalib import api
@@ -59,9 +58,6 @@ else:
     import ldap.sasl
     import ldap.modlist
     from ipapython.ipaldap import ldap_initialize
-
-if six.PY3:
-    unicode = str
 
 
 # settings are configured by conftest
@@ -188,14 +184,14 @@ class Fuzzy:
     True
     >>> 7 == Fuzzy()  # Order doesn't matter
     True
-    >>> Fuzzy() == u'Hello False, Lucky 7!'
+    >>> Fuzzy() == 'Hello False, Lucky 7!'
     True
 
     The first optional argument *regex* is a regular expression pattern to
     match.  For example, you could match a phone number like this:
 
     >>> phone = Fuzzy(r'^\d{3}-\d{3}-\d{4}$')
-    >>> u'123-456-7890' == phone
+    >>> '123-456-7890' == phone
     True
 
     Use of a regular expression by default implies the ``unicode`` type, so
@@ -261,7 +257,7 @@ class Fuzzy:
         Initialize.
 
         :param regex: A regular expression pattern to match, e.g.
-            ``u'^\d+foo'``
+            ``'^\d+foo'``
 
         :param type: A type or tuple of types to test using ``isinstance()``,
             e.g. ``(int, float)``
@@ -276,8 +272,8 @@ class Fuzzy:
         else:
             self.re = re.compile(regex)
             if type is None:
-                type = unicode
-            assert type in (unicode, bytes, str)
+                type = str
+            assert type in (str, bytes)
         self.regex = regex
         self.type = type
         self.test = test
@@ -353,8 +349,8 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     If the tests fails, it will raise an ``AssertionError`` with detailed
     information, including the path to the offending value.  For example:
 
-    >>> expected = [u'Hello', dict(world=1)]
-    >>> got = [u'Hello', dict(world=1.0)]
+    >>> expected = ['Hello', dict(world=1)]
+    >>> got = ['Hello', dict(world=1.0)]
     >>> expected == got
     True
     >>> assert_deepequal(
@@ -615,9 +611,9 @@ class dummy_ugettext:
 
     def __init__(self, translation=None):
         if translation is None:
-            translation = u'The translation'
+            translation = 'The translation'
         self.translation = translation
-        assert type(self.translation) is unicode
+        assert type(self.translation) is str
 
     def __call__(self, message):
         assert self.__called is False
@@ -625,14 +621,14 @@ class dummy_ugettext:
         assert type(message) is str
         assert not hasattr(self, 'message')
         self.message = message
-        assert type(self.translation) is unicode
+        assert type(self.translation) is str
         return self.translation
 
     def called(self):
         return self.__called
 
     def reset(self):
-        assert type(self.translation) is unicode
+        assert type(self.translation) is str
         assert type(self.message) is str
         del self.message
         assert self.__called is True
@@ -643,8 +639,8 @@ class dummy_ungettext:
     __called = False
 
     def __init__(self):
-        self.translation_singular = u'The singular translation'
-        self.translation_plural = u'The plural translation'
+        self.translation_singular = 'The singular translation'
+        self.translation_plural = 'The plural translation'
 
     def __call__(self, singular, plural, n):
         assert type(singular) is str
@@ -856,7 +852,7 @@ def host_keytab(hostname, options=None):
     After leaving the context manager, the keytab file is
     deleted.
     """
-    principal = u'host/{}'.format(hostname)
+    principal = 'host/{}'.format(hostname)
 
     with get_entity_keytab(principal, options) as keytab:
         yield keytab

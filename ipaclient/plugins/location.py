@@ -28,8 +28,8 @@ class location_show(MethodOverride):
             for param in self.api.Command.server_find.output_params():
                 if param.name in details:
                     textui.print_indented(
-                        u"{}: {}".format(
-                            param.label, u', '.join(details[param.name])),
+                        "{}: {}".format(
+                            param.label, ', '.join(details[param.name])),
                         indent=2)
 
         return rv

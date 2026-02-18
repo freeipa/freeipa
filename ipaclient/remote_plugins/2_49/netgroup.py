@@ -2,19 +2,12 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.parameters import DefaultFrom
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Netgroups
@@ -49,76 +42,76 @@ class netgroup(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
         ),
         parameters.Str(
             'description',
-            label=_(u'Description'),
-            doc=_(u'Netgroup description'),
+            label=_('Description'),
+            doc=_('Netgroup description'),
         ),
         parameters.Str(
             'nisdomainname',
             required=False,
-            label=_(u'NIS domain name'),
+            label=_('NIS domain name'),
         ),
         parameters.Str(
             'ipauniqueid',
             required=False,
-            label=_(u'IPA unique ID'),
-            doc=_(u'IPA unique ID'),
+            label=_('IPA unique ID'),
+            doc=_('IPA unique ID'),
         ),
         parameters.Str(
             'usercategory',
             required=False,
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
         ),
         parameters.Str(
             'member_netgroup',
             required=False,
-            label=_(u'Member netgroups'),
+            label=_('Member netgroups'),
         ),
         parameters.Str(
             'memberof_netgroup',
             required=False,
-            label=_(u'Member of netgroups'),
+            label=_('Member of netgroups'),
         ),
         parameters.Str(
             'memberindirect_netgroup',
             required=False,
-            label=_(u'Indirect Member netgroups'),
+            label=_('Indirect Member netgroups'),
         ),
         parameters.Str(
             'memberuser_user',
             required=False,
-            label=_(u'Member User'),
+            label=_('Member User'),
         ),
         parameters.Str(
             'memberuser_group',
             required=False,
-            label=_(u'Member Group'),
+            label=_('Member Group'),
         ),
         parameters.Str(
             'memberhost_host',
             required=False,
-            label=_(u'Member Host'),
+            label=_('Member Host'),
         ),
         parameters.Str(
             'memberhost_hostgroup',
             required=False,
-            label=_(u'Member Hostgroup'),
+            label=_('Member Hostgroup'),
         ),
     )
 
@@ -131,7 +124,7 @@ class netgroup_add(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
     )
@@ -139,62 +132,75 @@ class netgroup_add(Method):
         parameters.Str(
             'description',
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Netgroup description'),
+            label=_('Description'),
+            doc=_('Netgroup description'),
         ),
         parameters.Str(
             'nisdomainname',
             required=False,
             cli_name='nisdomain',
-            label=_(u'NIS domain name'),
+            label=_('NIS domain name'),
         ),
         parameters.Str(
             'usercategory',
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -203,16 +209,16 @@ class netgroup_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -225,21 +231,27 @@ class netgroup_add_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -249,8 +261,8 @@ class netgroup_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'comma-separated list of users to add'),
+            label=_('member user'),
+            doc=_('comma-separated list of users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -258,8 +270,8 @@ class netgroup_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'comma-separated list of groups to add'),
+            label=_('member group'),
+            doc=_('comma-separated list of groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -267,8 +279,8 @@ class netgroup_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'comma-separated list of hosts to add'),
+            label=_('member host'),
+            doc=_('comma-separated list of hosts to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -276,8 +288,8 @@ class netgroup_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'comma-separated list of host groups to add'),
+            label=_('member host group'),
+            doc=_('comma-separated list of host groups to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -285,8 +297,8 @@ class netgroup_add_member(Method):
             required=False,
             multivalue=True,
             cli_name='netgroups',
-            label=_(u'member netgroup'),
-            doc=_(u'comma-separated list of netgroups to add'),
+            label=_('member netgroup'),
+            doc=_('comma-separated list of netgroups to add'),
             alwaysask=True,
         ),
     )
@@ -297,12 +309,12 @@ class netgroup_add_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -316,14 +328,14 @@ class netgroup_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -331,18 +343,18 @@ class netgroup_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -355,7 +367,7 @@ class netgroup_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -363,63 +375,63 @@ class netgroup_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Netgroup description'),
+            label=_('Description'),
+            doc=_('Netgroup description'),
         ),
         parameters.Str(
             'nisdomainname',
             required=False,
             cli_name='nisdomain',
-            label=_(u'NIS domain name'),
+            label=_('NIS domain name'),
         ),
         parameters.Str(
             'ipauniqueid',
             required=False,
             cli_name='uuid',
-            label=_(u'IPA unique ID'),
-            doc=_(u'IPA unique ID'),
+            label=_('IPA unique ID'),
+            doc=_('IPA unique ID'),
         ),
         parameters.Str(
             'usercategory',
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'private',
@@ -429,21 +441,27 @@ class netgroup_find(Method):
         ),
         parameters.Flag(
             'managed',
-            doc=_(u'search for managed groups'),
+            doc=_('search for managed groups'),
             default=False,
             default_from=DefaultFrom(lambda private: private),
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -451,8 +469,8 @@ class netgroup_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -461,103 +479,103 @@ class netgroup_find(Method):
             required=False,
             multivalue=True,
             cli_name='netgroups',
-            label=_(u'netgroup'),
-            doc=_(u'Search for netgroups with these member netgroups.'),
+            label=_('netgroup'),
+            doc=_('Search for netgroups with these member netgroups.'),
         ),
         parameters.Str(
             'no_netgroup',
             required=False,
             multivalue=True,
             cli_name='no_netgroups',
-            label=_(u'netgroup'),
-            doc=_(u'Search for netgroups without these member netgroups.'),
+            label=_('netgroup'),
+            doc=_('Search for netgroups without these member netgroups.'),
         ),
         parameters.Str(
             'user',
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'user'),
-            doc=_(u'Search for netgroups with these member users.'),
+            label=_('user'),
+            doc=_('Search for netgroups with these member users.'),
         ),
         parameters.Str(
             'no_user',
             required=False,
             multivalue=True,
             cli_name='no_users',
-            label=_(u'user'),
-            doc=_(u'Search for netgroups without these member users.'),
+            label=_('user'),
+            doc=_('Search for netgroups without these member users.'),
         ),
         parameters.Str(
             'group',
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'group'),
-            doc=_(u'Search for netgroups with these member groups.'),
+            label=_('group'),
+            doc=_('Search for netgroups with these member groups.'),
         ),
         parameters.Str(
             'no_group',
             required=False,
             multivalue=True,
             cli_name='no_groups',
-            label=_(u'group'),
-            doc=_(u'Search for netgroups without these member groups.'),
+            label=_('group'),
+            doc=_('Search for netgroups without these member groups.'),
         ),
         parameters.Str(
             'host',
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'host'),
-            doc=_(u'Search for netgroups with these member hosts.'),
+            label=_('host'),
+            doc=_('Search for netgroups with these member hosts.'),
         ),
         parameters.Str(
             'no_host',
             required=False,
             multivalue=True,
             cli_name='no_hosts',
-            label=_(u'host'),
-            doc=_(u'Search for netgroups without these member hosts.'),
+            label=_('host'),
+            doc=_('Search for netgroups without these member hosts.'),
         ),
         parameters.Str(
             'hostgroup',
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'host group'),
-            doc=_(u'Search for netgroups with these member host groups.'),
+            label=_('host group'),
+            doc=_('Search for netgroups with these member host groups.'),
         ),
         parameters.Str(
             'no_hostgroup',
             required=False,
             multivalue=True,
             cli_name='no_hostgroups',
-            label=_(u'host group'),
-            doc=_(u'Search for netgroups without these member host groups.'),
+            label=_('host group'),
+            doc=_('Search for netgroups without these member host groups.'),
         ),
         parameters.Str(
             'in_netgroup',
             required=False,
             multivalue=True,
             cli_name='in_netgroups',
-            label=_(u'netgroup'),
-            doc=_(u'Search for netgroups with these member of netgroups.'),
+            label=_('netgroup'),
+            doc=_('Search for netgroups with these member of netgroups.'),
         ),
         parameters.Str(
             'not_in_netgroup',
             required=False,
             multivalue=True,
             cli_name='not_in_netgroups',
-            label=_(u'netgroup'),
-            doc=_(u'Search for netgroups without these member of netgroups.'),
+            label=_('netgroup'),
+            doc=_('Search for netgroups without these member of netgroups.'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -565,12 +583,12 @@ class netgroup_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -583,7 +601,7 @@ class netgroup_mod(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
     )
@@ -592,76 +610,95 @@ class netgroup_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Netgroup description'),
+            label=_('Description'),
+            doc=_('Netgroup description'),
         ),
         parameters.Str(
             'nisdomainname',
             required=False,
             cli_name='nisdomain',
-            label=_(u'NIS domain name'),
+            label=_('NIS domain name'),
         ),
         parameters.Str(
             'usercategory',
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -670,16 +707,16 @@ class netgroup_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -692,21 +729,27 @@ class netgroup_remove_member(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -716,8 +759,8 @@ class netgroup_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'comma-separated list of users to remove'),
+            label=_('member user'),
+            doc=_('comma-separated list of users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -725,8 +768,8 @@ class netgroup_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'comma-separated list of groups to remove'),
+            label=_('member group'),
+            doc=_('comma-separated list of groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -734,8 +777,8 @@ class netgroup_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'comma-separated list of hosts to remove'),
+            label=_('member host'),
+            doc=_('comma-separated list of hosts to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -743,8 +786,8 @@ class netgroup_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'comma-separated list of host groups to remove'),
+            label=_('member host group'),
+            doc=_('comma-separated list of host groups to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -752,8 +795,8 @@ class netgroup_remove_member(Method):
             required=False,
             multivalue=True,
             cli_name='netgroups',
-            label=_(u'member netgroup'),
-            doc=_(u'comma-separated list of netgroups to remove'),
+            label=_('member netgroup'),
+            doc=_('comma-separated list of netgroups to remove'),
             alwaysask=True,
         ),
     )
@@ -764,12 +807,12 @@ class netgroup_remove_member(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -782,28 +825,37 @@ class netgroup_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Netgroup name'),
+            label=_('Netgroup name'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -812,15 +864,15 @@ class netgroup_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

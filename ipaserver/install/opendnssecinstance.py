@@ -26,7 +26,7 @@ from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
 
 logger = logging.getLogger(__name__)
 
-KEYMASTER = u'dnssecKeyMaster'
+KEYMASTER = 'dnssecKeyMaster'
 
 
 def get_dnssec_key_masters(conn):
@@ -43,9 +43,9 @@ def get_dnssec_key_masters(conn):
     dn = DN(api.env.container_masters, api.env.basedn)
 
     filter_attrs = {
-        u'cn': u'DNSSEC',
-        u'objectclass': u'ipaConfigObject',
-        u'ipaConfigString': [KEYMASTER, ENABLED_SERVICE],
+        'cn': 'DNSSEC',
+        'objectclass': 'ipaConfigObject',
+        'ipaConfigString': [KEYMASTER, ENABLED_SERVICE],
     }
     only_masters_f = conn.make_filter(filter_attrs, rules=conn.MATCH_ALL)
 

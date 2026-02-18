@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib import api, errors
 from ipalib import Str, IA5Str
@@ -35,8 +34,6 @@ from .baseldap import (
 from ipalib import _, ngettext
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Automount
@@ -207,7 +204,7 @@ automountInformation: -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/arch
 
 register = Registry()
 
-DIRECT_MAP_KEY = u'/-'
+DIRECT_MAP_KEY = '/-'
 
 @register()
 class automountlocation(LDAPObject):
@@ -265,13 +262,13 @@ class automountlocation_add(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         # create auto.master for the new location
-        self.api.Command['automountmap_add'](keys[-1], u'auto.master')
+        self.api.Command['automountmap_add'](keys[-1], 'auto.master')
 
         # add additional pre-created maps and keys
         # IMPORTANT: add pre-created maps/keys to DEFAULT_MAPS/DEFAULT_KEYS
         # so that they do not cause conflicts during import operation
         self.api.Command['automountmap_add_indirect'](
-            keys[-1], u'auto.direct', key=DIRECT_MAP_KEY
+            keys[-1], 'auto.direct', key=DIRECT_MAP_KEY
         )
         return dn
 
@@ -305,7 +302,7 @@ class automountlocation_tofiles(LDAPQuery):
     def execute(self, *args, **options):
         self.api.Command['automountlocation_show'](args[0])
 
-        result = self.api.Command['automountkey_find'](args[0], u'auto.master')
+        result = self.api.Command['automountkey_find'](args[0], 'auto.master')
         maps = result['result']
 
         # maps, truncated
@@ -313,7 +310,7 @@ class automountlocation_tofiles(LDAPQuery):
         #       ?use ldap.find_entries instead of automountkey_find?
 
         keys = {}
-        mapnames = [u'auto.master']
+        mapnames = ['auto.master']
         for m in maps:
             info = m['automountinformation'][0]
             mapnames.append(info)
@@ -662,7 +659,7 @@ class automountmap_add_indirect(LDAPCreate):
             cli_name='parentmap',
             label=_('Parent map'),
             doc=_('Name of parent automount map (default: auto.master).'),
-            default=u'auto.master',
+            default='auto.master',
             autofill=True,
         ),
     )
@@ -672,7 +669,7 @@ class automountmap_add_indirect(LDAPCreate):
         key = options.pop('key')
         result = self.api.Command['automountmap_add'](*keys, **options)
         try:
-            if parentmap != u'auto.master':
+            if parentmap != 'auto.master':
                 if key.startswith('/'):
                     raise errors.ValidationError(name='mount',
                         error=_('mount point is relative to parent map, '
@@ -691,7 +688,7 @@ class automountmap_add_indirect(LDAPCreate):
                 # Ensure auto.master exists
                 self.api.Command['automountmap_show'](keys[0], parentmap)
                 self.api.Command['automountkey_add'](
-                    keys[0], u'auto.master', automountkey=key,
+                    keys[0], 'auto.master', automountkey=key,
                     automountinformation=keys[1])
         except Exception:
             # The key exists, drop the map

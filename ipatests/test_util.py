@@ -23,14 +23,9 @@ Test the `tests.util` module.
 
 import re
 
-import six
-
 from ipatests import util
 from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
 import pytest
-
-if six.PY3:
-    unicode = str
 
 pytestmark = pytest.mark.tier0
 pattern_type = type(re.compile(""))
@@ -71,7 +66,7 @@ class test_Fuzzy:
 
         inst = self.klass('(foo|bar)')
         assert inst.regex == '(foo|bar)'
-        assert inst.type is unicode
+        assert inst.type is str
         assert inst.test is None
         assert isinstance(inst.re, pattern_type)
 
@@ -106,7 +101,7 @@ class test_Fuzzy:
         assert repr(inst) == s % (None, None, None)
 
         inst = self.klass('foo')
-        assert repr(inst) == s % ('foo', unicode, None)
+        assert repr(inst) == s % ('foo', str, None)
 
         inst = self.klass(type=(int, float))
         assert repr(inst) == s % (None, (int, float), None)
@@ -118,9 +113,9 @@ class test_Fuzzy:
         assert repr(inst) == s % (None, None, t)
 
     def test_eq(self):
-        assert (self.klass('bar') == u'foobar') is True
-        assert (self.klass('^bar') == u'foobar') is False
-        assert (self.klass('bar', type=bytes) == u'foobar') is False
+        assert (self.klass('bar') == 'foobar') is True
+        assert (self.klass('^bar') == 'foobar') is False
+        assert (self.klass('bar', type=bytes) == 'foobar') is False
 
         assert ('18' == self.klass()) is True
         assert ('18' == self.klass(type=int)) is False
@@ -136,7 +131,7 @@ class test_Fuzzy:
             return other.endswith('bar')
 
         assert (self.klass(test=t) == 'foobar') is True
-        assert (self.klass(test=t, type=unicode) == b'foobar') is False
+        assert (self.klass(test=t, type=str) == b'foobar') is False
         assert (self.klass(test=t) == 'barfoo') is False
 
         assert (False == self.klass()) is True  # noqa
@@ -161,25 +156,25 @@ def test_assert_deepequal(pytestconfig):
         return ret
 
     # Test with good scalar values:
-    f(u'hello', u'hello')
-    f(util.Fuzzy(), u'hello')
-    f(util.Fuzzy(type=unicode), u'hello')
-    f(util.Fuzzy('ell'), u'hello')
-    f(util.Fuzzy(test=lambda other: other.endswith('llo')), u'hello')
+    f('hello', 'hello')
+    f(util.Fuzzy(), 'hello')
+    f(util.Fuzzy(type=str), 'hello')
+    f(util.Fuzzy('ell'), 'hello')
+    f(util.Fuzzy(test=lambda other: other.endswith('llo')), 'hello')
     f(18, 18)
     f(util.Fuzzy(), 18)
     f(util.Fuzzy(type=int), 18)
     f(util.Fuzzy(type=(int, float), test=lambda other: other > 17.9), 18)
 
     # Test with bad scalar values:
-    e = raises(AssertionError, f, u'hello', u'world', 'foo')
+    e = raises(AssertionError, f, 'hello', 'world', 'foo')
     assert str(e) == VALUE % (
-        'foo', u'hello', u'world', tuple()
+        'foo', 'hello', 'world', tuple()
     )
 
-    e = raises(AssertionError, f, b'hello', u'hello', 'foo')
+    e = raises(AssertionError, f, b'hello', 'hello', 'foo')
     assert str(e) == TYPE % (
-        'foo', bytes, unicode, b'hello', u'hello', tuple()
+        'foo', bytes, str, b'hello', 'hello', tuple()
     )
 
     e = raises(AssertionError, f, 18, 18.0, 'foo')
@@ -189,13 +184,13 @@ def test_assert_deepequal(pytestconfig):
 
     # Test with good compound values:
     a = [
-        u'hello',
-        dict(profession=u'nurse'),
+        'hello',
+        dict(profession='nurse'),
         18,
     ]
     b = [
-        u'hello',
-        dict(profession=u'nurse'),
+        'hello',
+        dict(profession='nurse'),
         18,
     ]
     f(a, b)
@@ -203,38 +198,38 @@ def test_assert_deepequal(pytestconfig):
     # Test with bad compound values:
     b = [
         b'hello',
-        dict(profession=u'nurse'),
+        dict(profession='nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, bytes, u'hello', b'hello', (2 if six.PY2 else 0,)
+        'foo', str, bytes, 'hello', b'hello', (0,)
     )
 
     b = [
-        u'hello',
+        'hello',
         dict(profession=b'nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, bytes, u'nurse', b'nurse', (1, 'profession')
+        'foo', str, bytes, 'nurse', b'nurse', (1, 'profession')
     )
 
     b = [
-        u'hello',
-        dict(profession=u'nurse'),
+        'hello',
+        dict(profession='nurse'),
         18.0,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', int, float, 18, 18.0, (0 if six.PY2 else 2,)
+        'foo', int, float, 18, 18.0, (2,)
     )
 
     # List length mismatch
     b = [
-        u'hello',
-        dict(profession=u'nurse'),
+        'hello',
+        dict(profession='nurse'),
         18,
         19
     ]
@@ -244,7 +239,7 @@ def test_assert_deepequal(pytestconfig):
     )
 
     b = [
-        dict(profession=u'nurse'),
+        dict(profession='nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
@@ -256,7 +251,7 @@ def test_assert_deepequal(pytestconfig):
 
     # Missing
     b = [
-        u'hello',
+        'hello',
         dict(),
         18,
     ]
@@ -264,36 +259,36 @@ def test_assert_deepequal(pytestconfig):
     assert str(e) == KEYS % (
         'foo',
         ['profession'], [],
-        exp_str(dict(profession=u'nurse')), got_str(dict()),
+        exp_str(dict(profession='nurse')), got_str(dict()),
         (1,)
     )
 
     # Extra
     b = [
-        u'hello',
-        dict(profession=u'nurse', status=u'RN'),
+        'hello',
+        dict(profession='nurse', status='RN'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == KEYS % (
         'foo',
         [], ['status'],
-        exp_str(dict(profession=u'nurse')),
-        got_str(dict(profession=u'nurse', status=u'RN')),
+        exp_str(dict(profession='nurse')),
+        got_str(dict(profession='nurse', status='RN')),
         (1,)
     )
 
     # Missing + Extra
     b = [
-        u'hello',
-        dict(status=u'RN'),
+        'hello',
+        dict(status='RN'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == KEYS % (
         'foo',
         ['profession'], ['status'],
-        exp_str(dict(profession=u'nurse')), got_str(dict(status=u'RN')),
+        exp_str(dict(profession='nurse')), got_str(dict(status='RN')),
         (1,)
     )
 

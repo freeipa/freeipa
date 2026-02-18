@@ -34,7 +34,6 @@ import lxml.etree
 
 from configparser import DEFAULTSECT, ConfigParser, RawConfigParser
 
-import six
 
 import pki
 import pki.system
@@ -1176,8 +1175,8 @@ class PKIIniLoader:
         """
         result = {}
         for k, v in dct.items():
-            if isinstance(v, (DN, bool, six.integer_types)):
-                v = six.text_type(v)
+            if isinstance(v, (DN, bool, (int,))):
+                v = str(v)
             elif v is None:
                 v = ''
             result[k] = v.replace('%', '%%')

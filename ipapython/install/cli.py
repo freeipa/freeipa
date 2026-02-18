@@ -11,7 +11,6 @@ import enum
 import logging
 import signal
 
-import six
 
 from ipapython import admintool, config
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -22,8 +21,7 @@ from . import core, common
 
 __all__ = ['install_tool', 'uninstall_tool']
 
-if six.PY3:
-    long = int
+long = int
 
 NoneType = type(None)
 

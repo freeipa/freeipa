@@ -48,7 +48,6 @@ from ssl import SSLError
 from cryptography import x509 as crypto_x509
 import gssapi
 from dns.exception import DNSException
-import six
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
@@ -108,16 +107,8 @@ except ImportError:
         MAXINT,
     )
 
-# pylint: disable=import-error
-if six.PY3:
-    from http.client import RemoteDisconnected
-else:
-    from httplib import BadStatusLine as RemoteDisconnected
-# pylint: enable=import-error
+from http.client import RemoteDisconnected
 
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -198,9 +189,9 @@ def xml_wrap(value, version):
         return Binary(value)
     if type(value) is Decimal:
         # transfer Decimal as a string
-        return unicode(value)
+        return str(value)
     if isinstance(value, int) and (value < MININT or value > MAXINT):
-        return unicode(value)
+        return str(value)
     if isinstance(value, DN):
         return str(value)
 
@@ -213,12 +204,12 @@ def xml_wrap(value, version):
 
     if isinstance(value, DNSName):
         if capabilities.client_has_capability(version, 'dns_name_values'):
-            return {'__dns_name__': unicode(value)}
+            return {'__dns_name__': str(value)}
         else:
-            return unicode(value)
+            return str(value)
 
     if isinstance(value, Principal):
-        return unicode(value)
+        return str(value)
 
     if isinstance(value, (crypto_x509.Certificate, IPACertificate)):
         return base64.b64encode(
@@ -228,7 +219,7 @@ def xml_wrap(value, version):
         return base64.b64encode(
             value.public_bytes(x509_Encoding.DER)).decode('ascii')
 
-    assert type(value) in (unicode, float, int, bool, type(None))
+    assert type(value) in (str, float, int, bool, type(None))
     return value
 
 
@@ -250,7 +241,7 @@ def xml_unwrap(value, encoding='UTF-8'):
     :param value: The value to unwrap.
     :param encoding: The Unicode encoding to use (defaults to ``'UTF-8'``).
     """
-    if isinstance(value, (unicode, int, float, bool)):
+    if isinstance(value, (str, int, float, bool)):
         # most common first
         return value
     elif value is None:
@@ -434,7 +425,7 @@ class SSLTransport(LanguageAwareTransport):
             # handle reconnect for us.
             self.close()
             logger.debug("HTTP connection destroyed (%s)", host)
-            raise errors.NetworkError(message=unicode(e))
+            raise errors.NetworkError(message=str(e))
 
         logger.debug("New HTTP connection (%s)", host)
 
@@ -472,7 +463,7 @@ class KerbTransport(SSLTransport):
         elif minor == KRB5_CC_NOTFOUND:
             raise errors.CCacheError()
         else:
-            raise errors.KerberosError(message=unicode(e))
+            raise errors.KerberosError(message=str(e))
 
     def _get_host(self):
         return self._connection[0]
@@ -544,7 +535,7 @@ class KerbTransport(SSLTransport):
                         pass
             if not token:
                 raise errors.KerberosError(
-                    message=u"No valid Negotiate header in server response")
+                    message="No valid Negotiate header in server response")
             token = self._sec_context.step(token=token)
             if self._sec_context.complete:
                 self._sec_context = None
@@ -570,18 +561,9 @@ class KerbTransport(SSLTransport):
             self.get_auth_info()
 
             while True:
-                if six.PY2:
-                    # pylint: disable=no-value-for-parameter
-                    self.send_request(h, handler, request_body)
-                    # pylint: enable=no-value-for-parameter
-                    self.send_host(h, host)
-                    self.send_user_agent(h)
-                    self.send_content(h, request_body)
-                    response = h.getresponse(buffering=True)
-                else:
-                    self.__send_request(h, host, handler,
-                                        request_body, verbose)
-                    response = h.getresponse()
+                self.__send_request(h, host, handler,
+                                    request_body, verbose)
+                response = h.getresponse()
 
                 if response.status != 200:
                     # Must read response (even if it is empty)
@@ -623,24 +605,23 @@ class KerbTransport(SSLTransport):
             raise
     # pylint: enable=inconsistent-return-statements
 
-    if six.PY3:
-        def __send_request(self, connection, host, handler,
-                           request_body, debug):
-            # Based on xmlrpc.client.Transport.send_request
-            headers = self._extra_headers[:]
-            if debug:
-                connection.set_debuglevel(1)
-            if self.accept_gzip_encoding and gzip:
-                connection.putrequest("POST", handler,
-                                      skip_accept_encoding=True)
-                connection.putheader("Accept-Encoding", "gzip")
-                headers.append(("Accept-Encoding", "gzip"))
-            else:
-                connection.putrequest("POST", handler)
-            headers.append(("User-Agent", self.user_agent))
-            self.send_headers(connection, headers)
-            self.send_content(connection, request_body)
-            return connection
+    def __send_request(self, connection, host, handler,
+                       request_body, debug):
+        # Based on xmlrpc.client.Transport.send_request
+        headers = self._extra_headers[:]
+        if debug:
+            connection.set_debuglevel(1)
+        if self.accept_gzip_encoding and gzip:
+            connection.putrequest("POST", handler,
+                                  skip_accept_encoding=True)
+            connection.putheader("Accept-Encoding", "gzip")
+            headers.append(("Accept-Encoding", "gzip"))
+        else:
+            connection.putrequest("POST", handler)
+        headers.append(("User-Agent", self.user_agent))
+        self.send_headers(connection, headers)
+        self.send_content(connection, request_body)
+        return connection
 
     # Find all occurrences of the expiry component
     expiry_re = re.compile(r'.*?(&expiry=\d+).*?')
@@ -718,10 +699,7 @@ class KerbTransport(SSLTransport):
             pass
 
     def parse_response(self, response):
-        if six.PY2:
-            header = response.msg.getheaders('Set-Cookie')
-        else:
-            header = response.msg.get_all('Set-Cookie')
+        header = response.msg.get_all('Set-Cookie')
         self.store_session_cookie(header)
         return SSLTransport.parse_response(self, response)
 
@@ -1107,7 +1085,7 @@ class JSONServerProxy:
 
     def __request(self, name, args):
         print_json = self.__verbose >= 2
-        payload = {'method': unicode(name), 'params': args, 'id': 0}
+        payload = {'method': str(name), 'params': args, 'id': 0}
         version = args[1].get('version', VERSION_WITHOUT_CAPABILITIES)
         payload = json_encode_binary(
             payload, version, pretty_print=print_json)

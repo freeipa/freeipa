@@ -5,15 +5,11 @@
 
 import os
 
-import six
 
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_deepequal
-
-if six.PY3:
-    unicode = str
 
 
 class CertprofileTracker(Tracker):
@@ -55,7 +51,7 @@ class CertprofileTracker(Tracker):
 
         with open(path, 'r') as f:
             content = f.read()
-        return unicode(content)
+        return str(content)
 
     def make_create_command(self, extra_lines=None):
         """
@@ -72,18 +68,18 @@ class CertprofileTracker(Tracker):
         return self.make_command('certprofile_import', self.name,
                                  description=self.description,
                                  ipacertprofilestoreissued=self.store,
-                                 file=u'\n'.join([self.profile] + extra_lines))
+                                 file='\n'.join([self.profile] + extra_lines))
 
     def check_create(self, result):
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Imported profile "{}"'.format(self.name),
+            summary='Imported profile "{}"'.format(self.name),
             result=dict(self.filter_attrs(self.create_keys))
         ), result)
 
     def track_create(self):
         self.attrs = dict(
-            dn=unicode(self.dn),
+            dn=str(self.dn),
             cn=[self.name],
             description=[self.description],
             ipacertprofilestoreissued=[self.store],
@@ -97,7 +93,7 @@ class CertprofileTracker(Tracker):
     def check_delete(self, result):
         assert_deepequal(dict(
             value=[self.name],  # correctly a list?
-            summary=u'Deleted profile "{}"'.format(self.name),
+            summary='Deleted profile "{}"'.format(self.name),
             result=dict(failed=[]),
         ), result)
 
@@ -129,7 +125,7 @@ class CertprofileTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 profile matched',
+            summary='1 profile matched',
             result=[expected]
         ), result)
 
@@ -139,6 +135,6 @@ class CertprofileTracker(Tracker):
     def check_update(self, result, extra_keys=()):
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Modified Certificate Profile "{}"'.format(self.name),
+            summary='Modified Certificate Profile "{}"'.format(self.name),
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)

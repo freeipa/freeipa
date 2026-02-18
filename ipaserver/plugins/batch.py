@@ -20,7 +20,6 @@
 
 import logging
 
-import six
 
 from ipalib import api, errors
 from ipalib import Command
@@ -57,9 +56,6 @@ The format of the response is nested the same way.  At the top you will see
 And then a nested response for each IPA command method sent in the request
 
 """)
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +110,7 @@ class batch(Command):
         except (AttributeError, ValueError, TypeError):
             raise errors.ConversionError(
                 name='params',
-                error=_(u'must contain a tuple (list, dict)'))
+                error=_('must contain a tuple (list, dict)'))
         except Exception as e:
             raise errors.ConversionError(
                 name='params',
@@ -134,7 +130,7 @@ class batch(Command):
             except Exception:
                 # redact the whole request since we don't know what's in it
                 exceptions = True
-                yield u'********'
+                yield '********'
                 continue
 
             name = arg['method']
@@ -204,7 +200,7 @@ class batch(Command):
                 result = dict(
                     error=reported_error.strerror,
                     error_code=reported_error.errno,
-                    error_name=unicode(type(reported_error).__name__),
+                    error_name=str(type(reported_error).__name__),
                     error_kw=reported_error.kw,
                 )
             results.append(result)

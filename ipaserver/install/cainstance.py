@@ -647,7 +647,7 @@ class CAInstance(DogtagInstance):
                 template = self.external_ca_profile
                 if template is None:
                     # default template name
-                    template = x509.MSCSTemplateV1(u"SubCA")
+                    template = x509.MSCSTemplateV1("SubCA")
 
                 ext_data = binascii.hexlify(template.get_ext_data())
                 cfg.update(
@@ -2416,10 +2416,14 @@ def ensure_default_caacl():
     )
 
     if not api.Command.caacl_find()['result']:
-        api.Command.caacl_add(u'hosts_services_caIPAserviceCert',
-            hostcategory=u'all', servicecategory=u'all')
-        api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
-            certprofile=(u'caIPAserviceCert',))
+        api.Command.caacl_add(
+            'hosts_services_caIPAserviceCert',
+            hostcategory='all',
+            servicecategory='all',
+        )
+        api.Command.caacl_add_profile(
+            'hosts_services_caIPAserviceCert', certprofile=('caIPAserviceCert',)
+        )
 
 
 def add_lightweight_ca_tracking_requests(lwcas):

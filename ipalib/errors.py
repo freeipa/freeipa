@@ -104,8 +104,6 @@ current block assignments:
             - **5100 - 5999**  *Reserved for future use*
 """
 
-import six
-
 from ipalib.text import ngettext as ungettext
 from ipalib import messages
 
@@ -121,16 +119,16 @@ class PrivateError(Exception):
         self.msg = self.format % kw
         self.kw = kw
         for (key, value) in kw.items():
-            assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
-                self.__class__.__name__, key, value,
+            assert not hasattr(self, key), (
+                f'conflicting kwarg {self.__class__.__name__}.{key} = {value!r}'
             )
+
             setattr(self, key, value)
         Exception.__init__(self, self.msg)
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
+    @property
+    def message(self):
+        return str(self)
 
 
 class SubprocessError(PrivateError):
@@ -273,10 +271,9 @@ class PublicError(Exception):
     rval = 1
     format = None
 
-    if six.PY3:
-        @property
-        def message(self):
-            return str(self)
+    @property
+    def message(self):
+        return str(self)
 
 
 class VersionError(PublicError):
@@ -293,7 +290,9 @@ class VersionError(PublicError):
     """
 
     errno = 901
-    format = _("%(cver)s client incompatible with %(sver)s server at '%(server)s'")
+    format = _(
+        "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
+    )
 
 
 class UnknownError(PublicError):
@@ -302,7 +301,7 @@ class UnknownError(PublicError):
 
     For example:
 
-    >>> raise UnknownError(code=57, server='localhost', error=u'a new error')
+    >>> raise UnknownError(code=57, server='localhost', error='a new error')
     ...
     Traceback (most recent call last):
       ...
@@ -391,7 +390,8 @@ class NetworkError(PublicError):
 
     For example:
 
-    >>> raise NetworkError(uri='ldap://localhost:389', error=_(u'Connection refused'))
+    >>> raise NetworkError(uri='ldap://localhost:389',
+    ... error=_('Connection refused'))
     Traceback (most recent call last):
       ...
     NetworkError: cannot connect to 'ldap://localhost:389': Connection refused
@@ -782,7 +782,7 @@ class ConversionError(InvocationError):
 
     For example:
 
-    >>> raise ConversionError(name='age', error=_(u'must be an integer'))
+    >>> raise ConversionError(name='age', error=_('must be an integer'))
     Traceback (most recent call last):
       ...
     ConversionError: invalid 'age': must be an integer
@@ -798,7 +798,8 @@ class ValidationError(InvocationError):
 
     For example:
 
-    >>> raise ValidationError(name='sn', error=_(u'can be at most 128 characters'))
+    >>> raise ValidationError(name='sn',
+    ... error=_('can be at most 128 characters'))
     Traceback (most recent call last):
       ...
     ValidationError: invalid 'sn': can be at most 128 characters
@@ -888,7 +889,10 @@ class NotAForestRootError(InvocationError):
     """
 
     errno = 3016
-    format = _("Domain '%(domain)s' is not a root domain for forest '%(forest)s'")
+    format = _(
+        "Domain '%(domain)s' is not a root domain for forest '%(forest)s'"
+    )
+
 
 ##############################################################################
 # 4000 - 4999: Execution errors
@@ -963,7 +967,11 @@ class MalformedServicePrincipal(ExecutionError):
     """
 
     errno = 4004
-    format = _('Service principal is not of the form: service/fully-qualified host name: %(reason)s')
+    format = _(
+        'Service principal is not of the form: service/fully-qualified '
+        'host name: %(reason)s'
+    )
+
 
 class RealmMismatch(ExecutionError):
     """
@@ -979,7 +987,11 @@ class RealmMismatch(ExecutionError):
     """
 
     errno = 4005
-    format = _('The realm for the principal does not match the realm for this IPA server')
+    format = _(
+        'The realm for the principal does not match the realm for this '
+        'IPA server'
+    )
+
 
 class RequiresRoot(ExecutionError):
     """
@@ -1203,7 +1215,10 @@ class ManagedGroupError(ExecutionError):
     """
 
     errno = 4020
-    format = _('Deleting a managed group is not allowed. It must be detached first.')
+    format = _(
+        'Deleting a managed group is not allowed. It must be detached first.'
+    )
+
 
 class ManagedPolicyError(ExecutionError):
     """
@@ -1259,14 +1274,16 @@ class ManagedGroupExistsError(ExecutionError):
 
     For example:
 
-    >>> raise ManagedGroupExistsError(group=u'engineering')
+    >>> raise ManagedGroupExistsError(group='engineering')
     Traceback (most recent call last):
       ...
     ManagedGroupExistsError: Unable to create private group. A group 'engineering' already exists.
     """
 
     errno = 4024
-    format = _('Unable to create private group. A group \'%(group)s\' already exists.')
+    format = _(
+        "Unable to create private group. A group '%(group)s' already exists."
+    )
 
 
 class ReverseMemberError(ExecutionError):
@@ -1282,7 +1299,10 @@ class ReverseMemberError(ExecutionError):
     """
 
     errno = 4025
-    format = _('A problem was encountered when verifying that all members were %(verb)s: %(exc)s')
+    format = _(
+        'A problem was encountered when verifying that all members were '
+        '%(verb)s: %(exc)s'
+    )
 
 
 class AttrValueNotFound(ExecutionError):
@@ -1317,7 +1337,10 @@ class SingleMatchExpected(ExecutionError):
 
     errno = 4027
     rval = 1
-    format = _('The search criteria was not specific enough. Expected 1 and found %(found)d.')
+    format = _(
+        'The search criteria was not specific enough. '
+        'Expected 1 and found %(found)d.'
+    )
 
 
 class AlreadyExternalGroup(ExecutionError):
@@ -1368,7 +1391,10 @@ class PosixGroupViolation(ExecutionError):
     """
 
     errno = 4030
-    format = _('This is already a posix group and cannot be converted to external one')
+    format = _(
+        'This is already a posix group and cannot be converted to external one'
+    )
+
 
 class EmptyResult(NotFound):
     """
@@ -1741,7 +1767,7 @@ class CertificateOperationError(CertificateError):
 
     For example:
 
-    >>> raise CertificateOperationError(error=_(u'bad serial number'))
+    >>> raise CertificateOperationError(error=_('bad serial number'))
     Traceback (most recent call last):
       ...
     CertificateOperationError: Certificate operation cannot be completed: bad serial number
@@ -1757,7 +1783,8 @@ class CertificateFormatError(CertificateError):
 
     For example:
 
-    >>> raise CertificateFormatError(error=_(u'improperly formated DER-encoded certificate'))
+    >>> raise CertificateFormatError(error=_(
+    ... 'improperly formated DER-encoded certificate'))
     Traceback (most recent call last):
       ...
     CertificateFormatError: Certificate format error: improperly formated DER-encoded certificate
@@ -1774,7 +1801,8 @@ class MutuallyExclusiveError(ExecutionError):
 
     For example:
 
-    >>> raise MutuallyExclusiveError(reason=_(u'hosts may not be added when hostcategory=all'))
+    >>> raise MutuallyExclusiveError(reason=_(
+    ... 'hosts may not be added when hostcategory=all'))
     Traceback (most recent call last):
       ...
     MutuallyExclusiveError: hosts may not be added when hostcategory=all
@@ -1791,7 +1819,8 @@ class NonFatalError(ExecutionError):
 
     For example:
 
-    >>> raise NonFatalError(reason=_(u'The host was added but the DNS update failed'))
+    >>> raise NonFatalError(reason=_(
+    ... 'The host was added but the DNS update failed'))
     Traceback (most recent call last):
       ...
     NonFatalError: The host was added but the DNS update failed
@@ -1840,7 +1869,8 @@ class DependentEntry(ExecutionError):
     **4307** Raised when an entry being deleted has dependencies
 
     For example:
-    >>> raise DependentEntry(label=u'SELinux User Map', key=u'test', dependent=u'test1')
+    >>> raise DependentEntry(label='SELinux User Map',
+    ... key='test', dependent='test1')
     Traceback (most recent call last):
       ...
     DependentEntry: test cannot be deleted because SELinux User Map test1 requires it
@@ -1848,7 +1878,9 @@ class DependentEntry(ExecutionError):
     """
 
     errno = 4307
-    format = _('%(key)s cannot be deleted because %(label)s %(dependent)s requires it')
+    format = _(
+        '%(key)s cannot be deleted because %(label)s %(dependent)s requires it'
+    )
 
 
 class LastMemberError(ExecutionError):
@@ -1856,7 +1888,7 @@ class LastMemberError(ExecutionError):
     **4308** Raised when an entry being deleted or disabled is last member of a protected group
 
     For example:
-    >>> raise LastMemberError(key=u'admin', label=u'group', container=u'admins')
+    >>> raise LastMemberError(key='admin', label='group', container='admins')
     Traceback (most recent call last):
       ...
     LastMemberError: admin cannot be deleted or disabled because it is the last member of group admins
@@ -1864,7 +1896,10 @@ class LastMemberError(ExecutionError):
     """
 
     errno = 4308
-    format = _('%(key)s cannot be deleted or disabled because it is the last member of %(label)s %(container)s')
+    format = _(
+        '%(key)s cannot be deleted or disabled because it is the last '
+        'member of %(label)s %(container)s'
+    )
 
 
 class ProtectedEntryError(ExecutionError):
@@ -1872,7 +1907,8 @@ class ProtectedEntryError(ExecutionError):
     **4309** Raised when an entry being deleted or modified in a forbidden way is protected
 
     For example:
-    >>> raise ProtectedEntryError(label=u'group', key=u'admins', reason=_(u'privileged group'))
+    >>> raise ProtectedEntryError(label='group', key='admins',
+    ... reason=_('privileged group'))
     Traceback (most recent call last):
       ...
     ProtectedEntryError: group admins cannot be deleted/modified: privileged group
@@ -1889,7 +1925,7 @@ class CertificateInvalidError(CertificateError):
 
     For example:
 
-    >>> raise CertificateInvalidError(name=_(u'CA'))
+    >>> raise CertificateInvalidError(name=_('CA'))
     Traceback (most recent call last):
       ...
     CertificateInvalidError: CA certificate is not valid
@@ -1908,7 +1944,7 @@ class SchemaUpToDate(ExecutionError):
     long (in seconds) before client should check for schema update.
 
     For example:
-    >>> raise SchemaUpToDate(fingerprint=u'deadbeef', ttl=3600)
+    >>> raise SchemaUpToDate(fingerprint='deadbeef', ttl=3600)
     Traceback (most recent call last):
       ...
     SchemaUpToDate: Schema is up to date (FP 'deadbeef', TTL 3600 s)

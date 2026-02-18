@@ -20,7 +20,6 @@ import uuid
 import time
 
 import ldap as _ldap
-import six
 
 from ipalib import api, errors, Str, StrEnum, DNParam, Flag, _, ngettext
 from ipalib import output, Method, Object
@@ -36,9 +35,6 @@ from .baseldap import (
     LDAPRetrieve)
 from ipalib.request import context
 from ipapython.dn import DN
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Auto Membership Rule.
@@ -180,10 +176,14 @@ regex_key = (
 )
 
 group_type = (
-    StrEnum('type',
+    StrEnum(
+        'type',
         label=_('Grouping Type'),
         doc=_('Grouping to which the rule applies'),
-        values=(u'group', u'hostgroup', ),
+        values=(
+            'group',
+            'hostgroup',
+        ),
     ),
 )
 
@@ -272,7 +272,7 @@ class automember(LDAPObject):
             entry = ldap.get_entry(dn, [])
         except errors.NotFound:
             raise errors.NotFound(
-                reason=_(u'%(otype)s "%(oname)s" not found') %
+                reason=_('%(otype)s "%(oname)s" not found') %
                 dict(otype=otype, oname=oname)
             )
         return entry.dn
@@ -368,7 +368,9 @@ class automember_add_condition(LDAPUpdate):
         try:
             dn = ldap.get_entry(dn, []).dn
         except errors.NotFound:
-            raise errors.NotFound(reason=_(u'Auto member rule: %s not found!') % keys[0])
+            raise errors.NotFound(
+                reason=_('Auto member rule: %s not found!') % keys[0]
+            )
         # Define container key
         key = options['key']
         # Check to see if the attribute is valid
@@ -452,7 +454,9 @@ class automember_remove_condition(LDAPUpdate):
         try:
             ldap.get_entry(dn, [])
         except errors.NotFound:
-            raise errors.NotFound(reason=_(u'Auto member rule: %s not found!') % keys[0])
+            raise errors.NotFound(
+                reason=_('Auto member rule: %s not found!') % keys[0]
+            )
 
         # Define container key
         type_attr_default = {'group': 'manager', 'hostgroup': 'fqdn'}
@@ -622,7 +626,7 @@ class automember_default_group_remove(LDAPUpdate):
         entry_attrs_ = ldap.get_entry(dn, [attr])
 
         if attr not in entry_attrs_:
-            raise errors.NotFound(reason=_(u'No default (fallback) group set'))
+            raise errors.NotFound(reason=_('No default (fallback) group set'))
         else:
             entry_attrs[attr] = []
         return entry_attrs_.dn
@@ -630,7 +634,9 @@ class automember_default_group_remove(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
-            entry_attrs['automemberdefaultgroup'] = unicode(_('No default (fallback) group set'))
+            entry_attrs['automemberdefaultgroup'] = str(
+                _('No default (fallback) group set')
+            )
         return dn
 
     def execute(self, *keys, **options):
@@ -658,7 +664,9 @@ class automember_default_group_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if 'automemberdefaultgroup' not in entry_attrs:
-            entry_attrs['automemberdefaultgroup'] = unicode(_('No default (fallback) group set'))
+            entry_attrs['automemberdefaultgroup'] = str(
+                _('No default (fallback) group set')
+            )
         return dn
 
     def execute(self, *keys, **options):
@@ -819,7 +827,7 @@ class automember_rebuild(Method):
 
         return dict(
             result=result,
-            summary=unicode(summary),
+            summary=str(summary),
             value=pkey_to_value(None, options))
 
 

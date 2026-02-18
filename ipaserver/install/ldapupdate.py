@@ -33,7 +33,6 @@ import fnmatch
 import warnings
 
 from pysss_murmur import murmurhash3
-import six
 
 from ipapython import ipautil, ipaldap
 from ipalib import errors
@@ -44,9 +43,6 @@ from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipaserver.install import installutils, replication
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -523,7 +519,7 @@ class LDAPUpdate:
                             )
                 else:
                     for i, v in enumerate(value):
-                        if isinstance(v, unicode):
+                        if isinstance(v, str):
                             value[i] = v.encode('utf-8')
 
                 if action != 'replace':
@@ -742,14 +738,14 @@ class LDAPUpdate:
             attr = update['attr']
             update_value = update['value']
 
-            # do not mix comparison of bytes and unicode, everything in this
+            # do not mix comparison of bytes and str, everything in this
             # function should be compared as bytes
             if isinstance(update_value, (list, tuple)):
                 update_value = [
-                    v.encode('utf-8') if isinstance(v, unicode) else v
+                    v.encode('utf-8') if isinstance(v, str) else v
                     for v in update_value
                 ]
-            elif isinstance(update_value, unicode):
+            elif isinstance(update_value, str):
                 update_value = update_value.encode('utf-8')
 
             entry_values = entry.raw.get(attr, [])

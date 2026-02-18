@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
@@ -14,9 +13,6 @@ from .baseldap import (
 from .hbacrule import is_all
 from ipalib import _, ngettext
 from ipapython.dn import DN
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Manage CA ACL rules.
@@ -165,74 +161,89 @@ class caacl(LDAPObject):
     label_singular = _('CA ACL')
 
     takes_params = (
-        Str('cn',
+        Str(
+            'cn',
             cli_name='name',
             label=_('ACL name'),
             primary_key=True,
         ),
-        Str('description?',
+        Str(
+            'description?',
             cli_name='desc',
             label=_('Description'),
         ),
-        Bool('ipaenabledflag?',
-             label=_('Enabled'),
-             flags=['no_option'],
+        Bool(
+            'ipaenabledflag?',
+            label=_('Enabled'),
+            flags=['no_option'],
         ),
-        StrEnum('ipacacategory?',
+        StrEnum(
+            'ipacacategory?',
             cli_name='cacat',
             label=_('CA category'),
             doc=_('CA category the ACL applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('ipacertprofilecategory?',
+        StrEnum(
+            'ipacertprofilecategory?',
             cli_name='profilecat',
             label=_('Profile category'),
             doc=_('Profile category the ACL applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('usercategory?',
+        StrEnum(
+            'usercategory?',
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the ACL applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('hostcategory?',
+        StrEnum(
+            'hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the ACL applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('servicecategory?',
+        StrEnum(
+            'servicecategory?',
             cli_name='servicecat',
             label=_('Service category'),
             doc=_('Service category the ACL applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        Str('ipamemberca_ca?',
+        Str(
+            'ipamemberca_ca?',
             label=_('CAs'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipamembercertprofile_certprofile?',
+        Str(
+            'ipamembercertprofile_certprofile?',
             label=_('Profiles'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberuser_user?',
+        Str(
+            'memberuser_user?',
             label=_('Users'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberuser_group?',
+        Str(
+            'memberuser_group?',
             label=_('User Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberhost_host?',
+        Str(
+            'memberhost_host?',
             label=_('Hosts'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberhost_hostgroup?',
+        Str(
+            'memberhost_hostgroup?',
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberservice_service?',
+        Str(
+            'memberservice_service?',
             label=_('Services'),
             flags=['no_create', 'no_update', 'no_search'],
         ),

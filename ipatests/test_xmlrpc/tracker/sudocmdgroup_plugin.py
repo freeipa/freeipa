@@ -14,22 +14,22 @@ from ipapython.dn import DN
 
 class SudoCmdGroupTracker(Tracker):
     """ Class for tracking sudocmdgroups """
-    retrieve_keys = {u'dn', u'cn', u'member_sudocmd', u'description',
-                     u'member_sudocmdgroup'}
-    retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass',
-                                         u'mepmanagedentry'}
+    retrieve_keys = {'dn', 'cn', 'member_sudocmd', 'description',
+                     'member_sudocmdgroup'}
+    retrieve_all_keys = retrieve_keys | {'ipauniqueid', 'objectclass',
+                                         'mepmanagedentry'}
 
     create_keys = retrieve_all_keys
-    update_keys = retrieve_keys - {u'dn'}
+    update_keys = retrieve_keys - {'dn'}
 
-    add_member_keys = retrieve_keys | {u'member_sudocmd'}
+    add_member_keys = retrieve_keys | {'member_sudocmd'}
 
     find_keys = {
-        u'dn', u'cn', u'description', u'member_sudocmdgroup'}
+        'dn', 'cn', 'description', 'member_sudocmdgroup'}
     find_all_keys = find_keys | {
-        u'ipauniqueid', u'objectclass', u'mepmanagedentry'}
+        'ipauniqueid', 'objectclass', 'mepmanagedentry'}
 
-    def __init__(self, name, description=u'SudoCmdGroup desc'):
+    def __init__(self, name, description='SudoCmdGroup desc'):
         super(SudoCmdGroupTracker, self).__init__(default_version=None)
         self.cn = name
         self.description = description
@@ -86,10 +86,10 @@ class SudoCmdGroupTracker(Tracker):
     def add_member(self, options):
         """ Add a member sudocmd to sudocmdgroup and perform check """
         try:
-            self.attrs[u'member_sudocmd'] =\
-                self.attrs[u'member_sudocmd'] + [options[u'sudocmd']]
+            self.attrs['member_sudocmd'] =\
+                self.attrs['member_sudocmd'] + [options['sudocmd']]
         except KeyError:
-            self.attrs[u'member_sudocmd'] = [options[u'sudocmd']]
+            self.attrs['member_sudocmd'] = [options['sudocmd']]
 
         command = self.make_add_member_command(options)
         result = command()
@@ -97,11 +97,11 @@ class SudoCmdGroupTracker(Tracker):
 
     def remove_member(self, options):
         """ Remove a member sudocmd from sudocmdgroup and perform check """
-        self.attrs[u'member_sudocmd'].remove(options[u'sudocmd'])
+        self.attrs['member_sudocmd'].remove(options['sudocmd'])
 
         try:
-            if not self.attrs[u'member_sudocmd']:
-                del self.attrs[u'member_sudocmd']
+            if not self.attrs['member_sudocmd']:
+                del self.attrs['member_sudocmd']
         except KeyError:
             pass
 
@@ -144,7 +144,7 @@ class SudoCmdGroupTracker(Tracker):
         """ Checks 'sudocmdgroup_add' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Added Sudo Command Group "%s"' % self.cn,
+            summary='Added Sudo Command Group "%s"' % self.cn,
             result=self.filter_attrs(self.create_keys)
             ), result)
 
@@ -152,7 +152,7 @@ class SudoCmdGroupTracker(Tracker):
         """ Checks 'sudocmdgroup_del' command result """
         assert_deepequal(dict(
             value=[self.cn],
-            summary=u'Deleted Sudo Command Group "%s"' % self.cn,
+            summary='Deleted Sudo Command Group "%s"' % self.cn,
             result=dict(failed=[]),
             ), result)
 
@@ -179,7 +179,7 @@ class SudoCmdGroupTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 Sudo Command Group matched',
+            summary='1 Sudo Command Group matched',
             result=[expected],
         ), result)
 
@@ -187,7 +187,7 @@ class SudoCmdGroupTracker(Tracker):
         """ Checks 'sudocmdgroup_mod' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Modified Sudo Command Group "%s"' % self.cn,
+            summary='Modified Sudo Command Group "%s"' % self.cn,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 
@@ -195,7 +195,7 @@ class SudoCmdGroupTracker(Tracker):
         """ Checks 'sudocmdgroup_add_member' command result """
         assert_deepequal(dict(
             completed=1,
-            failed={u'member': {u'sudocmd': ()}},
+            failed={'member': {'sudocmd': ()}},
             result=self.filter_attrs(self.add_member_keys)
         ), result)
 
@@ -204,11 +204,11 @@ class SudoCmdGroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'sudocmd': ()}},
+            failed={'member': {'sudocmd': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        expected[u'failed'][u'member'][u'sudocmd'] = [(
-            options[u'sudocmd'], u'no such entry')]
+        expected['failed']['member']['sudocmd'] = [(
+            options['sudocmd'], 'no such entry')]
 
         assert_deepequal(expected, result)
 
@@ -217,11 +217,11 @@ class SudoCmdGroupTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'sudocmd': ()}},
+            failed={'member': {'sudocmd': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        expected[u'failed'][u'member'][u'sudocmd'] = [(
-            options[u'sudocmd'], u'This entry is not a member')]
+        expected['failed']['member']['sudocmd'] = [(
+            options['sudocmd'], 'This entry is not a member')]
 
         assert_deepequal(expected, result)
 

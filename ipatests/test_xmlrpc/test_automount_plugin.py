@@ -30,28 +30,24 @@ from ipalib import errors
 from ipapython.dn import DN
 
 import pytest
-import six
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipatests.util import assert_deepequal
-
-if six.PY3:
-    unicode = str
 
 
 class MockTextui(list):
     """Collects output lines"""
     # Extend the mock object if other textui methods are called
     def print_plain(self, line):
-        self.append(unicode(line))
+        self.append(str(line))
 
 
 class AutomountTest(XMLRPC_test):
     """Provides common functionality for automount tests"""
 
-    locname = u'testlocation'
-    locname2 = u'testlocation2'
-    locname3 = u'testlocation3'
+    locname = 'testlocation'
+    locname2 = 'testlocation2'
+    locname3 = 'testlocation3'
     tofiles_output = ''  # To be overridden
 
     def check_tofiles(self):
@@ -61,9 +57,9 @@ class AutomountTest(XMLRPC_test):
 
         mock_ui = MockTextui()
         command = api.Command['automountlocation_tofiles']
-        command.output_for_cli(mock_ui, res, self.locname, version=u'2.88')
+        command.output_for_cli(mock_ui, res, self.locname, version='2.88')
         expected_output = self.tofiles_output
-        assert_deepequal(expected_output, u'\n'.join(mock_ui))
+        assert_deepequal(expected_output, '\n'.join(mock_ui))
 
     def check_import_roundtrip(self):
         """Check automountlocation_tofiles/automountlocation_import roundtrip
@@ -97,10 +93,10 @@ class AutomountTest(XMLRPC_test):
 
         try:
             # Feed the files to automountlocation_import & check
-            master_file = u'%s/auto.master' % conf_directory
+            master_file = '%s/auto.master' % conf_directory
             automountlocation_import = api.Command['automountlocation_import']
             res = automountlocation_import(self.locname, master_file,
-                                           version=u'2.88')
+                                           version='2.88')
             assert_deepequal(dict(
                 result=dict(
                     keys=lambda k: k,
@@ -124,18 +120,18 @@ class test_automount(AutomountTest):
     """
     Test the `automount` plugin.
     """
-    mapname = u'testmap'
-    keyname = u'testkey'
-    keyname_rename = u'testkey_rename'
-    keyname2 = u'testkey2'
-    description = u'description of map'
-    info = u'ro'
-    newinfo = u'rw'
+    mapname = 'testmap'
+    keyname = 'testkey'
+    keyname_rename = 'testkey_rename'
+    keyname2 = 'testkey2'
+    description = 'description of map'
+    info = 'ro'
+    newinfo = 'rw'
     map_kw = {'automountmapname': mapname, 'description': description, 'raw': True}
     key_kw = {'automountkey': keyname, 'automountinformation': info, 'raw': True}
     key_kw2 = {'automountkey': keyname2, 'automountinformation': info, 'raw': True}
 
-    tofiles_output = textwrap.dedent(u"""
+    tofiles_output = textwrap.dedent("""
         /etc/auto.master:
         /-\t/etc/auto.direct
         ---------------------------
@@ -297,7 +293,7 @@ class test_automount(AutomountTest):
         """
         Test the `xmlrpc.automountmap_mod` method.
         """
-        mod_kw = {'description': u'new description'}
+        mod_kw = {'description': 'new description'}
         res = api.Command['automountmap_mod'](self.locname, self.mapname, **mod_kw)['result']
         assert res
         assert_attr_equal(res, 'description', 'new description')
@@ -307,7 +303,7 @@ class test_automount(AutomountTest):
         Test the `automountlocation_tofiles` command.
         """
         res = api.Command['automountlocation_tofiles'](self.locname,
-                                                       version=u'2.88')
+                                                       version='2.88')
         assert_deepequal(dict(
             result=dict(
                 keys={'auto.direct': ()},
@@ -315,8 +311,8 @@ class test_automount(AutomountTest):
                     dn=DN(('automountmapname', self.mapname),
                           ('cn', self.locname),
                           ('cn', 'automount'), api.env.basedn),
-                    description=(u'new description',),
-                    automountmapname=(u'testmap',)),),
+                    description=('new description',),
+                    automountmapname=('testmap',)),),
                 orphankeys=[(
                     dict(
                         dn=DN(('description', self.keyname2),
@@ -325,7 +321,7 @@ class test_automount(AutomountTest):
                               ('cn', 'automount'), api.env.basedn),
                         automountkey=(self.keyname2,),
                         description=(self.keyname2,),
-                        automountinformation=(u'ro',),
+                        automountinformation=('ro',),
                     ),
                     dict(
                         dn=DN(('description', self.keyname_rename),
@@ -334,7 +330,7 @@ class test_automount(AutomountTest):
                               ('cn', 'automount'), api.env.basedn),
                         automountkey=(self.keyname_rename,),
                         description=(self.keyname_rename,),
-                        automountinformation=(u'rw',),
+                        automountinformation=('rw',),
                     ))],
                 maps=(
                     dict(
@@ -342,9 +338,9 @@ class test_automount(AutomountTest):
                               ('automountmapname', 'auto.master'),
                               ('cn', self.locname),
                               ('cn', 'automount'), api.env.basedn),
-                        automountkey=(u'/-',),
-                        description=(u'/- auto.direct',),
-                        automountinformation=(u'auto.direct',)
+                        automountkey=('/-',),
+                        description=('/- auto.direct',),
+                        automountinformation=('auto.direct',)
                     ),
             ))), res)
 
@@ -392,11 +388,11 @@ class test_automount_direct(AutomountTest):
     """
     Test the `automount` plugin indirect map functionality.
     """
-    mapname = u'auto.direct2'
-    keyname = u'/-'
+    mapname = 'auto.direct2'
+    keyname = '/-'
     direct_kw = { 'key' : keyname }
 
-    tofiles_output = textwrap.dedent(u"""
+    tofiles_output = textwrap.dedent("""
         /etc/auto.master:
         /-\t/etc/auto.direct
         /-\t/etc/auto.direct2
@@ -474,13 +470,13 @@ class test_automount_indirect(AutomountTest):
     """
     Test the `automount` plugin indirect map functionality.
     """
-    mapname = u'auto.home'
-    keyname = u'/home'
-    parentmap = u'auto.master'
+    mapname = 'auto.home'
+    keyname = '/home'
+    parentmap = 'auto.master'
     map_kw = {'key': keyname, 'parentmap': parentmap, 'raw': True}
     key_kw = {'automountkey': keyname, 'automountinformation': mapname}
 
-    tofiles_output = textwrap.dedent(u"""
+    tofiles_output = textwrap.dedent("""
         /etc/auto.master:
         /-\t/etc/auto.direct
         /home\t/etc/auto.home
@@ -648,15 +644,15 @@ class test_automount_indirect_no_parent(AutomountTest):
     """
     Test the `automount` plugin Indirect map function.
     """
-    mapname = u'auto.home'
-    keyname = u'/home'
-    mapname2 = u'auto.direct2'
-    keyname2 = u'direct2'
-    parentmap = u'auto.master'
+    mapname = 'auto.home'
+    keyname = '/home'
+    mapname2 = 'auto.direct2'
+    keyname2 = 'direct2'
+    parentmap = 'auto.master'
     map_kw = {'key': keyname, 'raw': True}
     map_kw2 = {'key': keyname2, 'raw': True}
 
-    tofiles_output = textwrap.dedent(u"""
+    tofiles_output = textwrap.dedent("""
         /etc/auto.master:
         /-\t/etc/auto.direct
         /home\t/etc/auto.home
@@ -700,8 +696,9 @@ class test_automount_indirect_no_parent(AutomountTest):
         """
         Test adding an indirect map with default parent.
         """
-        res = api.Command['automountmap_add_indirect'](self.locname,
-            u'auto.direct2', parentmap=self.mapname, **self.map_kw2)['result']
+        res = api.Command['automountmap_add_indirect'](
+            self.locname, 'auto.direct2', parentmap=self.mapname, **self.map_kw2
+        )['result']
         assert res
         assert_attr_equal(res, 'automountmapname', self.mapname2)
 

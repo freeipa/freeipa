@@ -26,7 +26,6 @@ from xmlrpc.client import Binary, Fault, dumps, loads
 import urllib
 
 import pytest
-import six
 
 from ipatests.util import raises, assert_equal, PluginTester, DummyClass
 from ipatests.util import Fuzzy
@@ -35,9 +34,6 @@ from ipalib.frontend import Command
 from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request as ipa_request
 from ipapython.version import API_VERSION
-
-if six.PY3:
-    unicode = str
 
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)
@@ -65,20 +61,15 @@ def test_round_trip():
     """
     # We first test that our assumptions about xmlrpc.client module in the Python
     # standard library are correct:
-    if six.PY2:
-        output_binary_type = bytes
-    else:
-        output_binary_type = Binary
+    output_binary_type = Binary
 
-    if six.PY2:
-        assert_equal(dump_n_load(utf8_bytes), unicode_str)
     assert_equal(dump_n_load(unicode_str), unicode_str)
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)
     assert type(dump_n_load(b'hello')) is output_binary_type
-    assert type(dump_n_load(u'hello')) is str
+    assert type(dump_n_load('hello')) is str
     assert_equal(dump_n_load(b''), output_binary_type(b''))
-    assert_equal(dump_n_load(u''), str())
+    assert_equal(dump_n_load(''), str())
     assert dump_n_load(None) is None
 
     # Now we test our wrap and unwrap methods in combination with dumps, loads:
@@ -90,9 +81,9 @@ def test_round_trip():
     assert_equal(round_trip(unicode_str), unicode_str)
     assert_equal(round_trip(binary_bytes), binary_bytes)
     assert type(round_trip(b'hello')) is bytes
-    assert type(round_trip(u'hello')) is unicode
+    assert type(round_trip('hello')) is str
     assert_equal(round_trip(b''), b'')
-    assert_equal(round_trip(u''), u'')
+    assert_equal(round_trip(''), '')
     assert round_trip(None) is None
     compound = [utf8_bytes, None, binary_bytes, (None, unicode_str),
         dict(utf8=utf8_bytes, chars=unicode_str, data=binary_bytes)
@@ -110,10 +101,10 @@ def test_xml_wrap():
     b = f(b'hello', API_VERSION)
     assert isinstance(b, Binary)
     assert b.data == b'hello'
-    u = f(u'hello', API_VERSION)
-    assert type(u) is unicode
-    assert u == u'hello'
-    f([dict(one=False, two=u'hello'), None, b'hello'], API_VERSION)
+    u = f('hello', API_VERSION)
+    assert type(u) is str
+    assert u == 'hello'
+    f([dict(one=False, two='hello'), None, b'hello'], API_VERSION)
 
 
 def test_xml_unwrap():
@@ -131,7 +122,7 @@ def test_xml_unwrap():
     value = f([True, Binary(b'hello'), dict(one=1, two=utf8_bytes, three=None)])
     assert value == (True, b'hello', dict(one=1, two=unicode_str, three=None))
     assert type(value[1]) is bytes
-    assert type(value[2]['two']) is unicode
+    assert type(value[2]['two']) is str
 
 
 def test_xml_dumps():
@@ -144,7 +135,7 @@ def test_xml_dumps():
     # Test serializing an RPC request:
     data = f(params, API_VERSION, 'the_method')
     (p, m) = loads(data)
-    assert_equal(m, u'the_method')
+    assert_equal(m, 'the_method')
     assert type(p) is tuple
     assert rpc.xml_unwrap(p) == params
 
@@ -175,7 +166,7 @@ def test_xml_loads():
     # Test un-serializing an RPC request:
     data = dumps(wrapped, 'the_method', allow_none=True)
     (p, m) = f(data)
-    assert_equal(m, u'the_method')
+    assert_equal(m, 'the_method')
     assert_equal(p, params)
 
     # Test un-serializing an RPC response:
@@ -187,13 +178,13 @@ def test_xml_loads():
     assert_equal(tup[0], params)
 
     # Test un-serializing an RPC response containing a Fault:
-    for error in (unicode_str, u'hello'):
+    for error in (unicode_str, 'hello'):
         fault = Fault(69, error)
         data = dumps(fault, methodresponse=True, allow_none=True, encoding='UTF-8')
         e = raises(Fault, f, data)
         assert e.faultCode == 69
         assert_equal(e.faultString, error)
-        assert type(e.faultString) is unicode
+        assert type(e.faultString) is str
 
 
 class test_xmlclient(PluginTester):
@@ -225,13 +216,13 @@ class test_xmlclient(PluginTester):
                 'user_add',
                 rpc.xml_wrap(params, API_VERSION),
                 {},
-                Fault(3007, u"'four' is required"),  # RequirementError
+                Fault(3007, "'four' is required"),  # RequirementError
             ),
             (
                 'user_add',
                 rpc.xml_wrap(params, API_VERSION),
                 {},
-                Fault(700, u'no such error'),  # There is no error 700
+                Fault(700, 'no such error'),  # There is no error 700
             ),
 
         )
@@ -245,12 +236,12 @@ class test_xmlclient(PluginTester):
 
         # Test with an errno the client knows:
         e = raises(errors.RequirementError, o.forward, 'user_add', *args, **kw)
-        assert_equal(e.args[0], u"'four' is required")
+        assert_equal(e.args[0], "'four' is required")
 
         # Test with an errno the client doesn't know
         e = raises(errors.UnknownError, o.forward, 'user_add', *args, **kw)
         assert_equal(e.code, 700)
-        assert_equal(e.error, u'no such error')
+        assert_equal(e.error, 'no such error')
 
         assert context.xmlclient.conn._calledall() is True
 

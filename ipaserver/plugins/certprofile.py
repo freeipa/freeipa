@@ -275,7 +275,7 @@ class certprofile_import(LDAPCreate):
         matches = self.PROFILE_ID_PATTERN.findall(options['file'])
         if len(matches) == 0:
             # no profileId found, use CLI value as profileId.
-            context.profile = u'profileId=%s\n%s' % (keys[0], context.profile)
+            context.profile = 'profileId=%s\n%s' % (keys[0], context.profile)
         elif len(matches) > 1:
             raise errors.ValidationError(
                 name='file',

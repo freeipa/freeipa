@@ -148,7 +148,7 @@ class SysaccountTracker(Tracker):
         # Filter the actual result to only include keys we expect
         expected_result = dict(
             value=self.uid,
-            summary=u'Added system account "%s"' % self.uid,
+            summary='Added system account "%s"' % self.uid,
             result=self.filter_attrs(self.create_keys)
         )
 
@@ -169,7 +169,7 @@ class SysaccountTracker(Tracker):
         """Checks 'sysaccount_del' command result"""
         assert_deepequal(dict(
             value=[self.uid],
-            summary=u'Deleted system account "%s"' % self.uid,
+            summary='Deleted system account "%s"' % self.uid,
             result=dict(failed=[])
         ), result)
 
@@ -222,6 +222,6 @@ class SysaccountTracker(Tracker):
         """Checks 'sysaccount_mod' command result"""
         assert_deepequal(dict(
             value=self.uid,
-            summary=u'Modified system account "%s"' % self.uid,
+            summary='Modified system account "%s"' % self.uid,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)

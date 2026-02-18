@@ -39,10 +39,10 @@ class HostTracker(KerberosAliasMixin, Tracker):
         'ipaallowedtoperform_write_keys_host',
         'ipaallowedtoperform_write_keys_hostgroup'}
     retrieve_all_keys = retrieve_keys | {
-        u'cn', u'ipakrbokasdelegate', u'ipakrbrequirespreauth', u'ipauniqueid',
-        u'krbcanonicalname', u'managing_host', u'objectclass',
-        u'serverhostname', u'ipakrboktoauthasdelegate',
-        u'krbpwdpolicyreference'}
+        'cn', 'ipakrbokasdelegate', 'ipakrbrequirespreauth', 'ipauniqueid',
+        'krbcanonicalname', 'managing_host', 'objectclass',
+        'serverhostname', 'ipakrboktoauthasdelegate',
+        'krbpwdpolicyreference'}
     create_keys = retrieve_keys | {'objectclass', 'ipauniqueid',
                                    'randompassword'}
     update_keys = retrieve_keys - {'dn'}
@@ -61,12 +61,12 @@ class HostTracker(KerberosAliasMixin, Tracker):
         if fqdn:
             self.fqdn = fqdn
         else:
-            self.fqdn = u'%s.%s' % (name, self.api.env.domain)
+            self.fqdn = '%s.%s' % (name, self.api.env.domain)
         self.dn = DN(('fqdn', self.fqdn), 'cn=computers', 'cn=accounts',
                      self.api.env.basedn)
 
-        self.description = u'Test host <%s>' % name
-        self.location = u'Undisclosed location <%s>' % name
+        self.description = 'Test host <%s>' % name
+        self.location = 'Undisclosed location <%s>' % name
 
     def make_create_command(self, force=True):
         """Make function that creates this host using host_add"""
@@ -110,8 +110,8 @@ class HostTracker(KerberosAliasMixin, Tracker):
             fqdn=[self.fqdn],
             description=[self.description],
             l=[self.location],
-            krbprincipalname=[u'host/%s@%s' % (self.fqdn, self.api.env.realm)],
-            krbcanonicalname=[u'host/%s@%s' % (self.fqdn, self.api.env.realm)],
+            krbprincipalname=['host/%s@%s' % (self.fqdn, self.api.env.realm)],
+            krbcanonicalname=['host/%s@%s' % (self.fqdn, self.api.env.realm)],
             objectclass=objectclasses.host,
             ipauniqueid=[fuzzy_uuid],
             managedby_host=[self.fqdn],
@@ -124,7 +124,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
             serverhostname=[self.shortname],
             ipakrboktoauthasdelegate=False,
             krbpwdpolicyreference=[DN(
-                u'cn=Default Host Password Policy',
+                'cn=Default Host Password Policy',
                 self.api.env.container_host,
                 self.api.env.basedn,
             )],
@@ -135,7 +135,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
         """Check `host_add` command result"""
         assert_deepequal(dict(
             value=self.fqdn,
-            summary=u'Added host "%s"' % self.fqdn,
+            summary='Added host "%s"' % self.fqdn,
             result=self.filter_attrs(self.create_keys),
         ), result)
 
@@ -143,7 +143,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
         """Check `host_del` command result"""
         assert_deepequal(dict(
             value=[self.fqdn],
-            summary=u'Deleted host "%s"' % self.fqdn,
+            summary='Deleted host "%s"' % self.fqdn,
             result=dict(failed=[]),
         ), result)
 
@@ -168,7 +168,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 host matched',
+            summary='1 host matched',
             result=[expected],
         ), result)
 
@@ -176,7 +176,7 @@ class HostTracker(KerberosAliasMixin, Tracker):
         """Check `host_update` command result"""
         assert_deepequal(dict(
             value=self.fqdn,
-            summary=u'Modified host "%s"' % self.fqdn,
+            summary='Modified host "%s"' % self.fqdn,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 

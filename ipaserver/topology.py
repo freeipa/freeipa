@@ -38,12 +38,12 @@ def create_topology_graph(masters, segments):
         left = s['iparepltoposegmentleftnode'][0]
         right = s['iparepltoposegmentrightnode'][0]
         try:
-            if direction == u'both':
+            if direction == 'both':
                 graph.add_edge(left, right)
                 graph.add_edge(right, left)
-            elif direction == u'left-right':
+            elif direction == 'left-right':
                 graph.add_edge(left, right)
-            elif direction == u'right-left':
+            elif direction == 'right-left':
                 graph.add_edge(right, left)
         except ValueError:  # ignore segments with deleted master
             pass
@@ -98,7 +98,7 @@ def _create_topology_graphs(api_instance):
     :param api_instance: instance of IPA API
     """
     masters = api_instance.Command.server_find(
-        u'', sizelimit=0, no_members=False)['result']
+        '', sizelimit=0, no_members=False)['result']
 
     suffix_to_masters = map_masters_to_suffixes(masters)
 

@@ -139,7 +139,7 @@ class dnsserver(LDAPObject):
                 'disable forwarding to global forwarder for this zone. In '
                 'that case, conditional zone forwarders are disregarded.'
             ),
-            values=(u'only', u'first', u'none'),
+            values=('only', 'first', 'none'),
         ),
     )
 

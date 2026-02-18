@@ -20,8 +20,6 @@
 import shlex
 import re
 
-import six
-
 # The Python re module doesn't do nested parenthesis
 
 # Break the ACI into 3 pieces: target, name, permissions/bind_rules
@@ -115,8 +113,6 @@ class ACI:
         return s
 
     def _parse_target(self, aci):
-        if six.PY2:
-            aci = aci.encode('utf-8')
         lexer = shlex.shlex(aci)
         lexer.wordchars = lexer.wordchars + "."
 

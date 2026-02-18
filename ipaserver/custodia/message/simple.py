@@ -1,7 +1,6 @@
 # Copyright (C) 2015  Custodia Project Contributors - see LICENSE file
 from __future__ import absolute_import
 
-from six import string_types
 
 from ipaserver.custodia.message.common import InvalidMessage
 from ipaserver.custodia.message.common import MessageHandler
@@ -24,7 +23,7 @@ class SimpleKey(MessageHandler):
         if msg is None:
             return
 
-        if not isinstance(msg, string_types):
+        if not isinstance(msg, str):
             raise InvalidMessage("The 'value' attribute is not a string")
 
         self.name = name

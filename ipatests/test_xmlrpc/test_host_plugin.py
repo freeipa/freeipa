@@ -49,98 +49,108 @@ from ipatests.util import assert_deepequal
 
 # Constants DNS integration tests
 # TODO: Use tracker fixtures for zones/records/users/groups
-dnszone = u'test-zone.test'
+dnszone = 'test-zone.test'
 dnszone_absolute = dnszone + '.'
 dnszone_dn = DN(('idnsname', dnszone_absolute), api.env.container_dns, api.env.basedn)
-dnszone_rname = u'root.%s' % dnszone_absolute
+dnszone_rname = 'root.%s' % dnszone_absolute
 dnszone_rname_dnsname = DNSName(dnszone_rname)
 
-revzone = u'29.16.172.in-addr.arpa.'
+revzone = '29.16.172.in-addr.arpa.'
 revzone_dn = DN(('idnsname', revzone), api.env.container_dns, api.env.basedn)
 
-revipv6zone = u'0.0.0.0.1.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.'
+revipv6zone = '0.0.0.0.1.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.'
 revipv6zone_dn = DN(('idnsname', revipv6zone), api.env.container_dns, api.env.basedn)
 
-arec = u'172.16.29.22'
-aaaarec = u'2001:db8:1::beef'
+arec = '172.16.29.22'
+aaaarec = '2001:db8:1::beef'
 
-arec2 = u'172.16.29.33'
-aaaarec2 = u'2001:db8:1::dead'
+arec2 = '172.16.29.33'
+aaaarec2 = '2001:db8:1::dead'
 
-ipv4_fromip = u'testipv4fromip'
-ipv4_fromip_ip = u'172.16.29.40'
+ipv4_fromip = 'testipv4fromip'
+ipv4_fromip_ip = '172.16.29.40'
 ipv4_fromip_arec = ipv4_fromip_ip
 ipv4_fromip_dnsname = DNSName(ipv4_fromip)
 ipv4_fromip_dn = DN(('idnsname', ipv4_fromip), dnszone_dn)
-ipv4_fromip_host_fqdn = u'%s.%s' % (ipv4_fromip, dnszone)
-ipv4_fromip_ptr = u'40'
+ipv4_fromip_host_fqdn = '%s.%s' % (ipv4_fromip, dnszone)
+ipv4_fromip_ptr = '40'
 ipv4_fromip_ptr_dnsname = DNSName(ipv4_fromip_ptr)
 ipv4_fromip_ptr_dn = DN(('idnsname', ipv4_fromip_ptr), revzone_dn)
 
-ipv6_fromip = u'testipv6fromip'
-ipv6_fromip_ipv6 = u'2001:db8:1::9'
+ipv6_fromip = 'testipv6fromip'
+ipv6_fromip_ipv6 = '2001:db8:1::9'
 ipv6_fromip_aaaarec = ipv6_fromip_ipv6
 ipv6_fromip_dnsname = DNSName(ipv6_fromip)
 ipv6_fromip_dn = DN(('idnsname', ipv6_fromip), dnszone_dn)
-ipv6_fromip_ptr = u'9.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0'
+ipv6_fromip_ptr = '9.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0'
 ipv6_fromip_ptr_dnsname = DNSName(ipv6_fromip_ptr)
 ipv6_fromip_ptr_dn = DN(('idnsname', ipv6_fromip_ptr), revipv6zone_dn)
 
-sshpubkey = u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
-sshpubkeyfp = u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE public key test (ssh-rsa)'
+sshpubkey = (
+    'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGM'
+    'zEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9'
+    'WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQ'
+    'kFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD2'
+    '6QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8'
+    'MSEayQvFkZkiF0L public key test'
+)
+sshpubkeyfp = (
+    'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
+    'public key test (ssh-rsa)'
+)
 
-user1 = u'tuser1'
-user2 = u'tuser2'
-group1 = u'group1'
+user1 = 'tuser1'
+user2 = 'tuser2'
+group1 = 'group1'
 group1_dn = get_group_dn(group1)
-group2 = u'group2'
+group2 = 'group2'
 group2_dn = get_group_dn(group2)
-hostgroup1 = u'testhostgroup1'
+hostgroup1 = 'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                    api.env.basedn)
 
 host_cert = get_testcert(DN(('CN', api.env.host), subject_base()),
                          'host/%s@%s' % (api.env.host, api.env.realm))
 
-missingrevzone = u'22.30.16.172.in-addr.arpa.'
-ipv4_in_missingrevzone_ip = u'172.16.30.22'
+missingrevzone = '22.30.16.172.in-addr.arpa.'
+ipv4_in_missingrevzone_ip = '172.16.30.22'
 
 
 @pytest.fixture(scope='class')
 def host(request, xmlrpc_setup):
-    tracker = HostTracker(name=u'testhost1')
+    tracker = HostTracker(name='testhost1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host2(request, xmlrpc_setup):
-    tracker = HostTracker(name=u'testhost2')
+    tracker = HostTracker(name='testhost2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host3(request, xmlrpc_setup):
-    tracker = HostTracker(name=u'testhost3')
+    tracker = HostTracker(name='testhost3')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host4(request, xmlrpc_setup):
-    tracker = HostTracker(name=u'testhost4')
+    tracker = HostTracker(name='testhost4')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def host5(request, xmlrpc_setup):
-    tracker = HostTracker(name=u'testhost5')
+    tracker = HostTracker(name='testhost5')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def lab_host(request, xmlrpc_setup):
-    name = u'testhost1'
+    name = 'testhost1'
     tracker = HostTracker(name=name,
-                          fqdn=u'%s.lab.%s' % (name, api.env.domain))
+                          fqdn='%s.lab.%s' % (name, api.env.domain))
     return tracker.make_fixture(request)
 
 
@@ -164,36 +174,36 @@ def invalid_host(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def ipv6only_host(request, xmlrpc_setup):
-    name = u'testipv6onlyhost'
-    tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
+    name = 'testipv6onlyhost'
+    tracker = HostTracker(name=name, fqdn='%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def ipv4only_host(request, xmlrpc_setup):
-    name = u'testipv4onlyhost'
-    tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
+    name = 'testipv4onlyhost'
+    tracker = HostTracker(name=name, fqdn='%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def ipv46both_host(request, xmlrpc_setup):
-    name = u'testipv4and6host'
-    tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
+    name = 'testipv4and6host'
+    tracker = HostTracker(name=name, fqdn='%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def ipv4_fromip_host(request, xmlrpc_setup):
-    name = u'testipv4fromip'
-    tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
+    name = 'testipv4fromip'
+    tracker = HostTracker(name=name, fqdn='%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def ipv6_fromip_host(request, xmlrpc_setup):
-    name = u'testipv6fromip'
-    tracker = HostTracker(name=name, fqdn=u'%s.%s' % (name, dnszone))
+    name = 'testipv6fromip'
+    tracker = HostTracker(name=name, fqdn='%s.%s' % (name, dnszone))
     return tracker.make_fixture(request)
 
 
@@ -203,21 +213,21 @@ class TestNonexistentHost(XMLRPC_test):
         host.ensure_missing()
         command = host.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % host.fqdn)):
+                reason='%s: host not found' % host.fqdn)):
             command()
 
     def test_update_nonexistent(self, host):
         host.ensure_missing()
-        command = host.make_update_command(updates=dict(description=u'Nope'))
+        command = host.make_update_command(updates=dict(description='Nope'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % host.fqdn)):
+                reason='%s: host not found' % host.fqdn)):
             command()
 
     def test_delete_nonexistent(self, host):
         host.ensure_missing()
         command = host.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % host.fqdn)):
+                reason='%s: host not found' % host.fqdn)):
             command()
 
 
@@ -227,7 +237,7 @@ class TestCRUD(XMLRPC_test):
         host.ensure_exists()
         command = host.make_create_command(force=True)
         with raises_exact(errors.DuplicateEntry(
-                message=u'host with name "%s" already exists' % host.fqdn)):
+                message='host with name "%s" already exists' % host.fqdn)):
             command()
 
     def test_retrieve_simple(self, host):
@@ -244,10 +254,10 @@ class TestCRUD(XMLRPC_test):
 
     def test_update_simple(self, host):
         host.update(dict(
-            description=u'Updated host 1',
+            description='Updated host 1',
             usercertificate=host_cert),
             expected_updates=dict(
-                description=[u'Updated host 1'],
+                description=['Updated host 1'],
                 usercertificate=[base64.b64decode(host_cert)],
                 issuer=fuzzy_issuer,
                 serial_number=fuzzy_digits,
@@ -292,27 +302,30 @@ class TestCRUD(XMLRPC_test):
     def test_try_rename(self, host):
         host.ensure_exists()
         command = host.make_update_command(
-            updates=dict(setattr=u'fqdn=changed.example.com'))
+            updates=dict(setattr='fqdn=changed.example.com'))
         with raises_exact(errors.NotAllowedOnRDN()):
             command()
 
     def test_add_mac_address(self, host):
-        host.update(dict(macaddress=u'00:50:56:30:F6:5F'),
-                    expected_updates=dict(macaddress=[u'00:50:56:30:F6:5F']))
+        host.update(dict(macaddress='00:50:56:30:F6:5F'),
+                    expected_updates=dict(macaddress=['00:50:56:30:F6:5F']))
         host.retrieve()
 
     def test_add_mac_addresses(self, host):
-        host.update(dict(macaddress=[u'00:50:56:30:F6:5F',
-                                     u'00:50:56:2C:8D:82']))
+        host.update(dict(macaddress=['00:50:56:30:F6:5F',
+                                     '00:50:56:2C:8D:82']))
         host.retrieve()
 
     def test_try_illegal_mac(self, host):
         command = host.make_update_command(
-            updates=dict(macaddress=[u'xx']))
-        with raises_exact(errors.ValidationError(
+            updates=dict(macaddress=['xx']))
+        with raises_exact(
+            errors.ValidationError(
                 name='macaddress',
-                error=u'Must be of the form HH:HH:HH:HH:HH:HH, where ' +
-                      u'each H is a hexadecimal character.')):
+                error='Must be of the form HH:HH:HH:HH:HH:HH, where '
+                + 'each H is a hexadecimal character.',
+            )
+        ):
             command()
 
     def test_add_ssh_pubkey(self, host):
@@ -326,9 +339,9 @@ class TestCRUD(XMLRPC_test):
     def test_try_illegal_ssh_pubkey(self, host):
         host.ensure_exists()
         command = host.make_update_command(
-            updates=dict(ipasshpubkey=[u'no-pty %s' % sshpubkey]))
+            updates=dict(ipasshpubkey=['no-pty %s' % sshpubkey]))
         with raises_exact(errors.ValidationError(
-                name='sshpubkey', error=u'options are not allowed')):
+                name='sshpubkey', error='options are not allowed')):
             command()
 
     def test_update_shortname(self, host):
@@ -344,22 +357,22 @@ class TestCRUD(XMLRPC_test):
         host.ensure_missing()
         command = host.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % host.fqdn)):
+                reason='%s: host not found' % host.fqdn)):
             command()
 
     def test_update_nonexistent(self, host):
         host.ensure_missing()
         command = host.make_update_command(
-            updates=dict(description=u'Nope'))
+            updates=dict(description='Nope'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % host.fqdn)):
+                reason='%s: host not found' % host.fqdn)):
             command()
 
     def test_delete_nonexistent(self, host):
         host.ensure_missing()
         command = host.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % host.fqdn)):
+                reason='%s: host not found' % host.fqdn)):
             command()
 
     def test_try_add_not_in_dns(self, host):
@@ -381,7 +394,7 @@ class TestCRUD(XMLRPC_test):
             command = host_tracker.make_command(
                 'config_mod',
                 **dict(
-                    setattr=u'ipamaxhostnamelength={}'.format(value)))
+                    setattr='ipamaxhostnamelength={}'.format(value)))
             command()
         except errors.EmptyModlist:
             pass
@@ -420,13 +433,13 @@ class TestCRUD(XMLRPC_test):
     def test_try_hostname_length_above_maxhostnamelimit(self):
         """Try to create host with hostname length above
         hostnamelength limit. Should fail"""
-        testhost = HostTracker(name=u'testhost',
-                               fqdn=u'{}'.format(
+        testhost = HostTracker(name='testhost',
+                               fqdn='{}'.format(
                                    self.generate_hostname(MAXHOSTNAMELEN + 1)))
         self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN)
         with raises_exact(errors.ValidationError(
-                name=u'hostname',
-                error=u'can be at most {} characters'.format(
+                name='hostname',
+                error='can be at most {} characters'.format(
                     MAXHOSTNAMELEN))):
             testhost.create()
             testhost.ensure_missing()
@@ -434,8 +447,8 @@ class TestCRUD(XMLRPC_test):
     def test_try_hostname_length_below_maximum(self):
         """Try to create host with valid hostname. Should pass"""
         valid_length = MAXHOSTNAMELEN // 2
-        testhost = HostTracker(name=u'testhost',
-                               fqdn=u'{}'.format(
+        testhost = HostTracker(name='testhost',
+                               fqdn='{}'.format(
                                    self.generate_hostname(valid_length)))
         self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN)
         testhost.create()
@@ -444,13 +457,13 @@ class TestCRUD(XMLRPC_test):
     def test_raise_limit_above_and_try_hostname_len_above_limit(self):
         """Raise limit above default and try to create host with hostname
         length above the new-set limit. Should fail"""
-        testhost = HostTracker(name=u'testhost',
-                               fqdn=u'{}'.format(
+        testhost = HostTracker(name='testhost',
+                               fqdn='{}'.format(
                                    self.generate_hostname(MAXHOSTNAMELEN * 3)))
         self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN * 2)
         with raises_exact(errors.ValidationError(
                 name='hostname',
-                error=u'can be at most {} characters'.format(
+                error='can be at most {} characters'.format(
                     MAXHOSTNAMELEN * 2))):
             testhost.create()
             testhost.ensure_missing()
@@ -458,8 +471,8 @@ class TestCRUD(XMLRPC_test):
     def test_raise_limit_and_try_valid_len_hostname(self):
         """Raise limit above default and test hostname with length
         in between default 64 and the new value. Should pass"""
-        testhost = HostTracker(name=u'testhost',
-                               fqdn=u'{}'.format(
+        testhost = HostTracker(name='testhost',
+                               fqdn='{}'.format(
                                    self.generate_hostname(MAXHOSTNAMELEN + 1)))
         self.modify_config_maxhostname(testhost, MAXHOSTNAMELEN * 2)
         testhost.create()
@@ -488,7 +501,7 @@ class TestHostWithService(XMLRPC_test):
     def test_host_with_service(self, host):
         host.ensure_exists()
 
-        service1 = u'dns/%s@%s' % (host.fqdn, host.api.env.realm)
+        service1 = 'dns/%s@%s' % (host.fqdn, host.api.env.realm)
         service1dn = DN(('krbprincipalname', service1.lower()),
                         ('cn','services'), ('cn','accounts'),
                         host.api.env.basedn)
@@ -497,7 +510,7 @@ class TestHostWithService(XMLRPC_test):
             result = host.run_command('service_add', service1, force=True)
             assert_deepequal(dict(
                 value=service1,
-                summary=u'Added service "%s"' % service1,
+                summary='Added service "%s"' % service1,
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
@@ -514,7 +527,7 @@ class TestHostWithService(XMLRPC_test):
             assert_deepequal(dict(
                 count=0,
                 truncated=False,
-                summary=u'0 services matched',
+                summary='0 services matched',
                 result=[],
             ), result)
         finally:
@@ -561,7 +574,7 @@ class TestManagedHosts(XMLRPC_test):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 host matched',
+            summary='1 host matched',
             result=[host.filter_attrs(host.find_keys)],
         ), result)
 
@@ -571,7 +584,7 @@ class TestManagedHosts(XMLRPC_test):
         assert_deepequal(dict(
             count=0,
             truncated=False,
-            summary=u'0 hosts matched',
+            summary='0 hosts matched',
             result=[],
         ), result)
 
@@ -595,22 +608,22 @@ class TestProtectedMaster(XMLRPC_test):
         command = this_host.make_delete_command()
         with raises_exact(errors.ValidationError(
                 name='hostname',
-                error=u'An IPA master host cannot be deleted or disabled')):
+                error='An IPA master host cannot be deleted or disabled')):
             command()
 
     def test_try_disable_master(self, this_host):
         command = this_host.make_command('host_disable', this_host.fqdn)
         with raises_exact(errors.ValidationError(
                 name='hostname',
-                error=u'An IPA master host cannot be deleted or disabled')):
+                error='An IPA master host cannot be deleted or disabled')):
             command()
 
     def test_try_add_auth_ind_master(self, this_host):
         command = this_host.make_update_command({
-            u'krbprincipalauthind': u'radius'})
+            'krbprincipalauthind': 'radius'})
         with raises_exact(errors.ValidationError(
             name='krbprincipalauthind',
-            error=u'authentication indicators not allowed '
+            error='authentication indicators not allowed '
                 'in service "host"'
         )):
             command()
@@ -631,10 +644,13 @@ class TestProtectedMaster(XMLRPC_test):
 class TestValidation(XMLRPC_test):
     def test_try_validate_create(self, invalid_host):
         command = invalid_host.make_create_command()
-        with raises_exact(errors.ValidationError(
+        with raises_exact(
+            errors.ValidationError(
                 name='hostname',
-                error=u"invalid domain-name: only letters, numbers, '-' are " +
-                      u"allowed. DNS label may not start or end with '-'")):
+                error="invalid domain-name: only letters, numbers, '-' are "
+                + "allowed. DNS label may not start or end with '-'",
+            )
+        ):
             command()
 
     # The assumption on these next 4 tests is that if we don't get a
@@ -643,19 +659,19 @@ class TestValidation(XMLRPC_test):
     def test_try_validate_update(self, invalid_host):
         command = invalid_host.make_update_command({})
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % invalid_host.fqdn)):
+                reason='%s: host not found' % invalid_host.fqdn)):
             command()
 
     def test_try_validate_delete(self, invalid_host):
         command = invalid_host.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % invalid_host.fqdn)):
+                reason='%s: host not found' % invalid_host.fqdn)):
             command()
 
     def test_try_validate_retrieve(self, invalid_host):
         command = invalid_host.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % invalid_host.fqdn)):
+                reason='%s: host not found' % invalid_host.fqdn)):
             command()
 
     def test_try_validate_find(self, invalid_host):
@@ -664,7 +680,7 @@ class TestValidation(XMLRPC_test):
         assert_deepequal(dict(
             count=0,
             truncated=False,
-            summary=u'0 hosts matched',
+            summary='0 hosts matched',
             result=[],
         ), result)
 
@@ -703,7 +719,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
         del host.attrs['krbcanonicalname']
         host.attrs['has_password'] = True
         objclass = list(set(
-            host.attrs['objectclass']) - {u'krbprincipal', u'krbprincipalaux'})
+            host.attrs['objectclass']) - {'krbprincipal', 'krbprincipalaux'})
         host.attrs['objectclass'] = objclass
 
         command = host.make_create_command(force=True)
@@ -735,15 +751,15 @@ class TestHostFalsePwdChange(XMLRPC_test):
         # fix host.attrs again to correspond with current state
         host.attrs['has_keytab'] = True
         host.attrs['has_password'] = False
-        host.attrs['krbprincipalname'] = [u'host/%s@%s' % (host.fqdn,
+        host.attrs['krbprincipalname'] = ['host/%s@%s' % (host.fqdn,
                                                            host.api.env.realm)]
-        host.attrs['krbcanonicalname'] = [u'host/%s@%s' % (host.fqdn,
+        host.attrs['krbcanonicalname'] = ['host/%s@%s' % (host.fqdn,
                                                            host.api.env.realm)]
         host.retrieve()
 
         # Try to change the password of enrolled host with specified password
         command = host.make_update_command(
-            updates=dict(userpassword=u'pass_123'))
+            updates=dict(userpassword='pass_123'))
         with pytest.raises(errors.ValidationError):
             command()
 
@@ -770,7 +786,7 @@ def dns_setup_nonameserver(host4):
     # server will answer for the reverse zone either
     try:
         host4.run_command('dnsserver_mod', api.env.host,
-                          idnsforwardpolicy=u'none')
+                          idnsforwardpolicy='none')
     except errors.EmptyModlist:
         pass
 
@@ -835,7 +851,7 @@ class TestHostNoNameserversForRevZone(XMLRPC_test):
             msg = result['messages'][0]
             assert msg['code'] == messages.FailedToAddHostDNSRecords.errno
             assert msg['message'].startswith(
-                u'The host was added but the DNS update failed with:')
+                'The host was added but the DNS update failed with:')
         finally:
             # Cleanup
             try:
@@ -985,12 +1001,12 @@ def allowedto_context(request, host3):
 
     host3.ensure_exists()
 
-    host3.run_command('user_add', givenname=u'Test', sn=u'User1')
-    host3.run_command('user_add', givenname=u'Test', sn=u'User2')
+    host3.run_command('user_add', givenname='Test', sn='User1')
+    host3.run_command('user_add', givenname='Test', sn='User2')
     host3.run_command('group_add', group1)
     host3.run_command('group_add', group2)
     host3.run_command('hostgroup_add', hostgroup1,
-                      description=u'Test hostgroup 1')
+                      description='Test hostgroup 1')
 
 
 @pytest.mark.tier1
@@ -1017,7 +1033,7 @@ class TestHostAllowedTo(XMLRPC_test):
             failed=dict(
                 ipaallowedtoperform_read_keys=dict(
                     group=[], host=[], hostgroup=[],
-                    user=[[user1, u'This entry is already a member']],
+                    user=[[user1, 'This entry is already a member']],
                 ),
             ),
             completed=0,
@@ -1051,7 +1067,7 @@ class TestHostAllowedTo(XMLRPC_test):
                     group=[],
                     host=[],
                     hostgroup=[],
-                    user=[[user2, u'This entry is not a member']],
+                    user=[[user2, 'This entry is not a member']],
                 ),
             ),
             completed=0,
@@ -1100,11 +1116,11 @@ class TestHostAllowedTo(XMLRPC_test):
         assert_deepequal(dict(
             failed=dict(
                 ipaallowedtoperform_write_keys=dict(
-                    group=[[group1, u'This entry is already a member']],
-                    host=[[host3.fqdn, u'This entry is already a member']],
-                    user=[[user1, u'This entry is already a member']],
+                    group=[[group1, 'This entry is already a member']],
+                    host=[[host3.fqdn, 'This entry is already a member']],
+                    user=[[user1, 'This entry is already a member']],
                     hostgroup=[[hostgroup1,
-                                u'This entry is already a member']],
+                                'This entry is already a member']],
                 ),
             ),
             completed=0,
@@ -1120,7 +1136,7 @@ class TestHostAllowedTo(XMLRPC_test):
                     group=[],
                     host=[],
                     hostgroup=[],
-                    user=[[user2, u'This entry is not a member']],
+                    user=[[user2, 'This entry is not a member']],
                 ),
             ),
             completed=0,
@@ -1148,5 +1164,5 @@ class TestHostAllowedTo(XMLRPC_test):
 
     def test_host_mod(self, host):
         # Done (usually) at the end to ensure the tracking works well
-        host.update(updates=dict(description=u'desc'),
-                    expected_updates=dict(description=[u'desc']))
+        host.update(updates=dict(description='desc'),
+                    expected_updates=dict(description=['desc']))

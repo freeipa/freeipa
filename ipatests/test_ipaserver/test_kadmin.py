@@ -31,7 +31,7 @@ def keytab():
 
 @pytest.fixture()
 def service_in_kerberos_subtree(request):
-    princ = u'svc1/{0.host}@{0.realm}'.format(api.env)
+    princ = 'svc1/{0.host}@{0.realm}'.format(api.env)
     installutils.kadmin_addprinc(princ)
 
     def fin():
@@ -46,7 +46,7 @@ def service_in_kerberos_subtree(request):
 
 @pytest.fixture()
 def service_in_service_subtree(request):
-    princ = u'svc2/{0.host}@{0.realm}'.format(api.env)
+    princ = 'svc2/{0.host}@{0.realm}'.format(api.env)
     rpcclient = api.Backend.rpcclient
     was_connected = rpcclient.isconnected()
 

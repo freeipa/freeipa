@@ -23,7 +23,6 @@ import logging
 import posixpath
 from copy import deepcopy
 
-import six
 
 from ipalib import api, errors
 from ipalib import Bool
@@ -61,8 +60,6 @@ from ipaplatform.constants import constants as platformconstants
 from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Stageusers
@@ -428,7 +425,9 @@ class stageuser_add(baseuser_add):
 
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = getattr(
+                    context, 'randompassword'
+                )
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass
@@ -614,8 +613,7 @@ class stageuser_activate(LDAPQuery):
         for value in entry_from[attr]:
                 # merge all the values from->to
                 v = self.__value_2_add(args, options, attr, value)
-                if (isinstance(v, str) and v in ('', None)) or \
-                   (isinstance(v, unicode) and v in (u'', None)):
+                if (isinstance(v, str) and v in ('', None)):
                     try:
                         v.decode('utf-8')
                         logger.debug("merge: %s:%r wiped", attr, v)
@@ -671,10 +669,10 @@ class stageuser_activate(LDAPQuery):
                 # we are about to add a DN syntax value
                 # Check this is a valid DN
                 if not isinstance(value, DN):
-                    return u''
+                    return ''
 
                 if not self.obj.active_user(value):
-                    return u''
+                    return ''
 
                 # Check that this value is a Active user
                 try:
@@ -683,9 +681,9 @@ class stageuser_activate(LDAPQuery):
                     )
                     return value
                 except errors.NotFound:
-                    return u''
+                    return ''
             else:
-                return u''
+                return ''
         else:
             return value
 
@@ -775,7 +773,7 @@ class stageuser_activate(LDAPQuery):
             raw=options.get('raw', False),
             version=options.get('version'),
         )
-        result['summary'] = unicode(
+        result['summary'] = str(
             _('Stage user %s activated' % staging_dn[0].value))
 
         return result

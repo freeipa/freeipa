@@ -24,14 +24,10 @@ Test the `ipaserver.rpc` module.
 import json
 import pytest
 
-import six
 
 from ipatests.util import assert_equal, raises, PluginTester
 from ipalib import errors
 from ipaserver import rpcserver
-
-if six.PY3:
-    unicode = str
 
 pytestmark = pytest.mark.tier0
 
@@ -129,8 +125,8 @@ def test_params_2_args_options():
     Test the `ipaserver.rpcserver.params_2_args_options` function.
     """
     f = rpcserver.params_2_args_options
-    args = ('Hello', u'world!')
-    options = dict(one=1, two=u'Two', three='Three')
+    args = ('Hello', 'world!')
+    options = dict(one=1, two='Two', three='Three')
     assert f(tuple()) == (tuple(), dict())
     assert f([args]) == (args, dict())
     assert f([args, options]) == (args, options)
@@ -215,50 +211,47 @@ class test_jsonserver(PluginTester):
 
         # Test with invalid JSON-data:
         e = raises(errors.JSONError, o.unmarshal, 'this wont work')
-        if six.PY2:
-            assert unicode(e.error) == 'No JSON object could be decoded'
-        else:
-            assert str(e.error).startswith('Expecting value: ')
+        assert str(e.error).startswith('Expecting value: ')
 
         # Test with non-dict type:
         e = raises(errors.JSONError, o.unmarshal, json.dumps([1, 2, 3]))
-        assert unicode(e.error) == 'Request must be a dict'
+        assert str(e.error) == 'Request must be a dict'
 
         params = [[1, 2], dict(three=3, four=4)]
         # Test with missing method:
         d = dict(params=params, id=18)
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert unicode(e.error) == 'Request is missing "method"'
+        assert str(e.error) == 'Request is missing "method"'
 
         # Test with missing params:
         d = dict(method='echo', id=18)
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert unicode(e.error) == 'Request is missing "params"'
+        assert str(e.error) == 'Request is missing "params"'
 
         # Test with non-list params:
         for p in ('hello', dict(args=tuple(), options=dict())):
             d = dict(method='echo', id=18, params=p)
             e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-            assert unicode(e.error) == 'params must be a list'
+            assert str(e.error) == 'params must be a list'
 
         # Test with other than 2 params:
         for p in ([], [tuple()], [None, dict(), tuple()]):
             d = dict(method='echo', id=18, params=p)
             e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-            assert unicode(e.error) == 'params must contain [args, options]'
+            assert str(e.error) == 'params must contain [args, options]'
 
         # Test when args is not a list:
         d = dict(method='echo', id=18, params=['args', dict()])
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert unicode(e.error) == 'params[0] (aka args) must be a list'
+        assert str(e.error) == 'params[0] (aka args) must be a list'
 
         # Test when options is not a dict:
         d = dict(method='echo', id=18, params=[('hello', 'world'), 'options'])
         e = raises(errors.JSONError, o.unmarshal, json.dumps(d))
-        assert unicode(e.error) == 'params[1] (aka options) must be a dict'
+        assert str(e.error) == 'params[1] (aka options) must be a dict'
 
         # Test with valid values:
-        args = [u'jdoe']
-        options = dict(givenname=u'John', sn='Doe')
-        d = dict(method=u'user_add', params=(args, options), id=18)
-        assert o.unmarshal(json.dumps(d)) == (u'user_add', args, options, 18)
+        args = ['jdoe']
+        options = dict(givenname='John', sn='Doe')
+        d = dict(method='user_add', params=(args, options), id=18)
+        assert o.unmarshal(json.dumps(d)) == ('user_add', args, options, 18)

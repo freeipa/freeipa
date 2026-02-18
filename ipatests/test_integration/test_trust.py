@@ -238,7 +238,7 @@ class TestTrust(BaseTestTrust):
 
     def test_ipa_management_run_as_aduser(self):
         """Test if adding AD user to a role makes it an administrator"""
-        ipauser = u'tuser'
+        ipauser = 'tuser'
         ad_admin = 'Administrator@%s' % self.ad_domain
 
         tasks.kdestroy_all(self.master)
@@ -284,7 +284,7 @@ class TestTrust(BaseTestTrust):
         tasks.kinit_admin(self.master)
 
     def test_ipauser_authentication_with_nonposix_trust(self):
-        ipauser = u'tuser'
+        ipauser = 'tuser'
         original_passwd = 'Secret123'
         new_passwd = 'userPasswd123'
 

@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 IPA servers
@@ -39,8 +31,8 @@ class server(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Server name'),
-            doc=_(u'IPA server hostname'),
+            label=_('Server name'),
+            doc=_('IPA server hostname'),
         ),
         parameters.Str(
             'iparepltopomanagedsuffix',
@@ -51,17 +43,17 @@ class server(Object):
             'iparepltopomanagedsuffix_topologysuffix',
             required=False,
             multivalue=True,
-            label=_(u'Managed suffixes'),
+            label=_('Managed suffixes'),
         ),
         parameters.Int(
             'ipamindomainlevel',
-            label=_(u'Min domain level'),
-            doc=_(u'Minimum domain level'),
+            label=_('Min domain level'),
+            doc=_('Minimum domain level'),
         ),
         parameters.Int(
             'ipamaxdomainlevel',
-            label=_(u'Max domain level'),
-            doc=_(u'Maximum domain level'),
+            label=_('Max domain level'),
+            doc=_('Maximum domain level'),
         ),
     )
 
@@ -76,14 +68,14 @@ class server_conncheck(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Server name'),
-            doc=_(u'IPA server hostname'),
+            label=_('Server name'),
+            doc=_('IPA server hostname'),
         ),
         parameters.Str(
             'remote_cn',
             cli_name='remote_name',
-            label=_(u'Remote server name'),
-            doc=_(u'Remote IPA server hostname'),
+            label=_('Remote server name'),
+            doc=_('Remote IPA server hostname'),
         ),
     )
     takes_options = (
@@ -91,17 +83,17 @@ class server_conncheck(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -117,14 +109,14 @@ class server_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Server name'),
-            doc=_(u'IPA server hostname'),
+            label=_('Server name'),
+            doc=_('IPA server hostname'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -132,13 +124,13 @@ class server_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -154,7 +146,7 @@ class server_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -162,52 +154,58 @@ class server_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Server name'),
-            doc=_(u'IPA server hostname'),
+            label=_('Server name'),
+            doc=_('IPA server hostname'),
         ),
         parameters.Int(
             'ipamindomainlevel',
             required=False,
             cli_name='minlevel',
-            label=_(u'Min domain level'),
-            doc=_(u'Minimum domain level'),
+            label=_('Min domain level'),
+            doc=_('Minimum domain level'),
         ),
         parameters.Int(
             'ipamaxdomainlevel',
             required=False,
             cli_name='maxlevel',
-            label=_(u'Max domain level'),
-            doc=_(u'Maximum domain level'),
+            label=_('Max domain level'),
+            doc=_('Maximum domain level'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds (0 is unlimited)'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds (0 is unlimited)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned (0 is unlimited)'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned (0 is unlimited)'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -215,8 +213,8 @@ class server_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -225,23 +223,23 @@ class server_find(Method):
             required=False,
             multivalue=True,
             cli_name='topologysuffixes',
-            label=_(u'suffix'),
-            doc=_(u'Search for servers with these managed suffixes.'),
+            label=_('suffix'),
+            doc=_('Search for servers with these managed suffixes.'),
         ),
         parameters.Str(
             'no_topologysuffix',
             required=False,
             multivalue=True,
             cli_name='no_topologysuffixes',
-            label=_(u'suffix'),
-            doc=_(u'Search for servers without these managed suffixes.'),
+            label=_('suffix'),
+            doc=_('Search for servers without these managed suffixes.'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -249,12 +247,12 @@ class server_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -267,35 +265,44 @@ class server_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Server name'),
-            doc=_(u'IPA server hostname'),
+            label=_('Server name'),
+            doc=_('IPA server hostname'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -304,14 +311,14 @@ class server_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

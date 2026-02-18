@@ -17,11 +17,11 @@ from ipalib import errors
 logger = logging.getLogger(__name__)
 
 # constants for ipaConfigString
-CONFIGURED_SERVICE = u'configuredService'
-ENABLED_SERVICE = u'enabledService'
-HIDDEN_SERVICE = u'hiddenService'
-PAC_TKT_SIGN_SUPPORTED = u'pacTktSignSupported'
-PKINIT_ENABLED = u'pkinitEnabled'
+CONFIGURED_SERVICE = 'configuredService'
+ENABLED_SERVICE = 'enabledService'
+HIDDEN_SERVICE = 'hiddenService'
+PAC_TKT_SIGN_SUPPORTED = 'pacTktSignSupported'
+PKINIT_ENABLED = 'pkinitEnabled'
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. The values are:
 # 0: systemd service name

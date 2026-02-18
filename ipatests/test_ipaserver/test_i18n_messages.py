@@ -114,7 +114,7 @@ class test_i18n_messages(XMLRPC_test, Unauthorized_HTTP_test):
         prev_i18n_msgs = self._fetch_i18n_msgs_http('en-us')
         cur_i18n_msgs = self._fetch_i18n_msgs_http('fr-fr')
         try:
-            assert_equal(prev_i18n_msgs['texts']['true'], u'True')
-            assert_equal(cur_i18n_msgs['texts']['true'], u'Vrai')
+            assert_equal(prev_i18n_msgs['texts']['true'], 'True')
+            assert_equal(cur_i18n_msgs['texts']['true'], 'Vrai')
         except KeyError:
             assert_not_equal(prev_i18n_msgs, cur_i18n_msgs)

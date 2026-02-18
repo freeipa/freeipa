@@ -222,10 +222,10 @@ def check_name(name):
     Also, this function will raise a ``TypeError`` if ``name`` is not an
     ``str`` instance.  For example:
 
-    >>> check_name(u'my_name')
+    >>> check_name('my_name')
     Traceback (most recent call last):
       ...
-    TypeError: name: need a <type 'str'>; got u'my_name' (a <type 'unicode'>)
+    TypeError: name: need a <type 'str'>; got 'my_name' (a <type 'unicode'>)
 
     So that `check_name()` can be easily used within an assignment, ``name``
     is returned unchanged if it passes the check.  For example:

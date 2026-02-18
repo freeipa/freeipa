@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _(r"""
 Auto Membership Rule.
@@ -109,14 +101,14 @@ class automember(Object):
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'automemberdefaultgroup',
             required=False,
-            label=_(u'Default (fallback) Group'),
-            doc=_(u'Default group for entries to land'),
+            label=_('Default (fallback) Group'),
+            doc=_('Default group for entries to land'),
         ),
     )
 
@@ -129,7 +121,7 @@ class automember_add(Method):
         parameters.Str(
             'cn',
             cli_name='automember_rule',
-            label=_(u'Automember Rule'),
+            label=_('Automember Rule'),
             no_convert=True,
         ),
     )
@@ -138,39 +130,52 @@ class automember_add(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -179,16 +184,16 @@ class automember_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -201,7 +206,7 @@ class automember_add_condition(Method):
         parameters.Str(
             'cn',
             cli_name='automember_rule',
-            label=_(u'Automember Rule'),
+            label=_('Automember Rule'),
             no_convert=True,
         ),
     )
@@ -210,15 +215,15 @@ class automember_add_condition(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'automemberinclusiveregex',
             required=False,
             multivalue=True,
             cli_name='inclusive_regex',
-            label=_(u'Inclusive Regex'),
+            label=_('Inclusive Regex'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -226,30 +231,39 @@ class automember_add_condition(Method):
             required=False,
             multivalue=True,
             cli_name='exclusive_regex',
-            label=_(u'Exclusive Regex'),
+            label=_('Exclusive Regex'),
             alwaysask=True,
         ),
         parameters.Str(
             'key',
-            label=_(u'Attribute Key'),
-            doc=_(u'Attribute to filter via regex. For example fqdn for a host, or manager for a user'),
+            label=_('Attribute Key'),
+            doc=_(
+                'Attribute to filter via regex. '
+                'For example fqdn for a host, or manager for a user'
+            ),
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -258,26 +272,26 @@ class automember_add_condition(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
         output.Output(
             'failed',
             dict,
-            doc=_(u'Conditions that could not be added'),
+            doc=_('Conditions that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of conditions added'),
+            doc=_('Number of conditions added'),
         ),
     )
 
@@ -291,25 +305,31 @@ class automember_default_group_remove(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -318,16 +338,16 @@ class automember_default_group_remove(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -341,31 +361,37 @@ class automember_default_group_set(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'automemberdefaultgroup',
             cli_name='default_group',
-            label=_(u'Default (fallback) Group'),
-            doc=_(u'Default (fallback) group for entries to land'),
+            label=_('Default (fallback) Group'),
+            doc=_('Default (fallback) group for entries to land'),
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -374,16 +400,16 @@ class automember_default_group_set(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -396,19 +422,25 @@ class automember_default_group_show(Method):
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -417,16 +449,16 @@ class automember_default_group_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -439,7 +471,7 @@ class automember_del(Method):
         parameters.Str(
             'cn',
             cli_name='automember_rule',
-            label=_(u'Automember Rule'),
+            label=_('Automember Rule'),
             no_convert=True,
         ),
     )
@@ -447,25 +479,25 @@ class automember_del(Method):
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -478,7 +510,7 @@ class automember_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -486,25 +518,31 @@ class automember_find(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -513,8 +551,8 @@ class automember_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -522,12 +560,12 @@ class automember_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -540,7 +578,7 @@ class automember_mod(Method):
         parameters.Str(
             'cn',
             cli_name='automember_rule',
-            label=_(u'Automember Rule'),
+            label=_('Automember Rule'),
             no_convert=True,
         ),
     )
@@ -549,53 +587,72 @@ class automember_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -604,16 +661,16 @@ class automember_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -626,7 +683,7 @@ class automember_remove_condition(Method):
         parameters.Str(
             'cn',
             cli_name='automember_rule',
-            label=_(u'Automember Rule'),
+            label=_('Automember Rule'),
             no_convert=True,
         ),
     )
@@ -635,15 +692,15 @@ class automember_remove_condition(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this auto member rule'),
+            label=_('Description'),
+            doc=_('A description of this auto member rule'),
         ),
         parameters.Str(
             'automemberinclusiveregex',
             required=False,
             multivalue=True,
             cli_name='inclusive_regex',
-            label=_(u'Inclusive Regex'),
+            label=_('Inclusive Regex'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -651,30 +708,39 @@ class automember_remove_condition(Method):
             required=False,
             multivalue=True,
             cli_name='exclusive_regex',
-            label=_(u'Exclusive Regex'),
+            label=_('Exclusive Regex'),
             alwaysask=True,
         ),
         parameters.Str(
             'key',
-            label=_(u'Attribute Key'),
-            doc=_(u'Attribute to filter via regex. For example fqdn for a host, or manager for a user'),
+            label=_('Attribute Key'),
+            doc=_(
+                'Attribute to filter via regex. '
+                'For example fqdn for a host, or manager for a user'
+            ),
         ),
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -683,26 +749,26 @@ class automember_remove_condition(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
         output.Output(
             'failed',
             dict,
-            doc=_(u'Conditions that could not be removed'),
+            doc=_('Conditions that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of conditions removed'),
+            doc=_('Number of conditions removed'),
         ),
     )
 
@@ -715,7 +781,7 @@ class automember_show(Method):
         parameters.Str(
             'cn',
             cli_name='automember_rule',
-            label=_(u'Automember Rule'),
+            label=_('Automember Rule'),
             no_convert=True,
         ),
     )
@@ -723,19 +789,25 @@ class automember_show(Method):
         parameters.Str(
             'type',
             cli_metavar="['group', 'hostgroup']",
-            label=_(u'Grouping Type'),
-            doc=_(u'Grouping to which the rule applies'),
+            label=_('Grouping Type'),
+            doc=_('Grouping to which the rule applies'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -744,15 +816,15 @@ class automember_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

@@ -55,9 +55,9 @@ class test_PublicMessages(test_errors.BaseMessagesTest):
 
 def test_to_dict():
     expected = dict(
-        name=u'HelloMessage',
-        type=u'info',
-        message=u'Hello, world!',
+        name='HelloMessage',
+        type='info',
+        message='Hello, world!',
         code=1234,
         data={'greeting': 'Hello', 'object': 'world'},
     )
@@ -68,27 +68,27 @@ def test_to_dict():
 def test_add_message():
     result = {}
 
-    assert capabilities['messages'] == u'2.52'
+    assert capabilities['messages'] == '2.52'
 
-    messages.add_message(u'2.52', result,
+    messages.add_message('2.52', result,
                          HelloMessage(greeting='Hello', object='world'))
-    messages.add_message(u'2.1', result,
+    messages.add_message('2.1', result,
                          HelloMessage(greeting="'Lo", object='version'))
-    messages.add_message(u'2.60', result,
+    messages.add_message('2.60', result,
                          HelloMessage(greeting='Hi', object='version'))
 
     assert result == {'messages': [
         dict(
-            name=u'HelloMessage',
-            type=u'info',
-            message=u'Hello, world!',
+            name='HelloMessage',
+            type='info',
+            message='Hello, world!',
             code=1234,
             data={'greeting': 'Hello', 'object': 'world'},
         ),
         dict(
-            name=u'HelloMessage',
-            type=u'info',
-            message=u'Hi, version!',
+            name='HelloMessage',
+            type='info',
+            message='Hi, version!',
             code=1234,
             data={'greeting': 'Hi', 'object': 'version'},
         )

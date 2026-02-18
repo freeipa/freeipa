@@ -43,7 +43,6 @@ from dns import rdatatype
 from dns.exception import DNSException
 from dns.resolver import NXDOMAIN
 from netaddr.core import AddrFormatError
-import six
 
 try:
     from httplib import HTTPSConnection
@@ -78,9 +77,6 @@ if sys.version_info >= (3, 2):
 else:
     reprlib = None
 
-if six.PY3:
-    unicode = str
-
 _IPA_CLIENT_SYSRESTORE = "/var/lib/ipa-client/sysrestore"
 _IPA_DEFAULT_CONF = "/etc/ipa/default.conf"
 
@@ -92,7 +88,7 @@ def json_serialize(obj):
         return [json_serialize(o) for o in obj]
     if isinstance(obj, dict):
         return {k: json_serialize(v) for (k, v) in obj.items()}
-    if isinstance(obj, (int, bool, float, unicode, type(None))):
+    if isinstance(obj, (int, bool, float, str, type(None))):
         return obj
     if isinstance(obj, str):
         return obj.decode('utf-8')
@@ -137,15 +133,15 @@ def normalize_name(name):
     result = dict()
     components = name.split('@')
     if len(components) == 2:
-        result['domain'] = unicode(components[1]).lower()
-        result['name'] = unicode(components[0]).lower()
+        result['domain'] = str(components[1]).lower()
+        result['name'] = str(components[0]).lower()
     else:
         components = name.split('\\')
         if len(components) == 2:
-            result['flatname'] = unicode(components[0]).lower()
-            result['name'] = unicode(components[1]).lower()
+            result['flatname'] = str(components[0]).lower()
+            result['name'] = str(components[1]).lower()
         else:
-            result['name'] = unicode(name).lower()
+            result['name'] = str(name).lower()
     return result
 
 def isvalid_base64(data):
@@ -226,7 +222,7 @@ def normalize_zonemgr(zonemgr):
         # local-part needs to be normalized
         name, _at, domain = zonemgr.partition('@')
         name = name.replace('.', '\\.')
-        zonemgr = u''.join((name, u'.', domain))
+        zonemgr = ''.join((name, '.', domain))
 
     return zonemgr
 
@@ -527,8 +523,8 @@ def convert_sshpubkey_post(entry_attrs):
         fp = pubkey.fingerprint_hex_sha256()
         comment = pubkey.comment()
         if comment:
-            fp = u'%s %s' % (fp, comment)
-        fp = u'%s (%s)' % (fp, pubkey.keytype())
+            fp = '%s %s' % (fp, comment)
+        fp = '%s (%s)' % (fp, pubkey.keytype())
 
         newpubkeys.append(pubkey.openssh())
         fingerprints.append(fp)
@@ -950,7 +946,7 @@ def validate_idna_domain(value):
         #compare if IDN normalized and original domain match
         #there is N:1 mapping between unicode and IDNA names
         #user should use normalized names to avoid mistakes
-        labels = re.split(u'[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
+        labels = re.split('[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
         try:
             for label in labels:
                 label.encode("ascii")
@@ -1090,7 +1086,7 @@ class classobjectproperty(classproperty):
 
 def normalize_hostname(hostname):
     """Use common fqdn form without the trailing dot"""
-    if hostname.endswith(u'.'):
+    if hostname.endswith('.'):
         hostname = hostname[:-1]
     hostname = hostname.lower()
     return hostname
@@ -1107,7 +1103,7 @@ def hostname_validator(ugettext, value, maxlen=255):
     try:
         validate_hostname(value, maxlen=maxlen)
     except ValueError as e:
-        return _('invalid domain-name: %s') % unicode(e)
+        return _('invalid domain-name: %s') % str(e)
 
     return None
 
@@ -1130,7 +1126,7 @@ def ipaddr_validator(ugettext, ipaddr, ip_version=None):
 
 
 def validate_bind_forwarder(ugettext, forwarder):
-    ip_address, sep, port = forwarder.partition(u' port ')
+    ip_address, sep, port = forwarder.partition(' port ')
 
     ip_address_validation = ipaddr_validator(ugettext, ip_address)
 
@@ -1240,7 +1236,7 @@ def _collect_trust_namespaces(api_instance, add_local=False):
     :return: set of namespace names as strings.
              If add_local is True, add own realm namesapce
     """
-    trust_objects = api_instance.Command.trust_find(u'', sizelimit=0)['result']
+    trust_objects = api_instance.Command.trust_find('', sizelimit=0)['result']
 
     trust_suffix_namespace = set()
 
@@ -1392,12 +1388,9 @@ if reprlib is not None:
                     setattr(self, k, sys.maxsize)
 
         def repr_str(self, x, level):
-            """Output with u'' prefix"""
-            return 'u' + repr(x)
+            return repr(x)
 
         def repr_type(self, x, level):
-            if x is str:
-                return "<type 'unicode'>"
             if x in self.builtin_types:
                 return "<type '{}'>".format(x.__name__)
             else:

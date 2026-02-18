@@ -44,8 +44,6 @@ import locale
 import collections
 import urllib
 
-import six
-from six.moves import input
 
 try:
     import ifaddr
@@ -504,7 +502,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     if encoding is None:
         encoding = locale.getpreferredencoding()
 
-    if six.PY3 and isinstance(stdin, str):
+    if isinstance(stdin, str):
         stdin = stdin.encode(encoding)
 
     arg_string = nolog_replace(repr(args), nolog)
@@ -563,17 +561,11 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         output_log = None
         error_log = None
     else:
-        if six.PY3:
-            output_log = stdout.decode(locale.getpreferredencoding(),
-                                       errors='replace')
-        else:
-            output_log = stdout
+        output_log = stdout.decode(locale.getpreferredencoding(),
+                                   errors='replace')
 
-        if six.PY3:
-            error_log = stderr.decode(locale.getpreferredencoding(),
-                                      errors='replace')
-        else:
-            error_log = stderr
+        error_log = stderr.decode(locale.getpreferredencoding(),
+                                  errors='replace')
 
         output_log = nolog_replace(output_log, nolog)
         if nolog_output:
@@ -588,18 +580,12 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
             logger.debug('stderr=%s', error_log)
 
     if capture_output:
-        if six.PY2:
-            output = stdout
-        else:
-            output = stdout.decode(encoding)
+        output = stdout.decode(encoding)
     else:
         output = None
 
     if capture_error:
-        if six.PY2:
-            error_output = stderr
-        else:
-            error_output = stderr.decode(encoding)
+        error_output = stderr.decode(encoding)
     else:
         error_output = None
 
@@ -708,13 +694,7 @@ class CIDict(dict):
             self.__setitem__(key, value, seen)
 
     def __contains__(self, key):
-        return super(CIDict, self).__contains__(key.lower())
-
-    if six.PY2:
-        def has_key(self, key):
-            # pylint: disable=no-member
-            return super(CIDict, self).has_key(key.lower())  # noqa
-            # pylint: enable=no-member
+        return super().__contains__(key.lower())
 
     def get(self, key, failobj=None):
         try:
@@ -723,38 +703,29 @@ class CIDict(dict):
             return failobj
 
     def __iter__(self):
-        return six.itervalues(self._keys)
+        return iter(self._keys.values())
 
     def keys(self):
-        if six.PY2:
-            return list(self.iterkeys())
-        else:
-            return self.iterkeys()
+        return self.iterkeys()
 
     def items(self):
-        if six.PY2:
-            return list(self.iteritems())
-        else:
-            return self.iteritems()
+        return self.iteritems()
 
     def values(self):
-        if six.PY2:
-            return list(self.itervalues())
-        else:
-            return self.itervalues()
+        return self.itervalues()
 
     def copy(self):
         """Returns a shallow copy of this CIDict"""
         return CIDict(list(self.items()))
 
     def iteritems(self):
-        return ((k, self[k]) for k in six.itervalues(self._keys))
+        return ((k, self[k]) for k in self._keys.values())
 
     def iterkeys(self):
-        return six.itervalues(self._keys)
+        return self._keys.values()
 
     def itervalues(self):
-        return (v for k, v in six.iteritems(self))
+        return (v for k, v in self.items())
 
     def setdefault(self, key, value=None):
         try:
@@ -954,7 +925,7 @@ def ipa_generate_password(entropy_bits=256, uppercase=1, lowercase=1, digits=1,
     rnd = random.SystemRandom()
 
     todo_entropy = entropy_bits
-    password = u''
+    password = ''
     # Generate required character classes:
     # The order of generated characters is fixed to comply with check in
     # NSS function sftk_newPinCheck() in nss/lib/softoken/fipstokn.c.
@@ -1167,14 +1138,21 @@ $)''', re.VERBOSE)
                     if option is not None:
                         if replacevars and option in replacevars:
                             # replace value completely
-                            new_line = u"%s=%s\n" % (option, replacevars[option])
+                            new_line = "%s=%s\n" % (option, replacevars[option])
                             old_values[option] = value
                         if appendvars and option in appendvars:
                             # append new value unless it is already existing in the original one
                             if not value:
-                                new_line = u"%s=%s\n" % (option, appendvars[option])
+                                new_line = '%s=%s\n' % (
+                                    option,
+                                    appendvars[option],
+                                )
                             elif value.find(appendvars[option]) == -1:
-                                new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = '%s=%s %s\n' % (
+                                    option,
+                                    value,
+                                    appendvars[option],
+                                )
                             old_values[option] = value
                         if removevars and option in removevars:
                             old_values[option] = value
@@ -1269,14 +1247,21 @@ $)''', re.VERBOSE)
                         # Great, this is an option from the section we are loking for
                         if replacevars and option in replacevars:
                             # replace value completely
-                            new_line = u"%s=%s\n" % (option, replacevars[option])
+                            new_line = "%s=%s\n" % (option, replacevars[option])
                             old_values[option] = value
                         if appendvars and option in appendvars:
                             # append a new value unless it is already existing in the original one
                             if not value:
-                                new_line = u"%s=%s\n" % (option, appendvars[option])
+                                new_line = '%s=%s\n' % (
+                                    option,
+                                    appendvars[option],
+                                )
                             elif value.find(appendvars[option]) == -1:
-                                new_line = u"%s=%s %s\n" % (option, value, appendvars[option])
+                                new_line = '%s=%s %s\n' % (
+                                    option,
+                                    value,
+                                    appendvars[option],
+                                )
                             old_values[option] = value
                     new_config.write(new_line)
             # We have finished parsing the original file.
@@ -1474,7 +1459,7 @@ def private_krb5_config(realm, server, dir="/run/ipa"):
     cfg = paths.KRB5_CONF
     tcfg = None
     if server:
-        content = textwrap.dedent(u"""
+        content = textwrap.dedent("""
             [realms]
                %s = {
                    kdc = %s
@@ -1508,23 +1493,7 @@ def private_krb5_config(realm, server, dir="/run/ipa"):
             os.remove(tcfg)
 
 
-if six.PY2:
-    def fsdecode(value):
-        """
-        Decode argument using the file system encoding, as returned by
-        `sys.getfilesystemencoding()`.
-        """
-        if isinstance(value, bytes):
-            return value.decode(sys.getfilesystemencoding())
-        elif isinstance(value, str):
-            return value
-        else:
-            raise TypeError("expect {0} or {1}, not {2}".format(
-                bytes.__name__,
-                str.__name__,
-                type(value).__name__))
-else:
-    fsdecode = os.fsdecode
+fsdecode = os.fsdecode
 
 
 def unescape_seq(seq, *args):
@@ -1551,7 +1520,7 @@ def escape_seq(seq, *args):
     :returns: tuple of strings with escaped sequences
     """
 
-    return tuple(a.replace(seq, u'\\{}'.format(seq)) for a in args)
+    return tuple(a.replace(seq, '\\{}'.format(seq)) for a in args)
 
 
 def decode_json(data):
@@ -1612,7 +1581,7 @@ class APIVersion(tuple):
     __slots__ = ()
 
     def __new__(cls, version):
-        major, dot, minor = version.partition(u'.')
+        major, dot, minor = version.partition('.')
         major = int(major)
         minor = int(minor) if dot else 0
         return tuple.__new__(cls, (major, minor))

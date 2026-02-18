@@ -7,16 +7,12 @@ from cryptography import x509 as crypto_x509
 import datetime
 from decimal import Decimal
 import json
-import six
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib import capabilities, x509
 from ipalib.x509 import Encoding as x509_Encoding
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipapython.kerberos import Principal
-
-if six.PY3:
-    unicode = str
 
 
 class _JSONPrimer(dict):
@@ -41,7 +37,7 @@ class _JSONPrimer(dict):
 
     * bytes -> {'__base64__': b64encode}
     * datetime -> {'__datetime__': LDAP_GENERALIZED_TIME}
-    * DNSName -> {'__dns_name__': unicode}
+    * DNSName -> {'__dns_name__': str}
 
     The _ipa_obj_hook() functions unserializes the marked JSON objects to
     bytes, datetime and DNSName.
@@ -58,14 +54,14 @@ class _JSONPrimer(dict):
         self._cap_datetime = None
         self._cap_dnsname = None
         self.update({
-            unicode: _identity,
+            str: _identity,
             bool: _identity,
             int: _identity,
             type(None): _identity,
             float: _identity,
-            Decimal: unicode,
+            Decimal: str,
             DN: str,
-            Principal: unicode,
+            Principal: str,
             DNSName: self._enc_dnsname,
             datetime.datetime: self._enc_datetime,
             bytes: self._enc_bytes,
@@ -112,14 +108,13 @@ class _JSONPrimer(dict):
                                                      'dns_name_values')
             self._cap_dnsname = cap
         if cap:
-            return {'__dns_name__': unicode(val)}
+            return {'__dns_name__': str(val)}
         else:
-            return unicode(val)
+            return str(val)
 
     def _enc_bytes(self, val):
         encoded = base64.b64encode(val)
-        if not six.PY2:
-            encoded = encoded.decode('ascii')
+        encoded = encoded.decode('ascii')
         return {'__base64__': encoded}
 
     def _enc_list(self, val, _identity=_identity):
@@ -130,7 +125,7 @@ class _JSONPrimer(dict):
             append(v if func is _identity else func(v))
         return result
 
-    def _enc_dict(self, val, _identity=_identity, _iteritems=six.iteritems):
+    def _enc_dict(self, val, _identity=_identity, _iteritems=dict.items):
         result = {}
         for k, v in _iteritems(val):
             func = self[v.__class__]
@@ -158,7 +153,7 @@ def json_encode_binary(val, version, pretty_print=False):
         return json.dumps(result)
 
 
-def _ipa_obj_hook(dct, _iteritems=six.iteritems, _list=list):
+def _ipa_obj_hook(dct, _iteritems=dict.items, _list=list):
     """JSON object hook
 
     :see: _JSONPrimer

@@ -65,13 +65,13 @@ def use_keytab(principal, keytab):
 
 @pytest.fixture(scope='class')
 def test_host(request):
-    host_tracker = host_plugin.HostTracker(u'test-host')
+    host_tracker = host_plugin.HostTracker('test-host')
     return host_tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def test_service(request, test_host, keytab_retrieval_setup):
-    service_tracker = service_plugin.ServiceTracker(u'srv', test_host.name)
+    service_tracker = service_plugin.ServiceTracker('srv', test_host.name)
     test_host.ensure_exists()
     return service_tracker.make_fixture(request)
 
@@ -178,7 +178,7 @@ class test_ipagetkeytab(KeytabRetrievalTest):
         retrieve_cmd = test_service.make_retrieve_command()
         result = retrieve_cmd()
         # Verify that it has a principal key
-        assert result[u'result'][u'has_keytab']
+        assert result['result']['has_keytab']
 
         # Disable it
         disable_cmd = test_service.make_disable_command()
@@ -186,7 +186,7 @@ class test_ipagetkeytab(KeytabRetrievalTest):
 
         # Verify that it looks disabled
         result = retrieve_cmd()
-        assert not result[u'result'][u'has_keytab']
+        assert not result['result']['has_keytab']
 
     def test_5_use_disabled(self, test_service):
         """
@@ -401,26 +401,26 @@ class SMBServiceTracker(service_plugin.ServiceTracker):
                                                 options=options)
         # Create SMB service principal that has POSIX attributes to allow
         # generating SID and adding proper objectclasses
-        self.create_keys |= {u'uidnumber', u'gidnumber'}
-        self.options[u'addattr'] = [
-            u'objectclass=ipaIDObject', u'uidNumber=-1', u'gidNumber=-1']
+        self.create_keys |= {'uidnumber', 'gidnumber'}
+        self.options['addattr'] = [
+            'objectclass=ipaIDObject', 'uidNumber=-1', 'gidNumber=-1']
 
     def track_create(self, **options):
         super(SMBServiceTracker, self).track_create(**options)
-        self.attrs[u'uidnumber'] = [fuzzy_digits]
-        self.attrs[u'gidnumber'] = [fuzzy_digits]
-        self.attrs[u'objectclass'].append(u'ipaIDObject')
+        self.attrs['uidnumber'] = [fuzzy_digits]
+        self.attrs['gidnumber'] = [fuzzy_digits]
+        self.attrs['objectclass'].append('ipaIDObject')
 
 
 @pytest.fixture(scope='class')
 def test_smb_svc(request, test_host, smb_service_setup):
-    service_tracker = SMBServiceTracker(u'cifs', test_host.name)
+    service_tracker = SMBServiceTracker('cifs', test_host.name)
     test_host.ensure_exists()
     return service_tracker.make_fixture(request)
 
 
 @pytest.mark.tier0
-@pytest.mark.skipif(u'ipantuserattrs' not in add_oc([], u'ipantuserattrs'),
+@pytest.mark.skipif('ipantuserattrs' not in add_oc([], 'ipantuserattrs'),
                     reason="Must have trust support enabled for this test")
 class test_smb_service(KeytabRetrievalTest):
     """

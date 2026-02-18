@@ -20,7 +20,7 @@ from ipatests.test_xmlrpc.tracker.ca_plugin import CATracker
 @pytest.fixture(scope='class')
 def default_profile(request, xmlrpc_setup):
     name = 'caIPAserviceCert'
-    desc = u'Standard profile for network services'
+    desc = 'Standard profile for network services'
     tracker = CertprofileTracker(name, store=True, desc=desc)
     tracker.track_create()
     return tracker
@@ -28,17 +28,17 @@ def default_profile(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def default_acl(request, xmlrpc_setup):
-    name = u'hosts_services_caIPAserviceCert'
-    tracker = CAACLTracker(name, service_category=u'all', host_category=u'all')
+    name = 'hosts_services_caIPAserviceCert'
+    tracker = CAACLTracker(name, service_category='all', host_category='all')
     tracker.track_create()
     tracker.attrs.update(
-        {u'ipamembercertprofile_certprofile': [u'caIPAserviceCert']})
+        {'ipamembercertprofile_certprofile': ['caIPAserviceCert']})
     return tracker
 
 
 @pytest.fixture(scope='class')
 def crud_acl(request, xmlrpc_setup):
-    name = u'crud-acl'
+    name = 'crud-acl'
     tracker = CAACLTracker(name)
 
     return tracker.make_fixture(request)
@@ -46,25 +46,25 @@ def crud_acl(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def category_acl(request, xmlrpc_setup):
-    name = u'category_acl'
-    tracker = CAACLTracker(name, ipacertprofile_category=u'all',
-                           user_category=u'all', service_category=u'all',
-                           host_category=u'all', ipaca_category=u'all')
+    name = 'category_acl'
+    tracker = CAACLTracker(name, ipacertprofile_category='all',
+                           user_category='all', service_category='all',
+                           host_category='all', ipaca_category='all')
 
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def caacl_test_ca(request, xmlrpc_setup):
-    name = u'caacl-test-ca'
-    subject = u'CN=caacl test subca,O=test industries inc.'
+    name = 'caacl-test-ca'
+    subject = 'CN=caacl test subca,O=test industries inc.'
     return CATracker(name, subject).make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def staged_user(request, xmlrpc_setup):
-    name = u'st-user'
-    tracker = StageUserTracker(name, u'stage', u'test')
+    name = 'st-user'
+    tracker = StageUserTracker(name, 'stage', 'test')
 
     return tracker.make_fixture(request)
 

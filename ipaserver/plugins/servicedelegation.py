@@ -2,7 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import six
 
 from ipalib import api
 from ipalib import Str
@@ -20,8 +19,6 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipapython import kerberos
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Service Constrained Delegation
@@ -97,12 +94,12 @@ to delegate, causing the framework to stop functioning.
 register = Registry()
 
 PROTECTED_CONSTRAINT_RULES = (
-    u'ipa-http-delegation',
+    'ipa-http-delegation',
 )
 
 PROTECTED_CONSTRAINT_TARGETS = (
-    u'ipa-cifs-delegation-targets',
-    u'ipa-ldap-delegation-targets',
+    'ipa-cifs-delegation-targets',
+    'ipa-ldap-delegation-targets',
 
 )
 
@@ -189,9 +186,9 @@ def normalize_principal_name(name, realm):
             reason=_("Malformed principal: %(error)s") % dict(error=str(e)))
 
     if len(princ.components) == 1 and not princ.components[0].endswith('$'):
-        nprinc = 'host/' + unicode(princ)
+        nprinc = 'host/' + str(princ)
     else:
-        nprinc = unicode(princ)
+        nprinc = str(princ)
     return nprinc
 
 
@@ -252,13 +249,13 @@ class servicedelegation_add_member(LDAPAddMember):
                         base_dn=basedn)
                 except errors.NotFound as e:
                     failed[self.principal_failedattr][
-                        self.principal_attr].append((name, unicode(e)))
+                        self.principal_attr].append((name, str(e)))
                     continue
                 try:
                     # normalize principal as set in krbPrincipalName attribute
                     mprinc = None
                     for p in e_attrs.get('krbprincipalname'):
-                        p = unicode(p)
+                        p = str(p)
                         if p.lower() == princ.lower():
                             mprinc = p
                     if mprinc not in entry_attrs.get(self.principal_attr, []):
@@ -267,7 +264,7 @@ class servicedelegation_add_member(LDAPAddMember):
                         raise errors.AlreadyGroupMember()
                 except errors.PublicError as e:
                     failed[self.principal_failedattr][
-                        self.principal_attr].append((name, unicode(e)))
+                        self.principal_attr].append((name, str(e)))
                 else:
                     completed += 1
 
@@ -329,7 +326,7 @@ class servicedelegation_remove_member(LDAPRemoveMember):
                     try:
                         dns[attr][ldap_obj_name].append(ldap_obj.get_dn(name))
                     except errors.PublicError as e:
-                        failed[attr][ldap_obj_name].append((name, unicode(e)))
+                        failed[attr][ldap_obj_name].append((name, str(e)))
         return dns, failed
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
@@ -357,7 +354,7 @@ class servicedelegation_remove_member(LDAPRemoveMember):
                         raise errors.NotGroupMember()
                 except errors.PublicError as e:
                     failed[self.principal_failedattr][
-                        self.principal_attr].append((name, unicode(e)))
+                        self.principal_attr].append((name, str(e)))
                 else:
                     completed += 1
 
@@ -408,9 +405,9 @@ class servicedelegationrule_del(LDAPDelete):
         assert isinstance(dn, DN)
         if keys[0] in PROTECTED_CONSTRAINT_RULES:
             raise errors.ProtectedEntryError(
-                label=_(u'service delegation rule'),
+                label=_('service delegation rule'),
                 key=keys[0],
-                reason=_(u'privileged service delegation rule')
+                reason=_('privileged service delegation rule')
             )
         return dn
 
@@ -497,9 +494,9 @@ class servicedelegationtarget_del(LDAPDelete):
         assert isinstance(dn, DN)
         if keys[0] in PROTECTED_CONSTRAINT_TARGETS:
             raise errors.ProtectedEntryError(
-                label=_(u'service delegation target'),
+                label=_('service delegation target'),
                 key=keys[0],
-                reason=_(u'privileged service delegation target')
+                reason=_('privileged service delegation target')
             )
         return dn
 

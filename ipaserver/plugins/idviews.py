@@ -19,7 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import re
 
-import six
 
 from .baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                        LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -45,9 +44,6 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
 
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
-
 _dcerpc_bindings_installed = False
 
 if api.env.in_server:
@@ -71,7 +67,7 @@ register = Registry()
 
 protected_default_trust_view_error = errors.ProtectedEntryError(
     label=_('ID View'),
-    key=u"Default Trust View",
+    key="Default Trust View",
     reason=_('system ID View')
 )
 
@@ -204,7 +200,7 @@ class idview_add(LDAPCreate):
         # the id view. We need to add it if we define a new
         # value for ipaDomainResolutionOrder
         if 'ipadomainresolutionorder' in entry_attrs:
-            add_missing_object_class(ldap, u'ipanameresolutiondata', dn,
+            add_missing_object_class(ldap, 'ipanameresolutiondata', dn,
                                      entry_attrs, update=False)
         return dn
 
@@ -386,7 +382,7 @@ class baseidview_apply(LDAPQuery):
             try:
                 hosts_to_apply += get_complete_hostgroup_member_list(hostgroup)
             except errors.NotFound:
-                failed['hostgroup'].append((hostgroup, unicode(_("not found"))))
+                failed['hostgroup'].append((hostgroup, str(_("not found"))))
             except errors.PublicError as e:
                 failed['hostgroup'].append((hostgroup, "%s : %s" % (
                                             e.__class__.__name__, str(e))))
@@ -400,7 +396,7 @@ class baseidview_apply(LDAPQuery):
                 except errors.ValidationError:
                     failed['host'].append(
                         (host,
-                         unicode(_("ID View cannot be applied to IPA master")))
+                         str(_("ID View cannot be applied to IPA master")))
                     )
                     continue
                 host_dn = api.Object['host'].get_dn_if_exists(host)
@@ -417,9 +413,9 @@ class baseidview_apply(LDAPQuery):
             except errors.EmptyModlist:
                 # If view was already applied, complain about it
                 failed['host'].append((host,
-                                       unicode(_("ID View already applied"))))
+                                       str(_("ID View already applied"))))
             except errors.NotFound:
-                failed['host'].append((host, unicode(_("not found"))))
+                failed['host'].append((host, str(_("not found"))))
             except errors.PublicError as e:
                 failed['host'].append((host, str(e)))
 
@@ -437,7 +433,7 @@ class baseidview_apply(LDAPQuery):
         # member hosts of the hostgroup and not tied with the hostgroup itself.
 
         return dict(
-            summary=unicode(_(self.msg_summary % {'value': view})),
+            summary=str(_(self.msg_summary % {'value': view})),
             succeeded=succeeded,
             completed=completed,
             failed=failed,

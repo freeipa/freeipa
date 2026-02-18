@@ -6,12 +6,8 @@
 classes/utils for Kerberos principal name validation/manipulation
 """
 import re
-import six
 
 from ipapython.ipautil import escape_seq, unescape_seq
-
-if six.PY3:
-    unicode = str
 
 REALM_SPLIT_RE = re.compile(r'(?<!\\)@')
 COMPONENT_SPLIT_RE = re.compile(r'(?<!\\)/')
@@ -21,7 +17,7 @@ def parse_princ_name_and_realm(principal, realm=None):
     """
     split principal to the <principal_name>, <realm> components
 
-    :param principal: unicode representation of principal
+    :param principal: str representation of principal
     :param realm: if not None, replace the parsed realm with the specified one
 
     :returns: tuple containing the principal name and realm
@@ -53,14 +49,13 @@ def split_principal_name(principal_name):
 
     Enterprise principals (NT-ENTERPRISE, see RFC 6806) are also handled
 
-    :param principal_name: unicode representation of principal name
+    :param principal_name: str representation of principal name
     :returns: tuple of individual components (i.e. primary name for
     NT-PRINCIPAL and NT-ENTERPRISE, primary name and instance for others)
     """
     return tuple(COMPONENT_SPLIT_RE.split(principal_name))
 
 
-@six.python_2_unicode_compatible
 class Principal:
     """
     Container for the principal name and realm according to RFC 1510
@@ -94,7 +89,7 @@ class Principal:
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return unicode(self) < unicode(other)
+        return str(self) < str(other)
 
     def __le__(self, other):
         return self.__lt__(other) or self.__eq__(other)
@@ -116,7 +111,7 @@ class Principal:
             2.) unescape any leftover '\@' sequences
             3.) split the primary at the unescaped '/'
             4.) unescape leftover '\/'
-        :param principal: unicode representation of the principal name
+        :param principal: str representation of the principal name
         :param realm: if not None, this realm name will be used instead of the
             one parsed from `principal`
 
@@ -125,13 +120,13 @@ class Principal:
         principal_name, parsed_realm = parse_princ_name_and_realm(
             principal, realm=realm)
 
-        (principal_name,) = unescape_seq(u'@', principal_name)
+        (principal_name,) = unescape_seq('@', principal_name)
 
         if parsed_realm is not None:
-            (parsed_realm,) = unescape_seq(u'@', parsed_realm)
+            (parsed_realm,) = unescape_seq('@', parsed_realm)
 
         name_components = split_principal_name(principal_name)
-        name_components = unescape_seq(u'/', *name_components)
+        name_components = unescape_seq('/', *name_components)
 
         return name_components, parsed_realm
 
@@ -141,7 +136,7 @@ class Principal:
 
     @property
     def is_enterprise(self):
-        return self.is_user and u'@' in self.components[0]
+        return self.is_user and '@' in self.components[0]
 
     @property
     def is_service(self):
@@ -150,7 +145,7 @@ class Principal:
     @property
     def is_host(self):
         return (self.is_service and len(self.components) == 2 and
-                self.components[0] == u'host')
+                self.components[0] == 'host')
 
     @property
     def username(self):
@@ -165,7 +160,7 @@ class Principal:
         if not self.is_enterprise:
             raise ValueError("Only enterprise principals have UPN suffix")
 
-        return self.components[0].split(u'@')[1]
+        return self.components[0].split('@')[1]
 
     @property
     def hostname(self):
@@ -180,22 +175,22 @@ class Principal:
             raise ValueError(
                 "Only service principals have meaningful service name")
 
-        return u'/'.join(c for c in escape_seq('/', *self.components[:-1]))
+        return '/'.join(c for c in escape_seq('/', *self.components[:-1]))
 
     def __str__(self):
         """
-        return the unicode representation of principal
+        return the str representation of principal
 
         works in reverse of the `from_text` class method
         """
-        name_components = escape_seq(u'/', *self.components)
-        name_components = escape_seq(u'@', *name_components)
+        name_components = escape_seq('/', *self.components)
+        name_components = escape_seq('@', *name_components)
 
-        principal_string = u'/'.join(name_components)
+        principal_string = '/'.join(name_components)
 
         if self.realm is not None:
-            (realm,) = escape_seq(u'@', self.realm)
-            principal_string = u'@'.join([principal_string, realm])
+            (realm,) = escape_seq('@', self.realm)
+            principal_string = '@'.join([principal_string, realm])
 
         return principal_string
 

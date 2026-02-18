@@ -25,8 +25,8 @@ from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
-selfservice1 = u'testself'
-invalid_selfservice1 = u'bad+name'
+selfservice1 = 'testself'
+invalid_selfservice1 = 'bad+name'
 
 
 @pytest.mark.tier1
@@ -37,79 +37,76 @@ class test_selfservice(Declarative):
     ]
 
     tests = [
-
         dict(
             desc='Try to retrieve non-existent %r' % selfservice1,
             command=('selfservice_show', [selfservice1], {}),
             expected=errors.NotFound(
-                reason=u'ACI with name "%s" not found' % selfservice1),
+                reason='ACI with name "%s" not found' % selfservice1
+            ),
         ),
-
-
         dict(
             desc='Try to update non-existent %r' % selfservice1,
-            command=('selfservice_mod', [selfservice1],
-                dict(permissions=u'write')),
+            command=(
+                'selfservice_mod',
+                [selfservice1],
+                dict(permissions='write'),
+            ),
             expected=errors.NotFound(
-                reason=u'ACI with name "%s" not found' % selfservice1),
+                reason='ACI with name "%s" not found' % selfservice1
+            ),
         ),
-
-
         dict(
             desc='Try to delete non-existent %r' % selfservice1,
             command=('selfservice_del', [selfservice1], {}),
             expected=errors.NotFound(
-                reason=u'ACI with name "%s" not found' % selfservice1),
+                reason='ACI with name "%s" not found' % selfservice1
+            ),
         ),
-
-
         dict(
             desc='Search for non-existent %r' % selfservice1,
             command=('selfservice_find', [selfservice1], {}),
             expected=dict(
                 count=0,
                 truncated=False,
-                summary=u'0 selfservices matched',
+                summary='0 selfservices matched',
                 result=[],
             ),
         ),
-
-
         # Note that we add postalCode but expect postalcode. This tests
         # the attrs normalizer.
         dict(
             desc='Create %r' % selfservice1,
             command=(
-                'selfservice_add', [selfservice1], dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=u'write',
-                )
+                'selfservice_add',
+                [selfservice1],
+                dict(
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions='write',
+                ),
             ),
             expected=dict(
                 value=selfservice1,
-                summary=u'Added selfservice "%s"' % selfservice1,
+                summary='Added selfservice "%s"' % selfservice1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=[u'write'],
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions=['write'],
                     selfaci=True,
                     aciname=selfservice1,
                 ),
             ),
         ),
-
-
         dict(
             desc='Try to create duplicate %r' % selfservice1,
             command=(
-                'selfservice_add', [selfservice1], dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=u'write',
+                'selfservice_add',
+                [selfservice1],
+                dict(
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions='write',
                 ),
             ),
             expected=errors.DuplicateEntry(),
         ),
-
-
         dict(
             desc='Retrieve %r' % selfservice1,
             command=('selfservice_show', [selfservice1], {}),
@@ -117,53 +114,50 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                    'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                    'permissions': [u'write'],
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['write'],
                     'selfaci': True,
                     'aciname': selfservice1,
                 },
             ),
         ),
-
-
         dict(
             desc='Retrieve %r with --raw' % selfservice1,
-            command=('selfservice_show', [selfservice1], {'raw':True}),
+            command=('selfservice_show', [selfservice1], {'raw': True}),
             expected=dict(
                 value=selfservice1,
                 summary=None,
                 result={
-                    'aci': u'(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)',
+                    'aci': '(targetattr = "street || c || l || st || '
+                    'postalcode")(version 3.0;acl "selfservice:testself";allow '
+                    '(write) userdn = "ldap:///self";)',
                 },
             ),
         ),
-
-
         dict(
             desc='Search for %r' % selfservice1,
             command=('selfservice_find', [selfservice1], {}),
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 selfservice matched',
+                summary='1 selfservice matched',
                 result=[
                     {
-                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                        'permissions': [u'write'],
+                        'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                        'permissions': ['write'],
                         'selfaci': True,
                         'aciname': selfservice1,
                     },
                 ],
             ),
         ),
-
         dict(
             desc='Search for %r with --pkey-only' % selfservice1,
-            command=('selfservice_find', [selfservice1], {'pkey_only' : True}),
+            command=('selfservice_find', [selfservice1], {'pkey_only': True}),
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 selfservice matched',
+                summary='1 selfservice matched',
                 result=[
                     {
                         'aciname': selfservice1,
@@ -171,61 +165,63 @@ class test_selfservice(Declarative):
                 ],
             ),
         ),
-
-
         dict(
-            desc='Search for %r with empty attrs and permissions' % selfservice1,
-            command=('selfservice_find', [selfservice1], {'attrs' : None, 'permissions' : None}),
+            desc='Search for %r with empty attrs and permissions'
+            % selfservice1,
+            command=(
+                'selfservice_find',
+                [selfservice1],
+                {'attrs': None, 'permissions': None},
+            ),
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 selfservice matched',
+                summary='1 selfservice matched',
                 result=[
                     {
-                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                        'permissions': [u'write'],
+                        'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                        'permissions': ['write'],
                         'selfaci': True,
                         'aciname': selfservice1,
                     },
                 ],
             ),
         ),
-
-
         dict(
             desc='Search for %r with --raw' % selfservice1,
-            command=('selfservice_find', [selfservice1], {'raw':True}),
+            command=('selfservice_find', [selfservice1], {'raw': True}),
             expected=dict(
                 count=1,
                 truncated=False,
-                summary=u'1 selfservice matched',
+                summary='1 selfservice matched',
                 result=[
                     {
-                        'aci': u'(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)'
+                        'aci': '(targetattr = "street || c || l || st || '
+                        'postalcode")(version 3.0;acl '
+                        '"selfservice:testself";allow (write) userdn = '
+                        '"ldap:///self";)'
                     },
                 ],
             ),
         ),
-
-
         dict(
             desc='Update %r' % selfservice1,
             command=(
-                'selfservice_mod', [selfservice1], dict(permissions=u'read')
+                'selfservice_mod',
+                [selfservice1],
+                dict(permissions='read'),
             ),
             expected=dict(
                 value=selfservice1,
-                summary=u'Modified selfservice "%s"' % selfservice1,
+                summary='Modified selfservice "%s"' % selfservice1,
                 result=dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=[u'read'],
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions=['read'],
                     selfaci=True,
                     aciname=selfservice1,
                 ),
             ),
         ),
-
-
         dict(
             desc='Retrieve %r to verify update' % selfservice1,
             command=('selfservice_show', [selfservice1], {}),
@@ -233,24 +229,18 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                        'permissions': [u'read'],
-                        'selfaci': True,
-                        'aciname': selfservice1,
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['read'],
+                    'selfaci': True,
+                    'aciname': selfservice1,
                 },
             ),
         ),
-
-
         dict(
             desc='Try to update %r with empty permissions' % selfservice1,
-            command=(
-                'selfservice_mod', [selfservice1], dict(permissions=None)
-            ),
+            command=('selfservice_mod', [selfservice1], dict(permissions=None)),
             expected=errors.RequirementError(name='permissions'),
         ),
-
-
         dict(
             desc='Retrieve %r to verify invalid update' % selfservice1,
             command=('selfservice_show', [selfservice1], {}),
@@ -258,35 +248,35 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                        'attrs': [u'street', u'c', u'l', u'st', u'postalcode'],
-                        'permissions': [u'read'],
-                        'selfaci': True,
-                        'aciname': selfservice1,
+                    'attrs': ['street', 'c', 'l', 'st', 'postalcode'],
+                    'permissions': ['read'],
+                    'selfaci': True,
+                    'aciname': selfservice1,
                 },
             ),
         ),
-
-
         dict(
             desc='Delete %r' % selfservice1,
             command=('selfservice_del', [selfservice1], {}),
             expected=dict(
                 result=True,
                 value=selfservice1,
-                summary=u'Deleted selfservice "%s"' % selfservice1,
-            )
+                summary='Deleted selfservice "%s"' % selfservice1,
+            ),
         ),
-
         dict(
             desc='Create invalid %r' % invalid_selfservice1,
             command=(
-                'selfservice_add', [invalid_selfservice1], dict(
-                    attrs=[u'street', u'c', u'l', u'st', u'postalcode'],
-                    permissions=u'write',
-                )
+                'selfservice_add',
+                [invalid_selfservice1],
+                dict(
+                    attrs=['street', 'c', 'l', 'st', 'postalcode'],
+                    permissions='write',
+                ),
             ),
-            expected=errors.ValidationError(name='name',
-                error='May only contain letters, numbers, -, _, and space'),
+            expected=errors.ValidationError(
+                name='name',
+                error='May only contain letters, numbers, -, _, and space',
+            ),
         ),
-
     ]

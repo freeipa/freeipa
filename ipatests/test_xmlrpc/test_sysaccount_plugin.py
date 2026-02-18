@@ -15,15 +15,15 @@ from ipatests.util import change_principal, unlock_principal_password
 from ipatests.test_xmlrpc.xmlrpc_test import assert_attr_equal
 from ipatests.test_xmlrpc.tracker.sysaccount_plugin import SysaccountTracker
 
-NORMAL_USER = u'test-normal-user'
-NORMAL_USER_PASSWORD = u'Secret123'
-SECURITY_ARCHITECT_USER = u'test-security-architect'
-SECURITY_ARCHITECT_PASSWORD = u'Secret123'
-SECURITY_ARCHITECT_ROLE = u'Security Architect'
+NORMAL_USER = 'test-normal-user'
+NORMAL_USER_PASSWORD = 'Secret123'
+SECURITY_ARCHITECT_USER = 'test-security-architect'
+SECURITY_ARCHITECT_PASSWORD = 'Secret123'
+SECURITY_ARCHITECT_ROLE = 'Security Architect'
 
-TEST_SYSACCOUNT_1 = u'test-sysaccount-1'
-TEST_SYSACCOUNT_2 = u'test-sysaccount-2'
-TEST_SYSACCOUNT_3 = u'test-sysaccount-3'
+TEST_SYSACCOUNT_1 = 'test-sysaccount-1'
+TEST_SYSACCOUNT_2 = 'test-sysaccount-2'
+TEST_SYSACCOUNT_3 = 'test-sysaccount-3'
 
 
 @pytest.fixture(scope='class')
@@ -38,7 +38,7 @@ def sysaccount_2(request, xmlrpc_setup):
     """Fixture for TEST_SYSACCOUNT_2"""
     tracker = SysaccountTracker(
         name=TEST_SYSACCOUNT_2,
-        description=u'Test system account for show'
+        description='Test system account for show'
     )
     return tracker.make_fixture(request)
 
@@ -59,8 +59,8 @@ class TestSysaccountPermissions(XMLRPC_test):
     def test_setup(self):
         api.Command.user_add(
             NORMAL_USER,
-            givenname=u'Normal',
-            sn=u'User',
+            givenname='Normal',
+            sn='User',
             userpassword=NORMAL_USER_PASSWORD
         )
         unlock_principal_password(NORMAL_USER, NORMAL_USER_PASSWORD,
@@ -69,8 +69,8 @@ class TestSysaccountPermissions(XMLRPC_test):
         # Create Security Architect user
         api.Command.user_add(
             SECURITY_ARCHITECT_USER,
-            givenname=u'Security',
-            sn=u'Architect',
+            givenname='Security',
+            sn='Architect',
             userpassword=SECURITY_ARCHITECT_PASSWORD
         )
         unlock_principal_password(SECURITY_ARCHITECT_USER,
@@ -96,7 +96,7 @@ class TestSysaccountPermissions(XMLRPC_test):
             with pytest.raises(errors.ACIError):
                 api.Command.sysaccount_mod(
                     TEST_SYSACCOUNT_1,
-                    description=u'Modified description'
+                    description='Modified description'
                 )
 
     def test_normal_user_cannot_delete_sysaccount(self, sysaccount_1):
@@ -134,7 +134,7 @@ class TestSysaccountPermissions(XMLRPC_test):
                               SECURITY_ARCHITECT_PASSWORD):
             result = api.Command.sysaccount_mod(
                 TEST_SYSACCOUNT_3,
-                description=u'Modified by Security Architect'
+                description='Modified by Security Architect'
             )
             assert result['value'] == TEST_SYSACCOUNT_3
 
@@ -183,7 +183,7 @@ class TestSysaccountPermissions(XMLRPC_test):
         api.Command.sysaccount_add(
             TEST_SYSACCOUNT_2,
             random=True,
-            description=u'Test system account for find'
+            description='Test system account for find'
         )
 
         try:

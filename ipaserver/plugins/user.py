@@ -25,7 +25,6 @@ import time
 from time import gmtime, strftime
 import posixpath
 
-import six
 
 from ipalib import api
 from ipalib import errors
@@ -76,8 +75,6 @@ from ipapython.ipautil import ipa_generate_password, TMP_PWD_ENTROPY_BITS
 from ipalib.capabilities import client_has_capability
 from ipaserver.masters import get_masters
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Users
@@ -143,7 +140,7 @@ NOT_MEMBEROF_ADMINS = '(!{})'.format(MEMBEROF_ADMINS)
 PROTECTED_USERS = ('admin',)
 
 
-def check_protected_member(user, protected_group_name=u'admins'):
+def check_protected_member(user, protected_group_name='admins'):
     '''
     Ensure admin and the last enabled member of a protected group cannot
     be deleted.
@@ -157,7 +154,7 @@ def check_protected_member(user, protected_group_name=u'admins'):
         )
 
 
-def check_last_member(user, protected_group_name=u'admins'):
+def check_last_member(user, protected_group_name='admins'):
     '''
     Ensure the last enabled member of a protected group cannot
     be disabled.
@@ -171,7 +168,7 @@ def check_last_member(user, protected_group_name=u'admins'):
 
     # If the user is the last enabled user raise LastMemberError exception
     if enabled_users == [user]:
-        raise errors.LastMemberError(key=user, label=_(u'group'),
+        raise errors.LastMemberError(key=user, label=_('group'),
             container=protected_group_name)
 
 @register()
@@ -709,7 +706,9 @@ class user_add(baseuser_add):
 
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(
+                    getattr(context, 'randompassword')
+                )
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass
@@ -1063,22 +1062,22 @@ class user_stage(LDAPMultiQuery):
     #    are automatically generated
     #    ipacertmapdata can only be provided with user_add_certmapdata
     #    ipapasskey can only be provided with user_add_passkey
-    ignore_attrs = [u'dn', u'uid',
-                    u'has_keytab', u'has_password', u'preserved',
-                    u'ipauniqueid', u'krbcanonicalname',
-                    u'sshpubkeyfp', u'krbextradata',
-                    u'ipacertmapdata',
+    ignore_attrs = ['dn', 'uid',
+                    'has_keytab', 'has_password', 'preserved',
+                    'ipauniqueid', 'krbcanonicalname',
+                    'sshpubkeyfp', 'krbextradata',
+                    'ipacertmapdata',
                     'ipantsecurityidentifier',
-                    u'nsaccountlock',
-                    u'ipapasskey']
+                    'nsaccountlock',
+                    'ipapasskey']
 
     def execute(self, *keys, **options):
 
         def _build_setattr_arg(key, val):
             if isinstance(val, bytes):
-                return u"{}={}".format(key, val.decode('UTF-8'))
+                return "{}={}".format(key, val.decode('UTF-8'))
             else:
-                return u"{}={}".format(key, val)
+                return "{}={}".format(key, val)
 
         staged = []
         failed = []
@@ -1114,18 +1113,18 @@ class user_stage(LDAPMultiQuery):
                 else:
                     set_attr.append(_build_setattr_arg(userkey, val))
             if set_attr:
-                new_options[u'setattr'] = set_attr
+                new_options['setattr'] = set_attr
 
             try:
                 self.api.Command.stageuser_add(*single_keys, **new_options)
                 # special handling for certmapdata
-                certmapdata = user.get(u'ipacertmapdata')
+                certmapdata = user.get('ipacertmapdata')
                 if certmapdata:
                     self.api.Command.stageuser_add_certmapdata(
                         *single_keys,
                         ipacertmapdata=certmapdata)
                 # special handling for passkey
-                passkey = user.get(u'ipapasskey')
+                passkey = user.get('ipapasskey')
                 if passkey:
                     self.api.Command.stageuser_add_passkey(
                         *single_keys,
@@ -1322,26 +1321,31 @@ class user_status(LDAPQuery):
                 entry = other_ldap.get_entry(dn, attr_list)
                 newresult = {'dn': dn}
                 for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
-                    newresult[attr] = entry.get(attr, [u'N/A'])
-                newresult['krbloginfailedcount'] = entry.get('krbloginfailedcount', u'0')
+                    newresult[attr] = entry.get(attr, ['N/A'])
+                newresult['krbloginfailedcount'] = entry.get(
+                    'krbloginfailedcount', '0'
+                )
                 newresult['passwordgraceusertime'] = \
-                    entry.get('passwordgraceusertime', u'0')
+                    entry.get('passwordgraceusertime', '0')
                 if not options.get('raw', False):
                     for attr in ['krblastsuccessfulauth', 'krblastfailedauth']:
                         try:
-                            if newresult[attr][0] == u'N/A':
+                            if newresult[attr][0] == 'N/A':
                                 continue
                             newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
-                            newresult[attr][0] = unicode(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
+                            newresult[attr][0] = time.strftime(
+                                '%Y-%m-%dT%H:%M:%SZ', newtime
+                            )
                         except Exception as e:
-                            logger.debug("time conversion failed with %s",
-                                         str(e))
+                            logger.debug(
+                                'time conversion failed with %s', str(e)
+                            )
                 newresult['server'] = host
                 if options.get('raw', False):
                     time_format = '%Y%m%d%H%M%SZ'
                 else:
                     time_format = '%Y-%m-%dT%H:%M:%SZ'
-                newresult['now'] = unicode(strftime(time_format, gmtime()))
+                newresult['now'] = str(strftime(time_format, gmtime()))
                 convert_nsaccountlock(entry)
                 if 'nsaccountlock' in entry:
                     disabled = entry['nsaccountlock']
@@ -1364,7 +1368,7 @@ class user_status(LDAPQuery):
         return dict(result=entries,
                     count=count,
                     truncated=False,
-                    summary=unicode(_('Account disabled: %(disabled)s' %
+                    summary=str(_('Account disabled: %(disabled)s' %
                         dict(disabled=disabled))),
         )
 

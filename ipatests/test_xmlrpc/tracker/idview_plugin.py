@@ -8,21 +8,16 @@ from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.util import assert_deepequal
 from ipatests.test_xmlrpc import objectclasses
 
-import six
-
-if six.PY3:
-    unicode = str
-
 
 class IdviewTracker(Tracker):
     """Class for idview tests"""
 
     retrieve_keys = {
-        u'cn'
+        'cn'
     }
 
     retrieve_all_keys = retrieve_keys | {
-        u'description', u'objectclass', u'dn'
+        'description', 'objectclass', 'dn'
     }
 
     create_keys = retrieve_all_keys
@@ -79,7 +74,7 @@ class IdviewTracker(Tracker):
     def track_create(self):
         self.attrs = dict(
             cn=(self.cn,),
-            dn=unicode(self.dn),
+            dn=str(self.dn),
             idoverrideusers=[],
             objectclass=objectclasses.idview
         )
@@ -103,7 +98,7 @@ class IdviewTracker(Tracker):
         """ Check 'user-add' command result """
         expected = self.filter_attrs(self.create_keys | set(extra_keys))
         assert_deepequal(dict(
-            summary=u'Added ID View "%s"' % self.cn,
+            summary='Added ID View "%s"' % self.cn,
             result=self.filter_attrs(expected),
             value=self.cn
             ), result)
@@ -111,6 +106,6 @@ class IdviewTracker(Tracker):
     def check_idoverrideuser_add(self, result, user):
         """ Checks 'group_add_member' command result """
         assert_deepequal(
-            u'Added User ID override "%s"' % user.name,
+            'Added User ID override "%s"' % user.name,
             result['summary']
         )

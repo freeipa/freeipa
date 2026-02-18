@@ -29,7 +29,6 @@ from operator import attrgetter
 import cryptography.x509
 from cryptography.hazmat.primitives import hashes, serialization
 from dns import resolver, reversename
-import six
 
 from ipalib import Command, Str, Int, Flag, StrEnum, SerialNumber
 from ipalib import api
@@ -68,9 +67,6 @@ try:
     import pyhbac
 except ImportError:
     raise errors.SkipPluginModule(reason=_('pyhbac is not installed.'))
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 IPA certificate operations
@@ -183,7 +179,7 @@ def _acl_make_request(principal_type, principal, ca_id, profile_id):
     elif principal_type == 'host':
         req.user.name = principal.hostname
     elif principal_type == 'service':
-        req.user.name = unicode(principal)
+        req.user.name = str(principal)
     groups = []
     if principal_type == 'user':
         user_obj = api.Command.user_show(
@@ -238,7 +234,7 @@ def _acl_make_rule(principal_type, obj):
             rule.users.groups = obj.get('memberhost_hostgroup', [])
         elif principal_type == 'service':
             rule.users.names = [
-                unicode(principal)
+                str(principal)
                 for principal in obj.get('memberservice_service', [])
             ]
 
@@ -283,7 +279,7 @@ def normalize_serial_number(num):
         except ValueError:
             pass
 
-    return unicode(num)
+    return str(num)
 
 
 def ca_enabled_check(_api):
@@ -298,7 +294,7 @@ def caacl_check(principal, ca, profile_id):
                 "is not permitted to use CA '%(ca)s' "
                 "with profile '%(profile_id)s' for certificate issuance."
             ) % dict(
-                principal=unicode(principal),
+                principal=str(principal),
                 ca=ca,
                 profile_id=profile_id
             )
@@ -306,7 +302,7 @@ def caacl_check(principal, ca, profile_id):
 
 
 def ca_kdc_check(api_instance, hostname):
-    master_dn = api_instance.Object.server.get_dn(unicode(hostname))
+    master_dn = api_instance.Object.server.get_dn(str(hostname))
     kdc_dn = DN(('cn', 'KDC'), master_dn)
     wanted = {ENABLED_SERVICE, CONFIGURED_SERVICE, HIDDEN_SERVICE}
     try:
@@ -558,7 +554,7 @@ class BaseCertObject(Object):
 
 def _format_othername(on):
     """Format a python-cryptography OtherName for display."""
-    return u'{}:{}'.format(
+    return '{}:{}'.format(
         on.type_id.dotted_string,
         base64.b64encode(on.value).decode('ascii')
     )
@@ -576,7 +572,7 @@ class certreq(BaseCertObject):
     takes_params = BaseCertObject.takes_params + (
         Str(
             'request_type',
-            default=u'pkcs10',
+            default='pkcs10',
             autofill=True,
             flags={'no_option', 'no_update', 'no_search'},
         ),
@@ -651,7 +647,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         ca_enabled_check(self.api)
 
         ldap = self.api.Backend.ldap2
-        realm = unicode(self.api.env.realm)
+        realm = str(self.api.env.realm)
         add = kw.get('add')
         request_type = kw.get('request_type')
         profile_id = kw.get('profile_id', self.Backend.ra.DEFAULT_PROFILE)
@@ -780,7 +776,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                            self.Backend.ra.KDC_PROFILE))
 
             # Allow only our own realm krbtgt for now; no trusted realms.
-            if principal != kerberos.Principal((u'krbtgt', realm),
+            if principal != kerberos.Principal(('krbtgt', realm),
                                                realm=realm):
                 raise errors.NotFound("Not our realm's krbtgt")
 
@@ -791,7 +787,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             else:
                 principal = principal_obj['krbprincipalname'][0]
 
-        principal_string = unicode(principal)
+        principal_string = str(principal)
         principal_type = principal_to_principal_type(principal)
 
         op_account = getattr(context, 'principal', None)
@@ -803,7 +799,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             op_account = '<unknown>@<UNKNOWN>'
 
         bind_principal = kerberos.Principal(op_account)
-        bind_principal_string = unicode(bind_principal)
+        bind_principal_string = str(bind_principal)
         bind_principal_type = principal_to_principal_type(bind_principal)
 
         if (bind_principal_string != principal_string and
@@ -941,7 +937,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             name, all=True)['result']
                     elif principal_type == KRBTGT:
                         alt_principal = kerberos.Principal(
-                            (u'host', name), principal.realm)
+                            ('host', name), principal.realm)
                     elif principal_type == SERVICE:
                         alt_principal_obj = api.Command['service_show'](
                             alt_principal, all=True)['result']
@@ -992,7 +988,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 if principal_type == KRBTGT:
                         principal_obj = dict()
                         principal_obj['krbprincipalname'] = [
-                            kerberos.Principal((u'krbtgt', realm), realm)]
+                            kerberos.Principal(('krbtgt', realm), realm)]
                 if not _principal_name_matches_principal(
                         gn.name, principal_obj):
                     raise errors.ValidationError(
@@ -1073,7 +1069,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             store = profile['result']['ipacertprofilestoreissued'][0]
             if store and 'certificate' in result:
                 cert = result.get('certificate')
-                kwargs = dict(addattr=u'usercertificate={}'.format(cert))
+                kwargs = dict(addattr='usercertificate={}'.format(cert))
                 # note: we call different commands for the different
                 # principal types because handling of 'userCertificate'
                 # vs. 'userCertificate;binary' varies by plugin.
@@ -1244,7 +1240,7 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
         address.
 
     """
-    san_ip_set = frozenset(unicode(ip) for ip in san_ipaddrs)
+    san_ip_set = frozenset(str(ip) for ip in san_ipaddrs)
 
     # Build a dict of IPs that are reachable from the SAN dNSNames
     reachable = {}
@@ -1252,7 +1248,7 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
         _san_ip_update_reachable(reachable, name, cname_depth=1)
 
     # Each iPAddressName must be reachable from a dNSName
-    unreachable_ips = san_ip_set - six.viewkeys(reachable)
+    unreachable_ips = san_ip_set - reachable.keys()
     if len(unreachable_ips) > 0:
         raise errors.ValidationError(
             name='csr',
@@ -1264,12 +1260,12 @@ def _validate_san_ips(san_ipaddrs, san_dnsnames):
     # Collect PTR records for each IP address
     ptrs_by_ip = {}
     for ip in san_ipaddrs:
-        ptrs = _ip_ptr_records(unicode(ip))
+        ptrs = _ip_ptr_records(str(ip))
         if len(ptrs) > 0:
-            ptrs_by_ip[unicode(ip)] = set(s.rstrip('.') for s in ptrs)
+            ptrs_by_ip[str(ip)] = set(s.rstrip('.') for s in ptrs)
 
     # Each iPAddressName must have a corresponding PTR record.
-    missing_ptrs = san_ip_set - six.viewkeys(ptrs_by_ip)
+    missing_ptrs = san_ip_set - ptrs_by_ip.keys()
     if len(missing_ptrs) > 0:
         raise errors.ValidationError(
             name='csr',
@@ -1324,7 +1320,7 @@ def _san_ip_update_reachable(reachable, dnsname, cname_depth):
     if cname_depth > 0:
         for cname in result.get('cnamerecord', []):
             if not cname.endswith('.'):
-                cname = u'%s.%s' % (cname, zone)
+                cname = '%s.%s' % (cname, zone)
             _san_ip_update_reachable(reachable, cname, cname_depth - 1)
 
 
@@ -1673,8 +1669,8 @@ Search for existing certificates.
         StrEnum(
             'status?',
             doc=_("Status of the certificate"),
-            values=(u'VALID', u'INVALID', u'REVOKED', u'EXPIRED',
-                    u'REVOKED_EXPIRED'),
+            values=('VALID', 'INVALID', 'REVOKED', 'EXPIRED',
+                    'REVOKED_EXPIRED'),
         ),
         Flag('pkey_only?',
             label=_("Primary key only"),
@@ -1773,7 +1769,7 @@ Search for existing certificates.
             if isinstance(value, datetime.datetime):
                 value = value.strftime(PKIDATE_FORMAT)
             elif isinstance(value, DN):
-                value = unicode(value)
+                value = str(value)
             ra_options[name] = value
         if exactly:
             ra_options['exactly'] = True
@@ -1847,7 +1843,7 @@ Search for existing certificates.
                     obj['valid_not_after'] = (
                         convert_pkidatetime(obj['valid_not_after']))
                     obj['revoked'] = (
-                        ra_obj['status'] in (u'REVOKED', u'REVOKED_EXPIRED'))
+                        ra_obj['status'] in ('REVOKED', 'REVOKED_EXPIRED'))
 
             obj['cacn'] = ca_obj['cn'][0]
 
@@ -1947,7 +1943,7 @@ Search for existing certificates.
 
         if 'cacn' in options:
             ca_obj = api.Command.ca_show(options['cacn'])['result']
-            ca_sdn = unicode(ca_obj['ipacasubjectdn'][0])
+            ca_sdn = str(ca_obj['ipacasubjectdn'][0])
             if 'issuer' in options:
                 if DN(ca_sdn) != DN(options['issuer']):
                     # client has provided both 'ca' and 'issuer' but
@@ -2004,7 +2000,7 @@ Search for existing certificates.
                     if key not in sub_result:
                         del result[key]
 
-            for key, sub_obj in six.iteritems(sub_result):
+            for key, sub_obj in sub_result.items():
                 try:
                     obj = result[key]
                 except KeyError:
@@ -2022,7 +2018,7 @@ Search for existing certificates.
             if ca_enabled:
                 ra = self.api.Backend.ra
 
-            for key, obj in six.iteritems(result):
+            for key, obj in result.items():
                 if all and 'cacn' in obj:
                     _issuer, serial_number = key
                     cacn = obj['cacn']
@@ -2063,7 +2059,7 @@ Search for existing certificates.
                         obj.pop('certificate', None)
                     self.obj._fill_owners(obj)
 
-        result = list(six.itervalues(result))
+        result = list(result.values())
         if (len(result) > sizelimit > 0):
             if not truncated:
                 self.add_message(messages.SearchResultTruncated(

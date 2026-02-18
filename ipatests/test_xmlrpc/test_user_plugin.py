@@ -48,31 +48,31 @@ from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 
-admin1 = u'admin'
-admin_group = u'admins'
+admin1 = 'admin'
+admin_group = 'admins'
 
-invaliduser1 = u'+tuser1'
-invaliduser2 = u''.join(['a' for n in range(256)])
-invaliduser3 = u'1234'
+invaliduser1 = '+tuser1'
+invaliduser2 = ''.join(['a' for n in range(256)])
+invaliduser3 = '1234'
 
-sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
+sshpubkey = ('ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
              'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
              'No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNm'
              'cSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM01'
              '9Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF'
              '0L public key test')
-sshpubkeyfp = (u'SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
+sshpubkeyfp = ('SHA256:cStA9o5TRSARbeketEOooMUMSWRSsArIAXloBZ4vNsE '
                'public key test (ssh-rsa)')
 
 validlanguages = {
-    u'en-US;q=0.987 , en, abcdfgh-abcdefgh;q=1        , a;q=1.000',
-    u'*'
+    'en-US;q=0.987 , en, abcdfgh-abcdefgh;q=1        , a;q=1.000',
+    '*'
     }
 
 invalidlanguages = {
-    u'abcdfghji-abcdfghji', u'en-us;q=0,123',
-    u'en-us;q=0.1234', u'en-us;q=1.1', u'en-us;q=1.0000'
+    'abcdfghji-abcdfghji', 'en-us;q=0,123',
+    'en-us;q=0.1234', 'en-us;q=1.1', 'en-us;q=1.0000'
     }
 
 now = datetime.datetime.now().replace(microsecond=0)
@@ -92,39 +92,39 @@ nonexistentidp = 'IdPDoesNotExist'
 @pytest.fixture(scope='class')
 def user_min(request, xmlrpc_setup):
     """ User tracker fixture for testing user with uid no specified """
-    tracker = UserTracker(givenname=u'Testmin', sn=u'Usermin')
+    tracker = UserTracker(givenname='Testmin', sn='Usermin')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
+    tracker = UserTracker(name='user1', givenname='Test', sn='User1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user2(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'user2', givenname=u'Test2', sn=u'User2')
+    tracker = UserTracker(name='user2', givenname='Test2', sn='User2')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def renameduser(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'ruser1', givenname=u'Ruser', sn=u'Ruser1')
+    tracker = UserTracker(name='ruser1', givenname='Ruser', sn='Ruser1')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def admin2(request, xmlrpc_setup):
-    tracker = UserTracker(name=u'admin2', givenname=u'Second', sn=u'Admin')
+    tracker = UserTracker(name='admin2', givenname='Second', sn='Admin')
     return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
 def user_npg(request, group):
     """ User tracker fixture for testing users with no private group """
-    tracker = UserTracker(name=u'npguser1', givenname=u'Npguser',
-                          sn=u'Npguser1', noprivate=True)
+    tracker = UserTracker(name='npguser1', givenname='Npguser',
+                          sn='Npguser1', noprivate=True)
     tracker.track_create()
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
@@ -139,12 +139,12 @@ def user_npg(request, group):
 @pytest.fixture(scope='class')
 def user_npg2(request, group):
     """ User tracker fixture for testing users with no private group """
-    tracker = UserTracker(name=u'npguser2', givenname=u'Npguser',
-                          sn=u'Npguser2', noprivate=True, gidnumber=1000)
+    tracker = UserTracker(name='npguser2', givenname='Npguser',
+                          sn='Npguser2', noprivate=True, gidnumber=1000)
     tracker.track_create()
     del tracker.attrs['mepmanagedentry']
     tracker.attrs.update(
-        gidnumber=[u'1000'], description=[], memberof_group=[group.cn],
+        gidnumber=['1000'], description=[], memberof_group=[group.cn],
         objectclass=fuzzy_set_optional_oc(
             objectclasses.user_base, 'ipantuserattrs'
         ),
@@ -155,12 +155,12 @@ def user_npg2(request, group):
 @pytest.fixture(scope='class')
 def user_radius(request, xmlrpc_setup):
     """ User tracker fixture for testing users with radius user name """
-    tracker = UserTracker(name=u'radiususer', givenname=u'radiususer',
-                          sn=u'radiususer1',
-                          ipatokenradiususername=u'radiususer')
+    tracker = UserTracker(name='radiususer', givenname='radiususer',
+                          sn='radiususer1',
+                          ipatokenradiususername='radiususer')
     tracker.track_create()
     tracker.attrs.update(objectclass=fuzzy_set_optional_oc(
-        objectclasses.user + [u'ipatokenradiusproxyuser'],
+        objectclasses.user + ['ipatokenradiusproxyuser'],
         'ipantuserattrs'),
     )
     return tracker.make_fixture(request)
@@ -174,7 +174,7 @@ def user_idp(request, xmlrpc_setup):
     tracker.track_create()
     tracker.attrs.update(ipaidpsub=['myidpuserid'])
     tracker.attrs.update(objectclass=fuzzy_set_optional_oc(
-        objectclasses.user + [u'ipaidpuser'],
+        objectclasses.user + ['ipaidpuser'],
         'ipantuserattrs'),
     )
     return tracker.make_fixture(request)
@@ -182,7 +182,7 @@ def user_idp(request, xmlrpc_setup):
 
 @pytest.fixture(scope='class')
 def group(request, xmlrpc_setup):
-    tracker = GroupTracker(name=u'group1')
+    tracker = GroupTracker(name='group1')
     return tracker.make_fixture(request)
 
 
@@ -193,16 +193,16 @@ class TestNonexistentUser(XMLRPC_test):
         user.ensure_missing()
         command = user.make_retrieve_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user.uid)):
+                reason='%s: user not found' % user.uid)):
             command()
 
     def test_update_nonexistent(self, user):
         """ Try to update a non-existent user """
         user.ensure_missing()
         command = user.make_update_command(
-            updates=dict(givenname=u'changed'))
+            updates=dict(givenname='changed'))
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user.uid)):
+                reason='%s: user not found' % user.uid)):
             command()
 
     def test_delete_nonexistent(self, user):
@@ -210,16 +210,16 @@ class TestNonexistentUser(XMLRPC_test):
         user.ensure_missing()
         command = user.make_delete_command()
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user.uid)):
+                reason='%s: user not found' % user.uid)):
             command()
 
     def test_rename_nonexistent(self, user, renameduser):
         """ Try to rename a non-existent user """
         user.ensure_missing()
         command = user.make_update_command(
-            updates=dict(setattr=u'uid=%s' % renameduser.uid))
+            updates=dict(setattr='uid=%s' % renameduser.uid))
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % user.uid)):
+                reason='%s: user not found' % user.uid)):
             command()
 
 
@@ -242,14 +242,14 @@ class TestUser(XMLRPC_test):
             count=1,
             result=[dict(
                 dn=user.dn,
-                krblastfailedauth=[u'N/A'],
-                krblastsuccessfulauth=[u'N/A'],
-                krbloginfailedcount=u'0',
-                passwordgraceusertime=u'0',
+                krblastfailedauth=['N/A'],
+                krblastsuccessfulauth=['N/A'],
+                krbloginfailedcount='0',
+                passwordgraceusertime='0',
                 now=isodate_re.match,
                 server=api.env.host,
                 ), ],
-            summary=u'Account disabled: False',
+            summary='Account disabled: False',
             truncated=False,
         ), result)
         user.delete()
@@ -258,7 +258,7 @@ class TestUser(XMLRPC_test):
         """ Remove attribute userclass from user entry """
         user.ensure_exists()
         result = user.run_command(
-            'user_mod', user.uid, **dict(userclass=u'')
+            'user_mod', user.uid, **dict(userclass='')
         )
         user.check_update(result)
         user.delete()
@@ -266,7 +266,7 @@ class TestUser(XMLRPC_test):
     def test_find_cert(self, user):
         """ Add a usercertificate and perform a user-find --certificate """
         user_cert = (
-            u"MIICszCCAZugAwIBAgICM24wDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
+            "MIICszCCAZugAwIBAgICM24wDQYJKoZIhvcNAQELBQAwIzEUMBIGA1UEChML\r\n"
             "RVhBTVBMRS5PUkcxCzAJBgNVBAMTAkNBMB4XDTE3MDExOTEwMjUyOVoXDTE3M\r\n"
             "DQxOTEwMjUyOVowFjEUMBIGA1UEAxMLc3RhZ2V1c2VyLTEwggEiMA0GCSqGSI\r\n"
             "b3DQEBAQUAA4IBDwAwggEKAoIBAQCq03FRQQBvq4HwYMKP8USLZuOkKzuIs2V\r\n"
@@ -378,7 +378,7 @@ class TestActive(XMLRPC_test):
         user.attrs['nsaccountlock'] = True
 
         command = user.make_update_command(
-            updates=dict(setattr=u'nsaccountlock=True')
+            updates=dict(setattr='nsaccountlock=True')
         )
         result = command()
         user.check_update(result)
@@ -389,7 +389,7 @@ class TestActive(XMLRPC_test):
         user.attrs['nsaccountlock'] = False
 
         command = user.make_update_command(
-            updates=dict(setattr=u'nsaccountlock=False')
+            updates=dict(setattr='nsaccountlock=False')
         )
         result = command()
         user.check_update(result)
@@ -410,25 +410,25 @@ class TestUpdate(XMLRPC_test):
         attr = 'random'
         user.ensure_exists()
         command = user.make_update_command(
-            updates=dict(setattr=(u'%s=xyz123' % attr))
+            updates=dict(setattr=('%s=xyz123' % attr))
         )
         with raises_exact(errors.ObjectclassViolation(
-                info=u'attribute "%s" not allowed' % attr)):
+                info='attribute "%s" not allowed' % attr)):
             command()
 
     def test_update(self, user):
         """ Update a user attribute """
-        user.update(dict(givenname=u'Franta'))
+        user.update(dict(givenname='Franta'))
 
     def test_update_krb_ticket_policy(self, user):
         """ Try to update krbmaxticketlife """
         attr = 'krbmaxticketlife'
         user.ensure_exists()
         command = user.make_update_command(
-            updates=dict(setattr=(u'%s=88000' % attr))
+            updates=dict(setattr=('%s=88000' % attr))
         )
         with raises_exact(errors.ObjectclassViolation(
-                info=u'attribute "%s" not allowed' % attr)):
+                info='attribute "%s" not allowed' % attr)):
             command()
 
     def test_rename(self, user, renameduser):
@@ -446,7 +446,7 @@ class TestUpdate(XMLRPC_test):
         """ Try to rename user to the same value """
         user.ensure_exists()
         command = user.make_update_command(
-            updates=dict(setattr=(u'uid=%s' % user.uid))
+            updates=dict(setattr=('uid=%s' % user.uid))
         )
         with raises_exact(errors.EmptyModlist()):
             command()
@@ -455,10 +455,10 @@ class TestUpdate(XMLRPC_test):
         """ Try to rename user to the same value while
         including other modifications that should be done """
         user.ensure_exists()
-        user.attrs.update(loginshell=[u'/bin/false'])
+        user.attrs.update(loginshell=['/bin/false'])
         command = user.make_update_command(
-            updates=dict(setattr=u'uid=%s' % user.uid,
-                         loginshell=u'/bin/false')
+            updates=dict(setattr='uid=%s' % user.uid,
+                         loginshell='/bin/false')
         )
         result = command()
         user.check_update(result)
@@ -472,27 +472,27 @@ class TestUpdate(XMLRPC_test):
         )
         with raises_exact(errors.ValidationError(
                 name='rename',
-                error=u'can be at most 255 characters')):
+                error='can be at most 255 characters')):
             command()
 
     def test_update_illegal_ssh_pubkey(self, user):
         """ Try to update user with an illegal SSH public key """
         user.ensure_exists()
         command = user.make_update_command(
-            updates=dict(ipasshpubkey=[u"anal nathrach orth' bhais's bethad "
+            updates=dict(ipasshpubkey=["anal nathrach orth' bhais's bethad "
                                        "do che'l de'nmha"])
         )
         with raises_exact(errors.ValidationError(
                 name='sshpubkey',
-                error=u'invalid SSH public key')):
+                error='invalid SSH public key')):
             command()
 
     def test_set_ipauserauthtype(self, user):
         """ Set ipauserauthtype to all valid types and than back to None """
         user.ensure_exists()
         user.update(dict(ipauserauthtype=[
-            u'password', u'radius', u'otp', u'pkinit', u'hardened', u'idp',
-            u'passkey',
+            'password', 'radius', 'otp', 'pkinit', 'hardened', 'idp',
+            'passkey',
         ]))
         user.retrieve()
 
@@ -554,7 +554,7 @@ class TestUpdate(XMLRPC_test):
         """ Test for ticket 7569: Try to add --radius-username """
         user.ensure_exists()
         command = user.make_update_command(
-            updates=dict(ipatokenradiususername=u'radiususer')
+            updates=dict(ipatokenradiususername='radiususer')
         )
         command()
         user.delete()
@@ -575,7 +575,7 @@ class TestUpdate(XMLRPC_test):
         """ Test user-mod --idp-user-id"""
         user.ensure_exists()
         command = user.make_update_command(
-            updates=dict(ipaidpsub=u'myidp_user_id')
+            updates=dict(ipaidpsub='myidp_user_id')
         )
         command()
         user.delete()
@@ -592,19 +592,19 @@ class TestCreate(XMLRPC_test):
     def test_create_with_krb_ticket_policy(self):
         """ Try to create user with krbmaxticketlife set """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test',
-            sn=u'Tuser1', setattr=u'krbmaxticketlife=88000'
+            name='tuser1', givenname='Test',
+            sn='Tuser1', setattr='krbmaxticketlife=88000'
         )
         command = testuser.make_create_command()
         with raises_exact(errors.ObjectclassViolation(
-                info=u'attribute "%s" not allowed' % 'krbmaxticketlife')):
+                info='attribute "%s" not allowed' % 'krbmaxticketlife')):
             command()
 
     def test_create_with_ssh_pubkey(self):
         """ Create user with an assigned SSH public key """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test',
-            sn=u'Tuser1', ipasshpubkey=sshpubkey
+            name='tuser1', givenname='Test',
+            sn='Tuser1', ipasshpubkey=sshpubkey
         )
         testuser.track_create()
         # fingerprint is expected in the tracker attrs
@@ -617,11 +617,11 @@ class TestCreate(XMLRPC_test):
     def test_create_with_invalid_login(self):
         """ Try to create user with an invalid login string """
         testuser = UserTracker(
-            name=invaliduser1, givenname=u'Test', sn=u'User1'
+            name=invaliduser1, givenname='Test', sn='User1'
         )
         command = testuser.make_create_command()
         with raises_exact(errors.ValidationError(
-            name=u'login',
+            name='login',
             error=ERRMSG_GROUPUSER_NAME.format('user'),
         )):
             command()
@@ -629,20 +629,20 @@ class TestCreate(XMLRPC_test):
     def test_create_with_too_long_login(self):
         """ Try to create user with too long login string """
         testuser = UserTracker(
-            name=invaliduser2, givenname=u'Test', sn=u'User1'
+            name=invaliduser2, givenname='Test', sn='User1'
         )
         command = testuser.make_create_command()
         with raises_exact(errors.ValidationError(
-                name=u'login',
-                error=u'can be at most 255 characters')):
+                name='login',
+                error='can be at most 255 characters')):
             command()
 
     def test_create_with_full_address(self):
         """ Create user with full address set """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
-            street=u'123 Maple Rd', l=u'Anytown', st=u'MD',
-            postalcode=u'01234-5678', mobile=u'410-555-1212'
+            name='tuser1', givenname='Test', sn='Tuser1',
+            street='123 Maple Rd', l='Anytown', st='MD',
+            postalcode='01234-5678', mobile='410-555-1212'
         )
         testuser.create()
         testuser.delete()
@@ -650,7 +650,7 @@ class TestCreate(XMLRPC_test):
     def test_create_with_random_passwd(self):
         """ Create user with random password """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1', random=True
+            name='tuser1', givenname='Test', sn='Tuser1', random=True
         )
         testuser.track_create()
         testuser.attrs.update(
@@ -669,14 +669,14 @@ class TestCreate(XMLRPC_test):
         """ Change default home directory and check that a newly created
             user has his home set properly """
         user.ensure_missing()
-        user.run_command('config_mod', **{u'ipahomesrootdir': u'/other-home'})
+        user.run_command('config_mod', **{'ipahomesrootdir': '/other-home'})
         user.track_create()
-        user.attrs.update(homedirectory=[u'/other-home/%s' % user.name])
+        user.attrs.update(homedirectory=['/other-home/%s' % user.name])
 
         command = user.make_create_command()
         result = command()
         user.check_create(result)
-        user.run_command('config_mod', **{u'ipahomesrootdir': u'/home'})
+        user.run_command('config_mod', **{'ipahomesrootdir': '/home'})
         user.delete()
 
     def test_create_with_different_default_shell(self, user):
@@ -684,39 +684,39 @@ class TestCreate(XMLRPC_test):
             user is created with correct login shell value """
         user.ensure_missing()
         user.run_command(
-            'config_mod', **{u'ipadefaultloginshell': u'/bin/zsh'}
+            'config_mod', **{'ipadefaultloginshell': '/bin/zsh'}
         )
         user.track_create()
-        user.attrs.update(loginshell=[u'/bin/zsh'])
+        user.attrs.update(loginshell=['/bin/zsh'])
         command = user.make_create_command()
         result = command()
         user.check_create(result)
         user.run_command(
             'config_mod',
-            **{u'ipadefaultloginshell': platformconstants.DEFAULT_SHELL}
+            **{'ipadefaultloginshell': platformconstants.DEFAULT_SHELL}
         )
         user.delete()
 
     def test_create_without_upg(self):
         """ Try to create user without User's Primary GID """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
+            name='tuser1', givenname='Test', sn='Tuser1',
             noprivate=True
         )
         command = testuser.make_create_command()
         with raises_exact(errors.NotFound(
-                reason=u'Default group for new users is not POSIX')):
+                reason='Default group for new users is not POSIX')):
             command()
 
     def test_create_without_upg_with_gid_set(self):
         """ Create user without User's Primary GID with GID set """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
+            name='tuser1', givenname='Test', sn='Tuser1',
             noprivate=True, gidnumber=1000
         )
         testuser.track_create()
         del testuser.attrs['mepmanagedentry']
-        testuser.attrs.update(gidnumber=[u'1000'])
+        testuser.attrs.update(gidnumber=['1000'])
         testuser.attrs.update(
             description=[],
             objectclass=fuzzy_set_optional_oc(
@@ -724,21 +724,21 @@ class TestCreate(XMLRPC_test):
         )
         command = testuser.make_create_command()
         result = command()
-        testuser.check_create(result, [u'description'])
+        testuser.check_create(result, ['description'])
         testuser.delete()
 
     def test_create_with_uid_999(self):
         """ Check that server return uid and gid 999
         when a new client asks for uid 999 """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1', uidnumber=999
+            name='tuser1', givenname='Test', sn='Tuser1', uidnumber=999
         )
         testuser.track_create()
         # When uid is outside of IPA id range, no SID is generated
         del testuser.attrs['ipantsecurityidentifier']
         testuser.attrs.update(
-            uidnumber=[u'999'],
-            gidnumber=[u'999'],
+            uidnumber=['999'],
+            gidnumber=['999'],
             objectclass=objectclasses.user_base + ['mepOriginEntry']
         )
         command = testuser.make_create_command()
@@ -750,8 +750,8 @@ class TestCreate(XMLRPC_test):
         """ Check that server picks suitable uid and gid
         when an old client asks for the magic uid 999 """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
-            uidnumber=999, version=u'2.49'
+            name='tuser1', givenname='Test', sn='Tuser1',
+            uidnumber=999, version='2.49'
         )
         testuser.track_create()
         testuser.attrs.update(
@@ -768,7 +768,7 @@ class TestCreate(XMLRPC_test):
         user.ensure_exists()
         command = user.make_create_command()
         with raises_exact(errors.DuplicateEntry(
-                message=u'user with name "%s" already exists' %
+                message='user with name "%s" already exists' %
                 user.uid)):
             command()
 
@@ -777,7 +777,7 @@ class TestCreate(XMLRPC_test):
         with the same name the group has """
         group.create()
         command = user.make_command(
-            'user_add', group.cn, **dict(givenname=u'Test', sn=u'User1')
+            'user_add', group.cn, **dict(givenname='Test', sn='User1')
         )
         with raises_exact(errors.ManagedGroupExistsError(group=group.cn)):
             command()
@@ -785,7 +785,7 @@ class TestCreate(XMLRPC_test):
     def test_create_with_username_starting_with_numeric(self):
         """Successfully create a user with name starting with numeric chars"""
         testuser = UserTracker(
-            name=u'1234user', givenname=u'First1234', sn=u'Surname1234',
+            name='1234user', givenname='First1234', sn='Surname1234',
         )
         testuser.create()
         testuser.delete()
@@ -793,10 +793,10 @@ class TestCreate(XMLRPC_test):
     def test_create_with_numeric_only_username(self):
         """Try to create a user with name only contains numeric chars"""
         testuser = UserTracker(
-            name=invaliduser3, givenname=u'NumFirst1234', sn=u'NumSurname1234',
+            name=invaliduser3, givenname='NumFirst1234', sn='NumSurname1234',
         )
         with raises_exact(errors.ValidationError(
-            name=u'login',
+            name='login',
             error=ERRMSG_GROUPUSER_NAME.format('user'),
         )):
             testuser.create()
@@ -834,7 +834,7 @@ class TestCreate(XMLRPC_test):
             sn="warning", uidnumber=uidnumber
         )
         testuser.attrs.update(
-            uidnumber=[u'2000'],
+            uidnumber=['2000'],
         )
         command = testuser.make_create_command()
         result = command()
@@ -876,7 +876,7 @@ class TestUserWithGroup(XMLRPC_test):
         """ Change default group for TestUserWithGroup class of tests """
         group.create()
         group.run_command(
-            'config_mod', **{u'ipadefaultprimarygroup': group.cn}
+            'config_mod', **{'ipadefaultprimarygroup': group.cn}
         )
 
     def test_create_without_upg(self, user_npg):
@@ -887,14 +887,14 @@ class TestUserWithGroup(XMLRPC_test):
         # so we won't use make_create, but do own check instead
         # These are set in the fixture
         result = command()
-        user_npg.check_create(result, [u'description', u'memberof_group'])
+        user_npg.check_create(result, ['description', 'memberof_group'])
 
     def test_create_without_upg_with_gid_set(self, user_npg2):
         """ Create user without User's Primary GID with GID set
         after default group was changed """
         command = user_npg2.make_create_command()
         result = command()
-        user_npg2.check_create(result, [u'description', u'memberof_group'])
+        user_npg2.check_create(result, ['description', 'memberof_group'])
 
     def test_set_manager(self, user_npg, user_npg2):
         """ Update user with own group with manager with own group """
@@ -903,7 +903,7 @@ class TestUserWithGroup(XMLRPC_test):
     def test_check_user_with_renamed_manager(self, user_npg, user_npg2):
         """ Rename manager with own group, retrieve user and check
             if its manager is also renamed """
-        renamed_name = u'renamed_npg2'
+        renamed_name = 'renamed_npg2'
         old_name = user_npg2.uid
 
         user_npg2.update(updates=dict(rename=renamed_name))
@@ -916,15 +916,15 @@ class TestUserWithGroup(XMLRPC_test):
     def test_check_if_manager_gets_removed(self, user_npg, user_npg2):
         """ Delete manager and check if it's gone from user's attributes """
         user_npg2.delete()
-        del user_npg.attrs[u'manager']
-        del user_npg.attrs[u'description']
+        del user_npg.attrs['manager']
+        del user_npg.attrs['description']
         user_npg.retrieve(all=True)
 
     def test_change_default_user_group_back(self, user_npg, user_npg2):
         """ Change default group back to 'ipausers' and clean up members """
         user_npg.delete()
         user_npg.run_command(
-            'config_mod', **{u'ipadefaultprimarygroup': u'ipausers'}
+            'config_mod', **{'ipadefaultprimarygroup': 'ipausers'}
         )
 
 
@@ -955,11 +955,11 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         is expected to fail
         """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1'
+            name='tuser1', givenname='Test', sn='Tuser1'
         )
         command = testuser.make_create_command()
         with raises_exact(errors.NotFound(
-                reason=u'Default group for new users is not POSIX')):
+                reason='Default group for new users is not POSIX')):
             command()
 
     def test_create_without_upg_with_gid_set(self):
@@ -968,19 +968,19 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         The UPG plugin is disabled, but the user is provided with a group
         """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
+            name='tuser1', givenname='Test', sn='Tuser1',
             gidnumber=1000
         )
         testuser.track_create()
         del testuser.attrs['mepmanagedentry']
-        testuser.attrs.update(gidnumber=[u'1000'])
+        testuser.attrs.update(gidnumber=['1000'])
         testuser.attrs.update(
             description=[],
-            objectclass=objectclasses.user_base + [u'ipantuserattrs'],
+            objectclass=objectclasses.user_base + ['ipantuserattrs'],
         )
         command = testuser.make_create_command()
         result = command()
-        testuser.check_create(result, [u'description'])
+        testuser.check_create(result, ['description'])
         testuser.delete()
 
     def test_create_where_managed_group_exists(self, user, group):
@@ -991,12 +991,12 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         """
         group.create()
         testuser = UserTracker(
-            name=group.cn, givenname=u'Test', sn=u'Tuser1',
+            name=group.cn, givenname='Test', sn='Tuser1',
             gidnumber=1000
         )
         testuser.track_create()
         del testuser.attrs['mepmanagedentry']
-        testuser.attrs.update(gidnumber=[u'1000'])
+        testuser.attrs.update(gidnumber=['1000'])
         testuser.attrs.update(
             description=[],
             objectclass=fuzzy_set_optional_oc(
@@ -1005,7 +1005,7 @@ class TestUserWithUPGDisabled(XMLRPC_test):
         )
         command = testuser.make_create_command()
         result = command()
-        testuser.check_create(result, [u'description'])
+        testuser.check_create(result, ['description'])
         testuser.delete()
 
 
@@ -1015,7 +1015,7 @@ class TestManagers(XMLRPC_test):
         """ Create user using user-add with manager option set """
         user.ensure_exists()
         user_w_manager = UserTracker(
-            name='user_w_manager', givenname=u'Test', sn=u'User1',
+            name='user_w_manager', givenname='Test', sn='User1',
             manager=user.uid
         )
         user_w_manager.track_create()
@@ -1032,7 +1032,7 @@ class TestManagers(XMLRPC_test):
             updates=dict(manager=user2.uid)
         )
         with raises_exact(errors.NotFound(
-                reason=u'manager %s not found' % user2.uid)):
+                reason='manager %s not found' % user2.uid)):
             command()
 
     def test_assign_manager(self, user, user2):
@@ -1055,7 +1055,7 @@ class TestManagers(XMLRPC_test):
         )
         assert_deepequal(dict(
             value=[user.uid, user2.uid],
-            summary=u'Deleted user "%s,%s"' % (user.uid, user2.uid),
+            summary='Deleted user "%s,%s"' % (user.uid, user2.uid),
             result=dict(failed=[]),
             ), result)
         # mark users as deleted
@@ -1070,7 +1070,7 @@ class TestAdmins(XMLRPC_test):
         tracker = Tracker()
         command = tracker.make_command('user_del', admin1)
 
-        with raises_exact(errors.ProtectedEntryError(label=u'user',
+        with raises_exact(errors.ProtectedEntryError(label='user',
                           key=admin1, reason='privileged user')):
             command()
 
@@ -1078,9 +1078,9 @@ class TestAdmins(XMLRPC_test):
         """ Try to rename the admin user """
         tracker = Tracker()
         command = tracker.make_command('user_mod', admin1,
-                                       **dict(rename=u'newadmin'))
+                                       **dict(rename='newadmin'))
 
-        with raises_exact(errors.ProtectedEntryError(label=u'user',
+        with raises_exact(errors.ProtectedEntryError(label='user',
                           key=admin1, reason='privileged user')):
             command()
 
@@ -1089,7 +1089,7 @@ class TestAdmins(XMLRPC_test):
         tracker = Tracker()
         command = tracker.make_command('user_disable', admin1)
 
-        with raises_exact(errors.LastMemberError(label=u'group',
+        with raises_exact(errors.LastMemberError(label='group',
                           key=admin1, container=admin_group)):
             command()
 
@@ -1108,7 +1108,7 @@ class TestAdmins(XMLRPC_test):
         admin2.disable()
         tracker = Tracker()
 
-        with raises_exact(errors.LastMemberError(label=u'group',
+        with raises_exact(errors.LastMemberError(label='group',
                           key=admin1, container=admin_group)):
             tracker.run_command('user_disable', admin1)
         admin2.delete()
@@ -1126,7 +1126,7 @@ class TestPreferredLanguages(XMLRPC_test):
 
             with raises_exact(errors.ValidationError(
                     name='preferredlanguage',
-                    error=(u'must match RFC 2068 - 14.4, e.g., '
+                    error=('must match RFC 2068 - 14.4, e.g., '
                            '"da, en-gb;q=0.8, en;q=0.7"')
             )):
                 command()
@@ -1144,8 +1144,8 @@ class TestPrincipals(XMLRPC_test):
     def test_create_with_bad_realm_in_principal(self):
         """ Try to create user with a bad realm in principal """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
-            krbprincipalname=u'tuser1@NOTFOUND.ORG'
+            name='tuser1', givenname='Test', sn='Tuser1',
+            krbprincipalname='tuser1@NOTFOUND.ORG'
         )
 
         command = testuser.make_create_command()
@@ -1155,8 +1155,8 @@ class TestPrincipals(XMLRPC_test):
     def test_create_with_malformed_principal(self):
         """ Try to create user with wrongly formed principal """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
-            krbprincipalname=u'tuser1@BAD@NOTFOUND.ORG'
+            name='tuser1', givenname='Test', sn='Tuser1',
+            krbprincipalname='tuser1@BAD@NOTFOUND.ORG'
         )
 
         command = testuser.make_create_command()
@@ -1181,7 +1181,7 @@ class TestPrincipals(XMLRPC_test):
 
         with raises_exact(errors.ConversionError(
                 name='principal_expiration',
-                error=(u'does not match any of accepted formats: '
+                error=('does not match any of accepted formats: '
                        '%Y%m%d%H%M%SZ, %Y-%m-%dT%H:%M:%SZ, %Y-%m-%dT%H:%MZ, '
                        '%Y-%m-%dZ, %Y-%m-%d %H:%M:%SZ, %Y-%m-%d %H:%MZ')
         )):
@@ -1190,8 +1190,8 @@ class TestPrincipals(XMLRPC_test):
     def test_create_with_uppercase_principal(self):
         """ Create user with upper-case principal """
         testuser = UserTracker(
-            name=u'tuser1', givenname=u'Test', sn=u'Tuser1',
-            krbprincipalname=u'tuser1'.upper()
+            name='tuser1', givenname='Test', sn='Tuser1',
+            krbprincipalname='tuser1'.upper()
         )
         testuser.create()
         testuser.delete()
@@ -1207,7 +1207,7 @@ class TestValidation(XMLRPC_test):
         tracker = Tracker()
         command = tracker.make_command('user_del', invaliduser1)
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % invaliduser1)):
+                reason='%s: user not found' % invaliduser1)):
             command()
 
     def test_validation_disabled_on_show(self):
@@ -1215,7 +1215,7 @@ class TestValidation(XMLRPC_test):
         tracker = Tracker()
         command = tracker.make_command('user_show', invaliduser1)
         with raises_exact(errors.NotFound(
-                reason=u'%s: user not found' % invaliduser1)):
+                reason='%s: user not found' % invaliduser1)):
             command()
 
     def test_validation_disabled_on_find(self, user):
@@ -1227,7 +1227,7 @@ class TestValidation(XMLRPC_test):
 @pytest.mark.tier1
 class TestDeniedBindWithExpiredPrincipal(XMLRPC_test):
 
-    password = u'random'
+    password = 'random'
     connection = None
 
     @pytest.fixture(autouse=True, scope="class")
@@ -1243,8 +1243,8 @@ class TestDeniedBindWithExpiredPrincipal(XMLRPC_test):
         self.failsafe_add(
             api.Object.user,
             user.uid,
-            givenname=u'Test',
-            sn=u'User1',
+            givenname='Test',
+            sn='User1',
             userpassword=self.password,
             krbprincipalexpiration=principal_expiration_string
         )
@@ -1302,14 +1302,14 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
     cn = overrides.get('cn', ['%s %s' % (givenname, sn or '')])
     cn[0] = cn[0].strip()
     result = dict(
-        homedirectory=[u'/home/%s' % uid],
+        homedirectory=['/home/%s' % uid],
         loginshell=[platformconstants.DEFAULT_SHELL],
         uid=[uid],
         uidnumber=[fuzzy_digits],
         gidnumber=[fuzzy_digits],
-        krbcanonicalname=[u'%s@%s' % (uid, api.env.realm)],
-        krbprincipalname=[u'%s@%s' % (uid, api.env.realm)],
-        mail=[u'%s@%s' % (uid, api.env.domain)],
+        krbcanonicalname=['%s@%s' % (uid, api.env.realm)],
+        krbprincipalname=['%s@%s' % (uid, api.env.realm)],
+        mail=['%s@%s' % (uid, api.env.domain)],
         has_keytab=False,
         has_password=False,
     )
@@ -1331,8 +1331,8 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
             mepmanagedentry=[get_group_dn(uid)],
             objectclass=fuzzy_set_optional_oc(
                 objectclasses.user, 'ipantuserattrs'),
-            krbprincipalname=[u'%s@%s' % (uid, api.env.realm)],
-            krbcanonicalname=[u'%s@%s' % (uid, api.env.realm)],
+            krbprincipalname=['%s@%s' % (uid, api.env.realm)],
+            krbcanonicalname=['%s@%s' % (uid, api.env.realm)],
         )
     if operation == 'show-all':
         result.update(
@@ -1344,7 +1344,7 @@ def get_user_result(uid, givenname, sn, operation='show', omit=[],
         )
     if operation in ('add', 'show', 'show-all', 'mod'):
         result.update(
-            memberof_group=[u'ipausers'],
+            memberof_group=['ipausers'],
         )
     for key in omit:
         del result[key]
@@ -1358,7 +1358,7 @@ def get_admin_result(operation='show', **overrides):
     Any additional or non-default values can be given in ``overrides``.
     """
     result = get_user_result(
-        u'admin', None, u'Administrator', operation,
+        'admin', None, 'Administrator', operation,
         omit=['mail'],
         has_keytab=True,
         has_password=True,
