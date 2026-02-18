@@ -29,7 +29,6 @@ from __future__ import absolute_import
 
 from datetime import datetime, timedelta
 import os
-import sys
 
 import pytest
 
@@ -252,13 +251,6 @@ class test_LDAPEntry:
         e.clear()
         assert not e
         assert 'cn' not in e
-
-    @pytest.mark.skipif(sys.version_info >= (3, 0), reason="Python 2 only")
-    def test_has_key(self):
-        e = self.entry
-        assert not e.has_key('xyz')  # noqa
-        assert e.has_key('cn')  # noqa
-        assert e.has_key('COMMONNAME')  # noqa
 
     def test_in(self):
         e = self.entry
