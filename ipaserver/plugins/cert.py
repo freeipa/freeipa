@@ -1853,7 +1853,9 @@ Search for existing certificates.
 
             result[issuer, serial_number] = obj
 
-        return result, False, len(ca_objs) >= len(result)
+        # We return complete=False, to not be 
+        # breaking with the old functionality
+        return result, False, False
 
     def _ldap_search(self, all, pkey_only, no_members, current_result,
                      **options):
@@ -1985,9 +1987,7 @@ Search for existing certificates.
                    'validnotbefore_from', 'validnotbefore_to',
                    'issuedon_from', 'issuedon_to',
                    'revokedon_from', 'revokedon_to',
-                   'status', 'users', 'no_users',
-                   'hosts', 'no_hosts',
-                   'services', 'no_services']):
+                   'status']):
             searches.append(self._ldap_search)
 
         for sub_search in searches:
