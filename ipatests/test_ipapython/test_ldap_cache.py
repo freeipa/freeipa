@@ -20,8 +20,6 @@ def hits_and_misses(cache, hits, misses):
 
 
 @pytest.fixture(scope='class')
-@pytest.mark.tier1
-@pytest.mark.needs_ipaapi
 def class_cache(request):
     cache = ipaldap.LDAPCache(api.env.ldap_uri)
     hits_and_misses(cache, 0, 0)
@@ -56,6 +54,7 @@ def class_cache(request):
 @pytest.mark.usefixtures('class_cache')
 @pytest.mark.skip_ipaclient_unittest
 @pytest.mark.needs_ipaapi
+@pytest.mark.tier1
 class TestLDAPCache:
 
     def test_one(self):
