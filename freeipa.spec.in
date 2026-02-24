@@ -1426,8 +1426,8 @@ if [ $1 -gt 1 ] ; then
                 if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
                     SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config.d/04-ipa.conf"
                 fi
-                sed -E --in-place=.orig 's/^(GlobalKnownHostsFile \/var\/lib\/sss\/pubconf\/known_hosts)$/# disabled by ipa-client update\n# \1/' $SSH_CLIENT_SYSTEM_CONF
-                sed -E --in-place=.orig 's/(ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h)/# replaced by ipa-client update\n    KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H/' $SSH_CLIENT_SYSTEM_CONF
+                sed -E --in-place=.orig 's/^(GlobalKnownHostsFile \/var\/lib\/sss\/pubconf\/known_hosts)$/# disabled by ipa-client update\n# \1/' $SSH_CLIENT_SYSTEM_CONF || :
+                sed -E --in-place=.orig 's/(ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h)/# replaced by ipa-client update\n    KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H/' $SSH_CLIENT_SYSTEM_CONF || :
             fi
         fi
     fi
@@ -1499,9 +1499,9 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
             GLOBALKNOWNHOSTFILE="GlobalKnownHostsFile /var/lib/sss/pubconf/known_hosts/"
             grep -qF '$GLOBALKNOWNHOSTFILE' $SSH_CLIENT_SYSTEM_CONF
             if [ $? -ne 0 ]; then
-                sed -E --in-place=.orig '/(# IPA-related configuration changes to ssh_config)/a # added by ipa-client update\n'"$GLOBALKNOWNHOSTFILE"'' $SSH_CLIENT_SYSTEM_CONF
+                sed -E --in-place=.orig '/(# IPA-related configuration changes to ssh_config)/a # added by ipa-client update\n'"$GLOBALKNOWNHOSTFILE"'' $SSH_CLIENT_SYSTEM_CONF || :
             fi
-            sed -E --in-place=.orig 's/(KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H)/ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h/' $SSH_CLIENT_SYSTEM_CONF
+            sed -E --in-place=.orig 's/(KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H)/ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h/' $SSH_CLIENT_SYSTEM_CONF || :
         fi
     fi
 fi
@@ -1520,8 +1520,8 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
             if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
                 SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config.d/04-ipa.conf"
             fi
-            sed -E --in-place=.orig 's/^(GlobalKnownHostsFile \/var\/lib\/sss\/pubconf\/known_hosts)$/# disabled by ipa-client update\n# \1/' $SSH_CLIENT_SYSTEM_CONF
-            sed -E --in-place=.orig 's/(ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h)/# replaced by ipa-client update\n    KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H/' $SSH_CLIENT_SYSTEM_CONF
+            sed -E --in-place=.orig 's/^(GlobalKnownHostsFile \/var\/lib\/sss\/pubconf\/known_hosts)$/# disabled by ipa-client update\n# \1/' $SSH_CLIENT_SYSTEM_CONF || :
+            sed -E --in-place=.orig 's/(ProxyCommand \/usr\/bin\/sss_ssh_knownhostsproxy -p \%p \%h)/# replaced by ipa-client update\n    KnownHostsCommand \/usr\/bin\/sss_ssh_knownhosts \%H/' $SSH_CLIENT_SYSTEM_CONF || :
         fi
     fi
 fi
