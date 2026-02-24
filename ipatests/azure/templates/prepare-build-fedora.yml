@@ -27,7 +27,6 @@ steps:
         podman \
         python3-paramiko \
         python3-pyyaml \
-        nodejs \
 
     echo "Installing FreeIPA development dependencies"
     sudo dnf builddep -y freeipa
