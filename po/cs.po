@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2026-02-22 18:58+0000\n"
+"PO-Revision-Date: 2026-02-25 08:58+0000\n"
 "Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
 "Language-Team: Czech <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/cs/>\n"
@@ -619,7 +619,7 @@ msgstr "Platnost lístku skončila"
 # auto translated by TM merge from project: Pulseaudio, version: 6.0, DocId:
 # pulseaudio.pot
 msgid "Timeout"
-msgstr "Časový limit"
+msgstr "Překročení časového limitu"
 
 msgid "To get command help, use:"
 msgstr "Chceteli získat nápovědu k příkazu, použijte:"
