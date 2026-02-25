@@ -69,6 +69,13 @@ class BaseTestTrust(IntegrationTest):
             cls.subaduser = f"subdomaintestuser@{cls.ad_subdomain}"
             cls.subaduser2 = f"subdomaindisabledadu@{cls.ad_subdomain}"
             cls.ad_sub_group = f"subdomaintestgroup@{cls.ad_subdomain}"
+            cls.subdomaintestuser2 = f"subdomaintestuser2@{cls.ad_subdomain}"
+            cls.subnonposixuser1 = f"subnonposixuser1@{cls.ad_subdomain}"
+            cls.subnonposixuser2 = f"subnonposixuser2@{cls.ad_subdomain}"
+            cls.subexpiredaduser = f"subexpiredaduser@{cls.ad_subdomain}"
+            cls.subdisableduser = f"subdomaindisabledaduser@{cls.ad_subdomain}"
+            cls.subcantchgpwduser = f"subcantchgpwduser@{cls.ad_subdomain}"
+            cls.submustchgpwduser = f"submustchgpwduser@{cls.ad_subdomain}"
 
         if cls.num_ad_treedomains > 0:
             cls.tree_ad = cls.ad_treedomains[0]
@@ -80,7 +87,103 @@ class BaseTestTrust(IntegrationTest):
         cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
         cls.aduser = f"nonposixuser@{cls.ad_domain}"
         cls.aduser2 = f"nonposixuser1@{cls.ad_domain}"
+        cls.testuser = f"testuser@{cls.ad_domain}"
+        cls.testuser1 = f"testuser1@{cls.ad_domain}"
+        cls.testuser2 = f"testuser2@{cls.ad_domain}"
+        cls.upnuser = f"upnuser@{cls.ad_domain}"
+        cls.upnuser_password = "Secret123456"
+        cls.mytestuser = f"mytestuser@{cls.ad_domain}"
+        cls.disabledaduser = f"disabledaduser@{cls.ad_domain}"
+        cls.expiredaduser = f"expiredaduser@{cls.ad_domain}"
         cls.ad_group = f"testgroup@{cls.ad_domain}"
+        cls.cannotchangepwduser = f"cannotchangepwduser@{cls.ad_domain}"
+        cls.changepwdatlogonuser = f"changepwdatlogonuser@{cls.ad_domain}"
+
+    def _ad_user_base(self, principal):
+        """Return username part of principal (before @)."""
+        return principal.split('@', 1)[0]
+
+    def _ad_domain_netbios(self, domain):
+        """Return NetBIOS name (first label) of AD domain."""
+        return domain.split('.', 1)[0]
+
+    def _ad_principal(self, username, domain, realm=False):
+        """Build AD principal: user@DOMAIN (realm) or user@domain (dns)."""
+        suffix = domain.upper() if realm else domain.lower()
+        return f"{username}@{suffix}"
+
+    def _ad_basedn(self, domain):
+        """Build LDAP base DN from domain."""
+        return ','.join(f'DC={part}' for part in domain.split('.'))
+
+    def _ad_user_dn(self, username, domain):
+        """Build AD user DN: CN=username,CN=Users,{basedn}."""
+        return f"CN={username},CN=Users,{self._ad_basedn(domain)}"
+
+    def _kinit_as_ad_admin(self, host, domain, admin_name, admin_password):
+        """Kinit as AD admin for the given domain.
+
+        Caller must call tasks.kdestroy_all(host) and tasks.kinit_admin(host)
+        when done with AD operations.
+        """
+        admin_principal = self._ad_principal(admin_name, domain, realm=True)
+        tasks.kdestroy_all(host)
+        tasks.kinit_as_user(host, admin_principal, admin_password)
+
+    def _ad_user_add(self, username, password, ad_host=None, domain=None):
+        """Create a user account on the given AD DC and enable it."""
+        ad_host = ad_host or self.ad
+        domain = domain or self.ad_domain
+        admin = self.master.config.ad_admin_name
+        admin_password = self.master.config.ad_admin_password
+        ad_realm = domain.upper()
+
+        self._kinit_as_ad_admin(self.master, domain, admin, admin_password)
+        self.master.run_command(['kvno', f'kadmin/changepw@{ad_realm}'])
+        self.master.run_command(
+            ['kvno', f'ldap/{ad_host.hostname}@{ad_realm}'])
+
+        self.master.run_command([
+            'net', '--debuglevel=10', 'ads', 'user', 'add',
+            username, password, '--use-kerberos=required',
+            '-S', ad_host.hostname
+        ])
+
+        # net ads user add leaves the account disabled; set
+        # userAccountControl 512 (NORMAL_ACCOUNT) to enable it
+        basedn = self._ad_basedn(domain)
+        ldif = (
+            f"dn: CN={username},CN=Users,{basedn}\n"
+            f"changetype: modify\n"
+            f"replace: userAccountControl\n"
+            f"userAccountControl: 512\n"
+        )
+        ad_dirman = self._ad_user_dn(admin, domain)
+        self.master.run_command(
+            ['ldapmodify', '-Y', 'GSS-SPNEGO',
+             '-H', f'ldap://{ad_host.hostname}',
+             '-D', ad_dirman,
+             '-w', admin_password],
+            stdin_text=ldif
+        )
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ad_user_del(self, username, ad_host=None, domain=None):
+        """Delete a user account from the given AD DC."""
+        ad_host = ad_host or self.ad
+        domain = domain or self.ad_domain
+        admin = self.master.config.ad_admin_name
+        admin_password = self.master.config.ad_admin_password
+
+        self._kinit_as_ad_admin(self.master, domain, admin, admin_password)
+        self.master.run_command([
+            'net', 'ads', 'user', 'delete', username,
+            '--use-kerberos=required', '-S', ad_host.hostname
+        ], raiseonerr=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
 
     @classmethod
     def check_sid_generation(cls):
