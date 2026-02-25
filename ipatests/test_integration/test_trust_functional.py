@@ -5,9 +5,125 @@ from __future__ import absolute_import
 import re
 import time
 import textwrap
+from datetime import datetime, timedelta
+
+import pytest
+
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_trust import BaseTestTrust
+
+PLUGIN_CONF = "/var/lib/sss/pubconf/krb5.include.d/localauth_plugin"
+
+
+def ssh_with_password(host, login, target_host, password, expect_success=True):
+    """Run SSH with password authentication.
+
+    :param host: Host on which to run the SSH command.
+    :param login: SSH login name (``-l`` argument).
+    :param target_host: Hostname to connect to.
+    :param password: Password for authentication.
+    :param expect_success: If ``True``, raise on failure; if ``False``, return
+        the result object even when the command fails.
+    :returns: Object returned by ``host.run_command()``.
+    """
+    if not tasks.is_package_installed(host, 'sshpass'):
+        pytest.skip(f"sshpass not available on {host.hostname}")
+    result = host.run_command(
+        [
+            'sshpass', '-p', password,
+            'ssh', '-o', 'StrictHostKeyChecking=no',
+            "-o", "PubkeyAuthentication=no",
+            "-o", "GSSAPIAuthentication=no",
+            '-l', login, target_host, 'id'
+        ],
+        raiseonerr=expect_success,
+    )
+    return result
+
+
+def ssh_with_gssapi(host, kinit_principal, login, target_host, password,
+                    expect_success=True):
+    """Run SSH with GSSAPI authentication after kinit.
+
+    :param host: Host on which to run ``kinit`` and SSH.
+    :param kinit_principal: Kerberos principal for ``kinit``.
+    :param login: SSH login name (``-l`` argument).
+    :param target_host: Hostname to connect to.
+    :param password: Password for ``kinit``.
+    :param expect_success: If ``True``, raise on failure; if ``False``, return
+        the result object even when the command fails.
+    :returns: Object returned by ``host.run_command()``.
+    """
+    tasks.kdestroy_all(host)
+    tasks.kinit_as_user(host, kinit_principal, password)
+    result = host.run_command(
+        [
+            'ssh', '-o', 'StrictHostKeyChecking=no', '-K',
+            '-o', 'PubkeyAuthentication=no',
+            '-o', 'GSSAPIAuthentication=yes',
+            '-l', login, target_host, 'id'
+        ],
+        raiseonerr=expect_success,
+    )
+    return result
+
+
+def spawn_ssh_interactive(host, login, target_host, extra_ssh_options=None,
+                          remote_cmd=None):
+    """Return a ``spawn_expect`` context for an interactive SSH session.
+
+    :param host: Host on which to run SSH.
+    :param login: SSH login name (``-l`` argument).
+    :param target_host: Hostname to connect to.
+    :param extra_ssh_options: Extra SSH options (e.g. ``['-tt']`` for a PTY),
+        or ``None``.
+    :param remote_cmd: Optional remote command string, or ``None`` for an
+        interactive shell.
+    :returns: Context manager from ``host.spawn_expect()``.
+    """
+    cmd = [
+        'ssh', '-o', 'StrictHostKeyChecking=no',
+        '-l', login, target_host,
+    ]
+    if remote_cmd is not None:
+        cmd.append(remote_cmd)
+    return host.spawn_expect(cmd, extra_ssh_options=extra_ssh_options)
+
+
+def expect_password_change_prompts(test, current_password, new_password):
+    """Drive the current->new->confirm password-change prompt sequence.
+
+    Handles the three-step interactive password-change dialogue that
+    both SSH forced-change and ``passwd`` in-session flows share.
+
+    :param test: Active ``spawn_expect`` context.
+    :param current_password: User's current password.
+    :param new_password: New password to set.
+    """
+    # (?i) ignores case, enabling flag this way is atypical.
+    test.expect(r'(?i)current password:')
+    test.sendline(current_password)
+    test.expect(r'(?i).*password.*:')
+    test.sendline(new_password)
+    test.expect(r'(?i).*password.*:')
+    test.sendline(new_password)
+
+
+def get_localauth_module_from_plugin(host):
+    """Extract module path from SSSD localauth plugin config on the given host.
+
+    :param host: Host from which to read the plugin config at path
+        ``PLUGIN_CONF``.
+    :returns: Module path from the ``module:`` line in the config file.
+    :rtype: str
+    :raises ValueError: If no ``module`` line is found in the plugin config.
+    """
+    plugin_content = host.get_file_contents(PLUGIN_CONF, encoding='utf-8')
+    for line in plugin_content.splitlines():
+        if line.strip().startswith('module'):
+            return line.split(':', 1)[-1].strip()
+    raise ValueError("No 'module' line found in localauth plugin config")
 
 
 class TestTrustFunctionalHbac(BaseTestTrust):
@@ -39,22 +155,6 @@ class TestTrustFunctionalHbac(BaseTestTrust):
         self.master.run_command(["ipa", "hbacrule-enable", "allow_all"])
         tasks.wait_for_sssd_domain_status_online(self.master)
         tasks.wait_for_sssd_domain_status_online(self.clients[0])
-
-    def _ssh_with_password(
-        self,
-        login,
-        host,
-        password,
-        success_expected=False
-    ):
-        result = self.clients[0].run_command(
-            ['sshpass', '-p', password,
-             'ssh', '-v', '-o', 'StrictHostKeyChecking=no',
-             '-l', login, host, "id"],
-            raiseonerr=success_expected
-        )
-        output = f"{result.stdout_text}{result.stderr_text}"
-        return output
 
     def _get_log_tail(self, host, log_path, start_offset):
         return host.get_file_contents(log_path)[start_offset:]
@@ -138,11 +238,12 @@ class TestTrustFunctionalHbac(BaseTestTrust):
                 logsize = tasks.get_logsize(
                     self.clients[0], log_file
                 )
-                self._ssh_with_password(
+                ssh_with_password(
+                    self.clients[0],
                     user,
                     self.clients[0].hostname,
                     'Secret123',
-                    success_expected=False,
+                    expect_success=False,
                 )
                 sssd_logs = self._get_log_tail(
                     self.clients[0], log_file, logsize
@@ -182,21 +283,24 @@ class TestTrustFunctionalHbac(BaseTestTrust):
                      ]
                 )
                 tasks.kdestroy_all(self.clients[0])
-                output = self._ssh_with_password(
+                output = ssh_with_password(
+                    self.clients[0],
                     user,
                     self.clients[0].hostname,
                     'Secret123',
-                    success_expected=True,
+                    expect_success=True,
                 )
-                assert "domain users" in output
+                assert "domain users" in output.stdout_text
 
-            for user2 in [self.aduser2, self.subaduser2]:
-                self._ssh_with_password(
+            for user2 in [self.testuser, self.subaduser2]:
+                output2 = ssh_with_password(
+                    self.clients[0],
                     user2,
                     self.clients[0].hostname,
                     'Secret123',
-                    success_expected=False,
+                    expect_success=False,
                 )
+                assert "domain users" not in output2.stdout_text
         finally:
             self._cleanup_hrule_allow_all_and_wait(hrule)
 
@@ -306,6 +410,8 @@ class TestTrustFunctionalHbac(BaseTestTrust):
                     raiseonerr=False
                 )
                 assert result.returncode != 0
+                output = f"{result.stdout_text}{result.stderr_text}"
+                assert 'uid=0(root)' not in output
         finally:
             self._cleanup_hrule_allow_all_and_wait(hrule)
             self.master.run_command(["ipa", "sudorule-del", srule])
@@ -865,3 +971,689 @@ class TestTrustFunctionalHttp(BaseTestTrust):
         tasks.kdestroy_all(self.clients[0])
 
         self._assert_curl_GSSAPI_access_denied()
+
+
+class TestTrustFunctionalSSH(BaseTestTrust):
+    topology = 'line'
+    num_ad_treedomains = 0
+
+    ad_user_password = 'Secret123'
+    ad_user_first_password = 'Passw0rd1'
+
+    @classmethod
+    def install(cls, mh):
+        super().install(mh)
+        tasks.kinit_admin(cls.clients[0])
+        # mkhomedir + oddjobd for AD user home dir creation on first login
+        for host in [cls.master, cls.clients[0]]:
+            host.run_command(
+                ["authselect", "enable-feature", "with-mkhomedir"]
+            )
+            host.run_command(
+                ["systemctl", "enable", "--now", "oddjobd"]
+            )
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(
+            cls.master, cls.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+        tasks.kinit_admin(cls.master)
+
+    def _ad_hosts(self):
+        """Return (ad_host, domain) pairs for primary AD and the subdomain.
+
+        Each entry is a tuple of (AD host object, domain name string) so
+        that callers can drive user-lifecycle operations (add/mod/del) against
+        both the root AD DC and the child-domain DC in a single loop.
+        """
+        return [
+            (self.ad, self.ad_domain),
+            (self.child_ad, self.ad_subdomain),
+        ]
+
+    def _sssd_cache_reset_all(self):
+        tasks.clear_sssd_cache(self.master)
+        tasks.clear_sssd_cache(self.clients[0])
+
+    def _ad_user_domain_pairs(self):
+        """Return (user_principal, domain) pairs for both AD and subdomain.
+
+        Each entry is a tuple of (fully-qualified user principal, AD domain
+        name) so that callers can build login names and UPNs for both the
+        primary AD domain and its subdomain in a single loop.
+        """
+        return [
+            (self.aduser, self.ad_domain),
+            (self.subaduser, self.ad_subdomain),
+        ]
+
+    def test_ssh_password_unqualified_login_fails(self):
+        """AD user SSH with password using short (unqualified) username fails.
+
+        Verifies that password authentication is rejected when the AD user
+        logs in with only their sAMAccountName (no domain suffix), because
+        the IPA client cannot map an unqualified name to an AD identity.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            testuser = self._ad_user_base(user)
+            result = ssh_with_password(
+                self.clients[0], testuser, self.clients[0].hostname,
+                self.ad_user_password, expect_success=False)
+            assert result.returncode != 0, (
+                f"Expected unqualified login for '{testuser}' "
+                f"(domain: {domain}) to fail"
+            )
+
+    def test_ssh_gssapi_unqualified_login_fails(self):
+        """AD user SSH with GSSAPI using short (unqualified) username fails.
+
+        Verifies that GSSAPI authentication is rejected when the AD user's
+        login name contains no domain suffix, even though a valid Kerberos
+        ticket is obtained with the full UPN.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            testuser = self._ad_user_base(user)
+            ad_upn = self._ad_principal(testuser, domain, realm=True)
+            result = ssh_with_gssapi(
+                self.clients[0], ad_upn, testuser, self.clients[0].hostname,
+                self.ad_user_password, expect_success=False)
+            assert result.returncode != 0, (
+                f"Expected unqualified GSSAPI login for '{testuser}' "
+                f"(domain: {domain}) to fail"
+            )
+
+    def test_ssh_password_fqdn_login(self):
+        """AD user SSH with password using fully-qualified user@domain login.
+
+        Verifies that password authentication succeeds when the AD user
+        logs in as user@domain.lower.  Also checks that no sssd_be crash
+        or core dump appears in journalctl after the login.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        since = time.strftime(
+            '%Y-%m-%d %H:%M:%S',
+            (datetime.now() - timedelta(seconds=10)).timetuple()
+        )
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ssh_with_password(
+                self.clients[0], testuser, self.clients[0].hostname,
+                self.ad_user_password)
+        result = self.clients[0].run_command([
+            'journalctl', f'--since={since}', '--no-pager'
+        ], raiseonerr=False)
+        log_output = result.stdout_text
+        assert "core dump" not in log_output
+        assert "sssd_be" not in log_output
+
+    def test_ssh_gssapi_localauth_plugin(self):
+        """SSSD localauth plugin is present and AD user GSSAPI login works.
+
+        Verifies that the SSSD localauth plugin configuration file and its
+        module binary exist on the client, that krb5.conf does not contain
+        a legacy auth_to_local rule, and that the AD user can log in via
+        GSSAPI using the lowercase domain principal.
+        """
+        assert self.clients[0].transport.file_exists(PLUGIN_CONF)
+        localauth_module = get_localauth_module_from_plugin(self.clients[0])
+        assert self.clients[0].transport.file_exists(localauth_module)
+        krb5_conf = self.clients[0].get_file_contents(
+            paths.KRB5_CONF, encoding='utf-8'
+        )
+        assert "auth_to_local" not in krb5_conf
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            ssh_with_gssapi(
+                self.clients[0], ad_upn, testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_password_upn_login(self):
+        """AD user SSH with password using UPN (user@REALM) login succeeds.
+
+        Verifies that password authentication works when the AD user's
+        login name is in UPN format with the uppercase Kerberos realm
+        (user@AD.DOMAIN.COM).
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=True)
+            ssh_with_password(
+                self.clients[0], testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_gssapi_upn_login(self):
+        """AD user SSH with GSSAPI using UPN for both kinit and login.
+
+        Verifies that GSSAPI authentication succeeds when the same UPN
+        (user@REALM) is used as the kinit principal and as the SSH login
+        name.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            ssh_with_gssapi(
+                self.clients[0], ad_upn, ad_upn, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_password_netbios_lower_login(self):
+        """AD user SSH with password using lowercase NetBIOS prefix login.
+
+        Verifies that password authentication succeeds when the AD user
+        logs in with the Windows-style netbios\\user notation using a
+        lowercase NetBIOS domain prefix.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            testuser = "{0}\\{1}".format(
+                self._ad_domain_netbios(domain).lower(),
+                self._ad_user_base(user),
+            )
+            ssh_with_password(
+                self.clients[0], testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_gssapi_netbios_lower_login(self):
+        """AD user SSH with GSSAPI using lowercase NetBIOS prefix login.
+
+        Verifies that GSSAPI authentication succeeds when the SSH login
+        name uses the lowercase netbios\\user notation while kinit is
+        performed with the full UPN.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            testuser = "{0}\\{1}".format(
+                self._ad_domain_netbios(domain).lower(),
+                self._ad_user_base(user),
+            )
+            base = self._ad_user_base(user)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            ssh_with_gssapi(
+                self.clients[0], ad_upn, testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_password_netbios_upper_login(self):
+        """AD user SSH with password using uppercase NetBIOS prefix login.
+
+        Verifies that password authentication succeeds when the AD user
+        logs in with the Windows-style NETBIOS\\user notation using an
+        uppercase NetBIOS domain prefix.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            testuser = "{0}\\{1}".format(
+                self._ad_domain_netbios(domain).upper(),
+                self._ad_user_base(user),
+            )
+            ssh_with_password(
+                self.clients[0], testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_gssapi_netbios_upper_login(self):
+        """AD user SSH with GSSAPI using uppercase NetBIOS prefix login.
+
+        Verifies that GSSAPI authentication succeeds when the SSH login
+        name uses the uppercase NETBIOS\\user notation while kinit is
+        performed with the full UPN.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            testuser = "{0}\\{1}".format(
+                self._ad_domain_netbios(domain).upper(),
+                self._ad_user_base(user),
+            )
+            base = self._ad_user_base(user)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            ssh_with_gssapi(
+                self.clients[0], ad_upn, testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+    def test_ssh_gssapi_credential_forwarding(self):
+        """AD user kinit and SSH as a second AD user via credential forwarding.
+
+        Verifies that one AD user can obtain a Kerberos ticket and then
+        forward GSSAPI credentials to SSH into the client as a different
+        AD user, confirming cross-user credential delegation within an AD
+        trust environment.
+        Repeated for the root AD domain (testuser1 -> testuser2) and
+        for subdomaintestuser -> subdomaintestuser2.
+        """
+        pairs = [(self.testuser1, self.testuser2),
+                 (self.subaduser, self.subdomaintestuser2)
+                 ]
+        client = self.clients[0]
+        for first_user, second_user in pairs:
+            tasks.kdestroy_all(client)
+            tasks.kinit_as_user(client, first_user, self.ad_user_password)
+            result = client.run_command([
+                'ssh', '-o', 'StrictHostKeyChecking=no', '-K',
+                '-l', first_user, client.hostname,
+                '--',
+                'sshpass', '-p', self.ad_user_password,
+                'ssh', '-o', 'StrictHostKeyChecking=no',
+                '-o', 'GSSAPIAuthentication=no',
+                '-o', 'PubkeyAuthentication=no',
+                '-o', 'PasswordAuthentication=yes',
+                '-l', second_user, client.hostname, 'id',
+            ])
+            assert second_user in result.stdout_text
+
+    def test_ssh_gssapi_new_user_no_cache_flush(self):
+        """Newly created AD user can SSH with GSSAPI without cache flush.
+
+        Verifies that an AD user added during the test can immediately
+        authenticate via GSSAPI over SSH, confirming that SSSD resolves
+        brand-new AD accounts without requiring a manual cache reset.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        username = 'adnew1'
+        for ad_host, domain in self._ad_hosts():
+            testuser = self._ad_principal(username, domain)
+            ad_upn = self._ad_principal(username, domain, realm=True)
+            try:
+                self._ad_user_add(
+                    username, self.ad_user_password,
+                    ad_host=ad_host, domain=domain)
+                ssh_with_gssapi(
+                    self.clients[0], ad_upn, testuser,
+                    self.clients[0].hostname, self.ad_user_password)
+            finally:
+                self._ad_user_del(username, ad_host=ad_host, domain=domain)
+
+    def test_ssh_deleted_user_evicted_from_cache(self):
+        """Deleted AD user is evicted from SSSD cache and kinit fails.
+
+        Creates an AD user, resolves it via getent (populating the SSSD
+        cache), deletes the user, flushes the SSSD cache, and then verifies
+        that getent returns no entry and kinit reports the principal is not
+        found in the Kerberos database.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        username = 'adnew2'
+        for ad_host, domain in self._ad_hosts():
+            testuser = self._ad_principal(username, domain)
+            ad_upn = self._ad_principal(username, domain, realm=True)
+            try:
+                self._ad_user_add(
+                    username, self.ad_user_password,
+                    ad_host=ad_host, domain=domain)
+                self.master.run_command(['getent', 'passwd', testuser])
+                ssh_with_gssapi(
+                    self.clients[0], ad_upn, testuser,
+                    self.clients[0].hostname, self.ad_user_password)
+                self._ad_user_del(username, ad_host=ad_host, domain=domain)
+                self._sssd_cache_reset_all()
+                result = self.clients[0].run_command(
+                    ['getent', '-s', 'sss', 'passwd', testuser],
+                    raiseonerr=False,
+                )
+                assert result.returncode != 0
+                result = self.clients[0].run_command(
+                    ['kinit', testuser],
+                    stdin_text=self.ad_user_password,
+                    raiseonerr=False,
+                )
+                output = f"{result.stdout_text}{result.stderr_text}"
+                assert "not found in Kerberos database" in output
+            finally:
+                self._ad_user_del(username, ad_host=ad_host, domain=domain)
+
+    def test_ssh_recreated_user_login_after_cache_clear(self):
+        """Re-created AD user can SSH after SSSD cache is cleared.
+
+        Verifies that an AD user which was deleted and then re-added with
+        the same name can still authenticate via GSSAPI and password SSH
+        once the SSSD cache is flushed, ensuring stale cache entries do
+        not block the re-created account.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        username = 'adnew3'
+        for ad_host, domain in self._ad_hosts():
+            testuser = self._ad_principal(username, domain)
+            ad_upn = self._ad_principal(username, domain, realm=True)
+            try:
+                self._ad_user_add(
+                    username, self.ad_user_password,
+                    ad_host=ad_host, domain=domain)
+                self.master.run_command(['getent', 'passwd', testuser])
+                self._ad_user_del(username, ad_host=ad_host, domain=domain)
+                self._sssd_cache_reset_all()
+                self.master.run_command(['getent', 'passwd', testuser],
+                                        raiseonerr=False)
+                self._ad_user_add(
+                    username, self.ad_user_password,
+                    ad_host=ad_host, domain=domain)
+                self._sssd_cache_reset_all()
+                tasks.kdestroy_all(self.clients[0])
+                tasks.clear_sssd_cache(self.clients[0])
+                self.clients[0].run_command(['getent', 'passwd', testuser])
+                ssh_with_gssapi(
+                    self.clients[0], ad_upn, testuser,
+                    self.clients[0].hostname, self.ad_user_password)
+                ssh_with_password(
+                    self.clients[0], testuser, self.clients[0].hostname,
+                    self.ad_user_password)
+            finally:
+                self._ad_user_del(username, ad_host=ad_host, domain=domain)
+
+    def test_ssh_su_second_ad_user_in_session(self):
+        """AD user can switch to a second AD user via su within SSH session.
+
+        Verifies that after logging in via GSSAPI as one AD user, it is
+        possible to switch to a different AD user using su inside the same
+        SSH session, confirming correct PAM/SSSD identity handling for
+        cross-user switches under an AD trust.
+        Repeated for the root AD domain (testuser1 -> testuser2) and
+        subdomaintestuser -> subdomaintestuser2.
+        """
+        pairs = [(self.testuser1, self.testuser2),
+                 (self.subaduser, self.subdomaintestuser2)
+                 ]
+        client = self.clients[0]
+        for first_user, second_user in pairs:
+            tasks.kdestroy_all(client)
+            tasks.kinit_as_user(client, first_user, self.ad_user_password)
+            with client.spawn_expect([
+                'ssh', '-t', '-o', 'StrictHostKeyChecking=no', '-K',
+                '-l', first_user, client.hostname,
+                '--', 'su', '-', second_user, '-c', 'id',
+            ], extra_ssh_options=['-t']) as test:
+                # (?i) ignores case, enabling flag this way is atypical.
+                test.expect(r'(?i)password')
+                test.sendline(self.ad_user_password)
+                test.expect_exit(ignore_remaining_output=True, timeout=60)
+                output = test.get_last_output()
+            assert second_user in output
+
+    def test_ssh_password_to_master(self):
+        """AD user SSH with password to the IPA master (server mode).
+
+        Verifies that password authentication succeeds when the AD user
+        connects to the IPA master rather than to a regular IPA client,
+        exercising the server-mode SSSD code path.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ssh_with_password(
+                self.clients[0], testuser, self.master.hostname,
+                self.ad_user_password)
+
+    def test_ssh_gssapi_to_master(self):
+        """AD user SSH with GSSAPI to the IPA master (server mode).
+
+        Verifies that GSSAPI authentication succeeds when the AD user
+        connects to the IPA master, exercising the server-mode SSSD and
+        Kerberos PAC processing code paths.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            ssh_with_gssapi(
+                self.clients[0], ad_upn, testuser, self.master.hostname,
+                self.ad_user_password)
+
+    def test_ssh_gssapi_ad_user_ipa_cmd_denied(self):
+        """AD user cannot run privileged IPA commands over GSSAPI SSH.
+
+        Verifies that an AD user authenticated via GSSAPI is denied when
+        attempting to execute `ipa trust-del` on the master over SSH,
+        receiving an "insufficient access" or "cannot connect" error.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_as_user(self.master, ad_upn, self.ad_user_password)
+            result = self.master.run_command(
+                [
+                    'ssh', '-o', 'StrictHostKeyChecking=no', '-K',
+                    '-l', testuser, self.master.hostname,
+                    'ipa', 'trust-del', self.ad_domain
+                ],
+                raiseonerr=False,
+            )
+            output = f"{result.stdout_text}{result.stderr_text}"
+            assert ("insufficient access" in output.lower()), (
+                f"Expected trust-del to be denied for '{testuser}' "
+                f"(domain: {domain}), got: {output}"
+            )
+
+    def test_ssh_gssapi_ad_admin_trust_del_denied(self):
+        """AD domain admin cannot delete the IPA-AD trust over GSSAPI SSH.
+
+        Verifies that even the AD domain administrator is denied when
+        trying to execute `ipa trust-del` on the master over SSH using
+        GSSAPI credentials, ensuring the trust cannot be removed by an
+        AD-side account.
+        """
+        admin = self.master.config.ad_admin_name
+        admin_principal = self._ad_principal(admin, self.ad_domain, realm=True)
+        admin_login = self._ad_principal(admin, self.ad_domain, realm=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_as_user(self.master, admin_principal,
+                            self.master.config.ad_admin_password)
+        result = self.master.run_command(
+            [
+                'ssh', '-o', 'StrictHostKeyChecking=no', '-K',
+                '-l', admin_login, self.master.hostname,
+                'ipa', 'trust-del', self.ad_domain
+            ],
+            raiseonerr=False,
+        )
+        output = f"{result.stdout_text}{result.stderr_text}"
+        assert ("insufficient access" in output.lower())
+
+    def test_ssh_password_change_forced_at_login(self):
+        """AD user forced to change password on first SSH login can do so.
+
+        Verifies the SSH session prompts for the current and a new
+        password, accepts the change, and subsequently allows a successful
+        login with the new credentials.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        ad_user_new_password = 'Password01'
+        for user in [self.changepwdatlogonuser, self.submustchgpwduser]:
+            tasks.clear_sssd_cache(self.clients[0])
+            with spawn_ssh_interactive(
+                self.clients[0], user, self.clients[0].hostname,
+                extra_ssh_options=['-tt']
+            ) as test:
+                # (?i) ignores case, enabling flag this way is atypical.
+                test.expect(r'(?i).*password.*:')
+                test.sendline('Secret123')
+                expect_password_change_prompts(
+                    test, 'Secret123', ad_user_new_password
+                )
+                test.expect(r'.*[$#] ')
+                test.sendline('whoami')
+                test.expect(user)
+                test.sendline('exit')
+                test.expect_exit(
+                    ignore_remaining_output=True, raiseonerr=False
+                )
+
+    def test_ssh_passwd_change_denied_canchpwd_no(self):
+        """Aduser with 'cannot change password' is denied password change SSH
+
+        ADuser with "cannot change password" flag, logs in over
+        SSH, attempts a password change via passwd, and verifies that the
+        change is rejected with a "password change failed" message.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        ad_user_new_password = 'Password01'
+        for user in [self.cannotchangepwduser, self.subcantchgpwduser]:
+            with spawn_ssh_interactive(
+                self.clients[0], user, self.clients[0].hostname,
+                extra_ssh_options=['-tt']
+            ) as test:
+                # (?i) ignores case, enabling flag this way is atypical.
+                test.expect(r'(?i).*password.*:')
+                test.sendline('Secret123')
+                test.expect(r'.*[$#] ')
+                test.sendline('passwd')
+                expect_password_change_prompts(
+                    test, 'Secret123', ad_user_new_password
+                )
+                test.sendline('exit')
+                test.expect_exit(
+                    ignore_remaining_output=True, raiseonerr=False
+                )
+                assert 'password change failed' in test.before.lower()
+
+    def test_ssh_password_disabled_account_rejected(self):
+        """Disabled AD account is rejected during SSH password authentication.
+
+        Disables an AD user account, attempts SSH password authentication,
+        and verifies the login is denied.  Also checks that the failure is
+        recorded as an authentication failure in journalctl (sshd).
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        for user in [self.disabledaduser, self.subdisableduser]:
+            tasks.clear_sssd_cache(self.clients[0])
+            tasks.wait_for_sssd_domain_status_online(self.clients[0])
+
+            since = time.strftime(
+                '%Y-%m-%d %H:%M:%S',
+                (datetime.now() - timedelta(seconds=5)).timetuple()
+            )
+
+            with spawn_ssh_interactive(
+                self.clients[0], user, self.clients[0].hostname,
+                extra_ssh_options=['-tt']
+            ) as test:
+                # (?i) ignores case, enabling flag this way is atypical.
+                test.expect(r'(?i).*password.*:')
+                test.sendline(self.ad_user_first_password)
+                test.expect(r'(?i).*password.*:')
+                test.sendcontrol('c')
+                test.expect_exit(
+                    ignore_remaining_output=True, raiseonerr=False
+                )
+
+            result = self.clients[0].run_command([
+                'journalctl', '-u', 'sshd', f'--since={since}',
+                '--no-pager'
+            ], raiseonerr=False)
+            log_data = result.stdout_text
+            assert (
+                "authentication failure" in log_data.lower()
+            ), f"No auth failure in log for disabled user {user}"
+
+    def test_ipa_trust_func_sssd_error(self):
+        """
+        Test sssd logs do not throw error when AD user tries to login via
+        ipa client.
+
+        Bug: [BZ954342] In IPA AD trust setup, the sssd logs throws
+        'sysdb_search_user_by_name failed' error when AD user tries to
+        login via ipa client.
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        sssd_log = '{0}/sssd_{1}.log'.format(
+            paths.VAR_LOG_SSSD_DIR, self.master.domain.name)
+
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_as_user(
+                self.master, ad_upn, self.master.config.ad_admin_password)
+
+            # Capture current sssd log offset so we only inspect new entries
+            sssd_log_offset = len(self.master.get_file_contents(sssd_log))
+
+            # SSH with GSSAPI
+            self.master.run_command([
+                'ssh', '-K', '-l', testuser, self.master.hostname,
+                'echo login successful $(whoami)'
+            ])
+
+            # Check only the log content generated during this test step
+            if self.master.transport.file_exists(sssd_log):
+                log_content = self.master.get_file_contents(sssd_log)
+                new_log_content = log_content[sssd_log_offset:]
+                assert b'sysdb_search_user_by_name failed' not in (
+                    new_log_content
+                ), f"sysdb_search_user_by_name failed for {testuser}"
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def test_ipa_trust_func_pac_responder(self):
+        """
+        Test expanding home directory works when the request comes from
+        the PAC responder.
+
+        Bug: [BZ1097286] Expanding home directory fails when the request
+        comes from the PAC responder
+        """
+        testuser = f"Administrator@{self.ad_domain}"
+        testuserupn = f"Administrator@{self.ad_domain.upper()}"
+
+        # Test on master (server mode)
+        self._sssd_cache_reset_all()
+        tasks.wait_for_sssd_domain_status_online(self.master)
+
+        # Verify server mode
+        sssd_conf = self.master.get_file_contents(
+            paths.SSSD_CONF, encoding='utf-8')
+        assert 'ipa_server_mode = True' in sssd_conf
+
+        tasks.kdestroy_all(self.master)
+        ssh_with_gssapi(
+            self.master, testuserupn, testuser, self.master.hostname,
+            self.master.config.ad_admin_password)
+
+        # Test on client
+        sssd_conf = self.clients[0].get_file_contents(
+            paths.SSSD_CONF, encoding='utf-8')
+        assert f'ipa_server = _srv_, {self.master.hostname}' in sssd_conf
+
+        tasks.kdestroy_all(self.clients[0])
+        ssh_with_gssapi(
+            self.clients[0], testuserupn, testuser,
+            self.clients[0].hostname,
+            self.clients[0].config.ad_admin_password)
+
+    def test_ipa_trust_func_sssd_crash_check(self):
+        """
+        Test sssd_be must not crash on passwordless login.
+
+        Bug: [BZ1123432] sssdbe must not crash on passwordless login
+        Repeated for both the primary AD domain and the AD subdomain.
+        """
+        # Capture timestamp to scope log check to this test (journalctl)
+        since = time.strftime(
+            '%Y-%m-%d %H:%M:%S',
+            (datetime.now() - timedelta(seconds=10)).timetuple()
+        )
+
+        for user, domain in self._ad_user_domain_pairs():
+            base = self._ad_user_base(user)
+            testuser = self._ad_principal(base, domain, realm=False)
+            ad_upn = self._ad_principal(base, domain, realm=True)
+            ssh_with_gssapi(
+                self.clients[0], ad_upn, testuser, self.clients[0].hostname,
+                self.ad_user_password)
+
+        # Check logs via journalctl (equivalent to /var/log/messages)
+        result = self.clients[0].run_command([
+            'journalctl', f'--since={since}', '--no-pager'
+        ], raiseonerr=False)
+        log_output = result.stdout_text
+        assert 'Internal credentials cache error' not in log_output
+        assert 'core_backtrace' not in log_output
+        assert 'segfault' not in log_output
