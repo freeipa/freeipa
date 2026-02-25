@@ -1,5 +1,5 @@
 Hi {{ fullname }},
 
-Your password will expire on {{ expiration }}.
+Your password will expire on {{ expiration | datetimeformat }}.
 
 Please change it as soon as possible.
