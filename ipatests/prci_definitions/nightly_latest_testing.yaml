@@ -2590,7 +2590,7 @@ jobs:
         timeout: 7200
         topology: *ad_master
 
-  testing-fedora/test_trust_functional_hbac:
+  testing-fedora/test_trust_functional:
     requires: [testing-fedora/build]
     priority: 50
     job:
