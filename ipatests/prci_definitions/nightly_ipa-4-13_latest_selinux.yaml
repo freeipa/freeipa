@@ -2412,7 +2412,7 @@ jobs:
         timeout: 14400
         topology: *master_2repl_1client
 
-  fedora-latest-ipa-4-13/test_trust_functional_hbac:
+  fedora-latest-ipa-4-13/test_trust_functional:
     requires: [fedora-latest-ipa-4-13/build]
     priority: 50
     job:
