@@ -2,8 +2,9 @@
 
 from __future__ import absolute_import
 
+import re
 import time
-
+import textwrap
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_trust import BaseTestTrust
@@ -658,3 +659,209 @@ class TestTrustFunctionalSudo(BaseTestTrust):
                                        raiseonerr=False)
         finally:
             self._cleanup_srule(srule)
+
+
+class TestTrustFunctionalHttp(BaseTestTrust):
+    topology = 'line'
+    num_ad_treedomains = 0
+
+    ad_user_password = 'Secret123'
+
+    # Apache configuration for GSSAPI-protected webapp. The /mywebapp
+    # location requires Kerberos authentication and restricts access by
+    # domain: IPA users (@IPA_REALM) or AD users (@AD_DOMAIN).
+    apache_conf = textwrap.dedent('''
+    Alias /mywebapp "/var/www/html/mywebapp"
+    <Directory "/var/www/html/mywebapp">
+        Allow from all
+    </Directory>
+    <Location "/mywebapp">
+        LogLevel debug
+        AuthType GSSAPI
+        AuthName "IPA Kerberos authentication"
+        GssapiNegotiateOnce on
+        GssapiBasicAuthMech krb5
+        GssapiCredStore keytab:{keytab_path}
+        <RequireAll>
+            Require valid-user
+            # Require expr: restrict access by domain. REMOTE_USER is set by
+            # mod_auth_gssapi after GSSAPI authentication. Allow users whose
+            # principal ends with the domain (IPA realm or AD domain).
+            Require expr %{{REMOTE_USER}} =~ /{allowed_domain_regex}$/
+        </RequireAll>
+    </Location>
+    ''')
+
+    def _configure_webapp(self, allowed_domain):
+        """Write the GSSAPI vhost config and restart httpd on the client.
+
+        allowed_domain: realm/domain for access control (e.g. IPA.TEST for
+        IPA users, AD.DOMAIN for AD users). Users whose principal ends with
+        @allowed_domain are granted access.
+        """
+        # Escape dots for regex (e.g. IPA.TEST -> IPA\\.TEST)
+        escaped = re.escape(allowed_domain)
+        allowed_domain_regex = '.*@' + escaped
+        keytab_path = f"/etc/httpd/conf/{self.clients[0].hostname}.keytab"
+        self.clients[0].put_file_contents(
+            '/etc/httpd/conf.d/mywebapp.conf',
+            self.apache_conf.format(
+                keytab_path=keytab_path,
+                allowed_domain_regex=allowed_domain_regex,
+            )
+        )
+        self.clients[0].run_command(['systemctl', 'restart', 'httpd'])
+
+    def _assert_curl_ok(self, msg=None):
+        """Run curl with GSSAPI negotiate and assert the webapp responds."""
+        url = f"http://{self.clients[0].hostname}/mywebapp/index.html"
+        result = self.clients[0].run_command([
+            paths.BIN_CURL, '-v', '--negotiate', '-u:', url
+        ])
+        assert "TEST_MY_WEB_APP" in result.stdout_text, (
+            msg or f"Expected webapp content at {url}"
+        )
+
+    def _assert_curl_GSSAPI_access_denied(self, msg=None):
+        """Run curl with GSSAPI negotiate and assert a 401 is returned."""
+        url = f"http://{self.clients[0].hostname}/mywebapp/index.html"
+        result = self.clients[0].run_command([
+            paths.BIN_CURL, '-v', '--negotiate', '-u:', url
+        ], raiseonerr=False)
+        output = f"{result.stdout_text}{result.stderr_text}"
+        assert ("401" in output
+                or "Unauthorized" in output
+                or "Authorization Required" in output), (
+            msg or f"Expected 401/Unauthorized at {url}, got: {output[:200]}"
+        )
+
+    @classmethod
+    def install(cls, mh):
+        """Extend base install to configure Apache/GSSAPI for HTTP tests.
+
+        Runs once before any test in this class.  Sets up the AD trust,
+        creates the HTTP service principal and IPA test user, installs
+        mod_auth_gssapi, retrieves the service keytab, and provisions the
+        static webapp content used by all HTTP tests.
+        """
+        super().install(mh)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(
+            cls.master, cls.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+
+        # Create HTTP service principal on master
+        service_principal = f"HTTP/{cls.clients[0].hostname}"
+        cls.master.run_command(
+            ["ipa", "service-add", service_principal]
+        )
+
+        # Create IPA user for HTTP tests
+        tasks.create_active_user(
+            cls.master, "ipahttpuser1", password="Passw0rd1",
+            first="f", last="l"
+        )
+
+        # Clear SSSD cache on master
+        tasks.clear_sssd_cache(cls.master)
+        tasks.wait_for_sssd_domain_status_online(cls.master)
+
+        # Install Apache and the GSSAPI module on the IPA client
+        tasks.install_packages(
+            cls.clients[0], ['mod_auth_gssapi', 'httpd']
+        )
+
+        # Retrieve and protect the HTTP service keytab
+        keytab_path = f"/etc/httpd/conf/{cls.clients[0].hostname}.keytab"
+        cls.clients[0].run_command([
+            'ipa-getkeytab', '-s', cls.master.hostname,
+            '-k', keytab_path,
+            '-p', service_principal
+        ])
+        cls.clients[0].run_command(
+            ['chown', 'apache:apache', keytab_path]
+        )
+
+        # Create webapp directory and static content
+        cls.clients[0].run_command(
+            ['mkdir', '-p', '/var/www/html/mywebapp']
+        )
+        cls.clients[0].put_file_contents(
+            '/var/www/html/mywebapp/index.html',
+            'TEST_MY_WEB_APP\n'
+        )
+
+    def test_ipa_trust_func_http_krb_ipauser(self):
+        """
+        Test IPA User access http with kerberos ticket via valid user.
+
+        This test verifies that an IPA user with a valid Kerberos ticket
+        can successfully access an HTTP resource protected by GSSAPI
+        authentication and restricted to IPA users.
+        """
+        ipa_realm = self.clients[0].domain.realm
+        self._configure_webapp(ipa_realm)
+
+        tasks.kdestroy_all(self.clients[0])
+        tasks.kinit_as_user(
+            self.clients[0], f'ipahttpuser1@{ipa_realm}', "Passw0rd1"
+        )
+
+        self._assert_curl_ok()
+
+        users = [
+            (self.aduser, self.ad_domain),
+            (self.subaduser, self.ad_subdomain),
+        ]
+        for aduser, domain in users:
+            tasks.kdestroy_all(self.clients[0])
+            # pylint: disable=use-maxsplit-arg
+            principal = f"{aduser.split('@')[0]}@{domain.upper()}"
+            tasks.kinit_as_user(
+                self.clients[0], principal, self.ad_user_password
+            )
+            self._assert_curl_GSSAPI_access_denied(
+                msg=f"Expected 401 for AD user {aduser}"
+            )
+
+    def test_ipa_trust_func_http_krb_aduser(self):
+        """
+        Test AD root and subdomain users access http with kerberos ticket.
+
+        This test verifies that both a root AD domain user and a child
+        subdomain user with valid Kerberos tickets can successfully access
+        an HTTP resource protected by GSSAPI authentication and restricted
+        to AD domain / AD subdomain users.
+        """
+        users = [
+            (self.aduser, self.ad_domain),
+            (self.subaduser, self.ad_subdomain),
+        ]
+        for aduser, domain in users:
+            tasks.kdestroy_all(self.clients[0])
+            # pylint: disable=use-maxsplit-arg
+            principal = f"{aduser.split('@')[0]}@{domain.upper()}"
+            self._configure_webapp(domain.upper())
+            tasks.kinit_as_user(
+                self.clients[0], principal, self.ad_user_password
+            )
+            self._assert_curl_ok(
+                msg=f"Expected webapp content for AD user {aduser}"
+            )
+            tasks.kdestroy_all(self.clients[0])
+            tasks.kinit_as_user(self.clients[0], "ipahttpuser1", "Passw0rd1")
+            self._assert_curl_GSSAPI_access_denied(
+                msg=f"Expected 401 for IPA user after AD user {aduser}"
+            )
+
+    def test_ipa_trust_func_http_krb_nouser(self):
+        """
+        Test User cannot access http without kerberos ticket via valid user.
+
+        This test verifies that an user without a valid Kerberos ticket
+        is denied access to an HTTP resource protected by GSSAPI
+        authentication, receiving a 401 Unauthorized error.
+        """
+        tasks.kdestroy_all(self.clients[0])
+
+        self._assert_curl_GSSAPI_access_denied()
