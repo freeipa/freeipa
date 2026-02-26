@@ -1,5 +1,5 @@
 #
-# VERSION 37 - DO NOT REMOVE THIS LINE
+# VERSION 38 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -85,8 +85,8 @@ ServerTokens Prod
   Require valid-user
   ErrorDocument 401 /ipa/errors/unauthorized.html
   Header always append X-Frame-Options DENY
-  Header always append Content-Security-Policy "frame-ancestors 'none'"
   Header always set X-Content-Type-Options "nosniff"
+  Header setifempty Content-Security-Policy "upgrade-insecure-requests; frame-ancestors 'none'; default-src 'none'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval'"
 
   # mod_session always sets two copies of the cookie, and this confuses our
   # legacy clients, the unset here works because it ends up unsetting only one
@@ -223,6 +223,7 @@ Alias /ipa/modern-ui "/usr/share/ipa/modern-ui"
   RewriteRule ^(.*)/assets/(.*)$$ assets/$$2 [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^ index.html [QSA,L]
+  Header set Content-Security-Policy "upgrade-insecure-requests; frame-ancestors 'none'; default-src 'none'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; style-src 'self'; script-src 'self'"
 </Directory>
 
 #  Simple wsgi scripts required by ui
