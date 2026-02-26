@@ -2409,7 +2409,7 @@ jobs:
         timeout: 7200
         topology: *ad_master
 
-  fedora-latest-ipa-4-12/test_trust_functional_hbac:
+  fedora-latest-ipa-4-12/test_trust_functional:
     requires: [fedora-latest-ipa-4-12/build]
     priority: 50
     job:
