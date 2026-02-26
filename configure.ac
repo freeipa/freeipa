@@ -684,6 +684,7 @@ AC_CONFIG_FILES([
     install/ui/Makefile
     install/ui/css/Makefile
     install/ui/src/Makefile
+    install/ui/src/inline/Makefile
     install/ui/src/libs/Makefile
     install/ui/images/Makefile
     install/ui/build/Makefile
