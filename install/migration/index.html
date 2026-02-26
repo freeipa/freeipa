@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'">
     <title>Identity Management</title>
 
     <!--[if IE]>
@@ -11,55 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="../ui/" target="_blank">
     <script type="text/javascript" src="../ui/js/libs/loader.js"></script>
-    <script type="text/javascript">
-        var dojoConfig = {
-            baseUrl: "js",
-            has: {
-                'dojo-firebug': false,
-                'dojo-debug-messages': true
-            },
-            parseOnLoad: false,
-            async: true,
-            packages: [
-                {
-                    name:'dojo',
-                    location:'dojo'
-                },
-                {
-                    name: 'freeipa',
-                    location: 'freeipa'
-                }
-            ],
-            cacheBust: ipa_loader.num_version || ""
-        };
-
-        (function() {
-            var ie = !!document.getElementById('ie-detector');
-            var styles = [
-		    'css/patternfly.css',
-		    'css/ipa.css',
-		    'ipa.css'
-	    ];
-            if (ie) styles.push('ie.css');
-            var icons = ['favicon.ico'];
-            var scripts = [
-                'js/libs/jquery.js',
-                'js/libs/jquery.ordered-map.js',
-                'js/dojo/dojo.js'
-            ];
-            ipa_loader.scripts(scripts, function() {
-                require([
-                    'freeipa/core',
-                    'dojo/domReady!'
-                    ], function(app) {
-                        app.run_simple('migrate');
-                    });
-            });
-            ipa_loader.styles(styles);
-            ipa_loader.icons(icons);
-
-	})();
-    </script>
+    <script type="text/javascript" src="../ui/js/inline/migration_inline.js"></script>
 </head>
 
 <body>

@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = 1.7
 NULL =
 
 SUBDIRS =  				\
+	inline				\
 	libs				\
 	$(NULL)
 
