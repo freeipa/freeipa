@@ -2410,7 +2410,7 @@ jobs:
         timeout: 7200
         topology: *ad_master
 
-  fedora-rawhide/test_trust_functional_hbac:
+  fedora-rawhide/test_trust_functional:
     requires: [fedora-rawhide/build]
     priority: 50
     job:
