@@ -28,7 +28,6 @@ import pytest
 selfservice1 = u'testself'
 invalid_selfservice1 = u'bad+name'
 
-
 @pytest.mark.tier1
 class test_selfservice(Declarative):
 
@@ -289,4 +288,109 @@ class test_selfservice(Declarative):
                 error='May only contain letters, numbers, -, _, and space'),
         ),
 
+    ]
+
+
+@pytest.mark.tier1
+class test_selfservice_misc(Declarative):
+    """Bugzilla regression tests for selfservice plugin."""
+
+    cleanup_commands = [
+        ("selfservice_del", [selfservice1], {}),
+    ]
+
+    tests = [
+        # BZ 772106: selfservice-add with --raw must not return internal error
+        dict(
+            desc="Create %r with --raw for BZ 772106" % selfservice1,
+            command=(
+                "selfservice_add",
+                [selfservice1],
+                dict(attrs=["l"], raw=True),
+            ),
+            expected=dict(
+                value=selfservice1,
+                summary='Added selfservice "%s"' % selfservice1,
+                result={
+                    "aci": '(targetattr = "l")(version 3.0;acl '
+                    '"selfservice:%s";allow (write) '
+                    'userdn = "ldap:///self";)' % selfservice1,
+                },
+            ),
+        ),
+        # BZ 772675: selfservice-mod with --raw must not return internal error
+        dict(
+            desc="Modify %r with --raw for BZ 772675" % selfservice1,
+            command=(
+                "selfservice_mod",
+                [selfservice1],
+                dict(attrs=["mobile"], raw=True),
+            ),
+            expected=dict(
+                value=selfservice1,
+                summary='Modified selfservice "%s"' % selfservice1,
+                result={
+                    "aci": '(targetattr = "mobile")(version 3.0;acl '
+                    '"selfservice:%s";allow (write) '
+                    'userdn = "ldap:///self";)' % selfservice1,
+                },
+            ),
+        ),
+        # BZ 747730: selfservice-mod --permissions="" must not delete the entry
+        dict(
+            desc=(
+                "Modify %r with empty permissions for BZ 747730"
+                % selfservice1
+            ),
+            command=(
+                "selfservice_mod",
+                [selfservice1],
+                dict(permissions=""),
+            ),
+            expected=lambda got, output: True,
+        ),
+        dict(
+            desc="Verify %r still exists after BZ 747730" % selfservice1,
+            command=("selfservice_show", [selfservice1], {}),
+            expected=lambda got, output: (
+                got is None
+                and output["result"]["aciname"] == selfservice1
+            ),
+        ),
+        # BZ 747741: selfservice-mod --attrs=badattrs must not delete the entry
+        dict(
+            desc="Modify %r with bad attrs for BZ 747741" % selfservice1,
+            command=(
+                "selfservice_mod",
+                [selfservice1],
+                dict(attrs=["badattrs"]),
+            ),
+            expected=lambda got, output: True,
+        ),
+        dict(
+            desc="Verify %r still exists after BZ 747741" % selfservice1,
+            command=("selfservice_show", [selfservice1], {}),
+            expected=lambda got, output: (
+                got is None
+                and output["result"]["aciname"] == selfservice1
+            ),
+        ),
+        # BZ 747720: selfservice-find --permissions="" must not return
+        # internal error
+        dict(
+            desc="BZ 747720: selfservice-find with empty permissions",
+            command=("selfservice_find", [], dict(permissions="")),
+            expected=lambda got, output: (
+                got is None and isinstance(output["result"], (list, tuple))
+            ),
+        ),
+        # BZ 747722: selfservice-find --attrs="" must not return
+        # internal error
+        dict(
+            desc="BZ 747722: selfservice-find with empty attrs",
+            command=("selfservice_find", [], dict(attrs="")),
+            expected=lambda got, output: (
+                got is None and isinstance(output["result"], (list, tuple))
+            ),
+        ),
     ]
