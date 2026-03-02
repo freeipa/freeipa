@@ -453,7 +453,7 @@ class Configurable(metaclass=abc.ABCMeta):
     def _handle_exception(self, exc_info):
         assert not hasattr(super(Configurable, self), '_handle_exception')
 
-        exc_info[1].with_traceback(exc_info[2])
+        raise exc_info[1].with_traceback(exc_info[2])
 
     def _handle_validate_exception(self, exc_info):
         assert not hasattr(super(Configurable, self),
