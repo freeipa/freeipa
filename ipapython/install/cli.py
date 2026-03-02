@@ -21,8 +21,6 @@ from . import core, common
 
 __all__ = ['install_tool', 'uninstall_tool']
 
-long = int
-
 NoneType = type(None)
 
 logger = logging.getLogger(__name__)
@@ -178,8 +176,6 @@ class ConfigureTool(admintool.AdminTool):
                 kwargs['type'] = 'string'
             elif knob_scalar_type is int:
                 kwargs['type'] = 'int'
-            elif knob_scalar_type is long:
-                kwargs['type'] = 'long'
             elif knob_scalar_type is CheckedIPAddressLoopback:
                 kwargs['type'] = 'ip_with_loopback'
             elif knob_scalar_type is CheckedIPAddress:
