@@ -416,7 +416,6 @@ BuildRequires:  keyutils
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
 BuildRequires:  python3-cryptography >= 1.6
-BuildRequires:  python3-dateutil
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dns >= 1.15
 BuildRequires:  python3-docker
@@ -975,7 +974,6 @@ Requires: keyutils
 Requires: python3-argcomplete
 Requires: python3-cffi
 Requires: python3-cryptography >= 1.6
-Requires: python3-dateutil
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-gssapi >= 1.2.0

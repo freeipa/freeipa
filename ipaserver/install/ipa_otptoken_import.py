@@ -27,8 +27,6 @@ import os
 import uuid
 
 from lxml import etree
-import dateutil.parser
-import dateutil.tz
 import gssapi
 import six
 
@@ -76,13 +74,9 @@ def fetch(element, xpath, conv=lambda x: x, default=None):
 def convertDate(value):
     "Converts an ISO 8601 string into a UTC datetime object."
 
-    dt = dateutil.parser.parse(value)
+    dt = datetime.datetime.fromisoformat(value.replace('Z', '+00:00'))
 
-    if dt.tzinfo is None:
-        dt = datetime.datetime(*dt.timetuple()[0:6],
-                               tzinfo=dateutil.tz.tzlocal())
-
-    return dt.astimezone(dateutil.tz.tzutc())
+    return dt.astimezone(datetime.timezone.utc)
 
 
 def convertTokenType(value):
