@@ -180,7 +180,7 @@ class TestUnprivilegedUserPermissions(IntegrationTest):
         cls.username = 'testuser'
         tasks.install_master(cls.master, domain_level=cls.domain_level)
         password = cls.master.config.dirman_password
-        cls.new_password = '$ome0therPaaS'
+        cls.new_password = '$ome0therPaaS'  # notsecret
         adduser_stdin_text = "%s\n%s\n" % (cls.master.config.admin_password,
                                            cls.master.config.admin_password)
         user_kinit_stdin_text = "%s\n%s\n%s\n" % (password, cls.new_password,

@@ -48,7 +48,7 @@ class BaseTestTrust(IntegrationTest):
     upn_principal = '{}@{}'.format(upn_username, upn_suffix)
     upn_password = 'Secret123456'
 
-    shared_secret = 'qwertyuiopQq!1'
+    shared_secret = 'qwertyuiopQq!1'  # notsecret
     default_shell = platformconstants.DEFAULT_SHELL
 
     @classmethod
