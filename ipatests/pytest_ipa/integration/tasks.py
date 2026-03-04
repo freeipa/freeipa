@@ -2272,9 +2272,9 @@ def user_add(host, login, first='test', last='user', extra_args=(),
     return host.run_command(cmd, stdin_text=stdin_text)
 
 
-def user_del(host, login):
+def user_del(host, login, raiseonerr=True):
     cmd = ["ipa", "user-del", login]
-    return host.run_command(cmd)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
 def group_add(host, groupname, extra_args=()):
@@ -2285,11 +2285,11 @@ def group_add(host, groupname, extra_args=()):
     return host.run_command(cmd)
 
 
-def group_del(host, groupname):
+def group_del(host, groupname, raiseonerr=True):
     cmd = [
         "ipa", "group-del", groupname,
     ]
-    return host.run_command(cmd)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
 def group_add_member(host, groupname, users=None,
