@@ -205,6 +205,31 @@ optional_policy(`
 
 logging_send_syslog_msg(sssd_mfa_t)
 
+auth_use_nsswitch(sssd_mfa_t)
+
+files_read_usr_files(sssd_mfa_t)
+miscfiles_read_localization(sssd_mfa_t)
+
+kernel_read_crypto_sysctls(sssd_mfa_t)
+
+selinux_getattr_fs(sssd_mfa_t)
+
+dontaudit sssd_mfa_t self:capability net_admin;
+
+optional_policy(`
+    gen_require(`
+        type init_t;
+    ')
+    dontaudit sssd_mfa_t init_t:unix_stream_socket { read write };
+')
+
+optional_policy(`
+    gen_require(`
+        type syslogd_t;
+    ')
+    ps_process_pattern(syslogd_t, sssd_mfa_t)
+')
+
 optional_policy(`
 	ipa_read_lib(sssd_mfa_t)
 	ipa_search_lib(sssd_mfa_t)
