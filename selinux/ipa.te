@@ -16,7 +16,7 @@ init_daemon_domain(ipa_otpd_t, ipa_otpd_exec_t)
 
 type sssd_mfa_t, ipa_domain;
 type sssd_mfa_exec_t;
-can_exec(sssd_mfa_t,sssd_mfa_exec_t)
+init_daemon_domain(sssd_mfa_t, sssd_mfa_exec_t)
 
 kernel_dgram_send(ipa_otpd_t)
 allow ipa_otpd_t self:unix_dgram_socket { create getopt setopt };
@@ -155,6 +155,9 @@ optional_policy(`
 ')
 
 logging_send_syslog_msg(ipa_otpd_t)
+
+domtrans_pattern(ipa_otpd_t, sssd_mfa_exec_t, sssd_mfa_t)
+allow ipa_otpd_t sssd_mfa_t:process { noatsecure rlimitinh siginh };
 
 ########################################
 #
