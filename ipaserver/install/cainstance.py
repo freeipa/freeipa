@@ -952,20 +952,27 @@ class CAInstance(DogtagInstance):
             tmpdb.import_pkcs12(
                 paths.DOGTAG_ADMIN_P12, pkcs12_passwd=self.dm_password)
 
-            (_keytype, keysize) = api.env.key_type_size.split(':', 1)
+            (keytype, keysize) = api.env.key_type_size.split(':', 1)
+
+            if keytype == "mldsa":
+                # convert to the format NSS expects
+                keysize = f"ML-DSA-{keysize}"
 
             csrfile = os.path.join(tmpdb.secdir, "csr")
-            ipautil.run(
-                [paths.CERTUTIL,
+            cmd = [
+                 paths.CERTUTIL,
                  "-d", tmpdb.secdir,
                  "-R", "-s", str(DN(('CN', 'IPA RA'), self.subject_base)),
-                 # eventually use -q curve-name for ECC
-                 "-g", keysize,
+                 "-k", keytype,
                  "-z", os.path.join(tmpdb.secdir, tmpdb.noise_fname),
                  "-f", tmpdb.passwd_fname,
                  "-o", csrfile,
                  "-a",]
-            )
+            if keytype.lower() == 'rsa':
+                cmd.extend(["-g", keysize])
+            else:
+                cmd.extend(["-q", keysize])
+            ipautil.run(cmd)
 
             tmpdb.pki_issue_ra_certificate(
                 csrfile=csrfile,

@@ -1601,7 +1601,7 @@ def validate_key_type_size(value):
     types = {
         'rsa': (2048, 3072, 4096, 7168, 8192),
         'ec': tuple(),
-        'ml-dsa': tuple(),
+        'mldsa': (44, 65, 87),
     }
     if len(value.split(':', 1)) != 2:
         return _('Must be of the form type:size')
@@ -1619,7 +1619,7 @@ def validate_key_type_size(value):
                 "types": ", ".join(types)
             }
 
-    if type == 'rsa':
+    if type in ('rsa', 'mldsa'):
         try:
             size = int(size)
         except ValueError:
@@ -1744,3 +1744,39 @@ def lookup_ca_subject(api, subject_base):
         # case the default changes in the future.
         ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
     return str(ca_subject)
+
+
+def get_ra_agent_profile(api):
+    """This is suitable during installation. I doubt at runtime.
+
+       FIXME: This will need a conditional on whether
+       api.env.key_type_size available or not. If not then
+       retrieve the value from LDAP.
+
+       The caller is expected to handle None.
+    """
+    (keytype, keysize) = api.env.key_type_size.split(':', 1)
+    if keytype == "rsa":
+        return "caSubsystemCert"
+    elif keytype == "mldsa":
+        return "caMLDSASubsystemCert"
+    else:
+        return None
+
+
+def get_default_profile(api):
+    """This is suitable during installation. I doubt at runtime.
+
+       FIXME: This will need a conditional on whether
+       api.env.key_type_size available or not. If not then
+       retrieve the value from LDAP.
+
+       The caller is expected to handle None.
+    """
+    (keytype, keysize) = api.env.key_type_size.split(':', 1)
+    if keytype == "rsa":
+        return "caIPAserviceCert"
+    elif keytype == "mldsa":
+        return "caMLDSAServerCert"
+    else:
+        return None
