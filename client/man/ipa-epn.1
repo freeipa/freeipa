@@ -70,6 +70,18 @@ First name: first
 Last name: Last
 .TP
 Password expiration date: expiration
+The date can be modified using a custom datetimeformat jinja filter which supports the pattern of the python strftime/strptime method. A timezone can be defined if required.
+
+Examples:
+
+{{ expiration | datetimeformat }} => 2026-02-25 09:43:08
+
+{{ expiration | datetimeformat('%B %d, %Y, %r', 'Europe/Paris') }} => February  2, 2026, 10:43:08 AM
+
+.SH "ENVIRONMENT VARIABLES"
+.TP
+\fBLANG\fR
+If the \fBLANG\fR environment variable is set, and the template contains a datetimeformat with a month or day name, it will be displayed in the specified language.
 
 .SH "EXAMPLES"
 .nf
