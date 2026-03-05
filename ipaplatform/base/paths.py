@@ -57,6 +57,7 @@ class BasePathNamespace:
     HTTPD_PASSWD_FILE_FMT = "/var/lib/ipa/passwds/{host}-443-RSA"
     # only used on Fedora
     HTTPD_IPA_WSGI_MODULES_CONF = None
+    ANON_KEYTAB = "/var/lib/ipa/api/anon.keytab"
     OLD_IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
     HTTP_KEYTAB = "/var/lib/ipa/gssproxy/http.keytab"
     HTTPD_PASSWORD_CONF = "/etc/httpd/conf/password.conf"
@@ -184,6 +185,7 @@ class BasePathNamespace:
     ROOT_IPA_CACHE = "/root/.ipa_cache"
     ROOT_PKI = "/root/.pki"
     DOGTAG_ADMIN_P12 = "/root/ca-agent.p12"
+    DOGTAG_KEYTAB = "/etc/pki/pki-tomcat/dogtag.keytab"
     RA_AGENT_PEM = "/var/lib/ipa/ra-agent.pem"
     RA_AGENT_KEY = "/var/lib/ipa/ra-agent.key"
     CACERT_P12 = "/root/cacert.p12"

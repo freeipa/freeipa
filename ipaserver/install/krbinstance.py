@@ -86,18 +86,29 @@ def is_pkinit_enabled():
     return False
 
 
-def get_krb_key_types():
+def _get_krb_key_types():
+    """
+    Retrieves master key and supported types through ipa-getkeytab
+    as strings, supported types are delimited by a space.
+
+    :raise EnvironmentError: If no encryption types are provided
+
+    :return: master key type, supported key types
+    :rtype: str, str
+    """
     result = ipautil.run([paths.IPA_GETKEYTAB, '--permitted-enctypes'],
                          capture_output=True)
     permitted_enctypes = result.output.splitlines()
     if not permitted_enctypes:
-        raise EnvironmentError('ipa-getkeytab provided no permitted '
-                               'encryption types')
+        raise EnvironmentError(
+            "ipa-getkeytab provided no permitted encryption types"
+        )
 
-    supported_enctypes = [e + ':' + s for e in permitted_enctypes
-                          for s in ['special', 'normal']]
+    supported_enctypes = [
+        e + ":" + s for e in permitted_enctypes for s in ["special", "normal"]
+    ]
 
-    return (permitted_enctypes[0], ' '.join(supported_enctypes))
+    return (permitted_enctypes[0], " ".join(supported_enctypes))
 
 
 class KpasswdInstance(service.SimpleServiceInstance):
@@ -309,7 +320,7 @@ class KrbInstance(service.Service):
                              INCLUDES=includes,
                              FIPS='#' if fips_enabled else '')
 
-        mkey_type, supported_key_types = get_krb_key_types()
+        mkey_type, supported_key_types = _get_krb_key_types()
 
         self.sub_dict['SUPPORTED_ENCTYPES'] = supported_key_types
         self.sub_dict['MASTER_KEY_TYPE'] = mkey_type
