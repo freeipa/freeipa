@@ -21,8 +21,12 @@
 Test the `ipaserver/plugins/selfservice.py` module.
 """
 
-from ipalib import errors
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative
+from ipalib import api, errors
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, XMLRPC_test, assert_attr_equal,
+)
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
+from ipatests.util import change_principal, unlock_principal_password
 import pytest
 
 selfservice1 = u'testself'
@@ -394,3 +398,355 @@ class test_selfservice_misc(Declarative):
             ),
         ),
     ]
+
+
+SS_USER1 = 'ssuser0001'
+SS_USER1_PASSWORD = 'Passw0rd1'
+SS_USER2 = 'ssuser0002'
+SS_USER2_PASSWORD = 'Passw0rd2'
+SS_GOOD_MANAGER = 'ss_good_manager'
+SS_GOOD_MANAGER_PASSWORD = 'Passw0rd3'
+
+SS_DEFAULT_SELFSERVICE = 'User Self service'
+SS_CUSTOM_RULE = 'ss_test_rule0001'
+
+SS_DEFAULT_SELFSERVICE_ATTRS = [
+    'givenname', 'sn', 'cn', 'displayname', 'title', 'initials',
+    'loginshell', 'gecos', 'homephone', 'mobile', 'pager',
+    'facsimiletelephonenumber', 'telephonenumber', 'street',
+    'roomnumber', 'l', 'st', 'postalcode', 'manager', 'secretary',
+    'description', 'carlicense', 'labeleduri', 'inetuserhttpurl',
+    'seealso', 'employeetype', 'businesscategory', 'ou',
+]
+
+SS_CUSTOM_RULE_ATTRS = [
+    'mobile', 'pager',
+    'facsimiletelephonenumber', 'telephonenumber',
+]
+
+
+def _safe_del_selfservice(name):
+    """Delete a selfservice rule, ignoring NotFound."""
+    try:
+        api.Command['selfservice_del'](name)
+    except errors.NotFound:
+        pass
+
+
+@pytest.fixture
+def custom_selfservice_rule(xmlrpc_setup):
+    """Replace the default selfservice rule with the narrow custom rule."""
+    api.Command['selfservice_del'](SS_DEFAULT_SELFSERVICE)
+    api.Command['selfservice_add'](
+        SS_CUSTOM_RULE, attrs=SS_CUSTOM_RULE_ATTRS,
+    )
+    yield
+    _safe_del_selfservice(SS_CUSTOM_RULE)
+    api.Command['selfservice_add'](
+        SS_DEFAULT_SELFSERVICE, attrs=SS_DEFAULT_SELFSERVICE_ATTRS,
+    )
+
+
+@pytest.fixture(scope='class')
+def ss_user1(request, xmlrpc_setup):
+    tracker = UserTracker(
+        name=SS_USER1, givenname='Test', sn='User0001',
+        userpassword=SS_USER1_PASSWORD,
+    )
+    tracker.make_fixture(request)
+    tracker.make_create_command()()
+    tracker.exists = True
+    unlock_principal_password(
+        SS_USER1, SS_USER1_PASSWORD, SS_USER1_PASSWORD,
+    )
+    return tracker
+
+
+@pytest.fixture(scope='class')
+def ss_user2(request, xmlrpc_setup):
+    tracker = UserTracker(
+        name=SS_USER2, givenname='Test', sn='User0002',
+        userpassword=SS_USER2_PASSWORD,
+    )
+    tracker.make_fixture(request)
+    tracker.make_create_command()()
+    tracker.exists = True
+    unlock_principal_password(
+        SS_USER2, SS_USER2_PASSWORD, SS_USER2_PASSWORD,
+    )
+    return tracker
+
+
+@pytest.fixture(scope='class')
+def ss_good_manager(request, xmlrpc_setup):
+    tracker = UserTracker(
+        name=SS_GOOD_MANAGER, givenname='Good', sn='Manager',
+        userpassword=SS_GOOD_MANAGER_PASSWORD,
+    )
+    tracker.make_fixture(request)
+    tracker.make_create_command()()
+    tracker.exists = True
+    unlock_principal_password(
+        SS_GOOD_MANAGER, SS_GOOD_MANAGER_PASSWORD, SS_GOOD_MANAGER_PASSWORD,
+    )
+    return tracker
+
+
+@pytest.mark.tier1
+@pytest.mark.usefixtures('ss_user1', 'ss_user2', 'ss_good_manager')
+class test_selfservice_users(XMLRPC_test):
+    """Test self-service user attribute modification permissions."""
+
+    # usertest_1001: Set all attrs allowed by default self-service rule.
+    def test_set_all_default_selfservice_attrs(self):
+        """Set all attrs allowed by the default self-service rule."""
+        attrs = {
+            'givenname': 'Good',
+            'sn': 'User',
+            'cn': 'gooduser',
+            'displayname': 'gooduser',
+            'initials': 'GU',
+            'gecos': 'gooduser@good.example.com',
+            'loginshell': '/bin/bash',
+            'street': 'Good_Street_Rd',
+            'l': 'Good_City',
+            'st': 'Goodstate',
+            'postalcode': '33333',
+            'telephonenumber': '333-333-3333',
+            'mobile': '333-333-3333',
+            'pager': '333-333-3333',
+            'facsimiletelephonenumber': '333-333-3333',
+            'ou': 'good-org',
+            'title': 'good_admin',
+            'manager': SS_GOOD_MANAGER,
+            'carlicense': 'good-3333',
+        }
+
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            for attr, value in attrs.items():
+                api.Command['user_mod'](SS_USER1, **{attr: value})
+
+        entry = api.Command['user_show'](SS_USER1, all=True)['result']
+        for attr, value in attrs.items():
+            assert_attr_equal(entry, attr, value)
+
+    # usertest_1002: Test that default disallowed attributes are rejected.
+    def test_reject_uidnumber_by_default(self):
+        """uidnumber change is rejected by default."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](SS_USER1, uidnumber=9999)
+
+    def test_reject_gidnumber_by_default(self):
+        """gidnumber change is rejected by default."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](SS_USER1, gidnumber=9999)
+
+    def test_reject_homedirectory_by_default(self):
+        """homedirectory change is rejected by default."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](
+                    SS_USER1, homedirectory='/home/gooduser')
+
+    def test_reject_email_by_default(self):
+        """email change is rejected by default."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](
+                    SS_USER1, mail='gooduser@good.example.com')
+
+    # usertest_1003: All attrs rejected when the default rule is deleted.
+    def test_all_attrs_rejected_without_default_rule(self):
+        """All attrs are rejected when the default rule is deleted."""
+        attrs = {
+            'givenname': 'Bad',
+            'sn': 'LUser',
+            'cn': 'badluser',
+            'displayname': 'badluser',
+            'initials': 'BL',
+            'gecos': 'badluser@bad.example.com',
+            'loginshell': '/bin/tcsh',
+            'street': 'Bad_Street_Av',
+            'l': 'Bad_City',
+            'st': 'Badstate',
+            'postalcode': '99999',
+            'telephonenumber': '999-999-9999',
+            'mobile': '999-999-9999',
+            'pager': '999-999-9999',
+            'facsimiletelephonenumber': '999-999-9999',
+            'ou': 'bad-org',
+            'title': 'bad_admin',
+            'manager': 'admin',
+            'carlicense': 'bad-9999',
+        }
+
+        api.Command['selfservice_del'](SS_DEFAULT_SELFSERVICE)
+        try:
+            with change_principal(SS_USER1, SS_USER1_PASSWORD):
+                for attr, value in attrs.items():
+                    with pytest.raises(errors.ACIError):
+                        api.Command['user_mod'](SS_USER1, **{attr: value})
+        finally:
+            api.Command['selfservice_add'](
+                SS_DEFAULT_SELFSERVICE,
+                attrs=SS_DEFAULT_SELFSERVICE_ATTRS,
+            )
+
+    # usertest_1004: Custom rule grants write access to its specified attrs.
+    def test_custom_rule_grants_write_access(
+            self, custom_selfservice_rule):
+        """Custom rule grants write access to its specified attrs."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            api.Command['user_mod'](
+                SS_USER1, telephonenumber='777-777-7777')
+            api.Command['user_mod'](SS_USER1, mobile='777-777-7777')
+            api.Command['user_mod'](SS_USER1, pager='777-777-7777')
+            api.Command['user_mod'](
+                SS_USER1,
+                facsimiletelephonenumber='777-777-7777')
+
+    # usertest_1005: Persisted attrs and user-find by phone, fax, manager.
+    def test_verify_persisted_attrs(self):
+        """Verify attrs set by previous tests are persisted."""
+        expected = {
+            'givenname': 'Good',
+            'sn': 'User',
+            'cn': 'gooduser',
+            'displayname': 'gooduser',
+            'initials': 'GU',
+            'gecos': 'gooduser@good.example.com',
+            'loginshell': '/bin/bash',
+            'street': 'Good_Street_Rd',
+            'l': 'Good_City',
+            'st': 'Goodstate',
+            'postalcode': '33333',
+            'telephonenumber': '777-777-7777',
+            'mobile': '777-777-7777',
+            'pager': '777-777-7777',
+            'facsimiletelephonenumber': '777-777-7777',
+            'ou': 'good-org',
+            'title': 'good_admin',
+            'carlicense': 'good-3333',
+        }
+
+        entry = api.Command['user_show'](SS_USER1, all=True)['result']
+        for attr, value in expected.items():
+            assert_attr_equal(entry, attr, value)
+        assert_attr_equal(entry, 'manager', SS_GOOD_MANAGER)
+
+    def test_user_find_by_phone(self):
+        """BZ 1188195: user-find by phone number returns results."""
+        result = api.Command['user_find'](
+            telephonenumber='777-777-7777')
+        assert result['count'] >= 1
+        uids = [e['uid'][0] for e in result['result']]
+        assert SS_USER1 in uids
+
+    def test_user_find_by_fax(self):
+        """BZ 1188195: user-find by fax number returns results."""
+        result = api.Command['user_find'](
+            facsimiletelephonenumber='777-777-7777')
+        assert result['count'] >= 1
+        uids = [e['uid'][0] for e in result['result']]
+        assert SS_USER1 in uids
+
+    def test_user_find_by_manager(self):
+        """BZ 781208: user-find by manager returns matches."""
+        result = api.Command['user_find'](
+            SS_USER1, manager=SS_GOOD_MANAGER)
+        assert result['count'] >= 1, (
+            'BZ 781208: user-find --manager did not find matches'
+        )
+        uids = [e['uid'][0] for e in result['result']]
+        assert SS_USER1 in uids
+
+    # usertest_1006: BZ 985016, 967509: user can modify an allowed attr.
+    def test_user_can_modify_allowed_attr(self):
+        """BZ 985016, 967509: user can modify an allowed attr."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            api.Command['user_mod'](SS_USER1, mobile='888-888-8888')
+        entry = api.Command['user_show'](SS_USER1, all=True)['result']
+        assert_attr_equal(entry, 'mobile', '888-888-8888')
+
+    # usertest_1007: BZ 985016, 967509: disallowed attribute is rejected.
+    def test_disallowed_attr_rejected_with_custom_rule(
+            self, custom_selfservice_rule):
+        """BZ 985016, 967509: disallowed attribute is rejected."""
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](SS_USER1, title='Dr')
+
+    # usertest_1008: user-mod fails atomically on mixed attr permissions.
+    def test_user_mod_atomic_failure_mixed_perms(
+            self, custom_selfservice_rule):
+        """user-mod fails atomically when one attr is disallowed."""
+        original_title = api.Command['user_show'](
+            SS_USER1)['result'].get('title')
+        with change_principal(SS_USER1, SS_USER1_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](
+                    SS_USER1,
+                    title='notgonnawork',
+                    telephonenumber='999-999-9990',
+                )
+        result = api.Command['user_find'](
+            SS_USER1, telephonenumber='999-999-9990')
+        assert result['count'] == 0, (
+            'Phone was changed despite disallowed title in same call'
+        )
+        after = api.Command['user_show'](SS_USER1)['result']
+        assert after.get('title') == original_title, (
+            'Title was modified despite being disallowed'
+        )
+
+    # usertest_1009: BZ 985013: user can change their own password.
+    def test_self_password_change_via_passwd(self):
+        """BZ 985013: user can change their own password via passwd."""
+        policy = api.Command['pwpolicy_show']()['result']
+        orig_minlife = policy.get('krbminpwdlife', ('1',))[0]
+
+        api.Command['pwpolicy_mod'](krbminpwdlife=0)
+        try:
+            with change_principal(SS_USER1, SS_USER1_PASSWORD):
+                api.Command['passwd'](
+                    SS_USER1,
+                    password='MyN3wP@55',
+                    current_password=SS_USER1_PASSWORD,
+                )
+            # Reset password so the next test can authenticate
+            unlock_principal_password(
+                SS_USER1, 'MyN3wP@55', SS_USER1_PASSWORD,
+            )
+        finally:
+            api.Command['pwpolicy_mod'](krbminpwdlife=int(orig_minlife))
+
+    def test_self_password_change_via_user_mod(self):
+        """BZ 985013: user can change their own password via user_mod."""
+        policy = api.Command['pwpolicy_show']()['result']
+        orig_minlife = policy.get('krbminpwdlife', ('1',))[0]
+
+        api.Command['pwpolicy_mod'](krbminpwdlife=0)
+        try:
+            with change_principal(SS_USER1, SS_USER1_PASSWORD):
+                api.Command['user_mod'](
+                    SS_USER1,
+                    userpassword='MyN3wP@55',
+                )
+        finally:
+            api.Command['pwpolicy_mod'](krbminpwdlife=int(orig_minlife))
+
+    # usertest_1010: User cannot modify another user's attributes.
+    def test_cross_user_modification_rejected(self):
+        """User cannot modify another user's attributes."""
+        with change_principal(SS_USER2, SS_USER2_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command['user_mod'](SS_USER1, mobile='867-5309')
+
+    def test_verify_cross_user_modification_rejected(self):
+        """Verify attrs did not change after cross-user modification."""
+        result = api.Command['user_find'](SS_USER1, mobile='867-5309')
+        assert result['count'] == 0, (
+            'Mobile was changed by a different user'
+        )
