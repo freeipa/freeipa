@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.10.2.dev202306060737+git283f5463f\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2023-06-06 09:38+0200\n"
-"PO-Revision-Date: 2026-03-04 18:02+0000\n"
+"PO-Revision-Date: 2026-03-06 14:58+0000\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/freeipa/"
 "ipa-4-10/sv/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.16.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #: client/config.c:56
 #, c-format
@@ -661,7 +661,9 @@ msgstr "json_dumps() misslyckades\n"
 msgid ""
 "JSON-RPC request:\n"
 "%s\n"
-msgstr "JSON-RPC-förfrågan: %s\n"
+msgstr ""
+"JSON-RPC-förfrågan:\n"
+"%s\n"
 
 #: client/ipa-join.c:751
 #, c-format
@@ -684,7 +686,9 @@ msgstr "JSON-RPC-anrop misslyckades med statuskod: %li\n"
 msgid ""
 "JSON-RPC response:\n"
 "%s\n"
-msgstr "JSON-RPC-svar: %s\n"
+msgstr ""
+"JSON-RPC-svar:\n"
+"%s\n"
 
 #: client/ipa-join.c:806
 #, c-format
@@ -967,7 +971,7 @@ msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
-"Varken --del-all eller alternativ för att radera en specifik post finns. "
+"Varken --del-all eller alternativ för att radera en specifik post finns.\n"
 "Kommandohjälp kan konsulteras för alla typer av poster som stöds."
 
 #: ipaclient/plugins/dns.py:347
@@ -1016,8 +1020,8 @@ msgid ""
 "Migration mode is disabled.\n"
 "Use 'ipa config-mod --enable-migration=TRUE' to enable it."
 msgstr ""
-"Migreringsläget är inaktiverat. Använd 'ipa config-mod --enable-"
-"migration=TRUE' för att aktivera det."
+"Migreringsläget är inaktiverat.\n"
+"Använd 'ipa config-mod --enable-migration=TRUE' för att aktivera det."
 
 #: ipaclient/plugins/migration.py:41
 msgid ""
@@ -1027,10 +1031,11 @@ msgid ""
 "login at https://your.domain/ipa/migration/ before they\n"
 "can use their Kerberos accounts."
 msgstr ""
-"Lösenorden har migrerats i förhashat format. IPA kan inte generera Kerberos-"
-"nycklar om inte lösenorden anges i klartext. Alla migrerade användare måste "
-"logga in på https://your.domain/ipa/migration/ innan de kan använda sina "
-"Kerberos-konton."
+"Lösenorden har migrerats i förhashat format.\n"
+"IPA kan inte generera Kerberos-nycklar om inte lösenorden\n"
+"anges i klartext. Alla migrerade användare måste logga in\n"
+"på https://your.domain/ipa/migration/ innan de kan\n"
+"använda sina Kerberos-konton."
 
 #: ipaclient/plugins/server.py:20
 #, python-format
@@ -1087,7 +1092,7 @@ msgid ""
 "the token URI to configure your OTP device"
 msgstr ""
 "Det går inte att visa QR-koden med den konfigurerade utdatakodningen. Använd "
-"token-URI för att konfigurera din OTP-enhet."
+"token-URI för att konfigurera din OTP-enhet"
 
 #: ipaclient/plugins/otptoken.py:83
 msgid ""
@@ -1248,8 +1253,8 @@ msgid ""
 "reading/writing YubiKey tokens directly.\n"
 msgstr ""
 "\n"
-"Denna kod är en utökning av otptoken-pluginet och ger stöd för att läsa/"
-"skriva YubiKey-tokens direkt.\n"
+"Denna kod är en utökning av otptoken-pluginet och ger stöd för att\n"
+"läsa/skriva YubiKey-tokens direkt.\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:47 ipaserver/plugins/dnsserver.py:39
 #: ipaserver/plugins/location.py:37 ipaserver/plugins/radiusproxy.py:43
@@ -1274,8 +1279,8 @@ msgid ""
 "   ipa otptoken-add-yubikey --owner=jdoe --desc=\"My YubiKey\"\n"
 msgstr ""
 "\n"
-" Lägg till en ny token: ipa otptoken-add-yubikey --owner=jdoe --desc=\"My "
-"YubiKey\"\n"
+" Lägg till en ny token:\n"
+"   ipa otptoken-add-yubikey --owner=jdoe --desc=\"My YubiKey\"\n"
 
 #: ipaclient/plugins/otptoken_yubikey.py:72
 msgid "Add a new YubiKey OTP token."
@@ -1308,7 +1313,7 @@ msgstr "Lagt till alternativ \"%(option)s\" till Sudo-regel \"%(rule)s\""
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr ""
-"Alternativet \"%(option)s\" har tagits bort från Sudo-regeln \"%(rule)s\"."
+"Alternativet \"%(option)s\" har tagits bort från Sudo-regeln \"%(rule)s\""
 
 #: ipaclient/plugins/vault.py:68 ipaclient/plugins/vault.py:875
 #, python-format
@@ -1345,7 +1350,7 @@ msgstr "Fil som innehåller den offentliga nyckeln till valvet"
 
 #: ipaclient/plugins/vault.py:258
 msgid "Password can be specified only for symmetric vault"
-msgstr "Lösenord kan endast anges för symmetriska valv."
+msgstr "Lösenord kan endast anges för symmetriska valv"
 
 #: ipaclient/plugins/vault.py:264
 msgid "Public key can be specified only for asymmetric vault"
@@ -1416,7 +1421,7 @@ msgstr "Saknad ny offentlig nyckel för valv"
 #: ipaclient/plugins/vault.py:660 ipaserver/plugins/vault.py:659
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
-msgstr "{algo} är inte en algoritm som stöds för vault wrapping."
+msgstr "{algo} är inte en algoritm som stöds för vault wrapping"
 
 #: ipaclient/plugins/vault.py:755 ipaserver/plugins/vault.py:1033
 msgid "Archive data into a vault."
@@ -1444,7 +1449,7 @@ msgid ""
 "Size of data exceeds the limit. Current vault data size limit is %(limit)d B"
 msgstr ""
 "Datastorleken överskrider gränsen. Den aktuella gränsen för datastorlek i "
-"valvet är %(limit)d B."
+"valvet är %(limit)d B"
 
 #: ipaclient/plugins/vault.py:962 ipaclient/plugins/vault.py:1204
 msgid "Invalid vault type"
@@ -1805,7 +1810,7 @@ msgstr "Ta bort ACI."
 
 #: ipalib/output.py:218 ipaserver/plugins/dns.py:354
 msgid "True means the operation was successful"
-msgstr "True betyder att operationen lyckades."
+msgstr "True betyder att operationen lyckades"
 
 msgid ""
 "\n"
@@ -1850,7 +1855,7 @@ msgid "Primary key only"
 msgstr "Endast primärnyckel"
 
 msgid "Results should contain primary key attribute only (\"name\")"
-msgstr "Resultaten ska endast innehålla primärnyckelattributet (\"namn\")."
+msgstr "Resultaten ska endast innehålla primärnyckelattributet (\"namn\")"
 
 msgid "Number of entries returned"
 msgstr "Antal träffar"
@@ -2081,16 +2086,16 @@ msgid ""
 "Set an attribute to a name/value pair. Format is attr=value.\n"
 "For multi-valued attributes, the command replaces the values already present."
 msgstr ""
-"Ställ in ett attribut till ett namn/värde-par. Formatet är attr=värde. För "
-"attribut med flera värden ersätter kommandot de värden som redan finns."
+"Ställ in ett attribut till ett namn/värde-par. Formatet är attr=värde.\n"
+"För attribut med flera värden ersätter kommandot de värden som redan finns."
 
 #: ipaserver/plugins/baseldap.py:983
 msgid ""
 "Add an attribute/value pair. Format is attr=value. The attribute\n"
 "must be part of the schema."
 msgstr ""
-"Lägg till ett attribut/värdepar. Formatet är attr=value. Attributet måste "
-"ingå i schemat."
+"Lägg till ett attribut/värdepar. Formatet är attr=value.\n"
+"Attributet måste ingå i schemat."
 
 #: ipaserver/plugins/automember.py:184
 msgid "Grouping Type"
@@ -2163,8 +2168,8 @@ msgid ""
 "Delete an attribute/value pair. The option will be evaluated\n"
 "last, after all sets and adds."
 msgstr ""
-"Ta bort ett attribut/värdepar. Alternativet utvärderas sist, efter alla "
-"uppsättningar och tillägg."
+"Ta bort ett attribut/värdepar. Alternativet utvärderas sist,\n"
+"efter alla uppsättningar och tillägg."
 
 #: ipaserver/plugins/baseldap.py:1402 ipaserver/plugins/baseldap.py:1477
 msgid "Rights"
@@ -2544,7 +2549,7 @@ msgid "Search for an automount location."
 msgstr "Sök efter en plats för automatisk montering."
 
 msgid "Results should contain primary key attribute only (\"location\")"
-msgstr "Resultaten ska endast innehålla primärnyckelattributet (\"plats\")."
+msgstr "Resultaten ska endast innehålla primärnyckelattributet (\"plats\")"
 
 #: ipaserver/plugins/automount.py:288
 msgid "Display an automount location."
@@ -3668,7 +3673,7 @@ msgid ""
 "standard format \"IP_ADDRESS port PORT\""
 msgstr ""
 "Globala vidarebefordrare. En anpassad port kan anges för varje "
-"vidarebefordrare med hjälp av standardformatet \"IP_ADDRESS port PORT\"."
+"vidarebefordrare med hjälp av standardformatet \"IP_ADDRESS port PORT\""
 
 #: ipaserver/plugins/dns.py:2049 ipaserver/plugins/dns.py:4105
 msgid "Forward policy"
@@ -3717,7 +3722,7 @@ msgid ""
 "a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
 "Vidarebefordrare per zon. En anpassad port kan anges för varje "
-"vidarebefordrare med hjälp av standardformatet \"IP-ADRESS port PORT\"."
+"vidarebefordrare med hjälp av standardformatet \"IP-ADRESS port PORT\""
 
 msgid ""
 "Per-zone conditional forwarding policy. Set to \"none\" to disable "
@@ -3953,7 +3958,7 @@ msgstr "KX-preferens"
 
 #: ipaserver/plugins/dns.py:1267
 msgid "Preference given to this exchanger. Lower values are more preferred"
-msgstr "Företräde ges till denna växlare. Lägre värden är mer föredragna."
+msgstr "Företräde ges till denna växlare. Lägre värden är mer föredragna"
 
 msgid "KX Exchanger"
 msgstr "KX-växlare"
@@ -4312,7 +4317,7 @@ msgid "SOA minimum"
 msgstr "SOA-minimum"
 
 msgid "How long should negative responses be cached"
-msgstr "Hur länge ska negativa svar cachelagras?"
+msgstr "Hur länge ska negativa svar cachelagras"
 
 msgid "Time to live for records at zone apex"
 msgstr "Dags att leva för rekord i zonens topp"
@@ -20596,7 +20601,7 @@ msgstr ""
 #, python-format
 msgid "%(count)d rules matched"
 msgid_plural "%(count)d rules matched"
-msgstr[0] "%(count)d regler matchade"
+msgstr[0] "%(count)d regel matchade"
 msgstr[1] "%(count)d regler matchade"
 
 #: ipaserver/plugins/automember.py:552
@@ -26001,9 +26006,8 @@ msgid ""
 msgstr ""
 "<i class=\"fa fa-info-circle\"></i> För att logga in med <strong>Kerberos</"
 "strong>, se till att du har giltiga biljetter (kan erhållas via kinit) och "
-"att webbläsaren <a href='${protocol}//${host}/ipa/config/ssbrowser.html'>är</"
-"a> korrekt <a href='${protocol}//${host}/ipa/config/ssbrowser.html'>"
-"konfigurerad</a>, klicka sedan på \"Logga in\"."
+"att du <a href='${protocol}//${host}/ipa/config/ssbrowser.html'>"
+"konfigurerat</a> webbläsaren korrekt, klicka sedan på \"Logga in\"."
 
 #: ipaserver/plugins/internal.py:404
 msgid "Loading"
@@ -27042,7 +27046,7 @@ msgstr "Hoppa över överlappningskontroll"
 #: ipaserver/plugins/internal.py:792
 msgid "Do you want to check if new authoritative nameserver address is in DNS"
 msgstr ""
-"Vill du kontrollera om den nya auktoritära namnserversadressen finns i DNS?"
+"Vill du kontrollera om den nya auktoritära namnserversadressen finns i DNS"
 
 #: ipaserver/plugins/internal.py:793
 msgid "Authoritative nameserver change"
