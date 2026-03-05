@@ -20,7 +20,7 @@ import textwrap
 # Test SSH public key used for migration testing
 TEST_SSHKEY = (
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB5PsFqMAqac5uvri73wVp9B8r1oElyVMlBV"
-    "pNdTZgcI test@example.com"
+    "pNdTZgcI test@example.test"
 )
 
 # Expected SSH key fingerprint for TEST_SSHKEY
@@ -234,6 +234,12 @@ def prepare_ipa_server(master):
     master.run_command(
         ["ipa", "dnszone-mod", "example.test", "--dynamic-update=TRUE"]
     )
+    master.run_command(
+        [
+            "ipa", "dnsrecord-add", "example.test", "migratetest",
+            "--a-rec", "192.0.2.100",
+        ]
+    )
 
     # Add hbac rule
     master.run_command(["ipa", "hbacrule-add", "--usercat=all", "test1"])
@@ -254,7 +260,7 @@ def prepare_ipa_server(master):
             "dnsforwardzone-add",
             "forwardzone.test",
             "--forwarder",
-            "10.11.12.13",
+            "192.168.124.10",
         ]
     )
 
@@ -335,6 +341,11 @@ def prepare_ipa_server(master):
             "--info=-ro,soft,rsize=8192,wsize=8192 "
             f"{master.hostname}:/shared/export",
         ]
+    )
+
+    # Add sysaccount
+    master.run_command(
+        ["ipa", "sysaccount-add", "migrate-test-sysaccount", "--random"]
     )
 
 def run_migrate(
@@ -707,15 +718,15 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         realm_name = self.master.domain.realm
         base_dn = str(self.master.domain.basedn)
         dse_ldif = textwrap.dedent(
-            f"""
+            """
             dn: cn={realm_name},cn=kerberos,{base_dn}
             cn: {realm_name}
             objectClass: top
             objectClass: krbrealmcontainer
             """
         ).format(
-            realm_name=self.master.domain.realm,
-            base_dn=str(self.master.domain.basedn),
+            realm_name=realm_name,
+            base_dn=base_dn,
         )
         self.replicas[0].put_file_contents(ldif_file_path, dse_ldif)
         result = run_migrate(
@@ -774,7 +785,6 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         base_dn = str(self.master.domain.basedn)
         subtree = 'cn=security,{}'.format(base_dn)
         params = ['-s', subtree, '-n', '-x']
-        base_dn = str(self.master.domain.basedn)
         CUSTOM_SUBTREE_LOG = (
             "Add db entry 'cn=security,{} - custom'"
         ).format(base_dn)
@@ -896,7 +906,7 @@ class TestIPAMigrateCLIOptions(MigrationTest):
     def test_ipa_migrate_stage_mode_with_cert(self):
         """
         This testcase checks that ipa-migrate command
-        works without the 'ValuerError'
+        works without the 'ValueError'
         when -Z <cert> option is used with valid cert
         """
         cert_file = '/tmp/ipa.crt'
@@ -921,7 +931,7 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         error when invalid cert is specified with
         -Z option
         """
-        cert_file = '/tmp/invaid_cert.crt'
+        cert_file = '/tmp/invalid_cert.crt'
         invalid_cert = (
             b'-----BEGIN CERTIFICATE-----\n'
             b'MIIFazCCDQYJKoZIhvcNAQELBQAw\n'
@@ -1068,6 +1078,59 @@ class TestIPAMigrationProdMode(MigrationTest):
             ["ipa", "sudocmd-find", sudocmd])
         assert 'Rule name: readfiles\n' in cmd1.stdout_text
         assert 'Sudo Command: /usr/bin/less\n' in cmd2.stdout_text
+
+    def test_ipa_migrate_prod_mode_roles_privileges(self):
+        """
+        Test that IPA roles are migrated from remote to local server
+        """
+        role_name = "junioradmin"
+        privilege_name = "User Administrators"
+        tasks.kinit_admin(self.replicas[0])
+        result = self.replicas[0].run_command(
+            ["ipa", "role-show", role_name]
+        )
+        assert "Role name: {}".format(role_name) in result.stdout_text
+        assert "Privileges: {}".format(privilege_name) in result.stdout_text
+
+    def test_ipa_migrate_prod_mode_permission(self):
+        """
+        Test that PBAC permission is migrated
+        """
+        permission_name = "Add Users"
+        tasks.kinit_admin(self.replicas[0])
+        result = self.replicas[0].run_command(
+            ["ipa", "permission-show", permission_name]
+        )
+        assert (f"Permission name: {permission_name}" in
+                result.stdout_text)
+
+    def test_ipa_migrate_prod_mode_sysaccounts(self):
+        """
+        Test that system accounts (sysaccounts) are migrated
+        from remote server to local server in prod mode.
+        """
+        sysaccount_name = "migrate-test-sysaccount"
+        tasks.kinit_admin(self.replicas[0])
+        result = self.replicas[0].run_command(
+            ["ipa", "sysaccount-show", sysaccount_name]
+        )
+        assert sysaccount_name in result.stdout_text
+        assert (f"System account ID: {sysaccount_name}" in
+                result.stdout_text)
+
+    def test_ipa_migrate_prod_mode_selinuxusermap(self):
+        """
+        Test that SELinux usermap is migrated from remote
+        to local server.
+        """
+        usermap_name = "test1"
+        tasks.kinit_admin(self.replicas[0])
+        result = self.replicas[0].run_command(
+            ["ipa", "selinuxusermap-show", usermap_name]
+        )
+        assert result.returncode == 0
+        assert f"Rule name: {usermap_name}" in result.stdout_text
+        assert "xguest_u:s0" in result.stdout_text
 
     def test_ipa_migrate_prod_mode_new_user_sid(self):
         """
@@ -1267,7 +1330,7 @@ class TestIPAMigrationProdMode(MigrationTest):
             TEST_SSHKEY_FP
         )
         assert expected_fp in result.stdout_text
-        assert "test@example.com" in result.stdout_text
+        assert "test@example.test" in result.stdout_text
         assert "(ssh-ed25519)" in result.stdout_text
 
     def test_sshpubkey_migration_for_stageuser(self):
@@ -1284,7 +1347,7 @@ class TestIPAMigrationProdMode(MigrationTest):
             TEST_SSHKEY_FP
         )
         assert expected_fp in result.stdout_text
-        assert "test@example.com" in result.stdout_text
+        assert "test@example.test" in result.stdout_text
         assert "(ssh-ed25519)" in result.stdout_text
 
     def test_sshpubkey_migration_for_preserved_user(self):
@@ -1301,7 +1364,7 @@ class TestIPAMigrationProdMode(MigrationTest):
             TEST_SSHKEY_FP
         )
         assert expected_fp in result.stdout_text
-        assert "test@example.com" in result.stdout_text
+        assert "test@example.test" in result.stdout_text
         assert "(ssh-ed25519)" in result.stdout_text
 
     def test_sshpubkey_migration_for_idoverride(self):
@@ -1318,7 +1381,7 @@ class TestIPAMigrationProdMode(MigrationTest):
         # Default output shows fingerprint, not the full key
         expected_fp = "SSH public key: {}".format(TEST_SSHKEY)
         assert expected_fp in result.stdout_text
-        assert "test@example.com" in result.stdout_text
+        assert "test@example.test" in result.stdout_text
         assert "ssh-ed25519" in result.stdout_text
 
     def test_ipa_migrate_skip_replication_conflicts(self):
@@ -1388,6 +1451,89 @@ class TestIPAMigrationProdMode(MigrationTest):
 
         assert result.returncode == 0
         assert "Skipping replication conflict entry" in install_msg
+
+
+class TestIPAMigrationDNSRecords(MigrationTest):
+    """
+    Tests to verify all DNS zones, forward zones, and DNS records
+    are migrated when ipa-migrate is run with --migrate-dns (-B).
+    "By default all DNS entries are migrated" / -B to migrate DNS.
+    """
+    num_replicas = 1
+    num_clients = 1
+    topology = "line"
+
+    @pytest.fixture(autouse=True)
+    def run_migration_with_dns(self):
+        """
+        Run full prod-mode migration with -B so that DNS is migrated
+        to the local server. All tests in this class assume DNS has
+        been migrated.
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-B", "-n"],
+        )
+
+    def test_dns_zone_example_test_migrated(self):
+        """
+        Check that DNS zone example.test (from prepare_ipa_server)
+        is migrated to the local server.
+        """
+        zone_name = "example.test"
+        result = self.replicas[0].run_command(
+            ["ipa", "dnszone-show", zone_name]
+        )
+        assert result.returncode == 0
+        assert "Zone name: {}".format(zone_name) in result.stdout_text
+
+    def test_dns_zone_dynamic_update_preserved(self):
+        """
+        Check that zone attribute dynamic update is preserved
+        (prepare_ipa_server sets dynamic-update=TRUE for example.test).
+        """
+        zone_name = "example.test"
+        result = self.replicas[0].run_command(
+            ["ipa", "dnszone-show", zone_name]
+        )
+        assert result.returncode == 0
+        assert "Dynamic update: True" in result.stdout_text
+
+    def test_dns_zone_has_system_records(self):
+        """
+        Check that migrated zone has system records (NS/SOA).
+        """
+        zone_name = "example.test"
+        result = self.replicas[0].run_command(
+            ["ipa", "dnsrecord-find", zone_name]
+        )
+        assert result.returncode == 0
+        # Zone should have records (e.g. NS, SOA, or record list)
+        assert (
+            "NS record" in result.stdout_text
+            or "SOA record" in result.stdout_text
+            or "Record name" in result.stdout_text
+        )
+
+    def test_dns_record_a_migrated(self):
+        """
+        Verify that the A record added in prepare_ipa_server is
+        migrated to the local server.
+        """
+        zone_name = "example.test"
+        record_name = "migratetest"
+        record_value = "192.0.2.100"
+        result = self.replicas[0].run_command(
+            ["ipa", "dnsrecord-show", zone_name, record_name]
+        )
+        assert record_name in result.stdout_text
+        assert record_value in result.stdout_text
 
 
 class TestIPAMigrationWithADtrust(IntegrationTest):
@@ -1521,9 +1667,9 @@ class TestIPAMigratewithBackupRestore(IntegrationTest):
         DB_LDIF_FILE = '{}-userRoot.ldif'.format(
             dashed_domain_name
         )
-        SCHEMA_LDIF_FILE = '{}''/config_files/schema/99user.ldif'.format(
+        SCHEMA_LDIF_FILE = "{}/config_files/schema/99user.ldif".format(
             dashed_domain_name)
-        CONFIG_LDIF_FILE = '{}''/config_files/dse.ldif'.format(
+        CONFIG_LDIF_FILE = "{}/config_files/dse.ldif".format(
             dashed_domain_name)
         param = [
             '-n', '-g', CONFIG_LDIF_FILE, '-m', SCHEMA_LDIF_FILE,
