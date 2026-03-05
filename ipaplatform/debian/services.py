@@ -159,6 +159,8 @@ def debian_service_class_factory(name, api=None):
         return redhat_services.RedHatCAService(name, api)
     if name == 'ntpd':
         return DebianSysvService("ntp", api)
+    if name == 'krb5kdc':
+        return redhat_services.RedHatKRB5KDCService(name, api)
     return DebianService(name, api)
 
 
