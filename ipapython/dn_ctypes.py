@@ -8,8 +8,6 @@ from __future__ import absolute_import
 import ctypes
 import ctypes.util
 
-import six
-
 __all__ = ("str2dn", "dn2str", "DECODING_ERROR", "LDAPError")
 
 # load reentrant ldap client library (libldap_r-*.so.2 or libldap.so.2)
@@ -43,10 +41,6 @@ class berval(ctypes.Structure):
 
     def __str__(self):
         return self.__bytes__().decode("utf-8")
-
-    if six.PY2:
-        __unicode__ = __str__
-        __str__ = __bytes__
 
 
 class LDAPAVA(ctypes.Structure):
@@ -134,7 +128,7 @@ def dn2str(dn):
 def str2dn(dn, flags=0):
     if dn is None:
         return []
-    if isinstance(dn, six.text_type):
+    if isinstance(dn, str):
         dn = dn.encode("utf-8")
 
     ldapdn = LDAPDN()
@@ -156,8 +150,8 @@ def str2dn(dn, flags=0):
                 ava = ava_p[0]
                 avas.append(
                     (
-                        six.text_type(ava.la_attr),
-                        six.text_type(ava.la_value),
+                        str(ava.la_attr),
+                        str(ava.la_value),
                         ava.la_flags & AVA_MASK,
                     )
                 )

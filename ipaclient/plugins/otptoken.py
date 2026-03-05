@@ -32,13 +32,9 @@ from ipapython.version import API_VERSION
 import locale
 import qrcode
 
-import six
 from io import StringIO
 import urllib.parse
 import urllib.request
-
-if six.PY3:
-    unicode = str
 
 register = Registry()
 
@@ -93,7 +89,7 @@ class otptoken_add(MethodOverride):
         if 'version' in options:
             pass
         elif self.api.env.skip_version_check:
-            options['version'] = u'2.0'
+            options['version'] = '2.0'
         else:
             options['version'] = API_VERSION
 

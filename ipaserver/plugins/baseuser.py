@@ -21,7 +21,6 @@ import base64
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 import re
-import six
 
 from ipalib import api, errors, constants, messages
 from ipalib import (
@@ -54,9 +53,6 @@ from ipalib.util import (
     ensure_krbcanonicalname_set
 )
 
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Baseuser
@@ -119,7 +115,7 @@ def normalize_user_principal(value):
     lowercase_components = ((principal.username.lower(),) +
                             principal.components[1:])
 
-    return unicode(
+    return str(
         kerberos.Principal(lowercase_components, realm=principal.realm))
 
 
@@ -430,8 +426,8 @@ class baseuser(LDAPObject):
             cli_name='user_auth_type',
             label=_('User authentication types'),
             doc=_('Types of supported user authentication'),
-            values=(u'password', u'radius', u'otp', u'pkinit', u'hardened',
-                    u'idp', u'passkey'),
+            values=('password', 'radius', 'otp', 'pkinit', 'hardened',
+                    'idp', 'passkey'),
         ),
         Str('userclass*',
             cli_name='class',
@@ -532,7 +528,7 @@ class baseuser(LDAPObject):
             for m in email:
                 if isinstance(m, str):
                     if '@' not in m and defaultdomain:
-                        m = m + u'@' + defaultdomain
+                        m = m + '@' + defaultdomain
                     if not Email(m):
                         raise errors.ValidationError(name='email', error=_('invalid e-mail format: %(email)s') % dict(email=m))
                     norm_email.append(m)
@@ -625,10 +621,10 @@ class baseuser_add(LDAPCreate):
         set_krbcanonicalname(entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
         if entry_attrs.get('ipatokenradiususername', None):
-            add_missing_object_class(ldap, u'ipatokenradiusproxyuser', dn,
+            add_missing_object_class(ldap, 'ipatokenradiusproxyuser', dn,
                                      entry_attrs, update=False)
         if entry_attrs.get('ipauserauthtype', None):
-            add_missing_object_class(ldap, u'ipauserauthtypeclass', dn,
+            add_missing_object_class(ldap, 'ipauserauthtypeclass', dn,
                                      entry_attrs, update=False)
         if (
             entry_attrs.get('ipaidpconfiglink', None)
@@ -831,7 +827,9 @@ class baseuser_mod(LDAPUpdate):
         self.preserve_krbprincipalname_post(ldap, entry_attrs, **options)
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+                entry_attrs['randompassword'] = str(
+                    getattr(context, 'randompassword')
+                )
             except AttributeError:
                 # if both randompassword and userpassword options were used
                 pass
@@ -990,7 +988,7 @@ class ModCertMapData(LDAPModAttribute):
 
     @staticmethod
     def _build_mapdata(subject, issuer):
-        return u'X509:<I>{issuer}<S>{subject}'.format(
+        return 'X509:<I>{issuer}<S>{subject}'.format(
             issuer=issuer.x500_text(), subject=subject.x500_text())
 
     @classmethod
@@ -1101,7 +1099,7 @@ class baseuser_add_certmapdata(ModCertMapData, LDAPAddAttribute):
         # The objectclass ipacertmapobject may not be present on
         # existing user entries. We need to add it if we define a new
         # value for ipacertmapdata
-        add_missing_object_class(ldap, u'ipacertmapobject', dn)
+        add_missing_object_class(ldap, 'ipacertmapobject', dn)
 
         return dn
 
@@ -1129,7 +1127,7 @@ class baseuser_add_passkey(ModPassKey, LDAPAddAttribute):
         # The objectclass ipafpasskeyuser may not be present on
         # existing user entries. We need to add it if we define a new
         # value for ipapasskey
-        add_missing_object_class(ldap, u'ipapasskeyuser', dn)
+        add_missing_object_class(ldap, 'ipapasskeyuser', dn)
 
         return dn
 

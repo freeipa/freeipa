@@ -27,33 +27,33 @@ versions they were introduced in.
 
 from ipapython.ipautil import APIVersion
 
-VERSION_WITHOUT_CAPABILITIES = u'2.51'
+VERSION_WITHOUT_CAPABILITIES = '2.51'
 
 capabilities = dict(
     # messages: Server output may include an extra key, "messages", that
     # contains a list of warnings and other messages.
     # http://freeipa.org/page/V3/Messages
-    messages=u'2.52',
+    messages='2.52',
 
     # optional_uid_params: Before this version, UID & GID parameter defaults
     # were 999, which meant "assign dynamically", so was not possible to get
     # a user with UID=999. With the capability, these parameters are optional
     # and 999 really means 999.
     # https://fedorahosted.org/freeipa/ticket/2886
-    optional_uid_params=u'2.54',
+    optional_uid_params='2.54',
 
     # permissions2: Reworked permission system
     # http://www.freeipa.org/page/V3/Permissions_V2
-    permissions2=u'2.69',
+    permissions2='2.69',
 
     # primary_key_types: Non-unicode primary keys in command output
-    primary_key_types=u'2.83',
+    primary_key_types='2.83',
 
     # support for datetime values on the client
-    datetime_values=u'2.84',
+    datetime_values='2.84',
 
     # dns_name_values: dnsnames as objects
-    dns_name_values=u'2.88',
+    dns_name_values='2.88',
 
     # vault supports aes key wrapping
     vault_aes_keywrap='2.246'

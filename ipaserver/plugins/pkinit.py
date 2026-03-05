@@ -52,7 +52,7 @@ class pkinit(Object):
             cli_name='status',
             label=_('PKINIT status'),
             doc=_('Whether PKINIT is enabled or disabled'),
-            values=(u'enabled', u'disabled'),
+            values=('enabled', 'disabled'),
             flags={'virtual_attribute', 'no_create', 'no_update'}
         )
     )
@@ -99,12 +99,12 @@ class pkinit_status(Search):
 
         for s in servers:
             pkinit_status = {
-                u'server_server': s,
-                u'status': (
-                    u'enabled' if s in pkinit_servers else u'disabled'
+                'server_server': s,
+                'status': (
+                    'enabled' if s in pkinit_servers else 'disabled'
                 )
             }
-            if status is not None and pkinit_status[u'status'] != status:
+            if status is not None and pkinit_status['status'] != status:
                 continue
 
             yield pkinit_status

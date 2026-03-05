@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',
     'memberindirect', 'memberofindirect',)
 
-DOMAIN_RESOLUTION_ORDER_SEPARATOR = u':'
+DOMAIN_RESOLUTION_ORDER_SEPARATOR = ':'
 
 __doc__ = _("""
 Server configuration
@@ -181,219 +181,268 @@ class config(LDAPObject):
     label_singular = _('Configuration')
 
     takes_params = (
-        Int('ipamaxusernamelength',
+        Int(
+            'ipamaxusernamelength',
             cli_name='maxusername',
             label=_('Maximum username length'),
             minvalue=1,
             maxvalue=255,
         ),
-        Int('ipamaxhostnamelength',
+        Int(
+            'ipamaxhostnamelength',
             cli_name='maxhostname',
             label=_('Maximum hostname length'),
             minvalue=MAXHOSTNAMELEN,
-            maxvalue=255,),
-        IA5Str('ipahomesrootdir',
+            maxvalue=255,
+        ),
+        IA5Str(
+            'ipahomesrootdir',
             cli_name='homedirectory',
             label=_('Home directory base'),
             doc=_('Default location of home directories'),
         ),
-        Str('ipadefaultloginshell',
+        Str(
+            'ipadefaultloginshell',
             cli_name='defaultshell',
             label=_('Default shell'),
             doc=_('Default shell for new users'),
         ),
-        Str('ipadefaultprimarygroup',
+        Str(
+            'ipadefaultprimarygroup',
             cli_name='defaultgroup',
             label=_('Default users group'),
             doc=_('Default group for new users'),
         ),
-        Str('ipadefaultemaildomain?',
+        Str(
+            'ipadefaultemaildomain?',
             validate_emaildomain,
             cli_name='emaildomain',
             label=_('Default e-mail domain'),
             doc=_('Default e-mail domain'),
         ),
-        Int('ipasearchtimelimit',
+        Int(
+            'ipasearchtimelimit',
             cli_name='searchtimelimit',
             label=_('Search time limit'),
-            doc=_('Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)'),
+            doc=_(
+                'Maximum amount of time (seconds) for a search '
+                '(-1 or 0 is unlimited)'
+            ),
             minvalue=-1,
         ),
-        Int('ipasearchrecordslimit',
+        Int(
+            'ipasearchrecordslimit',
             validate_search_records_limit,
             cli_name='searchrecordslimit',
             label=_('Search size limit'),
             doc=_('Maximum number of records to search (-1 or 0 is unlimited)'),
         ),
-        IA5Str('ipausersearchfields',
+        IA5Str(
+            'ipausersearchfields',
             cli_name='usersearch',
             label=_('User search fields'),
-            doc=_('A comma-separated list of fields to search in when searching for users'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for users'
+            ),
         ),
-        IA5Str('ipagroupsearchfields',
+        IA5Str(
+            'ipagroupsearchfields',
             cli_name='groupsearch',
             label=_('Group search fields'),
-            doc=_('A comma-separated list of fields to search in when searching for groups'),
+            doc=_(
+                'A comma-separated list of fields to search in when searching '
+                'for groups'
+            ),
         ),
-        Bool('ipamigrationenabled',
+        Bool(
+            'ipamigrationenabled',
             cli_name='enable_migration',
             label=_('Enable migration mode'),
             doc=_('Enable migration mode'),
         ),
-        DNParam('ipacertificatesubjectbase',
+        DNParam(
+            'ipacertificatesubjectbase',
             cli_name='subject',
             label=_('Certificate Subject base'),
             doc=_('Base for certificate subjects (OU=Test,O=Example)'),
             flags=['no_update'],
         ),
-        Str('ipagroupobjectclasses+',
+        Str(
+            'ipagroupobjectclasses+',
             cli_name='groupobjectclasses',
             label=_('Default group objectclasses'),
             doc=_('Default group objectclasses (comma-separated list)'),
         ),
-        Str('ipauserobjectclasses+',
+        Str(
+            'ipauserobjectclasses+',
             cli_name='userobjectclasses',
             label=_('Default user objectclasses'),
             doc=_('Default user objectclasses (comma-separated list)'),
         ),
-        Int('ipapwdexpadvnotify',
+        Int(
+            'ipapwdexpadvnotify',
             cli_name='pwdexpnotify',
             label=_('Password Expiration Notification (days)'),
-            doc=_('Number of days\'s notice of impending password expiration'),
+            doc=_("Number of days's notice of impending password expiration"),
             minvalue=0,
         ),
-        StrEnum('ipaconfigstring*',
+        StrEnum(
+            'ipaconfigstring*',
             cli_name='ipaconfigstring',
             label=_('Password plugin features'),
             doc=_('Extra hashes to generate in password plug-in'),
-            values=(u'AllowNThash',
-                    u'KDC:Disable Last Success', u'KDC:Disable Lockout',
-                    u'KDC:Disable Default Preauth for SPNs',
-                    u'EnforceLDAPOTP', u'SubID:Disable'),
+            values=(
+                'AllowNThash',
+                'KDC:Disable Last Success',
+                'KDC:Disable Lockout',
+                'KDC:Disable Default Preauth for SPNs',
+                'EnforceLDAPOTP',
+                'SubID:Disable',
+            ),
         ),
-        Str('ipaselinuxusermaporder',
+        Str(
+            'ipaselinuxusermaporder',
             label=_('SELinux user map order'),
-            doc=_('Order in increasing priority of SELinux users, delimited by $'),
+            doc=_(
+                'Order in increasing priority of SELinux users, delimited by $'
+            ),
         ),
-        Str('ipaselinuxusermapdefault?',
+        Str(
+            'ipaselinuxusermapdefault?',
             label=_('Default SELinux user'),
-            doc=_('Default SELinux user when no match is found in SELinux map rule'),
+            doc=_(
+                'Default SELinux user when no match is found in SELinux map '
+                'rule'
+            ),
         ),
-        StrEnum('ipakrbauthzdata*',
+        StrEnum(
+            'ipakrbauthzdata*',
             cli_name='pac_type',
             label=_('Default PAC types'),
             doc=_('Default types of PAC supported for services'),
-            values=(u'MS-PAC', u'PAD', u'nfs:NONE'),
+            values=('MS-PAC', 'PAD', 'nfs:NONE'),
         ),
         StrEnum(
             'ipauserauthtype*',
             cli_name='user_auth_type',
             label=_('Default user authentication types'),
             doc=_('Default types of supported user authentication'),
-            values=(u'password', u'radius', u'otp',
-                    u'pkinit', u'hardened', u'idp', u'passkey', u'disabled'),
+            values=(
+                'password',
+                'radius',
+                'otp',
+                'pkinit',
+                'hardened',
+                'idp',
+                'passkey',
+                'disabled',
+            ),
         ),
-        Bool('ipauserdefaultsubordinateid?',
-             cli_name='user_default_subid',
-             label=_('Enable adding subids to new users'),
-             doc=_('Enable adding subids to new users'),
-             ),
+        Bool(
+            'ipauserdefaultsubordinateid?',
+            cli_name='user_default_subid',
+            label=_('Enable adding subids to new users'),
+            doc=_('Enable adding subids to new users'),
+        ),
         Str(
             'ipa_master_server*',
             label=_('IPA masters'),
             doc=_('List of all IPA masters'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'ipa_master_hidden_server*',
             label=_('Hidden IPA masters'),
             doc=_('List of all hidden IPA masters'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'pkinit_server_server*',
             label=_('IPA master capable of PKINIT'),
             doc=_('IPA master which can process PKINIT requests'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'ca_server_server*',
             label=_('IPA CA servers'),
             doc=_('IPA servers configured as certificate authority'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'ca_server_hidden_server*',
             label=_('Hidden IPA CA servers'),
             doc=_('Hidden IPA servers configured as certificate authority'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'ca_renewal_master_server?',
             label=_('IPA CA renewal master'),
             doc=_('Renewal master for IPA certificate authority'),
-            flags={'virtual_attribute', 'no_create'}
+            flags={'virtual_attribute', 'no_create'},
         ),
         Str(
             'kra_server_server*',
             label=_('IPA KRA servers'),
             doc=_('IPA servers configured as key recovery agent'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'kra_server_hidden_server*',
             label=_('Hidden IPA KRA servers'),
             doc=_('Hidden IPA servers configured as key recovery agent'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'ipadomainresolutionorder?',
             cli_name='domain_resolution_order',
             label=_('Domain resolution order'),
-            doc=_('colon-separated list of domains used for short name'
-                  ' qualification')
+            doc=_(
+                'colon-separated list of domains used for short name'
+                ' qualification'
+            ),
         ),
         Str(
             'dns_server_server*',
             label=_('IPA DNS servers'),
             doc=_('IPA servers configured as domain name server'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'dns_server_hidden_server*',
             label=_('Hidden IPA DNS servers'),
             doc=_('Hidden IPA servers configured as domain name server'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'dnssec_key_master_server?',
             label=_('IPA DNSSec key master'),
             doc=_('DNSec key master'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Flag(
             'enable_sid?',
             label=_('Setup SID configuration'),
             doc=_('New users and groups automatically get a SID assigned'),
-            flags={'virtual_attribute', 'no_create'}
+            flags={'virtual_attribute', 'no_create'},
         ),
         Flag(
             'add_sids?',
             label=_('Add SIDs'),
             doc=_('Add SIDs for existing users and groups'),
-            flags={'virtual_attribute', 'no_create'}
+            flags={'virtual_attribute', 'no_create'},
         ),
         Str(
             'netbios_name?',
             label=_('NetBIOS name of the IPA domain'),
             doc=_('NetBIOS name of the IPA domain'),
-            flags={'virtual_attribute', 'no_create'}
+            flags={'virtual_attribute', 'no_create'},
         ),
         Str(
             'hsm_token_name?',
             label=_('HSM token name'),
             doc=_('The HSM token name storing the CA private keys'),
-            flags={'virtual_attribute', 'no_create', 'no_update'}
+            flags={'virtual_attribute', 'no_create', 'no_update'},
         ),
         Str(
             'ipaservicekeytypesize?',

@@ -11,7 +11,6 @@ from __future__ import print_function, absolute_import
 import logging
 import os
 
-import six
 
 from ipalib.constants import MIN_DOMAIN_LEVEL
 from ipalib import create_api, rpc
@@ -31,8 +30,6 @@ from ipaserver.install.bindinstance import dns_zone_exists
 from ipaserver.dns_data_management import IPASystemRecords
 
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -274,7 +271,7 @@ def retrieve_potential_adtrust_agents(api):
     try:
         # search for existing AD trust agents
         adtrust_agents = api.Command.server_find(
-            servrole=u'AD trust agent', all=True)['result']
+            servrole='AD trust agent', all=True)['result']
     except (errors.DatabaseError, errors.NetworkError) as e:
         logger.error("Could not retrieve a list of adtrust agents: %s", e)
         return None
@@ -350,8 +347,8 @@ def add_new_adtrust_agents(api, options):
 
         # The method trust_enable_agent was added on API version 2.236
         # Specifically request this version in the remote call
-        kwargs = {u'version': u'2.236',
-                  u'enable_compat': options.enable_compat}
+        kwargs = {'version': '2.236',
+                  'enable_compat': options.enable_compat}
         failed_agents = []
         for agent in new_agents:
             # Try to run the ipa-trust-enable-agent script on the agent
@@ -372,7 +369,7 @@ def add_new_adtrust_agents(api, options):
                 client.finalize()
                 client.connect()
                 result = client.forward(
-                    u'trust_enable_agent',
+                    'trust_enable_agent',
                     ipautil.fsdecode(agent),
                     **kwargs)
             except errors.CommandError as e:

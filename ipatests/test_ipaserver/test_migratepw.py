@@ -9,8 +9,8 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.util import assert_equal
 from ipalib import api, errors
 
-testuser = u'tuser'
-password = u'password'
+testuser = 'tuser'
+password = 'password'
 
 
 @pytest.mark.tier1
@@ -25,7 +25,7 @@ class test_migratepw(XMLRPC_test, Unauthorized_HTTP_test):
         """
         Prepare for tests
         """
-        api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
+        api.Command['user_add'](uid=testuser, givenname='Test', sn='User')
         api.Command['passwd'](testuser, password=password)
 
         def fin():

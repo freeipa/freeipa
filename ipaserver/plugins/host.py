@@ -22,7 +22,6 @@ from __future__ import absolute_import
 
 import logging
 
-import six
 
 from ipalib import api, errors, util
 from ipalib import messages
@@ -67,9 +66,6 @@ from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
 from ipapython import kerberos
 from functools import reduce
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Hosts/Machines
@@ -148,7 +144,7 @@ def remove_ptr_rec(ipaddr, fqdn):
 
         # assume that target in PTR record is absolute name (otherwise it is
         # non-standard configuration)
-        delkw = {'ptrrecord': u"%s" % fqdn.make_absolute()}
+        delkw = {'ptrrecord': "%s" % fqdn.make_absolute()}
 
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except (errors.NotFound, errors.AttrValueNotFound):
@@ -256,7 +252,7 @@ def validate_ipaddr(ugettext, ipaddr):
     try:
         CheckedIPAddress(ipaddr)
     except Exception as e:
-        return unicode(e)
+        return str(e)
     return None
 
 
@@ -280,7 +276,7 @@ class HostPassword(Str):
     )
 
     def safe_value(self, value):
-        return u'********'
+        return '********'
 
 
 @register()
@@ -634,8 +630,8 @@ class host(LDAPObject):
                   " Use 'passkey' to allow passkey-based 2FA authentications."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
-                    u'passkey'),
+            values=('radius', 'otp', 'pkinit', 'hardened', 'idp',
+                    'passkey'),
         ),
     ) + ticket_flags_params
 
@@ -727,7 +723,7 @@ class host_add(LDAPCreate):
         if options.get('ip_address') and dns_container_exists(ldap):
             parts = keys[-1].split('.')
             host = parts[0]
-            domain = unicode('.'.join(parts[1:]))
+            domain = str('.'.join(parts[1:]))
             check_reverse = not options.get('no_reverse', False)
             add_records_for_host_validation('ip_address',
                     DNSName(host),
@@ -777,7 +773,7 @@ class host_add(LDAPCreate):
             try:
                 parts = keys[-1].split('.')
                 host = parts[0]
-                domain = unicode('.'.join(parts[1:]))
+                domain = str('.'.join(parts[1:]))
 
                 if options.get('ip_address'):
                     add_reverse = not options.get('no_reverse', False)
@@ -789,12 +785,12 @@ class host_add(LDAPCreate):
                                          add_reverse=add_reverse)
                     del options['ip_address']
 
-                update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
+                update_sshfp_record(domain, str(parts[0]), entry_attrs)
             except Exception as e:
                 self.add_message(messages.FailedToAddHostDNSRecords(reason=e))
         if options.get('random', False):
             try:
-                entry_attrs['randompassword'] = unicode(
+                entry_attrs['randompassword'] = str(
                     getattr(context, 'randompassword'))
             except AttributeError:
                 # On the off-chance some other extension deletes this from the
@@ -993,13 +989,13 @@ class host_mod(LDAPUpdate):
 
         if options.get('updatedns', False) and dns_container_exists(ldap):
             parts = fqdn.split('.')
-            domain = unicode('.'.join(parts[1:]))
+            domain = str('.'.join(parts[1:]))
             try:
                 result = api.Command['dnszone_show'](domain)['result']
                 domain = result['idnsname'][0]
             except errors.NotFound:
                 raise self.obj.handle_not_found(*keys)
-            update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
+            update_sshfp_record(domain, str(parts[0]), entry_attrs)
 
         if 'ipasshpubkey' in entry_attrs:
             if 'objectclass' in entry_attrs:
@@ -1036,7 +1032,9 @@ class host_mod(LDAPUpdate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if options.get('random', False):
-            entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
+            entry_attrs['randompassword'] = str(
+                getattr(context, 'randompassword')
+            )
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
@@ -1321,7 +1319,7 @@ class host_allow_retrieve_keytab(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -1358,7 +1356,7 @@ class host_allow_create_keytab(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -1463,7 +1461,7 @@ class host_allow_add_delegation(LDAPAddMember):
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         rename_ipaallowedtoperform_to_ldap(found)
         rename_ipaallowedtoperform_to_ldap(not_found)
-        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        add_missing_object_class(ldap, 'ipaallowedoperations', dn)
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,

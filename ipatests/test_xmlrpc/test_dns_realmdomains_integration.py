@@ -22,7 +22,6 @@ Test integration of DNS and realmdomains.
 2. realmdomains_mod should add a _kerberos TXT record in the DNS zone.
 """
 
-import six
 
 from ipalib import api, errors
 from ipalib.util import normalize_zone
@@ -32,20 +31,17 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_digits
 import pytest
 
-if six.PY3:
-    unicode = str
 
-
-cn = u'Realm Domains'
+cn = 'Realm Domains'
 dn = DN(('cn', cn), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 our_domain = api.env.domain
-dnszone_1 = u'dnszone.test'
-dnszone_1_absolute = u'%s.' % dnszone_1
+dnszone_1 = 'dnszone.test'
+dnszone_1_absolute = '%s.' % dnszone_1
 dnszone_1_dn = DN(('idnsname', dnszone_1_absolute), api.env.container_dns,
                   api.env.basedn)
-idnssoamname = u'ns1.%s.' % dnszone_1
-idnssoarname = u'root.%s.' % dnszone_1
-dnszone_2 = u'dnszone2.test'
+idnssoamname = 'ns1.%s.' % dnszone_1
+idnssoarname = 'root.%s.' % dnszone_1
+dnszone_2 = 'dnszone2.test'
 dnszone_2_absolute = "%s." % dnszone_2
 dnszone_2_dn = DN(('idnsname', dnszone_2_absolute), api.env.container_dns,
                   api.env.basedn)
@@ -57,15 +53,15 @@ def assert_realmdomain_and_txt_record_present(response):
     zone = response['value']
     if isinstance(zone, (tuple, list)):
         zone = zone[0]
-    zone = unicode(zone)
-    if zone.endswith(u'.'):
+    zone = str(zone)
+    if zone.endswith('.'):
         #realmdomains are without end dot
         zone = zone[:-1]
 
     r = api.Command['realmdomains_show']()
     assert zone in r['result']['associateddomain']
 
-    r = api.Command['dnsrecord_show'](zone, u'_kerberos')
+    r = api.Command['dnsrecord_show'](zone, '_kerberos')
     assert api.env.realm in r['result']['txtrecord']
 
     return True
@@ -75,8 +71,8 @@ def assert_realmdomain_and_txt_record_not_present(response):
     zone = response['value']
     if isinstance(zone, (tuple, list)):
         zone = zone[0]
-    zone = unicode(zone)
-    if zone.endswith(u'.'):
+    zone = str(zone)
+    if zone.endswith('.'):
         #realmdomains are without end dot
         zone = zone[:-1]
 
@@ -84,7 +80,7 @@ def assert_realmdomain_and_txt_record_not_present(response):
     assert zone not in r['result']['associateddomain']
 
     try:
-        api.Command['dnsrecord_show'](zone, u'_kerberos')
+        api.Command['dnsrecord_show'](zone, '_kerberos')
     except errors.NotFound:
         return True
     else:
@@ -123,12 +119,12 @@ class test_dns_realmdomains_integration(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
+                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
+                                         'grant %(realm)s krb5-self * AAAA; '
+                                         'grant %(realm)s krb5-self * SSHFP;'
                                          % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
+                    'idnsallowtransfer': ['none;'],
+                    'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
                 },
             },
@@ -141,8 +137,8 @@ class test_dns_realmdomains_integration(Declarative):
             command=(
                 'dnszone_add', [dnszone_2], {
                     'idnssoarname': idnssoarname,
-                    'idnsforwarders': u'198.18.19.20',
-                    'idnsforwardpolicy': u'only',
+                    'idnsforwarders': '198.18.19.20',
+                    'idnsforwardpolicy': 'only',
                 }
             ),
             expected={
@@ -150,22 +146,22 @@ class test_dns_realmdomains_integration(Declarative):
                 'summary': None,
                 'messages': (
                     {
-                        u'message': u'DNS forwarder semantics changed since '
-                        u'IPA 4.0.\nYou may want to use forward zones '
-                        u'(dnsforwardzone-*) instead.\nFor more details read '
-                        u'the docs.',
-                        u'code': 13002,
-                        u'type': u'warning',
-                        u'name': u'ForwardersWarning',
-                        u'data': {}
+                        'message': 'DNS forwarder semantics changed since '
+                        'IPA 4.0.\nYou may want to use forward zones '
+                        '(dnsforwardzone-*) instead.\nFor more details read '
+                        'the docs.',
+                        'code': 13002,
+                        'type': 'warning',
+                        'name': 'ForwardersWarning',
+                        'data': {}
                     },),
                 'result': {
                     'dn': dnszone_2_dn,
                     'idnsname': [DNSName(dnszone_2_absolute)],
                     'idnszoneactive': [True],
                     'idnssoamname': [self_server_ns_dnsname],
-                    'idnsforwarders': [u'198.18.19.20'],
-                    'idnsforwardpolicy': [u'only'],
+                    'idnsforwarders': ['198.18.19.20'],
+                    'idnsforwardpolicy': ['only'],
                     'nsrecord': lambda x: True,
                     'idnssoarname': [DNSName(idnssoarname)],
                     'idnssoaserial': [fuzzy_digits],
@@ -174,12 +170,12 @@ class test_dns_realmdomains_integration(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [False],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
+                    'idnsupdatepolicy': ['grant %(realm)s krb5-self * A; '
+                                         'grant %(realm)s krb5-self * AAAA; '
+                                         'grant %(realm)s krb5-self * SSHFP;'
                                          % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
+                    'idnsallowtransfer': ['none;'],
+                    'idnsallowquery': ['any;'],
                     'objectclass': objectclasses.dnszone,
 
                 },
@@ -193,7 +189,7 @@ class test_dns_realmdomains_integration(Declarative):
             command=('dnszone_del', [dnszone_1], {}),
             expected={
                 'value': [DNSName(dnszone_1_absolute)],
-                'summary': u'Deleted DNS zone "%s"' % dnszone_1_absolute,
+                'summary': 'Deleted DNS zone "%s"' % dnszone_1_absolute,
                 'result': {'failed': []},
             },
             extra_check=assert_realmdomain_and_txt_record_not_present,

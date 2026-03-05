@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 import logging
 
-import six
 
 from collections import defaultdict, OrderedDict
 from dns import (
@@ -24,8 +23,6 @@ from ipalib.dns import record_name_format
 from ipapython.dnsutil import DNSName
 from ipaserver.install import installutils
 
-if six.PY3:
-    unicode=str
 
 logger = logging.getLogger(__name__)
 
@@ -347,7 +344,7 @@ class IPASystemRecords:
             for rdata in rdataset:
                 option_name = (record_name_format % rdatatype.to_text(
                     rdata.rdtype).lower())
-                update_dict[option_name].append(unicode(rdata.to_text()))
+                update_dict[option_name].append(str(rdata.to_text()))
         return update_dict
 
     def __update_dns_records(

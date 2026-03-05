@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Sudo Commands
@@ -39,18 +31,18 @@ class sudocmd(Object):
         parameters.Str(
             'sudocmd',
             primary_key=True,
-            label=_(u'Sudo Command'),
+            label=_('Sudo Command'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
-            doc=_(u'A description of this command'),
+            label=_('Description'),
+            doc=_('A description of this command'),
         ),
         parameters.Str(
             'memberof_sudocmdgroup',
             required=False,
-            label=_(u'Sudo Command Groups'),
+            label=_('Sudo Command Groups'),
         ),
     )
 
@@ -63,7 +55,7 @@ class sudocmd_add(Method):
         parameters.Str(
             'sudocmd',
             cli_name='command',
-            label=_(u'Sudo Command'),
+            label=_('Sudo Command'),
         ),
     )
     takes_options = (
@@ -71,33 +63,46 @@ class sudocmd_add(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this command'),
+            label=_('Description'),
+            doc=_('A description of this command'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -106,16 +111,16 @@ class sudocmd_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -129,13 +134,13 @@ class sudocmd_del(Method):
             'sudocmd',
             multivalue=True,
             cli_name='command',
-            label=_(u'Sudo Command'),
+            label=_('Sudo Command'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -143,18 +148,18 @@ class sudocmd_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -167,7 +172,7 @@ class sudocmd_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -175,37 +180,43 @@ class sudocmd_find(Method):
             'sudocmd',
             required=False,
             cli_name='command',
-            label=_(u'Sudo Command'),
+            label=_('Sudo Command'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this command'),
+            label=_('Description'),
+            doc=_('A description of this command'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -213,8 +224,10 @@ class sudocmd_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("command")'),
+            label=_('Primary key only'),
+            doc=_(
+                'Results should contain primary key attribute only ("command")'
+            ),
             default=False,
             autofill=True,
         ),
@@ -222,8 +235,8 @@ class sudocmd_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -231,12 +244,12 @@ class sudocmd_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -249,7 +262,7 @@ class sudocmd_mod(Method):
         parameters.Str(
             'sudocmd',
             cli_name='command',
-            label=_(u'Sudo Command'),
+            label=_('Sudo Command'),
         ),
     )
     takes_options = (
@@ -257,47 +270,66 @@ class sudocmd_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'A description of this command'),
+            label=_('Description'),
+            doc=_('A description of this command'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -306,16 +338,16 @@ class sudocmd_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -328,27 +360,36 @@ class sudocmd_show(Method):
         parameters.Str(
             'sudocmd',
             cli_name='command',
-            label=_(u'Sudo Command'),
+            label=_('Sudo Command'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -357,15 +398,15 @@ class sudocmd_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Command
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 IPA certificate operations
@@ -109,17 +101,17 @@ class ca_is_enabled(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -137,88 +129,94 @@ Search for existing certificates.
         parameters.Str(
             'subject',
             required=False,
-            label=_(u'Match cn attribute in subject'),
+            label=_('Match cn attribute in subject'),
         ),
         parameters.Int(
             'revocation_reason',
             required=False,
-            label=_(u'Reason'),
-            doc=_(u'Reason for revoking the certificate (0-10)'),
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
         ),
         parameters.Int(
             'min_serial_number',
             required=False,
-            doc=_(u'minimum serial number'),
+            doc=_('minimum serial number'),
         ),
         parameters.Int(
             'max_serial_number',
             required=False,
-            doc=_(u'maximum serial number'),
+            doc=_('maximum serial number'),
         ),
         parameters.Flag(
             'exactly',
             required=False,
-            doc=_(u'match the common name exactly'),
+            doc=_('match the common name exactly'),
             default=False,
             autofill=True,
         ),
         parameters.Str(
             'validnotafter_from',
             required=False,
-            doc=_(u'Valid not after from this date (YYYY-mm-dd)'),
+            doc=_('Valid not after from this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'validnotafter_to',
             required=False,
-            doc=_(u'Valid not after to this date (YYYY-mm-dd)'),
+            doc=_('Valid not after to this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'validnotbefore_from',
             required=False,
-            doc=_(u'Valid not before from this date (YYYY-mm-dd)'),
+            doc=_('Valid not before from this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'validnotbefore_to',
             required=False,
-            doc=_(u'Valid not before to this date (YYYY-mm-dd)'),
+            doc=_('Valid not before to this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'issuedon_from',
             required=False,
-            doc=_(u'Issued on from this date (YYYY-mm-dd)'),
+            doc=_('Issued on from this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'issuedon_to',
             required=False,
-            doc=_(u'Issued on to this date (YYYY-mm-dd)'),
+            doc=_('Issued on to this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'revokedon_from',
             required=False,
-            doc=_(u'Revoked on from this date (YYYY-mm-dd)'),
+            doc=_('Revoked on from this date (YYYY-mm-dd)'),
         ),
         parameters.Str(
             'revokedon_to',
             required=False,
-            doc=_(u'Revoked on to this date (YYYY-mm-dd)'),
+            doc=_('Revoked on to this date (YYYY-mm-dd)'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of certs returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of certs returned'),
             default=100,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -227,8 +225,8 @@ Search for existing certificates.
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -236,12 +234,12 @@ Search for existing certificates.
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -253,8 +251,10 @@ class cert_remove_hold(Command):
     takes_args = (
         parameters.Str(
             'serial_number',
-            label=_(u'Serial number'),
-            doc=_(u'Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            label=_('Serial number'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
@@ -275,24 +275,27 @@ class cert_request(Command):
         parameters.Str(
             'csr',
             cli_name='csr_file',
-            label=_(u'CSR'),
+            label=_('CSR'),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Str(
             'principal',
-            label=_(u'Principal'),
-            doc=_(u'Service principal for this certificate (e.g. HTTP/test.example.com)'),
+            label=_('Principal'),
+            doc=_(
+                'Service principal for this certificate (e.g. '
+                'HTTP/test.example.com)'
+            ),
         ),
         parameters.Str(
             'request_type',
-            default=u'pkcs10',
+            default='pkcs10',
             autofill=True,
         ),
         parameters.Flag(
             'add',
-            doc=_(u"automatically add the principal if it doesn't exist"),
+            doc=_("automatically add the principal if it doesn't exist"),
             default=False,
             autofill=True,
         ),
@@ -301,7 +304,7 @@ class cert_request(Command):
         output.Output(
             'result',
             dict,
-            doc=_(u'Dictionary mapping variable name to value'),
+            doc=_('Dictionary mapping variable name to value'),
         ),
     )
 
@@ -313,16 +316,18 @@ class cert_revoke(Command):
     takes_args = (
         parameters.Str(
             'serial_number',
-            label=_(u'Serial number'),
-            doc=_(u'Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            label=_('Serial number'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
     takes_options = (
         parameters.Int(
             'revocation_reason',
-            label=_(u'Reason'),
-            doc=_(u'Reason for revoking the certificate (0-10)'),
+            label=_('Reason'),
+            doc=_('Reason for revoking the certificate (0-10)'),
             default=0,
             autofill=True,
         ),
@@ -341,8 +346,10 @@ class cert_show(Command):
     takes_args = (
         parameters.Str(
             'serial_number',
-            label=_(u'Serial number'),
-            doc=_(u'Serial number in decimal or if prefixed with 0x in hexadecimal'),
+            label=_('Serial number'),
+            doc=_(
+                'Serial number in decimal or if prefixed with 0x in hexadecimal'
+            ),
             no_convert=True,
         ),
     )
@@ -350,8 +357,8 @@ class cert_show(Command):
         parameters.Str(
             'out',
             required=False,
-            label=_(u'Output filename'),
-            doc=_(u'File to store the certificate in.'),
+            label=_('Output filename'),
+            doc=_('File to store the certificate in.'),
             exclude=('webui',),
         ),
     )
@@ -369,7 +376,7 @@ class cert_status(Command):
     takes_args = (
         parameters.Str(
             'request_id',
-            label=_(u'Request id'),
+            label=_('Request id'),
         ),
     )
     takes_options = (

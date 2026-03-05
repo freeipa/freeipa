@@ -72,7 +72,7 @@ class HTTPInstance(service.Service):
             service_desc="the web interface",
             fstore=fstore,
             api=api,
-            service_prefix=u'HTTP',
+            service_prefix='HTTP',
             service_user=HTTPD_USER,
             keytab=paths.HTTP_KEYTAB)
 
@@ -421,7 +421,7 @@ class HTTPInstance(service.Service):
     def enable_kdcproxy(self):
         """Add ipaConfigString=kdcProxyEnabled to cn=KDC"""
         service.set_service_entry_config(
-            'KDC', self.fqdn, [u'kdcProxyEnabled'], self.suffix)
+            'KDC', self.fqdn, ['kdcProxyEnabled'], self.suffix)
 
     def create_kdcproxy_conf(self):
         """Create ipa-kdc-proxy.conf in /etc/ipa/kdcproxy"""
