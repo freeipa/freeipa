@@ -10,6 +10,7 @@ import contextlib
 from ipaplatform.base import services as base_services
 from ipapython import ipautil, dogtag
 from ipaplatform.paths import paths
+from ipapython.krb5util import check_and_rotate_keytabs
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +177,17 @@ class SuseNoService(base_services.PlatformService):
     def disable(self):
         pass
 
+
+class SuseKRB5KDCService(SuseService):
+    def start(self, instance_name="", capture_output=True, wait=True):
+        super().start(instance_name, capture_output, wait)
+        self.rotated_keys = check_and_rotate_keytabs(self)
+
+    def restart(self, instance_name="", capture_output=True, wait=True):
+        super().stop(instance_name, capture_output)
+        self.start(instance_name, capture_output, wait)
+
+
 def suse_service_class_factory(name, api):
     if name == "dirsrv":
         return SuseDirectoryService(name, api)
@@ -185,6 +197,8 @@ def suse_service_class_factory(name, api):
         return SuseIPAService(name, api)
     if name in ("pki-tomcatd", "pki_tomcatd"):
         return SuseCAService(name, api)
+    if name == "krb5kdc":
+        return SuseKRB5KDCService(name, api)
     return SuseService(name, api)
 
 

@@ -207,7 +207,6 @@ class RedHatCAService(RedHatService):
 
 
 class RedHatKRB5KDCService(RedHatService):
-    # TODO: Add services for other OSes, should be equal to this
     def start(self, instance_name="", capture_output=True, wait=True):
         super().start(instance_name, capture_output, wait)
         self.rotated_keys = check_and_rotate_keytabs(self)
