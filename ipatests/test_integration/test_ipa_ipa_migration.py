@@ -2,7 +2,7 @@
 #
 
 """
-Tests to verify ipa-migrate tool.
+Integration tests to verify ipa-migrate tool
 """
 
 from __future__ import absolute_import
@@ -27,6 +27,13 @@ TEST_SSHKEY = (
 TEST_SSHKEY_FP = "SHA256:PSDEIT8MJGMMLpyjFS1oFNcnPNB1cWf10LeJGyI2h7M"
 
 TEST_ZONE_FORWARDER = "10.11.12.13"
+
+# Extdom extop plugin cn=config (TestIPAMigrationPluginsMigrated)
+EXTDOM_EXTOP_PLUGIN_DN = "cn=ipa_extdom_extop,cn=plugins,cn=config"
+EXTDOM_EXTOP_BASEDN_ATTR = "nsslapd-basedn"
+# Bogus suffix on replica only before migration (valid DN syntax).
+EXTDOM_EXTOP_REPLICA_BOGUS_BASEDN = "dc=wrong,dc=value"
+
 
 def prepare_ipa_server(master):
     """
@@ -414,7 +421,8 @@ class MigrationTest(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
         prepare_ipa_server(cls.master)
-        tasks.install_client(cls.master, cls.clients[0], nameservers=None)
+        for client in cls.clients:
+            tasks.install_client(cls.master, client, nameservers=None)
         tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True,
                              extra_args=['--allow-zone-overlap'])
 
@@ -1755,3 +1763,137 @@ class TestIPAMigratewithBackupRestore(IntegrationTest):
         )
         assert result.returncode == 0
         assert ERR_MSG not in result.stderr_text
+
+
+class TestIPAMigrationMixedOnlineOffline(MigrationTest):
+    """
+    Tests for IPA-to-IPA migration with mixed online and offline method:
+    config and schema migrated online, database from remote backup LDIF.
+    """
+    num_replicas = 1
+    num_clients = 0
+    topology = "line"
+
+    def test_ipa_migrate_mixed_online_offline(self):
+        """
+        Run mixed migration (config/schema online, DB from LDIF) and verify
+        success, log phases, and that migrated data is present on local.
+        """
+        dashed_domain_name = (
+            self.master.domain.realm.replace(".", "-")
+        )
+        DB_LDIF_FILE = "{}-userRoot.ldif".format(dashed_domain_name)
+        known_user = "testuser1"
+
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+
+        backup_path = tasks.get_backup_dir(self.master)
+        remote_ipa_tar_file = backup_path + "/ipa-full.tar"
+        ipa_tar_file = self.master.get_file_contents(
+            remote_ipa_tar_file
+        )
+        replica_file_name = "/tmp/ipa-full.tar"
+        self.replicas[0].put_file_contents(
+            replica_file_name, ipa_tar_file
+        )
+        self.replicas[0].run_command(
+            ["/usr/bin/tar", "-xvf", replica_file_name]
+        )
+
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-f", DB_LDIF_FILE, "-n"],
+        )
+        assert result.returncode == 0
+
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert "--db-ldif={}".format(DB_LDIF_FILE) in install_msg
+        assert "Migrating schema" in install_msg
+        assert "Migrating configuration" in install_msg
+
+        show_result = self.replicas[0].run_command(
+            ["ipa", "user-show", known_user]
+        )
+        assert "User login: {}".format(known_user) in (
+            show_result.stdout_text)
+
+
+class TestIPAMigrationPluginsMigrated(MigrationTest):
+    """
+    Tests that ipa-migrate carries cn=config attributes listed for the
+    Extdom extop plugin.
+
+    Before migration the replica's ``nsslapd-basedn`` on
+    ``cn=ipa_extdom_extop,cn=plugins,cn=config`` is set to a bogus DN; the
+    source keeps the real IPA suffix. After prod-mode migration the replica
+    must match the source for that attribute.
+    """
+    num_replicas = 1
+    num_clients = 0
+    topology = "line"
+
+    @pytest.fixture(scope="class", autouse=True)
+    def run_prod_mode_migration(self, mh):
+        """Diverge extdom nsslapd-basedn on replica.
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        ldif_template = (
+            "dn: {dn}\n"
+            "changetype: modify\n"
+            "replace: {attr}\n"
+            "{attr}: {value}\n"
+        )
+        tasks.ldapmodify_dm(
+            self.replicas[0],
+            ldif_template.format(
+                dn=EXTDOM_EXTOP_PLUGIN_DN,
+                attr=EXTDOM_EXTOP_BASEDN_ATTR,
+                value=EXTDOM_EXTOP_REPLICA_BOGUS_BASEDN,
+            ),
+        )
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-n"],
+        )
+        assert result.returncode == 0, (
+            "ipa-migrate failed (returncode={}): {}"
+            .format(result.returncode,
+                    result.stderr_text or result.stdout_text)
+        )
+
+    def test_plugin_config_migrated(self):
+        """
+        Replica extdom `nsslapd-basedn` matches source
+        after migration.
+        """
+        expected = str(self.master.domain.basedn)
+        result = tasks.ldapsearch_dm(
+            self.replicas[0],
+            EXTDOM_EXTOP_PLUGIN_DN,
+            [EXTDOM_EXTOP_BASEDN_ATTR],
+            scope="base",
+            raiseonerr=False,
+        )
+        assert re.search(
+            r"^{}:\s*{}$".format(
+                re.escape(EXTDOM_EXTOP_BASEDN_ATTR),
+                re.escape(expected),
+            ),
+            result.stdout_text,
+            re.IGNORECASE | re.MULTILINE,
+        ), (
+            "Expected {}={} on replica after migration; got:\n{}"
+            .format(EXTDOM_EXTOP_BASEDN_ATTR, expected, result.stdout_text)
+        )
