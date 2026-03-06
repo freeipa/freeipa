@@ -6,6 +6,7 @@ Tests to verify ipa-migrate tool.
 """
 
 from __future__ import absolute_import
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
@@ -1464,3 +1465,170 @@ class TestIPAMigratewithBackupRestore(IntegrationTest):
         )
         assert result.returncode == 0
         assert ERR_MSG not in result.stderr_text
+
+
+class TestIPAMigrationMixedOnlineOffline(MigrationTest):
+    """
+    Tests for IPA-to-IPA migration with mixed online and offline method:
+    config and schema migrated online, database from remote backup LDIF.
+    """
+    num_replicas = 1
+    num_clients = 1
+    topology = "line"
+
+    def test_ipa_migrate_mixed_online_offline(self):
+        """
+        Run mixed migration (config/schema online, DB from LDIF) and verify
+        success, log phases, and that migrated data is present on local.
+        """
+        dashed_domain_name = (
+            self.master.domain.realm.replace(".", "-")
+        )
+        DB_LDIF_FILE = "{}-userRoot.ldif".format(dashed_domain_name)
+        known_user = "testuser1"  # from prepare_ipa_server
+
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+
+        # Get backup from remote, copy to replica and extract
+        backup_path = tasks.get_backup_dir(self.master)
+        remote_ipa_tar_file = backup_path + "/ipa-full.tar"
+        ipa_tar_file = self.master.get_file_contents(
+            remote_ipa_tar_file
+        )
+        replica_file_name = "/tmp/ipa-full.tar"
+        self.replicas[0].put_file_contents(
+            replica_file_name, ipa_tar_file
+        )
+        self.replicas[0].run_command(
+            ["/usr/bin/tar", "-xvf", replica_file_name]
+        )
+
+        # Mixed approach: no -g/-m; only -f (DB LDIF).
+        # Config/schema online.
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-f", DB_LDIF_FILE, "-n"],
+        )
+        assert result.returncode == 0
+
+        # Verify log: DB from file and expected migration phases
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert (
+            "--db-ldif=" in install_msg
+            or DB_LDIF_FILE in install_msg
+        )
+        assert "Migrating schema" in install_msg
+        assert "Migrating configuration" in install_msg
+
+        # Verify migrated data: known user from remote
+        # exists on local
+        tasks.kinit_admin(self.replicas[0])
+        show_result = self.replicas[0].run_command(
+            ["ipa", "user-show", known_user]
+        )
+        assert show_result.returncode == 0
+        assert known_user in show_result.stdout_text
+
+
+class TestIPAMigrationPluginsMigrated(MigrationTest):
+    """
+    Tests that Directory Server (cn=config) plugins
+    supported by ipa-migrate (DS_CONFIG) are migrated.
+    """
+    num_replicas = 1
+    num_clients = 1
+    topology = "line"
+
+    # Plugin/config DNs to check after migration
+    MIGRATED_PLUGIN_DNS = [
+        "cn=MemberOf Plugin,cn=plugins,cn=config",
+        "cn=Retro Changelog Plugin,cn=plugins,cn=config",
+        "cn=IPA DNS,cn=plugins,cn=config",
+        (
+            "cn=referential integrity postoperation,cn=plugins,"
+            "cn=config"
+        ),
+        (
+            "cn=Posix IDs,cn=Distributed Numeric Assignment Plugin,"
+            "cn=plugins,cn=config"
+        ),
+        "cn=Schema Compatibility,cn=plugins,cn=config",
+        "cn=IPA Graceperiod,cn=plugins,cn=config",
+        "cn=IPA Lockout,cn=plugins,cn=config",
+        "cn=IPA Topology Configuration,cn=plugins,cn=config",
+        "cn=uid uniqueness,cn=plugins,cn=config",
+        "cn=ipa-winsync,cn=plugins,cn=config",
+        "cn=ipa_enrollment_extop,cn=plugins,cn=config",
+        "cn=ipa_extdom_extop,cn=plugins,cn=config",
+        "cn=ipa_pwd_extop,cn=plugins,cn=config",
+        "cn=sasl,cn=config",
+        "cn=IPA Unique IDs,cn=IPA UUID,cn=plugins,cn=config",
+    ]
+
+    @pytest.fixture(autouse=True)
+    def run_prod_mode_migration(self):
+        """Run prod-mode migration so local server has migrated
+        config/plugins. Fails immediately if migration fails."""
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-n"],
+        )
+        assert result.returncode == 0, (
+            "ipa-migrate failed (returncode={}): {}"
+            .format(result.returncode, result.stderr_text or result.stdout_text)
+        )
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert "Migration complete" in install_msg, (
+            "Migration log does not show completion: check {}"
+            .format(paths.IPA_MIGRATE_LOG)
+        )
+        yield
+
+    @pytest.fixture
+    def migrated_plugin_dns(self):
+        """List of plugin/config DNs that must exist on replica
+        after migration."""
+        return self.MIGRATED_PLUGIN_DNS
+
+    def check_plugin_exist(self, base_dn):
+        """
+        Return True if the given plugin/config LDAP entry
+        exists on the local server (replica) after migration.
+        """
+        result = tasks.ldapsearch_dm(
+            self.replicas[0],
+            base_dn,
+            [],
+            scope="base",
+            raiseonerr=False,
+        )
+        return result.returncode == 0 and "dn:" in result.stdout_text
+
+    def test_plugins_migrated(self, migrated_plugin_dns):
+        """
+        All DS_CONFIG plugins/config entries are present on
+        the local server after prod-mode migration.
+        """
+        missing = [
+            dn for dn in migrated_plugin_dns
+            if not self.check_plugin_exist(dn)
+        ]
+        assert not missing, (
+            "Plugins/config entries not found after migration: {}"
+            .format(missing)
+        )
