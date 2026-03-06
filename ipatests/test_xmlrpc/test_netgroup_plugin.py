@@ -39,16 +39,19 @@ netgroup2 = u'netgroup2'
 netgroup_single = u'a'
 
 host1 = u'ipatesthost.%s' % api.env.domain
-host_dn1 = DN(('fqdn',host1),('cn','computers'),('cn','accounts'),
-              api.env.basedn)
+host_dn1 = DN(
+    ('fqdn', host1), ('cn', 'computers'), ('cn', 'accounts'), api.env.basedn
+)
 
 unknown_host = u'unknown'
 
 unknown_host2 = u'unknown2'
 
 hostgroup1 = u'hg1'
-hostgroup_dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
-                   api.env.basedn)
+hostgroup_dn1 = DN(
+    ('cn', hostgroup1), ('cn', 'hostgroups'), ('cn', 'accounts'),
+    api.env.basedn
+)
 
 user1 = u'jexample'
 
@@ -57,10 +60,20 @@ user2 = u'pexample'
 
 group1 = u'testgroup'
 
-invalidnetgroup1=u'+badnetgroup'
-invalidnisdomain1=u'domain1,domain2'
-invalidnisdomain2=u'+invalidnisdomain'
-invalidhost=u'+invalid&host'
+invalidnetgroup1 = u'+badnetgroup'
+invalidnisdomain1 = u'domain1,domain2'
+invalidnisdomain2 = u'+invalidnisdomain'
+invalidhost = u'+invalid&host'
+
+netgroup_nisdomain = u'netgroup_nisdomain'
+netgroup_usercat = u'netgroup_usercat'
+netgroup_hostcat = u'netgroup_hostcat'
+netgroup_usercat_hostcat = u'netgroup_usercat_hostcat'
+netgroup_exthost = u'netgroup_exthost'
+netgroup_usercat_mod = u'netgroup_usercat_mod'
+netgroup_hostcat_mod = u'netgroup_hostcat_mod'
+custom_nisdomain = u'testnis.dom'
+external_host = u'ipaqatesthost'
 
 
 @pytest.mark.tier1
@@ -72,14 +85,22 @@ class test_netgroup(Declarative):
     cleanup_commands = [
         ('netgroup_del', [netgroup1], {}),
         ('netgroup_del', [netgroup2], {}),
+        ('netgroup_del', [netgroup_single], {}),
+        ('netgroup_del', [netgroup_nisdomain], {}),
+        ('netgroup_del', [netgroup_usercat], {}),
+        ('netgroup_del', [netgroup_hostcat], {}),
+        ('netgroup_del', [netgroup_usercat_hostcat], {}),
+        ('netgroup_del', [netgroup_exthost], {}),
+        ('netgroup_del', [netgroup_usercat_mod], {}),
+        ('netgroup_del', [netgroup_hostcat_mod], {}),
         ('host_del', [host1], {}),
         ('hostgroup_del', [hostgroup1], {}),
         ('user_del', [user1], {}),
         ('user_del', [user2], {}),
-        ('group_del', [group1], {}),
+        ('group_del', [group1], {})
     ]
 
-    tests=[
+    tests = [
 
         dict(
             desc='Try to retrieve non-existent %r' % netgroup1,
@@ -91,7 +112,8 @@ class test_netgroup(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % netgroup1,
-            command=('netgroup_mod', [netgroup1],
+            command=(
+                'netgroup_mod', [netgroup1],
                 dict(description=u'Updated hostgroup 1')
             ),
             expected=errors.NotFound(
@@ -109,33 +131,144 @@ class test_netgroup(Declarative):
 
         dict(
             desc='Test an invalid netgroup name %r' % invalidnetgroup1,
-            command=('netgroup_add', [invalidnetgroup1], dict(description=u'Test')),
-            expected=errors.ValidationError(name='name',
+            command=(
+                'netgroup_add', [invalidnetgroup1],
+                dict(description=u'Test')
+            ),
+            expected=errors.ValidationError(
+                name='name',
                 error=u'may only include letters, numbers, _, -, and .'),
         ),
 
 
         dict(
             desc='Test an invalid nisdomain1 name %r' % invalidnisdomain1,
-            command=('netgroup_add', [netgroup1],
-                dict(description=u'Test',nisdomainname=invalidnisdomain1)),
-            expected=errors.ValidationError(name='nisdomain',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', nisdomainname=invalidnisdomain1)
+            ),
+            expected=errors.ValidationError(
+                name='nisdomain',
                 error='may only include letters, numbers, _, -, and .'),
         ),
 
 
         dict(
             desc='Test an invalid nisdomain2 name %r' % invalidnisdomain2,
-            command=('netgroup_add', [netgroup1],
-                dict(description=u'Test',nisdomainname=invalidnisdomain2)),
-            expected=errors.ValidationError(name='nisdomain',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', nisdomainname=invalidnisdomain2)
+            ),
+            expected=errors.ValidationError(
+                name='nisdomain',
                 error='may only include letters, numbers, _, -, and .'),
         ),
 
 
         dict(
+            desc='Test netgroup add with space in nisdomain',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', nisdomainname=u' ')
+            ),
+            expected=errors.ValidationError(
+                name='nisdomain',
+                error='may only include letters, numbers, _, -, and .'),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with space in description',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u' ')
+            ),
+            expected=errors.ValidationError(
+                name='desc',
+                error=u'Leading and trailing spaces are not allowed'),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with invalid usercat',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', usercategory=u'badcat')
+            ),
+            expected=errors.ValidationError(
+                name='usercat', error=u"must be 'all'"),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with space for usercat',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', usercategory=u' ')
+            ),
+            expected=errors.ValidationError(
+                name='usercat', error=u"must be 'all'"),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with invalid hostcat',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', hostcategory=u'badcat')
+            ),
+            expected=errors.ValidationError(
+                name='hostcat', error=u"must be 'all'"),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with space for hostcat',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', hostcategory=u' ')
+            ),
+            expected=errors.ValidationError(
+                name='hostcat', error=u"must be 'all'"),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with both desc and addattr description',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', addattr=u'description=duplicate')
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='description'),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with invalid setattr attribute',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', setattr=u'badattr=somevalue')
+            ),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "badattr" not allowed'),
+        ),
+
+
+        dict(
+            desc='Test netgroup add with invalid addattr attribute',
+            command=(
+                'netgroup_add', [netgroup1],
+                dict(description=u'Test', addattr=u'badattr=somevalue')
+            ),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "badattr" not allowed'),
+        ),
+
+
+        dict(
             desc='Create %r' % netgroup1,
-            command=('netgroup_add', [netgroup1],
+            command=(
+                'netgroup_add', [netgroup1],
                 dict(description=u'Test netgroup 1')
             ),
             expected=dict(
@@ -155,7 +288,8 @@ class test_netgroup(Declarative):
 
         dict(
             desc='Create %r' % netgroup2,
-            command=('netgroup_add', [netgroup2],
+            command=(
+                'netgroup_add', [netgroup2],
                 dict(description=u'Test netgroup 2')
             ),
             expected=dict(
@@ -174,8 +308,10 @@ class test_netgroup(Declarative):
 
 
         dict(
-            desc='Create netgroup with name containing only one letter: %r' % netgroup_single,
-            command=('netgroup_add', [netgroup_single],
+            desc='Create netgroup with single letter name: %r' % (
+                netgroup_single),
+            command=(
+                'netgroup_add', [netgroup_single],
                 dict(description=u'Test netgroup_single')
             ),
             expected=dict(
@@ -205,8 +341,181 @@ class test_netgroup(Declarative):
 
 
         dict(
+            desc='Create netgroup %r with custom nisdomain' % (
+                netgroup_nisdomain),
+            command=(
+                'netgroup_add', [netgroup_nisdomain],
+                dict(description=u'Test with custom nisdomain',
+                     nisdomainname=custom_nisdomain)
+            ),
+            expected=dict(
+                value=netgroup_nisdomain,
+                summary=u'Added netgroup "%s"' % netgroup_nisdomain,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_nisdomain],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test with custom nisdomain'],
+                    nisdomainname=[custom_nisdomain],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % netgroup_nisdomain,
+            command=('netgroup_del', [netgroup_nisdomain], {}),
+            expected=dict(
+                value=[netgroup_nisdomain],
+                summary=u'Deleted netgroup "%s"' % netgroup_nisdomain,
+                result=dict(failed=[]),
+            ),
+        ),
+
+
+        dict(
+            desc='Create netgroup %r with usercat=all' % netgroup_usercat,
+            command=(
+                'netgroup_add', [netgroup_usercat],
+                dict(description=u'Test with usercat all',
+                     nisdomainname=custom_nisdomain, usercategory=u'all')
+            ),
+            expected=dict(
+                value=netgroup_usercat,
+                summary=u'Added netgroup "%s"' % netgroup_usercat,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_usercat],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test with usercat all'],
+                    nisdomainname=[custom_nisdomain],
+                    usercategory=[u'all'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % netgroup_usercat,
+            command=('netgroup_del', [netgroup_usercat], {}),
+            expected=dict(
+                value=[netgroup_usercat],
+                summary=u'Deleted netgroup "%s"' % netgroup_usercat,
+                result=dict(failed=[]),
+            ),
+        ),
+
+
+        dict(
+            desc='Create netgroup %r with hostcat=all' % netgroup_hostcat,
+            command=(
+                'netgroup_add', [netgroup_hostcat],
+                dict(description=u'Test with hostcat all',
+                     nisdomainname=custom_nisdomain, hostcategory=u'all')
+            ),
+            expected=dict(
+                value=netgroup_hostcat,
+                summary=u'Added netgroup "%s"' % netgroup_hostcat,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_hostcat],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test with hostcat all'],
+                    nisdomainname=[custom_nisdomain],
+                    hostcategory=[u'all'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % netgroup_hostcat,
+            command=('netgroup_del', [netgroup_hostcat], {}),
+            expected=dict(
+                value=[netgroup_hostcat],
+                summary=u'Deleted netgroup "%s"' % netgroup_hostcat,
+                result=dict(failed=[]),
+            ),
+        ),
+
+
+        dict(
+            desc='Create netgroup %r with usercat/hostcat=all' % (
+                netgroup_usercat_hostcat),
+            command=(
+                'netgroup_add', [netgroup_usercat_hostcat],
+                dict(description=u'Test with usercat and hostcat all',
+                     nisdomainname=custom_nisdomain,
+                     usercategory=u'all', hostcategory=u'all')
+            ),
+            expected=dict(
+                value=netgroup_usercat_hostcat,
+                summary=u'Added netgroup "%s"' % netgroup_usercat_hostcat,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_usercat_hostcat],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test with usercat and hostcat all'],
+                    nisdomainname=[custom_nisdomain],
+                    usercategory=[u'all'],
+                    hostcategory=[u'all'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % netgroup_usercat_hostcat,
+            command=('netgroup_del', [netgroup_usercat_hostcat], {}),
+            expected=dict(
+                value=[netgroup_usercat_hostcat],
+                summary=u'Deleted netgroup "%s"' % netgroup_usercat_hostcat,
+                result=dict(failed=[]),
+            ),
+        ),
+
+
+        dict(
+            desc='Create netgroup %r with externalHost' % netgroup_exthost,
+            command=(
+                'netgroup_add', [netgroup_exthost],
+                dict(description=u'Test with externalHost',
+                     nisdomainname=custom_nisdomain,
+                     usercategory=u'all', hostcategory=u'all',
+                     addattr=u'externalHost=%s' % external_host)
+            ),
+            expected=dict(
+                value=netgroup_exthost,
+                summary=u'Added netgroup "%s"' % netgroup_exthost,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_exthost],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test with externalHost'],
+                    nisdomainname=[custom_nisdomain],
+                    usercategory=[u'all'],
+                    hostcategory=[u'all'],
+                    externalhost=[external_host],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % netgroup_exthost,
+            command=('netgroup_del', [netgroup_exthost], {}),
+            expected=dict(
+                value=[netgroup_exthost],
+                summary=u'Deleted netgroup "%s"' % netgroup_exthost,
+                result=dict(failed=[]),
+            ),
+        ),
+
+
+        dict(
             desc='Try to create duplicate %r' % netgroup1,
-            command=('netgroup_add', [netgroup1],
+            command=(
+                'netgroup_add', [netgroup1],
                 dict(description=u'Test netgroup 1')
             ),
             expected=errors.DuplicateEntry(
@@ -216,12 +525,13 @@ class test_netgroup(Declarative):
 
         dict(
             desc='Create host %r' % host1,
-            command=('host_add', [host1],
+            command=(
+                'host_add', [host1],
                 dict(
                     description=u'Test host 1',
                     l=u'Undisclosed location 1',
                     force=True,
-                ),
+                )
             ),
             expected=dict(
                 value=host1,
@@ -245,7 +555,8 @@ class test_netgroup(Declarative):
 
         dict(
             desc='Create %r' % hostgroup1,
-            command=('hostgroup_add', [hostgroup1],
+            command=(
+                'hostgroup_add', [hostgroup1],
                 dict(description=u'Test hostgroup 1')
             ),
             expected=dict(
@@ -256,8 +567,9 @@ class test_netgroup(Declarative):
                     cn=[hostgroup1],
                     objectclass=objectclasses.hostgroup,
                     description=[u'Test hostgroup 1'],
-                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
-                                        api.env.basedn)],
+                    mepmanagedentry=[DN(
+                        ('cn', hostgroup1), ('cn', 'ng'), ('cn', 'alt'),
+                        api.env.basedn)],
                     ipauniqueid=[fuzzy_uuid],
                 ),
             ),
@@ -304,8 +616,9 @@ class test_netgroup(Declarative):
                     objectclass=fuzzy_set_optional_oc(
                         objectclasses.posixgroup, 'ipantgroupattrs'),
                     ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                          api.env.basedn),
+                    dn=DN(
+                        ('cn', group1), ('cn', 'groups'), ('cn', 'accounts'),
+                        api.env.basedn),
                 ),
             ),
         ),
@@ -327,23 +640,29 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': (user2,),
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group1],
-                        'description': [u'Test desc 1'],
+                    'dn': DN(
+                        ('cn', group1), ('cn', 'groups'), ('cn', 'accounts'),
+                        api.env.basedn),
+                    'member_user': (user2,),
+                    'gidnumber': [fuzzy_digits],
+                    'cn': [group1],
+                    'description': [u'Test desc 1'],
                 },
             ),
         ),
 
 
         dict(
-            desc='Add invalid host %r to netgroup %r' % (invalidhost, netgroup1),
-            command=('netgroup_add_member', [netgroup1], dict(host=invalidhost)),
-            expected=errors.ValidationError(name='host',
-             error=u"only letters, numbers, '_', '-' are allowed. " +
-                    u"DNS label may not start or end with '-'"),
+            desc='Add invalid host %r to netgroup %r' % (
+                invalidhost, netgroup1),
+            command=(
+                'netgroup_add_member', [netgroup1],
+                dict(host=invalidhost)
+            ),
+            expected=errors.ValidationError(
+                name='host',
+                error=u"only letters, numbers, '_', '-' are allowed. "
+                      u"DNS label may not start or end with '-'"),
         ),
 
 
@@ -368,11 +687,11 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
@@ -399,12 +718,12 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
@@ -412,8 +731,10 @@ class test_netgroup(Declarative):
 
         dict(
             desc='Search for netgroups using no_user with members',
-            command=('netgroup_find', [], dict(
-                no_user=user1, no_members=False)),
+            command=(
+                'netgroup_find', [],
+                dict(no_user=user1, no_members=False)
+            ),
             expected=dict(
                 count=2,
                 truncated=False,
@@ -464,7 +785,8 @@ class test_netgroup(Declarative):
 
 
         dict(
-            desc="Check %r doesn't match when searching for %s" % (netgroup1, user1),
+            desc="Check %r doesn't match searching for %s" % (
+                netgroup1, user1),
             command=('netgroup_find', [], dict(user=user1)),
             expected=dict(
                 count=0,
@@ -495,19 +817,19 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
 
         dict(
-            desc="Check %r doesn't match when searching for no %s" % (netgroup1, user1),
+            desc="Check %r doesn't match for no %s" % (netgroup1, user1),
             command=('netgroup_find', [], dict(no_user=user1)),
             expected=dict(
                 count=1,
@@ -545,14 +867,14 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
@@ -579,15 +901,15 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
@@ -614,17 +936,135 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
+        ),
+
+
+        dict(
+            desc='Add non-existent user to netgroup %r' % netgroup1,
+            command=(
+                'netgroup_add_member', [netgroup1],
+                dict(user=u'notfounduser')
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=[(u'notfounduser', u'no such entry')],
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add non-existent group to netgroup %r' % netgroup1,
+            command=(
+                'netgroup_add_member', [netgroup1],
+                dict(group=u'notfoundgroup')
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=[(u'notfoundgroup', u'no such entry')],
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=tuple(),
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add non-existent hostgroup to netgroup %r' % netgroup1,
+            command=(
+                'netgroup_add_member', [netgroup1],
+                dict(hostgroup=u'notfoundhg')
+            ),
+            expected=dict(
+                completed=0,
+                failed=dict(
+                    member=dict(
+                        netgroup=tuple(),
+                    ),
+                    memberuser=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                    memberhost=dict(
+                        hostgroup=[(u'notfoundhg', u'no such entry')],
+                        host=tuple(),
+                    ),
+                ),
+                result={
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add member to non-existent netgroup',
+            command=(
+                'netgroup_add_member', [u'notfoundnetgroup'], dict(user=user1)
+            ),
+            expected=errors.NotFound(
+                reason=u'notfoundnetgroup: netgroup not found'),
         ),
 
 
@@ -641,7 +1081,9 @@ class test_netgroup(Declarative):
                     ),
                     memberuser=dict(
                         group=tuple(),
-                        user=[('%s' % user1, u'This entry is already a member')],
+                        user=[(
+                            '%s' % user1,
+                            u'This entry is already a member')],
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
@@ -649,15 +1091,15 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
@@ -674,7 +1116,9 @@ class test_netgroup(Declarative):
                         netgroup=tuple(),
                     ),
                     memberuser=dict(
-                        group=[('%s' % group1, u'This entry is already a member')],
+                        group=[(
+                            '%s' % group1,
+                            u'This entry is already a member')],
                         user=tuple(),
                     ),
                     memberhost=dict(
@@ -683,15 +1127,15 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
@@ -714,26 +1158,29 @@ class test_netgroup(Declarative):
                     ),
                     memberhost=dict(
                         hostgroup=tuple(),
-                        host=[('%s' % host1, u'This entry is already a member')],
+                        host=[(
+                            '%s' % host1,
+                            u'This entry is already a member')],
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
 
 
         dict(
-            desc='Add duplicate hostgroup %r to netgroup %r' % (hostgroup1, netgroup1),
+            desc='Add duplicate hostgroup %r to netgroup %r' % (
+                hostgroup1, netgroup1),
             command=(
                 'netgroup_add_member', [netgroup1], dict(hostgroup=hostgroup1)
             ),
@@ -748,27 +1195,30 @@ class test_netgroup(Declarative):
                         user=tuple(),
                     ),
                     memberhost=dict(
-                        hostgroup=[('%s' % hostgroup1, u'This entry is already a member')],
+                        hostgroup=[(
+                            '%s' % hostgroup1,
+                            u'This entry is already a member')],
                         host=tuple(),
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
                 },
             ),
         ),
 
 
         dict(
-            desc='Add unknown host %r to netgroup %r' % (unknown_host, netgroup1),
+            desc='Add unknown host %r to netgroup %r' % (
+                unknown_host, netgroup1),
             command=(
                 'netgroup_add_member', [netgroup1], dict(host=unknown_host)
             ),
@@ -788,35 +1238,36 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
         dict(
-            desc='Add invalid host %r to netgroup %r using setattr' %
-                (invalidhost, netgroup1),
+            desc='Add invalid host %r to netgroup %r using setattr' % (
+                invalidhost, netgroup1),
             command=(
                 'netgroup_mod', [netgroup1],
                 dict(setattr='externalhost=%s' % invalidhost)
             ),
-            expected=errors.ValidationError(name='externalhost',
-                error=u"only letters, numbers, '_', '-' are allowed. " +
-                    u"DNS label may not start or end with '-'"),
+            expected=errors.ValidationError(
+                name='externalhost',
+                error=u"only letters, numbers, '_', '-' are allowed. "
+                      u"DNS label may not start or end with '-'"),
         ),
 
         dict(
-            desc='Add unknown host %r to netgroup %r using addattr' %
-                (unknown_host2, netgroup1),
+            desc='Add unknown host %r to netgroup %r using addattr' % (
+                unknown_host2, netgroup1),
             command=(
                 'netgroup_mod', [netgroup1],
                 dict(addattr='externalhost=%s' % unknown_host2)
@@ -825,22 +1276,22 @@ class test_netgroup(Declarative):
                 value=u'netgroup1',
                 summary=u'Modified netgroup "netgroup1"',
                 result={
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host, unknown_host2],
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host, unknown_host2],
                 },
             )
         ),
 
         dict(
-            desc='Remove unknown host %r from netgroup %r using delattr' %
-                (unknown_host2, netgroup1),
+            desc='Remove unknown host %r from netgroup %r using delattr' % (
+                unknown_host2, netgroup1),
             command=(
                 'netgroup_mod', [netgroup1],
                 dict(delattr='externalhost=%s' % unknown_host2)
@@ -849,15 +1300,15 @@ class test_netgroup(Declarative):
                 value=u'netgroup1',
                 summary=u'Modified netgroup "netgroup1"',
                 result={
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             )
         ),
@@ -869,16 +1320,16 @@ class test_netgroup(Declarative):
                 value=netgroup1,
                 summary=None,
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Test netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Test netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1035,25 +1486,475 @@ class test_netgroup(Declarative):
 
 
         dict(
+            desc='Search for %r by description' % netgroup1,
+            command=(
+                'netgroup_find', [],
+                dict(description=u'Test netgroup 1')
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary=u'1 netgroup matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search for netgroups by nisdomain',
+            command=(
+                'netgroup_find', [],
+                dict(nisdomainname=u'%s' % api.env.domain)
+            ),
+            expected=dict(
+                count=2,
+                truncated=False,
+                summary=u'2 netgroups matched',
+                result=[
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup1],
+                        'description': [u'Test netgroup 1'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                        'externalhost': [unknown_host],
+                    },
+                    {
+                        'dn': fuzzy_netgroupdn,
+                        'cn': [netgroup2],
+                        'description': [u'Test netgroup 2'],
+                        'nisdomainname': [u'%s' % api.env.domain],
+                    },
+                ],
+            ),
+        ),
+
+
+        dict(
+            desc='Search with non-existent criteria returns zero',
+            command=('netgroup_find', [u'doesnotexist'], {}),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 netgroups matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
+            desc='Search with non-existent description returns zero',
+            command=('netgroup_find', [], dict(description=u'baddesc')),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 netgroups matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
+            desc='Search with non-existent nisdomain returns zero',
+            command=('netgroup_find', [], dict(nisdomainname=u'baddomain')),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary=u'0 netgroups matched',
+                result=[],
+            ),
+        ),
+
+
+        dict(
             desc='Update %r' % netgroup1,
-            command=('netgroup_mod', [netgroup1],
+            command=(
+                'netgroup_mod', [netgroup1],
                 dict(description=u'Updated netgroup 1')
             ),
             expected=dict(
                 value=netgroup1,
                 summary=u'Modified netgroup "%s"' % netgroup1,
                 result={
-                        'memberhost_host': (host1,),
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
+        ),
+
+
+        dict(
+            desc='Modify nisdomain of %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(nisdomainname=u'newnisdom1')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'newnisdom1'],
+                    'externalhost': [unknown_host],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Restore nisdomain of %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(nisdomainname=u'%s' % api.env.domain)
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Modify description using setattr for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'description=setattr description')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'setattr description'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Modify nisdomain using setattr for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'nisdomainname=setattrnisdom')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'setattr description'],
+                    'nisdomainname': [u'setattrnisdom'],
+                    'externalhost': [unknown_host],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Restore description and nisdomain for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(description=u'Updated netgroup 1',
+                     nisdomainname=u'%s' % api.env.domain)
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Set externalhost using setattr for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'externalhost=setattr_exthost')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [u'setattr_exthost'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Add externalhost using addattr for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(addattr=u'externalhost=addattr_exthost')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [u'addattr_exthost', u'setattr_exthost'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Delete one externalhost using delattr for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(delattr=u'externalhost=setattr_exthost')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [u'addattr_exthost'],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Clear all externalhosts using setattr for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'externalhost=')
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Restore externalhost for %r' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(addattr=u'externalhost=%s' % unknown_host)
+            ),
+            expected=dict(
+                value=netgroup1,
+                summary=u'Modified netgroup "%s"' % netgroup1,
+                result={
+                    'memberhost_host': (host1,),
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
+                },
+            ),
+        ),
+
+
+        dict(
+            desc='Modify %r invalid usercat' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(usercategory=u'badcat')
+            ),
+            expected=errors.ValidationError(
+                name='usercat', error=u"must be 'all'"),
+        ),
+
+
+        dict(
+            desc='Modify %r invalid hostcat' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(hostcategory=u'badcat')
+            ),
+            expected=errors.ValidationError(
+                name='hostcat', error=u"must be 'all'"),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid addattr on nisDomainName' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(addattr=u'nisdomainname=seconddomain')
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='nisdomainname'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid setattr on ipauniqueid' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'ipauniqueid=mynew-unique-id')
+            ),
+            expected=errors.ValidationError(
+                name='ipauniqueid', error=u'attribute is not configurable'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid setattr on dn' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'dn=cn=newdn')
+            ),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "distinguishedName" not allowed'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid membergroup attribute' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'membergroup=%s' % group1)
+            ),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "membergroup" not allowed'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid memberhostgroup attr' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'memberhostgroup=%s' % hostgroup1)
+            ),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "memberhostgroup" not allowed'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid membernetgroup attribute' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'membernetgroup=%s' % netgroup2)
+            ),
+            expected=errors.ObjectclassViolation(
+                info=u'attribute "membernetgroup" not allowed'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid addattr on description' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(addattr=u'description=newdesc')
+            ),
+            expected=errors.OnlyOneValueAllowed(attr='description'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid nisdomain commas' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(nisdomainname=u'test1,test2')
+            ),
+            expected=errors.ValidationError(
+                name='nisdomain',
+                error=u'may only include letters, numbers, _, -, and .'),
+        ),
+
+
+        dict(
+            desc='Modify %r with invalid setattr nisdomain commas' % netgroup1,
+            command=(
+                'netgroup_mod', [netgroup1],
+                dict(setattr=u'nisdomainname=test1,test2')
+            ),
+            expected=errors.ValidationError(
+                name='nisdomainname',
+                error=u'may only include letters, numbers, _, -, and .'),
         ),
 
 
@@ -1078,24 +1979,26 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberhost_hostgroup': (hostgroup1,),
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'memberhost_hostgroup': (hostgroup1,),
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
 
         dict(
-            desc='Remove hostgroup %r from netgroup %r' % (hostgroup1, netgroup1),
+            desc='Remove hostgroup %r from netgroup %r' % (
+                hostgroup1, netgroup1),
             command=(
-                'netgroup_remove_member', [netgroup1], dict(hostgroup=hostgroup1)
+                'netgroup_remove_member', [netgroup1],
+                dict(hostgroup=hostgroup1)
             ),
             expected=dict(
                 completed=1,
@@ -1113,14 +2016,14 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberuser_user': (user1,),
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'memberuser_user': (user1,),
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1147,13 +2050,13 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'memberuser_group': (group1,),
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'memberuser_group': (group1,),
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1180,19 +2083,20 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'member_netgroup': (netgroup2,),
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'member_netgroup': (netgroup2,),
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
 
         dict(
-            desc='Remove netgroup %r from netgroup %r' % (netgroup2, netgroup1),
+            desc='Remove netgroup %r from netgroup %r' % (
+                netgroup2, netgroup1),
             command=(
                 'netgroup_remove_member', [netgroup1], dict(netgroup=netgroup2)
             ),
@@ -1212,11 +2116,11 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1243,20 +2147,22 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
 
         dict(
-            desc='Remove hostgroup %r from netgroup %r again' % (hostgroup1, netgroup1),
+            desc='Remove hostgroup %r from netgroup %r again' % (
+                hostgroup1, netgroup1),
             command=(
-                'netgroup_remove_member', [netgroup1], dict(hostgroup=hostgroup1)
+                'netgroup_remove_member', [netgroup1],
+                dict(hostgroup=hostgroup1)
             ),
             expected=dict(
                 completed=0,
@@ -1269,16 +2175,18 @@ class test_netgroup(Declarative):
                         user=tuple(),
                     ),
                     memberhost=dict(
-                        hostgroup=[('%s' % hostgroup1, u'This entry is not a member')],
+                        hostgroup=[(
+                            '%s' % hostgroup1,
+                            u'This entry is not a member')],
                         host=tuple(),
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
@@ -1305,18 +2213,19 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
 
         dict(
-            desc='Remove group %r from netgroup %r again' % (group1, netgroup1),
+            desc='Remove group %r from netgroup %r again' % (
+                group1, netgroup1),
             command=(
                 'netgroup_remove_member', [netgroup1], dict(group=group1)
             ),
@@ -1327,7 +2236,7 @@ class test_netgroup(Declarative):
                         netgroup=tuple(),
                     ),
                     memberuser=dict(
-                        group= [('%s' % group1, u'This entry is not a member')],
+                        group=[('%s' % group1, u'This entry is not a member')],
                         user=tuple(),
                     ),
                     memberhost=dict(
@@ -1336,18 +2245,19 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
 
         dict(
-            desc='Remove netgroup %r from netgroup %r again' % (netgroup2, netgroup1),
+            desc='Remove netgroup %r from netgroup %r again' % (
+                netgroup2, netgroup1),
             command=(
                 'netgroup_remove_member', [netgroup1], dict(netgroup=netgroup2)
             ),
@@ -1355,7 +2265,9 @@ class test_netgroup(Declarative):
                 completed=0,
                 failed=dict(
                     member=dict(
-                        netgroup=[('%s' % netgroup2, u'This entry is not a member')],
+                        netgroup=[(
+                            '%s' % netgroup2,
+                            u'This entry is not a member')],
                     ),
                     memberuser=dict(
                         group=tuple(),
@@ -1367,26 +2279,104 @@ class test_netgroup(Declarative):
                     ),
                 ),
                 result={
-                        'dn': fuzzy_netgroupdn,
-                        'cn': [netgroup1],
-                        'description': [u'Updated netgroup 1'],
-                        'nisdomainname': [u'%s' % api.env.domain],
-                        'externalhost': [unknown_host],
+                    'dn': fuzzy_netgroupdn,
+                    'cn': [netgroup1],
+                    'description': [u'Updated netgroup 1'],
+                    'nisdomainname': [u'%s' % api.env.domain],
+                    'externalhost': [unknown_host],
                 },
             ),
         ),
 
 
         dict(
-            desc='Delete %r' % netgroup1,
-            command=('netgroup_del', [netgroup1], {}),
+            desc='Remove member from non-existent netgroup',
+            command=(
+                'netgroup_remove_member', [u'notfoundnetgroup'],
+                dict(user=user1)
+            ),
+            expected=errors.NotFound(
+                reason=u'notfoundnetgroup: netgroup not found'),
+        ),
+
+
+        dict(
+            desc='Create %r with usercat=all' % netgroup_usercat_mod,
+            command=(
+                'netgroup_add', [netgroup_usercat_mod],
+                dict(description=u'Test usercat mod',
+                     nisdomainname=custom_nisdomain, usercategory=u'all')
+            ),
             expected=dict(
-                value=[netgroup1],
-                summary=u'Deleted netgroup "%s"' % netgroup1,
-                result=dict(failed=[]),
+                value=netgroup_usercat_mod,
+                summary=u'Added netgroup "%s"' % netgroup_usercat_mod,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_usercat_mod],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test usercat mod'],
+                    nisdomainname=[custom_nisdomain],
+                    usercategory=[u'all'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
             ),
         ),
 
+        dict(
+            desc='Clear usercat via setattr for %r' % netgroup_usercat_mod,
+            command=(
+                'netgroup_mod', [netgroup_usercat_mod],
+                dict(setattr=u'usercategory=')
+            ),
+            expected=dict(
+                value=netgroup_usercat_mod,
+                summary=u'Modified netgroup "%s"' % netgroup_usercat_mod,
+                result={
+                    'cn': [netgroup_usercat_mod],
+                    'description': [u'Test usercat mod'],
+                    'nisdomainname': [custom_nisdomain],
+                },
+            ),
+        ),
+
+        dict(
+            desc='Create %r with hostcat=all' % netgroup_hostcat_mod,
+            command=(
+                'netgroup_add', [netgroup_hostcat_mod],
+                dict(description=u'Test hostcat mod',
+                     nisdomainname=custom_nisdomain, hostcategory=u'all')
+            ),
+            expected=dict(
+                value=netgroup_hostcat_mod,
+                summary=u'Added netgroup "%s"' % netgroup_hostcat_mod,
+                result=dict(
+                    dn=fuzzy_netgroupdn,
+                    cn=[netgroup_hostcat_mod],
+                    objectclass=objectclasses.netgroup,
+                    description=[u'Test hostcat mod'],
+                    nisdomainname=[custom_nisdomain],
+                    hostcategory=[u'all'],
+                    ipauniqueid=[fuzzy_uuid],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Clear hostcat via setattr for %r' % netgroup_hostcat_mod,
+            command=(
+                'netgroup_mod', [netgroup_hostcat_mod],
+                dict(setattr=u'hostcategory=')
+            ),
+            expected=dict(
+                value=netgroup_hostcat_mod,
+                summary=u'Modified netgroup "%s"' % netgroup_hostcat_mod,
+                result={
+                    'cn': [netgroup_hostcat_mod],
+                    'description': [u'Test hostcat mod'],
+                    'nisdomainname': [custom_nisdomain],
+                },
+            ),
+        ),
     ]
 
 # No way to convert this test just yet.
@@ -1413,4 +2403,6 @@ class test_netgroup(Declarative):
 #        # This may not prove to be reliable since order is not guaranteed
 #        # and even which user gets into which triple can be random.
 #        assert '(nosuchhost,jexample,example.com)' in triples
-#        assert '(ipatesthost.%s,pexample,example.com)' % api.env.domain in triples
+#        assert (
+#            '(ipatesthost.%s,pexample,example.com)' % api.env.domain
+#            in triples)
