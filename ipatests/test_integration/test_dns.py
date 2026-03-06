@@ -72,7 +72,7 @@ NEWER_TXT = "newip=8.7.6.5"
 
 # TSIG key configuration for dynamic DNS updates (hmac-md5)
 KEY_NAME = "selfupdate"
-KEY_SECRET = "05Fu1ACKv1/1Ag=="
+KEY_SECRET = "05Fu1ACKv1/1Ag=="  # notsecret
 KEY_CONFIG = f'''key {KEY_NAME} {{
     algorithm hmac-md5;
     secret "{KEY_SECRET}";

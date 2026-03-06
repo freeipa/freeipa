@@ -166,7 +166,7 @@ class TestUserPermissions(IntegrationTest):
 
         # Create a user with 'User Administrator' role
         altuser = 'specialuser'
-        password = 'SpecialUser123'
+        password = 'SpecialUser123'  # notsecret
         password_confirmation = "%s\n%s\n" % (password, password)
         self.master.run_command(
             ['ipa', 'user-add', altuser, '--first', altuser, '--last', altuser,
