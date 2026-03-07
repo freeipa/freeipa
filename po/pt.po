@@ -1,13 +1,13 @@
 # Manuela Silva <mmsrs@sky.com>, 2019. #zanata
 # Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2026.
+# Américo Monteiro <a_monteiro@gmx.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-02-23 19:58+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
 "Language: pt\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #, c-format
 msgid "cannot open configuration file %s\n"
-msgstr ""
+msgstr "incapaz de abrir ficheiro de configuração %s\n"
 
 #, c-format
 msgid "cannot stat() configuration file %s\n"
@@ -27,11 +27,11 @@ msgstr ""
 
 #, c-format
 msgid "out of memory\n"
-msgstr ""
+msgstr "memoria esgotada\n"
 
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "erro de leitura\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
@@ -47,7 +47,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory \n"
-msgstr ""
+msgstr "Memória esgotada \n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
@@ -61,7 +61,7 @@ msgstr ""
 
 #, c-format
 msgid "Operation failed: %s\n"
-msgstr ""
+msgstr "Operação falhou: %s\n"
 
 #, c-format
 msgid "Failed to get result: %s\n"
@@ -69,11 +69,11 @@ msgstr ""
 
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "Tempo limite excedido."
 
 #, c-format
 msgid "Failed to parse extended result: %s\n"
-msgstr ""
+msgstr "Falhou ao analisar resultado estendido: %s\n"
 
 #, c-format
 msgid "Failed to parse result: %s\n"
@@ -89,7 +89,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of Memory!\n"
-msgstr ""
+msgstr "Memória Esgotada!\n"
 
 #, c-format
 msgid "Failed to create control!\n"
@@ -126,10 +126,9 @@ msgstr ""
 msgid "Failed to decode control reply!\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "Passwords do not match"
+#, c-format
 msgid "Passwords do not match!\n"
-msgstr "As palavras-passe não correspondem"
+msgstr "As palavras-passe não correspondem!\n"
 
 #, c-format
 msgid "Failed to open config file %s\n"
@@ -137,10 +136,10 @@ msgstr ""
 
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr "não foi possível processar o ficheiro de configuração %s\n"
+msgstr "Falhou ao analisar o ficheiro de configuração %s\n"
 
 msgid "Failed to resolve symlink to keytab.\n"
-msgstr "Falhou ao resolver link simbólico em %1$s\n"
+msgstr "Falhou ao resolver link simbólico para tabela de chaves.\n"
 
 msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
@@ -152,7 +151,7 @@ msgid "Output only on errors"
 msgstr ""
 
 msgid "Print debugging information"
-msgstr ""
+msgstr "Escrever informação de depuração"
 
 msgid "Output debug info"
 msgstr ""
@@ -161,7 +160,7 @@ msgid "Contact this specific KDC Server"
 msgstr ""
 
 msgid "Server Name"
-msgstr ""
+msgstr "Nome do Servidor"
 
 msgid "The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"
 msgstr ""
@@ -198,10 +197,8 @@ msgstr ""
 msgid "DN to bind as if not using kerberos"
 msgstr ""
 
-#, fuzzy
-#| msgid "Add password policy"
 msgid "LDAP password"
-msgstr "Adicionar política de palavra-passe"
+msgstr "Palavra-passe de LDAP"
 
 msgid "password to use if not using kerberos"
 msgstr ""
@@ -213,7 +210,7 @@ msgid "Path to the IPA CA certificate"
 msgstr ""
 
 msgid "IPA CA certificate"
-msgstr "Certificado CA:"
+msgstr "Certificado CA de IPA"
 
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
 msgstr ""
@@ -355,7 +352,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory!\n"
-msgstr ""
+msgstr "Memória esgotada!\n"
 
 #, c-format
 msgid "No permission to join this host to the IPA domain.\n"
@@ -371,7 +368,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory!"
-msgstr ""
+msgstr "Memória esgotada!"
 
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
@@ -405,10 +402,9 @@ msgstr ""
 msgid "principal not found in XML-RPC response\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "This entry is already enabled"
+#, c-format
 msgid "Host is already joined.\n"
-msgstr "Esta entrada já está ativada"
+msgstr "Máquina já se juntou.\n"
 
 #, c-format
 msgid "curl_slist_append() failed for value: '%s'\n"
@@ -434,12 +430,13 @@ msgstr ""
 msgid "json_dumps() failed\n"
 msgstr ""
 
-#, fuzzy, c-format
-#| msgid "Invalid JSON-RPC request: %(error)s"
+#, c-format
 msgid ""
 "JSON-RPC request:\n"
 "%s\n"
-msgstr "Pedido JSON-RPC inválido: %(error)s"
+msgstr ""
+"Pedido de JSON-RPC:\n"
+"%s\n"
 
 #, c-format
 msgid "JSON-RPC call failed: %s\n"
@@ -511,7 +508,7 @@ msgstr ""
 
 #, c-format
 msgid "fork() failed\n"
-msgstr "fork() falhou: %s\n"
+msgstr "fork() falhou\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
@@ -539,7 +536,7 @@ msgstr ""
 
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr ""
+msgstr "Erro ao analisar \"%1$s\": %2$s.\n"
 
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
@@ -563,10 +560,10 @@ msgid "Unenroll this host from IPA server"
 msgstr ""
 
 msgid "Hostname of this server"
-msgstr ""
+msgstr "Nome de máquina para este servidor"
 
 msgid "hostname"
-msgstr "Nome de anfitrião"
+msgstr "nome de máquina"
 
 msgid "IPA Server to use"
 msgstr ""
@@ -575,7 +572,7 @@ msgid "Specifies where to store keytab information."
 msgstr ""
 
 msgid "filename"
-msgstr "Nome de ficheiro:"
+msgstr "nome de ficheiro"
 
 msgid "Force the host join. Rejoin even if already joined."
 msgstr ""
@@ -583,10 +580,8 @@ msgstr ""
 msgid "LDAP password (if not using Kerberos)"
 msgstr ""
 
-#, fuzzy
-#| msgid "password policy"
 msgid "password"
-msgstr "política de palavra-passe"
+msgstr "palavra-passe"
 
 msgid "LDAP basedn"
 msgstr ""
@@ -672,7 +667,7 @@ msgid "Remove all principals in this realm"
 msgstr ""
 
 msgid "Realm name"
-msgstr ""
+msgstr "Nome de reino"
 
 #, c-format
 msgid "Failed to open keytab '%1$s': %2$s\n"
@@ -704,7 +699,7 @@ msgid "Certificate(s) stored in file '%(file)s'"
 msgstr ""
 
 msgid "Servers details:"
-msgstr ""
+msgstr "Detalhes do servidor:"
 
 msgid ""
 "Migration mode is disabled.\n"
@@ -772,7 +767,7 @@ msgid ""
 "EXAMPLES:\n"
 msgstr ""
 "\n"
-"EXEMPLOS\n"
+"EXEMPLOS:\n"
 
 msgid ""
 "\n"
@@ -817,18 +812,16 @@ msgstr ""
 msgid "File %(file)s not found"
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "This entry already exists"
+#, python-format
 msgid "key %(key)s already exists"
-msgstr "Esta entrada já existe"
+msgstr "chave %(key)s já existe"
 
-#, fuzzy, python-format
-#| msgid "This entry already exists"
+#, python-format
 msgid "map %(map)s already exists"
-msgstr "Esta entrada já existe"
+msgstr "mapa %(map)s já existe"
 
 msgid "Imported maps:"
-msgstr ""
+msgstr "Mapas importados:"
 
 #, python-format
 msgid "Added %(map)s"
@@ -871,10 +864,8 @@ msgstr ""
 msgid "COSE type to use for registration"
 msgstr ""
 
-#, fuzzy
-#| msgid "Identity"
 msgid "Credential type"
-msgstr "Identidade"
+msgstr "Tipo de credenciais"
 
 #, python-format
 msgid "cannot specify both %s and passkey mapping"
@@ -932,7 +923,7 @@ msgid "No option to delete specific record provided."
 msgstr ""
 
 msgid "Delete all?"
-msgstr ""
+msgstr "Apagar tudo?"
 
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
@@ -964,12 +955,10 @@ msgid "Synchronize an OTP token."
 msgstr ""
 
 msgid "User ID"
-msgstr ""
+msgstr "ID do utilizador"
 
-#, fuzzy
-#| msgid "Password Policy"
 msgid "Password"
-msgstr "Política de Palavra-passe"
+msgstr "Palavra-passe"
 
 msgid "First Code"
 msgstr ""
@@ -1007,7 +996,7 @@ msgid "Delete a user, keeping the entry available for future use"
 msgstr ""
 
 msgid "Delete a user"
-msgstr "Apagar Utilizador"
+msgstr "Apaga um utilizador"
 
 msgid "preserve and no-preserve cannot be both set"
 msgstr ""
@@ -1019,23 +1008,21 @@ msgid "Unrevoked"
 msgstr ""
 
 msgid "Error"
-msgstr ""
+msgstr "Erro"
 
 msgid "Input filename"
-msgstr "Ficheiro de entrada"
+msgstr "Nome de ficheiro de entrada"
 
 msgid "File to load the certificate from."
 msgstr ""
 
-#, fuzzy, python-format
-#| msgid "invalid '%(name)s': %(error)s"
+#, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
-msgstr "'%(name)s' inválido: %(error)s"
+msgstr "Incapaz de ler ficheiro '%(filename)s': %(exc)s"
 
-#, fuzzy, python-format
-#| msgid "cannot connect to '%(uri)s': %(error)s"
+#, python-format
 msgid "Cannot decode file '%(filename)s': %(exc)s"
-msgstr "não é possível ligar a '%(uri)s': %(error)s"
+msgstr "Incapaz de descodificar ficheiro '%(filename)s': %(exc)s"
 
 msgid "Invalid credentials"
 msgstr ""
@@ -1064,10 +1051,8 @@ msgstr ""
 msgid "Public key specified multiple times"
 msgstr ""
 
-#, fuzzy
-#| msgid "invalid SSH public key"
 msgid "Missing vault public key"
-msgstr "chave SSh pública inválida"
+msgstr "Chave pública do cofre em falta"
 
 #, python-format
 msgid "Invalid or unsupported vault public key: %s"
@@ -1282,10 +1267,8 @@ msgstr ""
 msgid "ACI name"
 msgstr "Nome do comando"
 
-#, fuzzy
-#| msgid "Permission type"
 msgid "Permission"
-msgstr "Tipo de permissão"
+msgstr "Permissão"
 
 msgid "Permission ACI grants access to"
 msgstr ""
@@ -1311,7 +1294,7 @@ msgid "Attributes"
 msgstr ""
 
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
 msgstr ""
@@ -1323,7 +1306,7 @@ msgid "Member of a group"
 msgstr ""
 
 msgid "Filter"
-msgstr ""
+msgstr "Filtro"
 
 msgid "Legal LDAP filter (e.g. ou=Engineering)"
 msgstr ""
@@ -1545,13 +1528,13 @@ msgid "Automount key name."
 msgstr ""
 
 msgid "Mount information"
-msgstr ""
+msgstr "Informação de montagem"
 
 msgid "description"
-msgstr ""
+msgstr "descrição"
 
 msgid "Location"
-msgstr ""
+msgstr "Localização"
 
 msgid "Automount location name."
 msgstr ""
@@ -1563,7 +1546,7 @@ msgid "Automount map name."
 msgstr ""
 
 msgid "Description"
-msgstr ""
+msgstr "Descrição"
 
 msgid "Create a new automount key."
 msgstr ""
@@ -1613,7 +1596,7 @@ msgid ""
 msgstr ""
 
 msgid "Rights"
-msgstr ""
+msgstr "Direitos"
 
 msgid ""
 "Display the access rights of this entry (requires --all). See ipa man page "
@@ -1624,7 +1607,7 @@ msgid "New mount information"
 msgstr ""
 
 msgid "Rename"
-msgstr ""
+msgstr "Renomear"
 
 msgid "Rename the automount key object"
 msgstr ""
@@ -1661,7 +1644,7 @@ msgid "Create a new indirect mount point."
 msgstr ""
 
 msgid "Mount point"
-msgstr ""
+msgstr "Ponto de montagem"
 
 msgid "Parent map"
 msgstr ""
@@ -1775,13 +1758,13 @@ msgid "Maximum username length"
 msgstr ""
 
 msgid "Home directory base"
-msgstr ""
+msgstr "Base de directório pessoal"
 
 msgid "Default location of home directories"
 msgstr ""
 
 msgid "Default shell"
-msgstr ""
+msgstr "Shell predefinida"
 
 msgid "Default shell for new users"
 msgstr ""
@@ -1830,13 +1813,13 @@ msgid "Base for certificate subjects (OU=Test,O=Example)"
 msgstr ""
 
 msgid "Default group objectclasses"
-msgstr ""
+msgstr "objectclasses de grupo predefinido"
 
 msgid "Default group objectclasses (comma-separated list)"
 msgstr ""
 
 msgid "Default user objectclasses"
-msgstr ""
+msgstr "objectclasses de utilizador predefinido"
 
 msgid "Default user objectclasses (comma-separated list)"
 msgstr ""
@@ -2238,7 +2221,7 @@ msgid "IP network to create reverse zone name from"
 msgstr ""
 
 msgid "Active zone"
-msgstr "$0 Zona Ativa"
+msgstr "Zona ativa"
 
 msgid "Is zone active?"
 msgstr ""
@@ -2266,7 +2249,7 @@ msgid "Time to live"
 msgstr ""
 
 msgid "Records"
-msgstr ""
+msgstr "Registos"
 
 #, fuzzy
 #| msgid "incorrect type"
@@ -2283,10 +2266,10 @@ msgid "Raw A records"
 msgstr ""
 
 msgid "A IP Address"
-msgstr ""
+msgstr "Um Endereço IP"
 
 msgid "IP Address"
-msgstr ""
+msgstr "Endereço IP"
 
 msgid "A Create reverse"
 msgstr ""
@@ -2301,7 +2284,7 @@ msgid "Raw AAAA records"
 msgstr ""
 
 msgid "AAAA IP Address"
-msgstr "Endereço IP"
+msgstr "Endereço IP AAAA"
 
 msgid "AAAA Create reverse"
 msgstr ""
@@ -2331,7 +2314,7 @@ msgid "AFSDB Hostname"
 msgstr ""
 
 msgid "Hostname"
-msgstr ""
+msgstr "Nome da máquina"
 
 msgid "APL record"
 msgstr ""
@@ -2400,16 +2383,16 @@ msgid "DLV Algorithm"
 msgstr ""
 
 msgid "DLV Digest Type"
-msgstr ""
+msgstr "Tipo de Digest DLV"
 
 msgid "Digest Type"
-msgstr ""
+msgstr "Tipo de Digest"
 
 msgid "DLV Digest"
-msgstr ""
+msgstr "Digest DVL"
 
 msgid "Digest"
-msgstr ""
+msgstr "Digest"
 
 msgid "DNAME record"
 msgstr ""
@@ -2421,7 +2404,7 @@ msgid "DNAME Target"
 msgstr ""
 
 msgid "Target"
-msgstr ""
+msgstr "Alvo"
 
 msgid "DNSKEY record"
 msgstr ""
@@ -2442,10 +2425,10 @@ msgid "DS Algorithm"
 msgstr ""
 
 msgid "DS Digest Type"
-msgstr ""
+msgstr "Tipo de Digest DS"
 
 msgid "DS Digest"
-msgstr ""
+msgstr "Digest DS"
 
 msgid "HIP record"
 msgstr ""
@@ -2472,7 +2455,7 @@ msgid "Raw KX records"
 msgstr ""
 
 msgid "KX Preference"
-msgstr "Preferências"
+msgstr "Preferência de KX"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
@@ -2547,7 +2530,7 @@ msgid "LOC Size"
 msgstr ""
 
 msgid "Size"
-msgstr ""
+msgstr "Tamanho"
 
 msgid "LOC Horizontal Precision"
 msgstr ""
@@ -2568,7 +2551,7 @@ msgid "Raw MX records"
 msgstr ""
 
 msgid "MX Preference"
-msgstr "Preferências"
+msgstr "Preferência de MX"
 
 msgid "MX Exchanger"
 msgstr ""
@@ -2586,25 +2569,25 @@ msgid "NAPTR Order"
 msgstr ""
 
 msgid "Order"
-msgstr ""
+msgstr "Ordem"
 
 msgid "NAPTR Preference"
 msgstr ""
 
 msgid "Preference"
-msgstr ""
+msgstr "Preferência"
 
 msgid "NAPTR Flags"
 msgstr ""
 
 msgid "Flags"
-msgstr ""
+msgstr "Bandeiras"
 
 msgid "NAPTR Service"
 msgstr ""
 
 msgid "Service"
-msgstr ""
+msgstr "Serviço"
 
 msgid "NAPTR Regular Expression"
 msgstr ""
@@ -2625,7 +2608,7 @@ msgid "Raw NS records"
 msgstr ""
 
 msgid "NS Hostname"
-msgstr "Nome da máquina"
+msgstr "Nome da máquina NS"
 
 msgid "NSEC record"
 msgstr ""
@@ -2658,7 +2641,7 @@ msgid "Raw RRSIG records"
 msgstr ""
 
 msgid "RP record"
-msgstr ""
+msgstr "Registo RP"
 
 msgid "Raw RP records"
 msgstr ""
@@ -2682,22 +2665,22 @@ msgid "Raw SRV records"
 msgstr ""
 
 msgid "SRV Priority"
-msgstr "Prioridade"
+msgstr "Prioridade SRV"
 
 msgid "Priority"
-msgstr ""
+msgstr "Prioridade"
 
 msgid "SRV Weight"
 msgstr ""
 
 msgid "Weight"
-msgstr ""
+msgstr "Peso"
 
 msgid "SRV Port"
 msgstr ""
 
 msgid "Port"
-msgstr ""
+msgstr "Porto"
 
 msgid "SRV Target"
 msgstr ""
@@ -2750,13 +2733,13 @@ msgid "TLSA Selector"
 msgstr ""
 
 msgid "Selector"
-msgstr ""
+msgstr "Seletor"
 
 msgid "TLSA Matching Type"
 msgstr ""
 
 msgid "Matching Type"
-msgstr ""
+msgstr "Tipo de Correspondência"
 
 msgid "TLSA Certificate Association Data"
 msgstr ""
@@ -3090,22 +3073,22 @@ msgid "Service category the rule applies to"
 msgstr ""
 
 msgid "Enabled"
-msgstr ""
+msgstr "Ativado"
 
 msgid "Users"
-msgstr ""
+msgstr "Utilizadores"
 
 msgid "User Groups"
 msgstr ""
 
 msgid "Hosts"
-msgstr ""
+msgstr "Máquinas"
 
 msgid "Host Groups"
 msgstr ""
 
 msgid "Services"
-msgstr ""
+msgstr "Serviços"
 
 msgid "Service Groups"
 msgstr ""
@@ -3247,13 +3230,13 @@ msgid ""
 msgstr ""
 
 msgid "Service name"
-msgstr "Nome de Serviço"
+msgstr "Nome do serviço"
 
 msgid "HBAC service"
 msgstr ""
 
 msgid "HBAC service description"
-msgstr "Descrição do Dispositivo"
+msgstr "Descrição do serviço HBAC"
 
 msgid "Member of HBAC service groups"
 msgstr ""
@@ -3275,10 +3258,8 @@ msgstr ""
 msgid "Modify an HBAC service."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about an HBAC service."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca dum serviço HBAC."
 
 msgid ""
 "\n"
@@ -3329,10 +3310,8 @@ msgstr ""
 msgid "Remove members from an HBAC service group."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a named group."
 msgid "Display information about an HBAC service group."
-msgstr "Exibir informação acerca de um grupo nomeado."
+msgstr "Mostra informação acerca dum grupo de serviço HBAC."
 
 msgid ""
 "\n"
@@ -3399,7 +3378,7 @@ msgid ""
 msgstr ""
 
 msgid "Host name"
-msgstr ""
+msgstr "Nome de máquina"
 
 msgid "A description of this host"
 msgstr ""
@@ -3414,19 +3393,19 @@ msgid "Host location (e.g. \"Lab 2\")"
 msgstr ""
 
 msgid "Platform"
-msgstr ""
+msgstr "Plataforma"
 
 msgid "Host hardware platform (e.g. \"Lenovo T61\")"
 msgstr ""
 
 msgid "Operating system"
-msgstr ""
+msgstr "Sistema operativo"
 
 msgid "Host operating system and version (e.g. \"Fedora 9\")"
 msgstr ""
 
 msgid "User password"
-msgstr ""
+msgstr "Palavra-passe de utilizador"
 
 msgid "Password used in bulk enrollment"
 msgstr ""
@@ -3444,10 +3423,10 @@ msgid "Base-64 encoded server certificate"
 msgstr ""
 
 msgid "Principal name"
-msgstr ""
+msgstr "Nome principal"
 
 msgid "MAC address"
-msgstr ""
+msgstr "Endereço MAC"
 
 msgid "Hardware MAC address(es) on this host"
 msgstr ""
@@ -3458,7 +3437,7 @@ msgid "SSH public key"
 msgstr "chave SSh pública inválida"
 
 msgid "Class"
-msgstr ""
+msgstr "Classe"
 
 msgid ""
 "Host category (semantics placed on this attribute are for local "
@@ -3484,7 +3463,7 @@ msgid "Member of host-groups"
 msgstr ""
 
 msgid "Roles"
-msgstr ""
+msgstr "Funções"
 
 msgid "Member of netgroups"
 msgstr ""
@@ -3584,10 +3563,8 @@ msgid ""
 "host."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for hosts."
-msgstr "Pesquisar por interligações."
+msgstr "Pesquisar por máquinas."
 
 msgid "Results should contain primary key attribute only (\"hostname\")"
 msgstr ""
@@ -3611,7 +3588,7 @@ msgid "Search for hosts without these member of netgroups."
 msgstr ""
 
 msgid "role"
-msgstr ""
+msgstr "função"
 
 msgid "Search for hosts with these member of roles."
 msgstr ""
@@ -3638,7 +3615,7 @@ msgid "Search for hosts without these member of sudo rules."
 msgstr ""
 
 msgid "user"
-msgstr ""
+msgstr "utilizador"
 
 msgid "Search for hosts with these enrolled by users."
 msgstr ""
@@ -3661,10 +3638,8 @@ msgstr ""
 msgid "Search for hosts without these managing hosts."
 msgstr ""
 
-#, fuzzy
-#| msgid "Modify information about an IPA location."
 msgid "Modify information about a host."
-msgstr "Modificar informação acerca de uma localização IPA"
+msgstr "Modifica informação acerca de uma máquina."
 
 msgid "Kerberos principal name for this host"
 msgstr ""
@@ -3675,10 +3650,8 @@ msgstr ""
 msgid "Remove hosts that can manage this host."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a host."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma máquina."
 
 msgid "file to store certificate in"
 msgstr ""
@@ -3744,10 +3717,8 @@ msgstr ""
 msgid "Delete a hostgroup."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for hostgroups."
-msgstr "Pesquisar por interligações."
+msgstr "Pesquisar por grupos de máquinas."
 
 msgid "Results should contain primary key attribute only (\"hostgroup-name\")"
 msgstr ""
@@ -3794,10 +3765,8 @@ msgstr ""
 msgid "Remove members from a hostgroup."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a hostgroup."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um grupo de máquinas."
 
 msgid ""
 "\n"
@@ -3816,7 +3785,7 @@ msgid "Anchor to override"
 msgstr ""
 
 msgid "Group name"
-msgstr ""
+msgstr "Nome do grupo"
 
 msgid "GID"
 msgstr ""
@@ -3839,10 +3808,10 @@ msgid "GECOS"
 msgstr "campo GECOS"
 
 msgid "Home directory"
-msgstr ""
+msgstr "Directório pessoal"
 
 msgid "Login shell"
-msgstr ""
+msgstr "Shell de login"
 
 msgid "ID View Name"
 msgstr ""
@@ -3865,10 +3834,8 @@ msgstr ""
 msgid "Rename the Group ID override object"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about an Group ID override."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma sobreposição de ID de Grupo."
 
 msgid "Add a new User ID override."
 msgstr ""
@@ -3885,10 +3852,8 @@ msgstr ""
 msgid "Rename the User ID override object"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about an User ID override."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma sobreposição de ID de Utilizador."
 
 msgid "Add a new ID View."
 msgstr ""
@@ -3899,7 +3864,7 @@ msgid ""
 msgstr ""
 
 msgid "hosts"
-msgstr ""
+msgstr "máquinas"
 
 msgid "Hosts to apply the ID View to"
 msgstr ""
@@ -3936,10 +3901,8 @@ msgstr ""
 msgid "Rename the ID View object"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about an ID View."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma Vista de ID."
 
 msgid "Enumerate all the hosts the view applies to."
 msgstr ""
@@ -4056,7 +4019,7 @@ msgid ""
 msgstr ""
 
 msgid "User name"
-msgstr ""
+msgstr "Nome de utilizador"
 
 msgid "Manage ticket policy for specific user"
 msgstr ""
@@ -4194,7 +4157,7 @@ msgid "Bind DN"
 msgstr ""
 
 msgid "User container"
-msgstr "contentor seleccionado"
+msgstr "Contentor de utilizador"
 
 msgid "DN of container for users in DS relative to base DN"
 msgstr ""
@@ -4258,7 +4221,7 @@ msgid ""
 msgstr ""
 
 msgid "Continue"
-msgstr ""
+msgstr "Continuar"
 
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues"
@@ -4277,7 +4240,7 @@ msgid "Allows migration despite the usage of compat plugin"
 msgstr ""
 
 msgid "CA certificate"
-msgstr "Certificado CA:"
+msgstr "Certificado CA"
 
 msgid "Load CA certificate of LDAP server from FILE"
 msgstr ""
@@ -4359,15 +4322,13 @@ msgid ""
 msgstr ""
 
 msgid "Netgroup name"
-msgstr "Nome do netgroup"
+msgstr "Nome do grupo de rede"
 
 msgid "Netgroup description"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command name"
 msgid "NIS domain name"
-msgstr "Nome do comando"
+msgstr "Nome de domínio NIS"
 
 msgid "IPA unique ID"
 msgstr ""
@@ -4403,7 +4364,7 @@ msgid "netgroups to add"
 msgstr ""
 
 msgid "Delete a netgroup."
-msgstr ""
+msgstr "Apaga um grupo de rede."
 
 #, fuzzy
 #| msgid "Search for trusts."
@@ -4428,7 +4389,7 @@ msgid "Search for netgroups without these member users."
 msgstr ""
 
 msgid "group"
-msgstr ""
+msgstr "grupo"
 
 msgid "Search for netgroups with these member groups."
 msgstr ""
@@ -4455,7 +4416,7 @@ msgid "Search for netgroups without these member of netgroups."
 msgstr ""
 
 msgid "Modify a netgroup."
-msgstr "modificar um grupo"
+msgstr "Modifica um grupo de rede."
 
 msgid "Remove members from a netgroup."
 msgstr ""
@@ -4463,10 +4424,8 @@ msgstr ""
 msgid "netgroups to remove"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a named group."
 msgid "Display information about a netgroup."
-msgstr "Exibir informação acerca de um grupo nomeado."
+msgstr "Mostra informação acerca de um grupo de rede."
 
 msgid ""
 "\n"
@@ -4564,10 +4523,10 @@ msgid "Set a user's password."
 msgstr ""
 
 msgid "New Password"
-msgstr ""
+msgstr "Nova Palavra passe"
 
 msgid "Current Password"
-msgstr ""
+msgstr "Palavra passe Atual"
 
 msgid "OTP"
 msgstr ""
@@ -4646,10 +4605,8 @@ msgid ""
 "\"Manage Group Members\"\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Permission type"
 msgid "Permission name"
-msgstr "Tipo de permissão"
+msgstr "Nome de permissão"
 
 msgid "Granted rights"
 msgstr ""
@@ -4700,7 +4657,7 @@ msgid "All target filters, including those implied by type and memberof"
 msgstr ""
 
 msgid "Target DN"
-msgstr ""
+msgstr "DN do alvo"
 
 msgid ""
 "Optional DN to apply the permission to (must be in the subtree, but may not "
@@ -4777,10 +4734,8 @@ msgstr ""
 msgid "privileges to remove"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a permission."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma permissão."
 
 msgid ""
 "\n"
@@ -4864,7 +4819,7 @@ msgid "Privilege name"
 msgstr ""
 
 msgid "Privilege description"
-msgstr "Descrição do problema"
+msgstr "Descrição do privilégio"
 
 msgid "Granting privilege to roles"
 msgstr ""
@@ -4923,10 +4878,8 @@ msgstr ""
 msgid "Number of permissions removed"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a privilege."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um privilégio."
 
 msgid ""
 "\n"
@@ -4974,7 +4927,7 @@ msgid ""
 msgstr ""
 
 msgid "Group"
-msgstr ""
+msgstr "Grupo"
 
 msgid "Manage password policy for specific group"
 msgstr ""
@@ -4983,7 +4936,7 @@ msgid "Max lifetime (days)"
 msgstr ""
 
 msgid "Maximum password lifetime (in days)"
-msgstr ""
+msgstr "Tempo de vida máximo da palavra passe (em dias)"
 
 msgid "Min lifetime (hours)"
 msgstr ""
@@ -5003,7 +4956,7 @@ msgid "Character classes"
 msgstr ""
 
 msgid "Minimum number of character classes"
-msgstr "número mínimo de classes de caracteres numa palavra passe"
+msgstr "Número mínimo de classes de caracteres"
 
 msgid "Min length"
 msgstr ""
@@ -5062,7 +5015,7 @@ msgid "Display information about password policy."
 msgstr "Exibir informação acerca da política de palavra-passe."
 
 msgid "User"
-msgstr ""
+msgstr "Utilizador"
 
 msgid "Display effective policy for a specific user"
 msgstr ""
@@ -5104,19 +5057,19 @@ msgid "A description of this RADIUS proxy server"
 msgstr "Exibir informação acerca do servidor proxy RADIUS."
 
 msgid "Server"
-msgstr ""
+msgstr "Servidor"
 
 msgid "The hostname or IP (with or without port)"
 msgstr ""
 
 msgid "Secret"
-msgstr ""
+msgstr "Segredo"
 
 msgid "The secret used to encrypt data"
 msgstr ""
 
 msgid "Timeout"
-msgstr ""
+msgstr "Tempo limite"
 
 msgid "The total timeout across all retries (in seconds)"
 msgstr ""
@@ -5128,7 +5081,7 @@ msgid "The number of times to retry authentication"
 msgstr ""
 
 msgid "User attribute"
-msgstr "Atributo do nome do utilizador"
+msgstr "Atributo do utilizador"
 
 msgid "The username attribute on the user object"
 msgstr ""
@@ -5182,13 +5135,13 @@ msgid ""
 msgstr ""
 
 msgid "Domain"
-msgstr ""
+msgstr "Domínio"
 
 msgid "Add domain"
-msgstr ""
+msgstr "Adicionar domínio"
 
 msgid "Delete domain"
-msgstr "Apaga domínio"
+msgstr "Apagar domínio"
 
 msgid "Modify realm domains."
 msgstr ""
@@ -5282,10 +5235,8 @@ msgstr ""
 msgid "Delete a role."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for roles."
-msgstr "Pesquisar por interligações."
+msgstr "Pesquisar por funções."
 
 msgid "Modify a role."
 msgstr ""
@@ -5305,10 +5256,8 @@ msgstr ""
 msgid "Number of privileges removed"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a role."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma função."
 
 msgid ""
 "\n"
@@ -5422,7 +5371,7 @@ msgid ""
 msgstr ""
 
 msgid "SELinux User"
-msgstr ""
+msgstr "Utilizador SELinux"
 
 msgid "HBAC Rule"
 msgstr ""
@@ -5440,7 +5389,7 @@ msgid "Add users and groups to an SELinux User Map rule."
 msgstr ""
 
 msgid "Delete a SELinux User Map."
-msgstr "Apagar o Mapeamento de Utilizador SELinux"
+msgstr "Apagar um Mapeamento de Utilizador SELinux."
 
 msgid "Disable an SELinux User Map rule."
 msgstr ""
@@ -5454,7 +5403,7 @@ msgid "Search for SELinux User Maps."
 msgstr "Pesquisar por interligações."
 
 msgid "Modify a SELinux User Map."
-msgstr "Modificar o Mapeamento de Utilizador SELinux"
+msgstr "Modifica um Mapeamento de Utilizador SELinux."
 
 msgid "Remove target hosts and hostgroups from an SELinux User Map rule."
 msgstr ""
@@ -5599,10 +5548,8 @@ msgstr "Modificar informação acerca de um servidor IPA"
 msgid "Remove hosts that can manage this service."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about an IPA service."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um serviço IPA."
 
 msgid ""
 "\n"
@@ -6281,10 +6228,8 @@ msgstr ""
 msgid "Group description"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command name"
 msgid "Commands"
-msgstr "Nome do comando"
+msgstr "Comandos"
 
 msgid "Member Sudo commands"
 msgstr ""
@@ -6377,7 +6322,7 @@ msgid "Last name"
 msgstr ""
 
 msgid "Full name"
-msgstr ""
+msgstr "Nome completo"
 
 msgid "Display name"
 msgstr ""
@@ -6392,7 +6337,7 @@ msgid "Kerberos principal expiration"
 msgstr ""
 
 msgid "Email address"
-msgstr ""
+msgstr "Endereço de Email"
 
 msgid "Prompt to set the user password"
 msgstr ""
@@ -6407,7 +6352,7 @@ msgid "Street address"
 msgstr ""
 
 msgid "City"
-msgstr ""
+msgstr "Cidade"
 
 msgid "State/Province"
 msgstr ""
@@ -6487,7 +6432,7 @@ msgid "Don't create user private group"
 msgstr ""
 
 msgid "Delete a user."
-msgstr "Apagar Utilizador"
+msgstr "Apaga um utilizador."
 
 msgid "Disable a user account."
 msgstr ""
@@ -6495,10 +6440,8 @@ msgstr ""
 msgid "Enable a user account."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for users."
-msgstr "Pesquisar por interligações."
+msgstr "Procura por utilizadores."
 
 msgid "Self"
 msgstr ""
@@ -6540,7 +6483,7 @@ msgid "Search for users without these member of sudo rules."
 msgstr ""
 
 msgid "Modify a user."
-msgstr "Modificar Utilizador"
+msgstr "Modifica um utilizador."
 
 msgid "Rename the user object"
 msgstr ""
@@ -6800,16 +6743,8 @@ msgstr ""
 msgid "Number of conditions removed"
 msgstr ""
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "    Display information about an automember rule.\n"
-#| "    "
 msgid "Display information about an automember rule."
-msgstr ""
-"\n"
-"    Exibir informação acerca de uma regra de membro automática.\n"
-"    "
+msgstr "Mostra informação acerca de uma regra de membro automático."
 
 msgid ""
 "\n"
@@ -6976,7 +6911,7 @@ msgid "Retrieve an existing certificate."
 msgstr ""
 
 msgid "Output filename"
-msgstr "Ficheiro de resultado"
+msgstr "Nome de ficheiro para resultado"
 
 msgid "File to store the certificate in."
 msgstr ""
@@ -7106,15 +7041,13 @@ msgid "Members of a trusted domain in DOM\\name or name@domain form"
 msgstr ""
 
 msgid "Delete group."
-msgstr "Eliminar grupo"
+msgstr "Elimina grupo."
 
 msgid "Detach a managed group from a user."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for groups."
-msgstr "Pesquisar por interligações."
+msgstr "Procura por grupos."
 
 #, fuzzy
 #| msgid "Search for trusts."
@@ -7180,7 +7113,7 @@ msgid "Search for groups without these member of sudo rules."
 msgstr ""
 
 msgid "Modify a group."
-msgstr ""
+msgstr "Modifica um grupo."
 
 msgid "change to a POSIX group"
 msgstr ""
@@ -7416,7 +7349,7 @@ msgid "Maximum number of rules to process when no --rules is specified"
 msgstr ""
 
 msgid "Warning"
-msgstr ""
+msgstr "Aviso"
 
 msgid "Matched rules"
 msgstr ""
@@ -7648,18 +7581,14 @@ msgstr ""
 msgid "Delete an ID range."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for ranges."
-msgstr "Pesquisar por interligações."
+msgstr "Procura por gamas."
 
 msgid "Modify ID range."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a range."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma gama."
 
 msgid ""
 "\n"
@@ -7696,7 +7625,7 @@ msgid "Token description (informational only)"
 msgstr ""
 
 msgid "Owner"
-msgstr ""
+msgstr "Dono"
 
 msgid "Assigned user of the token (default: self)"
 msgstr ""
@@ -7705,7 +7634,7 @@ msgid "Assigned manager of the token (default: self)"
 msgstr ""
 
 msgid "Disabled"
-msgstr ""
+msgstr "Desativado"
 
 msgid "Mark the token as disabled (default: false)"
 msgstr ""
@@ -7717,25 +7646,25 @@ msgid "First date/time the token can be used"
 msgstr ""
 
 msgid "Validity end"
-msgstr "Validade"
+msgstr "Fim de validade"
 
 msgid "Last date/time the token can be used"
 msgstr ""
 
 msgid "Vendor"
-msgstr ""
+msgstr "Fornecedor"
 
 msgid "Token vendor name (informational only)"
 msgstr ""
 
 msgid "Model"
-msgstr ""
+msgstr "Modelo"
 
 msgid "Token model (informational only)"
 msgstr ""
 
 msgid "Serial"
-msgstr ""
+msgstr "Série"
 
 msgid "Token serial (informational only)"
 msgstr ""
@@ -7799,10 +7728,8 @@ msgstr ""
 msgid "Rename the OTP token object"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about an IPA location."
 msgid "Display information about an OTP token."
-msgstr "Exibir informação acerca de uma localização IPA"
+msgstr "Mostra informação acerca de um testemunho OTP."
 
 msgid ""
 "\n"
@@ -8139,15 +8066,13 @@ msgid "NetBIOS name"
 msgstr ""
 
 msgid "Domain GUID"
-msgstr ""
+msgstr "GUID do Domínio"
 
 msgid "Fallback primary group"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command name"
 msgid "Domain name"
-msgstr "Nome do comando"
+msgstr "Nome do domínio"
 
 msgid "Trusted domain partner"
 msgstr ""
@@ -8233,10 +8158,8 @@ msgstr ""
 msgid "Security Identifiers (SIDs)"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a trust."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma confiança."
 
 msgid "Modify global trust configuration."
 msgstr ""
@@ -8329,7 +8252,7 @@ msgid "Service category the ACL applies to"
 msgstr ""
 
 msgid "Profiles"
-msgstr ""
+msgstr "Perfis"
 
 msgid "Create a new CA ACL."
 msgstr ""
@@ -8475,7 +8398,7 @@ msgid ""
 msgstr ""
 
 msgid "Server name"
-msgstr ""
+msgstr "Nome do servidor"
 
 msgid "IPA server hostname"
 msgstr ""
@@ -8618,10 +8541,8 @@ msgstr ""
 msgid "service delegation targets to remove"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a delegation."
 msgid "Display information about a named service delegation rule."
-msgstr "Exibir informação acerca de uma delegação."
+msgstr "Mostra informação acerca de uma regra de delegação de serviço nomeada."
 
 msgid "Create a new service delegation target."
 msgstr ""
@@ -8743,10 +8664,8 @@ msgstr ""
 msgid "Rename the stage user object"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a stage user."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um utilizador de estágio."
 
 msgid ""
 "\n"
@@ -9078,7 +8997,7 @@ msgid "Vault salt"
 msgstr ""
 
 msgid "Public key"
-msgstr "Chave pública GPG"
+msgstr "Chave pública"
 
 #, fuzzy
 #| msgid "invalid SSH public key"
@@ -9122,13 +9041,13 @@ msgid "Add owners to a vault."
 msgstr ""
 
 msgid "owner user"
-msgstr ""
+msgstr "utilizador dono"
 
 msgid "owner group"
-msgstr ""
+msgstr "grupo dono"
 
 msgid "owner service"
-msgstr ""
+msgstr "serviço dono"
 
 msgid "Owners that could not be added"
 msgstr ""
@@ -9143,15 +9062,13 @@ msgid "Vault data encrypted with session key"
 msgstr ""
 
 msgid "Nonce"
-msgstr ""
+msgstr "Número de utilização única (Nonce)"
 
 msgid "Delete a vault."
 msgstr ""
 
-#, fuzzy
-#| msgid "Search for trusts."
 msgid "Search for vaults."
-msgstr "Pesquisar por interligações."
+msgstr "Procura por cofres."
 
 msgid "List all service vaults"
 msgstr ""
@@ -11525,7 +11442,7 @@ msgid "unknown error %(code)d from %(server)s: %(error)s"
 msgstr "erro no servidor '%(server)s': %(error)s"
 
 msgid "an internal error has occurred"
-msgstr "ocorreu um erro interno "
+msgstr "ocorreu um erro interno"
 
 #, python-format
 msgid "an internal error has occurred on server at '%(server)s'"
@@ -12325,7 +12242,7 @@ msgid "Topic or Command"
 msgstr "Tópico ou Comando"
 
 msgid "The topic or command name."
-msgstr "O nome do tópico ou do comando"
+msgstr "O nome do tópico ou do comando."
 
 msgid "Topic commands:"
 msgstr "Comandos do tópico:"
@@ -16080,7 +15997,7 @@ msgid "IPA Server"
 msgstr ""
 
 msgid "Modify information about an IPA location."
-msgstr "Modificar informação acerca de uma localização IPA"
+msgstr "Modificar informação acerca duma localização IPA."
 
 #, python-format
 msgid "Modified IPA location \"%(value)s\""
@@ -16098,7 +16015,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Display information about an IPA location."
-msgstr "Exibir informação acerca de uma localização IPA"
+msgstr "Mostra informação acerca duma localização IPA."
 
 msgid "Servers in location"
 msgstr ""
@@ -22685,7 +22602,7 @@ msgid "List of enabled roles"
 msgstr ""
 
 msgid "Modify information about an IPA server."
-msgstr "Modificar informação acerca de um servidor IPA"
+msgstr "Modifica informação acerca dum servidor IPA."
 
 #, python-format
 msgid "Modified IPA server \"%(value)s\""
