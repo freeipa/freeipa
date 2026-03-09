@@ -2476,6 +2476,10 @@ def ensure_default_caacl():
             hostcategory=u'all', servicecategory=u'all')
         api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
             certprofile=(u'caIPAserviceCert',))
+        api.Command.caacl_add(u'hosts_services_MLDSA_certs',
+            hostcategory=u'all', servicecategory=u'all')
+        api.Command.caacl_add_profile(u'hosts_services_MLDSA_certs',
+            certprofile=(u'caMLDSASubsystemCert', u'caMLDSAServerCert',))
 
 
 def add_lightweight_ca_tracking_requests(lwcas):
