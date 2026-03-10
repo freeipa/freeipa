@@ -9,6 +9,7 @@ from __future__ import absolute_import
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipaplatform.paths import paths
+from ipapython.ipaldap import realm_to_serverid
 from collections import Counter
 
 import pytest
@@ -1299,6 +1300,74 @@ class TestIPAMigrationProdMode(MigrationTest):
         assert expected_fp in result.stdout_text
         assert "test@example.com" in result.stdout_text
         assert "ssh-ed25519" in result.stdout_text
+
+    def test_ipa_migrate_skip_replication_conflicts(self):
+        """
+        Test that ipa-migrate skips replication conflict entries
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+
+        # Get DS instance name
+        instance_name = realm_to_serverid(self.master.domain.realm)
+
+        # Stop IPA on master to export database
+        self.master.run_command(['ipactl', 'stop'])
+
+        # Export database using dsctl
+        ldif_file = "/tmp/userroot.ldif"
+        self.master.run_command([
+            'dsctl', instance_name, 'db2ldif', 'userroot', ldif_file
+        ])
+
+        # Start IPA back on master
+        self.master.run_command(['ipactl', 'start'])
+
+        # Copy LDIF to replica
+        ldif_content = self.master.get_file_contents(
+            ldif_file, encoding="utf-8"
+        )
+        replica_ldif = "/tmp/userroot_with_conflict.ldif"
+
+        # Add mocked replication conflict entry to the LDIF
+        users_dn = "cn=users,cn=accounts," + str(self.master.domain.basedn)
+        conflict_entry = textwrap.dedent(
+            """
+            # entry-id: 12345678
+            dn: nsuniqueid=12345678-1234+uid=conflictuser,{users_dn}
+            uid: conflictuser
+            cn: Conflict User
+            uidNumber: 1234
+            gidNumber: 1234
+            sn: User
+            objectClass: top
+            objectClass: person
+            objectClass: inetorgperson
+            objectClass: nsds5replconflict
+            nsds5ReplConflict: namingConflict uid=conflictuser,{users_dn}
+
+            """
+        ).format(users_dn=users_dn)
+
+        # Append conflict entry to LDIF
+        modified_ldif = ldif_content + conflict_entry
+        self.replicas[0].put_file_contents(replica_ldif, modified_ldif)
+
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-f", replica_ldif, "-n", "-x"],
+        )
+
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+
+        assert result.returncode == 0
+        assert "Skipping replication conflict entry" in install_msg
 
 
 class TestIPAMigrationWithADtrust(IntegrationTest):
