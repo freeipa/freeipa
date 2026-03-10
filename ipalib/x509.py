@@ -804,13 +804,13 @@ class ExternalCAProfile:
         parts = s.split(':')
 
         try:
-            # Is the first part on OID?
-            _oid = univ.ObjectIdentifier(parts[0])
+            # Is the first part an OID?
+            synta.ObjectIdentifier(parts[0])
 
             # It is; construct a V2 template
             return MSCSTemplateV2.__new__(MSCSTemplateV2, s)
 
-        except pyasn1.error.PyAsn1Error:
+        except ValueError:
             # It is not an OID; treat as a template name
             return MSCSTemplateV1.__new__(MSCSTemplateV1, s)
 
@@ -828,17 +828,14 @@ class MSCSTemplate(ExternalCAProfile):
 
     Subclasses MUST set ext_oid.
 
-    Subclass constructors MUST set asn1obj.
-
     """
     valid_for = set([ExternalCAType.MS_CS.value])
 
     ext_oid = None  # extension OID, as a Python str
-    asn1obj = None  # unencoded extension data
 
     def get_ext_data(self):
         """Return DER-encoded extension data."""
-        return encoder.encode(self.asn1obj)
+        raise NotImplementedError
 
 
 class MSCSTemplateV1(MSCSTemplate):
@@ -863,7 +860,13 @@ class MSCSTemplateV1(MSCSTemplate):
         if len(parts) > 1:
             raise ValueError(
                 "Cannot specify certificate template version when using name.")
-        self.asn1obj = char.BMPString(str(parts[0]))
+        self._template_name = str(parts[0])
+
+    def get_ext_data(self):
+        """Return DER-encoded BMPString of the template name."""
+        enc = synta.Encoder(synta.Encoding.DER)
+        enc.encode_bmp_string(self._template_name)
+        return enc.finish()
 
 
 class MSCSTemplateV2(MSCSTemplate):
@@ -896,31 +899,38 @@ class MSCSTemplateV2(MSCSTemplate):
 
         parts = s.split(':')
 
-        obj = CertificateTemplateV2()
         if len(parts) < 2 or len(parts) > 3:
             raise ValueError(
                 "Incorrect template specification; required format is: "
                 "<oid>:<majorVersion>[:<minorVersion>]")
+
         try:
-            obj['templateID'] = univ.ObjectIdentifier(parts[0])
-
-            major = int(parts[1])
-            self.check_version_in_range("major", major)
-            obj['templateMajorVersion'] = major
-
-            if len(parts) > 2:
-                minor = int(parts[2])
-                self.check_version_in_range("minor", minor)
-                obj['templateMinorVersion'] = int(parts[2])
-
-        except pyasn1.error.PyAsn1Error:
+            synta.ObjectIdentifier(parts[0])
+        except ValueError:
             raise ValueError("Could not parse certificate template specifier.")
-        self.asn1obj = obj
+        self._template_oid = parts[0]
 
+        major = int(parts[1])
+        self.check_version_in_range("major", major)
+        self._major = major
 
-class CertificateTemplateV2(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('templateID', univ.ObjectIdentifier()),
-        namedtype.NamedType('templateMajorVersion', univ.Integer()),
-        namedtype.OptionalNamedType('templateMinorVersion', univ.Integer())
-    )
+        if len(parts) > 2:
+            minor = int(parts[2])
+            self.check_version_in_range("minor", minor)
+            self._minor = minor
+        else:
+            self._minor = None
+
+    def get_ext_data(self):
+        """
+        Return DER-encoded CertificateTemplate SEQUENCE:
+            SEQUENCE { OID, INTEGER, INTEGER OPTIONAL }
+        """
+        inner = synta.Encoder(synta.Encoding.DER)
+        inner.encode_oid(synta.ObjectIdentifier(self._template_oid))
+        inner.encode_integer(self._major)
+        if self._minor is not None:
+            inner.encode_integer(self._minor)
+        outer = synta.Encoder(synta.Encoding.DER)
+        outer.encode_sequence(inner.finish())
+        return outer.finish()
