@@ -652,38 +652,19 @@ def write_pem_private_key(priv_key, filename, passwd=None):
         raise errors.FileError(reason=str(e))
 
 
-class _PrincipalName(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('name-type', univ.Integer().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
-        ),
-        namedtype.NamedType('name-string', univ.SequenceOf(char.GeneralString()).subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
-        ),
-    )
-
-
-class _KRB5PrincipalName(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('realm', char.GeneralString().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
-        ),
-        namedtype.NamedType('principalName', _PrincipalName().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
-        ),
-    )
-
-
 def _decode_krb5principalname(data):
-    principal = decoder.decode(data, asn1Spec=_KRB5PrincipalName())[0]
-    realm = (str(principal['realm']).replace('\\', '\\\\')
-                                        .replace('@', '\\@'))
-    name = principal['principalName']['name-string']
-    name = u'/'.join(str(n).replace('\\', '\\\\')
-                               .replace('/', '\\/')
-                               .replace('@', '\\@') for n in name)
-    name = u'%s@%s' % (name, realm)
-    return name
+    """
+    Decode a KRB5PrincipalName (RFC 4556) from DER bytes.
+
+    Returns the principal string in the form ``name@REALM``, with
+    backslash, slash, and at-sign characters escaped.
+    """
+    import synta.krb5
+    p = synta.krb5.Krb5PrincipalName.from_der(data)
+    realm = p.realm.replace('\\', '\\\\').replace('@', '\\@')
+    parts = [s.replace('\\', '\\\\').replace('/', '\\/').replace('@', '\\@')
+             for s in p.components]
+    return u'%s@%s' % (u'/'.join(parts), realm)
 
 
 class KRB5PrincipalName(crypto_x509.general_name.OtherName):
@@ -695,8 +676,7 @@ class KRB5PrincipalName(crypto_x509.general_name.OtherName):
 class UPN(crypto_x509.general_name.OtherName):
     def __init__(self, type_id, value):
         super(UPN, self).__init__(type_id, value)
-        self.name = str(
-            decoder.decode(value, asn1Spec=char.UTF8String())[0])
+        self.name = synta.Decoder(value, synta.Encoding.DER).decode_any_str()
 
 
 OTHERNAME_CLASS_MAP = {
