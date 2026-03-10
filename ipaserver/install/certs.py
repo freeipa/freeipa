@@ -233,7 +233,7 @@ def get_key_type_and_strength(input, is_ca=False):
     return (key_type, key_strength)
 
 
-def get_ra_agent_profile(api):
+def get_ra_agent_profile(keytype):
     """This is suitable during installation. I doubt at runtime.
 
        FIXME: This will need a conditional on whether
@@ -242,7 +242,6 @@ def get_ra_agent_profile(api):
 
        The caller is expected to handle None.
     """
-    (keytype, _keysize) = get_key_type_and_strength(api.env.key_type_size)
     if keytype == "rsa":
         return "caSubsystemCert"
     elif keytype == "mldsa":
@@ -251,7 +250,7 @@ def get_ra_agent_profile(api):
         return None
 
 
-def get_default_profile(api):
+def get_default_profile(keytype):
     """This is suitable during installation. I doubt at runtime.
 
        FIXME: This will need a conditional on whether
@@ -260,7 +259,6 @@ def get_default_profile(api):
 
        The caller is expected to handle None.
     """
-    (keytype, _keysize) = get_key_type_and_strength(api.env.key_type_size)
     if keytype == "rsa":
         return "caIPAserviceCert"
     elif keytype == "mldsa":
@@ -901,7 +899,10 @@ class CertDB:
         ca_client = pki.ca.CAClient(pki_client)
         cert_client = pki.cert.CertClient(ca_client)
 
-        profile = get_ra_agent_profile(api)
+        (keytype, _keysize) = (
+            get_key_type_and_strength(api.env.key_type_size)
+        )
+        profile = get_ra_agent_profile(keytype)
         inputs = dict()
         inputs['cert_request_type'] = 'pkcs10'
         with open(csrfile, 'r') as f:
