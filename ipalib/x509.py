@@ -318,10 +318,13 @@ class IPACertificate:
         if eku is None:
             return None
 
-        ekurfc = rfc2459.ExtKeyUsageSyntax()
-        for i, oid in enumerate(sorted(eku)):
-            ekurfc[i] = univ.ObjectIdentifier(oid)
-        ekurfc = encoder.encode(ekurfc)
+        # ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
+        inner = synta.Encoder(synta.Encoding.DER)
+        for oid in sorted(eku):
+            inner.encode_oid(synta.ObjectIdentifier(oid))
+        outer = synta.Encoder(synta.Encoding.DER)
+        outer.encode_sequence(inner.finish())
+        ekurfc = outer.finish()
         return self.__encode_extension('2.5.29.37', EKU_ANY not in eku, ekurfc)
 
     @property
