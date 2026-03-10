@@ -1523,10 +1523,19 @@ class IPAMigrate():
             if DN(exclude_dn) in DN(entry_dn):
                 return
 
+        # Build objectclass list
+        oc_list = [oc.lower() for oc in entry_attrs['objectClass']]
+
         # Skip tombstones
         # The attributes haven't been normalized yet
         normalize_attr(entry_attrs, 'objectClass')
-        if 'nstombstone' in [oc.lower() for oc in entry_attrs['objectClass']]:
+        if 'nstombstone' in oc_list:
+            return
+
+        # Skip replication conflicts
+        if 'nsds5replconflict' in oc_list:
+            self.log_debug(f"Skipping replication conflict entry: "
+                           f"'{entry_dn}'")
             return
 
         # Determine entry type: user, group, hbac, etc
