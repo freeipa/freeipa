@@ -46,6 +46,7 @@ from cryptography.hazmat.primitives.serialization import (
     Encoding, PublicFormat, PrivateFormat, load_pem_private_key
 )
 import synta
+import synta.general_name as gn
 import six
 
 try:
@@ -97,7 +98,7 @@ class IPACertificate:
         self._cert = cert
         self.backend = default_backend() if backend is None else backend()
         # Cache the synta Certificate view once; from_pyca() is a DER
-        # round-trip so calling it on every san_general_names access is wasteful.
+        # round-trip so calling it on every san_general_names access is wasteful
         self._synta_cert = synta.Certificate.from_pyca(cert)
 
         # initialize the certificate fields
@@ -352,56 +353,54 @@ class IPACertificate:
         and should go away.
 
         """
-        gns = self.__pyasn1_get_san_general_names()
+        return self.__get_san_general_names()
 
-        GENERAL_NAME_CONSTRUCTORS = {
-            'rfc822Name': lambda x: crypto_x509.RFC822Name(str(x)),
-            'dNSName': lambda x: crypto_x509.DNSName(str(x)),
-            'directoryName': _pyasn1_to_cryptography_directoryname,
-            'registeredID': _pyasn1_to_cryptography_registeredid,
-            'iPAddress': _pyasn1_to_cryptography_ipaddress,
-            'uniformResourceIdentifier':
-                lambda x: crypto_x509.UniformResourceIdentifier(
-                    str(x)),
-            'otherName': _pyasn1_to_cryptography_othername,
-        }
+    def __get_san_general_names(self):
+        """
+        Parse the SubjectAltName extension using synta.
 
+        Certificate.subject_alt_names() combines the SAN extension lookup
+        with GeneralName parsing, returning (tag_number, content_bytes) pairs.
+        Named tag constants live in synta.general_name (imported as gn).
+
+        [3] x400Address and [5] ediPartyName are not supported by
+        python-cryptography and are silently skipped.
+        """
         result = []
-
-        for gn in gns:
-            gn_type = gn.getName()
-            if gn_type in GENERAL_NAME_CONSTRUCTORS:
+        for tag_num, raw in self._synta_cert.subject_alt_names():
+            if tag_num == gn.OTHER_NAME:
+                # OtherName ::= SEQUENCE { type-id OID, value [0] EXPLICIT ANY }
+                on_dec = synta.Decoder(raw, synta.Encoding.DER)
+                oid_obj = on_dec.decode_oid()
+                val_child = on_dec.decode_explicit_tag(0)
+                on_val_raw = val_child.remaining_bytes()
+                oid = crypto_x509.ObjectIdentifier(str(oid_obj))
+                result.append(crypto_x509.OtherName(oid, on_val_raw))
+            elif tag_num == gn.RFC822_NAME:
+                result.append(crypto_x509.RFC822Name(raw.decode("ascii")))
+            elif tag_num == gn.DNS_NAME:
+                result.append(crypto_x509.DNSName(raw.decode("ascii")))
+            elif tag_num == gn.DIRECTORY_NAME:
                 result.append(
-                    GENERAL_NAME_CONSTRUCTORS[gn_type](gn.getComponent()))
-
+                    crypto_x509.DirectoryName(_parse_directory_name(raw)))
+            elif tag_num == gn.URI:
+                result.append(
+                    crypto_x509.UniformResourceIdentifier(raw.decode("ascii")))
+            elif tag_num == gn.IP_ADDRESS:
+                result.append(
+                    crypto_x509.IPAddress(ipaddress.ip_address(raw)))
+            elif tag_num == gn.REGISTERED_ID:
+                oid = crypto_x509.ObjectIdentifier(
+                    str(synta.ObjectIdentifier.from_der_value(raw)))
+                result.append(crypto_x509.RegisteredID(oid))
         return result
-
-    def __pyasn1_get_san_general_names(self):
-        # pyasn1 returns None when the key is not present in the certificate
-        # but we need an iterable
-        extensions = self.__get_pyasn1_field('extensions') or []
-        OID_SAN = univ.ObjectIdentifier('2.5.29.17')
-        gns = []
-        for ext in extensions:
-            if ext['extnID'] == OID_SAN:
-                der = ext['extnValue']
-                if pyasn1.__version__.startswith('0.3'):
-                    # pyasn1 <= 0.3.7 needs explicit unwrap of ANY container
-                    # see https://pagure.io/freeipa/issue/7685
-                    der = decoder.decode(der, asn1Spec=univ.OctetString())[0]
-                gns = decoder.decode(der, asn1Spec=rfc2459.SubjectAltName())[0]
-                break
-        return gns
 
     @property
     def san_a_label_dns_names(self):
-        gns = self.__pyasn1_get_san_general_names()
         result = []
-
-        for gn in gns:
-            if gn.getName() == 'dNSName':
-                result.append(str(gn.getComponent()))
-
+        for gn in self.__get_san_general_names():
+            if isinstance(gn, crypto_x509.DNSName):
+                result.append(gn.value)
         return result
 
     def match_hostname(self, hostname):
@@ -722,39 +721,21 @@ def process_othernames(gns):
             yield gn
 
 
-def _pyasn1_to_cryptography_directoryname(dn):
-    attrs = []
+def _parse_directory_name(raw):
+    """
+    Parse a Name (RDNSequence) from the raw content bytes of the [4] tag
+    in a directoryName GeneralName.
 
-    # Name is CHOICE { RDNSequence } (only one possibility)
-    for rdn in dn.getComponent():
-        for ava in rdn:
-            attr = crypto_x509.NameAttribute(
-                _pyasn1_to_cryptography_oid(ava['type']),
-                str(decoder.decode(ava['value'])[0])
-            )
-            attrs.append(attr)
+    In RFC 5280, Name is a CHOICE type; the [4] tag effectively wraps the
+    full Name encoding, so *raw* contains the RDNSequence SEQUENCE TLV:
+      ``30 <len> 31 <len> ...``
 
-    return crypto_x509.DirectoryName(crypto_x509.Name(attrs))
-
-
-def _pyasn1_to_cryptography_registeredid(oid):
-    return crypto_x509.RegisteredID(_pyasn1_to_cryptography_oid(oid))
-
-
-def _pyasn1_to_cryptography_ipaddress(octet_string):
-    return crypto_x509.IPAddress(
-        ipaddress.ip_address(bytes(octet_string)))
-
-
-def _pyasn1_to_cryptography_othername(on):
-    return crypto_x509.OtherName(
-        _pyasn1_to_cryptography_oid(on['type-id']),
-        bytes(on['value'])
-    )
-
-
-def _pyasn1_to_cryptography_oid(oid):
-    return crypto_x509.ObjectIdentifier(str(oid))
+    Returns a ``cryptography.x509.Name`` object.
+    """
+    return crypto_x509.Name([
+        crypto_x509.NameAttribute(crypto_x509.ObjectIdentifier(oid), val)
+        for oid, val in synta.parse_name_attrs(raw)
+    ])
 
 
 def chunk(size, s):
