@@ -750,3 +750,195 @@ class test_selfservice_users(XMLRPC_test):
         assert result['count'] == 0, (
             'Mobile was changed by a different user'
         )
+
+
+# Module-level constants for CLI test classes
+# selfservice-add / selfservice-del CLI tests
+SS_CLI_ADD_1004 = 'selfservice_add_1004'
+SS_CLI_ADD_1006 = 'selfservice_add_1006'
+SS_CLI_DEL_1001 = 'selfservice_del_1001'
+
+
+@pytest.mark.tier1
+class test_selfservice_cli_add_del(Declarative):
+    """CLI tests for selfservice-add and selfservice-del commands."""
+
+    cleanup_commands = [
+        ('selfservice_del', [SS_CLI_ADD_1004], {}),
+        ('selfservice_del', [SS_CLI_ADD_1006], {}),
+    ]
+
+    tests = [
+
+        # add_1002: bad attrs + valid permissions + --all --raw
+        dict(
+            desc='add_1002: selfservice-add with bad attrs, valid permissions,'
+                 ' --all --raw',
+            command=(
+                'selfservice_add',
+                ['selfservice_add_1002'],
+                dict(
+                    attrs=['badattr'],
+                    permissions='write',
+                    all=True,
+                    raw=True,
+                ),
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "badattr" does not exist in schema. '
+                     r'Please add attributeTypes "badattr" to '
+                     r'schema if necessary. '
+                     r'ACL Syntax Error(-5):'
+                     r'(targetattr = \22badattr\22)'
+                     r'(version 3.0;acl '
+                     r'\22selfservice:selfservice_add_1002\22;'
+                     r'allow (write) userdn = \22ldap:///self\22;)',
+            ),
+        ),
+
+        # add_1003: valid attrs + bad permissions + --all --raw
+        dict(
+            desc='add_1003: selfservice-add with valid attrs, bad permissions,'
+                 ' --all --raw',
+            command=(
+                'selfservice_add',
+                ['selfservice_add_1003'],
+                dict(
+                    attrs=[
+                        'telephonenumber', 'mobile',
+                        'pager', 'facsimiletelephonenumber',
+                    ],
+                    permissions='badperm',
+                    all=True,
+                    raw=True,
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='permissions',
+                error='"badperm" is not a valid permission',
+            ),
+        ),
+
+        # add_1004: valid attrs + valid permissions + --all --raw (BZ 772106)
+        # selfservice-add with --raw must not return "internal error" message.
+        dict(
+            desc='add_1004: selfservice-add with valid attrs and permissions,'
+                 ' --all --raw (BZ 772106)',
+            command=(
+                'selfservice_add',
+                [SS_CLI_ADD_1004],
+                dict(
+                    attrs=[
+                        'telephonenumber', 'mobile',
+                        'pager', 'facsimiletelephonenumber',
+                    ],
+                    permissions='write',
+                    all=True,
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                value=SS_CLI_ADD_1004,
+                summary='Added selfservice "%s"' % SS_CLI_ADD_1004,
+                result={
+                    'aci': (
+                        '(targetattr = "telephonenumber || mobile || pager'
+                        ' || facsimiletelephonenumber")'
+                        '(version 3.0;acl "selfservice:%s";'
+                        'allow (write) userdn = "ldap:///self";)'
+                        % SS_CLI_ADD_1004
+                    ),
+                },
+            ),
+        ),
+
+        # add_1005: bad attrs only
+        dict(
+            desc='add_1005: selfservice-add with bad attrs only',
+            command=(
+                'selfservice_add',
+                ['selfservice_add_1005'],
+                dict(attrs=['badattrs']),
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "badattrs" does not exist in schema. '
+                     r'Please add attributeTypes "badattrs" to '
+                     r'schema if necessary. '
+                     r'ACL Syntax Error(-5):'
+                     r'(targetattr = \22badattrs\22)'
+                     r'(version 3.0;acl '
+                     r'\22selfservice:selfservice_add_1005\22;'
+                     r'allow (write) userdn = \22ldap:///self\22;)',
+            ),
+        ),
+
+        # add_1006: valid attrs only
+        dict(
+            desc='add_1006: selfservice-add with valid attrs only',
+            command=(
+                'selfservice_add',
+                [SS_CLI_ADD_1006],
+                dict(attrs=[
+                    'telephonenumber', 'mobile',
+                    'pager', 'facsimiletelephonenumber',
+                ]),
+            ),
+            expected=dict(
+                value=SS_CLI_ADD_1006,
+                summary='Added selfservice "%s"' % SS_CLI_ADD_1006,
+                result=dict(
+                    attrs=[
+                        'telephonenumber', 'mobile',
+                        'pager', 'facsimiletelephonenumber',
+                    ],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=SS_CLI_ADD_1006,
+                ),
+            ),
+        ),
+
+        # Setup for del tests: create the rule that del_1001 will delete.
+        dict(
+            desc=(
+                'Setup: create %r for selfservice-del tests'
+                % SS_CLI_DEL_1001
+            ),
+            command=(
+                'selfservice_add',
+                [SS_CLI_DEL_1001],
+                dict(attrs=['l'], permissions='write'),
+            ),
+            expected=dict(
+                value=SS_CLI_DEL_1001,
+                summary='Added selfservice "%s"' % SS_CLI_DEL_1001,
+                result=dict(
+                    attrs=['l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=SS_CLI_DEL_1001,
+                ),
+            ),
+        ),
+
+        # del_1001: delete an existing rule
+        dict(
+            desc='del_1001: selfservice-del of an existing rule',
+            command=('selfservice_del', [SS_CLI_DEL_1001], {}),
+            expected=dict(
+                result=True,
+                value=SS_CLI_DEL_1001,
+                summary='Deleted selfservice "%s"' % SS_CLI_DEL_1001,
+            ),
+        ),
+
+        # del_1002: delete a non-existent rule
+        dict(
+            desc='del_1002: selfservice-del of a non-existent rule',
+            command=('selfservice_del', ['badname'], {}),
+            expected=errors.NotFound(
+                reason='ACI with name "badname" not found',
+            ),
+        ),
+
+    ]
