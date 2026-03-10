@@ -26,6 +26,7 @@ import re
 from ipalib import api
 from ipalib import Int, Str, Flag
 from ipalib.constants import PATTERN_GROUPUSER_NAME, ERRMSG_GROUPUSER_NAME
+from ipalib.parameters import MAX_UINT32
 from ipalib.plugable import Registry
 from .baseldap import (
     add_external_post_callback,
@@ -354,6 +355,7 @@ class group(LDAPObject):
             label=_('GID'),
             doc=_('GID (use this option to set it manually)'),
             minvalue=1,
+            maxvalue=MAX_UINT32,
         ),
         ipaexternalmember_param,
     )
