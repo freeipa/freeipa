@@ -589,6 +589,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         else:
             cafile = None
 
+        ca_key_type = None
         ca_signing_algorithm = None
         ca_type = None
         csr_file = None
