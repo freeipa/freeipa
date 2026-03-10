@@ -45,11 +45,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
     Encoding, PublicFormat, PrivateFormat, load_pem_private_key
 )
-import pyasn1
-import pyasn1.error
-from pyasn1.type import univ, char, namedtype, tag
-from pyasn1.codec.der import decoder, encoder
-from pyasn1_modules import rfc2315, rfc2459
+import synta
 import six
 
 try:
@@ -100,13 +96,16 @@ class IPACertificate:
         """
         self._cert = cert
         self.backend = default_backend() if backend is None else backend()
+        # Cache the synta Certificate view once; from_pyca() is a DER
+        # round-trip so calling it on every san_general_names access is wasteful.
+        self._synta_cert = synta.Certificate.from_pyca(cert)
 
         # initialize the certificate fields
-        # we have to do it this way so that some systems don't explode since
-        # some field types encode-decoding is not strongly defined
-        self._subject = self.__get_der_field('subject')
-        self._issuer = self.__get_der_field('issuer')
-        self._serial_number = self.__get_der_field('serialNumber')
+        self._subject = self._cert.subject.public_bytes()
+        self._issuer = self._cert.issuer.public_bytes()
+        _enc = synta.Encoder(synta.Encoding.DER)
+        _enc.encode_integer(self._cert.serial_number)
+        self._serial_number = _enc.finish()
 
         if self.version.name != 'v3':
             raise ValueError('X.509 %s is not supported' %
@@ -124,9 +123,10 @@ class IPACertificate:
     def __setstate__(self, state):
         self._subject = state['_subject']
         self._issuer = state['_issuer']
-        self._issuer = state['_serial_number']
+        self._serial_number = state['_serial_number']
         self._cert = crypto_x509.load_der_x509_certificate(
             state['_cert'], backend=default_backend())
+        self._synta_cert = synta.Certificate.from_der(state['_cert'])
 
     def __eq__(self, other):
         """
@@ -156,36 +156,16 @@ class IPACertificate:
         return hash(self._cert)
 
     def __encode_extension(self, oid, critical, value):
-        # TODO: have another proxy for crypto_x509.Extension which would
-        # provide public_bytes on the top of what python-cryptography has
-        ext = rfc2459.Extension()
-        # TODO: this does not have to be so weird, pyasn1 now has codecs
-        # which are capable of providing python-native types
-        ext['extnID'] = univ.ObjectIdentifier(oid)
-        ext['critical'] = univ.Boolean(critical)
-        if pyasn1.__version__.startswith('0.3'):
-            # pyasn1 <= 0.3.7 needs explicit encoding
-            # see https://pagure.io/freeipa/issue/7685
-            value = encoder.encode(univ.OctetString(value))
-        ext['extnValue'] = univ.Any(value)
-        ext = encoder.encode(ext)
-        return ext
-
-    def __get_pyasn1_field(self, field):
-        """
-        :returns: a field of the certificate in pyasn1 representation
-        """
-        cert_bytes = self.tbs_certificate_bytes
-        cert = decoder.decode(cert_bytes, rfc2459.TBSCertificate())[0]
-        field = cert[field]
-        return field
-
-    def __get_der_field(self, field):
-        """
-        :field: the name of the field of the certificate
-        :returns: bytes representing the value of a certificate field
-        """
-        return encoder.encode(self.__get_pyasn1_field(field))
+        # Extension ::= SEQUENCE { extnID OID, critical BOOLEAN DEFAULT FALSE,
+        #                          extnValue OCTET STRING }
+        inner = synta.Encoder(synta.Encoding.DER)
+        inner.encode_oid(synta.ObjectIdentifier(oid))
+        if critical:
+            inner.encode_boolean(True)
+        inner.encode_octet_string(value)
+        outer = synta.Encoder(synta.Encoding.DER)
+        outer.encode_sequence(inner.finish())
+        return outer.finish()
 
     def public_bytes(self, encoding):
         """
