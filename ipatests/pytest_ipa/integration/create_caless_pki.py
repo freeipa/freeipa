@@ -27,9 +27,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from packaging.version import parse as parse_version
-from pyasn1.type import univ, char, namedtype, tag
-from pyasn1.codec.der import encoder as der_encoder
-from pyasn1.codec.native import decoder as native_decoder
+import synta.krb5
+import synta.oids
 
 if six.PY3:
     unicode = str
@@ -49,56 +48,8 @@ cert_dir = None
 CertInfo = collections.namedtuple('CertInfo', 'nick key cert counter')
 
 
-class PrincipalName(univ.Sequence):
-    '''See RFC 4120 for details'''
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType(
-            'name-type',
-            univ.Integer().subtype(
-                explicitTag=tag.Tag(
-                    tag.tagClassContext,
-                    tag.tagFormatSimple,
-                    0,
-                ),
-            ),
-        ),
-        namedtype.NamedType(
-            'name-string',
-            univ.SequenceOf(char.GeneralString()).subtype(
-                explicitTag=tag.Tag(
-                    tag.tagClassContext,
-                    tag.tagFormatSimple,
-                    1,
-                ),
-            ),
-        ),
-    )
-
-
-class KRB5PrincipalName(univ.Sequence):
-    '''See RFC 4556 for details'''
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType(
-            'realm',
-            char.GeneralString().subtype(
-                explicitTag=tag.Tag(
-                    tag.tagClassContext,
-                    tag.tagFormatSimple,
-                    0,
-                ),
-            ),
-        ),
-        namedtype.NamedType(
-            'principalName',
-            PrincipalName().subtype(
-                explicitTag=tag.Tag(
-                    tag.tagClassContext,
-                    tag.tagFormatSimple,
-                    1,
-                ),
-            ),
-        ),
-    )
+def _encode_krb5principalname(realm, name_type, name_parts):
+    return synta.krb5.Krb5PrincipalName(realm, name_type, name_parts).to_der()
 
 
 def profile_ca(builder, ca_nick, ca):
@@ -273,21 +224,19 @@ def profile_kdc(builder, ca_nick, ca,
     crl_uri = u'file://{}.crl'.format(os.path.join(cert_dir, ca_nick))
 
     builder = builder.add_extension(
-        x509.ExtendedKeyUsage([x509.ObjectIdentifier('1.3.6.1.5.2.3.5')]),
+        x509.ExtendedKeyUsage([
+            x509.ObjectIdentifier(str(synta.oids.PKINIT_KP_KDC))
+        ]),
         critical=False,
     )
 
-    name = {
-        'realm': realm,
-        'principalName': {
-            'name-type': 2,
-            'name-string': ['krbtgt', realm],
-        },
-    }
-    name = native_decoder.decode(name, asn1Spec=KRB5PrincipalName())
-    name = der_encoder.encode(name)
+    name = _encode_krb5principalname(
+        realm, synta.krb5.NT_SRV_INST, ['krbtgt', realm]
+    )
 
-    names = [x509.OtherName(x509.ObjectIdentifier('1.3.6.1.5.2.2'), name)]
+    names = [x509.OtherName(
+        x509.ObjectIdentifier(str(synta.oids.PKINIT_SAN)), name
+    )]
     if dns_name is not None:
         names += [x509.DNSName(dns_name)]
 
