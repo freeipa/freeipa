@@ -45,7 +45,7 @@ from ipapython.certdb import EMPTY_TRUST_FLAGS, IPA_CA_TRUST_FLAGS
 from ipapython.certdb import get_ca_nickname, find_cert_from_txt, NSSDatabase
 from ipapython.dn import DN
 from ipapython.ipautil import log_level_override
-from ipalib import x509, api
+from ipalib import x509, api, constants
 from ipalib.errors import CertificateOperationError
 from ipalib.install import certstore
 from ipalib.util import strip_csr_header
@@ -231,42 +231,6 @@ def get_key_type_and_strength(input, is_ca=False):
         validate_key_type_size(f"{key_type}:{key_strength}")
 
     return (key_type, key_strength)
-
-
-def get_ra_agent_profile(api):
-    """This is suitable during installation. I doubt at runtime.
-
-       FIXME: This will need a conditional on whether
-       api.env.key_type_size available or not. If not then
-       retrieve the value from LDAP.
-
-       The caller is expected to handle None.
-    """
-    (keytype, _keysize) = get_key_type_and_strength(api.env.key_type_size)
-    if keytype == "rsa":
-        return "caSubsystemCert"
-    elif keytype == "mldsa":
-        return "caMLDSASubsystemCert"
-    else:
-        return None
-
-
-def get_default_profile(api):
-    """This is suitable during installation. I doubt at runtime.
-
-       FIXME: This will need a conditional on whether
-       api.env.key_type_size available or not. If not then
-       retrieve the value from LDAP.
-
-       The caller is expected to handle None.
-    """
-    (keytype, _keysize) = get_key_type_and_strength(api.env.key_type_size)
-    if keytype == "rsa":
-        return "caIPAserviceCert"
-    elif keytype == "mldsa":
-        return "caMLDSAServerCert"
-    else:
-        return None
 
 
 class CertDB:
@@ -901,13 +865,13 @@ class CertDB:
         ca_client = pki.ca.CAClient(pki_client)
         cert_client = pki.cert.CertClient(ca_client)
 
-        profile = get_ra_agent_profile(api)
         inputs = dict()
         inputs['cert_request_type'] = 'pkcs10'
         with open(csrfile, 'r') as f:
             inputs['cert_request'] = f.read()
         with log_level_override():
-            result = cert_client.enroll_cert(profile, inputs)[0]
+            result = cert_client.enroll_cert(
+                constants.RA_AGENT_PROFILE, inputs)[0]
 
         request_data = result.request
         if request_data.request_status != pki.cert.CertRequestStatus.COMPLETE:

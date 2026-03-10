@@ -597,7 +597,28 @@ class CAInstance(DogtagInstance):
             ipa_key_algorithm = ipa_ca_key_algorithm
             ipa_signing_algorithm = ipa_ca_key_algorithm
         else:
-            raise RuntimeError("CA key type unknown")
+            # Replica install. Determine the CA settings from the CA
+            # certificate
+            algs = {
+                '1.2.840.113549.1.1.11': ['rsa', 'SHA256withRSA'],
+                '1.2.840.113549.1.1.12': ['rsa', 'SHA384withRSA'],
+                '1.2.840.113549.1.1.13': ['rsa', 'SHA512withRSA'],
+                '2.16.840.1.101.3.4.3.17': ['mldsa', 'ML-DSA-44'],
+                '2.16.840.1.101.3.4.3.18': ['mldsa', 'ML-DSA-65'],
+                '2.16.840.1.101.3.4.3.19': ['mldsa', 'ML-DSA-87'],
+            }
+            config_dn = DN(('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+            container_dn = DN(('cn', 'certificates'), config_dn)
+
+            dn = DN(('cn', certs.get_ca_nickname(api.env.realm)),
+                    container_dn)
+            data = api.Backend.ldap2.get_entry(dn)
+            cacert = data['cACertificate'][0]
+            oid = cacert.signature_algorithm_oid.dotted_string
+            (self.ca_key_type, ipa_ca_key_algorithm) = algs[oid]
+            ipa_signing_algorithm = ipa_ca_key_algorithm
+            ipa_key_size = None
+            ipa_key_algorithm = None
 
         # FIXME: add some validation that the options are compatible.
         #        e.g. that an ML-DSA key doesn't have an RSA signing method.
