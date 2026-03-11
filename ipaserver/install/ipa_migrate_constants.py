@@ -1013,6 +1013,13 @@ DB_OBJECTS = {
         'mode': 'all',
         'count': 0,
     },
+    'dns_locations': {
+        'oc': ['ipalocationobject'],
+        'subtree': ',cn=locations,cn=etc,$SUFFIX',
+        'label': 'DNS Locations',
+        'mode': 'all',
+        'count': 0,
+    },
     # Kerberos
     'krb_realm': {
         'oc': ['krbrealmcontainer'],
