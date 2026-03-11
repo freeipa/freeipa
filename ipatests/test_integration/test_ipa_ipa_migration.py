@@ -200,9 +200,12 @@ def prepare_ipa_server(master):
     )
     master.run_command(["ipa", "krbtpolicy-mod", "admin", "--maxlife=9600"])
 
-    # Add IPA location
+    # Add IPA locations
     master.run_command(
-        ["ipa", "location-add", "location", "--description", "My location"]
+        ["ipa", "location-add", "brno", "--description", "Brno office"]
+    )
+    master.run_command(
+        ["ipa", "location-add", "raleigh", "--description", "Raleigh office"]
     )
 
     # Add idviews and overrides
@@ -1025,7 +1028,7 @@ class TestIPAMigrationProdMode(MigrationTest):
             self.master.hostname,
             "cn=Directory Manager",
             self.master.config.admin_password,
-            extra_args=['-n'],
+            extra_args=['-B', '-n'],
         )
         install_msg = self.replicas[0].get_file_contents(
             paths.IPA_MIGRATE_LOG, encoding="utf-8"
@@ -1232,6 +1235,23 @@ class TestIPAMigrationProdMode(MigrationTest):
         assert CMD2_OUTPUT in cmd2.stdout_text
         assert CMD3_OUTPUT in cmd3.stdout_text
         assert DEBUG_LOG in install_msg
+
+    def test_ipa_locations_are_migrated(self):
+        """
+        This testcase checks that IPA locations are migrated
+        from remote server to local server in prod mode.
+        """
+        location1 = 'brno'
+        location2 = 'raleigh'
+        tasks.kinit_admin(self.replicas[0])
+        cmd1 = self.replicas[0].run_command(
+            ["ipa", "location-find", location1])
+        cmd2 = self.replicas[0].run_command(
+            ["ipa", "location-find", location2])
+        assert 'Location name: brno\n' in cmd1.stdout_text
+        assert 'Description: Brno office\n' in cmd1.stdout_text
+        assert 'Location name: raleigh\n' in cmd2.stdout_text
+        assert 'Description: Raleigh office\n' in cmd2.stdout_text
 
     def test_sshpubkey_migration_for_user(self):
         """
