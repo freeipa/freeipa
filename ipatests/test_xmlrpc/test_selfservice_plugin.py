@@ -942,3 +942,459 @@ class test_selfservice_cli_add_del(Declarative):
         ),
 
     ]
+
+
+# selfservice-find CLI test rule name
+SS_CLI_FIND = 'SELFSERVICE_FIND_TEST'
+
+
+@pytest.mark.tier1
+class test_selfservice_cli_find(Declarative):
+    """Tests for the selfservice-find CLI command."""
+
+    cleanup_commands = [
+        ('selfservice_del', [SS_CLI_FIND], {}),
+    ]
+
+    tests = [
+
+        # Setup: create the rule used by all find tests
+        dict(
+            desc='Setup: create %r' % SS_CLI_FIND,
+            command=(
+                'selfservice_add',
+                [SS_CLI_FIND],
+                dict(attrs=['l'], permissions='write'),
+            ),
+            expected=dict(
+                value=SS_CLI_FIND,
+                summary='Added selfservice "%s"' % SS_CLI_FIND,
+                result=dict(
+                    attrs=['l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=SS_CLI_FIND,
+                ),
+            ),
+        ),
+
+        # Find with --all returns the parsed result
+        dict(
+            desc='Search for %r with --all' % SS_CLI_FIND,
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(all=True),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'attrs': ['l'],
+                    'permissions': ['write'],
+                    'selfaci': True,
+                    'aciname': SS_CLI_FIND,
+                }],
+            ),
+        ),
+
+        # Bad attrs filter -- aci_find does pure string
+        # comparison; no schema validation in find.
+        dict(
+            desc=(
+                'Non-existent attr with all filters'
+                ' returns no match (--all --raw)'
+            ),
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(
+                    all=True,
+                    attrs=['badattrs'],
+                    aciname=SS_CLI_FIND,
+                    permissions='write',
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Wrong attr for this rule (has 'l', not 'mobile')
+        dict(
+            desc=(
+                'Wrong attr for rule with all filters'
+                ' returns no match (--all --raw)'
+            ),
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(
+                    all=True,
+                    attrs=['mobile'],
+                    aciname=SS_CLI_FIND,
+                    permissions='write',
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Bad --name filter with --all --raw
+        dict(
+            desc=(
+                'Valid name arg with bad --name filter'
+                ' returns no match (--all --raw)'
+            ),
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(
+                    all=True,
+                    attrs=['l'],
+                    aciname='badname',
+                    permissions='write',
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Bad name arg also set to 'badname'
+        dict(
+            desc=(
+                'Bad name arg with bad --name filter'
+                ' returns no match (--all --raw)'
+            ),
+            command=(
+                'selfservice_find',
+                ['badname'],
+                dict(
+                    all=True,
+                    attrs=['l'],
+                    aciname='badname',
+                    permissions='write',
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Bad permissions with --all --raw (BZ 747693)
+        # selfservice-find --raw must not return "internal error".
+        # aci_find treats permissions as a plain string filter (no
+        # validation), so 'badperm' simply matches nothing.
+        dict(
+            desc=(
+                'Bad permissions with --all --raw'
+                ' returns no match (BZ 747693)'
+            ),
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(
+                    all=True,
+                    attrs=['l'],
+                    aciname=SS_CLI_FIND,
+                    permissions='badperm',
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # All valid params with --all --raw (BZ 747693)
+        # selfservice-find --raw must not return "internal error".
+        dict(
+            desc=(
+                'All valid params with --all --raw'
+                ' returns raw ACI (BZ 747693)'
+            ),
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(
+                    all=True,
+                    attrs=['l'],
+                    aciname=SS_CLI_FIND,
+                    permissions='write',
+                    raw=True,
+                ),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'aci': (
+                        '(targetattr = "l")'
+                        '(version 3.0;acl "selfservice:%s";'
+                        'allow (write) '
+                        'userdn = "ldap:///self";)'
+                        % SS_CLI_FIND
+                    ),
+                }],
+            ),
+        ),
+
+        # Bad attrs filter without --all --raw
+        dict(
+            desc='Wrong attr filter returns no match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(attrs=['mobile']),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Non-existent attr in filter
+        dict(
+            desc='Non-existent attr filter returns no match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(attrs=['badattrs']),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Non-existent attr without name arg
+        dict(
+            desc='Non-existent attr without name arg returns no match',
+            command=(
+                'selfservice_find',
+                [],
+                dict(attrs=['badattrs']),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Valid attrs filter
+        dict(
+            desc='Valid attrs filter with name arg returns match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(attrs=['l']),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'attrs': ['l'],
+                    'permissions': ['write'],
+                    'selfaci': True,
+                    'aciname': SS_CLI_FIND,
+                }],
+            ),
+        ),
+
+        # Without positional name arg but with --name
+        # filter to get a deterministic result.
+        dict(
+            desc='Valid attrs filter with --name option returns match',
+            command=(
+                'selfservice_find',
+                [],
+                dict(attrs=['l'], aciname=SS_CLI_FIND),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'attrs': ['l'],
+                    'permissions': ['write'],
+                    'selfaci': True,
+                    'aciname': SS_CLI_FIND,
+                }],
+            ),
+        ),
+
+        # Bad --name filter
+        dict(
+            desc='Valid name arg with bad --name filter returns no match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(aciname='badname'),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Bad name arg also set to 'badname'
+        dict(
+            desc='Bad name arg with bad --name filter returns no match',
+            command=(
+                'selfservice_find',
+                ['badname'],
+                dict(aciname='badname'),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Valid --name filter
+        dict(
+            desc='Valid --name filter returns match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(aciname=SS_CLI_FIND),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'attrs': ['l'],
+                    'permissions': ['write'],
+                    'selfaci': True,
+                    'aciname': SS_CLI_FIND,
+                }],
+            ),
+        ),
+
+        # Bad permissions filter -- aci_find treats permissions
+        # as a plain string filter; 'badperm' matches nothing.
+        dict(
+            desc='Bad permissions filter returns no match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(permissions='badperm'),
+            ),
+            expected=dict(
+                count=0,
+                truncated=False,
+                summary='0 selfservices matched',
+                result=[],
+            ),
+        ),
+
+        # Valid permissions filter
+        dict(
+            desc='Valid permissions filter with name arg returns match',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(permissions='write'),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'attrs': ['l'],
+                    'permissions': ['write'],
+                    'selfaci': True,
+                    'aciname': SS_CLI_FIND,
+                }],
+            ),
+        ),
+
+        # Without positional name arg but with --name
+        # filter to get a deterministic result.
+        dict(
+            desc=(
+                'Valid permissions filter with --name'
+                ' option returns match'
+            ),
+            command=(
+                'selfservice_find',
+                [],
+                dict(
+                    permissions='write',
+                    aciname=SS_CLI_FIND,
+                ),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'attrs': ['l'],
+                    'permissions': ['write'],
+                    'selfaci': True,
+                    'aciname': SS_CLI_FIND,
+                }],
+            ),
+        ),
+
+        # Raw output only (BZ 747693)
+        # selfservice-find --raw must not return "internal error".
+        dict(
+            desc='Raw output returns ACI string without error (BZ 747693)',
+            command=(
+                'selfservice_find',
+                [SS_CLI_FIND],
+                dict(raw=True),
+            ),
+            expected=dict(
+                count=1,
+                truncated=False,
+                summary='1 selfservice matched',
+                result=[{
+                    'aci': (
+                        '(targetattr = "l")'
+                        '(version 3.0;acl "selfservice:%s";'
+                        'allow (write) '
+                        'userdn = "ldap:///self";)'
+                        % SS_CLI_FIND
+                    ),
+                }],
+            ),
+        ),
+
+    ]
