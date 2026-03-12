@@ -37,3 +37,4 @@ FreeIPA design documentation
    audit-ipa-api.md
    sysaccounts.md
    master-key-upgrade.md
+   automated-keytab-rotation.md
