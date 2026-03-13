@@ -31,6 +31,7 @@ from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks as platformtasks
 from ipapython import ipautil
+from ipaserver.install.certs import get_key_type_and_strength
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
@@ -2238,10 +2239,10 @@ class TestInstallKeySizes(IntegrationTest):
     @classmethod
     def install(cls, mh):
         extra_args = ["--key-type-size", "rsa:3072",]
-        tasks.install_master(cls.master, setup_dns=True,
+        tasks.install_master(cls.master, setup_dns=False,
                              extra_args=extra_args)
         tasks.install_replica(
-            cls.master, cls.replicas[0], setup_ca=False)
+            cls.master, cls.replicas[0], setup_ca=True)
 
     def check_key_sizes(self, host):
         serverid = (realm_to_serverid(host.domain.realm)).upper()
@@ -2267,3 +2268,103 @@ class TestInstallKeySizes(IntegrationTest):
 
     def test_replica_key_sizes(self):
         self.check_key_sizes(self.replicas[0])
+
+
+class TestInstallPQCBase(IntegrationTest):
+    ipa_key_type = None
+    ca_key_type = None
+
+    @classmethod
+    def install(cls, mh):
+        extra_args = []
+        if cls.ipa_key_type:
+            extra_args.extend(["--key-type-size", cls.ipa_key_type])
+        if cls.ca_key_type:
+            extra_args.extend(["--ca-key-type", cls.ca_key_type])
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=extra_args)
+        tasks.install_replica(
+            cls.master, cls.replicas[0], setup_ca=True)
+
+    def _get_key_type(self, type):
+        if type:
+            (keytype, keysize) = get_key_type_and_strength(type)
+            if keytype == "mldsa":
+                if keysize:
+                    key_type = f"ML-DSA-{keysize}"
+                else:
+                    key_type = "ML-DSA-65"  # default size
+            else:  # default to rsa since nothing else is supported
+                key_type = "rsa"
+        else:
+            key_type = "rsa"
+
+        return key_type
+
+    def check_key_sizes(self, host):
+        key_type = self._get_key_type(self.ipa_key_type)
+
+        serverid = (realm_to_serverid(host.domain.realm)).upper()
+        instance = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid
+        result = host.run_command(
+            "certutil -L -d %s -n Server-Cert -a | "
+            "openssl x509 -text -noout | "
+            "grep Public-Key" % instance)
+        assert key_type in result.stdout_text
+
+        for file in (
+            paths.HTTPD_CERT_FILE,
+            paths.RA_AGENT_PEM,
+        ):
+            result = host.run_command(
+                "openssl x509 -text -noout -in %s | "
+                "grep Public-Key" % file)
+            assert key_type in result.stdout_text
+
+        # The PKINIT key will always be rsa:2048 for now, hardcoded.
+        result = host.run_command(
+            "openssl x509 -text -noout -in %s | "
+            "grep Public-Key" % paths.KDC_CERT)
+        assert "2048 bit" in result.stdout_text
+
+    def check_ca_keys(self, host):
+        """Verify that the CA keys are all RSA"""
+        key_type = self._get_key_type(self.ca_key_type)
+        if "ML-DSA-" in key_type:
+            key_type = "mldsa"
+
+        result = host.run_command(
+            f"certutil -K -d {paths.PKI_TOMCAT_ALIAS_DIR} "
+            f"-f {paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT} | grep -c {key_type}")
+        assert "5" in result.stdout_text
+
+    def test_master_key_sizes(self):
+        self.check_key_sizes(self.master)
+        self.check_ca_keys(self.master)
+
+    def test_replica_key_sizes(self):
+        # Check for the existence and availability of a replica first
+        if self.num_replicas == 0:
+            raise pytest.skip("No replica installed. Skipping")
+        result = tasks.kinit_admin(self.replicas[0], raiseonerr=False)
+        if result.returncode != 0:
+            raise pytest.skip("Replica is not available. Skipping")
+
+        self.check_key_sizes(self.replicas[0])
+        self.check_ca_keys(self.replicas[0])
+
+
+class TestInstallPQCIPACerts(TestInstallPQCBase):
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa"
+    ca_key_type = None
+
+
+class TestInstallPQCCACerts(TestInstallPQCBase):
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa:44"
+    ca_key_type = "mldsa"
