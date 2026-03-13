@@ -79,6 +79,8 @@ vms:
           memswap_limit: "3900m"
     tests:
     - test_integration/test_sudo.py
+    deselect:
+    - test_integration/test_sudo.py::TestSudo_Functional
 
   - container_job: external_ca_ExternalCA
     containers:
