@@ -593,6 +593,7 @@ def ipa_restart(options):
     handle_krb5kdc = False
     if "krb5kdc" in svc_list:
         svc_list.insert(0, svc_list.pop(svc_list.index("krb5kdc")))
+        stop_services(['krb5kdc'], verbose=True)
         handle_krb5kdc = True
     elif "krb5kdc" in new_svc_list:
         svc_list.insert(0, new_svc_list.pop(new_svc_list.index("krb5kdc")))

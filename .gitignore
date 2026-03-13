@@ -107,6 +107,7 @@ doc/workshop/anaconda-ks.cfg
 /init/systemd/ipa.service
 /init/systemd/ipa-ccache-sweep.service
 /init/systemd/ipa-ccache-sweep.timer
+/init/systemd/ipa-keytab-cleaner@.service
 /init/tmpfilesd/ipa.conf
 
 !/install/ui/doc/Makefile.in
@@ -184,6 +185,7 @@ install/tools/ipa-custodia-check
 install/tools/ipa-dns-install
 install/tools/ipa-httpd-kdcproxy
 install/tools/ipa-httpd-pwdreader
+install/tools/ipa-keytab-cleaner
 install/tools/ipa-kra-install
 install/tools/ipa-ldap-updater
 install/tools/ipa-managed-entries

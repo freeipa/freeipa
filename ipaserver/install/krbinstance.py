@@ -42,6 +42,7 @@ from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
 from ipapython.dn import DN
 from ipapython.dogtag import KDC_PROFILE
+from ipapython.krb5util import cleanup_scheduled_keytab_removals
 
 from ipaserver.install import replication
 from ipaserver.install import certs
@@ -709,3 +710,5 @@ class KrbInstance(service.Service):
         ipautil.remove_file(paths.KRB5_KEYTAB)
         ipautil.remove_file(paths.KRB5_FREEIPA_DEFAULTS)
         ipautil.remove_file(paths.KRB5_FREEIPA_SERVER)
+
+        cleanup_scheduled_keytab_removals()

@@ -209,7 +209,9 @@ class RedHatCAService(RedHatService):
 class RedHatKRB5KDCService(RedHatService):
     def start(self, instance_name="", capture_output=True, wait=True):
         super().start(instance_name, capture_output, wait)
-        self.rotated_keys = check_and_rotate_keytabs(self)
+        self.rotated_keys = check_and_rotate_keytabs(
+            self, self.api.env.host, self.api.env.realm
+        )
 
     def restart(self, instance_name="", capture_output=True, wait=True):
         super().stop(instance_name, capture_output)
