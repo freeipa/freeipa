@@ -22,6 +22,7 @@ from __future__ import print_function
 import sys
 import os
 import json
+import traceback
 
 import ldapurl
 
@@ -405,6 +406,7 @@ def start_service(
         )
     except Exception:
         emit_err("Failed to start %s Service" % svc)
+        emit_err(traceback.format_exc())
         # if ignore_service_failures is specified, skip rollback and
         # continue with the next service
         if options.ignore_service_failures:
