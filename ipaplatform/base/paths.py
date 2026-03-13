@@ -32,6 +32,7 @@ class BasePathNamespace:
     LS = "/bin/ls"
     SYSTEMCTL = "/bin/systemctl"
     SYSTEMD_RUN = "/bin/systemd-run"
+    SYSTEMD_ESCAPE = "/bin/systemd-escape"
     SYSTEMD_DETECT_VIRT = "/usr/bin/systemd-detect-virt"
     SYSTEMD_TMPFILES = "/bin/systemd-tmpfiles"
     TAR = "/bin/tar"
@@ -173,6 +174,9 @@ class BasePathNamespace:
     SYSTEMD_SYSTEM_HTTPD_D_DIR = "/etc/systemd/system/httpd.service.d/"
     SYSTEMD_SYSTEM_HTTPD_IPA_CONF = "/etc/systemd/system/httpd.service.d/ipa.conf"
     SYSTEMD_CERTMONGER_SERVICE = "/etc/systemd/system/multi-user.target.wants/certmonger.service"
+    SYSTEMD_KEYTAB_CLEANER_SERVICE_TEMPLATE = (
+        '/usr/lib/systemd/system/ipa-keytab-cleaner@%s.service'
+    )
     SYSTEMD_IPA_SERVICE = "/etc/systemd/system/multi-user.target.wants/ipa.service"
     SYSTEMD_SSSD_SERVICE = "/etc/systemd/system/multi-user.target.wants/sssd.service"
     SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
@@ -429,6 +433,7 @@ class BasePathNamespace:
     IPA_CUSTODIA_HANDLER = "/usr/libexec/ipa/custodia"
     IPA_CUSTODIA_CHECK = "/usr/libexec/ipa/ipa-custodia-check"
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
+    IPA_KEYTAB_CLEANER_CONF_DIR = '/etc/ipa/cleaner'
     IPA_MIGRATE_LOG = '/var/log/ipa-migrate.log'
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
