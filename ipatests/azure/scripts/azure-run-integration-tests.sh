@@ -19,6 +19,7 @@ tests_result=1
     -ra \
     $IPA_TESTS_ARGS \
     $IPA_TESTS_TO_IGNORE \
+    $IPA_TESTS_TO_DESELECT \
     $IPA_TESTS_TO_RUN && tests_result=0 ; } || \
     tests_result=$?
 
