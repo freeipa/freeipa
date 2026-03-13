@@ -1061,8 +1061,8 @@ DB_OBJECTS = {
     },
     'krb_pwpolicy': {
         'oc': ['ipapwdpolicy'],
-        'subtree': 'cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX',
-        'label': 'Kerberos Password Policy',
+        'subtree': ',cn=$REALM,cn=kerberos,$SUFFIX',
+        'label': 'Kerberos Password Policies',
         'mode': 'all',
         'count': 0,
     },
@@ -1071,6 +1071,13 @@ DB_OBJECTS = {
         'subtree': 'cn=default kerberos service password policy,'
                    'cn=$REALM,cn=kerberos,$SUFFIX',
         'label': 'Kerberos Default Password Policy',
+        'mode': 'all',
+        'count': 0,
+    },
+    'cos_pwpolicy_templates': {
+        'oc': ['costemplate', 'krbcontainer'],
+        'subtree': ',cn=costemplates,cn=accounts,$SUFFIX',
+        'label': 'Password Policy COS Templates',
         'mode': 'all',
         'count': 0,
     },
