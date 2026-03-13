@@ -28,6 +28,8 @@ with open(args.azure_template) as f:
             jobs[f'ipa_tests_to_run_{job_id}'] = ' '.join(vm_job['tests'])
             jobs[f'ipa_tests_to_ignore_{job_id}'] = ' '.join(
                 vm_job.get('ignore', ''))
+            jobs[f'ipa_tests_to_deselect_{job_id}'] = ' '.join(
+                vm_job.get('deselect', ''))
             jobs[f'ipa_tests_type_{job_id}'] = vm_job.get(
                 'type', 'integration')
             jobs[f'ipa_tests_args_{job_id}'] = vm_job.get('args', '')
