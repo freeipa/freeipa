@@ -9,6 +9,7 @@ dist_noinst_DATA = 			\
 	ipa.service.in			\
 	ipa-ccache-sweep.service.in	\
 	ipa-ccache-sweep.timer.in	\
+	ipa-keytab-cleaner@.service.in	\
 	$(NULL)
 
 systemdsystemunit_DATA = 	\
@@ -16,6 +17,7 @@ systemdsystemunit_DATA = 	\
 	ipa.service				\
 	ipa-ccache-sweep.service	\
 	ipa-ccache-sweep.timer	\
+	ipa-keytab-cleaner@.service	\
 	$(NULL)
 
 dist_systemdcatalog_DATA =		\

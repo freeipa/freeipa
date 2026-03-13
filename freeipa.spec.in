@@ -1259,6 +1259,8 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/cleaner/
+
 # ONLY_CLIENT
 %endif
 
@@ -1645,6 +1647,7 @@ fi
 %{_libexecdir}/ipa/ipa-custodia-check
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
 %{_libexecdir}/ipa/ipa-httpd-pwdreader
+%{_libexecdir}/ipa/ipa-keytab-cleaner
 %{_libexecdir}/ipa/ipa-pki-retrieve-key
 %{_libexecdir}/ipa/ipa-pki-wait-running
 %{_libexecdir}/ipa/ipa-otpd
@@ -1669,6 +1672,7 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-otpd@.service
 %attr(644,root,root) %{_unitdir}/ipa-ccache-sweep.service
 %attr(644,root,root) %{_unitdir}/ipa-ccache-sweep.timer
+%attr(644,root,root) %{_unitdir}/ipa-keytab-cleaner@.service
 %attr(644,root,root) %{_journalcatalogdir}/ipa.catalog
 # END
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so
@@ -1810,6 +1814,7 @@ fi
 %ghost %attr(775,root,pkiuser) %{_localstatedir}/lib/ipa/pki-ca/publish
 %ghost %attr(770,named,named) %{_localstatedir}/named/dyndb-ldap/ipa
 %dir %attr(0700,root,root) %{_sysconfdir}/ipa/custodia
+%dir %attr(0700,root,root) %{_sysconfdir}/ipa/cleaner
 %dir %{_usr}/share/ipa/schema.d
 %attr(0644,root,root) %{_usr}/share/ipa/schema.d/README
 %attr(0644,root,root) %{_usr}/share/ipa/gssapi.login

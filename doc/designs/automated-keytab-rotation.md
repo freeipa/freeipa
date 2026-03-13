@@ -32,11 +32,21 @@ changes implemented in [freeipa#7861](https://github.com/freeipa/freeipa/pull/78
 
 ## How to Use
 
-No administrator action is required. Rotation runs automatically when IPA
-starts. After the KDC starts, keytabs are checked; if any are outdated, new
-keys are generated and all IPA services are restarted so they use the updated
-keytabs. Old keys are removed later (see [Design](#design)) after the maximum 
-renewable age has passed; scheduling of that cleanup is done through a cron job. // TODO: Add cron job details / systemd
+No administrator action is required for rotation itself. It runs automatically
+when IPA starts the KDC. After the KDC starts, keytabs are checked; if any are
+outdated, new keys are generated and all IPA services are restarted so they use
+the updated keytabs.
+
+Removal of obsolete KVNOs from keytabs is scheduled automatically for each
+stale entry: a JSON configuration file is written under `/etc/ipa/cleaner/`, and
+`systemd-run` creates a **transient timer** that fires after
+`krbMaxRenewableAge` seconds (from LDAP). When the timer elapses, systemd
+starts the instantiated unit `ipa-keytab-cleaner@<id>.service`, the service reads
+the JSON file and invokes `kadmin.local ktremove` for the given keytab path,
+principal, and KVNO.
+
+If `ktremove` fails, the service unit uses `Restart=on-failure` and
+`RestartSec=1d`, so the next attempt is roughly one day later.
 
 ## Design
 
@@ -60,6 +70,19 @@ used only to obtain credentials for running `ipa-getkeytab` when renewing
 service keys. We do not handle the host keytab rotation here, because users
 might lock themselves out.
 
+### Service principal mapping for `ipa-getkeytab`
+
+| Keytab | Principal passed to `ipa-getkeytab -p` |
+|--------|----------------------------------------|
+| `ds.keytab` | `ldap/<host>@<realm>` |
+| `http.keytab` | `HTTP/<host>@<realm>` |
+| `anon.keytab` | `WELLKNOWN/ANONYMOUS@<realm>` |
+| `dogtag.keytab` | `dogtag/<host>@<realm>` |
+| `named.keytab` | `DNS/<host>@<realm>` |
+| `ipa-dnskeysyncd.keytab` | `ipa-dnskeysyncd/<host>@<realm>` |
+| `samba.keytab` | `cifs/<host>@<realm>` |
+| SSSD directory | `<host>@<realm>` only (trust keytabs; no service prefix) |
+
 ### Timing and impact
 
 Rotation can be done without impacting domain operations if timing is handled
@@ -74,9 +97,8 @@ correctly:
    tickets can exist for the old keys, and the KDC no longer issues tickets
    with them. The old keys can then be removed from the keytab.
 
-Hence, old keys are removed only after the realm's maximum renewable time
-(e.g. `krbMaxRenewableAge`, by default 7 days) has passed since the new keys
-were created.
+Hence, scheduled removal runs after `krbMaxRenewableAge` (e.g. 604800 seconds,
+7 days by default). If removal fails, systemd retries the service after one day.
 
 ### Generating new IPA service keys
 
@@ -114,6 +136,18 @@ implementation considers only the **highest KVNO** for each principal.
 From those entries, it collects the encryption types (the strings in
 parentheses, e.g. `aes256-cts-hmac-sha1-96`, `aes128-cts-hmac-sha1-96`).
 
+#### Principal filtering
+
+A line is processed if its principal is one of the known principals:
+
+* `WELLKNOWN/ANONYMOUS@REALM` (the IPA anonymous principal, `ANON_USER@realm`),
+  used for `anon.keytab`; or
+* `hostfqdn@REALM` exactly; or
+* `<service>/hostfqdn@REALM` (the component after the last `/` must equal
+  `hostfqdn@REALM`, the same string passed into `check_and_rotate_keytabs`).
+
+Other principals in the file are skipped and never deleted.
+
 #### Permitted encryption types
 
 The reference list of permitted encryption types (ordered by preference) is
@@ -140,7 +174,8 @@ camellia128-cts-cmac
 The key types from the keytab (for the highest KVNO) are compared to the list
 from `ipa-getkeytab --permitted-enctypes`. If the keytab’s types are not
 exactly the same as the permitted list (same set and same order), the keytab
-is considered outdated and the service keys are rotated.
+is considered outdated and the service keys are rotated. All older keys are
+removed no matter the types.
 
 Note, we do not care about the salt type of the keys, only the encryption type,
 that is we ignore the :special and :normal suffixes in the permitted list.
@@ -181,28 +216,36 @@ The value can be read from LDAP, for example:
 ldapsearch -o ldif-wrap=no -LLL -Q -s base -b 'cn=IPA.DOMAIN,cn=kerberos,dc=ipa,dc=domain' krbMaxRenewableAge
 ```
 
-Example result:
+#### Scheduling deletion
 
-```
-dn: cn=IPA.DOMAIN,cn=kerberos,dc=ipa,dc=domain
-krbMaxRenewableAge: 604800
-```
+For each keytab entry that should eventually be removed, the implementation:
 
-A robust approach is to schedule a **recurring task** (e.g. cron or systemd
-timer) that, after the maximum renewable age has passed since a rotation,
-removes old KVNOs from the keytabs. // TODO: Add cron job details / systemd
+1. Writes a JSON file to `/etc/ipa/cleaner/<uuid>` describing `filepath`,
+   `kvno`, and `principal` (`KeytabDeletion` in `ipapython.krb5util`).
+2. Runs `systemd-run` with:
+   * `--on-active <krbMaxRenewableAge>` (seconds until the timer fires),
+   * `--timer-property Persistent=True`, allows the timer to survive a reboot.
+   * `--unit ipa-keytab-cleaner.<uuid>` (name of the transient timer unit),
+   * and a command that starts `ipa-keytab-cleaner@<uuid>.service`.
 
-Outdated keys are removed with `kadmin.local ktremove` by principal and KVNO:
+The template unit `ipa-keytab-cleaner@.service` executes
+`/usr/libexec/ipa/ipa-keytab-cleaner` with the instance name (the uuid). The
+helper reads the JSON config and runs:
 
 ```bash
-/usr/bin/kadmin.local ktremove -k /var/lib/ipa/gssproxy/http.keytab HTTP/server.ipa.domain@IPA.DOMAIN 1
+/usr/bin/kadmin.local ktremove -k <keytab-path> <principal> <kvno>
 ```
 
-Repeated for each KVNO that is older than the current set and past the maximum
-renewable age. Each call removes all key entries for that principal and KVNO
-from the keytab.
+On failure, the service unit is restarted by systemd after `RestartSec=1d`.
 
-We should retry in case of a failed removal, details should be logged. // TODO: Add retry and logging details.
+Already scheduled deletions are detected by parsing `systemctl list-timers`
+for timer units whose names start with `ipa-keytab-cleaner.` and reloading the
+corresponding JSON files, so the same KVNO is not scheduled twice.
+
+#### Uninstall
+
+When the KDC instance is removed, all such timer units are stopped
+and the corresponding JSON files are deleted under `/etc/ipa/cleaner/`.
 
 ### ipactl service ordering and restart behaviour
 
@@ -262,9 +305,9 @@ on its next start.
 ## Implementation
 
 * **Module**: `ipapython.krb5util`
-* **Entry point**: `check_and_rotate_keytabs(instance)` is invoked from the
-  platform KDC service’s `start()` (e.g. `RedHatKRB5KDCService`,
-  `SuseKRB5KDCService`) after `krb5kdc` has started.
+* **Entry point**: `check_and_rotate_keytabs(instance, host, realm)` is
+  invoked from the platform KDC service’s `start()` (e.g.
+  `RedHatKRB5KDCService`, `SuseKRB5KDCService`) after `krb5kdc` has started.
 * **Permitted types**: `_get_krb_permitted_types()` runs
   `ipa-getkeytab --permitted-enctypes` and normalizes lines (strips
   `:special` / `:normal` suffixes for comparison).
@@ -313,11 +356,15 @@ klist -ekt /var/lib/ipa/gssproxy/http.keytab
 
 Verify jobs are scheduled.
 
-// TODO: Add how and where?
+```bash
+systemctl list-timers
+```
 
 You can manually trigger the scheduled tasks.
 
-// TODO: Add how to trigger the scheduled tasks.
+```bash
+systemctl start ipa-keytab-cleaner@<uuid>.service
+```
 
 Verify the keytabs have old keys removed, keytab should contain only one KVNO.
 
@@ -328,6 +375,17 @@ klist -ekt /var/lib/ipa/gssproxy/http.keytab
 ## Troubleshooting and debugging
 
 The feature produces logs, when keytabs can not be read, rotated etc.
-The logs are available in the `ipactl.log` file. Available at `/var/log/ipactl.log`.
+However they need to be enabled by running `ipactl -d command`.
+The logs are available in the `ipactl.log` file. Available at
+`/var/log/ipactl.log`.
 
-The automated deletion produces logs elsewhere // TODO: Where? How?
+The automated deletion runs in `ipa-keytab-cleaner@<uuid>.service`, so its logs
+are in the systemd journal:
+
+```bash
+# logs for one cleaner instance
+journalctl -xeu ipa-keytab-cleaner@<uuid>.service
+
+# logs for all cleaner instances
+journalctl -xeu 'ipa-keytab-cleaner@*'
+```
