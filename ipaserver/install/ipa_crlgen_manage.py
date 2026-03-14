@@ -6,7 +6,6 @@ from __future__ import print_function, absolute_import
 
 import os
 import logging
-from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 
 from ipalib import api
@@ -106,7 +105,7 @@ class CRLGenManage(AdminTool):
                 crl_filename = os.path.join(paths.PKI_CA_PUBLISH_DIR,
                                             'MasterCRL.bin')
                 with open(crl_filename, 'rb') as f:
-                    crl = x509.load_der_x509_crl(f.read(), default_backend())
+                    crl = x509.load_der_x509_crl(f.read())
                     print("Last CRL update: {}".format(crl.last_update))
                     for ext in crl.extensions:
                         if ext.oid == x509.oid.ExtensionOID.CRL_NUMBER:
