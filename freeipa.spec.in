@@ -319,6 +319,7 @@ BuildRequires:  nspr-devel
 BuildRequires:  openssl-devel
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
+BuildRequires:  python3-synta
 %if ! %{ONLY_CLIENT}
 BuildRequires:  389-ds-base-devel >= %{ds_version}
 BuildRequires:  samba-devel >= %{samba_version}
@@ -441,6 +442,7 @@ BuildRequires:  python3-sssdconfig >= %{sssd_version}
 BuildRequires:  python3-systemd
 BuildRequires:  python3-yaml
 BuildRequires:  python3-yubico
+BuildRequires:  python3-synta
 # with_lint
 %endif
 
@@ -890,6 +892,7 @@ Requires: augeas-libs >= %{augeas_version}
 Requires: python3-dns >= 1.15
 Requires: python3-jinja2
 
+
 %description -n python3-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -987,6 +990,7 @@ Requires: python3-urllib3 >= 1.24.2-3
 Requires: python3-urllib3 >= 1.25.8
 %endif
 Requires: python3-systemd
+Requires: python3-synta
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
