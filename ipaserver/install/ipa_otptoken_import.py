@@ -41,8 +41,6 @@ try:
 except ImportError:
     # will be removed from this module in cryptography 48.0.0
     from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
-from cryptography.hazmat.backends import default_backend
-
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipalib import api, errors
@@ -225,7 +223,6 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
             length=klen,
             salt=salt,
             iterations=itrs,
-            backend=default_backend()
         )
 
     def derive(self, masterkey):
@@ -275,7 +272,7 @@ class XMLDecryptor:
         data = data[len(iv):]
 
         algorithm = algo(self.__key)
-        cipher = Cipher(algorithm, mode(iv), default_backend())
+        cipher = Cipher(algorithm, mode(iv))
         decryptor = cipher.decryptor()
         padded = decryptor.update(data)
         padded += decryptor.finalize()
@@ -501,7 +498,6 @@ class PSKCDocument:
             tmp = hmac.HMAC(
                 self.__decryptor(self.__mkey),
                 self.__algo(),
-                backend=default_backend()
             )
             self.__decryptor = XMLDecryptor(key, tmp)
 

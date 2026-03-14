@@ -220,7 +220,7 @@ class ServerCertInstall(admintool.AdminTool):
         with tempfile.NamedTemporaryFile("rb") as temp:
             certs.install_key_from_p12(pkcs12_file.name, pin, temp.name)
             key = x509.load_pem_private_key(
-                temp.read(), None, backend=x509.default_backend())
+                temp.read(), None)
 
         return cert, key, ca_cert
 

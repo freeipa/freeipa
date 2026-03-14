@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 import re
 import six
@@ -184,8 +183,7 @@ def validate_passkey(ugettext, key):
         pem = "-----BEGIN PUBLIC KEY-----\n" + \
               result.group('pkey') + \
               "\n-----END PUBLIC KEY-----"
-        load_pem_public_key(data=pem.encode('utf-8'),
-                            backend=default_backend())
+        load_pem_public_key(data=pem.encode('utf-8'))
     except ValueError:
         return '"%s" is not a valid passkey mapping, invalid key' % key
     # Validate the (optional) userid

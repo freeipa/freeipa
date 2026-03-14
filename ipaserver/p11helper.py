@@ -8,7 +8,6 @@ import binascii
 import struct
 
 import six
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
@@ -1317,7 +1316,7 @@ class P11_Helper:
         rsa_ = rsa.RSAPublicNumbers(e, n)
 
         try:
-            pkey = rsa_.public_key(default_backend())
+            pkey = rsa_.public_key()
         except Exception:
             raise Error("export_RSA_public_key: internal error: "
                         "EVP_PKEY_set1_RSA failed")
@@ -1457,7 +1456,7 @@ class P11_Helper:
 
         # decode from ASN1 DER
         try:
-            pkey = serialization.load_der_public_key(data, default_backend())
+            pkey = serialization.load_der_public_key(data)
         except Exception:
             raise Error("import_public_key: d2i_PUBKEY error")
         if isinstance(pkey, rsa.RSAPublicKey):
