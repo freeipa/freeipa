@@ -41,8 +41,6 @@ from ctypes.util import find_library
 from functools import total_ordering
 from subprocess import CalledProcessError
 
-from pyasn1.error import PyAsn1Error
-
 from ipapython import directivesetter
 from ipapython import ipautil
 import ipapython.errors
@@ -313,7 +311,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                     issuer = cert.issuer_bytes
                     serial_number = cert.serial_number_bytes
                     public_key_info = cert.public_key_info_bytes
-                except (PyAsn1Error, ValueError, CertificateError):
+                except (ValueError, CertificateError):
                     logger.error(
                         "Failed to decode certificate \"%s\"", nickname)
                     raise
@@ -351,7 +349,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                         public_key_info not in has_eku):
                     try:
                         ext_key_usage = cert.extended_key_usage_bytes
-                    except PyAsn1Error:
+                    except ValueError:
                         logger.error(
                             "Failed to encode extended key usage for \"%s\"",
                             nickname)
