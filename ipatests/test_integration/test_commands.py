@@ -19,7 +19,6 @@ import time
 import pytest
 from subprocess import CalledProcessError
 
-from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 from datetime import datetime, timedelta
 
@@ -954,7 +953,7 @@ class TestIPACommand(IntegrationTest):
             # used, load_pem_x509_certificate will return the
             # first certificate, which is fine for this test.
             data = self.master.get_file_contents(filename)
-            x509.load_pem_x509_certificate(data, backend=default_backend())
+            x509.load_pem_x509_certificate(data)
 
             self.master.run_command(['rm', '-f', filename])
 

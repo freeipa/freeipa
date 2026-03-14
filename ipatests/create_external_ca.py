@@ -22,7 +22,6 @@ from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 import datetime
@@ -52,7 +51,6 @@ class ExternalCA:
         self.ca_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=self.key_size,
-            backend=default_backend(),
         )
         self.ca_public_key = self.ca_key.public_key()
 
@@ -60,7 +58,6 @@ class ExternalCA:
         return builder.sign(
             private_key=self.ca_key,
             algorithm=hashes.SHA256(),
-            backend=default_backend(),
         )
 
     def create_ca(self, cn=ISSUER_CN, path_length=None, extensions=()):
@@ -117,7 +114,7 @@ class ExternalCA:
         for extension in extensions:
             builder = builder.add_extension(extension, critical=False)
 
-        cert = builder.sign(self.ca_key, hashes.SHA256(), default_backend())
+        cert = builder.sign(self.ca_key, hashes.SHA256())
 
         return cert.public_bytes(serialization.Encoding.PEM)
 
@@ -128,7 +125,7 @@ class ExternalCA:
         :type ipa_csr: bytes.
         :returns: bytes -- Signed CA in PEM format.
         """
-        csr_tbs = x509.load_pem_x509_csr(ipa_csr, default_backend())
+        csr_tbs = x509.load_pem_x509_csr(ipa_csr)
 
         csr_public_key = csr_tbs.public_key()
         csr_subject = csr_tbs.subject

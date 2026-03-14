@@ -13,7 +13,6 @@ import six
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -407,11 +406,9 @@ def santest_service_host_2(request, santest_host_2):
 
 @pytest.fixture
 def santest_csr(request, santest_host_1, santest_host_2):
-    backend = default_backend()
     pkey = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
-        backend=backend
     )
 
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
@@ -434,7 +431,7 @@ def santest_csr(request, santest_host_1, santest_host_2):
         ),
         False
     ).sign(
-        pkey, hashes.SHA256(), backend
+        pkey, hashes.SHA256()
     ).public_bytes(serialization.Encoding.PEM)
 
     return csr.decode('ascii')

@@ -18,7 +18,6 @@ import ipaddress
 import pytest
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
@@ -175,7 +174,6 @@ def private_key():
     return rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
-        backend=default_backend()
     )
 
 
@@ -194,7 +192,7 @@ def csr(altnames, cn=host_fqdn):
         if len(altnames) > 0:
             builder = builder.add_extension(
                 x509.SubjectAlternativeName(altnames), False)
-        csr = builder.sign(private_key, hashes.SHA256(), default_backend())
+        csr = builder.sign(private_key, hashes.SHA256())
         return csr.public_bytes(serialization.Encoding.PEM).decode('ascii')
 
     return pytest.fixture(scope='module')(inner)

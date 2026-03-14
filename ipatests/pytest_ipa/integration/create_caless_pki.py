@@ -22,7 +22,6 @@ import six
 
 from cryptography import __version__ as cryptography_version
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
@@ -280,7 +279,6 @@ def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
     key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
-        backend=default_backend(),
     )
     public_key = key.public_key()
 
@@ -308,7 +306,6 @@ def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
     cert = builder.sign(
         private_key=ca_key,
         algorithm=hashes.SHA256(),
-        backend=default_backend(),
     )
 
     key_pem = key.private_bytes(
@@ -347,7 +344,7 @@ def revoke_cert(ca, serial):
         with f:
             crl_pem = f.read()
 
-        crl = x509.load_pem_x509_crl(crl_pem, default_backend())
+        crl = x509.load_pem_x509_crl(crl_pem)
 
         for revoked_cert in crl:
             crl_builder = crl_builder.add_revoked_certificate(revoked_cert)
@@ -356,14 +353,13 @@ def revoke_cert(ca, serial):
     builder = builder.serial_number(serial)
     builder = builder.revocation_date(now)
 
-    revoked_cert = builder.build(default_backend())
+    revoked_cert = builder.build()
 
     crl_builder = crl_builder.add_revoked_certificate(revoked_cert)
 
     crl = crl_builder.sign(
         private_key=ca.key,
         algorithm=hashes.SHA256(),
-        backend=default_backend(),
     )
 
     crl_pem = crl.public_bytes(serialization.Encoding.PEM)
