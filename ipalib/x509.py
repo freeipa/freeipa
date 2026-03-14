@@ -474,10 +474,13 @@ def load_unknown_x509_certificate(data):
     :returns: a ``IPACertificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
     """
-    try:
-        return load_pem_x509_certificate(data)
-    except ValueError:
-        return load_der_x509_certificate(data)
+    if isinstance(data, IPACertificate):
+        return data
+    blocks = synta.read_pki_blocks(data)
+    if not blocks:
+        raise ValueError("no certificate found in data")
+    _label, der = blocks[0]
+    return IPACertificate(crypto_x509.load_der_x509_certificate(der))
 
 
 def load_certificate_from_file(filename):
@@ -496,8 +499,9 @@ def load_certificate_list(data):
 
     Return a list of python-cryptography ``Certificate`` objects.
     """
-    certs = PEM_CERT_REGEX.findall(data)
-    return [load_pem_x509_certificate(cert[0]) for cert in certs]
+    return [IPACertificate(crypto_x509.load_der_x509_certificate(der))
+            for label, der in synta.read_pki_blocks(data)
+            if label == "CERTIFICATE"]
 
 
 def load_certificate_list_from_file(filename):
@@ -544,38 +548,14 @@ def pkcs7_to_certs(data, datatype=PEM):
     """
     Extract certificates from a PKCS #7 object.
 
+    *datatype* is accepted for API compatibility but is no longer used:
+    ``synta.read_pki_blocks`` auto-detects PEM, PKCS#7, PKCS#12, and raw DER.
+
     :returns: a ``list`` of ``IPACertificate`` objects.
     """
-    if datatype == PEM:
-        match = re.match(
-            br'-----BEGIN PKCS7-----(.*?)-----END PKCS7-----',
-            data,
-            re.DOTALL)
-        if not match:
-            raise ValueError("not a valid PKCS#7 PEM")
-
-        data = base64.b64decode(match.group(1))
-
-    content_info, tail = decoder.decode(data, rfc2315.ContentInfo())
-    if tail:
-        raise ValueError("not a valid PKCS#7 message")
-
-    if content_info['contentType'] != rfc2315.signedData:
-        raise ValueError("not a PKCS#7 signed data message")
-
-    signed_data, tail = decoder.decode(bytes(content_info['content']),
-                                       rfc2315.SignedData())
-    if tail:
-        raise ValueError("not a valid PKCS#7 signed data message")
-
-    result = []
-
-    for certificate in signed_data['certificates']:
-        certificate = encoder.encode(certificate)
-        certificate = load_der_x509_certificate(certificate)
-        result.append(certificate)
-
-    return result
+    return [IPACertificate(crypto_x509.load_der_x509_certificate(der))
+            for label, der in synta.read_pki_blocks(data)
+            if label == "CERTIFICATE"]
 
 
 def validate_pem_x509_certificate(cert):
