@@ -47,6 +47,7 @@ from cryptography.hazmat.primitives.serialization import (
 )
 import synta
 import synta.general_name as gn
+import synta.oids
 import six
 
 try:
@@ -72,17 +73,17 @@ PEM_PRIV_REGEX = re.compile(
     b'-----END(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----',
     re.DOTALL)
 
-EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
-EKU_CLIENT_AUTH = '1.3.6.1.5.5.7.3.2'
-EKU_CODE_SIGNING = '1.3.6.1.5.5.7.3.3'
-EKU_EMAIL_PROTECTION = '1.3.6.1.5.5.7.3.4'
-EKU_PKINIT_CLIENT_AUTH = '1.3.6.1.5.2.3.4'
-EKU_PKINIT_KDC = '1.3.6.1.5.2.3.5'
-EKU_ANY = '2.5.29.37.0'
+EKU_SERVER_AUTH = str(synta.oids.KP_SERVER_AUTH)
+EKU_CLIENT_AUTH = str(synta.oids.KP_CLIENT_AUTH)
+EKU_CODE_SIGNING = str(synta.oids.KP_CODE_SIGNING)
+EKU_EMAIL_PROTECTION = str(synta.oids.KP_EMAIL_PROTECTION)
+EKU_PKINIT_CLIENT_AUTH = str(synta.oids.PKINIT_KP_CLIENT_AUTH)
+EKU_PKINIT_KDC = str(synta.oids.PKINIT_KP_KDC)
+EKU_ANY = str(synta.oids.ANY_EXTENDED_KEY_USAGE)
 EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
 
-SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
-SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
+SAN_UPN = str(synta.oids.MS_SAN_UPN)
+SAN_KRB5PRINCIPALNAME = str(synta.oids.PKINIT_SAN)
 
 
 class IPACertificate:
@@ -160,7 +161,7 @@ class IPACertificate:
         # Extension ::= SEQUENCE { extnID OID, critical BOOLEAN DEFAULT FALSE,
         #                          extnValue OCTET STRING }
         inner = synta.Encoder(synta.Encoding.DER)
-        inner.encode_oid(synta.ObjectIdentifier(oid))
+        inner.encode_oid(oid)
         if critical:
             inner.encode_boolean(True)
         inner.encode_octet_string(value)
@@ -326,7 +327,8 @@ class IPACertificate:
         outer = synta.Encoder(synta.Encoding.DER)
         outer.encode_sequence(inner.finish())
         ekurfc = outer.finish()
-        return self.__encode_extension('2.5.29.37', EKU_ANY not in eku, ekurfc)
+        return self.__encode_extension(
+            synta.oids.EXTENDED_KEY_USAGE, EKU_ANY not in eku, ekurfc)
 
     @property
     def san_general_names(self):
@@ -852,7 +854,7 @@ class MSCSTemplateV1(MSCSTemplate):
     But note that a bare BMPString is used in practice.
 
     """
-    ext_oid = "1.3.6.1.4.1.311.20.2"
+    ext_oid = str(synta.oids.MS_CERTIFICATE_TEMPLATE_NAME)
 
     def __init__(self, s):
         super(MSCSTemplateV1, self).__init__(s)
@@ -885,7 +887,7 @@ class MSCSTemplateV2(MSCSTemplate):
         TemplateVersion ::= INTEGER (0..4294967295)
 
     """
-    ext_oid = "1.3.6.1.4.1.311.21.7"
+    ext_oid = str(synta.oids.MS_CERTIFICATE_TEMPLATE)
 
     @staticmethod
     def check_version_in_range(desc, n):
