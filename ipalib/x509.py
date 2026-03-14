@@ -40,7 +40,6 @@ import base64
 import re
 
 from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
     Encoding, PublicFormat, PrivateFormat, load_pem_private_key
@@ -91,13 +90,11 @@ class IPACertificate:
     A proxy class wrapping a python-cryptography certificate representation for
     IPA purposes
     """
-    def __init__(self, cert, backend=None):
+    def __init__(self, cert):
         """
         :param cert: A python-cryptography Certificate object
-        :param backend: A python-cryptography Backend object
         """
         self._cert = cert
-        self.backend = default_backend() if backend is None else backend()
         # Cache the synta Certificate view once; from_pyca() is a DER
         # round-trip so calling it on every san_general_names access is wasteful
         self._synta_cert = synta.Certificate.from_pyca(cert)
@@ -126,8 +123,7 @@ class IPACertificate:
         self._subject = state['_subject']
         self._issuer = state['_issuer']
         self._serial_number = state['_serial_number']
-        self._cert = crypto_x509.load_der_x509_certificate(
-            state['_cert'], backend=default_backend())
+        self._cert = crypto_x509.load_der_x509_certificate(state['_cert'])
         self._synta_cert = synta.Certificate.from_der(state['_cert'])
 
     def __eq__(self, other):
@@ -447,9 +443,7 @@ def load_pem_x509_certificate(data):
     """
     if isinstance(data, IPACertificate):
         return data
-    return IPACertificate(
-        crypto_x509.load_pem_x509_certificate(data, backend=default_backend())
-    )
+    return IPACertificate(crypto_x509.load_pem_x509_certificate(data))
 
 
 def load_der_x509_certificate(data):
@@ -461,9 +455,7 @@ def load_der_x509_certificate(data):
     """
     if isinstance(data, IPACertificate):
         return data
-    return IPACertificate(
-        crypto_x509.load_der_x509_certificate(data, backend=default_backend())
-    )
+    return IPACertificate(crypto_x509.load_der_x509_certificate(data))
 
 
 def load_unknown_x509_certificate(data):
@@ -524,7 +516,6 @@ def load_private_key_list(data, password=None):
 
     :returns: List of python-cryptography ``PrivateKey`` objects
     """
-    crypto_backend = default_backend()
     priv_keys = []
 
     for match in re.finditer(PEM_PRIV_REGEX, data):
@@ -533,13 +524,9 @@ def load_private_key_list(data, password=None):
                 raise RuntimeError("Password is required for the encrypted "
                                    "keys in the bundle.")
             # Load private key as encrypted
-            priv_keys.append(
-                load_pem_private_key(match.group(), password,
-                                     backend=crypto_backend))
+            priv_keys.append(load_pem_private_key(match.group(), password))
         else:
-            priv_keys.append(
-                load_pem_private_key(match.group(), None,
-                                     backend=crypto_backend))
+            priv_keys.append(load_pem_private_key(match.group(), None))
 
     return priv_keys
 
