@@ -22,7 +22,6 @@ import re
 import time
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import ObjectIdentifier, NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 
@@ -172,7 +171,7 @@ def create_external_ca_with_subject(subject_attrs):
 
     # Sign the certificate
     root_ca_cert = builder.sign(
-        external_ca.ca_key, hashes.SHA256(), default_backend()
+        external_ca.ca_key, hashes.SHA256()
     )
     root_ca_pem = root_ca_cert.public_bytes(serialization.Encoding.PEM)
 
@@ -238,7 +237,7 @@ def find_cert_in_chain(cert_chain, subject_attrs=None, issuer_attrs=None):
 
 
 def check_mscs_extension(ipa_csr, template):
-    csr = x509.load_pem_x509_csr(ipa_csr, default_backend())
+    csr = x509.load_pem_x509_csr(ipa_csr)
     extensions = [
         ext for ext in csr.extensions
         if ext.oid.dotted_string == template.ext_oid

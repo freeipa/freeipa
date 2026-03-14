@@ -45,7 +45,6 @@ import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
 from datetime import datetime, timedelta
 
 from ipapython import certdb
@@ -1940,7 +1939,7 @@ def certutil_fetch_cert(host, reqdir, pwd_file, nickname, token_name=None):
         args.append(nickname)
     result = run_certutil(host, args, reqdir)
     return x509.load_pem_x509_certificate(
-        result.stdout_bytes, default_backend()
+        result.stdout_bytes
     )
 
 
@@ -2222,8 +2221,7 @@ def generate_ssh_keypair():
     """
     Create SSH keypair for key authentication testing
     """
-    key = rsa.generate_private_key(backend=default_backend(),
-                                   public_exponent=65537,
+    key = rsa.generate_private_key(public_exponent=65537,
                                    key_size=2048)
 
     public_key = key.public_key().public_bytes(
