@@ -364,8 +364,6 @@ BuildRequires:  python3-dns
 BuildRequires:  python3-ldap >= %{python_ldap_version}
 BuildRequires:  python3-libsss_nss_idmap
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
-BuildRequires:  python3-pyasn1
-BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-six
 BuildRequires:  python3-psutil
 
@@ -432,8 +430,6 @@ BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-ifaddr
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
-BuildRequires:  python3-pyasn1
-BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-pycodestyle
 # .wheelconstraints.in limits pylint version in Azure and tox tests
 BuildRequires:  python3-pylint
@@ -589,7 +585,6 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-kdcproxy >= %{kdcproxy_version}
 Requires: python3-lxml
 Requires: python3-pki >= %{pki_version}
-Requires: python3-pyasn1 >= 0.3.2-2
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: python3-psutil
 Requires: rpm-libs
@@ -982,8 +977,6 @@ Requires: python3-libipa_hbac
 Requires: python3-netaddr >= %{python_netaddr_version}
 Requires: python3-ifaddr
 Requires: python3-packaging
-Requires: python3-pyasn1 >= 0.3.2-2
-Requires: python3-pyasn1-modules >= 0.3.2-2
 Requires: python3-pyusb
 Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-requests

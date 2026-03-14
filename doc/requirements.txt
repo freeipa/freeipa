@@ -15,8 +15,6 @@ ifaddr
 netaddr
 qrcode
 six
-pyasn1
-pyasn1-modules
 requests
 
 ## C libraries with binary wheels
