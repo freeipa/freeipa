@@ -26,6 +26,7 @@ lxml
 # gssapi
 # dbus-python
 # python-ldap
+synta
 
 ## No sufficient PyPI packages
 # dogtag-pki
