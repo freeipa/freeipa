@@ -36,7 +36,6 @@ import binascii
 import datetime
 import enum
 import ipaddress
-import base64
 import re
 
 from cryptography import x509 as crypto_x509
