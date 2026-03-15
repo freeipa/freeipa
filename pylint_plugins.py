@@ -10,6 +10,7 @@ import sys
 import textwrap
 
 from astroid import MANAGER, register_module_extender
+from astroid.exceptions import AstroidImportError
 from astroid.nodes import scoped_nodes
 from pylint.checkers import BaseChecker
 from pylint.checkers.utils import only_required_for_messages
@@ -238,6 +239,46 @@ register_module_extender(MANAGER, 'ipaplatform.services',
                          ipaplatform_services_transform)
 register_module_extender(MANAGER, 'ipaplatform.tasks',
                          ipaplatform_tasks_transform)
+
+
+def _synta_failed_import_hook(modname):
+    """Provide stubs for synta submodules that live in the Rust extension."""
+    if modname == 'synta.general_name':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                OTHER_NAME = 0
+                RFC822_NAME = 1
+                DNS_NAME = 2
+                DIRECTORY_NAME = 4
+                URI = 6
+                IP_ADDRESS = 7
+                REGISTERED_ID = 8
+            '''),
+            modname='synta.general_name')
+    if modname == 'synta.oids':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                class _OID:
+                    def __str__(self):
+                        return ''
+                KP_SERVER_AUTH = _OID()
+                KP_CLIENT_AUTH = _OID()
+                KP_CODE_SIGNING = _OID()
+                KP_EMAIL_PROTECTION = _OID()
+                PKINIT_KP_CLIENT_AUTH = _OID()
+                PKINIT_KP_KDC = _OID()
+                ANY_EXTENDED_KEY_USAGE = _OID()
+                MS_SAN_UPN = _OID()
+                PKINIT_SAN = _OID()
+                EXTENDED_KEY_USAGE = _OID()
+                MS_CERTIFICATE_TEMPLATE_NAME = _OID()
+                MS_CERTIFICATE_TEMPLATE = _OID()
+            '''),
+            modname='synta.oids')
+    raise AstroidImportError(modname)
+
+
+MANAGER.register_failed_import_hook(_synta_failed_import_hook)
 
 
 def ipalib_request_transform():
