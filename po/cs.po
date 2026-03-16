@@ -6,18 +6,19 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2019-11-11 10:25+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: Czech\n"
+"PO-Revision-Date: 2026-02-25 08:58+0000\n"
+"Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
+"Language-Team: Czech <https://translate.fedoraproject.org/projects/freeipa/"
+"ipa-4-11/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2\n"
-"X-Generator: Zanata 4.6.2\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Weblate 5.16\n"
 
 msgid "  ipa <command> --help"
-msgstr "  ipa <command> --help"
+msgstr "  ipa <prikaz> --help"
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
@@ -176,7 +177,7 @@ msgstr "Povoleno"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
+msgstr "Pro ověření správnosti, zadejte %(label)s znovu: "
 
 # auto translated by TM merge from project: firewalld, version: master, DocId:
 # po/firewalld
@@ -211,7 +212,7 @@ msgstr "Otisk"
 # auto translated by TM merge from project: Fedora Websites, version:
 # fedoraproject.org, DocId: po/fedora-web
 msgid "First"
-msgstr "Prvenství "
+msgstr "První"
 
 # auto translated by TM merge from project: ibus, version: head, DocId: ibus10
 msgid "Flags"
@@ -388,7 +389,7 @@ msgstr "Heslo"
 # auto translated by TM merge from project: anaconda, version: rhel6-branch,
 # DocId: anaconda
 msgid "Passwords do not match"
-msgstr "Hesla nejsou stejná."
+msgstr "Zadání hesla se neshodují"
 
 msgid "Passwords do not match!"
 msgstr "Hesla se neshodují!"
@@ -557,7 +558,7 @@ msgstr "Služby"
 # auto translated by TM merge from project: docbook-locales, version: master,
 # DocId: locale
 msgid "Set"
-msgstr "Sada"
+msgstr "Nastavit"
 
 # auto translated by TM merge from project: fedora-software, version: master,
 # DocId: template/django
@@ -618,7 +619,7 @@ msgstr "Platnost lístku skončila"
 # auto translated by TM merge from project: Pulseaudio, version: 6.0, DocId:
 # pulseaudio.pot
 msgid "Timeout"
-msgstr "Časový limit"
+msgstr "Překročení časového limitu"
 
 msgid "To get command help, use:"
 msgstr "Chceteli získat nápovědu k příkazu, použijte:"
@@ -642,7 +643,7 @@ msgstr "URL"
 # auto translated by TM merge from project: libvirt, version: master, DocId:
 # libvirt
 msgid "UUID"
-msgstr "UUID:"
+msgstr "UUID"
 
 # auto translated by TM merge from project: anaconda, version: master, DocId:
 # main
