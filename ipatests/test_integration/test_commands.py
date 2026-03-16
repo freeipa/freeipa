@@ -391,6 +391,60 @@ class TestIPACommand(IntegrationTest):
         assert result.returncode == 1
         assert "Number of permissions added 0" in result.stdout_text
 
+    def test_selfservice_mod_no_attrs_or_permissions_all(self):
+        """selfservice-mod --all with no --attrs or --permissions fails.
+
+        When selfservice-mod is invoked with only --all and neither --attrs
+        nor --permissions is supplied, the CLI has no modifications to apply
+        and must return a non-zero exit code with an appropriate error message.
+        """
+        entry = 'test_selfservice_mod_all'
+        tasks.kinit_admin(self.master)
+        self.master.run_command(
+            ['ipa', 'selfservice-add', entry,
+             '--attrs=l', '--permissions=write']
+        )
+        try:
+            result = self.master.run_command(
+                ['ipa', 'selfservice-mod', entry, '--all'],
+                stdin_text='\n',
+                raiseonerr=False,
+            )
+            assert result.returncode != 0
+            assert 'no modifications to be performed' in result.stderr_text
+        finally:
+            self.master.run_command(
+                ['ipa', 'selfservice-del', entry],
+                raiseonerr=False,
+            )
+
+    def test_selfservice_mod_no_attrs_or_permissions_raw(self):
+        """selfservice-mod --raw with no --attrs or --permissions fails.
+
+        When selfservice-mod is invoked with only --raw and neither --attrs
+        nor --permissions is supplied, the CLI has no modifications to apply
+        and must return a non-zero exit code with an appropriate error message.
+        """
+        entry = 'test_selfservice_mod_raw'
+        tasks.kinit_admin(self.master)
+        self.master.run_command(
+            ['ipa', 'selfservice-add', entry,
+             '--attrs=l', '--permissions=write']
+        )
+        try:
+            result = self.master.run_command(
+                ['ipa', 'selfservice-mod', entry, '--raw'],
+                stdin_text='\n',
+                raiseonerr=False,
+            )
+            assert result.returncode != 0
+            assert 'no modifications to be performed' in result.stderr_text
+        finally:
+            self.master.run_command(
+                ['ipa', 'selfservice-del', entry],
+                raiseonerr=False,
+            )
+
     def test_change_sysaccount_password_issue7561(self):
         sysuser = 'system'
         original_passwd = 'Secret123'
