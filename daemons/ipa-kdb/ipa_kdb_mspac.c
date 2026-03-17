@@ -1721,8 +1721,14 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
 #endif
 
     ipactx = ipadb_get_context(context);
-    if (!ipactx || !ipactx->mspac) {
+    if (!ipactx) {
         return KRB5_KDB_DBNOTINITED;
+    }
+    if (!ipactx->mspac) {
+        /* MS-PAC generator not yet initialized (SIDs not generated).
+         * Return ENOENT so callers treat this as "no PAC available"
+         * rather than a hard database error -- matching ipadb_get_pac(). */
+        return ENOENT;
     }
 
     /* We are asked to verify the PAC for our own principal,
@@ -2090,8 +2096,13 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
         result = dom_sid_check(&client_sid, requester_sid, true);
         if (!result) {
             struct ipadb_context *ipactx = ipadb_get_context(context);
-            if (!ipactx || !ipactx->mspac) {
+            if (!ipactx) {
                 return KRB5_KDB_DBNOTINITED;
+            }
+            if (!ipactx->mspac) {
+                /* MS-PAC not initialized; cannot check trust membership.
+                 * Return ENOENT so callers skip PAC rather than hard-fail. */
+                return ENOENT;
             }
             /* In S4U case we might be dealing with the PAC issued by the trusted domain */
             if (ipactx->mspac->trusts) {
