@@ -342,7 +342,11 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
             kerr = ipadb_verify_pac(context, flags, ks_client_princ, client,
                                     server, krbtgt, server_key, krbtgt_key,
                                     authtime, pac_auth_data, &pac);
-            if (kerr != 0) {
+            if (kerr == ENOENT) {
+                /* MS-PAC not initialized; proceed without PAC, matching
+                 * ipadb_v9_issue_pac()'s ENOENT handling in the same case. */
+                kerr = 0;
+            } else if (kerr != 0) {
                 goto done;
             }
         }
