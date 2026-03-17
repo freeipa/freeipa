@@ -200,6 +200,11 @@ def prepare_ipa_server(master):
     )
     master.run_command(["ipa", "krbtpolicy-mod", "admin", "--maxlife=9600"])
 
+    # Modify the default password policy
+    master.run_command(
+        ["ipa", "pwpolicy-mod", "--minlength=9", "--history=5"]
+    )
+
     # Add IPA locations
     master.run_command(
         ["ipa", "location-add", "brno", "--description", "Brno office"]
@@ -336,6 +341,7 @@ def prepare_ipa_server(master):
             f"{master.hostname}:/shared/export",
         ]
     )
+
 
 def run_migrate(
     host, mode, remote_host, bind_dn=None, bind_pwd=None, extra_args=None
@@ -1321,9 +1327,14 @@ class TestIPAMigrationProdMode(MigrationTest):
         assert "test@example.com" in result.stdout_text
         assert "ssh-ed25519" in result.stdout_text
 
-    def test_ipa_migrate_skip_replication_conflicts(self):
-        """
-        Test that ipa-migrate skips replication conflict entries
+    def _migrate_with_modified_ldif(self, ldif_modifier):
+        """Helper method to run migration with a modified LDIF file.
+
+        :param ldif_modifier: A callable that takes ldif_content and returns
+            modified ldif_content
+        :type ldif_modifier: callable
+        :return: Tuple of (result, install_msg)
+        :rtype: tuple
         """
         tasks.kinit_admin(self.master)
         tasks.kinit_admin(self.replicas[0])
@@ -1343,36 +1354,19 @@ class TestIPAMigrationProdMode(MigrationTest):
         # Start IPA back on master
         self.master.run_command(['ipactl', 'start'])
 
-        # Copy LDIF to replica
+        # Get LDIF content
         ldif_content = self.master.get_file_contents(
             ldif_file, encoding="utf-8"
         )
-        replica_ldif = "/tmp/userroot_with_conflict.ldif"
 
-        # Add mocked replication conflict entry to the LDIF
-        users_dn = "cn=users,cn=accounts," + str(self.master.domain.basedn)
-        conflict_entry = textwrap.dedent(
-            """
-            # entry-id: 12345678
-            dn: nsuniqueid=12345678-1234+uid=conflictuser,{users_dn}
-            uid: conflictuser
-            cn: Conflict User
-            uidNumber: 1234
-            gidNumber: 1234
-            sn: User
-            objectClass: top
-            objectClass: person
-            objectClass: inetorgperson
-            objectClass: nsds5replconflict
-            nsds5ReplConflict: namingConflict uid=conflictuser,{users_dn}
+        # Apply modifications
+        modified_ldif = ldif_modifier(ldif_content)
 
-            """
-        ).format(users_dn=users_dn)
-
-        # Append conflict entry to LDIF
-        modified_ldif = ldif_content + conflict_entry
+        # Write modified LDIF to replica
+        replica_ldif = "/tmp/userroot_modified.ldif"
         self.replicas[0].put_file_contents(replica_ldif, modified_ldif)
 
+        # Run migration
         result = run_migrate(
             self.replicas[0],
             "prod-mode",
@@ -1386,8 +1380,66 @@ class TestIPAMigrationProdMode(MigrationTest):
             paths.IPA_MIGRATE_LOG, encoding="utf-8"
         )
 
+        return result, install_msg
+
+    def test_ipa_migrate_skip_replication_conflicts(self):
+        """
+        Test that ipa-migrate skips replication conflict entries
+        """
+        def add_conflict_entry(ldif_content):
+            # Add mocked replication conflict entry to the LDIF
+            users_dn = "cn=users,cn=accounts," + str(self.master.domain.basedn)
+            conflict_entry = textwrap.dedent(
+                """
+                # entry-id: 12345678
+                dn: nsuniqueid=12345678-1234+uid=conflictuser,{users_dn}
+                uid: conflictuser
+                cn: Conflict User
+                uidNumber: 1234
+                gidNumber: 1234
+                sn: User
+                objectClass: top
+                objectClass: person
+                objectClass: inetorgperson
+                objectClass: nsds5replconflict
+                nsds5ReplConflict: namingConflict uid=conflictuser,{users_dn}
+
+                """
+            ).format(users_dn=users_dn)
+            return ldif_content + conflict_entry
+
+        result, install_msg = self._migrate_with_modified_ldif(
+            add_conflict_entry
+        )
+
         assert result.returncode == 0
         assert "Skipping replication conflict entry" in install_msg
+
+    def test_ipa_migrate_case_insensitive_objectclass(self):
+        """
+        Test that ipa-migrate handles case-insensitive objectClass values
+        correctly. LDAP treats objectClass values as case-insensitive, so
+        'ipapwdpolicy' and 'ipaPwdPolicy' should be recognized as the same
+        value and not cause "Type or value exists" errors.
+        """
+        def lowercase_objectclass(ldif_content):
+            # Replace objectClass: ipaPwdPolicy with lowercase version
+            # This simulates a scenario where LDIF has different case
+            # for objectClass values.
+            return ldif_content.replace(
+                'objectClass: ipaPwdPolicy',
+                'objectClass: ipapwdpolicy'
+            )
+
+        result, install_msg = self._migrate_with_modified_ldif(
+            lowercase_objectclass
+        )
+
+        assert result.returncode == 0
+        # Verify no "Type or value exists" error from attempting to add
+        # duplicate objectClass values with different case
+        assert "Type or value exists" not in install_msg
+        assert "Failed to update" not in install_msg
 
 
 class TestIPAMigrationWithADtrust(IntegrationTest):
