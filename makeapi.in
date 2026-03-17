@@ -23,6 +23,9 @@
 # Test the API against a known-good API to ensure that changes aren't made
 # lightly.
 
+# ipalib.cli and ipalib.docformat import each other lazily (inside functions)
+# to avoid a runtime circular import.  Pylint sees this as a cycle.
+# pylint: disable=cyclic-import
 from __future__ import print_function
 
 import locale
