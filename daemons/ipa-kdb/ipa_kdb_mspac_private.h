@@ -74,3 +74,5 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
                                         krb5_timestamp authtime,
                                         krb5_pac old_pac,
                                         krb5_pac *pac);
+
+void warn_mspac_unavailable(bool is_creation);
