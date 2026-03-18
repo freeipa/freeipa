@@ -60,6 +60,15 @@ class test_batch(Declarative):
     tests = [
 
         dict(
+            desc='Clearly wrong',
+            command=('batch', [dict(method=u'ping', params=([], {}))], {}),
+            expected=dict(
+                count=1,
+                results=tuple(),
+            ),
+        ),
+
+        dict(
             desc='Batch ping',
             command=('batch', [dict(method=u'ping', params=([], {}))], {}),
             expected=dict(
