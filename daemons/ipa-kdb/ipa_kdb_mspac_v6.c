@@ -315,7 +315,10 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
             krb5_klog_syslog(LOG_WARNING, "MS-PAC generator: %s", stmsg);
 
         kerr = ipadb_get_pac(context, flags, client, server, NULL, authtime, &pac);
-        if (kerr != 0 && kerr != ENOENT) {
+        if (kerr == ENOENT) {
+            /* MS-PAC generator not initialized; proceed without PAC. */
+            warn_mspac_unavailable(true);
+        } else if (kerr != 0) {
             goto done;
         }
     } else if (with_pac && !is_as_req) {
@@ -329,7 +332,10 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         if ((pac_auth_data == NULL) || (pac_auth_data[0] == NULL)) {
             if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
                 kerr = ipadb_get_pac(context, flags, client_entry, server, NULL, authtime, &pac);
-                if (kerr != 0 && kerr != ENOENT) {
+                if (kerr == ENOENT) {
+                    /* MS-PAC generator not initialized; proceed without PAC. */
+                    warn_mspac_unavailable(true);
+                } else if (kerr != 0) {
                     goto done;
                 }
             }
@@ -343,8 +349,8 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                                     server, krbtgt, server_key, krbtgt_key,
                                     authtime, pac_auth_data, &pac);
             if (kerr == ENOENT) {
-                /* MS-PAC not initialized; proceed without PAC, matching
-                 * ipadb_v9_issue_pac()'s ENOENT handling in the same case. */
+                /* MS-PAC not initialized; proceed without PAC verification. */
+                warn_mspac_unavailable(false);
                 kerr = 0;
             } else if (kerr != 0) {
                 goto done;

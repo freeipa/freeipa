@@ -93,6 +93,16 @@ void free_sid(struct dom_sid **sid)
     }
 }
 
+void warn_mspac_unavailable(bool is_creation)
+{
+    const char *operation = is_creation ? "creation" : "verification";
+    krb5_klog_syslog(LOG_WARNING,
+                     "MS-PAC not available during ticket %s. This makes "
+                     "FreeIPA vulnerable to privilege escalation exploit "
+                     "(CVE-2025-7493). Please generate SIDs to enable PAC "
+                     "support.", operation);
+}
+
 int ipadb_string_to_sid(const char *str, struct dom_sid *sid)
 {
     unsigned long val;
@@ -3423,10 +3433,7 @@ ipadb_enforce_pac(krb5_context kcontext, const krb5_ticket *ticket,
     if (krb5_realm_compare(kcontext, ipactx->local_tgs, ticket->server) &&
         !ipactx->mspac)
     {
-        krb5_klog_syslog(LOG_WARNING, "MS-PAC not available. This makes "
-                         "FreeIPA vulnerable to privilege escalation exploit "
-                         "(CVE-2025-7493). Please generate SIDs to enable PAC "
-                         "support.");
+        warn_mspac_unavailable(false);
         kerr = 0;
         goto end;
     }

@@ -46,6 +46,7 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
     bool with_pad;
     krb5_error_code kerr = 0;
     bool is_as_req = flags & CLIENT_REFERRALS_FLAGS;
+    bool is_pac_creation = false;
     const char *stmsg = NULL;
 
     if (is_as_req) {
@@ -85,6 +86,7 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
     if (old_pac == NULL ||
         (client != NULL && (flags & KRB5_KDB_FLAG_PROTOCOL_TRANSITION))) {
         /* generate initial PAC */
+        is_pac_creation = true;
         if (with_pac) {
             krb5_boolean force_reinit_mspac = FALSE;
             struct ipadb_context *ipactx = ipadb_get_context(context);
@@ -135,6 +137,7 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
 
     if (kerr == ENOENT) {
         /* MS-PAC generator not initialized; proceed without PAC. */
+        warn_mspac_unavailable(is_pac_creation);
         kerr = 0;
     }
 
