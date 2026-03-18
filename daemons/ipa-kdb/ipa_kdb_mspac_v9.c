@@ -120,10 +120,6 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
             /* Continue even if initilization of PAC generator failed.
              * It may caused by the trust objects part only. */
 
-            /* At least the core part of the PAC generator is required. */
-            if (!ipactx->mspac)
-                return KRB5_PLUGIN_OP_NOTSUPP;
-
             kerr = ipadb_get_pac(context, flags,
                                  client, server, replaced_reply_key,
                                  authtime, &new_pac);
@@ -135,9 +131,11 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
                                         NULL,
                                         authtime,
                                         old_pac, &new_pac);
-        if (kerr == ENOENT) {
-            kerr = 0;
-        }
+    }
+
+    if (kerr == ENOENT) {
+        /* MS-PAC generator not initialized; proceed without PAC. */
+        kerr = 0;
     }
 
     /* in krb5 1.20 no need to sign tickets anymore, KDC does it for us */
