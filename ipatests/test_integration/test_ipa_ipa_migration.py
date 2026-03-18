@@ -1514,7 +1514,7 @@ class TestIPAMigrationMixedOnlineOffline(MigrationTest):
         install_msg = self.replicas[0].get_file_contents(
             paths.IPA_MIGRATE_LOG, encoding="utf-8"
         )
-        assert "--db-ldif={DB_LDIF_FILE}" in install_msg
+        assert "--db-ldif={}".format(DB_LDIF_FILE) in install_msg
         assert "Migrating schema" in install_msg
         assert "Migrating configuration" in install_msg
 
@@ -1540,11 +1540,12 @@ class TestIPAMigrationPluginsMigrated(MigrationTest):
         (PLUGIN_DN, "nsslapd-changelogmaxage", "2d"),
     ]
 
-    @pytest.fixture(scope="class", autouse=True)
+    @pytest.fixture(autouse=True)
     def run_prod_mode_migration(self):
         """Modify plugin on the source server, delete it on the replica,
         then run prod-mode migration and assert that it completes
-        successfully."""
+        successfully.
+        """
         tasks.kinit_admin(self.master)
         tasks.kinit_admin(self.replicas[0])
         for dn, attr, value in self.PLUGIN_MODIFICATIONS:
