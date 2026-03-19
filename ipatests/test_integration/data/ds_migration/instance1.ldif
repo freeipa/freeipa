@@ -1,0 +1,48 @@
+# Minimal DS migration test data: base OUs and sample user/group
+# Used when setting up 389-ds on the client for migrate-ds tests.
+# Base suffix dc=testrealm,dc=test is created by dscreate.
+
+dn: dc=testrealm,dc=test
+objectClass: top
+objectClass: domain
+objectClass: dcObject
+dc: testrealm
+
+dn: ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=testrealm,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+dn: cn=Directory Administrators, ou=Groups, dc=testrealm,dc=test
+cn: Directory Administrators
+objectclass: top
+objectclass: groupofuniquenames
+ou: Groups
+uniquemember: uid=ldapuser_0001, ou=People, dc=testrealm,dc=test
+
+dn: uid=ldapuser_0001,ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: posixAccount
+uid: ldapuser_0001
+cn: LDAP User 1
+sn: User 1
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/ldapuser_0001
+userPassword: fo0m4nchU
+telephonenumber: +1 123 444 555
+
+dn: cn=ldapgroup_0001,ou=Groups,dc=testrealm,dc=test
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: ldapgroup_0001
+gidNumber: 1001
+member: uid=ldapuser_0001,ou=People,dc=testrealm,dc=test
+
