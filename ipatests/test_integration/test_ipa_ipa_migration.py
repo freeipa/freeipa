@@ -387,7 +387,8 @@ class MigrationTest(IntegrationTest):
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
         prepare_ipa_server(cls.master)
-        tasks.install_client(cls.master, cls.clients[0], nameservers=None)
+        for client in cls.clients:
+            tasks.install_client(cls.master, client, nameservers=None)
         tasks.install_master(cls.replicas[0], setup_dns=True, setup_kra=True,
                              extra_args=['--allow-zone-overlap'])
 
@@ -774,7 +775,6 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         base_dn = str(self.master.domain.basedn)
         subtree = 'cn=security,{}'.format(base_dn)
         params = ['-s', subtree, '-n', '-x']
-        base_dn = str(self.master.domain.basedn)
         CUSTOM_SUBTREE_LOG = (
             "Add db entry 'cn=security,{} - custom'"
         ).format(base_dn)
@@ -896,7 +896,6 @@ class TestIPAMigrateCLIOptions(MigrationTest):
     def test_ipa_migrate_stage_mode_with_cert(self):
         """
         This testcase checks that ipa-migrate command
-        works without the 'ValuerError'
         when -Z <cert> option is used with valid cert
         """
         cert_file = '/tmp/ipa.crt'
@@ -1553,3 +1552,150 @@ class TestIPAMigratewithBackupRestore(IntegrationTest):
         )
         assert result.returncode == 0
         assert ERR_MSG not in result.stderr_text
+
+
+class TestIPAMigrationMixedOnlineOffline(MigrationTest):
+    """
+    Tests for IPA-to-IPA migration with mixed online and offline method:
+    config and schema migrated online, database from remote backup LDIF.
+    """
+    num_replicas = 1
+    num_clients = 0
+    topology = "line"
+
+    def test_ipa_migrate_mixed_online_offline(self):
+        """
+        Run mixed migration (config/schema online, DB from LDIF) and verify
+        success, log phases, and that migrated data is present on local.
+        """
+        dashed_domain_name = (
+            self.master.domain.realm.replace(".", "-")
+        )
+        DB_LDIF_FILE = "{}-userRoot.ldif".format(dashed_domain_name)
+        known_user = "testuser1"
+
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+
+        backup_path = tasks.get_backup_dir(self.master)
+        remote_ipa_tar_file = backup_path + "/ipa-full.tar"
+        ipa_tar_file = self.master.get_file_contents(
+            remote_ipa_tar_file
+        )
+        replica_file_name = "/tmp/ipa-full.tar"
+        self.replicas[0].put_file_contents(
+            replica_file_name, ipa_tar_file
+        )
+        self.replicas[0].run_command(
+            ["/usr/bin/tar", "-xvf", replica_file_name]
+        )
+
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-f", DB_LDIF_FILE, "-n"],
+        )
+        assert result.returncode == 0
+
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert "--db-ldif={}".format(DB_LDIF_FILE) in install_msg
+        assert "Migrating schema" in install_msg
+        assert "Migrating configuration" in install_msg
+
+        show_result = self.replicas[0].run_command(
+            ["ipa", "user-show", known_user]
+        )
+        assert known_user in show_result.stdout_text
+
+
+class TestIPAMigrationPluginsMigrated(MigrationTest):
+    """
+    Tests that Directory Server (cn=config) plugins supported by
+    ipa-migrate are correctly migrated. The plugin is removed from
+    the replica before migration; after prod-mode migration the
+    plugin (with config from the source) must be present.
+    """
+    num_replicas = 1
+    num_clients = 0
+    topology = "line"
+
+    PLUGIN_DN = "cn=Retro Changelog Plugin,cn=plugins,cn=config"
+    PLUGIN_MODIFICATIONS = [
+        (PLUGIN_DN, "nsslapd-changelogmaxage", "2d"),
+    ]
+
+    @pytest.fixture(autouse=True)
+    def run_prod_mode_migration(self):
+        """Modify plugin on the source server, delete it on the replica,
+        then run prod-mode migration and assert that it completes
+        successfully.
+        """
+        tasks.kinit_admin(self.master)
+        tasks.kinit_admin(self.replicas[0])
+        for dn, attr, value in self.PLUGIN_MODIFICATIONS:
+            ldif = (
+                "dn: {dn}\n"
+                "changetype: modify\n"
+                "replace: {attr}\n"
+                "{attr}: {value}\n"
+            ).format(dn=dn, attr=attr, value=value)
+            tasks.ldapmodify_dm(self.master, ldif)
+        # Remove the plugin on the replica so we can verify migration adds it.
+        self.replicas[0].run_command(
+            [
+                "ldapdelete", "-x",
+                "-D", str(self.replicas[0].config.dirman_dn),
+                "-w", self.replicas[0].config.dirman_password,
+                self.PLUGIN_DN,
+            ]
+        )
+        result = run_migrate(
+            self.replicas[0],
+            "prod-mode",
+            self.master.hostname,
+            "cn=Directory Manager",
+            self.master.config.admin_password,
+            extra_args=["-n"],
+        )
+        assert result.returncode == 0, (
+            "ipa-migrate failed (returncode={}): {}"
+            .format(result.returncode,
+                    result.stderr_text or result.stdout_text)
+        )
+        install_msg = self.replicas[0].get_file_contents(
+            paths.IPA_MIGRATE_LOG, encoding="utf-8"
+        )
+        assert "Migration complete" in install_msg, (
+            "Migration log does not show completion: check {}"
+            .format(paths.IPA_MIGRATE_LOG)
+        )
+        yield
+
+    def test_plugin_config_migrated(self):
+        """
+        Verify that the plugin removed from the replica before migration
+        is present after prod-mode migration with config from the source.
+        """
+        not_migrated = []
+        for dn, attr, value in self.PLUGIN_MODIFICATIONS:
+            result = tasks.ldapsearch_dm(
+                self.replicas[0],
+                dn,
+                [attr],
+                scope="base",
+                raiseonerr=False,
+            )
+            expected = "{}: {}".format(attr, value)
+            if expected not in result.stdout_text:
+                not_migrated.append(
+                    "'{}' on {}".format(attr, dn)
+                )
+        assert not not_migrated, (
+            "Plugin config not migrated from source: {}"
+            .format(not_migrated)
+        )
