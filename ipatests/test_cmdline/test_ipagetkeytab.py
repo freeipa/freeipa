@@ -40,6 +40,21 @@ from ipatests.test_xmlrpc.tracker import host_plugin, service_plugin
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, add_oc
 from contextlib import contextmanager
 
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
+from ipatests.util import unlock_principal_password
+
+GK_USER1 = 'gkuser1'
+GK_USER2 = 'gkuser2'
+GK_INIT_PW = 'TempSecret123!'
+GK_USER_PW = 'Secret123'
+
+ALL_DEFAULT_ENCTYPES = [
+    '(aes256-cts-hmac-sha1-96)',
+    '(aes128-cts-hmac-sha1-96)',
+    '(camellia128-cts-cmac)',
+    '(camellia256-cts-cmac)',
+]
+
 
 @contextmanager
 def use_keytab(principal, keytab):
@@ -63,6 +78,57 @@ def use_keytab(principal, keytab):
             setattr(context, 'principal', old_principal)
 
 
+@contextmanager
+def kinit_as_user(principal, password):
+    """Kinit as *principal* into a private ccache; yield its path.
+
+    private_ccache() already sets KRB5CCNAME in os.environ, so callers
+    (and ipautil.run) inherit it automatically.
+    """
+    with private_ccache() as ccache_path:
+        ipautil.run(
+            ['kinit', principal],
+            stdin=password + '\n',
+            raiseonerr=True,
+            capture_output=True,
+            capture_error=True,
+        )
+        yield ccache_path
+
+
+def run_getkeytab(args, env=None, stdin=None):
+    """Run ipa-getkeytab with arbitrary arguments."""
+    return ipautil.run(
+        ['ipa-getkeytab'] + list(args),
+        raiseonerr=False,
+        capture_output=True,
+        capture_error=True,
+        stdin=stdin,
+        env=env,
+    )
+
+
+def run_rmkeytab(args, env=None):
+    """Run ipa-rmkeytab with arbitrary arguments."""
+    return ipautil.run(
+        ['ipa-rmkeytab'] + list(args),
+        raiseonerr=False,
+        capture_output=True,
+        capture_error=True,
+        env=env,
+    )
+
+
+def klist_keytab(keytab_path):
+    """Run ``klist -ekt`` and return the result object."""
+    return ipautil.run(
+        ['klist', '-ekt', keytab_path],
+        raiseonerr=False,
+        capture_output=True,
+        capture_error=True,
+    )
+
+
 @pytest.fixture(scope='class')
 def test_host(request):
     host_tracker = host_plugin.HostTracker(u'test-host')
@@ -74,6 +140,20 @@ def test_service(request, test_host, keytab_retrieval_setup):
     service_tracker = service_plugin.ServiceTracker(u'srv', test_host.name)
     test_host.ensure_exists()
     return service_tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def gk_users(request, keytab_retrieval_setup):
+    """Create GK_USER1 and GK_USER2; delete them after the class."""
+    for uid in (GK_USER1, GK_USER2):
+        tracker = UserTracker(
+            name=uid, givenname='Test', sn='GKUser',
+            userpassword=GK_INIT_PW,
+        )
+        tracker.make_fixture(request)
+        tracker.make_create_command()()
+        tracker.exists = True
+        unlock_principal_password(uid, GK_INIT_PW, GK_USER_PW)
 
 
 @pytest.mark.needs_ipaapi
@@ -133,6 +213,20 @@ class KeytabRetrievalTest(cmdline_test):
         assert message in err
         rc = result.returncode
         assert rc == retcode
+
+    def _get_user1_keytab(self):
+        """Populate self.keytabname with GK_USER1's keytab."""
+        run_getkeytab(
+            ['-s', api.env.host, '-p', GK_USER1, '-k', self.keytabname]
+        )
+
+    def _assert_getkeytab_succeeds(self, result):
+        """Assert ipa-getkeytab returned success with the expected message."""
+        assert result.returncode == 0
+        assert (
+            'Keytab successfully retrieved and stored in:'
+            in result.error_output
+        )
 
 
 @pytest.mark.tier0
@@ -495,3 +589,356 @@ class test_smb_service(KeytabRetrievalTest):
         ipanthash = entry.single_value.get('ipanthash')
         conn.disconnect()
         assert ipanthash != b'MagicRegen', 'LDBM backend entry corruption'
+
+
+# -----------------------------------------------------------------------
+# User-principal tests ported from bash acceptance tests
+# (t.ipa-get-rm-keytabs.sh: getkeytab_001 – getkeytab_006)
+# -----------------------------------------------------------------------
+
+
+@pytest.mark.tier1
+@pytest.mark.usefixtures('gk_users')
+class test_getkeytab_users(KeytabRetrievalTest):
+    """
+    User-principal ipa-getkeytab tests (bash getkeytab_001 – getkeytab_006).
+    """
+    command = "ipa-getkeytab"
+
+    def _ensure_keytab_absent(self):
+        try:
+            os.unlink(self.keytabname)
+        except OSError:
+            pass
+
+    # --- getkeytab_001: quiet mode, access rights, missing ccache ---
+
+    def test_insufficient_access_as_other_user(self):
+        """Retrieving another user's keytab without admin rights fails."""
+        principal1 = '{}@{}'.format(GK_USER1, api.env.realm)
+        principal2 = '{}@{}'.format(GK_USER2, api.env.realm)
+        with kinit_as_user(principal1, GK_USER_PW):
+            result = run_getkeytab(
+                ['-s', api.env.host,
+                 '-p', principal2,
+                 '-k', self.keytabname],
+            )
+        assert result.returncode == 9
+        assert (
+            'Failed to parse result: Insufficient access rights'
+            in result.error_output
+        )
+
+    def test_empty_ccache_returns_exit6(self):
+        """An empty ccache (simulating kdestroy) returns exit 6."""
+        principal1 = '{}@{}'.format(GK_USER1, api.env.realm)
+        with private_ccache():
+            result = run_getkeytab(
+                ['-s', api.env.host, '-p', principal1,
+                 '-k', self.keytabname],
+            )
+        assert result.returncode == 6
+        assert (
+            'Kerberos User Principal not found. '
+            'Do you have a valid Credential Cache?'
+            in result.error_output
+        )
+
+    def test_quiet_suppresses_success_message(self):
+        """-q must suppress the keytab-stored success message.
+
+        Note: test_6_quiet_mode (line 268) checks -q returncode with a
+        service principal but does not verify the message is absent.
+        """
+        result = run_getkeytab(
+            ['-q', '-s', api.env.host, '-p', GK_USER1,
+             '-k', self.keytabname],
+        )
+        assert result.returncode == 0
+        assert (
+            'Keytab successfully retrieved and stored in:'
+            not in result.error_output
+        )
+
+    # Skipped: test_normal_mode_shows_success_message
+    # — covered by test_6_quiet_mode (line 268) which verifies the success
+    # message appears without -q.
+
+    # --- getkeytab_002: --server / -s ---
+
+    @pytest.mark.parametrize('flag', ['--server', '-s'])
+    def test_invalid_server_fails(self, flag):
+        """An invalid server hostname returns exit 9 with bind error."""
+        result = run_getkeytab(
+            [flag, 'invalid.ipaserver.com',
+             '-p', GK_USER1,
+             '-k', self.keytabname],
+        )
+        assert result.returncode == 9
+        assert 'Failed to bind to server' in result.error_output
+
+    @pytest.mark.parametrize('flag', ['--server', '-s'])
+    def test_valid_server_succeeds(self, flag):
+        """A valid server hostname retrieves the keytab successfully.
+
+        Note: -s case is also covered by test_7_server_name_check
+        (line 284) with a service principal.
+        """
+        result = run_getkeytab(
+            [flag, api.env.host, '-p', GK_USER1,
+             '-k', self.keytabname],
+        )
+        self._assert_getkeytab_succeeds(result)
+
+    # --- getkeytab_003: --principal / -p ---
+
+    @pytest.mark.parametrize('flag', ['--principal', '-p'])
+    @pytest.mark.parametrize('principal', [
+        pytest.param('unknownuser', id='unknown'),
+        pytest.param(
+            '{}@INVALID.IPASERVER.REALM.COM'.format(GK_USER1),
+            id='invalid-realm',
+        ),
+    ])
+    def test_principal_not_found(self, flag, principal):
+        """Unresolvable principals return exit 9 with not-found error.
+
+        Note: test_1_run (line 218) tests a similar scenario with a
+        non-existent service principal.
+        """
+        result = run_getkeytab(
+            ['-s', api.env.host, flag, principal,
+             '-k', self.keytabname],
+        )
+        assert result.returncode == 9
+        assert (
+            'Failed to parse result: PrincipalName not found.'
+            in result.error_output
+        )
+
+    @pytest.mark.parametrize('flag', ['--principal', '-p'])
+    @pytest.mark.parametrize('with_realm', [False, True],
+                             ids=['bare', 'with-realm'])
+    def test_valid_principal_succeeds(self, flag, with_realm):
+        """Both bare and realm-qualified principals retrieve the keytab."""
+        principal = ('{}@{}'.format(GK_USER1, api.env.realm)
+                     if with_realm else GK_USER1)
+        result = run_getkeytab(
+            ['-s', api.env.host, flag, principal,
+             '-k', self.keytabname],
+        )
+        self._assert_getkeytab_succeeds(result)
+
+    # --- getkeytab_004: --keytab / -k ---
+
+    @pytest.mark.parametrize('flag', ['--keytab', '-k'])
+    def test_creates_keytab_when_absent(self, flag):
+        """The keytab file is created when it does not previously exist."""
+        self._ensure_keytab_absent()
+        result = run_getkeytab(
+            ['-s', api.env.host, '-p', GK_USER1, flag, self.keytabname],
+        )
+        self._assert_getkeytab_succeeds(result)
+        assert os.path.isfile(self.keytabname)
+
+    @pytest.mark.parametrize('flag', ['--keytab', '-k'])
+    def test_keytab_contains_aes_enctypes(self, flag):
+        """The created keytab contains both aes256 and aes128 entries."""
+        run_getkeytab(
+            ['-s', api.env.host, '-p', GK_USER1, flag, self.keytabname]
+        )
+        klist_result = klist_keytab(self.keytabname)
+        assert api.env.realm in klist_result.output
+        assert 'aes128' in klist_result.output
+        assert 'aes256' in klist_result.output
+
+    @pytest.mark.parametrize('flag', ['--keytab', '-k'])
+    def test_text_file_path_returns_exit11(self, flag):
+        """Writing to a pre-existing plain-text file returns exit 11."""
+        txtfd, txt_path = tempfile.mkstemp(suffix='.txt')
+        os.close(txtfd)
+        try:
+            result = run_getkeytab(
+                ['-s', api.env.host, '-p', GK_USER1, flag, txt_path],
+            )
+            assert result.returncode == 11
+            assert 'Failed to add key to the keytab' in result.error_output
+        finally:
+            try:
+                os.unlink(txt_path)
+            except OSError:
+                pass
+
+    # --- getkeytab_005: -e encryption types ---
+
+    def test_system_keytab_has_default_enctypes(self):
+        """The system keytab must contain both aes256 and aes128."""
+        klist_result = klist_keytab('/etc/krb5.keytab')
+        assert '(aes256-cts-hmac-sha1-96)' in klist_result.output
+        assert '(aes128-cts-hmac-sha1-96)' in klist_result.output
+
+    @pytest.mark.parametrize('enctype,expected', [
+        ('aes256-cts', '(aes256-cts-hmac-sha1-96)'),
+        ('aes128-cts', '(aes128-cts-hmac-sha1-96)'),
+        ('camellia128-cts-cmac', '(camellia128-cts-cmac)'),
+        ('camellia256-cts-cmac', '(camellia256-cts-cmac)'),
+    ])
+    def test_single_enctype(self, enctype, expected):
+        """With -e <enctype> only that enctype appears and kinit works.
+
+        Note: test_8_keytab_encryption_check tests -e with multiple
+        enctypes but only asserts success, not klist content.
+        """
+        self._ensure_keytab_absent()
+        run_getkeytab(
+            ['-s', api.env.host, '-p', GK_USER1,
+             '-k', self.keytabname, '-e', enctype],
+        )
+        klist_result = klist_keytab(self.keytabname)
+        assert expected in klist_result.output
+        for enc in ALL_DEFAULT_ENCTYPES:
+            if enc != expected:
+                assert enc not in klist_result.output
+        assert '(des3-cbc-sha1)' not in klist_result.output
+        assert '(arcfour-hmac)' not in klist_result.output
+        with private_ccache():
+            ipautil.run(
+                ['kinit', '-k', '-t', self.keytabname,
+                 '{}@{}'.format(GK_USER1, api.env.realm)],
+                raiseonerr=True,
+                capture_output=True,
+                capture_error=True,
+            )
+
+    def test_invalid_enctype_returns_exit8(self):
+        """An invalid -e value returns exit 8 and creates no keytab."""
+        self._ensure_keytab_absent()
+        result = run_getkeytab(
+            ['-s', api.env.host, '-p', GK_USER1,
+             '-k', self.keytabname, '-e', 'invalid'],
+        )
+        assert result.returncode == 8
+        assert 'Warning unrecognized encryption type' in result.error_output
+        assert not os.path.isfile(self.keytabname)
+
+    # --- getkeytab_006: --password / -P ---
+
+    @pytest.mark.parametrize('flag', ['--password', '-P'])
+    def test_password_flag_rotates_keys(self, flag):
+        """After --password and a random-key reset, the original password
+        will no longer authenticate.
+
+        Sequence: admin sets password-derived keys -> user kinits -> user
+        regenerates random keys -> kinit with the original password must fail.
+        """
+        self._ensure_keytab_absent()
+        principal1 = '{}@{}'.format(GK_USER1, api.env.realm)
+        stdin = '{pw}\n{pw}\n'.format(pw=GK_USER_PW)
+        result = run_getkeytab(
+            ['-s', api.env.host, '-p', GK_USER1,
+             '-k', self.keytabname, flag],
+            stdin=stdin,
+        )
+        assert result.returncode == 0
+        with kinit_as_user(principal1, GK_USER_PW):
+            regen = run_getkeytab(
+                ['-s', api.env.host, '-p', GK_USER1,
+                 '-k', self.keytabname],
+            )
+            assert regen.returncode == 0
+        with private_ccache():
+            kinit_result = ipautil.run(
+                ['kinit', principal1],
+                stdin=GK_USER_PW + '\n',
+                raiseonerr=False,
+                capture_output=True,
+                capture_error=True,
+            )
+        assert kinit_result.returncode != 0
+        assert (
+            'Password incorrect' in kinit_result.error_output
+            or 'Preauthentication failed' in kinit_result.error_output
+        )
+
+    # --- getkeytab_007: -D / -w bind DN error cases ---
+
+    # Skipped: test_no_ccache_returns_exit6
+    # — identical to test_empty_ccache_returns_exit6 above.
+    # Skipped: test_valid_dm_credentials_succeed
+    # — covered by TestBindMethods.test_retrieval_with_dm_creds (line 375).
+
+    @pytest.mark.parametrize('extra_args,exitcode,message', [
+        (['-D', ' ', '-w', GK_USER_PW],
+         9, 'Anonymous Binds are not allowed'),
+        (['-D', 'cn=Directory Manager', '-w', ' '],
+         9, 'Simple bind failed'),
+        (['-D', 'cn=Directory Manager'],
+         10, 'Bind password required when using a bind DN'),
+    ], ids=['empty-dn', 'wrong-password', 'missing-password'])
+    def test_binddn_error_cases(self, extra_args, exitcode, message):
+        """Bind DN error cases return appropriate exit codes."""
+        result = run_getkeytab(
+            ['--server', 'localhost',
+             '-p', GK_USER1,
+             '-k', self.keytabname] + extra_args,
+        )
+        assert result.returncode == exitcode
+        assert message in result.error_output
+
+
+# -----------------------------------------------------------------------
+# ipa-rmkeytab tests (bash rmkeytab_001 – rmkeytab_003)
+# -----------------------------------------------------------------------
+
+
+@pytest.mark.tier1
+@pytest.mark.usefixtures('gk_users')
+class test_rmkeytab_cmd(KeytabRetrievalTest):
+    """
+    ipa-rmkeytab tests (bash rmkeytab_001 – rmkeytab_003).
+    """
+    command = "ipa-rmkeytab"
+
+    # --- rmkeytab_001: -p removes a named principal ---
+
+    def test_invalid_principal_returns_exit5(self):
+        """A non-existent principal name returns exit 5."""
+        self._get_user1_keytab()
+        result = run_rmkeytab(['-p', 'invalidprinc', '-k', self.keytabname])
+        assert result.returncode == 5
+        assert 'principal not found' in result.error_output
+
+    def test_valid_principal_removed(self):
+        """A present principal is removed and absent from klist."""
+        self._get_user1_keytab()
+        result = run_rmkeytab(['-p', GK_USER1, '-k', self.keytabname])
+        assert result.returncode == 0
+        assert (
+            'Removing principal {}'.format(GK_USER1)
+            in result.error_output
+        )
+        assert GK_USER1 not in klist_keytab(self.keytabname).output
+
+    # --- rmkeytab_002: -r removes all principals of the given realm ---
+
+    def test_realm_removes_all_principals(self):
+        """All principals of the realm are removed and absent from klist."""
+        self._get_user1_keytab()
+        result = run_rmkeytab(['-r', api.env.realm, '-k', self.keytabname])
+        assert result.returncode == 0
+        assert (
+            'Removing principal {}@{}'.format(GK_USER1, api.env.realm)
+            in result.error_output
+        )
+        assert api.env.realm not in klist_keytab(self.keytabname).output
+
+    # --- rmkeytab_003: -k with a non-existent path ---
+
+    def test_invalid_keytab_path_returns_exit7(self):
+        """A non-existent keytab path returns exit 7."""
+        self._get_user1_keytab()
+        result = run_rmkeytab(
+            ['-p', GK_USER1, '-k', '/opt/invalid.keytab']
+        )
+        assert result.returncode == 7
+        assert 'Failed to set cursor' in result.error_output
