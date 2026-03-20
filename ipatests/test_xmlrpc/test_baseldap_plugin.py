@@ -210,16 +210,16 @@ def test_entry_to_dict():
     entry = ipaldap.LDAPEntry(
         conn,
         DN('cn=test'),
-        textattr=[u'text'],
+        textattr=['text'],
         dnattr=[DN('cn=test')],
         binaryattr=[b'\xffabcd'],
         attributelevelrights=rights)
     the_dict = {
-        u'dn': u'cn=test',
-        u'textattr': [u'text'],
-        u'dnattr': [u'cn=test'],
-        u'binaryattr': [b'\xffabcd'],
-        u'attributelevelrights': rights}
+        'dn': 'cn=test',
+        'textattr': ['text'],
+        'dnattr': ['cn=test'],
+        'binaryattr': [b'\xffabcd'],
+        'attributelevelrights': rights}
     assert_deepequal(
         baseldap.entry_to_dict(entry, all=True, raw=True),
         the_dict)

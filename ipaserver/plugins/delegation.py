@@ -54,7 +54,7 @@ EXAMPLES:
 
 register = Registry()
 
-ACI_PREFIX=u"delegation"
+ACI_PREFIX = 'delegation'
 
 
 @register()
@@ -133,7 +133,7 @@ class delegation_add(crud.Create):
 
     def execute(self, aciname, **kw):
         if 'permissions' not in kw:
-            kw['permissions'] = (u'write',)
+            kw['permissions'] = ('write',)
         kw['aciprefix'] = ACI_PREFIX
         result = api.Command['aci_add'](aciname, **kw)['result']
         self.obj.postprocess_result(result)

@@ -13,18 +13,18 @@ from ipatests.util import assert_deepequal
 class CertmapruleTracker(Tracker, EnableTracker):
     """ Tracker for testin certmaprule plugin """
     retrieve_keys = {
-        u'dn',
-        u'cn',
-        u'description',
-        u'ipacertmapmaprule',
-        u'ipacertmapmatchrule',
-        u'associateddomain',
-        u'ipacertmappriority',
-        u'ipaenabledflag'
+        'dn',
+        'cn',
+        'description',
+        'ipacertmapmaprule',
+        'ipacertmapmatchrule',
+        'associateddomain',
+        'ipacertmappriority',
+        'ipaenabledflag'
     }
-    retrieve_all_keys = retrieve_keys | {u'objectclass'}
-    create_keys = retrieve_keys | {u'objectclass'}
-    update_keys = retrieve_keys - {u'dn'}
+    retrieve_all_keys = retrieve_keys | {'objectclass'}
+    create_keys = retrieve_keys | {'objectclass'}
+    update_keys = retrieve_keys - {'dn'}
 
     def __init__(self, cn, description, ipacertmapmaprule,
                  ipacertmapmatchrule, associateddomain, ipacertmappriority,
@@ -32,15 +32,15 @@ class CertmapruleTracker(Tracker, EnableTracker):
         super(CertmapruleTracker, self).__init__(
             default_version=default_version)
 
-        self.dn = DN((u'cn', cn,),
+        self.dn = DN(('cn', cn,),
                      self.api.env.container_certmaprules,
                      self.api.env.basedn)
         self.options = {
-            u'description': description,
-            u'ipacertmapmaprule': ipacertmapmaprule,
-            u'ipacertmapmatchrule': ipacertmapmatchrule,
-            u'associateddomain': associateddomain,
-            u'ipacertmappriority': ipacertmappriority,
+            'description': description,
+            'ipacertmapmaprule': ipacertmapmaprule,
+            'ipacertmapmatchrule': ipacertmapmatchrule,
+            'associateddomain': associateddomain,
+            'ipacertmappriority': ipacertmappriority,
         }
 
     def make_create_command(self, dont_fill=()):
@@ -63,8 +63,8 @@ class CertmapruleTracker(Tracker, EnableTracker):
     def check_create(self, result):
         assert_deepequal(dict(
             value=self.name,
-            summary=u'Added Certificate Identity Mapping Rule "{}"'
-                    u''.format(self.name),
+            summary='Added Certificate Identity Mapping Rule "{}"'
+                    ''.format(self.name),
             result=self.filter_attrs(self.create_keys),
         ), result)
 
@@ -81,7 +81,7 @@ class CertmapruleTracker(Tracker, EnableTracker):
         assert_deepequal(
             dict(
                 value=[self.name],
-                summary=u'Deleted Certificate Identity Mapping Rule "{}"'
+                summary='Deleted Certificate Identity Mapping Rule "{}"'
                         ''.format(self.name),
                 result=dict(failed=[]),
             ),
@@ -118,7 +118,7 @@ class CertmapruleTracker(Tracker, EnableTracker):
             dict(
                 count=1,
                 truncated=False,
-                summary=u'1 Certificate Identity Mapping Rule matched',
+                summary='1 Certificate Identity Mapping Rule matched',
                 result=[expected],
             ),
             result
@@ -131,8 +131,8 @@ class CertmapruleTracker(Tracker, EnableTracker):
         assert_deepequal(
             dict(
                 value=self.name,
-                summary=u'Modified Certificate Identity Mapping Rule "{}"'
-                        u''.format(self.name),
+                summary='Modified Certificate Identity Mapping Rule "{}"'
+                        ''.format(self.name),
                 result=self.filter_attrs(self.update_keys | set(extra_keys)),
             ),
             result
@@ -145,8 +145,8 @@ class CertmapruleTracker(Tracker, EnableTracker):
         assert_deepequal(
             dict(
                 value=self.name,
-                summary=u'Enabled Certificate Identity Mapping Rule "{}"'
-                        u''.format(self.name),
+                summary='Enabled Certificate Identity Mapping Rule "{}"'
+                        ''.format(self.name),
                 result=True,
             ),
             result
@@ -159,8 +159,8 @@ class CertmapruleTracker(Tracker, EnableTracker):
         assert_deepequal(
             dict(
                 value=self.name,
-                summary=u'Disabled Certificate Identity Mapping Rule "{}"'
-                        u''.format(self.name),
+                summary='Disabled Certificate Identity Mapping Rule "{}"'
+                        ''.format(self.name),
                 result=True,
             ),
             result
@@ -169,29 +169,30 @@ class CertmapruleTracker(Tracker, EnableTracker):
 
 class CertmapconfigTracker(ConfigurationTracker):
     retrieve_keys = {
-        u'dn',
-        u'ipacertmappromptusername',
+        'dn',
+        'ipacertmappromptusername',
     }
 
     retrieve_all_keys = retrieve_keys | {
-        u'cn',
-        u'objectclass',
-        u'aci',
+        'cn',
+        'objectclass',
+        'aci',
     }
-    update_keys = retrieve_keys - {u'dn'}
-    singlevalue_keys = {u'ipacertmappromptusername'}
+    update_keys = retrieve_keys - {'dn'}
+    singlevalue_keys = {'ipacertmappromptusername'}
 
     def __init__(self, default_version=None):
         super(CertmapconfigTracker, self).__init__(
             default_version=default_version)
 
         self.attrs = {
-            u'dn': DN(self.api.env.container_certmap, self.api.env.basedn),
-            u'cn': [self.api.env.container_certmap[0].value],
-            u'objectclass': objectclasses.certmapconfig,
-            u'aci': [fuzzy_string],
-            u'ipacertmappromptusername': self.api.Command.certmapconfig_show(
-                )[u'result'][u'ipacertmappromptusername']
+            'dn': DN(self.api.env.container_certmap, self.api.env.basedn),
+            'cn': [self.api.env.container_certmap[0].value],
+            'objectclass': objectclasses.certmapconfig,
+            'aci': [fuzzy_string],
+            'ipacertmappromptusername': self.api.Command.certmapconfig_show()[
+                'result'
+            ]['ipacertmappromptusername'],
         }
 
     def make_update_command(self, updates):

@@ -41,7 +41,6 @@ import requests
 import ldap.controls
 from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
-import six
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -69,9 +68,6 @@ from ipalib.text import _
 
 from base64 import b64decode, b64encode
 from requests.auth import AuthBase
-
-if six.PY3:
-    unicode = str
 
 # time.perf_counter_ns appeared in Python 3.7.
 if version_info < (3, 7):
@@ -542,15 +538,15 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
                 code=error.errno,
                 message=error.strerror,
                 data=error.kw,
-                name=unicode(error.__class__.__name__),
+                name=str(error.__class__.__name__),
             )
         principal = getattr(context, 'principal', 'UNKNOWN')
         response = dict(
             result=result,
             error=error,
             id=_id,
-            principal=unicode(principal),
-            version=unicode(VERSION),
+            principal=str(principal),
+            version=str(VERSION),
         )
         dump = json_encode_binary(
             response, version, pretty_print=self.api.env.debug
@@ -782,8 +778,9 @@ class xmlserver(KerberosWSGIExecutioner):
         """list methods for XML-RPC introspection"""
         if params:
             raise errors.ZeroArgumentError(name='system.listMethods')
-        return (tuple(unicode(cmd.name) for cmd in self.api.Command) +
-                tuple(unicode(name) for name in self._system_commands))
+        return tuple(cmd.name for cmd in self.api.Command) + tuple(
+            name for name in self._system_commands
+        )
 
     def _get_method_name(self, name, *params):
         """Get a method name for XML-RPC introspection commands"""
@@ -800,22 +797,22 @@ class xmlserver(KerberosWSGIExecutioner):
         if method_name in self._system_commands:
             # TODO
             # for now let's not go out of our way to document standard XML-RPC
-            return u'undef'
+            return 'undef'
         else:
             self._get_command(method_name)
 
             # All IPA commands return a dict (struct),
             # and take a params, options - list and dict (array, struct)
-            return [[u'struct', u'array', u'struct']]
+            return [['struct', 'array', 'struct']]
 
     def methodHelp(self, *params):
         """get method docstring for XML-RPC introspection"""
         method_name = self._get_method_name('system.methodHelp', *params)
         if method_name in self._system_commands:
-            return u''
+            return ''
         else:
             command = self._get_command(method_name)
-            return unicode(command.doc or '')
+            return str(command.doc or '')
 
     _system_commands = {
         'system.listMethods': listMethods,
@@ -1132,7 +1129,7 @@ class login_password(Backend, KerberosSession):
 
         try:
             kinit_password(
-                unicode(principal),
+                str(principal),
                 password,
                 ccache_name,
                 armor_ccache_name=armor_path,
@@ -1143,20 +1140,20 @@ class login_password(Backend, KerberosSession):
         except RuntimeError as e:
             if ('kinit: Cannot read password while '
                     'getting initial credentials') in str(e):
-                raise PasswordExpired(principal=principal, message=unicode(e))
+                raise PasswordExpired(principal=principal, message=str(e))
             elif ('kinit: Client\'s entry in database'
                   ' has expired while getting initial credentials') in str(e):
                 raise KrbPrincipalExpired(principal=principal,
-                                          message=unicode(e))
+                                          message=str(e))
             elif ('kinit: Client\'s credentials have been revoked '
                   'while getting initial credentials') in str(e):
                 raise UserLocked(principal=principal,
-                                 message=unicode(e))
+                                 message=str(e))
             elif ('kinit: Error constructing AP-REQ armor: '
                   'Matching credential not found') in str(e):
                 raise KrbPrincipalWrongFAST(principal=principal)
             raise InvalidSessionPassword(principal=principal,
-                                         message=unicode(e))
+                                         message=str(e))
         finally:
             if armor_path:
                 logger.debug('Cleanup the armor ccache')

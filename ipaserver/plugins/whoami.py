@@ -2,15 +2,12 @@
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
 
-import six
 from ipalib import api, Command, errors, output, Str
 from ipalib import _
 from ipapython.dn import DN
 from ipalib.plugable import Registry
 from .idviews import DEFAULT_TRUST_VIEW_NAME
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Return information about currently authenticated identity
@@ -85,8 +82,8 @@ class whoami(Command):
     )
 
     has_output = (
-        output.Output('object', unicode, _('Object class name')),
-        output.Output('command', unicode, _('Function to get details')),
+        output.Output('object', str, _('Object class name')),
+        output.Output('command', str, _('Function to get details')),
         output.Output('arguments', (list, tuple),
                       _('Arguments to details function')),
     )
@@ -125,12 +122,12 @@ class whoami(Command):
                 container = exceptions[o.name][0] + container
             if dn.find(container + api.env.basedn) == 1:
                 # We found exact container this DN belongs to
-                o_name = unicode(o.name)
-                o_args = [unicode(entry.single_value.get(o.primary_key.name))]
-                o_func = unicode(o.methods.show.full_name)
+                o_name = str(o.name)
+                o_args = [str(entry.single_value.get(o.primary_key.name))]
+                o_func = str(o.methods.show.full_name)
                 if o.name in exceptions:
-                    o_args = [unicode(exceptions[o.name][1]),
-                              unicode(entry.single_value.get(
+                    o_args = [str(exceptions[o.name][1]),
+                              str(entry.single_value.get(
                                       exceptions[o.name][2]))]
                 break
 

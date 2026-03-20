@@ -17,15 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipaclient.frontend import CommandOverride
 from ipalib.parameters import File
 from ipalib.plugable import Registry
 from ipalib import _
-
-if six.PY3:
-    unicode = str
 
 register = Registry()
 
@@ -76,5 +72,5 @@ can use their Kerberos accounts.''')
             textui.print_plain('No users/groups were migrated from %s' %
                                ldapuri)
             return 1
-        textui.print_plain(unicode(self.pwd_migration_msg))
+        textui.print_plain(str(self.pwd_migration_msg))
         return None

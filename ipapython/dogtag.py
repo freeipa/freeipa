@@ -19,14 +19,11 @@
 
 import collections
 import gzip
-import io
 import json
 import logging
 from urllib.parse import urlencode
 import xml.dom.minidom
 import zlib
-
-import six
 
 # pylint: disable=ipa-forbidden-import
 from ipalib import api, errors
@@ -43,26 +40,23 @@ try:
 except ImportError:
     import http.client as httplib
 
-if six.PY3:
-    unicode = str
-
 logger = logging.getLogger(__name__)
 
 Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store_issued'])
 
 INCLUDED_PROFILES = {
-    Profile(u'caIPAserviceCert', u'Standard profile for network services', True),
-    Profile(u'IECUserRoles', u'User profile that includes IECUserRoles extension from request', True),
-    Profile(u'KDCs_PKINIT_Certs',
-            u'Profile for PKINIT support by KDCs',
-            False),
-    Profile(u'acmeIPAServerCert',
-            u'ACME IPA service certificate profile',
-            False),
-    }
+    Profile('caIPAserviceCert', 'Standard profile for network services', True),
+    Profile(
+        'IECUserRoles',
+        'User profile that includes IECUserRoles extension from request',
+        True,
+    ),
+    Profile('KDCs_PKINIT_Certs', 'Profile for PKINIT support by KDCs', False),
+    Profile('acmeIPAServerCert', 'ACME IPA service certificate profile', False),
+}
 
-DEFAULT_PROFILE = u'caIPAserviceCert'
-KDC_PROFILE = u'KDCs_PKINIT_Certs'
+DEFAULT_PROFILE = 'caIPAserviceCert'
+KDC_PROFILE = 'KDCs_PKINIT_Certs'
 OCSP_PROFILE = 'caOCSPCert'
 SUBSYSTEM_PROFILE = 'caSubsystemCert'
 AUDIT_PROFILE = 'caSignedLogCert'
@@ -73,13 +67,7 @@ KRA_STORAGE_PROFILE = 'caStorageCert'
 KRA_TRANSPORT_PROFILE = 'caTransportCert'
 
 
-if six.PY3:
-    gzip_decompress = gzip.decompress
-else:
-    # note: gzip.decompress available in Python >= 3.2
-    def gzip_decompress(data):
-        with gzip.GzipFile(fileobj=io.BytesIO(data)) as f:
-            return f.read()
+gzip_decompress = gzip.decompress
 
 
 def error_from_xml(doc, message_template):
@@ -263,7 +251,7 @@ def _httplib_request(
     if connection_options is None:
         connection_options = {}
 
-    uri = u'%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
+    uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
     logger.debug('request %s %s', method, uri)
     logger.debug('request body %r', request_body)
 

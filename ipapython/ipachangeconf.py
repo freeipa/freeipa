@@ -23,10 +23,6 @@ import logging
 import os
 import shutil
 
-import six
-
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +155,7 @@ class IPAChangeConf:
                                self.deol)
 
     def _dump_line(self, *args):
-        return u"".join(unicode(x) for x in args)
+        return "".join(str(x) for x in args)
 
     def dump(self, options, level=0):
         output = []

@@ -27,13 +27,13 @@ from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
 
-cn = u'Realm Domains'
+cn = 'Realm Domains'
 dn = DN(('cn', cn), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 our_domain = api.env.domain
-new_domain_1 = u'example1.com'
-new_domain_2 = u'example2.com'
-bad_domain = u'doesnotexist.test'
-sl_domain = u'singlelabeldomain'
+new_domain_1 = 'example1.com'
+new_domain_2 = 'example2.com'
+bad_domain = 'doesnotexist.test'
+sl_domain = 'singlelabeldomain'
 
 
 @pytest.mark.tier1
@@ -71,49 +71,56 @@ class test_realmdomains(Declarative):
                     cn=[cn],
                     objectclass=objectclasses.realmdomains,
                     aci=[
-                        u'(targetattr = "associateddomain || cn || '
-                            u'createtimestamp || entryusn || '
-                            u'modifytimestamp || objectclass")'
-                        u'(targetfilter = "(objectclass=domainrelatedobject)")'
-                        u'(version 3.0;acl '
-                            u'"permission:System: Read Realm Domains";'
-                            u'allow (compare,read,search) '
-                            u'userdn = "ldap:///all";)',
-
-                        u'(targetattr = "associateddomain")'
-                        u'(targetfilter = "(objectclass=domainrelatedobject)")'
-                        u'(version 3.0;acl '
-                            u'"permission:System: Modify Realm Domains";'
-                            u'allow (write) groupdn = "ldap:///%s";)' %
-                                DN('cn=System: Modify Realm Domains',
-                                   api.env.container_permission,
-                                   api.env.basedn),
-
+                        '(targetattr = "associateddomain || cn || '
+                        'createtimestamp || entryusn || '
+                        'modifytimestamp || objectclass")'
+                        '(targetfilter = "(objectclass=domainrelatedobject)")'
+                        '(version 3.0;acl '
+                        '"permission:System: Read Realm Domains";'
+                        'allow (compare,read,search) '
+                        'userdn = "ldap:///all";)',
+                        '(targetattr = "associateddomain")'
+                        '(targetfilter = "(objectclass=domainrelatedobject)")'
+                        '(version 3.0;acl '
+                        '"permission:System: Modify Realm Domains";'
+                        'allow (write) groupdn = "ldap:///%s";)'
+                        % DN(
+                            'cn=System: Modify Realm Domains',
+                            api.env.container_permission,
+                            api.env.basedn,
+                        ),
                     ],
                 ),
             ),
         ),
         dict(
-            desc='Replace list of realm domains with "%s"' % [our_domain, new_domain_1],
-            command=('realmdomains_mod', [], {'associateddomain': [our_domain, new_domain_1], 'force':True}),
+            desc='Replace list of realm domains with "%s"'
+            % [our_domain, new_domain_1],
+            command=(
+                'realmdomains_mod',
+                [],
+                {'associateddomain': [our_domain, new_domain_1], 'force': True},
+            ),
             expected=dict(
                 value=None,
                 summary=None,
-                messages=({u'message': u"The _kerberos TXT record from domain "
-                            "example1.com could not be created (%s.: "
-                            "DNS zone not found).\nThis can happen if the zone "
-                            "is not managed by IPA. Please create the record "
-                            "manually, containing the following value: "
-                            "'%s'" % (new_domain_1, api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': new_domain_1,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
-                                           new_domain_1),
-                            }},
+                messages=(
+                    {
+                        'message': 'The _kerberos TXT record from domain '
+                        'example1.com could not be created (%s.: '
+                        'DNS zone not found).\nThis can happen if the zone '
+                        'is not managed by IPA. Please create the record '
+                        'manually, containing the following value: '
+                        "'%s'" % (new_domain_1, api.env.realm),
+                        'code': 13011,
+                        'type': 'warning',
+                        'name': 'KerberosTXTRecordCreationFailure',
+                        'data': {
+                            'domain': new_domain_1,
+                            'realm': api.env.realm,
+                            'error': ('%s.: DNS zone not found' % new_domain_1),
+                        },
+                    },
                 ),
                 result=dict(
                     associateddomain=[our_domain, new_domain_1],
@@ -122,29 +129,35 @@ class test_realmdomains(Declarative):
         ),
         dict(
             desc='Add domain "%s" to list' % new_domain_2,
-            command=('realmdomains_mod', [], {'add_domain': new_domain_2, 'force': True}),
+            command=(
+                'realmdomains_mod',
+                [],
+                {'add_domain': new_domain_2, 'force': True},
+            ),
             expected=dict(
                 value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_1, new_domain_2],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
-                            "%(domain)s could not be created (%(domain)s.: "
-                            "DNS zone not found).\nThis can happen if the zone "
-                            "is not managed by IPA. Please create the record "
-                            "manually, containing the following value: "
-                            "'%(realm)s'" % dict(domain=new_domain_2,
-                                                 realm=api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': new_domain_2,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
-                                           new_domain_2),
-                            }},
+                messages=(
+                    {
+                        'message': 'The _kerberos TXT record from domain '
+                        '%(domain)s could not be created (%(domain)s.: '
+                        'DNS zone not found).\nThis can happen if the zone '
+                        'is not managed by IPA. Please create the record '
+                        'manually, containing the following value: '
+                        "'%(realm)s'"
+                        % dict(domain=new_domain_2, realm=api.env.realm),
+                        'code': 13011,
+                        'type': 'warning',
+                        'name': 'KerberosTXTRecordCreationFailure',
+                        'data': {
+                            'domain': new_domain_2,
+                            'realm': api.env.realm,
+                            'error': ('%s.: DNS zone not found' % new_domain_2),
+                        },
+                    },
                 ),
             ),
         ),
@@ -157,127 +170,185 @@ class test_realmdomains(Declarative):
                 result=dict(
                     associateddomain=[our_domain, new_domain_1],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
-                            "%(domain)s could not be removed (%(domain)s.: "
-                            "DNS zone not found).\nThis can happen if the zone "
-                            "is not managed by IPA. Please remove the record "
-                            "manually." % dict(domain=new_domain_2),
-                            u'code': 13012,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordDeletionFailure',
-                            u'data': {
-                                u'domain': new_domain_2,
-                                u'error': (u"%s.: DNS zone not found" %
-                                           new_domain_2),
-                            }},
+                messages=(
+                    {
+                        'message': 'The _kerberos TXT record from domain '
+                        '%(domain)s could not be removed (%(domain)s.: '
+                        'DNS zone not found).\nThis can happen if the zone '
+                        'is not managed by IPA. Please remove the record '
+                        'manually.' % dict(domain=new_domain_2),
+                        'code': 13012,
+                        'type': 'warning',
+                        'name': 'KerberosTXTRecordDeletionFailure',
+                        'data': {
+                            'domain': new_domain_2,
+                            'error': ('%s.: DNS zone not found' % new_domain_2),
+                        },
+                    },
                 ),
             ),
         ),
         dict(
-            desc='Add domain "%s" and delete domain "%s"' % (new_domain_2, new_domain_1),
-            command=('realmdomains_mod', [], {'add_domain': new_domain_2, 'del_domain': new_domain_1, 'force': True}),
+            desc='Add domain "%s" and delete domain "%s"'
+            % (new_domain_2, new_domain_1),
+            command=(
+                'realmdomains_mod',
+                [],
+                {
+                    'add_domain': new_domain_2,
+                    'del_domain': new_domain_1,
+                    'force': True,
+                },
+            ),
             expected=dict(
                 value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_2],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
-                            "%(domain)s could not be created (%(domain)s.: "
-                            "DNS zone not found).\nThis can happen if the zone "
-                            "is not managed by IPA. Please create the record "
-                            "manually, containing the following value: "
-                            "'%(realm)s'" % dict(domain=new_domain_2,
-                                                 realm=api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': new_domain_2,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
-                                           new_domain_2),
-                            }},
-                          {u'message': u"The _kerberos TXT record from domain "
-                            "%(domain)s could not be removed (%(domain)s.: "
-                            "DNS zone not found).\nThis can happen if the zone "
-                            "is not managed by IPA. Please remove the record "
-                            "manually." % dict(domain=new_domain_1),
-                            u'code': 13012,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordDeletionFailure',
-                            u'data': {
-                                u'domain': new_domain_1,
-                                u'error': (u"%s.: DNS zone not found" %
-                                           new_domain_1),
-                            }},
+                messages=(
+                    {
+                        'message': 'The _kerberos TXT record from domain '
+                        '%(domain)s could not be created (%(domain)s.: '
+                        'DNS zone not found).\nThis can happen if the zone '
+                        'is not managed by IPA. Please create the record '
+                        'manually, containing the following value: '
+                        "'%(realm)s'"
+                        % dict(domain=new_domain_2, realm=api.env.realm),
+                        'code': 13011,
+                        'type': 'warning',
+                        'name': 'KerberosTXTRecordCreationFailure',
+                        'data': {
+                            'domain': new_domain_2,
+                            'realm': api.env.realm,
+                            'error': ('%s.: DNS zone not found' % new_domain_2),
+                        },
+                    },
+                    {
+                        'message': 'The _kerberos TXT record from domain '
+                        '%(domain)s could not be removed (%(domain)s.: '
+                        'DNS zone not found).\nThis can happen if the zone '
+                        'is not managed by IPA. Please remove the record '
+                        'manually.' % dict(domain=new_domain_1),
+                        'code': 13012,
+                        'type': 'warning',
+                        'name': 'KerberosTXTRecordDeletionFailure',
+                        'data': {
+                            'domain': new_domain_1,
+                            'error': ('%s.: DNS zone not found' % new_domain_1),
+                        },
+                    },
                 ),
             ),
         ),
         dict(
             desc='Try to specify --domain and --add-domain options together',
-            command=('realmdomains_mod', [], {
+            command=(
+                'realmdomains_mod',
+                [],
+                {
                     'associateddomain': [our_domain, new_domain_1],
                     'add_domain': new_domain_1,
-                    }),
+                },
+            ),
             expected=errors.MutuallyExclusiveError(
-                reason='The --domain option cannot be used together with --add-domain or --del-domain. Use --domain to specify the whole realm domain list explicitly, to add/remove individual domains, use --add-domain/del-domain.'),
+                reason=(
+                    'The --domain option cannot be used together with '
+                    '--add-domain or --del-domain. Use --domain to specify '
+                    'the whole realm domain list explicitly, to add/remove '
+                    'individual domains, use --add-domain/del-domain.'
+                )
+            ),
         ),
         dict(
             desc='Try to replace list of realm domains with a list without our domain',
-            command=('realmdomains_mod', [], {'associateddomain': [new_domain_1]}),
+            command=(
+                'realmdomains_mod',
+                [],
+                {'associateddomain': [new_domain_1]},
+            ),
             expected=errors.ValidationError(
-                name='realmdomain list', error='IPA server domain cannot be omitted'),
+                name='realmdomain list',
+                error='IPA server domain cannot be omitted',
+            ),
         ),
         dict(
-            desc='Try to replace list of realm domains with a list with an invalid domain "%s"' % bad_domain,
-            command=('realmdomains_mod', [], {'associateddomain': [our_domain, bad_domain]}),
+            desc=(
+                'Try to replace list of realm domains with a list '
+                'with an invalid domain "%s"'
+            )
+            % bad_domain,
+            command=(
+                'realmdomains_mod',
+                [],
+                {'associateddomain': [our_domain, bad_domain]},
+            ),
             expected=errors.ValidationError(
-                name='domain', error='DNS zone for each realmdomain must contain SOA or NS records. No records found for: %s' % bad_domain),
+                name='domain',
+                error=(
+                    'DNS zone for each realmdomain must contain '
+                    'SOA or NS records. No records found for: %s'
+                )
+                % bad_domain,
+            ),
         ),
         dict(
             desc='Try to add an invalid domain "%s"' % bad_domain,
             command=('realmdomains_mod', [], {'add_domain': bad_domain}),
             expected=errors.ValidationError(
-                name='domain', error='DNS zone for each realmdomain must contain SOA or NS records. No records found for: %s' % bad_domain),
+                name='domain',
+                error=(
+                    'DNS zone for each realmdomain must contain '
+                    'SOA or NS records. No records found for: %s'
+                )
+                % bad_domain,
+            ),
         ),
         dict(
             desc='Try to delete our domain',
             command=('realmdomains_mod', [], {'del_domain': our_domain}),
             expected=errors.ValidationError(
-                name='del_domain', error='IPA server domain cannot be deleted'),
+                name='del_domain', error='IPA server domain cannot be deleted'
+            ),
         ),
         dict(
             desc='Try to delete domain which is not in list',
             command=('realmdomains_mod', [], {'del_domain': new_domain_1}),
             expected=errors.AttrValueNotFound(
-                attr='associateddomain', value=new_domain_1),
+                attr='associateddomain', value=new_domain_1
+            ),
         ),
         dict(
             desc='Add an invalid domain "%s" with --force option' % bad_domain,
-            command=('realmdomains_mod', [], {'add_domain': bad_domain, 'force': True}),
+            command=(
+                'realmdomains_mod',
+                [],
+                {'add_domain': bad_domain, 'force': True},
+            ),
             expected=dict(
                 value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_2, bad_domain],
                 ),
-                messages=({u'message': u"The _kerberos TXT record from domain "
-                            "%(domain)s could not be created (%(domain)s.: "
-                            "DNS zone not found).\nThis can happen if the zone "
-                            "is not managed by IPA. Please create the record "
-                            "manually, containing the following value: "
-                            "'%(realm)s'" % dict(domain=bad_domain,
-                                                 realm=api.env.realm),
-                            u'code': 13011,
-                            u'type': u'warning',
-                            u'name': u'KerberosTXTRecordCreationFailure',
-                            u'data': {
-                                u'domain': bad_domain,
-                                u'realm': api.env.realm,
-                                u'error': (u"%s.: DNS zone not found" %
-                                           bad_domain),
-                            }},
+                messages=(
+                    {
+                        'message': 'The _kerberos TXT record from domain '
+                        '%(domain)s could not be created (%(domain)s.: '
+                        'DNS zone not found).\nThis can happen if the zone '
+                        'is not managed by IPA. Please create the record '
+                        'manually, containing the following value: '
+                        "'%(realm)s'"
+                        % dict(domain=bad_domain, realm=api.env.realm),
+                        'code': 13011,
+                        'type': 'warning',
+                        'name': 'KerberosTXTRecordCreationFailure',
+                        'data': {
+                            'domain': bad_domain,
+                            'realm': api.env.realm,
+                            'error': ('%s.: DNS zone not found' % bad_domain),
+                        },
+                    },
                 ),
             ),
         ),
@@ -286,7 +357,7 @@ class test_realmdomains(Declarative):
             command=('realmdomains_mod', [], {'add_domain': sl_domain}),
             expected=errors.ValidationError(
                 name='add_domain',
-                error='single label domains are not supported'
+                error='single label domains are not supported',
             ),
-        )
+        ),
     ]

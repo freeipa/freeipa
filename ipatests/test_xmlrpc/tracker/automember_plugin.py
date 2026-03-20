@@ -15,22 +15,22 @@ from ipapython.dn import DN
 
 class AutomemberTracker(Tracker):
     """ Class for tracking automembers """
-    retrieve_keys = {u'dn', u'cn', u'member_host', u'description',
-                     u'member_automember', u'memberindirect_host',
-                     u'automemberinclusiveregex', u'automemberexclusiveregex',
-                     u'automembertargetgroup'}
-    retrieve_all_keys = retrieve_keys | {u'objectclass',
-                                         u'automembertargetgroup'}
+    retrieve_keys = {'dn', 'cn', 'member_host', 'description',
+                     'member_automember', 'memberindirect_host',
+                     'automemberinclusiveregex', 'automemberexclusiveregex',
+                     'automembertargetgroup'}
+    retrieve_all_keys = retrieve_keys | {'objectclass',
+                                         'automembertargetgroup'}
 
     create_keys = retrieve_all_keys
-    update_keys = retrieve_keys - {u'dn'}
+    update_keys = retrieve_keys - {'dn'}
 
-    add_member_keys = retrieve_keys | {u'member_host'}
-    add_condition_keys = retrieve_keys - {u'dn'} |\
-        {u'automemberinclusiveregex', u'automembertargetgroup'}
-    add_condition_negative_keys = {u'automemberinclusiveregex'}
+    add_member_keys = retrieve_keys | {'member_host'}
+    add_condition_keys = retrieve_keys - {'dn'} |\
+        {'automemberinclusiveregex', 'automembertargetgroup'}
+    add_condition_negative_keys = {'automemberinclusiveregex'}
 
-    def __init__(self, groupname, membertype, description=u'Automember desc'):
+    def __init__(self, groupname, membertype, description='Automember desc'):
         super(AutomemberTracker, self).__init__(default_version=None)
         self.cn = groupname
         self.description = description
@@ -111,20 +111,20 @@ class AutomemberTracker(Tracker):
 
     def add_member(self, options):
         """ Add a member host to automember and perform check """
-        if u'group' in options:
+        if 'group' in options:
             try:
-                self.attrs[u'group'] =\
-                    self.attrs[u'group'] + [options[u'group']]
+                self.attrs['group'] =\
+                    self.attrs['group'] + [options['group']]
             except KeyError:
-                self.attrs[u'group'] = [options[u'group']]
+                self.attrs['group'] = [options['group']]
             # search for hosts in the target automember and
             # add them as memberindirect hosts
-        elif u'hostgroup' in options:
+        elif 'hostgroup' in options:
             try:
-                self.attrs[u'hostgroup'] =\
-                    self.attrs[u'hostgroup'] + [options[u'hostgroup']]
+                self.attrs['hostgroup'] =\
+                    self.attrs['hostgroup'] + [options['hostgroup']]
             except KeyError:
-                self.attrs[u'hostgroup'] = [options[u'hostgroup']]
+                self.attrs['hostgroup'] = [options['hostgroup']]
 
         command = self.make_add_member_command(options)
         result = command()
@@ -132,19 +132,19 @@ class AutomemberTracker(Tracker):
 
     def remove_member(self, options):
         """ Remove a member host from automember and perform check """
-        if u'host' in options:
-            self.attrs[u'member_host'].remove(options[u'host'])
-        elif u'automember' in options:
-            self.attrs[u'member_automember'].remove(options[u'automember'])
+        if 'host' in options:
+            self.attrs['member_host'].remove(options['host'])
+        elif 'automember' in options:
+            self.attrs['member_automember'].remove(options['automember'])
 
         try:
-            if not self.attrs[u'member_host']:
-                del self.attrs[u'member_host']
+            if not self.attrs['member_host']:
+                del self.attrs['member_host']
         except KeyError:
             pass
         try:
-            if not self.attrs[u'member_automember']:
-                del self.attrs[u'member_automember']
+            if not self.attrs['member_automember']:
+                del self.attrs['member_automember']
         except KeyError:
             pass
 
@@ -189,7 +189,7 @@ class AutomemberTracker(Tracker):
         use make_add_condition_command instead. """
         command = self.make_add_condition_command(
             key=key, type=type, automemberinclusiveregex=inclusiveregex)
-        self.attrs['automemberinclusiveregex'] = [u'%s=%s' %
+        self.attrs['automemberinclusiveregex'] = ['%s=%s' %
                                                   (key, inclusiveregex[0])]
         result = command()
         self.check_add_condition(result)
@@ -200,7 +200,7 @@ class AutomemberTracker(Tracker):
         use make_add_condition_command instead. """
         command = self.make_add_condition_command(
             key=key, type=type, automemberexclusiveregex=exclusiveregex)
-        self.attrs['automemberexclusiveregex'] = [u'%s=%s' %
+        self.attrs['automemberexclusiveregex'] = ['%s=%s' %
                                                   (key, exclusiveregex[0])]
         result = command()
         self.check_add_condition(result)
@@ -223,14 +223,14 @@ class AutomemberTracker(Tracker):
             assert_deepequal(dict(
                 value=None,
                 result=dict(dn=fuzzy_automember_dn),
-                summary=u'Automember rebuild membership task started'
+                summary='Automember rebuild membership task started'
                 ), result)
 
     def check_add_condition(self, result):
         """ Check result of automember_add_condition command """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Added condition(s) to "%s"' % self.cn,
+            summary='Added condition(s) to "%s"' % self.cn,
             completed=1,
             failed=dict(
                 failed=dict(automemberinclusiveregex=tuple(),
@@ -245,7 +245,7 @@ class AutomemberTracker(Tracker):
         when the operation didn't add anything. """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Added condition(s) to "%s"' % self.cn,
+            summary='Added condition(s) to "%s"' % self.cn,
             completed=0,
             failed=dict(
                 failed=dict(automemberinclusiveregex=tuple(),
@@ -259,7 +259,7 @@ class AutomemberTracker(Tracker):
         """ Checks 'automember_add' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Added automember rule "%s"' % self.cn,
+            summary='Added automember rule "%s"' % self.cn,
             result=self.filter_attrs(self.create_keys)
             ), result)
 
@@ -267,7 +267,7 @@ class AutomemberTracker(Tracker):
         """ Checks 'automember_del' command result """
         assert_deepequal(dict(
             value=[self.cn],
-            summary=u'Deleted automember rule "%s"' % self.cn,
+            summary='Deleted automember rule "%s"' % self.cn,
             result=dict(failed=[]),
             ), result)
 
@@ -294,7 +294,7 @@ class AutomemberTracker(Tracker):
         assert_deepequal(dict(
             count=1,
             truncated=False,
-            summary=u'1 rules matched',
+            summary='1 rules matched',
             result=[expected],
         ), result)
 
@@ -302,7 +302,7 @@ class AutomemberTracker(Tracker):
         """ Checks 'automember_mod' command result """
         assert_deepequal(dict(
             value=self.cn,
-            summary=u'Modified automember rule "%s"' % self.cn,
+            summary='Modified automember rule "%s"' % self.cn,
             result=self.filter_attrs(self.update_keys | set(extra_keys))
         ), result)
 
@@ -310,7 +310,7 @@ class AutomemberTracker(Tracker):
         """ Checks 'automember_add_member' command result """
         assert_deepequal(dict(
             completed=1,
-            failed={u'member': {u'host': (), u'automember': ()}},
+            failed={'member': {'host': (), 'automember': ()}},
             result=self.filter_attrs(self.add_member_keys)
         ), result)
 
@@ -319,15 +319,15 @@ class AutomemberTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'automember': (), u'user': ()}},
+            failed={'member': {'automember': (), 'user': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        if u'host' in options:
-            expected[u'failed'][u'member'][u'host'] = [(
-                options[u'host'], u'no such entry')]
-        elif u'automember' in options:
-            expected[u'failed'][u'member'][u'automember'] = [(
-                options[u'automember'], u'no such entry')]
+        if 'host' in options:
+            expected['failed']['member']['host'] = [(
+                options['host'], 'no such entry')]
+        elif 'automember' in options:
+            expected['failed']['member']['automember'] = [(
+                options['automember'], 'no such entry')]
 
         assert_deepequal(expected, result)
 
@@ -336,15 +336,15 @@ class AutomemberTracker(Tracker):
         when expected result is failure of the operation"""
         expected = dict(
             completed=0,
-            failed={u'member': {u'automember': (), u'host': ()}},
+            failed={'member': {'automember': (), 'host': ()}},
             result=self.filter_attrs(self.add_member_keys)
         )
-        if u'user' in options:
-            expected[u'failed'][u'member'][u'host'] = [(
-                options[u'user'], u'This entry is not a member')]
-        elif u'automember' in options:
-            expected[u'failed'][u'member'][u'automember'] = [(
-                options[u'automember'], u'This entry is not a member')]
+        if 'user' in options:
+            expected['failed']['member']['host'] = [(
+                options['user'], 'This entry is not a member')]
+        elif 'automember' in options:
+            expected['failed']['member']['automember'] = [(
+                options['automember'], 'This entry is not a member')]
 
         assert_deepequal(expected, result)
 

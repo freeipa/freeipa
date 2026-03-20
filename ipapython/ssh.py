@@ -28,10 +28,6 @@ import struct
 from hashlib import sha1
 from hashlib import sha256
 
-import six
-
-if six.PY3:
-    unicode = str
 
 __all__ = ['SSHPublicKey']
 
@@ -54,8 +50,10 @@ class SSHPublicKey:
             self._options = key._options
             return
 
-        if not isinstance(key, (bytes, unicode)):
-            raise TypeError("argument must be bytes or unicode, got %s" % type(key).__name__)
+        if not isinstance(key, (bytes, str)):
+            raise TypeError(
+                'argument must be bytes or str, got %s' % type(key).__name__
+            )
 
         # All valid public key blobs start with 3 null bytes (see RFC 4253
         # section 6.6, RFC 4251 section 5 and RFC 4250 section 4.6)
@@ -97,7 +95,7 @@ class SSHPublicKey:
         return True
 
     def _parse_base64(self, key):
-        if not isinstance(key, unicode):
+        if not isinstance(key, str):
             return False
 
         try:
@@ -161,7 +159,7 @@ class SSHPublicKey:
         return True
 
     def _parse_openssh(self, key):
-        if not isinstance(key, unicode):
+        if not isinstance(key, str):
             return False
 
         if self._parse_openssh_without_options(key):
@@ -180,7 +178,7 @@ class SSHPublicKey:
 
     def openssh(self):
         key = base64.b64encode(self._key).decode('ascii')
-        out = u'%s %s' % (self._keytype, key)
+        out = '%s %s' % (self._keytype, key)
 
         if self._options:
             options = []
@@ -191,23 +189,23 @@ class SSHPublicKey:
                 elif type(value) is list:
                     for v in value:
                         v = v.replace('"', '\\"')
-                        options.append(u'%s="%s"' % (name, v))
+                        options.append('%s="%s"' % (name, v))
                 else:
                     value = value.replace('"', '\\"')
-                    options.append(u'%s="%s"' % (name, value))
-            options = u','.join(options)
+                    options.append('%s="%s"' % (name, value))
+            options = ','.join(options)
 
-            out = u'%s %s' % (options, out)
+            out = '%s %s' % (options, out)
 
         if self._comment:
-            out = u'%s %s' % (out, self._comment)
+            out = '%s %s' % (out, self._comment)
 
         return out
 
     def fingerprint_hex_sha256(self):
         # OpenSSH trims the trailing '=' of base64 sha256 FP representation
         fp = base64.b64encode(sha256(self._key).digest()).rstrip(b'=')
-        return u'SHA256:{fp}'.format(fp=fp.decode('utf-8'))
+        return 'SHA256:{fp}'.format(fp=fp.decode('utf-8'))
 
     def _fingerprint_dns(self, fpfunc, fptype):
         if self._keytype == 'ssh-rsa':
@@ -221,7 +219,7 @@ class SSHPublicKey:
         else:
             return None
         fp = fpfunc(self._key).hexdigest().upper()
-        return u'%d %d %s' % (keytype, fptype, fp)
+        return '%d %d %s' % (keytype, fptype, fp)
 
     def fingerprint_dns_sha1(self):
         return self._fingerprint_dns(sha1, 1)

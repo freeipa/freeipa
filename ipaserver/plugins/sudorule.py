@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import netaddr
-import six
 
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool, Int
@@ -37,8 +36,6 @@ from ipalib import _, ngettext
 from ipalib.util import validate_hostmask
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Sudo Rules
@@ -237,132 +234,164 @@ class sudorule(LDAPObject):
     label_singular = _('Sudo Rule')
 
     takes_params = (
-        Str('cn',
+        Str(
+            'cn',
             cli_name='sudorule_name',
             label=_('Rule name'),
             primary_key=True,
         ),
-        Str('description?',
+        Str(
+            'description?',
             cli_name='desc',
             label=_('Description'),
         ),
-        Bool('ipaenabledflag?',
-             label=_('Enabled'),
-             flags=['no_option'],
+        Bool(
+            'ipaenabledflag?',
+            label=_('Enabled'),
+            flags=['no_option'],
         ),
-        StrEnum('usercategory?',
+        StrEnum(
+            'usercategory?',
             cli_name='usercat',
             label=_('User category'),
             doc=_('User category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('hostcategory?',
+        StrEnum(
+            'hostcategory?',
             cli_name='hostcat',
             label=_('Host category'),
             doc=_('Host category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('cmdcategory?',
+        StrEnum(
+            'cmdcategory?',
             cli_name='cmdcat',
             label=_('Command category'),
             doc=_('Command category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('ipasudorunasusercategory?',
+        StrEnum(
+            'ipasudorunasusercategory?',
             cli_name='runasusercat',
             label=_('RunAs User category'),
             doc=_('RunAs User category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        StrEnum('ipasudorunasgroupcategory?',
+        StrEnum(
+            'ipasudorunasgroupcategory?',
             cli_name='runasgroupcat',
             label=_('RunAs Group category'),
             doc=_('RunAs Group category the rule applies to'),
-            values=(u'all', ),
+            values=('all',),
         ),
-        Int('sudoorder?',
+        Int(
+            'sudoorder?',
             cli_name='order',
             label=_('Sudo order'),
             doc=_('integer to order the Sudo rules'),
             default=0,
             minvalue=0,
         ),
-        Str('memberuser_user?',
+        Str(
+            'memberuser_user?',
             label=_('Users'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberuser_group?',
+        Str(
+            'memberuser_group?',
             label=_('User Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('externaluser?', validate_externaluser,
+        Str(
+            'externaluser?',
+            validate_externaluser,
             cli_name='externaluser',
             label=_('External User'),
             doc=_('External User the rule applies to (sudorule-find only)'),
         ),
-        Str('memberhost_host?',
+        Str(
+            'memberhost_host?',
             label=_('Hosts'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberhost_hostgroup?',
+        Str(
+            'memberhost_hostgroup?',
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('hostmask', validate_hostmask,
-            normalizer=lambda x: unicode(netaddr.IPNetwork(x).cidr),
+        Str(
+            'hostmask',
+            validate_hostmask,
+            normalizer=lambda x: str(netaddr.IPNetwork(x).cidr),
             label=_('Host Masks'),
             flags=['no_create', 'no_update', 'no_search'],
             multivalue=True,
         ),
         external_host_param,
-        Str('memberallowcmd_sudocmd?',
+        Str(
+            'memberallowcmd_sudocmd?',
             label=_('Sudo Allow Commands'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberdenycmd_sudocmd?',
+        Str(
+            'memberdenycmd_sudocmd?',
             label=_('Sudo Deny Commands'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberallowcmd_sudocmdgroup?',
+        Str(
+            'memberallowcmd_sudocmdgroup?',
             label=_('Sudo Allow Command Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('memberdenycmd_sudocmdgroup?',
+        Str(
+            'memberdenycmd_sudocmdgroup?',
             label=_('Sudo Deny Command Groups'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipasudorunas_user?',
+        Str(
+            'ipasudorunas_user?',
             label=_('RunAs Users'),
             doc=_('Run as a user'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipasudorunas_group?',
+        Str(
+            'ipasudorunas_group?',
             label=_('Groups of RunAs Users'),
             doc=_('Run as any user within a specified group'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipasudorunasextuser?', validate_runasextuser,
+        Str(
+            'ipasudorunasextuser?',
+            validate_runasextuser,
             cli_name='runasexternaluser',
             label=_('RunAs External User'),
             doc=_('External User the commands can run as (sudorule-find only)'),
         ),
-        Str('ipasudorunasextusergroup?',
+        Str(
+            'ipasudorunasextusergroup?',
             cli_name='runasexternalusergroup',
             label=_('External Groups of RunAs Users'),
             doc=_('External Groups of users that the command can run as'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipasudorunasgroup_group?',
+        Str(
+            'ipasudorunasgroup_group?',
             label=_('RunAs Groups'),
             doc=_('Run with the gid of a specified POSIX group'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
-        Str('ipasudorunasextgroup?', validate_runasextgroup,
+        Str(
+            'ipasudorunasextgroup?',
+            validate_runasextgroup,
             cli_name='runasexternalgroup',
             label=_('RunAs External Group'),
-            doc=_('External Group the commands can run as (sudorule-find only)'),
+            doc=_(
+                'External Group the commands can run as (sudorule-find only)'
+            ),
         ),
-        Str('ipasudoopt*',
+        Str(
+            'ipasudoopt*',
             label=_('Sudo Option'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
@@ -721,7 +750,7 @@ class sudorule_add_host(LDAPAddMember):
 
         if 'hostmask' in options:
             def norm(x):
-                return unicode(netaddr.IPNetwork(x).cidr)
+                return str(netaddr.IPNetwork(x).cidr)
 
             old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
             new_masks = set(norm(m) for m in options['hostmask'])
@@ -767,7 +796,7 @@ class sudorule_remove_host(LDAPRemoveMember):
 
         if 'hostmask' in options:
             def norm(x):
-                return unicode(netaddr.IPNetwork(x).cidr)
+                return str(netaddr.IPNetwork(x).cidr)
 
             old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
             removed_masks = set(norm(m) for m in options['hostmask'])
@@ -801,8 +830,8 @@ class sudorule_add_runasuser(LDAPAddMember):
         assert isinstance(dn, DN)
 
         def check_validity(runas):
-            v = unicode(runas)
-            if v.upper() == u'ALL':
+            v = str(runas)
+            if v.upper() == 'ALL':
                 return False
             return True
 
@@ -822,7 +851,7 @@ class sudorule_add_runasuser(LDAPAddMember):
             for name in options['user']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-user',
-                          error=unicode(_("RunAsUser does not accept "
+                          error=str(_("RunAsUser does not accept "
                                           "'%(name)s' as a user name")) %
                                           dict(name=name))
 
@@ -830,7 +859,7 @@ class sudorule_add_runasuser(LDAPAddMember):
             for name in options['group']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-user',
-                          error=unicode(_("RunAsUser does not accept "
+                          error=str(_("RunAsUser does not accept "
                                           "'%(name)s' as a group name")) %
                                           dict(name=name))
 
@@ -925,8 +954,8 @@ class sudorule_add_runasgroup(LDAPAddMember):
         assert isinstance(dn, DN)
 
         def check_validity(runas):
-            v = unicode(runas)
-            if v.upper() == u'ALL':
+            v = str(runas)
+            if v.upper() == 'ALL':
                 return False
             return True
 
@@ -944,7 +973,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
             for name in options['group']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-group',
-                          error=unicode(_("RunAsGroup does not accept "
+                          error=str(_("RunAsGroup does not accept "
                                           "'%(name)s' as a group name")) %
                                           dict(name=name))
 

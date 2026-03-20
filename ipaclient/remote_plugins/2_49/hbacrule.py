@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Host-based access control
@@ -73,93 +65,93 @@ class hbacrule(Object):
         parameters.Str(
             'cn',
             primary_key=True,
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
         parameters.Str(
             'accessruletype',
-            label=_(u'Rule type'),
-            doc=_(u'Rule type (allow)'),
+            label=_('Rule type'),
+            doc=_('Rule type (allow)'),
             exclude=('webui', 'cli'),
         ),
         parameters.Str(
             'usercategory',
             required=False,
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'sourcehostcategory',
             required=False,
-            label=_(u'Source host category'),
-            doc=_(u'Source host category the rule applies to'),
+            label=_('Source host category'),
+            doc=_('Source host category the rule applies to'),
         ),
         parameters.Str(
             'servicecategory',
             required=False,
-            label=_(u'Service category'),
-            doc=_(u'Service category the rule applies to'),
+            label=_('Service category'),
+            doc=_('Service category the rule applies to'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
         ),
         parameters.Str(
             'memberuser_user',
             required=False,
-            label=_(u'Users'),
+            label=_('Users'),
         ),
         parameters.Str(
             'memberuser_group',
             required=False,
-            label=_(u'User Groups'),
+            label=_('User Groups'),
         ),
         parameters.Str(
             'memberhost_host',
             required=False,
-            label=_(u'Hosts'),
+            label=_('Hosts'),
         ),
         parameters.Str(
             'memberhost_hostgroup',
             required=False,
-            label=_(u'Host Groups'),
+            label=_('Host Groups'),
         ),
         parameters.Str(
             'sourcehost_host',
             required=False,
-            label=_(u'Source Hosts'),
+            label=_('Source Hosts'),
         ),
         parameters.Str(
             'sourcehost_hostgroup',
             required=False,
-            label=_(u'Source Host Groups'),
+            label=_('Source Host Groups'),
         ),
         parameters.Str(
             'memberservice_hbacsvc',
             required=False,
-            label=_(u'Services'),
+            label=_('Services'),
         ),
         parameters.Str(
             'memberservice_hbacsvcgroup',
             required=False,
-            label=_(u'Service Groups'),
+            label=_('Service Groups'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
         ),
     )
 
@@ -172,7 +164,7 @@ class hbacrule_add(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
@@ -180,10 +172,10 @@ class hbacrule_add(Method):
             'accessruletype',
             cli_name='type',
             cli_metavar="['allow', 'deny']",
-            label=_(u'Rule type'),
-            doc=_(u'Rule type (allow)'),
+            label=_('Rule type'),
+            doc=_('Rule type (allow)'),
             exclude=('webui', 'cli'),
-            default=u'allow',
+            default='allow',
             autofill=True,
         ),
         parameters.Str(
@@ -191,76 +183,89 @@ class hbacrule_add(Method):
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'sourcehostcategory',
             required=False,
             cli_name='srchostcat',
             cli_metavar="['all']",
-            label=_(u'Source host category'),
-            doc=_(u'Source host category the rule applies to'),
+            label=_('Source host category'),
+            doc=_('Source host category the rule applies to'),
         ),
         parameters.Str(
             'servicecategory',
             required=False,
             cli_name='servicecat',
             cli_metavar="['all']",
-            label=_(u'Service category'),
-            doc=_(u'Service category the rule applies to'),
+            label=_('Service category'),
+            doc=_('Service category the rule applies to'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -269,16 +274,16 @@ class hbacrule_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -291,20 +296,26 @@ class hbacrule_add_host(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -314,8 +325,8 @@ class hbacrule_add_host(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'comma-separated list of hosts to add'),
+            label=_('member host'),
+            doc=_('comma-separated list of hosts to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -323,8 +334,8 @@ class hbacrule_add_host(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'comma-separated list of host groups to add'),
+            label=_('member host group'),
+            doc=_('comma-separated list of host groups to add'),
             alwaysask=True,
         ),
     )
@@ -335,12 +346,12 @@ class hbacrule_add_host(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -353,20 +364,26 @@ class hbacrule_add_service(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -376,8 +393,8 @@ class hbacrule_add_service(Method):
             required=False,
             multivalue=True,
             cli_name='hbacsvcs',
-            label=_(u'member HBAC service'),
-            doc=_(u'comma-separated list of HBAC services to add'),
+            label=_('member HBAC service'),
+            doc=_('comma-separated list of HBAC services to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -385,8 +402,8 @@ class hbacrule_add_service(Method):
             required=False,
             multivalue=True,
             cli_name='hbacsvcgroups',
-            label=_(u'member HBAC service group'),
-            doc=_(u'comma-separated list of HBAC service groups to add'),
+            label=_('member HBAC service group'),
+            doc=_('comma-separated list of HBAC service groups to add'),
             alwaysask=True,
         ),
     )
@@ -397,12 +414,12 @@ class hbacrule_add_service(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -415,20 +432,26 @@ class hbacrule_add_sourcehost(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -438,8 +461,8 @@ class hbacrule_add_sourcehost(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'comma-separated list of hosts to add'),
+            label=_('member host'),
+            doc=_('comma-separated list of hosts to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -447,8 +470,8 @@ class hbacrule_add_sourcehost(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'comma-separated list of host groups to add'),
+            label=_('member host group'),
+            doc=_('comma-separated list of host groups to add'),
             alwaysask=True,
         ),
     )
@@ -459,12 +482,12 @@ class hbacrule_add_sourcehost(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -477,20 +500,26 @@ class hbacrule_add_user(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -500,8 +529,8 @@ class hbacrule_add_user(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'comma-separated list of users to add'),
+            label=_('member user'),
+            doc=_('comma-separated list of users to add'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -509,8 +538,8 @@ class hbacrule_add_user(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'comma-separated list of groups to add'),
+            label=_('member group'),
+            doc=_('comma-separated list of groups to add'),
             alwaysask=True,
         ),
     )
@@ -521,12 +550,12 @@ class hbacrule_add_user(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -540,13 +569,13 @@ class hbacrule_del(Method):
             'cn',
             multivalue=True,
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -554,18 +583,18 @@ class hbacrule_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -578,24 +607,24 @@ class hbacrule_disable(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -608,24 +637,24 @@ class hbacrule_enable(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             bool,
-            doc=_(u'True means the operation was successful'),
+            doc=_('True means the operation was successful'),
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -638,7 +667,7 @@ class hbacrule_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -646,91 +675,97 @@ class hbacrule_find(Method):
             'cn',
             required=False,
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
         parameters.Str(
             'accessruletype',
             required=False,
             cli_name='type',
             cli_metavar="['allow', 'deny']",
-            label=_(u'Rule type'),
-            doc=_(u'Rule type (allow)'),
+            label=_('Rule type'),
+            doc=_('Rule type (allow)'),
             exclude=('webui', 'cli'),
-            default=u'allow',
+            default='allow',
         ),
         parameters.Str(
             'usercategory',
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'sourcehostcategory',
             required=False,
             cli_name='srchostcat',
             cli_metavar="['all']",
-            label=_(u'Source host category'),
-            doc=_(u'Source host category the rule applies to'),
+            label=_('Source host category'),
+            doc=_('Source host category the rule applies to'),
         ),
         parameters.Str(
             'servicecategory',
             required=False,
             cli_name='servicecat',
             cli_metavar="['all']",
-            label=_(u'Service category'),
-            doc=_(u'Service category the rule applies to'),
+            label=_('Service category'),
+            doc=_('Service category the rule applies to'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -738,8 +773,8 @@ class hbacrule_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("name")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("name")'),
             default=False,
             autofill=True,
         ),
@@ -747,8 +782,8 @@ class hbacrule_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -756,12 +791,12 @@ class hbacrule_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -774,7 +809,7 @@ class hbacrule_mod(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
@@ -783,100 +818,119 @@ class hbacrule_mod(Method):
             required=False,
             cli_name='type',
             cli_metavar="['allow', 'deny']",
-            label=_(u'Rule type'),
-            doc=_(u'Rule type (allow)'),
+            label=_('Rule type'),
+            doc=_('Rule type (allow)'),
             exclude=('webui', 'cli'),
-            default=u'allow',
+            default='allow',
         ),
         parameters.Str(
             'usercategory',
             required=False,
             cli_name='usercat',
             cli_metavar="['all']",
-            label=_(u'User category'),
-            doc=_(u'User category the rule applies to'),
+            label=_('User category'),
+            doc=_('User category the rule applies to'),
         ),
         parameters.Str(
             'hostcategory',
             required=False,
             cli_name='hostcat',
             cli_metavar="['all']",
-            label=_(u'Host category'),
-            doc=_(u'Host category the rule applies to'),
+            label=_('Host category'),
+            doc=_('Host category the rule applies to'),
         ),
         parameters.Str(
             'sourcehostcategory',
             required=False,
             cli_name='srchostcat',
             cli_metavar="['all']",
-            label=_(u'Source host category'),
-            doc=_(u'Source host category the rule applies to'),
+            label=_('Source host category'),
+            doc=_('Source host category the rule applies to'),
         ),
         parameters.Str(
             'servicecategory',
             required=False,
             cli_name='servicecat',
             cli_metavar="['all']",
-            label=_(u'Service category'),
-            doc=_(u'Service category the rule applies to'),
+            label=_('Service category'),
+            doc=_('Service category the rule applies to'),
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
+            label=_('Description'),
         ),
         parameters.Bool(
             'ipaenabledflag',
             required=False,
-            label=_(u'Enabled'),
+            label=_('Enabled'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'externalhost',
             required=False,
             multivalue=True,
-            label=_(u'External host'),
+            label=_('External host'),
             exclude=('cli', 'webui'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -885,16 +939,16 @@ class hbacrule_mod(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -907,20 +961,26 @@ class hbacrule_remove_host(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -930,8 +990,8 @@ class hbacrule_remove_host(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'comma-separated list of hosts to remove'),
+            label=_('member host'),
+            doc=_('comma-separated list of hosts to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -939,8 +999,8 @@ class hbacrule_remove_host(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'comma-separated list of host groups to remove'),
+            label=_('member host group'),
+            doc=_('comma-separated list of host groups to remove'),
             alwaysask=True,
         ),
     )
@@ -951,12 +1011,12 @@ class hbacrule_remove_host(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -969,20 +1029,26 @@ class hbacrule_remove_service(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -992,8 +1058,8 @@ class hbacrule_remove_service(Method):
             required=False,
             multivalue=True,
             cli_name='hbacsvcs',
-            label=_(u'member HBAC service'),
-            doc=_(u'comma-separated list of HBAC services to remove'),
+            label=_('member HBAC service'),
+            doc=_('comma-separated list of HBAC services to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1001,8 +1067,8 @@ class hbacrule_remove_service(Method):
             required=False,
             multivalue=True,
             cli_name='hbacsvcgroups',
-            label=_(u'member HBAC service group'),
-            doc=_(u'comma-separated list of HBAC service groups to remove'),
+            label=_('member HBAC service group'),
+            doc=_('comma-separated list of HBAC service groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1013,12 +1079,12 @@ class hbacrule_remove_service(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1031,20 +1097,26 @@ class hbacrule_remove_sourcehost(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1054,8 +1126,8 @@ class hbacrule_remove_sourcehost(Method):
             required=False,
             multivalue=True,
             cli_name='hosts',
-            label=_(u'member host'),
-            doc=_(u'comma-separated list of hosts to remove'),
+            label=_('member host'),
+            doc=_('comma-separated list of hosts to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1063,8 +1135,8 @@ class hbacrule_remove_sourcehost(Method):
             required=False,
             multivalue=True,
             cli_name='hostgroups',
-            label=_(u'member host group'),
-            doc=_(u'comma-separated list of host groups to remove'),
+            label=_('member host group'),
+            doc=_('comma-separated list of host groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1075,12 +1147,12 @@ class hbacrule_remove_sourcehost(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1093,20 +1165,26 @@ class hbacrule_remove_user(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1116,8 +1194,8 @@ class hbacrule_remove_user(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'comma-separated list of users to remove'),
+            label=_('member user'),
+            doc=_('comma-separated list of users to remove'),
             alwaysask=True,
         ),
         parameters.Str(
@@ -1125,8 +1203,8 @@ class hbacrule_remove_user(Method):
             required=False,
             multivalue=True,
             cli_name='groups',
-            label=_(u'member group'),
-            doc=_(u'comma-separated list of groups to remove'),
+            label=_('member group'),
+            doc=_('comma-separated list of groups to remove'),
             alwaysask=True,
         ),
     )
@@ -1137,12 +1215,12 @@ class hbacrule_remove_user(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -1155,27 +1233,36 @@ class hbacrule_show(Method):
         parameters.Str(
             'cn',
             cli_name='name',
-            label=_(u'Rule name'),
+            label=_('Rule name'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
@@ -1184,15 +1271,15 @@ class hbacrule_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.Output(
             'value',
-            unicode,
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            str,
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

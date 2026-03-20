@@ -5,7 +5,6 @@ import importlib
 import importlib.metadata
 import os
 
-import six
 
 from ipaserver.custodia import log
 from ipaserver.custodia.httpd.server import HTTPServer
@@ -20,7 +19,7 @@ __all__ = ['default_argparser', 'main']
 
 
 def attach_store(typename, plugins, stores):
-    for name, c in six.iteritems(plugins):
+    for name, c in plugins.items():
         if getattr(c, 'store_name', None) is None:
             continue
         try:
@@ -41,7 +40,7 @@ def _load_plugin_class(menu, name):
         raise ValueError(
             "Multiple entry points for {} {}: {}".format(menu, name, eps))
     elif len(eps) == 1:
-        ep, *_ = eps
+        ep = eps[0]
         return ep.load(require=False)
     elif '.' in name:
         # fall back to old style dotted name

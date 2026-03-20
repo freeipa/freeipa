@@ -2,19 +2,11 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Command
+from ipalib import output
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Ping the remote IPA server to ensure it is running.
@@ -38,7 +30,7 @@ EXAMPLES:
  Ping an IPA server verbosely:
    ipa -v ping
    ipa: INFO: trying https://ipa.example.com/ipa/xml
-   ipa: INFO: Forwarding 'ping' to server u'https://ipa.example.com/ipa/xml'
+   ipa: INFO: Forwarding 'ping' to server 'https://ipa.example.com/ipa/xml'
    -----------------------------------------------------
    IPA server version 2.1.9. API version 2.20
    -----------------------------------------------------
@@ -54,7 +46,7 @@ class ping(Command):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
     )

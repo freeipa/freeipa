@@ -24,7 +24,6 @@ import logging
 import gssapi
 import sys
 
-import six
 
 from ipalib import api
 from ipalib import errors
@@ -34,12 +33,10 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
 from ipaserver.install import replication, installutils
 
-if six.PY3:
-    unicode = str
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TRUST_VIEW_NAME = u'Default Trust View'
+DEFAULT_TRUST_VIEW_NAME = 'Default Trust View'
 
 
 class WinsyncMigrate(admintool.AdminTool):
@@ -95,7 +92,7 @@ class WinsyncMigrate(admintool.AdminTool):
                 "specified.")
         else:
             try:
-                api.Command['trust_show'](unicode(self.options.realm))
+                api.Command['trust_show'](str(self.options.realm))
             except errors.NotFound:
                 raise admintool.ScriptError(
                     "Trust with the given realm %s could not be found. "
@@ -169,7 +166,7 @@ class WinsyncMigrate(admintool.AdminTool):
         Creates ID override corresponding to this user entry.
         """
 
-        user_identifier = u"%s@%s" % (entry['uid'][0], self.options.realm)
+        user_identifier = "%s@%s" % (entry['uid'][0], self.options.realm)
 
         kwargs = {
             'uid': entry['uid'][0],
@@ -236,7 +233,7 @@ class WinsyncMigrate(admintool.AdminTool):
             users being migrated.
             """
 
-            return u"{0}_{1}_winsync_external".format(
+            return "{0}_{1}_winsync_external".format(
                 winsync_group_prefix,
                 posixify(object_entry['cn'][0])
             )
@@ -290,7 +287,10 @@ class WinsyncMigrate(admintool.AdminTool):
 
             # Add the user to the external group. Membership is migrated
             # at this point.
-            user_identifier = u"%s@%s" % (user_entry['uid'][0], self.options.realm)
+            user_identifier = '%s@%s' % (
+                user_entry['uid'][0],
+                self.options.realm,
+            )
             api.Command['group_add_member'](name, ipaexternalmember=[user_identifier])
 
     def migrate_group_memberships(self, user_entry):

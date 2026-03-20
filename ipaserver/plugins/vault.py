@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib.frontend import Command, Object
 from ipalib import api, errors
@@ -46,9 +45,12 @@ if api.env.in_server:
     from pki.crypto import DES_EDE3_CBC_OID
     from pki.crypto import AES_128_CBC_OID
     from pki import PKIException
+else:
+    # Define dummy values for non-server environments
+    DES_EDE3_CBC_OID = None
+    AES_128_CBC_OID = None
+    PKIException = Exception
 
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Vaults
@@ -365,7 +367,7 @@ class vaultcontainer(LDAPObject):
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
             elif principal.is_service:
-                service = unicode(principal)
+                service = str(principal)
             else:
                 user = principal.username
 
@@ -434,7 +436,7 @@ class vaultcontainer_del(LDAPDelete):
         return dn
 
     def execute(self, *keys, **options):
-        keys = keys + (u'',)
+        keys = keys + ('',)
         return super(vaultcontainer_del, self).execute(*keys, **options)
 
 
@@ -598,8 +600,8 @@ class vault(LDAPObject):
             cli_name='type',
             label=_('Type'),
             doc=_('Vault type'),
-            values=(u'standard', u'symmetric', u'asymmetric', ),
-            default=u'symmetric',
+            values=('standard', 'symmetric', 'asymmetric', ),
+            default='symmetric',
             autofill=True,
         ),
         Bytes(
@@ -695,7 +697,7 @@ class vault(LDAPObject):
                 raise errors.NotImplementedError(
                     reason=_('Host is not supported'))
             elif principal.is_service:
-                service = unicode(principal)
+                service = str(principal)
             else:
                 user = principal.username
 
@@ -761,10 +763,10 @@ class vault(LDAPObject):
             raise ValueError('Invalid vault DN: %s' % dn)
 
         # construct the vault ID from the bottom up
-        id = u''
+        id = ''
         for rdn in dn[:-len(container_dn)]:
             name = rdn['cn']
-            id = u'/' + name + id
+            id = '/' + name + id
 
         return 'ipa:' + id
 
@@ -800,7 +802,7 @@ class vault_add_internal(LDAPCreate):
 
         principal = kerberos.Principal(getattr(context, 'principal'))
         if principal.is_service:
-            owner_dn = self.api.Object.service.get_dn(unicode(principal))
+            owner_dn = self.api.Object.service.get_dn(str(principal))
         else:
             owner_dn = self.api.Object.user.get_dn(principal.username)
 

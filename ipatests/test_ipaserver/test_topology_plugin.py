@@ -39,28 +39,30 @@ class TestTopologyPlugin:
     def test_topologyplugin(self):
         supplier = REPL_PLUGIN_NAME_TEMPLATE % 'supplier'
         pluginattrs = {
-            u'nsslapd-pluginPath': [u'libtopology'],
-            u'nsslapd-pluginVendor': [u'freeipa'],
-            u'cn': [u'IPA Topology Configuration'],
-            u'nsslapd-plugin-depends-on-named':
-                [supplier, u'ldbm database'],
-            u'nsslapd-topo-plugin-shared-replica-root': [u'dc=example,dc=com'],
-            u'nsslapd-pluginVersion': [u'1.0'],
-            u'nsslapd-topo-plugin-shared-config-base':
-                [u'cn=ipa,cn=etc,dc=example,dc=com'],
-            u'nsslapd-pluginDescription': [u'ipa-topology-plugin'],
-            u'nsslapd-pluginEnabled': [u'on'],
-            u'nsslapd-pluginId': [u'ipa-topology-plugin'],
-            u'objectClass': [u'top', u'nsSlapdPlugin', u'extensibleObject'],
-            u'nsslapd-topo-plugin-startup-delay': [u'20'],
-            u'nsslapd-topo-plugin-shared-binddngroup':
-                [u'cn=replication managers,cn=sysaccounts,cn=etc,dc=example,dc=com'],
-            u'nsslapd-pluginType': [u'object'],
-            u'nsslapd-pluginInitfunc': [u'ipa_topo_init']
+            'nsslapd-pluginPath': ['libtopology'],
+            'nsslapd-pluginVendor': ['freeipa'],
+            'cn': ['IPA Topology Configuration'],
+            'nsslapd-plugin-depends-on-named': [supplier, 'ldbm database'],
+            'nsslapd-topo-plugin-shared-replica-root': ['dc=example,dc=com'],
+            'nsslapd-pluginVersion': ['1.0'],
+            'nsslapd-topo-plugin-shared-config-base': [
+                'cn=ipa,cn=etc,dc=example,dc=com'
+            ],
+            'nsslapd-pluginDescription': ['ipa-topology-plugin'],
+            'nsslapd-pluginEnabled': ['on'],
+            'nsslapd-pluginId': ['ipa-topology-plugin'],
+            'objectClass': ['top', 'nsSlapdPlugin', 'extensibleObject'],
+            'nsslapd-topo-plugin-startup-delay': ['20'],
+            'nsslapd-topo-plugin-shared-binddngroup': [
+                'cn=replication managers,cn=sysaccounts,cn=etc,'
+                'dc=example,dc=com'
+            ],
+            'nsslapd-pluginType': ['object'],
+            'nsslapd-pluginInitfunc': ['ipa_topo_init'],
         }
-        variable_attrs = {u'nsslapd-topo-plugin-shared-replica-root',
-                          u'nsslapd-topo-plugin-shared-config-base',
-                          u'nsslapd-topo-plugin-shared-binddngroup'}
+        variable_attrs = {'nsslapd-topo-plugin-shared-replica-root',
+                          'nsslapd-topo-plugin-shared-config-base',
+                          'nsslapd-topo-plugin-shared-binddngroup'}
 
         # Now eliminate keys that have domain-dependent values.
         checkvalues = set(pluginattrs.keys()) - variable_attrs
