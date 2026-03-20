@@ -463,12 +463,17 @@ def request_cert(
         request_parameters['ca-profile'] = profile
     if nss_user:
         request_parameters['nss-user'] = nss_user
-    if keysize is None:
-        keysize = 2048
-    if keytype is None:
-        keytype = "rsa"
+    if keytype == "mldsa":
+        keytype = f"ML-DSA-{keysize}"
+        keysize = None
+    else:
+        if keysize is None:
+            keysize = 2048
+        if keytype is None:
+            keytype = "rsa"
     request_parameters['key-type'] = keytype
-    request_parameters['key-size'] = int(keysize)
+    if keysize:
+        request_parameters['key-size'] = int(keysize)
 
     certmonger_cmd_template = paths.CERTMONGER_COMMAND_TEMPLATE
     if pre_command:

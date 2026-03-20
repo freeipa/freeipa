@@ -854,13 +854,14 @@ class DsInstance(service.Service):
             # rewrite the pin file with current password
             dsdb.create_pin_file()
             if self.master_fqdn is None:
+                (keytype, _keysize) = installutils.lookup_key_type(api)
                 with tempfile.TemporaryDirectory() as tmpdir:
                     tmpdb = certs.CertDB(api.env.realm, nssdir=tmpdir)
                     tmpdb.create_from_cacert()
                     keyfile = os.path.join(tmpdb.secdir, "key.pem")
                     certfile = os.path.join(tmpdb.secdir, "cert.pem")
                     tmpdb.pki_issue_certificate(
-                        "ldap", certs.get_default_profile(api),
+                        "ldap", certs.get_default_profile(keytype),
                         keyfile, certfile
                     )
 
@@ -891,7 +892,7 @@ class DsInstance(service.Service):
                     passwd_fname=dsdb.passwd_fname,
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
-                    profile=certs.get_default_profile(api),
+                    profile=certs.get_default_profile(keytype),
                     dns=[self.fqdn],
                     post_command=cmd,
                     resubmit_timeout=api.env.certmonger_wait_timeout,

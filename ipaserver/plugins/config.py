@@ -39,7 +39,7 @@ from ipapython.dn import DN
 from ipapython.ipavalidate import Email
 from ipaserver.plugins.privilege import principal_has_privilege
 from ipaserver.install.adtrust import set_and_check_netbios_name
-from ipaserver.install.installutils import validate_key_type_size
+from ipaserver.install.certs import validate_key_type_size
 
 logger = logging.getLogger(__name__)
 

@@ -82,11 +82,17 @@ def parse_options():
     parser.add_option("--external-cert-file", dest="external_cert_files",
                       action="append", metavar="FILE",
                       help="File containing the IPA CA certificate and the external CA certificate chain")
-    ca_algos = ('SHA1withRSA', 'SHA256withRSA', 'SHA384withRSA', 'SHA512withRSA')
+    ca_algos = ('SHA1withRSA', 'SHA256withRSA', 'SHA384withRSA',
+                'SHA512withRSA', 'ML-DSA-44', 'ML-DSA-65', 'ML-DSA-87')
     parser.add_option("--ca-signing-algorithm", dest="ca_signing_algorithm",
                       type="choice", choices=ca_algos,
                       metavar="{{{0}}}".format(",".join(ca_algos)),
                       help="Signing algorithm of the IPA CA certificate")
+    ca_key_types = ('rsa', 'mldsa',)
+    parser.add_option("--ca-key-type", dest="ca_key_type",
+                      type="choice", choices=ca_key_types,
+                      metavar="{{{0}}}".format(",".join(ca_key_types)),
+                      help="Key type for the IPA CA")
 
     parser.add_option("-P", "--principal", dest="principal", sensitive=True,
                       default=None, help="User allowed to manage replicas")
