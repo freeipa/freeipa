@@ -33,6 +33,7 @@ from ipaplatform.base import services as base_services
 
 from ipapython import ipautil, dogtag
 from ipaplatform.paths import paths
+from ipapython.krb5util import check_and_rotate_keytabs
 
 logger = logging.getLogger(__name__)
 
@@ -205,6 +206,16 @@ class RedHatCAService(RedHatService):
         return False
 
 
+class RedHatKRB5KDCService(RedHatService):
+    def start(self, instance_name="", capture_output=True, wait=True):
+        super().start(instance_name, capture_output, wait)
+        self.rotated_keys = check_and_rotate_keytabs(self)
+
+    def restart(self, instance_name="", capture_output=True, wait=True):
+        super().stop(instance_name, capture_output)
+        self.start(instance_name, capture_output, wait)
+
+
 # Function that constructs proper Red Hat OS family-specific server classes for
 # services of specified name
 
@@ -215,6 +226,8 @@ def redhat_service_class_factory(name, api=None):
         return RedHatIPAService(name, api)
     if name in ('pki-tomcatd', 'pki_tomcatd'):
         return RedHatCAService(name, api)
+    if name == 'krb5kdc':
+        return RedHatKRB5KDCService(name, api)
     return RedHatService(name, api)
 
 
