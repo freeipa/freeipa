@@ -95,6 +95,17 @@ class BaseTestTrust(IntegrationTest):
         tasks.run_repeatedly(cls.master, command,
                              test=lambda x: re.search(stdout_re, x))
 
+    def _ssh_with_password(self, login, host, password, success_expected=False):
+        """SSH to host as user with password using sshpass."""
+        result = self.clients[0].run_command(
+            ['sshpass', '-p', password,
+             'ssh', '-v', '-o', 'StrictHostKeyChecking=no',
+             '-l', login, host, 'id'],
+            raiseonerr=success_expected
+        )
+        output = f"{result.stdout_text}{result.stderr_text}"
+        return output
+
     def check_trustdomains(self, realm, expected_ad_domains):
         """Check that ipa trustdomain-find lists all expected domains"""
         result = self.master.run_command(['ipa', 'trustdomain-find', realm])
