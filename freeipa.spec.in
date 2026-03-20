@@ -1962,8 +1962,13 @@ fi
 %files -n python3-ipatests
 %doc README.md Contributors.txt
 %license COPYING
+# Exclude ds_migration so we can list LDIF files explicitly below
+%exclude %{python3_sitelib}/ipatests/test_integration/data/ds_migration
 %{python3_sitelib}/ipatests
 %{python3_sitelib}/ipatests-*.egg-info
+# DS migration test data for python3-ipatests
+%dir %{python3_sitelib}/ipatests/test_integration/data/ds_migration
+%{python3_sitelib}/ipatests/test_integration/data/ds_migration/*.ldif
 %{_bindir}/ipa-run-tests-3
 %{_bindir}/ipa-test-config-3
 %{_bindir}/ipa-test-task-3
