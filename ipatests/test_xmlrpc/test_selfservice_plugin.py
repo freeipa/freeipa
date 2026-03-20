@@ -942,3 +942,392 @@ class test_selfservice_cli_add_del(Declarative):
         ),
 
     ]
+
+
+# selfservice-show / selfservice-mod CLI tests
+
+selfservice_show1 = 'selfservice_show_cli_1001'
+selfservice_mod1 = 'selfservice_mod_cli_test'
+
+
+@pytest.mark.tier1
+class test_selfservice_show_cli(Declarative):
+    """Test selfservice-show CLI options (show_1001 - show_1003)."""
+
+    cleanup_commands = [
+        ('selfservice_del', [selfservice_show1], {}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r for show tests' % selfservice_show1,
+            command=(
+                'selfservice_add',
+                [selfservice_show1],
+                dict(
+                    attrs=['l'],
+                    permissions='write',
+                ),
+            ),
+            expected=dict(
+                value=selfservice_show1,
+                summary='Added selfservice "%s"' % selfservice_show1,
+                result=dict(
+                    attrs=['l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=selfservice_show1,
+                ),
+            ),
+        ),
+
+        # selfservice_show_1001: show with --all (positive test)
+        dict(
+            desc='Show %r with --all' % selfservice_show1,
+            command=(
+                'selfservice_show',
+                [selfservice_show1],
+                {'all': True},
+            ),
+            expected=dict(
+                value=selfservice_show1,
+                summary=None,
+                result=dict(
+                    attrs=['l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=selfservice_show1,
+                ),
+            ),
+        ),
+
+        # selfservice_show_1002: show with --all --raw (positive test)
+        dict(
+            desc='Show %r with --all and --raw' % selfservice_show1,
+            command=(
+                'selfservice_show',
+                [selfservice_show1],
+                {'all': True, 'raw': True},
+            ),
+            expected=dict(
+                value=selfservice_show1,
+                summary=None,
+                result={
+                    'aci': '(targetattr = "l")'
+                           '(version 3.0;acl '
+                           '"selfservice:%s";'
+                           'allow (write) '
+                           'userdn = "ldap:///self";)'
+                           % selfservice_show1,
+                },
+            ),
+        ),
+
+        # selfservice_show_1003: show with --raw (positive test)
+        dict(
+            desc='Show %r with --raw' % selfservice_show1,
+            command=(
+                'selfservice_show',
+                [selfservice_show1],
+                {'raw': True},
+            ),
+            expected=dict(
+                value=selfservice_show1,
+                summary=None,
+                result={
+                    'aci': '(targetattr = "l")'
+                           '(version 3.0;acl '
+                           '"selfservice:%s";'
+                           'allow (write) '
+                           'userdn = "ldap:///self";)'
+                           % selfservice_show1,
+                },
+            ),
+        ),
+
+        dict(
+            desc='Delete %r' % selfservice_show1,
+            command=('selfservice_del', [selfservice_show1], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_show1,
+                summary='Deleted selfservice "%s"' % selfservice_show1,
+            ),
+        ),
+
+    ]
+
+
+@pytest.mark.tier1
+class test_selfservice_mod_cli(Declarative):
+    """Test selfservice-mod CLI options (mod_1002 - mod_1008)."""
+
+    cleanup_commands = [
+        ('selfservice_del', [selfservice_mod1], {}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r for mod tests' % selfservice_mod1,
+            command=(
+                'selfservice_add',
+                [selfservice_mod1],
+                dict(
+                    attrs=['l'],
+                    permissions='write',
+                ),
+            ),
+            expected=dict(
+                value=selfservice_mod1,
+                summary='Added selfservice "%s"' % selfservice_mod1,
+                result=dict(
+                    attrs=['l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=selfservice_mod1,
+                ),
+            ),
+        ),
+
+        # selfservice_mod_1001: skipped - requires --attrs or --permissions
+        # (prompts for input; not a valid non-interactive test)
+
+        # selfservice_mod_1002: --all --attrs=badattr --permissions=write
+        # --raw (negative test - invalid attr value)
+        dict(
+            desc='Try to modify %r with invalid attrs' % selfservice_mod1,
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(
+                    attrs=['badattr'],
+                    permissions='write',
+                    all=True,
+                    raw=True,
+                ),
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "badattr" does not exist in schema. '
+                     r'Please add attributeTypes "badattr" to '
+                     r'schema if necessary. '
+                     r'ACL Syntax Error(-5):'
+                     r'(targetattr = \22badattr\22)'
+                     r'(version 3.0;acl '
+                     r'\22selfservice:selfservice_mod_cli_test\22;'
+                     r'allow (write) userdn = \22ldap:///self\22;)',
+            ),
+        ),
+
+        # selfservice_mod_1003: --all --attrs=l --permissions=badperm
+        # --raw (negative test - invalid permission value)
+        dict(
+            desc=(
+                'Try to modify %r with invalid permissions'
+                % selfservice_mod1
+            ),
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(
+                    attrs=['l'],
+                    permissions='badperm',
+                    all=True,
+                    raw=True,
+                ),
+            ),
+            expected=errors.ValidationError(
+                name='permissions',
+                error='"badperm" is not a valid permission',
+            ),
+        ),
+
+        # selfservice_mod_1003 (part 2): same attrs and perms already set
+        # - no modifications error
+        dict(
+            desc='Try to modify %r with no changes' % selfservice_mod1,
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(
+                    attrs=['l'],
+                    permissions='write',
+                    all=True,
+                    raw=True,
+                ),
+            ),
+            expected=errors.EmptyModlist(),
+        ),
+
+        # selfservice_mod_1005: --attrs=badattrs (negative test,
+        # BZ 747741 - a bad attrs mod must not delete the entry).
+        dict(
+            desc=(
+                'Try to modify %r with bad attrs (BZ 747741)'
+                % selfservice_mod1
+            ),
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(attrs=['badattrs']),
+            ),
+            expected=errors.InvalidSyntax(
+                attr=r'targetattr "badattrs" does not exist in schema. '
+                     r'Please add attributeTypes "badattrs" to '
+                     r'schema if necessary. '
+                     r'ACL Syntax Error(-5):'
+                     r'(targetattr = \22badattrs\22)'
+                     r'(version 3.0;acl '
+                     r'\22selfservice:selfservice_mod_cli_test\22;'
+                     r'allow (write) userdn = \22ldap:///self\22;)',
+            ),
+        ),
+
+        # Verify entry still exists after failed mod (BZ 747741)
+        dict(
+            desc=(
+                'Verify %r still exists after failed mod'
+                % selfservice_mod1
+            ),
+            command=('selfservice_show', [selfservice_mod1], {}),
+            expected=dict(
+                value=selfservice_mod1,
+                summary=None,
+                result=dict(
+                    attrs=['l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=selfservice_mod1,
+                ),
+            ),
+        ),
+
+        # selfservice_mod_1006: --attrs=mobile (positive test - change attr)
+        dict(
+            desc='Modify %r attrs to mobile' % selfservice_mod1,
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(attrs=['mobile']),
+            ),
+            expected=dict(
+                value=selfservice_mod1,
+                summary='Modified selfservice "%s"' % selfservice_mod1,
+                result=dict(
+                    attrs=['mobile'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=selfservice_mod1,
+                ),
+            ),
+        ),
+
+        # selfservice_mod_1006 (part 2): --attrs={mobile,l}
+        # (positive test - add attr)
+        dict(
+            desc='Modify %r attrs to mobile and l' % selfservice_mod1,
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(attrs=['mobile', 'l']),
+            ),
+            expected=dict(
+                value=selfservice_mod1,
+                summary='Modified selfservice "%s"' % selfservice_mod1,
+                result=dict(
+                    attrs=['mobile', 'l'],
+                    permissions=['write'],
+                    selfaci=True,
+                    aciname=selfservice_mod1,
+                ),
+            ),
+        ),
+
+        # selfservice_mod_1007: --permissions=badperm
+        # (negative test - invalid permission string)
+        dict(
+            desc=(
+                'Try to modify %r with invalid permissions'
+                % selfservice_mod1
+            ),
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(permissions='badperm'),
+            ),
+            expected=errors.ValidationError(
+                name='permissions',
+                error='"badperm" is not a valid permission',
+            ),
+        ),
+
+        # selfservice_mod_1007 (part 2): --permissions=write
+        # (negative test - same perm already set, no modification)
+        dict(
+            desc='Try to modify %r with same permissions' % selfservice_mod1,
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(permissions='write'),
+            ),
+            expected=errors.EmptyModlist(),
+        ),
+
+        # selfservice_mod_1008: --permissions=read
+        # (positive test - change perm)
+        dict(
+            desc='Modify %r permissions to read' % selfservice_mod1,
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(permissions='read'),
+            ),
+            expected=dict(
+                value=selfservice_mod1,
+                summary='Modified selfservice "%s"' % selfservice_mod1,
+                result=dict(
+                    attrs=['mobile', 'l'],
+                    permissions=['read'],
+                    selfaci=True,
+                    aciname=selfservice_mod1,
+                ),
+            ),
+        ),
+
+        # selfservice_mod_1008 (part 2): --permissions={read,write}
+        # (positive test - add perm)
+        dict(
+            desc=(
+                'Modify %r permissions to read and write'
+                % selfservice_mod1
+            ),
+            command=(
+                'selfservice_mod',
+                [selfservice_mod1],
+                dict(permissions=['read', 'write']),
+            ),
+            expected=dict(
+                value=selfservice_mod1,
+                summary='Modified selfservice "%s"' % selfservice_mod1,
+                result=dict(
+                    attrs=['mobile', 'l'],
+                    permissions=['read', 'write'],
+                    selfaci=True,
+                    aciname=selfservice_mod1,
+                ),
+            ),
+        ),
+
+        # selfservice_mod_1009: skipped - requires --attrs or --permissions
+        # (prompts for input; not a valid non-interactive test)
+
+        dict(
+            desc='Delete %r' % selfservice_mod1,
+            command=('selfservice_del', [selfservice_mod1], {}),
+            expected=dict(
+                result=True,
+                value=selfservice_mod1,
+                summary='Deleted selfservice "%s"' % selfservice_mod1,
+            ),
+        ),
+
+    ]
