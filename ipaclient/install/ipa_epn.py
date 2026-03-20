@@ -27,6 +27,7 @@ import grp
 import json
 import os
 import pwd
+import locale
 import logging
 import smtplib
 import ssl
@@ -34,6 +35,7 @@ import time
 
 from collections import deque
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 UTC = timezone.utc
 from email.utils import formataddr, formatdate
 from email.mime.multipart import MIMEMultipart
@@ -73,6 +75,39 @@ EPN_CONFIG = {
 }
 
 logger = logging.getLogger(__name__)
+
+
+def datetimeformat(value, format='%Y-%m-%d %H:%M:%S', timezone='UTC'):
+    """Custom Jinja template filter for formatting generalized UTC
+       timestamp as strftime format and setting timezone.
+    """
+    if value is None:
+        return ""
+
+    """Convert string to datetime object
+    """
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+            value = value.replace(tzinfo=ZoneInfo('UTC'))
+        except ValueError:
+            return value
+
+    """Shift to target timezone
+    """
+    try:
+        local_dt = value.astimezone(ZoneInfo(timezone))
+    except Exception:
+        local_dt = value
+
+    """Localized formatting with strftime
+       Falls back to FreeIPA timestamp format strftime('%Y-%m-%d %H:%M:%S').
+    """
+    locale.setlocale(locale.LC_ALL, '')
+    try:
+        return local_dt.strftime(format)
+    except Exception:
+        return local_dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def drop_privileges(new_username="daemon", new_groupname="daemon"):
@@ -544,6 +579,7 @@ class EPN(admintool.AdminTool):
             logger.error("IPA-EPN: mailer was not configured.")
             return
         else:
+            self.env.filters['datetimeformat'] = datetimeformat
             try:
                 template = self.env.get_template("expire_msg.template")
             except TemplateSyntaxError as e:
