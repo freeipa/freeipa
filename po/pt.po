@@ -7,8 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-02-24 20:58+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
 "Language: pt\n"
@@ -9089,10 +9088,8 @@ msgstr ""
 msgid "Number of owners removed"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a vault."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um cofre."
 
 msgid "Show vault configuration."
 msgstr ""
@@ -9109,16 +9106,14 @@ msgstr ""
 msgid "Remove owners from a vault container."
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a vault container."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um contentor de cofre."
 
 msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr ""
 
 msgid "Profile ID"
-msgstr "Perfil"
+msgstr "ID de Perfil"
 
 msgid "Certificate Profile to use"
 msgstr ""
@@ -9183,7 +9178,7 @@ msgid "Profile ID for referring to this profile"
 msgstr ""
 
 msgid "Profile description"
-msgstr ""
+msgstr "Descrição de perfil"
 
 msgid "Brief description of this profile"
 msgstr ""
@@ -10053,10 +10048,10 @@ msgid "KEY Flags"
 msgstr ""
 
 msgid "KEY Protocol"
-msgstr "Protocolo"
+msgstr "Protocolo de CHAVE"
 
 msgid "Protocol"
-msgstr ""
+msgstr "Protocolo"
 
 msgid "KEY Algorithm"
 msgstr ""
@@ -10089,7 +10084,7 @@ msgid "NSEC Next Domain Name"
 msgstr ""
 
 msgid "Next Domain Name"
-msgstr "Nome do Domínio"
+msgstr "Nome do Próximo Domínio"
 
 msgid "NSEC Type Map"
 msgstr ""
@@ -10122,7 +10117,7 @@ msgid "RRSIG Labels"
 msgstr ""
 
 msgid "Labels"
-msgstr ""
+msgstr "Etiquetas"
 
 msgid "RRSIG Original TTL"
 msgstr ""
@@ -10140,7 +10135,7 @@ msgid "RRSIG Signature Inception"
 msgstr ""
 
 msgid "Signature Inception"
-msgstr ""
+msgstr "Origem da Assinatura"
 
 msgid "RRSIG Key Tag"
 msgstr ""
@@ -10155,7 +10150,7 @@ msgid "RRSIG Signature"
 msgstr ""
 
 msgid "Signature"
-msgstr "assinatura"
+msgstr "Assinatura"
 
 msgid "Comma-separated list of raw RP records"
 msgstr ""
@@ -10287,7 +10282,7 @@ msgid "Import an entitlement certificate."
 msgstr ""
 
 msgid "UUID"
-msgstr ""
+msgstr "UUID"
 
 msgid "Enrollment UUID"
 msgstr ""
@@ -10296,7 +10291,7 @@ msgid "Register to the entitlement system."
 msgstr ""
 
 msgid "Username"
-msgstr ""
+msgstr "Nome de Utilizador"
 
 #, fuzzy
 #| msgid "Command not implemented"
@@ -10369,7 +10364,7 @@ msgid "Source host category the rule applies to"
 msgstr ""
 
 msgid "Source Hosts"
-msgstr ""
+msgstr "Máquinas Fonte"
 
 msgid "Source Host Groups"
 msgstr ""
@@ -10378,7 +10373,7 @@ msgid "comma-separated list of hosts to add"
 msgstr ""
 
 msgid "comma-separated list of host groups to add"
-msgstr "lista separada por vírgulas de grupos de acelerador a serem aplicados"
+msgstr "lista separada por vírgulas de grupos de máquinas a adicionar"
 
 msgid "comma-separated list of HBAC services to add"
 msgstr ""
@@ -10559,7 +10554,7 @@ msgid ""
 msgstr ""
 
 msgid "Source host"
-msgstr ""
+msgstr "Máquina fonte"
 
 msgid ""
 "\n"
@@ -11975,7 +11970,7 @@ msgid "Only one value is allowed"
 msgstr "Só é permitido um valor"
 
 msgid "this option is deprecated"
-msgstr "Esta opção está descontinuada."
+msgstr "esta opção está descontinuada"
 
 msgid "must be True or False"
 msgstr ""
@@ -12191,7 +12186,7 @@ msgid "DNS label cannot be longer than 63 characters"
 msgstr ""
 
 msgid "invalid domain name"
-msgstr "Nome de domínio inválido"
+msgstr "nome de domínio inválido"
 
 #, python-format
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
@@ -12229,13 +12224,11 @@ msgstr ""
 msgid "Enter %(label)s again to verify: "
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match"
 msgid "Passwords do not match!"
-msgstr "As palavras-passe não correspondem"
+msgstr "As palavras-passe não correspondem!"
 
 msgid "No matching entries found"
-msgstr ""
+msgstr "Nenhuma entrada correspondente encontrada"
 
 msgid "Topic or Command"
 msgstr "Tópico ou Comando"
@@ -12256,7 +12249,7 @@ msgid "Command name"
 msgstr "Nome do comando"
 
 msgid "Positional arguments"
-msgstr "Argumentos opcionais:"
+msgstr "Argumentos posicionais"
 
 #, python-format
 msgid "Same as --%s"
@@ -12374,16 +12367,16 @@ msgid "DNS server"
 msgstr ""
 
 msgid "DNS servers"
-msgstr ""
+msgstr "Servidores DNS"
 
 msgid "DNS Servers"
 msgstr ""
 
 msgid "DNS Server"
-msgstr ""
+msgstr "Servidor DNS"
 
 msgid "DNS Server name"
-msgstr ""
+msgstr "Nome do Servidor DNS"
 
 msgid "SOA mname override"
 msgstr ""
@@ -12406,7 +12399,7 @@ msgid ""
 msgstr ""
 
 msgid "DNS is not configured"
-msgstr "não configurado"
+msgstr "DNS não está configurado"
 
 msgid "Modify DNS server configuration"
 msgstr ""
@@ -12476,7 +12469,7 @@ msgid ""
 msgstr ""
 
 msgid "HBAC services"
-msgstr ""
+msgstr "Serviços de HBAC"
 
 msgid "HBAC Services"
 msgstr ""
@@ -12578,7 +12571,7 @@ msgid "OTP configuration options"
 msgstr ""
 
 msgid "OTP Configuration"
-msgstr ""
+msgstr "Configuração de OTP"
 
 msgid ""
 "\n"
@@ -12602,7 +12595,7 @@ msgid ""
 msgstr ""
 
 msgid "pkinit"
-msgstr ""
+msgstr "pkinit"
 
 msgid "PKINIT"
 msgstr ""
@@ -12672,10 +12665,10 @@ msgid ""
 msgstr ""
 
 msgid "invalid attribute name"
-msgstr ""
+msgstr "nome de atributo inválido"
 
 msgid "invalid port number"
-msgstr "Número de Porto Inválido"
+msgstr "número de porto inválido"
 
 msgid "RADIUS proxy server"
 msgstr ""
@@ -12939,7 +12932,7 @@ msgid "Include IPA master entries"
 msgstr ""
 
 msgid "roles"
-msgstr ""
+msgstr "funções"
 
 msgid "IPA role name"
 msgstr ""
@@ -12971,7 +12964,7 @@ msgstr ""
 
 #, python-format
 msgid "Group '%s' does not exist"
-msgstr ""
+msgstr "O grupo '%s' não existe"
 
 msgid "empty filter"
 msgstr ""
@@ -13636,7 +13629,7 @@ msgstr ""
 
 #, python-format
 msgid "%s to remove"
-msgstr ""
+msgstr "%s para remover"
 
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
@@ -13710,7 +13703,7 @@ msgid "SMB profile path"
 msgstr ""
 
 msgid "SMB Home Directory"
-msgstr ""
+msgstr "Directório Home do SMB"
 
 msgid "SMB Home Directory Drive"
 msgstr ""
@@ -13737,7 +13730,7 @@ msgid "Issuer of the certificate"
 msgstr ""
 
 msgid "Subject"
-msgstr ""
+msgstr "Assunto"
 
 msgid "Subject of the certificate"
 msgstr ""
@@ -13989,7 +13982,7 @@ msgstr ""
 
 #, python-format
 msgid "%i CAs removed."
-msgstr ""
+msgstr "%i CAs removidos."
 
 msgid ""
 "\n"
@@ -14067,7 +14060,7 @@ msgid ""
 msgstr ""
 
 msgid "domain"
-msgstr ""
+msgstr "domínio"
 
 #, python-format
 msgid ""
@@ -14265,7 +14258,7 @@ msgid ""
 msgstr ""
 
 msgid "CA is not configured"
-msgstr "não configurado"
+msgstr "CA não está configurado"
 
 msgid "invalid Profile ID"
 msgstr ""
@@ -14384,7 +14377,7 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"EXEMPLOS\n"
+"EXEMPLOS:\n"
 
 msgid ""
 "\n"
@@ -14784,7 +14777,7 @@ msgstr ""
 
 #, python-format
 msgid "%s Record"
-msgstr ""
+msgstr "%s Registo"
 
 #, python-format
 msgid "(see RFC %s for details)"
@@ -14795,7 +14788,7 @@ msgid "'%s' is a required part of DNS record"
 msgstr ""
 
 msgid "Invalid number of parts!"
-msgstr "Número inválido de argumentos"
+msgstr "Número inválido de partes!"
 
 #, python-format
 msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
@@ -14813,7 +14806,7 @@ msgid "Cannot create reverse record for \"%(value)s\": %(exc)s"
 msgstr ""
 
 msgid "Exchanger"
-msgstr ""
+msgstr "Permutador"
 
 msgid ""
 "format must be specified as\n"
@@ -14926,10 +14919,8 @@ msgstr ""
 msgid "Deleted DNS zone \"%(value)s\""
 msgstr ""
 
-#, fuzzy
-#| msgid "'%(name)s' is required"
 msgid "is required"
-msgstr "'%(name)s' é obrigatório"
+msgstr "é obrigatório"
 
 #, python-format
 msgid "Disabled DNS zone \"%(value)s\""
@@ -15032,7 +15023,7 @@ msgid "IPA DNS version"
 msgstr ""
 
 msgid "IPA DNS servers"
-msgstr ""
+msgstr "Servidores DNS do IPA"
 
 msgid "List of IPA masters configured as DNS servers"
 msgstr ""
@@ -15228,7 +15219,7 @@ msgid ""
 msgstr ""
 
 msgid "groups"
-msgstr ""
+msgstr "grupos"
 
 msgid "User Group"
 msgstr ""
@@ -15768,7 +15759,7 @@ msgid "Choose a pre-defined template to use"
 msgstr ""
 
 msgid "Organization"
-msgstr ""
+msgstr "Organização"
 
 msgid "Organization ID or Realm name for IdP provider templates"
 msgstr ""
@@ -15945,16 +15936,16 @@ msgid ""
 msgstr ""
 
 msgid "location"
-msgstr ""
+msgstr "localização"
 
 msgid "locations"
-msgstr ""
+msgstr "localizações"
 
 msgid "IPA Locations"
 msgstr ""
 
 msgid "IPA Location"
-msgstr "Localização"
+msgstr "Localização de IPA"
 
 #, fuzzy
 #| msgid "Command name"
@@ -15968,7 +15959,7 @@ msgid "IPA Location description"
 msgstr ""
 
 msgid "Servers"
-msgstr ""
+msgstr "Servidores"
 
 msgid "Servers that belongs to the IPA location"
 msgstr ""
@@ -15996,7 +15987,7 @@ msgid "Deleted IPA location \"%(value)s\""
 msgstr ""
 
 msgid "IPA Server"
-msgstr "Servidor FreeIPA"
+msgstr "Servidor IPA"
 
 msgid "Modify information about an IPA location."
 msgstr "Modificar informação acerca duma localização IPA."
@@ -16435,7 +16426,7 @@ msgstr ""
 
 #, python-format
 msgid "Entry %s not found"
-msgstr "Entrada não encontrada."
+msgstr "Entrada %s não encontrada"
 
 #, python-format
 msgid "The ACI for permission %(name)s was not found in %(dn)s "
@@ -16596,15 +16587,11 @@ msgstr ""
 msgid "password policy"
 msgstr "política de palavra-passe"
 
-#, fuzzy
-#| msgid "password policy"
 msgid "password policies"
-msgstr "política de palavra-passe"
+msgstr "políticas de palavra-passe"
 
-#, fuzzy
-#| msgid "Password Policy"
 msgid "Password Policies"
-msgstr "Política de Palavra-passe"
+msgstr "Políticas de Palavra-passe"
 
 msgid "Password Policy"
 msgstr "Política de Palavra-passe"
@@ -16613,7 +16600,7 @@ msgid "Max repeat"
 msgstr ""
 
 msgid "Maximum number of same consecutive characters"
-msgstr "número máximo do mesmo caractere consecutivo numa palavra passe"
+msgstr "Número máximo do mesmo caractere consecutivo"
 
 msgid "Max sequence"
 msgstr ""
@@ -16743,7 +16730,7 @@ msgid "IPA server domain cannot be deleted"
 msgstr ""
 
 msgid "Role"
-msgstr ""
+msgstr "Função"
 
 #, python-format
 msgid "Added role \"%(value)s\""
@@ -16786,38 +16773,36 @@ msgid ""
 msgstr ""
 
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 msgid "Documentation"
-msgstr ""
+msgstr "Documentação"
 
 msgid "Exclude from"
 msgstr ""
 
 msgid "Include in"
-msgstr "Incluir"
+msgstr "Incluir em"
 
 msgid "Help topic"
 msgstr ""
 
 msgid "Version"
-msgstr ""
+msgstr "Versão"
 
 msgid "Parameters"
 msgstr ""
 
 msgid "Method of"
-msgstr "Método"
+msgstr "Método de"
 
 #, fuzzy
 #| msgid "Command name"
 msgid "Method name"
 msgstr "Nome do comando"
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a command."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um comando."
 
 #, fuzzy
 #| msgid "Search for trusts."
@@ -16831,20 +16816,16 @@ msgstr ""
 msgid "{oname}: {command_name} not found"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a class."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma classe."
 
 #, fuzzy
 #| msgid "Search for trusts."
 msgid "Search for classes."
 msgstr "Pesquisar por interligações."
 
-#, fuzzy
-#| msgid "Display information about a delegation."
 msgid "Display information about a help topic."
-msgstr "Exibir informação acerca de uma delegação."
+msgstr "Mostra informação acerca de um tópico de ajuda."
 
 #, fuzzy
 #| msgid "Search for trusts."
@@ -16869,16 +16850,16 @@ msgid "CLI name"
 msgstr "Nome do comando"
 
 msgid "Confirm (password)"
-msgstr ""
+msgstr "Confirmar (palavra-passe)"
 
 msgid "Default"
-msgstr ""
+msgstr "Predefinição"
 
 msgid "Default from"
 msgstr ""
 
 msgid "Label"
-msgstr ""
+msgstr "Etiqueta"
 
 msgid "Convert on server"
 msgstr ""
@@ -16908,10 +16889,8 @@ msgstr ""
 msgid "%(command_name)s: %(oname)s not found"
 msgstr ""
 
-#, fuzzy
-#| msgid "Display information about a named group."
 msgid "Display information about a command output."
-msgstr "Exibir informação acerca de um grupo nomeado."
+msgstr "Mostra informação acerca de um resultado de comando."
 
 #, fuzzy
 #| msgid "Search for trusts."
@@ -16952,10 +16931,10 @@ msgid "SELinux User Map rules"
 msgstr ""
 
 msgid "SELinux User Maps"
-msgstr "Utilizador SELinux"
+msgstr "Mapas de Utilizador SELinux"
 
 msgid "SELinux User Map"
-msgstr "Utilizador SELinux"
+msgstr "Mapa de Utilizador SELinux"
 
 #, python-format
 msgid "HBAC rule %(rule)s not found"
@@ -17222,10 +17201,8 @@ msgstr ""
 msgid "givenname is required"
 msgstr "'%(name)s' é obrigatório"
 
-#, fuzzy
-#| msgid "'%(name)s' is required"
 msgid "sn is required"
-msgstr "'%(name)s' é obrigatório"
+msgstr "sn é obrigatório"
 
 #, python-format
 msgid "Deleted stage user \"%(value)s\""
@@ -17355,7 +17332,7 @@ msgid "SubGID range size"
 msgstr ""
 
 msgid "Subordinate group ID count"
-msgstr "Contagem de ID de grupo subordinado (tamanho de gama)"
+msgstr "Contagem de ID de grupo subordinado"
 
 #, python-format
 msgid ""
@@ -17401,10 +17378,8 @@ msgid_plural "%(count)d subordinate ids matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about a subordinate id."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de um id subordinado."
 
 msgid "Generate and auto-assign subuid and subgid range to user entry"
 msgstr ""
@@ -17445,10 +17420,8 @@ msgstr ""
 msgid "must not contain trailing dot: %s"
 msgstr ""
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "sudo command"
-msgstr "Comandos do tópico:"
+msgstr "comando sudo"
 
 #, fuzzy
 #| msgid "Topic commands:"
@@ -17588,7 +17561,7 @@ msgid ""
 msgstr ""
 
 msgid "this option has been deprecated."
-msgstr "Esta opção está descontinuada."
+msgstr "esta opção está descontinuada."
 
 msgid "sudo rules"
 msgstr ""
@@ -17621,17 +17594,13 @@ msgid ""
 msgstr ""
 
 msgid "users"
-msgstr ""
+msgstr "utilizadores"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "command"
-msgstr "Comandos do tópico:"
+msgstr "comando"
 
-#, fuzzy
-#| msgid "Topic commands:"
 msgid "commands"
-msgstr "Comandos do tópico:"
+msgstr "comandos"
 
 msgid "runAs user"
 msgstr ""
@@ -17803,7 +17772,7 @@ msgid "Dogtag Authority ID"
 msgstr ""
 
 msgid "Subject DN"
-msgstr ""
+msgstr "DN do assunto"
 
 msgid "Subject Distinguished Name"
 msgstr ""
@@ -17815,7 +17784,7 @@ msgid "Issuer Distinguished Name"
 msgstr ""
 
 msgid "Base-64 encoded certificate."
-msgstr "Especifica certificado codificado em base64."
+msgstr "Certificado codificado em base-64."
 
 msgid "Certificate chain"
 msgstr ""
@@ -18259,7 +18228,7 @@ msgid "PTR record for SAN IP (%s) does not match A/AAAA records"
 msgstr ""
 
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 msgid "Revoked"
 msgstr ""
@@ -18369,7 +18338,7 @@ msgid "configuration options"
 msgstr ""
 
 msgid "Configuration"
-msgstr ""
+msgstr "Configuração"
 
 msgid "Maximum hostname length"
 msgstr ""
@@ -18426,7 +18395,7 @@ msgid "Hidden IPA servers configured as key recovery agent"
 msgstr ""
 
 msgid "Domain resolution order"
-msgstr ""
+msgstr "Ordem de resolução de domínio"
 
 msgid "colon-separated list of domains used for short name qualification"
 msgstr ""
@@ -18647,7 +18616,7 @@ msgid "Host Groups allowed to add resource delegation"
 msgstr ""
 
 msgid "Host"
-msgstr ""
+msgstr "Máquina"
 
 msgid "Host physical location hint (e.g. \"Lab 2\")"
 msgstr ""
@@ -18924,7 +18893,7 @@ msgid "local domain range"
 msgstr ""
 
 msgid "Active Directory domain range"
-msgstr "Domínio Active Directory"
+msgstr "Gama de domínio Active Directory"
 
 msgid "Active Directory trust range with POSIX attributes"
 msgstr ""
@@ -18933,7 +18902,7 @@ msgid "ID range type, one of allowed values"
 msgstr ""
 
 msgid "Auto private groups"
-msgstr ""
+msgstr "Grupos privados automáticos"
 
 msgid "Auto creation of private groups, one of allowed values"
 msgstr ""
@@ -19107,7 +19076,7 @@ msgid "Default Trust View cannot be applied on hosts"
 msgstr ""
 
 msgid "not found"
-msgstr ""
+msgstr "não encontrado"
 
 msgid "ID View cannot be applied to IPA master"
 msgstr ""
@@ -19116,7 +19085,7 @@ msgid "ID View already applied"
 msgstr ""
 
 msgid "value"
-msgstr ""
+msgstr "valor"
 
 #, python-format
 msgid "ID View applied to %i host."
@@ -19191,10 +19160,8 @@ msgid_plural "%(count)d ID overrides matched"
 msgstr[0] ""
 msgstr[1] ""
 
-#, fuzzy
-#| msgid "Display information about a user."
 msgid "Display information about an ID override."
-msgstr "Exibir informação acerca de um utilizador."
+msgstr "Mostra informação acerca de uma sobreposição de ID."
 
 msgid "User ID override"
 msgstr ""
@@ -19259,13 +19226,13 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Internationalization messages"
-msgstr "Internacionalização"
+msgstr "Mensagens de internacionalização"
 
 msgid "Your session has expired. Please log in again."
 msgstr ""
 
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
 msgid "Rebuild auto membership"
 msgstr ""
@@ -19280,7 +19247,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Are you sure you want to delete ${object}?"
-msgstr ""
+msgstr "Tem a certeza que deseja apagar ${object}?"
 
 #, python-brace-format
 msgid "Are you sure you want to disable ${object}?"
@@ -19290,13 +19257,11 @@ msgstr ""
 msgid "Are you sure you want to enable ${object}?"
 msgstr ""
 
-#, fuzzy
-#| msgid "%(exception)s"
 msgid "Actions"
-msgstr "%(exception)s"
+msgstr "Ações"
 
 msgid "Add"
-msgstr ""
+msgstr "Adicionar"
 
 #, python-brace-format
 msgid "${count} item(s) added"
@@ -19319,10 +19284,8 @@ msgstr ""
 msgid "Showing ${start} to ${end} of ${total} entries."
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove trusts"
 msgid "Remove"
-msgstr "Remover interligações"
+msgstr "Remover"
 
 #, python-brace-format
 msgid "${count} item(s) removed"
@@ -19363,7 +19326,7 @@ msgid "External Identity Provider"
 msgstr ""
 
 msgid "Passkey"
-msgstr "Passkey"
+msgstr "Chave passe"
 
 msgid "Disable per-user override"
 msgstr ""
@@ -19379,10 +19342,10 @@ msgid ""
 msgstr ""
 
 msgid "About"
-msgstr ""
+msgstr "Acerca de"
 
 msgid "Activate"
-msgstr ""
+msgstr "Ativar"
 
 msgid "Add and Add Another"
 msgstr ""
@@ -19397,10 +19360,10 @@ msgid "Add Many"
 msgstr ""
 
 msgid "Back"
-msgstr ""
+msgstr "Voltar"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Cancelar"
 
 msgid "Clear"
 msgstr ""
@@ -19409,61 +19372,61 @@ msgid "Clear all fields on the page."
 msgstr ""
 
 msgid "Close"
-msgstr ""
+msgstr "Fechar"
 
 msgid "Disable"
-msgstr ""
+msgstr "Desativar"
 
 msgid "Download"
-msgstr ""
+msgstr "Descarga"
 
 msgid "Download certificate as PEM formatted file."
 msgstr ""
 
 msgid "Edit"
-msgstr ""
+msgstr "Editar"
 
 msgid "Enable"
-msgstr ""
+msgstr "Activar"
 
 msgid "Find"
-msgstr ""
+msgstr "Encontrar"
 
 msgid "Get"
 msgstr ""
 
 msgid "Hide"
-msgstr ""
+msgstr "Esconder"
 
 msgid "Issue"
 msgstr ""
 
 msgid "Match"
-msgstr ""
+msgstr "Corresponder"
 
 msgid "Match users according to certificate."
 msgstr ""
 
 msgid "Migrate"
-msgstr ""
+msgstr "Migrar"
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Refresh"
-msgstr ""
+msgstr "Refrescar"
 
 msgid "Reload current settings from the server."
 msgstr ""
 
 msgid "Delete"
-msgstr ""
+msgstr "Apagar"
 
 msgid "Remove hold"
 msgstr ""
 
 msgid "Reset"
-msgstr ""
+msgstr "Reiniciar"
 
 msgid "Reset Password"
 msgstr ""
@@ -19472,34 +19435,34 @@ msgid "Reset Password and Log in"
 msgstr ""
 
 msgid "Restore"
-msgstr ""
+msgstr "Restaurar"
 
 msgid "Retry"
-msgstr ""
+msgstr "Re-tentar"
 
 msgid "Revert"
-msgstr ""
+msgstr "Reverter"
 
 msgid "Revoke"
 msgstr ""
 
 msgid "Save"
-msgstr ""
+msgstr "Salvar"
 
 msgid "Set"
 msgstr ""
 
 msgid "Show"
-msgstr ""
+msgstr "Mostrar"
 
 msgid "Stage"
-msgstr ""
+msgstr "Estágio"
 
 msgid "Update"
-msgstr ""
+msgstr "Atualizar"
 
 msgid "View"
-msgstr ""
+msgstr "Vista"
 
 msgid "Customization"
 msgstr ""
@@ -19514,7 +19477,7 @@ msgid "Expand All"
 msgstr ""
 
 msgid "General"
-msgstr ""
+msgstr "Geral"
 
 msgid "Identity Settings"
 msgstr "Configurações de Identidade"
@@ -19530,7 +19493,7 @@ msgid "${entity} ${primary_key} Settings"
 msgstr "Configurações de Identidade"
 
 msgid "Back to Top"
-msgstr "Voltar Topo"
+msgstr "Voltar ao Topo"
 
 #, python-brace-format
 msgid "${entity} ${primary_key} updated"
@@ -19544,10 +19507,10 @@ msgid "Add custom value"
 msgstr ""
 
 msgid "Available"
-msgstr ""
+msgstr "Disponível"
 
 msgid "Some operations failed."
-msgstr ""
+msgstr "Algumas operações falharam."
 
 #, fuzzy
 #| msgid "Session error"
@@ -19555,7 +19518,7 @@ msgid "Operations Error"
 msgstr "Erro de sessão"
 
 msgid "Confirmation"
-msgstr ""
+msgstr "Confirmação"
 
 msgid "Custom value"
 msgstr ""
@@ -19582,7 +19545,7 @@ msgid "Prospective"
 msgstr ""
 
 msgid "Redirection"
-msgstr ""
+msgstr "Redireção"
 
 msgid "Select entries to be removed."
 msgstr ""
@@ -19594,10 +19557,10 @@ msgid "Show details"
 msgstr ""
 
 msgid "Success"
-msgstr ""
+msgstr "Sucesso"
 
 msgid "Validation error"
-msgstr "Erro de validação: %s"
+msgstr "Erro de validação"
 
 msgid "Input form contains invalid or missing values."
 msgstr ""
@@ -19626,7 +19589,7 @@ msgid "HTTP Error"
 msgstr ""
 
 msgid "Internal Error"
-msgstr ""
+msgstr "Erro Interno"
 
 msgid "IPA Error"
 msgstr ""
@@ -19635,10 +19598,10 @@ msgid "No response"
 msgstr ""
 
 msgid "Unknown Error"
-msgstr ""
+msgstr "Erro Desconhecido"
 
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #, python-brace-format
 msgid "${primary_key} is managed by:"
@@ -19656,16 +19619,14 @@ msgstr ""
 msgid "${primary_key} member managers:"
 msgstr ""
 
-#, fuzzy
-#| msgid "Identity Settings"
 msgid "Settings"
-msgstr "Configurações de Identidade"
+msgstr "Definições"
 
 msgid "Search"
-msgstr ""
+msgstr "Pesquisar"
 
 msgid "False"
-msgstr ""
+msgstr "Falso"
 
 #, python-brace-format
 msgid "Allow user groups to create keytab of '${primary_key}'"
@@ -19763,7 +19724,7 @@ msgid "PAD"
 msgstr ""
 
 msgid "Authenticating"
-msgstr ""
+msgstr "A autenticar"
 
 msgid "Authentication with personal certificate failed"
 msgstr ""
@@ -19843,10 +19804,10 @@ msgid "number of passwords"
 msgstr ""
 
 msgid "seconds"
-msgstr ""
+msgstr "segundos"
 
 msgid "Migrating"
-msgstr ""
+msgstr "A migrar"
 
 msgid "There was a problem with your request. Please, try again later."
 msgstr ""
@@ -19869,7 +19830,7 @@ msgid "Password migration was successful"
 msgstr ""
 
 msgid "Attribute"
-msgstr "atributo"
+msgstr "Atributo"
 
 msgid "Add delegation"
 msgstr ""
@@ -19919,10 +19880,8 @@ msgstr ""
 msgid "Remove roles from privilege '${primary_key}'"
 msgstr ""
 
-#, fuzzy
-#| msgid "Identity Settings"
 msgid "Role Settings"
-msgstr "Configurações de Identidade"
+msgstr "Definições de Função"
 
 msgid "Add role"
 msgstr ""
@@ -19989,7 +19948,7 @@ msgid "Remove self service permissions"
 msgstr "Exibir informação acerca de uma permissão de serviço automático."
 
 msgid "Add rule"
-msgstr ""
+msgstr "Adicionar regra"
 
 #, python-brace-format
 msgid "Add inclusive condition into '${primary_key}'"
@@ -20009,7 +19968,7 @@ msgid "Default user group"
 msgstr ""
 
 msgid "Exclusive"
-msgstr ""
+msgstr "Exclusivo"
 
 msgid "Expression"
 msgstr ""
@@ -20064,7 +20023,7 @@ msgid "Map Type"
 msgstr ""
 
 msgid "Direct"
-msgstr ""
+msgstr "Direto"
 
 msgid "Indirect"
 msgstr ""
@@ -20112,7 +20071,7 @@ msgid "Add users into CA ACL '${primary_key}'"
 msgstr ""
 
 msgid "All"
-msgstr ""
+msgstr "Todos"
 
 msgid "Any CA"
 msgstr ""
@@ -20121,7 +20080,7 @@ msgid "Any Host"
 msgstr ""
 
 msgid "Any Service"
-msgstr ""
+msgstr "Qualquer Serviço"
 
 msgid "Any Profile"
 msgstr ""
@@ -20200,7 +20159,7 @@ msgid "CA Compromise"
 msgstr ""
 
 msgid "Certificates"
-msgstr "Certificado CA:"
+msgstr "Certificados"
 
 msgid "Certificate Hold"
 msgstr ""
@@ -20362,7 +20321,7 @@ msgid "Superseded"
 msgstr ""
 
 msgid "Unspecified"
-msgstr "especificado"
+msgstr "Não especificado"
 
 msgid "Valid Certificate Present"
 msgstr ""
@@ -20432,31 +20391,23 @@ msgstr ""
 msgid "Server Options"
 msgstr ""
 
-#, fuzzy
-#| msgid "%(exception)s"
 msgid "Service Options"
-msgstr "%(exception)s"
+msgstr "Opções de Serviço"
 
 msgid "User Options"
 msgstr ""
 
-#, fuzzy
-#| msgid "Forward policy"
 msgid "Forward first"
-msgstr "Política de reencaminhamento"
+msgstr "Primeiro reencaminhar"
 
 msgid "Forwarding disabled"
-msgstr ""
+msgstr "Reencaminhamento desativado"
 
-#, fuzzy
-#| msgid "Forward policy"
 msgid "Forward only"
-msgstr "Política de reencaminhamento"
+msgstr "Apenas reencaminhar"
 
-#, fuzzy
-#| msgid "%(exception)s"
 msgid "Options"
-msgstr "%(exception)s"
+msgstr "Opções"
 
 msgid "Update System DNS Records"
 msgstr ""
@@ -20495,7 +20446,7 @@ msgid "Record creation failed."
 msgstr ""
 
 msgid "Checking if record exists."
-msgstr "A verificar se certificado existe"
+msgstr "A verificar se o registo existe."
 
 msgid "Record not found."
 msgstr ""
@@ -20539,7 +20490,7 @@ msgid "Are you sure you want to add permission for DNS Zone ${object}?"
 msgstr ""
 
 msgid "DNS Zone Settings"
-msgstr "Definições da Zona Base"
+msgstr "Definições da Zona DNS"
 
 msgid "Remove DNS zones"
 msgstr ""
@@ -20566,7 +20517,7 @@ msgid "Authoritative nameserver change"
 msgstr ""
 
 msgid "Level"
-msgstr ""
+msgstr "Nível"
 
 msgid "Set Domain Level"
 msgstr ""
@@ -20630,10 +20581,10 @@ msgid "Group Settings"
 msgstr ""
 
 msgid "External"
-msgstr ""
+msgstr "Externo"
 
 msgid "Groups"
-msgstr ""
+msgstr "Grupos"
 
 msgid "Group categories"
 msgstr ""
@@ -20788,7 +20739,7 @@ msgid "Remove HBAC services from HBAC service group '${primary_key}'"
 msgstr ""
 
 msgid "Access Denied"
-msgstr ""
+msgstr "Acesso Negado"
 
 msgid "Access Granted"
 msgstr ""
@@ -20812,7 +20763,7 @@ msgid "New Test"
 msgstr ""
 
 msgid "Rules"
-msgstr ""
+msgstr "Regras"
 
 msgid "Run Test"
 msgstr ""
@@ -20855,7 +20806,7 @@ msgid "Host Certificate"
 msgstr ""
 
 msgid "Host Name"
-msgstr ""
+msgstr "Nome de Máquina"
 
 msgid "Delete Key, Unprovision"
 msgstr ""
@@ -20878,7 +20829,7 @@ msgid "Generate OTP"
 msgstr ""
 
 msgid "Generated OTP"
-msgstr ""
+msgstr "OTP gerado"
 
 msgid "Kerberos Key"
 msgstr ""
@@ -20913,10 +20864,8 @@ msgstr ""
 msgid "Set One-Time Password"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove trusts"
 msgid "Remove hosts"
-msgstr "Remover interligações"
+msgstr "Remover máquinas"
 
 #, python-brace-format
 msgid "Remove hosts managing host '${primary_key}'"
@@ -21048,7 +20997,7 @@ msgid "OAuth 2.0 client details"
 msgstr ""
 
 msgid "Identity provider details"
-msgstr "Fornecedor de identidade"
+msgstr "Detalhes do fornecedor de identidade"
 
 msgid "Verify secret"
 msgstr ""
@@ -21065,7 +21014,7 @@ msgid "Enter trusted user login."
 msgstr ""
 
 msgid "Profile"
-msgstr ""
+msgstr "Perfil"
 
 msgid "Group to override"
 msgstr ""
@@ -21116,7 +21065,7 @@ msgid "Remove ID views"
 msgstr ""
 
 msgid "Remove user ID overrides"
-msgstr ""
+msgstr "Remover sobreposições de ID de utilizador"
 
 msgid "Remove group ID overrides"
 msgstr ""
@@ -21290,7 +21239,7 @@ msgid "Privilege Settings"
 msgstr ""
 
 msgid "Public key:"
-msgstr "Chave pública GPG"
+msgstr "Chave pública:"
 
 #, fuzzy
 #| msgid "invalid SSH public key"
@@ -21335,10 +21284,10 @@ msgid "Primary RID base"
 msgstr ""
 
 msgid "Range size"
-msgstr ""
+msgstr "Tamanho de gama"
 
 msgid "Domain SID"
-msgstr ""
+msgstr "SID do domínio"
 
 msgid "Secondary RID base"
 msgstr ""
@@ -21387,7 +21336,7 @@ msgid "Force Update"
 msgstr ""
 
 msgid "Add SELinux user map"
-msgstr "Adicionar um Utilizador SELinux"
+msgstr "Adicionar mapa de utilizador SELinux"
 
 #, python-brace-format
 msgid "Add user groups into SELinux user map '${primary_key}'"
@@ -21447,7 +21396,7 @@ msgid ""
 msgstr ""
 
 msgid "Add service"
-msgstr ""
+msgstr "Adicionar serviço"
 
 #, python-brace-format
 msgid "Add hosts managing service '${primary_key}'"
@@ -21460,18 +21409,14 @@ msgstr ""
 msgid "Service Certificate"
 msgstr ""
 
-#, fuzzy
-#| msgid "Identity Settings"
 msgid "Service Settings"
-msgstr "Configurações de Identidade"
+msgstr "Definições do Serviço"
 
 msgid "Provisioning"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove trusts"
 msgid "Remove services"
-msgstr "Remover interligações"
+msgstr "Remover serviços"
 
 #, python-brace-format
 msgid "Remove service '${primary_key}' from roles"
@@ -21482,7 +21427,7 @@ msgid "Remove hosts managing service '${primary_key}'"
 msgstr ""
 
 msgid "Are you sure you want to unprovision this service?"
-msgstr ""
+msgstr "Tem a certeza de que pretende não provisionar este serviço?"
 
 msgid "Unprovisioning service"
 msgstr ""
@@ -21545,7 +21490,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Are you sure you want to stage ${object}?"
-msgstr ""
+msgstr "De certeza que pretende estagiar ${object}?"
 
 msgid "Are you sure you want to restore selected users?"
 msgstr ""
@@ -21778,7 +21723,7 @@ msgid "Remove topology segments"
 msgstr ""
 
 msgid "Account"
-msgstr ""
+msgstr "Conta"
 
 #, fuzzy
 #| msgid "trusts"
@@ -21806,23 +21751,19 @@ msgid "Pre-shared password"
 msgstr ""
 
 msgid "Remove trusts"
-msgstr "Remover interligações"
+msgstr "Remover confianças"
 
 msgid "Remove domains"
-msgstr ""
+msgstr "Remover domínios"
 
 msgid "Trust direction"
 msgstr ""
 
-#, fuzzy
-#| msgid "Trusts"
 msgid "Trust status"
-msgstr "Interligações"
+msgstr "Estado de confiança"
 
-#, fuzzy
-#| msgid "Trusts"
 msgid "Trust type"
-msgstr "Interligações"
+msgstr "Tipo de confiança"
 
 msgid "Alternative UPN suffixes"
 msgstr ""
@@ -21854,7 +21795,7 @@ msgid "Active users"
 msgstr ""
 
 msgid "Add user"
-msgstr ""
+msgstr "Adicionar utilizador"
 
 #, python-brace-format
 msgid "Add user '${primary_key}' into user groups"
@@ -21908,18 +21849,16 @@ msgid "Misc. Information"
 msgstr ""
 
 msgid "delete"
-msgstr ""
+msgstr "apagar"
 
 msgid "preserve"
-msgstr ""
+msgstr "preservar"
 
 msgid "No private group"
 msgstr ""
 
-#, fuzzy
-#| msgid "Remove trusts"
 msgid "Remove users"
-msgstr "Remover interligações"
+msgstr "Remover utilizadores"
 
 #, python-brace-format
 msgid "Remove user '${primary_key}' from user groups"
@@ -21952,7 +21891,7 @@ msgid "Click to ${action}"
 msgstr ""
 
 msgid "Unlock"
-msgstr ""
+msgstr "Desbloquear"
 
 #, python-brace-format
 msgid "Are you sure you want to unlock user ${object}?"
@@ -22002,7 +21941,7 @@ msgid "Vaults Config"
 msgstr ""
 
 msgid "Members"
-msgstr ""
+msgstr "Membros"
 
 msgid "My User Vaults"
 msgstr ""
@@ -22043,13 +21982,13 @@ msgid "Service Vaults"
 msgstr ""
 
 msgid "Shared"
-msgstr ""
+msgstr "Partilhado"
 
 msgid "Shared Vaults"
 msgstr ""
 
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 msgid "Symmetric"
 msgstr ""
@@ -22107,10 +22046,8 @@ msgstr ""
 msgid "Your password has expired. Please enter a new password."
 msgstr ""
 
-#, fuzzy
-#| msgid "Passwords do not match"
 msgid "Passwords must match"
-msgstr "As palavras-passe não correspondem"
+msgstr "As palavras-passe têm de correspondem"
 
 msgid "Password reset was not successful."
 msgstr ""
@@ -22125,7 +22062,7 @@ msgid "Verify Password"
 msgstr ""
 
 msgid "Are you sure you want to delete selected entries?"
-msgstr ""
+msgstr "De certeza que pretende apagar as entradas selecionadas?"
 
 #, python-brace-format
 msgid "${count} item(s) deleted"
