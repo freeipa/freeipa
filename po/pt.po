@@ -6,8 +6,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-03-04 17:58+0000\n"
-"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
+"PO-Revision-Date: 2026-03-05 19:58+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
 "Language: pt\n"
@@ -2456,7 +2457,7 @@ msgid "Create reverse record for this IP Address"
 msgstr ""
 
 msgid "AAAA record"
-msgstr ""
+msgstr "Um registo"
 
 msgid "Raw AAAA records"
 msgstr ""
@@ -2468,7 +2469,7 @@ msgid "AAAA Create reverse"
 msgstr ""
 
 msgid "A6 record"
-msgstr ""
+msgstr "Um registo"
 
 msgid "Raw A6 records"
 msgstr ""
@@ -2498,13 +2499,13 @@ msgid "APL record"
 msgstr "Registo APL"
 
 msgid "Raw APL records"
-msgstr ""
+msgstr "Registo APL"
 
 msgid "CERT record"
 msgstr "Registo CERT"
 
 msgid "Raw CERT records"
-msgstr ""
+msgstr "Registo CERT"
 
 msgid "CERT Certificate Type"
 msgstr ""
@@ -2531,7 +2532,7 @@ msgid "Certificate/CRL"
 msgstr ""
 
 msgid "CNAME record"
-msgstr ""
+msgstr "Um registo"
 
 msgid "Raw CNAME records"
 msgstr ""
@@ -2543,13 +2544,13 @@ msgid "A hostname which this alias hostname points to"
 msgstr ""
 
 msgid "DHCID record"
-msgstr ""
+msgstr "Registo HIP"
 
 msgid "Raw DHCID records"
 msgstr ""
 
 msgid "DLV record"
-msgstr ""
+msgstr "Registo SRV"
 
 msgid "Raw DLV records"
 msgstr ""
@@ -2573,7 +2574,7 @@ msgid "Digest"
 msgstr "Digest"
 
 msgid "DNAME record"
-msgstr ""
+msgstr "Um registo"
 
 msgid "Raw DNAME records"
 msgstr ""
@@ -2591,7 +2592,7 @@ msgid "Raw DNSKEY records"
 msgstr ""
 
 msgid "DS record"
-msgstr ""
+msgstr "Registo SRV"
 
 msgid "Raw DS records"
 msgstr ""
@@ -2612,7 +2613,7 @@ msgid "HIP record"
 msgstr "Registo HIP"
 
 msgid "Raw HIP records"
-msgstr ""
+msgstr "Registo HIP"
 
 msgid "IPSECKEY record"
 msgstr ""
@@ -2627,7 +2628,7 @@ msgid "Raw KEY records"
 msgstr ""
 
 msgid "KX record"
-msgstr ""
+msgstr "Um registo"
 
 msgid "Raw KX records"
 msgstr ""
@@ -2645,7 +2646,7 @@ msgid "A host willing to act as a key exchanger"
 msgstr ""
 
 msgid "LOC record"
-msgstr ""
+msgstr "Registo APL"
 
 msgid "Raw LOC records"
 msgstr ""
@@ -2804,7 +2805,7 @@ msgid "PTR record"
 msgstr "Registo PTR"
 
 msgid "Raw PTR records"
-msgstr ""
+msgstr "Registo PTR"
 
 msgid "PTR Hostname"
 msgstr ""
@@ -2825,7 +2826,7 @@ msgid "Raw RP records"
 msgstr ""
 
 msgid "SIG record"
-msgstr ""
+msgstr "Registo SRV"
 
 msgid "Raw SIG records"
 msgstr ""
@@ -2834,13 +2835,13 @@ msgid "SPF record"
 msgstr "Registo SPF"
 
 msgid "Raw SPF records"
-msgstr ""
+msgstr "Registo SPF"
 
 msgid "SRV record"
 msgstr "Registo SRV"
 
 msgid "Raw SRV records"
-msgstr ""
+msgstr "Registo SRV"
 
 msgid "SRV Priority"
 msgstr "Prioridade SRV"
@@ -2869,7 +2870,7 @@ msgid ""
 msgstr ""
 
 msgid "SSHFP record"
-msgstr ""
+msgstr "Registo SPF"
 
 msgid "Raw SSHFP records"
 msgstr ""
@@ -3068,7 +3069,7 @@ msgid "Search for DNS forward zones."
 msgstr "Procura por zonas de reencaminhamento DNS."
 
 msgid "Modify DNS forward zone."
-msgstr ""
+msgstr "zona de reencaminhamento DNS"
 
 msgid "Remove a permission for per-forward zone access delegation."
 msgstr ""
@@ -3077,7 +3078,7 @@ msgid "Display information about a DNS forward zone."
 msgstr "Exibir informação acerca de uma zona de reencaminhamento DNS."
 
 msgid "Add new DNS resource record."
-msgstr ""
+msgstr "Adicionar registo de recurso DNS"
 
 msgid "Force"
 msgstr ""
@@ -3092,7 +3093,7 @@ msgid "Parse all raw DNS records and return them in a structured way"
 msgstr ""
 
 msgid "Delete DNS resource record."
-msgstr ""
+msgstr "registo de recurso DNS"
 
 msgid "Delete all associated records"
 msgstr ""
@@ -3731,7 +3732,7 @@ msgid "Search for hosts without these member of host groups."
 msgstr "Procurar por máquinas sem estes membros de grupos de máquinas."
 
 msgid "netgroup"
-msgstr ""
+msgstr "grupos"
 
 msgid "Search for hosts with these member of netgroups."
 msgstr "Procurar por máquinas com estes membros de grupos de rede."
@@ -4000,7 +4001,7 @@ msgid "Delete an User ID override."
 msgstr ""
 
 msgid "Search for an User ID override."
-msgstr ""
+msgstr "Procura por uma sobreposição de ID."
 
 msgid "Modify an User ID override."
 msgstr ""
@@ -4430,6 +4431,8 @@ msgstr ""
 msgid ""
 "retrieve and print all attributes from the server. Affects command output."
 msgstr ""
+"Recupera e escreve todos os atributos a partir do servidor. Afeta resultado "
+"gerado do comando."
 
 msgid "Dictionary mapping variable name to value"
 msgstr ""
@@ -4780,7 +4783,7 @@ msgstr ""
 
 msgid ""
 "User-specified attributes to which the permission explicitly does not apply"
-msgstr ""
+msgstr "Atributos específicos de utilizador para os quais a permissão se aplica"
 
 msgid "Default attributes"
 msgstr ""
@@ -7866,7 +7869,7 @@ msgid "Command category"
 msgstr "Categoria de comando"
 
 msgid "Command category the rule applies to"
-msgstr ""
+msgstr "Categoria de máquina a que a regra se aplica"
 
 msgid "RunAs User category"
 msgstr ""
@@ -8318,13 +8321,13 @@ msgid "Profile category the ACL applies to"
 msgstr ""
 
 msgid "User category the ACL applies to"
-msgstr ""
+msgstr "Categoria de utilizador a que a regra se aplica"
 
 msgid "Host category the ACL applies to"
-msgstr ""
+msgstr "Categoria de máquina a que a regra se aplica"
 
 msgid "Service category the ACL applies to"
-msgstr ""
+msgstr "Categoria de serviço a que a regra se aplica"
 
 msgid "Profiles"
 msgstr "Perfis"
@@ -10179,7 +10182,7 @@ msgid "Original TTL"
 msgstr ""
 
 msgid "RRSIG Signature Expiration"
-msgstr ""
+msgstr "Origem da Assinatura RRSIG"
 
 msgid "Signature Expiration"
 msgstr ""
@@ -10200,7 +10203,7 @@ msgid "Signer's Name"
 msgstr ""
 
 msgid "RRSIG Signature"
-msgstr ""
+msgstr "Assinatura"
 
 msgid "Signature"
 msgstr "Assinatura"
@@ -10224,7 +10227,7 @@ msgid "SIG Original TTL"
 msgstr ""
 
 msgid "SIG Signature Expiration"
-msgstr ""
+msgstr "Origem da Assinatura"
 
 msgid "SIG Signature Inception"
 msgstr "Origem da Assinatura SIG"
@@ -10816,7 +10819,7 @@ msgstr ""
 
 msgid ""
 "Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)"
-msgstr ""
+msgstr "tipo de objeto IPA (user, group, host, hostgroup, service, netgroup)"
 
 msgid "Target members of a group"
 msgstr ""
