@@ -5,7 +5,6 @@
 from datetime import datetime, timedelta, timezone
 UTC = timezone.utc
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
@@ -21,7 +20,6 @@ def generate_csr(cn, is_hostname=True):
     key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
-        backend=default_backend()
     )
     if isinstance(cn, bytes):
         cn = cn.decode()
@@ -35,7 +33,7 @@ def generate_csr(cn, is_hostname=True):
             critical=False
         )
 
-    csr = csr.sign(key, hashes.SHA256(), default_backend())
+    csr = csr.sign(key, hashes.SHA256())
     return csr.public_bytes(serialization.Encoding.PEM).decode()
 
 
@@ -49,7 +47,6 @@ def generate_certificate(hostname):
     key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
-        backend=default_backend()
     )
     if isinstance(hostname, bytes):
         hostname = hostname.decode()
@@ -69,5 +66,5 @@ def generate_certificate(hostname):
     ).add_extension(
         x509.SubjectAlternativeName([x509.DNSName(hostname)]),
         critical=False
-    ).sign(key, hashes.SHA256(), default_backend())
+    ).sign(key, hashes.SHA256())
     return cert.public_bytes(serialization.Encoding.PEM).decode()

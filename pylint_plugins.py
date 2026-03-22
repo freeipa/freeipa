@@ -10,6 +10,7 @@ import sys
 import textwrap
 
 from astroid import MANAGER, register_module_extender
+from astroid.exceptions import AstroidImportError
 from astroid.nodes import scoped_nodes
 from pylint.checkers import BaseChecker
 from pylint.checkers.utils import only_required_for_messages
@@ -28,12 +29,12 @@ def _warning_already_exists(cls, member):
     )
 
 
-def fake_class(name_or_class_obj, members=()):
+def fake_class(name_or_class_obj, members=(), parent=None):
     if isinstance(name_or_class_obj, scoped_nodes.ClassDef):
         cl = name_or_class_obj
     else:
         cl = scoped_nodes.ClassDef(
-            name=name_or_class_obj, lineno=None, col_offset=None, parent=None,
+            name=name_or_class_obj, lineno=None, col_offset=None, parent=parent,
             end_lineno=None, end_col_offset=None)
 
     for m in members:
@@ -42,7 +43,7 @@ def fake_class(name_or_class_obj, members=()):
                 _warning_already_exists(cl, m)
             else:
                 cl.locals[m] = [scoped_nodes.ClassDef(
-                    name=m, lineno=None, col_offset=None, parent=None,
+                    name=m, lineno=None, col_offset=None, parent=cl,
                     end_lineno=None, end_col_offset=None)]
         elif isinstance(m, dict):
             for key, val in m.items():
@@ -51,7 +52,7 @@ def fake_class(name_or_class_obj, members=()):
                     _warning_already_exists(cl, key)
                     fake_class(cl.locals[key], val)
                 else:
-                    cl.locals[key] = [fake_class(key, val)]
+                    cl.locals[key] = [fake_class(key, val, parent=cl)]
         else:
             # here can be used any astroid type
             if m.name in cl.locals:
@@ -238,6 +239,48 @@ register_module_extender(MANAGER, 'ipaplatform.services',
                          ipaplatform_services_transform)
 register_module_extender(MANAGER, 'ipaplatform.tasks',
                          ipaplatform_tasks_transform)
+
+
+def _synta_failed_import_hook(modname):
+    """Provide stubs for synta submodules that live in the Rust extension."""
+    if modname == 'synta.general_name':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                OTHER_NAME = 0
+                RFC822_NAME = 1
+                DNS_NAME = 2
+                X400_ADDRESS = 3
+                DIRECTORY_NAME = 4
+                EDI_PARTY_NAME = 5
+                URI = 6
+                IP_ADDRESS = 7
+                REGISTERED_ID = 8
+            '''),
+            modname='synta.general_name')
+    if modname == 'synta.oids':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                class _OID:
+                    def __str__(self):
+                        return ''
+                KP_SERVER_AUTH = _OID()
+                KP_CLIENT_AUTH = _OID()
+                KP_CODE_SIGNING = _OID()
+                KP_EMAIL_PROTECTION = _OID()
+                PKINIT_KP_CLIENT_AUTH = _OID()
+                PKINIT_KP_KDC = _OID()
+                ANY_EXTENDED_KEY_USAGE = _OID()
+                MS_SAN_UPN = _OID()
+                PKINIT_SAN = _OID()
+                EXTENDED_KEY_USAGE = _OID()
+                MS_CERTIFICATE_TEMPLATE_NAME = _OID()
+                MS_CERTIFICATE_TEMPLATE = _OID()
+            '''),
+            modname='synta.oids')
+    raise AstroidImportError(modname)
+
+
+MANAGER.register_failed_import_hook(_synta_failed_import_hook)
 
 
 def ipalib_request_transform():

@@ -12,7 +12,6 @@ import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.twofactor.hotp import HOTP
 from cryptography.hazmat.primitives.twofactor.totp import TOTP
@@ -63,10 +62,10 @@ def add_otptoken(host, owner, *, otptype="hotp", digits=6, algo="sha1"):
 
     hashcls = getattr(hashes, algo.upper())
     if otptype == "hotp":
-        return otpuid, HOTP(key, digits, hashcls(), default_backend())
+        return otpuid, HOTP(key, digits, hashcls())
     else:
         period = int(query["period"][0])
-        return otpuid, TOTP(key, digits, hashcls(), period, default_backend())
+        return otpuid, TOTP(key, digits, hashcls(), period)
 
 
 def del_otptoken(host, otpuid):

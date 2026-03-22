@@ -4,7 +4,6 @@
 import base64
 
 from cryptography import x509
-from cryptography.hazmat.backends import default_backend
 import pytest
 
 from ipalib.errors import MutuallyExclusiveError, RequirementError
@@ -53,8 +52,7 @@ class CertmapdataMixin:
 
             for cert in certs:
                 cert = x509.load_der_x509_certificate(
-                    base64.b64decode(cert),
-                    backend=default_backend()
+                    base64.b64decode(cert)
                 )
                 issuer = DN(cert.issuer).x500_text()
                 subject = DN(cert.subject).x500_text()

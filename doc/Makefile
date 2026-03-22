@@ -33,6 +33,6 @@ distclean: clean
 
 .PHONY: venv
 venv:
-	$(PYTHON) -m venv $(VENVDIR)
+	$(PYTHON) -m venv --system-site-packages $(VENVDIR)
 	$(VENVDIR)/bin/python3 -m pip install -U pip setuptools
 	$(VENVDIR)/bin/python3 -m pip install -U -r ./requirements.txt

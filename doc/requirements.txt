@@ -15,8 +15,6 @@ ifaddr
 netaddr
 qrcode
 six
-pyasn1
-pyasn1-modules
 requests
 
 ## C libraries with binary wheels
@@ -28,6 +26,7 @@ lxml
 # gssapi
 # dbus-python
 # python-ldap
+synta
 
 ## No sufficient PyPI packages
 # dogtag-pki

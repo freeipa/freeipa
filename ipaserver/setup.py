@@ -64,7 +64,6 @@ if __name__ == '__main__':
             "lxml",
             "netaddr",
             "psutil",
-            "pyasn1",
             "requests",
             "six",
             "python-augeas",

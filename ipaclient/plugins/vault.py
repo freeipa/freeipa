@@ -29,7 +29,6 @@ import ssl
 import tempfile
 
 from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -100,7 +99,6 @@ def generate_symmetric_key(password, salt):
         length=32,
         salt=salt,
         iterations=100000,
-        backend=default_backend()
     )
 
     return base64.b64encode(kdf.derive(password.encode('utf-8')))
@@ -121,7 +119,6 @@ def encrypt(data, symmetric_key=None, public_key=None):
     elif public_key is not None:
         public_key_obj = load_pem_public_key(
             data=public_key,
-            backend=default_backend()
         )
         return public_key_obj.encrypt(
             data,
@@ -156,7 +153,6 @@ def decrypt(data, symmetric_key=None, private_key=None):
             private_key_obj = load_pem_private_key(
                 data=private_key,
                 password=None,
-                backend=default_backend()
             )
             return private_key_obj.decrypt(
                 data,
@@ -334,7 +330,6 @@ class vault_add(Local):
             try:
                 load_pem_public_key(
                     data=public_key,
-                    backend=default_backend()
                 )
             except ValueError as e:
                 raise errors.ValidationError(
@@ -872,7 +867,7 @@ class vault_archive(ModVaultData):
         padded_data = padder.update(json_vault_data)
         padded_data += padder.finalize()
 
-        cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
+        cipher = Cipher(algo, modes.CBC(nonce))
         encryptor = cipher.encryptor()
         wrapped_vault_data = encryptor.update(padded_data) + encryptor.finalize()
 
@@ -1111,7 +1106,7 @@ class vault_retrieve(ModVaultData):
         return self.api.Command.vault_retrieve_internal.output()
 
     def _unwrap_response(self, algo, nonce, vault_data):
-        cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
+        cipher = Cipher(algo, modes.CBC(nonce))
         # decrypt
         decryptor = cipher.decryptor()
         padded_data = decryptor.update(vault_data)

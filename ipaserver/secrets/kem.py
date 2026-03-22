@@ -9,7 +9,6 @@ from configparser import ConfigParser
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 # pylint: disable=relative-import
@@ -43,8 +42,7 @@ class KEMLdap(iSecLdap):
         return base64url_encode(unhexlify((len(I) % 2) * '0' + I))
 
     def _parse_public_key(self, ipa_public_key):
-        public_key = serialization.load_der_public_key(ipa_public_key,
-                                                       default_backend())
+        public_key = serialization.load_der_public_key(ipa_public_key)
         num = public_key.public_numbers()
         if isinstance(num, rsa.RSAPublicNumbers):
             return {'kty': 'RSA',
@@ -99,7 +97,7 @@ class KEMLdap(iSecLdap):
                 raise ValueError('Invalid key, missing "kty" attribute')
             if jwkey['kty'] == 'RSA':
                 pubnum = rsa.RSAPublicNumbers(jwkey['e'], jwkey['n'])
-                pubkey = pubnum.public_key(default_backend())
+                pubkey = pubnum.public_key()
             elif jwkey['kty'] == 'EC':
                 if jwkey['crv'] == 'P-256':
                     curve = ec.SECP256R1
@@ -111,7 +109,7 @@ class KEMLdap(iSecLdap):
                     raise TypeError('Unsupported Elliptic Curve')
                 pubnum = ec.EllipticCurvePublicNumbers(
                     jwkey['x'], jwkey['y'], curve)
-                pubkey = pubnum.public_key(default_backend())
+                pubkey = pubnum.public_key()
             else:
                 raise ValueError('Unknown key type: %s' % jwkey['kty'])
         elif isinstance(key, rsa.RSAPublicKey):

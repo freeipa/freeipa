@@ -37,7 +37,6 @@ import pytest
 
 import six
 from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
 
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
@@ -1746,7 +1745,7 @@ class test_CertificateSigningRequest(ClassChecker):
         for prep_input in (
             lambda x: x,
             lambda x: x.decode('utf-8'),
-            lambda x: crypto_x509.load_pem_x509_csr(x, default_backend())
+            lambda x: crypto_x509.load_pem_x509_csr(x)
         ):
             # test that input is correctly converted to python-crytography
             # object representation
