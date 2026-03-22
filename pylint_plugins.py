@@ -249,7 +249,9 @@ def _synta_failed_import_hook(modname):
                 OTHER_NAME = 0
                 RFC822_NAME = 1
                 DNS_NAME = 2
+                X400_ADDRESS = 3
                 DIRECTORY_NAME = 4
+                EDI_PARTY_NAME = 5
                 URI = 6
                 IP_ADDRESS = 7
                 REGISTERED_ID = 8
