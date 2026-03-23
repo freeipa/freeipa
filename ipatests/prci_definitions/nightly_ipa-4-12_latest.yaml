@@ -2229,7 +2229,7 @@ jobs:
         test_suite: test_integration/test_32bit_idranges.py
         template: *ci-ipa-4-12-latest
         timeout: 7200
-        topology: *ad_master
+        topology: *ad_master_1repl_1client
 
   fedora-latest-ipa-4-12/test_trust_functional_hbac:
     requires: [fedora-latest-ipa-4-12/build]
