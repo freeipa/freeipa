@@ -21,6 +21,7 @@ requests
 cffi
 cryptography
 lxml
+synta
 
 ## C libraries without binaries wheels
 # gssapi
