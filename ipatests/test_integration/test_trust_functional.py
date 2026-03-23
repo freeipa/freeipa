@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import
 
+import re
 import time
 
 from ipaplatform.paths import paths
@@ -658,3 +659,1886 @@ class TestTrustFunctionalSudo(BaseTestTrust):
                                        raiseonerr=False)
         finally:
             self._cleanup_srule(srule)
+
+
+class TestTrustFunctionalSelinuxusermap(BaseTestTrust):
+    """
+    SELinux user mapping tests for AD users in trust environment.
+
+    Ported from Beaker t.ipa_trust_func_selinuxusermap.sh
+    """
+    topology = 'line'
+    num_ad_treedomains = 0
+    num_ad_subdomains = 0
+    num_clients = 2
+
+    # SELinux user constants (from Beaker t.ipa_trust_func_selinuxusermap.sh)
+    DEFAULT_SELINUXUSER = "unconfined_u:s0-s0:c0.c1023"
+    DEFAULT_SELINUXUSER_VERIF = r"unconfined_u:.*s0-s0:c0\.c1023"
+    T1_SELINUXUSER = "staff_u:s0-s0:c0.c1023"
+    T1_SELINUXUSER_VERIF = r"staff_u:.*s0-s0:c0\.c1023"
+    T2_SELINUXUSER = "user_u:s0"
+    T2_SELINUXUSER_VERIF = r"user_u:.*s0"
+    T3_SELINUXUSER = "xguest_u:s0"
+    T3_SELINUXUSER_VERIF = r"xguest_u:.*s0"
+    T4_SELINUXUSER = "guest_u:s0"
+    T4_SELINUXUSER_VERIF = r"guest_u:.*s0"
+
+    AD_PASSWORD = 'Secret123'
+
+    def _clear_sssd_cache(self):
+        """Clear SSSD cache on all hosts."""
+        for host in [self.master] + list(self.clients):
+            tasks.clear_sssd_cache(host)
+            tasks.wait_for_sssd_domain_status_online(host)
+
+    def _verify_ssh_selinuxuser_success_krb(
+        self, from_host, user_principal, target_host, selinuxuser_pattern
+    ):
+        """SSH with Kerberos credentials, verify id -Z matches pattern."""
+        tasks.kdestroy_all(from_host)
+        from_host.run_command(
+            ['kinit', user_principal],
+            stdin_text=f'{self.AD_PASSWORD}\n',
+            raiseonerr=True
+        )
+        result = from_host.run_command(
+            ['ssh', '-o', 'StrictHostKeyChecking=no', '-l', user_principal,
+             target_host.hostname, 'id', '-Z'],
+            raiseonerr=True
+        )
+        output = f"{result.stdout_text}{result.stderr_text}"
+        assert re.search(selinuxuser_pattern, output), (
+            f"Expected SELinux context matching {selinuxuser_pattern}, "
+            f"got: {output}"
+        )
+
+    def _verify_ssh_selinuxuser_failure_krb(
+        self, from_host, user_principal, target_host, selinuxuser_pattern
+    ):
+        """SSH with Kerberos, verify id -Z does NOT match pattern."""
+        tasks.kdestroy_all(from_host)
+        from_host.run_command(
+            ['kinit', user_principal],
+            stdin_text=f'{self.AD_PASSWORD}\n',
+            raiseonerr=True
+        )
+        result = from_host.run_command(
+            ['ssh', '-o', 'StrictHostKeyChecking=no', '-l', user_principal,
+             target_host.hostname, 'id', '-Z'],
+            raiseonerr=True
+        )
+        output = f"{result.stdout_text}{result.stderr_text}"
+        assert not re.search(selinuxuser_pattern, output), (
+            f"Expected SELinux context NOT matching {selinuxuser_pattern}, "
+            f"got: {output}"
+        )
+
+    def _verify_ssh_auth_success_selinuxuser(
+        self, from_host, user, password, target_host, selinuxuser_pattern
+    ):
+        """SSH with password auth, verify id -Z matches pattern."""
+        result = from_host.run_command(
+            ['sshpass', '-p', password, 'ssh',
+             '-o', 'StrictHostKeyChecking=no', '-o', 'PubkeyAuthentication=no',
+             '-o', 'GSSAPIAuthentication=no',
+             '-l', user, target_host.hostname, 'id', '-Z'],
+            raiseonerr=True
+        )
+        output = f"{result.stdout_text}{result.stderr_text}"
+        assert re.search(selinuxuser_pattern, output), (
+            f"Expected SELinux context matching {selinuxuser_pattern}, "
+            f"got: {output}"
+        )
+
+    def _verify_ssh_auth_failure_selinuxuser(
+        self, from_host, user, password, target_host, selinuxuser_pattern
+    ):
+        """SSH with password auth, verify id -Z does NOT match pattern."""
+        result = from_host.run_command(
+            ['sshpass', '-p', password, 'ssh',
+             '-o', 'StrictHostKeyChecking=no', '-o', 'PubkeyAuthentication=no',
+             '-o', 'GSSAPIAuthentication=no',
+             '-l', user, target_host.hostname, 'id', '-Z'],
+            raiseonerr=True
+        )
+        output = f"{result.stdout_text}{result.stderr_text}"
+        assert not re.search(selinuxuser_pattern, output), (
+            f"Expected SELinux context NOT matching {selinuxuser_pattern}, "
+            f"got: {output}"
+        )
+
+    def _ad_user_pairs(self):
+        """Yield (mapped_user, other_user) for ad_testgrp1."""
+        yield (self.aduser, self.aduser2)
+
+    def _ad_user_pairs_grp2(self):
+        """Yield (mapped_user, other_user) for ad_testgrp2."""
+        yield (self.aduser2, self.aduser)
+
+    @classmethod
+    def install(cls, mh):
+        super().install(mh)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(
+            cls.master, cls.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+        tasks.kdestroy_all(cls.master)
+        tasks.kinit_admin(cls.master)
+
+        # Create external and internal groups for aduser
+        tasks.group_add(
+            cls.master, groupname="ad_testgrp1_ext",
+            extra_args=["--external"]
+        )
+        tasks.group_add(cls.master, groupname="ad_testgrp1")
+        cls.master.run_command([
+            'ipa', '-n', 'group-add-member', 'ad_testgrp1_ext',
+            '--external', cls.aduser
+        ])
+        cls.master.run_command([
+            'ipa', 'group-add-member', 'ad_testgrp1',
+            '--groups=ad_testgrp1_ext'
+        ])
+
+        # Create external and internal groups for aduser2
+        tasks.group_add(
+            cls.master, groupname="ad_testgrp2_ext",
+            extra_args=["--external"]
+        )
+        tasks.group_add(cls.master, groupname="ad_testgrp2")
+        cls.master.run_command([
+            'ipa', '-n', 'group-add-member', 'ad_testgrp2_ext',
+            '--external', cls.aduser2
+        ])
+        cls.master.run_command([
+            'ipa', 'group-add-member', 'ad_testgrp2',
+            '--groups=ad_testgrp2_ext'
+        ])
+
+        for host in [cls.master] + list(cls.clients):
+            tasks.clear_sssd_cache(host)
+
+        for user in [cls.aduser, cls.aduser2]:
+            cls.master.run_command(['getent', 'passwd', user])
+
+    def test_selinuxusermap_on_specific_host(self):
+        """
+        Verify SELinux user mapping applies only when target host matches.
+
+        Creates selinuxusermap for ad_testgrp1 (staff_u) on CLIENT1 only.
+        Verifies: ad_testgrp1 users get staff_u when SSHing to CLIENT1,
+        unconfined_u on CLIENT2 and Master. ad_testgrp2 users get default
+        on all hosts. Tests both Kerberos and password auth from master
+        and both clients.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule1',
+                f'--selinuxuser={self.T1_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule1',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule1',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'selinuxusermaprule1']
+            )
+
+    def test_selinuxusermap_on_master_only(self):
+        """
+        Verify SELinux user mapping applies only when target host is Master.
+
+        Creates selinuxusermap for ad_testgrp1 (staff_u) restricted to Master.
+        Verifies: ad_testgrp1 users get staff_u when SSHing to Master,
+        unconfined_u on CLIENT1 and CLIENT2. ad_testgrp2 users get default
+        everywhere. Tests Kerberos and password auth from all hosts.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule2',
+                f'--selinuxuser={self.T1_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule2',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule2',
+                f'--hosts={self.master.hostname}'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.master,
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.master, self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.master, self.T1_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'selinuxusermaprule2']
+            )
+
+    def test_selinuxusermap_with_hbac_rule(self):
+        """
+        Verify HBAC rule and selinuxusermap together control access and
+        context.
+
+        Creates HBAC rule allowing ad_testgrp1 to access CLIENT1 via sshd,
+        with selinuxusermap assigning staff_u. Verifies: ad_testgrp1 users
+        get staff_u on CLIENT1 and default elsewhere; ad_testgrp2 users get
+        default on all hosts. Tests Kerberos and password auth.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self._clear_sssd_cache()
+            self.master.run_command(['ipa', 'hbacrule-add', 'hbacrule3_1'])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-user', 'hbacrule3_1',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'hbacrule3_1',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-service', 'hbacrule3_1',
+                '--hbacsvcs=sshd'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermap3_1',
+                f'--selinuxuser={self.T1_SELINUXUSER}',
+                '--hbacrule=hbacrule3_1'
+            ])
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'selinuxusermap3_1']
+            )
+            self.master.run_command(['ipa', 'hbacrule-del', 'hbacrule3_1'])
+
+    def _setup_precedence_chain_004(self):
+        """Setup selinuxusermap precedence chain (4_0, 4_1, 4_2)."""
+        tasks.kinit_admin(self.master)
+        self.master.run_command([
+            'ipa', 'hbacrule-add', 'admin_allow_all',
+            '--hostcat=all', '--servicecat=all'
+        ])
+        self.master.run_command([
+            'ipa', 'hbacrule-add-user', 'admin_allow_all',
+            '--groups=admins'
+        ])
+        self.master.run_command(['ipa', 'hbacrule-disable', 'allow_all'])
+        self.master.run_command([
+            'ipa', 'selinuxusermap-add', 'selinuxusermap4_0',
+            f'--selinuxuser={self.T3_SELINUXUSER}'
+        ])
+        self.master.run_command([
+            'ipa', 'selinuxusermap-mod', 'selinuxusermap4_0',
+            '--hbacrule=allow_all'
+        ])
+        self.master.run_command([
+            'ipa', 'hbacrule-add', 'hbacrule4_1',
+            '--servicecat=all', '--hostcat=all'
+        ])
+        self.master.run_command([
+            'ipa', 'hbacrule-add-user', 'hbacrule4_1',
+            '--groups=ad_testgrp1'
+        ])
+        self.master.run_command([
+            'ipa', 'selinuxusermap-add', 'selinuxusermap4_1',
+            f'--selinuxuser={self.T2_SELINUXUSER}'
+        ])
+        self.master.run_command([
+            'ipa', 'selinuxusermap-mod', 'selinuxusermap4_1',
+            '--hbacrule=hbacrule4_1'
+        ])
+        self.master.run_command(['ipa', 'hbacrule-add', 'hbacrule4_2'])
+        self.master.run_command([
+            'ipa', 'hbacrule-add-user', 'hbacrule4_2',
+            '--groups=ad_testgrp1'
+        ])
+        self.master.run_command([
+            'ipa', 'hbacrule-add-host', 'hbacrule4_2',
+            f'--hosts={self.clients[0].hostname}'
+        ])
+        self.master.run_command([
+            'ipa', 'hbacrule-add-service', 'hbacrule4_2',
+            '--hbacsvcs=sshd'
+        ])
+        self.master.run_command([
+            'ipa', 'selinuxusermap-add', 'selinuxusermap4_2',
+            f'--selinuxuser={self.T1_SELINUXUSER}',
+            '--hbacrule=hbacrule4_2'
+        ])
+
+    def test_selinuxusermap_rule_precedence(self):
+        """
+        Verify host-specific selinuxusermap overrides general when both match.
+
+        Creates precedence chain: general map (user_u), host-specific map
+        (staff_u on CLIENT1). Verifies: on CLIENT1, staff_u takes precedence;
+        on CLIENT2 and Master, user_u applies. Tests from master and clients.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self._clear_sssd_cache()
+            self._setup_precedence_chain_004()
+
+            for mapped_user, _other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.master,
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T2_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, _other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T2_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, _other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T2_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+
+    def test_selinuxusermap_rule_precedence_after_removing_specific(self):
+        """
+        Verify fallback to general map when host-specific map is removed.
+
+        Deletes host-specific selinuxusermap (staff_u on CLIENT1).
+        Verifies: ad_testgrp1 users now get user_u from general map on all
+        hosts. Continues from test_selinuxusermap_rule_precedence.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'selinuxusermap4_2']
+            )
+            self.master.run_command(['ipa', 'hbacrule-del', 'hbacrule4_2'])
+
+            self._clear_sssd_cache()
+            for mapped_user, _other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T2_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, _other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T2_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, _other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T2_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            # State left for test_selinuxusermap_004_3
+
+    def test_selinuxusermap_rule_precedence_after_removing_general(self):
+        """
+        Verify fallback to default map when general map is removed.
+
+        Deletes general selinuxusermap (user_u), re-enables allow_all.
+        Verifies: ad_testgrp1 and ad_testgrp2 users get xguest_u from
+        default map on all hosts. Continues from
+        precedence_after_removing_specific.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'selinuxusermap4_1']
+            )
+            self.master.run_command(['ipa', 'hbacrule-del', 'hbacrule4_1'])
+            self.master.run_command(['ipa', 'hbacrule-enable', 'allow_all'])
+
+            self._clear_sssd_cache()
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.master,
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[1],
+                    self.T3_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.master, self.T3_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.master, self.T3_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+
+    def test_selinuxusermap_rule_precedence_after_removing_default(self):
+        """
+        Verify fallback to IPA default when default map is removed.
+
+        Deletes default selinuxusermap (xguest_u).
+        Verifies: all AD users get unconfined_u (IPA default) on all hosts.
+        Continues from precedence_after_removing_general.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'selinuxusermap4_0']
+            )
+            self.master.run_command(['ipa', 'hbacrule-del', 'admin_allow_all'])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+
+    def test_selinuxusermap_with_hostgroup(self):
+        """
+        Verify selinuxusermap --hostgroup restricts mapping to hostgroup hosts.
+
+        Creates hostgroup containing CLIENT2, selinuxusermap for ad_testgrp2
+        (guest_u) on that hostgroup. Verifies: ad_testgrp2 users get guest_u
+        on CLIENT2 only; on CLIENT1 and Master they get default unconfined_u.
+        ad_testgrp1 users get default everywhere.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp1', '--desc=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp1',
+                f'--hosts={self.clients[1].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'test_user_specific_hostgroup',
+                f'--selinuxuser={self.T4_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host',
+                'test_user_specific_hostgroup', '--hostgroups=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user',
+                'test_user_specific_hostgroup', '--groups=ad_testgrp2'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[1],
+                    self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp1'])
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'test_user_specific_hostgroup']
+            )
+
+    def test_selinuxusermap_with_hostgroup_after_removing_user(self):
+        """
+        Verify users get default when removed from selinuxusermap.
+
+        Removes ad_testgrp2 from hostgroup selinuxusermap.
+        Verifies: ad_testgrp2 users now get default unconfined_u on all hosts.
+        ad_testgrp1 users continue to get default everywhere.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp1', '--desc=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp1',
+                f'--hosts={self.clients[1].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'test_user_specific_hostgroup',
+                f'--selinuxuser={self.T4_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host',
+                'test_user_specific_hostgroup', '--hostgroups=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user',
+                'test_user_specific_hostgroup', '--groups=ad_testgrp2'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-remove-user',
+                'test_user_specific_hostgroup', '--groups=ad_testgrp2'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[1],
+                    self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_auth_failure_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T4_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp1'])
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'test_user_specific_hostgroup']
+            )
+
+    def test_selinuxusermap_with_hbac_rule_and_hostgroup(self):
+        """
+        Verify HBAC rule + selinuxusermap + hostgroup work together.
+
+        Creates rule6 allowing ad_testgrp2 to access hostgroup (CLIENT2) via
+        sshd, selinuxusermap assigns staff_u. Verifies: ad_testgrp2 users can
+        SSH to CLIENT2 with staff_u; access to CLIENT1 and Master denied by
+        HBAC.
+        ad_testgrp1 users denied everywhere by rule6.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(['ipa', 'hbacrule-disable', 'allow_all'])
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp1', '--desc=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp1',
+                f'--hosts={self.clients[1].hostname}'
+            ])
+            self.master.run_command(['ipa', 'hbacrule-add', 'rule6'])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-service', 'rule6', '--hbacsvcs=sshd'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-user', 'rule6', '--groups=ad_testgrp2'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'rule6', '--hostgroups=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'test_user_specific_hostgroup',
+                f'--selinuxuser={self.T1_SELINUXUSER}', '--hbacrule=rule6'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self.master.run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.clients[1].hostname, 'id'],
+                    raiseonerr=True
+                )
+                result = self.master.run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.clients[1].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.master.run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T1_SELINUXUSER_VERIF
+                )
+                result = self.clients[0].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[0].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.clients[1].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T1_SELINUXUSER_VERIF
+                )
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.clients[0].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.clients[0].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.clients[1].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp1'])
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'test_user_specific_hostgroup']
+            )
+            self.master.run_command(['ipa', 'hbacrule-del', 'rule6'])
+            self.master.run_command(['ipa', 'hbacrule-enable', 'allow_all'])
+
+    def test_selinuxusermap_with_hbac_rule_after_removing_user(self):
+        """
+        Verify access denied when user group removed from HBAC rule.
+
+        Removes ad_testgrp2 from rule6. Verifies: ad_testgrp2 users are now
+        denied SSH access to all hosts (HBAC blocks before selinuxusermap).
+        ad_testgrp1 users also denied (not in rule6).
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(['ipa', 'hbacrule-disable', 'allow_all'])
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp1', '--desc=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp1',
+                f'--hosts={self.clients[1].hostname}'
+            ])
+            self.master.run_command(['ipa', 'hbacrule-add', 'rule6'])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-service', 'rule6', '--hbacsvcs=sshd'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-user', 'rule6', '--groups=ad_testgrp2'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'rule6', '--hostgroups=hostgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'test_user_specific_hostgroup',
+                f'--selinuxuser={self.T1_SELINUXUSER}', '--hbacrule=rule6'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-remove-user', 'rule6', '--groups=ad_testgrp2'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                for host in [self.master, self.clients[0], self.clients[1]]:
+                    result = self.master.run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', mapped_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+                    result = self.master.run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', other_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                for host in [self.master, self.clients[0], self.clients[1]]:
+                    result = self.clients[0].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', mapped_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+                    result = self.clients[0].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', other_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs_grp2():
+                for host in [self.master, self.clients[0], self.clients[1]]:
+                    result = self.clients[1].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', mapped_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+                    result = self.clients[1].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', other_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp1'])
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-del', 'test_user_specific_hostgroup']
+            )
+            self.master.run_command(['ipa', 'hbacrule-del', 'rule6'])
+            self.master.run_command(['ipa', 'hbacrule-enable', 'allow_all'])
+
+    def test_selinuxusermap_with_hbac_rule_two_hostgroups(self):
+        """
+        Verify selinuxusermap across multiple hostgroups in one HBAC rule.
+
+        Creates rule7 allowing ad_testgrp1 to access hostgrp7-1 (CLIENT1) and
+        hostgrp7-2 (CLIENT2). Verifies: ad_testgrp1 users get staff_u on both
+        clients; access to Master denied by HBAC. ad_testgrp2 denied
+        everywhere.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(['ipa', 'hbacrule-disable', 'allow_all'])
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp7-1', '--desc=hostgrp7-1'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp7-1',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp7-2', '--desc=hostgrp7-2'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp7-2',
+                f'--hosts={self.clients[1].hostname}'
+            ])
+            self.master.run_command(['ipa', 'hbacrule-add', 'rule7'])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-service', 'rule7', '--hbacsvcs=sshd'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-user', 'rule7', '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'rule7',
+                '--hostgroups=hostgrp7-1'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'rule7',
+                '--hostgroups=hostgrp7-2'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add',
+                'test_user_specific_hostgroup_from_hostgroup',
+                f'--selinuxuser={self.T1_SELINUXUSER}', '--hbacrule=rule7'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.master,
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[0],
+                    self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[1],
+                    self.T1_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T1_SELINUXUSER_VERIF
+                )
+                result = self.clients[0].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[0].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.clients[1].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[0].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T1_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.T1_SELINUXUSER_VERIF
+                )
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', mapped_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.clients[0].hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+                result = self.clients[1].run_command(
+                    ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                     '-o', 'StrictHostKeyChecking=no',
+                     '-o', 'PubkeyAuthentication=no',
+                     '-o', 'GSSAPIAuthentication=no',
+                     '-l', other_user, self.master.hostname, 'id'],
+                    raiseonerr=False
+                )
+                assert result.returncode != 0
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp7-1'])
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp7-2'])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-del',
+                'test_user_specific_hostgroup_from_hostgroup'
+            ])
+            self.master.run_command(['ipa', 'hbacrule-del', 'rule7'])
+            self.master.run_command(['ipa', 'hbacrule-enable', 'allow_all'])
+
+    def test_selinuxusermap_with_hbac_rule_two_hostgroups_after_removing_user(
+            self):
+        """
+        Verify access denied when user group removed from multi-hostgroup rule.
+
+        Removes ad_testgrp1 from rule7. Verifies: ad_testgrp1 users are now
+        denied SSH access to all hosts. ad_testgrp2 users also denied.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(['ipa', 'hbacrule-disable', 'allow_all'])
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp7-1', '--desc=hostgrp7-1'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp7-1',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add', 'hostgrp7-2', '--desc=hostgrp7-2'
+            ])
+            self.master.run_command([
+                'ipa', 'hostgroup-add-member', 'hostgrp7-2',
+                f'--hosts={self.clients[1].hostname}'
+            ])
+            self.master.run_command(['ipa', 'hbacrule-add', 'rule7'])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-service', 'rule7', '--hbacsvcs=sshd'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-user', 'rule7', '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'rule7',
+                '--hostgroups=hostgrp7-1'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-add-host', 'rule7',
+                '--hostgroups=hostgrp7-2'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add',
+                'test_user_specific_hostgroup_from_hostgroup',
+                f'--selinuxuser={self.T1_SELINUXUSER}', '--hbacrule=rule7'
+            ])
+            self.master.run_command([
+                'ipa', 'hbacrule-remove-user', 'rule7', '--groups=ad_testgrp1'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                for host in [self.master, self.clients[0], self.clients[1]]:
+                    result = self.master.run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', mapped_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+                    result = self.master.run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', other_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                for host in [self.master, self.clients[0], self.clients[1]]:
+                    result = self.clients[0].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', mapped_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+                    result = self.clients[0].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', other_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                for host in [self.master, self.clients[0], self.clients[1]]:
+                    result = self.clients[1].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', mapped_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+                    result = self.clients[1].run_command(
+                        ['sshpass', '-p', self.AD_PASSWORD, 'ssh',
+                         '-o', 'StrictHostKeyChecking=no',
+                         '-o', 'PubkeyAuthentication=no',
+                         '-o', 'GSSAPIAuthentication=no',
+                         '-l', other_user, host.hostname, 'id'],
+                        raiseonerr=False
+                    )
+                    assert result.returncode != 0
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp7-1'])
+            self.master.run_command(['ipa', 'hostgroup-del', 'hostgrp7-2'])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-del',
+                'test_user_specific_hostgroup_from_hostgroup'
+            ])
+            self.master.run_command(['ipa', 'hbacrule-del', 'rule7'])
+            self.master.run_command(['ipa', 'hbacrule-enable', 'allow_all'])
+
+    def test_selinuxusermap_with_empty_default(self):
+        """
+        Verify AD users get system default when IPA selinuxusermap default
+        empty.
+
+        Clears ipaselinuxusermapdefault. Verifies: AD users get unconfined_u
+        (system default) on all hosts when IPA default is not set.
+        Restores default in cleanup.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command(
+                ['ipa', 'config-mod', '--ipaselinuxusermapdefault=']
+            )
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'config-mod',
+                '--ipaselinuxusermapdefault=unconfined_u:s0-s0:c0.c1023'
+            ])
+
+    def test_selinuxusermap_precedence_multiple_maps(self):
+        """
+        Verify precedence when multiple selinuxusermaps match same user/host.
+
+        Creates three maps on CLIENT1 for ad_testgrp1: xguest_u, user_u,
+        guest_u.
+        Verifies: user_u (second in order) takes precedence. ad_testgrp2 users
+        get default. Tests from master and both clients.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule1',
+                f'--selinuxuser={self.T3_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule1',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule1',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule2',
+                f'--selinuxuser={self.T2_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule2',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule2',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule3',
+                f'--selinuxuser={self.T4_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule3',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule3',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'selinuxusermap-del',
+                'selinuxusermaprule1', 'selinuxusermaprule2',
+                'selinuxusermaprule3'
+            ])
+
+    def test_selinuxusermap_precedence_after_disabling_map(self):
+        """
+        Verify next map applies when leading map is disabled.
+
+        Creates three maps on CLIENT1, then disables the one (user_u) that
+        was taking precedence. Verifies: ad_testgrp1 users now get xguest_u
+        from next matching map on CLIENT1; ad_testgrp2 users get default.
+        """
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule1',
+                f'--selinuxuser={self.T3_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule1',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule1',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule2',
+                f'--selinuxuser={self.T2_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule2',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule2',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add', 'selinuxusermaprule3',
+                f'--selinuxuser={self.T4_SELINUXUSER}'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-user', 'selinuxusermaprule3',
+                '--groups=ad_testgrp1'
+            ])
+            self.master.run_command([
+                'ipa', 'selinuxusermap-add-host', 'selinuxusermaprule3',
+                f'--hosts={self.clients[0].hostname}'
+            ])
+            self.master.run_command(
+                ['ipa', 'selinuxusermap-disable', 'selinuxusermaprule2']
+            )
+            self._clear_sssd_cache()
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T2_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[0],
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.clients[1],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, mapped_user, self.master,
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_failure_krb(
+                    self.master, other_user, self.clients[0],
+                    self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_selinuxuser_success_krb(
+                    self.master, other_user, self.clients[0],
+                    self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[0], other_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+
+            for mapped_user, other_user in self._ad_user_pairs():
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[0], self.T3_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.clients[1], self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], mapped_user, self.AD_PASSWORD,
+                    self.master, self.DEFAULT_SELINUXUSER_VERIF
+                )
+                self._verify_ssh_auth_success_selinuxuser(
+                    self.clients[1], other_user, self.AD_PASSWORD,
+                    self.clients[0], self.DEFAULT_SELINUXUSER_VERIF
+                )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'selinuxusermap-del',
+                'selinuxusermaprule1', 'selinuxusermaprule2',
+                'selinuxusermaprule3'
+            ])
