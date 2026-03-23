@@ -2231,7 +2231,7 @@ jobs:
         test_suite: test_integration/test_32bit_idranges.py
         template: *ci-master-latest
         timeout: 7200
-        topology: *ad_master
+        topology: *ad_master_1repl_1client
 
   fedora-latest/test_trust_functional:
     requires: [fedora-latest/build]
