@@ -3,13 +3,14 @@
 # Pavel Borecki <pavel.borecki@gmail.com>, 2019. #zanata, 2025, 2026.
 # Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2026.
 # Daniel Rusek <mail@asciiwolf.com>, 2026.
+# Florence Blanc-Renaud <frenaud@redhat.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-02-26 23:59+0000\n"
-"Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
+"Last-Translator: Florence Blanc-Renaud <frenaud@redhat.com>\n"
 "Language-Team: Czech <https://translate.fedoraproject.org/projects/freeipa/"
 "master/cs/>\n"
 "Language: cs\n"
@@ -19734,7 +19735,7 @@ msgstr "Opravdu chcete v této akci pokračovat?"
 
 #, python-brace-format
 msgid "Are you sure you want to delete ${object}?"
-msgstr "Opravdu chcete {object} smazat?"
+msgstr "Opravdu chcete ${object} smazat?"
 
 #, python-brace-format
 msgid "Are you sure you want to disable ${object}?"
