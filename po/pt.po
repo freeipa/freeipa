@@ -6,8 +6,9 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-02-23 19:58+0000\n"
-"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
+"PO-Revision-Date: 2026-02-24 20:58+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
 "Language: pt\n"
@@ -9117,7 +9118,7 @@ msgid "Principal for this certificate (e.g. HTTP/test.example.com)"
 msgstr ""
 
 msgid "Profile ID"
-msgstr ""
+msgstr "Perfil"
 
 msgid "Certificate Profile to use"
 msgstr ""
@@ -10052,7 +10053,7 @@ msgid "KEY Flags"
 msgstr ""
 
 msgid "KEY Protocol"
-msgstr ""
+msgstr "Protocolo"
 
 msgid "Protocol"
 msgstr ""
@@ -10088,7 +10089,7 @@ msgid "NSEC Next Domain Name"
 msgstr ""
 
 msgid "Next Domain Name"
-msgstr ""
+msgstr "Nome do Domínio"
 
 msgid "NSEC Type Map"
 msgstr ""
@@ -10154,7 +10155,7 @@ msgid "RRSIG Signature"
 msgstr ""
 
 msgid "Signature"
-msgstr ""
+msgstr "assinatura"
 
 msgid "Comma-separated list of raw RP records"
 msgstr ""
@@ -10271,10 +10272,8 @@ msgstr ""
 msgid "Consume an entitlement."
 msgstr "Comando não implementado"
 
-#, fuzzy
-#| msgid "Identity"
 msgid "Quantity"
-msgstr "Identidade"
+msgstr "Qualidade"
 
 #, fuzzy
 #| msgid "Search for trusts."
@@ -10379,7 +10378,7 @@ msgid "comma-separated list of hosts to add"
 msgstr ""
 
 msgid "comma-separated list of host groups to add"
-msgstr ""
+msgstr "lista separada por vírgulas de grupos de acelerador a serem aplicados"
 
 msgid "comma-separated list of HBAC services to add"
 msgstr ""
@@ -11976,7 +11975,7 @@ msgid "Only one value is allowed"
 msgstr "Só é permitido um valor"
 
 msgid "this option is deprecated"
-msgstr ""
+msgstr "Esta opção está descontinuada."
 
 msgid "must be True or False"
 msgstr ""
@@ -12192,7 +12191,7 @@ msgid "DNS label cannot be longer than 63 characters"
 msgstr ""
 
 msgid "invalid domain name"
-msgstr ""
+msgstr "Nome de domínio inválido"
 
 #, python-format
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
@@ -12257,7 +12256,7 @@ msgid "Command name"
 msgstr "Nome do comando"
 
 msgid "Positional arguments"
-msgstr ""
+msgstr "Argumentos opcionais:"
 
 #, python-format
 msgid "Same as --%s"
@@ -12407,7 +12406,7 @@ msgid ""
 msgstr ""
 
 msgid "DNS is not configured"
-msgstr ""
+msgstr "não configurado"
 
 msgid "Modify DNS server configuration"
 msgstr ""
@@ -12676,7 +12675,7 @@ msgid "invalid attribute name"
 msgstr ""
 
 msgid "invalid port number"
-msgstr ""
+msgstr "Número de Porto Inválido"
 
 msgid "RADIUS proxy server"
 msgstr ""
@@ -14116,13 +14115,13 @@ msgid "Certificate Identity Mapping Rule description"
 msgstr ""
 
 msgid "Mapping rule"
-msgstr ""
+msgstr "Regra de mapeamento"
 
 msgid "Rule used to map the certificate with a user entry"
 msgstr ""
 
 msgid "Matching rule"
-msgstr ""
+msgstr "Regra de correspondência"
 
 msgid "Rule used to check if a certificate can be used for authentication"
 msgstr ""
@@ -14266,7 +14265,7 @@ msgid ""
 msgstr ""
 
 msgid "CA is not configured"
-msgstr ""
+msgstr "não configurado"
 
 msgid "invalid Profile ID"
 msgstr ""
@@ -14383,6 +14382,9 @@ msgid ""
 "\n"
 "EXAMPLES:\n"
 msgstr ""
+"\n"
+"\n"
+"EXEMPLOS\n"
 
 msgid ""
 "\n"
@@ -14793,7 +14795,7 @@ msgid "'%s' is a required part of DNS record"
 msgstr ""
 
 msgid "Invalid number of parts!"
-msgstr ""
+msgstr "Número inválido de argumentos"
 
 #, python-format
 msgid "DNS RR type \"%s\" is not supported by bind-dyndb-ldap plugin"
@@ -15952,7 +15954,7 @@ msgid "IPA Locations"
 msgstr ""
 
 msgid "IPA Location"
-msgstr ""
+msgstr "Localização"
 
 #, fuzzy
 #| msgid "Command name"
@@ -15994,7 +15996,7 @@ msgid "Deleted IPA location \"%(value)s\""
 msgstr ""
 
 msgid "IPA Server"
-msgstr ""
+msgstr "Servidor FreeIPA"
 
 msgid "Modify information about an IPA location."
 msgstr "Modificar informação acerca duma localização IPA."
@@ -16433,7 +16435,7 @@ msgstr ""
 
 #, python-format
 msgid "Entry %s not found"
-msgstr ""
+msgstr "Entrada não encontrada."
 
 #, python-format
 msgid "The ACI for permission %(name)s was not found in %(dn)s "
@@ -16611,7 +16613,7 @@ msgid "Max repeat"
 msgstr ""
 
 msgid "Maximum number of same consecutive characters"
-msgstr ""
+msgstr "número máximo do mesmo caractere consecutivo numa palavra passe"
 
 msgid "Max sequence"
 msgstr ""
@@ -16793,7 +16795,7 @@ msgid "Exclude from"
 msgstr ""
 
 msgid "Include in"
-msgstr ""
+msgstr "Incluir"
 
 msgid "Help topic"
 msgstr ""
@@ -16805,7 +16807,7 @@ msgid "Parameters"
 msgstr ""
 
 msgid "Method of"
-msgstr ""
+msgstr "Método"
 
 #, fuzzy
 #| msgid "Command name"
@@ -16850,7 +16852,7 @@ msgid "Search for help topics."
 msgstr "Pesquisar por interligações."
 
 msgid "Required"
-msgstr ""
+msgstr "Obrigatório"
 
 msgid "Multi-value"
 msgstr ""
@@ -16950,10 +16952,10 @@ msgid "SELinux User Map rules"
 msgstr ""
 
 msgid "SELinux User Maps"
-msgstr ""
+msgstr "Utilizador SELinux"
 
 msgid "SELinux User Map"
-msgstr ""
+msgstr "Utilizador SELinux"
 
 #, python-format
 msgid "HBAC rule %(rule)s not found"
@@ -17353,7 +17355,7 @@ msgid "SubGID range size"
 msgstr ""
 
 msgid "Subordinate group ID count"
-msgstr ""
+msgstr "Contagem de ID de grupo subordinado (tamanho de gama)"
 
 #, python-format
 msgid ""
@@ -17586,7 +17588,7 @@ msgid ""
 msgstr ""
 
 msgid "this option has been deprecated."
-msgstr ""
+msgstr "Esta opção está descontinuada."
 
 msgid "sudo rules"
 msgstr ""
@@ -17813,7 +17815,7 @@ msgid "Issuer Distinguished Name"
 msgstr ""
 
 msgid "Base-64 encoded certificate."
-msgstr ""
+msgstr "Especifica certificado codificado em base64."
 
 msgid "Certificate chain"
 msgstr ""
@@ -18922,7 +18924,7 @@ msgid "local domain range"
 msgstr ""
 
 msgid "Active Directory domain range"
-msgstr ""
+msgstr "Domínio Active Directory"
 
 msgid "Active Directory trust range with POSIX attributes"
 msgstr ""
@@ -19257,7 +19259,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Internationalization messages"
-msgstr ""
+msgstr "Internacionalização"
 
 msgid "Your session has expired. Please log in again."
 msgstr ""
@@ -19361,7 +19363,7 @@ msgid "External Identity Provider"
 msgstr ""
 
 msgid "Passkey"
-msgstr ""
+msgstr "Passkey"
 
 msgid "Disable per-user override"
 msgstr ""
@@ -19528,7 +19530,7 @@ msgid "${entity} ${primary_key} Settings"
 msgstr "Configurações de Identidade"
 
 msgid "Back to Top"
-msgstr ""
+msgstr "Voltar Topo"
 
 #, python-brace-format
 msgid "${entity} ${primary_key} updated"
@@ -19594,10 +19596,8 @@ msgstr ""
 msgid "Success"
 msgstr ""
 
-#, fuzzy
-#| msgid "Session error"
 msgid "Validation error"
-msgstr "Erro de sessão"
+msgstr "Erro de validação: %s"
 
 msgid "Input form contains invalid or missing values."
 msgstr ""
@@ -19869,7 +19869,7 @@ msgid "Password migration was successful"
 msgstr ""
 
 msgid "Attribute"
-msgstr ""
+msgstr "atributo"
 
 msgid "Add delegation"
 msgstr ""
@@ -20200,7 +20200,7 @@ msgid "CA Compromise"
 msgstr ""
 
 msgid "Certificates"
-msgstr ""
+msgstr "Certificado CA:"
 
 msgid "Certificate Hold"
 msgstr ""
@@ -20295,7 +20295,7 @@ msgid "Certificate in base64 or PEM format"
 msgstr ""
 
 msgid "Note"
-msgstr ""
+msgstr "Nota"
 
 msgid "Organizational Unit"
 msgstr ""
@@ -20362,7 +20362,7 @@ msgid "Superseded"
 msgstr ""
 
 msgid "Unspecified"
-msgstr ""
+msgstr "especificado"
 
 msgid "Valid Certificate Present"
 msgstr ""
@@ -20374,7 +20374,7 @@ msgid "Valid to"
 msgstr ""
 
 msgid "Validity"
-msgstr ""
+msgstr "Validade"
 
 #, python-brace-format
 msgid "Certificate for ${entity} ${primary_key}"
@@ -20495,7 +20495,7 @@ msgid "Record creation failed."
 msgstr ""
 
 msgid "Checking if record exists."
-msgstr ""
+msgstr "A verificar se certificado existe"
 
 msgid "Record not found."
 msgstr ""
@@ -20539,7 +20539,7 @@ msgid "Are you sure you want to add permission for DNS Zone ${object}?"
 msgstr ""
 
 msgid "DNS Zone Settings"
-msgstr ""
+msgstr "Definições da Zona Base"
 
 msgid "Remove DNS zones"
 msgstr ""
@@ -21047,10 +21047,8 @@ msgstr ""
 msgid "OAuth 2.0 client details"
 msgstr ""
 
-#, fuzzy
-#| msgid "Identity Settings"
 msgid "Identity provider details"
-msgstr "Configurações de Identidade"
+msgstr "Fornecedor de identidade"
 
 msgid "Verify secret"
 msgstr ""
@@ -21292,7 +21290,7 @@ msgid "Privilege Settings"
 msgstr ""
 
 msgid "Public key:"
-msgstr ""
+msgstr "Chave pública GPG"
 
 #, fuzzy
 #| msgid "invalid SSH public key"
@@ -21351,7 +21349,7 @@ msgid "Remove ID ranges"
 msgstr "Remover interligações"
 
 msgid "Active Directory domain"
-msgstr ""
+msgstr "Domínio Active Directory"
 
 msgid "Active Directory domain with POSIX attributes"
 msgstr ""
@@ -21389,7 +21387,7 @@ msgid "Force Update"
 msgstr ""
 
 msgid "Add SELinux user map"
-msgstr ""
+msgstr "Adicionar um Utilizador SELinux"
 
 #, python-brace-format
 msgid "Add user groups into SELinux user map '${primary_key}'"
