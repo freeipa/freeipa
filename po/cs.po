@@ -8,9 +8,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-02-23 19:58+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2026-02-25 21:58+0000\n"
+"Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
 "Language-Team: Czech <https://translate.fedoraproject.org/projects/freeipa/"
 "master/cs/>\n"
 "Language: cs\n"
@@ -36,7 +35,7 @@ msgstr "došla paměť\n"
 
 #, c-format
 msgid "read error\n"
-msgstr ""
+msgstr "chyba čtení\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
@@ -203,7 +202,7 @@ msgid "Asks for a non-random password to use for the principal"
 msgstr ""
 
 msgid "LDAP DN"
-msgstr ""
+msgstr "LDAP DN"
 
 msgid "DN to bind as if not using kerberos"
 msgstr ""
@@ -451,7 +450,7 @@ msgstr ""
 
 #, c-format
 msgid "json_dumps() failed\n"
-msgstr ""
+msgstr "json_dumps() se nezdařilo\n"
 
 #, c-format
 msgid ""
@@ -531,7 +530,7 @@ msgstr ""
 
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "fork() se nezdařilo\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
@@ -664,7 +663,7 @@ msgstr "Položku se nedaří odebrat\n"
 
 #, c-format
 msgid "kvno %d\n"
-msgstr ""
+msgstr "kvno %d\n"
 
 #, c-format
 msgid "krb5_kt_remove_entry %1$d: %2$s\n"
@@ -687,7 +686,7 @@ msgid "realm not found\n"
 msgstr ""
 
 msgid "Debugging output"
-msgstr ""
+msgstr "Výstup z ladění"
 
 msgid ""
 "The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"
@@ -1011,10 +1010,10 @@ msgid "First Code"
 msgstr "První kód"
 
 msgid "Second Code"
-msgstr ""
+msgstr "Druhý kód"
 
 msgid "Token ID"
-msgstr ""
+msgstr "Identif. tokenu"
 
 #, python-format
 msgid "Unable to synchronize token: %s"
@@ -1062,7 +1061,7 @@ msgid "Error"
 msgstr "Chyba"
 
 msgid "Input filename"
-msgstr ""
+msgstr "Název vstupního souboru"
 
 msgid "File to load the certificate from."
 msgstr ""
@@ -1398,7 +1397,7 @@ msgid "Create new ACI."
 msgstr ""
 
 msgid "ACI prefix"
-msgstr ""
+msgstr "ACI předpona"
 
 msgid ""
 "Prefix used to distinguish ACI types (permission, delegation, selfservice, "
@@ -1467,7 +1466,7 @@ msgid "True if not all results were returned"
 msgstr ""
 
 msgid "Modify ACI."
-msgstr ""
+msgstr "Změnit ACI."
 
 msgid "Rename an ACI."
 msgstr ""
@@ -1653,13 +1652,13 @@ msgid "Search for an automount key."
 msgstr ""
 
 msgid "Time Limit"
-msgstr ""
+msgstr "Časový limit"
 
 msgid "Time limit of search in seconds"
 msgstr ""
 
 msgid "Size Limit"
-msgstr ""
+msgstr "Limit velikosti"
 
 msgid "Maximum number of entries returned"
 msgstr ""
@@ -1726,7 +1725,7 @@ msgid "Mount point"
 msgstr "Místo připojení"
 
 msgid "Parent map"
-msgstr ""
+msgstr "Nadřazená mapa"
 
 msgid "Name of parent automount map (default: auto.master)."
 msgstr ""
@@ -1915,10 +1914,8 @@ msgstr ""
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
-#, fuzzy
-#| msgid "SELinux User"
 msgid "SELinux user map order"
-msgstr "Uživatel SELinuxu"
+msgstr "Pořadí SELinux mapy uživatelů"
 
 msgid "Order in increasing priority of SELinux users, delimited by $"
 msgstr ""
@@ -1979,7 +1976,7 @@ msgid ""
 msgstr ""
 
 msgid "Delegation name"
-msgstr ""
+msgstr "Název delegování"
 
 msgid "Permissions to grant (read, write). Default is write."
 msgstr ""
@@ -2269,7 +2266,7 @@ msgid ""
 msgstr ""
 
 msgid "Forward policy"
-msgstr ""
+msgstr "Zásada přeposílání"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
@@ -2341,7 +2338,7 @@ msgid "Record data"
 msgstr "Data záznamu"
 
 msgid "A record"
-msgstr ""
+msgstr "A záznam"
 
 msgid "Raw A records"
 msgstr ""
@@ -2363,7 +2360,7 @@ msgid "Create reverse record for this IP Address"
 msgstr ""
 
 msgid "AAAA record"
-msgstr ""
+msgstr "AAAA záznam"
 
 msgid "Raw AAAA records"
 msgstr ""
@@ -2377,7 +2374,7 @@ msgid "AAAA Create reverse"
 msgstr ""
 
 msgid "A6 record"
-msgstr ""
+msgstr "A6 záznam"
 
 msgid "Raw A6 records"
 msgstr ""
@@ -2386,13 +2383,13 @@ msgid "A6 Record data"
 msgstr ""
 
 msgid "AFSDB record"
-msgstr ""
+msgstr "AFSDB záznam"
 
 msgid "Raw AFSDB records"
 msgstr ""
 
 msgid "AFSDB Subtype"
-msgstr ""
+msgstr "AFSDB podtyp"
 
 msgid "Subtype"
 msgstr "Podtyp"
@@ -2408,13 +2405,13 @@ msgid "Hostname"
 msgstr "Název stroje"
 
 msgid "APL record"
-msgstr ""
+msgstr "APL záznam"
 
 msgid "Raw APL records"
 msgstr ""
 
 msgid "CERT record"
-msgstr ""
+msgstr "CERT záznam"
 
 msgid "Raw CERT records"
 msgstr ""
@@ -2423,28 +2420,28 @@ msgid "CERT Certificate Type"
 msgstr ""
 
 msgid "Certificate Type"
-msgstr ""
+msgstr "Typ certifikátu"
 
 msgid "CERT Key Tag"
 msgstr ""
 
 msgid "Key Tag"
-msgstr ""
+msgstr "Štítek klíče"
 
 msgid "CERT Algorithm"
-msgstr ""
+msgstr "CERT algoritmus"
 
 msgid "Algorithm"
 msgstr "Algoritmus"
 
 msgid "CERT Certificate/CRL"
-msgstr ""
+msgstr "CERT certifikát/CRL"
 
 msgid "Certificate/CRL"
 msgstr "Certifikát/CRL"
 
 msgid "CNAME record"
-msgstr ""
+msgstr "CNAME záznam"
 
 msgid "Raw CNAME records"
 msgstr ""
@@ -2458,13 +2455,13 @@ msgid "A hostname which this alias hostname points to"
 msgstr ""
 
 msgid "DHCID record"
-msgstr ""
+msgstr "DHCID záznam"
 
 msgid "Raw DHCID records"
 msgstr ""
 
 msgid "DLV record"
-msgstr ""
+msgstr "DLV záznam"
 
 msgid "Raw DLV records"
 msgstr ""
@@ -2473,22 +2470,22 @@ msgid "DLV Key Tag"
 msgstr ""
 
 msgid "DLV Algorithm"
-msgstr ""
+msgstr "DLV algoritmus"
 
 msgid "DLV Digest Type"
 msgstr ""
 
 msgid "Digest Type"
-msgstr ""
+msgstr "Typ zkráceného obsahu"
 
 msgid "DLV Digest"
-msgstr ""
+msgstr "DLV otisk"
 
 msgid "Digest"
 msgstr "Otisk"
 
 msgid "DNAME record"
-msgstr ""
+msgstr "DNAME záznam"
 
 msgid "Raw DNAME records"
 msgstr ""
@@ -2504,13 +2501,13 @@ msgid "Target"
 msgstr "Cíl"
 
 msgid "DNSKEY record"
-msgstr ""
+msgstr "DNSKEY záznam"
 
 msgid "Raw DNSKEY records"
 msgstr ""
 
 msgid "DS record"
-msgstr ""
+msgstr "DS záznam"
 
 msgid "Raw DS records"
 msgstr ""
@@ -2519,40 +2516,40 @@ msgid "DS Key Tag"
 msgstr ""
 
 msgid "DS Algorithm"
-msgstr ""
+msgstr "DS algoritmus"
 
 msgid "DS Digest Type"
 msgstr ""
 
 msgid "DS Digest"
-msgstr "Otisk"
+msgstr "DS otisk"
 
 msgid "HIP record"
-msgstr ""
+msgstr "HIP záznam"
 
 msgid "Raw HIP records"
 msgstr ""
 
 msgid "IPSECKEY record"
-msgstr ""
+msgstr "IPSECKEY záznam"
 
 msgid "Raw IPSECKEY records"
 msgstr ""
 
 msgid "KEY record"
-msgstr ""
+msgstr "KEY záznam"
 
 msgid "Raw KEY records"
 msgstr ""
 
 msgid "KX record"
-msgstr ""
+msgstr "KX záznam"
 
 msgid "Raw KX records"
 msgstr ""
 
 msgid "KX Preference"
-msgstr ""
+msgstr "KX předvolba"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
@@ -2564,7 +2561,7 @@ msgid "A host willing to act as a key exchanger"
 msgstr ""
 
 msgid "LOC record"
-msgstr ""
+msgstr "LOC záznam"
 
 msgid "Raw LOC records"
 msgstr ""
@@ -2637,22 +2634,22 @@ msgid "LOC Horizontal Precision"
 msgstr ""
 
 msgid "Horizontal Precision"
-msgstr ""
+msgstr "Přesnost vodorovně"
 
 msgid "LOC Vertical Precision"
 msgstr ""
 
 msgid "Vertical Precision"
-msgstr ""
+msgstr "Přesnost svisle"
 
 msgid "MX record"
-msgstr ""
+msgstr "MX záznam"
 
 msgid "Raw MX records"
 msgstr ""
 
 msgid "MX Preference"
-msgstr ""
+msgstr "MX předvolba"
 
 msgid "MX Exchanger"
 msgstr ""
@@ -2661,7 +2658,7 @@ msgid "A host willing to act as a mail exchanger"
 msgstr ""
 
 msgid "NAPTR record"
-msgstr ""
+msgstr "NAPTR záznam"
 
 msgid "Raw NAPTR records"
 msgstr ""
@@ -2677,7 +2674,7 @@ msgid "Order"
 msgstr "Další"
 
 msgid "NAPTR Preference"
-msgstr ""
+msgstr "NAPTR předvolba"
 
 msgid "Preference"
 msgstr "Předvolby"
@@ -2709,13 +2706,13 @@ msgid "Regular Expression"
 msgstr "Regulární výraz"
 
 msgid "NAPTR Replacement"
-msgstr ""
+msgstr "NAPTR nahrazení"
 
 msgid "Replacement"
 msgstr "Náhrada"
 
 msgid "NS record"
-msgstr ""
+msgstr "NS záznam"
 
 msgid "Raw NS records"
 msgstr ""
@@ -2726,19 +2723,19 @@ msgid "NS Hostname"
 msgstr "NS název hostitele"
 
 msgid "NSEC record"
-msgstr ""
+msgstr "NSEC záznam"
 
 msgid "Raw NSEC records"
 msgstr ""
 
 msgid "NSEC3 record"
-msgstr ""
+msgstr "NSEC3 záznam"
 
 msgid "Raw NSEC3 records"
 msgstr ""
 
 msgid "PTR record"
-msgstr ""
+msgstr "PTR záznam"
 
 msgid "Raw PTR records"
 msgstr ""
@@ -2752,7 +2749,7 @@ msgid "The hostname this reverse record points to"
 msgstr ""
 
 msgid "RRSIG record"
-msgstr ""
+msgstr "RRSIG záznam"
 
 msgid "Raw RRSIG records"
 msgstr ""
@@ -2766,19 +2763,19 @@ msgid "Raw RP records"
 msgstr ""
 
 msgid "SIG record"
-msgstr ""
+msgstr "SIG záznam"
 
 msgid "Raw SIG records"
 msgstr ""
 
 msgid "SPF record"
-msgstr ""
+msgstr "SPF záznam"
 
 msgid "Raw SPF records"
 msgstr ""
 
 msgid "SRV record"
-msgstr ""
+msgstr "SRV záznam"
 
 msgid "Raw SRV records"
 msgstr ""
@@ -2824,13 +2821,13 @@ msgid ""
 msgstr ""
 
 msgid "SSHFP record"
-msgstr ""
+msgstr "SSHFP záznam"
 
 msgid "Raw SSHFP records"
 msgstr ""
 
 msgid "SSHFP Algorithm"
-msgstr ""
+msgstr "SSHFP algoritmus"
 
 # auto translated by TM merge from project: Fedora Websites, version:
 # getfedora.org, DocId: po/getfedora
@@ -2853,13 +2850,13 @@ msgid "Fingerprint"
 msgstr "Otisk"
 
 msgid "TA record"
-msgstr ""
+msgstr "TA záznam"
 
 msgid "Raw TA records"
 msgstr ""
 
 msgid "TLSA record"
-msgstr ""
+msgstr "TLSA záznam"
 
 msgid "Raw TLSA records"
 msgstr ""
@@ -2868,7 +2865,7 @@ msgid "TLSA Certificate Usage"
 msgstr ""
 
 msgid "Certificate Usage"
-msgstr ""
+msgstr "Využití certifikátu"
 
 msgid "TLSA Selector"
 msgstr ""
@@ -2889,19 +2886,19 @@ msgid "Certificate Association Data"
 msgstr ""
 
 msgid "TKEY record"
-msgstr ""
+msgstr "TKEY záznam"
 
 msgid "Raw TKEY records"
 msgstr ""
 
 msgid "TSIG record"
-msgstr ""
+msgstr "TSIG záznam"
 
 msgid "Raw TSIG records"
 msgstr ""
 
 msgid "TXT record"
-msgstr ""
+msgstr "TXT záznam"
 
 msgid "Raw TXT records"
 msgstr ""
@@ -2910,10 +2907,10 @@ msgid "TXT Text Data"
 msgstr ""
 
 msgid "Text Data"
-msgstr ""
+msgstr "Textová data"
 
 msgid "Authoritative nameserver"
-msgstr ""
+msgstr "Autoritativní jmenný server"
 
 msgid "Authoritative nameserver domain name"
 msgstr ""
@@ -2964,13 +2961,13 @@ msgid "BIND update policy"
 msgstr ""
 
 msgid "Dynamic update"
-msgstr ""
+msgstr "Dynamická aktualizace"
 
 msgid "Allow dynamic updates."
 msgstr ""
 
 msgid "Allow query"
-msgstr ""
+msgstr "Umožnit dotaz"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
@@ -2978,7 +2975,7 @@ msgid ""
 msgstr ""
 
 msgid "Allow transfer"
-msgstr ""
+msgstr "Umožnit přenos"
 
 msgid ""
 "Semicolon separated list of IP addresses or networks which are allowed to "
@@ -2997,7 +2994,7 @@ msgid "Allow inline DNSSEC signing of records in the zone"
 msgstr ""
 
 msgid "NSEC3PARAM record"
-msgstr ""
+msgstr "NSEC3PARAM záznam"
 
 msgid ""
 "NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt"
@@ -3022,7 +3019,7 @@ msgid "Add a permission for per-forward zone access delegation."
 msgstr ""
 
 msgid "Permission value"
-msgstr ""
+msgstr "Hodnota oprávnění"
 
 msgid "Delete DNS forward zone."
 msgstr ""
@@ -3175,7 +3172,7 @@ msgid "Rule name"
 msgstr "Název pravidla"
 
 msgid "Rule type"
-msgstr ""
+msgstr "Typ pravidla"
 
 msgid "Rule type (allow)"
 msgstr ""
@@ -3245,7 +3242,7 @@ msgid "Service Groups"
 msgstr "Služby"
 
 msgid "External host"
-msgstr ""
+msgstr "Externí hostitel"
 
 msgid "Create a new HBAC rule."
 msgstr ""
@@ -3761,10 +3758,8 @@ msgstr ""
 
 # auto translated by TM merge from project: Fedora Cheat Cubes, version:
 # master, DocId: Fedora_Cheat_Cube_Users
-#, fuzzy
-#| msgid "group"
 msgid "netgroup"
-msgstr "skupinu"
+msgstr "netgroup"
 
 msgid "Search for hosts with these member of netgroups."
 msgstr ""
@@ -4355,10 +4350,8 @@ msgstr ""
 
 # auto translated by TM merge from project: anaconda, version: rhel7-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "password"
 msgid "bind password"
-msgstr "heslo"
+msgstr "heslo pro napojení"
 
 msgid "Bind DN"
 msgstr ""
@@ -4532,17 +4525,13 @@ msgid ""
 msgstr ""
 
 # auto translated by TM merge from project: dnf, version: master, DocId: dnf
-#, fuzzy
-#| msgid "User name"
 msgid "Netgroup name"
-msgstr "Uživatelské jméno"
+msgstr "Název síťové skupiny"
 
 # auto translated by TM merge from project: anaconda, version: f22-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "description"
 msgid "Netgroup description"
-msgstr "popis"
+msgstr "Popis síťové skupiny"
 
 msgid "NIS domain name"
 msgstr "Název NIS domény"
@@ -4552,41 +4541,31 @@ msgstr ""
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member netgroups"
-msgstr "Členové"
+msgstr "Členské síťové skupiny"
 
 msgid "Indirect Member netgroups"
 msgstr ""
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member User"
-msgstr "Členové"
+msgstr "Uživatelé-členové"
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member Group"
-msgstr "Členové"
+msgstr "Skupiny-členové"
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member Host"
-msgstr "Členové"
+msgstr "Hostitel-člen"
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member Hostgroup"
-msgstr "Členové"
+msgstr "Členská síťová skupina"
 
 msgid "Add a new netgroup."
 msgstr ""
@@ -4884,10 +4863,8 @@ msgstr ""
 msgid "Attributes to which the permission applies by default"
 msgstr ""
 
-#, fuzzy
-#| msgid "incorrect type"
 msgid "Bind rule type"
-msgstr "nesprávný typ"
+msgstr "Typ pravidla navázání na"
 
 msgid "Subtree to apply permissions to"
 msgstr ""
@@ -5312,7 +5289,7 @@ msgstr ""
 # auto translated by TM merge from project: Pulseaudio, version: 6.0, DocId:
 # pulseaudio.pot
 msgid "Timeout"
-msgstr "Časový limit"
+msgstr "Překročení časového limitu"
 
 msgid "The total timeout across all retries (in seconds)"
 msgstr ""
@@ -5440,27 +5417,21 @@ msgstr ""
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member users"
-msgstr "Členové"
+msgstr "Uživatelé-členové"
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Members"
 msgid "Member groups"
-msgstr "Členové"
+msgstr "Členské skupiny"
 
 msgid "Privileges"
 msgstr "Privilegia"
 
 # auto translated by TM merge from project: Fedora Cheat Cubes, version:
 # master, DocId: Fedora_Cheat_Cube_Users
-#, fuzzy
-#| msgid "service"
 msgid "Member services"
-msgstr "službu"
+msgstr "Služby-členové"
 
 msgid "Add a new role."
 msgstr "Přidat novou roli."
@@ -5470,10 +5441,8 @@ msgstr ""
 
 # auto translated by TM merge from project: Fedora Cheat Cubes, version:
 # master, DocId: Fedora_Cheat_Cube_Users
-#, fuzzy
-#| msgid "service"
 msgid "member service"
-msgstr "službu"
+msgstr "služba-člen"
 
 # auto translated by TM merge from project: Fedora Cheat Cubes, version:
 # master, DocId: Fedora_Cheat_Cube_Users
@@ -5649,10 +5618,8 @@ msgstr ""
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
-#, fuzzy
-#| msgid "SELinux User"
 msgid "Delete a SELinux User Map."
-msgstr "Uživatel SELinuxu"
+msgstr "Smazat SELinux mapu uživatelů."
 
 msgid "Disable an SELinux User Map rule."
 msgstr ""
@@ -12012,7 +11979,7 @@ msgstr ""
 
 #, python-format
 msgid "%(desc)s: %(info)s"
-msgstr ""
+msgstr "%(desc)s: %(info)s"
 
 msgid "limits exceeded for this query"
 msgstr ""
@@ -12066,7 +12033,7 @@ msgid "Certificate format error: %(error)s"
 msgstr ""
 
 msgid "Already registered"
-msgstr ""
+msgstr "Už zaregistrováno"
 
 msgid "Not registered yet"
 msgstr "Zatím ještě nezaregistrováno"
@@ -12274,7 +12241,7 @@ msgstr ""
 
 #, python-format
 msgid "%(count)d variables"
-msgstr ""
+msgstr "%(count)d proměnných"
 
 #, python-format
 msgid "%(count)d plugin loaded"
@@ -14171,7 +14138,7 @@ msgid ""
 msgstr ""
 
 msgid "CA ACL"
-msgstr ""
+msgstr "CA ACL"
 
 msgid "CA ACLs"
 msgstr ""
@@ -14609,10 +14576,10 @@ msgid "invalid Profile ID"
 msgstr ""
 
 msgid "Certificate Profile"
-msgstr ""
+msgstr "Profil certifikátu"
 
 msgid "Certificate Profiles"
-msgstr ""
+msgstr "Profily certifikátů"
 
 # auto translated by TM merge from project: system-config-audit, version:
 # master, DocId: system-config-audit
@@ -15117,7 +15084,7 @@ msgstr ""
 
 #, python-format
 msgid "%s record"
-msgstr ""
+msgstr "%s záznam"
 
 #, python-format
 msgid "Raw %s records"
@@ -15232,16 +15199,16 @@ msgid "Removed system permission \"%(value)s\""
 msgstr ""
 
 msgid "DNS zone"
-msgstr ""
+msgstr "DNS zóna"
 
 msgid "DNS zones"
-msgstr ""
+msgstr "DNS zóny"
 
 msgid "DNS Zones"
-msgstr ""
+msgstr "DNS zóny"
 
 msgid "DNS Zone"
-msgstr ""
+msgstr "DNS zóna"
 
 msgid "Default time to live"
 msgstr ""
@@ -15356,7 +15323,7 @@ msgstr ""
 
 #, python-format
 msgid "Found '%(value)s'"
-msgstr ""
+msgstr "Nalezeno „%(value)s“"
 
 #, python-format
 msgid "Host '%(host)s' not found"
@@ -15432,7 +15399,7 @@ msgid "Result of the command"
 msgstr ""
 
 msgid "Dry run"
-msgstr ""
+msgstr "Vyzkoušet nanečisto"
 
 msgid "Do not update records only return expected records"
 msgstr ""
@@ -20513,7 +20480,7 @@ msgstr ""
 
 #, python-brace-format
 msgid "Add hosts into role '${primary_key}'"
-msgstr ""
+msgstr "Přidat hostitele do role „${primary_key}“"
 
 #, python-brace-format
 msgid "Add host groups into role '${primary_key}'"
@@ -23872,10 +23839,10 @@ msgid "suffixes"
 msgstr "přípony"
 
 msgid "Topology suffixes"
-msgstr ""
+msgstr "Přípony topologie"
 
 msgid "Topology suffix"
-msgstr ""
+msgstr "Přípona topologie"
 
 #, python-format
 msgid "%(count)d topology suffix matched"
@@ -24758,7 +24725,7 @@ msgid "vaultcontainers"
 msgstr ""
 
 msgid "Vault Containers"
-msgstr ""
+msgstr "Kontejnery trezoru"
 
 # auto translated by TM merge from project: anaconda, version: f25, DocId:
 # main
@@ -24779,7 +24746,7 @@ msgstr ""
 
 #, python-format
 msgid "owner %s"
-msgstr ""
+msgstr "vlastník %s"
 
 msgid ""
 "\n"
