@@ -1,18 +1,21 @@
 # Manuela Silva <mmsrs@sky.com>, 2019. #zanata
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2019-11-11 10:25+0000\n"
-"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
-"Language-Team: Portuguese\n"
+"PO-Revision-Date: 2026-02-23 19:58+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
+"Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
+"freeipa/master/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"X-Generator: Zanata 4.6.2\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Weblate 5.16\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -134,10 +137,10 @@ msgstr ""
 
 #, c-format
 msgid "Failed to parse config file %s\n"
-msgstr ""
+msgstr "não foi possível processar o ficheiro de configuração %s\n"
 
 msgid "Failed to resolve symlink to keytab.\n"
-msgstr ""
+msgstr "Falhou ao resolver link simbólico em %1$s\n"
 
 msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
@@ -210,7 +213,7 @@ msgid "Path to the IPA CA certificate"
 msgstr ""
 
 msgid "IPA CA certificate"
-msgstr ""
+msgstr "Certificado CA:"
 
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
 msgstr ""
@@ -508,7 +511,7 @@ msgstr ""
 
 #, c-format
 msgid "fork() failed\n"
-msgstr ""
+msgstr "fork() falhou: %s\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
@@ -563,7 +566,7 @@ msgid "Hostname of this server"
 msgstr ""
 
 msgid "hostname"
-msgstr ""
+msgstr "Nome de anfitrião"
 
 msgid "IPA Server to use"
 msgstr ""
@@ -572,7 +575,7 @@ msgid "Specifies where to store keytab information."
 msgstr ""
 
 msgid "filename"
-msgstr ""
+msgstr "Nome de ficheiro:"
 
 msgid "Force the host join. Rejoin even if already joined."
 msgstr ""
@@ -684,7 +687,7 @@ msgid "krb5_kt_close %1$d: %2$s\n"
 msgstr ""
 
 msgid "Input file"
-msgstr ""
+msgstr "Ficheiro de entrada"
 
 msgid "File to load the certificate from"
 msgstr ""
@@ -768,6 +771,8 @@ msgid ""
 "\n"
 "EXAMPLES:\n"
 msgstr ""
+"\n"
+"EXEMPLOS\n"
 
 msgid ""
 "\n"
@@ -1002,7 +1007,7 @@ msgid "Delete a user, keeping the entry available for future use"
 msgstr ""
 
 msgid "Delete a user"
-msgstr ""
+msgstr "Apagar Utilizador"
 
 msgid "preserve and no-preserve cannot be both set"
 msgstr ""
@@ -1017,7 +1022,7 @@ msgid "Error"
 msgstr ""
 
 msgid "Input filename"
-msgstr ""
+msgstr "Ficheiro de entrada"
 
 msgid "File to load the certificate from."
 msgstr ""
@@ -2233,7 +2238,7 @@ msgid "IP network to create reverse zone name from"
 msgstr ""
 
 msgid "Active zone"
-msgstr ""
+msgstr "$0 Zona Ativa"
 
 msgid "Is zone active?"
 msgstr ""
@@ -2296,7 +2301,7 @@ msgid "Raw AAAA records"
 msgstr ""
 
 msgid "AAAA IP Address"
-msgstr ""
+msgstr "Endereço IP"
 
 msgid "AAAA Create reverse"
 msgstr ""
@@ -2467,7 +2472,7 @@ msgid "Raw KX records"
 msgstr ""
 
 msgid "KX Preference"
-msgstr ""
+msgstr "Preferências"
 
 msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
@@ -2563,7 +2568,7 @@ msgid "Raw MX records"
 msgstr ""
 
 msgid "MX Preference"
-msgstr ""
+msgstr "Preferências"
 
 msgid "MX Exchanger"
 msgstr ""
@@ -2620,7 +2625,7 @@ msgid "Raw NS records"
 msgstr ""
 
 msgid "NS Hostname"
-msgstr ""
+msgstr "Nome da máquina"
 
 msgid "NSEC record"
 msgstr ""
@@ -2677,7 +2682,7 @@ msgid "Raw SRV records"
 msgstr ""
 
 msgid "SRV Priority"
-msgstr ""
+msgstr "Prioridade"
 
 msgid "Priority"
 msgstr ""
@@ -3242,13 +3247,13 @@ msgid ""
 msgstr ""
 
 msgid "Service name"
-msgstr ""
+msgstr "Nome de Serviço"
 
 msgid "HBAC service"
 msgstr ""
 
 msgid "HBAC service description"
-msgstr ""
+msgstr "Descrição do Dispositivo"
 
 msgid "Member of HBAC service groups"
 msgstr ""
@@ -4189,7 +4194,7 @@ msgid "Bind DN"
 msgstr ""
 
 msgid "User container"
-msgstr ""
+msgstr "contentor seleccionado"
 
 msgid "DN of container for users in DS relative to base DN"
 msgstr ""
@@ -4272,7 +4277,7 @@ msgid "Allows migration despite the usage of compat plugin"
 msgstr ""
 
 msgid "CA certificate"
-msgstr ""
+msgstr "Certificado CA:"
 
 msgid "Load CA certificate of LDAP server from FILE"
 msgstr ""
@@ -4354,7 +4359,7 @@ msgid ""
 msgstr ""
 
 msgid "Netgroup name"
-msgstr ""
+msgstr "Nome do netgroup"
 
 msgid "Netgroup description"
 msgstr ""
@@ -4450,7 +4455,7 @@ msgid "Search for netgroups without these member of netgroups."
 msgstr ""
 
 msgid "Modify a netgroup."
-msgstr ""
+msgstr "modificar um grupo"
 
 msgid "Remove members from a netgroup."
 msgstr ""
@@ -4859,7 +4864,7 @@ msgid "Privilege name"
 msgstr ""
 
 msgid "Privilege description"
-msgstr ""
+msgstr "Descrição do problema"
 
 msgid "Granting privilege to roles"
 msgstr ""
@@ -4998,7 +5003,7 @@ msgid "Character classes"
 msgstr ""
 
 msgid "Minimum number of character classes"
-msgstr ""
+msgstr "número mínimo de classes de caracteres numa palavra passe"
 
 msgid "Min length"
 msgstr ""
@@ -5123,7 +5128,7 @@ msgid "The number of times to retry authentication"
 msgstr ""
 
 msgid "User attribute"
-msgstr ""
+msgstr "Atributo do nome do utilizador"
 
 msgid "The username attribute on the user object"
 msgstr ""
@@ -5183,7 +5188,7 @@ msgid "Add domain"
 msgstr ""
 
 msgid "Delete domain"
-msgstr ""
+msgstr "Apaga domínio"
 
 msgid "Modify realm domains."
 msgstr ""
@@ -5435,7 +5440,7 @@ msgid "Add users and groups to an SELinux User Map rule."
 msgstr ""
 
 msgid "Delete a SELinux User Map."
-msgstr ""
+msgstr "Apagar o Mapeamento de Utilizador SELinux"
 
 msgid "Disable an SELinux User Map rule."
 msgstr ""
@@ -5449,7 +5454,7 @@ msgid "Search for SELinux User Maps."
 msgstr "Pesquisar por interligações."
 
 msgid "Modify a SELinux User Map."
-msgstr ""
+msgstr "Modificar o Mapeamento de Utilizador SELinux"
 
 msgid "Remove target hosts and hostgroups from an SELinux User Map rule."
 msgstr ""
@@ -6482,7 +6487,7 @@ msgid "Don't create user private group"
 msgstr ""
 
 msgid "Delete a user."
-msgstr ""
+msgstr "Apagar Utilizador"
 
 msgid "Disable a user account."
 msgstr ""
@@ -6535,7 +6540,7 @@ msgid "Search for users without these member of sudo rules."
 msgstr ""
 
 msgid "Modify a user."
-msgstr ""
+msgstr "Modificar Utilizador"
 
 msgid "Rename the user object"
 msgstr ""
@@ -6971,7 +6976,7 @@ msgid "Retrieve an existing certificate."
 msgstr ""
 
 msgid "Output filename"
-msgstr ""
+msgstr "Ficheiro de resultado"
 
 msgid "File to store the certificate in."
 msgstr ""
@@ -7101,7 +7106,7 @@ msgid "Members of a trusted domain in DOM\\name or name@domain form"
 msgstr ""
 
 msgid "Delete group."
-msgstr ""
+msgstr "Eliminar grupo"
 
 msgid "Detach a managed group from a user."
 msgstr ""
@@ -7712,7 +7717,7 @@ msgid "First date/time the token can be used"
 msgstr ""
 
 msgid "Validity end"
-msgstr ""
+msgstr "Validade"
 
 msgid "Last date/time the token can be used"
 msgstr ""
@@ -9073,7 +9078,7 @@ msgid "Vault salt"
 msgstr ""
 
 msgid "Public key"
-msgstr ""
+msgstr "Chave pública GPG"
 
 #, fuzzy
 #| msgid "invalid SSH public key"
