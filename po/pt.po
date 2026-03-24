@@ -7,8 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-03-02 13:59+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
 "Language: pt\n"
@@ -965,7 +964,7 @@ msgid ""
 msgstr ""
 
 msgid "No option to delete specific record provided."
-msgstr "Nenhuma opção para modificar o registo específico fornecido."
+msgstr "Nenhuma opção para apagar o registo específico fornecido."
 
 msgid "Delete all?"
 msgstr "Apagar tudo?"
@@ -1182,7 +1181,7 @@ msgid "Private key specified multiple times"
 msgstr ""
 
 msgid "Missing vault private key"
-msgstr "Chave pública do cofre em falta"
+msgstr "Chave privada do cofre em falta"
 
 msgid ""
 "\n"
@@ -1327,10 +1326,10 @@ msgid "Permissions to grant(read, write, add, delete, all)"
 msgstr ""
 
 msgid "Attributes to which the permission applies"
-msgstr "Atributos para os quais a permissão se aplica."
+msgstr "Atributos para os quais a permissão se aplica"
 
 msgid "Attributes"
-msgstr "Atributo"
+msgstr "Atributos"
 
 msgid "Type"
 msgstr "Tipo"
@@ -1430,7 +1429,7 @@ msgid "Primary key only"
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"name\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"nome\")"
 
 msgid "Number of entries returned"
 msgstr ""
@@ -1625,7 +1624,7 @@ msgid "Maximum number of entries returned"
 msgstr ""
 
 msgid "Modify an automount key."
-msgstr "Mostra uma chave de auto-montagem."
+msgstr "Modifica uma chave de auto-montagem."
 
 msgid ""
 "Delete an attribute/value pair. The option will be evaluated\n"
@@ -1656,19 +1655,20 @@ msgid "Create a new automount location."
 msgstr ""
 
 msgid "Delete an automount location."
-msgstr "Mostra uma localização de auto-montagem."
+msgstr "Apaga uma localização de auto-montagem."
 
 msgid "Search for an automount location."
-msgstr "Procura por um mapa de auto-montagem."
+msgstr "Procura por uma localização de auto-montagem."
 
 msgid "Results should contain primary key attribute only (\"location\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"localização\")"
 
 msgid "Display an automount location."
 msgstr "Mostra uma localização de auto-montagem."
 
 msgid "Generate automount files for a specific location."
-msgstr "Importar ficheiros de automontagem para uma localização específica."
+msgstr "Gerar ficheiros de automontagem para uma localização específica."
 
 msgid "Create a new automount map."
 msgstr ""
@@ -1692,10 +1692,10 @@ msgid "Search for an automount map."
 msgstr "Procura por um mapa de auto-montagem."
 
 msgid "Results should contain primary key attribute only (\"map\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"mapa\")"
 
 msgid "Modify an automount map."
-msgstr "Mostra um mapa de auto-montagem."
+msgstr "Modifica um mapa de auto-montagem."
 
 msgid "Display an automount map."
 msgstr "Mostra um mapa de auto-montagem."
@@ -1931,7 +1931,7 @@ msgid "Permissions to grant (read, write). Default is write."
 msgstr ""
 
 msgid "Attributes to which the delegation applies"
-msgstr "Atributos para os quais a permissão se aplica."
+msgstr "Atributos para os quais a delegação se aplica"
 
 msgid "Member user group"
 msgstr ""
@@ -2279,7 +2279,7 @@ msgid "Record data"
 msgstr ""
 
 msgid "A record"
-msgstr "Registo RP"
+msgstr "Um registo"
 
 msgid "Raw A records"
 msgstr ""
@@ -2336,13 +2336,13 @@ msgid "Hostname"
 msgstr "Nome da máquina"
 
 msgid "APL record"
-msgstr "Registo RP"
+msgstr "Registo APL"
 
 msgid "Raw APL records"
 msgstr ""
 
 msgid "CERT record"
-msgstr "Registo RP"
+msgstr "Registo CERT"
 
 msgid "Raw CERT records"
 msgstr ""
@@ -2450,7 +2450,7 @@ msgid "DS Digest"
 msgstr "Digest DS"
 
 msgid "HIP record"
-msgstr "Registo RP"
+msgstr "Registo HIP"
 
 msgid "Raw HIP records"
 msgstr ""
@@ -2480,7 +2480,7 @@ msgid "Preference given to this exchanger. Lower values are more preferred"
 msgstr ""
 
 msgid "KX Exchanger"
-msgstr "Permutador"
+msgstr "Permutador KX"
 
 msgid "A host willing to act as a key exchanger"
 msgstr ""
@@ -2573,7 +2573,7 @@ msgid "MX Preference"
 msgstr "Preferência de MX"
 
 msgid "MX Exchanger"
-msgstr "Permutador"
+msgstr "Permutador MX"
 
 msgid "A host willing to act as a mail exchanger"
 msgstr ""
@@ -2642,7 +2642,7 @@ msgid "Raw NSEC3 records"
 msgstr ""
 
 msgid "PTR record"
-msgstr "Registo RP"
+msgstr "Registo PTR"
 
 msgid "Raw PTR records"
 msgstr ""
@@ -2672,13 +2672,13 @@ msgid "Raw SIG records"
 msgstr ""
 
 msgid "SPF record"
-msgstr "Registo RP"
+msgstr "Registo SPF"
 
 msgid "Raw SPF records"
 msgstr ""
 
 msgid "SRV record"
-msgstr "Registo RP"
+msgstr "Registo SRV"
 
 msgid "Raw SRV records"
 msgstr ""
@@ -2755,7 +2755,7 @@ msgid "Selector"
 msgstr "Seletor"
 
 msgid "TLSA Matching Type"
-msgstr "Tipo de Correspondência"
+msgstr "Tipo de Correspondência TLSA"
 
 msgid "Matching Type"
 msgstr "Tipo de Correspondência"
@@ -2903,7 +2903,7 @@ msgid "Disable DNS Forward Zone."
 msgstr "Desativa Zona de Reencaminhamento DNS."
 
 msgid "Enable DNS Forward Zone."
-msgstr "Desativa Zona de Reencaminhamento DNS."
+msgstr "Ativa Zona de Reencaminhamento DNS."
 
 msgid "Search for DNS forward zones."
 msgstr "Procura por zonas de reencaminhamento DNS."
@@ -2978,7 +2978,7 @@ msgid "Forward zones only"
 msgstr "Reencaminhar apenas zonas"
 
 msgid "Search for forward zones only"
-msgstr "Procura por zonas de reencaminhamento DNS."
+msgstr "Apenas procurar por zonas de reencaminhamento"
 
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modificar zona DNS (registo SOA)."
@@ -3055,19 +3055,19 @@ msgid "User category"
 msgstr ""
 
 msgid "User category the rule applies to"
-msgstr "Categoria de máquina fonte a que a regra se aplica"
+msgstr "Categoria de utilizador a que a regra se aplica"
 
 msgid "Host category"
 msgstr ""
 
 msgid "Host category the rule applies to"
-msgstr "Categoria de máquina fonte a que a regra se aplica"
+msgstr "Categoria de máquina a que a regra se aplica"
 
 msgid "Service category"
 msgstr ""
 
 msgid "Service category the rule applies to"
-msgstr "Categoria de máquina fonte a que a regra se aplica"
+msgstr "Categoria de serviço a que a regra se aplica"
 
 msgid "Enabled"
 msgstr "Ativado"
@@ -3246,7 +3246,7 @@ msgid "Search for HBAC services."
 msgstr "Procurar por serviços HBAC."
 
 msgid "Results should contain primary key attribute only (\"service\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"serviço\")"
 
 msgid "Modify an HBAC service."
 msgstr ""
@@ -3295,7 +3295,7 @@ msgid "Delete an HBAC service group."
 msgstr ""
 
 msgid "Search for an HBAC service group."
-msgstr "Procurar por serviços HBAC."
+msgstr "Procurar por um grupo de serviço HBAC."
 
 msgid "Modify an HBAC service group."
 msgstr ""
@@ -3413,7 +3413,7 @@ msgid "Certificate"
 msgstr ""
 
 msgid "Base-64 encoded server certificate"
-msgstr "Certificado codificado em base-64."
+msgstr "Certificado de servidor codificado em base-64"
 
 msgid "Principal name"
 msgstr "Nome principal"
@@ -3558,52 +3558,54 @@ msgid "Search for hosts."
 msgstr "Pesquisar por máquinas."
 
 msgid "Results should contain primary key attribute only (\"hostname\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"nome de "
+"máquina\")"
 
 msgid "host group"
 msgstr ""
 
 msgid "Search for hosts with these member of host groups."
-msgstr "Procurar por grupos com estes membros de grupos."
+msgstr "Procurar por máquinas com estes membros de grupos de máquinas."
 
 msgid "Search for hosts without these member of host groups."
-msgstr "Procurar por grupos sem estes membros de grupos."
+msgstr "Procurar por máquinas sem estes membros de grupos de máquinas."
 
 msgid "netgroup"
 msgstr ""
 
 msgid "Search for hosts with these member of netgroups."
-msgstr "Procurar por grupos com estes membros de grupos de rede."
+msgstr "Procurar por máquinas com estes membros de grupos de rede."
 
 msgid "Search for hosts without these member of netgroups."
-msgstr "Procurar por grupos sem estes membros de grupos de rede."
+msgstr "Procurar por máquinas sem estes membros de grupos de rede."
 
 msgid "role"
 msgstr "função"
 
 msgid "Search for hosts with these member of roles."
-msgstr "Procurar por grupos com estes membros de funções."
+msgstr "Procurar por máquinas com estes membros de funções."
 
 msgid "Search for hosts without these member of roles."
-msgstr "Procurar por grupos sem estes membros de funções."
+msgstr "Procurar por máquinas sem estes membros de funções."
 
 msgid "HBAC rule"
 msgstr ""
 
 msgid "Search for hosts with these member of HBAC rules."
-msgstr "Procurar por grupos com estes membros de regras HBAC."
+msgstr "Procurar por máquinas com estes membros de regras HBAC."
 
 msgid "Search for hosts without these member of HBAC rules."
-msgstr "Procurar por grupos sem estes membros de regras HBAC."
+msgstr "Procurar por máquinas sem estes membros de regras HBAC."
 
 msgid "sudo rule"
 msgstr ""
 
 msgid "Search for hosts with these member of sudo rules."
-msgstr "Procurar por grupos com estes membros de regras sudo."
+msgstr "Procurar por máquinas com estes membros de regras sudo."
 
 msgid "Search for hosts without these member of sudo rules."
-msgstr "Procurar por grupos sem estes membros de regras sudo."
+msgstr "Procurar por máquinas sem estes membros de regras sudo."
 
 msgid "user"
 msgstr "utilizador"
@@ -3712,46 +3714,52 @@ msgid "Search for hostgroups."
 msgstr "Pesquisar por grupos de máquinas."
 
 msgid "Results should contain primary key attribute only (\"hostgroup-name\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"nome de grupo-"
+"de-máquinas\")"
 
 msgid "Search for host groups with these member hosts."
-msgstr "Procurar por grupos com estes utilizadores membros."
+msgstr "Procurar por grupos de máquinas com estas máquinas membro."
 
 msgid "Search for host groups without these member hosts."
-msgstr "Procurar por grupos sem estes utilizadores membros."
+msgstr "Procurar por grupos de máquinas sem estas máquinas membro."
 
 msgid "Search for host groups with these member host groups."
-msgstr "Procurar por grupos com estes membros de grupos."
+msgstr ""
+"Procurar por grupos de máquinas com estes membros de grupos de máquinas."
 
 msgid "Search for host groups without these member host groups."
-msgstr "Procurar por grupos sem estes membros de grupos."
+msgstr ""
+"Procurar por grupos de máquinas sem estes membros de grupos de máquinas."
 
 msgid "Search for host groups with these member of host groups."
 msgstr ""
+"Procurar por grupos de máquinas com estes membros de grupos de máquinas."
 
 msgid "Search for host groups without these member of host groups."
 msgstr ""
+"Procurar por grupos de máquinas sem estes membros de grupos de máquinas."
 
 msgid "Search for host groups with these member of netgroups."
-msgstr "Procurar por grupos com estes membros de grupos de rede."
+msgstr "Procurar por grupos de máquinas com estes membros de grupos de rede."
 
 msgid "Search for host groups without these member of netgroups."
-msgstr ""
+msgstr "Procurar por grupos de máquinas sem estes membros de grupos de rede."
 
 msgid "Search for host groups with these member of HBAC rules."
-msgstr "Procurar por grupos com estes membros de regras HBAC."
+msgstr "Procurar por grupos de máquinas com estes membros de regras HBAC."
 
 msgid "Search for host groups without these member of HBAC rules."
-msgstr ""
+msgstr "Procurar por grupos de máquinas sem estes membros de regras HBAC."
 
 msgid "Search for host groups with these member of sudo rules."
-msgstr "Procurar por grupos com estes membros de regras sudo."
+msgstr "Procurar por grupos de máquinas com estes membros de regras sudo."
 
 msgid "Search for host groups without these member of sudo rules."
-msgstr ""
+msgstr "Procurar por grupos de máquinas sem estes membros de regras sudo."
 
 msgid "Modify a hostgroup."
-msgstr "Modifica um grupo."
+msgstr "Modifica um grupo de máquinas."
 
 msgid "Remove members from a hostgroup."
 msgstr ""
@@ -3815,7 +3823,7 @@ msgid "Search for an Group ID override."
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"anchor\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"âncora\")"
 
 msgid "Modify an Group ID override."
 msgstr ""
@@ -4211,7 +4219,7 @@ msgstr "Continuar"
 msgid ""
 "Continuous operation mode. Errors are reported but the process continues"
 msgstr ""
-"Modo de operação contínua. Os erros são reportados mas o processo continua."
+"Modo de operação contínua. Os erros são reportados mas o processo continua"
 
 msgid "Base DN"
 msgstr ""
@@ -4320,7 +4328,7 @@ msgid "IPA unique ID"
 msgstr ""
 
 msgid "Member netgroups"
-msgstr "Remover grupos de rede"
+msgstr "Membros grupos de rede"
 
 msgid "Indirect Member netgroups"
 msgstr ""
@@ -4359,43 +4367,43 @@ msgid "search for managed groups"
 msgstr "procura por grupos geridos"
 
 msgid "Search for netgroups with these member netgroups."
-msgstr "Procurar por grupos com estes membros de grupos de rede."
+msgstr "Procurar por grupos de rede com estes membros de grupos de rede."
 
 msgid "Search for netgroups without these member netgroups."
-msgstr ""
+msgstr "Procurar por grupos de rede sem estes membros de grupos de rede."
 
 msgid "Search for netgroups with these member users."
-msgstr "Procurar por grupos com estes utilizadores membros."
+msgstr "Procurar por grupos de rede com estes utilizadores membros."
 
 msgid "Search for netgroups without these member users."
-msgstr ""
+msgstr "Procurar por grupos de rede sem estes utilizadores membros."
 
 msgid "group"
 msgstr "grupo"
 
 msgid "Search for netgroups with these member groups."
-msgstr "Procurar por grupos com estes grupos membros."
+msgstr "Procurar por grupos de rede com estes grupos membros."
 
 msgid "Search for netgroups without these member groups."
-msgstr ""
+msgstr "Procurar por grupos de rede sem estes grupos membros."
 
 msgid "Search for netgroups with these member hosts."
-msgstr "Procurar por grupos com estes utilizadores membros."
+msgstr "Procurar por grupos de rede com estas máquinas membros."
 
 msgid "Search for netgroups without these member hosts."
-msgstr ""
+msgstr "Procurar por grupos de rede sem estas máquinas membros."
 
 msgid "Search for netgroups with these member host groups."
-msgstr ""
+msgstr "Procurar por grupos de rede com estes grupos de máquinas membros."
 
 msgid "Search for netgroups without these member host groups."
-msgstr ""
+msgstr "Procurar por grupos de rede sem estes grupos de máquinas membros."
 
 msgid "Search for netgroups with these member of netgroups."
-msgstr ""
+msgstr "Procurar por grupos de rede com estes grupos de rede membros."
 
 msgid "Search for netgroups without these member of netgroups."
-msgstr ""
+msgstr "Procurar por grupos de rede sem estes grupos de rede membros."
 
 msgid "Modify a netgroup."
 msgstr "Modifica um grupo de rede."
@@ -4600,13 +4608,13 @@ msgid "Effective attributes"
 msgstr ""
 
 msgid "All attributes to which the permission applies"
-msgstr "Atributos para os quais a permissão se aplica."
+msgstr "Todos os atributos para os quais a permissão se aplica"
 
 msgid "Included attributes"
 msgstr ""
 
 msgid "User-specified attributes to which the permission applies"
-msgstr "Atributos para os quais a permissão se aplica."
+msgstr "Atributos específicos de utilizador para os quais a permissão se aplica"
 
 msgid "Excluded attributes"
 msgstr ""
@@ -4619,7 +4627,7 @@ msgid "Default attributes"
 msgstr ""
 
 msgid "Attributes to which the permission applies by default"
-msgstr "Atributos para os quais a permissão se aplica."
+msgstr "Atributos para os quais a permissão se aplica por predefinição"
 
 msgid "Bind rule type"
 msgstr "Vincula tipo de regra"
@@ -4912,7 +4920,7 @@ msgid "Min lifetime (hours)"
 msgstr ""
 
 msgid "Minimum password lifetime (in hours)"
-msgstr "Tempo de vida máximo da palavra passe (em dias)"
+msgstr "Tempo de vida mínimo da palavra passe (em horas)"
 
 msgid "History size"
 msgstr ""
@@ -4954,7 +4962,7 @@ msgid "Period for which lockout is enforced (seconds)"
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"cn\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"cn\")"
 
 msgid "Add a new group password policy."
 msgstr "Adiciona política de palavra-passe de um novo grupo."
@@ -4966,7 +4974,7 @@ msgid "Search for group password policies."
 msgstr "Procura por políticas de palavra-passe de grupo."
 
 msgid "Results should contain primary key attribute only (\"group\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"grupo\")"
 
 msgid "Modify a group password policy."
 msgstr "Modifica uma política de palavra-passe de grupo."
@@ -5470,7 +5478,8 @@ msgid "Search for IPA services."
 msgstr "Procurar por serviços IPA."
 
 msgid "Results should contain primary key attribute only (\"principal\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"principal\")"
 
 msgid "Search for services with these managed by hosts."
 msgstr ""
@@ -6119,7 +6128,7 @@ msgid "Search for Sudo Commands."
 msgstr "Procurar por Comandos Sudo."
 
 msgid "Results should contain primary key attribute only (\"command\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"comando\")"
 
 msgid "Modify Sudo Command."
 msgstr "Modificar Comando Sudo."
@@ -6184,7 +6193,9 @@ msgstr "Procurar por Grupos de Comando Sudo."
 
 msgid ""
 "Results should contain primary key attribute only (\"sudocmdgroup-name\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"nome-grupo-"
+"comandos-sudo\")"
 
 msgid "Modify Sudo Command Group."
 msgstr ""
@@ -6378,37 +6389,37 @@ msgid "Display user record for current Kerberos principal"
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"login\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"login\")"
 
 msgid "Search for users with these member of groups."
-msgstr "Procurar por grupos com estes membros de grupos."
+msgstr "Procurar por utilizadores com estes membros de grupos."
 
 msgid "Search for users without these member of groups."
-msgstr ""
+msgstr "Procurar por utilizadores sem estes membros de grupos."
 
 msgid "Search for users with these member of netgroups."
-msgstr ""
+msgstr "Procurar por utilizadores com estes membros de grupos de rede."
 
 msgid "Search for users without these member of netgroups."
-msgstr ""
+msgstr "Procurar por utilizadores sem estes membros de grupos de rede."
 
 msgid "Search for users with these member of roles."
-msgstr "Procurar por grupos com estes membros de funções."
+msgstr "Procurar por utilizadores com estes membros de funções."
 
 msgid "Search for users without these member of roles."
-msgstr ""
+msgstr "Procurar por utilizadores sem estes membros de funções."
 
 msgid "Search for users with these member of HBAC rules."
-msgstr "Procurar por grupos com estes membros de regras HBAC."
+msgstr "Procurar por utilizadores com estes membros de regras HBAC."
 
 msgid "Search for users without these member of HBAC rules."
-msgstr ""
+msgstr "Procurar por utilizadores sem estes membros de regras HBAC."
 
 msgid "Search for users with these member of sudo rules."
-msgstr "Procurar por grupos com estes membros de regras sudo."
+msgstr "Procurar por utilizadores com estes membros de regras sudo."
 
 msgid "Search for users without these member of sudo rules."
-msgstr ""
+msgstr "Procurar por utilizadores sem estes membros de regras sudo."
 
 msgid "Modify a user."
 msgstr "Modifica um utilizador."
@@ -6978,7 +6989,8 @@ msgid "search for non-POSIX groups"
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"group-name\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"nome-grupo\")"
 
 msgid "Search for groups with these member users."
 msgstr "Procurar por grupos com estes utilizadores membros."
@@ -7626,7 +7638,7 @@ msgid "Search for OTP token."
 msgstr "Procurar por testemunho OTP."
 
 msgid "Results should contain primary key attribute only (\"id\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"id\")"
 
 msgid "Modify a OTP token."
 msgstr ""
@@ -7701,13 +7713,13 @@ msgid "RunAs User category"
 msgstr ""
 
 msgid "RunAs User category the rule applies to"
-msgstr "Categoria de máquina fonte a que a regra se aplica"
+msgstr "Categoria de Correr_Como Utilizador a que a regra se aplica"
 
 msgid "RunAs Group category"
 msgstr ""
 
 msgid "RunAs Group category the rule applies to"
-msgstr ""
+msgstr "Categoria de Correr_Como Grupo a que a regra se aplica"
 
 msgid "Sudo order"
 msgstr ""
@@ -7731,7 +7743,7 @@ msgid "Sudo Deny Commands"
 msgstr ""
 
 msgid "Sudo Allow Command Groups"
-msgstr "Comandos que Permitem Sudo"
+msgstr "Grupos de Comandos que Permitem Sudo"
 
 msgid "Sudo Deny Command Groups"
 msgstr ""
@@ -7818,7 +7830,9 @@ msgid "Search for Sudo Rule."
 msgstr "Procurar por Regra Sudo."
 
 msgid "Results should contain primary key attribute only (\"sudorule-name\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"nome-"
+"regra_sudo\")"
 
 msgid "Modify Sudo Rule."
 msgstr ""
@@ -8089,7 +8103,7 @@ msgid "Search domains of the trust"
 msgstr "Procurar domínios da confiança"
 
 msgid "Results should contain primary key attribute only (\"domain\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"domínio\")"
 
 msgid "Modify trustdomain of the trust"
 msgstr ""
@@ -8425,7 +8439,9 @@ msgid "Search for service delegations rule."
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"delegation-name\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"nome-"
+"delegação\")"
 
 msgid "Remove member from a named service delegation rule."
 msgstr ""
@@ -8523,34 +8539,36 @@ msgid "Search for stage users."
 msgstr "Procurar por utilizadores de estágio."
 
 msgid "Search for stage users with these member of groups."
-msgstr "Procurar por grupos com estes membros de grupos."
+msgstr "Procurar por utilizadores de estágio com estes membros de grupos."
 
 msgid "Search for stage users without these member of groups."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio sem estes membros de grupos."
 
 msgid "Search for stage users with these member of netgroups."
 msgstr ""
+"Procurar por utilizadores de estágio com estes membros de grupos de rede."
 
 msgid "Search for stage users without these member of netgroups."
 msgstr ""
+"Procurar por utilizadores de estágio sem estes membros de grupos de rede."
 
 msgid "Search for stage users with these member of roles."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio com estes membros de funções."
 
 msgid "Search for stage users without these member of roles."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio sem estes membros de funções."
 
 msgid "Search for stage users with these member of HBAC rules."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio com estes membros de regras HBAC."
 
 msgid "Search for stage users without these member of HBAC rules."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio sem estes membros de regras HBAC."
 
 msgid "Search for stage users with these member of sudo rules."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio com estes membros de regras sudo."
 
 msgid "Search for stage users without these member of sudo rules."
-msgstr ""
+msgstr "Procurar por utilizadores de estágio sem estes membros de regras sudo."
 
 msgid "Modify a stage user."
 msgstr ""
@@ -10008,7 +10026,7 @@ msgid "Signature Expiration"
 msgstr ""
 
 msgid "RRSIG Signature Inception"
-msgstr "Origem da Assinatura"
+msgstr "Origem da Assinatura RRSIG"
 
 msgid "Signature Inception"
 msgstr "Origem da Assinatura"
@@ -10050,7 +10068,7 @@ msgid "SIG Signature Expiration"
 msgstr ""
 
 msgid "SIG Signature Inception"
-msgstr "Origem da Assinatura"
+msgstr "Origem da Assinatura SIG"
 
 msgid "SIG Key Tag"
 msgstr ""
@@ -10059,7 +10077,7 @@ msgid "SIG Signer's Name"
 msgstr ""
 
 msgid "SIG Signature"
-msgstr "Assinatura"
+msgstr "Assinatura SIG"
 
 msgid "Comma-separated list of raw SPF records"
 msgstr ""
@@ -10264,7 +10282,7 @@ msgid "comma-separated list of hosts to remove"
 msgstr ""
 
 msgid "comma-separated list of host groups to remove"
-msgstr "lista separada por vírgulas de grupos de máquinas a adicionar"
+msgstr "lista separada por vírgulas de grupos de máquinas a remover"
 
 msgid "comma-separated list of HBAC services to remove"
 msgstr ""
@@ -10648,7 +10666,7 @@ msgid "User group to apply permissions to"
 msgstr ""
 
 msgid "comma-separated list of privileges to add"
-msgstr "lista separada por vírgulas de utilizadores a adicionar"
+msgstr "lista separada por vírgulas de privilégios a adicionar"
 
 msgid "Add a system permission without an ACI"
 msgstr ""
@@ -11047,7 +11065,7 @@ msgid ""
 msgstr ""
 
 msgid "comma-separated list of sudo command groups to add"
-msgstr "lista separada por vírgulas de grupos de máquinas a adicionar"
+msgstr "lista separada por vírgulas de grupos de comandos sudo a adicionar"
 
 msgid "comma-separated list of sudo command groups to remove"
 msgstr ""
@@ -12019,7 +12037,7 @@ msgstr "consultar '%(owner)s %(rtype)s': %(error)s"
 
 #, python-format
 msgid "query '%(owner)s %(rtype)s' with EDNS0: %(error)s"
-msgstr ""
+msgstr "consulta '%(owner)s %(rtype)s' com EDNS0: %(error)s"
 
 #, python-format
 msgid ""
@@ -12260,7 +12278,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
-msgstr "Utilizador de estágio modificado \"%(value)s\""
+msgstr "Servidor DNS modificado \"%(value)s\""
 
 msgid "Search for DNS servers."
 msgstr "Procurar por servidores DNS."
@@ -12289,7 +12307,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted DNS server \"%(value)s\""
-msgstr ""
+msgstr "Servidor DNS apagado \"%(value)s\""
 
 msgid "Host-based access control commands"
 msgstr ""
@@ -12376,10 +12394,10 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "netgroups"
-msgstr "grupos"
+msgstr "grupos de rede"
 
 msgid "Netgroups"
-msgstr "grupos"
+msgstr "Grupos de rede"
 
 msgid "Netgroup"
 msgstr ""
@@ -12400,7 +12418,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified netgroup \"%(value)s\""
-msgstr "Utilizador de estágio modificado \"%(value)s\""
+msgstr "Grupo de rede modificado \"%(value)s\""
 
 msgid "user category cannot be set to 'all' while there are allowed users"
 msgstr ""
@@ -12562,15 +12580,15 @@ msgstr ""
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
-msgstr "Utilizador de estágio adicionado \"%(value)s\""
+msgstr "Auto-atendimento adicionado \"%(value)s\""
 
 #, python-format
 msgid "Deleted selfservice \"%(value)s\""
-msgstr ""
+msgstr "Auto-atendimento apagado \"%(value)s\""
 
 #, python-format
 msgid "Modified selfservice \"%(value)s\""
-msgstr ""
+msgstr "Auto-atendimento modificado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d selfservice matched"
@@ -13264,7 +13282,7 @@ msgid "automount map"
 msgstr ""
 
 msgid "automount maps"
-msgstr "Remover mapas de auto-montagem"
+msgstr "mapas de auto-montagem"
 
 msgid "Automount Maps"
 msgstr ""
@@ -13297,7 +13315,7 @@ msgid "automount key"
 msgstr ""
 
 msgid "automount keys"
-msgstr "Remover chaves de auto-montagem"
+msgstr "chaves de auto-montagem"
 
 msgid "Automount Keys"
 msgstr ""
@@ -13441,7 +13459,7 @@ msgstr "%s para remover"
 
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr "Resultados devem conter apenas atributo de chave primária (\"%s\")"
 
 #, python-format
 msgid ""
@@ -13499,7 +13517,7 @@ msgid "A string that identifies the user at external IdP"
 msgstr ""
 
 msgid "Base-64 encoded user certificate"
-msgstr "Certificado codificado em base-64."
+msgstr "Certificado de utilizador codificado em base-64"
 
 msgid "Certificate mapping data"
 msgstr ""
@@ -14577,7 +14595,7 @@ msgstr ""
 
 #, python-format
 msgid "%s record"
-msgstr "%s Registo"
+msgstr "%s registo"
 
 #, python-format
 msgid "Raw %s records"
@@ -14736,10 +14754,10 @@ msgid "Enabled DNS zone \"%(value)s\""
 msgstr ""
 
 msgid "DNS resource record"
-msgstr "Tipo de registo de recurso DNS"
+msgstr "registo de recurso DNS"
 
 msgid "DNS resource records"
-msgstr "Tipo de registo de recurso DNS"
+msgstr "registos de recurso DNS"
 
 msgid "DNS Resource Records"
 msgstr ""
@@ -14843,13 +14861,13 @@ msgid "Global DNS configuration is empty"
 msgstr ""
 
 msgid "DNS forward zone"
-msgstr "Zona de Reencaminhamento DNS"
+msgstr "zona de reencaminhamento DNS"
 
 msgid "DNS forward zones"
-msgstr ""
+msgstr "zonas de reencaminhamento DNS"
 
 msgid "DNS Forward Zones"
-msgstr "Zona de Reencaminhamento DNS"
+msgstr "Zonas de Reencaminhamento DNS"
 
 msgid "DNS Forward Zone"
 msgstr "Zona de Reencaminhamento DNS"
@@ -14870,7 +14888,7 @@ msgid "Enabled DNS forward zone \"%(value)s\""
 msgstr ""
 
 msgid "IPA DNS records"
-msgstr "Servidores DNS do IPA"
+msgstr "Registos DNS do IPA"
 
 msgid "IPA location records"
 msgstr ""
@@ -15039,14 +15057,14 @@ msgstr ""
 
 #, python-format
 msgid "Deleted group \"%(value)s\""
-msgstr "Utilizador de estágio apagado \"%(value)s\""
+msgstr "Grupo apagado \"%(value)s\""
 
 msgid "privileged group"
 msgstr ""
 
 #, python-format
 msgid "Modified group \"%(value)s\""
-msgstr ""
+msgstr "Grupo modificado \"%(value)s\""
 
 msgid "An external group cannot be POSIX"
 msgstr ""
@@ -15385,7 +15403,7 @@ msgstr ""
 
 #, python-format
 msgid "Added hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Grupo de máquina adicionado \"%(value)s\""
 
 #, python-format
 msgid ""
@@ -15395,7 +15413,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Grupo de máquina apagado \"%(value)s\""
 
 msgid "hostgroup"
 msgstr ""
@@ -15405,7 +15423,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified hostgroup \"%(value)s\""
-msgstr ""
+msgstr "Grupo de máquina modificado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d hostgroup matched"
@@ -15981,7 +15999,7 @@ msgid ""
 msgstr ""
 "\n"
 " Adicionar um testemunho novo:\n"
-"   ipa otptoken-add-yubikey --owner=jdoe --desc=\"Meu YubiKey\"\n"
+"   ipa otptoken-add --type=totp --owner=jdoe --desc=\"Meu testemunho soft\"\n"
 
 msgid ""
 "\n"
@@ -16657,7 +16675,7 @@ msgid "Sensitive"
 msgstr ""
 
 msgid "Positional argument"
-msgstr "Argumentos posicionais"
+msgstr "Argumento posicional"
 
 #, python-format
 msgid "%(metaobject)s: %(oname)s not found"
@@ -17000,7 +17018,7 @@ msgstr[1] "%(count)d utilizadores corresponderam"
 
 #, python-format
 msgid "Activate a stage user \"%(value)s\""
-msgstr "Utilizador de estágio adicionado \"%(value)s\""
+msgstr "Ativar um utilizador de estágio \"%(value)s\""
 
 msgid "Entry RDN is not 'uid'"
 msgstr ""
@@ -17100,7 +17118,7 @@ msgid "SubUID range size"
 msgstr ""
 
 msgid "Subordinate user ID count"
-msgstr "Contagem de ID de grupo subordinado"
+msgstr "Contagem de ID de utilizador subordinado"
 
 msgid "SubGID range start"
 msgstr ""
@@ -17881,10 +17899,10 @@ msgid "Subject IP Address"
 msgstr ""
 
 msgid "Subject OID"
-msgstr "DN do assunto"
+msgstr "OID do assunto"
 
 msgid "Subject UPN"
-msgstr "DN do assunto"
+msgstr "UPN do assunto"
 
 msgid "Subject Kerberos principal name"
 msgstr ""
@@ -18027,7 +18045,8 @@ msgid "Status of the certificate"
 msgstr ""
 
 msgid "Results should contain primary key attribute only (\"certificate\")"
-msgstr "Resultados devem conter apenas atributo de chave primária (\"reino\")"
+msgstr ""
+"Resultados devem conter apenas atributo de chave primária (\"certificado\")"
 
 #, python-format
 msgid "%(count)d certificate matched"
@@ -18174,7 +18193,7 @@ msgid "IPA servers configured as domain name server"
 msgstr ""
 
 msgid "Hidden IPA DNS servers"
-msgstr "Servidores DNS do IPA"
+msgstr "Servidores DNS do IPA escondidos"
 
 msgid "Hidden IPA servers configured as domain name server"
 msgstr ""
@@ -18387,7 +18406,7 @@ msgid "Host physical location hint (e.g. \"Lab 2\")"
 msgstr ""
 
 msgid "Base-64 encoded host certificate"
-msgstr "Certificado codificado em base-64."
+msgstr "Certificado de máquina codificado em base-64"
 
 msgid "Serial Number"
 msgstr ""
@@ -18413,11 +18432,11 @@ msgstr ""
 
 #, python-format
 msgid "Added host \"%(value)s\""
-msgstr "Utilizador de estágio adicionado \"%(value)s\""
+msgstr "Máquina adicionada \"%(value)s\""
 
 #, python-format
 msgid "Deleted host \"%(value)s\""
-msgstr ""
+msgstr "Máquina apagada \"%(value)s\""
 
 msgid "Remove A, AAAA, SSHFP and PTR records of the host(s) managed by IPA DNS"
 msgstr ""
@@ -18427,7 +18446,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified host \"%(value)s\""
-msgstr ""
+msgstr "Máquina modificada \"%(value)s\""
 
 msgid "Password cannot be set on enrolled host."
 msgstr ""
@@ -18783,7 +18802,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified ID range \"%(value)s\""
-msgstr ""
+msgstr "Gama de ID modificada \"%(value)s\""
 
 msgid ""
 "This command can not be used to change ID allocation for local IPA domain. "
@@ -18917,7 +18936,7 @@ msgid "ID overrides cannot be renamed"
 msgstr ""
 
 msgid "Search for an ID override."
-msgstr "Procura por uma Vista de ID."
+msgstr "Procura por uma sobreposição de ID."
 
 #, python-format
 msgid "%(count)d ID override matched"
@@ -19259,7 +19278,7 @@ msgstr "Voltar ao Topo"
 
 #, python-brace-format
 msgid "${entity} ${primary_key} updated"
-msgstr ""
+msgstr "${entity} ${primary_key} atualizada"
 
 #, python-brace-format
 msgid "${entity} successfully added"
@@ -19519,7 +19538,7 @@ msgid ""
 msgstr ""
 
 msgid "Loading"
-msgstr "A carregar..."
+msgstr "A carregar"
 
 msgid "Kerberos Principal you entered is expired"
 msgstr ""
@@ -19760,7 +19779,7 @@ msgid "Automount Location Settings"
 msgstr ""
 
 msgid "Remove automount locations"
-msgstr "Remover mapas de auto-montagem"
+msgstr "Remover localizações de auto-montagem"
 
 msgid "Add automount map"
 msgstr ""
@@ -20167,7 +20186,7 @@ msgid "Remove DNS forward zones"
 msgstr ""
 
 msgid "Add DNS resource record"
-msgstr "Tipo de registo de recurso DNS"
+msgstr "Adicionar registo de recurso DNS"
 
 msgid "DNS record was deleted because it contained no data."
 msgstr ""
@@ -20333,7 +20352,7 @@ msgid "Change to external group"
 msgstr ""
 
 msgid "Change to POSIX group"
-msgstr "mudar para um grupo de POSIX"
+msgstr "Mudar para grupo de POSIX"
 
 msgid "Non-POSIX"
 msgstr ""
@@ -20490,7 +20509,7 @@ msgid "HBAC Test"
 msgstr ""
 
 msgid "Matched"
-msgstr "Corresponder"
+msgstr "Correspondido"
 
 msgid "Missing values: "
 msgstr ""
@@ -20560,7 +20579,7 @@ msgid "Fully Qualified Host Name"
 msgstr ""
 
 msgid "Generate OTP"
-msgstr ""
+msgstr "Gerar OTP"
 
 msgid "Generated OTP"
 msgstr "OTP gerado"
@@ -20800,7 +20819,7 @@ msgid "Remove user ID overrides"
 msgstr "Remover sobreposições de ID de utilizador"
 
 msgid "Remove group ID overrides"
-msgstr "Remover sobreposições de ID de utilizador"
+msgstr "Remover sobreposições de ID de grupo"
 
 msgid "Un-apply from host groups"
 msgstr ""
@@ -21583,7 +21602,7 @@ msgstr "Desbloquear"
 
 #, python-brace-format
 msgid "Are you sure you want to unlock user ${object}?"
-msgstr "De certeza que pretende estagiar ${object}?"
+msgstr "De certeza que pretende desbloquear o utilizador ${object}?"
 
 msgid "Add vault"
 msgstr ""
@@ -21635,7 +21654,7 @@ msgid "My User Vaults"
 msgstr ""
 
 msgid "Owners"
-msgstr "Dono"
+msgstr "Donos"
 
 msgid "Remove vaults"
 msgstr "Remover cofres"
@@ -22223,7 +22242,7 @@ msgstr "Modifica informação acerca dum servidor IPA."
 
 #, python-format
 msgid "Modified IPA server \"%(value)s\""
-msgstr ""
+msgstr "Servidor IPA modificado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d IPA server matched"
@@ -22233,7 +22252,7 @@ msgstr[1] ""
 
 #, python-format
 msgid "Deleted IPA server \"%(value)s\""
-msgstr ""
+msgstr "Servidor IPA apagado \"%(value)s\""
 
 msgid "Ignore topology errors"
 msgstr ""
@@ -22450,7 +22469,7 @@ msgid "Service principal alias"
 msgstr ""
 
 msgid "Base-64 encoded service certificate"
-msgstr "Certificado codificado em base-64."
+msgstr "Certificado de serviço codificado em base-64"
 
 msgid ""
 "Defines an allow list for Authentication Indicators. Use 'otp' to allow OTP-"
@@ -22495,21 +22514,21 @@ msgstr ""
 
 #, python-format
 msgid "Deleted service \"%(value)s\""
-msgstr "Utilizador de estágio apagado \"%(value)s\""
+msgstr "Serviço apagado \"%(value)s\""
 
 #, python-format
 msgid "Modified service \"%(value)s\""
-msgstr ""
+msgstr "Serviço modificado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d service matched"
 msgid_plural "%(count)d services matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d serviço correspondente"
+msgstr[1] "%(count)d serviços correspondentes"
 
 #, python-format
 msgid "Disabled service \"%(value)s\""
-msgstr ""
+msgstr "Serviço desativado \"%(value)s\""
 
 #, python-format
 msgid "Added certificates to service principal \"%(value)s\""
