@@ -6,9 +6,8 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-03-03 12:17+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"PO-Revision-Date: 2026-03-04 17:58+0000\n"
+"Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
 "Language: pt\n"
@@ -943,11 +942,11 @@ msgid "No option to modify specific record provided."
 msgstr "Nenhuma opção para modificar o registo específico fornecido."
 
 msgid "Current DNS record contents:\n"
-msgstr ""
+msgstr "Conteúdo do registo DNS atual:\n"
 
 #, python-format
 msgid "Modify %(name)s '%(value)s'?"
-msgstr ""
+msgstr "Modificar %(name)s '%(value)s'?"
 
 #, python-format
 msgid ""
@@ -957,12 +956,19 @@ msgid_plural ""
 "%(count)d %(type)s records skipped. Only one value per DNS record type can "
 "be modified at one time."
 msgstr[0] ""
+"%(count)d %(type)s registo saltado. Apenas um valor por tipo de registo DNS "
+"pode ser modificado de cada vez."
 msgstr[1] ""
+"%(count)d %(type)s registos saltados. Apenas um valor por tipo de registo "
+"DNS pode ser modificado de cada vez."
 
 msgid ""
 "Neither --del-all nor options to delete a specific record provided.\n"
 "Command help may be consulted for all supported record types."
 msgstr ""
+"Nem--del-all nem opções para apagar um registo específico fornecidas.\n"
+"A ajuda do comando pode ser consultada para todos os tipos de registo "
+"suportados."
 
 msgid "No option to delete specific record provided."
 msgstr "Nenhuma opção para apagar o registo específico fornecido."
@@ -972,32 +978,36 @@ msgstr "Apagar tudo?"
 
 #, python-format
 msgid "Delete %(name)s '%(value)s'?"
-msgstr ""
+msgstr "Apagar %(name)s '%(value)s'?"
 
 msgid "Server will check DNS forwarder(s)."
-msgstr ""
+msgstr "Servidor irá verificar reencaminhador(es) de DNS."
 
 msgid "This may take some time, please wait ..."
-msgstr ""
+msgstr "Isto pode demorar algum tempo, por favor aguarde ..."
 
 msgid "DNS forwarder"
-msgstr ""
+msgstr "Reencaminhador de DNS"
 
 msgid "file to store DNS records in nsupdate format"
-msgstr ""
+msgstr "ficheiro para guardar registos DNS em formado do nsupdate"
 
 msgid ""
 "Unable to display QR code using the configured output encoding. Please use "
 "the token URI to configure your OTP device"
 msgstr ""
+"Incapaz de mostrar código QR usando a codificação de saída configurada. Por "
+"favor use o URI testemunho para configurar o seu dispositivo OTP"
 
 msgid ""
 "QR code width is greater than that of the output tty. Please resize your "
 "terminal."
 msgstr ""
+"largura do código QR é maior que o tty de saída. Por favor redimensione o "
+"seu terminal."
 
 msgid "Synchronize an OTP token."
-msgstr ""
+msgstr "Sincroniza um testemunho OTP."
 
 msgid "User ID"
 msgstr "ID do utilizador"
@@ -1006,51 +1016,52 @@ msgid "Password"
 msgstr "Palavra-passe"
 
 msgid "First Code"
-msgstr ""
+msgstr "Primeiro Código"
 
 msgid "Second Code"
-msgstr ""
+msgstr "Segundo Código"
 
 msgid "Token ID"
-msgstr ""
+msgstr "ID de testemunho"
 
 #, python-format
 msgid "Unable to synchronize token: %s"
-msgstr ""
+msgstr "Incapaz de sincronizar testemunho: %s"
 
 msgid "Add one or more passkey mappings to the user entry."
 msgstr ""
+"Adicionar um ou mais mapeamentos de chave-passe à entrada do utilizador."
 
 #, python-format
 msgid "Enabled Sudo Rule \"%s\""
-msgstr ""
+msgstr "Ativar Regra Sudo \"%s\""
 
 #, python-format
 msgid "Disabled Sudo Rule \"%s\""
-msgstr ""
+msgstr "Desativar Regra Sudo \"%s\""
 
 #, python-format
 msgid "Added option \"%(option)s\" to Sudo Rule \"%(rule)s\""
-msgstr ""
+msgstr "Opção adicionada \"%(option)s\" a Regra Sudo \"%(rule)s\""
 
 #, python-format
 msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
-msgstr ""
+msgstr "Opção removida \"%(option)s\" de Regra Sudo \"%(rule)s\""
 
 msgid "Delete a user, keeping the entry available for future use"
-msgstr ""
+msgstr "Apaga um utilizador, mantendo a entrada disponível para uso futuro"
 
 msgid "Delete a user"
 msgstr "Apaga um utilizador"
 
 msgid "preserve and no-preserve cannot be both set"
-msgstr ""
+msgstr "preserve e no-preserve não podem ser ambos definidos"
 
 msgid "Write certificate (chain if --chain used) to file"
-msgstr ""
+msgstr "Escreve certificado (chain se --chain for usado) em ficheiro"
 
 msgid "Unrevoked"
-msgstr ""
+msgstr "Não revogado"
 
 msgid "Error"
 msgstr "Erro"
@@ -1059,7 +1070,7 @@ msgid "Input filename"
 msgstr "Nome de ficheiro de entrada"
 
 msgid "File to load the certificate from."
-msgstr ""
+msgstr "Ficheiro de onde carregar o certificado."
 
 #, python-format
 msgid "Cannot read file '%(filename)s': %(exc)s"
@@ -1070,116 +1081,118 @@ msgid "Cannot decode file '%(filename)s': %(exc)s"
 msgstr "Incapaz de descodificar ficheiro '%(filename)s': %(exc)s"
 
 msgid "Invalid credentials"
-msgstr ""
+msgstr "Credenciais inválidas"
 
 msgid "Create a new vault."
-msgstr ""
+msgstr "Criar um novo cofre."
 
 msgid "Vault password"
-msgstr ""
+msgstr "Palavra passe do cofre"
 
 msgid "File containing the vault password"
-msgstr ""
+msgstr "Ficheiro que contém a palavra passe do cofre"
 
 msgid "File containing the vault public key"
-msgstr ""
+msgstr "Ficheiro que contém a chave pública do cofre"
 
 msgid "Password can be specified only for symmetric vault"
-msgstr ""
+msgstr "Palavra passe pode ser especificada apenas para cofre simétrico"
 
 msgid "Public key can be specified only for asymmetric vault"
-msgstr ""
+msgstr "Chave pública pode ser especificada apenas para cofre simétrico"
 
 msgid "Password specified multiple times"
-msgstr ""
+msgstr "Palavra passe especificada múltiplas vezes"
 
 msgid "Public key specified multiple times"
-msgstr ""
+msgstr "Chave pública especificada múltiplas vezes"
 
 msgid "Missing vault public key"
 msgstr "Chave pública do cofre em falta"
 
 #, python-format
 msgid "Invalid or unsupported vault public key: %s"
-msgstr ""
+msgstr "Chave pública de cofre inválida ou não suportada: %s"
 
 msgid "Modify a vault."
-msgstr ""
+msgstr "Modificar um cofre."
 
 msgid "Change password"
-msgstr ""
+msgstr "Mudar palavra passe"
 
 msgid "Old vault password"
-msgstr ""
+msgstr "Antiga palavra passe de cofre"
 
 msgid "File containing the old vault password"
-msgstr ""
+msgstr "Ficheiro que contém a antiga palavra passe de cofre"
 
 msgid "New vault password"
-msgstr ""
+msgstr "Nova palavra passe de cofre"
 
 msgid "File containing the new vault password"
-msgstr ""
+msgstr "Ficheiro que contém a nova palavra passe de cofre"
 
 msgid "Old vault private key"
-msgstr ""
+msgstr "Antiga chave privada de cofre"
 
 msgid "File containing the old vault private key"
-msgstr ""
+msgstr "Ficheiro que contém a antiga chave privada de cofre"
 
 msgid "File containing the new vault public key"
-msgstr ""
+msgstr "Ficheiro que contém a nova chave pública de cofre"
 
 msgid "New public key specified multiple times"
-msgstr ""
+msgstr "Nova chave pública especificada múltiplas vezes"
 
 msgid "Missing new vault public key"
 msgstr "Nova chave pública de cofre em falta"
 
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
-msgstr ""
+msgstr "{algo} não é um algoritmo de envólucro de cofre suportado"
 
 msgid "Archive data into a vault."
-msgstr ""
+msgstr "Arquivar dados num cofre."
 
 msgid "Binary data to archive"
-msgstr ""
+msgstr "Dados binários para arquivar"
 
 msgid "File containing data to archive"
-msgstr ""
+msgstr "Ficheiro que contém os dados para arquivar"
 
 msgid "Override existing password"
-msgstr ""
+msgstr "Sobrepor a palavra passe existente"
 
 msgid "Input data specified multiple times"
-msgstr ""
+msgstr "Dados de entrada especificados múltiplas vezes"
 
 #, python-format
 msgid ""
 "Size of data exceeds the limit. Current vault data size limit is %(limit)d B"
 msgstr ""
+"Tamanho de dados excede o limite. O limite atual de tamanho de dados do "
+"cofre é %(limit)d B"
 
 msgid "Invalid vault type"
-msgstr ""
+msgstr "Tipo de cofre inválido"
 
 msgid "Retrieve a data from a vault."
-msgstr ""
+msgstr "Recuperar uns dados a partir de um cofre."
 
 msgid "File to store retrieved data"
-msgstr ""
+msgstr "Ficheiro para guardar dados recuperados"
 
 msgid "Vault private key"
-msgstr ""
+msgstr "Chave privada de cofre"
 
 msgid "File containing the vault private key"
-msgstr ""
+msgstr "Ficheiro que contém a chave privada de cofre"
 
 msgid "Data"
-msgstr ""
+msgstr "Dados"
 
 msgid "Private key specified multiple times"
-msgstr ""
+msgstr "Chave privada especificada múltiplas vezes"
 
 msgid "Missing vault private key"
 msgstr "Chave privada do cofre em falta"
@@ -1304,6 +1317,145 @@ msgid ""
 "must include all existing attributes as well. When doing an aci-mod the\n"
 "targetattr REPLACES the current attributes, it does not add to them.\n"
 msgstr ""
+"\n"
+"Instruções de Controle de Acesso a Servidor de Directório (ACIs)\n"
+"\n"
+"As ACIs são usadas para permitir ou negar acesso a informação. Este módulo "
+"é\n"
+"atualmente desenhado para permitir, não negar, o acesso.\n"
+"\n"
+"Os comandos de aci são desenhados para conceder permissões que permitem "
+"atualizar\n"
+"entradas existentes, adicionar ou apagar novas. O objetivo das ACIs\n"
+"que são empacotadas com o IPA é fornecer um conjunto de permissões de baixo "
+"nível que\n"
+"concedem acesso a grupos especiais chamados grupos de tarefas. Estas "
+"permissões de\n"
+"baixo nível podem ser combinadas em funções que concedem um acesso mais "
+"amplo.\n"
+"Estas funções são outro tipo de grupo, funções (roles).\n"
+"\n"
+"Por exemplo, se tiver grupos de tarefas que permitem adicionar e modificar "
+"utilizadores\n"
+"você pode criar uma função, administrador de utilizadores. Você iria "
+"atribuir utilizadores à função\n"
+"de administrador de utilizadores para lhes permitir fazerem as operações "
+"definidas pelos grupos de tarefas.\n"
+"\n"
+"Você pode criar ACIs que delegam permissão para que utilizadores no grupo A "
+"possam\n"
+"escrever atributos no grupo B.\n"
+"\n"
+"A opção type é um mapa que se aplica a todas as entradas nos utilizadores, "
+"grupos ou\n"
+"localização de máquina. É desenhada principalmente para ser usada quando se "
+"garante\n"
+"permissões de adicionar (para escrever novas entradas).\n"
+"\n"
+"Uma ACI consiste de três partes:\n"
+"1. alvo\n"
+"2. permissões\n"
+"3. regras de vínculo\n"
+"\n"
+"O alvo é um conjunto de regras que definem quais objetos LDAP estão a ser "
+"visados.\n"
+"Isto pode incluir uma lista de atributos, uma área dessa árvore LDAP\n"
+"ou um filtro LDAP.\n"
+"\n"
+"Os alvos incluem:\n"
+"- attrs: lista de atributos afetados\n"
+"- type: um tipo de objeto (user, group, host, service, etc)\n"
+"- memberof: membros de um grupo\n"
+"- targetgroup: concede acesso para modificar um grupo especifico. Isto é "
+"desenhado\n"
+"  principalmente para permitir a utilizadores adicionar ou remover membros "
+"de um grupo específico.\n"
+"- filter: Um filtro LDAP legal usado para estreitar o escopo do alvo.\n"
+"- subtree: Usado para aplicar a regra por um conjunto inteiro de objetos. "
+"Por exemplo,\n"
+"  para permitir adicionar utilizadores você precisa conceder a permissão "
+"\"add\" à sub-árvore\n"
+"  ldap://uid=*,cn=users,cn=accounts,dc=example,dc=com. A opção subtree\n"
+"  é uma salvaguarda para objetos que podem não estar cobertos pela opção "
+"type.\n"
+"\n"
+"As permissões definem o que a ACI tem permissão de fazer, e são um ou\n"
+"mais de:\n"
+"1. write - escreve um ou mais atributos\n"
+"2. read - lê um ou mais atributos\n"
+"3. add - adiciona uma nova entrada na árvore\n"
+"4. delete - apaga uma entrada existente\n"
+"5. all - todas as permissões são concedidas\n"
+"\n"
+"Note a distinção entre atributos e entradas. As permissões são\n"
+"independentes, assim ser capaz de adicionar um utilizador não significa que\n"
+"o utilizador será editável.\n"
+"\n"
+"A regra de vínculo define a quem esta ACI concede permissões. O servidor "
+"LDAP\n"
+"permite que isto seja qualquer entrada LDAP válida mas nós encorajamos o uso "
+"de\n"
+"grupos de tarefas para que os direitos sejam facilmente partilhados pelas "
+"funções.\n"
+"\n"
+"Para uma descrição mais minuciosa dos controles de acesso veja\n"
+"http://www.redhat.com/docs/manuals/dir-server/ag/8.0/"
+"Managing_Access_Control.html\n"
+"\n"
+"EXEMPLOS:\n"
+"\n"
+"NOTA: As ACIs são agora adicionadas via plugin de permissão. Estes exemplos "
+"são para\n"
+"demonstrar como as várias opções funcionam mas isto agora é feito via linha "
+"de comandos\n"
+"de permissão (veja o último exemplo).\n"
+"\n"
+" Adicionar uma ACI para que o grupo \"secretaries\" possa atualizar o "
+"endereço de qualquer utilizador:\n"
+"   ipa group-add --desc=\"Office secretaries\" secretaries\n"
+"   ipa aci-add --attrs=streetAddress --memberof=ipausers --"
+"group=secretaries --permissions=write --prefix=none \"Secretárias escrevem "
+"endereços\"\n"
+"\n"
+" Mostrar a nova ACI:\n"
+"   ipa aci-show --prefix=none \"Secretárias escrevem endereços\"\n"
+"\n"
+" Adicionar uma ACI que permite aos membros de \"addusers\" adicionar novos "
+"utilizadores:\n"
+"   ipa aci-add --type=user --permission=addusers --permissions=add --"
+"prefix=none \"Adicionar novos utilizadores\"\n"
+"\n"
+" Adicionar uma ACI que permite aos membros de editors gerir membros do grupo "
+"admins:\n"
+"   ipa aci-add --permissions=write --attrs=member --targetgroup=admins --"
+"group=editors --prefix=none \"Editors gerem admins\"\n"
+"\n"
+" Adicionar uma ACI que permite aos membros do grupo admins gerir a rua e "
+"código zip daqueles no grupo editors:\n"
+"   ipa aci-add --permissions=write --memberof=editors --group=admins --"
+"attrs=street --attrs=postalcode --prefix=none \"admins editam os endereços "
+"dos editors\"\n"
+"\n"
+" Adicionar uma ACI que permite ao grupo admins gerir a rua e código zip dos "
+"que trabalham para o chefe:\n"
+"   ipa aci-add --permissions=write --group=admins --attrs=street --"
+"attrs=postalcode --filter=\""
+"(manager=uid=boss,cn=users,cn=accounts,dc=example,dc=com)\" --prefix=none "
+"\"Edita os endereços dos que trabalham para o chefe\"\n"
+"\n"
+" Adicionar um totalmente novo tipo de registo para IPA que não é coberto por "
+"nenhuma das opções --type, criando uma permissão:\n"
+"   ipa permission-add  --permissions=add --"
+"subtree=\"cn=*,cn=orange,cn=accounts,dc=example,dc=com\" --desc=\"Adiciona "
+"Entradas Orange\" add_orange\n"
+"\n"
+"\n"
+"O comando show mostra a ACI 389-ds crua.\n"
+"\n"
+"IMPORTANTE: Quando se modifica os atributos do alvo duma ACI existente tem "
+"de\n"
+"se incluir também todos os atributos existentes. Quando se faz um aci-mod o\n"
+"targetattr SUBSTITUI os atributos atuais, não os adiciona.\n"
 
 msgid "ACI name"
 msgstr "Nome de ACI"
@@ -1312,19 +1464,19 @@ msgid "Permission"
 msgstr "Permissão"
 
 msgid "Permission ACI grants access to"
-msgstr ""
+msgstr "Permissão que ACI que garante acesso a"
 
 msgid "User group"
-msgstr ""
+msgstr "Grupo de utilizador"
 
 msgid "User group ACI grants access to"
-msgstr ""
+msgstr "Grupo de utilizador que ACI garante acesso a"
 
 msgid "Permissions"
 msgstr "Permissões"
 
 msgid "Permissions to grant(read, write, add, delete, all)"
-msgstr ""
+msgstr "Permissões para conceder(read, write, add, delete, all)"
 
 msgid "Attributes to which the permission applies"
 msgstr "Atributos para os quais a permissão se aplica"
@@ -1336,70 +1488,76 @@ msgid "Type"
 msgstr "Tipo"
 
 msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
-msgstr ""
+msgstr "tipo de objeto IPA (user, group, host, hostgroup, service, netgroup)"
 
 msgid "Member of"
-msgstr ""
+msgstr "Membro de"
 
 msgid "Member of a group"
-msgstr ""
+msgstr "Membro de um grupo"
 
 msgid "Filter"
 msgstr "Filtro"
 
 msgid "Legal LDAP filter (e.g. ou=Engineering)"
-msgstr ""
+msgstr "Filtro LDAP legal (ex, ou=Engineering)"
 
 msgid "Subtree"
-msgstr ""
+msgstr "Sub-árvore"
 
 msgid "Subtree to apply ACI to"
-msgstr ""
+msgstr "Sub-árvore para aplicar a ACI a ela"
 
 msgid "Target group"
-msgstr ""
+msgstr "Grupo alvo"
 
 msgid "Group to apply ACI to"
-msgstr ""
+msgstr "Grupo para aplicar ACI a ele"
 
 msgid "Target your own entry (self)"
-msgstr ""
+msgstr "Alvo na sua própria entrada (próprio)"
 
 msgid "Apply ACI to your own entry (self)"
-msgstr ""
+msgstr "Aplicar ACI na sua própria entrada (próprio)"
 
 msgid "Create new ACI."
-msgstr ""
+msgstr "Criar nova ACI."
 
 msgid "ACI prefix"
-msgstr ""
+msgstr "Prefixo de ACI"
 
 msgid ""
 "Prefix used to distinguish ACI types (permission, delegation, selfservice, "
 "none)"
 msgstr ""
+"Prefixo usado para distinguir tipos de ACI (permission, delegation, "
+"selfservice, none)"
 
 msgid "Test the ACI syntax but don't write anything"
-msgstr ""
+msgstr "Testa a sintaxe da ACI mas não escreve nada"
 
 msgid ""
 "Retrieve and print all attributes from the server. Affects command output."
 msgstr ""
+"Recupera e escreve todos os atributos a partir do servidor. Afeta resultado "
+"gerado do comando."
 
 msgid "Print entries as stored on the server. Only affects output format."
 msgstr ""
+"Escreve as entradas como armazenadas no servidor. Apenas afeta o formato do "
+"resultado."
 
 msgid "User-friendly description of action performed"
-msgstr ""
+msgstr "Descrição amiga-do-utilizador da ação executada"
 
 msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
-msgstr ""
+msgstr "O valor primary_key da entrada, ex. 'jdoe' para um utilizador"
 
 msgid "Delete ACI."
-msgstr ""
+msgstr "Apagar ACI."
 
 msgid "True means the operation was successful"
-msgstr ""
+msgstr "Verdadeiro significa que a operação teve sucesso"
 
 msgid ""
 "\n"
@@ -1424,31 +1582,31 @@ msgid ""
 msgstr ""
 
 msgid "A string searched in all relevant object attributes"
-msgstr ""
+msgstr "Uma string procurada em todos os atributos de objetos relevantes"
 
 msgid "Primary key only"
-msgstr ""
+msgstr "Apenas chave primária"
 
 msgid "Results should contain primary key attribute only (\"name\")"
 msgstr "Resultados devem conter apenas atributo de chave primária (\"nome\")"
 
 msgid "Number of entries returned"
-msgstr ""
+msgstr "Número de entradas retornado"
 
 msgid "True if not all results were returned"
-msgstr ""
+msgstr "Verdadeiro se nem todos os resultados foram retornados"
 
 msgid "Modify ACI."
-msgstr ""
+msgstr "Modificar ACI."
 
 msgid "Rename an ACI."
-msgstr ""
+msgstr "Renomear uma ACI."
 
 msgid "New ACI name"
-msgstr ""
+msgstr "Novo nome de ACI"
 
 msgid "Display a single ACI given an ACI name."
-msgstr ""
+msgstr "Mostra uma única ACI dando um nome de ACI."
 
 msgid "Location of the ACI"
 msgstr ""
@@ -22731,11 +22889,11 @@ msgstr ""
 
 #, python-format
 msgid "Deleted segment \"%(value)s\""
-msgstr ""
+msgstr "Segmento apagado \"%(value)s\""
 
 #, python-format
 msgid "Modified segment \"%(value)s\""
-msgstr ""
+msgstr "Segmento modificado \"%(value)s\""
 
 #, python-format
 msgid "%(value)s"
@@ -23079,7 +23237,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted trust \"%(value)s\""
-msgstr ""
+msgstr "Confiança apagada \"%(value)s\""
 
 msgid ""
 "\n"
@@ -23254,14 +23412,14 @@ msgstr ""
 
 #, python-format
 msgid "Added user \"%(value)s\""
-msgstr "Utilizador de estágio adicionado \"%(value)s\""
+msgstr "Utilizador adicionado \"%(value)s\""
 
 msgid "Default group for new users is not POSIX"
 msgstr ""
 
 #, python-format
 msgid "Deleted user \"%(value)s\""
-msgstr "Utilizador de estágio apagado \"%(value)s\""
+msgstr "Utilizador apagado \"%(value)s\""
 
 #, python-format
 msgid "Preserved user \"%(value)s\""
@@ -23273,7 +23431,7 @@ msgstr "%s: utilizador já está preservado"
 
 #, python-format
 msgid "Modified user \"%(value)s\""
-msgstr "Utilizador de estágio modificado \"%(value)s\""
+msgstr "Utilizador modificado \"%(value)s\""
 
 #, python-format
 msgid "Undeleted user account \"%(value)s\""
@@ -23690,7 +23848,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted vault \"%(value)s\""
-msgstr "Utilizador de estágio apagado \"%(value)s\""
+msgstr "Cofre apagado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d vault matched"
@@ -23704,7 +23862,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified vault \"%(value)s\""
-msgstr ""
+msgstr "Cofre modificado \"%(value)s\""
 
 msgid "Vault configuration"
 msgstr ""
@@ -23741,7 +23899,7 @@ msgid "Checks if any of the servers has the KRA service enabled"
 msgstr ""
 
 msgid "Trusting forest"
-msgstr "Floresta confiada"
+msgstr "Floresta de confianças"
 
 msgid "Trusted forest"
 msgstr "Floresta confiada"
