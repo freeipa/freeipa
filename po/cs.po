@@ -1,13 +1,15 @@
 # Josef Hruška <hrusjos@gmail.com>, 2015. #zanata
 # Zdenek <chmelarz@gmail.com>, 2017. #zanata
 # Pavel Borecki <pavel.borecki@gmail.com>, 2019. #zanata, 2025.
+# Weblate Translation Memory <noreply-mt-weblate-translation-memory@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2025-12-11 14:32+0000\n"
-"Last-Translator: Pavel Borecki <pavel.borecki@gmail.com>\n"
+"PO-Revision-Date: 2026-02-22 18:59+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Czech <https://translate.fedoraproject.org/projects/freeipa/"
 "master/cs/>\n"
 "Language: cs\n"
@@ -15,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 5.14.3\n"
+"X-Generator: Weblate 5.16\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -75,7 +77,7 @@ msgstr ""
 
 #, c-format
 msgid "Timeout exceeded."
-msgstr ""
+msgstr "Překročen časový limit:"
 
 #, c-format
 msgid "Failed to parse extended result: %s\n"
@@ -230,7 +232,7 @@ msgid "Path to the IPA CA certificate"
 msgstr ""
 
 msgid "IPA CA certificate"
-msgstr ""
+msgstr "Certifikát cert. autority"
 
 msgid "LDAP uri to connect to. Mutually exclusive with --server"
 msgstr ""
@@ -566,7 +568,7 @@ msgstr ""
 
 #, c-format
 msgid "Error parsing \"%1$s\": %2$s.\n"
-msgstr ""
+msgstr "Chyba při parsování '%s': %s\n"
 
 #, c-format
 msgid "Error obtaining initial credentials: %s.\n"
@@ -612,10 +614,8 @@ msgstr ""
 
 # auto translated by TM merge from project: anaconda, version: rhel6-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "Username"
 msgid "filename"
-msgstr "Jméno uživatele"
+msgstr "Název souboru:"
 
 msgid "Force the host join. Rejoin even if already joined."
 msgstr ""
@@ -676,7 +676,7 @@ msgstr ""
 
 #, c-format
 msgid "Unable to remove entry\n"
-msgstr ""
+msgstr "Účet se nedaří odebrat\n"
 
 #, c-format
 msgid "kvno %d\n"
@@ -734,7 +734,7 @@ msgid "krb5_kt_close %1$d: %2$s\n"
 msgstr ""
 
 msgid "Input file"
-msgstr ""
+msgstr "Vstupní soubor"
 
 msgid "File to load the certificate from"
 msgstr ""
@@ -752,10 +752,8 @@ msgstr ""
 
 # auto translated by TM merge from project: Fedora Websites, version:
 # getfedora.org, DocId: po/getfedora
-#, fuzzy
-#| msgid "Server Roles"
 msgid "Servers details:"
-msgstr "Serverové role"
+msgstr "Podrobnosti o ovladači"
 
 msgid ""
 "Migration mode is disabled.\n"
@@ -822,6 +820,8 @@ msgid ""
 "\n"
 "EXAMPLES:\n"
 msgstr ""
+"\n"
+"PŘÍKLADY\n"
 
 msgid ""
 "\n"
@@ -838,10 +838,8 @@ msgstr ""
 msgid "No free YubiKey slot!"
 msgstr ""
 
-#, fuzzy
-#| msgid "No file to read"
 msgid "Failed to add"
-msgstr "Žádný soubor k přečtení"
+msgstr "Přidání portu se nezdařilo"
 
 msgid ""
 "IMPORTANT: In case of a high number of users, hosts or groups, the operation "
@@ -1156,10 +1154,8 @@ msgstr "heslo"
 msgid "File containing the old vault password"
 msgstr ""
 
-#, fuzzy
-#| msgid "User password"
 msgid "New vault password"
-msgstr "Uživatelské heslo"
+msgstr "Nové heslo"
 
 msgid "File containing the new vault password"
 msgstr ""
@@ -1375,10 +1371,8 @@ msgstr ""
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
-#, fuzzy
-#| msgid "Version"
 msgid "Permissions"
-msgstr "Verze"
+msgstr "Oprávnění"
 
 msgid "Permissions to grant(read, write, add, delete, all)"
 msgstr ""
@@ -1880,7 +1874,7 @@ msgid "Maximum username length"
 msgstr ""
 
 msgid "Home directory base"
-msgstr ""
+msgstr "Domovská složka"
 
 msgid "Default location of home directories"
 msgstr ""
@@ -1893,13 +1887,13 @@ msgid "Default shell"
 msgstr "Výchozí"
 
 msgid "Default shell for new users"
-msgstr ""
+msgstr "shell pro nového uživatele"
 
 msgid "Default users group"
 msgstr ""
 
 msgid "Default group for new users"
-msgstr ""
+msgstr "skupina pro nového uživatele"
 
 msgid "Default e-mail domain"
 msgstr ""
@@ -2433,8 +2427,6 @@ msgstr ""
 
 # auto translated by TM merge from project: anaconda, version: f25, DocId:
 # main
-#, fuzzy
-#| msgid "IP Address"
 msgid "AAAA IP Address"
 msgstr "IP adresa"
 
@@ -2504,7 +2496,7 @@ msgid "CERT Algorithm"
 msgstr ""
 
 msgid "Algorithm"
-msgstr ""
+msgstr "<algoritmus>"
 
 msgid "CERT Certificate/CRL"
 msgstr ""
@@ -2782,14 +2774,12 @@ msgid "Service"
 msgstr "Služba"
 
 msgid "NAPTR Regular Expression"
-msgstr ""
+msgstr "Regulární výraz"
 
 # auto translated by TM merge from project: audit-viewer, version: default,
 # DocId: audit-viewer
-#, fuzzy
-#| msgid "Expression"
 msgid "Regular Expression"
-msgstr "Výraz"
+msgstr "Regulární výraz"
 
 msgid "NAPTR Replacement"
 msgstr ""
@@ -2846,10 +2836,8 @@ msgstr ""
 
 # auto translated by TM merge from project: audit-viewer, version: default,
 # DocId: audit-viewer
-#, fuzzy
-#| msgid "Record Type"
 msgid "RP record"
-msgstr "Typ záznamu"
+msgstr "Záznam"
 
 msgid "Raw RP records"
 msgstr ""
@@ -2893,10 +2881,8 @@ msgstr "Práva"
 
 # auto translated by TM merge from project: dnf, version: master, DocId:
 # po/dnf
-#, fuzzy
-#| msgid "Rights"
 msgid "Weight"
-msgstr "Práva"
+msgstr "Váha vstupu/výstupu"
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
@@ -2940,8 +2926,6 @@ msgstr "Otisk"
 
 # auto translated by TM merge from project: Fedora Websites, version:
 # getfedora.org, DocId: po/getfedora
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "Fingerprint Type"
 msgstr "Otisk"
 
@@ -2985,7 +2969,7 @@ msgid "TLSA Matching Type"
 msgstr ""
 
 msgid "Matching Type"
-msgstr ""
+msgstr "_Typ stroje:"
 
 msgid "TLSA Certificate Association Data"
 msgstr ""
@@ -3282,10 +3266,8 @@ msgid ""
 msgstr ""
 
 # auto translated by TM merge from project: dnf, version: master, DocId: dnf
-#, fuzzy
-#| msgid "User name"
 msgid "Rule name"
-msgstr "Uživatelské jméno"
+msgstr "Přejmenovat"
 
 msgid "Rule type"
 msgstr ""
@@ -3523,10 +3505,8 @@ msgstr "službu"
 
 # auto translated by TM merge from project: anaconda, version: f22-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "description"
 msgid "HBAC service description"
-msgstr "popis"
+msgstr "Popis zařízení"
 
 msgid "Member of HBAC service groups"
 msgstr ""
@@ -3717,7 +3697,7 @@ msgid "Random password"
 msgstr "heslo"
 
 msgid "Certificate"
-msgstr ""
+msgstr "Certifikát:"
 
 msgid "Base-64 encoded server certificate"
 msgstr ""
@@ -3734,7 +3714,7 @@ msgid "Hardware MAC address(es) on this host"
 msgstr ""
 
 msgid "SSH public key"
-msgstr ""
+msgstr "Soubor veřejného klíče SSH"
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
@@ -4312,7 +4292,7 @@ msgid ""
 msgstr ""
 
 msgid "Join an IPA domain"
-msgstr ""
+msgstr "Připojit se k doméně"
 
 msgid "The hostname to register as"
 msgstr ""
@@ -4562,7 +4542,7 @@ msgid "Attributes to be ignored for group entries in DS"
 msgstr ""
 
 msgid "Overwrite GID"
-msgstr ""
+msgstr "Přepsat"
 
 msgid ""
 "When migrating a group already existing in IPA domain overwrite the group "
@@ -5066,8 +5046,6 @@ msgstr ""
 
 # auto translated by TM merge from project: anaconda, version: f25, DocId:
 # main
-#, fuzzy
-#| msgid "Target"
 msgid "Target DN"
 msgstr "Cíl"
 
@@ -5230,10 +5208,8 @@ msgstr ""
 
 # auto translated by TM merge from project: anaconda, version: f22-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "description"
 msgid "Privilege description"
-msgstr "popis"
+msgstr "Popis problému"
 
 msgid "Granting privilege to roles"
 msgstr ""
@@ -5264,10 +5240,8 @@ msgstr "Verze"
 
 # auto translated by TM merge from project: audit-viewer, version: default,
 # DocId: audit-viewer
-#, fuzzy
-#| msgid "Expression"
 msgid "permissions"
-msgstr "Výraz"
+msgstr "Oprávnění"
 
 msgid "Number of permissions added"
 msgstr ""
@@ -5358,7 +5332,7 @@ msgid "Max lifetime (days)"
 msgstr ""
 
 msgid "Maximum password lifetime (in days)"
-msgstr ""
+msgstr "maximální doba platnosti hesla (pouze root)"
 
 msgid "Min lifetime (hours)"
 msgstr ""
@@ -5376,7 +5350,7 @@ msgid "Character classes"
 msgstr ""
 
 msgid "Minimum number of character classes"
-msgstr ""
+msgstr "minimální počet tříd znaků v heslu"
 
 msgid "Min length"
 msgstr ""
@@ -5563,10 +5537,8 @@ msgstr ""
 
 # auto translated by TM merge from project: SETroubleShoot, version: master,
 # DocId: framework/po/setroubleshoot
-#, fuzzy
-#| msgid "Delete"
 msgid "Delete domain"
-msgstr "Smazat"
+msgstr "Smazat doménu"
 
 msgid "Modify realm domains."
 msgstr ""
@@ -5650,7 +5622,7 @@ msgid "Member services"
 msgstr "službu"
 
 msgid "Add a new role."
-msgstr ""
+msgstr "Přidat novou zónu"
 
 msgid "Add members to a role."
 msgstr ""
@@ -5749,10 +5721,8 @@ msgid ""
 msgstr ""
 
 # auto translated by TM merge from project: dnf, version: master, DocId: dnf
-#, fuzzy
-#| msgid "User name"
 msgid "Self-service name"
-msgstr "Uživatelské jméno"
+msgstr "Název služby"
 
 msgid "Attributes to which the permission applies."
 msgstr ""
@@ -6685,10 +6655,8 @@ msgstr ""
 
 # auto translated by TM merge from project: anaconda, version: f22-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "description"
 msgid "Group description"
-msgstr "popis"
+msgstr "popis skupiny"
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
@@ -7001,7 +6969,7 @@ msgid "Search for users without these member of sudo rules."
 msgstr ""
 
 msgid "Modify a user."
-msgstr ""
+msgstr "Upravit uživatele"
 
 msgid "Rename the user object"
 msgstr ""
@@ -7427,7 +7395,7 @@ msgid "Retrieve an existing certificate."
 msgstr ""
 
 msgid "Output filename"
-msgstr ""
+msgstr "Výstupní soubor"
 
 msgid "File to store the certificate in."
 msgstr ""
@@ -7562,10 +7530,8 @@ msgstr ""
 
 # auto translated by TM merge from project: SETroubleShoot, version: master,
 # DocId: framework/po/setroubleshoot
-#, fuzzy
-#| msgid "Delete"
 msgid "Delete group."
-msgstr "Smazat"
+msgstr "Smazat skupinu"
 
 msgid "Detach a managed group from a user."
 msgstr ""
@@ -8036,10 +8002,8 @@ msgid ""
 "modified to match the new range.\n"
 msgstr ""
 
-#, fuzzy
-#| msgid "Command name"
 msgid "Range name"
-msgstr "Název příkazu"
+msgstr "Název obrazu"
 
 msgid "First Posix ID of the range"
 msgstr ""
@@ -8060,7 +8024,7 @@ msgid "Name of the trusted domain"
 msgstr ""
 
 msgid "Range type"
-msgstr ""
+msgstr "Typ obrazu"
 
 msgid "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 msgstr ""
@@ -8108,7 +8072,7 @@ msgid "Delete an ID range."
 msgstr ""
 
 msgid "Search for ranges."
-msgstr ""
+msgstr "Hledat obraz"
 
 msgid "Modify ID range."
 msgstr ""
@@ -8174,7 +8138,7 @@ msgid "First date/time the token can be used"
 msgstr ""
 
 msgid "Validity end"
-msgstr ""
+msgstr "Platnost"
 
 msgid "Last date/time the token can be used"
 msgstr ""
@@ -8236,10 +8200,8 @@ msgstr ""
 msgid "Add a new OTP token."
 msgstr ""
 
-#, fuzzy
-#| msgid "Deprecated options"
 msgid "(deprecated)"
-msgstr "Zastaralé volby"
+msgstr "Zastaralé"
 
 msgid "Do not display QR code"
 msgstr ""
@@ -10873,7 +10835,7 @@ msgid "Consume an entitlement."
 msgstr ""
 
 msgid "Quantity"
-msgstr ""
+msgstr "Množství"
 
 msgid "Search for entitlement accounts."
 msgstr ""
@@ -12113,7 +12075,7 @@ msgid "Cannot resolve KDC for requested realm"
 msgstr ""
 
 msgid "Session error"
-msgstr ""
+msgstr "Chyba oprávnění"
 
 #, python-format
 msgid "Principal %(principal)s cannot be authenticated: %(message)s"
@@ -12409,7 +12371,7 @@ msgid ""
 msgstr ""
 
 msgid "Additional instructions:"
-msgstr ""
+msgstr "Další akce"
 
 #, python-format
 msgid ""
@@ -12712,7 +12674,7 @@ msgid "Service principal is required"
 msgstr ""
 
 msgid "must be at least 0"
-msgstr ""
+msgstr "Je třeba, aby velikost byla alespoň $0"
 
 msgid "invalid valid hex"
 msgstr ""
@@ -12798,13 +12760,13 @@ msgid "invalid escape code in domain name"
 msgstr ""
 
 msgid "domain name cannot be longer than 255 characters"
-msgstr ""
+msgstr "Název nemůže být delší než $0 znaků"
 
 msgid "DNS label cannot be longer than 63 characters"
 msgstr ""
 
 msgid "invalid domain name"
-msgstr ""
+msgstr "Neplatný název domény"
 
 #, python-format
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
@@ -13014,13 +12976,11 @@ msgstr "Servery"
 
 # auto translated by TM merge from project: Fedora Websites, version:
 # alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
-#, fuzzy
-#| msgid "Server"
 msgid "DNS Server"
-msgstr "Server"
+msgstr "DNS server"
 
 msgid "DNS Server name"
-msgstr ""
+msgstr "Jméno serveru:"
 
 msgid "SOA mname override"
 msgstr ""
@@ -14307,7 +14267,7 @@ msgstr ""
 
 #, python-format
 msgid "%s to remove"
-msgstr ""
+msgstr "%s odstraněn"
 
 #, python-format
 msgid "Results should contain primary key attribute only (\"%s\")"
@@ -14408,7 +14368,7 @@ msgid "can be at most %(len)d characters"
 msgstr ""
 
 msgid "Issuer"
-msgstr ""
+msgstr "Vydavatel:"
 
 msgid "Issuer of the certificate"
 msgstr ""
@@ -14521,7 +14481,7 @@ msgid "CA ACLs"
 msgstr ""
 
 msgid "CA category"
-msgstr ""
+msgstr "Kategorie"
 
 msgid "CA category the ACL applies to"
 msgstr ""
@@ -15071,6 +15031,9 @@ msgid ""
 "\n"
 "EXAMPLES:\n"
 msgstr ""
+"\n"
+"\n"
+"PŘÍKLADY\n"
 
 msgid ""
 "\n"
@@ -15470,10 +15433,9 @@ msgstr ""
 
 # auto translated by TM merge from project: audit-viewer, version: default,
 # DocId: audit-viewer
-#, fuzzy, python-format
-#| msgid "Record Type"
+#, python-format
 msgid "%s Record"
-msgstr "Typ záznamu"
+msgstr "Záznam"
 
 #, python-format
 msgid "(see RFC %s for details)"
@@ -16711,8 +16673,6 @@ msgstr "Umístění"
 
 # auto translated by TM merge from project: system-config-printer, version:
 # master, DocId: system-config-printer
-#, fuzzy
-#| msgid "Location"
 msgid "IPA Location"
 msgstr "Umístění"
 
@@ -16763,10 +16723,8 @@ msgstr ""
 
 # auto translated by TM merge from project: Fedora Websites, version:
 # alt.fedoraproject.org, DocId: po/alt.fedoraproject.org
-#, fuzzy
-#| msgid "Server"
 msgid "IPA Server"
-msgstr "Server"
+msgstr "FreeIPA server"
 
 msgid "Modify information about an IPA location."
 msgstr ""
@@ -17242,13 +17200,13 @@ msgstr ""
 
 #, python-format
 msgid "%s: group not found"
-msgstr ""
+msgstr "skupina %s nenalezena"
 
 msgid "target and targetgroup are mutually exclusive"
 msgstr ""
 
 msgid "subtree and type are mutually exclusive"
-msgstr ""
+msgstr "--%s a --tree nelze použít dohromady"
 
 msgid "Bad search filter"
 msgstr ""
@@ -17413,7 +17371,7 @@ msgid "Max repeat"
 msgstr ""
 
 msgid "Maximum number of same consecutive characters"
-msgstr ""
+msgstr "maximální počet stejných po sobě následujících znaků v heslu"
 
 msgid "Max sequence"
 msgstr ""
@@ -17617,7 +17575,7 @@ msgid "Parameters"
 msgstr ""
 
 msgid "Method of"
-msgstr ""
+msgstr "Metoda"
 
 #, fuzzy
 #| msgid "Command name"
@@ -18694,7 +18652,7 @@ msgid "Issuer Distinguished Name"
 msgstr ""
 
 msgid "Base-64 encoded certificate."
-msgstr ""
+msgstr "Zadejte certifikát v base64 kódování."
 
 msgid "Certificate chain"
 msgstr ""
@@ -18717,7 +18675,7 @@ msgid "Random Serial Number Version"
 msgstr "Sériové číslo"
 
 msgid "Search for CAs."
-msgstr ""
+msgstr "Hledat"
 
 #, python-format
 msgid "%(count)d CA matched"
@@ -19302,7 +19260,7 @@ msgid ""
 msgstr ""
 
 msgid "must be at least 10"
-msgstr ""
+msgstr "Je třeba, aby velikost byla alespoň $0"
 
 # auto translated by TM merge from project: system-config-audit, version:
 # master, DocId: system-config-audit
@@ -19447,7 +19405,7 @@ msgid "Configuration of SID failed. See details in the error log"
 msgstr ""
 
 msgid "The group doesn't exist"
-msgstr ""
+msgstr "Skupina %s neexistuje"
 
 #, python-format
 msgid "attribute \"%s\" not allowed"
@@ -19613,8 +19571,6 @@ msgstr "Sériové číslo"
 
 # auto translated by TM merge from project: anaconda, version: rhel6-branch,
 # DocId: anaconda
-#, fuzzy
-#| msgid "Serial Number"
 msgid "Serial Number (hex)"
 msgstr "Sériové číslo"
 
@@ -19877,7 +19833,7 @@ msgid ""
 msgstr ""
 
 msgid "ID Ranges"
-msgstr ""
+msgstr "Rozsah IP adres"
 
 msgid "ID Range"
 msgstr ""
@@ -19886,7 +19842,7 @@ msgid "local domain range"
 msgstr ""
 
 msgid "Active Directory domain range"
-msgstr ""
+msgstr "Doména Active Directory"
 
 msgid "Active Directory trust range with POSIX attributes"
 msgstr ""
@@ -20228,7 +20184,7 @@ msgstr[1] ""
 msgstr[2] ""
 
 msgid "Internationalization messages"
-msgstr ""
+msgstr "Internacionalizace"
 
 msgid "Your session has expired. Please log in again."
 msgstr ""
@@ -20247,7 +20203,7 @@ msgid ""
 msgstr ""
 
 msgid "Are you sure you want to proceed with the action?"
-msgstr ""
+msgstr "Jste si jisti, že chcete provést naplánované akce?"
 
 #, python-brace-format
 msgid "Are you sure you want to delete ${object}?"
@@ -20288,7 +20244,7 @@ msgid "Indirect Membership"
 msgstr ""
 
 msgid "No entries."
-msgstr ""
+msgstr "Žádné položky záznamu událostí"
 
 #, python-brace-format
 msgid "Showing ${start} to ${end} of ${total} entries."
@@ -20445,7 +20401,7 @@ msgid "Issue"
 msgstr ""
 
 msgid "Match"
-msgstr ""
+msgstr "Nalezena shoda"
 
 msgid "Match users according to certificate."
 msgstr ""
@@ -20479,10 +20435,8 @@ msgstr ""
 msgid "Reset"
 msgstr "Reset"
 
-#, fuzzy
-#| msgid "User password"
 msgid "Reset Password"
-msgstr "Uživatelské heslo"
+msgstr "Resetovat heslo"
 
 msgid "Reset Password and Log in"
 msgstr ""
@@ -20541,10 +20495,10 @@ msgid "Customization"
 msgstr "Nastavení"
 
 msgid "Pagination Size"
-msgstr ""
+msgstr "Stránkování"
 
 msgid "Collapse All"
-msgstr ""
+msgstr "Sbalit"
 
 msgid "Expand All"
 msgstr ""
@@ -20573,7 +20527,7 @@ msgid "${entity} ${primary_key} Settings"
 msgstr ""
 
 msgid "Back to Top"
-msgstr ""
+msgstr "Zpět nahoru"
 
 #, python-brace-format
 msgid "${entity} ${primary_key} updated"
@@ -20592,7 +20546,7 @@ msgid "Available"
 msgstr "Dostupný"
 
 msgid "Some operations failed."
-msgstr ""
+msgstr "operace obnovení chodu se nezdařila"
 
 # auto translated by TM merge from project: audit-viewer, version: default,
 # DocId: audit-viewer
@@ -20696,7 +20650,7 @@ msgid "IPA Error"
 msgstr "Chyba"
 
 msgid "No response"
-msgstr ""
+msgstr "neodpovídá"
 
 # auto translated by TM merge from project: GSS NTLMSSP, version: master,
 # DocId: gssntlmssp
@@ -20860,7 +20814,7 @@ msgid "Login failed due to an unknown reason"
 msgstr ""
 
 msgid "Logged In As"
-msgstr ""
+msgstr "Přihlášeni"
 
 msgid "Authentication with Kerberos failed"
 msgstr ""
@@ -20880,7 +20834,7 @@ msgid "Kerberos Principal you entered is expired"
 msgstr ""
 
 msgid "Loading data"
-msgstr ""
+msgstr "Načítání dat…"
 
 msgid "Log in"
 msgstr ""
@@ -20951,7 +20905,7 @@ msgid "Password migration was successful"
 msgstr ""
 
 msgid "Attribute"
-msgstr ""
+msgstr "atribut"
 
 msgid "Add delegation"
 msgstr ""
@@ -20960,7 +20914,7 @@ msgid "Remove delegations"
 msgstr ""
 
 msgid "Add permission"
-msgstr ""
+msgstr "Upravit oprávnění"
 
 #, python-brace-format
 msgid "Add privileges into permission '${primary_key}'"
@@ -21308,7 +21262,7 @@ msgid "CA Compromise"
 msgstr ""
 
 msgid "Certificates"
-msgstr ""
+msgstr "Certifikát cert. autority"
 
 msgid "Certificate Hold"
 msgstr ""
@@ -21325,7 +21279,7 @@ msgid "the certificate with serial number "
 msgstr ""
 
 msgid "Expires On"
-msgstr ""
+msgstr "Platnost končí"
 
 msgid "Issued on from"
 msgstr ""
@@ -21373,7 +21327,7 @@ msgid "Fingerprints"
 msgstr "Otisk"
 
 msgid "Get Certificate"
-msgstr ""
+msgstr "Klientský certifikát"
 
 msgid "Certificate Hold Removed"
 msgstr ""
@@ -21461,7 +21415,7 @@ msgid "Certificate requested"
 msgstr ""
 
 msgid "Revoke certificate"
-msgstr ""
+msgstr "Certifikát serveru:"
 
 msgid ""
 "Do you want to revoke this certificate? Select a reason from the pull-down "
@@ -21476,8 +21430,6 @@ msgstr ""
 
 # auto translated by TM merge from project: Fedora Websites, version:
 # getfedora.org, DocId: po/getfedora
-#, fuzzy
-#| msgid "Fingerprint"
 msgid "SHA1 Fingerprint"
 msgstr "Otisk"
 
@@ -21503,7 +21455,7 @@ msgid "Valid from"
 msgstr ""
 
 msgid "Valid to"
-msgstr ""
+msgstr "Platný token"
 
 msgid "Validity"
 msgstr ""
@@ -21513,7 +21465,7 @@ msgid "Certificate for ${entity} ${primary_key}"
 msgstr ""
 
 msgid "View Certificate"
-msgstr ""
+msgstr "Klientský certifikát"
 
 msgid "Certificate Data"
 msgstr ""
@@ -21596,10 +21548,8 @@ msgstr "Nastavení služeb"
 
 # auto translated by TM merge from project: audit-viewer, version: default,
 # DocId: audit-viewer
-#, fuzzy
-#| msgid "Options"
 msgid "User Options"
-msgstr "Přepínače"
+msgstr "Ostatní volby"
 
 msgid "Forward first"
 msgstr ""
@@ -21656,7 +21606,7 @@ msgid "Record creation failed."
 msgstr ""
 
 msgid "Checking if record exists."
-msgstr ""
+msgstr "Zjišťování zda existuje certifikát"
 
 msgid "Record not found."
 msgstr ""
@@ -21699,7 +21649,7 @@ msgid "Record Type"
 msgstr "Typ záznamu"
 
 msgid "Add DNS zone"
-msgstr ""
+msgstr "Přidat zónu"
 
 #, python-brace-format
 msgid "Are you sure you want to add permission for DNS Zone ${object}?"
@@ -21707,10 +21657,8 @@ msgstr ""
 
 # auto translated by TM merge from project: system-config-firewall, version:
 # master, DocId: po/system-config-firewall
-#, fuzzy
-#| msgid "Service Settings"
 msgid "DNS Zone Settings"
-msgstr "Nastavení služeb"
+msgstr "Nastavení hlavní zóny"
 
 msgid "Remove DNS zones"
 msgstr ""
@@ -22000,7 +21948,7 @@ msgid "HBAC Test"
 msgstr ""
 
 msgid "Matched"
-msgstr ""
+msgstr "Nalezena shoda"
 
 msgid "Missing values: "
 msgstr ""
@@ -22021,7 +21969,7 @@ msgid "Specify external ${entity}"
 msgstr ""
 
 msgid "Unmatched"
-msgstr ""
+msgstr "neodpovídající ("
 
 msgid "Add host"
 msgstr ""
@@ -22121,7 +22069,7 @@ msgid "Reset OTP"
 msgstr "Reset"
 
 msgid "Reset One-Time Password"
-msgstr ""
+msgstr "Jednorázové heslo"
 
 msgid "Set OTP"
 msgstr ""
@@ -22130,7 +22078,7 @@ msgid "OTP set"
 msgstr ""
 
 msgid "Set One-Time Password"
-msgstr ""
+msgstr "Jednorázové heslo"
 
 msgid "Remove hosts"
 msgstr ""
@@ -22256,13 +22204,13 @@ msgid "Keycloak or Red Hat SSO"
 msgstr ""
 
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 msgid "Microsoft or Azure"
-msgstr ""
+msgstr "Microsoft Azure"
 
 msgid "Okta"
 msgstr ""
@@ -22271,7 +22219,7 @@ msgid "OAuth 2.0 client details"
 msgstr ""
 
 msgid "Identity provider details"
-msgstr ""
+msgstr "Poskytovatel identity"
 
 msgid "Verify secret"
 msgstr ""
@@ -22551,7 +22499,7 @@ msgid "Modified: key not set"
 msgstr ""
 
 msgid "Modified"
-msgstr ""
+msgstr "Změněno"
 
 msgid "New: key not set"
 msgstr ""
@@ -22586,7 +22534,7 @@ msgid "Primary RID base"
 msgstr ""
 
 msgid "Range size"
-msgstr ""
+msgstr "Velikost stránky"
 
 msgid "Domain SID"
 msgstr ""
@@ -22736,10 +22684,8 @@ msgstr ""
 
 # auto translated by TM merge from project: system-config-firewall, version:
 # master, DocId: po/system-config-firewall
-#, fuzzy
-#| msgid "Service Settings"
 msgid "Service Certificate"
-msgstr "Nastavení služeb"
+msgstr "Certifikát serveru:"
 
 # auto translated by TM merge from project: system-config-firewall, version:
 # master, DocId: po/system-config-firewall
@@ -23152,10 +23098,8 @@ msgstr "Nastavení"
 
 # auto translated by TM merge from project: Spacewalk Web UI, version: master,
 # DocId: java/code/src/com/redhat/rhn/frontend/strings/java/StringResource
-#, fuzzy
-#| msgid "Account"
 msgid "Account Status"
-msgstr "Účet"
+msgstr "Nastavení účtu"
 
 msgid "Active users"
 msgstr ""
@@ -23508,7 +23452,7 @@ msgid ""
 msgstr ""
 
 msgid "Unselect All"
-msgstr ""
+msgstr "vybrat vše"
 
 msgid ""
 "<h1>Browser Kerberos Setup</h1>\n"
@@ -23824,10 +23768,10 @@ msgid "Not a valid IP address"
 msgstr ""
 
 msgid "Not a valid IPv4 address"
-msgstr ""
+msgstr "Neplatná IPv4 adresa"
 
 msgid "Not a valid IPv6 address"
-msgstr ""
+msgstr "Neplatná IPv6 adresa"
 
 #, python-brace-format
 msgid "Maximum value is ${value}"
@@ -24701,7 +24645,7 @@ msgid "trusts"
 msgstr ""
 
 msgid "Trust"
-msgstr ""
+msgstr "Důvěryhodná"
 
 msgid "SID blocklist incoming"
 msgstr ""
@@ -25794,7 +25738,7 @@ msgid "RADIUS proxy server with name \"%s\" already exists"
 msgstr ""
 
 msgid "must be at least 1"
-msgstr ""
+msgstr "Je třeba, aby velikost byla alespoň $0"
 
 # auto translated by TM merge from project: selinux (policycoreutils),
 # version: master, DocId: policycoreutils
