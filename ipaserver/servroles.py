@@ -75,24 +75,19 @@ import abc
 from collections import namedtuple, defaultdict
 
 from ldap import SCOPE_ONELEVEL
-import six
 
 from ipalib import _, errors
 from ipapython.dn import DN
 from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
 
-if six.PY3:
-    unicode = str
+
+ENABLED = 'enabled'
+CONFIGURED = 'configured'
+HIDDEN = 'hidden'
+ABSENT = 'absent'
 
 
-ENABLED = u'enabled'
-CONFIGURED = u'configured'
-HIDDEN = u'hidden'
-ABSENT = u'absent'
-
-
-@six.add_metaclass(abc.ABCMeta)
-class LDAPBasedProperty:
+class LDAPBasedProperty(metaclass=abc.ABCMeta):
     """
     base class for all master properties defined by LDAP content
     :param attr_name: attribute name
@@ -105,15 +100,14 @@ class LDAPBasedProperty:
         self.attr_name = attr_name
         self.name = name
         # for hidden services, insert hidden before '_server' suffix
-        if attr_name.endswith(u'_server'):
-            parts = attr_name.rsplit(u'_', 1)
-            self.attr_name_hidden = u'{}_hidden_server'.format(parts[0])
+        if attr_name.endswith('_server'):
+            parts = attr_name.rsplit('_', 1)
+            self.attr_name_hidden = '{}_hidden_server'.format(parts[0])
         else:
             self.attr_name_hidden = None
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseServerRole(LDAPBasedProperty):
+class BaseServerRole(LDAPBasedProperty, metaclass=abc.ABCMeta):
     """
     Server role hierarchy apex. All other server role definition should either
     inherit from it or at least provide the 'status' method for querying role
@@ -132,9 +126,9 @@ class BaseServerRole(LDAPBasedProperty):
         this methods returns such a dict given server and role status
         """
         return {
-            u'role_servrole': self.name,
-            u'server_server': server,
-            u'status': status}
+            'role_servrole': self.name,
+            'server_server': server,
+            'status': status}
 
     @abc.abstractmethod
     def create_search_params(self, ldap, api_instance, server=None):
@@ -179,7 +173,7 @@ class BaseServerRole(LDAPBasedProperty):
             attrs_list=attrs_list)
 
         all_master_cns = set(m['cn'][0] for m in all_masters)
-        enabled_configured_masters = set(r[u'server_server'] for r in result)
+        enabled_configured_masters = set(r['server_server'] for r in result)
 
         absent_masters = all_master_cns.difference(enabled_configured_masters)
 
@@ -221,7 +215,7 @@ class BaseServerRole(LDAPBasedProperty):
             result.extend(
                 self._fill_in_absent_masters(ldap2, api_instance, result))
 
-        return sorted(result, key=lambda x: x[u'server_server'])
+        return sorted(result, key=lambda x: x['server_server'])
 
 
 class ServerAttribute(LDAPBasedProperty):
@@ -350,9 +344,9 @@ class ServerAttribute(LDAPBasedProperty):
         role, as all services are started.
         """
         return [
-            r[u'server_server']
+            r['server_server']
             for r in self.associated_role.status(api_instance)
-            if r[u'status'] in {ENABLED, HIDDEN, CONFIGURED}
+            if r['status'] in {ENABLED, HIDDEN, CONFIGURED}
         ]
 
     def _remove(self, api_instance, masters):
@@ -603,54 +597,54 @@ class ADtrustBasedRole(BaseServerRole):
 
 
 role_instances = (
-    ADtrustBasedRole(u"ad_trust_agent_server", u"AD trust agent"),
+    ADtrustBasedRole("ad_trust_agent_server", "AD trust agent"),
     ServiceBasedRole(
-        u"ad_trust_controller_server",
-        u"AD trust controller",
+        "ad_trust_controller_server",
+        "AD trust controller",
         component_services=['ADTRUST']
     ),
     ServiceBasedRole(
-        u"ca_server_server",
-        u"CA server",
+        "ca_server_server",
+        "CA server",
         component_services=['CA']
     ),
     ServiceBasedRole(
-        u"dns_server_server",
-        u"DNS server",
+        "dns_server_server",
+        "DNS server",
         component_services=['DNS', 'DNSKeySync']
     ),
     ServiceBasedRole(
-        u"ipa_master_server",
-        u"IPA master",
+        "ipa_master_server",
+        "IPA master",
         component_services=['HTTP', 'KDC', 'KPASSWD']
     ),
     ServiceBasedRole(
-        u"kra_server_server",
-        u"KRA server",
+        "kra_server_server",
+        "KRA server",
         component_services=['KRA']
     )
 )
 
 attribute_instances = (
     SingleValuedServerAttribute(
-        u"ca_renewal_master_server",
-        u"CA renewal master",
-        u"ca_server_server",
-        u"CA",
-        u"caRenewalMaster",
+        "ca_renewal_master_server",
+        "CA renewal master",
+        "ca_server_server",
+        "CA",
+        "caRenewalMaster",
     ),
     SingleValuedServerAttribute(
-        u"dnssec_key_master_server",
-        u"DNSSec key master",
-        u"dns_server_server",
-        u"DNSSEC",
-        u"dnssecKeyMaster",
+        "dnssec_key_master_server",
+        "DNSSec key master",
+        "dns_server_server",
+        "DNSSEC",
+        "dnssecKeyMaster",
     ),
     ServerAttribute(
-        u"pkinit_server_server",
-        u"PKINIT enabled server",
-        u"ipa_master_server",
-        u"KDC",
-        u"pkinitEnabled"
+        "pkinit_server_server",
+        "PKINIT enabled server",
+        "ipa_master_server",
+        "KDC",
+        "pkinitEnabled"
     )
 )

@@ -28,14 +28,10 @@ import re
 import inspect
 import pytest
 
-import six
 
 from ipatests.util import assert_equal, raises
 from ipalib import errors
 from ipalib.constants import TYPE_ERROR
-
-if six.PY3:
-    unicode = str
 
 
 pytestmark = pytest.mark.tier0
@@ -213,7 +209,7 @@ class PublicExceptionTester:
     def new(self, format=None, message=None, **kw):
         # Test that TypeError is raised if message isn't unicode:
         e = raises(TypeError, self.klass, message=b'The message')
-        assert str(e) == TYPE_ERROR % ('message', unicode, b'The message', bytes)
+        assert str(e) == TYPE_ERROR % ('message', str, b'The message', bytes)
 
         # Test the instance:
         for (key, value) in kw.items():
@@ -240,10 +236,10 @@ class test_PublicError(PublicExceptionTester):
     required_classes = Exception, errors.PublicError
 
     def test_init(self):
-        message = u'The translated, interpolated message'
+        message = 'The translated, interpolated message'
         format = 'key=%(key1)r and key2=%(key2)r'
-        val1 = u'Value 1'
-        val2 = u'Value 2'
+        val1 = 'Value 1'
+        val2 = 'Value 2'
         kw = dict(key1=val1, key2=val2)
 
         # Test with format=str, message=None
@@ -265,7 +261,7 @@ class test_PublicError(PublicExceptionTester):
 
         # Test with format=None, message=bytes
         e = raises(TypeError, self.klass, message=b'the message', **kw)
-        assert str(e) == TYPE_ERROR % ('message', unicode, b'the message', bytes)
+        assert str(e) == TYPE_ERROR % ('message', str, b'the message', bytes)
 
         # Test with format=None, message=None
         e = raises(ValueError, self.klass, **kw)
@@ -301,7 +297,7 @@ class test_PublicError(PublicExceptionTester):
         class subclass(self.klass):
             format = '%(true)r %(text)r %(number)r'
 
-        kw = dict(true=True, text=u'Hello!', number=18)
+        kw = dict(true=True, text='Hello!', number=18)
 
         # Test with format=str, message=None
         e = raises(ValueError, subclass, format, **kw)
@@ -331,7 +327,7 @@ class test_PublicError(PublicExceptionTester):
         # first build up "instructions", then get error and search for
         # lines of instructions appended to the end of the strerror
         # despite the parameter 'instructions' not existing in the format
-        instructions = u"The quick brown fox jumps over the lazy dog".split()
+        instructions = "The quick brown fox jumps over the lazy dog".split()
         # this expression checks if each word of instructions
         # exists in a string as a separate line, with right order
         regexp = re.compile('(?ims).*' +
@@ -339,7 +335,7 @@ class test_PublicError(PublicExceptionTester):
                             '$')
         inst = subclass(instructions=instructions, **kw)
         assert inst.format is subclass.format
-        assert_equal(inst.instructions, unicode(instructions))
+        assert_equal(inst.instructions, str(instructions))
         inst_match = regexp.match(inst.strerror).groups()
         assert_equal(list(inst_match),list(instructions))
 

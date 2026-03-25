@@ -42,13 +42,13 @@ register = Registry()
 
 
 class DNSUpdater(Updater):
-    backup_dir = u'/var/lib/ipa/backup/'
+    backup_dir = '/var/lib/ipa/backup/'
     # override backup_filename in subclass, it will be mangled by strftime
     backup_filename = None
 
     def __init__(self, api):
         super(DNSUpdater, self).__init__(api)
-        backup_path = u'%s%s' % (self.backup_dir, self.backup_filename)
+        backup_path = '%s%s' % (self.backup_dir, self.backup_filename)
         self.backup_path = time.strftime(backup_path)
         self._ldif_writer = None
         self._saved_privileges = set()  # store privileges only once
@@ -108,7 +108,7 @@ class DNSUpdater(Updater):
                                                          raw=True,
                                                          sizelimit=0)['result']
             for record in records:
-                if record['idnsname'][0] == u'@':
+                if record['idnsname'][0] == '@':
                     # zone record was saved before
                     continue
                 dn = str(record['dn'])
@@ -199,11 +199,11 @@ class update_dnszones(Updater):
             update = {}
             if not zone.get('idnsallowquery'):
                 # allow query from any client by default
-                update['idnsallowquery'] = u'any;'
+                update['idnsallowquery'] = 'any;'
 
             if not zone.get('idnsallowtransfer'):
                 # do not open zone transfers by default
-                update['idnsallowtransfer'] = u'none;'
+                update['idnsallowtransfer'] = 'none;'
 
             old_policy = util.get_dns_forward_zone_update_policy(
                 self.api.env.realm, ('A', 'AAAA'))
@@ -213,8 +213,9 @@ class update_dnszones(Updater):
 
             if update:
                 # FIXME: https://fedorahosted.org/freeipa/ticket/4722
-                self.api.Command.dnszone_mod(zone[u'idnsname'][0].make_absolute(),
-                                        **update)
+                self.api.Command.dnszone_mod(
+                    zone['idnsname'][0].make_absolute(), **update
+                )
 
         return False, []
 
@@ -281,7 +282,7 @@ class update_master_to_dnsforwardzones(DNSUpdater):
     This should be applied only once,
     and only if original version was lower than 4.0
     """
-    backup_filename = u'dns-master-to-forward-zones-%Y-%m-%d-%H-%M-%S.ldif'
+    backup_filename = 'dns-master-to-forward-zones-%Y-%m-%d-%H-%M-%S.ldif'
 
     def execute(self, **options):
         # check LDAP if forwardzones already uses new semantics
@@ -324,8 +325,8 @@ class update_master_to_dnsforwardzones(DNSUpdater):
 
         for zone in zones:
             if (
-                zone.get('idnsforwardpolicy', [u'first'])[0] == u'none' or
-                zone.get('idnsforwarders', []) == []
+                zone.get('idnsforwardpolicy', ['first'])[0] == 'none'
+                or zone.get('idnsforwarders', []) == []
             ):
                 continue  # don't update zone
 
@@ -360,7 +361,7 @@ class update_master_to_dnsforwardzones(DNSUpdater):
                     kw = {
                         'idnsforwarders': zone.get('idnsforwarders', []),
                         'idnsforwardpolicy': zone.get('idnsforwardpolicy',
-                                                      [u'first'])[0],
+                                                      ['first'])[0],
                         'skip_overlap_check': True,
                     }
                     self.api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
@@ -423,7 +424,7 @@ class update_dnsforward_emptyzones(DNSUpdater):
     bind-dyndb-ldap 9.0+ will do the same so we have to adjust IPA zones
     accordingly.
     """
-    backup_filename = u'dns-forwarding-empty-zones-%Y-%m-%d-%H-%M-%S.ldif'
+    backup_filename = 'dns-forwarding-empty-zones-%Y-%m-%d-%H-%M-%S.ldif'
 
     def update_zones(self):
         try:
@@ -438,7 +439,7 @@ class update_dnsforward_emptyzones(DNSUpdater):
             if not (
                 dnsutil.related_to_auto_empty_zone(
                     dnsutil.DNSName(zone.get('idnsname')[0]))
-                and zone.get('idnsforwardpolicy', [u'first'])[0] != u'only'
+                and zone.get('idnsforwardpolicy', ['first'])[0] != 'only'
                 and zone.get('idnsforwarders', []) != []
             ):
                 # this zone does not conflict with automatic empty zone
@@ -463,7 +464,7 @@ class update_dnsforward_emptyzones(DNSUpdater):
             try:
                 self.api.Command['dnsforwardzone_mod'](
                     zone['idnsname'][0],
-                    idnsforwardpolicy=u'only'
+                    idnsforwardpolicy='only'
                 )
             except Exception as e:
                 logger.error('Forward policy update for zone %s failed '
@@ -478,14 +479,14 @@ class update_dnsforward_emptyzones(DNSUpdater):
         config = self.api.Command['dnsconfig_show'](all=True,
                                                     raw=True)['result']
         if (
-            config.get('idnsforwardpolicy', [u'first'])[0] == u'first'
+            config.get('idnsforwardpolicy', ['first'])[0] == 'first'
             and config.get('idnsforwarders', [])
         ):
             logger.info('Global forward policy in LDAP for all servers will '
                         'be changed to "only" to avoid conflicts with '
                         'automatic empty zones')
             self.backup_zone(config)
-            self.api.Command['dnsconfig_mod'](idnsforwardpolicy=u'only')
+            self.api.Command['dnsconfig_mod'](idnsforwardpolicy='only')
 
     def execute(self, **options):
         # check LDAP if DNS subtree already uses new semantics
@@ -556,8 +557,8 @@ class update_dnsserver_configuration_into_ldap(DNSUpdater):
 @register()
 class update_krb_uri_txt_records_for_locations(DNSUpdater):
 
-    backup_filename = u'dns-krb-uri-txt-records-for-locations-%Y-%m-%d-%H-%M-'\
-                      u'%S.ldif'
+    backup_filename = 'dns-krb-uri-txt-records-for-locations-%Y-%m-%d-%H-%M-'\
+                      '%S.ldif'
 
     def execute(self, **options):
         ldap = self.api.Backend.ldap2

@@ -244,7 +244,7 @@ class CACertManage(admintool.AdminTool):
 
         if options.external_ca_type == x509.ExternalCAType.MS_CS.value \
                 and options.external_ca_profile is None:
-            options.external_ca_profile = x509.MSCSTemplateV1(u"SubCA")
+            options.external_ca_profile = x509.MSCSTemplateV1("SubCA")
 
         if options.external_ca_profile is not None:
             # check that profile is valid for the external ca type

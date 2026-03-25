@@ -14,7 +14,6 @@ from http.server import BaseHTTPRequestHandler
 from socketserver import ForkingTCPServer, BaseServer
 from urllib.parse import parse_qs, unquote, urlparse
 
-import six
 
 from ipaserver.custodia import log
 from ipaserver.custodia.plugin import HTTPError
@@ -327,7 +326,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 return
 
             self.send_response(response.get('code', 200))
-            for header, value in six.iteritems(response.get('headers', {})):
+            for header, value in response.get('headers', {}).items():
                 self.send_header(header, value)
             self.end_headers()
 

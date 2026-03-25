@@ -116,10 +116,10 @@ def run_with_args(api, options=None):
     ldap = ipaldap.LDAPClient.from_hostname_secure(server)
 
     try:
-        result = api.Command.ca_is_enabled(version=u'2.107')
+        result = api.Command.ca_is_enabled(version='2.107')
         ca_enabled = result['result']
     except (errors.CommandError, errors.NetworkError):
-        result = api.Command.env(server=True, version=u'2.0')
+        result = api.Command.env(server=True, version='2.0')
         ca_enabled = result['result']['enable_ra']
 
     ldap.gssapi_bind()
@@ -138,7 +138,7 @@ def run_with_args(api, options=None):
     if is_ipa_configured():
         # look up CA servers before service restarts
         resp = api.Command.server_role_find(
-            role_servrole=u'CA server',
+            role_servrole='CA server',
             status='enabled',
         )
         ca_servers = [server['server_server'] for server in resp['result']]

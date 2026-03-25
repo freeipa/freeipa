@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 from ipalib.plugable import Registry
 from .baseldap import (LDAPObject, LDAPCreate, LDAPRetrieve,
@@ -28,9 +27,6 @@ from .baseldap import (LDAPObject, LDAPCreate, LDAPRetrieve,
 from ipalib import Str, api, _, ngettext, errors
 from .netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
 from ipapython.dn import DN
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Groups of hosts.
@@ -78,7 +74,7 @@ def get_complete_hostgroup_member_list(hostgroup):
 
 register = Registry()
 
-PROTECTED_HOSTGROUPS = (u'ipaservers',)
+PROTECTED_HOSTGROUPS = ('ipaservers',)
 
 
 hostgroup_output_params = (
@@ -235,10 +231,15 @@ class hostgroup_add(LDAPCreate):
             # when enabled, a managed netgroup is created for every hostgroup
             # make sure that the netgroup can be created
             api.Object['netgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=unicode(_(
-                    u'netgroup with name "%s" already exists. '
-                    u'Hostgroups and netgroups share a common namespace'
-                    ) % keys[-1]))
+            raise errors.DuplicateEntry(
+                message=str(
+                    _(
+                        'netgroup with name "%s" already exists. '
+                        'Hostgroups and netgroups share a common namespace'
+                    )
+                    % keys[-1]
+                )
+            )
         except errors.NotFound:
             pass
 
@@ -263,9 +264,9 @@ class hostgroup_del(LDAPDelete):
 
     def pre_callback(self, ldap, dn, *keys, **options):
         if keys[0] in PROTECTED_HOSTGROUPS:
-            raise errors.ProtectedEntryError(label=_(u'hostgroup'),
+            raise errors.ProtectedEntryError(label=_('hostgroup'),
                                              key=keys[0],
-                                             reason=_(u'privileged hostgroup'))
+                                             reason=_('privileged hostgroup'))
 
         return dn
 
@@ -281,9 +282,9 @@ class hostgroup_mod(LDAPUpdate):
                      *keys, **options):
         assert isinstance(dn, DN)
         if keys[0] in PROTECTED_HOSTGROUPS and 'rename' in options:
-            raise errors.ProtectedEntryError(label=_(u'hostgroup'),
+            raise errors.ProtectedEntryError(label=_('hostgroup'),
                                              key=keys[0],
-                                             reason=_(u'privileged hostgroup'))
+                                             reason=_('privileged hostgroup'))
 
         return dn
 
@@ -346,7 +347,7 @@ class hostgroup_remove_member(LDAPRemoveMember):
             hosts_deleted = set(options['host'])
             if hosts_left.issubset(hosts_deleted):
                 raise errors.LastMemberError(key=sorted(hosts_deleted)[0],
-                                             label=_(u'hostgroup'),
+                                             label=_('hostgroup'),
                                              container=keys[0])
 
         return dn

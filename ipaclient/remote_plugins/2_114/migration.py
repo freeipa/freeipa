@@ -2,19 +2,12 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
-from ipalib.parameters import DefaultFrom
+from . import Command
+from ipalib import parameters, output
 from ipalib.plugable import Registry
 from ipalib.text import _
 from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 Migration to IPA
@@ -120,14 +113,14 @@ class migrate_ds(Command):
         parameters.Str(
             'ldapuri',
             cli_name='ldap_uri',
-            label=_(u'LDAP URI'),
-            doc=_(u'LDAP URI of DS server to migrate from'),
+            label=_('LDAP URI'),
+            doc=_('LDAP URI of DS server to migrate from'),
         ),
         parameters.Password(
             'bindpw',
             cli_name='password',
-            label=_(u'Password'),
-            doc=_(u'bind password'),
+            label=_('Password'),
+            doc=_('bind password'),
         ),
     )
     takes_options = (
@@ -135,42 +128,42 @@ class migrate_ds(Command):
             'binddn',
             required=False,
             cli_name='bind_dn',
-            label=_(u'Bind DN'),
-            default=DN(u'cn=directory manager'),
+            label=_('Bind DN'),
+            default=DN('cn=directory manager'),
             autofill=True,
         ),
         parameters.DNParam(
             'usercontainer',
             cli_name='user_container',
-            label=_(u'User container'),
-            doc=_(u'DN of container for users in DS relative to base DN'),
-            default=DN(u'ou=people'),
+            label=_('User container'),
+            doc=_('DN of container for users in DS relative to base DN'),
+            default=DN('ou=people'),
             autofill=True,
         ),
         parameters.DNParam(
             'groupcontainer',
             cli_name='group_container',
-            label=_(u'Group container'),
-            doc=_(u'DN of container for groups in DS relative to base DN'),
-            default=DN(u'ou=groups'),
+            label=_('Group container'),
+            doc=_('DN of container for groups in DS relative to base DN'),
+            default=DN('ou=groups'),
             autofill=True,
         ),
         parameters.Str(
             'userobjectclass',
             multivalue=True,
             cli_name='user_objectclass',
-            label=_(u'User object class'),
-            doc=_(u'Objectclasses used to search for user entries in DS'),
-            default=(u'person',),
+            label=_('User object class'),
+            doc=_('Objectclasses used to search for user entries in DS'),
+            default=('person',),
             autofill=True,
         ),
         parameters.Str(
             'groupobjectclass',
             multivalue=True,
             cli_name='group_objectclass',
-            label=_(u'Group object class'),
-            doc=_(u'Objectclasses used to search for group entries in DS'),
-            default=(u'groupOfUniqueNames', u'groupOfNames'),
+            label=_('Group object class'),
+            doc=_('Objectclasses used to search for group entries in DS'),
+            default=('groupOfUniqueNames', 'groupOfNames'),
             autofill=True,
         ),
         parameters.Str(
@@ -178,8 +171,8 @@ class migrate_ds(Command):
             required=False,
             multivalue=True,
             cli_name='user_ignore_objectclass',
-            label=_(u'Ignore user object class'),
-            doc=_(u'Objectclasses to be ignored for user entries in DS'),
+            label=_('Ignore user object class'),
+            doc=_('Objectclasses to be ignored for user entries in DS'),
             default=(),
             autofill=True,
         ),
@@ -188,8 +181,8 @@ class migrate_ds(Command):
             required=False,
             multivalue=True,
             cli_name='user_ignore_attribute',
-            label=_(u'Ignore user attribute'),
-            doc=_(u'Attributes to be ignored for user entries in DS'),
+            label=_('Ignore user attribute'),
+            doc=_('Attributes to be ignored for user entries in DS'),
             default=(),
             autofill=True,
         ),
@@ -198,8 +191,8 @@ class migrate_ds(Command):
             required=False,
             multivalue=True,
             cli_name='group_ignore_objectclass',
-            label=_(u'Ignore group object class'),
-            doc=_(u'Objectclasses to be ignored for group entries in DS'),
+            label=_('Ignore group object class'),
+            doc=_('Objectclasses to be ignored for group entries in DS'),
             default=(),
             autofill=True,
         ),
@@ -208,16 +201,19 @@ class migrate_ds(Command):
             required=False,
             multivalue=True,
             cli_name='group_ignore_attribute',
-            label=_(u'Ignore group attribute'),
-            doc=_(u'Attributes to be ignored for group entries in DS'),
+            label=_('Ignore group attribute'),
+            doc=_('Attributes to be ignored for group entries in DS'),
             default=(),
             autofill=True,
         ),
         parameters.Flag(
             'groupoverwritegid',
             cli_name='group_overwrite_gid',
-            label=_(u'Overwrite GID'),
-            doc=_(u'When migrating a group already existing in IPA domain overwrite the group GID and report as success'),
+            label=_('Overwrite GID'),
+            doc=_(
+                'When migrating a group already existing in IPA domain '
+                'overwrite the group GID and report as success'
+            ),
             default=False,
             autofill=True,
         ),
@@ -225,16 +221,23 @@ class migrate_ds(Command):
             'schema',
             required=False,
             cli_metavar="['RFC2307bis', 'RFC2307']",
-            label=_(u'LDAP schema'),
-            doc=_(u'The schema used on the LDAP server. Supported values are RFC2307 and RFC2307bis. The default is RFC2307bis'),
-            default=u'RFC2307bis',
+            label=_('LDAP schema'),
+            doc=_(
+                'The schema used on the LDAP server. '
+                'Supported values are RFC2307 and RFC2307bis. '
+                'The default is RFC2307bis'
+            ),
+            default='RFC2307bis',
             autofill=True,
         ),
         parameters.Flag(
             'continue',
             required=False,
-            label=_(u'Continue'),
-            doc=_(u'Continuous operation mode. Errors are reported but the process continues'),
+            label=_('Continue'),
+            doc=_(
+                'Continuous operation mode. '
+                'Errors are reported but the process continues'
+            ),
             default=False,
             autofill=True,
         ),
@@ -242,15 +245,15 @@ class migrate_ds(Command):
             'basedn',
             required=False,
             cli_name='base_dn',
-            label=_(u'Base DN'),
-            doc=_(u'Base DN on remote LDAP server'),
+            label=_('Base DN'),
+            doc=_('Base DN on remote LDAP server'),
         ),
         parameters.Flag(
             'compat',
             required=False,
             cli_name='with_compat',
-            label=_(u'Ignore compat plugin'),
-            doc=_(u'Allows migration despite the usage of compat plugin'),
+            label=_('Ignore compat plugin'),
+            doc=_('Allows migration despite the usage of compat plugin'),
             default=False,
             autofill=True,
         ),
@@ -258,14 +261,14 @@ class migrate_ds(Command):
             'cacertfile',
             required=False,
             cli_name='ca_cert_file',
-            label=_(u'CA certificate'),
-            doc=_(u'Load CA certificate of LDAP server from FILE'),
+            label=_('CA certificate'),
+            doc=_('Load CA certificate of LDAP server from FILE'),
         ),
         parameters.Str(
             'exclude_groups',
             required=False,
             multivalue=True,
-            doc=_(u'groups to exclude from migration'),
+            doc=_('groups to exclude from migration'),
             default=(),
             autofill=True,
         ),
@@ -273,7 +276,7 @@ class migrate_ds(Command):
             'exclude_users',
             required=False,
             multivalue=True,
-            doc=_(u'users to exclude from migration'),
+            doc=_('users to exclude from migration'),
             default=(),
             autofill=True,
         ),
@@ -282,21 +285,27 @@ class migrate_ds(Command):
         output.Output(
             'result',
             dict,
-            doc=_(u'Lists of objects migrated; categorized by type.'),
+            doc=_('Lists of objects migrated; categorized by type.'),
         ),
         output.Output(
             'failed',
             dict,
-            doc=_(u'Lists of objects that could not be migrated; categorized by type.'),
+            doc=_(
+                'Lists of objects that could not be migrated; categorized by '
+                'type.'
+            ),
         ),
         output.Output(
             'enabled',
             bool,
-            doc=_(u'False if migration mode was disabled.'),
+            doc=_('False if migration mode was disabled.'),
         ),
         output.Output(
             'compat',
             bool,
-            doc=_(u'False if migration fails because the compatibility plug-in is enabled.'),
+            doc=_(
+                'False if migration fails because the compatibility plug-in is '
+                'enabled.'
+            ),
         ),
     )

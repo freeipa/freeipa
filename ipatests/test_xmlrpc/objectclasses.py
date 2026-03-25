@@ -22,222 +22,222 @@ Defines the expected objectclass for various entries.
 """
 
 user_base = [
-    u'top',
-    u'person',
-    u'organizationalperson',
-    u'inetorgperson',
-    u'inetuser',
-    u'posixaccount',
-    u'krbprincipalaux',
-    u'krbticketpolicyaux',
-    u'ipaobject',
-    u'ipasshuser',
-    u'ipaSshGroupOfPubKeys',
+    'top',
+    'person',
+    'organizationalperson',
+    'inetorgperson',
+    'inetuser',
+    'posixaccount',
+    'krbprincipalaux',
+    'krbticketpolicyaux',
+    'ipaobject',
+    'ipasshuser',
+    'ipaSshGroupOfPubKeys',
 ]
 
-user = user_base + [u'mepOriginEntry', 'ipantuserattrs',]
+user = user_base + ['mepOriginEntry', 'ipantuserattrs',]
 
 group = [
-    u'top',
-    u'groupofnames',
-    u'nestedgroup',
-    u'ipausergroup',
-    u'ipaobject',
+    'top',
+    'groupofnames',
+    'nestedgroup',
+    'ipausergroup',
+    'ipaobject',
 ]
 
-externalgroup = group + [u'ipaexternalgroup']
-posixgroup = group + [u'posixgroup', 'ipantgroupattrs']
+externalgroup = group + ['ipaexternalgroup']
+posixgroup = group + ['posixgroup', 'ipantgroupattrs']
 
 host = [
-    u'ipasshhost',
-    u'ipaSshGroupOfPubKeys',
-    u'ieee802device',
-    u'ipaobject',
-    u'nshost',
-    u'ipahost',
-    u'pkiuser',
-    u'ipaservice',
-    u'krbprincipalaux',
-    u'krbprincipal',
-    u'top',
+    'ipasshhost',
+    'ipaSshGroupOfPubKeys',
+    'ieee802device',
+    'ipaobject',
+    'nshost',
+    'ipahost',
+    'pkiuser',
+    'ipaservice',
+    'krbprincipalaux',
+    'krbprincipal',
+    'top',
 ]
 
 hostgroup = [
-    u'ipaobject',
-    u'ipahostgroup',
-    u'nestedGroup',
-    u'groupOfNames',
-    u'top',
-    u'mepOriginEntry',
+    'ipaobject',
+    'ipahostgroup',
+    'nestedGroup',
+    'groupOfNames',
+    'top',
+    'mepOriginEntry',
 ]
 
 role = [
-    u'groupofnames',
-    u'nestedgroup',
-    u'top',
+    'groupofnames',
+    'nestedgroup',
+    'top',
 ]
 
 system_permission = [
-    u'groupofnames',
-    u'ipapermission',
-    u'top'
+    'groupofnames',
+    'ipapermission',
+    'top'
 ]
 
 permission = system_permission + [
-    u'ipapermissionv2',
+    'ipapermissionv2',
 ]
 
 privilege = [
-    u'nestedgroup',
-    u'groupofnames',
-    u'top'
+    'nestedgroup',
+    'groupofnames',
+    'top'
 ]
 
 service = [
-    u'krbprincipal',
-    u'krbprincipalaux',
-    u'krbticketpolicyaux',
-    u'ipaobject',
-    u'ipaservice',
-    u'pkiuser',
-    u'ipakrbprincipal',
-    u'top',
+    'krbprincipal',
+    'krbprincipalaux',
+    'krbticketpolicyaux',
+    'ipaobject',
+    'ipaservice',
+    'pkiuser',
+    'ipakrbprincipal',
+    'top',
 ]
 
 hbacsvc = [
-    u'ipaobject',
-    u'ipahbacservice',
+    'ipaobject',
+    'ipahbacservice',
 ]
 
 hbacsvcgroup = [
-    u'ipaobject',
-    u'ipahbacservicegroup',
-    u'groupOfNames',
-    u'top',
+    'ipaobject',
+    'ipahbacservicegroup',
+    'groupOfNames',
+    'top',
 ]
 
 sudocmd = [
-    u'ipaobject',
-    u'ipasudocmd',
+    'ipaobject',
+    'ipasudocmd',
 ]
 
 sudocmdgroup = [
-    u'ipaobject',
-    u'ipasudocmdgrp',
-    u'groupOfNames',
-    u'top',
+    'ipaobject',
+    'ipasudocmdgrp',
+    'groupOfNames',
+    'top',
 ]
 
 netgroup = [
-    u'ipaobject',
-    u'ipaassociation',
-    u'ipanisnetgroup',
+    'ipaobject',
+    'ipaassociation',
+    'ipanisnetgroup',
 ]
 
 automember = [
-    u'top',
-    u'automemberregexrule',
+    'top',
+    'automemberregexrule',
 ]
 
 selinuxusermap = [
-    u'ipaassociation',
-    u'ipaselinuxusermap',
+    'ipaassociation',
+    'ipaselinuxusermap',
 ]
 
 hbacrule = [
-    u'ipaassociation',
-    u'ipahbacrule',
+    'ipaassociation',
+    'ipahbacrule',
 ]
 
 dnszone = [
-    u'top',
-    u'idnsrecord',
-    u'idnszone',
+    'top',
+    'idnsrecord',
+    'idnszone',
 ]
 
 dnsforwardzone = [
-    u'top',
-    u'idnsforwardzone',
+    'top',
+    'idnsforwardzone',
 ]
 
 dnsrecord = [
-    u'top',
-    u'idnsrecord',
+    'top',
+    'idnsrecord',
 ]
 
 realmdomains = [
-    u'top',
-    u'nsContainer',
-    u'domainRelatedObject',
+    'top',
+    'nsContainer',
+    'domainRelatedObject',
 ]
 
 radiusproxy = [
-    u'ipatokenradiusconfiguration',
-    u'top',
+    'ipatokenradiusconfiguration',
+    'top',
 ]
 
 pwpolicy = [
-    u'krbpwdpolicy',
-    u'ipapwdpolicy',
-    u'nscontainer',
-    u'top',
+    'krbpwdpolicy',
+    'ipapwdpolicy',
+    'nscontainer',
+    'top',
 ]
 
 idview = [
-    u'ipaIDView',
-    u'nsContainer',
-    u'top'
+    'ipaIDView',
+    'nsContainer',
+    'top'
 ]
 
 idoverrideuser = [
-    u'ipaOverrideAnchor',
-    u'top',
-    u'ipaUserOverride',
-    u'ipasshuser',
-    u'ipaSshGroupOfPubKeys'
+    'ipaOverrideAnchor',
+    'top',
+    'ipaUserOverride',
+    'ipasshuser',
+    'ipaSshGroupOfPubKeys'
 ]
 
 idoverridegroup = [
-    u'ipaOverrideAnchor',
-    u'top',
-    u'ipaGroupOverride',
+    'ipaOverrideAnchor',
+    'top',
+    'ipaGroupOverride',
 ]
 
 servicedelegationrule = [
-    u'top',
-    u'groupofprincipals',
-    u'ipakrb5delegationacl',
+    'top',
+    'groupofprincipals',
+    'ipakrb5delegationacl',
 ]
 
 servicedelegationtarget = [
-    u'top',
-    u'groupofprincipals',
+    'top',
+    'groupofprincipals',
 ]
 
 certprofile = [
-    u'top',
-    u'ipacertprofile',
+    'top',
+    'ipacertprofile',
 ]
 
 caacl = [
-    u'ipaassociation',
-    u'ipacaacl'
+    'ipaassociation',
+    'ipacaacl'
 ]
 
 ca = [
-    u'top',
-    u'ipaca',
+    'top',
+    'ipaca',
 ]
 
 certmaprule = [
-    u'top',
-    u'ipacertmaprule',
+    'top',
+    'ipacertmaprule',
 ]
 
 certmapconfig = [
-    u'top',
-    u'nsContainer',
-    u'ipaCertMapConfigObject',
+    'top',
+    'nsContainer',
+    'ipaCertMapConfigObject',
 ]
 
 idp = [

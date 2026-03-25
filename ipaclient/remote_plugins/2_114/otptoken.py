@@ -2,19 +2,12 @@
 # Copyright (C) 2016  FreeIPA Contributors see COPYING for license
 #
 
-# pylint: disable=unused-import
-import six
 
-from . import Command, Method, Object
-from ipalib import api, parameters, output
+from . import Method, Object
+from ipalib import parameters, output
 from ipalib.parameters import DefaultFrom
 from ipalib.plugable import Registry
 from ipalib.text import _
-from ipapython.dn import DN
-from ipapython.dnsutil import DNSName
-
-if six.PY3:
-    unicode = str
 
 __doc__ = _("""
 OTP Tokens
@@ -48,103 +41,103 @@ class otptoken(Object):
         parameters.Str(
             'ipatokenuniqueid',
             primary_key=True,
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
         parameters.Str(
             'type',
             required=False,
-            label=_(u'Type'),
-            doc=_(u'Type of the token'),
+            label=_('Type'),
+            doc=_('Type of the token'),
         ),
         parameters.Str(
             'description',
             required=False,
-            label=_(u'Description'),
-            doc=_(u'Token description (informational only)'),
+            label=_('Description'),
+            doc=_('Token description (informational only)'),
         ),
         parameters.Str(
             'ipatokenowner',
             required=False,
-            label=_(u'Owner'),
-            doc=_(u'Assigned user of the token (default: self)'),
+            label=_('Owner'),
+            doc=_('Assigned user of the token (default: self)'),
         ),
         parameters.Str(
             'managedby_user',
             required=False,
-            label=_(u'Manager'),
-            doc=_(u'Assigned manager of the token (default: self)'),
+            label=_('Manager'),
+            doc=_('Assigned manager of the token (default: self)'),
         ),
         parameters.Bool(
             'ipatokendisabled',
             required=False,
-            label=_(u'Disabled'),
-            doc=_(u'Mark the token as disabled (default: false)'),
+            label=_('Disabled'),
+            doc=_('Mark the token as disabled (default: false)'),
         ),
         parameters.DateTime(
             'ipatokennotbefore',
             required=False,
-            label=_(u'Validity start'),
-            doc=_(u'First date/time the token can be used'),
+            label=_('Validity start'),
+            doc=_('First date/time the token can be used'),
         ),
         parameters.DateTime(
             'ipatokennotafter',
             required=False,
-            label=_(u'Validity end'),
-            doc=_(u'Last date/time the token can be used'),
+            label=_('Validity end'),
+            doc=_('Last date/time the token can be used'),
         ),
         parameters.Str(
             'ipatokenvendor',
             required=False,
-            label=_(u'Vendor'),
-            doc=_(u'Token vendor name (informational only)'),
+            label=_('Vendor'),
+            doc=_('Token vendor name (informational only)'),
         ),
         parameters.Str(
             'ipatokenmodel',
             required=False,
-            label=_(u'Model'),
-            doc=_(u'Token model (informational only)'),
+            label=_('Model'),
+            doc=_('Token model (informational only)'),
         ),
         parameters.Str(
             'ipatokenserial',
             required=False,
-            label=_(u'Serial'),
-            doc=_(u'Token serial (informational only)'),
+            label=_('Serial'),
+            doc=_('Token serial (informational only)'),
         ),
         parameters.Bytes(
             'ipatokenotpkey',
             required=False,
-            label=_(u'Key'),
-            doc=_(u'Token secret (Base32; default: random)'),
+            label=_('Key'),
+            doc=_('Token secret (Base32; default: random)'),
         ),
         parameters.Str(
             'ipatokenotpalgorithm',
             required=False,
-            label=_(u'Algorithm'),
-            doc=_(u'Token hash algorithm'),
+            label=_('Algorithm'),
+            doc=_('Token hash algorithm'),
         ),
         parameters.Int(
             'ipatokenotpdigits',
             required=False,
-            label=_(u'Digits'),
-            doc=_(u'Number of digits each token code will have'),
+            label=_('Digits'),
+            doc=_('Number of digits each token code will have'),
         ),
         parameters.Int(
             'ipatokentotpclockoffset',
             required=False,
-            label=_(u'Clock offset'),
-            doc=_(u'TOTP token / IPA server time difference'),
+            label=_('Clock offset'),
+            doc=_('TOTP token / IPA server time difference'),
         ),
         parameters.Int(
             'ipatokentotptimestep',
             required=False,
-            label=_(u'Clock interval'),
-            doc=_(u'Length of TOTP token code validity'),
+            label=_('Clock interval'),
+            doc=_('Length of TOTP token code validity'),
         ),
         parameters.Int(
             'ipatokenhotpcounter',
             required=False,
-            label=_(u'Counter'),
-            doc=_(u'Initial counter for the HOTP token'),
+            label=_('Counter'),
+            doc=_('Initial counter for the HOTP token'),
         ),
     )
 
@@ -158,7 +151,7 @@ class otptoken_add(Method):
             'ipatokenuniqueid',
             required=False,
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
     )
     takes_options = (
@@ -166,73 +159,73 @@ class otptoken_add(Method):
             'type',
             required=False,
             cli_metavar="['totp', 'hotp', 'TOTP', 'HOTP']",
-            label=_(u'Type'),
-            doc=_(u'Type of the token'),
-            default=u'totp',
+            label=_('Type'),
+            doc=_('Type of the token'),
+            default='totp',
             autofill=True,
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Token description (informational only)'),
+            label=_('Description'),
+            doc=_('Token description (informational only)'),
         ),
         parameters.Str(
             'ipatokenowner',
             required=False,
             cli_name='owner',
-            label=_(u'Owner'),
-            doc=_(u'Assigned user of the token (default: self)'),
+            label=_('Owner'),
+            doc=_('Assigned user of the token (default: self)'),
         ),
         parameters.Bool(
             'ipatokendisabled',
             required=False,
             cli_name='disabled',
-            label=_(u'Disabled'),
-            doc=_(u'Mark the token as disabled (default: false)'),
+            label=_('Disabled'),
+            doc=_('Mark the token as disabled (default: false)'),
         ),
         parameters.DateTime(
             'ipatokennotbefore',
             required=False,
             cli_name='not_before',
-            label=_(u'Validity start'),
-            doc=_(u'First date/time the token can be used'),
+            label=_('Validity start'),
+            doc=_('First date/time the token can be used'),
         ),
         parameters.DateTime(
             'ipatokennotafter',
             required=False,
             cli_name='not_after',
-            label=_(u'Validity end'),
-            doc=_(u'Last date/time the token can be used'),
+            label=_('Validity end'),
+            doc=_('Last date/time the token can be used'),
         ),
         parameters.Str(
             'ipatokenvendor',
             required=False,
             cli_name='vendor',
-            label=_(u'Vendor'),
-            doc=_(u'Token vendor name (informational only)'),
+            label=_('Vendor'),
+            doc=_('Token vendor name (informational only)'),
         ),
         parameters.Str(
             'ipatokenmodel',
             required=False,
             cli_name='model',
-            label=_(u'Model'),
-            doc=_(u'Token model (informational only)'),
+            label=_('Model'),
+            doc=_('Token model (informational only)'),
         ),
         parameters.Str(
             'ipatokenserial',
             required=False,
             cli_name='serial',
-            label=_(u'Serial'),
-            doc=_(u'Token serial (informational only)'),
+            label=_('Serial'),
+            doc=_('Token serial (informational only)'),
         ),
         parameters.Bytes(
             'ipatokenotpkey',
             required=False,
             cli_name='key',
-            label=_(u'Key'),
-            doc=_(u'Token secret (Base32; default: random)'),
+            label=_('Key'),
+            doc=_('Token secret (Base32; default: random)'),
             default_from=DefaultFrom(lambda : None),
             # FIXME:
             # lambda: os.urandom(KEY_LENGTH)
@@ -243,9 +236,9 @@ class otptoken_add(Method):
             required=False,
             cli_name='algo',
             cli_metavar="['sha1', 'sha256', 'sha384', 'sha512']",
-            label=_(u'Algorithm'),
-            doc=_(u'Token hash algorithm'),
-            default=u'sha1',
+            label=_('Algorithm'),
+            doc=_('Token hash algorithm'),
+            default='sha1',
             autofill=True,
         ),
         parameters.Int(
@@ -253,8 +246,8 @@ class otptoken_add(Method):
             required=False,
             cli_name='digits',
             cli_metavar="['6', '8']",
-            label=_(u'Digits'),
-            doc=_(u'Number of digits each token code will have'),
+            label=_('Digits'),
+            doc=_('Number of digits each token code will have'),
             default=6,
             autofill=True,
         ),
@@ -262,8 +255,8 @@ class otptoken_add(Method):
             'ipatokentotpclockoffset',
             required=False,
             cli_name='offset',
-            label=_(u'Clock offset'),
-            doc=_(u'TOTP token / IPA server time difference'),
+            label=_('Clock offset'),
+            doc=_('TOTP token / IPA server time difference'),
             default=0,
             autofill=True,
         ),
@@ -271,8 +264,8 @@ class otptoken_add(Method):
             'ipatokentotptimestep',
             required=False,
             cli_name='interval',
-            label=_(u'Clock interval'),
-            doc=_(u'Length of TOTP token code validity'),
+            label=_('Clock interval'),
+            doc=_('Length of TOTP token code validity'),
             default=30,
             autofill=True,
         ),
@@ -280,8 +273,8 @@ class otptoken_add(Method):
             'ipatokenhotpcounter',
             required=False,
             cli_name='counter',
-            label=_(u'Counter'),
-            doc=_(u'Initial counter for the HOTP token'),
+            label=_('Counter'),
+            doc=_('Initial counter for the HOTP token'),
             default=0,
             autofill=True,
         ),
@@ -289,47 +282,60 @@ class otptoken_add(Method):
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'qrcode',
             required=False,
-            label=_(u'(deprecated)'),
+            label=_('(deprecated)'),
             exclude=('cli', 'webui'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_qrcode',
-            label=_(u'Do not display QR code'),
+            label=_('Do not display QR code'),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -338,15 +344,15 @@ class otptoken_add(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -359,27 +365,33 @@ class otptoken_add_managedby(Method):
         parameters.Str(
             'ipatokenuniqueid',
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -389,8 +401,8 @@ class otptoken_add_managedby(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to add'),
+            label=_('member user'),
+            doc=_('users to add'),
             alwaysask=True,
         ),
     )
@@ -401,12 +413,12 @@ class otptoken_add_managedby(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be added'),
+            doc=_('Members that could not be added'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members added'),
+            doc=_('Number of members added'),
         ),
     )
 
@@ -420,13 +432,13 @@ class otptoken_del(Method):
             'ipatokenuniqueid',
             multivalue=True,
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'continue',
-            doc=_(u"Continuous mode: Don't stop on errors."),
+            doc=_("Continuous mode: Don't stop on errors."),
             default=False,
             autofill=True,
         ),
@@ -434,13 +446,13 @@ class otptoken_del(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Output(
             'result',
             dict,
-            doc=_(u'List of deletions that failed'),
+            doc=_('List of deletions that failed'),
         ),
         output.ListOfPrimaryKeys(
             'value',
@@ -456,7 +468,7 @@ class otptoken_find(Method):
         parameters.Str(
             'criteria',
             required=False,
-            doc=_(u'A string searched in all relevant object attributes'),
+            doc=_('A string searched in all relevant object attributes'),
         ),
     )
     takes_options = (
@@ -464,143 +476,149 @@ class otptoken_find(Method):
             'ipatokenuniqueid',
             required=False,
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
         parameters.Str(
             'type',
             required=False,
             cli_metavar="['totp', 'hotp', 'TOTP', 'HOTP']",
-            label=_(u'Type'),
-            doc=_(u'Type of the token'),
-            default=u'totp',
+            label=_('Type'),
+            doc=_('Type of the token'),
+            default='totp',
         ),
         parameters.Str(
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Token description (informational only)'),
+            label=_('Description'),
+            doc=_('Token description (informational only)'),
         ),
         parameters.Str(
             'ipatokenowner',
             required=False,
             cli_name='owner',
-            label=_(u'Owner'),
-            doc=_(u'Assigned user of the token (default: self)'),
+            label=_('Owner'),
+            doc=_('Assigned user of the token (default: self)'),
         ),
         parameters.Bool(
             'ipatokendisabled',
             required=False,
             cli_name='disabled',
-            label=_(u'Disabled'),
-            doc=_(u'Mark the token as disabled (default: false)'),
+            label=_('Disabled'),
+            doc=_('Mark the token as disabled (default: false)'),
         ),
         parameters.DateTime(
             'ipatokennotbefore',
             required=False,
             cli_name='not_before',
-            label=_(u'Validity start'),
-            doc=_(u'First date/time the token can be used'),
+            label=_('Validity start'),
+            doc=_('First date/time the token can be used'),
         ),
         parameters.DateTime(
             'ipatokennotafter',
             required=False,
             cli_name='not_after',
-            label=_(u'Validity end'),
-            doc=_(u'Last date/time the token can be used'),
+            label=_('Validity end'),
+            doc=_('Last date/time the token can be used'),
         ),
         parameters.Str(
             'ipatokenvendor',
             required=False,
             cli_name='vendor',
-            label=_(u'Vendor'),
-            doc=_(u'Token vendor name (informational only)'),
+            label=_('Vendor'),
+            doc=_('Token vendor name (informational only)'),
         ),
         parameters.Str(
             'ipatokenmodel',
             required=False,
             cli_name='model',
-            label=_(u'Model'),
-            doc=_(u'Token model (informational only)'),
+            label=_('Model'),
+            doc=_('Token model (informational only)'),
         ),
         parameters.Str(
             'ipatokenserial',
             required=False,
             cli_name='serial',
-            label=_(u'Serial'),
-            doc=_(u'Token serial (informational only)'),
+            label=_('Serial'),
+            doc=_('Token serial (informational only)'),
         ),
         parameters.Str(
             'ipatokenotpalgorithm',
             required=False,
             cli_name='algo',
             cli_metavar="['sha1', 'sha256', 'sha384', 'sha512']",
-            label=_(u'Algorithm'),
-            doc=_(u'Token hash algorithm'),
-            default=u'sha1',
+            label=_('Algorithm'),
+            doc=_('Token hash algorithm'),
+            default='sha1',
         ),
         parameters.Int(
             'ipatokenotpdigits',
             required=False,
             cli_name='digits',
             cli_metavar="['6', '8']",
-            label=_(u'Digits'),
-            doc=_(u'Number of digits each token code will have'),
+            label=_('Digits'),
+            doc=_('Number of digits each token code will have'),
             default=6,
         ),
         parameters.Int(
             'ipatokentotpclockoffset',
             required=False,
             cli_name='offset',
-            label=_(u'Clock offset'),
-            doc=_(u'TOTP token / IPA server time difference'),
+            label=_('Clock offset'),
+            doc=_('TOTP token / IPA server time difference'),
             default=0,
         ),
         parameters.Int(
             'ipatokentotptimestep',
             required=False,
             cli_name='interval',
-            label=_(u'Clock interval'),
-            doc=_(u'Length of TOTP token code validity'),
+            label=_('Clock interval'),
+            doc=_('Length of TOTP token code validity'),
             default=30,
         ),
         parameters.Int(
             'ipatokenhotpcounter',
             required=False,
             cli_name='counter',
-            label=_(u'Counter'),
-            doc=_(u'Initial counter for the HOTP token'),
+            label=_('Counter'),
+            doc=_('Initial counter for the HOTP token'),
             default=0,
         ),
         parameters.Int(
             'timelimit',
             required=False,
-            label=_(u'Time Limit'),
-            doc=_(u'Time limit of search in seconds'),
+            label=_('Time Limit'),
+            doc=_('Time limit of search in seconds'),
         ),
         parameters.Int(
             'sizelimit',
             required=False,
-            label=_(u'Size Limit'),
-            doc=_(u'Maximum number of entries returned'),
+            label=_('Size Limit'),
+            doc=_('Maximum number of entries returned'),
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -608,8 +626,8 @@ class otptoken_find(Method):
         parameters.Flag(
             'pkey_only',
             required=False,
-            label=_(u'Primary key only'),
-            doc=_(u'Results should contain primary key attribute only ("id")'),
+            label=_('Primary key only'),
+            doc=_('Results should contain primary key attribute only ("id")'),
             default=False,
             autofill=True,
         ),
@@ -617,8 +635,8 @@ class otptoken_find(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.ListOfEntries(
             'result',
@@ -626,12 +644,12 @@ class otptoken_find(Method):
         output.Output(
             'count',
             int,
-            doc=_(u'Number of entries returned'),
+            doc=_('Number of entries returned'),
         ),
         output.Output(
             'truncated',
             bool,
-            doc=_(u'True if not all results were returned'),
+            doc=_('True if not all results were returned'),
         ),
     )
 
@@ -644,7 +662,7 @@ class otptoken_mod(Method):
         parameters.Str(
             'ipatokenuniqueid',
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
     )
     takes_options = (
@@ -652,103 +670,122 @@ class otptoken_mod(Method):
             'description',
             required=False,
             cli_name='desc',
-            label=_(u'Description'),
-            doc=_(u'Token description (informational only)'),
+            label=_('Description'),
+            doc=_('Token description (informational only)'),
         ),
         parameters.Str(
             'ipatokenowner',
             required=False,
             cli_name='owner',
-            label=_(u'Owner'),
-            doc=_(u'Assigned user of the token (default: self)'),
+            label=_('Owner'),
+            doc=_('Assigned user of the token (default: self)'),
         ),
         parameters.Bool(
             'ipatokendisabled',
             required=False,
             cli_name='disabled',
-            label=_(u'Disabled'),
-            doc=_(u'Mark the token as disabled (default: false)'),
+            label=_('Disabled'),
+            doc=_('Mark the token as disabled (default: false)'),
         ),
         parameters.DateTime(
             'ipatokennotbefore',
             required=False,
             cli_name='not_before',
-            label=_(u'Validity start'),
-            doc=_(u'First date/time the token can be used'),
+            label=_('Validity start'),
+            doc=_('First date/time the token can be used'),
         ),
         parameters.DateTime(
             'ipatokennotafter',
             required=False,
             cli_name='not_after',
-            label=_(u'Validity end'),
-            doc=_(u'Last date/time the token can be used'),
+            label=_('Validity end'),
+            doc=_('Last date/time the token can be used'),
         ),
         parameters.Str(
             'ipatokenvendor',
             required=False,
             cli_name='vendor',
-            label=_(u'Vendor'),
-            doc=_(u'Token vendor name (informational only)'),
+            label=_('Vendor'),
+            doc=_('Token vendor name (informational only)'),
         ),
         parameters.Str(
             'ipatokenmodel',
             required=False,
             cli_name='model',
-            label=_(u'Model'),
-            doc=_(u'Token model (informational only)'),
+            label=_('Model'),
+            doc=_('Token model (informational only)'),
         ),
         parameters.Str(
             'ipatokenserial',
             required=False,
             cli_name='serial',
-            label=_(u'Serial'),
-            doc=_(u'Token serial (informational only)'),
+            label=_('Serial'),
+            doc=_('Token serial (informational only)'),
         ),
         parameters.Str(
             'setattr',
             required=False,
             multivalue=True,
-            doc=_(u'Set an attribute to a name/value pair. Format is attr=value.\nFor multi-valued attributes, the command replaces the values already present.'),
+            doc=_(
+                'Set an attribute to a name/value pair. '
+                'Format is attr=value.\nFor multi-valued attributes, '
+                'the command replaces the values already present.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'addattr',
             required=False,
             multivalue=True,
-            doc=_(u'Add an attribute/value pair. Format is attr=value. The attribute\nmust be part of the schema.'),
+            doc=_(
+                'Add an attribute/value pair. Format is attr=value. '
+                'The attribute\nmust be part of the schema.'
+            ),
             exclude=('webui',),
         ),
         parameters.Str(
             'delattr',
             required=False,
             multivalue=True,
-            doc=_(u'Delete an attribute/value pair. The option will be evaluated\nlast, after all sets and adds.'),
+            doc=_(
+                'Delete an attribute/value pair. '
+                'The option will be evaluated\nlast, after all sets and adds.'
+            ),
             exclude=('webui',),
         ),
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -756,22 +793,22 @@ class otptoken_mod(Method):
         parameters.Str(
             'rename',
             required=False,
-            label=_(u'Rename'),
-            doc=_(u'Rename the OTP token object'),
+            label=_('Rename'),
+            doc=_('Rename the OTP token object'),
         ),
     )
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )
 
@@ -784,27 +821,33 @@ class otptoken_remove_managedby(Method):
         parameters.Str(
             'ipatokenuniqueid',
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -814,8 +857,8 @@ class otptoken_remove_managedby(Method):
             required=False,
             multivalue=True,
             cli_name='users',
-            label=_(u'member user'),
-            doc=_(u'users to remove'),
+            label=_('member user'),
+            doc=_('users to remove'),
             alwaysask=True,
         ),
     )
@@ -826,12 +869,12 @@ class otptoken_remove_managedby(Method):
         output.Output(
             'failed',
             dict,
-            doc=_(u'Members that could not be removed'),
+            doc=_('Members that could not be removed'),
         ),
         output.Output(
             'completed',
             int,
-            doc=_(u'Number of members removed'),
+            doc=_('Number of members removed'),
         ),
     )
 
@@ -844,34 +887,43 @@ class otptoken_show(Method):
         parameters.Str(
             'ipatokenuniqueid',
             cli_name='id',
-            label=_(u'Unique ID'),
+            label=_('Unique ID'),
         ),
     )
     takes_options = (
         parameters.Flag(
             'rights',
-            label=_(u'Rights'),
-            doc=_(u'Display the access rights of this entry (requires --all). See ipa man page for details.'),
+            label=_('Rights'),
+            doc=_(
+                'Display the access rights of this entry (requires --all). '
+                'See ipa man page for details.'
+            ),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'all',
-            doc=_(u'Retrieve and print all attributes from the server. Affects command output.'),
+            doc=_(
+                'Retrieve and print all attributes from the server. '
+                'Affects command output.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'raw',
-            doc=_(u'Print entries as stored on the server. Only affects output format.'),
+            doc=_(
+                'Print entries as stored on the server. '
+                'Only affects output format.'
+            ),
             exclude=('webui',),
             default=False,
             autofill=True,
         ),
         parameters.Flag(
             'no_members',
-            doc=_(u'Suppress processing of membership attributes.'),
+            doc=_('Suppress processing of membership attributes.'),
             exclude=('webui', 'cli'),
             default=False,
             autofill=True,
@@ -880,14 +932,14 @@ class otptoken_show(Method):
     has_output = (
         output.Output(
             'summary',
-            (unicode, type(None)),
-            doc=_(u'User-friendly description of action performed'),
+            (str, type(None)),
+            doc=_('User-friendly description of action performed'),
         ),
         output.Entry(
             'result',
         ),
         output.PrimaryKey(
             'value',
-            doc=_(u"The primary_key value of the entry, e.g. 'jdoe' for a user"),
+            doc=_("The primary_key value of the entry, e.g. 'jdoe' for a user"),
         ),
     )

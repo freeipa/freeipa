@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import six
 
 import logging
 import re
@@ -49,11 +48,10 @@ from ipalib import errors
 from ipalib import output
 from ipapython.dn import DN
 
-if six.PY3:
-    unicode = str
-
 logger = logging.getLogger(__name__)
 
+# Initialize dcerpc bindings availability
+_dcerpc_bindings_installed = False
 if api.env.in_server:
     try:
         import ipaserver.dcerpc
@@ -166,7 +164,7 @@ Example:
 register = Registry()
 
 # also see "System: Remove Groups"
-PROTECTED_GROUPS = (u'admins', u'trust admins', u'default smb group')
+PROTECTED_GROUPS = ('admins', 'trust admins', 'default smb group')
 
 
 ipaexternalmember_param = Str('ipaexternalmember*',
@@ -423,8 +421,9 @@ class group_del(LDAPDelete):
             self.obj.get_primary_key_from_dn(dn), all=True
         )['result']
         if keys[0] in PROTECTED_GROUPS:
-            raise errors.ProtectedEntryError(label=_(u'group'), key=keys[0],
-                reason=_(u'privileged group'))
+            raise errors.ProtectedEntryError(
+                label=_('group'), key=keys[0], reason=_('privileged group')
+            )
         if 'mepmanagedby' in group_attrs:
             raise errors.ManagedGroupError()
 
@@ -480,8 +479,9 @@ class group_mod(LDAPUpdate):
 
         if 'rename' in options or 'cn' in entry_attrs:
             if is_protected_group:
-                raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
-                    reason=u'Cannot be renamed')
+                raise errors.ProtectedEntryError(
+                    label='group', key=keys[-1], reason='Cannot be renamed'
+                )
 
         if 'cn' in entry_attrs:
             # Check the pattern if the group is renamed
@@ -506,8 +506,11 @@ class group_mod(LDAPUpdate):
 
         if options['external']:
             if is_protected_group:
-                raise errors.ProtectedEntryError(label=u'group', key=keys[-1],
-                    reason=u'Cannot support external non-IPA members')
+                raise errors.ProtectedEntryError(
+                    label='group',
+                    key=keys[-1],
+                    reason='Cannot support external non-IPA members',
+                )
             old_entry_attrs = ldap.get_entry(dn, ['objectclass'])
             dn = old_entry_attrs.dn
             if 'posixgroup' in old_entry_attrs['objectclass']:
@@ -698,8 +701,11 @@ class group_remove_member(LDAPRemoveMember):
             users_left = set(result['result'].get('member_user', []))
             users_deleted = set(options['user'])
             if users_left.issubset(users_deleted):
-                raise errors.LastMemberError(key=sorted(users_deleted)[0],
-                    label=_(u'group'), container=protected_group_name)
+                raise errors.LastMemberError(
+                    key=sorted(users_deleted)[0],
+                    label=_('group'),
+                    container=protected_group_name,
+                )
         return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
@@ -723,7 +729,7 @@ class group_remove_member(LDAPRemoveMember):
                     try:
                         actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
                     except errors.PublicError as e:
-                        failed_sids.append((sid, unicode(e)))
+                        failed_sids.append((sid, str(e)))
                     else:
                         sids.append(actual_sid)
             restore = []

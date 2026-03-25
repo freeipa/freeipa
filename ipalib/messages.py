@@ -33,15 +33,11 @@ from __future__ import print_function
 
 from inspect import isclass
 
-import six
 
 from ipalib.constants import TYPE_ERROR
 from ipalib.text import _ as ugettext
 from ipalib.text import Gettext, NGettext
 from ipalib.capabilities import client_has_capability
-
-if six.PY3:
-    unicode = str
 
 def add_message(version, result, message):
     if client_has_capability(version, 'messages'):
@@ -52,7 +48,7 @@ def process_message_arguments(obj, format=None, message=None, **kw):
     for key, value in kw.items():
         if not isinstance(value, int):
             try:
-                kw[key] = unicode(value)
+                kw[key] = str(value)
             except UnicodeError:
                 pass
     obj.kw = kw
@@ -78,18 +74,18 @@ def process_message_arguments(obj, format=None, message=None, **kw):
         if 'instructions' in kw:
             def convert_instructions(value):
                 if isinstance(value, list):
-                    result = u'\n'.join(unicode(line) for line in value)
+                    result = '\n'.join(str(line) for line in value)
                     return result
                 return value
-            instructions = u'\n'.join((unicode(_('Additional instructions:')),
+            instructions = '\n'.join((str(_('Additional instructions:')),
                                     convert_instructions(kw['instructions'])))
-            obj.strerror = u'\n'.join((obj.strerror, instructions))
+            obj.strerror = '\n'.join((obj.strerror, instructions))
     else:
         if isinstance(message, (Gettext, NGettext)):
-            message = unicode(message)
-        elif type(message) is not unicode:
+            message = str(message)
+        elif type(message) is not str:
             raise TypeError(
-                TYPE_ERROR % ('message', unicode, message, type(message))
+                TYPE_ERROR % ('message', str, message, type(message))
             )
         obj.forwarded = True
         obj.msg = message
@@ -122,8 +118,8 @@ class PublicMessage(UserWarning):
     def to_dict(self):
         """Export this message to a dict that can be sent through RPC"""
         return dict(
-            type=unicode(self.type),
-            name=unicode(type(self).__name__),
+            type=str(self.type),
+            name=str(type(self).__name__),
             message=self.strerror,
             code=self.errno,
             data=self.kw,
@@ -137,7 +133,8 @@ class VersionMissing(PublicMessage):
     For example:
 
     >>> VersionMissing(server_version='2.123').strerror
-    u"API Version number was not sent, forward compatibility not guaranteed. Assuming server's API version, 2.123"
+    "API Version number was not sent, forward compatibility not guaranteed. "
+    "Assuming server's API version, 2.123"
 
     """
 
@@ -155,9 +152,9 @@ class ForwardersWarning(PublicMessage):
     errno = 13002
     type = 'warning'
     format =  _(
-        u"DNS forwarder semantics changed since IPA 4.0.\n"
-        u"You may want to use forward zones (dnsforwardzone-*) instead.\n"
-        u"For more details read the docs.")
+        "DNS forwarder semantics changed since IPA 4.0.\n"
+        "You may want to use forward zones (dnsforwardzone-*) instead.\n"
+        "For more details read the docs.")
 
 
 class DNSSECWarning(PublicMessage):
@@ -177,7 +174,7 @@ class OptionDeprecatedWarning(PublicMessage):
 
     errno = 13004
     type = "warning"
-    format = _(u"'%(option)s' option is deprecated. %(additional_info)s")
+    format = _("'%(option)s' option is deprecated. %(additional_info)s")
 
 
 class OptionSemanticChangedWarning(PublicMessage):
@@ -187,8 +184,8 @@ class OptionSemanticChangedWarning(PublicMessage):
 
     errno = 13005
     type = "warning"
-    format = _(u"Semantic of %(label)s was changed. %(current_behavior)s\n"
-               u"%(hint)s")
+    format = _("Semantic of %(label)s was changed. %(current_behavior)s\n"
+               "%(hint)s")
 
 
 class DNSServerValidationWarning(PublicMessage):
@@ -198,7 +195,7 @@ class DNSServerValidationWarning(PublicMessage):
 
     errno = 13006
     type = "warning"
-    format = _(u"DNS server %(server)s: %(error)s.")
+    format = _("DNS server %(server)s: %(error)s.")
 
 
 class DNSServerDoesNotSupportDNSSECWarning(PublicMessage):
@@ -208,9 +205,9 @@ class DNSServerDoesNotSupportDNSSECWarning(PublicMessage):
 
     errno = 13007
     type = "warning"
-    format = _(u"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
-               u"If DNSSEC validation is enabled on IPA server(s), "
-               u"please disable it.")
+    format = _("DNS server %(server)s does not support DNSSEC: %(error)s.\n"
+               "If DNSSEC validation is enabled on IPA server(s), "
+               "please disable it.")
 
 
 class ForwardzoneIsNotEffectiveWarning(PublicMessage):
@@ -221,10 +218,10 @@ class ForwardzoneIsNotEffectiveWarning(PublicMessage):
 
     errno = 13008
     type = "warning"
-    format = _(u"forward zone \"%(fwzone)s\" is not effective because of "
-               u"missing proper NS delegation in authoritative zone "
-               u"\"%(authzone)s\". Please add NS record "
-               u"\"%(ns_rec)s\" to parent zone \"%(authzone)s\".")
+    format = _("forward zone \"%(fwzone)s\" is not effective because of "
+               "missing proper NS delegation in authoritative zone "
+               "\"%(authzone)s\". Please add NS record "
+               "\"%(ns_rec)s\" to parent zone \"%(authzone)s\".")
 
 
 class DNSServerDoesNotSupportEDNS0Warning(PublicMessage):
@@ -235,10 +232,10 @@ class DNSServerDoesNotSupportEDNS0Warning(PublicMessage):
 
     errno = 13009
     type = "warning"
-    format = _(u"DNS server %(server)s does not support EDNS0 (RFC 6891): "
-               u"%(error)s.\n"
-               u"If DNSSEC validation is enabled on IPA server(s), "
-               u"please disable it.")
+    format = _("DNS server %(server)s does not support EDNS0 (RFC 6891): "
+               "%(error)s.\n"
+               "If DNSSEC validation is enabled on IPA server(s), "
+               "please disable it.")
 
 
 class DNSSECValidationFailingWarning(PublicMessage):
@@ -248,9 +245,9 @@ class DNSSECValidationFailingWarning(PublicMessage):
 
     errno = 13010
     type = "warning"
-    format = _(u"DNSSEC validation failed: %(error)s.\n"
-               u"Please verify your DNSSEC configuration or disable DNSSEC "
-               u"validation on all IPA servers.")
+    format = _("DNSSEC validation failed: %(error)s.\n"
+               "Please verify your DNSSEC configuration or disable DNSSEC "
+               "validation on all IPA servers.")
 
 
 class KerberosTXTRecordCreationFailure(PublicMessage):
@@ -320,7 +317,7 @@ class CommandDeprecatedWarning(PublicMessage):
 
     errno = 13015
     type = "warning"
-    format = _(u"'%(command)s' is deprecated. %(additional_info)s")
+    format = _("'%(command)s' is deprecated. %(additional_info)s")
 
 
 class ExternalCommandOutput(PublicMessage):
