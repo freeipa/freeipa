@@ -1413,7 +1413,15 @@ class IPAMigrate():
                 for val in remote_attrs[attr]:
                     local_attr_vals = self.get_ldapentry_attr_vals(local_entry,
                                                                    attr)
-                    if val not in local_attr_vals:
+                    # For objectClass, perform case-insensitive comparison
+                    # as LDAP treats objectClass values as case-insensitive
+                    if attr.lower() == 'objectclass':
+                        val_exists = any(val.lower() == local_val.lower()
+                                         for local_val in local_attr_vals)
+                    else:
+                        val_exists = val in local_attr_vals
+
+                    if not val_exists:
                         # Check if we should reset the DNA range for this entry
                         if (
                             self.args.reset_range
