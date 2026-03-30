@@ -2511,5 +2511,5 @@ jobs:
         selinux_enforcing: True
         test_suite: test_integration/test_ds_migration.py
         template: *ci-ipa-4-12-latest
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
