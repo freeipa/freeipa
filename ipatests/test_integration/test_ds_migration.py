@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2026  FreeIPA Contributors see COPYING for license
+# Copyright (C) 2026 FreeIPA Contributors see COPYING for license
 #
 
 """
@@ -10,6 +10,7 @@ from __future__ import absolute_import
 
 import os
 import textwrap
+import time
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
@@ -94,6 +95,18 @@ class TestDSMigrationConfig(IntegrationTest):
             cls.clients[0],
             cls.master.config.admin_password,
         )
+        cls.ldap_uri = "ldap://{}:{}".format(
+            cls.clients[0].hostname, DS_PORT
+        )
+        # RHEL IdM LDAP migration procedure:
+        # Disable schema compat.
+        # Restart Directory Server before migrate-ds.
+        tasks.kinit_admin(cls.master)
+        cls.master.run_command(
+            ["ipa-compat-manage", "disable"],
+            stdin_text=cls.master.config.admin_password,
+        )
+        tasks.service_control_dirsrv(cls.master, "restart")
 
     def test_attempt_migration_with_configuration_false(self):
         """
@@ -106,15 +119,13 @@ class TestDSMigrationConfig(IntegrationTest):
         result = self.master.run_command(cmd, raiseonerr=False)
         assert result.returncode != 0
         tasks.assert_error(result, error_msg)
-        client_host = self.clients[0].hostname
-        ldap_uri = "ldap://{}:{}".format(client_host, DS_PORT)
         result = self.master.run_command(
             [
                 "ipa",
                 "migrate-ds",
                 "--user-container=ou=People",
                 "--group-container=ou=groups",
-                ldap_uri,
+                self.ldap_uri,
             ],
             stdin_text=self.master.config.admin_password,
             raiseonerr=False,
@@ -132,6 +143,7 @@ class TestDSMigrationConfig(IntegrationTest):
         """
         ca_cert_file = "/etc/ipa/remoteds.crt"
         tasks.kinit_admin(self.master)
+        # Ensure migration is enabled
         self.master.run_command(
             ["ipa", "config-mod", "--enable-migration", "TRUE"],
         )
@@ -184,6 +196,227 @@ class TestDSMigrationConfig(IntegrationTest):
         self.master.run_command(
             ["ipa", "user-del", "ldapuser_0001"], raiseonerr=False
         )
-        self.master.run_command(
-            ["ipa", "group-del", "ldapgroup_0001"], raiseonerr=False
+        for group in [
+            "ldapgroup_0001",
+            "HR Managers",
+            "Directory Administrators",
+        ]:
+            self.master.run_command(
+                ["ipa", "group-del", group],
+                raiseonerr=False,
+            )
+
+    def test_bz804807_invalid_user_and_group_container_rdn(self):
+        """
+        bz804807 — Invalid RDN for user or group container must not return
+        Internal Server Error.
+        https://bugzilla.redhat.com/show_bug.cgi?id=804807
+        """
+        tasks.kinit_admin(self.master)
+        # Migration is already enabled by test_migration_over_ldaps.
+        pwd = self.master.config.admin_password
+        base_dn = "ou=Boston,{}".format(DS_BASEDN)
+
+        result_user = self.master.run_command(
+            [
+                "ipa",
+                "migrate-ds",
+                "--user-container",
+                "BostonUsers",
+                "--group-container",
+                "ou=BostonGroups",
+                "--base-dn",
+                base_dn,
+                self.ldap_uri,
+            ],
+            stdin_text=pwd,
+            raiseonerr=False,
         )
+        out_user = result_user.stdout_text + result_user.stderr_text
+        assert "Internal Server Error" not in out_user, out_user
+        assert (
+            "ERROR: invalid 'user_container': "
+            "malformed RDN string" in out_user
+        ), out_user
+        result_group = self.master.run_command(
+            [
+                "ipa",
+                "migrate-ds",
+                "--user-container",
+                "ou=BostonUsers",
+                "--group-container",
+                "BostonGroups",
+                "--base-dn",
+                base_dn,
+                self.ldap_uri,
+            ],
+            stdin_text=pwd,
+            raiseonerr=False,
+        )
+        out_group = result_group.stdout_text + result_group.stderr_text
+        assert "Internal Server Error" not in out_group, out_group
+        assert (
+            "ERROR: invalid 'group_container': "
+            "malformed RDN string" in out_group
+        ), out_group
+
+    def test_bz786185_basedn_passed_to_migrate_ds(self):
+        """
+        basedn should be allowed to be passed into
+        migrateds, bz786185.
+        https://bugzilla.redhat.com/show_bug.cgi?id=786185
+        """
+        tasks.kinit_admin(self.master)
+        # Migration is already enabled by test_migration_over_ldaps.
+        pwd = self.master.config.admin_password
+
+        self.master.run_command(
+            [
+                "ipa",
+                "migrate-ds",
+                "--user-container",
+                "ou=BostonUsers",
+                "--group-container",
+                "ou=BostonGroups",
+                "--base-dn",
+                "ou=Boston,{}".format(DS_BASEDN),
+                self.ldap_uri,
+            ],
+            stdin_text=pwd,
+        )
+        self.master.run_command(["ipa", "user-show", "bosusr"])
+        self.master.run_command(["ipa", "group-show", "bosgrp"])
+        # Outside ou=Boston,dc=testrealm,dc=test must not be migrated
+        res = self.master.run_command(
+            ["ipa", "user-show", "ldapuser_0001"], raiseonerr=False
+        )
+        assert res.returncode == 2, res.stderr_text
+        for group_name in ("ldapgroup_0001", "HR Managers"):
+            res = self.master.run_command(
+                ["ipa", "group-show", group_name], raiseonerr=False
+            )
+            assert res.returncode == 2, res.stderr_text
+        self.master.run_command(
+            ["ipa", "user-del", "bosusr"], raiseonerr=False
+        )
+        self.master.run_command(
+            ["ipa", "group-del", "bosgrp"], raiseonerr=False
+        )
+
+    def test_bz783270_01_warning_when_compat_plugin_enabled(self):
+        """
+        bz783270 (1/2): With compat enabled, plain migrate-ds must fail
+        and report that the compat plug-in is enabled.
+
+        https://bugzilla.redhat.com/show_bug.cgi?id=783270
+        """
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+
+        try:
+            self.master.run_command(
+                ["ipa-compat-manage", "enable"],
+                stdin_text=pwd,
+            )
+            tasks.service_control_dirsrv(self.master, "restart")
+            # when 389-ds restarts, the compat tree plugin
+            # is not available immediately, takes few seconds
+            # to finish initialization.
+            time.sleep(10)
+            result_fail = self.master.run_command(
+                ["ipa", "migrate-ds", self.ldap_uri],
+                stdin_text=pwd,
+                raiseonerr=False,
+            )
+            out_fail = (
+                result_fail.stdout_text + result_fail.stderr_text
+            )
+            assert result_fail.returncode == 1, out_fail
+            assert "The compat plug-in is enabled." in out_fail, out_fail
+        finally:
+            self.master.run_command(
+                ["ipa-compat-manage", "disable"],
+                stdin_text=pwd,
+                raiseonerr=False,
+            )
+            tasks.service_control_dirsrv(self.master, "restart")
+            self.master.run_command(
+                ["ipa", "user-del", "ldapuser_0001"], raiseonerr=False
+            )
+            for group in [
+                "ldapgroup_0001",
+                "HR Managers",
+                "Directory Administrators",
+            ]:
+                self.master.run_command(
+                    ["ipa", "group-del", group],
+                    raiseonerr=False,
+                )
+
+    def test_bz783270_02_migrate_ds_with_compat_enabled(self):
+        """
+        bz783270 (2/2): With compat enabled, migrate-ds --with-compat
+        succeeds; migrated user and groups are visible.
+
+        https://bugzilla.redhat.com/show_bug.cgi?id=783270
+        """
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+
+        try:
+            compat_enable = self.master.run_command(
+                ["ipa-compat-manage", "enable"],
+                stdin_text=pwd,
+                raiseonerr=False,
+            )
+            if compat_enable.returncode != 0:
+                out_en = (
+                    compat_enable.stdout_text
+                    + compat_enable.stderr_text
+                )
+                assert "Plugin already Enabled" in out_en, out_en
+
+            tasks.service_control_dirsrv(self.master, "restart")
+            # when 389-ds restarts, the compat tree plugin
+            # is not available immediately, takes few seconds
+            # to finish initialization.
+            time.sleep(10)
+
+            self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--with-compat",
+                    self.ldap_uri,
+                ],
+                stdin_text=pwd,
+            )
+            self.master.run_command(
+                ["ipa", "user-show", "ldapuser_0001"]
+            )
+            self.master.run_command(
+                ["ipa", "group-show", "ldapgroup_0001"]
+            )
+            self.master.run_command(
+                ["ipa", "group-show", "HR Managers"],
+            )
+        finally:
+            self.master.run_command(
+                ["ipa-compat-manage", "disable"],
+                stdin_text=pwd,
+                raiseonerr=False,
+            )
+            tasks.service_control_dirsrv(self.master, "restart")
+            self.master.run_command(
+                ["ipa", "user-del", "ldapuser_0001"],
+                raiseonerr=False,
+            )
+            for group in [
+                "ldapgroup_0001",
+                "HR Managers",
+                "Directory Administrators",
+            ]:
+                self.master.run_command(
+                    ["ipa", "group-del", group],
+                    raiseonerr=False,
+                )
