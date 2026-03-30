@@ -172,6 +172,223 @@ class BaseTestTrust(IntegrationTest):
             )
             self.master.run_command(["ipa", "group-del", "idgroup"])
 
+    def _kinit_as_ad_admin(self, ad_host=None):
+        """Kinit on the master as AD admin for the given domain
+
+        Sets up Kerberos credentials as the AD Administrator. Call
+        kdestroy_all and kinit_admin after the AD operation is complete.
+
+        :param ad_host: AD host object (default: self.ad)
+        :returns: tuple (ad_host, domain) with defaults applied
+        """
+        if ad_host is None:
+            ad_host = self.ad
+        domain = ad_host.domain.name
+        admin = self.master.config.ad_admin_name
+        admin_principal = f"{admin}@{domain.upper()}"
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_as_user(
+            self.master, admin_principal,
+            self.master.config.ad_admin_password
+        )
+        return ad_host, domain
+
+    def _ad_user_add(self, username, password, ad_host=None):
+        """Create a user account on the given AD DC and enable it.
+
+        :param username: sAMAccountName of the new user
+        :param password: initial password
+        :param ad_host: AD host object to create the user on (default: self.ad)
+        """
+        ad_host, domain = self._kinit_as_ad_admin(ad_host)
+        admin = self.master.config.ad_admin_name
+        ad_realm = domain.upper()
+        ad_basedn = ','.join(f'DC={part}' for part in domain.split('.'))
+        ad_dirman = f"CN={admin},CN=Users,{ad_basedn}"
+        # Warm up the Kerberos ticket cache by obtaining service tickets
+        # before AD operations. This helps avoid intermittent authentication
+        # failures. Errors are ignored as these are best-effort calls.
+        self.master.run_command(
+            ['kvno', f'kadmin/changepw@{ad_realm}'], raiseonerr=False)
+        self.master.run_command(
+            ['kvno', f'ldap/{ad_host.hostname}@{ad_realm}'], raiseonerr=False)
+
+        self.master.run_command([
+            'net', '--debuglevel=10', 'ads', 'user', 'add',
+            username, password, '-k', '-S', ad_host.hostname
+        ])
+
+        # net ads user add leaves the account disabled; set
+        # userAccountControl 512 (NORMAL_ACCOUNT) to enable it
+        ldif = (
+            f"dn: CN={username},CN=Users,{ad_basedn}\n"
+            f"changetype: modify\n"
+            f"replace: userAccountControl\n"
+            f"userAccountControl: 512\n"
+        )
+        self.master.run_command(
+            ['ldapmodify', '-Y', 'GSS-SPNEGO',
+             '-H', f'ldap://{ad_host.hostname}',
+             '-D', ad_dirman,
+             '-w', self.master.config.ad_admin_password],
+            stdin_text=ldif
+        )
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ad_user_mod(self, username, options, ad_host=None):
+        """Run dsmod user on the given AD DC to modify an AD user account.
+
+        :param username: sAMAccountName of the user to modify
+        :param options: list of dsmod flags, e.g. ['-mustchpwd', 'yes']
+        :param ad_host: AD host object (default: self.ad)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+        domain = ad_host.domain.name
+        ad_basedn = ','.join(f'DC={part}' for part in domain.split('.'))
+        ad_usercn = f"CN={username},CN=Users,{ad_basedn}"
+        ad_host.run_command(['dsmod', 'user', ad_usercn] + options)
+
+    def _ad_user_del(self, username, ad_host=None):
+        """Delete a user account from the given AD DC.
+
+        :param username: sAMAccountName of the user to delete
+        :param ad_host: AD host object (default: self.ad)
+        """
+        ad_host = self._kinit_as_ad_admin(ad_host)[0]
+        self.master.run_command([
+            'net', 'ads', 'user', 'delete', username,
+            '-k', '-S', ad_host.hostname
+        ], raiseonerr=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ad_group_add_member(self, groupname, username, ad_host=None):
+        """Add a user to an AD group.
+
+        :param groupname: sAMAccountName of the group
+        :param username: sAMAccountName of the user to add
+        :param ad_host: AD host object (default: self.ad)
+        """
+        if ad_host is None:
+            ad_host = self.ad
+
+        ps_cmd = (
+            'Add-ADGroupMember -Identity "{}" -Members "{}"'
+            .format(groupname, username)
+        )
+        ad_host.run_command(['powershell', '-c', ps_cmd])
+
+    def _ad_group_del(self, groupname, ad_host=None):
+        """Delete a group from the given AD DC.
+
+        :param groupname: sAMAccountName of the group to delete
+        :param ad_host: AD host object (default: self.ad)
+        """
+        ad_host = self._kinit_as_ad_admin(ad_host)[0]
+        self.master.run_command([
+            'net', 'ads', 'group', 'delete', groupname,
+            '-k', '-S', ad_host.hostname
+        ], raiseonerr=False)
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+    def _ensure_ad_group_member(self, ad_host, groupname, username):
+        """Ensure AD group exists and user is a member.
+
+        Creates the group if it doesn't exist and adds the user if not
+        already a member.
+
+        :param ad_host: AD host object
+        :param groupname: sAMAccountName of the group
+        :param username: sAMAccountName of the user to add
+        :returns: tuple (ad_host, groupname) if group was created,
+            None otherwise
+        """
+        ad_host = self._kinit_as_ad_admin(ad_host)[0]
+
+        # Try to create group (will fail if exists, which is fine)
+        result = self.master.run_command([
+            'net', 'ads', 'group', 'add', groupname,
+            '-k', '-S', ad_host.hostname
+        ], raiseonerr=False)
+
+        group_created = None
+        if result.returncode == 0:
+            group_created = (ad_host, groupname)
+
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_admin(self.master)
+
+        # Check if user is already a member (using PowerShell since
+        # 'net ads group members' is not available)
+        ps_check_member = (
+            'Get-ADGroupMember -Identity "{}" | '
+            'Where-Object {{$_.SamAccountName -eq "{}"}}'
+            .format(groupname, username)
+        )
+        result = ad_host.run_command(
+            ['powershell', '-c', ps_check_member], raiseonerr=False
+        )
+
+        if not result.stdout_text.strip():
+            self._ad_group_add_member(groupname, username, ad_host=ad_host)
+
+        return group_created
+
+    def _expect_password_change_prompts(self, e, current_password,
+                                        new_password, timeout=15):
+        """Drive the current->new->confirm password-change prompt sequence.
+
+        Handles the three-step interactive password-change dialogue that
+        both SSH forced-change and passwd in-session flows share:
+        current password prompt, new password prompt, confirm prompt.
+
+        :param e: the active spawn_expect context
+        :param current_password: the user's current password
+        :param new_password: the desired new password
+        :param timeout: timeout in seconds for each expect (default 15)
+        """
+        e.expect(r'(?i)current password:', timeout=timeout)
+        e.sendline(current_password)
+        e.expect(r'(?i).*password.*:', timeout=timeout)
+        e.sendline(new_password)
+        e.expect(r'(?i).*password.*:', timeout=timeout)
+        e.sendline(new_password)
+
+    def _passwd_change_with_retry(self, user_fqdn, current_password,
+                                  new_password, max_retries=5):
+        """Change password via passwd command with retry logic.
+
+        :param user_fqdn: fully qualified user (e.g. user@domain)
+        :param current_password: the user's current password
+        :param new_password: the desired new password
+        :param max_retries: number of retry attempts (default 5)
+        :raises: pytest.fail if password change fails after all retries
+        """
+        passwd_cmd = f"su - {user_fqdn} -c passwd"
+        last_output = ""
+
+        for _attempt in range(max_retries):
+            with self.clients[0].spawn_expect(passwd_cmd) as e:
+                self._expect_password_change_prompts(
+                    e, current_password, new_password
+                )
+                e.expect_exit(ignore_remaining_output=True, raiseonerr=False)
+                last_output = e.before if e.before else ""
+
+            if "password updated successfully" in last_output:
+                return
+            time.sleep(2)
+
+        pytest.fail(
+            f"Password change for {user_fqdn} failed after "
+            f"{max_retries} attempts. Last output: {last_output}"
+        )
+
     def remove_trust(self, ad):
         tasks.remove_trust_with_ad(self.master,
                                    ad.domain.name, ad.hostname)
