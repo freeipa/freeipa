@@ -700,5 +700,5 @@ jobs:
         copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_ds_migration.py
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 4800
         topology: *master_1repl_1client
