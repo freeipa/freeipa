@@ -26,6 +26,7 @@ TEST_SSHKEY = (
 # Expected SSH key fingerprint for TEST_SSHKEY
 TEST_SSHKEY_FP = "SHA256:PSDEIT8MJGMMLpyjFS1oFNcnPNB1cWf10LeJGyI2h7M"
 
+TEST_ZONE_FORWARDER = "10.11.12.13"
 
 # Extdom extop plugin cn=config (TestIPAMigrationPluginsMigrated)
 EXTDOM_EXTOP_PLUGIN_DN = "cn=ipa_extdom_extop,cn=plugins,cn=config"
@@ -272,7 +273,7 @@ def prepare_ipa_server(master):
             "dnsforwardzone-add",
             "forwardzone.test",
             "--forwarder",
-            "192.168.124.10",
+            TEST_ZONE_FORWARDER,
         ]
     )
 
@@ -893,7 +894,7 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         )
         assert 'Zone name: {}'.format(zone_name) in result.stdout_text
         assert 'Active zone: True' in result.stdout_text
-        assert 'Zone forwarders: 10.11.12.13' in result.stdout_text
+        assert f'Zone forwarders: {TEST_ZONE_FORWARDER}' in result.stdout_text
         assert 'Forward policy: first' in result.stdout_text
 
     def test_ipa_migrate_version_option(self):
