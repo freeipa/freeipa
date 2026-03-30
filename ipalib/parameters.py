@@ -124,7 +124,7 @@ from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_F
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
 from ipalib.x509 import (
-    load_der_x509_certificate, IPACertificate, default_backend)
+    load_der_x509_certificate, IPACertificate)
 from ipalib.util import strip_csr_header, apirepr
 from ipapython import kerberos
 from ipapython.dn import DN
@@ -1548,8 +1548,7 @@ class CertificateSigningRequest(Param):
             # try to extract DER from whatever we got
             value = self.__extract_der_from_input(value)
             try:
-                value = crypto_x509.load_der_x509_csr(
-                    value, backend=default_backend())
+                value = crypto_x509.load_der_x509_csr(value)
             except ValueError as e:
                 raise CertificateOperationError(
                     error=_("Failure decoding Certificate Signing Request:"

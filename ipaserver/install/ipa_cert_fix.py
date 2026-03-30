@@ -27,7 +27,6 @@ from __future__ import print_function, absolute_import
 
 import base64
 from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
 import datetime
 from enum import Enum
 import logging
@@ -320,7 +319,7 @@ def get_csr_from_certmonger(nickname):
             try:
                 # Make sure the value can be parsed as valid CSR
                 csr_obj = crypto_x509.load_pem_x509_csr(
-                    csr.encode('ascii'), default_backend())
+                    csr.encode('ascii'))
                 val = base64.b64encode(csr_obj.public_bytes(x509.Encoding.DER))
                 return val.decode('ascii')
             except Exception as e:

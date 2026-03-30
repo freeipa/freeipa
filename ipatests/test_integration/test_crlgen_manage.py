@@ -9,7 +9,6 @@ Module provides tests for the ipa-crlgen-manage command.
 from __future__ import absolute_import
 
 import os
-from cryptography.hazmat.backends import default_backend
 from cryptography import x509
 
 from ipaplatform.paths import paths
@@ -51,7 +50,7 @@ def check_crlgen_status(host, rc=0, msg=None, enabled=True, check_crl=False):
             # We expect CRL generation to be enabled and need to check for
             # MasterCRL.bin
             crl_content = host.get_file_contents(CRL_FILENAME)
-            crl = x509.load_der_x509_crl(crl_content, default_backend())
+            crl = x509.load_der_x509_crl(crl_content)
             last_update_msg = 'Last CRL update: {}'.format(crl.last_update)
             assert last_update_msg in result.stdout_text
 
