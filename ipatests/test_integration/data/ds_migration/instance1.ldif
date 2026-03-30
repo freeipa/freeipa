@@ -46,3 +46,45 @@ cn: ldapgroup_0001
 gidNumber: 1001
 member: uid=ldapuser_0001,ou=People,dc=testrealm,dc=test
 
+dn: ou=Boston,dc=testrealm,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: Boston
+
+dn: ou=BostonUsers,ou=Boston,dc=testrealm,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: BostonUsers
+
+dn: ou=BostonGroups,ou=Boston,dc=testrealm,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: BostonGroups
+
+dn: uid=bosusr,ou=BostonUsers,ou=Boston,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: posixAccount
+uid: bosusr
+cn: Bos User
+sn: User
+uidNumber: 2001
+gidNumber: 2001
+homeDirectory: /home/bosusr
+userPassword: Secret123
+
+dn: cn=bosgrp,ou=BostonGroups,ou=Boston,dc=testrealm,dc=test
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: bosgrp
+gidNumber: 2001
+member: uid=bosusr,ou=BostonUsers,ou=Boston,dc=testrealm,dc=test
+
+dn: cn=HR Managers,ou=Groups,dc=testrealm,dc=test
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: HR Managers
+gidNumber: 1901
+member: uid=ldapuser_0001,ou=People,dc=testrealm,dc=test
