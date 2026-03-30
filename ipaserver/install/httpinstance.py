@@ -343,8 +343,11 @@ class HTTPInstance(service.Service):
                     tmpdb = certs.CertDB(api.env.realm, nssdir=tmpdir)
                     tmpdb.create_from_cacert()
                     dns_2 = f"DNS.2={IPA_CA_RECORD}.{api.env.domain}"
+                    (keytype, _keysize) = (
+                        certs.get_key_type_and_strength(api.env.key_type_size)
+                    )
                     tmpdb.pki_issue_certificate(
-                        "HTTP", certs.get_default_profile(api),
+                        "HTTP", certs.get_default_profile(keytype),
                         paths.HTTPD_KEY_FILE, paths.HTTPD_CERT_FILE,
                         key_passwd_file, dns_2_san=dns_2
                     )
@@ -361,7 +364,7 @@ class HTTPInstance(service.Service):
                     principal=self.principal,
                     subject=str(DN(('CN', self.fqdn), self.subject_base)),
                     ca='IPA',
-                    profile=certs.get_default_profile(api),
+                    profile=certs.get_default_profile(keytype),
                     dns=[self.fqdn, f'{IPA_CA_RECORD}.{api.env.domain}'],
                     post_command='restart_httpd',
                     storage='FILE',
@@ -562,11 +565,12 @@ class HTTPInstance(service.Service):
     def start_tracking_certificates(self):
         key_passwd_file = paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host)
         cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
+        (keytype, _keysize) = installutils.lookup_key_type(api)
         if certs.is_ipa_issued_cert(api, cert):
             request_id = certmonger.start_tracking(
                 certpath=(paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
                 post_command='restart_httpd', storage='FILE',
-                profile=certs.get_default_profile(api),
+                profile=certs.get_default_profile(keytype),
                 pinfile=key_passwd_file,
                 dns=[self.fqdn, f'{IPA_CA_RECORD}.{api.env.domain}'],
             )

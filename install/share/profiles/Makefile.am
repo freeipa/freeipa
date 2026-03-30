@@ -8,6 +8,8 @@ app_DATA =				\
 	IECUserRoles.cfg		\
 	KDCs_PKINIT_Certs.cfg		\
 	acmeIPAServerCert.cfg		\
+	caMLDSAServerCert.cfg 		\
+	caMLDSASubsystemCert.cfg 	\
 	$(NULL)
 
 EXTRA_DIST =				\

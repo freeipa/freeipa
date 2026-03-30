@@ -501,7 +501,10 @@ class KrbInstance(service.Service):
                     certmonger_ca, helper
                 )
 
-            (keytype, keysize) = installutils.lookup_key_type(api)
+            #(keytype, keysize) = installutils.lookup_key_type(api)
+            # FIXME: hardcode PKINIT to RSA
+            keytype = "rsa"
+            keysize = "2048"
             certmonger.request_and_wait_for_cert(
                 certpath=certpath,
                 subject=subject,
