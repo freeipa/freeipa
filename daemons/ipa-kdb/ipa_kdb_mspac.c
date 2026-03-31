@@ -911,9 +911,9 @@ static krb5_error_code ipadb_get_requester_sid(krb5_context context,
 }
 #endif
 
-static krb5_error_code ipadb_get_sid_from_pac(TALLOC_CTX *ctx,
-                                              struct PAC_LOGON_INFO *info,
-                                              struct dom_sid *sid)
+krb5_error_code ipadb_get_sid_from_pac(TALLOC_CTX *ctx,
+                                       struct PAC_LOGON_INFO *info,
+                                       struct dom_sid *sid)
 {
     struct dom_sid *client_sid = NULL;
     /* Construct SID from the PAC */
@@ -3368,86 +3368,41 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 	return KRB5_KDB_NOENTRY;
 }
 
-static krb5_error_code
-check_for_pac(krb5_context kcontext, krb5_authdata **authdata, bool *pac_present)
+krb5_error_code ipadb_find_and_parse_pac(krb5_context context,
+                                         krb5_authdata **authdata,
+                                         krb5_pac *pac_out,
+                                         const char **status)
 {
-    krb5_error_code kerr = ENOENT;
-    size_t i, j;
-    krb5_authdata **ifrel = NULL;
+    krb5_error_code kerr = EINVAL;
+    krb5_authdata **pac_authdata = NULL;
+    krb5_pac pac = NULL;
 
-    for (i = 0; authdata && authdata[i]; ++i) {
-        if (authdata[i]->ad_type != KRB5_AUTHDATA_IF_RELEVANT) {
-            continue;
-        }
+    *pac_out = NULL;
 
-        kerr = krb5_decode_authdata_container(kcontext,
-                                              KRB5_AUTHDATA_IF_RELEVANT,
-                                              authdata[i], &ifrel);
-        if (kerr) {
-            goto end;
-        }
+    kerr = krb5_find_authdata(context, authdata, NULL,
+                              KRB5_AUTHDATA_WIN2K_PAC, &pac_authdata);
+    if (kerr)
+        goto end;
 
-        for (j = 0; ifrel[j]; ++j) {
-            if (ifrel[j]->ad_type == KRB5_AUTHDATA_WIN2K_PAC) {
-                break;
-            }
-        }
-        if (ifrel[j]) {
-            break;
-        }
-
-        krb5_free_authdata(kcontext, ifrel);
-        ifrel = NULL;
+    if (pac_authdata == NULL || pac_authdata[0] == NULL) {
+        *status = "PAC_MISSING";
+        kerr = ENOENT;
+        goto end;
     }
 
-    *pac_present = ifrel;
+    kerr = krb5_pac_parse(context, pac_authdata[0]->contents,
+                          pac_authdata[0]->length, &pac);
+    if (kerr) {
+        *status = "PAC_CANNOT_PARSE";
+        goto end;
+    }
+
+    *pac_out = pac;
     kerr = 0;
 
 end:
-    krb5_free_authdata(kcontext, ifrel);
-    return kerr;
-}
+    if (pac_authdata)
+        krb5_free_authdata(context, pac_authdata);
 
-krb5_error_code
-ipadb_enforce_pac(krb5_context kcontext, const krb5_ticket *ticket,
-                  const char **status)
-{
-    struct ipadb_context *ipactx;
-    bool pac_present;
-    krb5_error_code kerr;
-
-    /* Filter TGTs only */
-    if (!ipadb_is_tgs_princ(kcontext, ticket->server)) {
-        kerr = 0;
-        goto end;
-    }
-
-    /* Get IPA context */
-    ipactx = ipadb_get_context(kcontext);
-    if (!ipactx) {
-        kerr = KRB5_KDB_DBNOTINITED;
-        goto end;
-    }
-
-    /* If local TGT but PAC generator not initialized, skip PAC enforcement */
-    if (krb5_realm_compare(kcontext, ipactx->local_tgs, ticket->server) &&
-        !ipactx->mspac)
-    {
-        warn_mspac_unavailable(false);
-        kerr = 0;
-        goto end;
-    }
-
-    /* Search for the PAC, fail if it cannot be found */
-    kerr = check_for_pac(kcontext, ticket->enc_part2->authorization_data,
-                         &pac_present);
-    if (kerr) {
-        *status = "PAC_ENFORCEMENT_CANNOT_DECODE_TGT_AUTHDATA";
-    } else if (!pac_present) {
-        kerr = ENOENT;
-        *status = "PAC_ENFORCEMENT_TGT_WITHOUT_PAC";
-    }
-
-end:
     return kerr;
 }
