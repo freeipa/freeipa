@@ -57,7 +57,6 @@ krb5_error_code filter_logon_info(krb5_context context, TALLOC_CTX *memctx,
 void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
                           bool *_with_pac, bool *_with_pad);
 
-bool ipadb_is_cross_realm_krbtgt(krb5_const_principal princ);
 krb5_error_code ipadb_get_pac(krb5_context kcontext,
                               unsigned int flags,
                               krb5_db_entry *client,
@@ -76,3 +75,6 @@ krb5_error_code ipadb_common_verify_pac(krb5_context context,
                                         krb5_pac *pac);
 
 void warn_mspac_unavailable(bool is_creation);
+krb5_error_code ipadb_get_sid_from_pac(TALLOC_CTX *ctx,
+                                       struct PAC_LOGON_INFO *info,
+                                       struct dom_sid *sid);

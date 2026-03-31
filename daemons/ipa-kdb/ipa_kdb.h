@@ -432,13 +432,34 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
                                                   const char *test_realm, size_t size,
                                                   char **trusted_realm);
 
-/* Check the ticket provided in a TGS-REQ. In some situations, the ticket is
- * expected to contain a PAC. If it is not the case, or if the function is
- * enable to decode an authorization-data element, it fails.
- * Any failure should result in the TGS-REQ to be rejected. */
-krb5_error_code ipadb_enforce_pac(krb5_context kcontext,
-                                  const krb5_ticket *ticket,
-                                  const char **status);
+/* Check if a cross-realm TGT principal */
+bool ipadb_is_cross_realm_krbtgt(krb5_const_principal princ);
+
+/* Find and parse PAC from authorization data
+ * Returns the parsed PAC if found, or returns error if not found or
+ * on decode/parse failure.
+ */
+krb5_error_code ipadb_find_and_parse_pac(krb5_context context,
+                                         krb5_authdata **authdata,
+                                         krb5_pac *pac_out,
+                                         const char **status);
+
+/* Check cross-realm PAC content for security policy enforcement
+ *
+ * Verifies:
+ * - Cross-realm TGTs contain a PAC
+ * - Trusted domain users are registered in Default Trust View
+ * - Enterprise principals have qualified UPNs (if not constructed)
+ * - Cross-validates PAC attributes when extended buffers are present
+ *
+ * Returns 0 on success (all checks pass or not applicable)
+ * Returns error code on check failure
+ */
+krb5_error_code ipadb_check_trust_pac_content(krb5_context kcontext,
+                                              const krb5_kdc_req *request,
+                                              const krb5_ticket *ticket,
+                                              const krb5_pac pac,
+                                              const char **status);
 
 /* DELEGATION CHECKS */
 

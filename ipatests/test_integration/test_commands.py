@@ -2399,7 +2399,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             raiseonerr=False
         )
         assert result.returncode == 1
-        assert "PAC_ENFORCEMENT_TGT_WITHOUT_PAC" in result.stderr_text
+        assert "PAC_MISSING" in result.stderr_text
 
 
 class TestIPAautomount(IntegrationTest):

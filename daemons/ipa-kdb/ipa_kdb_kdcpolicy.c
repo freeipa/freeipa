@@ -212,11 +212,74 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
                         const char **status, krb5_deltat *lifetime_out,
                         krb5_deltat *renew_lifetime_out)
 {
+    struct ipadb_context *ipactx = NULL;
+    krb5_error_code kerr = EINVAL;
+    krb5_pac pac = NULL;
+    bool is_tgs = false;
+    bool is_cross_realm = false;
+    bool need_bronze_bit_check = false;
+    bool need_trust_check = false;
+
     *status = NULL;
     *lifetime_out = 0;
     *renew_lifetime_out = 0;
 
-    return ipadb_enforce_pac(context, ticket, status);
+    /* Check if this is a TGS principal */
+    is_tgs = ipadb_is_tgs_princ(context, ticket->server);
+    if (!is_tgs) {
+        kerr = 0;
+        goto end;
+    }
+
+    /* Get IPA context */
+    ipactx = ipadb_get_context(context);
+    if (!ipactx) {
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto end;
+    }
+
+    /* Determine which checks are needed */
+    is_cross_realm = ipadb_is_cross_realm_krbtgt(ticket->server);
+
+    /* Bronze-Bit check needed for local TGT with PAC generator */
+    need_bronze_bit_check = krb5_realm_compare(context, ipactx->local_tgs,
+                                               ticket->server)
+                            && ipactx->mspac;
+
+    /* Trust check needed for cross-realm tickets */
+    need_trust_check = is_cross_realm;
+
+    /* If no checks needed, return success */
+    if (!need_bronze_bit_check && !need_trust_check) {
+        kerr = 0;
+        goto end;
+    }
+
+    /* Parse PAC once for all checks */
+    kerr = ipadb_find_and_parse_pac(context,
+                                    ticket->enc_part2->authorization_data,
+                                    &pac, status);
+    if (kerr) {
+        /* PAC missing or parse failure applies to both Bronze-Bit and trust
+         * checks - return the error from ipadb_find_and_parse_pac() */
+        goto end;
+    }
+
+    /* Perform trust PAC content checks if needed */
+    if (need_trust_check) {
+        kerr = ipadb_check_trust_pac_content(context, request, ticket, pac,
+                                             status);
+        if (kerr)
+            goto end;
+    }
+
+    kerr = 0;
+
+end:
+    if (pac)
+        krb5_pac_free(context, pac);
+
+    return kerr;
 }
 
 krb5_error_code kdcpolicy_ipakdb_initvt(krb5_context context,
