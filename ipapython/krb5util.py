@@ -1,3 +1,7 @@
+#
+# Copyright (C) 2026 FreeIPA Contributors see COPYING for license
+#
+
 import logging
 import os
 import json
