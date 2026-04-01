@@ -30,6 +30,7 @@ _KEYTABS = [
 _KEYTAB_PRINCIPALS_MAP = {
     paths.DS_KEYTAB: 'ldap',
     paths.HTTP_KEYTAB: 'HTTP',
+    paths.KRB5_KEYTAB: 'host',
     paths.DOGTAG_KEYTAB: PKI_GSSAPI_SERVICE_NAME,
     paths.NAMED_KEYTAB: 'DNS',
     paths.IPA_DNSKEYSYNCD_KEYTAB: 'ipa-dnskeysyncd',
@@ -518,9 +519,7 @@ def check_and_rotate_keytabs(instance, host: str, realm: str) -> bool:
     if len(keytab_entries) == 0:
         return False
 
-    # Read krb5 keytab, for rotation, if there are no keys well...
-    krb5_items: list[KeytabEntry] = _list_keytab(paths.KRB5_KEYTAB)
-    krb_principal = krb5_items[-1].principal
+    krb_principal = _get_principal_by_keytab(paths.KRB5_KEYTAB, host, realm)
 
     # We do not handle if krb_prinicpal doesn't exist, because
     # if we can't obtain krb keytab, then we should crash...
