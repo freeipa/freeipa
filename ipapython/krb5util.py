@@ -37,6 +37,8 @@ _KEYTAB_PRINCIPALS_MAP = {
     paths.SAMBA_KEYTAB: 'cifs',
 }
 
+_DEPRECATED_ENCRYPTION_KEY_PREFIX = "DEPRECATED:"
+
 TIMER_PREFIX = "ipa-keytab-cleaner."
 TIMER_SUFFIX = ".timer"
 
@@ -219,6 +221,8 @@ def _list_keytab(keytab: str) -> list[KeytabEntry]:
             continue
 
         enctype = enctype[1:-1]  # strip (, )
+        if enctype.startswith(_DEPRECATED_ENCRYPTION_KEY_PREFIX):
+            enctype = enctype[len(_DEPRECATED_ENCRYPTION_KEY_PREFIX):]
 
         for record in keytab_records:
             if record.kvno == kvno:
