@@ -436,8 +436,8 @@ def _get_principal_by_keytab(keytab: str, host: str, realm: str) -> str:
     principal = host + "@" + realm
     if entry_principal != '':
         return entry_principal + "/" + principal
-    else:
-        return principal
+
+    return principal
 
 
 def check_and_rotate_keytabs(instance, host: str, realm: str) -> bool:
