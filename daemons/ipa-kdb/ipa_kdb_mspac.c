@@ -1054,6 +1054,18 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
         return EINVAL;
     }
 
+    /* Synthetic entries built from a Default Trust View ID override carry no
+     * LDAP entry DN.  ipadb_deref_search() with a NULL base DN would encode
+     * it as "" (empty string), causing ldap_search_ext_s() to return the
+     * root DSE with LDAP_SUCCESS.  ldap_first_entry() then yields a non-NULL
+     * lentry, and the subsequent strstr(ied->entry_dn, ...) crashes with a
+     * NULL-pointer dereference.  We cannot build an MS-PAC for such entries
+     * (no local SIDs/group memberships); return ENOENT so the caller proceeds
+     * without a PAC. */
+    if (!ied->entry_dn) {
+        return ENOENT;
+    }
+
     tmpctx = talloc_new(NULL);
     if (!tmpctx) {
         return ENOMEM;

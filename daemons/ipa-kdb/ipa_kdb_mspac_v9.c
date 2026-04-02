@@ -88,43 +88,68 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
         /* generate initial PAC */
         is_pac_creation = true;
         if (with_pac) {
-            krb5_boolean force_reinit_mspac = FALSE;
-            struct ipadb_context *ipactx = ipadb_get_context(context);
-            int result = 0;
+            struct ipadb_e_data *dtv_ied = NULL;
 
-            if (!ipactx) {
-                kerr = ENOMEM;
-                goto done;
-            }
+            /*
+             * DTV synthetic entry in cross-realm S4U2Self: the referral-TGT
+             * header ticket already carries the user's PAC from the AD DC.
+             * Copy and filter it rather than trying to build a fresh PAC from
+             * local LDAP data (which would fail: ied->entry_dn is NULL).
+             * ipadb_get_edata() succeeds because we set IPA_E_DATA_MAGIC, and
+             * entry_dn == NULL is the DTV-entry sentinel checked below.
+             */
+            if (client != NULL &&
+                ipadb_get_edata(client, &dtv_ied) == 0 &&
+                dtv_ied->entry_dn == NULL &&
+                old_pac != NULL &&
+                signing_krbtgt != NULL &&
+                ipadb_is_cross_realm_krbtgt(signing_krbtgt->princ)) {
+                is_pac_creation = false;
+                kerr = ipadb_common_verify_pac(context, flags,
+                                               client, server,
+                                               signing_krbtgt,
+                                               NULL,
+                                               authtime,
+                                               old_pac, &new_pac);
+            } else {
+                krb5_boolean force_reinit_mspac = FALSE;
+                struct ipadb_context *ipactx = ipadb_get_context(context);
+                int result = 0;
 
-            if (client != NULL) {
-                /* Be aggressive here: special case for discovering range type
-                * immediately after establishing the trust by IPA framework. For all
-                * other cases call ipadb_reinit_mspac() with force_reinit_mspac set
-                * to 'false' to make sure the information about trusted domains is
-                * updated on a regular basis for all worker processes. */
-                if ((krb5_princ_size(context, client->princ) == 2) &&
-                    (strncmp(krb5_princ_component(context, client->princ, 0)->data, "HTTP",
-                            krb5_princ_component(context, client->princ, 0)->length) == 0) &&
-                    (ulc_casecmp(krb5_princ_component(context, client->princ, 1)->data,
-                                 krb5_princ_component(context, client->princ, 1)->length,
-                                 ipactx->kdc_hostname, strlen(ipactx->kdc_hostname),
-                                 NULL, NULL, &result) == 0)) {
-                    force_reinit_mspac = TRUE;
+                if (!ipactx) {
+                    kerr = ENOMEM;
+                    goto done;
                 }
+
+                if (client != NULL) {
+                    /* Be aggressive here: special case for discovering range type
+                    * immediately after establishing the trust by IPA framework. For all
+                    * other cases call ipadb_reinit_mspac() with force_reinit_mspac set
+                    * to 'false' to make sure the information about trusted domains is
+                    * updated on a regular basis for all worker processes. */
+                    if ((krb5_princ_size(context, client->princ) == 2) &&
+                        (strncmp(krb5_princ_component(context, client->princ, 0)->data, "HTTP",
+                                krb5_princ_component(context, client->princ, 0)->length) == 0) &&
+                        (ulc_casecmp(krb5_princ_component(context, client->princ, 1)->data,
+                                     krb5_princ_component(context, client->princ, 1)->length,
+                                     ipactx->kdc_hostname, strlen(ipactx->kdc_hostname),
+                                     NULL, NULL, &result) == 0)) {
+                        force_reinit_mspac = TRUE;
+                    }
+                }
+
+                /* MS-PAC generator has to be initalized */
+                kerr = ipadb_reinit_mspac(ipactx, force_reinit_mspac, &stmsg);
+                if (kerr && stmsg)
+                    krb5_klog_syslog(LOG_ERR, "MS-PAC generator: %s", stmsg);
+
+                /* Continue even if initilization of PAC generator failed.
+                 * It may caused by the trust objects part only. */
+
+                kerr = ipadb_get_pac(context, flags,
+                                     client, server, replaced_reply_key,
+                                     authtime, &new_pac);
             }
-
-            /* MS-PAC generator has to be initalized */
-            kerr = ipadb_reinit_mspac(ipactx, force_reinit_mspac, &stmsg);
-            if (kerr && stmsg)
-                krb5_klog_syslog(LOG_ERR, "MS-PAC generator: %s", stmsg);
-
-            /* Continue even if initilization of PAC generator failed.
-             * It may caused by the trust objects part only. */
-
-            kerr = ipadb_get_pac(context, flags,
-                                 client, server, replaced_reply_key,
-                                 authtime, &new_pac);
         }
     } else {
         kerr = ipadb_common_verify_pac(context, flags,
