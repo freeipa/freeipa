@@ -29,6 +29,8 @@ ipa_mock_imports = [
     "ldap",
     "ldif",  # python-ldap
     "ldapurl",  # python-ldap
+    # pkg_resources removed from python 3.12
+    "pkg_resources",
     # dogtag-pki is client-only
     "pki",
     # PyPI packages not available
