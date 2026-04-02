@@ -25,6 +25,8 @@ ipa_mock_imports = [
     "ldap",
     "ldif",  # python-ldap
     "ldapurl",  # python-ldap
+    # pkg_resources removed from python 3.12
+    "pkg_resources",
     # dogtag-pki is client-only
     "pki",
     # PyPI packages not available
@@ -99,6 +101,20 @@ def fake_ipaython_version(defs):
     sys.modules[fake.__name__] = fake
 
 
+def fake_safeconfigparser():
+    """Fake configparser.SafeConfigParser class
+
+    This class doesn't exist in python 3.12 but readthedocs
+    runs on this version.
+    """
+
+    class FakeSafeConfigParser:
+        __name__ = "configparser.SafeConfigParser"
+
+    fake = FakeSafeConfigParser()
+    sys.modules[fake.__name__] = fake
+
+
 def init_api(
     context="doc",
     domain="ipa.example",
@@ -144,6 +160,7 @@ def init_ipalib_api(app, config):
     """
     defs = parse_version_m4()
     fake_ipaython_version(defs)
+    fake_safeconfigparser()
 
     with progress_message("initializing ipalib.api"):
         with autodoc_mock(config.autodoc_mock_imports):
