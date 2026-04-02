@@ -1,0 +1,5 @@
+dn: $SUFFIX
+add:aci: (targetattr = "ipakrbserviceattestationkey || ipakrbserviceattestationtype")(targattrfilters="add=objectclass:(objectclass=ipakrbserviceattestation)")(version 3.0;acl "permission:Attestation:Services can manage own attestation keys";allow (write) userdn = "ldap:///self";)
+add:aci: (targetattr = "ipakrbserviceattestationkey || ipakrbserviceattestationtype")(targattrfilters="add=objectclass:(objectclass=ipakrbserviceattestation)")(version 3.0;acl "permission:Attestation:Services can manage attestation keys for other services";allow (write) userattr = "managedby#GROUPDN" or userattr = "managedby#USERDN";)
+
+
