@@ -195,6 +195,31 @@ struct ipadb_e_pol_limits {
     krb5_deltat max_renewable_life;
 };
 
+/*
+ * All S4U2Self attestation state for a service principal entry.
+ *
+ * LDAP-derived fields (keys, types) are populated by ipadb_parse_ldap_entry()
+ * when the service principal is fetched as the cert issuer.
+ * Runtime fields (attested, service_type, …) are set later by
+ * ipadb_get_s4u_x509_principal() when a PA-FOR-X509-USER request is processed.
+ */
+struct ipadb_s4u_data {
+    /* ipaKrbServiceAttestationKey: DER-encoded SPKI values (binary, multi-valued) */
+    krb5_data *keys;    /* array of key blobs; keys[i].data owned by this struct */
+    int        n_keys;
+    /* ipaKrbServiceAttestationType: allowed service types (UTF8String, multi-valued) */
+    char **types;       /* NULL-terminated list */
+    /* ipasshpubkey: user's registered SSH public keys (OpenSSH text, multi-valued) */
+    krb5_data *ssh_pubkeys; /* array of key text; ssh_pubkeys[i].data owned here */
+    int        n_ssh_pubkeys;
+    /* Runtime attestation result */
+    bool  attested;
+    char *service_type;        /* "ssh", "oidc", "radius", etc. */
+    char *auth_method;         /* "publickey", "mfa", "eap-tls", etc. */
+    char *ssh_key_fingerprint; /* SSH-specific: "SHA256:…", NULL otherwise */
+    char *ssh_client_address;  /* SSH-specific: "ip:port", NULL otherwise */
+};
+
 #define IPA_E_DATA_MAGIC 0x0eda7a
 struct ipadb_e_data {
     int magic;
@@ -213,6 +238,7 @@ struct ipadb_e_data {
     struct ipadb_e_pol_limits pol_limits[IPADB_USER_AUTH_IDX_MAX];
     bool has_sid;
     struct dom_sid *sid;
+    struct ipadb_s4u_data *s4u;
 };
 
 inline static krb5_error_code
@@ -477,6 +503,15 @@ int ipadb_get_enc_salt_types(struct ipadb_context *ipactx, LDAPMessage *entry,
 #ifdef HAVE_KRB5_CERTAUTH_PLUGIN
 /* CERTAUTH PLUGIN */
 void ipa_certauth_free_moddata(krb5_certauth_moddata *moddata);
+#endif
+
+/* S4U X.509 ATTESTATION */
+#ifdef BUILD_IPA_S4U_X509
+krb5_error_code ipadb_get_s4u_x509_principal(krb5_context kcontext,
+                                              const krb5_data *client_cert,
+                                              krb5_const_principal princ,
+                                              unsigned int flags,
+                                              krb5_db_entry **entry_out);
 #endif
 
 int ipadb_string_to_sid(const char *str, struct dom_sid *sid);

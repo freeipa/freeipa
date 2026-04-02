@@ -85,6 +85,9 @@ static char *std_principal_attrs[] = {
     "ipaNTSecurityIdentifier",
     "ipaUniqueID",
     "memberPrincipal",
+    "ipaKrbServiceAttestationKey",
+    "ipaKrbServiceAttestationType",
+    "ipasshpubkey",
 
     "objectClass",
     NULL
@@ -765,6 +768,96 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
 }
 
 
+/*
+ * Allocate and populate the ipadb_s4u_data block for a principal entry.
+ *
+ * Fetches three LDAP attributes that are pre-included in std_principal_attrs[]:
+ *   ipaKrbServiceAttestationKey  – DER SPKI blobs (service principals only)
+ *   ipaKrbServiceAttestationType – allowed service types (service principals only)
+ *   ipasshpubkey                 – registered SSH public keys (user principals only)
+ *
+ * Attributes absent from the entry are silently skipped; only allocation
+ * failures cause an error return.
+ */
+static krb5_error_code
+ipadb_parse_s4u_data(LDAP *lcontext, LDAPMessage *lentry,
+                     struct ipadb_e_data *ied)
+{
+    struct berval **vals = NULL;
+    char **atypes = NULL;
+    int n, j, k;
+    int ret;
+
+    ied->s4u = calloc(1, sizeof(*ied->s4u));
+    if (!ied->s4u)
+        return ENOMEM;
+
+    /* ipaKrbServiceAttestationKey: binary DER SPKI values */
+    vals = ldap_get_values_len(lcontext, lentry, "ipaKrbServiceAttestationKey");
+    if (vals && vals[0]) {
+        for (n = 0; vals[n]; n++) ;
+        ied->s4u->keys = calloc(n, sizeof(krb5_data));
+        if (!ied->s4u->keys) {
+            ldap_value_free_len(vals);
+            return ENOMEM;
+        }
+        for (j = 0; j < n; j++) {
+            ied->s4u->keys[j].magic  = KV5M_DATA;
+            ied->s4u->keys[j].length = (unsigned int)vals[j]->bv_len;
+            ied->s4u->keys[j].data   = malloc(vals[j]->bv_len);
+            if (!ied->s4u->keys[j].data) {
+                for (k = 0; k < j; k++)
+                    free(ied->s4u->keys[k].data);
+                free(ied->s4u->keys);
+                ied->s4u->keys = NULL;
+                ldap_value_free_len(vals);
+                return ENOMEM;
+            }
+            memcpy(ied->s4u->keys[j].data, vals[j]->bv_val, vals[j]->bv_len);
+        }
+        ied->s4u->n_keys = n;
+    }
+    ldap_value_free_len(vals);
+
+    /* ipaKrbServiceAttestationType: allowed service type strings */
+    ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
+                                     "ipaKrbServiceAttestationType", &atypes);
+    if (ret == 0)
+        ied->s4u->types = atypes;
+    else if (ret != ENOENT)
+        return KRB5_KDB_INTERNAL_ERROR;
+
+    /* ipasshpubkey: OpenSSH authorized_keys format public key strings */
+    vals = ldap_get_values_len(lcontext, lentry, "ipasshpubkey");
+    if (vals && vals[0]) {
+        for (n = 0; vals[n]; n++) ;
+        ied->s4u->ssh_pubkeys = calloc(n, sizeof(krb5_data));
+        if (!ied->s4u->ssh_pubkeys) {
+            ldap_value_free_len(vals);
+            return ENOMEM;
+        }
+        for (j = 0; j < n; j++) {
+            ied->s4u->ssh_pubkeys[j].magic  = KV5M_DATA;
+            ied->s4u->ssh_pubkeys[j].length = (unsigned int)vals[j]->bv_len;
+            ied->s4u->ssh_pubkeys[j].data   = malloc(vals[j]->bv_len);
+            if (!ied->s4u->ssh_pubkeys[j].data) {
+                for (k = 0; k < j; k++)
+                    free(ied->s4u->ssh_pubkeys[k].data);
+                free(ied->s4u->ssh_pubkeys);
+                ied->s4u->ssh_pubkeys = NULL;
+                ldap_value_free_len(vals);
+                return ENOMEM;
+            }
+            memcpy(ied->s4u->ssh_pubkeys[j].data,
+                   vals[j]->bv_val, vals[j]->bv_len);
+        }
+        ied->s4u->n_ssh_pubkeys = n;
+    }
+    ldap_value_free_len(vals);
+
+    return 0;
+}
+
 static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               char *principal,
                                               LDAPMessage *lentry,
@@ -1222,6 +1315,11 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             }
         }
     }
+
+    /* Always allocate s4u block; populate keys/types/ssh_pubkeys from LDAP */
+    kerr = ipadb_parse_s4u_data(lcontext, lentry, ied);
+    if (kerr)
+        goto done;
 
     kerr = 0;
 
@@ -2121,6 +2219,22 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 	free(ied->authz_data);
 	free(ied->pol);
 	free_sid(&ied->sid);
+	if (ied->s4u) {
+	    for (i = 0; i < ied->s4u->n_keys; i++)
+		krb5_free_data_contents(kcontext, &ied->s4u->keys[i]);
+	    free(ied->s4u->keys);
+	    for (i = 0; ied->s4u->types && ied->s4u->types[i]; i++)
+		free(ied->s4u->types[i]);
+	    free(ied->s4u->types);
+	    for (i = 0; i < ied->s4u->n_ssh_pubkeys; i++)
+		krb5_free_data_contents(kcontext, &ied->s4u->ssh_pubkeys[i]);
+	    free(ied->s4u->ssh_pubkeys);
+	    free(ied->s4u->service_type);
+	    free(ied->s4u->auth_method);
+	    free(ied->s4u->ssh_key_fingerprint);
+	    free(ied->s4u->ssh_client_address);
+	    free(ied->s4u);
+	}
 	free(ied);
     }
 }
