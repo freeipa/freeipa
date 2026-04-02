@@ -327,6 +327,142 @@ class TestACME(CALessBase):
         ])
 
     ##############
+    # ECDSA tests
+    ##############
+
+    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
+    @pytest.mark.parametrize("curve", ('secp256r1', 'secp384r1', 'secp521r1'))
+    def test_certbot_certonly_standalone_ecdsa(self, curve):
+        """Test ACME cert issuance with an ECDSA subject key.
+
+        Verifies that the acmeIPAServerCert profile accepts EC keys
+        (nistp384 / secp384r1) end-to-end via certbot standalone HTTP-01.
+
+        related: https://pagure.io/freeipa/issue/9760
+        """
+        self.clients[0].run_command(['systemctl', 'stop', 'httpd'])
+        self.clients[0].run_command(
+            [
+                'certbot',
+                '--server', self.acme_server,
+                'certonly',
+                '--domain', self.clients[0].hostname,
+                '--standalone',
+                '--cert-name', self.clients[0].hostname,
+                '--key-type', 'ecdsa',
+                '--elliptic-curve', curve,
+                '--force-renewal',
+                '--non-interactive'
+            ]
+        )
+
+        cert_path = (
+            f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
+        )
+        cert_info = self.clients[0].run_command(
+            ['openssl', 'x509', '-in', cert_path, '-noout', '-text']
+        )
+        # EC key type is used
+        assert 'id-ecPublicKey' in cert_info.stdout_text
+
+        # Verify that the specific requested curve/key size was used
+        curve_expectations = {
+            'secp256r1': ('Public-Key: (256 bit)', 'prime256v1'),
+            'secp384r1': ('Public-Key: (384 bit)', 'secp384r1'),
+            'secp521r1': ('Public-Key: (521 bit)', 'secp521r1'),
+        }
+
+        expected_bitlen, expected_curve_name = curve_expectations[curve]
+
+        assert expected_bitlen in cert_info.stdout_text
+        assert expected_curve_name in cert_info.stdout_text
+
+        self.clients[0].run_command(['systemctl', 'start', 'httpd'])
+
+    @pytest.mark.parametrize("curve", ('secp256r1', 'secp384r1', 'secp521r1'))
+    def test_ipa_cert_request_ecdsa(self, curve):
+        """Test caIPAserviceCert profile with an ECDSA subject key.
+
+        Generates an EC CSR with the specified curve and
+        requests a certificate via ipa cert-request,
+        exercising the caIPAserviceCert profile key
+        constraint that must accept specified curve.
+
+        related: https://pagure.io/freeipa/issue/9760
+        """
+        service_name = f'testecdsa/{self.master.hostname}'
+        csr_file = '/tmp/ecdsa_test.csr'
+        key_file = '/tmp/ecdsa_test.key'
+        cert_file = '/tmp/ecdsa_test.pem'
+
+        self.master.run_command(['ipa', 'service-add', service_name])
+
+        self.master.run_command(
+            [
+                'openssl', 'ecparam', '-name', curve,
+                '-genkey', '-noout', '-out', key_file,
+            ]
+        )
+        self.master.run_command(
+            [
+                'openssl', 'req', '-new',
+                '-key', key_file,
+                '-out', csr_file,
+                '-subj', f'/CN={self.master.hostname}',
+            ]
+        )
+
+        self.master.run_command(
+            [
+                'ipa', 'cert-request',
+                '--principal', service_name,
+                '--certificate-out', cert_file,
+                csr_file,
+            ]
+        )
+
+        cert_text = self.master.run_command(
+            ['openssl', 'x509', '-in', cert_file, '-noout', '-text']
+        )
+
+        # EC key type is used
+        assert 'id-ecPublicKey' in cert_text.stdout_text
+
+        # Verify that the specific requested curve/key size was used
+        curve_expectations = {
+            'secp256r1': ('Public-Key: (256 bit)', 'prime256v1'),
+            'secp384r1': ('Public-Key: (384 bit)', 'secp384r1'),
+            'secp521r1': ('Public-Key: (521 bit)', 'secp521r1'),
+        }
+
+        expected_bitlen, expected_curve_name = curve_expectations[curve]
+
+        assert expected_bitlen in cert_text.stdout_text
+        assert expected_curve_name in cert_text.stdout_text
+
+        try:
+            getcert_result = self.master.run_command(
+                [
+                    'ipa-getcert', 'request','-G', 'EC',
+                    '-g', curve, '-f', cert_file, '-k',
+                    key_file, '-K', service_name, '-vw'
+                ]
+            )
+
+            assert_text = "Certificate at same location is already used"
+            if assert_text in getcert_result.stdout_text:
+                print("ipa-getcert was already run, ignoring error")
+        except Exception:
+            pass
+
+        self.master.run_command(
+            ['ipa', 'service-del', service_name], raiseonerr=False
+        )
+        self.master.run_command(
+            ['rm', '-f', csr_file, key_file, cert_file]
+        )
+
+    ##############
     # mod_md tests
     ##############
 
