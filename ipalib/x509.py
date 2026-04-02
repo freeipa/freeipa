@@ -43,7 +43,8 @@ from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import (
-    Encoding, PublicFormat, PrivateFormat, load_pem_private_key
+    Encoding, PublicFormat, PrivateFormat,
+    load_pem_private_key, load_pem_public_key,
 )
 import pyasn1
 import pyasn1.error
@@ -494,6 +495,17 @@ def load_unknown_x509_certificate(data):
         return load_pem_x509_certificate(data)
     except ValueError:
         return load_der_x509_certificate(data)
+
+
+def load_public_key_from_file(filename):
+    """
+    Load a SubjectPublicKeyInfo public key from a PEM file.
+
+    :returns: DER-encoded SubjectPublicKeyInfo bytes.
+    :raises: ``ValueError`` if unable to load the key.
+    """
+    key = load_certificate_from_file(filename)
+    return key.public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
 
 
 def load_certificate_from_file(filename):

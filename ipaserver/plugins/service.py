@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives import hashes
 import six
 
 from ipalib import api, errors, messages
-from ipalib import StrEnum, Bool, Str, Flag
+from ipalib import StrEnum, Bool, Bytes, Str, Flag
 from ipalib.parameters import Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -408,13 +408,14 @@ class service(LDAPObject):
         'ipaservice', 'pkiuser'
     ]
     possible_objectclasses = ['ipakrbprincipal', 'ipaallowedoperations',
-                              'resourcedelegation']
+                              'resourcedelegation', 'ipakrbserviceattestation']
     permission_filter_objectclasses = ['ipaservice']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = [
         'krbprincipalname', 'krbcanonicalname', 'usercertificate', 'managedby',
         'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform',
-        'krbprincipalauthind', 'memberprincipal']
+        'krbprincipalauthind', 'memberprincipal',
+        'ipakrbserviceattestationkey', 'ipakrbserviceattestationtype']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
@@ -446,6 +447,7 @@ class service(LDAPObject):
                 'krbprincipalexpiration', 'krbpasswordexpiration',
                 'krblastpwdchange', 'ipakrbauthzdata', 'ipakrbprincipalalias',
                 'krbobjectreferences', 'krbprincipalauthind', 'memberprincipal',
+                'ipakrbserviceattestationkey', 'ipakrbserviceattestationtype',
             },
         },
         'System: Add Services': {
@@ -517,7 +519,15 @@ class service(LDAPObject):
             'ipapermdefaultattr': {'memberPrincipal', 'objectclass'},
             'default_privileges': {'Service Administrators',
                                    'Host Administrators'},
-        }
+        },
+        'System: Manage Service Attestation Keys': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipaKrbServiceAttestationKey',
+                                   'ipaKrbServiceAttestationType',
+                                   'objectclass'},
+            'default_privileges': {'Service Administrators',
+                                   'Host Administrators'},
+        },
     }
 
     label = _('Services')
@@ -594,6 +604,19 @@ class service(LDAPObject):
             label=_('Revocation reason'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
+        Bytes('ipakrbserviceattestationkey*',
+              label=_('Attestation public key'),
+              doc=_('DER-encoded SubjectPublicKeyInfo for S4U2Self '
+                    'attestation'),
+              flags=['no_search'],
+              ),
+        Str('ipakrbserviceattestationtype*',
+            cli_name='attestation_type',
+            label=_('Attestation service type'),
+            doc=_('Service type allowed for S4U2Self attestation '
+                  '(e.g. oidc, radius, pam)'),
+            flags=['no_search'],
+            ),
         StrEnum('ipakrbauthzdata*',
             cli_name='pac_type',
             label=_('PAC type'),
@@ -1217,6 +1240,48 @@ class service_remove_cert(LDAPRemoveAttributeViaOption):
                 service=keys)['result'])
 
         return dn
+
+
+@register()
+class service_add_attestation_key(LDAPAddAttributeViaOption):
+    __doc__ = _('Register a service attestation public key for '
+                'S4U2Self attestation')
+    msg_summary = _('Added attestation key to service principal "%(value)s"')
+    attribute = 'ipakrbserviceattestationkey'
+
+    takes_options = (
+        Str(
+            'service_type',
+            cli_name='type',
+            label=_('Service type'),
+            doc=_('Service type for attestation (e.g. oidc, radius, pam)'),
+        ),
+    )
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        assert isinstance(dn, DN)
+        add_missing_object_class(ldap, 'ipakrbserviceattestation', dn)
+        service_type = options.get('service_type')
+        if service_type:
+            try:
+                entry = ldap.get_entry(dn, ['ipakrbserviceattestationtype'])
+                existing = entry.get('ipakrbserviceattestationtype', [])
+                if service_type not in existing:
+                    existing.append(service_type)
+                    entry['ipakrbserviceattestationtype'] = existing
+                    ldap.update_entry(entry)
+            except errors.NotFound:
+                pass
+        return dn
+
+
+@register()
+class service_remove_attestation_key(LDAPRemoveAttributeViaOption):
+    __doc__ = _('Remove a service attestation public key')
+    msg_summary = _('Removed attestation key from service principal '
+                    '"%(value)s"')
+    attribute = 'ipakrbserviceattestationkey'
 
 
 @register()

@@ -18,6 +18,8 @@ Modify an existing IPA service.
  * Default: False
 * krbprincipalname : :ref:`Principal<Principal>`
 * usercertificate : :ref:`Certificate<Certificate>`
+* ipakrbserviceattestationkey : :ref:`Bytes<Bytes>`
+* ipakrbserviceattestationtype : :ref:`Str<Str>`
 * ipakrbauthzdata : :ref:`StrEnum<StrEnum>`
  * Values: ('MS-PAC', 'PAD', 'NONE')
 * krbprincipalauthind : :ref:`StrEnum<StrEnum>`
