@@ -310,6 +310,15 @@ AM_CONDITIONAL([BUILD_IPA_KDCPOLICY_PLUGIN],
 AM_CONDITIONAL([BUILD_IPA_ISSUE_PAC],
                [test x$have_kdb_issue_pac = xyes])
 
+AM_CONDITIONAL([BUILD_IPA_S4U_X509],
+               [test x$have_openssl = xyes -a x$have_kdb_issue_pac = xyes])
+AM_COND_IF([BUILD_IPA_S4U_X509],
+           [AC_DEFINE([BUILD_IPA_S4U_X509], [1],
+               [Build IPA KDB S4U X.509 attestation support])
+            AC_MSG_NOTICE([Build IPA KDB S4U X.509 attestation support])],
+           [AC_MSG_NOTICE([Skipping IPA KDB S4U X.509 attestation \
+(requires OpenSSL and DAL v9 issue_pac)])])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
 dnl ---------------------------------------------------------------------------
