@@ -12,6 +12,7 @@ import six
 import sys
 
 from ipapython.ipautil import escape_seq, unescape_seq
+import ipapython.version as _ipa_version
 
 if six.PY3:
     unicode = str
@@ -418,3 +419,77 @@ krb5_unparse_name.errcheck = krb5_errcheck
 krb5_free_unparsed_name = LIBKRB5.krb5_free_unparsed_name
 krb5_free_unparsed_name.argtypes = (krb5_context, ctypes.c_char_p, )
 krb5_free_unparsed_name.restype = None
+
+# --- keytab types ---------------------------------------------------
+# KRB5_KT_END is extracted from krb5.h at build time (via AC_COMPUTE_INT)
+# and stored in ipapython.version.  Its numeric value differs across MIT
+# Kerberos releases.
+KRB5_KT_END: int = _ipa_version.KRB5_KT_END
+
+
+class _krb5_keytab(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_keytab (opaque handle)"""
+    _fields_ = []
+
+
+krb5_keytab = ctypes.POINTER(_krb5_keytab)
+
+krb5_kvno = ctypes.c_uint32           # typedef unsigned int krb5_kvno
+krb5_kt_cursor = krb5_pointer         # typedef krb5_pointer krb5_kt_cursor
+
+
+class _krb5_keytab_entry(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct krb5_keytab_entry_st"""
+    _fields_ = [
+        ("magic", krb5_magic),
+        ("principal", krb5_principal),
+        ("timestamp", krb5_timestamp),
+        ("vno", krb5_kvno),
+        ("key", krb5_keyblock),
+    ]
+
+
+krb5_keytab_entry = _krb5_keytab_entry
+
+# --- keytab function bindings ----------------------------------------
+
+krb5_kt_default = LIBKRB5.krb5_kt_default
+krb5_kt_default.argtypes = (krb5_context, ctypes.POINTER(krb5_keytab))
+krb5_kt_default.restype = krb5_error_code
+krb5_kt_default.errcheck = krb5_errcheck
+
+krb5_kt_resolve = LIBKRB5.krb5_kt_resolve
+krb5_kt_resolve.argtypes = (krb5_context, ctypes.c_char_p,
+                            ctypes.POINTER(krb5_keytab))
+krb5_kt_resolve.restype = krb5_error_code
+krb5_kt_resolve.errcheck = krb5_errcheck
+
+krb5_kt_close = LIBKRB5.krb5_kt_close
+krb5_kt_close.argtypes = (krb5_context, krb5_keytab)
+krb5_kt_close.restype = krb5_error_code
+krb5_kt_close.errcheck = krb5_errcheck
+
+krb5_kt_start_seq_get = LIBKRB5.krb5_kt_start_seq_get
+krb5_kt_start_seq_get.argtypes = (krb5_context, krb5_keytab,
+                                  ctypes.POINTER(krb5_kt_cursor))
+krb5_kt_start_seq_get.restype = krb5_error_code
+krb5_kt_start_seq_get.errcheck = krb5_errcheck
+
+krb5_kt_next_entry = LIBKRB5.krb5_kt_next_entry
+krb5_kt_next_entry.argtypes = (krb5_context, krb5_keytab,
+                               ctypes.POINTER(krb5_keytab_entry),
+                               ctypes.POINTER(krb5_kt_cursor))
+krb5_kt_next_entry.restype = krb5_error_code
+# no errcheck — KRB5_KT_END is the normal end-of-keytab signal, not an error
+
+krb5_kt_end_seq_get = LIBKRB5.krb5_kt_end_seq_get
+krb5_kt_end_seq_get.argtypes = (krb5_context, krb5_keytab,
+                                ctypes.POINTER(krb5_kt_cursor))
+krb5_kt_end_seq_get.restype = krb5_error_code
+krb5_kt_end_seq_get.errcheck = krb5_errcheck
+
+krb5_free_keytab_entry_contents = LIBKRB5.krb5_free_keytab_entry_contents
+krb5_free_keytab_entry_contents.argtypes = (
+    krb5_context, ctypes.POINTER(krb5_keytab_entry)
+)
+krb5_free_keytab_entry_contents.restype = None
