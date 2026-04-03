@@ -83,10 +83,18 @@ def acquire_s4u_creds(
         host_principal,
         name_type=gssapi.NameType.kerberos_principal,
     )
-    store = {'keytab': keytab_path} if keytab_path else {}
+    # usage='both' gives MIT Kerberos a combined acceptor+initiator credential
+    # handle that gss_acquire_cred_impersonate_name() requires.  The store
+    # must carry both 'client_keytab' (for acquiring the initiator TGT) and
+    # 'keytab' (for the acceptor service keys); omitting either half causes a
+    # MissingCredentialsError when the S4U2Self TGS-REQ is built.
+    if keytab_path:
+        store = {'keytab': keytab_path, 'client_keytab': keytab_path}
+    else:
+        store = {}
     host_creds = gssapi.Credentials(
         name=host_name,
-        usage='initiate',
+        usage='both',
         mechs=[gssapi.MechType.kerberos],
         store=store or None,
     )
@@ -97,13 +105,17 @@ def acquire_s4u_creds(
     cert_name = gssapi.Name(cert_der, name_type=GSS_KRB5_NT_X509_CERT)
 
     # 3. gss_acquire_cred_impersonate_name: S4U2Self TGS-REQ with the cert.
-    s4u_creds = gssapi.Credentials(  # pylint: disable=unexpected-keyword-arg
-        name=cert_name,
-        usage='initiate',
+    #    gssapi.Credentials(impersonator=) was added in python-gssapi 1.8.0;
+    #    Fedora 44 ships 1.7.3 which does not have it.  Use the raw ext_s4u
+    #    function directly instead.
+    acq = gssapi.raw.acquire_cred_impersonate_name(
+        host_creds,
+        cert_name,
+        lifetime=None,
         mechs=[gssapi.MechType.kerberos],
-        impersonator=host_creds,
-        store=store or None,
+        usage='initiate',
     )
+    s4u_creds = gssapi.Credentials(base=acq.creds)
 
     return s4u_creds
 
