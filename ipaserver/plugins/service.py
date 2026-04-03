@@ -20,6 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import re
 
 from cryptography.hazmat.primitives import hashes
 import six
@@ -234,6 +235,35 @@ def validate_auth_indicator(entry):
             error=_('authentication indicators not allowed '
                     'in service "%s"' % principal.service_name)
         )
+
+
+# Fixed AS-REQ authentication indicators accepted by krbprincipalauthind.
+_AUTH_IND_FIXED = frozenset({
+    u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey',
+})
+
+# S4U2Self protocol-transition indicators: <service>-authn:<detail>
+#   <service> — lowercase letter then letters/digits (e.g. "ssh", "oidc", "pam")
+#   <detail>  — lowercase letter then letters/digits/hyphens
+#               (e.g. "publickey", "pwd", "mfa", "keyboard-interactive")
+_AUTH_IND_S4U_RE = re.compile(r'^[a-z][a-z0-9]*-authn:[a-z][a-z0-9-]*$')
+
+
+def validate_auth_indicator_value(_, value):
+    """
+    Validate a single krbprincipalauthind value.
+
+    Accepts the fixed AS-REQ indicators (radius, otp, pkinit, hardened, idp,
+    passkey) and S4U2Self protocol-transition indicators of the form
+    '<service>-authn:<detail>' (e.g. 'ssh-authn:publickey', 'oidc-authn:mfa').
+    """
+    if value in _AUTH_IND_FIXED or _AUTH_IND_S4U_RE.match(value):
+        return None
+    return _("must be one of %(fixed)s, or match "
+             "'<service>-authn:<detail>' for S4U2Self attestation "
+             "(e.g. 'ssh-authn:publickey', 'oidc-authn:mfa')") % {
+        'fixed': ', '.join("'%s'" % v for v in sorted(_AUTH_IND_FIXED)),
+    }
 
 
 def normalize_principal(value):
@@ -625,8 +655,9 @@ class service(LDAPObject):
                   " e.g. this might be necessary for NFS services."),
             values=(u'MS-PAC', u'PAD', u'NONE'),
         ),
-        StrEnum(
+        Str(
             'krbprincipalauthind*',
+            validate_auth_indicator_value,
             cli_name='auth_ind',
             label=_('Authentication Indicators'),
             doc=_("Defines an allow list for Authentication Indicators."
@@ -639,10 +670,11 @@ class service(LDAPObject):
                   " Identity Provider supporting OAuth 2.0 Device"
                   " Authorization Flow (RFC 8628)."
                   " Use 'passkey' to allow passkey-based 2FA authentications."
+                  " Use '<service>-authn:<detail>' to allow S4U2Self"
+                  " attestation indicators"
+                  " (e.g. 'ssh-authn:publickey', 'oidc-authn:mfa')."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
-                    u'passkey'),
         ),
     ) + ticket_flags_params
 

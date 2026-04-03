@@ -28,6 +28,10 @@ Modify Kerberos ticket policy.
 * krbauthindmaxrenewableage_idp : :ref:`Int<Int>`
 * krbauthindmaxticketlife_passkey : :ref:`Int<Int>`
 * krbauthindmaxrenewableage_passkey : :ref:`Int<Int>`
+* krbauthindmaxticketlife_ssh_authn : :ref:`Int<Int>`
+* krbauthindmaxrenewableage_ssh_authn : :ref:`Int<Int>`
+* krbauthindmaxticketlife_oidc_authn : :ref:`Int<Int>`
+* krbauthindmaxrenewableage_oidc_authn : :ref:`Int<Int>`
 * setattr : :ref:`Str<Str>`
 * addattr : :ref:`Str<Str>`
 * delattr : :ref:`Str<Str>`

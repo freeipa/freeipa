@@ -30,8 +30,7 @@ Modify information about a host.
 * ipasshpubkey : :ref:`Str<Str>`
 * userclass : :ref:`Str<Str>`
 * ipaassignedidview : :ref:`Str<Str>`
-* krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
+* krbprincipalauthind : :ref:`Str<Str>`
 * ipakrbrequirespreauth : :ref:`Bool<Bool>`
 * ipakrbokasdelegate : :ref:`Bool<Bool>`
 * ipakrboktoauthasdelegate : :ref:`Bool<Bool>`

@@ -24,8 +24,7 @@ Search for hosts.
 * macaddress : :ref:`Str<Str>`
 * userclass : :ref:`Str<Str>`
 * ipaassignedidview : :ref:`Str<Str>`
-* krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
+* krbprincipalauthind : :ref:`Str<Str>`
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`
