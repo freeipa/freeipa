@@ -62,7 +62,7 @@
  * id-ce-kerberosServiceIssuerBinding:
  *   SEQUENCE {
  *     version     INTEGER (0),
- *     serviceType UTF8String,        -- "ssh", "oidc", "radius", "pam", ...
+ *     serviceType UTF8String,        -- "ssh", "oidc", "pam", ...
  *     principal   UTF8String,
  *     enctype     INTEGER,
  *     kvno        INTEGER,
@@ -96,7 +96,7 @@
 
 typedef struct kerberos_service_issuer_binding_st {
     ASN1_INTEGER      *version;
-    ASN1_UTF8STRING   *service_type;   /* "ssh", "oidc", "radius", "pam", ... */
+    ASN1_UTF8STRING   *service_type;   /* "ssh", "oidc", "pam", ... */
     ASN1_UTF8STRING   *principal;
     ASN1_INTEGER      *enctype;
     ASN1_INTEGER      *kvno;
@@ -1411,13 +1411,24 @@ ssh_s4u_verify_context(krb5_context kcontext,
 
     if (authn) {
         if (authn->auth_method) {
-            ied->s4u->auth_method =
-                strndup((char *)authn->auth_method->data,
-                        (size_t)authn->auth_method->length);
-            if (!ied->s4u->auth_method)
+            char *m = strndup((char *)authn->auth_method->data,
+                              (size_t)authn->auth_method->length);
+            if (m) {
+                char **am = calloc(2, sizeof(char *));
+                if (am) {
+                    am[0] = m;
+                    ied->s4u->auth_methods = am;
+                } else {
+                    free(m);
+                    krb5_klog_syslog(LOG_WARNING,
+                                     "S4U X.509: OOM allocating auth_methods; "
+                                     "audit record will show 'unknown'");
+                }
+            } else {
                 krb5_klog_syslog(LOG_WARNING,
                                  "S4U X.509: OOM copying auth_method; "
                                  "audit record will show 'unknown'");
+            }
         }
         if (authn->key_fingerprint) {
             ied->s4u->ssh_key_fingerprint =
@@ -1444,8 +1455,8 @@ ssh_s4u_verify_context(krb5_context kcontext,
      * (ipasshpubkey).  For all other auth methods (password, mfa, …) the
      * cert's subject identity is sufficient — set attested unconditionally.
      */
-    if (ied->s4u->auth_method &&
-        strcmp(ied->s4u->auth_method, "publickey") == 0) {
+    if (ied->s4u->auth_methods && ied->s4u->auth_methods[0] &&
+        strcmp(ied->s4u->auth_methods[0], "publickey") == 0) {
         EVP_PKEY *subject_key = X509_get_pubkey(cert);
         bool key_matched = false;
 
@@ -1481,27 +1492,11 @@ ssh_s4u_verify_context(krb5_context kcontext,
 /* ------------------------------------------------------------------ *
  * OIDC service context verification callback.                         *
  *                                                                     *
- * Extracts the amrValues SEQUENCE OF UTF8String from the decoded      *
- * OidcAuthnContext and maps it to an auth indicator method:           *
- *   "mfa" — amrValues contains "mfa" (RFC 8176 multiple-factor)      *
- *   "sso" — amrValues absent or contains no MFA evidence             *
+ * Extracts amrValues from the decoded OidcAuthnContext and produces   *
+ * one auth indicator per RFC 8176 §2 AMR value (e.g. "pwd", "otp",  *
+ * "mfa").  Falls back to a single "sso" entry when amrValues is      *
+ * absent or the context extension was not present.                    *
  * ------------------------------------------------------------------ */
-static bool
-oidc_amr_has_mfa(STACK_OF(ASN1_TYPE) *amr)
-{
-    if (!amr)
-        return false;
-    int n = sk_ASN1_TYPE_num(amr);
-    for (int i = 0; i < n; i++) {
-        ASN1_TYPE *t = sk_ASN1_TYPE_value(amr, i);
-        if (!t || t->type != V_ASN1_UTF8STRING)
-            continue;
-        const ASN1_UTF8STRING *s = t->value.utf8string;
-        if (s->length == 3 && memcmp(s->data, "mfa", 3) == 0)
-            return true;
-    }
-    return false;
-}
 
 static krb5_error_code
 oidc_s4u_verify_context(krb5_context kcontext,
@@ -1539,22 +1534,48 @@ oidc_s4u_verify_context(krb5_context kcontext,
                          "S4U X.509: OOM copying service type");
 
     /*
-     * Derive the auth indicator method from the amrValues field:
-     *   "mfa" — amrValues contains the "mfa" RFC 8176 claim
-     *   "sso" — amrValues is absent or contains no MFA evidence
-     *
-     * The OIDC context extension may be absent (context advisory only);
-     * treat a missing context the same as an empty amrValues → "sso".
+     * Build auth_methods from every amrValues entry (RFC 8176 §2):
+     * one auth indicator per AMR value, e.g. "pwd", "otp", "mfa".
+     * Fall back to a single "sso" entry when amrValues is absent or
+     * the OIDC context extension was not present.
      */
-    const char *method = "sso";
-    if (authn && oidc_amr_has_mfa(authn->amr_values))
-        method = "mfa";
-
-    ied->s4u->auth_method = strdup(method);
-    if (!ied->s4u->auth_method)
-        krb5_klog_syslog(LOG_WARNING,
-                         "S4U X.509: OOM copying auth_method; "
-                         "audit record will show 'unknown'");
+    if (authn && authn->amr_values &&
+        sk_ASN1_TYPE_num(authn->amr_values) > 0) {
+        int n = sk_ASN1_TYPE_num(authn->amr_values);
+        char **am = calloc((size_t)(n + 1), sizeof(char *));
+        if (am) {
+            int j = 0;
+            for (int i = 0; i < n; i++) {
+                ASN1_TYPE *t = sk_ASN1_TYPE_value(authn->amr_values, i);
+                if (!t || t->type != V_ASN1_UTF8STRING)
+                    continue;
+                const ASN1_UTF8STRING *s = t->value.utf8string;
+                char *v = strndup((char *)s->data, (size_t)s->length);
+                if (v)
+                    am[j++] = v;
+            }
+            am[j] = NULL;
+            if (j > 0)
+                ied->s4u->auth_methods = am;
+            else
+                free(am);
+        }
+    }
+    if (!ied->s4u->auth_methods) {
+        /* amrValues absent or empty — fall back to "sso" */
+        char **am = calloc(2, sizeof(char *));
+        if (am) {
+            am[0] = strdup("sso");
+            if (am[0])
+                ied->s4u->auth_methods = am;
+            else
+                free(am);
+        }
+        if (!ied->s4u->auth_methods)
+            krb5_klog_syslog(LOG_WARNING,
+                             "S4U X.509: OOM setting auth_methods; "
+                             "audit record will show 'unknown'");
+    }
 
     ied->s4u->attested = true;
 
@@ -1566,7 +1587,7 @@ oidc_s4u_verify_context(krb5_context kcontext,
  * Generic service context verification callback.                      *
  *                                                                     *
  * Used for any service type registered via ipaKrbServiceAttestationKey*
- * (OIDC, RADIUS, PAM, and future service types).  No service-specific *
+ * (PAM, and future service types).  No service-specific              *
  * context extension is parsed; auth detail is "unknown" until the     *
  * per-type context extensions are defined.                            *
  * ------------------------------------------------------------------ */
@@ -1603,7 +1624,7 @@ svc_s4u_verify_context(krb5_context kcontext,
     }
 
     ied->s4u->attested = true;
-    /* s4u->service_type and s4u->auth_method are set by the pipeline after
+    /* s4u->service_type and s4u->auth_methods are set by the pipeline after
      * this callback returns, because the service type string lives in
      * transient ASN.1 memory that is freed in the pipeline's done: block. */
 
@@ -2056,7 +2077,7 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
     ret = h->verify_context(kcontext, h, cert, princ, flags, svc_ctx, entry_out);
     if (ret == 0) {
         /*
-         * For the generic handler, set s4u->service_type and s4u->auth_method
+         * For the generic handler, set s4u->service_type and s4u->auth_methods
          * here where stype is still valid (it's owned by ib, freed below).
          * SSH and OIDC handlers set these fields themselves from the parsed
          * context; the generic handler has no context to draw from.
@@ -2066,14 +2087,23 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
             ipadb_get_edata(*entry_out, &ied) == 0 && ied->s4u) {
             if (!ied->s4u->service_type)
                 ied->s4u->service_type = strdup(stype);
-            if (!ied->s4u->auth_method)
-                ied->s4u->auth_method = strdup("unknown");
+            if (!ied->s4u->auth_methods) {
+                char **am = calloc(2, sizeof(char *));
+                if (am) {
+                    am[0] = strdup("unknown");
+                    if (am[0])
+                        ied->s4u->auth_methods = am;
+                    else
+                        free(am);
+                }
+            }
         }
 
         const char *log_method = "unknown";
         if (*entry_out &&
             (ied || ipadb_get_edata(*entry_out, &ied) == 0) && ied->s4u)
-            log_method = ied->s4u->auth_method ?: "unknown";
+            log_method = (ied->s4u->auth_methods && ied->s4u->auth_methods[0])
+                         ? ied->s4u->auth_methods[0] : "unknown";
         krb5_klog_syslog(LOG_INFO,
                          "S4U X.509: attested S4U2Self type='%s' "
                          "method='%s' host='%s'",

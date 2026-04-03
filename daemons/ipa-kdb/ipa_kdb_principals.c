@@ -2230,7 +2230,9 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 		krb5_free_data_contents(kcontext, &ied->s4u->ssh_pubkeys[i]);
 	    free(ied->s4u->ssh_pubkeys);
 	    free(ied->s4u->service_type);
-	    free(ied->s4u->auth_method);
+	    for (i = 0; ied->s4u->auth_methods && ied->s4u->auth_methods[i]; i++)
+		free(ied->s4u->auth_methods[i]);
+	    free(ied->s4u->auth_methods);
 	    free(ied->s4u->ssh_key_fingerprint);
 	    free(ied->s4u->ssh_client_address);
 	    free(ied->s4u);

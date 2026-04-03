@@ -182,57 +182,60 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
             ied->s4u && ied->s4u->attested) {
             const char *svctype = ied->s4u->service_type ? ied->s4u->service_type
                                                          : "ssh";
-            const char *method  = ied->s4u->auth_method  ? ied->s4u->auth_method
-                                                         : "unknown";
-            char *indstr = NULL;
-            krb5_data **inds = NULL;
-            krb5_data *ind = NULL;
+            const char * const fallback_methods[] = { "unknown", NULL };
+            const char * const *methods =
+                (ied->s4u->auth_methods && ied->s4u->auth_methods[0])
+                ? (const char * const *)ied->s4u->auth_methods
+                : fallback_methods;
 
-            if (asprintf(&indstr, "%s-authn:%s", svctype, method) == -1) {
-                kerr = ENOMEM;
-                goto done;
-            }
+            /* Emit one auth indicator per RFC 8176 AMR/method value */
+            for (int mi = 0; methods[mi]; mi++) {
+                char *indstr = NULL;
+                krb5_data *ind = NULL;
 
-            inds = calloc(2, sizeof(krb5_data *));
-            if (inds == NULL) {
-                free(indstr);
-                kerr = ENOMEM;
-                goto done;
-            }
-
-            ind = malloc(sizeof(krb5_data));
-            if (ind == NULL) {
-                free(indstr);
-                free(inds);
-                kerr = ENOMEM;
-                goto done;
-            }
-
-            ind->magic  = KV5M_DATA;
-            ind->data   = indstr;
-            ind->length = strlen(indstr);
-            inds[0]     = ind;
-            inds[1]     = NULL;
-
-            /* Append to any pre-existing indicators (e.g. from PKINIT) */
-            if (*auth_indicators == NULL) {
-                *auth_indicators = inds;
-            } else {
-                size_t n = 0;
-                while ((*auth_indicators)[n]) n++;
-                krb5_data **merged = realloc(*auth_indicators,
-                                             (n + 2) * sizeof(krb5_data *));
-                if (!merged) {
-                    free(indstr);
-                    free(ind);
-                    free(inds);
+                if (asprintf(&indstr, "%s-authn:%s", svctype, methods[mi]) == -1) {
                     kerr = ENOMEM;
                     goto done;
                 }
-                merged[n]     = ind;
-                merged[n + 1] = NULL;
-                *auth_indicators = merged;
-                free(inds);
+
+                ind = malloc(sizeof(krb5_data));
+                if (ind == NULL) {
+                    free(indstr);
+                    kerr = ENOMEM;
+                    goto done;
+                }
+
+                ind->magic  = KV5M_DATA;
+                ind->data   = indstr;
+                ind->length = strlen(indstr);
+
+                /* Append to any pre-existing indicators (e.g. from PKINIT) */
+                if (*auth_indicators == NULL) {
+                    krb5_data **inds = calloc(2, sizeof(krb5_data *));
+                    if (inds == NULL) {
+                        free(indstr);
+                        free(ind);
+                        kerr = ENOMEM;
+                        goto done;
+                    }
+                    inds[0] = ind;
+                    inds[1] = NULL;
+                    *auth_indicators = inds;
+                } else {
+                    size_t n = 0;
+                    while ((*auth_indicators)[n]) n++;
+                    krb5_data **merged = realloc(*auth_indicators,
+                                                 (n + 2) * sizeof(krb5_data *));
+                    if (!merged) {
+                        free(indstr);
+                        free(ind);
+                        kerr = ENOMEM;
+                        goto done;
+                    }
+                    merged[n]     = ind;
+                    merged[n + 1] = NULL;
+                    *auth_indicators = merged;
+                }
             }
         }
     }

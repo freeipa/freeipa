@@ -1492,8 +1492,10 @@ static void run_full_pipeline_test(int fips_mode)
     assert_true(ied->s4u->attested);
     assert_non_null(ied->s4u->service_type);
     assert_string_equal(ied->s4u->service_type, "ssh");
-    assert_non_null(ied->s4u->auth_method);
-    assert_string_equal(ied->s4u->auth_method, "publickey");
+    assert_non_null(ied->s4u->auth_methods);
+    assert_non_null(ied->s4u->auth_methods[0]);
+    assert_string_equal(ied->s4u->auth_methods[0], "publickey");
+    assert_null(ied->s4u->auth_methods[1]);
     assert_non_null(ied->s4u->ssh_key_fingerprint);
     assert_string_equal(ied->s4u->ssh_key_fingerprint, "SHA256:AAABBBCCC=");
     assert_non_null(ied->s4u->ssh_client_address);
@@ -1502,7 +1504,9 @@ static void run_full_pipeline_test(int fips_mode)
     /* ---- Cleanup ---- */
 
     free(ied->s4u->service_type);
-    free(ied->s4u->auth_method);
+    for (int i = 0; ied->s4u->auth_methods && ied->s4u->auth_methods[i]; i++)
+        free(ied->s4u->auth_methods[i]);
+    free(ied->s4u->auth_methods);
     free(ied->s4u->ssh_key_fingerprint);
     free(ied->s4u->ssh_client_address);
     /* ied->s4u is stack-allocated (user_s4u) in this test; do not free */

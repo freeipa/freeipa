@@ -214,8 +214,8 @@ struct ipadb_s4u_data {
     int        n_ssh_pubkeys;
     /* Runtime attestation result */
     bool  attested;
-    char *service_type;        /* "ssh", "oidc", "radius", etc. */
-    char *auth_method;         /* "publickey", "mfa", "eap-tls", etc. */
+    char *service_type;        /* "ssh", "oidc", "pam", etc. */
+    char **auth_methods;       /* NULL-terminated RFC 8176 AMR list, e.g. {"pwd","otp",NULL} */
     char *ssh_key_fingerprint; /* SSH-specific: "SHA256:…", NULL otherwise */
     char *ssh_client_address;  /* SSH-specific: "ip:port", NULL otherwise */
 };
