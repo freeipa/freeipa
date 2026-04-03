@@ -720,6 +720,11 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          IPADB_USER_AUTH_IDP, IPADB_USER_AUTH_IDX_IDP},
         {"krbAuthIndMaxTicketLife;passkey",
          IPADB_USER_AUTH_PASSKEY, IPADB_USER_AUTH_IDX_PASSKEY},
+        /* S4U2Self indicators: no user_auth flag, always parsed (flag==0) */
+        {"krbAuthIndMaxTicketLife;ssh-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_SSH_AUTHN},
+        {"krbAuthIndMaxTicketLife;oidc-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_OIDC_AUTHN},
 	    {NULL, IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_MAX},
     }, age_authind_map[] = {
         {"krbAuthIndMaxRenewableAge;otp",
@@ -734,6 +739,11 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          IPADB_USER_AUTH_IDP, IPADB_USER_AUTH_IDX_IDP},
         {"krbAuthIndMaxRenewableAge;passkey",
          IPADB_USER_AUTH_PASSKEY, IPADB_USER_AUTH_IDX_PASSKEY},
+        /* S4U2Self indicators: no user_auth flag, always parsed (flag==0) */
+        {"krbAuthIndMaxRenewableAge;ssh-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_SSH_AUTHN},
+        {"krbAuthIndMaxRenewableAge;oidc-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_OIDC_AUTHN},
         {NULL, IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_MAX},
     };
 
@@ -747,7 +757,7 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          * if the value wasn't set yet. This function gets called twice:
          * - for the principal entry
          * - for the associated policy lookup */
-        if ((ua & life_authind_map[i].flag) &&
+        if ((!life_authind_map[i].flag || (ua & life_authind_map[i].flag)) &&
             (ied->pol_limits[life_authind_map[i].idx].max_life == 0)) {
 
             ret = ipadb_ldap_attr_to_int(lcontext, lentry,

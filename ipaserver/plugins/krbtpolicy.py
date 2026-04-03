@@ -75,7 +75,8 @@ _default_values = {
 # These attributes never have non-optional values, so they should be
 # ignored in post callbacks
 _option_based_attrs = ('krbauthindmaxticketlife', 'krbauthindmaxrenewableage')
-_supported_options = ('otp', 'radius', 'pkinit', 'hardened', 'idp', 'passkey')
+_supported_options = ('otp', 'radius', 'pkinit', 'hardened', 'idp', 'passkey',
+                      'ssh-authn', 'oidc-authn')
 
 @register()
 class krbtpolicy(baseldap.LDAPObject):
@@ -209,6 +210,30 @@ class krbtpolicy(baseldap.LDAPObject):
             label=_('Passkey max renew'),
             doc=_('Passkey ticket maximum renewable age (seconds)'),
             minvalue=1),
+        Int('krbauthindmaxticketlife_ssh_authn?',
+            cli_name='ssh_authn_maxlife',
+            label=_('SSH attestation max life'),
+            doc=_('SSH S4U2Self attestation ticket maximum ticket life'
+                  ' (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_ssh_authn?',
+            cli_name='ssh_authn_maxrenew',
+            label=_('SSH attestation max renew'),
+            doc=_('SSH S4U2Self attestation ticket maximum renewable age'
+                  ' (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxticketlife_oidc_authn?',
+            cli_name='oidc_authn_maxlife',
+            label=_('OIDC attestation max life'),
+            doc=_('OIDC S4U2Self attestation ticket maximum ticket life'
+                  ' (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_oidc_authn?',
+            cli_name='oidc_authn_maxrenew',
+            label=_('OIDC attestation max renew'),
+            doc=_('OIDC S4U2Self attestation ticket maximum renewable age'
+                  ' (seconds)'),
+            minvalue=1),
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -225,14 +250,16 @@ def rename_authind_options_from_ldap(entry_attrs, options):
         for attr in _option_based_attrs:
             name = '{};{}'.format(attr, subtype)
             if name in entry_attrs:
-                new_name = '{}_{}'.format(attr, subtype)
+                # Python names use underscores; LDAP options use hyphens.
+                new_name = '{}_{}'.format(attr, subtype.replace('-', '_'))
                 entry_attrs[new_name] = entry_attrs.pop(name)
 
 
 def rename_authind_options_to_ldap(entry_attrs):
     for subtype in _supported_options:
         for attr in _option_based_attrs:
-            name = '{}_{}'.format(attr, subtype)
+            # Python names use underscores; LDAP options use hyphens.
+            name = '{}_{}'.format(attr, subtype.replace('-', '_'))
             if name in entry_attrs:
                 new_name = '{};{}'.format(attr, subtype)
                 entry_attrs[new_name] = entry_attrs.pop(name)

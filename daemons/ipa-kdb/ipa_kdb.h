@@ -144,6 +144,8 @@ enum ipadb_user_auth_idx {
   IPADB_USER_AUTH_IDX_HARDENED,
   IPADB_USER_AUTH_IDX_IDP,
   IPADB_USER_AUTH_IDX_PASSKEY,
+  IPADB_USER_AUTH_IDX_SSH_AUTHN,  /* ssh-authn:* S4U2Self indicators */
+  IPADB_USER_AUTH_IDX_OIDC_AUTHN, /* oidc-authn:* S4U2Self indicators */
   IPADB_USER_AUTH_IDX_MAX,
 };
 

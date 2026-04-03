@@ -191,11 +191,53 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
                         const char **status, krb5_deltat *lifetime_out,
                         krb5_deltat *renew_lifetime_out)
 {
+    krb5_error_code kerr;
+    struct ipadb_e_data *ied;
+    struct ipadb_e_pol_limits *pol_limits = NULL;
+
     *status = NULL;
     *lifetime_out = 0;
     *renew_lifetime_out = 0;
 
-    return ipadb_enforce_pac(context, ticket, status);
+    kerr = ipadb_enforce_pac(context, ticket, status);
+    if (kerr)
+        return kerr;
+
+    /* Apply per-indicator ticket lifetime limits for S4U2Self indicators.
+     * ssh-authn:* and oidc-authn:* indicators are set by ipadb_v9_issue_pac()
+     * during S4U2Self and propagate into delegated (S4U2Proxy) tickets.
+     * The server's krbAuthIndMaxTicketLife;{ssh,oidc}-authn policy limits apply. */
+    ied = (struct ipadb_e_data *)server->e_data;
+    if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC)
+        return 0;
+
+    for (int i = 0; auth_indicators && auth_indicators[i] != NULL; i++) {
+        enum ipadb_user_auth_idx idx = IPADB_USER_AUTH_IDX_MAX;
+
+        if (strncmp(auth_indicators[i], "ssh-authn:", 10) == 0)
+            idx = IPADB_USER_AUTH_IDX_SSH_AUTHN;
+        else if (strncmp(auth_indicators[i], "oidc-authn:", 11) == 0)
+            idx = IPADB_USER_AUTH_IDX_OIDC_AUTHN;
+
+        if (idx == IPADB_USER_AUTH_IDX_MAX)
+            continue;
+
+        /* Apply the tightest (smallest non-zero) limit found. */
+        if (ied->pol_limits[idx].max_life != 0) {
+            if (pol_limits == NULL ||
+                ied->pol_limits[idx].max_life < pol_limits->max_life)
+                pol_limits = &ied->pol_limits[idx];
+        }
+    }
+
+    if (pol_limits != NULL) {
+        if (pol_limits->max_life != 0)
+            jitter(pol_limits->max_life, lifetime_out);
+        if (pol_limits->max_renewable_life != 0)
+            *renew_lifetime_out = pol_limits->max_renewable_life;
+    }
+
+    return 0;
 }
 
 krb5_error_code kdcpolicy_ipakdb_initvt(krb5_context context,
