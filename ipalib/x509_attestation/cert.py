@@ -54,8 +54,8 @@ def _build_cert_core(
     ----------
     user:              Kerberos principal name (cert Subject CN, PKINIT SAN).
     realm:             Kerberos realm.
-    service_type:      Service identifier: "ssh", "oidc", "radius", "pam",
-                       etc.  Used as HKDF salt prefix and stored in the
+    service_type:      Service identifier: "ssh", "oidc", "pam", etc.
+                       Used as HKDF salt prefix and stored in the
                        id-ce-kerberosServiceIssuerBinding extension.
     host_pubkey:       Service host public key (cryptography public key).
     keytab_entry:      Best keytab entry from get_host_keytab_key().
@@ -321,8 +321,8 @@ def build_service_attestation_cert(
     """
     Build a DER-encoded S4U2Self attestation certificate for any service.
 
-    This is the generic entry point for non-SSH services (OIDC, RADIUS,
-    PAM, etc.).  The service_type string is stored in the
+    This is the generic entry point for service types without a dedicated
+    builder (PAM, etc.).  The service_type string is stored in the
     id-ce-kerberosServiceIssuerBinding extension and used by the IPA KDB
     plugin to select the appropriate handler and auth indicator prefix.
 
@@ -330,7 +330,7 @@ def build_service_attestation_cert(
     ----------
     user:              Kerberos principal name (Subject CN, PKINIT SAN).
     realm:             Kerberos realm.
-    service_type:      Service identifier, e.g. "oidc", "radius", "pam".
+    service_type:      Service identifier, e.g. "pam".
                        Determines the HKDF salt, binding label, and the
                        serviceType field in the issuer binding extension.
     host_pubkey:       Service host public key (cryptography public key).

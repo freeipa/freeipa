@@ -86,7 +86,7 @@ def derive_signing_key(
 
     The HKDF salt "{service_type}-attestation-v1" provides cryptographic
     domain separation so the same keytab key produces distinct signing
-    keys for each service type (ssh, oidc, radius, pam, ...).
+    keys for each service type (ssh, oidc, pam, ...).
 
     Non-FIPS: Ed25519 from 32-byte HKDF-SHA256 output.
     FIPS:     ECDSA P-256 from 48-byte HKDF-SHA256 output, scalar-reduced

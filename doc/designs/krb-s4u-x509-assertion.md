@@ -5,7 +5,7 @@
 S4U2Self (protocol transition) lets a Kerberos service request a service ticket
 on behalf of a user without the user's active participation.  The KDC has no
 visibility into *how* the user authenticated to the requesting service —
-password, public key, hardware token, RADIUS, OIDC, etc.  Auth indicators, the
+password, public key, hardware token, OIDC, etc.  Auth indicators, the
 mechanism Kerberos uses to communicate authentication strength, are therefore
 absent from protocol-transition tickets, which prevents downstream services from
 enforcing auth-method policy.
@@ -19,13 +19,11 @@ to an independent per-service public key registered in the IPA LDAP directory.
 The KDC's KDB plugin verifies the certificate and injects auth indicators into
 the resulting service ticket.
 
-SSH is the first instantiation of the framework and the only one implemented in
-Phase 1.  The IPA KDB plugin verifies the certificate via the
-`get_s4u_x509_principal` KDB vtable hook and injects SSH authentication
-indicators into the issued service ticket via the DAL v9 `issue_pac` hook.  The
-design is intentionally extensible to other service types (OIDC / IdP brokers,
-RADIUS NAS, PAM, etc.) without changes to the common verification path in the
-KDC plugin.
+SSH and OIDC are the two service types implemented.  The IPA KDB plugin verifies
+the certificate via the `get_s4u_x509_principal` KDB vtable hook and injects
+authentication indicators into the issued service ticket via the DAL v9
+`issue_pac` hook.  The design is intentionally extensible to other service types
+(PAM, etc.) without changes to the common verification path in the KDC plugin.
 
 The PKINIT kdcpreauth module and the certauth plugin (`ipa_kdb_certauth.c`) are
 **not** involved.  They handle AS-REQ pre-authentication only.  S4U2Self
@@ -76,19 +74,17 @@ the OpenSSL FIPS module.  The design transparently substitutes ECDSA P-256 for
 all signing and key derivation operations, with no change to the protocol
 structure or to the administrator workflow.
 
-### UC4 — OIDC broker attests multi-factor authentication (future)
+### UC4 — OIDC broker attests authentication method
 
 An IPA-enrolled OIDC / OpenID Connect identity provider authenticates a user
-with MFA (`amr` claim includes `mfa`).  The broker performs S4U2Self and
-presents an attestation certificate with service type `oidc`.  The KDC injects
-`oidc-authn:mfa` into the ticket.  Downstream services that require MFA can
-enforce this indicator without knowing anything about OIDC.
-
-### UC5 — RADIUS NAS attests EAP-TLS authentication (future)
-
-A VPN concentrator or 802.1X authenticator authenticates a user via RADIUS with
-EAP-TLS and performs S4U2Self on behalf of that user.  The KDC injects
-`radius-authn:eap-tls` into the resulting Kerberos service ticket.
+and records the authentication methods in the `amr` claim (RFC 8176).  The
+broker performs S4U2Self and presents an attestation certificate with service
+type `oidc` and an `OidcAuthnContext` extension carrying the `amrValues` list.
+The KDC injects one `oidc-authn:<amr>` indicator per RFC 8176 AMR value — for
+example `oidc-authn:pwd` and `oidc-authn:otp` for password+OTP authentication,
+or `oidc-authn:mfa` for a composite multi-factor claim.  Downstream services
+that require MFA can enforce `oidc-authn:mfa` without knowing anything about
+OIDC.
 
 ## How to Use
 
@@ -139,11 +135,11 @@ Host SSH public keys must be registered in the host's IPA LDAP entry under the
 
 The `ipalib.x509_attestation` package provides the complete host-side
 attestation pipeline as an importable Python library.  Any service running
-with a Kerberos keytab — SSH server, OIDC broker, RADIUS NAS, PAM module,
-etc. — can use it to build an attestation certificate, exchange it for a
-S4U2Self service ticket, and optionally perform S4U2Proxy.  All keytab
-access uses direct `libkrb5` ctypes bindings via `ipapython.kerberos`; no
-external `python-krb5` package is required.
+with a Kerberos keytab — SSH server, OIDC broker, PAM module, etc. — can use
+it to build an attestation certificate, exchange it for a S4U2Self service
+ticket, and optionally perform S4U2Proxy.  All keytab access uses direct
+`libkrb5` ctypes bindings via `ipapython.kerberos`; no external `python-krb5`
+package is required.
 
 A full working CLI demonstrating the pipeline is in `doc/examples/s4u-x509/`.
 
@@ -154,6 +150,7 @@ A full working CLI demonstrating the pipeline is in `doc/examples/s4u-x509/`.
 | `KeytabEntry` | Dataclass: `principal`, `kvno`, `enctype`, `key` (raw bytes) |
 | `get_host_keytab_key(hostname, realm, keytab_path=None, fips_mode=False)` | Open host keytab; select the highest-preference AES entry for `host/<hostname>@<realm>`; return `KeytabEntry`. |
 | `build_attestation_cert(user, realm, auth_method, session_id, host_pubkey, keytab_entry, ...)` | SSH-specific pipeline.  Encodes `SshAuthnContext`, derives signing key with salt `"ssh-attestation-v1"`, and builds the certificate.  Keyword args: `subject_pubkey`, `key_fingerprint`, `client_address`, `cert_lifetime`. |
+| `build_oidc_attestation_cert(user, realm, issuer, access_token_hash, host_pubkey, keytab_entry, ...)` | OIDC-specific pipeline.  Encodes `OidcAuthnContext` with `issuer`, `access_token_hash`, and optional RFC 8176 `amr` list.  Derives signing key with salt `"oidc-attestation-v1"`.  Keyword args: `amr`, `client_id`, `client_address`, `cert_lifetime`. |
 | `build_service_attestation_cert(user, realm, service_type, host_pubkey, keytab_entry, ...)` | Generic pipeline for any service type.  Salt `"{service_type}-attestation-v1"` provides cryptographic domain separation.  Keyword args: `subject_pubkey`, `authn_context_ext`, `cert_lifetime`. |
 | `acquire_s4u_creds(cert_der, host_principal, keytab_path=None)` | Import `cert_der` as a `GSS_KRB5_NT_X509_CERT` GSSAPI name; call `gss_acquire_cred_impersonate_name`; return the resulting impersonated `gssapi.Credentials`. |
 | `request_s4u_proxy(s4u_creds, proxy_target)` | Initiate a GSSAPI security context with the S4U2Self credentials toward `proxy_target`; triggers S4U2Proxy TGS-REQ internally; return the initial AP-REQ token bytes. |
@@ -206,16 +203,12 @@ cert_der = build_attestation_cert(
 s4u_creds = acquire_s4u_creds(cert_der, keytab_entry.principal)
 ```
 
-#### Generic service flow
-
-For non-SSH services the caller encodes a service-specific authentication
-context extension (or passes `None` to omit it) and supplies the appropriate
-`service_type` string.  The HKDF salt and binding label are derived
-automatically from `service_type`.
+#### OIDC service flow
 
 ```python
+import hashlib
 from ipalib.x509_attestation import (
-    get_host_keytab_key, build_service_attestation_cert, acquire_s4u_creds,
+    get_host_keytab_key, build_oidc_attestation_cert, acquire_s4u_creds,
 )
 
 # 1. Select the best keytab entry (keytab holds the service principal key).
@@ -225,35 +218,64 @@ keytab_entry = get_host_keytab_key(
     keytab_path="/etc/oidc-broker/krb5.keytab",
 )
 
-# 2. Load the service's own public key (registered in IPA LDAP as
-#    ipaKrbServiceAttestationKey on the oidc/ service principal).
+# 2. Load the service's registered attestation public key
+#    (ipaKrbServiceAttestationKey on the oidc/ service principal entry).
 with open("/etc/oidc-broker/service.pub", "rb") as f:
     service_pubkey = load_public_key(f.read())
 
-# 3. Build a service-specific authentication context extension.
-#    OID 2.16.840.1.113730.3.8.15.3.3 is id-ce-oidcAuthnContext (future).
-#    Callers are responsible for encoding the extension value.
-oidc_ctx_der = encode_oidc_authn_context(issuer=..., access_token_hash=...,
-                                          amr=["mfa", "otp"])
-authn_context_ext = ("2.16.840.1.113730.3.8.15.3.3", oidc_ctx_der)
-
-# 4. Build the attestation certificate.
-cert_der = build_service_attestation_cert(
+# 3. Build the attestation certificate.
+#    amr values follow RFC 8176 §2; one auth indicator is emitted per value.
+cert_der = build_oidc_attestation_cert(
     user="alice",
     realm="EXAMPLE.COM",
-    service_type="oidc",
+    issuer="https://broker.example.com",
+    access_token_hash=hashlib.sha256(access_token_bytes).digest(),
     host_pubkey=service_pubkey,
     keytab_entry=keytab_entry,
-    authn_context_ext=authn_context_ext,   # None → omit context extension
+    amr=["pwd", "otp"],   # → oidc-authn:pwd and oidc-authn:otp in ticket
 )
 
-# 5. Acquire S4U2Self credentials.
+# 4. Acquire S4U2Self credentials.
 s4u_creds = acquire_s4u_creds(cert_der, keytab_entry.principal,
                                keytab_path="/etc/oidc-broker/krb5.keytab")
 
-# 6. Optionally delegate to a backend service via S4U2Proxy.
+# 5. Optionally delegate to a backend service via S4U2Proxy.
 from ipalib.x509_attestation import request_s4u_proxy
 token = request_s4u_proxy(s4u_creds, "HTTP/api.example.com@EXAMPLE.COM")
+```
+
+#### Generic service flow
+
+For service types without a dedicated builder, the caller encodes a
+service-specific context extension (or passes `None` to omit it) and supplies
+the appropriate `service_type` string.  The HKDF salt and binding label are
+derived automatically.
+
+```python
+from ipalib.x509_attestation import (
+    get_host_keytab_key, build_service_attestation_cert, acquire_s4u_creds,
+)
+
+keytab_entry = get_host_keytab_key(
+    hostname="pam-service.example.com",
+    realm="EXAMPLE.COM",
+    keytab_path="/etc/pam-service/krb5.keytab",
+)
+
+with open("/etc/pam-service/service.pub", "rb") as f:
+    service_pubkey = load_public_key(f.read())
+
+cert_der = build_service_attestation_cert(
+    user="alice",
+    realm="EXAMPLE.COM",
+    service_type="pam",
+    host_pubkey=service_pubkey,
+    keytab_entry=keytab_entry,
+    authn_context_ext=None,   # omit — emits "pam-authn:unknown"
+)
+
+s4u_creds = acquire_s4u_creds(cert_der, keytab_entry.principal,
+                               keytab_path="/etc/pam-service/krb5.keytab")
 ```
 
 When `authn_context_ext=None` the certificate contains only the mandatory
@@ -307,8 +329,9 @@ kdcpolicy plugin.  Indicator strings follow the pattern
 ssh-authn:publickey
 ssh-authn:password
 ssh-authn:keyboard-interactive
+oidc-authn:pwd
+oidc-authn:otp
 oidc-authn:mfa
-radius-authn:eap-tls
 ```
 
 ## Design
@@ -407,7 +430,7 @@ per-service verification handler; no further extension OID scanning is needed.
 ```text
 KerberosServiceIssuerBinding ::= SEQUENCE {
     version     INTEGER (0),
-    serviceType UTF8String,             -- "ssh", "oidc", "radius", "pam", ...
+    serviceType UTF8String,             -- "ssh", "oidc", "pam", ...
     principal   UTF8String,             -- issuing Kerberos principal (full name@REALM)
     enctype     INTEGER,                -- keytab enctype used as HKDF IKM
     kvno        INTEGER,                -- keytab key version number
@@ -437,8 +460,8 @@ OIDs are allocated under `2.16.840.1.113730.3.8.15.3.*`:
 |-----|------|-------------|
 | `...3.1` | `id-ce-kerberosServiceIssuerBinding` | all |
 | `...3.2` | `id-ce-sshAuthnContext` | `ssh` |
-| `...3.3` | `id-ce-oidcAuthnContext` | `oidc` (future) |
-| `...3.4` | `id-ce-radiusAuthnContext` | `radius` (future) |
+| `...3.3` | `id-ce-oidcAuthnContext` | `oidc` |
+| `...3.4` | (reserved) | — |
 | `...3.5` | `id-ce-pamAuthnContext` | `pam` (future) |
 
 SSH authentication context (`id-ce-sshAuthnContext`, OID `...3.2`):
@@ -453,7 +476,7 @@ SshAuthnContext ::= SEQUENCE {
 }
 ```
 
-OIDC authentication context (`id-ce-oidcAuthnContext`, OID `...3.3`, future):
+OIDC authentication context (`id-ce-oidcAuthnContext`, OID `...3.3`):
 
 ```text
 OidcAuthnContext ::= SEQUENCE {
@@ -461,21 +484,8 @@ OidcAuthnContext ::= SEQUENCE {
     issuer           UTF8String,
     clientId         UTF8String OPTIONAL,
     accessTokenHash  OCTET STRING,                    -- SHA256(access_token)
-    amrValues        SEQUENCE OF UTF8String OPTIONAL, -- RFC 8176 "amr" claim
+    amrValues        SEQUENCE OF UTF8String OPTIONAL, -- RFC 8176 §2 "amr" values
     clientAddress    [0] EXPLICIT UTF8String OPTIONAL
-}
-```
-
-RADIUS authentication context (`id-ce-radiusAuthnContext`, OID `...3.4`, future):
-
-```text
-RadiusAuthnContext ::= SEQUENCE {
-    version       INTEGER (0),
-    authType      UTF8String,                         -- "EAP-TLS", "EAP-TTLS", "CHAP", ...
-    nasAddress    UTF8String OPTIONAL,
-    nasPort       INTEGER OPTIONAL,
-    acctSessionId UTF8String OPTIONAL,
-    clientAddress [0] EXPLICIT UTF8String OPTIONAL
 }
 ```
 
@@ -634,11 +644,13 @@ per-service handler.
 
 `ipadb_v9_issue_pac()` (DAL v9 only) checks `ied->s4u->attested` on the client
 entry.  When set and the request is a protocol transition
-(`KRB5_KDB_FLAG_PROTOCOL_TRANSITION`), it builds a `"<serviceType>-authn:<method>"`
-indicator string from `ied->s4u->service_type` and `ied->s4u->auth_method`,
-packages it in a NULL-terminated `krb5_data *` array, and assigns it to
-`*auth_indicators`.  MIT Kerberos's `add_auth_indicators()` picks up this array
-and embeds each string in `AD_KDC_ISSUED` authdata in the issued service ticket.
+(`KRB5_KDB_FLAG_PROTOCOL_TRANSITION`), it iterates over `ied->s4u->auth_methods`
+(a NULL-terminated array of RFC 8176 AMR strings) and emits one
+`"<serviceType>-authn:<method>"` indicator per entry, appending each to
+`*auth_indicators` via `realloc`.  An empty or absent `auth_methods` falls back
+to a single `"<serviceType>-authn:unknown"` indicator.  MIT Kerberos's
+`add_auth_indicators()` picks up the array and embeds each string in
+`AD_KDC_ISSUED` authdata in the issued service ticket.
 
 Auth indicator naming follows the pattern `<serviceType>-authn:<detail>`:
 
@@ -647,10 +659,8 @@ Auth indicator naming follows the pattern `<serviceType>-authn:<detail>`:
 | `ssh-authn:publickey` | SSH public-key authentication |
 | `ssh-authn:password` | SSH password authentication |
 | `ssh-authn:keyboard-interactive` | SSH keyboard-interactive |
-| `oidc-authn:mfa` | OIDC; `amr` contains at least one MFA method |
-| `oidc-authn:sso` | OIDC; no MFA evidence in `amr` |
-| `radius-authn:eap-tls` | RADIUS EAP-TLS |
-| `radius-authn:eap-ttls` | RADIUS EAP-TTLS |
+| `oidc-authn:<amr>` | OIDC; one indicator per RFC 8176 §2 AMR value (e.g. `oidc-authn:pwd`, `oidc-authn:otp`, `oidc-authn:mfa`) |
+| `oidc-authn:sso` | OIDC; fallback when `amrValues` is absent from the context extension |
 
 ### Cross-Realm Scope
 
@@ -714,7 +724,16 @@ static const struct ipa_s4u_cert_handler s4u_handlers[] = {
         .parse_pubkey     = parse_openssh_pubkey,
         .verify_context   = ssh_s4u_verify_context,
     },
-    /* oidc, radius, pam, … */
+    {
+        .service_type     = "oidc",
+        .hkdf_salt        = "oidc-attestation-v1",
+        .binding_label    = "oidc-attestation-binding-v1",
+        .context_ext_oid  = "2.16.840.1.113730.3.8.15.3.3",
+        .ldap_pubkey_attr = "ipaKrbServiceAttestationKey",
+        .parse_pubkey     = parse_der_spki_pubkey,
+        .verify_context   = oidc_s4u_verify_context,
+    },
+    /* pam, … */
 };
 
 /* Generic fallback: any service type registered via ipaKrbServiceAttestationKey */
@@ -730,10 +749,13 @@ static const struct ipa_s4u_cert_handler generic_s4u_handler = {
 ```
 
 Auth indicator emission is **not** a handler callback.  `ipadb_v9_issue_pac()`
-reads `ied->s4u->service_type` and `ied->s4u->auth_method` directly and
-constructs `"<serviceType>-authn:<method>"` via `asprintf`.  This means all
-service types, including future ones using the generic handler, automatically
-emit a well-formed indicator with no handler code change.
+reads `ied->s4u->service_type` and iterates `ied->s4u->auth_methods`, calling
+`asprintf("%s-authn:%s", svctype, method)` for each entry and appending the
+result to `*auth_indicators`.  This means all service types, including future
+ones using the generic handler, automatically emit well-formed indicators with
+no handler code change.  The OIDC handler populates `auth_methods` with every
+RFC 8176 AMR value extracted from `OidcAuthnContext.amrValues`, so the number
+of indicators in the ticket equals the number of AMR values in the token.
 
 ### LDAP Schema
 
@@ -755,7 +777,7 @@ attributeTypes: ( 2.16.840.1.113730.3.8.15.2.4
 
 attributeTypes: ( 2.16.840.1.113730.3.8.15.2.5
     NAME 'ipaKrbServiceAttestationType'
-    DESC 'Service type allowed for S4U2Self attestation (e.g. oidc, radius, pam, ssh)'
+    DESC 'Service type allowed for S4U2Self attestation (e.g. oidc, pam, ssh)'
     EQUALITY caseExactIA5Match
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
     X-ORIGIN 'IPA v4' )
@@ -817,8 +839,8 @@ struct ipadb_s4u_data {
     int        n_ssh_pubkeys;
     /* Runtime fields — set by ipadb_get_s4u_x509_principal() */
     bool  attested;
-    char *service_type;        /* "ssh", "oidc", "radius", etc. */
-    char *auth_method;         /* "publickey", "password", "mfa", etc. */
+    char *service_type;        /* "ssh", "oidc", "pam", etc. */
+    char **auth_methods;       /* NULL-terminated RFC 8176 AMR list, e.g. {"pwd","otp",NULL} */
     char *ssh_key_fingerprint; /* "SHA256:..." (publickey auth only, NULL otherwise) */
     char *ssh_client_address;  /* "ip:port" (NULL if not provided) */
 };
@@ -921,13 +943,13 @@ principals.  No key comparison is performed.
 
 After the existing PAC building code, a new block checks `ied->s4u->attested` on
 the client db entry.  When set and the request is a protocol transition
-(`KRB5_KDB_FLAG_PROTOCOL_TRANSITION`), it builds a NULL-terminated
-`krb5_data` pointer array containing one indicator string formatted as
-`"<serviceType>-authn:<method>"` (using `asprintf`) and assigns it to
-`*auth_indicators`.  If indicators were already set by an earlier stage (e.g.,
-PKINIT), the new indicator is appended via `realloc` rather than overwriting.
-No per-handler callback is invoked; the indicator is built directly from
-`ied->s4u->service_type` and `ied->s4u->auth_method`.
+(`KRB5_KDB_FLAG_PROTOCOL_TRANSITION`), it iterates `ied->s4u->auth_methods` and
+appends one `krb5_data` indicator string per entry, formatted as
+`"<serviceType>-authn:<method>"` via `asprintf`.  If `auth_methods` is empty or
+absent the loop uses a synthetic `{"unknown", NULL}` fallback.  Each indicator is
+appended to `*auth_indicators` via `realloc` rather than overwriting, so
+indicators set by earlier stages (e.g. PKINIT) are preserved.  No per-handler
+callback is invoked; all fields are read directly from `ied->s4u`.
 
 ### KDB Vtable Registration (`daemons/ipa-kdb/ipa_kdb.c`)
 
@@ -1084,12 +1106,14 @@ the cmocka `will_return` / `mock()` mechanism.
 |------|-------|
 | `d2i_KERBEROS_SERVICE_ISSUER_BINDING` | Valid DER round-trip; bad version field; truncated input |
 | `d2i_SSH_AUTHN_CONTEXT` | Full fields including optionals; absent optionals; bad version |
+| `d2i_OIDC_AUTHN_CONTEXT` | Full fields; absent optionals; multiple `amrValues`; bad version |
 | `parse_openssh_pubkey` | Ed25519 round-trip; ECDSA P-256; RSA; unknown key type |
 | `parse_der_spki_pubkey` | Ed25519 and ECDSA DER SPKI round-trip |
 | `hkdf_sha256` | Determinism; different `info` → different output |
 | `derive_attestation_key` | Ed25519 determinism; FIPS/P-256 path; different kvno → different key |
 | `verify_binding_signature` | Valid signature; corrupted signature; wrong kvno |
-| `ipadb_get_s4u_x509_principal_impl` | Null/empty cert; null context; garbage DER; missing extension; full pipeline (SSH, generic); FIPS mode; publickey strong assertion (cert SPKI vs registered `ipasshpubkey`) |
+| `ipadb_get_s4u_x509_principal_impl` | Null/empty cert; null context; garbage DER; missing extension; full pipeline (SSH, OIDC, generic); FIPS mode; publickey strong assertion (cert SPKI vs registered `ipasshpubkey`) |
+| `oidc_auth_methods` | Single AMR value; multiple AMR values; empty `amrValues` → "sso" fallback; absent context → "sso" fallback |
 
 ### Integration Tests
 
@@ -1097,9 +1121,13 @@ the cmocka `will_return` / `mock()` mechanism.
 |----------|----------------|
 | SSH publickey auth; user key in `ipasshpubkey` | Ticket carries `ssh-authn:publickey` |
 | SSH publickey auth; user key NOT in `ipasshpubkey` | S4U2Self succeeds; no `ssh-authn:*` indicator |
-| SSH password auth → S4U2Self with attestation cert | Ticket carries `ssh-authn:password` |
+| SSH password auth (host ECDSA key; ephemeral subject key) | Ticket carries `ssh-authn:password` |
 | SSH keyboard-interactive auth | Ticket carries `ssh-authn:keyboard-interactive` |
 | SSH + FIPS mode (P-256 derived key) | Attestation accepted; `ssh-authn:*` injected |
+| OIDC; `amr=["pwd","otp"]` | Ticket carries both `oidc-authn:pwd` and `oidc-authn:otp` |
+| OIDC; `amr=["mfa"]` | Ticket carries `oidc-authn:mfa` |
+| OIDC; `amrValues` absent from context | Ticket carries `oidc-authn:sso` |
+| OIDC; unregistered attestation key | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
 | Generic service type registered via `ipaKrbServiceAttestationKey` | Ticket carries `<stype>-authn:unknown` |
 | Generic handler: `serviceType` not in `ipaKrbServiceAttestationType` | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
 | Cert `serviceKey` (host) not in `ipasshpubkey` | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
@@ -1232,8 +1260,11 @@ print([v.decode() for v in result.values])
   `ipaKrbServiceAttestationKey` (`2.16.840.1.113730.3.8.15.2.4`),
   `ipaKrbServiceAttestationType` (`2.16.840.1.113730.3.8.15.2.5`), objectClass
   `ipaKrbServiceAttestation` (`2.16.840.1.113730.3.8.24.11`), X.509 extensions
-  `id-ce-kerberosServiceIssuerBinding` (`2.16.840.1.113730.3.8.15.3.1`) and
-  `id-ce-sshAuthnContext` (`2.16.840.1.113730.3.8.15.3.2`).
+  `id-ce-kerberosServiceIssuerBinding` (`2.16.840.1.113730.3.8.15.3.1`),
+  `id-ce-sshAuthnContext` (`2.16.840.1.113730.3.8.15.3.2`), and
+  `id-ce-oidcAuthnContext` (`2.16.840.1.113730.3.8.15.3.3`).
+  OID `2.16.840.1.113730.3.8.15.3.4` is reserved (previously planned for RADIUS,
+  now unallocated).
 - `id-pkinit-KPClientAuth` EKU: Confirm the MIT KDC does not attempt PKINIT
   processing on a cert bearing this EKU when it arrives via PA-FOR-X509-USER
   (type 130) rather than PKINIT padata.  If ambiguous, define a dedicated EKU

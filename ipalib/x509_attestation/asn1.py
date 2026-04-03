@@ -167,7 +167,7 @@ def encode_oidc_authn_context(
 # id-ce-kerberosServiceIssuerBinding (OID 2.16.840.1.113730.3.8.15.3.1):
 #   SEQUENCE {
 #     version     INTEGER (0),
-#     serviceType UTF8String,          -- "ssh", "oidc", "radius", "pam", ...
+#     serviceType UTF8String,          -- "ssh", "oidc", "pam", ...
 #     principal   UTF8String,          -- "host/<hostname>@<REALM>"
 #     enctype     INTEGER,             -- Kerberos enctype (17–20)
 #     kvno        INTEGER,
