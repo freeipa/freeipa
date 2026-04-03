@@ -148,7 +148,7 @@ A full working CLI demonstrating the pipeline is in `doc/examples/s4u-x509/`.
 | Symbol | Description |
 |--------|-------------|
 | `KeytabEntry` | Dataclass: `principal`, `kvno`, `enctype`, `key` (raw bytes) |
-| `get_host_keytab_key(hostname, realm, keytab_path=None, fips_mode=False)` | Open host keytab; select the highest-preference AES entry for `host/<hostname>@<realm>`; return `KeytabEntry`. |
+| `get_host_keytab_key(hostname, realm, keytab_path=None, fips_mode=False, service_type="host")` | Open keytab; select the highest-preference AES entry for `<service_type>/<hostname>@<realm>`; return `KeytabEntry`.  Pass `service_type="service"` (or any other Kerberos service name prefix) when the keytab holds a non-host principal. |
 | `build_attestation_cert(user, realm, auth_method, session_id, host_pubkey, keytab_entry, ...)` | SSH-specific pipeline.  Encodes `SshAuthnContext`, derives signing key with salt `"ssh-attestation-v1"`, and builds the certificate.  Keyword args: `subject_pubkey`, `key_fingerprint`, `client_address`, `cert_lifetime`. |
 | `build_oidc_attestation_cert(user, realm, issuer, access_token_hash, host_pubkey, keytab_entry, ...)` | OIDC-specific pipeline.  Encodes `OidcAuthnContext` with `issuer`, `access_token_hash`, and optional RFC 8176 `amr` list.  Derives signing key with salt `"oidc-attestation-v1"`.  Keyword args: `amr`, `client_id`, `client_address`, `cert_lifetime`. |
 | `build_service_attestation_cert(user, realm, service_type, host_pubkey, keytab_entry, ...)` | Generic pipeline for any service type.  Salt `"{service_type}-attestation-v1"` provides cryptographic domain separation.  Keyword args: `subject_pubkey`, `authn_context_ext`, `cert_lifetime`. |
@@ -321,9 +321,8 @@ ipa service-remove-attestation-key \
 ### Using authentication indicators in policy
 
 Once attestation is in place, service access policies can require specific
-authentication indicators using the IPA ticket policy framework or the
-kdcpolicy plugin.  Indicator strings follow the pattern
-`<serviceType>-authn:<detail>`:
+authentication indicators using the IPA ticket policy framework.
+Indicator strings follow the pattern `<serviceType>-authn:<detail>`:
 
 ```
 ssh-authn:publickey
@@ -333,6 +332,42 @@ oidc-authn:pwd
 oidc-authn:otp
 oidc-authn:mfa
 ```
+
+#### Ticket lifetime limits per attestation method
+
+The IPA Kerberos ticket policy (`ipa krbtpolicy-mod`) supports per-indicator
+maximum ticket lifetime and renewable age for S4U2Self attestation indicators.
+These limits are stored as LDAP attribute subtypes on the policy object:
+
+```
+krbAuthIndMaxTicketLife;ssh-authn: 28800
+krbAuthIndMaxRenewableAge;ssh-authn: 86400
+krbAuthIndMaxTicketLife;oidc-authn: 43200
+krbAuthIndMaxRenewableAge;oidc-authn: 172800
+```
+
+They are managed via the IPA CLI:
+
+```bash
+# Cap SSH-attested delegated tickets to 8 hours
+ipa krbtpolicy-mod --ssh-authn-maxlife=28800 --ssh-authn-maxrenew=86400
+
+# Cap OIDC-attested delegated tickets to 12 hours
+ipa krbtpolicy-mod --oidc-authn-maxlife=43200 --oidc-authn-maxrenew=172800
+```
+
+The `ipa_kdcpolicy_check_tgs()` KDC policy hook enforces these limits during
+TGS-REQ processing.  When a delegated (S4U2Proxy) ticket is requested using a
+service ticket that carries `ssh-authn:*` or `oidc-authn:*` indicators, the
+hook prefix-matches each indicator against the target service's policy and
+applies the smallest configured non-zero `max_life` found.  This allows
+administrators to bound the lifetime of delegated tickets independently from
+ordinary Kerberos tickets.
+
+Unlike AS-REQ indicator limits (`otp`, `pkinit`, etc.) — which are gated by
+the user's `ipaUserAuthType` configuration and enforced at TGT issuance —
+the S4U2Self indicator limits apply unconditionally and come from the **target
+service's** policy, not the impersonated user's.
 
 ## Design
 
@@ -1061,8 +1096,17 @@ service management:
 | `ipa service-remove-attestation-key <principal>` | `--pub-key-file=FILE` | Remove a registered attestation key |
 | `ipa service-show <principal>` | — | Lists registered keys in output |
 
-Auth indicator policy rules using the new indicator strings can be configured
-via existing ticket policy mechanisms once the service side is implemented.
+Auth indicator ticket lifetime policy is configured via `ipa krbtpolicy-mod`:
+
+```bash
+ipa krbtpolicy-mod --ssh-authn-maxlife=28800 --ssh-authn-maxrenew=86400
+ipa krbtpolicy-mod --oidc-authn-maxlife=43200 --oidc-authn-maxrenew=172800
+```
+
+Service access control (requiring a specific indicator to access a service) is
+not yet supported for `ssh-authn:*` / `oidc-authn:*` via `ipa service-mod
+--auth-ind`; that requires extending the allowed-indicator validation in
+`ipaserver/plugins/service.py`.
 
 ### Configuration
 
@@ -1269,8 +1313,12 @@ print([v.decode() for v in result.values])
   processing on a cert bearing this EKU when it arrives via PA-FOR-X509-USER
   (type 130) rather than PKINIT padata.  If ambiguous, define a dedicated EKU
   OID (`2.16.840.1.113730.3.8.15.3.6`).
-- **Auth indicator namespace:** Confirm `ssh-authn:*` strings are acceptable
-  under RFC 6711 and IPA's existing indicator naming conventions.
+- **Auth indicator namespace:** The `<serviceType>-authn:<detail>` format is
+  established and implemented.  The IPA ticket policy layer (`krbtpolicy.py`,
+  `ipa_kdb_kdcpolicy.c`) supports `ssh-authn` and `oidc-authn` as LDAP attribute
+  subtypes and as prefix-matched indicator strings in `check_tgs()`.  Extending
+  the IPA service access control (`ipa service-mod --auth-ind`) to validate these
+  indicator strings is a separate future task.
 - **Keytab re-keying overlap:** The key lookup matches on both `enctype` and
   `kvno`; old certs continue to verify against old key entries as long as they
   remain in the KDB.  Short cert validity makes the overlap window small.

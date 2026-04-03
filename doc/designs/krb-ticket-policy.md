@@ -8,9 +8,13 @@ user authentication and ticket lifetime/reissue time policies to achieve a finer
 
 ## Authentication indicators
 
-Authentication indicators are attached by KDC to tickets issued to user and depend on 
-which pre-authentication mechanism used to acquire the credential. 
-Indicators and corresponding mechanisms are listed below:
+Authentication indicators are attached by the KDC to tickets issued to users and depend on
+which pre-authentication mechanism was used to acquire the credential.
+
+### AS-REQ indicators
+
+These indicators are set during the initial ticket-granting ticket (TGT) request (AS-REQ) and
+reflect the pre-authentication method used by the user directly against the KDC:
 
 | Authentication indicator | Mechanism            |
 |:------------------------ | :------------------- |
@@ -19,14 +23,35 @@ Indicators and corresponding mechanisms are listed below:
 | pkinit                   | PKINIT               |
 | hardened                 | Hardened Password (by SPAKE or FAST) |
 | idp                      | External Identity Provider |
+| passkey                  | Passkey (FIDO2/WebAuthn hardware authenticator) |
 
-Hardened password means a password authentication with either SPAKE or FAST armoring enabled. 
-Although it is possible to assign separate indicators to SPAKE and FAST, when both SPAKE and FAST are used, 
-only the indicator for SPAKE will be applied. 
-Since there is no practical reason to forbid the use of SPAKE while using FAST armoring, 
+Hardened password means a password authentication with either SPAKE or FAST armoring enabled.
+Although it is possible to assign separate indicators to SPAKE and FAST, when both SPAKE and FAST are used,
+only the indicator for SPAKE will be applied.
+Since there is no practical reason to forbid the use of SPAKE while using FAST armoring,
 these two are assigned the same indicator to represent a brute-force hardened form of password authentication.
 
-By requiring certain authentication indicators to a user, we can force a user to be authenticated with one of 
+### S4U2Self protocol-transition indicators
+
+These indicators are set during S4U2Self (protocol transition) requests in which a Kerberos
+service presents an X.509 attestation certificate alongside `PA-FOR-X509-USER`.  They reflect
+the authentication method used by the user against the *service*, not against the KDC directly.
+Each indicator follows the pattern `<serviceType>-authn:<detail>`:
+
+| Authentication indicator        | Mechanism |
+|:------------------------------- |:--------- |
+| `ssh-authn:publickey`           | SSH public-key authentication (attested S4U2Self) |
+| `ssh-authn:password`            | SSH password authentication (attested S4U2Self) |
+| `ssh-authn:keyboard-interactive`| SSH keyboard-interactive authentication (attested S4U2Self) |
+| `oidc-authn:<amr>`              | OIDC/OpenID Connect; one indicator per RFC 8176 §2 AMR value (e.g. `oidc-authn:pwd`, `oidc-authn:otp`, `oidc-authn:mfa`) |
+| `oidc-authn:sso`                | OIDC; fallback when no `amrValues` are present in the attestation context |
+
+Unlike AS-REQ indicators, S4U2Self indicators are not gated by the user's `ipaUserAuthType`
+setting.  They are emitted unconditionally whenever the KDB plugin successfully verifies the
+attestation certificate.  Multiple `oidc-authn:*` indicators may appear simultaneously in a
+single ticket (one per AMR value).
+
+By requiring certain authentication indicators to a user, we can force a user to be authenticated with one of
 the mechanisms associated with those auth indicators to obtain a ticket.
 By defining an allow list of authentication indicators to a service, we can allow a user to use the service
 only if the user obtained a ticket with at least one of those indicators included.
@@ -74,6 +99,13 @@ Administrators can specify max life and renew for each auth indicator and global
 
 e.g. `ipa krbtpolicy-mod --otp-maxlife=604800 --pkinit-maxlife=604800`
 
+S4U2Self attestation indicators have dedicated options as well:
+
+```
+ipa krbtpolicy-mod --ssh-authn-maxlife=28800 --ssh-authn-maxrenew=86400
+ipa krbtpolicy-mod --oidc-authn-maxlife=43200 --oidc-authn-maxrenew=172800
+```
+
 Current `--maxlife` and `--maxrenew` options for `ipa krbtpolicy-mod` will set the default max life / renew respectively.
 
 After this, the output for `ipa krbtpolicy-show` will look like:
@@ -82,8 +114,17 @@ After this, the output for `ipa krbtpolicy-show` will look like:
 Max life: 86400
 OTP max life: 604800
 PKINIT max life: 604800
+SSH attestation max life: 28800
+SSH attestation max renew: 86400
+OIDC attestation max life: 43200
+OIDC attestation max renew: 172800
 Max renew: 604800
 ```
+
+The `ssh-authn` and `oidc-authn` lifetime limits are enforced during **TGS-REQ** processing
+(specifically during S4U2Proxy, when a delegated service ticket is issued using the S4U2Self
+ticket).  The limits from the *target service's* policy are applied.  AS-REQ indicator limits
+(`otp`, `pkinit`, etc.) are enforced at TGT issuance time and are not affected by this change.
 
 #### WebUI Workflow:
 
@@ -119,6 +160,26 @@ type of authentication indicator is specified as LDAP attribute option:
 ```
 krbAuthIndMaxTicketLife;otp: 604800
 krbAuthIndMaxRenewableAge;pkinit: 604800
+krbAuthIndMaxTicketLife;ssh-authn: 28800
+krbAuthIndMaxRenewableAge;ssh-authn: 86400
+krbAuthIndMaxTicketLife;oidc-authn: 43200
+krbAuthIndMaxRenewableAge;oidc-authn: 172800
 ```
 
 They are stored in the same policy object in LDAP.
+
+### AS-REQ vs TGS-REQ enforcement
+
+The `ipa_kdcpolicy_check_as()` hook enforces lifetime limits for AS-REQ indicators
+(`otp`, `radius`, `pkinit`, `hardened`, `idp`, `passkey`).  These limits come from the
+**client** (user) principal's policy and are applied at TGT issuance time.  Each indicator
+is gated on the user's `ipaUserAuthType` bitmask: an OTP limit is only loaded if OTP is
+enabled for that user.
+
+The `ipa_kdcpolicy_check_tgs()` hook enforces lifetime limits for S4U2Self indicators
+(`ssh-authn:*`, `oidc-authn:*`).  These limits come from the **server** (target service)
+principal's policy and are applied during TGS-REQ processing — specifically during
+S4U2Proxy, when a delegated ticket carrying the S4U2Self attestation indicators is used
+to request access to a downstream service.  Unlike AS-REQ indicators, `ssh-authn` and
+`oidc-authn` entries are always parsed regardless of the principal's `ipaUserAuthType`
+setting, since they are not controlled by per-user authentication configuration.
