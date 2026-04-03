@@ -1104,9 +1104,25 @@ ipa krbtpolicy-mod --oidc-authn-maxlife=43200 --oidc-authn-maxrenew=172800
 ```
 
 Service access control (requiring a specific indicator to access a service) is
-not yet supported for `ssh-authn:*` / `oidc-authn:*` via `ipa service-mod
---auth-ind`; that requires extending the allowed-indicator validation in
-`ipaserver/plugins/service.py`.
+configured via `ipa service-mod --auth-ind`:
+
+```bash
+# Allow only SSH public-key attested tickets to access a sensitive service
+ipa service-mod http/internal.example.com@REALM \
+    --auth-ind ssh-authn:publickey
+
+# Require any OIDC MFA attestation
+ipa service-mod http/api.example.com@REALM \
+    --auth-ind oidc-authn:mfa
+
+# Mix AS-REQ and S4U2Self indicators on the same service
+ipa service-mod http/api.example.com@REALM \
+    --auth-ind otp --auth-ind oidc-authn:mfa
+```
+
+The `--auth-ind` parameter accepts both the fixed AS-REQ indicator set and any
+`<service>-authn:<detail>` S4U2Self attestation indicator, validated by
+`validate_auth_indicator_value()` in `ipaserver/plugins/service.py`.
 
 ### Configuration
 
@@ -1314,11 +1330,15 @@ print([v.decode() for v in result.values])
   (type 130) rather than PKINIT padata.  If ambiguous, define a dedicated EKU
   OID (`2.16.840.1.113730.3.8.15.3.6`).
 - **Auth indicator namespace:** The `<serviceType>-authn:<detail>` format is
-  established and implemented.  The IPA ticket policy layer (`krbtpolicy.py`,
-  `ipa_kdb_kdcpolicy.c`) supports `ssh-authn` and `oidc-authn` as LDAP attribute
-  subtypes and as prefix-matched indicator strings in `check_tgs()`.  Extending
-  the IPA service access control (`ipa service-mod --auth-ind`) to validate these
-  indicator strings is a separate future task.
+  established and fully implemented.  The IPA ticket policy layer
+  (`krbtpolicy.py`, `ipa_kdb_kdcpolicy.c`) supports `ssh-authn` and
+  `oidc-authn` as LDAP attribute subtypes and as prefix-matched indicator
+  strings in `check_tgs()`.  The IPA service and host plugins
+  (`ipaserver/plugins/service.py`, `ipaserver/plugins/host.py`) accept
+  `<service>-authn:<detail>` values via `ipa service-mod --auth-ind` and
+  `ipa host-mod --auth-ind`, validated by `validate_auth_indicator_value()`.
+  The change from `StrEnum` to `Str`+validator is backward-compatible: all
+  previously accepted fixed indicator values remain valid.
 - **Keytab re-keying overlap:** The key lookup matches on both `enctype` and
   `kvno`; old certs continue to verify against old key entries as long as they
   remain in the KDB.  Short cert validity makes the overlap window small.

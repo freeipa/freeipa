@@ -77,7 +77,23 @@ Services with no authentication indicator assigned will accept tickets authentic
 
 Administrators can specify required auth indicators for a service via `ipa service-mod` command.
 
-e.g. `ipa service-mod service/@REALM --auth-ind otp --auth-ind pkinit`
+```bash
+# Require OTP or PKINIT pre-authentication:
+ipa service-mod service/@REALM --auth-ind otp --auth-ind pkinit
+
+# Require SSH public-key attestation (S4U2Self):
+ipa service-mod http/api.example.com@REALM --auth-ind ssh-authn:publickey
+
+# Require any OIDC MFA attestation:
+ipa service-mod http/api.example.com@REALM --auth-ind oidc-authn:mfa
+```
+
+Accepted values for `--auth-ind` are the fixed AS-REQ indicators (`otp`,
+`radius`, `pkinit`, `hardened`, `idp`, `passkey`) and any S4U2Self
+protocol-transition indicator of the form `<service>-authn:<detail>`,
+where `<service>` is a lowercase identifier (e.g. `ssh`, `oidc`) and
+`<detail>` is a lowercase alphanumeric/hyphen string (e.g. `publickey`,
+`mfa`, `keyboard-interactive`).
 
 #### WebUI Workflow:
 
@@ -183,3 +199,21 @@ S4U2Proxy, when a delegated ticket carrying the S4U2Self attestation indicators 
 to request access to a downstream service.  Unlike AS-REQ indicators, `ssh-authn` and
 `oidc-authn` entries are always parsed regardless of the principal's `ipaUserAuthType`
 setting, since they are not controlled by per-user authentication configuration.
+
+### IPA API: `krbprincipalauthind` parameter
+
+The `krbprincipalauthind` parameter on `ipa service-mod`, `ipa service-add`,
+`ipa host-mod`, and `ipa host-add` (CLI option `--auth-ind`) previously used
+`StrEnum` restricted to the fixed AS-REQ indicator set.  It has been changed to
+`Str` with a `validate_auth_indicator_value()` rule that accepts:
+
+- Any member of the fixed set: `otp`, `radius`, `pkinit`, `hardened`, `idp`,
+  `passkey` — fully backward-compatible with the previous `StrEnum` behaviour
+- Any string matching the pattern `^[a-z][a-z0-9]*-authn:[a-z][a-z0-9-]*$`,
+  covering all current and future `<service>-authn:<detail>` S4U2Self
+  attestation indicator prefixes
+
+All values accepted by the old `StrEnum` remain valid; no migration or
+configuration change is needed for existing deployments.  Invalid values (wrong
+case, empty detail, unrecognised fixed names) are rejected at parameter
+validation time with a descriptive error.
