@@ -53,6 +53,7 @@
  */
 #define OID_KERBEROS_SERVICE_ISSUER_BINDING "2.16.840.1.113730.3.8.15.3.1"
 #define OID_SSH_AUTHN_CONTEXT               "2.16.840.1.113730.3.8.15.3.2"
+#define OID_OIDC_AUTHN_CONTEXT              "2.16.840.1.113730.3.8.15.3.3"
 
 
 /* ------------------------------------------------------------------ *
@@ -70,7 +71,7 @@
  *     binding     OCTET STRING
  *   }
  *
- * id-ce-sshAuthnContext:
+ * id-ce-sshAuthnContext (OID ...3.2):
  *   SEQUENCE {
  *     version         INTEGER (0),
  *     authMethod      UTF8String,
@@ -78,6 +79,19 @@
  *     keyFingerprint  [0] EXPLICIT UTF8String OPTIONAL,
  *     clientAddress   [1] EXPLICIT UTF8String OPTIONAL
  *   }
+ *
+ * id-ce-oidcAuthnContext (OID ...3.3):
+ *   SEQUENCE {
+ *     version         INTEGER (0),
+ *     issuer          UTF8String,
+ *     clientId        UTF8String OPTIONAL,
+ *     accessTokenHash OCTET STRING,
+ *     amrValues       SEQUENCE OF UTF8String OPTIONAL,
+ *     clientAddress   [0] EXPLICIT UTF8String OPTIONAL
+ *   }
+ *   clientId (0x0C) and accessTokenHash (0x04) carry distinct tags so the
+ *   optional clientId is unambiguous to decoders.  amrValues is decoded as
+ *   ASN1_SEQUENCE_ANY (STACK_OF(ASN1_TYPE)) to avoid a nested typedef.
  * ------------------------------------------------------------------ */
 
 typedef struct kerberos_service_issuer_binding_st {
@@ -125,6 +139,28 @@ ASN1_SEQUENCE(SSH_AUTHN_CONTEXT) = {
 } ASN1_SEQUENCE_END(SSH_AUTHN_CONTEXT)
 
 IMPLEMENT_ASN1_FUNCTIONS(SSH_AUTHN_CONTEXT)
+
+typedef struct oidc_authn_context_st {
+    ASN1_INTEGER        *version;
+    ASN1_UTF8STRING     *issuer;
+    ASN1_UTF8STRING     *client_id;          /* OPTIONAL, no explicit tag */
+    ASN1_OCTET_STRING   *access_token_hash;
+    STACK_OF(ASN1_TYPE) *amr_values;         /* OPTIONAL SEQUENCE OF UTF8String */
+    ASN1_UTF8STRING     *client_address;     /* [0] EXPLICIT OPTIONAL */
+} OIDC_AUTHN_CONTEXT;
+
+DECLARE_ASN1_FUNCTIONS(OIDC_AUTHN_CONTEXT)
+
+ASN1_SEQUENCE(OIDC_AUTHN_CONTEXT) = {
+    ASN1_SIMPLE(OIDC_AUTHN_CONTEXT, version,           ASN1_INTEGER),
+    ASN1_SIMPLE(OIDC_AUTHN_CONTEXT, issuer,            ASN1_UTF8STRING),
+    ASN1_OPT(OIDC_AUTHN_CONTEXT,   client_id,          ASN1_UTF8STRING),
+    ASN1_SIMPLE(OIDC_AUTHN_CONTEXT, access_token_hash, ASN1_OCTET_STRING),
+    ASN1_OPT(OIDC_AUTHN_CONTEXT,   amr_values,         ASN1_SEQUENCE_ANY),
+    ASN1_EXP_OPT(OIDC_AUTHN_CONTEXT, client_address,  ASN1_UTF8STRING, 0),
+} ASN1_SEQUENCE_END(OIDC_AUTHN_CONTEXT)
+
+IMPLEMENT_ASN1_FUNCTIONS(OIDC_AUTHN_CONTEXT)
 
 /* ------------------------------------------------------------------ *
  * id-pkinit-san (1.3.6.1.5.2.2) PKINIT Subject Alternative Name     *
@@ -342,6 +378,10 @@ typedef krb5_error_code (*s4u_verify_context_fn)(
     unsigned int flags,
     const void *svc_context,
     krb5_db_entry **entry_out);
+/* Parse a service context extension from DER bytes; return opaque pointer or
+ * NULL on parse / version failure.  Caller must free via free_context_fn. */
+typedef void *(*s4u_parse_context_fn)(const unsigned char *data, size_t len);
+typedef void  (*s4u_free_context_fn)(void *ctx);
 
 /* ------------------------------------------------------------------ *
  * Locate a named extension in an X.509 cert and return its value bytes.
@@ -914,13 +954,22 @@ done:
  *   Uses ipaKrbServiceAttestationKey (DER-encoded SPKI, binary).      *
  * ------------------------------------------------------------------ */
 
+/* Which LDAP key store the handler's pubkey matching uses. */
+enum s4u_key_store {
+    S4U_KEY_STORE_ATTESTATION, /* ipaKrbServiceAttestationKey → keys[]   */
+    S4U_KEY_STORE_SSH,         /* ipasshpubkey            → ssh_pubkeys[] */
+};
+
 struct ipa_s4u_cert_handler {
     const char             *service_type;    /* NULL = generic fallback */
+    enum s4u_key_store      key_store;
     const char             *hkdf_salt;       /* NULL = derive from service type */
     const char             *binding_label;   /* NULL = derive from service type */
     const char             *context_ext_oid; /* NULL = no context extension */
     const char             *ldap_pubkey_attr;
     s4u_parse_pubkey_fn     parse_pubkey;
+    s4u_parse_context_fn    parse_context;   /* NULL = no context extension */
+    s4u_free_context_fn     free_context;    /* NULL = no context extension */
     s4u_verify_context_fn   verify_context;
 };
 
@@ -932,6 +981,13 @@ static krb5_error_code ssh_s4u_verify_context(krb5_context,
                                                unsigned int,
                                                const void *,
                                                krb5_db_entry **);
+static krb5_error_code oidc_s4u_verify_context(krb5_context,
+                                                const struct ipa_s4u_cert_handler *,
+                                                X509 *,
+                                                krb5_const_principal,
+                                                unsigned int,
+                                                const void *,
+                                                krb5_db_entry **);
 static krb5_error_code svc_s4u_verify_context(krb5_context,
                                                const struct ipa_s4u_cert_handler *,
                                                X509 *,
@@ -942,15 +998,53 @@ static krb5_error_code svc_s4u_verify_context(krb5_context,
 static EVP_PKEY *parse_openssh_pubkey(const unsigned char *data, size_t len);
 static EVP_PKEY *parse_der_spki_pubkey(const unsigned char *data, size_t len);
 
+/* Context parse/free wrappers: DER-decode the extension and check version. */
+static void *
+parse_ssh_context(const unsigned char *data, size_t len)
+{
+    SSH_AUTHN_CONTEXT *ctx = d2i_SSH_AUTHN_CONTEXT(NULL, &data, (long)len);
+    if (!ctx || ASN1_INTEGER_get(ctx->version) != 0) {
+        SSH_AUTHN_CONTEXT_free(ctx);
+        return NULL;
+    }
+    return ctx;
+}
+
+static void *
+parse_oidc_context(const unsigned char *data, size_t len)
+{
+    OIDC_AUTHN_CONTEXT *ctx = d2i_OIDC_AUTHN_CONTEXT(NULL, &data, (long)len);
+    if (!ctx || ASN1_INTEGER_get(ctx->version) != 0) {
+        OIDC_AUTHN_CONTEXT_free(ctx);
+        return NULL;
+    }
+    return ctx;
+}
+
 static const struct ipa_s4u_cert_handler s4u_handlers[] = {
     {
         .service_type     = "ssh",
+        .key_store        = S4U_KEY_STORE_SSH,
         .hkdf_salt        = "ssh-attestation-v1",
         .binding_label    = "ssh-attestation-binding-v1",
         .context_ext_oid  = OID_SSH_AUTHN_CONTEXT,
         .ldap_pubkey_attr = "ipaSshPubKey",
         .parse_pubkey     = parse_openssh_pubkey,
+        .parse_context    = parse_ssh_context,
+        .free_context     = (s4u_free_context_fn)SSH_AUTHN_CONTEXT_free,
         .verify_context   = ssh_s4u_verify_context,
+    },
+    {
+        .service_type     = "oidc",
+        .key_store        = S4U_KEY_STORE_ATTESTATION,
+        .hkdf_salt        = "oidc-attestation-v1",
+        .binding_label    = "oidc-attestation-binding-v1",
+        .context_ext_oid  = OID_OIDC_AUTHN_CONTEXT,
+        .ldap_pubkey_attr = "ipaKrbServiceAttestationKey",
+        .parse_pubkey     = parse_der_spki_pubkey,
+        .parse_context    = parse_oidc_context,
+        .free_context     = (s4u_free_context_fn)OIDC_AUTHN_CONTEXT_free,
+        .verify_context   = oidc_s4u_verify_context,
     },
 };
 
@@ -959,6 +1053,7 @@ static const struct ipa_s4u_cert_handler s4u_handlers[] = {
 /* Generic fallback: any service type registered via ipaKrbServiceAttestationKey */
 static const struct ipa_s4u_cert_handler generic_s4u_handler = {
     .service_type     = NULL,
+    .key_store        = S4U_KEY_STORE_ATTESTATION,
     .hkdf_salt        = NULL,   /* derived as "<stype>-attestation-v1" */
     .binding_label    = NULL,   /* derived as "<stype>-attestation-binding-v1" */
     .context_ext_oid  = NULL,   /* no context extension for generic types */
@@ -1384,6 +1479,90 @@ ssh_s4u_verify_context(krb5_context kcontext,
 }
 
 /* ------------------------------------------------------------------ *
+ * OIDC service context verification callback.                         *
+ *                                                                     *
+ * Extracts the amrValues SEQUENCE OF UTF8String from the decoded      *
+ * OidcAuthnContext and maps it to an auth indicator method:           *
+ *   "mfa" — amrValues contains "mfa" (RFC 8176 multiple-factor)      *
+ *   "sso" — amrValues absent or contains no MFA evidence             *
+ * ------------------------------------------------------------------ */
+static bool
+oidc_amr_has_mfa(STACK_OF(ASN1_TYPE) *amr)
+{
+    if (!amr)
+        return false;
+    int n = sk_ASN1_TYPE_num(amr);
+    for (int i = 0; i < n; i++) {
+        ASN1_TYPE *t = sk_ASN1_TYPE_value(amr, i);
+        if (!t || t->type != V_ASN1_UTF8STRING)
+            continue;
+        const ASN1_UTF8STRING *s = t->value.utf8string;
+        if (s->length == 3 && memcmp(s->data, "mfa", 3) == 0)
+            return true;
+    }
+    return false;
+}
+
+static krb5_error_code
+oidc_s4u_verify_context(krb5_context kcontext,
+                         const struct ipa_s4u_cert_handler *h,
+                         X509 *cert,
+                         krb5_const_principal hint_princ,
+                         unsigned int flags,
+                         const void *svc_context,
+                         krb5_db_entry **entry_out)
+{
+    const OIDC_AUTHN_CONTEXT *authn = (const OIDC_AUTHN_CONTEXT *)svc_context;
+    krb5_db_entry *user_entry = NULL;
+    struct ipadb_e_data *ied = NULL;
+    krb5_error_code ret;
+
+    ret = s4u_lookup_user_by_cn(kcontext, cert, hint_princ, flags,
+                                 &user_entry, &ied);
+    if (ret)
+        return ret;
+
+    /* Cross-realm referral: no IPA e_data, no indicators to set. */
+    if (!ied) {
+        *entry_out = user_entry;
+        return 0;
+    }
+
+    if (!ied->s4u) {
+        ipadb_free_principal(kcontext, user_entry);
+        return ENOMEM;
+    }
+
+    ied->s4u->service_type = strdup(h->service_type);
+    if (!ied->s4u->service_type)
+        krb5_klog_syslog(LOG_WARNING,
+                         "S4U X.509: OOM copying service type");
+
+    /*
+     * Derive the auth indicator method from the amrValues field:
+     *   "mfa" — amrValues contains the "mfa" RFC 8176 claim
+     *   "sso" — amrValues is absent or contains no MFA evidence
+     *
+     * The OIDC context extension may be absent (context advisory only);
+     * treat a missing context the same as an empty amrValues → "sso".
+     */
+    const char *method = "sso";
+    if (authn && oidc_amr_has_mfa(authn->amr_values))
+        method = "mfa";
+
+    ied->s4u->auth_method = strdup(method);
+    if (!ied->s4u->auth_method)
+        krb5_klog_syslog(LOG_WARNING,
+                         "S4U X.509: OOM copying auth_method; "
+                         "audit record will show 'unknown'");
+
+    ied->s4u->attested = true;
+
+    *entry_out = user_entry;
+    return 0;
+}
+
+/* ------------------------------------------------------------------ *
  * Generic service context verification callback.                      *
  *                                                                     *
  * Used for any service type registered via ipaKrbServiceAttestationKey*
@@ -1411,6 +1590,12 @@ svc_s4u_verify_context(krb5_context kcontext,
                                  &user_entry, &ied);
     if (ret)
         return ret;
+
+    /* Cross-realm referral: no IPA e_data, no indicators to set. */
+    if (!ied) {
+        *entry_out = user_entry;
+        return 0;
+    }
 
     if (!ied->s4u) {
         ipadb_free_principal(kcontext, user_entry);
@@ -1443,7 +1628,7 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
     struct ipadb_context              *ipactx = NULL;
     X509                              *cert = NULL;
     KERBEROS_SERVICE_ISSUER_BINDING   *ib = NULL;
-    SSH_AUTHN_CONTEXT                 *ai = NULL;
+    void                              *svc_ctx = NULL; /* opaque parsed context */
     const struct ipa_s4u_cert_handler *h = NULL;
     krb5_db_entry                     *host_entry = NULL;
     krb5_principal                     host_princ = NULL;
@@ -1749,7 +1934,8 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
         ret = KRB5KDC_ERR_CERTIFICATE_MISMATCH;
         goto done;
     }
-    if (h == &generic_s4u_handler) {
+    if (h->key_store == S4U_KEY_STORE_ATTESTATION) {
+        /* DER SPKI path: generic fallback and dedicated handlers (OIDC, …) */
         if (hed_s4u->s4u->n_keys == 0) {
             krb5_klog_syslog(LOG_WARNING,
                              "S4U X.509: no attestation keys registered "
@@ -1757,8 +1943,10 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
             ret = KRB5KDC_ERR_CERTIFICATE_MISMATCH;
             goto done;
         }
-        /* Check service type is allowed */
-        {
+        /* Generic fallback only: verify the service type is whitelisted.
+         * Dedicated handlers (OIDC etc.) have a fixed service_type baked
+         * into the handler, so no allowlist check is needed for them. */
+        if (h == &generic_s4u_handler) {
             bool type_ok = false;
             char **types = hed_s4u->s4u->types;
             for (int i = 0; types && types[i]; i++) {
@@ -1846,20 +2034,17 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
     }
 
     /* Parse service context extension (advisory; failures do not abort).
-     * Only attempted when the handler registers a context OID. */
-    if (h->context_ext_oid) {
+     * Only attempted when the handler registers a context OID and parser. */
+    if (h->context_ext_oid && h->parse_context) {
         const unsigned char *ext_data = NULL;
         size_t ext_len = 0;
         if (cert_get_extension(cert, h->context_ext_oid,
                                &ext_data, &ext_len) == 0) {
-            ai = d2i_SSH_AUTHN_CONTEXT(NULL, &ext_data, (long)ext_len);
-            if (!ai || ASN1_INTEGER_get(ai->version) != 0) {
+            svc_ctx = h->parse_context(ext_data, ext_len);
+            if (!svc_ctx)
                 krb5_klog_syslog(LOG_WARNING,
                                  "S4U X.509: malformed service context "
                                  "extension; proceeding without auth details");
-                SSH_AUTHN_CONTEXT_free(ai);
-                ai = NULL;
-            }
         } else {
             krb5_klog_syslog(LOG_WARNING,
                              "S4U X.509: cert missing service context "
@@ -1868,35 +2053,37 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
     }
 
     /* Resolve user principal and populate e_data via service handler */
-    ret = h->verify_context(kcontext, h, cert, princ, flags, ai, entry_out);
+    ret = h->verify_context(kcontext, h, cert, princ, flags, svc_ctx, entry_out);
     if (ret == 0) {
-        const char *method = (ai && ai->auth_method)
-            ? (const char *)ASN1_STRING_get0_data(ai->auth_method)
-            : "unknown";
-        krb5_klog_syslog(LOG_INFO,
-                         "S4U X.509: attested S4U2Self type='%s' "
-                         "method='%s' host='%s'",
-                         stype, method, principal_str);
-
         /*
          * For the generic handler, set s4u->service_type and s4u->auth_method
          * here where stype is still valid (it's owned by ib, freed below).
-         * For SSH the handler sets these fields itself from the authn context.
+         * SSH and OIDC handlers set these fields themselves from the parsed
+         * context; the generic handler has no context to draw from.
          */
-        if (h == &generic_s4u_handler && *entry_out) {
-            struct ipadb_e_data *ied = NULL;
-            if (ipadb_get_edata(*entry_out, &ied) == 0 && ied->s4u) {
-                if (!ied->s4u->service_type)
-                    ied->s4u->service_type = strdup(stype);
-                if (!ied->s4u->auth_method)
-                    ied->s4u->auth_method = strdup(method);
-            }
+        struct ipadb_e_data *ied = NULL;
+        if (h == &generic_s4u_handler && *entry_out &&
+            ipadb_get_edata(*entry_out, &ied) == 0 && ied->s4u) {
+            if (!ied->s4u->service_type)
+                ied->s4u->service_type = strdup(stype);
+            if (!ied->s4u->auth_method)
+                ied->s4u->auth_method = strdup("unknown");
         }
+
+        const char *log_method = "unknown";
+        if (*entry_out &&
+            (ied || ipadb_get_edata(*entry_out, &ied) == 0) && ied->s4u)
+            log_method = ied->s4u->auth_method ?: "unknown";
+        krb5_klog_syslog(LOG_INFO,
+                         "S4U X.509: attested S4U2Self type='%s' "
+                         "method='%s' host='%s'",
+                         stype, log_method, principal_str);
     }
 
 done:
     KERBEROS_SERVICE_ISSUER_BINDING_free(ib);
-    SSH_AUTHN_CONTEXT_free(ai);
+    if (svc_ctx && h && h->free_context)
+        h->free_context(svc_ctx);
     X509_free(cert);
     EVP_PKEY_free(derived_key);
     krb5_free_principal(kcontext, host_princ);

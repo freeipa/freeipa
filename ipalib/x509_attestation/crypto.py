@@ -2,7 +2,7 @@
 # Copyright (C) 2026  FreeIPA Contributors see COPYING for license
 #
 """
-HKDF key derivation and binding signature for SSH S4U2Self attestation.
+HKDF key derivation and binding signature for S4U2Self attestation.
 
 Mirrors derive_attestation_key() / derive_p256_key() in gss-s4u-x509-crypto.c
 and derive_attestation_key() / derive_p256_attestation_key() in
@@ -10,6 +10,14 @@ ipa_kdb_s4u_x509.c.
 
 All numeric constants and the HKDF info format must remain byte-for-byte
 identical between this module, the OpenSSH client, and the IPA KDB plugin.
+
+The HKDF salt and binding label are derived from the service type for
+cryptographic domain separation between services:
+  salt  = "{service_type}-attestation-v1"   (UTF-8 encoded)
+  label = "{service_type}-attestation-binding-v1"
+
+For SSH (service_type="ssh") these evaluate to the fixed strings used in
+gss-s4u-x509-crypto.c and ipa_kdb_s4u_x509.c.
 """
 
 import hashlib
@@ -20,12 +28,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-
-# HKDF salt shared by OpenSSH client and IPA KDB plugin.
-HKDF_SALT = b"ssh-attestation-v1"
-
-# Label for the binding digest pre-image.
-BINDING_LABEL = b"ssh-attestation-binding-v1"
 
 # P-256 group order n  (FIPS 186-4 §D.1.2.3 / SEC2 §2.4.2).
 # Hardcoded to match the P256_ORDER constant in ipa_kdb_s4u_x509.c and
@@ -63,7 +65,8 @@ def _derive_p256_key(seed48: bytes) -> ec.EllipticCurvePrivateKey:
     ec.derive_private_key() computes Q = scalar·G internally, producing a
     full keypair.  This sidesteps the OpenSSL 3.x EVP_PKEY_fromdata issue
     where the EC public key is not auto-derived from the private scalar
-    (documented in doc/designs/krb-s4u-x509-assertion.md §FIPS Considerations).
+    (documented in doc/designs/krb-s4u-x509-assertion.md §FIPS
+    Considerations).
     """
     raw = int.from_bytes(seed48, 'big')
     scalar = (raw % (P256_ORDER - 1)) + 1
@@ -76,9 +79,14 @@ def derive_signing_key(
     realm: str,
     kvno: int,
     fips_mode: bool,
+    service_type: str = "ssh",
 ) -> SigningKey:
     """
     Derive the attestation signing key from raw keytab key material (IKM).
+
+    The HKDF salt "{service_type}-attestation-v1" provides cryptographic
+    domain separation so the same keytab key produces distinct signing
+    keys for each service type (ssh, oidc, radius, pam, ...).
 
     Non-FIPS: Ed25519 from 32-byte HKDF-SHA256 output.
     FIPS:     ECDSA P-256 from 48-byte HKDF-SHA256 output, scalar-reduced
@@ -87,11 +95,12 @@ def derive_signing_key(
     The seed is zeroed after use as a best-effort mitigation (CPython does
     not guarantee that bytes objects are immediately reclaimed).
     """
+    salt = f"{service_type}-attestation-v1".encode()
     seed_len = 48 if fips_mode else 32
     seed = HKDF(
         algorithm=hashes.SHA256(),
         length=seed_len,
-        salt=HKDF_SALT,
+        salt=salt,
         info=_build_hkdf_info(hostname, realm, kvno),
     ).derive(ikm)
 
@@ -113,12 +122,14 @@ def compute_binding_signature(
     host_spki_der: bytes,
     principal: str,
     kvno: int,
+    service_type: str = "ssh",
 ) -> bytes:
     """
     Compute the issuer binding signature.
 
     Pre-image:
-        digest = SHA256(serviceKey_DER || BINDING_LABEL
+        label  = "{service_type}-attestation-binding-v1"
+        digest = SHA256(serviceKey_DER || label
                         || principal || kvno_be32)
 
     For Ed25519:
@@ -127,16 +138,17 @@ def compute_binding_signature(
 
     For ECDSA P-256:
         sig = ECDSA.sign(key, SHA256(digest))
-        Matches OpenSSL EVP_DigestSign(EVP_sha256, key, digest, 32) behaviour,
-        which hashes the supplied message before signing.
+        Matches OpenSSL EVP_DigestSign(EVP_sha256, key, digest, 32)
+        behaviour, which hashes the supplied message before signing.
 
     The result is:
         Ed25519  — 64-byte raw signature
         ECDSA    — DER-encoded SEQUENCE { INTEGER r, INTEGER s }
     """
+    label = f"{service_type}-attestation-binding-v1".encode()
     digest = hashlib.sha256(
         host_spki_der
-        + BINDING_LABEL
+        + label
         + principal.encode()
         + struct.pack('>I', kvno)
     ).digest()

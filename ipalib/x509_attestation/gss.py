@@ -97,7 +97,7 @@ def acquire_s4u_creds(
     cert_name = gssapi.Name(cert_der, name_type=GSS_KRB5_NT_X509_CERT)
 
     # 3. gss_acquire_cred_impersonate_name: S4U2Self TGS-REQ with the cert.
-    s4u_creds = gssapi.Credentials(
+    s4u_creds = gssapi.Credentials(  # pylint: disable=unexpected-keyword-arg
         name=cert_name,
         usage='initiate',
         mechs=[gssapi.MechType.kerberos],
@@ -153,7 +153,7 @@ def request_s4u_proxy(
     # Initiating a context with impersonated creds causes libkrb5 to perform
     # S4U2Proxy internally: a TGS-REQ with KDC_OPT_CNAME_IN_ADDL_TKT and the
     # S4U2Self ticket as additional-tickets evidence (MS-SFU §3.2.5).
-    ctx = gssapi.SecurityContext(
+    ctx = gssapi.SecurityContext(  # pylint: disable=unexpected-keyword-arg
         name=target_name,
         creds=s4u_creds,
         usage='initiate',

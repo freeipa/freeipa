@@ -2,7 +2,7 @@
 # Copyright (C) 2026  FreeIPA Contributors see COPYING for license
 #
 """
-DER encoding of SSH attestation and PKINIT ASN.1 structures.
+DER encoding of SSH and OIDC attestation and PKINIT ASN.1 structures.
 
 All structures are encoded with minimal hand-written DER helpers to avoid
 version-specific dependencies on cryptography.hazmat.asn1 (the declarative
@@ -15,6 +15,7 @@ gss-s4u-x509-asn1.c (OpenSSH client) and ipa_kdb_s4u_x509.c (IPA KDB plugin).
 # OIDs — must match gss-s4u-x509-internal.h
 OID_KERBEROS_SERVICE_ISSUER_BINDING = "2.16.840.1.113730.3.8.15.3.1"
 OID_SSH_AUTHN_CONTEXT = "2.16.840.1.113730.3.8.15.3.2"
+OID_OIDC_AUTHN_CONTEXT = "2.16.840.1.113730.3.8.15.3.3"
 OID_PKINIT_SAN = "1.3.6.1.5.2.2"
 OID_PKINIT_KP_CLIENTAUTH = "1.3.6.1.5.2.3.4"
 
@@ -119,6 +120,44 @@ def encode_authn_context(
         body += _explicit(0, _utf8str(key_fingerprint))  # [0] EXPLICIT
     if client_address is not None:
         body += _explicit(1, _utf8str(client_address))   # [1] EXPLICIT
+    return _seq(body)
+
+
+# ---------------------------------------------------------------------------
+# OidcAuthnContext
+#
+# id-ce-oidcAuthnContext (OID 2.16.840.1.113730.3.8.15.3.3) ::= SEQUENCE {
+#     version         INTEGER (0),
+#     issuer          UTF8String,
+#     clientId        UTF8String OPTIONAL,
+#     accessTokenHash OCTET STRING,                    -- SHA256(access_token)
+#     amrValues       SEQUENCE OF UTF8String OPTIONAL, -- RFC 8176 "amr" claim
+#     clientAddress   [0] EXPLICIT UTF8String OPTIONAL
+# }
+#
+# clientId (UTF8String, tag 0x0C) and accessTokenHash (OCTET STRING, tag 0x04)
+# have distinct universal tags so an absent clientId is unambiguous to decoders.
+# ---------------------------------------------------------------------------
+
+def encode_oidc_authn_context(
+    issuer: str,
+    access_token_hash: bytes,
+    amr: list[str] | None = None,
+    client_id: str | None = None,
+    client_address: str | None = None,
+) -> bytes:
+    """DER-encode the id-ce-oidcAuthnContext extension value."""
+    body = (
+        _int_der(0)         # version = 0
+        + _utf8str(issuer)  # issuer
+    )
+    if client_id is not None:
+        body += _utf8str(client_id)                        # clientId OPTIONAL
+    body += _octstr(access_token_hash)                     # accessTokenHash
+    if amr is not None:
+        body += _seq(b"".join(_utf8str(v) for v in amr))  # amrValues OPTIONAL
+    if client_address is not None:
+        body += _explicit(0, _utf8str(client_address))  # [0] EXPLICIT OPTIONAL
     return _seq(body)
 
 
