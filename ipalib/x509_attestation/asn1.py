@@ -1,5 +1,8 @@
+#
+# Copyright (C) 2026  FreeIPA Contributors see COPYING for license
+#
 """
-asn1.py — DER-encoding of SSH attestation and PKINIT ASN.1 structures.
+DER encoding of SSH attestation and PKINIT ASN.1 structures.
 
 All structures are encoded with minimal hand-written DER helpers to avoid
 version-specific dependencies on cryptography.hazmat.asn1 (the declarative
@@ -20,48 +23,7 @@ KRB_NT_PRINCIPAL = 1
 
 
 # ---------------------------------------------------------------------------
-# SshAuthnContext — manual DER
-#
-# id-ce-sshAuthnContext (OID 2.16.840.1.113730.3.8.15.3.2) ::= SEQUENCE {
-#     version         INTEGER (0),
-#     authMethod      UTF8String,
-#     sessionId       OCTET STRING,
-#     keyFingerprint  [0] EXPLICIT UTF8String OPTIONAL,
-#     clientAddress   [1] EXPLICIT UTF8String OPTIONAL
-# }
-#
-# Matches SSH_AUTHN_CONTEXT in gss-s4u-x509-asn1.c:
-#   ASN1_SIMPLE(version, ASN1_INTEGER)
-#   ASN1_SIMPLE(auth_method, ASN1_UTF8STRING)
-#   ASN1_SIMPLE(session_id, ASN1_OCTET_STRING)
-#   ASN1_EXP_OPT(key_fingerprint, ASN1_UTF8STRING, 0)
-#   ASN1_EXP_OPT(client_address,  ASN1_UTF8STRING, 1)
-# ---------------------------------------------------------------------------
-
-def encode_authn_context(
-    auth_method: str,
-    session_id: bytes,
-    key_fingerprint: str | None = None,
-    client_address: str | None = None,
-) -> bytes:
-    """DER-encode the id-ce-sshAuthnContext extension value."""
-    body = (
-        _int_der(0)              # version = 0
-        + _utf8str(auth_method)  # authMethod
-        + _octstr(session_id)    # sessionId
-    )
-    if key_fingerprint is not None:
-        body += _explicit(0, _utf8str(key_fingerprint))  # [0] EXPLICIT UTF8String
-    if client_address is not None:
-        body += _explicit(1, _utf8str(client_address))   # [1] EXPLICIT UTF8String
-    return _seq(body)
-
-
-# ---------------------------------------------------------------------------
 # Minimal DER primitives
-#
-# Used only where cryptography.hazmat.asn1 cannot represent the required
-# type (AlgorithmIdentifier with OID, SubjectPublicKeyInfo, GeneralString).
 # ---------------------------------------------------------------------------
 
 def _len_der(n: int) -> bytes:
@@ -123,7 +85,45 @@ _ALG_ECDSA_SHA256 = _seq(
 
 
 # ---------------------------------------------------------------------------
-# KerberosServiceIssuerBinding — manual DER
+# SshAuthnContext
+#
+# id-ce-sshAuthnContext (OID 2.16.840.1.113730.3.8.15.3.2) ::= SEQUENCE {
+#     version         INTEGER (0),
+#     authMethod      UTF8String,
+#     sessionId       OCTET STRING,
+#     keyFingerprint  [0] EXPLICIT UTF8String OPTIONAL,
+#     clientAddress   [1] EXPLICIT UTF8String OPTIONAL
+# }
+#
+# Matches SSH_AUTHN_CONTEXT in gss-s4u-x509-asn1.c:
+#   ASN1_SIMPLE(version, ASN1_INTEGER)
+#   ASN1_SIMPLE(auth_method, ASN1_UTF8STRING)
+#   ASN1_SIMPLE(session_id, ASN1_OCTET_STRING)
+#   ASN1_EXP_OPT(key_fingerprint, ASN1_UTF8STRING, 0)
+#   ASN1_EXP_OPT(client_address,  ASN1_UTF8STRING, 1)
+# ---------------------------------------------------------------------------
+
+def encode_authn_context(
+    auth_method: str,
+    session_id: bytes,
+    key_fingerprint: str | None = None,
+    client_address: str | None = None,
+) -> bytes:
+    """DER-encode the id-ce-sshAuthnContext extension value."""
+    body = (
+        _int_der(0)              # version = 0
+        + _utf8str(auth_method)  # authMethod
+        + _octstr(session_id)    # sessionId
+    )
+    if key_fingerprint is not None:
+        body += _explicit(0, _utf8str(key_fingerprint))  # [0] EXPLICIT
+    if client_address is not None:
+        body += _explicit(1, _utf8str(client_address))   # [1] EXPLICIT
+    return _seq(body)
+
+
+# ---------------------------------------------------------------------------
+# KerberosServiceIssuerBinding
 #
 # id-ce-kerberosServiceIssuerBinding (OID 2.16.840.1.113730.3.8.15.3.1):
 #   SEQUENCE {
@@ -166,7 +166,7 @@ def encode_issuer_binding(
 
 
 # ---------------------------------------------------------------------------
-# KRB5PrincipalName — manual DER (RFC 4120 §5.2.2 / RFC 4556 §3.1)
+# KRB5PrincipalName
 #
 # KRB5PrincipalName ::= SEQUENCE {
 #     realm         [0] EXPLICIT GeneralString,

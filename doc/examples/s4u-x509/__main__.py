@@ -28,9 +28,6 @@ import argparse
 import os
 import sys
 
-# Allow running as a standalone script from the directory.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
 try:
     import gssapi
 except ImportError:
@@ -42,9 +39,12 @@ from cryptography.hazmat.primitives.serialization import load_ssh_public_key
 
 from ipapython.ssh import SSHPublicKey
 
-from keytab import get_host_keytab_key
-from cert import build_attestation_cert
-from gss import acquire_s4u_creds, request_s4u_proxy
+from ipalib.x509_attestation import (
+    get_host_keytab_key,
+    build_attestation_cert,
+    acquire_s4u_creds,
+    request_s4u_proxy,
+)
 
 
 _HOST_KEY_CANDIDATES = [

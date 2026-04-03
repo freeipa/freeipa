@@ -22,15 +22,19 @@ ticket.  Indicator format: `<serviceType>-authn:<method>` (e.g.
 The certificate is signed with a key derived from the host Kerberos keytab, so
 no additional credentials or PKI infrastructure are required.
 
-## File layout
+## Module location
 
-| File | Mirrors C source | Purpose |
-|------|-----------------|---------|
-| `keytab.py` | `gss-s4u-x509-keytab.c` | Keytab enumeration and key selection |
-| `crypto.py` | `gss-s4u-x509-crypto.c` / `ipa_kdb_s4u_x509.c` | HKDF key derivation and binding signature |
-| `asn1.py` | `gss-s4u-x509-asn1.c` | DER encoding of the custom X.509 extensions and PKINIT SAN |
-| `cert.py` | `gss-s4u-x509.c` | X.509 certificate assembly |
-| `gss.py` | *(GSSAPI call site in sshd)* | GSSAPI S4U2Self acquisition |
+The implementation lives in `ipalib.x509_attestation` (source:
+`ipalib/x509_attestation/`).  The `__main__.py` here is a thin CLI wrapper
+that imports from that package.
+
+| Module | Mirrors C source | Purpose |
+|--------|-----------------|---------|
+| `ipalib.x509_attestation.keytab` | `gss-s4u-x509-keytab.c` | Keytab enumeration and key selection |
+| `ipalib.x509_attestation.crypto` | `gss-s4u-x509-crypto.c` / `ipa_kdb_s4u_x509.c` | HKDF key derivation and binding signature |
+| `ipalib.x509_attestation.asn1` | `gss-s4u-x509-asn1.c` | DER encoding of the custom X.509 extensions and PKINIT SAN |
+| `ipalib.x509_attestation.cert` | `gss-s4u-x509.c` | X.509 certificate assembly |
+| `ipalib.x509_attestation.gss` | *(GSSAPI call site in sshd)* | GSSAPI S4U2Self and S4U2Proxy |
 | `__main__.py` | *(integration)* | CLI entry point |
 
 ## Requirements
@@ -85,11 +89,12 @@ openssl x509 -in cert.der -inform DER -text -noout
 
 ## Protocol walk-through
 
-1. **Keytab** (`keytab.py`) — Open the host keytab and select the best AES
-   entry for `host/<hostname>@<REALM>` (preference: enctype 20 > 19 > 18 > 17;
-   AES-128 enctypes 17 and 19 are rejected in FIPS mode).
+1. **Keytab** (`ipalib.x509_attestation.keytab`) — Open the host keytab and
+   select the best AES entry for `host/<hostname>@<REALM>` (preference:
+   enctype 20 > 19 > 18 > 17; AES-128 enctypes 17 and 19 are rejected in
+   FIPS mode).
 
-2. **Key derivation** (`crypto.py`) — Derive an attestation signing key from
+2. **Key derivation** (`ipalib.x509_attestation.crypto`) — Derive an attestation signing key from
    the raw keytab key material using HKDF-SHA256:
    - IKM: raw keytab key bytes
    - Salt: `ssh-attestation-v1`
@@ -97,7 +102,7 @@ openssl x509 -in cert.der -inform DER -text -noout
    - Non-FIPS: 32-byte output → Ed25519 private key
    - FIPS: 48-byte output → P-256 scalar via NIST SP 800-56A Rev 3 §5.6.1.2.2
 
-3. **Binding signature** (`crypto.py`) — Sign a digest binding the host key to
+3. **Binding signature** (`ipalib.x509_attestation.crypto`) — Sign a digest binding the host key to
    the principal and KVNO:
    ```
    digest = SHA256(host_SPKI_DER || "ssh-attestation-binding-v1" || principal || kvno_be32)
@@ -105,7 +110,7 @@ openssl x509 -in cert.der -inform DER -text -noout
           | ECDSA-SHA256.sign(key, digest)      # FIPS
    ```
 
-4. **Certificate** (`cert.py`) — Build a short-lived (≤ 300 s) X.509 v3
+4. **Certificate** (`ipalib.x509_attestation.cert`) — Build a short-lived (≤ 300 s) X.509 v3
    certificate signed by the derived attestation key:
    - Subject CN: SSH username
    - Issuer CN: `host/<hostname>@<REALM>`
@@ -121,7 +126,7 @@ openssl x509 -in cert.der -inform DER -text -noout
      - `id-ce-sshAuthnContext` — version, auth method, session ID,
        key fingerprint (optional), client address (optional)
 
-5. **S4U2Self** (`gss.py`) — Import the DER certificate as a GSSAPI name
+5. **S4U2Self** (`ipalib.x509_attestation.gss`) — Import the DER certificate as a GSSAPI name
    using `GSS_KRB5_NT_X509_CERT` (OID 1.2.840.113554.1.2.2.7).  The GSSAPI
    mechanism has no SAN awareness — it stores the raw cert bytes opaquely
    (`is_cert = 1`) and forwards them verbatim into the PA-S4U-X509-USER
@@ -129,7 +134,7 @@ openssl x509 -in cert.der -inform DER -text -noout
    KDB plugin, which performs all X.509 interpretation and injects SSH
    authentication indicators into the resulting service ticket.
 
-6. **S4U2Proxy** (`gss.py`, optional) — After S4U2Self, the host can request
+6. **S4U2Proxy** (`ipalib.x509_attestation.gss`, optional) — After S4U2Self, the host can request
    a proxy ticket for a target service (e.g. `HTTP/ipa.example.com`) on
    behalf of the impersonated user.  `gss_init_sec_context()` with the
    S4U2Self credentials triggers a TGS-REQ with `KDC_OPT_CNAME_IN_ADDL_TKT`
@@ -166,7 +171,7 @@ checksum over the PA-S4U-X509-USER payload using the TGS session key.
 
 All three structures (`SshAuthnContext`, `KerberosServiceIssuerBinding`,
 `KRB5PrincipalName`) are encoded with minimal hand-written DER helpers in
-`asn1.py` to avoid version-specific dependencies on `cryptography.hazmat.asn1`
+`ipalib.x509_attestation.asn1` to avoid version-specific dependencies on `cryptography.hazmat.asn1`
 (the declarative codec API has changed across releases).
 
 - `KerberosServiceIssuerBinding` embeds an `AlgorithmIdentifier` (SEQUENCE + OID)

@@ -1,12 +1,15 @@
+#
+# Copyright (C) 2026  FreeIPA Contributors see COPYING for license
+#
 """
-crypto.py — HKDF key derivation and binding signature.
+HKDF key derivation and binding signature for SSH S4U2Self attestation.
 
 Mirrors derive_attestation_key() / derive_p256_key() in gss-s4u-x509-crypto.c
 and derive_attestation_key() / derive_p256_attestation_key() in
 ipa_kdb_s4u_x509.c.
 
 All numeric constants and the HKDF info format must remain byte-for-byte
-identical between this file, the OpenSSH client, and the IPA KDB plugin.
+identical between this module, the OpenSSH client, and the IPA KDB plugin.
 """
 
 import hashlib

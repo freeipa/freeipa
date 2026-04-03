@@ -1,5 +1,8 @@
+#
+# Copyright (C) 2026  FreeIPA Contributors see COPYING for license
+#
 """
-cert.py — X.509 attestation certificate assembly.
+X.509 attestation certificate assembly for SSH S4U2Self.
 
 Mirrors ssh_gssapi_s4u_x509_build_cert() in gss-s4u-x509.c.
 
@@ -13,16 +16,16 @@ from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 
-from asn1 import (
+from .asn1 import (
     OID_KERBEROS_SERVICE_ISSUER_BINDING, OID_SSH_AUTHN_CONTEXT,
     OID_PKINIT_SAN, OID_PKINIT_KP_CLIENTAUTH,
     encode_issuer_binding, encode_authn_context, encode_pkinit_san_value,
 )
-from crypto import (
+from .crypto import (
     derive_signing_key, signing_key_is_fips,
     compute_binding_signature, generate_ephemeral_subject_key,
 )
-from keytab import KeytabEntry
+from .keytab import KeytabEntry
 
 # Mirrors SSH_S4U_CERT_LIFETIME_MAX in gss-s4u-x509-internal.h
 CERT_LIFETIME_MAX = 300  # seconds
@@ -51,7 +54,7 @@ def build_attestation_cert(
     auth_method:     "publickey", "password", or "keyboard-interactive".
     session_id:      SSH session ID bytes (random 32 bytes for non-SSH use).
     host_pubkey:     SSH host public key as a cryptography public key object.
-    keytab_entry:    Best keytab entry from keytab.get_host_keytab_key().
+    keytab_entry:    Best keytab entry from get_host_keytab_key().
     subject_pubkey:  User's public key for publickey auth; None → ephemeral key.
     key_fingerprint: "SHA256:…" key fingerprint string, or None.
     client_address:  "ip:port" string, or None.
@@ -175,7 +178,7 @@ def build_attestation_cert(
             critical=False,
         )
         .add_extension(
-            # id-ce-sshAuthnContext: SSH authentication details for the KDB plugin
+            # id-ce-sshAuthnContext: SSH auth details for the KDB plugin
             x509.UnrecognizedExtension(
                 x509.ObjectIdentifier(OID_SSH_AUTHN_CONTEXT),
                 authn_context_der,

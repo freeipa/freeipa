@@ -1,5 +1,8 @@
+#
+# Copyright (C) 2026  FreeIPA Contributors see COPYING for license
+#
 """
-gss.py — GSSAPI S4U2Self and S4U2Proxy using an X.509 attestation certificate.
+GSSAPI S4U2Self and S4U2Proxy using an X.509 attestation certificate.
 
 Uses python-gssapi with the MIT Kerberos GSS_KRB5_NT_X509_CERT name type
 (OID 1.2.840.113554.1.2.2.7, defined in MIT Kerberos gssapi_ext.h, requires
@@ -80,10 +83,10 @@ def acquire_s4u_creds(
         host_principal,
         name_type=gssapi.NameType.kerberos_principal,
     )
-    store = {'client_keytab': keytab_path} if keytab_path else {}
+    store = {'keytab': keytab_path} if keytab_path else {}
     host_creds = gssapi.Credentials(
         name=host_name,
-        usage='both',
+        usage='initiate',
         mechs=[gssapi.MechType.kerberos],
         store=store or None,
     )
@@ -94,10 +97,12 @@ def acquire_s4u_creds(
     cert_name = gssapi.Name(cert_der, name_type=GSS_KRB5_NT_X509_CERT)
 
     # 3. gss_acquire_cred_impersonate_name: S4U2Self TGS-REQ with the cert.
-    s4u_creds = host_creds.impersonate(
+    s4u_creds = gssapi.Credentials(
         name=cert_name,
         usage='initiate',
         mechs=[gssapi.MechType.kerberos],
+        impersonator=host_creds,
+        store=store or None,
     )
 
     return s4u_creds
@@ -152,7 +157,7 @@ def request_s4u_proxy(
         name=target_name,
         creds=s4u_creds,
         usage='initiate',
-        mech=gssapi.MechType.kerberos,
+        mechs=[gssapi.MechType.kerberos],
     )
 
     # step() calls gss_init_sec_context().  The S4U2Proxy TGS-REQ is issued

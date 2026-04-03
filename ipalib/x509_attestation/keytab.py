@@ -1,5 +1,8 @@
+#
+# Copyright (C) 2026  FreeIPA Contributors see COPYING for license
+#
 """
-keytab.py — Keytab enumeration and entry selection via python-krb5.
+Keytab enumeration and entry selection via python-krb5.
 
 Mirrors ssh_gssapi_s4u_x509_get_keytab_key() in gss-s4u-x509-keytab.c.
 """
