@@ -94,7 +94,7 @@ _S4U_OIDC_SCRIPT = textwrap.dedent("""\
         access_token_hash=hashlib.sha256(dummy_token).digest(),
         host_pubkey=host_pubkey,
         keytab_entry=keytab_entry,
-        amr=['password'],
+        amr=['pwd', 'otp'],
     )
 
     service_principal = keytab_entry.principal
@@ -183,6 +183,8 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
         # Register the attestation public key on the host service LDAP entry.
         # The IPA KDB s4u_x509 plugin reads ipaKrbServiceAttestationKey to
         # validate the host_pubkey embedded in the attestation certificate.
+        # Also register 'pam' as an allowed attestation type so the generic
+        # handler tests can use it without a dedicated handler entry.
         tasks.kinit_admin(cls.master)
         service_name = f'service/{hostname}'
         cls.master.run_command([
@@ -191,6 +193,7 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
         cls.master.run_command([
             'ipa', 'service-add-attestation-key', service_name,
             '--pubkey', cls.attest_pubkey_path,
+            '--type', 'pam',
         ])
 
         # Retrieve the host keytab; restrict permissions so the scripts can
@@ -258,6 +261,274 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
             f"name; got: {result.stdout_text!r}"
         )
 
+    def _acquire_s4u_ssh(self, username, user_realm):
+        """
+        Perform SSH password-auth S4U2Self attestation on the master.
+
+        Uses /etc/ssh/ssh_host_ecdsa_key.pub as host_pubkey (registered in the
+        host's ipasshpubkey LDAP attribute) and /etc/krb5.keytab for the host
+        service principal.  The Kerberos host realm is always the IPA realm;
+        user_realm may differ (e.g. a trusted AD realm).
+        """
+        hostname = self.master.hostname
+        ipa_realm = self.master.domain.realm
+
+        ssh_script = textwrap.dedent(f"""\
+            import os
+            from cryptography.hazmat.primitives.serialization import (
+                load_ssh_public_key,
+            )
+            from ipalib.x509_attestation import (
+                get_host_keytab_key,
+                build_attestation_cert,
+                acquire_s4u_creds,
+            )
+
+            with open('/etc/ssh/ssh_host_ecdsa_key.pub', 'rb') as f:
+                host_pubkey = load_ssh_public_key(f.read())
+
+            keytab_entry = get_host_keytab_key({hostname!r}, {ipa_realm!r})
+            cert_der = build_attestation_cert(
+                user={username!r},
+                realm={user_realm!r},
+                auth_method='password',
+                session_id=os.urandom(32),
+                host_pubkey=host_pubkey,
+                keytab_entry=keytab_entry,
+            )
+            creds = acquire_s4u_creds(
+                cert_der=cert_der,
+                host_principal=f'host/{hostname}@{ipa_realm}',
+                keytab_path='/etc/krb5.keytab',
+            )
+            print(str(creds.name))
+        """)
+        return self.master.run_command(['python3', '-c', ssh_script])
+
+    def _acquire_s4u_generic(self, username, user_realm):
+        """
+        Perform generic (PAM) S4U2Self attestation on the master.
+
+        Uses the registered EC attestation key (attest_key_path) as
+        host_pubkey and the service keytab (keytab_path).  The service
+        principal is read from the keytab.  service_type='pam' must be
+        registered in ipaKrbServiceAttestationType on the service LDAP entry
+        (done in install() via --type pam).
+        """
+        hostname = self.master.hostname
+        keytab_path = self.keytab_path
+        attest_key_path = self.attest_key_path
+
+        script = textwrap.dedent(f"""\
+            from cryptography.hazmat.primitives import serialization
+            from ipalib.x509_attestation import (
+                get_host_keytab_key,
+                build_service_attestation_cert,
+                acquire_s4u_creds,
+            )
+
+            with open({attest_key_path!r}, 'rb') as f:
+                attest_key = serialization.load_pem_private_key(
+                    f.read(), password=None)
+            host_pubkey = attest_key.public_key()
+
+            keytab_entry = get_host_keytab_key(
+                {hostname!r}, None,
+                keytab_path={keytab_path!r},
+                service_type='service',
+            )
+            cert_der = build_service_attestation_cert(
+                user={username!r},
+                realm={user_realm!r},
+                service_type='pam',
+                host_pubkey=host_pubkey,
+                keytab_entry=keytab_entry,
+            )
+            creds = acquire_s4u_creds(
+                cert_der=cert_der,
+                host_principal=keytab_entry.principal,
+                keytab_path={keytab_path!r},
+            )
+            print(str(creds.name))
+        """)
+        return self.master.run_command(['python3', '-c', script])
+
+    def test_ssh_attestation_ipa_user(self):
+        """
+        S4U2Self SSH attestation with auth_method='password' succeeds.
+
+        Simulates an SSH server attesting a password-authenticated login.
+        All host SSH keys are registered automatically in the host's LDAP
+        entry (ipasshpubkey).  ECDSA P-256 is selected because it is accepted
+        in both FIPS and non-FIPS mode; Ed25519 would be rejected by the KDB
+        plugin in FIPS mode.  An ephemeral subject key is used (password auth
+        does not carry the user's public key).  Verifies that the IPA KDB
+        plugin accepts the certificate, resolves the user, and issues a ticket.
+        """
+        realm = self.master.domain.realm
+        result = self._acquire_s4u_ssh(self.ipa_test_user, realm)
+        assert self.ipa_test_user in result.stdout_text, (
+            f"Expected {self.ipa_test_user!r} in S4U2Self credential name "
+            f"via SSH attestation; got: {result.stdout_text!r}"
+        )
+
+    def test_ssh_attestation_ad_user_no_override(self):
+        """
+        SSH S4U2Self attestation succeeds for an AD user with no DTV entry.
+
+        When there is no Default Trust View ID override for the AD user the
+        IPA KDB plugin cannot resolve the user locally in TGS context.  MIT
+        Kerberos falls back to an internal AS-REQ for realm discovery, which
+        calls ipadb_get_s4u_x509_principal() with KRB5_KDB_FLAG_REFERRAL_OK
+        set.  The plugin detects the foreign realm and returns a thin referral
+        entry so the KDC can steer S4U2Self to the user's home AD domain.
+        No auth indicators are attached to the resulting ticket.
+        """
+        ad_username = self.aduser.split('@', maxsplit=1)[0]
+        ad_realm = self.ad_domain.upper()
+
+        result = self._acquire_s4u_ssh(ad_username, ad_realm)
+        assert ad_username in result.stdout_text, (
+            f"Expected {ad_username!r} in S4U2Self credential name via SSH "
+            f"attestation (no DTV); got: {result.stdout_text!r}"
+        )
+
+    def test_ssh_attestation_ad_user_with_ssh_override(self):
+        """
+        SSH S4U2Self attestation succeeds for an AD user with a DTV SSH key.
+
+        Creates a Default Trust View ID override entry for the AD user that
+        carries an SSH public key (ipasshpubkey).  The IPA KDB plugin finds
+        the DTV entry in Pass 2 but Phase 2 certificate-to-override matching
+        is not yet implemented, so S4U2Self still succeeds via the cross-realm
+        referral path.  Verifies that the presence of a DTV override does not
+        break attestation.
+        """
+        ad_username = self.aduser.split('@', maxsplit=1)[0]
+        ad_user_fq = self.aduser          # "nonposixuser@ad.domain" (lowercase)
+        ad_realm = self.ad_domain.upper()
+
+        # Generate a throw-away ECDSA key to populate ipasshpubkey in the DTV.
+        self.master.run_command([
+            'ssh-keygen', '-t', 'ecdsa', '-b', '256',
+            '-f', '/tmp/s4u_dtv_ssh_key', '-N', '',
+        ])
+        pubkey_result = self.master.run_command(
+            ['cat', '/tmp/s4u_dtv_ssh_key.pub'])
+        ssh_pubkey = pubkey_result.stdout_text.strip()
+
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'idoverrideuser-add', 'Default Trust View', ad_user_fq,
+                '--sshpubkey', ssh_pubkey,
+            ])
+
+            result = self._acquire_s4u_ssh(ad_username, ad_realm)
+            assert ad_username in result.stdout_text, (
+                f"Expected {ad_username!r} in S4U2Self credential name via "
+                f"SSH attestation (DTV with SSH key); "
+                f"got: {result.stdout_text!r}"
+            )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'idoverrideuser-del',
+                'Default Trust View', ad_user_fq,
+            ], raiseonerr=False)
+            self.master.run_command(
+                ['rm', '-f',
+                 '/tmp/s4u_dtv_ssh_key', '/tmp/s4u_dtv_ssh_key.pub'],
+                raiseonerr=False,
+            )
+
+    def test_generic_attestation_ipa_user(self):
+        """
+        Generic (PAM) S4U2Self attestation succeeds for an IPA user.
+
+        Uses build_service_attestation_cert() with service_type='pam' and the
+        registered EC attestation key as host_pubkey.  The generic handler in
+        the IPA KDB plugin dispatches on ipaKrbServiceAttestationType and
+        verifies the attestation key against ipaKrbServiceAttestationKey.
+        Verifies that the plugin sets the attested flag and issues a ticket.
+        """
+        realm = self.master.domain.realm
+        result = self._acquire_s4u_generic(self.ipa_test_user, realm)
+        assert self.ipa_test_user in result.stdout_text, (
+            f"Expected {self.ipa_test_user!r} in S4U2Self credential name "
+            f"via generic attestation; got: {result.stdout_text!r}"
+        )
+
+    def test_generic_attestation_ad_user_with_cert_override(self):
+        """
+        Generic (PAM) S4U2Self attestation succeeds for an AD user with DTV
+        userCertificate.
+
+        Creates a Default Trust View ID override for the AD user carrying a
+        self-signed X.509 certificate (userCertificate;binary).  The IPA KDB
+        plugin finds the DTV entry in Pass 2 but Phase 2 cert-override matching
+        is not yet implemented, so S4U2Self succeeds via the cross-realm
+        referral path.  Verifies that the DTV entry with a certificate does not
+        break generic attestation.
+        """
+        ad_username = self.aduser.split('@', maxsplit=1)[0]
+        ad_user_fq = self.aduser
+        ad_realm = self.ad_domain.upper()
+
+        # Generate a self-signed certificate to populate userCertificate;binary
+        # in the DTV override entry.
+        gen_cert_script = textwrap.dedent("""\
+            from cryptography.hazmat.primitives.asymmetric import ec
+            from cryptography.hazmat.primitives import serialization, hashes
+            from cryptography import x509
+            from datetime import datetime, timezone, timedelta
+            import base64
+
+            key = ec.generate_private_key(ec.SECP256R1())
+            now = datetime.now(tz=timezone.utc)
+            cert = (
+                x509.CertificateBuilder()
+                .subject_name(x509.Name([
+                    x509.NameAttribute(
+                        x509.oid.NameOID.COMMON_NAME, 'dtv-test'),
+                ]))
+                .issuer_name(x509.Name([
+                    x509.NameAttribute(
+                        x509.oid.NameOID.COMMON_NAME, 'dtv-test'),
+                ]))
+                .public_key(key.public_key())
+                .serial_number(x509.random_serial_number())
+                .not_valid_before(now)
+                .not_valid_after(now + timedelta(days=1))
+                .sign(key, hashes.SHA256())
+            )
+            print(base64.b64encode(
+                cert.public_bytes(serialization.Encoding.DER)).decode())
+        """)
+        cert_result = self.master.run_command(
+            ['python3', '-c', gen_cert_script])
+        cert_b64 = cert_result.stdout_text.strip()
+
+        tasks.kinit_admin(self.master)
+        try:
+            self.master.run_command([
+                'ipa', 'idoverrideuser-add', 'Default Trust View', ad_user_fq,
+                '--certificate', cert_b64,
+            ])
+
+            result = self._acquire_s4u_generic(ad_username, ad_realm)
+            assert ad_username in result.stdout_text, (
+                f"Expected {ad_username!r} in S4U2Self credential name via "
+                f"generic attestation (DTV with cert); "
+                f"got: {result.stdout_text!r}"
+            )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'idoverrideuser-del',
+                'Default Trust View', ad_user_fq,
+            ], raiseonerr=False)
+
     def test_oidc_attestation_wrong_key_rejected(self):
         """
         IPA KDB plugin rejects attestation cert signed with an unknown key.
@@ -293,6 +564,7 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
             keytab_entry = get_host_keytab_key(
                 {hostname!r}, {realm!r},
                 keytab_path={keytab_path!r},
+                service_type='service',
             )
             dummy_token = '{ipa_test_user}@{realm}:test_oidc_token'.encode()
             cert_der = build_oidc_attestation_cert(
@@ -302,7 +574,7 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
                 access_token_hash=hashlib.sha256(dummy_token).digest(),
                 host_pubkey=wrong_key,
                 keytab_entry=keytab_entry,
-                amr=['password'],
+                amr=['pwd'],
             )
             try:
                 creds = acquire_s4u_creds(

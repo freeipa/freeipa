@@ -39,9 +39,11 @@ def get_host_keytab_key(
     realm: str | None,
     keytab_path: str | None = None,
     fips_mode: bool = False,
+    service_type: str = "host",
 ) -> KeytabEntry:
     """
-    Open the host keytab and return the best entry for host/<hostname>@<realm>.
+    Open the keytab and return the best entry for
+    <service_type>/<hostname>@<realm>.
 
     If realm is None the keytab is scanned for any entry whose principal
     starts with "<service_type>/<hostname>@" and the realm is taken from
