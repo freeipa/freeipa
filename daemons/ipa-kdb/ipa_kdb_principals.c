@@ -775,6 +775,96 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
             }
         }
     }
+
+    /*
+     * Per-method S4U2Self limits: scan for krbAuthIndMaxTicketLife;{svc}-authn--{detail}
+     * and krbAuthIndMaxRenewableAge;{svc}-authn--{detail}.
+     *
+     * The "--" in the LDAP attribute option encodes the ":" separator that is
+     * invalid in LDAP attribute options (RFC 4512 keychar = ALPHA/DIGIT/HYPHEN).
+     * Decoding: "ssh-authn--publickey" -> indicator "ssh-authn:publickey".
+     *
+     * The base attribute names (krbAuthIndMaxTicketLife, krbAuthIndMaxRenewableAge)
+     * are already listed in std_principal_attrs[], so the LDAP server returns
+     * all their option subtypes in the same response — no extra round-trip needed.
+     */
+    {
+        static const char life_pfx[] = "krbAuthIndMaxTicketLife;";
+        static const char age_pfx[]  = "krbAuthIndMaxRenewableAge;";
+        static const size_t life_plen = sizeof(life_pfx) - 1;
+        static const size_t age_plen  = sizeof(age_pfx)  - 1;
+        BerElement *ber = NULL;
+        char *attrname;
+
+        for (attrname = ldap_first_attribute(lcontext, lentry, &ber);
+             attrname != NULL;
+             attrname = ldap_next_attribute(lcontext, lentry, ber)) {
+
+            const char *option = NULL;
+            bool is_life;
+
+            if (strncasecmp(attrname, life_pfx, life_plen) == 0) {
+                option = attrname + life_plen;
+                is_life = true;
+            } else if (strncasecmp(attrname, age_pfx, age_plen) == 0) {
+                option = attrname + age_plen;
+                is_life = false;
+            }
+
+            if (option) {
+                /* Match <svc>-authn--<detail>: "--" is the encoded ":" */
+                const char *sep = strstr(option, "--");
+                if (sep && sep > option && sep[2] != '\0') {
+                    char *indicator = NULL;
+                    if (asprintf(&indicator, "%.*s:%s",
+                                 (int)(sep - option), option, sep + 2) < 0) {
+                        ldap_memfree(attrname);
+                        continue;
+                    }
+
+                    /* Find or insert entry for this indicator */
+                    struct ipadb_s4u_ind_limit *lim = NULL;
+                    for (int k = 0; k < ied->n_s4u_ind_limits; k++) {
+                        if (strcmp(ied->s4u_ind_limits[k].indicator,
+                                   indicator) == 0) {
+                            lim = &ied->s4u_ind_limits[k];
+                            break;
+                        }
+                    }
+                    if (!lim) {
+                        struct ipadb_s4u_ind_limit *tmp =
+                            realloc(ied->s4u_ind_limits,
+                                    (ied->n_s4u_ind_limits + 1) * sizeof(*tmp));
+                        if (!tmp) {
+                            free(indicator);
+                            ldap_memfree(attrname);
+                            continue;
+                        }
+                        ied->s4u_ind_limits = tmp;
+                        lim = &tmp[ied->n_s4u_ind_limits++];
+                        lim->indicator = indicator;
+                        indicator = NULL;
+                        lim->limits.max_life = 0;
+                        lim->limits.max_renewable_life = 0;
+                    }
+                    free(indicator); /* NULL if consumed above */
+
+                    /* Only set if not already set (called twice: entry + policy) */
+                    ret = ipadb_ldap_attr_to_int(lcontext, lentry,
+                                                 attrname, &result);
+                    if (ret == 0) {
+                        if (is_life && lim->limits.max_life == 0)
+                            lim->limits.max_life = result;
+                        else if (!is_life && lim->limits.max_renewable_life == 0)
+                            lim->limits.max_renewable_life = result;
+                    }
+                }
+            }
+            ldap_memfree(attrname);
+        }
+        if (ber)
+            ber_free(ber, 0);
+    }
 }
 
 
@@ -2247,6 +2337,9 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 	    free(ied->s4u->ssh_client_address);
 	    free(ied->s4u);
 	}
+	for (i = 0; i < ied->n_s4u_ind_limits; i++)
+	    free(ied->s4u_ind_limits[i].indicator);
+	free(ied->s4u_ind_limits);
 	free(ied);
     }
 }

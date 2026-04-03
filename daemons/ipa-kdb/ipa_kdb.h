@@ -198,6 +198,21 @@ struct ipadb_e_pol_limits {
 };
 
 /*
+ * Per-method S4U2Self ticket policy limit.
+ *
+ * Set from krbAuthIndMaxTicketLife;{svc}-authn--{detail} LDAP attributes,
+ * where "--" encodes the ":" separator that is invalid in LDAP attribute
+ * options (RFC 4512: keychar = ALPHA / DIGIT / HYPHEN).
+ *
+ * Example: krbAuthIndMaxTicketLife;ssh-authn--publickey stores the limit for
+ * the auth indicator "ssh-authn:publickey".
+ */
+struct ipadb_s4u_ind_limit {
+    char *indicator;              /* decoded indicator, e.g. "ssh-authn:publickey" */
+    struct ipadb_e_pol_limits limits;
+};
+
+/*
  * All S4U2Self attestation state for a service principal entry.
  *
  * LDAP-derived fields (keys, types) are populated by ipadb_parse_ldap_entry()
@@ -241,6 +256,9 @@ struct ipadb_e_data {
     bool has_sid;
     struct dom_sid *sid;
     struct ipadb_s4u_data *s4u;
+    /* Per-method S4U2Self limits (exact indicator match, beats prefix limits) */
+    struct ipadb_s4u_ind_limit *s4u_ind_limits;
+    int n_s4u_ind_limits;
 };
 
 inline static krb5_error_code

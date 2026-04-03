@@ -212,22 +212,36 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
         return 0;
 
     for (int i = 0; auth_indicators && auth_indicators[i] != NULL; i++) {
-        enum ipadb_user_auth_idx idx = IPADB_USER_AUTH_IDX_MAX;
+        const char *ind = auth_indicators[i];
+        struct ipadb_e_pol_limits *cand = NULL;
 
-        if (strncmp(auth_indicators[i], "ssh-authn:", 10) == 0)
-            idx = IPADB_USER_AUTH_IDX_SSH_AUTHN;
-        else if (strncmp(auth_indicators[i], "oidc-authn:", 11) == 0)
-            idx = IPADB_USER_AUTH_IDX_OIDC_AUTHN;
-
-        if (idx == IPADB_USER_AUTH_IDX_MAX)
-            continue;
-
-        /* Apply the tightest (smallest non-zero) limit found. */
-        if (ied->pol_limits[idx].max_life != 0) {
-            if (pol_limits == NULL ||
-                ied->pol_limits[idx].max_life < pol_limits->max_life)
-                pol_limits = &ied->pol_limits[idx];
+        /* Exact match against per-method limits takes precedence over prefix. */
+        for (int k = 0; k < ied->n_s4u_ind_limits; k++) {
+            if (strcmp(ind, ied->s4u_ind_limits[k].indicator) == 0) {
+                if (ied->s4u_ind_limits[k].limits.max_life != 0)
+                    cand = &ied->s4u_ind_limits[k].limits;
+                break;
+            }
         }
+
+        /* Fall back to prefix-level limits (ssh-authn:*, oidc-authn:*). */
+        if (cand == NULL) {
+            enum ipadb_user_auth_idx idx = IPADB_USER_AUTH_IDX_MAX;
+
+            if (strncmp(ind, "ssh-authn:", 10) == 0)
+                idx = IPADB_USER_AUTH_IDX_SSH_AUTHN;
+            else if (strncmp(ind, "oidc-authn:", 11) == 0)
+                idx = IPADB_USER_AUTH_IDX_OIDC_AUTHN;
+
+            if (idx != IPADB_USER_AUTH_IDX_MAX &&
+                ied->pol_limits[idx].max_life != 0)
+                cand = &ied->pol_limits[idx];
+        }
+
+        /* Apply the tightest (smallest non-zero) limit found across all indicators. */
+        if (cand != NULL &&
+            (pol_limits == NULL || cand->max_life < pol_limits->max_life))
+            pol_limits = cand;
     }
 
     if (pol_limits != NULL) {

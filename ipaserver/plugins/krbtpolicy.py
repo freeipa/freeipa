@@ -254,6 +254,19 @@ def rename_authind_options_from_ldap(entry_attrs, options):
                 new_name = '{}_{}'.format(attr, subtype.replace('-', '_'))
                 entry_attrs[new_name] = entry_attrs.pop(name)
 
+    # Per-method S4U2Self options: krbAuthIndMaxTicketLife;{svc}-authn--{detail}
+    # The "--" encodes the ":" that is invalid in LDAP attribute options.
+    # Decode: "ssh-authn--publickey" -> Python suffix "ssh_authn__publickey"
+    # (replace('-', '_') maps '--' -> '__', preserving the double marker).
+    for name in list(entry_attrs):
+        for attr in _option_based_attrs:
+            if name.startswith(attr + ';'):
+                subtype = name[len(attr) + 1:]
+                if '--' in subtype:
+                    new_name = '{}_{}'.format(attr, subtype.replace('-', '_'))
+                    entry_attrs[new_name] = entry_attrs.pop(name)
+                    break
+
 
 def rename_authind_options_to_ldap(entry_attrs):
     for subtype in _supported_options:
@@ -263,6 +276,19 @@ def rename_authind_options_to_ldap(entry_attrs):
             if name in entry_attrs:
                 new_name = '{};{}'.format(attr, subtype)
                 entry_attrs[new_name] = entry_attrs.pop(name)
+
+    # Per-method S4U2Self options: Python suffix "ssh_authn__publickey"
+    # The "__" (double underscore) marks the encoded ":" separator.
+    # Encode: "ssh_authn__publickey" -> LDAP option "ssh-authn--publickey"
+    # (replace('_', '-') maps '__' -> '--', restoring the LDAP encoding).
+    for name in list(entry_attrs):
+        for attr in _option_based_attrs:
+            if name.startswith(attr + '_'):
+                suffix = name[len(attr) + 1:]
+                if '__' in suffix:
+                    new_name = '{};{}'.format(attr, suffix.replace('_', '-'))
+                    entry_attrs[new_name] = entry_attrs.pop(name)
+                    break
 
 
 @register()
@@ -364,7 +390,9 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
         else:
             def_values = _default_values.copy()
 
-        entry = ldap.get_entry(dn, list(def_values))
+        # Fetch with base attr names so per-method subtypes are included
+        fetch_attrs = list(def_values) + list(_option_based_attrs)
+        entry = ldap.get_entry(dn, fetch_attrs)
 
         # For per-indicator policies, drop them to defaults
         for subtype in _supported_options:
@@ -375,6 +403,18 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
                         def_values[name] = None
                     else:
                         def_values[name] = _default_values[attr]
+
+        # For per-method S4U2Self policies (attr;svc-authn--method), reset
+        for key in list(entry.keys()):
+            for attr in _option_based_attrs:
+                if key.startswith(attr + ';'):
+                    option = key[len(attr) + 1:]
+                    if '--' in option:
+                        if uid is not None:
+                            def_values[key] = None
+                        else:
+                            def_values[key] = _default_values[attr]
+                        break
 
         # Remove non-subtyped attrs variants,
         # they should never be used directly.
