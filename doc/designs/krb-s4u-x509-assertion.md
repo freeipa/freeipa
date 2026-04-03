@@ -135,6 +135,141 @@ Host SSH public keys must be registered in the host's IPA LDAP entry under the
 `ipaSshPubKey` attribute.  This is populated automatically during
 `ipa-client-install` and managed via `ipa host-mod --sshpubkey`.
 
+### Python service library (`ipalib.x509_attestation`)
+
+The `ipalib.x509_attestation` package provides the complete host-side
+attestation pipeline as an importable Python library.  Any service running
+with a Kerberos keytab — SSH server, OIDC broker, RADIUS NAS, PAM module,
+etc. — can use it to build an attestation certificate, exchange it for a
+S4U2Self service ticket, and optionally perform S4U2Proxy.  All keytab
+access uses direct `libkrb5` ctypes bindings via `ipapython.kerberos`; no
+external `python-krb5` package is required.
+
+A full working CLI demonstrating the pipeline is in `doc/examples/s4u-x509/`.
+
+#### Public API
+
+| Symbol | Description |
+|--------|-------------|
+| `KeytabEntry` | Dataclass: `principal`, `kvno`, `enctype`, `key` (raw bytes) |
+| `get_host_keytab_key(hostname, realm, keytab_path=None, fips_mode=False)` | Open host keytab; select the highest-preference AES entry for `host/<hostname>@<realm>`; return `KeytabEntry`. |
+| `build_attestation_cert(user, realm, auth_method, session_id, host_pubkey, keytab_entry, ...)` | SSH-specific pipeline.  Encodes `SshAuthnContext`, derives signing key with salt `"ssh-attestation-v1"`, and builds the certificate.  Keyword args: `subject_pubkey`, `key_fingerprint`, `client_address`, `cert_lifetime`. |
+| `build_service_attestation_cert(user, realm, service_type, host_pubkey, keytab_entry, ...)` | Generic pipeline for any service type.  Salt `"{service_type}-attestation-v1"` provides cryptographic domain separation.  Keyword args: `subject_pubkey`, `authn_context_ext`, `cert_lifetime`. |
+| `acquire_s4u_creds(cert_der, host_principal, keytab_path=None)` | Import `cert_der` as a `GSS_KRB5_NT_X509_CERT` GSSAPI name; call `gss_acquire_cred_impersonate_name`; return the resulting impersonated `gssapi.Credentials`. |
+| `request_s4u_proxy(s4u_creds, proxy_target)` | Initiate a GSSAPI security context with the S4U2Self credentials toward `proxy_target`; triggers S4U2Proxy TGS-REQ internally; return the initial AP-REQ token bytes. |
+
+Both certificate builders cap `cert_lifetime` at 300 seconds
+(`CERT_LIFETIME_MAX`).  FIPS mode is detected automatically from
+`/proc/sys/crypto/fips_enabled`; in FIPS mode Ed25519 is replaced by ECDSA
+P-256 throughout and AES-128 keytab entries (enctypes 17 and 19) are rejected.
+
+#### SSH service flow
+
+```python
+import os
+from cryptography.hazmat.primitives.serialization import load_ssh_public_key
+from ipapython.ssh import SSHPublicKey
+from ipalib.x509_attestation import (
+    get_host_keytab_key, build_attestation_cert, acquire_s4u_creds,
+)
+
+# 1. Select the best keytab entry for the host principal.
+keytab_entry = get_host_keytab_key(hostname="srv.example.com",
+                                   realm="EXAMPLE.COM")
+
+# 2. Load the SSH host public key (for the issuer binding).
+with open("/etc/ssh/ssh_host_ed25519_key.pub", "rb") as f:
+    raw = f.read()
+host_pubkey = load_ssh_public_key(raw)
+
+# 3. Optionally load the user's SSH public key (publickey auth).
+with open(user_pubkey_path, "rb") as f:
+    raw = f.read()
+ssh_key = SSHPublicKey(raw)
+key_fingerprint = ssh_key.fingerprint_hex_sha256()   # "SHA256:..."
+user_pubkey = load_ssh_public_key(raw)
+
+# 4. Build the attestation certificate.
+cert_der = build_attestation_cert(
+    user="alice",
+    realm="EXAMPLE.COM",
+    auth_method="publickey",
+    session_id=os.urandom(32),          # SSH session_id or random nonce
+    host_pubkey=host_pubkey,
+    keytab_entry=keytab_entry,
+    subject_pubkey=user_pubkey,         # None → ephemeral key
+    key_fingerprint=key_fingerprint,    # None → omit from SshAuthnContext
+    client_address="192.0.2.1:22",      # None → omit
+)
+
+# 5. Acquire S4U2Self credentials.
+s4u_creds = acquire_s4u_creds(cert_der, keytab_entry.principal)
+```
+
+#### Generic service flow
+
+For non-SSH services the caller encodes a service-specific authentication
+context extension (or passes `None` to omit it) and supplies the appropriate
+`service_type` string.  The HKDF salt and binding label are derived
+automatically from `service_type`.
+
+```python
+from ipalib.x509_attestation import (
+    get_host_keytab_key, build_service_attestation_cert, acquire_s4u_creds,
+)
+
+# 1. Select the best keytab entry (keytab holds the service principal key).
+keytab_entry = get_host_keytab_key(
+    hostname="broker.example.com",
+    realm="EXAMPLE.COM",
+    keytab_path="/etc/oidc-broker/krb5.keytab",
+)
+
+# 2. Load the service's own public key (registered in IPA LDAP as
+#    ipaKrbServiceAttestationKey on the oidc/ service principal).
+with open("/etc/oidc-broker/service.pub", "rb") as f:
+    service_pubkey = load_public_key(f.read())
+
+# 3. Build a service-specific authentication context extension.
+#    OID 2.16.840.1.113730.3.8.15.3.3 is id-ce-oidcAuthnContext (future).
+#    Callers are responsible for encoding the extension value.
+oidc_ctx_der = encode_oidc_authn_context(issuer=..., access_token_hash=...,
+                                          amr=["mfa", "otp"])
+authn_context_ext = ("2.16.840.1.113730.3.8.15.3.3", oidc_ctx_der)
+
+# 4. Build the attestation certificate.
+cert_der = build_service_attestation_cert(
+    user="alice",
+    realm="EXAMPLE.COM",
+    service_type="oidc",
+    host_pubkey=service_pubkey,
+    keytab_entry=keytab_entry,
+    authn_context_ext=authn_context_ext,   # None → omit context extension
+)
+
+# 5. Acquire S4U2Self credentials.
+s4u_creds = acquire_s4u_creds(cert_der, keytab_entry.principal,
+                               keytab_path="/etc/oidc-broker/krb5.keytab")
+
+# 6. Optionally delegate to a backend service via S4U2Proxy.
+from ipalib.x509_attestation import request_s4u_proxy
+token = request_s4u_proxy(s4u_creds, "HTTP/api.example.com@EXAMPLE.COM")
+```
+
+When `authn_context_ext=None` the certificate contains only the mandatory
+`id-ce-kerberosServiceIssuerBinding` extension.  The IPA KDB generic handler
+still accepts such a certificate and emits `"<service_type>-authn:unknown"` as
+the auth indicator, which allows experimentation before a named service context
+extension OID is finalised.
+
+#### Dependencies
+
+| Package | Role |
+|---------|------|
+| `cryptography` | X.509 builder, HKDF, key generation |
+| `python-gssapi` | S4U2Self / S4U2Proxy via `gss_acquire_cred_impersonate_name` |
+| `ipapython` | Keytab enumeration (ctypes bindings in `ipapython.kerberos`) and `SSHPublicKey` for fingerprinting |
+
 ### Enrolling other services for attestation (future)
 
 Non-SSH Kerberos services register an attestation public key against their
@@ -684,12 +819,12 @@ struct ipadb_s4u_data {
     bool  attested;
     char *service_type;        /* "ssh", "oidc", "radius", etc. */
     char *auth_method;         /* "publickey", "password", "mfa", etc. */
-    char *ssh_key_fingerprint; /* "SHA256:…" (publickey auth only, NULL otherwise) */
+    char *ssh_key_fingerprint; /* "SHA256:..." (publickey auth only, NULL otherwise) */
     char *ssh_client_address;  /* "ip:port" (NULL if not provided) */
 };
 
 struct ipadb_e_data {
-    …
+    /* ... existing fields ... */
     struct ipadb_s4u_data *s4u;  /* NULL for entries that never participate in S4U */
 };
 ```
