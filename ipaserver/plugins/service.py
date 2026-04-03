@@ -246,7 +246,7 @@ _AUTH_IND_FIXED = frozenset({
 #   <service> — lowercase letter then letters/digits (e.g. "ssh", "oidc", "pam")
 #   <detail>  — lowercase letter then letters/digits/hyphens
 #               (e.g. "publickey", "pwd", "mfa", "keyboard-interactive")
-_AUTH_IND_S4U_RE = re.compile(r'^[a-z][a-z0-9]*-authn:[a-z][a-z0-9-]*$')
+_AUTH_IND_S4U_RE = re.compile(r'^[a-z][a-z0-9]*-authn:[a-z0-9][a-z0-9-]*$')
 
 
 def validate_auth_indicator_value(_, value):

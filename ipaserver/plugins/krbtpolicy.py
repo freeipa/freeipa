@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from ipalib import api, errors, output, _
 from ipalib import Int, Str
 from . import baseldap
@@ -77,6 +79,13 @@ _default_values = {
 _option_based_attrs = ('krbauthindmaxticketlife', 'krbauthindmaxrenewableage')
 _supported_options = ('otp', 'radius', 'pkinit', 'hardened', 'idp', 'passkey',
                       'ssh-authn', 'oidc-authn')
+
+# Valid method/detail in a per-method S4U2Self indicator (after ":").
+# Encoded in LDAP as the part after "--" in the attribute option, e.g.
+# krbAuthIndMaxTicketLife;ssh-authn--publickey -> method "publickey".
+# Accepts lowercase letters, digits, and hyphens; must start with a
+# letter or digit.
+_S4U_METHOD_RE = re.compile(r'^[a-z0-9][a-z0-9-]*$')
 
 @register()
 class krbtpolicy(baseldap.LDAPObject):
@@ -254,17 +263,21 @@ def rename_authind_options_from_ldap(entry_attrs, options):
                 new_name = '{}_{}'.format(attr, subtype.replace('-', '_'))
                 entry_attrs[new_name] = entry_attrs.pop(name)
 
-    # Per-method S4U2Self options: krbAuthIndMaxTicketLife;{svc}-authn--{detail}
-    # The "--" encodes the ":" that is invalid in LDAP attribute options.
-    # Decode: "ssh-authn--publickey" -> Python suffix "ssh_authn__publickey"
+    # Per-method S4U2Self options: krbAuthIndMaxTicketLife;{svc}-authn--{m}
+    # "--" encodes ":" (invalid in LDAP options per RFC 4512).
+    # Decode: "ssh-authn--publickey" -> Python "ssh_authn__publickey"
     # (replace('-', '_') maps '--' -> '__', preserving the double marker).
     for name in list(entry_attrs):
         for attr in _option_based_attrs:
             if name.startswith(attr + ';'):
                 subtype = name[len(attr) + 1:]
                 if '--' in subtype:
-                    new_name = '{}_{}'.format(attr, subtype.replace('-', '_'))
-                    entry_attrs[new_name] = entry_attrs.pop(name)
+                    sep = subtype.index('--')
+                    method = subtype[sep + 2:]
+                    if _S4U_METHOD_RE.match(method):
+                        new_name = '{}_{}'.format(
+                            attr, subtype.replace('-', '_'))
+                        entry_attrs[new_name] = entry_attrs.pop(name)
                     break
 
 
@@ -278,7 +291,7 @@ def rename_authind_options_to_ldap(entry_attrs):
                 entry_attrs[new_name] = entry_attrs.pop(name)
 
     # Per-method S4U2Self options: Python suffix "ssh_authn__publickey"
-    # The "__" (double underscore) marks the encoded ":" separator.
+    # "__" marks the encoded ":" separator.
     # Encode: "ssh_authn__publickey" -> LDAP option "ssh-authn--publickey"
     # (replace('_', '-') maps '__' -> '--', restoring the LDAP encoding).
     for name in list(entry_attrs):
@@ -286,8 +299,12 @@ def rename_authind_options_to_ldap(entry_attrs):
             if name.startswith(attr + '_'):
                 suffix = name[len(attr) + 1:]
                 if '__' in suffix:
-                    new_name = '{};{}'.format(attr, suffix.replace('_', '-'))
-                    entry_attrs[new_name] = entry_attrs.pop(name)
+                    ldap_suffix = suffix.replace('_', '-')
+                    sep = ldap_suffix.index('--')
+                    method = ldap_suffix[sep + 2:]
+                    if _S4U_METHOD_RE.match(method):
+                        new_name = '{};{}'.format(attr, ldap_suffix)
+                        entry_attrs[new_name] = entry_attrs.pop(name)
                     break
 
 
