@@ -55,8 +55,53 @@ _KEYGEN_SCRIPT = textwrap.dedent("""\
         ))
 """)
 
+# Loopback GSSAPI exchange helper: accepts the S4U token with the service
+# keytab and retrieves "auth-indicators" via gss_get_name_attribute().
+# Returns (sorted_indicators, context_lifetime_secs) so callers can assert
+# both indicator presence and KDC-enforced ticket-policy limits.
+# Included verbatim into each test script (OIDC via concatenation,
+# SSH/generic via f-string interpolation).
+_INDICATORS_HELPER = textwrap.dedent("""\
+
+    def _get_indicators(creds, service_principal, keytab_path):
+        # Loopback GSSAPI exchange: init with S4U creds, accept with keytab.
+        # Returns (sorted_auth_indicators, context_lifetime_secs).
+        # context_lifetime reflects the KDC-enforced ticket lifetime so
+        # callers can assert per-indicator krbtpolicy limits.
+        import gssapi
+        import gssapi.raw as gss_raw
+        AUTH_IND_ATTR = b"auth-indicators"
+        target = gssapi.Name(
+            service_principal,
+            name_type=gssapi.NameType.kerberos_principal,
+        )
+        acc_creds = gssapi.Credentials(
+            name=target,
+            usage='accept',
+            mechs=[gssapi.MechType.kerberos],
+            store={'keytab': keytab_path},
+        )
+        init_ctx = gssapi.SecurityContext(
+            name=target,
+            creds=creds,
+            usage='initiate',
+            mechs=[gssapi.MechType.kerberos],
+        )
+        token = init_ctx.step()
+        acc_ctx = gssapi.SecurityContext(usage='accept', creds=acc_creds)
+        acc_ctx.step(token)
+        src = acc_ctx.initiator_name
+        lifetime = acc_ctx.lifetime   # remaining seconds; reflects KDC policy
+        try:
+            res = gss_raw.get_name_attribute(src, AUTH_IND_ATTR)
+            return sorted(v.decode('utf-8') for v in res.values), lifetime
+        except Exception:
+            return [], lifetime
+""")
+
 # Builds an OIDC attestation certificate for a given user, performs
-# S4U2Self via gssapi, and prints the impersonated principal name.
+# S4U2Self via gssapi, and prints the impersonated principal name followed
+# by sorted "indicators:" and "lifetime:" lines for per-test assertion.
 #
 # argv: username realm hostname keytab_path attest_key_path
 _S4U_OIDC_SCRIPT = textwrap.dedent("""\
@@ -103,8 +148,11 @@ _S4U_OIDC_SCRIPT = textwrap.dedent("""\
         host_principal=service_principal,
         keytab_path=keytab_path,
     )
-
+""") + _INDICATORS_HELPER + textwrap.dedent("""\
+    inds, lt = _get_indicators(creds, service_principal, keytab_path)
     print(str(creds.name))
+    print('indicators:' + ','.join(inds))
+    print('lifetime:' + str(lt))
 """)
 
 
@@ -209,6 +257,23 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
         tasks.clear_sssd_cache(cls.master)
         tasks.wait_for_sssd_domain_status_online(cls.master)
 
+    @staticmethod
+    def _parse_indicators(stdout_text):
+        """Parse the 'indicators:' line from script stdout."""
+        for line in stdout_text.splitlines():
+            if line.startswith('indicators:'):
+                val = line[len('indicators:'):].strip()
+                return sorted(val.split(',')) if val else []
+        return []
+
+    @staticmethod
+    def _parse_lifetime(stdout_text):
+        """Parse the 'lifetime:N' line; return remaining seconds or None."""
+        for line in stdout_text.splitlines():
+            if line.startswith('lifetime:'):
+                return int(line[len('lifetime:'):].strip())
+        return None
+
     def _acquire_s4u_oidc(self, username, realm):
         """
         Run the S4U2Self attestation script on the master.
@@ -232,13 +297,21 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
         Simulates an OIDC provider attesting a completed login by an IPA
         user and acquiring a Kerberos service ticket via S4U2Self.  Verifies
         that the IPA KDB plugin accepts the attestation certificate and
-        issues a ticket in the impersonated user's name.
+        issues a ticket in the impersonated user's name, and that auth
+        indicators oidc-authn:pwd and oidc-authn:otp are present.
         """
         realm = self.master.domain.realm
         result = self._acquire_s4u_oidc(self.ipa_test_user, realm)
         assert self.ipa_test_user in result.stdout_text, (
             f"Expected {self.ipa_test_user!r} in S4U2Self credential "
             f"name; got: {result.stdout_text!r}"
+        )
+        indicators = self._parse_indicators(result.stdout_text)
+        assert 'oidc-authn:otp' in indicators, (
+            f"Expected 'oidc-authn:otp' in indicators; got {indicators!r}"
+        )
+        assert 'oidc-authn:pwd' in indicators, (
+            f"Expected 'oidc-authn:pwd' in indicators; got {indicators!r}"
         )
 
     def test_oidc_attestation_ad_user(self):
@@ -260,6 +333,11 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
             f"Expected {ad_username!r} in S4U2Self credential "
             f"name; got: {result.stdout_text!r}"
         )
+        indicators = self._parse_indicators(result.stdout_text)
+        assert indicators == [], (
+            f"Expected no auth indicators for AD user OIDC; "
+            f"got {indicators!r}"
+        )
 
     def _acquire_s4u_ssh(self, username, user_realm):
         """
@@ -273,6 +351,7 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
         hostname = self.master.hostname
         ipa_realm = self.master.domain.realm
 
+        _svc = f'host/{hostname}@{ipa_realm}'
         ssh_script = textwrap.dedent(f"""\
             import os
             from cryptography.hazmat.primitives.serialization import (
@@ -298,10 +377,14 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
             )
             creds = acquire_s4u_creds(
                 cert_der=cert_der,
-                host_principal=f'host/{hostname}@{ipa_realm}',
+                host_principal={_svc!r},
                 keytab_path='/etc/krb5.keytab',
             )
+        """) + _INDICATORS_HELPER + textwrap.dedent(f"""\
+            inds, lt = _get_indicators(creds, {_svc!r}, '/etc/krb5.keytab')
             print(str(creds.name))
+            print('indicators:' + ','.join(inds))
+            print('lifetime:' + str(lt))
         """)
         return self.master.run_command(['python3', '-c', ssh_script])
 
@@ -349,7 +432,13 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
                 host_principal=keytab_entry.principal,
                 keytab_path={keytab_path!r},
             )
+            _svc_princ = keytab_entry.principal
+            _ktpath = {keytab_path!r}
+        """) + _INDICATORS_HELPER + textwrap.dedent("""\
+            inds, lt = _get_indicators(creds, _svc_princ, _ktpath)
             print(str(creds.name))
+            print('indicators:' + ','.join(inds))
+            print('lifetime:' + str(lt))
         """)
         return self.master.run_command(['python3', '-c', script])
 
@@ -371,6 +460,10 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
             f"Expected {self.ipa_test_user!r} in S4U2Self credential name "
             f"via SSH attestation; got: {result.stdout_text!r}"
         )
+        indicators = self._parse_indicators(result.stdout_text)
+        assert 'ssh-authn:password' in indicators, (
+            f"Expected 'ssh-authn:password' in indicators; got {indicators!r}"
+        )
 
     def test_ssh_attestation_ad_user_no_override(self):
         """
@@ -391,6 +484,11 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
         assert ad_username in result.stdout_text, (
             f"Expected {ad_username!r} in S4U2Self credential name via SSH "
             f"attestation (no DTV); got: {result.stdout_text!r}"
+        )
+        indicators = self._parse_indicators(result.stdout_text)
+        assert indicators == [], (
+            f"Expected no auth indicators for AD user (no DTV); "
+            f"got {indicators!r}"
         )
 
     def test_ssh_attestation_ad_user_with_ssh_override(self):
@@ -430,6 +528,11 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
                 f"SSH attestation (DTV with SSH key); "
                 f"got: {result.stdout_text!r}"
             )
+            indicators = self._parse_indicators(result.stdout_text)
+            assert indicators == [], (
+                f"Expected no auth indicators for AD user (DTV SSH key); "
+                f"got {indicators!r}"
+            )
         finally:
             tasks.kinit_admin(self.master)
             self.master.run_command([
@@ -444,20 +547,68 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
 
     def test_generic_attestation_ipa_user(self):
         """
-        Generic (PAM) S4U2Self attestation succeeds for an IPA user.
+        Generic (PAM) S4U2Self attestation with per-method ticket policy.
 
         Uses build_service_attestation_cert() with service_type='pam' and the
-        registered EC attestation key as host_pubkey.  The generic handler in
-        the IPA KDB plugin dispatches on ipaKrbServiceAttestationType and
-        verifies the attestation key against ipaKrbServiceAttestationKey.
-        Verifies that the plugin sets the attested flag and issues a ticket.
+        registered EC attestation key as host_pubkey.  Sets a short per-method
+        krbAuthIndMaxTicketLife;pam-authn--unknown on the service LDAP entry,
+        acquires the S4U2Self ticket, then verifies:
+          - auth indicator 'pam-authn:unknown' is present in the ticket
+          - the accepted GSSAPI context lifetime is capped at the short policy
+        Since PAM_POLICY_LIFE < JITTER_WINDOW_SECONDS (3600 s), the KDC
+        applies the limit without jitter, giving an exact upper bound.
+        The policy attribute is removed in the finally block via --delattr.
         """
-        realm = self.master.domain.realm
-        result = self._acquire_s4u_generic(self.ipa_test_user, realm)
-        assert self.ipa_test_user in result.stdout_text, (
-            f"Expected {self.ipa_test_user!r} in S4U2Self credential name "
-            f"via generic attestation; got: {result.stdout_text!r}"
-        )
+        # Policy well below the 3600 s jitter threshold → exact enforcement.
+        PAM_POLICY_LIFE = 300   # seconds
+        hostname = self.master.hostname
+        service_name = f'service/{hostname}'
+        policy_attr = 'krbAuthIndMaxTicketLife;pam-authn--unknown'
+
+        tasks.kinit_admin(self.master)
+        try:
+            # Set the per-method lifetime limit on the service entry.
+            # All IPA service entries carry krbticketpolicyaux by default, so
+            # no objectClass modification is needed before setting this attr.
+            # The KDB plugin's ipa_kdb_principals.c scans for any attribute
+            # matching krbAuthIndMaxTicketLife;*--* and stores it in
+            # ipadb_e_data.s4u_ind_limits[]; ipa_kdcpolicy_check_tgs() then
+            # prefers exact-match over prefix-level limits.
+            self.master.run_command([
+                'ipa', 'service-mod', service_name,
+                '--setattr', f'{policy_attr}={PAM_POLICY_LIFE}',
+            ])
+
+            realm = self.master.domain.realm
+            result = self._acquire_s4u_generic(self.ipa_test_user, realm)
+            assert self.ipa_test_user in result.stdout_text, (
+                f"Expected {self.ipa_test_user!r} in S4U2Self credential name "
+                f"via generic attestation; got: {result.stdout_text!r}"
+            )
+            indicators = self._parse_indicators(result.stdout_text)
+            assert 'pam-authn:unknown' in indicators, (
+                f"Expected 'pam-authn:unknown' in indicators; "
+                f"got {indicators!r}"
+            )
+            lifetime = self._parse_lifetime(result.stdout_text)
+            assert lifetime is not None, (
+                "Expected 'lifetime:N' line in script output"
+            )
+            assert lifetime <= PAM_POLICY_LIFE, (
+                f"Expected lifetime <= {PAM_POLICY_LIFE} s (policy cap); "
+                f"got {lifetime} s"
+            )
+            # Allow up to 60 s for Python startup + S4U2Self + GSSAPI exchange
+            assert lifetime >= PAM_POLICY_LIFE - 60, (
+                f"Expected lifetime >= {PAM_POLICY_LIFE - 60} s; "
+                f"got {lifetime} s (policy={PAM_POLICY_LIFE} s)"
+            )
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                'ipa', 'service-mod', service_name,
+                '--delattr', f'{policy_attr}={PAM_POLICY_LIFE}',
+            ], raiseonerr=False)
 
     def test_generic_attestation_ad_user_with_cert_override(self):
         """
@@ -521,6 +672,11 @@ class TestTrustS4UX509Oidc(BaseTestTrust):
                 f"Expected {ad_username!r} in S4U2Self credential name via "
                 f"generic attestation (DTV with cert); "
                 f"got: {result.stdout_text!r}"
+            )
+            indicators = self._parse_indicators(result.stdout_text)
+            assert indicators == [], (
+                f"Expected no auth indicators for AD user (DTV cert); "
+                f"got {indicators!r}"
             )
         finally:
             tasks.kinit_admin(self.master)
