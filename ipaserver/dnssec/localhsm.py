@@ -5,6 +5,7 @@
 from __future__ import print_function, absolute_import
 
 from collections.abc import MutableMapping
+import logging
 import os
 from pprint import pprint
 
@@ -15,6 +16,8 @@ from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
 from ipaserver.dnssec.ldapkeydb import str_hexlify
+
+logger = logging.getLogger(__name__)
 
 
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
@@ -35,17 +38,21 @@ class Key(MutableMapping):
         # sanity check CKA_ID and CKA_LABEL
         try:
             cka_id = self.p11.get_attribute(handle, _ipap11helper.CKA_ID)
-            assert len(cka_id) != 0, 'ipk11id length should not be 0'
         except _ipap11helper.NotFound:
-            raise _ipap11helper.NotFound('key without ipk11id: handle %s' % handle)
+            raise _ipap11helper.NotFound(
+                'key without ipk11id: handle %s' % handle)
+        if len(cka_id) == 0:
+            raise _ipap11helper.NotFound(
+                'key with empty ipk11id: handle %s' % handle)
 
         try:
             cka_label = self.p11.get_attribute(handle, _ipap11helper.CKA_LABEL)
-            assert len(cka_label) != 0, 'ipk11label length should not be 0'
-
         except _ipap11helper.NotFound:
             raise _ipap11helper.NotFound(
                 'key without ipk11label: id 0x%s' % str_hexlify(cka_id))
+        if len(cka_label) == 0:
+            raise _ipap11helper.NotFound(
+                'key with empty ipk11label: id 0x%s' % str_hexlify(cka_id))
 
     def __getitem__(self, key):
         key = key.lower()
@@ -96,7 +103,8 @@ class LocalHSM(AbstractHSM):
         self.p11 = _ipap11helper.P11_Helper(label, pin, library)
 
     def __del__(self):
-        self.p11.finalize()
+        if hasattr(self, 'p11'):
+            self.p11.finalize()
 
     def find_keys(self, **kwargs):
         """Return dict with Key objects matching given criteria.
@@ -111,7 +119,11 @@ class LocalHSM(AbstractHSM):
         handles = self.p11.find_keys(**kwargs)
         keys = {}
         for h in handles:
-            key = Key(self.p11, h)
+            try:
+                key = Key(self.p11, h)
+            except _ipap11helper.NotFound as e:
+                logger.warning('Skipping PKCS#11 object: %s', e)
+                continue
             o_id = key['ipk11id']
             assert o_id not in keys, 'duplicate ipk11Id = 0x%s; keys = %s' % (
                     str_hexlify(o_id), keys)
