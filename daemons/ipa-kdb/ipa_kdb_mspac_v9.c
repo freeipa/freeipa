@@ -49,6 +49,13 @@ ipadb_v9_issue_pac(krb5_context context, unsigned int flags,
     bool is_pac_creation = false;
     const char *stmsg = NULL;
 
+    /* Thin cross-realm referral entries (returned for out-of-realm users
+     * during AS-REQ realm discovery) carry no e_data.  There is nothing to
+     * put in a PAC; skip PAC generation and let the KDC issue the referral
+     * TGT without authorization data. */
+    if (client != NULL && client->e_data == NULL)
+        return 0;
+
     if (is_as_req) {
         get_authz_data_types(context, client, &with_pac, &with_pad);
     } else {

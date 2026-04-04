@@ -1360,6 +1360,71 @@ s4u_lookup_user_by_cn(krb5_context kcontext,
         }
     }
 
+    /*
+     * AS-REQ thin referral: ipadb_get_principal() returned NOENTRY for
+     * out-of-realm user principals because is_request_for_us() rejects them
+     * immediately.  In the AS-REQ context (KRB5_KDB_FLAG_REFERRAL_OK set)
+     * validate the cert realm against the known trusted-domain list, then
+     * build a minimal krb5_db_entry with only ->princ populated so MIT KDC
+     * issues a cross-realm referral TGT and the S4U2Self chain continues to
+     * the AD DC.  The canonical trusted_realm is used as the principal realm
+     * so that NetBIOS / alias lookups still resolve to the right krbtgt.
+     */
+    if (ret == KRB5_KDB_NOENTRY &&
+        (flags & KRB5_KDB_FLAG_REFERRAL_OK) &&
+        fq_username) {
+        struct ipadb_context *ipactx = ipadb_get_context(kcontext);
+        const char *at = strrchr(fq_username, '@');
+        if (at && ipactx) {
+            const char *user_realm = at + 1;
+            char *trusted_realm = NULL;
+            krb5_error_code tret;
+
+            tret = ipadb_is_princ_from_trusted_realm(kcontext,
+                                                      user_realm,
+                                                      strlen(user_realm),
+                                                      &trusted_realm);
+            if (tret == KRB5_KDB_NOENTRY) {
+                /* Freshly-added trust?  Refresh and retry once. */
+                const char *stmsg = NULL;
+                if (ipadb_reinit_mspac(ipactx, false, &stmsg) == 0) {
+                    free(trusted_realm);
+                    trusted_realm = NULL;
+                    tret = ipadb_is_princ_from_trusted_realm(
+                                             kcontext,
+                                             user_realm, strlen(user_realm),
+                                             &trusted_realm);
+                }
+            }
+
+            if (tret == 0 && trusted_realm) {
+                krb5_principal ref_princ = NULL;
+                krb5_db_entry *ref_entry = NULL;
+                if (krb5_parse_name(kcontext, fq_username,
+                                    &ref_princ) == 0 &&
+                    krb5_set_principal_realm(kcontext, ref_princ,
+                                             trusted_realm) == 0) {
+                    ref_entry = calloc(1, sizeof(*ref_entry));
+                    if (ref_entry) {
+                        ref_entry->princ = ref_princ;
+                        krb5_klog_syslog(LOG_INFO,
+                                         "S4U X.509: '%s' is in trusted "
+                                         "realm '%s'; returning thin "
+                                         "referral",
+                                         fq_username, trusted_realm);
+                        free(trusted_realm);
+                        *entry_out = ref_entry;
+                        *ied_out = NULL;
+                        krb5_free_unparsed_name(kcontext, fq_username);
+                        return 0;
+                    }
+                }
+                krb5_free_principal(kcontext, ref_princ);
+            }
+            free(trusted_realm);
+        }
+    }
+
     krb5_klog_syslog(LOG_ERR, "S4U X.509: user '%s' not found in KDB",
                      fq_username ? fq_username : "(unknown)");
     krb5_free_unparsed_name(kcontext, fq_username);

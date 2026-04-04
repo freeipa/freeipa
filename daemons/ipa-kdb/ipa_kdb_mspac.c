@@ -1050,6 +1050,12 @@ krb5_error_code ipadb_get_pac(krb5_context kcontext,
     }
 
     ied = (struct ipadb_e_data *)client->e_data;
+    /* Thin cross-realm referral entries (returned by ipadb_get_s4u_x509_principal
+     * for AD users during AS-REQ realm discovery) carry no e_data at all.
+     * Entries with a stale or wrong magic are a real error. */
+    if (!ied) {
+        return ENOENT;
+    }
     if (ied->magic != IPA_E_DATA_MAGIC) {
         return EINVAL;
     }
