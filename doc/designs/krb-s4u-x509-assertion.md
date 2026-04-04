@@ -605,8 +605,8 @@ Both paths perform the same certificate verification sequence inside the plugin:
 1. Find `id-ce-kerberosServiceIssuerBinding` (OID `...3.1`) in the cert.
    If absent: `KRB5KDC_ERR_PREAUTH_FAILED`.
 2. Read `serviceType`.  Look up handler `h = find_handler(serviceType)`.
-   `find_handler()` always returns a handler: named service types (currently
-   only `"ssh"`) return their dedicated handler; all others return the generic
+   `find_handler()` always returns a handler: named service types (`"ssh"`,
+   `"oidc"`) return their dedicated handler; all others return the generic
    fallback handler (see [KDB Plugin Handler Interface](#kdb-plugin-handler-interface)).
 3. Extract `(principal, enctype, kvno, sigAlg, serviceKey, binding)`.
 4. In FIPS mode, reject any cert whose `sigAlg` indicates Ed25519.
@@ -641,15 +641,25 @@ Both paths perform the same certificate verification sequence inside the plugin:
       Kerberos principal.  If found, the returned `krb5_db_entry` provides
       `ipasshpubkey` values for the publickey strong assertion check.
 
-    - **Pass 2 — Default Trust View fallback:** if Pass 1 returns
-      `KRB5_KDB_NOENTRY`, search the Default Trust View
+    - **Pass 2 — Default Trust View fallback (TGS context only):** if Pass 1
+      returns `KRB5_KDB_NOENTRY` and `KRB5_KDB_FLAG_REFERRAL_OK` is **clear**
+      (TGS/S4U2Self context), search the Default Trust View
       (`cn=Default Trust View,cn=views,cn=accounts,$SUFFIX`) with LDAP filter
       `(ipaOriginalUid=<username>)`.  This handles users from trusted realms
-      (e.g. AD users) and any user absent from the KDB who has an ID override
-      registered in IPA.  The ID override entry may carry `ipaSshPubKey` and
-      `userCertificate;binary` values, which are matched against the cert's
-      SubjectPublicKeyInfo for the publickey strong assertion check (see
+      (e.g. AD users) that have an ID override registered in IPA.  The ID
+      override entry may carry `ipaSshPubKey` and `userCertificate;binary`
+      values for use in the publickey strong assertion check.  When an ID
+      override is found the plugin constructs a minimal `krb5_db_entry` with
+      `ipadb_s4u_data` populated from those attributes and returns it (see
       [Default Trust View ID Override Fallback](#default-trust-view-id-override-fallback)).
+
+      When `KRB5_KDB_FLAG_REFERRAL_OK` is **set** (AS-REQ realm discovery
+      context) and Pass 1 returns a thin referral entry whose realm differs from
+      the request realm (detected via `krb5_realm_compare()`), the plugin
+      returns that referral entry immediately with `*ied_out = NULL`.  No Pass 2
+      search is performed.  The KDC uses the referral to issue a cross-realm TGT
+      that steers the S4U2Self chain to the user's home realm (see
+      [Cross-Realm Scope](#cross-realm-scope)).
 
     In the TGS/S4U2Self context (`KRB5_KDB_FLAG_CLIENT` set), if `princ` has data
     components (`princ->length > 0`), verify the resolved principal matches the
@@ -699,10 +709,32 @@ Auth indicator naming follows the pattern `<serviceType>-authn:<detail>`:
 
 ### Cross-Realm Scope
 
-MIT Kerberos calls `krb5_db_get_s4u_x509_principal` only when the user's realm
-matches the server's realm.  For cross-realm users (e.g., `user@AD_DOMAIN` on
-an IPA server) the attestation certificate is silently bypassed and the existing
-code path is unchanged.  No cert is verified, no indicators are emitted.
+When an S4U2Self attestation request arrives for a user in a foreign realm
+(e.g., `user@AD_DOMAIN` on an IPA server), the plugin is called twice by MIT
+Kerberos:
+
+1. **TGS context** (`KRB5_KDB_FLAG_REFERRAL_OK` clear): the TGS-REQ handler
+   calls `get_s4u_x509_principal`.  Pass 1 calls `ipadb_get_principal()` without
+   `REFERRAL_OK`; for an AD user not present in IPA LDAP this returns
+   `KRB5_KDB_NOENTRY`.  Pass 2 searches the Default Trust View; if an ID
+   override is found the plugin builds a minimal `krb5_db_entry` from the ID
+   override attributes (SSH public keys, certificates) and returns it, allowing
+   the attestation verification to proceed against the DTV entry's keys.
+
+2. **AS-REQ realm discovery context** (`KRB5_KDB_FLAG_REFERRAL_OK` set): when
+   the TGS path fails for an unknown principal, MIT Kerberos internally issues an
+   AS-REQ to discover the correct realm.  `get_s4u_x509_principal` is called
+   again with `REFERRAL_OK` set.  Pass 1 calls `ipadb_get_principal()` with
+   `REFERRAL_OK`; for a trusted-realm user this returns a thin referral entry
+   (only `->princ` set).  The plugin detects the realm mismatch via
+   `krb5_realm_compare()` and returns the referral entry with `*ied_out = NULL`.
+   The KDC issues a cross-realm TGT (`krbtgt/AD.DOMAIN@IPA.DOMAIN`), and the
+   MIT Kerberos client library follows the referral to complete S4U2Self in the
+   user's home realm.
+
+No auth indicators are emitted in either step: in step 1 the plugin returns an
+error; in step 2 it returns a thin entry without attestation state.  Auth
+indicators for the final service ticket are governed by the AD KDC's policies.
 
 Auth indicators emitted by `issue_pac` travel with the service ticket as
 `AD_KDC_ISSUED` authdata for as long as the ticket remains within the same
@@ -715,8 +747,8 @@ S4U2Proxy step, foreign KDCs (including Active Directory) do not recognise RFC
 | User origin | Attestation |
 |-------------|-------------|
 | IPA user (`user@IPA_REALM`) | Full — `get_s4u_x509_principal` + `issue_pac` emits auth indicators |
-| AD user with IPA ID override carrying matching `ipaSshPubKey` or `userCertificate` | Partial — publickey strong assertion succeeds via Default Trust View fallback; `ssh-authn:publickey` emitted |
-| AD user without IPA ID override, or ID override has no matching key | None — IPA principal not found, Default Trust View match absent or unverified; no auth indicator emitted; existing PAC synthesis is unchanged |
+| AD user (any, with or without DTV entry) | S4U2Self succeeds via cross-realm referral; no IPA auth indicators emitted; Phase 2 (DTV-based indicators) not yet implemented |
+| AD user with DTV ID override (`ipaSshPubKey` or `userCertificate`) | DTV entry is found and logged; Phase 2 required for indicator assignment; S4U2Self still succeeds via referral |
 
 ### KDB Plugin Handler Interface
 
@@ -726,13 +758,20 @@ not present in `s4u_handlers[]` automatically fall through to the
 `generic_s4u_handler`.
 
 ```c
+/* Which LDAP key store the handler's service-key matching uses. */
+enum s4u_key_store {
+    S4U_KEY_STORE_ATTESTATION, /* ipaKrbServiceAttestationKey → keys[]   */
+    S4U_KEY_STORE_SSH,         /* ipasshpubkey                → ssh_pubkeys[] */
+};
+
 struct ipa_s4u_cert_handler {
-    const char  *service_type;   /* NULL for generic fallback */
-    const char  *hkdf_salt;      /* NULL → derived as "<stype>-attestation-v1" */
-    const char  *binding_label;  /* NULL → derived as "<stype>-attestation-binding-v1" */
-    const char  *context_ext_oid; /* OID string of context extension; NULL = none */
-    const char  *ldap_pubkey_attr; /* LDAP attr name used in legacy/debug paths */
-    EVP_PKEY   *(*parse_pubkey)(const unsigned char *data, size_t len);
+    const char         *service_type;   /* NULL for generic fallback */
+    enum s4u_key_store  key_store;      /* selects which LDAP key array to compare */
+    const char         *hkdf_salt;      /* NULL → derived as "<stype>-attestation-v1" */
+    const char         *binding_label;  /* NULL → derived as "<stype>-attestation-binding-v1" */
+    const char         *context_ext_oid; /* OID string of context extension; NULL = none */
+    const char         *ldap_pubkey_attr; /* LDAP attr name used in legacy/debug paths */
+    EVP_PKEY          *(*parse_pubkey)(const unsigned char *data, size_t len);
 
     /* Resolve user entry; populate user_entry->e_data->s4u runtime fields.
      * svc_context points to the parsed context extension (may be NULL).
@@ -752,6 +791,7 @@ struct ipa_s4u_cert_handler {
 static const struct ipa_s4u_cert_handler s4u_handlers[] = {
     {
         .service_type     = "ssh",
+        .key_store        = S4U_KEY_STORE_SSH,
         .hkdf_salt        = "ssh-attestation-v1",
         .binding_label    = "ssh-attestation-binding-v1",
         .context_ext_oid  = "2.16.840.1.113730.3.8.15.3.2",
@@ -761,6 +801,7 @@ static const struct ipa_s4u_cert_handler s4u_handlers[] = {
     },
     {
         .service_type     = "oidc",
+        .key_store        = S4U_KEY_STORE_ATTESTATION,
         .hkdf_salt        = "oidc-attestation-v1",
         .binding_label    = "oidc-attestation-binding-v1",
         .context_ext_oid  = "2.16.840.1.113730.3.8.15.3.3",
@@ -774,6 +815,7 @@ static const struct ipa_s4u_cert_handler s4u_handlers[] = {
 /* Generic fallback: any service type registered via ipaKrbServiceAttestationKey */
 static const struct ipa_s4u_cert_handler generic_s4u_handler = {
     .service_type     = NULL,
+    .key_store        = S4U_KEY_STORE_ATTESTATION,
     .hkdf_salt        = NULL,   /* derived as "<stype>-attestation-v1" */
     .binding_label    = NULL,   /* derived as "<stype>-attestation-binding-v1" */
     .context_ext_oid  = NULL,   /* no context extension */
@@ -782,6 +824,14 @@ static const struct ipa_s4u_cert_handler generic_s4u_handler = {
     .verify_context   = svc_s4u_verify_context,
 };
 ```
+
+The `key_store` field drives the service-key dispatch branch at step 8 of the
+verification pipeline: `S4U_KEY_STORE_SSH` compares the cert's `serviceKey`
+(OpenSSH text format) against `s4u->ssh_pubkeys[]` (`ipasshpubkey`), while
+`S4U_KEY_STORE_ATTESTATION` compares the cert's `serviceKey` (DER SPKI) against
+`s4u->keys[]` (`ipaKrbServiceAttestationKey`).  This replaces the earlier
+function-pointer comparison (`h == &generic_s4u_handler`) which failed to catch
+the OIDC handler and routed it to the wrong key store.
 
 Auth indicator emission is **not** a handler callback.  `ipadb_v9_issue_pac()`
 reads `ied->s4u->service_type` and iterates `ied->s4u->auth_methods`, calling
@@ -935,8 +985,9 @@ user-registered) so no LDAP key comparison is needed or useful.
 ### Default Trust View ID Override Fallback
 
 When `s4u_lookup_user_by_cn()` cannot resolve the username as a local IPA
-Kerberos principal (`KRB5_KDB_NOENTRY`), it performs a second LDAP search
-against the Default Trust View:
+Kerberos principal (`KRB5_KDB_NOENTRY`) and the call is in TGS/S4U2Self context
+(`KRB5_KDB_FLAG_REFERRAL_OK` clear), it performs a second LDAP search against
+the Default Trust View:
 
 ```
 Base:       cn=Default Trust View,cn=views,cn=accounts,$SUFFIX
@@ -950,21 +1001,30 @@ override entry may carry SSH public keys (`ipaSshPubKey`, OpenSSH text format)
 and/or X.509 certificates (`userCertificate;binary`, DER format) for the
 external user.
 
-**Publickey strong assertion with an ID override:**
+When a matching ID override is found in TGS context:
 
-If `authMethod == "publickey"` and a matching ID override is found:
+- For `authMethod == "publickey"`: compare each `ipaSshPubKey` value and the
+  SubjectPublicKeyInfo extracted from each `userCertificate;binary` against the
+  cert's SubjectPublicKeyInfo via `EVP_PKEY_eq()`.  If any matches:
+  `ied->s4u->attested = true`.  If none match: `attested` remains false; no
+  indicator is emitted, but S4U2Self still succeeds.
+- For all other auth methods: finding a matching ID override entry is sufficient
+  to set `attested = true`; no key comparison is performed.
 
-1. Parse each `ipaSshPubKey` value into an `EVP_PKEY` and compare against the
-   cert's SubjectPublicKeyInfo via `EVP_PKEY_eq()`.
-2. Also extract the SubjectPublicKeyInfo from each `userCertificate;binary`
-   DER certificate and compare via `EVP_PKEY_eq()`.
-3. If any value matches: `ied->s4u->attested = true`.
-4. If no value matches: `attested` remains false; no auth indicator is emitted.
-   The S4U2Self itself still succeeds.
+**MS-PAC handling:** The synthetic `krb5_db_entry` has no LDAP entry DN
+(`ied->entry_dn == NULL`), so `ipadb_get_pac()` cannot build an MS-PAC from
+local data.  `ipadb_get_pac()` detects the NULL DN and returns `ENOENT`
+immediately, preventing a crash from a NULL-base LDAP search that would
+otherwise return the root DSE and then dereference the NULL DN in `strstr()`.
 
-For non-publickey auth methods, finding a matching ID override entry is
-sufficient to set `attested = true` — the same rule as for local IPA
-principals.  No key comparison is performed.
+When the IPA KDC is in a cross-realm S4U2Self context (the signing `krbtgt`
+is from a trusted realm), the AD DC has already placed the user's PAC into
+the referral-TGT header ticket.  `ipadb_v9_issue_pac()` detects the
+combination of a DTV synthetic entry (`ied->entry_dn == NULL`), a non-NULL
+`old_pac`, and a cross-realm signing krbtgt, and calls
+`ipadb_common_verify_pac()` to filter and copy that existing AD PAC into the
+new service ticket.  In a non-cross-realm context (local krbtgt header
+ticket) no suitable PAC is available and the ticket is issued without one.
 
 **LDAP attribute mapping:**
 
@@ -1177,29 +1237,32 @@ the cmocka `will_return` / `mock()` mechanism.
 
 ### Integration Tests
 
-| Scenario | Expected result |
-|----------|----------------|
-| SSH publickey auth; user key in `ipasshpubkey` | Ticket carries `ssh-authn:publickey` |
-| SSH publickey auth; user key NOT in `ipasshpubkey` | S4U2Self succeeds; no `ssh-authn:*` indicator |
-| SSH password auth (host ECDSA key; ephemeral subject key) | Ticket carries `ssh-authn:password` |
-| SSH keyboard-interactive auth | Ticket carries `ssh-authn:keyboard-interactive` |
-| SSH + FIPS mode (P-256 derived key) | Attestation accepted; `ssh-authn:*` injected |
-| OIDC; `amr=["pwd","otp"]` | Ticket carries both `oidc-authn:pwd` and `oidc-authn:otp` |
-| OIDC; `amr=["mfa"]` | Ticket carries `oidc-authn:mfa` |
-| OIDC; `amrValues` absent from context | Ticket carries `oidc-authn:sso` |
-| OIDC; unregistered attestation key | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Generic service type registered via `ipaKrbServiceAttestationKey` | Ticket carries `<stype>-authn:unknown` |
-| Generic handler: `serviceType` not in `ipaKrbServiceAttestationType` | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Cert `serviceKey` (host) not in `ipasshpubkey` | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Cert with invalid binding signature | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Cert with invalid outer signature | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Cert with wrong KVNO | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Cert outside validity period | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` |
-| Keytab re-keying (KVNO bump) | New certs accepted; old in-flight certs rejected after cert expiry |
-| Two keys registered for rollover; cert matches second key | Attestation accepted |
-| Cross-realm user | Cert not verified (MIT Kerberos realm-check precondition); plain S4U2Self |
-| FIPS: Ed25519-signed cert | Rejected |
-| FIPS: ECDSA P-256-signed cert | Accepted |
+| Scenario | Expected result | Implemented |
+|----------|----------------|-------------|
+| SSH publickey auth; user key in `ipasshpubkey` | Ticket carries `ssh-authn:publickey` | planned |
+| SSH publickey auth; user key NOT in `ipasshpubkey` | S4U2Self succeeds; no `ssh-authn:*` indicator | planned |
+| SSH password auth, IPA user (host ECDSA key; ephemeral subject key) | Ticket carries `ssh-authn:password` | yes |
+| SSH keyboard-interactive auth | Ticket carries `ssh-authn:keyboard-interactive` | planned |
+| SSH + FIPS mode (P-256 derived key) | Attestation accepted; `ssh-authn:*` injected | planned |
+| OIDC, IPA user; `amr=["pwd","otp"]` | Ticket carries both `oidc-authn:pwd` and `oidc-authn:otp` | yes |
+| OIDC, AD trust user | S4U2Self succeeds via cross-realm referral; no IPA indicators | yes |
+| OIDC; `amr=["mfa"]` | Ticket carries `oidc-authn:mfa` | planned |
+| OIDC; `amrValues` absent from context | Ticket carries `oidc-authn:sso` | planned |
+| OIDC; unregistered attestation key | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | yes |
+| Generic (PAM) service type, IPA user | Ticket carries `pam-authn:unknown` | yes |
+| Generic handler: `serviceType` not in `ipaKrbServiceAttestationType` | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | planned |
+| Cert `serviceKey` (host) not in `ipasshpubkey` | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | planned |
+| Cert with invalid binding signature | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | planned |
+| Cert with invalid outer signature | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | planned |
+| Cert with wrong KVNO | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | planned |
+| Cert outside validity period | `KRB5KDC_ERR_CERTIFICATE_MISMATCH` | planned |
+| Keytab re-keying (KVNO bump) | New certs accepted; old in-flight certs rejected after cert expiry | planned |
+| Two keys registered for rollover; cert matches second key | Attestation accepted | planned |
+| SSH, AD user with no DTV entry | S4U2Self succeeds via cross-realm referral; no indicators | yes |
+| SSH, AD user with DTV `ipaSshPubKey` override | DTV entry returned; attestation verified against override's SSH keys | yes |
+| Generic, AD user with DTV `userCertificate` override | DTV entry returned; attestation verified against override's certificates | yes |
+| FIPS: Ed25519-signed cert | Rejected | planned |
+| FIPS: ECDSA P-256-signed cert | Accepted | planned |
 
 ## Troubleshooting and Debugging
 
@@ -1349,9 +1412,12 @@ print([v.decode() for v in result.values])
   FIPS mode.  Phase 1 falls back to plain S4U2Self in this case.
 - **KDB entry for ID-override-only users:** When the user is resolved exclusively
   via a Default Trust View ID override (Pass 2 in step 11) and has no local IPA
-  Kerberos principal, `get_s4u_x509_principal` must still return a
-  `krb5_db_entry` to the MIT KDC.  The exact entry to return — a synthetic
-  minimal entry built from ID override attributes, the associated IPA user object
-  (if any), or the AD principal fetched via the trust infrastructure — is an open
-  design question for Phase 2.  Phase 1 returns `KRB5_KDB_NOENTRY` for this case
-  (no attestation for users without a local IPA principal entry).
+  Kerberos principal, `get_s4u_x509_principal` constructs a minimal
+  `krb5_db_entry` with `ipadb_s4u_data` populated from the DTV override
+  attributes (`ipaSshPubKey`, `userCertificate;binary`) and returns it.  For
+  the AS-REQ realm discovery path (`KRB5_KDB_FLAG_REFERRAL_OK` set), Pass 1
+  returns the thin cross-realm referral entry (Pass 2 is skipped); the
+  S4U2Self chain then continues in the user's home realm.  A remaining open
+  question is whether `attested = true` should be set on the DTV-built entry
+  when no key comparison is performed (non-publickey auth methods), or whether
+  a successful key match should be required in all cases.
