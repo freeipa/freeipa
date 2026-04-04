@@ -1367,9 +1367,16 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             goto done;
     }
 
-    if (ua & ~IPADB_USER_AUTH_NONE) {
-        ipadb_parse_authind_policies(kcontext, lcontext, lentry, entry, ua);
-    }
+    /* Always parse auth indicator policies.  For user entries, ua controls
+     * which method-specific pol_limits[] slots are populated (otp, pkinit,
+     * etc.).  For service entries ua is IPADB_USER_AUTH_NONE (0) so those
+     * slots are left at zero — but the per-method S4U2Self limits block at
+     * the bottom of ipadb_parse_authind_policies() scans ALL LDAP attributes
+     * unconditionally and populates ied->s4u_ind_limits[] from any
+     * krbAuthIndMaxTicketLife;{svc}-authn--{detail} attributes present.
+     * This is required so that ipa_kdb_s4u_x509 can enforce per-indicator
+     * ticket lifetime limits on S4U2Self issuance for service entries. */
+    ipadb_parse_authind_policies(kcontext, lcontext, lentry, entry, ua);
 
     /* Add SID if it is associated with the principal account */
     ied->has_sid = false;
