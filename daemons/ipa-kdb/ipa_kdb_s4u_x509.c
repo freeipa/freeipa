@@ -2186,6 +2186,50 @@ ipadb_get_s4u_x509_principal_impl(krb5_context kcontext,
                          "S4U X.509: attested S4U2Self type='%s' "
                          "method='%s' host='%s'",
                          stype, log_method, principal_str);
+
+        /*
+         * Apply the server's per-indicator ticket lifetime limit to the
+         * returned client entry so the KDC caps the S4U2Self ticket at
+         * issuance.
+         *
+         * ipa_kdcpolicy_check_tgs() runs with the service's TGT indicators
+         * (empty for keytab-authenticated services) rather than the indicators
+         * being added by ipadb_v9_issue_pac() for this S4U2Self ticket.
+         * Setting entry->max_life here is the only way to enforce the
+         * krbAuthIndMaxTicketLife;{svc}-authn--{method} limit on the initial
+         * S4U2Self ticket.  The check_tgs path remains responsible for
+         * delegated (S4U2Proxy) tickets whose incoming ticket already carries
+         * the indicators.
+         *
+         * Apply the tightest limit across all auth_methods for this stype.
+         */
+        if (*entry_out && hed_s4u && hed_s4u->n_s4u_ind_limits > 0 &&
+            ied && ied->s4u && ied->s4u->service_type) {
+            char **methods = ied->s4u->auth_methods;
+            for (int mi = 0; methods && methods[mi]; mi++) {
+                char *ind = NULL;
+                if (asprintf(&ind, "%s-authn:%s",
+                             ied->s4u->service_type, methods[mi]) < 0)
+                    continue;
+                for (int k = 0; k < hed_s4u->n_s4u_ind_limits; k++) {
+                    if (strcmp(hed_s4u->s4u_ind_limits[k].indicator, ind) != 0)
+                        continue;
+                    krb5_deltat lim =
+                        hed_s4u->s4u_ind_limits[k].limits.max_life;
+                    if (lim > 0 &&
+                        ((*entry_out)->max_life == 0 ||
+                         lim < (*entry_out)->max_life)) {
+                        (*entry_out)->max_life = lim;
+                        krb5_klog_syslog(LOG_INFO,
+                                         "S4U X.509: capping S4U2Self "
+                                         "lifetime to %ld s (indicator '%s')",
+                                         (long)lim, ind);
+                    }
+                    break;
+                }
+                free(ind);
+            }
+        }
     }
 
 done:
