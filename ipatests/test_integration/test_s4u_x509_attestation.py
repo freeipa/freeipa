@@ -85,7 +85,7 @@ _INDICATORS_HELPER = textwrap.dedent("""\
             name=target,
             creds=creds,
             usage='initiate',
-            mechs=[gssapi.MechType.kerberos],
+            mech=gssapi.MechType.kerberos,
         )
         token = init_ctx.step()
         acc_ctx = gssapi.SecurityContext(usage='accept', creds=acc_creds)

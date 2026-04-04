@@ -1367,14 +1367,21 @@ s4u_lookup_user_by_cn(krb5_context kcontext,
     }
 
     /*
-     * AS-REQ thin referral: ipadb_get_principal() returned NOENTRY for
-     * out-of-realm user principals because is_request_for_us() rejects them
-     * immediately.  In the AS-REQ context (KRB5_KDB_FLAG_REFERRAL_OK set)
-     * validate the cert realm against the known trusted-domain list, then
-     * build a minimal krb5_db_entry with only ->princ populated so MIT KDC
-     * issues a cross-realm referral TGT and the S4U2Self chain continues to
-     * the AD DC.  The canonical trusted_realm is used as the principal realm
-     * so that NetBIOS / alias lookups still resolve to the right krbtgt.
+     * AS-REQ thin referral (KRB5_KDB_FLAG_REFERRAL_OK set).
+     *
+     * MIT Kerberos performs AS-REQ realm discovery for S4U2Self X.509
+     * requests when the user's realm is unknown.  The KDC calls
+     * get_s4u_x509_principal() with KRB5_KDB_FLAG_REFERRAL_OK set in
+     * that AS-REQ context.  ipadb_get_principal() returned NOENTRY because
+     * the cert's realm is not an IPA realm (is_request_for_us() rejects the
+     * principal immediately).  Validate the realm against the trusted-domain
+     * list and return a minimal krb5_db_entry whose ->princ carries only the
+     * canonical realm (@TRUSTED-REALM, no name component) so that MIT KDC
+     * issues a cross-realm referral AS-REP and the S4U2Self chain continues
+     * to the AD DC.  Encoding only the realm — not the full user principal —
+     * is sufficient: MIT KDC needs only entry->princ->realm to build the
+     * krbtgt/REALM@IPA referral; NetBIOS / alias lookups are handled by the
+     * canonical form returned by ipadb_is_princ_from_trusted_realm().
      */
     if (ret == KRB5_KDB_NOENTRY &&
         (flags & KRB5_KDB_FLAG_REFERRAL_OK) &&
@@ -1406,10 +1413,10 @@ s4u_lookup_user_by_cn(krb5_context kcontext,
             if (tret == 0 && trusted_realm) {
                 krb5_principal ref_princ = NULL;
                 krb5_db_entry *ref_entry = NULL;
-                if (krb5_parse_name(kcontext, fq_username,
-                                    &ref_princ) == 0 &&
-                    krb5_set_principal_realm(kcontext, ref_princ,
-                                             trusted_realm) == 0) {
+                /* Build @TRUSTED-REALM: realm only, no name component. */
+                if (krb5_build_principal(kcontext, &ref_princ,
+                                         strlen(trusted_realm), trusted_realm,
+                                         (char *)NULL) == 0) {
                     ref_entry = calloc(1, sizeof(*ref_entry));
                     if (ref_entry) {
                         ref_entry->princ = ref_princ;
