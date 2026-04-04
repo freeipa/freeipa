@@ -91,7 +91,7 @@
  *   }
  *   clientId (0x0C) and accessTokenHash (0x04) carry distinct tags so the
  *   optional clientId is unambiguous to decoders.  amrValues is decoded as
- *   ASN1_SEQUENCE_ANY (STACK_OF(ASN1_TYPE)) to avoid a nested typedef.
+ *   STACK_OF(ASN1_UTF8STRING) via ASN1_SEQUENCE_OF_OPT.
  * ------------------------------------------------------------------ */
 
 typedef struct kerberos_service_issuer_binding_st {
@@ -141,12 +141,12 @@ ASN1_SEQUENCE(SSH_AUTHN_CONTEXT) = {
 IMPLEMENT_ASN1_FUNCTIONS(SSH_AUTHN_CONTEXT)
 
 typedef struct oidc_authn_context_st {
-    ASN1_INTEGER        *version;
-    ASN1_UTF8STRING     *issuer;
-    ASN1_UTF8STRING     *client_id;          /* OPTIONAL, no explicit tag */
-    ASN1_OCTET_STRING   *access_token_hash;
-    STACK_OF(ASN1_TYPE) *amr_values;         /* OPTIONAL SEQUENCE OF UTF8String */
-    ASN1_UTF8STRING     *client_address;     /* [0] EXPLICIT OPTIONAL */
+    ASN1_INTEGER              *version;
+    ASN1_UTF8STRING           *issuer;
+    ASN1_UTF8STRING           *client_id;     /* OPTIONAL, no explicit tag */
+    ASN1_OCTET_STRING         *access_token_hash;
+    STACK_OF(ASN1_UTF8STRING) *amr_values;    /* OPTIONAL SEQUENCE OF UTF8String */
+    ASN1_UTF8STRING           *client_address; /* [0] EXPLICIT OPTIONAL */
 } OIDC_AUTHN_CONTEXT;
 
 DECLARE_ASN1_FUNCTIONS(OIDC_AUTHN_CONTEXT)
@@ -156,7 +156,13 @@ ASN1_SEQUENCE(OIDC_AUTHN_CONTEXT) = {
     ASN1_SIMPLE(OIDC_AUTHN_CONTEXT, issuer,            ASN1_UTF8STRING),
     ASN1_OPT(OIDC_AUTHN_CONTEXT,   client_id,          ASN1_UTF8STRING),
     ASN1_SIMPLE(OIDC_AUTHN_CONTEXT, access_token_hash, ASN1_OCTET_STRING),
-    ASN1_OPT(OIDC_AUTHN_CONTEXT,   amr_values,         ASN1_SEQUENCE_ANY),
+    /* ASN1_SEQUENCE_OF_OPT sets ASN1_TFLG_SEQUENCE_OF|ASN1_TFLG_OPTIONAL so
+     * the template decoder builds a STACK_OF(ASN1_UTF8STRING).  Using plain
+     * ASN1_OPT(*, ASN1_SEQUENCE_ANY) would omit the SEQUENCE_OF flag and
+     * cause d2i_OIDC_AUTHN_CONTEXT() to return NULL when amr_values is
+     * present.  ASN1_TYPE_it is not exposed by OpenSSL, so the element type
+     * must be the concrete ASN1_UTF8STRING. */
+    ASN1_SEQUENCE_OF_OPT(OIDC_AUTHN_CONTEXT, amr_values, ASN1_UTF8STRING),
     ASN1_EXP_OPT(OIDC_AUTHN_CONTEXT, client_address,  ASN1_UTF8STRING, 0),
 } ASN1_SEQUENCE_END(OIDC_AUTHN_CONTEXT)
 
@@ -1605,16 +1611,16 @@ oidc_s4u_verify_context(krb5_context kcontext,
      * the OIDC context extension was not present.
      */
     if (authn && authn->amr_values &&
-        sk_ASN1_TYPE_num(authn->amr_values) > 0) {
-        int n = sk_ASN1_TYPE_num(authn->amr_values);
+        sk_ASN1_UTF8STRING_num(authn->amr_values) > 0) {
+        int n = sk_ASN1_UTF8STRING_num(authn->amr_values);
         char **am = calloc((size_t)(n + 1), sizeof(char *));
         if (am) {
             int j = 0;
             for (int i = 0; i < n; i++) {
-                ASN1_TYPE *t = sk_ASN1_TYPE_value(authn->amr_values, i);
-                if (!t || t->type != V_ASN1_UTF8STRING)
+                const ASN1_UTF8STRING *s =
+                    sk_ASN1_UTF8STRING_value(authn->amr_values, i);
+                if (!s)
                     continue;
-                const ASN1_UTF8STRING *s = t->value.utf8string;
                 char *v = strndup((char *)s->data, (size_t)s->length);
                 if (v)
                     am[j++] = v;
