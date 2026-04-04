@@ -142,6 +142,26 @@ void ldap_value_free_len(struct berval **vals) {}
 
 int ldap_msgfree(LDAPMessage *msg) { return 0; }
 
+/*
+ * Stubs for cross-realm trust helpers (defined in ipa_kdb_mspac*.c).
+ * In unit tests we never exercise the referral path, so these simply
+ * return KRB5_KDB_NOENTRY (no trusted realm found) and do nothing.
+ */
+krb5_error_code ipadb_reinit_mspac(struct ipadb_context *ipactx,
+                                   bool force_reinit,
+                                   const char **stmsg)
+{
+    return KRB5_KDB_NOENTRY;
+}
+
+krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
+                                                  const char *test_realm,
+                                                  size_t size,
+                                                  char **trusted_realm)
+{
+    return KRB5_KDB_NOENTRY;
+}
+
 /* ------------------------------------------------------------------ *
  * DER building helpers (test-only)                                    *
  *                                                                     *
