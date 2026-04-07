@@ -3,11 +3,11 @@
 #
 
 import base64
-from cryptography import x509 as crypto_x509
 import datetime
 from decimal import Decimal
 import json
 import six
+import synta
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
 from ipalib import capabilities, x509
 from ipalib.x509 import Encoding as x509_Encoding
@@ -73,7 +73,7 @@ class _JSONPrimer(dict):
             tuple: self._enc_list,
             dict: self._enc_dict,
             x509.IPACertificate: self._enc_certificate,
-            crypto_x509.CertificateSigningRequest: self._enc_certificate,
+            synta.CertificationRequest: self._enc_csr,
         })
 
     def __missing__(self, typ):
@@ -139,6 +139,9 @@ class _JSONPrimer(dict):
 
     def _enc_certificate(self, val):
         return self._enc_bytes(val.public_bytes(x509_Encoding.DER))
+
+    def _enc_csr(self, val):
+        return self._enc_bytes(val.to_der())
 
 
 def json_encode_binary(val, version, pretty_print=False):
