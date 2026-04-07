@@ -2402,12 +2402,13 @@ def hbacrule_remove_service(host, rulename, services=None,
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
-def hbacrule_del(host, rulename, extra_args=()):
+def hbacrule_del(host, rulename, extra_args=(),
+                 raiseonerr=True):
     cmd = [
         "ipa", "hbacrule-del", rulename
     ]
     cmd.extend(extra_args)
-    return host.run_command(cmd)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
 def hbacrule_enable(host, rulename, raiseonerr=True):
@@ -2417,6 +2418,186 @@ def hbacrule_enable(host, rulename, raiseonerr=True):
 
 def hbacrule_disable(host, rulename, raiseonerr=True):
     cmd = ["ipa", "hbacrule-disable", rulename]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_add(host, mapname, extra_args=()):
+    """Create an SELinux User Map rule via ``ipa selinuxusermap-add``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Rule name (``cn``) of the new map.
+    :param extra_args: Extra CLI arguments, for example ``--selinuxuser``,
+        ``--hbacrule``, ``--usercat=all``, or ``--hostcat=all``.  Note that
+        an HBAC rule reference cannot be combined with user or host category
+        ``all``; see the server plugin for mutual exclusion rules.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-add", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_del(host, mapname, extra_args=(), raiseonerr=True):
+    """Remove an SELinux User Map rule via ``ipa selinuxusermap-del``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Rule name to delete.
+    :param extra_args: Extra CLI arguments passed to ``ipa selinuxusermap-del``.
+    :param raiseonerr: Forwarded to ``run_command``.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-del", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_show(host, mapname, extra_args=()):
+    """Show an SELinux User Map rule via ``ipa selinuxusermap-show``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Rule name to display.
+    :param extra_args: Extra CLI arguments (e.g. ``--all``, ``--raw``).
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-show", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_add_user(host, mapname, users=None, groups=None,
+                            raiseonerr=True, extra_args=()):
+    """Add users or groups to a map via ``ipa selinuxusermap-add-user``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Target SELinux User Map rule name.
+    :param users: User login to add (single string passed as ``--users=``).
+    :param groups: Group name to add (single string passed as ``--groups=``).
+    :param raiseonerr: Forwarded to ``run_command``.
+    :param extra_args: Additional CLI arguments.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-add-user", mapname]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_add_host(host, mapname, hosts=None,
+                            raiseonerr=True, extra_args=()):
+    """Add hosts or hostgroups to a map via ``ipa selinuxusermap-add-host``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Target SELinux User Map rule name.
+    :param hosts: Hostname to add (single string passed as ``--hosts``).
+    :param raiseonerr: Forwarded to ``run_command``.
+    :param extra_args: Additional CLI arguments (e.g. ``--hostgroups=``).
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-add-host", mapname]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_enable(host, mapname, extra_args=()):
+    """Enable an SELinux User Map rule via ``ipa selinuxusermap-enable``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Rule name to enable.
+    :param extra_args: Extra CLI arguments.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-enable", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_disable(host, mapname, extra_args=()):
+    """Disable an SELinux User Map rule via ``ipa selinuxusermap-disable``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Rule name to disable.
+    :param extra_args: Extra CLI arguments.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-disable", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_mod(host, mapname, extra_args=()):
+    """Modify an SELinux User Map rule via ``ipa selinuxusermap-mod``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Rule name to modify.
+    :param extra_args: CLI options such as ``--selinuxuser=``,
+    ``--description=``, or ``--hbacrule=``.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-mod", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_find(host, criteria=None, extra_args=()):
+    """Search SELinux User Map rules via ``ipa selinuxusermap-find``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param criteria: Optional search string passed as the CLI positional
+        argument (rule name fragment or empty for all).
+    :param extra_args: Additional filters or display options (e.g.
+        ``--hbacrule=NAME``, ``--all``).
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-find"]
+    if criteria is not None:
+        cmd.append(criteria)
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_remove_user(host, mapname, users=None, groups=None,
+                               raiseonerr=True, extra_args=()):
+    """Remove users or groups from a map via ``ipa selinuxusermap-remove-user``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Target SELinux User Map rule name.
+    :param users: User login to remove (single string passed as ``--users=``).
+    :param groups: Group name to remove (single string passed as ``--groups=``).
+    :param raiseonerr: Forwarded to ``run_command``.
+    :param extra_args: Additional CLI arguments.
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-remove-user", mapname]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_remove_host(host, mapname, hosts=None,
+                               raiseonerr=True, extra_args=()):
+    """Remove hosts from a map via ``ipa selinuxusermap-remove-host``.
+
+    :param host: Host on which to run the command (usually the IPA master).
+    :param mapname: Target SELinux User Map rule name.
+    :param hosts: Hostname to remove (single string passed as ``--hosts``).
+    :param raiseonerr: Forwarded to ``run_command``.
+    :param extra_args: Additional CLI arguments (e.g. ``--hostgroups=``).
+    :return: ``run_command`` result object.
+    """
+    cmd = ["ipa", "selinuxusermap-remove-host", mapname]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
@@ -2879,6 +3060,13 @@ def remote_ini_file(host, filename):
 
 
 def is_selinux_enabled(host):
+    """Return whether SELinux is enabled on ``host`` (enforcing/permissive).
+
+    Uses ``selinuxenabled`` exit codes: 0 if enabled, 1 if disabled.
+
+    :param host: Remote host to query.
+    :return: ``True`` if SELinux is enabled, ``False`` otherwise.
+    """
     res = host.run_command('selinuxenabled', ok_returncode=(0, 1))
     return res.returncode == 0
 
