@@ -32,8 +32,8 @@ import tempfile
 from ctypes.util import find_library
 from tempfile import NamedTemporaryFile
 
-import cryptography.x509
 import synta
+import synta.oids
 
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -199,13 +199,8 @@ def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
         except ipautil.CalledProcessError as e:
             raise ValueError(e.output)
 
-        try:
-            eku = kdc_cert.extensions.get_extension_for_class(
-                cryptography.x509.ExtendedKeyUsage)
-            list(eku.value).index(
-                cryptography.x509.ObjectIdentifier(x509.EKU_PKINIT_KDC))
-        except (cryptography.x509.ExtensionNotFound,
-                ValueError):
+        eku_oids = kdc_cert.extended_key_usage
+        if eku_oids is None or x509.EKU_PKINIT_KDC not in eku_oids:
             raise ValueError("invalid for a KDC")
 
         principal = str(Principal(['krbtgt', realm], realm))
@@ -667,7 +662,7 @@ class NSSDatabase:
                     continue
                 try:
                     cert = x509.IPACertificate(
-                        cryptography.x509.load_der_x509_certificate(der))
+                        synta.Certificate.from_der(der))
                 except ValueError as e:
                     logger.warning(
                         "Skipping certificate in %s: %s", filename, e)
@@ -979,17 +974,17 @@ class NSSDatabase:
             if not cert.subject:
                 raise ValueError("has empty subject")
 
-            try:
-                bc = cert.extensions.get_extension_for_class(
-                    cryptography.x509.BasicConstraints)
-            except cryptography.x509.ExtensionNotFound:
+            bc_der = cert.get_extension_value_der(synta.oids.BASIC_CONSTRAINTS)
+            if bc_der is None:
                 raise ValueError("missing basic constraints")
-
-            if not bc.value.ca:
+            bc_seq = synta.Decoder(bc_der).decode_sequence()
+            ca = bool(bc_seq.decode_boolean()) if not bc_seq.is_empty() else False
+            if not ca:
                 raise ValueError("not a CA certificate")
             if minpathlen is not None:
                 # path_length is None means no limitation
-                pl = bc.value.path_length
+                pl = (bc_seq.decode_integer().to_int()
+                      if not bc_seq.is_empty() else None)
                 if pl is not None and pl < minpathlen:
                     raise ValueError(
                         "basic contraint pathlen {}, "
@@ -998,14 +993,13 @@ class NSSDatabase:
                         )
                     )
 
-            try:
-                ski = cert.extensions.get_extension_for_class(
-                    cryptography.x509.SubjectKeyIdentifier)
-            except cryptography.x509.ExtensionNotFound:
+            ski_der = cert.get_extension_value_der(
+                synta.oids.SUBJECT_KEY_IDENTIFIER)
+            if ski_der is None:
                 raise ValueError("missing subject key identifier extension")
-            else:
-                if len(ski.value.digest) == 0:
-                    raise ValueError("subject key identifier must not be empty")
+            ski_octets = synta.Decoder(ski_der).decode_octet_string()
+            if len(ski_octets) == 0:
+                raise ValueError("subject key identifier must not be empty")
 
             try:
                 self.run_certutil(
