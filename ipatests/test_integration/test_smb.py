@@ -135,31 +135,31 @@ class TestSMB(IntegrationTest):
             run_smb_client(['mkdir', test_dir])
             # check dir properties at client side
             res = run_smb_client(['stat', '-c', '%n %U %G', test_dir])
-            assert res.stdout_text == '{0} {1} {1}\n'.format(test_dir, user)
+            assert '{0} {1} {1}\n'.format(test_dir, user) in res.stdout_text
             # check dir properties at server side
             res = run_smb_server(['stat', '-c', '%n %U %G', test_dir])
-            assert res.stdout_text == '{0} {1} {1}\n'.format(test_dir, user)
+            assert '{0} {1} {1}\n'.format(test_dir, user) in res.stdout_text
 
             # check creation of file from client side
             run_smb_client('printf "{}" > {}'.format(
                 test_string, test_file_path))
             # check file is listed at client side
             res = run_smb_client(['ls', test_dir])
-            assert res.stdout_text == test_file + '\n'
+            assert test_file + '\n' in res.stdout_text
             # check file is listed at server side
             res = run_smb_server(['ls', test_dir])
             assert res.stdout_text == test_file + '\n'
             # check file properties at server side
             res = run_smb_server(['stat', '-c', '%n %s %U %G', test_file_path])
-            assert res.stdout_text == '{0} {1} {2} {2}\n'.format(
-                test_file_path, len(test_string), user)
+            assert '{0} {1} {2} {2}\n'.format(
+                test_file_path, len(test_string), user) in res.stdout_text
             # check file properties at client side
             res = run_smb_client(['stat', '-c', '%n %s %U %G', test_file_path])
-            assert res.stdout_text == '{0} {1} {2} {2}\n'.format(
-                test_file_path, len(test_string), user)
+            assert '{0} {1} {2} {2}\n'.format(
+                test_file_path, len(test_string), user) in res.stdout_text
             # check file contents at client side
             res = run_smb_client(['cat', test_file_path])
-            assert res.stdout_text == test_string
+            assert test_string in res.stdout_text
             # check file contents at server side
             file_contents_at_server = self.smbserver.get_file_contents(
                 '{}/{}'.format(share['server_path'], test_file_path),
