@@ -30,17 +30,7 @@ from lxml import etree
 import gssapi
 import six
 
-from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes, hmac
-from cryptography.hazmat.primitives.padding import PKCS7
-from cryptography.hazmat.primitives.kdf import pbkdf2
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-try:
-    # cryptography>=43.0.0
-    from cryptography.hazmat.decrepit.ciphers.algorithms import TripleDES
-except ImportError:
-    # will be removed from this module in cryptography 48.0.0
-    from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
+import synta.crypto
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipalib import api, errors
@@ -124,50 +114,60 @@ def convertHashName(value):
     return result
 
 
+class _HMACContext:
+    """Minimal incremental HMAC wrapper compatible with XMLDecryptor."""
+
+    def __init__(self, key, algorithm):
+        self._key = key
+        self._algorithm = algorithm  # e.g. 'sha1', 'sha256'
+        self._data = b''
+
+    def copy(self):
+        ctx = _HMACContext(self._key, self._algorithm)
+        ctx._data = self._data
+        return ctx
+
+    def update(self, data):
+        self._data += data
+
+    def verify(self, expected):
+        synta.crypto.hmac_verify(self._algorithm, self._key, self._data, expected)
+
+
 def convertHMACType(value):
-    "Converts HMAC URI to hashlib object."
+    "Converts HMAC URI to algorithm name string."
 
     return {
-        "http://www.w3.org/2000/09/xmldsig#hmac-sha1":        hashes.SHA1,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha224": hashes.SHA224,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256": hashes.SHA256,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384": hashes.SHA384,
-        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512": hashes.SHA512,
-    }.get(value.lower(), hashes.SHA1)
+        "http://www.w3.org/2000/09/xmldsig#hmac-sha1":        'sha1',
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha224": 'sha224',
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256": 'sha256',
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384": 'sha384',
+        "http://www.w3.org/2001/04/xmldsig-more#hmac-sha512": 'sha512',
+    }.get(value.lower(), 'sha1')
 
 
 def convertAlgorithm(value):
-    "Converts encryption URI to (mech, ivlen)."
+    "Converts encryption URI to (algo_name, block_size_bits, key_bits)."
 
+    # algo_name is 'aes' or 'des3'; block_size_bits is the CBC IV size in bits
     supported_algs = {
-        "http://www.w3.org/2001/04/xmlenc#aes128-cbc": (
-            algorithms.AES, modes.CBC, 128),
-        "http://www.w3.org/2001/04/xmlenc#aes192-cbc": (
-            algorithms.AES, modes.CBC, 192),
-        "http://www.w3.org/2001/04/xmlenc#aes256-cbc": (
-            algorithms.AES, modes.CBC, 256),
-        "http://www.w3.org/2001/04/xmldsig-more#camellia128": (
-            algorithms.Camellia, modes.CBC, 128),
-        "http://www.w3.org/2001/04/xmldsig-more#camellia192": (
-            algorithms.Camellia, modes.CBC, 192),
-        "http://www.w3.org/2001/04/xmldsig-more#camellia256": (
-            algorithms.Camellia, modes.CBC, 256),
+        "http://www.w3.org/2001/04/xmlenc#aes128-cbc": ('aes', 128, 128),
+        "http://www.w3.org/2001/04/xmlenc#aes192-cbc": ('aes', 128, 192),
+        "http://www.w3.org/2001/04/xmlenc#aes256-cbc": ('aes', 128, 256),
+        # Camellia is not supported; these return (None, None, None) below
 
         # TODO: add support for these formats.
         # "http://www.w3.org/2001/04/xmlenc#kw-aes128": "kw-aes128",
         # "http://www.w3.org/2001/04/xmlenc#kw-aes192": "kw-aes192",
         # "http://www.w3.org/2001/04/xmlenc#kw-aes256": "kw-aes256",
         # "http://www.w3.org/2001/04/xmlenc#kw-tripledes": "kw-tripledes",
-        # "http://www.w3.org/2001/04/xmldsig-more#kw-camellia128": "kw-camellia128",
-        # "http://www.w3.org/2001/04/xmldsig-more#kw-camellia192": "kw-camellia192",
-        # "http://www.w3.org/2001/04/xmldsig-more#kw-camellia256": "kw-camellia256",
     }
 
     # We don't deal with VAULT here but if VAULT_WRAPPING_3DES is not present
     # in the list of the vault wrapping algorithms, we cannot use 3DES anywhere
     if VAULT_WRAPPING_3DES in VAULT_WRAPPING_SUPPORTED_ALGOS:
         supported_algs["http://www.w3.org/2001/04/xmlenc#tripledes-cbc"] = (
-            TripleDES, modes.CBC, 64)
+            'des3', 64, 192)
 
     return supported_algs.get(value.lower(), (None, None, None))
 
@@ -207,7 +207,7 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
         salt = fetch(params, "./Salt/Specified/text()", base64.b64decode)
         itrs = fetch(params, "./IterationCount/text()", int)
         klen = fetch(params, "./KeyLength/text()", int)
-        hmod = fetch(params, "./PRF/@Algorithm", convertHMACType, hashes.SHA1)
+        hmod = fetch(params, "./PRF/@Algorithm", convertHMACType, 'sha1')
 
         if salt is None:
             raise ValueError("XML file is missing PBKDF2 salt!")
@@ -218,15 +218,15 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
         if klen is None:
             raise ValueError("XML file is missing PBKDF2 key length!")
 
-        self.kdf = pbkdf2.PBKDF2HMAC(
-            algorithm=hmod(),
-            length=klen,
-            salt=salt,
-            iterations=itrs,
-        )
+        self._algorithm = hmod
+        self._salt = salt
+        self._iterations = itrs
+        self._length = klen
 
     def derive(self, masterkey):
-        return self.kdf.derive(masterkey)
+        return synta.crypto.pbkdf2_hmac(
+            self._algorithm, masterkey, self._salt,
+            self._iterations, self._length)
 
 
 def convertKeyDerivation(value):
@@ -247,7 +247,7 @@ class XMLDecryptor:
         self.__hmac = hmac
 
     def __call__(self, element, mac=None):
-        algo, mode, klen = fetch(
+        algo, block_size, klen = fetch(
             element, "./xenc:EncryptionMethod/@Algorithm", convertAlgorithm)
         data = fetch(
             element,
@@ -265,21 +265,16 @@ class XMLDecryptor:
             tmp.update(data)
             try:
                 tmp.verify(mac)
-            except InvalidSignature as e:
+            except ValueError as e:
                 raise ValidationError("MAC validation failed!", e)
 
-        iv = data[:algo.block_size // 8]
+        iv = data[:block_size // 8]
         data = data[len(iv):]
 
-        algorithm = algo(self.__key)
-        cipher = Cipher(algorithm, mode(iv))
-        decryptor = cipher.decryptor()
-        padded = decryptor.update(data)
-        padded += decryptor.finalize()
-
-        unpadder = PKCS7(algorithm.block_size).unpadder()
-        out = unpadder.update(padded)
-        out += unpadder.finalize()
+        if algo == 'des3':
+            out = synta.crypto.des3_cbc_decrypt(self.__key, iv, data)
+        else:
+            out = synta.crypto.aes_cbc_decrypt(self.__key, iv, data)
 
         return out
 
@@ -495,11 +490,9 @@ class PSKCDocument:
         # Load the decryptor.
         self.__decryptor = XMLDecryptor(key)
         if self.__mkey is not None and self.__algo is not None:
-            tmp = hmac.HMAC(
-                self.__decryptor(self.__mkey),
-                self.__algo(),
-            )
-            self.__decryptor = XMLDecryptor(key, tmp)
+            mac_key = self.__decryptor(self.__mkey)
+            hmac_ctx = _HMACContext(mac_key, self.__algo)
+            self.__decryptor = XMLDecryptor(key, hmac_ctx)
 
     def getKeyPackages(self):
         for kp in self.__keypackages:
