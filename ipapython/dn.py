@@ -422,7 +422,8 @@ from __future__ import print_function
 import sys
 import functools
 
-import cryptography.x509
+import synta
+import synta.oids.attr as _attr
 import six
 
 try:
@@ -983,7 +984,7 @@ class DN:
       to yield one or more RDN's which will be appended in order to
       the DN. The parsing recognizes the DN syntax escaping rules.
 
-    * A single ``cryptography.x509.name.Name`` object.
+    * A single ``bytes`` object containing a DER-encoded X.500 Name.
 
     * A RDN object, the RDN will copied respecting the constructors
       keyword configuration parameters and appended in order.
@@ -1134,18 +1135,16 @@ class DN:
             rdns = [[ava]]
         elif isinstance(value, RDN):
             rdns = [value.to_openldap()]
-        elif isinstance(value, cryptography.x509.name.Name):
+        elif isinstance(value, bytes):
             rdns = list(reversed([
-                [get_ava(
-                    ATTR_NAME_BY_OID.get(ava.oid, ava.oid.dotted_string),
-                    ava.value) for ava in rdn]
-                for rdn in value.rdns
+                [get_ava(ATTR_NAME_BY_OID.get(oid, oid), v)]
+                for oid, v in synta.parse_name_attrs(value)
             ]))
             for rdn in rdns:
                 sort_avas(rdn)
         else:
             raise TypeError(
-                "must be str, unicode, tuple, Name, RDN or DN, got %s instead"
+                "must be str, unicode, tuple, bytes, RDN or DN, got %s instead"
                 % type(value))
         return rdns
 
@@ -1437,30 +1436,27 @@ class DN:
 
 
 ATTR_NAME_BY_OID = {
-    cryptography.x509.oid.NameOID.COMMON_NAME: 'CN',
-    cryptography.x509.oid.NameOID.COUNTRY_NAME: 'C',
-    cryptography.x509.oid.NameOID.LOCALITY_NAME: 'L',
-    cryptography.x509.oid.NameOID.STATE_OR_PROVINCE_NAME: 'ST',
-    cryptography.x509.oid.NameOID.ORGANIZATION_NAME: 'O',
-    cryptography.x509.oid.NameOID.ORGANIZATIONAL_UNIT_NAME: 'OU',
-    cryptography.x509.oid.NameOID.SERIAL_NUMBER: 'serialNumber',
-    cryptography.x509.oid.NameOID.SURNAME: 'SN',
-    cryptography.x509.oid.NameOID.GIVEN_NAME: 'givenName',
-    cryptography.x509.oid.NameOID.TITLE: 'title',
-    cryptography.x509.oid.NameOID.GENERATION_QUALIFIER: 'generationQualifier',
-    cryptography.x509.oid.NameOID.DN_QUALIFIER: 'dnQualifier',
-    cryptography.x509.oid.NameOID.PSEUDONYM: 'pseudonym',
-    cryptography.x509.oid.NameOID.DOMAIN_COMPONENT: 'DC',
-    cryptography.x509.oid.NameOID.EMAIL_ADDRESS: 'E',
-    cryptography.x509.oid.NameOID.JURISDICTION_COUNTRY_NAME:
-        'incorporationCountry',
-    cryptography.x509.oid.NameOID.JURISDICTION_LOCALITY_NAME:
-        'incorporationLocality',
-    cryptography.x509.oid.NameOID.JURISDICTION_STATE_OR_PROVINCE_NAME:
-        'incorporationState',
-    cryptography.x509.oid.NameOID.BUSINESS_CATEGORY: 'businessCategory',
-    cryptography.x509.ObjectIdentifier('2.5.4.9'): 'STREET',
-    cryptography.x509.ObjectIdentifier('2.5.4.17'): 'postalCode',
-    cryptography.x509.ObjectIdentifier('0.9.2342.19200300.100.1.1'): 'UID',
-    cryptography.x509.ObjectIdentifier('2.5.4.97'): 'organizationIdentifier',
+    str(_attr.COMMON_NAME):      'CN',
+    str(_attr.COUNTRY):          'C',
+    str(_attr.LOCALITY):         'L',
+    str(_attr.STATE):            'ST',
+    str(_attr.ORGANIZATION):     'O',
+    str(_attr.ORG_UNIT):         'OU',
+    str(_attr.SERIAL_NUMBER):    'serialNumber',
+    str(_attr.SURNAME):          'SN',
+    str(_attr.GIVEN_NAME):       'givenName',
+    str(_attr.TITLE):                  'title',
+    str(_attr.GENERATION_QUALIFIER):   'generationQualifier',
+    str(_attr.DN_QUALIFIER):           'dnQualifier',
+    str(_attr.PSEUDONYM):              'pseudonym',
+    str(_attr.DOMAIN_COMPONENT):       'DC',
+    str(_attr.EMAIL_ADDRESS):          'E',
+    str(_attr.JURISDICTION_COUNTRY):   'incorporationCountry',
+    str(_attr.JURISDICTION_LOCALITY):  'incorporationLocality',
+    str(_attr.JURISDICTION_STATE):     'incorporationState',
+    str(_attr.BUSINESS_CATEGORY):      'businessCategory',
+    str(_attr.STREET):                 'STREET',
+    str(_attr.POSTAL_CODE):            'postalCode',
+    str(_attr.USER_ID):                'UID',
+    str(_attr.ORG_IDENTIFIER):         'organizationIdentifier',
 }
