@@ -21,9 +21,9 @@ import os
 import re
 import time
 
-from cryptography import x509
-from cryptography.x509.oid import ObjectIdentifier, NameOID
-from cryptography.hazmat.primitives import hashes, serialization
+import synta
+import synta.ext
+import synta.oids
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -105,15 +105,15 @@ def create_external_ca_with_subject(subject_attrs):
     Create an external CA with custom subject attributes including non-standard
     OIDs.
 
-    :param subject_attrs: List of x509.NameAttribute objects to include in
-    subject
+    :param subject_attrs: List of (oid, value_str) tuples where oid is a
+    synta.ObjectIdentifier (e.g. from synta.oids.attr) or a dotted-string OID
     :return: Tuple of (ExternalCA object, root CA certificate as PEM bytes)
 
     Example:
         subj_attrs = [
-            x509.NameAttribute(NameOID.COMMON_NAME, 'My CA'),
-            x509.NameAttribute(NameOID.COUNTRY_NAME, 'US'),
-            x509.NameAttribute(ObjectIdentifier('2.5.4.97'), 'VATEU-123456789')
+            (synta.oids.attr.COMMON_NAME, 'My CA'),
+            (synta.oids.attr.COUNTRY, 'US'),
+            (synta.oids.attr.ORG_IDENTIFIER, 'VATEU-123456789'),
         ]
         external_ca, root_ca_pem = create_external_ca_with_subject(subj_attrs)
         signed_cert = external_ca.sign_csr(csr_data)
@@ -121,61 +121,33 @@ def create_external_ca_with_subject(subject_attrs):
     external_ca = ExternalCA()
     external_ca.create_ca_key()
 
-    # Create the custom subject
-    subject = x509.Name(subject_attrs)
-    external_ca.issuer = subject
+    nb = synta.NameBuilder()
+    for oid, value_str in subject_attrs:
+        nb = nb.add_attr(str(oid), value_str)
+    name_der = nb.build()
+    external_ca.issuer = name_der
 
-    # Build the root CA certificate
-    builder = x509.CertificateBuilder()
-    builder = builder.subject_name(subject)
-    builder = builder.issuer_name(subject)  # self-signed
-    builder = builder.public_key(external_ca.ca_public_key)
-    builder = builder.serial_number(x509.random_serial_number())
-    builder = builder.not_valid_before(external_ca.now)
-    builder = builder.not_valid_after(external_ca.now + external_ca.delta)
-
-    # Add required extensions for a CA certificate
-    builder = builder.add_extension(
-        x509.KeyUsage(
-            digital_signature=False,
-            content_commitment=False,
-            key_encipherment=False,
-            data_encipherment=False,
-            key_agreement=False,
-            key_cert_sign=True,
-            crl_sign=True,
-            encipher_only=False,
-            decipher_only=False,
-        ),
-        critical=True,
+    spki_der = external_ca.ca_public_key.to_der()
+    ku_bits = synta.ext.KU_KEY_CERT_SIGN | synta.ext.KU_CRL_SIGN
+    cert = (
+        synta.CertificateBuilder()
+        .subject_name(name_der)
+        .issuer_name(name_der)
+        .public_key(external_ca.ca_public_key)
+        .serial_number(int.from_bytes(os.urandom(20), 'big'))
+        .not_valid_before_utc(external_ca.now)
+        .not_valid_after_utc(external_ca.now + external_ca.delta)
+        .add_extension(synta.oids.KEY_USAGE, True,
+                       synta.ext.key_usage(ku_bits))
+        .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+                       synta.ext.basic_constraints(ca=True))
+        .add_extension(synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+                       synta.ext.subject_key_identifier(spki_der))
+        .add_extension(synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+                       synta.ext.authority_key_identifier(spki_der))
+        .sign(external_ca.ca_key, "sha256")
     )
-
-    builder = builder.add_extension(
-        x509.BasicConstraints(ca=True, path_length=None),
-        critical=True,
-    )
-
-    builder = builder.add_extension(
-        x509.SubjectKeyIdentifier.from_public_key(
-            external_ca.ca_public_key
-        ),
-        critical=False,
-    )
-
-    builder = builder.add_extension(
-        x509.AuthorityKeyIdentifier.from_issuer_public_key(
-            external_ca.ca_public_key
-        ),
-        critical=False,
-    )
-
-    # Sign the certificate
-    root_ca_cert = builder.sign(
-        external_ca.ca_key, hashes.SHA256()
-    )
-    root_ca_pem = root_ca_cert.public_bytes(serialization.Encoding.PEM)
-
-    return external_ca, root_ca_pem
+    return external_ca, cert.to_pem()
 
 
 def find_cert_in_chain(cert_chain, subject_attrs=None, issuer_attrs=None):
@@ -184,89 +156,84 @@ def find_cert_in_chain(cert_chain, subject_attrs=None, issuer_attrs=None):
     criteria. The search can be filtered using dictionaries of subject
     attributes, issuer attributes, or a combination of both.
 
-    :param cert_chain: List of certificates to search through
-    :param subject_attrs: Dict of OID -> expected value for subject attributes
-    :param issuer_attrs: Dict of OID -> expected value for issuer attributes
+    :param cert_chain: List of IPACertificate objects to search through
+    :param subject_attrs: Dict of {oid -> expected_value} for subject attrs,
+        where oid is a synta.ObjectIdentifier or dotted-decimal OID string
+    :param issuer_attrs: Dict of {oid -> expected_value} for issuer attrs
     :return: The matching certificate or None if not found
 
     Example:
-        from cryptography.x509.oid import NameOID, ObjectIdentifier
-        org_id_oid = ObjectIdentifier("2.5.4.97")
-
-        # Find IPA CA cert with specific subject and issuer
         cert = find_cert_in_chain(
             ca_chain,
             subject_attrs={
-                NameOID.COMMON_NAME: "Certificate Authority",
-                NameOID.ORGANIZATION_NAME: "EXAMPLE.TEST"
+                synta.oids.attr.COMMON_NAME: "Certificate Authority",
+                synta.oids.attr.ORGANIZATION: "EXAMPLE.TEST"
             },
             issuer_attrs={
-                org_id_oid: "VATEU-123456789"
+                synta.oids.attr.ORG_IDENTIFIER: "VATEU-123456789"
             }
         )
     """
+    def _match(name_der, attrs):
+        pairs = synta.parse_name_attrs(name_der)
+        return all(
+            any(o == str(oid) and v == val for o, v in pairs)
+            for oid, val in attrs.items()
+        )
+
     for cert in cert_chain:
-        # Check subject attributes if provided
-        if subject_attrs:
-            subject_match = True
-            for oid, expected_value in subject_attrs.items():
-                attrs = [attr for attr in cert.subject if attr.oid == oid]
-                if not any(attr.value == expected_value for attr in attrs):
-                    # This cert doesn't match, move to next cert
-                    subject_match = False
-                    break
-            if not subject_match:
-                continue
-
-        # Check issuer attributes if provided
-        if issuer_attrs:
-            issuer_match = True
-            for oid, expected_value in issuer_attrs.items():
-                attrs = [attr for attr in cert.issuer if attr.oid == oid]
-                if not any(attr.value == expected_value for attr in attrs):
-                    # This cert doesn't match, move to next cert
-                    issuer_match = False
-                    break
-            if not issuer_match:
-                continue
-
-        # All specified attributes match, return this cert
+        if subject_attrs and not _match(cert.subject, subject_attrs):
+            continue
+        if issuer_attrs and not _match(cert.issuer, issuer_attrs):
+            continue
         return cert
 
     return None
 
 
 def check_mscs_extension(ipa_csr, template):
-    csr = x509.load_pem_x509_csr(ipa_csr)
-    extensions = [
-        ext for ext in csr.extensions
-        if ext.oid.dotted_string == template.ext_oid
-    ]
-    assert extensions
-    mscs_ext = extensions[0].value
+    # Parse the CSR and locate the MSCS extension by walking the DER.
+    # CSR structure: CertificationRequest { CertificationRequestInfo { ...
+    #   attributes [0] IMPLICIT SET OF Attribute {
+    #     Attribute { attrType OID, attrValues SET { Extensions } }
+    #   }
+    # }, signatureAlgorithm, signature }
+    csr = synta.CertificationRequest.from_pem(ipa_csr)
+    cr_dec = synta.Decoder(csr.to_der(), synta.Encoding.DER)
+    cri_dec = cr_dec.decode_sequence()   # CertificationRequest
+    cri_dec = cri_dec.decode_sequence()  # CertificationRequestInfo
+    cri_dec.decode_integer()             # version
+    cri_dec.decode_sequence()            # subject Name
+    cri_dec.decode_sequence()            # subjectPublicKeyInfo
 
-    # Crypto 41.0.0 supports cryptography.x509.MSCertificateTemplate
-    # The extension gets decoded into MSCertificateTemplate which
-    # provides additional attributes (template_id, major_minor and
-    # minor_version)
-    # If the test is executed with an older python-cryptography version,
-    # the extension is decoded as UnrecognizedExtension instead and
-    # provides only the encoded payload
-    if isinstance(mscs_ext, x509.UnrecognizedExtension):
-        assert mscs_ext.value == template.get_ext_data()
-    else:
-        # Compare the decoded extension with the values specified in the
-        # template with a format name_or_oid:major:minor
-        parts = template.unparsed_input.split(':')
-        assert mscs_ext.template_id.dotted_string == parts[0]
+    ext_value_der = None
+    if not cri_dec.is_empty():
+        attrs_dec = cri_dec.decode_implicit_tag(0, "Context")
+        while not attrs_dec.is_empty():
+            attr_dec = attrs_dec.decode_sequence()
+            attr_type = attr_dec.decode_oid()
+            if str(attr_type) != str(synta.oids.PKCS9_EXTENSION_REQUEST):
+                continue
+            # attrValues SET { Extensions SEQUENCE OF Extension }
+            vals_dec = attr_dec.decode_set()
+            exts_dec = vals_dec.decode_sequence()
+            while not exts_dec.is_empty():
+                ext_seq = exts_dec.decode_sequence()
+                ext_oid = ext_seq.decode_oid()
+                if str(ext_oid) == template.ext_oid:
+                    # optional critical BOOLEAN, then extnValue OCTET STRING
+                    if not ext_seq.is_empty():
+                        tag, _, _ = ext_seq.peek_tag()
+                        if tag == 1:  # BOOLEAN
+                            ext_seq.decode_boolean()
+                    ext_value_der = ext_seq.decode_octet_string().to_bytes()
+                    break
+            if ext_value_der is not None:
+                break
 
-        if isinstance(template, ipa_x509.MSCSTemplateV2):
-            # Also contains OID:major[:minor]
-            major = int(parts[1])
-            assert major == mscs_ext.major_version
-            if len(parts) > 2:
-                minor = int(parts[2])
-                assert minor == mscs_ext.minor_version
+    assert ext_value_der is not None, \
+        f"Extension {template.ext_oid} not found in CSR"
+    assert ext_value_der == template.get_ext_data()
 
 
 class TestExternalCA(IntegrationTest):
