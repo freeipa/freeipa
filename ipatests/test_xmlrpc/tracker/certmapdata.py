@@ -3,7 +3,7 @@
 #
 import base64
 
-from cryptography import x509
+from ipalib import x509
 import pytest
 
 from ipalib.errors import MutuallyExclusiveError, RequirementError
