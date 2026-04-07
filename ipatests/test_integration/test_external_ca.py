@@ -318,16 +318,17 @@ class TestExternalCAConstraints(IntegrationTest):
         install_server_external_ca_step1(self.master)
 
         # name constraints for IPA DNS domain (dot prefix)
-        nameconstraint = x509.NameConstraints(
-            permitted_subtrees=[
-                x509.DNSName("." + self.master.domain.name),
-            ],
-            excluded_subtrees=None
+        nc_der = (
+            synta.ext.NC()
+            .permit_dns("." + self.master.domain.name)
+            .build()
         )
 
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
             self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA,
-            root_ca_extensions=[nameconstraint],
+            root_ca_extensions=[
+                (synta.oids.NAME_CONSTRAINTS, True, nc_der),
+            ],
         )
 
         install_server_external_ca_step2(
@@ -364,7 +365,6 @@ class TestExternalCAInstallWithOrgId(IntegrationTest):
 
         # Test parameters
         org_id_value = "VATEU-123456789"
-        org_id_oid = ObjectIdentifier("2.5.4.97")  # organizationIdentifier OID
         external_ca_cn = "External CA with OrgID"
 
         # Step 1 of ipa-server-install
@@ -376,10 +376,10 @@ class TestExternalCAInstallWithOrgId(IntegrationTest):
 
         # Create an external CA with organizationIdentifier in the subject
         subject_attrs = [
-            x509.NameAttribute(NameOID.COMMON_NAME, external_ca_cn),
-            x509.NameAttribute(NameOID.COUNTRY_NAME, 'US'),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Test Organization'),
-            x509.NameAttribute(org_id_oid, org_id_value),
+            (synta.oids.attr.COMMON_NAME, external_ca_cn),
+            (synta.oids.attr.COUNTRY, 'US'),
+            (synta.oids.attr.ORGANIZATION, 'Test Organization'),
+            (synta.oids.attr.ORG_IDENTIFIER, org_id_value),
         ]
         external_ca, root_ca = create_external_ca_with_subject(subject_attrs)
 
@@ -427,12 +427,12 @@ class TestExternalCAInstallWithOrgId(IntegrationTest):
         ipa_ca_cert = find_cert_in_chain(
             ca_chain,
             subject_attrs={
-                NameOID.COMMON_NAME: "Certificate Authority",
-                NameOID.ORGANIZATION_NAME: self.master.domain.realm
+                synta.oids.attr.COMMON_NAME: "Certificate Authority",
+                synta.oids.attr.ORGANIZATION: self.master.domain.realm
             },
             issuer_attrs={
-                org_id_oid: org_id_value,
-                NameOID.COMMON_NAME: external_ca_cn
+                synta.oids.attr.ORG_IDENTIFIER: org_id_value,
+                synta.oids.attr.COMMON_NAME: external_ca_cn
             }
         )
         assert ipa_ca_cert is not None, \
@@ -445,12 +445,12 @@ class TestExternalCAInstallWithOrgId(IntegrationTest):
         external_ca_cert = find_cert_in_chain(
             ca_chain,
             subject_attrs={
-                NameOID.COMMON_NAME: external_ca_cn,
-                org_id_oid: org_id_value
+                synta.oids.attr.COMMON_NAME: external_ca_cn,
+                synta.oids.attr.ORG_IDENTIFIER: org_id_value
             },
             issuer_attrs={
-                NameOID.COMMON_NAME: external_ca_cn,
-                org_id_oid: org_id_value
+                synta.oids.attr.COMMON_NAME: external_ca_cn,
+                synta.oids.attr.ORG_IDENTIFIER: org_id_value
             }
         )
         assert external_ca_cert is not None, \
@@ -708,7 +708,6 @@ class TestExternalCAInstall(IntegrationTest):
 
         # Test parameters
         org_id_value = "VATEU-123456789"
-        org_id_oid = ObjectIdentifier("2.5.4.97")  # organizationIdentifier OID
         external_ca_cn = "External CA with OrgID"
 
         # Initiate CA renewal with external CA
@@ -721,10 +720,10 @@ class TestExternalCAInstall(IntegrationTest):
 
         # Create an external CA with organizationIdentifier in the subject
         subject_attrs = [
-            x509.NameAttribute(NameOID.COMMON_NAME, external_ca_cn),
-            x509.NameAttribute(NameOID.COUNTRY_NAME, 'US'),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'Test Organization'),
-            x509.NameAttribute(org_id_oid, org_id_value),
+            (synta.oids.attr.COMMON_NAME, external_ca_cn),
+            (synta.oids.attr.COUNTRY, 'US'),
+            (synta.oids.attr.ORGANIZATION, 'Test Organization'),
+            (synta.oids.attr.ORG_IDENTIFIER, org_id_value),
         ]
         external_ca, root_ca = create_external_ca_with_subject(subject_attrs)
 
@@ -774,12 +773,12 @@ class TestExternalCAInstall(IntegrationTest):
         ipa_ca_cert = find_cert_in_chain(
             ca_chain,
             subject_attrs={
-                NameOID.COMMON_NAME: "Certificate Authority",
-                NameOID.ORGANIZATION_NAME: self.master.domain.realm
+                synta.oids.attr.COMMON_NAME: "Certificate Authority",
+                synta.oids.attr.ORGANIZATION: self.master.domain.realm
             },
             issuer_attrs={
-                org_id_oid: org_id_value,
-                NameOID.COMMON_NAME: external_ca_cn
+                synta.oids.attr.ORG_IDENTIFIER: org_id_value,
+                synta.oids.attr.COMMON_NAME: external_ca_cn
             }
         )
         assert ipa_ca_cert is not None, \
@@ -792,12 +791,12 @@ class TestExternalCAInstall(IntegrationTest):
         external_ca_cert = find_cert_in_chain(
             ca_chain,
             subject_attrs={
-                NameOID.COMMON_NAME: external_ca_cn,
-                org_id_oid: org_id_value
+                synta.oids.attr.COMMON_NAME: external_ca_cn,
+                synta.oids.attr.ORG_IDENTIFIER: org_id_value
             },
             issuer_attrs={
-                NameOID.COMMON_NAME: external_ca_cn,
-                org_id_oid: org_id_value
+                synta.oids.attr.COMMON_NAME: external_ca_cn,
+                synta.oids.attr.ORG_IDENTIFIER: org_id_value
             }
         )
         assert external_ca_cert is not None, \
