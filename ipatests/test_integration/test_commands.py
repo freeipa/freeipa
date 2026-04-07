@@ -19,7 +19,7 @@ import time
 import pytest
 from subprocess import CalledProcessError
 
-from cryptography import x509
+from ipalib import x509
 from datetime import datetime, timedelta
 
 from ipalib.constants import IPAAPI_USER
