@@ -9,15 +9,14 @@ from configparser import ConfigParser
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, ec
+import synta
 # pylint: disable=relative-import
 from ipaserver.custodia.message.kem import (
     KEMKeysStore, KEY_USAGE_SIG, KEY_USAGE_ENC, KEY_USAGE_MAP
 )
 # pylint: enable=relative-import
 from jwcrypto.common import json_decode, json_encode
-from jwcrypto.common import base64url_encode
+from jwcrypto.common import base64url_encode, base64url_decode
 from jwcrypto.jwk import JWK
 from ipaserver.secrets.common import iSecLdap
 from binascii import unhexlify
@@ -42,25 +41,19 @@ class KEMLdap(iSecLdap):
         return base64url_encode(unhexlify((len(I) % 2) * '0' + I))
 
     def _parse_public_key(self, ipa_public_key):
-        public_key = serialization.load_der_public_key(ipa_public_key)
-        num = public_key.public_numbers()
-        if isinstance(num, rsa.RSAPublicNumbers):
+        public_key = synta.PublicKey.from_der(ipa_public_key)
+        if public_key.key_type == 'rsa':
             return {'kty': 'RSA',
-                    'e': self._encode_int(num.e),
-                    'n': self._encode_int(num.n)}
-        elif isinstance(num, ec.EllipticCurvePublicNumbers):
-            if num.curve.name == 'secp256r1':
-                curve = 'P-256'
-            elif num.curve.name == 'secp384r1':
-                curve = 'P-384'
-            elif num.curve.name == 'secp521r1':
-                curve = 'P-521'
-            else:
+                    'e': base64url_encode(public_key.public_exponent),
+                    'n': base64url_encode(public_key.modulus)}
+        elif public_key.key_type == 'ec':
+            curve = public_key.curve_name  # already 'P-256', 'P-384', 'P-521'
+            if curve not in ('P-256', 'P-384', 'P-521'):
                 raise TypeError('Unsupported Elliptic Curve')
             return {'kty': 'EC',
                     'crv': curve,
-                    'x': self._encode_int(num.x),
-                    'y': self._encode_int(num.y)}
+                    'x': base64url_encode(public_key.x),
+                    'y': base64url_encode(public_key.y)}
         else:
             raise TypeError('Unknown Public Key type')
 
@@ -96,32 +89,25 @@ class KEMLdap(iSecLdap):
             if 'kty' not in jwkey:
                 raise ValueError('Invalid key, missing "kty" attribute')
             if jwkey['kty'] == 'RSA':
-                pubnum = rsa.RSAPublicNumbers(jwkey['e'], jwkey['n'])
-                pubkey = pubnum.public_key()
+                pubkey = synta.PublicKey.from_rsa_components(
+                    base64url_decode(jwkey['n']),
+                    base64url_decode(jwkey['e']))
             elif jwkey['kty'] == 'EC':
-                if jwkey['crv'] == 'P-256':
-                    curve = ec.SECP256R1
-                elif jwkey['crv'] == 'P-384':
-                    curve = ec.SECP384R1
-                elif jwkey['crv'] == 'P-521':
-                    curve = ec.SECP521R1
-                else:
+                curve = jwkey['crv']
+                if curve not in ('P-256', 'P-384', 'P-521'):
                     raise TypeError('Unsupported Elliptic Curve')
-                pubnum = ec.EllipticCurvePublicNumbers(
-                    jwkey['x'], jwkey['y'], curve)
-                pubkey = pubnum.public_key()
+                pubkey = synta.PublicKey.from_ec_components(
+                    base64url_decode(jwkey['x']),
+                    base64url_decode(jwkey['y']),
+                    curve)
             else:
                 raise ValueError('Unknown key type: %s' % jwkey['kty'])
-        elif isinstance(key, rsa.RSAPublicKey):
-            pubkey = key
-        elif isinstance(key, ec.EllipticCurvePublicKey):
+        elif isinstance(key, synta.PublicKey):
             pubkey = key
         else:
             raise TypeError('Unknown key type: %s' % type(key))
 
-        return pubkey.public_bytes(
-            encoding=serialization.Encoding.DER,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo)
+        return pubkey.to_der()
 
     def _get_dn(self, usage, principal):
         servicename, host = principal.split('@')[0].split('/')
