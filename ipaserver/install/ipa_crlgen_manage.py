@@ -6,7 +6,7 @@ from __future__ import print_function, absolute_import
 
 import os
 import logging
-from cryptography import x509
+import synta
 
 from ipalib import api
 from ipalib.errors import NetworkError
@@ -105,12 +105,11 @@ class CRLGenManage(AdminTool):
                 crl_filename = os.path.join(paths.PKI_CA_PUBLISH_DIR,
                                             'MasterCRL.bin')
                 with open(crl_filename, 'rb') as f:
-                    crl = x509.load_der_x509_crl(f.read())
-                    print("Last CRL update: {}".format(crl.last_update))
-                    for ext in crl.extensions:
-                        if ext.oid == x509.oid.ExtensionOID.CRL_NUMBER:
-                            print("Last CRL Number: {}".format(
-                                ext.value.crl_number))
+                    crl = synta.CertificateList.from_der(f.read())
+                    print("Last CRL update: {}".format(crl.this_update))
+                    crl_number = crl.crl_number
+                    if crl_number is not None:
+                        print("Last CRL Number: {}".format(crl_number))
             except IOError:
                 logger.error("Unable to find last CRL")
         else:
