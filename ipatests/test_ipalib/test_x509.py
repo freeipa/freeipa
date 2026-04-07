@@ -31,9 +31,9 @@ import pickle
 
 import pytest
 
-from cryptography import x509 as crypto_x509
-from cryptography.x509.general_name import DNSName
+import synta
 from ipalib import x509
+from ipalib.x509 import DNSName
 from ipapython.dn import DN
 
 pytestmark = pytest.mark.tier0
@@ -322,12 +322,10 @@ class test_x509:
         Policies OID is longer then 80 chars.
         """
         cert = x509.load_pem_x509_certificate(long_oid_cert)
-        ext = cert.extensions.get_extension_for_class(crypto_x509.
-                                                      CertificatePolicies)
-
-        assert len(ext.value) == 1
-        assert ext.value[0].policy_identifier.dotted_string == (
-            u'1.3.6.1.4.1.311.21.8.8950086.10656446.2706058.12775672.480128.'
+        policies = cert._synta_cert.certificate_policies()
+        assert len(policies) == 1
+        assert str(policies[0].policy_oid) == (
+            '1.3.6.1.4.1.311.21.8.8950086.10656446.2706058.12775672.480128.'
             '147.13466065.13029902')
 
     def test_ipa_demo_letsencrypt(self):
@@ -344,7 +342,10 @@ class test_x509:
         assert cert.not_valid_after == not_after
         assert cert.not_valid_before_utc == not_before
         assert cert.not_valid_after_utc == not_after
-        assert cert.san_general_names == [DNSName('ipa.demo1.freeipa.org')]
+        gns = cert.san_general_names
+        assert len(gns) == 1
+        assert isinstance(gns[0], DNSName)
+        assert gns[0].value == 'ipa.demo1.freeipa.org'
         assert cert.san_a_label_dns_names == ['ipa.demo1.freeipa.org']
         assert cert.extended_key_usage == {
             '1.3.6.1.5.5.7.3.1', '1.3.6.1.5.5.7.3.2'
