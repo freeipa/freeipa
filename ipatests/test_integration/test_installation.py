@@ -16,9 +16,6 @@ import time
 from datetime import datetime, timedelta
 
 import pytest
-from cryptography.hazmat.primitives import hashes
-from cryptography import x509 as crypto_x509
-
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0, KRA_TRACKING_REQS
 from ipalib.constants import IPA_CA_RECORD
@@ -950,7 +947,7 @@ class TestInstallMaster(IntegrationTest):
                 assert key_size == 3072
             else:
                 assert key_size == 2048
-            assert cert.signature_hash_algorithm.name == hashes.SHA256.name
+            assert cert.signature_hash_algorithm == 'sha256'
 
     def test_http_cert(self):
         """
@@ -961,7 +958,7 @@ class TestInstallMaster(IntegrationTest):
         data = self.master.get_file_contents(paths.HTTPD_CERT_FILE)
         cert = x509.load_pem_x509_certificate(data)
         name = f'ipa-ca.{self.master.domain.name}'
-        assert crypto_x509.DNSName(name) in cert.san_general_names
+        assert name in cert.san_a_label_dns_names
 
     def test_ipa_cert_in_store(self):
         """
