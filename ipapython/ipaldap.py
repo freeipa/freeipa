@@ -33,7 +33,6 @@ import warnings
 
 from collections import OrderedDict
 
-from cryptography.hazmat.primitives import serialization
 
 import ldap
 import ldap.sasl
@@ -1381,7 +1380,7 @@ class LDAPClient:
             return cls.combine_filters(flts, rules)
         elif value is not None:
             if isinstance(value, x509.IPACertificate):
-                value = value.public_bytes(serialization.Encoding.DER)
+                value = value.public_bytes(x509.Encoding.DER)
             if isinstance(value, bytes):
                 value = binascii.hexlify(value).decode('ascii')
                 # value[-2:0] is empty string for the initial '\\'
