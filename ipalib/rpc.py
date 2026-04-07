@@ -45,7 +45,7 @@ import gzip
 import urllib
 from ssl import SSLError
 
-from cryptography import x509 as crypto_x509
+import synta
 import gssapi
 from dns.exception import DNSException
 import six
@@ -220,13 +220,12 @@ def xml_wrap(value, version):
     if isinstance(value, Principal):
         return unicode(value)
 
-    if isinstance(value, (crypto_x509.Certificate, IPACertificate)):
+    if isinstance(value, IPACertificate):
         return base64.b64encode(
             value.public_bytes(x509_Encoding.DER)).decode('ascii')
 
-    if isinstance(value, crypto_x509.CertificateSigningRequest):
-        return base64.b64encode(
-            value.public_bytes(x509_Encoding.DER)).decode('ascii')
+    if isinstance(value, synta.CertificationRequest):
+        return base64.b64encode(value.to_der()).decode('ascii')
 
     assert type(value) in (unicode, float, int, bool, type(None))
     return value
