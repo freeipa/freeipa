@@ -22,12 +22,13 @@
 import base64
 import collections
 import datetime
+import ipaddress
 import itertools
 import logging
 from operator import attrgetter
 
-import cryptography.x509
-from cryptography.hazmat.primitives import hashes, serialization
+import synta
+import synta.oids.attr as _attr
 from dns import resolver, reversename
 import six
 
@@ -326,7 +327,7 @@ def bind_principal_can_manage_cert(cert):
     """Check that the bind principal can manage the given cert.
 
     ``cert``
-        A python-cryptography ``Certificate`` object.
+        An IPACertificate object.
 
     """
     op_account = getattr(context, 'principal', None)
@@ -340,12 +341,13 @@ def bind_principal_can_manage_cert(cert):
 
     # Verify that hostname matches subject of cert.
     # We check the "most-specific" CN value.
-    cns = cert.subject.get_attributes_for_oid(
-            cryptography.x509.oid.NameOID.COMMON_NAME)
+    _cn_oid = str(_attr.COMMON_NAME)
+    cns = [v for oid, v in synta.parse_name_attrs(cert.subject)
+           if oid == _cn_oid]
     if len(cns) == 0:
         return False  # no CN in subject
     else:
-        return hostname == cns[-1].value
+        return hostname == cns[-1]
 
 
 class BaseCertObject(Object):
@@ -502,9 +504,9 @@ class BaseCertObject(Object):
                 cert.not_valid_after_utc)
             if full:
                 obj['sha1_fingerprint'] = x509.to_hex_with_colons(
-                    cert.fingerprint(hashes.SHA1()))
+                    cert.fingerprint('sha1'))
                 obj['sha256_fingerprint'] = x509.to_hex_with_colons(
-                    cert.fingerprint(hashes.SHA256()))
+                    cert.fingerprint('sha256'))
 
             general_names = x509.process_othernames(
                     cert.san_general_names)
@@ -520,20 +522,21 @@ class BaseCertObject(Object):
 
     def _add_san_attribute(self, obj, full, gn):
         name_type_map = {
-            cryptography.x509.RFC822Name:
+            x509.RFC822Name:
                 ('san_rfc822name', attrgetter('value')),
-            cryptography.x509.DNSName: ('san_dnsname', attrgetter('value')),
-            # cryptography.x509.???: 'san_x400address',
-            cryptography.x509.DirectoryName:
-                ('san_directoryname', lambda x: DN(x.value)),
-            # cryptography.x509.???: 'san_edipartyname',
-            cryptography.x509.UniformResourceIdentifier:
+            x509.DNSName: ('san_dnsname', attrgetter('value')),
+            # x400address not supported
+            x509.DirectoryName:
+                ('san_directoryname', lambda x: DN(x.name_der)),
+            # ediPartyName not supported
+            x509.UniformResourceIdentifier:
                 ('san_uri', attrgetter('value')),
-            cryptography.x509.IPAddress:
-                ('san_ipaddress', attrgetter('value')),
-            cryptography.x509.RegisteredID:
-                ('san_oid', attrgetter('value.dotted_string')),
-            cryptography.x509.OtherName: ('san_other', _format_othername),
+            x509.IPAddress:
+                ('san_ipaddress',
+                 lambda x: str(ipaddress.ip_address(x.address))),
+            x509.RegisteredID:
+                ('san_oid', lambda x: str(x.oid)),
+            x509.OtherName: ('san_other', _format_othername),
             x509.UPN: ('san_other_upn', attrgetter('name')),
             x509.KRB5PrincipalName: ('san_other_kpn', attrgetter('name')),
         }
@@ -552,14 +555,24 @@ class BaseCertObject(Object):
 
         if full and attr_name.startswith('san_other_'):
             # also include known otherName in generic otherName attribute
-            attr_value = self.params['san_other'].type(_format_othername(gn))
+            if isinstance(gn, x509.KRB5PrincipalName):
+                raw = u'{}:{}'.format(
+                    x509.SAN_KRB5PRINCIPALNAME,
+                    base64.b64encode(gn.to_der()).decode('ascii'))
+            elif isinstance(gn, x509.UPN):
+                raw = u'{}:{}'.format(
+                    x509.SAN_UPN,
+                    base64.b64encode(gn.to_der()).decode('ascii'))
+            else:
+                raw = _format_othername(gn)
+            attr_value = self.params['san_other'].type(raw)
             obj.setdefault('san_other', []).append(attr_value)
 
 
 def _format_othername(on):
-    """Format a python-cryptography OtherName for display."""
+    """Format an OtherName for display."""
     return u'{}:{}'.format(
-        on.type_id.dotted_string,
+        on.type_id,
         base64.b64encode(on.value).decode('ascii')
     )
 
@@ -824,21 +837,18 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                 else:
                     caacl_check(principal, ca, profile_id)
 
-        try:
-            ext_san = csr.extensions.get_extension_for_oid(
-                cryptography.x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
-        except cryptography.x509.extensions.ExtensionNotFound:
-            ext_san = None
+        san_tuples = csr.subject_alt_names()
 
         # Ensure that the DN in the CSR matches the principal
         #
         # We only look at the "most specific" CN value
-        cns = csr.subject.get_attributes_for_oid(
-                cryptography.x509.oid.NameOID.COMMON_NAME)
+        _cn_oid = str(_attr.COMMON_NAME)
+        cns = [v for oid, v in synta.parse_name_attrs(csr.subject_raw_der)
+               if oid == _cn_oid]
         if len(cns) == 0:
             raise errors.ValidationError(name='csr',
                 error=_("No Common Name was found in subject of request."))
-        cn = cns[-1].value  # "most specific" is end of list
+        cn = cns[-1]  # "most specific" is end of list
 
         if principal_type in (SERVICE, HOST) and not casubsystem_profile:
             if not _dns_name_matches_principal(cn, principal, principal_obj):
@@ -866,9 +876,10 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # check email address
             #
             # fail if any email addr from DN does not appear in ldap entry
-            email_addrs = csr.subject.get_attributes_for_oid(
-                    cryptography.x509.oid.NameOID.EMAIL_ADDRESS)
-            csr_emails = [attr.value for attr in email_addrs]
+            _email_oid = str(_attr.EMAIL_ADDRESS)
+            csr_emails = [v for oid, v
+                          in synta.parse_name_attrs(csr.subject_raw_der)
+                          if oid == _email_oid]
             if not _emails_are_valid(csr_emails,
                                      principal_obj.get('mail', [])):
                 raise errors.ValidationError(
@@ -894,12 +905,13 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         san_dnsnames = set()
 
         # Validate the subject alt name, if any
-        if ext_san is not None:
-            generalnames = x509.process_othernames(ext_san.value)
+        if san_tuples:
+            generalnames = x509.process_othernames(
+                x509._parse_san_tuples(san_tuples))
         else:
             generalnames = []
         for gn in generalnames:
-            if isinstance(gn, cryptography.x509.general_name.DNSName):
+            if isinstance(gn, x509.DNSName):
                 if principal.is_user:
                     raise errors.ValidationError(
                         name='csr',
@@ -1000,7 +1012,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         error=_(
                             "Principal '%s' in subject alt name does not "
                             "match requested principal") % gn.name)
-            elif isinstance(gn, cryptography.x509.general_name.RFC822Name):
+            elif isinstance(gn, x509.RFC822Name):
                 if principal_type == USER:
                     if not _emails_are_valid([gn.value],
                                              principal_obj.get('mail', [])):
@@ -1017,7 +1029,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                             "subject alt name type %s is forbidden "
                             "for non-user principals") % "RFC822Name"
                     )
-            elif isinstance(gn, cryptography.x509.general_name.IPAddress):
+            elif isinstance(gn, x509.IPAddress):
                 if principal.is_user:
                     raise errors.ValidationError(
                         name='csr',
@@ -1028,7 +1040,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
 
                 # collect the value; we will validate it after we
                 # finish iterating all the SAN values
-                san_ipaddrs.add(gn.value)
+                san_ipaddrs.add(ipaddress.ip_address(gn.address))
             else:
                 raise errors.ACIError(
                     info=_("Subject alt name type %s is forbidden")
@@ -1915,7 +1927,7 @@ Search for existing certificates.
         for entry in entries:
             for attr in ('usercertificate', 'usercertificate;binary'):
                 for der in entry.raw.get(attr, []):
-                    cert = cryptography.x509.load_der_x509_certificate(der)
+                    cert = x509.load_der_x509_certificate(der)
                     cert_key = self._get_cert_key(cert)
                     try:
                         obj = result[cert_key]
