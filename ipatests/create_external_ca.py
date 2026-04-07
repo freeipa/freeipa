@@ -17,14 +17,12 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
-
 import datetime
+import os
+
+import synta
+import synta.ext
+import synta.oids
 
 ISSUER_CN = 'example.test'
 
@@ -38,7 +36,7 @@ class ExternalCA:
         self.delta = datetime.timedelta(days=days)
         self.ca_key = None
         self.ca_public_key = None
-        self.issuer = None
+        self.issuer = None          # bytes: DER-encoded Name
         self.key_size = key_size or 2048
 
     def create_ca_key(self):
@@ -48,75 +46,50 @@ class ExternalCA:
         by default. This also tests that IPA supports an external signing CA
         with weaker keys than the IPA base CA.
         """
-        self.ca_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=self.key_size,
-        )
-        self.ca_public_key = self.ca_key.public_key()
+        self.ca_key = synta.PrivateKey.generate_rsa(self.key_size)
+        self.ca_public_key = self.ca_key.public_key
 
     def sign(self, builder):
-        return builder.sign(
-            private_key=self.ca_key,
-            algorithm=hashes.SHA256(),
-        )
+        return builder.sign(self.ca_key, "sha256")
 
     def create_ca(self, cn=ISSUER_CN, path_length=None, extensions=()):
         """Create root CA.
 
+        :param extensions: iterable of (oid_str, critical, value_der) tuples
         :returns: bytes -- Root CA in PEM format.
         """
         if self.ca_key is None:
             self.create_ca_key()
-        subject = self.issuer = x509.Name([
-            x509.NameAttribute(NameOID.COMMON_NAME, str(cn)),
-        ])
+        name_der = synta.NameBuilder().common_name(str(cn)).build()
+        self.issuer = name_der
 
-        builder = x509.CertificateBuilder()
-        builder = builder.subject_name(subject)
-        builder = builder.issuer_name(self.issuer)
-        builder = builder.public_key(self.ca_public_key)
-        builder = builder.serial_number(x509.random_serial_number())
-        builder = builder.not_valid_before(self.now)
-        builder = builder.not_valid_after(self.now + self.delta)
+        ku_bits = synta.ext.KU_KEY_CERT_SIGN | synta.ext.KU_CRL_SIGN
+        spki_der = self.ca_public_key.to_der()
 
-        builder = builder.add_extension(
-            x509.KeyUsage(
-                digital_signature=False,
-                content_commitment=False,
-                key_encipherment=False,
-                data_encipherment=False,
-                key_agreement=False,
-                key_cert_sign=True,
-                crl_sign=True,
-                encipher_only=False,
-                decipher_only=False,
-            ),
-            critical=True,
+        builder = (
+            synta.CertificateBuilder()
+            .subject_name(name_der)
+            .issuer_name(name_der)
+            .public_key(self.ca_public_key)
+            .serial_number(int.from_bytes(os.urandom(20), 'big'))
+            .not_valid_before_utc(self.now)
+            .not_valid_after_utc(self.now + self.delta)
+            .add_extension(synta.oids.KEY_USAGE, True,
+                           synta.ext.key_usage(ku_bits))
+            .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+                           synta.ext.basic_constraints(ca=True,
+                                                       path_length=path_length))
+            .add_extension(synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+                           synta.ext.subject_key_identifier(spki_der))
+            .add_extension(synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+                           synta.ext.authority_key_identifier(spki_der))
         )
 
-        builder = builder.add_extension(
-            x509.BasicConstraints(ca=True, path_length=path_length),
-            critical=True,
-        )
+        for oid, critical, value_der in extensions:
+            builder = builder.add_extension(oid, critical, value_der)
 
-        builder = builder.add_extension(
-            x509.SubjectKeyIdentifier.from_public_key(self.ca_public_key),
-            critical=False,
-        )
-
-        builder = builder.add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(
-                 self.ca_public_key
-                 ),
-            critical=False,
-        )
-
-        for extension in extensions:
-            builder = builder.add_extension(extension, critical=False)
-
-        cert = builder.sign(self.ca_key, hashes.SHA256())
-
-        return cert.public_bytes(serialization.Encoding.PEM)
+        cert = builder.sign(self.ca_key, "sha256")
+        return cert.to_pem()
 
     def sign_csr(self, ipa_csr, path_length=1):
         """Sign certificate CSR.
@@ -125,54 +98,35 @@ class ExternalCA:
         :type ipa_csr: bytes.
         :returns: bytes -- Signed CA in PEM format.
         """
-        csr_tbs = x509.load_pem_x509_csr(ipa_csr)
+        csr_tbs = synta.CertificationRequest.from_pem(ipa_csr)
 
-        csr_public_key = csr_tbs.public_key()
-        csr_subject = csr_tbs.subject
+        csr_public_key = csr_tbs.public_key
+        csr_subject = csr_tbs.subject_raw_der
+        spki_der = csr_public_key.to_der()
+        ca_spki_der = self.ca_public_key.to_der()
 
-        builder = x509.CertificateBuilder()
-        builder = builder.public_key(csr_public_key)
-        builder = builder.subject_name(csr_subject)
-        builder = builder.serial_number(x509.random_serial_number())
-        builder = builder.issuer_name(self.issuer)
-        builder = builder.not_valid_before(self.now)
-        builder = builder.not_valid_after(self.now + self.delta)
-
-        builder = builder.add_extension(
-            x509.KeyUsage(
-                digital_signature=False,
-                content_commitment=False,
-                key_encipherment=False,
-                data_encipherment=False,
-                key_agreement=False,
-                key_cert_sign=True,
-                crl_sign=True,
-                encipher_only=False,
-                decipher_only=False,
-            ),
-            critical=True,
-        )
-
-        builder = builder.add_extension(
-            x509.SubjectKeyIdentifier.from_public_key(csr_public_key),
-            critical=False,
-        )
-
-        builder = builder.add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(
-                 self.ca_public_key
-                 ),
-            critical=False,
-        )
-
-        builder = builder.add_extension(
-            x509.BasicConstraints(ca=True, path_length=path_length),
-            critical=True,
+        ku_bits = synta.ext.KU_KEY_CERT_SIGN | synta.ext.KU_CRL_SIGN
+        builder = (
+            synta.CertificateBuilder()
+            .public_key(csr_public_key)
+            .subject_name(csr_subject)
+            .serial_number(int.from_bytes(os.urandom(20), 'big'))
+            .issuer_name(self.issuer)
+            .not_valid_before_utc(self.now)
+            .not_valid_after_utc(self.now + self.delta)
+            .add_extension(synta.oids.KEY_USAGE, True,
+                           synta.ext.key_usage(ku_bits))
+            .add_extension(synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+                           synta.ext.subject_key_identifier(spki_der))
+            .add_extension(synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+                           synta.ext.authority_key_identifier(ca_spki_der))
+            .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+                           synta.ext.basic_constraints(ca=True,
+                                                       path_length=path_length))
         )
 
         cert = self.sign(builder)
-
-        return cert.public_bytes(serialization.Encoding.PEM)
+        return cert.to_pem()
 
 
 def main():
