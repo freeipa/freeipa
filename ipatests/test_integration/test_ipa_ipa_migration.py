@@ -26,6 +26,7 @@ TEST_SSHKEY = (
 # Expected SSH key fingerprint for TEST_SSHKEY
 TEST_SSHKEY_FP = "SHA256:PSDEIT8MJGMMLpyjFS1oFNcnPNB1cWf10LeJGyI2h7M"
 
+_DNS_FORWARDZONE_FORWARDER_IP = "192.168.124.10"
 
 def prepare_ipa_server(master):
     """
@@ -265,7 +266,7 @@ def prepare_ipa_server(master):
             "dnsforwardzone-add",
             "forwardzone.test",
             "--forwarder",
-            "192.168.124.10",
+            _DNS_FORWARDZONE_FORWARDER_IP,
         ]
     )
 
@@ -885,7 +886,10 @@ class TestIPAMigrateCLIOptions(MigrationTest):
         )
         assert 'Zone name: {}'.format(zone_name) in result.stdout_text
         assert 'Active zone: True' in result.stdout_text
-        assert 'Zone forwarders: 10.11.12.13' in result.stdout_text
+        assert (
+            f'Zone forwarders: {_DNS_FORWARDZONE_FORWARDER_IP}'
+            in result.stdout_text
+        )
         assert 'Forward policy: first' in result.stdout_text
 
     def test_ipa_migrate_version_option(self):
