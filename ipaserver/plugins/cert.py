@@ -1054,8 +1054,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
             # re-serialise to PEM, in case the user-supplied data has
             # extraneous material that will cause Dogtag to freak out
             # keep it as string not bytes, it is required later
-            csr_pem = csr.public_bytes(
-                serialization.Encoding.PEM).decode('utf-8')
+            csr_pem = synta.CertificationRequest.to_pem(csr).decode('utf-8')
             result = self.Backend.ra.request_certificate(
                 csr_pem, profile_id, ca_id, request_type=request_type)
         except errors.HTTPRequestError as e:
@@ -1102,7 +1101,7 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
         if 'certificate_chain' in ca_obj:
             cert = x509.load_der_x509_certificate(
                 base64.b64decode(result['certificate']))
-            cert = cert.public_bytes(serialization.Encoding.DER)
+            cert = cert.public_bytes(x509.Encoding.DER)
             result['certificate_chain'] = [cert] + ca_obj['certificate_chain']
 
         return dict(
