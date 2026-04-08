@@ -1925,8 +1925,7 @@ def certutil_certs_keys(host, reqdir, pwd_file, token_name=None):
 
 
 def certutil_fetch_cert(host, reqdir, pwd_file, nickname, token_name=None):
-    """Run certutil and retrieve a cert as cryptography.x509 object
-    """
+    """Run certutil and retrieve a cert as synta.Certificate object."""
     args = ['-f', pwd_file, '-L', '-a', '-n']
     if token_name is not None:
         args.extend([

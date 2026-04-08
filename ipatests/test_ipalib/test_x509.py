@@ -258,8 +258,7 @@ class test_x509:
         """
         Test the contents of a certificate
         """
-        # Verify certificate contents. This exercises python-cryptography
-        # more than anything but confirms our usage of it.
+        # Verify certificate contents using synta Certificate API.
 
         not_before = datetime.datetime(2010, 6, 25, 13, 0, 42, 0,
                                        datetime.timezone.utc)

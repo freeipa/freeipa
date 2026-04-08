@@ -611,7 +611,7 @@ def update_ipa_ca_entry(api, cert):
     The Issuer DN of the IPA CA may have changed.  Update the IPA CA entry.
 
     :param api: finalised API object, with *connected* LDAP backend
-    :param cert: a python-cryptography Certificate object
+    :param cert: an IPACertificate object
 
     """
     try:
