@@ -69,8 +69,7 @@ PEM_PRIV_REGEX = re.compile(
 
 
 class Encoding(enum.Enum):
-    """Encoding sentinel used by public_bytes(); mirrors the old
-    cryptography.hazmat.primitives.serialization.Encoding API."""
+    """Encoding sentinel used by public_bytes()."""
     PEM = "PEM"
     DER = "DER"
 
@@ -107,14 +106,9 @@ class IPACertificate:
     """
     def __init__(self, cert):
         """
-        :param cert: A synta.Certificate object, or a
-                     cryptography.x509.Certificate during transition.
+        :param cert: A synta.Certificate object.
         """
-        if isinstance(cert, synta.Certificate):
-            self._synta_cert = cert
-        else:
-            # Compatibility shim: accept pyca Certificate during transition
-            self._synta_cert = synta.Certificate.from_pyca(cert)
+        self._synta_cert = cert
 
         self._subject = self._synta_cert.subject_raw_der
         self._issuer = self._synta_cert.issuer_raw_der
@@ -194,7 +188,7 @@ class IPACertificate:
         Compute a fingerprint of the certificate.
 
         *algorithm* may be a string (``"sha256"``) or a
-        cryptography ``hashes.*`` object that has a ``.name`` attribute.
+        any object with a ``.name`` attribute (e.g. ``hashes.SHA256()``).
         """
         if isinstance(algorithm, str):
             algo = algorithm.lower()
@@ -210,6 +204,15 @@ class IPACertificate:
     def cert(self):
         """The underlying synta.Certificate object."""
         return self._synta_cert
+
+    def to_pyca(self):
+        """Return a ``cryptography.x509.Certificate`` (PyCA) object.
+
+        Use this when passing the certificate to a Dogtag or other third-party
+        API that requires a PyCA object (e.g.
+        ``pki.crypto.CryptographyCryptoProvider``).
+        """
+        return self._synta_cert.to_pyca()
 
     @property
     def serial_number(self):
