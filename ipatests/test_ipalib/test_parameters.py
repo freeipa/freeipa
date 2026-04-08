@@ -36,7 +36,7 @@ from xmlrpc.client import MAXINT, MININT
 import pytest
 
 import six
-from cryptography import x509 as crypto_x509
+import synta
 
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
@@ -1733,7 +1733,7 @@ class test_CertificateSigningRequest(ClassChecker):
     def test_init(self):
         # create the parameter
         o = self.cls('csr')
-        assert o.type is crypto_x509.CertificateSigningRequest
+        assert o.type is synta.CertificationRequest
         assert isinstance(o, parameters.CertificateSigningRequest)
         assert o.multivalue is False
 
@@ -1741,19 +1741,16 @@ class test_CertificateSigningRequest(ClassChecker):
         o = self.cls('csr')
 
         # test that we're able to handle PEM CSR input equally as bytes, string
-        # and cryptography x509._CertificateSigningRequest object
+        # and synta.CertificationRequest object
         for prep_input in (
             lambda x: x,
             lambda x: x.decode('utf-8'),
-            lambda x: crypto_x509.load_pem_x509_csr(x)
+            lambda x: synta.CertificationRequest.from_pem(x)
         ):
-            # test that input is correctly converted to python-crytography
-            # object representation
+            # test that input is correctly converted to synta.CertificationRequest
             csr_object = o.convert(prep_input(self.sample_csr))
-            assert isinstance(csr_object,
-                              crypto_x509.CertificateSigningRequest)
-            assert (csr_object.public_bytes(x509.Encoding.PEM) ==
-                    self.sample_csr)
+            assert isinstance(csr_object, synta.CertificationRequest)
+            assert csr_object.to_pem() == self.sample_csr
 
         # test that we fail the same with malformed CSR as bytes or str
         for input in (
@@ -1771,15 +1768,13 @@ class test_CertificateSigningRequest(ClassChecker):
 
         # test DER as an input to the convert method
         csr_object = o.convert(self.sample_der_csr)
-        assert isinstance(csr_object, crypto_x509.CertificateSigningRequest)
-        assert (csr_object.public_bytes(x509.Encoding.DER) ==
-                self.sample_der_csr)
+        assert isinstance(csr_object, synta.CertificationRequest)
+        assert csr_object.to_der() == self.sample_der_csr
 
         # test base64-encoded DER as an input to the convert method
         csr_object = o.convert(self.sample_base64)
-        assert isinstance(csr_object, crypto_x509.CertificateSigningRequest)
-        assert (csr_object.public_bytes(x509.Encoding.DER) ==
-                base64.b64decode(self.sample_base64))
+        assert isinstance(csr_object, synta.CertificationRequest)
+        assert csr_object.to_der() == base64.b64decode(self.sample_base64)
 
         # test that wrong type will not be accepted
         bad_value = datetime.date.today()

@@ -13,27 +13,26 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
+import base64
 import collections
 import datetime
 import itertools
 import os
 import os.path
-import six
 
-from cryptography import __version__ as cryptography_version
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
-from packaging.version import parse as parse_version
+import synta
+import synta.ext
 import synta.krb5
 import synta.oids
 
-if six.PY3:
-    unicode = str
-
 DAY = datetime.timedelta(days=1)
 YEAR = 365 * DAY
+
+# AlgorithmIdentifier DER for sha256WithRSAEncryption
+_SHA256_WITH_RSA_ALG = bytes.fromhex('300d06092a864886f70d01010b0500')
+
+# Tracks revoked certificates per CA nick: nick → [(serial_bytes, revocation_datetime)]
+_revoked_certs = {}
 
 # we get the variables from ca_less test
 domain = None
@@ -47,273 +46,170 @@ cert_dir = None
 CertInfo = collections.namedtuple('CertInfo', 'nick key cert counter')
 
 
-def _encode_krb5principalname(realm, name_type, name_parts):
-    return synta.krb5.Krb5PrincipalName(realm, name_type, name_parts).to_der()
-
-
-def profile_ca(builder, ca_nick, ca):
+def profile_ca(builder, ca_nick, ca, spki_der):
     now = datetime.datetime.now(tz=datetime.timezone.utc)
 
-    builder = builder.not_valid_before(now)
-    builder = builder.not_valid_after(now + 10 * YEAR)
+    builder = builder.not_valid_before_utc(now)
+    builder = builder.not_valid_after_utc(now + 10 * YEAR)
 
     crl_uri = u'file://{}.crl'.format(os.path.join(cert_dir, ca_nick))
 
+    ku = (synta.ext.KU_DIGITAL_SIGNATURE | synta.ext.KU_NON_REPUDIATION
+          | synta.ext.KU_KEY_CERT_SIGN | synta.ext.KU_CRL_SIGN)
     builder = builder.add_extension(
-        x509.KeyUsage(
-            digital_signature=True,
-            content_commitment=True,
-            key_encipherment=False,
-            data_encipherment=False,
-            key_agreement=False,
-            key_cert_sign=True,
-            crl_sign=True,
-            encipher_only=False,
-            decipher_only=False,
-        ),
-        critical=True,
+        synta.oids.KEY_USAGE, True, synta.ext.key_usage(ku)
     )
     builder = builder.add_extension(
-        x509.BasicConstraints(ca=True, path_length=None),
-        critical=True,
+        synta.oids.BASIC_CONSTRAINTS, True, synta.ext.basic_constraints(ca=True)
     )
     builder = builder.add_extension(
-        x509.CRLDistributionPoints([
-                x509.DistributionPoint(
-                    full_name=[x509.UniformResourceIdentifier(crl_uri)],
-                    relative_name=None,
-                    crl_issuer=None,
-                    reasons=None,
-                ),
-        ]),
-        critical=False,
+        synta.oids.CRL_DISTRIBUTION_POINTS, False,
+        synta.ext.CDP().full_name_uri(crl_uri).build()
     )
-
-    public_key = builder._public_key
-
     builder = builder.add_extension(
-        x509.SubjectKeyIdentifier.from_public_key(public_key),
-        critical=False,
+        synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+        synta.ext.subject_key_identifier(spki_der)
     )
-    # here we get "ca" only for "ca1/subca" CA
     if not ca:
         builder = builder.add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key),
-            critical=False,
+            synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            synta.ext.authority_key_identifier(spki_der)
         )
     else:
-        ski_ext = ca.cert.extensions.get_extension_for_class(
-            x509.SubjectKeyIdentifier
+        builder = builder.add_extension(
+            synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            synta.ext.authority_key_identifier(ca.cert.subject_public_key_info_der)
         )
-        auth_keyidentifier = (x509.AuthorityKeyIdentifier
-                              .from_issuer_subject_key_identifier)
-        '''
-        cryptography < 2.7 accepts only Extension object.
-        Remove this workaround when all supported platforms update
-        python-cryptography.
-        '''
-        if (parse_version(cryptography_version) >= parse_version('2.7')):
-            extension = auth_keyidentifier(ski_ext.value)
-        else:
-            extension = auth_keyidentifier(ski_ext)
-
-        builder = builder.add_extension(extension, critical=False)
     return builder
 
 
-def profile_server(builder, ca_nick, ca,
+def profile_server(builder, ca_nick, ca, spki_der,
                    warp=datetime.timedelta(days=0), dns_name=None,
                    badusage=False, wildcard=False):
     now = datetime.datetime.now(tz=datetime.timezone.utc) + warp
 
-    builder = builder.not_valid_before(now)
-    builder = builder.not_valid_after(now + YEAR)
+    builder = builder.not_valid_before_utc(now)
+    builder = builder.not_valid_after_utc(now + YEAR)
 
     crl_uri = u'file://{}.crl'.format(os.path.join(cert_dir, ca_nick))
 
     builder = builder.add_extension(
-        x509.CRLDistributionPoints([
-                x509.DistributionPoint(
-                    full_name=[x509.UniformResourceIdentifier(crl_uri)],
-                    relative_name=None,
-                    crl_issuer=None,
-                    reasons=None,
-                ),
-        ]),
-        critical=False,
+        synta.oids.CRL_DISTRIBUTION_POINTS, False,
+        synta.ext.CDP().full_name_uri(crl_uri).build()
     )
 
     if dns_name is not None:
         builder = builder.add_extension(
-            x509.SubjectAlternativeName([x509.DNSName(dns_name)]),
-            critical=False,
+            synta.oids.SUBJECT_ALT_NAME, False,
+            synta.ext.SAN().dns_name(dns_name).build()
         )
 
     if ca:
-        try:
-            ski_ext = ca.cert.extensions.get_extension_for_class(
-                x509.SubjectKeyIdentifier)
-            builder = builder.add_extension(
-                x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
-                    ski_ext.value
-                ),
-                critical=False,
-            )
-        except x509.ExtensionNotFound:
-            # if the CA doesn't have a SKI, just ignore
-            pass
+        builder = builder.add_extension(
+            synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            synta.ext.authority_key_identifier(ca.cert.subject_public_key_info_der)
+        )
 
     if badusage:
+        ku = synta.ext.KU_DATA_ENCIPHERMENT | synta.ext.KU_KEY_AGREEMENT
         builder = builder.add_extension(
-            x509.KeyUsage(
-                digital_signature=False,
-                content_commitment=False,
-                key_encipherment=False,
-                data_encipherment=True,
-                key_agreement=True,
-                key_cert_sign=False,
-                crl_sign=False,
-                encipher_only=False,
-                decipher_only=False
-            ),
-            critical=False
+            synta.oids.KEY_USAGE, False, synta.ext.key_usage(ku)
         )
     else:
+        ku = (synta.ext.KU_DIGITAL_SIGNATURE | synta.ext.KU_KEY_ENCIPHERMENT
+              | synta.ext.KU_DATA_ENCIPHERMENT)
         builder = builder.add_extension(
-            x509.KeyUsage(
-                digital_signature=True,
-                content_commitment=False,
-                key_encipherment=True,
-                data_encipherment=True,
-                key_agreement=False,
-                key_cert_sign=False,
-                crl_sign=False,
-                encipher_only=False,
-                decipher_only=False
-            ),
-            critical=False
+            synta.oids.KEY_USAGE, False, synta.ext.key_usage(ku)
         )
 
     builder = builder.add_extension(
-        x509.ExtendedKeyUsage([x509.ObjectIdentifier('1.3.6.1.5.5.7.3.1')]),
-        critical=False,
+        synta.oids.EXTENDED_KEY_USAGE, False,
+        synta.ext.ExtendedKeyUsageBuilder().server_auth().build()
     )
 
     if wildcard:
-        names = [x509.DNSName(u'*.' + domain)]
+        san_builder = synta.ext.SAN().dns_name(u'*.' + domain)
         server_split = server1.split('.', 1)
         if len(server_split) == 2 and domain != server_split[1]:
-            names.append(x509.DNSName(u'*.' + server_split[1]))
+            san_builder = san_builder.dns_name(u'*.' + server_split[1])
         builder = builder.add_extension(
-            x509.SubjectAlternativeName(names),
-            critical=False,
+            synta.oids.SUBJECT_ALT_NAME, False, san_builder.build()
         )
 
     return builder
 
 
-def profile_kdc(builder, ca_nick, ca,
+def profile_kdc(builder, ca_nick, ca, spki_der,
                 warp=datetime.timedelta(days=0), dns_name=None,
                 badusage=False):
     now = datetime.datetime.now(tz=datetime.timezone.utc) + warp
 
-    builder = builder.not_valid_before(now)
-    builder = builder.not_valid_after(now + YEAR)
+    builder = builder.not_valid_before_utc(now)
+    builder = builder.not_valid_after_utc(now + YEAR)
 
     crl_uri = u'file://{}.crl'.format(os.path.join(cert_dir, ca_nick))
 
+    kdc_oid_comps = list(synta.oids.PKINIT_KP_KDC.components())
     builder = builder.add_extension(
-        x509.ExtendedKeyUsage([
-            x509.ObjectIdentifier(str(synta.oids.PKINIT_KP_KDC))
-        ]),
-        critical=False,
+        synta.oids.EXTENDED_KEY_USAGE, False,
+        synta.ext.ExtendedKeyUsageBuilder().add_oid(kdc_oid_comps).build()
     )
 
-    name = _encode_krb5principalname(
+    principal = synta.krb5.Krb5PrincipalName(
         realm, synta.krb5.NT_SRV_INST, ['krbtgt', realm]
     )
-
-    names = [x509.OtherName(
-        x509.ObjectIdentifier(str(synta.oids.PKINIT_SAN)), name
-    )]
+    san_builder = synta.ext.SAN().other_name(principal.to_othername_der())
     if dns_name is not None:
-        names += [x509.DNSName(dns_name)]
-
+        san_builder = san_builder.dns_name(dns_name)
     builder = builder.add_extension(
-        x509.SubjectAlternativeName(names),
-        critical=False,
+        synta.oids.SUBJECT_ALT_NAME, False, san_builder.build()
     )
 
     builder = builder.add_extension(
-        x509.CRLDistributionPoints([
-                x509.DistributionPoint(
-                    full_name=[x509.UniformResourceIdentifier(crl_uri)],
-                    relative_name=None,
-                    crl_issuer=None,
-                    reasons=None,
-                ),
-        ]),
-        critical=False,
+        synta.oids.CRL_DISTRIBUTION_POINTS, False,
+        synta.ext.CDP().full_name_uri(crl_uri).build()
     )
 
     if badusage:
+        ku = synta.ext.KU_DATA_ENCIPHERMENT | synta.ext.KU_KEY_AGREEMENT
         builder = builder.add_extension(
-            x509.KeyUsage(
-                digital_signature=False,
-                content_commitment=False,
-                key_encipherment=False,
-                data_encipherment=True,
-                key_agreement=True,
-                key_cert_sign=False,
-                crl_sign=False,
-                encipher_only=False,
-                decipher_only=False
-            ),
-            critical=False
+            synta.oids.KEY_USAGE, False, synta.ext.key_usage(ku)
         )
 
     return builder
 
 
-def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-    )
-    public_key = key.public_key()
+def gen_cert(profile, nick_base, subject_der, ca=None, **kwargs):
+    key = synta.PrivateKey.generate_rsa(2048)
+    public_key = key.public_key
+    spki_der = public_key.to_der()
 
     counter = itertools.count(1)
 
     if ca is not None:
         ca_nick, ca_key, ca_cert, ca_counter = ca
         nick = os.path.join(ca_nick, nick_base)
-        issuer = ca_cert.subject
+        issuer_der = ca_cert.subject_raw_der
     else:
         nick = ca_nick = nick_base
         ca_key = key
         ca_counter = counter
-        issuer = subject
+        issuer_der = subject_der
 
     serial = next(ca_counter)
 
-    builder = x509.CertificateBuilder()
-    builder = builder.serial_number(serial)
-    builder = builder.issuer_name(issuer)
-    builder = builder.subject_name(subject)
-    builder = builder.public_key(public_key)
-    builder = profile(builder, ca_nick, ca, **kwargs)
-
-    cert = builder.sign(
-        private_key=ca_key,
-        algorithm=hashes.SHA256(),
+    builder = (
+        synta.CertificateBuilder()
+        .serial_number(serial)
+        .issuer_name(issuer_der)
+        .subject_name(subject_der)
+        .public_key(public_key)
     )
+    builder = profile(builder, ca_nick, ca, spki_der, **kwargs)
+    cert = builder.sign(ca_key, "sha256")
 
-    key_pem = key.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.BestAvailableEncryption(password.encode()),
-    )
-    cert_pem = cert.public_bytes(serialization.Encoding.PEM)
+    key_pem = key.to_pem(password=password.encode())
+    cert_pem = synta.Certificate.to_pem(cert)
     try:
         os.makedirs(os.path.dirname(os.path.join(cert_dir, nick)))
     except OSError:
@@ -328,102 +224,74 @@ def gen_cert(profile, nick_base, subject, ca=None, **kwargs):
 
 def revoke_cert(ca, serial):
     now = datetime.datetime.now(tz=datetime.timezone.utc)
+    serial_bytes = serial.to_bytes((serial.bit_length() + 7) // 8 or 1, 'big')
+    _revoked_certs.setdefault(ca.nick, []).append((serial_bytes, now))
 
-    crl_builder = x509.CertificateRevocationListBuilder()
-    crl_builder = crl_builder.issuer_name(ca.cert.subject)
-    crl_builder = crl_builder.last_update(now)
-    crl_builder = crl_builder.next_update(now + DAY)
-
-    crl_filename = os.path.join(cert_dir, ca.nick + '.crl')
-
-    try:
-        f = open(crl_filename, 'rb')
-    except IOError:
-        pass
-    else:
-        with f:
-            crl_pem = f.read()
-
-        crl = x509.load_pem_x509_crl(crl_pem)
-
-        for revoked_cert in crl:
-            crl_builder = crl_builder.add_revoked_certificate(revoked_cert)
-
-    builder = x509.RevokedCertificateBuilder()
-    builder = builder.serial_number(serial)
-    builder = builder.revocation_date(now)
-
-    revoked_cert = builder.build()
-
-    crl_builder = crl_builder.add_revoked_certificate(revoked_cert)
-
-    crl = crl_builder.sign(
-        private_key=ca.key,
-        algorithm=hashes.SHA256(),
+    crl_builder = (
+        synta.CertificateListBuilder()
+        .issuer(ca.cert.subject_raw_der)
+        .signature_algorithm(_SHA256_WITH_RSA_ALG)
+        .this_update_utc(now)
+        .next_update_utc(now + DAY)
     )
+    for s_bytes, revoke_dt in _revoked_certs[ca.nick]:
+        crl_builder = crl_builder.revoke_utc(s_bytes, revoke_dt)
 
-    crl_pem = crl.public_bytes(serialization.Encoding.PEM)
+    tbs_der = crl_builder.build()
+    sig = ca.key.sign(tbs_der, "sha256")
+    crl_der = synta.CertificateListBuilder.assemble(tbs_der, _SHA256_WITH_RSA_ALG, sig)
 
+    b64 = base64.encodebytes(crl_der).decode('ascii')
+    crl_pem = '-----BEGIN X509 CRL-----\n' + b64 + '-----END X509 CRL-----\n'
+    crl_filename = os.path.join(cert_dir, ca.nick + '.crl')
     with open(crl_filename, 'wb') as f:
-        f.write(crl_pem)
+        f.write(crl_pem.encode())
 
 
 def gen_server_certs(nick_base, hostname, org, ca=None):
     gen_cert(profile_server, nick_base,
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-             ]),
+             synta.NameBuilder().organization(org).common_name(hostname).build(),
              ca, dns_name=hostname
              )
     gen_cert(profile_server, nick_base + u'-badname',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.COMMON_NAME, u'not-' + hostname)
-             ]),
+             synta.NameBuilder().organization(org).common_name(u'not-' + hostname).build(),
              ca, dns_name=u'not-' + hostname
              )
     gen_cert(profile_server, nick_base + u'-altname',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.COMMON_NAME, u'alt-' + hostname)
-             ]),
+             synta.NameBuilder().organization(org).common_name(u'alt-' + hostname).build(),
              ca, dns_name=hostname
              )
     gen_cert(profile_server, nick_base + u'-expired',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                                   u'Expired'),
-                x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'Expired')
+             .common_name(hostname)
+             .build(),
              ca, dns_name=hostname, warp=-2 * YEAR
              )
     gen_cert(
         profile_server, nick_base + u'-not-yet-valid',
-        x509.Name([
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'Future'),
-            x509.NameAttribute(NameOID.COMMON_NAME, hostname),
-        ]),
+        synta.NameBuilder()
+        .organization(org)
+        .organizational_unit(u'Future')
+        .common_name(hostname)
+        .build(),
         ca, dns_name=hostname, warp=1 * DAY,
     )
     gen_cert(profile_server, nick_base + u'-badusage',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                                   u'Bad Usage'),
-                x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'Bad Usage')
+             .common_name(hostname)
+             .build(),
              ca, dns_name=hostname, badusage=True
              )
     revoked = gen_cert(profile_server, nick_base + u'-revoked',
-                       x509.Name([
-                           x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                           x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                                              u'Revoked'),
-                           x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-                       ]),
+                       synta.NameBuilder()
+                       .organization(org)
+                       .organizational_unit(u'Revoked')
+                       .common_name(hostname)
+                       .build(),
                        ca, dns_name=hostname
                        )
     revoke_cert(ca, revoked.cert.serial_number)
@@ -431,54 +299,51 @@ def gen_server_certs(nick_base, hostname, org, ca=None):
 
 def gen_kdc_certs(nick_base, hostname, org, ca=None):
     gen_cert(profile_kdc, nick_base + u'-kdc',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'KDC')
+             .common_name(hostname)
+             .build(),
              ca
              )
     gen_cert(profile_kdc, nick_base + u'-kdc-badname',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, u'not-' + hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'KDC')
+             .common_name(u'not-' + hostname)
+             .build(),
              ca
              )
     gen_cert(profile_kdc, nick_base + u'-kdc-altname',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, u'alt-' + hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'KDC')
+             .common_name(u'alt-' + hostname)
+             .build(),
              ca, dns_name=hostname
              )
     gen_cert(profile_kdc, nick_base + u'-kdc-expired',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                                   u'Expired KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'Expired KDC')
+             .common_name(hostname)
+             .build(),
              ca, warp=-2 * YEAR
              )
     gen_cert(profile_kdc, nick_base + u'-kdc-badusage',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                                   u'Bad Usage KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-             ]),
+             synta.NameBuilder()
+             .organization(org)
+             .organizational_unit(u'Bad Usage KDC')
+             .common_name(hostname)
+             .build(),
              ca, badusage=True
              )
     revoked = gen_cert(profile_kdc, nick_base + u'-kdc-revoked',
-                       x509.Name([
-                           x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                           x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME,
-                                              u'Revoked KDC'),
-                           x509.NameAttribute(NameOID.COMMON_NAME, hostname)
-                       ]),
+                       synta.NameBuilder()
+                       .organization(org)
+                       .organizational_unit(u'Revoked KDC')
+                       .common_name(hostname)
+                       .build(),
                        ca
                        )
     revoke_cert(ca, revoked.cert.serial_number)
@@ -486,27 +351,18 @@ def gen_kdc_certs(nick_base, hostname, org, ca=None):
 
 def gen_subtree(nick_base, org, ca=None):
     subca = gen_cert(profile_ca, nick_base,
-                     x509.Name([
-                        x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                        x509.NameAttribute(NameOID.COMMON_NAME, u'CA')
-                     ]),
+                     synta.NameBuilder().organization(org).common_name(u'CA').build(),
                      ca
                      )
     gen_cert(profile_server, u'wildcard',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.COMMON_NAME, u'*.' + domain)
-             ]),
+             synta.NameBuilder().organization(org).common_name(u'*.' + domain).build(),
              subca, wildcard=True
              )
     gen_server_certs(u'server', server1, org, subca)
     gen_server_certs(u'replica', server2, org, subca)
     gen_server_certs(u'client', client, org, subca)
     gen_cert(profile_kdc, u'kdcwildcard',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
-                x509.NameAttribute(NameOID.COMMON_NAME, u'*.' + domain)
-             ]),
+             synta.NameBuilder().organization(org).common_name(u'*.' + domain).build(),
              subca
              )
     gen_kdc_certs(u'server', server1, org, subca)
@@ -518,36 +374,36 @@ def gen_subtree(nick_base, org, ca=None):
 def create_pki():
 
     gen_cert(profile_server, u'server-selfsign',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Self-signed'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server1)
-             ])
+             synta.NameBuilder()
+             .organization(u'Self-signed')
+             .common_name(server1)
+             .build()
              )
     gen_cert(profile_server, u'replica-selfsign',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Self-signed'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server2)
-             ])
+             synta.NameBuilder()
+             .organization(u'Self-signed')
+             .common_name(server2)
+             .build()
              )
     gen_cert(profile_server, u'noca',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'No-CA'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server1)
-             ])
+             synta.NameBuilder()
+             .organization(u'No-CA')
+             .common_name(server1)
+             .build()
              )
     gen_cert(profile_kdc, u'server-kdc-selfsign',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Self-signed'),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server1)
-             ])
+             synta.NameBuilder()
+             .organization(u'Self-signed')
+             .organizational_unit(u'KDC')
+             .common_name(server1)
+             .build()
              )
     gen_cert(profile_kdc, u'replica-kdc-selfsign',
-             x509.Name([
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Self-signed'),
-                x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'KDC'),
-                x509.NameAttribute(NameOID.COMMON_NAME, server2)
-             ])
+             synta.NameBuilder()
+             .organization(u'Self-signed')
+             .organizational_unit(u'KDC')
+             .common_name(server2)
+             .build()
              )
     ca1 = gen_subtree(u'ca1', u'Example Organization Espa\xf1a')
     gen_subtree(u'subca', u'Subsidiary Example Organization', ca1)

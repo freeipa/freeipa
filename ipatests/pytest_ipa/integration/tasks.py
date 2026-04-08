@@ -42,9 +42,7 @@ import uuid
 import dns
 from ldif import LDIFWriter
 import pytest
-from cryptography import x509
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+import synta
 from datetime import datetime, timedelta
 
 from ipapython import certdb
@@ -1938,9 +1936,7 @@ def certutil_fetch_cert(host, reqdir, pwd_file, nickname, token_name=None):
     else:
         args.append(nickname)
     result = run_certutil(host, args, reqdir)
-    return x509.load_pem_x509_certificate(
-        result.stdout_bytes
-    )
+    return synta.Certificate.from_pem(result.stdout_bytes)
 
 
 def upload_temp_contents(host, contents, encoding='utf-8'):
@@ -2221,21 +2217,17 @@ def generate_ssh_keypair():
     """
     Create SSH keypair for key authentication testing
     """
-    key = rsa.generate_private_key(public_exponent=65537,
-                                   key_size=2048)
-
-    public_key = key.public_key().public_bytes(
-        serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH)
-
-    pem = key.private_bytes(
-        encoding=serialization.Encoding.PEM,
-        # paramiko does not support PKCS#8 format, yet.
-        format=serialization.PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=serialization.NoEncryption()
-    )
-
-    private_key_str = pem.decode('utf-8')
-    public_key_str = public_key.decode('utf-8')
+    with tempfile.TemporaryDirectory() as tmpdir:
+        key_path = os.path.join(tmpdir, 'id_rsa')
+        subprocess.check_call(
+            ['ssh-keygen', '-t', 'rsa', '-b', '2048', '-N', '', '-f',
+             key_path],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        with open(key_path) as f:
+            private_key_str = f.read()
+        with open(key_path + '.pub') as f:
+            public_key_str = f.read()
 
     return (private_key_str, public_key_str)
 
