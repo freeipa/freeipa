@@ -19,7 +19,6 @@ requests
 
 ## C libraries with binary wheels
 cffi
-cryptography
 lxml
 synta
 

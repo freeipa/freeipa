@@ -411,7 +411,6 @@ BuildRequires:  softhsm
 BuildRequires:  keyutils
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
-BuildRequires:  python3-cryptography >= 1.6
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dns >= 1.15
 BuildRequires:  python3-docker
@@ -968,7 +967,6 @@ Requires: gnupg2
 Requires: keyutils
 Requires: python3-argcomplete
 Requires: python3-cffi
-Requires: python3-cryptography >= 1.6
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-gssapi >= 1.2.0
@@ -1037,7 +1035,6 @@ BuildArch: noarch
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
-Requires: python3-cryptography >= 1.6
 %if 0%{?fedora}
 # These packages do not exist on RHEL and for ipatests use
 # they are installed on the controller through other means
