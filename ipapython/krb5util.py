@@ -305,10 +305,16 @@ def _generate_keys(
     if len(keytab_entries) == 0:
         return
 
+    result = ipautil.run([paths.KLIST, "-ekt", paths.KRB5_KEYTAB], env={"LANG": "C"}, capture_output=True)
+    print(result.output)
+    logger.error(result.output)
     ipautil.run([paths.KINIT, "-kt", paths.KRB5_KEYTAB, krb_principal])
 
     for keytab in keytab_entries:
         keytab_filepath, principal = keytab
+        result = ipautil.run([paths.KLIST, "-ekt", keytab_filepath], env={"LANG": "C"}, capture_output=True)
+        print(result.output)
+        logger.error(result.output)
         ipautil.run(
             [paths.IPA_GETKEYTAB, "-p", principal, "-k", keytab_filepath],
         )
@@ -462,6 +468,24 @@ def check_and_rotate_keytabs(instance, host: str, realm: str) -> bool:
     :returns: True if the keys have been rotated
     :rtype: bool
     """
+
+    result = ipautil.run(["cat", "/var/kerberos/krb5kdc/kdc.conf"], capture_output=True)
+    print(result.output)
+    logger.error(result.output)
+
+    result = ipautil.run(["cat", "/etc/krb5.conf"], capture_output=True)
+    print(result.output)
+    logger.error(result.output)
+
+    result = ipautil.run(["cat", "/etc/krb5.conf.d/00-permitted-enctypes.conf"], capture_output=True, raiseonerr=False)
+    if result.returncode == 0:
+        print(result.output)
+        logger.error(result.output)
+
+    result = ipautil.run(["cat", "/etc/krb5.conf.d/01-allow-rc4.conf"], capture_output=True, raiseonerr=False)
+    if result.returncode == 0:
+        print(result.output)
+        logger.error(result.output)
 
     krbmaxrenewableage = _get_krbmaxrenewableage(instance)
     permitted_types = _get_krb_permitted_types()
