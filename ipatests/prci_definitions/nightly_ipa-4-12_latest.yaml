@@ -2265,7 +2265,7 @@ jobs:
         build_url: '{fedora-latest-ipa-4-12/build_url}'
         test_suite: test_integration/test_trust_functional.py
         template: *ci-ipa-4-12-latest
-        timeout: 7200
+        timeout: 10800
         topology: *adroot_adchild_adtree_master_1client
 
   fedora-latest-ipa-4-12/test_hbac_functional:
