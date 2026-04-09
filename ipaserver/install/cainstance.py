@@ -481,6 +481,8 @@ class CAInstance(DogtagInstance):
                 self.step("configure certmonger for renewals",
                           self.configure_certmonger_renewal_helpers)
                 if not self.clone:
+                    self.step("updating CA profiles to allow ML-DSA",
+                              self.__allow_mldsa_profiles)
                     self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 elif promote:
                     self.step("Importing RA key", self.__import_ra_key)
@@ -862,6 +864,39 @@ class CAInstance(DogtagInstance):
         directivesetter.set_directive(paths.CA_CS_CFG_PATH,
                                       'jobsScheduler.job.pruning.owner',
                                       'ipara', quotes=False, separator='=')
+
+    def __allow_mldsa_profiles(self):
+        """
+        Allow ML-DSA in some of the default CA profiles that IPA uses.
+        """
+        profiles = (
+            'caSignedLogCert',
+            'caOCSPCert',
+            'caSubsystemCert',
+            'caCACert'
+        )
+        for profile_id in profiles:
+            logger.debug("Replacing profile %s", profile_id)
+            dn = DN(('cn', profile_id),
+                    ('ou', 'certificateProfiles'),
+                    ('ou', 'ca'), ('o', 'ipaca'))
+            entry = api.Backend.ldap2.get_entry(dn)
+
+            lines = entry['certProfileConfig'][0].split('\n')
+            new = ''
+            for line in lines:
+                if '=' in line:
+                    (key, value) = line.split('=', 1)
+                    if 'keyParameters' in key and "44,65,87" not in value:
+                        new = f"{new}\n{key}={value},44,65,87\n"
+                    elif 'keyType' in key and value == 'RSA':
+                        new = f"{new}\n{key}=-\n"
+                    else:
+                        new = new + line + '\n'
+                else:
+                    new = new + line + '\n'
+            entry['certProfileConfig'] = new
+            api.Backend.ldap2.update_entry(entry)
 
     def __import_ra_cert(self):
         """
