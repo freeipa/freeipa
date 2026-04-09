@@ -1620,7 +1620,7 @@ def add_a_record(master, host):
                              raiseonerr=False)
 
     # If not, add it
-    if cmd.returncode != 0:
+    if cmd.returncode != 0 or 'A record' not in cmd.stdout_text:
         master.run_command(['ipa',
                             'dnsrecord-add',
                             master.domain.name,
