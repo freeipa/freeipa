@@ -223,7 +223,7 @@ def check_mscs_extension(ipa_csr, template):
                 if str(ext_oid) == template.ext_oid:
                     # optional critical BOOLEAN, then extnValue OCTET STRING
                     if not ext_seq.is_empty():
-                        tag, _, _ = ext_seq.peek_tag()
+                        tag, _cls, _pc = ext_seq.peek_tag()
                         if tag == 1:  # BOOLEAN
                             ext_seq.decode_boolean()
                     ext_value_der = ext_seq.decode_octet_string().to_bytes()

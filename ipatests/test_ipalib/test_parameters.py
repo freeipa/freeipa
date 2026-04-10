@@ -41,7 +41,7 @@ import synta
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
-from ipalib import parameters, text, errors, config, x509
+from ipalib import parameters, text, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
@@ -1751,7 +1751,8 @@ class test_CertificateSigningRequest(ClassChecker):
             # synta.CertificationRequest
             csr_object = o.convert(prep_input(self.sample_csr))
             assert isinstance(csr_object, synta.CertificationRequest)
-            assert csr_object.to_pem() == self.sample_csr
+            assert synta.CertificationRequest.to_pem(csr_object) \
+                == self.sample_csr
 
         # test that we fail the same with malformed CSR as bytes or str
         for input in (

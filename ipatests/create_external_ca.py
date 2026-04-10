@@ -135,15 +135,21 @@ def main():
     IPA_CA = '/tmp/ipaca.pem'
     parser = argparse.ArgumentParser("Create external CA")
     parser.add_argument(
-        '--csr', type=argparse.FileType('rb'), default=IPA_CSR,
+        '--csr',
+        type=argparse.FileType('rb'),  # pylint: disable=deprecated-class
+        default=IPA_CSR,
         help="Path to ipa.csr (default: {})".format(IPA_CSR)
     )
     parser.add_argument(
-        '--rootca', type=argparse.FileType('wb'), default=ROOT_CA,
+        '--rootca',
+        type=argparse.FileType('wb'),  # pylint: disable=deprecated-class
+        default=ROOT_CA,
         help="New root CA file (default: {})".format(ROOT_CA)
     )
     parser.add_argument(
-        '--ipaca', type=argparse.FileType('wb'), default=IPA_CA,
+        '--ipaca',
+        type=argparse.FileType('wb'),  # pylint: disable=deprecated-class
+        default=IPA_CA,
         help="New IPA CA file (default: {})".format(ROOT_CA)
     )
 

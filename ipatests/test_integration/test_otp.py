@@ -439,7 +439,8 @@ class TestOTPToken(IntegrationTest):
         try:
             otpuid, totp = add_otptoken(master, USER2, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
-            otpvalue = totp.generate(int(time.time()))            answers = {
+            otpvalue = totp.generate(int(time.time()))
+            answers = {
                 first_prompt: PASSWORD,
                 second_prompt: otpvalue
             }
@@ -481,7 +482,8 @@ class TestOTPToken(IntegrationTest):
         try:
             otpuid, totp = add_otptoken(master, USER3, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
-            totp.generate(int(time.time()))            otpvalue = "\n"
+            totp.generate(int(time.time()))
+            otpvalue = "\n"
             tasks.clear_sssd_cache(self.master)
             github_ticket = "https://github.com/SSSD/sssd/pull/7500"
             sssd_version = tasks.get_sssd_version(master)
@@ -770,7 +772,8 @@ class TestOTPToken(IntegrationTest):
 
             # Use OTP token again but authenticate over ssh and make sure it
             # doesn't fallthrough to asking for a password
-            otpvalue = totp.generate(int(time.time()))            answers = {
+            otpvalue = totp.generate(int(time.time()))
+            answers = {
                 'Enter first factor:': PASSWORD,
                 'Enter second factor:': otpvalue
             }
