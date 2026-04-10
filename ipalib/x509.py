@@ -614,7 +614,7 @@ def _parse_san_tuples(san_tuples):
             str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
         .sign(_san_parse_key, 'sha256')
     ))
-    return list(cert.general_names(str(synta.oids.SUBJECT_ALT_NAME)))
+    return list(cert.subject_alt_names())
 
 
 def chunk(size, s):
