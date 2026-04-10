@@ -32,7 +32,8 @@ _SHA256_WITH_RSA_ALG = synta.AlgorithmIdentifier.from_oid(
     synta.oids.SHA256_WITH_RSA
 ).to_der()
 
-# Tracks revoked certificates per CA nick: nick → [(serial_bytes, revocation_datetime)]
+# Tracks revoked certificates per CA nick:
+# nick → [(serial_bytes, revocation_datetime)]
 _revoked_certs = {}
 
 # we get the variables from ca_less test
@@ -79,7 +80,8 @@ def profile_ca(builder, ca_nick, ca, spki_der):
     else:
         builder = builder.add_extension(
             synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
-            synta.ext.authority_key_identifier(ca.cert.subject_public_key_info_der)
+            synta.ext.authority_key_identifier(
+                ca.cert.subject_public_key_info_der)
         )
     return builder
 
@@ -108,7 +110,8 @@ def profile_server(builder, ca_nick, ca, spki_der,
     if ca:
         builder = builder.add_extension(
             synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
-            synta.ext.authority_key_identifier(ca.cert.subject_public_key_info_der)
+            synta.ext.authority_key_identifier(
+                ca.cert.subject_public_key_info_der)
         )
 
     if badusage:
@@ -240,7 +243,8 @@ def revoke_cert(ca, serial):
 
     tbs_der = crl_builder.build()
     sig = ca.key.sign(tbs_der, "sha256")
-    crl_der = synta.CertificateListBuilder.assemble(tbs_der, _SHA256_WITH_RSA_ALG, sig)
+    crl_der = synta.CertificateListBuilder.assemble(
+        tbs_der, _SHA256_WITH_RSA_ALG, sig)
 
     b64 = base64.encodebytes(crl_der).decode('ascii')
     crl_pem = '-----BEGIN X509 CRL-----\n' + b64 + '-----END X509 CRL-----\n'
@@ -251,15 +255,18 @@ def revoke_cert(ca, serial):
 
 def gen_server_certs(nick_base, hostname, org, ca=None):
     gen_cert(profile_server, nick_base,
-             synta.NameBuilder().organization(org).common_name(hostname).build(),
+             synta.NameBuilder()
+             .organization(org).common_name(hostname).build(),
              ca, dns_name=hostname
              )
     gen_cert(profile_server, nick_base + u'-badname',
-             synta.NameBuilder().organization(org).common_name(u'not-' + hostname).build(),
+             synta.NameBuilder()
+             .organization(org).common_name(u'not-' + hostname).build(),
              ca, dns_name=u'not-' + hostname
              )
     gen_cert(profile_server, nick_base + u'-altname',
-             synta.NameBuilder().organization(org).common_name(u'alt-' + hostname).build(),
+             synta.NameBuilder()
+             .organization(org).common_name(u'alt-' + hostname).build(),
              ca, dns_name=hostname
              )
     gen_cert(profile_server, nick_base + u'-expired',
@@ -352,18 +359,21 @@ def gen_kdc_certs(nick_base, hostname, org, ca=None):
 
 def gen_subtree(nick_base, org, ca=None):
     subca = gen_cert(profile_ca, nick_base,
-                     synta.NameBuilder().organization(org).common_name(u'CA').build(),
+                     synta.NameBuilder()
+                     .organization(org).common_name(u'CA').build(),
                      ca
                      )
     gen_cert(profile_server, u'wildcard',
-             synta.NameBuilder().organization(org).common_name(u'*.' + domain).build(),
+             synta.NameBuilder()
+             .organization(org).common_name(u'*.' + domain).build(),
              subca, wildcard=True
              )
     gen_server_certs(u'server', server1, org, subca)
     gen_server_certs(u'replica', server2, org, subca)
     gen_server_certs(u'client', client, org, subca)
     gen_cert(profile_kdc, u'kdcwildcard',
-             synta.NameBuilder().organization(org).common_name(u'*.' + domain).build(),
+             synta.NameBuilder()
+             .organization(org).common_name(u'*.' + domain).build(),
              subca
              )
     gen_kdc_certs(u'server', server1, org, subca)

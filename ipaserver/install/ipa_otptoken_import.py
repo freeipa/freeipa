@@ -131,14 +131,16 @@ class _HMACContext:
         self._data += data
 
     def verify(self, expected):
-        synta.crypto.hmac_verify(self._algorithm, self._key, self._data, expected)
+        synta.crypto.hmac_verify(
+            self._algorithm, self._key, self._data, expected
+        )
 
 
 def convertHMACType(value):
     "Converts HMAC URI to algorithm name string."
 
     return {
-        "http://www.w3.org/2000/09/xmldsig#hmac-sha1":        'sha1',
+        "http://www.w3.org/2000/09/xmldsig#hmac-sha1": 'sha1',
         "http://www.w3.org/2001/04/xmldsig-more#hmac-sha224": 'sha224',
         "http://www.w3.org/2001/04/xmldsig-more#hmac-sha256": 'sha256',
         "http://www.w3.org/2001/04/xmldsig-more#hmac-sha384": 'sha384',

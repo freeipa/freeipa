@@ -21,7 +21,11 @@ def generate_csr(cn, is_hostname=True):
     if isinstance(cn, bytes):
         cn = cn.decode()
     name_der = synta.NameBuilder().common_name(cn).build()
-    builder = synta.CsrBuilder().subject_name(name_der).public_key(key.public_key)
+    builder = (
+        synta.CsrBuilder()
+        .subject_name(name_der)
+        .public_key(key.public_key)
+    )
     if is_hostname:
         san_der = synta.ext.SAN().dns_name(cn).build()
         builder = builder.add_extension(synta.oids.SUBJECT_ALT_NAME,

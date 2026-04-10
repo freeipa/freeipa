@@ -1747,7 +1747,8 @@ class test_CertificateSigningRequest(ClassChecker):
             lambda x: x.decode('utf-8'),
             lambda x: synta.CertificationRequest.from_pem(x)
         ):
-            # test that input is correctly converted to synta.CertificationRequest
+            # test that input is correctly converted to
+            # synta.CertificationRequest
             csr_object = o.convert(prep_input(self.sample_csr))
             assert isinstance(csr_object, synta.CertificationRequest)
             assert csr_object.to_pem() == self.sample_csr

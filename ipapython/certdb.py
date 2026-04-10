@@ -978,7 +978,8 @@ class NSSDatabase:
             if bc_der is None:
                 raise ValueError("missing basic constraints")
             bc_seq = synta.Decoder(bc_der).decode_sequence()
-            ca = bool(bc_seq.decode_boolean()) if not bc_seq.is_empty() else False
+            ca = (bool(bc_seq.decode_boolean())
+                  if not bc_seq.is_empty() else False)
             if not ca:
                 raise ValueError("not a CA certificate")
             if minpathlen is not None:
