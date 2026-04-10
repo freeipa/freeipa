@@ -240,7 +240,7 @@ def revoke_cert(ca, serial):
         .next_update_utc(now + DAY)
     )
     for s_bytes, revoke_dt in _revoked_certs[ca.nick]:
-        crl_builder = crl_builder.revoke_utc(s_bytes, revoke_dt)
+        crl_builder = crl_builder.revoke_utc(s_bytes, revoke_dt, None)
 
     tbs_der = crl_builder.build()
     sig = ca.key.sign(tbs_der, "sha256")
