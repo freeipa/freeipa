@@ -166,7 +166,7 @@ def newServerKeys(path, keyid):
         os.fchmod(f.fileno(), 0o600)
         os.fchown(f.fileno(), 0, 0)
         f.write('[%s,%s]' % (skey.export(), ekey.export()))
-    return [skey.get_op_key('verify'), ekey.get_op_key('encrypt')]
+    return [skey.export_public(), ekey.export_public()]
 
 
 class IPAKEMKeys(KEMKeysStore):
