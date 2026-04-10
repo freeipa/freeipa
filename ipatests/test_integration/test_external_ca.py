@@ -137,13 +137,13 @@ def create_external_ca_with_subject(subject_attrs):
         .serial_number(int.from_bytes(os.urandom(20), 'big'))
         .not_valid_before_utc(external_ca.now)
         .not_valid_after_utc(external_ca.now + external_ca.delta)
-        .add_extension(synta.oids.KEY_USAGE, True,
+        .add_extension(str(synta.oids.KEY_USAGE), True,
                        synta.ext.key_usage(ku_bits))
-        .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+        .add_extension(str(synta.oids.BASIC_CONSTRAINTS), True,
                        synta.ext.basic_constraints(ca=True))
-        .add_extension(synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+        .add_extension(str(synta.oids.SUBJECT_KEY_IDENTIFIER), False,
                        synta.ext.subject_key_identifier(spki_der))
-        .add_extension(synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+        .add_extension(str(synta.oids.AUTHORITY_KEY_IDENTIFIER), False,
                        synta.ext.authority_key_identifier(spki_der))
         .sign(external_ca.ca_key, "sha256")
     )
@@ -327,7 +327,7 @@ class TestExternalCAConstraints(IntegrationTest):
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
             self.master, paths.ROOT_IPA_CSR, ROOT_CA, IPA_CA,
             root_ca_extensions=[
-                (synta.oids.NAME_CONSTRAINTS, True, nc_der),
+                (str(synta.oids.NAME_CONSTRAINTS), True, nc_der),
             ],
         )
 

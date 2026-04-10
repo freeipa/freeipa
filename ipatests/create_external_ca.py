@@ -74,14 +74,14 @@ class ExternalCA:
             .serial_number(int.from_bytes(os.urandom(20), 'big'))
             .not_valid_before_utc(self.now)
             .not_valid_after_utc(self.now + self.delta)
-            .add_extension(synta.oids.KEY_USAGE, True,
+            .add_extension(str(synta.oids.KEY_USAGE), True,
                            synta.ext.key_usage(ku_bits))
-            .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+            .add_extension(str(synta.oids.BASIC_CONSTRAINTS), True,
                            synta.ext.basic_constraints(ca=True,
                                                        path_length=path_length))
-            .add_extension(synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+            .add_extension(str(synta.oids.SUBJECT_KEY_IDENTIFIER), False,
                            synta.ext.subject_key_identifier(spki_der))
-            .add_extension(synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            .add_extension(str(synta.oids.AUTHORITY_KEY_IDENTIFIER), False,
                            synta.ext.authority_key_identifier(spki_der))
         )
 
@@ -114,13 +114,13 @@ class ExternalCA:
             .issuer_name(self.issuer)
             .not_valid_before_utc(self.now)
             .not_valid_after_utc(self.now + self.delta)
-            .add_extension(synta.oids.KEY_USAGE, True,
+            .add_extension(str(synta.oids.KEY_USAGE), True,
                            synta.ext.key_usage(ku_bits))
-            .add_extension(synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+            .add_extension(str(synta.oids.SUBJECT_KEY_IDENTIFIER), False,
                            synta.ext.subject_key_identifier(spki_der))
-            .add_extension(synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            .add_extension(str(synta.oids.AUTHORITY_KEY_IDENTIFIER), False,
                            synta.ext.authority_key_identifier(ca_spki_der))
-            .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+            .add_extension(str(synta.oids.BASIC_CONSTRAINTS), True,
                            synta.ext.basic_constraints(ca=True,
                                                        path_length=path_length))
         )

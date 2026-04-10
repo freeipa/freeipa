@@ -28,8 +28,9 @@ def generate_csr(cn, is_hostname=True):
     )
     if is_hostname:
         san_der = synta.ext.SAN().dns_name(cn).build()
-        builder = builder.add_extension(synta.oids.SUBJECT_ALT_NAME,
-                                        False, san_der)
+        builder = builder.add_extension(
+            str(synta.oids.SUBJECT_ALT_NAME), False, san_der
+        )
     csr = builder.sign(key, "sha256")
     return csr.to_pem().decode()
 
@@ -56,7 +57,7 @@ def generate_certificate(hostname):
         .serial_number(int.from_bytes(os.urandom(20), 'big'))
         .not_valid_before_utc(now)
         .not_valid_after_utc(now + timedelta(days=100))
-        .add_extension(synta.oids.SUBJECT_ALT_NAME, False, san_der)
+        .add_extension(str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
         .sign(key, "sha256")
     )
     return cert.to_pem().decode()

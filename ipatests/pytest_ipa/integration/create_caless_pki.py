@@ -59,27 +59,28 @@ def profile_ca(builder, ca_nick, ca, spki_der):
     ku = (synta.ext.KU_DIGITAL_SIGNATURE | synta.ext.KU_NON_REPUDIATION
           | synta.ext.KU_KEY_CERT_SIGN | synta.ext.KU_CRL_SIGN)
     builder = builder.add_extension(
-        synta.oids.KEY_USAGE, True, synta.ext.key_usage(ku)
+        str(synta.oids.KEY_USAGE), True, synta.ext.key_usage(ku)
     )
     builder = builder.add_extension(
-        synta.oids.BASIC_CONSTRAINTS, True, synta.ext.basic_constraints(ca=True)
+        str(synta.oids.BASIC_CONSTRAINTS), True,
+        synta.ext.basic_constraints(ca=True)
     )
     builder = builder.add_extension(
-        synta.oids.CRL_DISTRIBUTION_POINTS, False,
+        str(synta.oids.CRL_DISTRIBUTION_POINTS), False,
         synta.ext.CDP().full_name_uri(crl_uri).build()
     )
     builder = builder.add_extension(
-        synta.oids.SUBJECT_KEY_IDENTIFIER, False,
+        str(synta.oids.SUBJECT_KEY_IDENTIFIER), False,
         synta.ext.subject_key_identifier(spki_der)
     )
     if not ca:
         builder = builder.add_extension(
-            synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            str(synta.oids.AUTHORITY_KEY_IDENTIFIER), False,
             synta.ext.authority_key_identifier(spki_der)
         )
     else:
         builder = builder.add_extension(
-            synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            str(synta.oids.AUTHORITY_KEY_IDENTIFIER), False,
             synta.ext.authority_key_identifier(
                 ca.cert.subject_public_key_info_der)
         )
@@ -97,19 +98,19 @@ def profile_server(builder, ca_nick, ca, spki_der,
     crl_uri = u'file://{}.crl'.format(os.path.join(cert_dir, ca_nick))
 
     builder = builder.add_extension(
-        synta.oids.CRL_DISTRIBUTION_POINTS, False,
+        str(synta.oids.CRL_DISTRIBUTION_POINTS), False,
         synta.ext.CDP().full_name_uri(crl_uri).build()
     )
 
     if dns_name is not None:
         builder = builder.add_extension(
-            synta.oids.SUBJECT_ALT_NAME, False,
+            str(synta.oids.SUBJECT_ALT_NAME), False,
             synta.ext.SAN().dns_name(dns_name).build()
         )
 
     if ca:
         builder = builder.add_extension(
-            synta.oids.AUTHORITY_KEY_IDENTIFIER, False,
+            str(synta.oids.AUTHORITY_KEY_IDENTIFIER), False,
             synta.ext.authority_key_identifier(
                 ca.cert.subject_public_key_info_der)
         )
@@ -117,17 +118,17 @@ def profile_server(builder, ca_nick, ca, spki_der,
     if badusage:
         ku = synta.ext.KU_DATA_ENCIPHERMENT | synta.ext.KU_KEY_AGREEMENT
         builder = builder.add_extension(
-            synta.oids.KEY_USAGE, False, synta.ext.key_usage(ku)
+            str(synta.oids.KEY_USAGE), False, synta.ext.key_usage(ku)
         )
     else:
         ku = (synta.ext.KU_DIGITAL_SIGNATURE | synta.ext.KU_KEY_ENCIPHERMENT
               | synta.ext.KU_DATA_ENCIPHERMENT)
         builder = builder.add_extension(
-            synta.oids.KEY_USAGE, False, synta.ext.key_usage(ku)
+            str(synta.oids.KEY_USAGE), False, synta.ext.key_usage(ku)
         )
 
     builder = builder.add_extension(
-        synta.oids.EXTENDED_KEY_USAGE, False,
+        str(synta.oids.EXTENDED_KEY_USAGE), False,
         synta.ext.ExtendedKeyUsageBuilder().server_auth().build()
     )
 
@@ -137,7 +138,7 @@ def profile_server(builder, ca_nick, ca, spki_der,
         if len(server_split) == 2 and domain != server_split[1]:
             san_builder = san_builder.dns_name(u'*.' + server_split[1])
         builder = builder.add_extension(
-            synta.oids.SUBJECT_ALT_NAME, False, san_builder.build()
+            str(synta.oids.SUBJECT_ALT_NAME), False, san_builder.build()
         )
 
     return builder
@@ -155,7 +156,7 @@ def profile_kdc(builder, ca_nick, ca, spki_der,
 
     kdc_oid_comps = list(synta.oids.PKINIT_KP_KDC.components())
     builder = builder.add_extension(
-        synta.oids.EXTENDED_KEY_USAGE, False,
+        str(synta.oids.EXTENDED_KEY_USAGE), False,
         synta.ext.ExtendedKeyUsageBuilder().add_oid(kdc_oid_comps).build()
     )
 
@@ -166,18 +167,18 @@ def profile_kdc(builder, ca_nick, ca, spki_der,
     if dns_name is not None:
         san_builder = san_builder.dns_name(dns_name)
     builder = builder.add_extension(
-        synta.oids.SUBJECT_ALT_NAME, False, san_builder.build()
+        str(synta.oids.SUBJECT_ALT_NAME), False, san_builder.build()
     )
 
     builder = builder.add_extension(
-        synta.oids.CRL_DISTRIBUTION_POINTS, False,
+        str(synta.oids.CRL_DISTRIBUTION_POINTS), False,
         synta.ext.CDP().full_name_uri(crl_uri).build()
     )
 
     if badusage:
         ku = synta.ext.KU_DATA_ENCIPHERMENT | synta.ext.KU_KEY_AGREEMENT
         builder = builder.add_extension(
-            synta.oids.KEY_USAGE, False, synta.ext.key_usage(ku)
+            str(synta.oids.KEY_USAGE), False, synta.ext.key_usage(ku)
         )
 
     return builder

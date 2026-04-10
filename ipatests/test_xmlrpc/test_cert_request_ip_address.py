@@ -192,8 +192,9 @@ def csr(altnames, cn=host_fqdn):
                     san = san.dns_name(value)
                 elif tag == 'ip':
                     san = san.ip_address(value.packed)
-            builder = builder.add_extension(synta.oids.SUBJECT_ALT_NAME,
-                                            False, san.build())
+            builder = builder.add_extension(
+                str(synta.oids.SUBJECT_ALT_NAME), False, san.build()
+            )
         csr = builder.sign(private_key, "sha256")
         return csr.to_pem().decode('ascii')
 

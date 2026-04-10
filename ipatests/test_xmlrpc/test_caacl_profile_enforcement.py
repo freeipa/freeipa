@@ -421,10 +421,10 @@ def santest_csr(request, santest_host_1, santest_host_2):
     csr = (synta.CsrBuilder()
            .subject_name(name_der)
            .public_key(pkey.public_key)
-           .add_extension(synta.oids.SUBJECT_ALT_NAME, False, san_der)
-           .add_extension(synta.oids.BASIC_CONSTRAINTS, True,
+           .add_extension(str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
+           .add_extension(str(synta.oids.BASIC_CONSTRAINTS), True,
                           synta.ext.basic_constraints(ca=False))
-           .add_extension(synta.oids.KEY_USAGE, False,
+           .add_extension(str(synta.oids.KEY_USAGE), False,
                           synta.ext.key_usage(ku_bits))
            .sign(pkey, "sha256"))
 
