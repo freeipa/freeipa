@@ -15,6 +15,7 @@ import textwrap
 import time
 from datetime import datetime, timedelta
 
+import synta
 import pytest
 from ipalib import x509
 from ipalib.constants import DOMAIN_LEVEL_0, KRA_TRACKING_REQS
@@ -942,12 +943,13 @@ class TestInstallMaster(IntegrationTest):
                 paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT,
                 nickname
             )
-            key_size = cert.public_key().key_size
+            key_size = synta.PublicKey.from_der(
+                cert.subject_public_key_info_der).key_size
             if nickname == 'caSigningCert cert-pki-ca':
                 assert key_size == 3072
             else:
                 assert key_size == 2048
-            assert cert.signature_hash_algorithm == 'sha256'
+            assert cert.signature_hash_algorithm_name == 'sha256'
 
     def test_http_cert(self):
         """

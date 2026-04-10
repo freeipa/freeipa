@@ -100,9 +100,9 @@ class ExternalCA:
         """
         csr_tbs = synta.CertificationRequest.from_pem(ipa_csr)
 
-        csr_public_key = csr_tbs.public_key
         csr_subject = csr_tbs.subject_raw_der
-        spki_der = csr_public_key.to_der()
+        spki_der = csr_tbs.subject_public_key_info_der
+        csr_public_key = synta.PublicKey.from_der(spki_der)
         ca_spki_der = self.ca_public_key.to_der()
 
         ku_bits = synta.ext.KU_KEY_CERT_SIGN | synta.ext.KU_CRL_SIGN
