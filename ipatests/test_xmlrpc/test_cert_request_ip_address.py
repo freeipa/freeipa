@@ -196,7 +196,7 @@ def csr(altnames, cn=host_fqdn):
                 str(synta.oids.SUBJECT_ALT_NAME), False, san.build()
             )
         csr = builder.sign(private_key, "sha256")
-        return csr.to_pem().decode('ascii')
+        return synta.CertificationRequest.to_pem(csr).decode('ascii')
 
     return pytest.fixture(scope='module')(inner)
 

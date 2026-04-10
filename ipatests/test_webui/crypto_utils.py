@@ -32,7 +32,7 @@ def generate_csr(cn, is_hostname=True):
             str(synta.oids.SUBJECT_ALT_NAME), False, san_der
         )
     csr = builder.sign(key, "sha256")
-    return csr.to_pem().decode()
+    return synta.CertificationRequest.to_pem(csr).decode()
 
 
 def generate_certificate(hostname):
@@ -60,4 +60,4 @@ def generate_certificate(hostname):
         .add_extension(str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
         .sign(key, "sha256")
     )
-    return cert.to_pem().decode()
+    return synta.Certificate.to_pem(cert).decode()

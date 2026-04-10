@@ -147,7 +147,7 @@ def create_external_ca_with_subject(subject_attrs):
                        synta.ext.authority_key_identifier(spki_der))
         .sign(external_ca.ca_key, "sha256")
     )
-    return external_ca, cert.to_pem()
+    return external_ca, synta.Certificate.to_pem(cert)
 
 
 def find_cert_in_chain(cert_chain, subject_attrs=None, issuer_attrs=None):

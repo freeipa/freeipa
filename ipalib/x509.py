@@ -171,7 +171,7 @@ class IPACertificate:
         """
         enc_val = encoding.value if isinstance(encoding, Encoding) else encoding
         if enc_val == "PEM":
-            return self._synta_cert.to_pem()
+            return synta.Certificate.to_pem(self._synta_cert)
         return self._synta_cert.to_der()
 
     def is_self_signed(self):

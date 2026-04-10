@@ -89,7 +89,7 @@ class ExternalCA:
             builder = builder.add_extension(oid, critical, value_der)
 
         cert = builder.sign(self.ca_key, "sha256")
-        return cert.to_pem()
+        return synta.Certificate.to_pem(cert)
 
     def sign_csr(self, ipa_csr, path_length=1):
         """Sign certificate CSR.
@@ -126,7 +126,7 @@ class ExternalCA:
         )
 
         cert = self.sign(builder)
-        return cert.to_pem()
+        return synta.Certificate.to_pem(cert)
 
 
 def main():

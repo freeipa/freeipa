@@ -428,7 +428,7 @@ def santest_csr(request, santest_host_1, santest_host_2):
                           synta.ext.key_usage(ku_bits))
            .sign(pkey, "sha256"))
 
-    return csr.to_pem().decode('ascii')
+    return synta.CertificationRequest.to_pem(csr).decode('ascii')
 
 
 class SubjectAltNameOneServiceBase(XMLRPC_test):
