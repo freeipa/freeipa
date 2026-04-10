@@ -29,7 +29,7 @@ import ssl
 import tempfile
 
 import synta
-import synta.crypto
+import synta.crypto as _synta_crypto
 
 from ipaclient.frontend import MethodOverride
 from ipalib import x509
@@ -91,7 +91,7 @@ def generate_symmetric_key(password, salt):
     """
     Generates symmetric key from password and salt.
     """
-    key = synta.crypto.pbkdf2_hmac(
+    key = _synta_crypto.pbkdf2_hmac(
         'sha256', password.encode('utf-8'), salt, 100000, 32)
     return base64.b64encode(key)
 
@@ -105,7 +105,7 @@ def encrypt(data, symmetric_key=None, public_key=None):
             raise ValueError(
                 "Either a symmetric or a public key is required, not both."
             )
-        return synta.crypto.Fernet(symmetric_key).encrypt(data)
+        return _synta_crypto.Fernet(symmetric_key).encrypt(data)
 
     elif public_key is not None:
         pub = synta.PublicKey.from_pem(public_key)
@@ -124,7 +124,7 @@ def decrypt(data, symmetric_key=None, private_key=None):
                 "Either a symmetric or a private key is required, not both."
             )
         try:
-            return synta.crypto.Fernet(symmetric_key).decrypt(data)
+            return _synta_crypto.Fernet(symmetric_key).decrypt(data)
         except ValueError:
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
@@ -299,10 +299,8 @@ class vault_add(Local):
             # validate public key and prevent users from accidentally
             # sending a private key to the server.
             try:
-                load_pem_public_key(
-                    data=public_key,
-                )
-            except ValueError as e:
+                synta.PublicKey.from_pem(public_key)
+            except Exception as e:
                 raise errors.ValidationError(
                     name='ipavaultpublickey',
                     error=_('Invalid or unsupported vault public key: %s') % e,
@@ -817,10 +815,10 @@ class vault_archive(ModVaultData):
         """
         nonce = os.urandom(algo.block_size // 8)
         if algo.name == constants.VAULT_WRAPPING_3DES:
-            wrapped_vault_data = synta.crypto.des3_cbc_encrypt(
+            wrapped_vault_data = _synta_crypto.des3_cbc_encrypt(
                 algo.key, nonce, json_vault_data)
         else:
-            wrapped_vault_data = synta.crypto.aes_cbc_encrypt(
+            wrapped_vault_data = _synta_crypto.aes_cbc_encrypt(
                 algo.key, nonce, json_vault_data)
         return nonce, wrapped_vault_data
 
@@ -1058,10 +1056,10 @@ class vault_retrieve(ModVaultData):
 
     def _unwrap_response(self, algo, nonce, vault_data):
         if algo.name == constants.VAULT_WRAPPING_3DES:
-            json_vault_data = synta.crypto.des3_cbc_decrypt(
+            json_vault_data = _synta_crypto.des3_cbc_decrypt(
                 algo.key, nonce, vault_data)
         else:
-            json_vault_data = synta.crypto.aes_cbc_decrypt(
+            json_vault_data = _synta_crypto.aes_cbc_decrypt(
                 algo.key, nonce, vault_data)
         return json.loads(json_vault_data.decode('utf-8'))
 

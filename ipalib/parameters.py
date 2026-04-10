@@ -1548,6 +1548,9 @@ class CertificateSigningRequest(Param):
             value = self.__extract_der_from_input(value)
             try:
                 value = synta.CertificationRequest.from_der(value)
+                # Force eager decode: from_der() is lazy and only raises
+                # ValueError when an attribute is first accessed.
+                _subj = value.subject
             except ValueError as e:
                 raise CertificateOperationError(
                     error=_("Failure decoding Certificate Signing Request:"

@@ -577,6 +577,46 @@ def process_othernames(gns):
             yield item
 
 
+# Module-level state for _parse_san_tuples: a throwaway EC key and name
+# used to wrap CSR SAN tuples into a temporary cert for typed GN parsing.
+_san_parse_key = None
+_san_parse_name = None
+
+
+def _parse_san_tuples(san_tuples):
+    """Convert (tag, bytes) SAN tuples from
+    ``CertificationRequest.subject_alt_names()`` into typed
+    ``synta.general_name`` objects suitable for ``process_othernames()``.
+
+    ``CertificationRequest.subject_alt_names()`` returns raw ``(int, bytes)``
+    tuples; this helper re-encodes them as a SAN extension DER value and
+    parses it through a throwaway certificate to obtain the same typed
+    ``synta.general_name`` objects that ``Certificate.general_names()``
+    produces.
+    """
+    global _san_parse_key, _san_parse_name
+    if _san_parse_key is None:
+        _san_parse_key = synta.PrivateKey.generate_ec('P-256')
+        _san_parse_name = (
+            synta.NameBuilder().common_name(u'_ipa').build()
+        )
+    san_der = synta.encode_subject_alt_names(san_tuples)
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    cert = synta.Certificate.from_der(synta.Certificate.to_der(
+        synta.CertificateBuilder()
+        .serial_number(1)
+        .issuer_name(_san_parse_name)
+        .subject_name(_san_parse_name)
+        .public_key(_san_parse_key.public_key)
+        .not_valid_before_utc(now)
+        .not_valid_after_utc(now + datetime.timedelta(days=1))
+        .add_extension(
+            str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
+        .sign(_san_parse_key, 'sha256')
+    ))
+    return list(cert.general_names(str(synta.oids.SUBJECT_ALT_NAME)))
+
+
 def chunk(size, s):
     """Yield chunks of the specified size from the given string.
 

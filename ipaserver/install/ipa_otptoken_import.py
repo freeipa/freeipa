@@ -30,7 +30,7 @@ from lxml import etree
 import gssapi
 import six
 
-import synta.crypto
+import synta.crypto as _synta_crypto
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipalib import api, errors
@@ -131,7 +131,7 @@ class _HMACContext:
         self._data += data
 
     def verify(self, expected):
-        synta.crypto.hmac_verify(
+        _synta_crypto.hmac_verify(
             self._algorithm, self._key, self._data, expected
         )
 
@@ -226,7 +226,7 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
         self._length = klen
 
     def derive(self, masterkey):
-        return synta.crypto.pbkdf2_hmac(
+        return _synta_crypto.pbkdf2_hmac(
             self._algorithm, masterkey, self._salt,
             self._iterations, self._length)
 
@@ -274,9 +274,9 @@ class XMLDecryptor:
         data = data[len(iv):]
 
         if algo == 'des3':
-            out = synta.crypto.des3_cbc_decrypt(self.__key, iv, data)
+            out = _synta_crypto.des3_cbc_decrypt(self.__key, iv, data)
         else:
-            out = synta.crypto.aes_cbc_decrypt(self.__key, iv, data)
+            out = _synta_crypto.aes_cbc_decrypt(self.__key, iv, data)
 
         return out
 
