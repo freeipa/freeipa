@@ -291,16 +291,16 @@ class IPACertificate:
 
     @property
     def tbs_certificate_bytes(self):
-        return self._synta_cert.tbs_certificate_der()
+        return self._synta_cert.tbs_certificate_der
 
     def public_key(self):
         """Return the public key as a synta.PublicKey object."""
         return synta.PublicKey.from_der(
-            self._synta_cert.subject_public_key_info_der())
+            self._synta_cert.subject_public_key_info_der)
 
     @property
     def public_key_info_bytes(self):
-        return self._synta_cert.subject_public_key_info_der()
+        return self._synta_cert.subject_public_key_info_der
 
     @property
     def extended_key_usage(self):
