@@ -28,8 +28,9 @@ import synta.oids
 DAY = datetime.timedelta(days=1)
 YEAR = 365 * DAY
 
-# AlgorithmIdentifier DER for sha256WithRSAEncryption
-_SHA256_WITH_RSA_ALG = bytes.fromhex('300d06092a864886f70d01010b0500')
+_SHA256_WITH_RSA_ALG = synta.AlgorithmIdentifier.from_oid(
+    synta.oids.SHA256_WITH_RSA
+).to_der()
 
 # Tracks revoked certificates per CA nick: nick → [(serial_bytes, revocation_datetime)]
 _revoked_certs = {}
