@@ -101,7 +101,14 @@ class ExternalCA:
         csr_tbs = synta.CertificationRequest.from_pem(ipa_csr)
 
         csr_subject = csr_tbs.subject_raw_der
-        spki_der = csr_tbs.subject_public_key_info_der
+        # CertificationRequest has no subject_public_key_info_der; extract
+        # it by walking the raw CSR DER: CertificationRequest SEQUENCE ->
+        # CertificationRequestInfo SEQUENCE -> skip version + subject -> SPKI.
+        _outer = synta.Decoder(csr_tbs.to_der(), synta.Encoding.DER)
+        _cri = _outer.decode_sequence()
+        _cri.decode_integer()   # version
+        _cri.decode_raw_tlv()   # subject Name
+        spki_der = _cri.decode_raw_tlv()   # SubjectPublicKeyInfo
         csr_public_key = synta.PublicKey.from_der(spki_der)
         ca_spki_der = self.ca_public_key.to_der()
 
