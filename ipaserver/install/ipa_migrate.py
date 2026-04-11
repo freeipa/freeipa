@@ -1045,8 +1045,7 @@ class IPAMigrate():
     #
     def get_cert_issuer(self, cert_value):
         ipacert = IPACertificate(synta.Certificate.from_der(cert_value))
-        issuer = str(DN(ipacert.issuer))
-        return issuer
+        return DN(ipacert.issuer)
 
     def remove_usercert(self, entry_dn, cert_values):
         """

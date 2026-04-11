@@ -66,7 +66,7 @@ class update_upload_cacrt(Updater):
                 continue
             cert = db.get_cert_from_db(nickname)
             subject = cert.subject
-            if ca_enabled and subject == ca_subject:
+            if ca_enabled and DN(subject) == ca_subject:
                 # When ca is enabled, we can have the IPA CA cert stored
                 # in the nss db with a different nickname (for instance
                 # when the server was installed with --subject to
