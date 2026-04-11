@@ -757,17 +757,18 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                         if len(nickname) == 1:
                             subject_dn = sub_dn
                             break
-                        if sub_dn == DN(csr.subject):
+                        if sub_dn == DN(csr.subject_raw_der):
                             # fallback for caSubsystemCert
                             subject_dn = sub_dn
                             break
                 if subject_dn:
-                    if subject_dn != DN(csr.subject):
+                    csr_subject_dn = DN(csr.subject_raw_der)
+                    if subject_dn != csr_subject_dn:
                         raise errors.NotFound(
                             reason=_(
                                 "CSR subject mismatch, {expected} vs "
                                 "{csr}".format(
-                                    expected=subject_dn, csr=csr.subject
+                                    expected=subject_dn, csr=csr_subject_dn
                                 )
                             )
                         )
@@ -778,7 +779,8 @@ class cert_request(Create, BaseCertMethod, VirtualCommand):
                     reason=_(
                         "Invalid subject '{subject}' for profile "
                         "'{profile}'".format(
-                            subject=csr.subject, profile=profile_id))
+                            subject=DN(csr.subject_raw_der),
+                            profile=profile_id))
                 )
             casubsystem_profile = True
 
