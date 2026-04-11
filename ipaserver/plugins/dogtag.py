@@ -1472,7 +1472,7 @@ class ra_lightweight_ca(APIClient):
         response = dict()
         response['id'] = subca.aid
         # Note that issuerDN is not present in the __repr__ class
-        response['issuerDN'] = subca.issuerDN  # pylint: disable=no-member
+        response['issuerDN'] = subca.issuerDN
         response['dn'] = subca.dn
         response['enabled'] = subca.enabled
 
