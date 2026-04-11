@@ -376,12 +376,18 @@ def load_pem_x509_certificate(data):
     """
     Load an X.509 certificate in PEM format.
 
+    Loads the first certificate when the PEM data contains multiple blocks,
+    matching the behaviour of ``cryptography.x509.load_pem_x509_certificate``.
+
     :returns: a ``IPACertificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
     """
     if isinstance(data, IPACertificate):
         return data
-    return IPACertificate(synta.Certificate.from_pem(data))
+    result = synta.Certificate.from_pem(data)
+    if isinstance(result, list):
+        result = result[0]
+    return IPACertificate(result)
 
 
 def load_der_x509_certificate(data):
