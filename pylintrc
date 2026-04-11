@@ -15,6 +15,7 @@ extension-pkg-allow-list=
     gssapi,
     lxml.etree,
     pysss_murmur,
+    synta,
 
 # We want to ignore freeipa-webui, linting is handled separately there
 ignore=freeipa-webui
