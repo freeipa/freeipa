@@ -108,12 +108,10 @@ except ImportError:
         MAXINT,
     )
 
-# pylint: disable=import-error
 if six.PY3:
     from http.client import RemoteDisconnected
 else:
     from httplib import BadStatusLine as RemoteDisconnected
-# pylint: enable=import-error
 
 
 if six.PY3:
