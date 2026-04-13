@@ -79,7 +79,7 @@ ACME server's revoke endpoint calls `ipa cert-revoke`, updating the IPA CRL.
 
 The `--acme` flag applies the `ipaACMECA` marker objectClass to the sub-CA
 entry, making it selectable by `ipa ca-find --acme` and referenceable in
-`host-acme-add` commands. Choose a name that identifies the deployment; the
+`ipa ca-acme-add` commands. Choose a name that identifies the deployment; the
 examples below use `acme-corp-us`.
 
 ```bash
@@ -145,8 +145,8 @@ ipa-getkeytab -s ipa.example.com \
 ### Step 5: Enable EAB for an IPA Host or Service
 
 ```bash
-ipa host-acme-add server1.ipa.example.com --acme-ca acme-corp-us
-ipa service-acme-add HTTP/app.ipa.example.com --acme-ca acme-corp-us
+ipa ca-acme-add acme-corp-us --host    server1.ipa.example.com
+ipa ca-acme-add acme-corp-us --service HTTP/app.ipa.example.com
 ```
 
 See [EAB Account Management](administration.md#eab-account-management) for
@@ -159,11 +159,11 @@ configuring ACME clients with the printed KID and HMAC key.
 # Check certificate was issued under the acme-corp-us sub-CA
 ipa cert-find --ca acme-corp-us
 
-# Show EAB account status for a host on a given sub-CA
-ipa host-acme-show server1.ipa.example.com --acme-ca acme-corp-us
+# Show a specific EAB account by KID
+ipa ca-acme-show acme-corp-us <kid>
 
-# List all EAB accounts for a sub-CA
-ipa acme-account-find --acme-ca acme-corp-us
+# List all EAB accounts for the sub-CA
+ipa ca-acme-find acme-corp-us
 ```
 
 ## Design
@@ -224,7 +224,7 @@ shared between both integration models.
 ### EAB Workflow
 
 ```
-1. Admin: ipa host-acme-add server1.ipa.example.com --acme-ca acme-corp-us
+1. Admin: ipa ca-acme-add acme-corp-us --host server1.ipa.example.com
             --> Generates KID (random 16-byte hex) + HMAC key (32 random bytes)
             --> Creates entry in cn=acmeaccounts,cn=ca,$SUFFIX:
                   ipaACMEAccountID: <kid>     (used as RDN)
@@ -364,7 +364,7 @@ updates the CRL for the `acme-external` sub-CA.
 
 ```bash
 # Admin-initiated revocation when decommissioning a host
-ipa host-acme-del server1.ipa.example.com   # invalidates EAB account
+ipa ca-acme-del acme-corp-us <kid>   # invalidates EAB account
 # Then revoke outstanding certs individually or via ACME client:
 certbot revoke --cert-path /etc/letsencrypt/live/server1/cert.pem
 ```
@@ -412,7 +412,7 @@ See [Web UI](administration.md#web-ui) in the common administration guide.
 
 ### CLI
 
-EAB account commands (`host-acme-*`, `service-acme-*`) are documented in the
+EAB account commands (`ca-acme-*`) are documented in the
 [CLI Reference](administration.md#cli-reference) in the common administration
 guide.  RA-model-specific sub-CA and CA ACL commands:
 
@@ -447,13 +447,13 @@ provisioned automatically.
 
 | Scenario | Expected result |
 |---|---|
-| `host-acme-add` on enrolled host | Returns KID and HMAC key; `ipaACMEAccount` entry created in `cn=acmeaccounts` |
-| `host-acme-add` on non-existent host | Error: host not found |
-| `host-acme-add` twice on same host (same `--acme-ca`) | Error: ACME account already exists |
-| `host-acme-mod --hmac-key` | Generates new HMAC key; KID unchanged; new key printed once; old EAB credentials rejected by ACME server |
-| `host-acme-mod --hmac-key` then EAB with old HMAC | ACME server rejects with `unauthorized` |
-| `host-acme-mod --hmac-key` then EAB with new HMAC | ACME server accepts |
-| `host-acme-del` | Removes `ipaACMEAccount` entry; subsequent ACME registration with old KID fails |
+| `ca-acme-add --host` on enrolled host | Returns KID and HMAC key; `ipaACMEAccount` entry created in `cn=acmeaccounts` |
+| `ca-acme-add --host` on non-existent host | Error: host not found |
+| `ca-acme-add --host` twice on same host (same CA) | Error: ACME account already exists |
+| `ca-acme-mod <kid> --hmac-key` | Generates new HMAC key; KID unchanged; new key printed once; old EAB credentials rejected by ACME server |
+| `ca-acme-mod <kid> --hmac-key` then EAB with old HMAC | ACME server rejects with `unauthorized` |
+| `ca-acme-mod <kid> --hmac-key` then EAB with new HMAC | ACME server accepts |
+| `ca-acme-del <kid>` | Removes `ipaACMEAccount` entry; subsequent ACME registration with old KID fails |
 | EAB registration with valid KID + HMAC | ACME server accepts; account created |
 | EAB registration with invalid HMAC | ACME server rejects with `unauthorized` |
 | EAB registration with unknown KID | ACME server rejects with `unauthorized` |

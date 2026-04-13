@@ -199,8 +199,8 @@ diff <(openssl x509 -noout -pubkey -in /etc/acme-server/subca/ca.crt) \
 ### Step 4: Enable EAB for Hosts and Services
 
 ```bash
-ipa host-acme-add server1.ipa.example.com --acme-ca acme-factory-floor
-ipa service-acme-add HTTP/app.ipa.example.com --acme-ca acme-factory-floor
+ipa ca-acme-add acme-factory-floor --host    server1.ipa.example.com
+ipa ca-acme-add acme-factory-floor --service HTTP/app.ipa.example.com
 ```
 
 The ACME server validates EAB credentials via IPA LDAP before issuing
@@ -415,7 +415,7 @@ filters on both the Key Identifier (KID) and the server's own sub-CA name:
 
 The ACME server may cache validated ACME account → IPA principal mappings
 locally so that subsequent orders do not require LDAP contact. The cache must
-be invalidated when `host-acme-del` is called (a webhook or periodic LDAP sync
+be invalidated when `ca-acme-del` is called (a webhook or periodic LDAP sync
 is needed).
 
 ### Revocation
@@ -604,7 +604,7 @@ sub-CA must be created in IPA.
 
 ### CLI
 
-EAB account commands (`host-acme-*`, `service-acme-*`) are documented in the
+EAB account commands (`ca-acme-*`) are documented in the
 [CLI Reference](administration.md#cli-reference) in the common administration
 guide.  HSM-backed-model-specific sub-CA commands:
 
@@ -665,7 +665,7 @@ sub-CA creation workflows (without `--csr-file`) are unaffected.
 | Revocation when IPA is unreachable | Queued; replayed on reconnect |
 | Sub-CA rotation (new key + CSR) | New authority created; ACME server reconfigured; old sub-CA disabled |
 | `ipa ca-del acme-factory-floor` | Sub-CA revoked; existing ACME server can no longer issue (chain broken) |
-| `host-acme-del` | EAB account removed; ACME server's cached principal mapping invalidated |
+| `ca-acme-del <ca-name> <kid>` | EAB account removed; ACME server's cached principal mapping invalidated |
 
 ## Troubleshooting and Debugging
 

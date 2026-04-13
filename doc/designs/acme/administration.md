@@ -9,24 +9,24 @@ server configuration — are documented in the respective model design pages.
 ## EAB Account Management
 
 An External Account Binding (EAB) account maps an ACME client to an IPA
-principal (host or service) and to a specific ACME-dedicated sub-CA.  The
-`--acme-ca` option is required on every `host-acme-*` and `service-acme-*`
-command; it specifies which sub-CA the account is scoped to.  A principal that
-uses two different ACME servers (backed by different sub-CAs) needs two
-separate EAB accounts.
+principal (host or service) and to a specific ACME-dedicated sub-CA.
+Accounts are managed with `ipa ca-acme-*` commands, where the sub-CA name
+(`ca-name`) is the primary object and the KID is the per-account identifier.
+A principal that uses two different ACME servers (backed by different sub-CAs)
+holds two separate EAB accounts — one per sub-CA.
 
 ### Creating an EAB Account
 
 ```bash
 # For an IPA host
-ipa host-acme-add server1.ipa.example.com --acme-ca acme-corp-us
+ipa ca-acme-add acme-corp-us --host server1.ipa.example.com
 
 # Example output:
 #   Account ID:  a3f8e1c2d9b74650
 #   HMAC key:    dGhpcyBpcyBhIDMyLWJ5dGUgc2VjcmV0IGtleQo  (one-time display)
 
 # For an IPA service
-ipa service-acme-add HTTP/app.ipa.example.com --acme-ca acme-corp-us
+ipa ca-acme-add acme-corp-us --service HTTP/app.ipa.example.com
 ```
 
 The HMAC key is displayed once and cannot be retrieved again.  Copy it
@@ -35,8 +35,8 @@ client configuration.
 
 ### Configuring the ACME Client
 
-Use the KID and HMAC key printed by `host-acme-add` (or `service-acme-add`)
-to register the ACME client:
+Use the KID and HMAC key printed by `ca-acme-add` to register the ACME
+client:
 
 ```bash
 # certbot example
@@ -60,30 +60,27 @@ The KID is preserved, so only the ACME client's secret needs to be updated —
 the account registration on the ACME server remains valid.
 
 ```bash
-ipa host-acme-mod server1.ipa.example.com --acme-ca acme-corp-us --hmac-key
+ipa ca-acme-mod acme-corp-us a3f8e1c2d9b74650 --hmac-key
 # → prints new HMAC key once; old key is immediately invalidated
-
-ipa service-acme-mod HTTP/app.ipa.example.com --acme-ca acme-corp-us --hmac-key
 ```
 
 If the KID must also change (e.g. suspected account compromise), delete and
 recreate the account:
 
 ```bash
-ipa host-acme-del server1.ipa.example.com --acme-ca acme-corp-us
-ipa host-acme-add server1.ipa.example.com --acme-ca acme-corp-us
+ipa ca-acme-del acme-corp-us a3f8e1c2d9b74650
+ipa ca-acme-add acme-corp-us --host server1.ipa.example.com
 # → new KID and new HMAC key; update the ACME client registration
 ```
 
 ### Viewing and Listing EAB Accounts
 
 ```bash
-# Show a single account (KID and status; never shows HMAC key)
-ipa host-acme-show server1.ipa.example.com --acme-ca acme-corp-us
-ipa service-acme-show HTTP/app.ipa.example.com --acme-ca acme-corp-us
+# Show a single account by KID (status; never shows HMAC key)
+ipa ca-acme-show acme-corp-us a3f8e1c2d9b74650
 
 # List all EAB accounts for a given sub-CA
-ipa acme-account-find --acme-ca acme-corp-us
+ipa ca-acme-find acme-corp-us
 
 # List all ACME-dedicated sub-CAs
 ipa ca-find --acme
@@ -97,20 +94,20 @@ entry.  This is useful for temporarily suspending access.
 
 ```bash
 # Disable (suspend) without deleting — the ACME server rejects the KID
-ipa host-acme-mod server1.ipa.example.com --acme-ca acme-corp-us --disable
+ipa ca-acme-mod acme-corp-us a3f8e1c2d9b74650 --disable
 
 # Re-enable
-ipa host-acme-mod server1.ipa.example.com --acme-ca acme-corp-us --enable
+ipa ca-acme-mod acme-corp-us a3f8e1c2d9b74650 --enable
 
 # Permanent removal — subsequent ACME registration with the old KID fails
-ipa host-acme-del server1.ipa.example.com --acme-ca acme-corp-us
+ipa ca-acme-del acme-corp-us a3f8e1c2d9b74650
 ```
 
 When decommissioning a host, revoke any outstanding ACME-issued certificates
 before or after deleting the EAB account:
 
 ```bash
-ipa host-acme-del server1.ipa.example.com --acme-ca acme-corp-us
+ipa ca-acme-del acme-corp-us a3f8e1c2d9b74650
 # Revoke outstanding certs via ACME client or directly:
 certbot revoke --cert-path /etc/letsencrypt/live/server1/cert.pem
 ```
@@ -119,29 +116,25 @@ certbot revoke --cert-path /etc/letsencrypt/live/server1/cert.pem
 
 | Command | Key Options |
 |---|---|
-| `ipa host-acme-add <fqdn>` | `--acme-ca <name>` — required; generates KID and HMAC key |
-| `ipa host-acme-mod <fqdn>` | `--acme-ca <name>`, `--hmac-key` — regenerates HMAC key; `--enable` / `--disable` |
-| `ipa host-acme-show <fqdn>` | `--acme-ca <name>`, `--all` |
-| `ipa host-acme-del <fqdn>` | `--acme-ca <name>` — required |
-| `ipa service-acme-add <principal>` | `--acme-ca <name>` — required; generates KID and HMAC key |
-| `ipa service-acme-mod <principal>` | `--acme-ca <name>`, `--hmac-key`; `--enable` / `--disable` |
-| `ipa service-acme-show <principal>` | `--acme-ca <name>`, `--all` |
-| `ipa service-acme-del <principal>` | `--acme-ca <name>` — required |
-| `ipa acme-account-find` | `--acme-ca <name>` — filter by sub-CA |
+| `ipa ca-acme-add <ca-name>` | `--host <fqdn>` or `--service <principal>` — required; generates KID and HMAC key |
+| `ipa ca-acme-mod <ca-name> <kid>` | `--hmac-key` — regenerates HMAC key; `--enable` / `--disable` |
+| `ipa ca-acme-show <ca-name> <kid>` | `--all` |
+| `ipa ca-acme-del <ca-name> <kid>` | (none) |
+| `ipa ca-acme-find <ca-name>` | `--host <fqdn>`, `--service <principal>` — optional filters |
 | `ipa ca-find` | `--acme` — list only ACME-dedicated sub-CAs |
 
 ## Web UI
 
-The IPA web UI exposes EAB account management on the Host and Service detail
-pages:
+The IPA web UI exposes EAB account management on the sub-CA detail page and
+on the Host and Service detail pages:
 
-- A toggle labelled **"Enable ACME certificate issuance"** calls
-  `host-acme-add` and displays the one-time HMAC key in a modal dialog.
-  The dialog shows the KID and HMAC key once; they cannot be retrieved again
-  through the UI.
-- A status badge on the Host (and Service) detail page shows whether an ACME
-  EAB account is active (`ipaACMEEnabled: TRUE`) for a given sub-CA.
-- The same controls appear on the Service detail page.
+- On the sub-CA detail page: a list of EAB accounts associated with that CA,
+  with an **"Add account"** button that opens a form to select the principal
+  (host or service) and calls `ca-acme-add`.  The one-time HMAC key is shown
+  in a modal dialog immediately after creation.
+- On the Host (and Service) detail page: a status badge showing whether the
+  host/service has an active EAB account (`ipaACMEEnabled: TRUE`) for each
+  ACME-dedicated sub-CA it is enrolled with.
 
 The HMAC key must not be stored by the UI, re-displayed on page reload, or
 included in any API response after the initial creation call.
@@ -153,23 +146,19 @@ included in any API response after the initial creation call.
 The following components are required by both integration models and are
 implemented once:
 
-**New file: `ipalib/plugins/acme_account.py`**
+**New file: `ipalib/plugins/ca.py` additions (or `ipalib/plugins/acme.py`)**
+
+EAB account commands are extensions of the `ca` object:
 
 | Command | Action |
 |---|---|
-| `host-acme-add <fqdn>` | Generate KID + HMAC key; create `ipaACMEAccount` entry in `cn=acmeaccounts,cn=ca,$SUFFIX`; display key once |
-| `host-acme-mod <fqdn> --hmac-key` | Regenerate HMAC key in place; KID unchanged; print new key once |
-| `host-acme-mod <fqdn> --enable/--disable` | Set `ipaACMEEnabled` flag |
-| `host-acme-show <fqdn>` | Show KID and `ipaACMEEnabled`; never shows HMAC key |
-| `host-acme-del <fqdn>` | Remove `ipaACMEAccount` entry |
-| `service-acme-add <principal>` | Same as `host-acme-add`, for service principals |
-| `service-acme-mod <principal>` | Same as `host-acme-mod` |
-| `service-acme-show <principal>` | Same as `host-acme-show` |
-| `service-acme-del <principal>` | Same as `host-acme-del` |
-| `acme-account-find` | Search `cn=acmeaccounts` container; supports `--acme-ca` filter |
-
-All `host-acme-*` commands accept `--acme-ca <sub-ca-name>` to scope the
-operation to a specific ACME-dedicated sub-CA.
+| `ca-acme-add <ca-name> --host <fqdn>` | Generate KID + HMAC key; create `ipaACMEAccount` entry in `cn=acmeaccounts,cn=ca,$SUFFIX`; display key once |
+| `ca-acme-add <ca-name> --service <principal>` | Same, for service principals |
+| `ca-acme-mod <ca-name> <kid> --hmac-key` | Regenerate HMAC key in place; KID unchanged; print new key once |
+| `ca-acme-mod <ca-name> <kid> --enable/--disable` | Set `ipaACMEEnabled` flag |
+| `ca-acme-show <ca-name> <kid>` | Show KID and `ipaACMEEnabled`; never shows HMAC key |
+| `ca-acme-del <ca-name> <kid>` | Remove `ipaACMEAccount` entry |
+| `ca-acme-find <ca-name>` | Search `cn=acmeaccounts` scoped to the given sub-CA |
 
 **New schema file: `install/share/65acme.ldif`**
 
@@ -203,10 +192,8 @@ will need to be reconfigured.
 ## Upgrade
 
 LDAP schema additions (`ipaACMEAccount` objectClass and its attributes) are
-backward-compatible.  Hosts and services without the `ipaACMEAccount`
-objectClass continue to function normally.  The new `host-acme-*` and
-`service-acme-*` commands are ignored by IPA versions that do not include
-this feature.
+backward-compatible.  The new `ca-acme-*` commands are ignored by IPA
+versions that do not include this feature.
 
 ACME-dedicated sub-CAs and EAB accounts must be created explicitly by an
 administrator after upgrading; they are not provisioned automatically.
@@ -224,7 +211,7 @@ ldapsearch -Y GSSAPI \
     ipaACMEAccountID ipaACMESubCA ipaACMEPrincipal ipaACMEEnabled
 ```
 
-The HMAC key is not shown by `ipa host-acme-show`.  To confirm the attribute
+The HMAC key is not shown by `ipa ca-acme-show`.  To confirm the attribute
 is present (e.g., after a backup restore), use `ldapsearch` with admin
 credentials:
 
@@ -239,7 +226,7 @@ ldapsearch -Y GSSAPI \
 If the external ACME server logs an EAB validation failure:
 
 1. Confirm the KID in the ACME client configuration matches the value from
-   `ipa host-acme-show`.
+   `ipa ca-acme-show`.
 2. Confirm the HMAC key was copied correctly — it is base64url-encoded with no
    line breaks.
 3. Confirm the ACME server service principal has valid Kerberos credentials:

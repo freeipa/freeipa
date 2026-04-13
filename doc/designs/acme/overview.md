@@ -49,8 +49,7 @@ LDAP entry (`ipacaid`, `cn=cas,cn=ca,$SUFFIX`), marking it as managed by an
 external ACME server. This marker:
 
 - scopes `ipa ca-find --acme` to list only ACME-dedicated sub-CAs,
-- is required before the sub-CA can be referenced in `host-acme-add` and
-  `service-acme-add` commands,
+- is required before the sub-CA can be referenced in `ipa ca-acme-add` commands,
 - is the anchor for CA ACLs that bind authorized principals to this sub-CA.
 
 Sub-CA names should reflect their deployment purpose. Using a generic name like
@@ -138,26 +137,24 @@ accounts on several ACME sub-CAs without schema conflicts. Each entry carries:
   belongs to.
 - `ipaACMEEnabled` — boolean flag; accounts can be suspended without deletion.
 
-EAB accounts are managed with new IPA CLI commands. The `--acme-ca` option
-specifies which ACME-dedicated sub-CA the account is for and is always required:
+EAB accounts are managed with `ipa ca-acme-*` commands, where the sub-CA
+name is the primary object and the KID is the account identifier:
 
 ```bash
-ipa host-acme-add  server1.ipa.example.com --acme-ca acme-corp-us
+# Create an EAB account for a host or service under a specific sub-CA:
+ipa ca-acme-add acme-corp-us --host  server1.ipa.example.com
+  # → prints KID and HMAC key once
+ipa ca-acme-add acme-corp-us --service HTTP/app.ipa.example.com
   # → prints KID and HMAC key once
 
-ipa host-acme-mod  server1.ipa.example.com --acme-ca acme-corp-us --hmac-key
-  # → regenerates HMAC key and prints it once; KID is unchanged
+# Rotate the HMAC key (KID is preserved):
+ipa ca-acme-mod acme-corp-us <kid> --hmac-key
+  # → prints new HMAC key once; old key is immediately invalidated
 
-ipa host-acme-show server1.ipa.example.com --acme-ca acme-corp-us
-ipa host-acme-del  server1.ipa.example.com --acme-ca acme-corp-us
-
-ipa service-acme-add  HTTP/app.ipa.example.com --acme-ca acme-dmz-partner
-ipa service-acme-mod  HTTP/app.ipa.example.com --acme-ca acme-dmz-partner --hmac-key
-ipa service-acme-show HTTP/app.ipa.example.com --acme-ca acme-dmz-partner
-ipa service-acme-del  HTTP/app.ipa.example.com --acme-ca acme-dmz-partner
-
-# List all EAB accounts for a given sub-CA:
-ipa acme-account-find --acme-ca acme-corp-us
+# Show, list, and delete:
+ipa ca-acme-show acme-corp-us <kid>
+ipa ca-acme-find acme-corp-us
+ipa ca-acme-del  acme-corp-us <kid>
 
 # List all ACME-dedicated sub-CAs:
 ipa ca-find --acme
@@ -165,11 +162,11 @@ ipa ca-find --acme
 
 The HMAC key is displayed once at creation time and cannot be retrieved
 afterwards. If the key is lost or needs to be rotated, use `--hmac-key` with
-`host-acme-mod` (or `service-acme-mod`) to regenerate it in place. The KID
-(Key Identifier) is preserved, so only the ACME client's HMAC secret needs to
-be updated — not the account registration. If the KID should also change (e.g.
-suspected credential compromise), use `host-acme-del` followed by
-`host-acme-add` to create a fully fresh account.
+`ca-acme-mod` to regenerate it in place. The KID (Key Identifier) is
+preserved, so only the ACME client's HMAC secret needs to be updated — not
+the account registration. If the KID must also change (e.g. suspected
+credential compromise), use `ca-acme-del` followed by `ca-acme-add` to
+create a fully fresh account.
 
 ### Access Control
 
