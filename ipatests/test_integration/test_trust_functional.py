@@ -10,10 +10,22 @@ from datetime import datetime, timedelta
 import pytest
 
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_trust import BaseTestTrust
 
 PLUGIN_CONF = "/var/lib/sss/pubconf/krb5.include.d/localauth_plugin"
+
+
+def xfail_if_sssd_lt_212_trust_client(host):
+    cmd = host.run_command(['sssd', '--version'])
+    sssd_version = platform_tasks.parse_ipa_version(
+        cmd.stdout_text.strip())
+    if (tasks.get_platform(host) == "fedora"
+            and sssd_version < platform_tasks.parse_ipa_version('2.12.0')):
+        pytest.xfail(
+            reason='Requires sssd-client 2.12+'
+        )
 
 
 def ssh_with_password(host, login, target_host, password, expect_success=True):
@@ -372,6 +384,7 @@ class TestTrustFunctionalHbac(BaseTestTrust):
         It verifies that AD users who are members of the external group can
         successfully use sudo and gain root privileges.
         """
+        xfail_if_sssd_lt_212_trust_client(self.clients[0])
         hrule = "ipa_trust_func_hbac_0011"
         srule = "ipa_trust_func_hbac_0011"
         tasks.clear_sssd_cache(self.master)
@@ -512,6 +525,7 @@ class TestTrustFunctionalSudo(BaseTestTrust):
         root. It verifies that AD users who are members of the external group
         can successfully use sudo to gain root privileges.
         """
+        xfail_if_sssd_lt_212_trust_client(self.clients[0])
         srule = "sudorule_01"
         cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
         try:
@@ -539,6 +553,7 @@ class TestTrustFunctionalSudo(BaseTestTrust):
         successfully use sudo to switch to other AD user accounts when they
         have the appropriate sudo permissions.
         """
+        xfail_if_sssd_lt_212_trust_client(self.clients[0])
         srule = "sudorule_02"
         cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
         try:
@@ -620,6 +635,7 @@ class TestTrustFunctionalSudo(BaseTestTrust):
         2. AD users are denied sudo access when the rule is disabled
         3. AD users can sudo as root again when the rule is re-enabled
         """
+        xfail_if_sssd_lt_212_trust_client(self.clients[0])
         srule = "sudorule_05"
         cmd = ["ipa", "sudorule-add", srule, "--hostcat=all", "--cmdcat=all"]
         try:
@@ -666,6 +682,7 @@ class TestTrustFunctionalSudo(BaseTestTrust):
         The test uses /usr/bin/id as a denied command and /usr/bin/whoami as an
         allowed command to demonstrate the allow/deny functionality.
         """
+        xfail_if_sssd_lt_212_trust_client(self.clients[0])
         srule = "sudorule_07"
         try:
             tasks.kinit_admin(self.master)
