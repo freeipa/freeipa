@@ -1,12 +1,12 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
-# Rafael Fontenelle <rafaelff@gnome.org>, 2020, 2021, 2024.
+# Rafael Fontenelle <rafaelff@gnome.org>, 2020, 2021, 2024, 2026.
 # Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2024-02-09 19:36+0000\n"
+"PO-Revision-Date: 2026-04-05 23:58+0000\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/master/pt_BR/>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 5.3.1\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -35,28 +35,26 @@ msgstr "erro de leitura\n"
 
 #, c-format
 msgid "Kerberos context initialization failed: %1$s (%2$d)\n"
-msgstr ""
+msgstr "A inicialização do contexto Kerberos falhou: %1$s (%2$d)\n"
 
-#, fuzzy, c-format
-#| msgid "Unable to parse principal\n"
+#, c-format
 msgid "Unable to parse principal: %1$s (%2$d)\n"
-msgstr "Incapaz de analisar o principal\n"
+msgstr "Incapaz de analisar o principal: %1$s (%2$d)\n"
 
 #, c-format
 msgid "No keys accepted by KDC\n"
-msgstr ""
+msgstr "Nenhuma chave aceitada por KDC\n"
 
-#, fuzzy, c-format
-#| msgid "out of memory\n"
+#, c-format
 msgid "Out of memory \n"
-msgstr "memória insuficiente\n"
+msgstr "Memória insuficiente \n"
 
 #, c-format
 msgid "Unable to initialize ldap library!\n"
-msgstr ""
+msgstr "Não foi possível inicializar a biblioteca ldap!\n"
 
 msgid "Simple bind failed\n"
-msgstr ""
+msgstr "Vinculação simples falhou\n"
 
 msgid "SASL Bind failed\n"
 msgstr ""
