@@ -32,6 +32,7 @@ from ipapython import directivesetter
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import cainstance
+from ipaserver.install import certs
 from ipaserver.install import installutils
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.install.ca import (
@@ -201,6 +202,23 @@ class KRAInstance(DogtagInstance):
             (_unused, token_library_path) = lookup_hsm_configuration(api)
             if 'nfast' in token_library_path:
                 cfg['pki_use_oaep_rsa_keywrap'] = True
+
+        (ipa_key_algorithm, ipa_key_size) = (
+            certs.get_key_type_and_strength(api.env.key_type_size)
+        )
+
+        (ca_key_type, ipa_ca_key_size, ipa_ca_key_algorithm) = (
+            cainstance.get_ca_key_algorithm(api)
+        )
+        ipa_signing_algorithm = ipa_ca_key_algorithm
+
+        cfg['ipa_ca_key_size'] = ipa_ca_key_size
+        cfg['ipa_ca_key_algorithm'] = ipa_ca_key_algorithm
+
+        cfg['ipa_key_size'] = ipa_key_size
+        cfg['ipa_key_algorithm'] = ipa_key_algorithm
+        cfg['ipa_key_type'] = ca_key_type
+        cfg['ipa_signing_algorithm'] = ipa_signing_algorithm
 
         p12_tmpfile_name = None
 
