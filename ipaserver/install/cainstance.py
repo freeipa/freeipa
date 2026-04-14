@@ -272,6 +272,37 @@ def lookup_ldap_backend(api):
     return ldap_backend
 
 
+def get_ca_key_algorithm(api):
+    """Detect the key type and signing algorithm using the IPA CA
+       certificate.
+
+       This returns a tuple of (key_type, key_algorithm)
+    """
+    algs = {
+        '1.2.840.113549.1.1.11': ('rsa', 'SHA256withRSA'),
+        '1.2.840.113549.1.1.12': ('rsa', 'SHA384withRSA'),
+        '1.2.840.113549.1.1.13': ('rsa', 'SHA512withRSA'),
+        '2.16.840.1.101.3.4.3.17': ('mldsa', 'ML-DSA-44'),
+        '2.16.840.1.101.3.4.3.18': ('mldsa', 'ML-DSA-65'),
+        '2.16.840.1.101.3.4.3.19': ('mldsa', 'ML-DSA-87'),
+    }
+    config_dn = DN(('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    container_dn = DN(('cn', 'certificates'), config_dn)
+
+    dn = DN(('cn', certs.get_ca_nickname(api.env.realm)),
+            container_dn)
+    data = api.Backend.ldap2.get_entry(dn)
+    cacert = data['cACertificate'][0]
+    oid = cacert.signature_algorithm_oid.dotted_string
+
+    (type, algorithm) = algs[oid]
+    if type == "rsa":
+        strength = cacert.public_key().key_size
+    elif type == "mldsa":
+        strength = algorithm.replace('ML-DSA-', '')
+
+    return (type, strength, algorithm)
+
 class InconsistentCRLGenConfigException(Exception):
     pass
 
@@ -600,24 +631,10 @@ class CAInstance(DogtagInstance):
             ipa_signing_algorithm = ipa_ca_key_algorithm
         else:
             # Replica install. Determine the CA settings from the CA
-            # certificate
-            algs = {
-                '1.2.840.113549.1.1.11': ['rsa', 'SHA256withRSA'],
-                '1.2.840.113549.1.1.12': ['rsa', 'SHA384withRSA'],
-                '1.2.840.113549.1.1.13': ['rsa', 'SHA512withRSA'],
-                '2.16.840.1.101.3.4.3.17': ['mldsa', 'ML-DSA-44'],
-                '2.16.840.1.101.3.4.3.18': ['mldsa', 'ML-DSA-65'],
-                '2.16.840.1.101.3.4.3.19': ['mldsa', 'ML-DSA-87'],
-            }
-            config_dn = DN(('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-            container_dn = DN(('cn', 'certificates'), config_dn)
-
-            dn = DN(('cn', certs.get_ca_nickname(api.env.realm)),
-                    container_dn)
-            data = api.Backend.ldap2.get_entry(dn)
-            cacert = data['cACertificate'][0]
-            oid = cacert.signature_algorithm_oid.dotted_string
-            (self.ca_key_type, ipa_ca_key_algorithm) = algs[oid]
+            # certificate.
+            (self.ca_key_type, ipa_ca_key_size, ipa_ca_key_algorithm) = (
+                get_ca_key_algorithm(api)
+            )
             ipa_signing_algorithm = ipa_ca_key_algorithm
             ipa_key_size = None
             ipa_key_algorithm = None
@@ -873,7 +890,9 @@ class CAInstance(DogtagInstance):
             'caSignedLogCert',
             'caOCSPCert',
             'caSubsystemCert',
-            'caCACert'
+            'caCACert',
+            'caInternalAuthTransportCert',  # KRA
+            'caInternalAuthDRMstorageCert',  # KRA
         )
         for profile_id in profiles:
             logger.debug("Replacing profile %s", profile_id)
