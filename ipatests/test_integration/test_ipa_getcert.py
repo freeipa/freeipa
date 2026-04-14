@@ -580,3 +580,868 @@ class TestGetcertRequest(GetcertTestMixin, IntegrationTest):
             raiseonerr=False
         )
         self._assert_positive(cmd)
+
+    # -- FILE key-file negative tests 1027-1035 --
+
+    def test_request_file_invalid_keyfile_basic(self):
+        """request -k f with invalid FileKeyFile"""
+        test_id = "req_025_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id, [], key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pin_renewal(self):
+        """request -k f P I R with invalid FileKeyFile"""
+        test_id = "req_026_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal="-R"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pin_norenewal(self):
+        """request -k f P I r with invalid FileKeyFile"""
+        test_id = "req_027_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal="-r"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pin_keysize_renewal(self):
+        """request -k f P g R with invalid FileKeyFile"""
+        test_id = "req_028_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 use_keysize=True,
+                                                 renewal="-R"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pin_keysize_norenewal(self):
+        """request -k f P g r with invalid FileKeyFile"""
+        test_id = "req_029_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 use_keysize=True,
+                                                 renewal="-r"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pinfile_renewal(self):
+        """request -k f p I R with invalid FileKeyFile"""
+        test_id = "req_030_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal="-R"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pinfile_norenewal(self):
+        """request -k f p I r with invalid FileKeyFile"""
+        test_id = "req_031_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal="-r"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pinfile_keysize_renewal(self):
+        """request -k f p g R with invalid FileKeyFile"""
+        test_id = "req_032_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 use_keysize=True,
+                                                 renewal="-R"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_request_file_invalid_keyfile_pinfile_keysize_norenewal(self):
+        """request -k f p g r with invalid FileKeyFile"""
+        test_id = "req_033_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_key=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 use_keysize=True,
+                                                 renewal="-r"),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    # -- FILE cert-file negative tests 1036-1044 --
+
+    def test_request_file_invalid_certfile_basic(self):
+        """request -k f with invalid FileCertFile"""
+        test_id = "req_034_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id, [], cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pin_renewal(self):
+        """request -k f P I R with invalid FileCertFile"""
+        test_id = "req_035_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal="-R"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pin_norenewal(self):
+        """request -k f P I r with invalid FileCertFile"""
+        test_id = "req_036_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal="-r"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pin_keysize_renewal(self):
+        """request -k f P g R with invalid FileCertFile"""
+        test_id = "req_037_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 use_keysize=True,
+                                                 renewal="-R"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pin_keysize_norenewal(self):
+        """request -k f P g r with invalid FileCertFile"""
+        test_id = "req_038_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 use_keysize=True,
+                                                 renewal="-r"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pinfile_renewal(self):
+        """request -k f p I R with invalid FileCertFile"""
+        test_id = "req_039_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal="-R"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pinfile_norenewal(self):
+        """request -k f p I r with invalid FileCertFile"""
+        test_id = "req_040_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal="-r"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pinfile_keysize_renewal(self):
+        """request -k f p g R with invalid FileCertFile"""
+        test_id = "req_041_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 use_keysize=True,
+                                                 renewal="-R"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_request_file_invalid_certfile_pinfile_keysize_norenewal(self):
+        """request -k f p g r with invalid FileCertFile"""
+        test_id = "req_042_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 use_keysize=True,
+                                                 renewal="-r"),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    # -- FILE positive 1045 --
+
+    def test_request_file_positive_basic(self):
+        """request with options k f - all positive"""
+        test_id = "req_043_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- FILE with -P (inline PIN) 1048-1061 --
+
+    def test_request_file_pin_invalid_principal_renewal(self):
+        """FILE -P CertPrincipalName neg"""
+        test_id = "req_044_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pin_invalid_eku_renewal(self):
+        """FILE -P EXTUSAGE neg"""
+        test_id = "req_045_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pin_positive_renewal(self):
+        """FILE -P all positive"""
+        test_id = "req_046_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_request_file_pin_invalid_principal_norenewal(self):
+        """FILE -P CertPrincipalName neg"""
+        test_id = "req_047_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pin_invalid_eku_norenewal(self):
+        """FILE -P EXTUSAGE neg"""
+        test_id = "req_048_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pin_positive_norenewal(self):
+        """FILE -P all positive"""
+        test_id = "req_049_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_request_file_pin_invalid_keysize_renewal(self):
+        """FILE -P CertKeySize neg"""
+        test_id = "req_050_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 use_keysize=True,
+                                                 keysize_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_KEYSIZE_VERIFY)
+
+    def test_request_file_pin_invalid_keysize_norenewal(self):
+        """FILE -P CertKeySize neg"""
+        test_id = "req_051_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 use_keysize=True,
+                                                 keysize_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_KEYSIZE_VERIFY)
+
+    def test_request_file_pin_invalid_principal_keysize_renewal(self):
+        """FILE -P CertPrincipalName neg"""
+        test_id = "req_052_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 use_keysize=True,
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pin_invalid_eku_keysize_renewal(self):
+        """FILE -P EXTUSAGE neg"""
+        test_id = "req_053_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 use_keysize=True,
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pin_positive_keysize_renewal(self):
+        """FILE -P all positive"""
+        test_id = "req_054_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 use_keysize=True)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_request_file_pin_invalid_principal_keysize_norenewal(self):
+        """FILE -P CertPrincipalName neg"""
+        test_id = "req_055_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 use_keysize=True,
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pin_invalid_eku_keysize_norenewal(self):
+        """FILE -P EXTUSAGE neg"""
+        test_id = "req_056_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 use_keysize=True,
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pin_positive_keysize_norenewal(self):
+        """FILE -P all positive"""
+        test_id = "req_057_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 use_keysize=True)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- FILE PINFILE negative tests 1062-1065 --
+
+    def test_request_file_invalid_pinfile_renewal(self):
+        """request with invalid PINFILE - -p I R"""
+        test_id = "req_058_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 pinfile_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    def test_request_file_invalid_pinfile_norenewal(self):
+        """request with invalid PINFILE - -p I r"""
+        test_id = "req_059_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 pinfile_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    def test_request_file_invalid_pinfile_keysize_renewal(self):
+        """request with invalid PINFILE - -p g R"""
+        test_id = "req_060_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 pinfile_neg=True,
+                                                 use_keysize=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    def test_request_file_invalid_pinfile_keysize_norenewal(self):
+        """request with invalid PINFILE - -p g r"""
+        test_id = "req_061_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 pinfile_neg=True,
+                                                 use_keysize=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    # -- FILE with -p (PIN file) 1068-1081 --
+
+    def test_request_file_pinfile_invalid_principal_renewal(self):
+        """FILE -p CertPrincipalName neg"""
+        test_id = "req_062_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pinfile_invalid_eku_renewal(self):
+        """FILE -p EXTUSAGE neg"""
+        test_id = "req_063_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pinfile_positive_renewal(self):
+        """FILE -p all positive"""
+        test_id = "req_064_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_request_file_pinfile_invalid_principal_norenewal(self):
+        """FILE -p CertPrincipalName neg"""
+        test_id = "req_065_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pinfile_invalid_eku_norenewal(self):
+        """FILE -p EXTUSAGE neg"""
+        test_id = "req_066_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pinfile_positive_norenewal(self):
+        """FILE -p all positive"""
+        test_id = "req_067_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_request_file_pinfile_invalid_keysize_renewal(self):
+        """FILE -p CertKeySize neg"""
+        test_id = "req_068_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 use_keysize=True,
+                                                 keysize_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_KEYSIZE_VERIFY)
+
+    def test_request_file_pinfile_invalid_keysize_norenewal(self):
+        """FILE -p CertKeySize neg"""
+        test_id = "req_069_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 use_keysize=True,
+                                                 keysize_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_KEYSIZE_VERIFY)
+
+    def test_request_file_pinfile_invalid_principal_keysize_renewal(self):
+        """FILE -p CertPrincipalName neg"""
+        test_id = "req_070_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 use_keysize=True,
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pinfile_invalid_eku_keysize_renewal(self):
+        """FILE -p EXTUSAGE neg"""
+        test_id = "req_071_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 use_keysize=True,
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pinfile_positive_keysize_renewal(self):
+        """FILE -p all positive"""
+        test_id = "req_072_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 use_keysize=True)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_request_file_pinfile_invalid_principal_keysize_norenewal(self):
+        """FILE -p CertPrincipalName neg"""
+        test_id = "req_073_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 use_keysize=True,
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_request_file_pinfile_invalid_eku_keysize_norenewal(self):
+        """FILE -p EXTUSAGE neg"""
+        test_id = "req_074_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 use_keysize=True,
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_request_file_pinfile_positive_keysize_norenewal(self):
+        """FILE -p all positive"""
+        test_id = "req_075_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 use_keysize=True)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- Extended request tests --
+
+    def test_request_ext_with_correct_pin(self):
+        """request using NSS database with correct PIN"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            create_nss_db_with_pin(self.master, tmpdir)
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v', '-d', tmpdir,
+                '-n', 'certtest', '-P', 'temp123#', '-I', 'testing'
+            ])
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'pin set' in cmd.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+                 '-n', 'certtest'], raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_request_ext_with_password_file(self):
+        """request using NSS database with password file"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            create_nss_db_with_pin(self.master, tmpdir)
+            passwd_file = os.path.join(tmpdir, 'passwd.txt')
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v', '-d', tmpdir,
+                '-n', 'certtest', '-p', passwd_file,
+                '-I', 'testing'
+            ])
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'passwd.txt' in cmd.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+                 '-n', 'certtest'], raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_request_ext_empty_or_incorrect_pin(self):
+        """request using NSS db with empty or incorrect PIN"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            create_nss_db_with_pin(self.master, tmpdir)
+            self.master.run_command(
+                'ipa-getcert request -w -v'
+                ' -d %s -n certtest -I testing -P wrong'
+                % tmpdir, raiseonerr=False
+            )
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEWLY_ADDED_NEED_KEYINFO_READ_PIN' in (
+                result.stdout_text)
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+                 '-n', 'certtest'], raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_request_ext_incorrect_password_file(self):
+        """request using NSS db with incorrect password file"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            create_nss_db_with_pin(self.master, tmpdir)
+            passwd_file = os.path.join(tmpdir, 'passwd.txt')
+            self.master.run_command(
+                'echo "temp123" > %s' % passwd_file
+            )
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest', '-I', 'testing',
+                '-p', passwd_file
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEWLY_ADDED_NEED_KEYINFO_READ_PIN' in (
+                result.stdout_text)
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+                 '-n', 'certtest'], raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_request_ext_empty_request_name(self):
+        """request with empty request name should show usage"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            cmd = self.master.run_command(
+                'ipa-getcert request -d %s -n certtest -I 2>&1'
+                % tmpdir, raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'Usage: ipa-getcert request' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_request_ext_nonexistent_token(self):
+        """request with non-existent token"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-I', 'testing', '-t', 'non-existent'
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEWLY_ADDED_NEED_KEYINFO_READ_TOKEN' in (
+                result.stdout_text)
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+                 '-n', 'certtest'], raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
