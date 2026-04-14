@@ -1688,7 +1688,7 @@ class CAInstance(DogtagInstance):
                 api.env.basedn)
         entry_attrs = api.Backend.ldap2.get_entry(dn)
         version = entry_attrs.single_value.get(
-            "ipaCaRandomSerialNumberVersion", "0"
+            "ipaCaRandomSerialNumberVersion", "-"
         )
         if str(version) == str(value):
             return
