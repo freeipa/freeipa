@@ -1445,3 +1445,1140 @@ class TestGetcertRequest(GetcertTestMixin, IntegrationTest):
             )
             self.master.run_command(
                 ['rm', '-rf', tmpdir], raiseonerr=False)
+
+
+class TestGetcertStartTracking(GetcertTestMixin, IntegrationTest):
+    """Tests for ipa-getcert start-tracking command."""
+
+    num_replicas = 0
+    num_clients = 0
+    topology = 'line'
+    getcert_command = 'start-tracking'
+    id_prefix = 'TrackReq'
+
+    @classmethod
+    def install(cls, mh):
+        super(TestGetcertStartTracking, cls).install(mh)
+        cls.cert_subject = get_cert_subject_base(cls.master)
+        cls.fqdn = cls.master.hostname
+        cls.realm = cls.master.domain.realm
+        cls.file_dir = create_file_dir(cls.master)
+        clean_requests(cls.master)
+
+    def _nss_cmd(self, test_id, extra_args):
+        """Build start-tracking with NSS storage."""
+        nickname = "GetcertTest-%s" % test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-d', NSSDB_POS, '-n', nickname,
+                '-t', TOKEN_POS] + extra_args
+
+    def _nss_neg_cmd(self, test_id, extra_args):
+        """Build start-tracking with invalid NSSDBDIR."""
+        nickname = "GetcertTest-%s" % test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-d', NSSDB_NEG, '-n', nickname,
+                '-t', TOKEN_POS] + extra_args
+
+    def _nss_token_neg_cmd(self, test_id, extra_args):
+        """Build start-tracking with invalid CertTokenName."""
+        nickname = "GetcertTest-%s" % test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-d', NSSDB_POS, '-n', nickname,
+                '-t', ' NoSuchToken%s' % test_id] + extra_args
+
+    def _tracking_args(self, test_id, renewal='-R', principal_neg=False,
+                       eku_neg=False):
+        """Build -I -U -K -D -E -R/-r arguments."""
+        args = ['-I', 'TrackReq_%s' % test_id]
+        if eku_neg:
+            args += ['-U', 'in.valid.ext.usage.%s' % test_id]
+        else:
+            args += ['-U', EKU_POS]
+        if principal_neg:
+            args += ['-K', 'NoSuchPrincipal%s' % test_id]
+        else:
+            args += ['-K', '%s/%s@%s'
+                     % (test_id, self.fqdn, self.realm)]
+        args += ['-D', self.fqdn, '-E', EMAIL_POS]
+        args.append(renewal)
+        return args
+
+    def _req_nick_cmd(self, test_id, extra_args, neg=False):
+        """Build start-tracking with -i (request identifier)."""
+        if neg:
+            nick = "ReqDoesNotExist_%s" % test_id
+        else:
+            nick = test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-i', nick] + extra_args
+
+    def test_start_tracking_nss_invalid_nssdbdir_basic(self):
+        """start-tracking with invalid NSSDBDIR"""
+        test_id = "st_001_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_neg_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, NSSDB_ERR_MSGS)
+
+    def test_start_tracking_nss_invalid_nssdbdir_renewal(self):
+        """start-tracking with invalid NSSDBDIR"""
+        test_id = "st_002_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_neg_cmd(test_id,
+                              self._tracking_args(test_id, renewal="-R")),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, NSSDB_ERR_MSGS)
+
+    def test_start_tracking_nss_invalid_nssdbdir_norenewal(self):
+        """start-tracking with invalid NSSDBDIR"""
+        test_id = "st_003_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_neg_cmd(test_id,
+                              self._tracking_args(test_id, renewal="-r")),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, NSSDB_ERR_MSGS)
+
+    def test_start_tracking_nss_invalid_token_basic(self):
+        """start-tracking with invalid CertTokenName"""
+        test_id = "st_004_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_token_neg_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found that matched arguments',
+            'must be a directory', 'is not a directory',
+        ])
+
+    def test_start_tracking_nss_invalid_token_renewal(self):
+        """start-tracking with invalid CertTokenName"""
+        test_id = "st_005_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_token_neg_cmd(test_id,
+                                    self._tracking_args(test_id,
+                                                        renewal="-R")),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found that matched arguments',
+            'must be a directory', 'is not a directory',
+        ])
+
+    def test_start_tracking_nss_invalid_token_norenewal(self):
+        """start-tracking with invalid CertTokenName"""
+        test_id = "st_006_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_token_neg_cmd(test_id,
+                                    self._tracking_args(test_id,
+                                                        renewal="-r")),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found that matched arguments',
+            'must be a directory', 'is not a directory',
+        ])
+
+    def test_start_tracking_nss_positive_basic(self):
+        """start-tracking with options d n t - all positive"""
+        test_id = "st_007_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_nss_invalid_eku_renewal(self):
+        """start-tracking with invalid EXTUSAGE"""
+        test_id = "st_008_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id,
+                          self._tracking_args(test_id, renewal="-R",
+                                              eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_nss_invalid_eku_norenewal(self):
+        """start-tracking with invalid EXTUSAGE"""
+        test_id = "st_009_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id,
+                          self._tracking_args(test_id, renewal="-r",
+                                              eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_nss_invalid_principal_renewal(self):
+        """start-tracking with invalid CertPrincipalName"""
+        test_id = "st_010_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id,
+                          self._tracking_args(test_id, renewal="-R",
+                                              principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PRINCIPAL_VERIFY)
+
+    def test_start_tracking_nss_invalid_principal_norenewal(self):
+        """start-tracking with invalid CertPrincipalName"""
+        test_id = "st_011_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id,
+                          self._tracking_args(test_id, renewal="-r",
+                                              principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PRINCIPAL_VERIFY)
+
+    def test_start_tracking_nss_positive_full_renewal(self):
+        """start-tracking all positive"""
+        test_id = "st_012_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id,
+                          self._tracking_args(test_id, renewal="-R")),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_nss_positive_full_norenewal(self):
+        """start-tracking all positive"""
+        test_id = "st_013_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id,
+                          self._tracking_args(test_id, renewal="-r")),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- Request identifier (-i) tests 1016-1027 --
+
+    def test_start_tracking_id_invalid_nickname_basic(self):
+        """start-tracking -i with invalid request nickname"""
+        test_id = "st_014_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id, [], neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found', 'not allowed',
+            'None of database directory',
+        ])
+
+    def test_start_tracking_id_invalid_nickname_renewal(self):
+        """start-tracking -i with invalid request nickname"""
+        test_id = "st_015_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-R"),
+                               neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found', 'not allowed',
+            'None of database directory',
+        ])
+
+    def test_start_tracking_id_invalid_nickname_norenewal(self):
+        """start-tracking -i with invalid request nickname"""
+        test_id = "st_016_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-r"),
+                               neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found', 'not allowed',
+            'None of database directory',
+        ])
+
+    def test_start_tracking_id_positive_basic(self):
+        """start-tracking -i all positive"""
+        test_id = "st_017_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_id_invalid_eku_renewal(self):
+        """start-tracking -i with invalid EXTUSAGE"""
+        test_id = "st_018_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-R",
+                                                   eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_id_invalid_eku_norenewal(self):
+        """start-tracking -i with invalid EXTUSAGE"""
+        test_id = "st_019_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-r",
+                                                   eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_id_invalid_principal_renewal(self):
+        """start-tracking -i with invalid CertPrincipalName"""
+        test_id = "st_020_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-R",
+                                                   principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PRINCIPAL_VERIFY)
+
+    def test_start_tracking_id_invalid_principal_norenewal(self):
+        """start-tracking -i with invalid CertPrincipalName"""
+        test_id = "st_021_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-r",
+                                                   principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PRINCIPAL_VERIFY)
+
+    def test_start_tracking_id_positive_full_renewal(self):
+        """start-tracking -i all positive"""
+        test_id = "st_022_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-R")),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_id_positive_full_norenewal(self):
+        """start-tracking -i all positive"""
+        test_id = "st_023_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id,
+                               self._tracking_args(test_id, renewal="-r")),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- FILE key-file negative 1028-1036 --
+
+    def test_start_tracking_file_invalid_keyfile_basic(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_024_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_renewal_a(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_025_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_norenewal(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_026_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-r'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_pin_basic(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_027_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_pin_renewal(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_028_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_pin_norenewal(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_029_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_pinfile_basic(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_030_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_pinfile_renewal(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_031_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_keyfile_pinfile_norenewal(self):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_032_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r'),
+                           key_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    # -- FILE cert-file negative 1037-1045 --
+
+    def test_start_tracking_file_invalid_certfile_basic(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_033_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_renewal_a(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_034_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_norenewal(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_035_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-r'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_pin_basic(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_036_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_pin_renewal(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_037_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_pin_norenewal(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_038_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_pinfile_basic(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_039_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_pinfile_renewal(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_040_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_certfile_pinfile_norenewal(self):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_041_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r'),
+                           cert_neg=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    # -- FILE positive + full args 1046-1075 --
+
+    def test_start_tracking_file_positive_basic(self):
+        """start-tracking -k -f all positive"""
+        test_id = "st_042_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_invalid_eku_renewal(self):
+        """start-tracking FILE with invalid EXTUSAGE"""
+        test_id = "st_043_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_eku_norenewal(self):
+        """start-tracking FILE with invalid EXTUSAGE"""
+        test_id = "st_044_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-r',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_file_invalid_principal_renewal(self):
+        """start-tracking FILE with invalid CertPrincipalName"""
+        test_id = "st_045_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_start_tracking_file_invalid_principal_norenewal(self):
+        """start-tracking FILE with invalid CertPrincipalName"""
+        test_id = "st_046_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-r',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_start_tracking_file_positive_full_renewal(self):
+        """start-tracking FILE all positive"""
+        test_id = "st_047_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_positive_full_norenewal(self):
+        """start-tracking FILE all positive"""
+        test_id = "st_048_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id, renewal='-r')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_pin_positive_basic(self):
+        """start-tracking FILE -P all positive"""
+        test_id = "st_049_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_pin_invalid_eku_renewal(self):
+        """start-tracking FILE -P with invalid EXTUSAGE"""
+        test_id = "st_050_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_file_pin_invalid_eku_norenewal(self):
+        """start-tracking FILE -P with invalid EXTUSAGE"""
+        test_id = "st_051_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_file_pin_invalid_principal_renewal(self):
+        """start-tracking FILE -P with invalid CertPrincipalName"""
+        test_id = "st_052_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_start_tracking_file_pin_invalid_principal_norenewal(self):
+        """start-tracking FILE -P with invalid CertPrincipalName"""
+        test_id = "st_053_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_start_tracking_file_pin_positive_renewal(self):
+        """start-tracking FILE -P all positive"""
+        test_id = "st_054_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_pin_positive_norenewal(self):
+        """start-tracking FILE -P all positive"""
+        test_id = "st_055_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='inline',
+                                                 renewal='-r')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_invalid_pinfile_renewal_a(self):
+        """start-tracking with invalid PINFILE"""
+        test_id = "st_056_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 pinfile_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    def test_start_tracking_file_invalid_pinfile_renewal_b(self):
+        """start-tracking with invalid PINFILE"""
+        test_id = "st_057_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 pinfile_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    def test_start_tracking_file_invalid_pinfile_norenewal(self):
+        """start-tracking with invalid PINFILE"""
+        test_id = "st_058_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 pinfile_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    def test_start_tracking_file_pinfile_positive_basic(self):
+        """start-tracking -k -f -p all positive"""
+        test_id = "st_059_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_pinfile_invalid_eku_renewal(self):
+        """start-tracking -p with invalid EXTUSAGE"""
+        test_id = "st_060_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_file_pinfile_invalid_eku_norenewal(self):
+        """start-tracking -p with invalid EXTUSAGE"""
+        test_id = "st_061_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 eku_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    def test_start_tracking_file_pinfile_invalid_principal_renewal(self):
+        """start-tracking -p with invalid CertPrincipalName"""
+        test_id = "st_062_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_start_tracking_file_pinfile_invalid_principal_norenewal(self):
+        """start-tracking -p with invalid CertPrincipalName"""
+        test_id = "st_063_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r',
+                                                 principal_neg=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    def test_start_tracking_file_pinfile_positive_renewal(self):
+        """start-tracking -p all positive"""
+        test_id = "st_064_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-R')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_start_tracking_file_pinfile_positive_norenewal(self):
+        """start-tracking -p all positive"""
+        test_id = "st_065_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_pin=True)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id,
+                           self._file_extra_args(test_id,
+                                                 pin_mode='file',
+                                                 renewal='-r')),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- Extended start-tracking tests --
+
+    def _setup_tracking_with_password(self, tmpdir,
+                                      pin="temp123#"):
+        """Request cert, set NSS DB password, resubmit with
+        wrong PIN to get into NEED_CSR_GEN_PIN state.
+        """
+        setup_nss_cert_with_password(self.master, tmpdir, pin)
+        self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', tmpdir, '-n', 'certtest', '-P', 'temp123'
+        ])
+
+    def test_start_tracking_ext_correct_pin(self):
+        """start-tracking with correct PIN"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-P', 'temp123#'
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'pin set' in result.stdout_text
+            assert 'track: yes' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_incorrect_pin(self):
+        """start-tracking with incorrect PIN"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-P', 'temp123'
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_correct_password_file(self):
+        """start-tracking with correct password file"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            passwd_file = os.path.join(tmpdir, 'passwd.txt')
+            self.master.run_command(
+                'echo "temp123#" > %s' % passwd_file
+            )
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-p', passwd_file
+            ])
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_wrong_pin_in_file(self):
+        """start-tracking with wrong PIN in password file"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            passwd_file = os.path.join(tmpdir, 'passwd.txt')
+            self.master.run_command(
+                'echo "temp123#@" > %s' % passwd_file
+            )
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-p', passwd_file
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_incorrect_pin_file(self):
+        """start-tracking with non-existent PIN file"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-p', os.path.join(
+                    tmpdir, 'non-existentfile.txt')
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_correct_pin_by_id(self):
+        """start-tracking with correct PIN using request id"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-i', 'testing', '-P', 'temp123#'
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'pin set' in result.stdout_text
+            assert 'track: yes' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_incorrect_pin_by_id(self):
+        """start-tracking with incorrect PIN using request id"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-i', 'testing', '-P', 'temp123'
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_correct_pwfile_by_id(self):
+        """start-tracking with correct password file by id"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            passwd_file = os.path.join(tmpdir, 'passwd.txt')
+            self.master.run_command(
+                'echo "temp123#" > %s' % passwd_file
+            )
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-i', 'testing', '-p', passwd_file
+            ])
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_bad_pin_file_by_id(self):
+        """start-tracking with non-existent PIN file by id"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-i', 'testing',
+                '-p', os.path.join(
+                    tmpdir, 'non-existentfile.txt')
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def test_start_tracking_ext_wrong_pin_file_by_id(self):
+        """start-tracking with wrong PIN in file by id"""
+        tmpdir = create_file_dir(self.master)
+        try:
+            self._setup_tracking_with_password(tmpdir)
+            passwd_file = os.path.join(tmpdir, 'passwd.txt')
+            self.master.run_command(
+                'echo "temp123" > %s' % passwd_file
+            )
+            self.master.run_command([
+                'ipa-getcert', 'start-tracking', '-w', '-v',
+                '-i', 'testing', '-p', passwd_file
+            ])
+            result = self.master.run_command(
+                ['ipa-getcert', 'list', '-i', 'testing']
+            )
+            assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-d', tmpdir, '-n', 'certtest'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir], raiseonerr=False)
