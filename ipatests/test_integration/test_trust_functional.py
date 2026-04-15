@@ -8,12 +8,29 @@ import textwrap
 from datetime import datetime, timedelta
 
 import pytest
+from packaging.version import parse as parse_version
 
+from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_trust import BaseTestTrust
+from ipatests.util import xfail_context
 
 PLUGIN_CONF = "/var/lib/sss/pubconf/krb5.include.d/localauth_plugin"
+
+
+def xfail_fedora_sssd_before_2_12(host):
+    """Return ``xfail_context`` for Fedora when SSSD is older than 2.12.0.
+
+    Several trust sudo/HBAC checks are known to fail on Fedora until SSSD
+    2.12.0+; callers wrap the affected assertions in this context manager.
+    """
+    sssd_version = tasks.get_sssd_version(host)
+    condition = (
+        osinfo.id == 'fedora'
+        and sssd_version < parse_version('2.12.0')
+    )
+    return xfail_context(condition, reason="Fix available on 2.12.0+")
 
 
 def ssh_with_password(host, login, target_host, password, expect_success=True):
@@ -391,24 +408,25 @@ class TestTrustFunctionalHbac(BaseTestTrust):
             tasks.clear_sssd_cache(self.clients[0])
             tasks.wait_for_sssd_domain_status_online(self.master)
             test_sudo = "su {user} -c 'sudo -S id'"
-            for user in [self.aduser, self.subaduser]:
-                with self.clients[0].spawn_expect(
-                        test_sudo.format(user=user)) as e:
-                    e.sendline('Secret123')
-                    e.sendline('exit')
-                    e.expect_exit(
-                        ignore_remaining_output=True, raiseonerr=False)
-                    output = e.get_last_output()
-                    assert 'uid=0(root)' in output
-            for user in [self.testuser, self.subnonposixuser1]:
-                test_sudo = "su {0} -c 'sudo -S id'".format(user)
-                result = self.clients[0].run_command(
-                    test_sudo,
-                    stdin_text='Secret123',
-                    raiseonerr=False
-                )
-                output = f"{result.stdout_text}{result.stderr_text}"
-                assert self.pam_error in output
+            with xfail_fedora_sssd_before_2_12(self.clients[0]):
+                for user in [self.aduser, self.subaduser]:
+                    with self.clients[0].spawn_expect(
+                            test_sudo.format(user=user)) as e:
+                        e.sendline('Secret123')
+                        e.sendline('exit')
+                        e.expect_exit(
+                            ignore_remaining_output=True, raiseonerr=False)
+                        output = e.get_last_output()
+                        assert 'uid=0(root)' in output
+                for user in [self.testuser, self.subnonposixuser1]:
+                    test_sudo = "su {0} -c 'sudo -S id'".format(user)
+                    result = self.clients[0].run_command(
+                        test_sudo,
+                        stdin_text='Secret123',
+                        raiseonerr=False
+                    )
+                    output = f"{result.stdout_text}{result.stderr_text}"
+                    assert self.pam_error in output
         finally:
             self._cleanup_hrule_allow_all_and_wait(hrule)
             self.master.run_command(["ipa", "sudorule-del", srule])
@@ -518,12 +536,13 @@ class TestTrustFunctionalSudo(BaseTestTrust):
                 ["ipa", "sudorule-add-user", srule, "--groups=sudogroup1"]
             )
             self.cache_reset()
-            for user in [self.aduser, self.subaduser]:
-                test_sudo = f"su {user} -c 'sudo -S id'"
-                self._run_sudo_command(
-                    self.clients[0], test_sudo, user,
-                    expected_output='uid=0(root)'
-                )
+            with xfail_fedora_sssd_before_2_12(self.clients[0]):
+                for user in [self.aduser, self.subaduser]:
+                    test_sudo = f"su {user} -c 'sudo -S id'"
+                    self._run_sudo_command(
+                        self.clients[0], test_sudo, user,
+                        expected_output='uid=0(root)'
+                    )
         finally:
             self._cleanup_srule(srule)
 
@@ -551,17 +570,18 @@ class TestTrustFunctionalSudo(BaseTestTrust):
             test_sudo = "su {0} -c 'sudo -S -u {1} id'".format(
                 self.aduser, self.aduser2
             )
-            self._run_sudo_command(self.clients[0], test_sudo, self.aduser,
-                                   expected_output=self.aduser2
-                                   )
+            with xfail_fedora_sssd_before_2_12(self.clients[0]):
+                self._run_sudo_command(self.clients[0], test_sudo, self.aduser,
+                                       expected_output=self.aduser2
+                                       )
 
-            test_sudo = "su {0} -c 'sudo -S -u {1} id'".format(
-                self.subaduser, self.subaduser2
-            )
-            self._run_sudo_command(
-                self.clients[0], test_sudo, self.subaduser,
-                expected_output=self.subaduser2
-            )
+                test_sudo = "su {0} -c 'sudo -S -u {1} id'".format(
+                    self.subaduser, self.subaduser2
+                )
+                self._run_sudo_command(
+                    self.clients[0], test_sudo, self.subaduser,
+                    expected_output=self.subaduser2
+                )
         finally:
             self._cleanup_srule(srule)
 
@@ -627,27 +647,28 @@ class TestTrustFunctionalSudo(BaseTestTrust):
                 ["ipa", "sudorule-add-user", srule, "--groups=sudogroup1"]
             )
             self.cache_reset()
-            for aduser in [self.aduser, self.subaduser]:
-                # First check that user can sudo as root
-                sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
-                self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
-                                       expected_output='uid=0(root)')
+            with xfail_fedora_sssd_before_2_12(self.clients[0]):
+                for aduser in [self.aduser, self.subaduser]:
+                    # First check that user can sudo as root
+                    sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
+                    self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
+                                           expected_output='uid=0(root)')
 
-                # disable sudorule
-                self.master.run_command(["ipa", "sudorule-disable", srule])
-                self.cache_reset()
-                # now make sure user cannot sudo as root
-                sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
-                self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
-                                       expected_output="is not allowed to",
-                                       raiseonerr=False)
+                    # disable sudorule
+                    self.master.run_command(["ipa", "sudorule-disable", srule])
+                    self.cache_reset()
+                    # now make sure user cannot sudo as root
+                    sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
+                    self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
+                                           expected_output="is not allowed to",
+                                           raiseonerr=False)
 
-                # now reenable rule
-                self.master.run_command(["ipa", "sudorule-enable", srule])
-                self.cache_reset()
-                sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
-                self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
-                                       expected_output='uid=0(root)')
+                    # now reenable rule
+                    self.master.run_command(["ipa", "sudorule-enable", srule])
+                    self.cache_reset()
+                    sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
+                    self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
+                                           expected_output='uid=0(root)')
         finally:
             self._cleanup_srule(srule)
 
@@ -681,15 +702,16 @@ class TestTrustFunctionalSudo(BaseTestTrust):
                  '--sudocmds', '/usr/bin/whoami']
             )
             self.cache_reset()
-            for aduser in [self.aduser, self.subaduser]:
-                sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
-                self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
-                                       expected_output="is not allowed to",
-                                       raiseonerr=False)
-            for aduser in [self.aduser, self.subaduser]:
-                sudo_cmd = f"su - {aduser} -c 'sudo -S whoami'"
-                self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
-                                       expected_output='root')
+            with xfail_fedora_sssd_before_2_12(self.clients[0]):
+                for aduser in [self.aduser, self.subaduser]:
+                    sudo_cmd = f"su - {aduser} -c 'sudo -S id'"
+                    self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
+                                           expected_output="is not allowed to",
+                                           raiseonerr=False)
+                for aduser in [self.aduser, self.subaduser]:
+                    sudo_cmd = f"su - {aduser} -c 'sudo -S whoami'"
+                    self._run_sudo_command(self.clients[0], sudo_cmd, aduser,
+                                           expected_output='root')
         finally:
             self._cleanup_srule(srule)
             self.master.run_command(['ipa', 'sudocmd-del', '/usr/bin/id'])
