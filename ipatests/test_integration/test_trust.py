@@ -69,6 +69,10 @@ class BaseTestTrust(IntegrationTest):
             cls.subaduser = f"subdomaintestuser@{cls.ad_subdomain}"
             cls.subaduser2 = f"subdomaindisabledadu@{cls.ad_subdomain}"
             cls.ad_sub_group = f"subdomaintestgroup@{cls.ad_subdomain}"
+            cls.subdomaintestuser2 = f"subdomaintestuser2@{cls.ad_subdomain}"
+            cls.subnonposixuser1 = f"subnonposixuser1@{cls.ad_subdomain}"
+            cls.subnonposixuser2 = f"subnonposixuser2@{cls.ad_subdomain}"
+            cls.subexpiredaduser = f"subexpiredaduser@{cls.ad_subdomain}"
 
         if cls.num_ad_treedomains > 0:
             cls.tree_ad = cls.ad_treedomains[0]
@@ -80,6 +84,14 @@ class BaseTestTrust(IntegrationTest):
         cls.srv_gc_record_value = '0 100 389 {}.'.format(cls.master.hostname)
         cls.aduser = f"nonposixuser@{cls.ad_domain}"
         cls.aduser2 = f"nonposixuser1@{cls.ad_domain}"
+        cls.testuser = f"testuser@{cls.ad_domain}"
+        cls.testuser1 = f"testuser1@{cls.ad_domain}"
+        cls.testuser2 = f"testuser2@{cls.ad_domain}"
+        cls.upnuser = f"upnuser@{cls.ad_domain}"
+        cls.upnuser_password = "Secret123456"
+        cls.mytestuser = f"mytestuser@{cls.ad_domain}"
+        cls.disabledaduser = f"disabledaduser@{cls.ad_domain}"
+        cls.expiredaduser = f"expiredaduser@{cls.ad_domain}"
         cls.ad_group = f"testgroup@{cls.ad_domain}"
 
     @classmethod
