@@ -420,3 +420,94 @@ class TestDSMigrationConfig(IntegrationTest):
                     ["ipa", "group-del", group],
                     raiseonerr=False,
                 )
+
+    def kerberos_keys_available(self, uid):
+        """Return True if Kerberos keys are available for *uid*."""
+        result = self.master.run_command(
+            ["ipa", "user-show", uid],
+        )
+        return "Kerberos keys available: True" in result.stdout_text
+
+    def migrate_bind(self, username, password):
+        """LDAP simple bind as *username* to trigger key generation."""
+        base_dn = self.master.domain.basedn
+        bind_dn = "uid={},cn=users,cn=accounts,{}".format(
+            username, base_dn
+        )
+        self.master.run_command(
+            [
+                "ldapwhoami", "-x",
+                "-H", "ldap://localhost",
+                "-D", bind_dn,
+                "-w", password,
+            ],
+        )
+
+    def test_hashedpwd_migration(self):
+        """
+        Migrate users whose passwords are stored as SSHA hashes in
+        a remote 389-ds, trigger Kerberos key generation via an LDAP
+        simple bind, then verify kinit succeeds.
+        The ipa_pwd_extop plugin generates Kerberos keys on any
+        successful simple bind when migration mode is enabled.
+        """
+        user1 = "puser1"
+        user2 = "puser2"
+        user1pwd = "fo0m4nchU"
+        user2pwd = "Secret123"
+
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        ldif_path = os.path.join(
+            test_dir, "data", "ds_migration", "instance_hashedpwd.ldif"
+        )
+        with open(ldif_path) as f:
+            ldif_content = f.read()
+        remote_ldif = "/tmp/instance_hashedpwd.ldif"
+        self.clients[0].put_file_contents(remote_ldif, ldif_content)
+        self.clients[0].run_command(
+            [
+                "/usr/bin/ldapmodify",
+                "-a", "-x",
+                "-H", "ldap://localhost:{}".format(DS_PORT),
+                "-D", "cn=Directory Manager",
+                "-w", self.master.config.admin_password,
+                "-f", remote_ldif,
+            ]
+        )
+
+        tasks.kinit_admin(self.master)
+        pwd_admin = self.master.config.admin_password
+        user_container = "ou=People,{}".format(DS_BASEDN)
+        group_container = "ou=groups,{}".format(DS_BASEDN)
+
+        try:
+            self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container",
+                    user_container,
+                    "--group-container",
+                    group_container,
+                    self.ldap_uri,
+                ],
+                stdin_text=pwd_admin,
+            )
+
+            assert not self.kerberos_keys_available(user1)
+            assert not self.kerberos_keys_available(user2)
+
+            self.migrate_bind(user1, user1pwd)
+            assert self.kerberos_keys_available(user1)
+            tasks.kinit_as_user(self.master, user1, user1pwd)
+
+            self.migrate_bind(user2, user2pwd)
+            assert self.kerberos_keys_available(user2)
+            tasks.kinit_as_user(self.master, user2, user2pwd)
+        finally:
+            tasks.kinit_admin(self.master)
+            for user in (user1, user2):
+                self.master.run_command(
+                    ["ipa", "user-del", user],
+                    raiseonerr=False,
+                )
