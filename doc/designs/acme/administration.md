@@ -8,8 +8,22 @@ server configuration — are documented in the respective model design pages.
 
 ## EAB Account Management
 
-An External Account Binding (EAB) account maps an ACME client to an IPA
-principal (host or service) and to a specific ACME-dedicated sub-CA.
+EAB is the ACME mechanism (RFC 8555 §7.3.4) by which a CA pre-registers a
+client before it can request certificates.  The client proves its identity by
+signing its ACME account request with a shared HMAC secret that only the CA
+and the client know.  This prevents anonymous clients from obtaining
+certificates from a CA that has no prior knowledge of them.
+
+An EAB account in IPA maps an ACME client to an IPA principal (host or
+service) and to a specific ACME-dedicated sub-CA.  Each account has two
+components the ACME client must supply at registration time:
+
+- **Key ID (KID)** — a unique opaque identifier for the account, assigned by
+  IPA and provided to the ACME server in the `kid` field of the EAB token.
+- **HMAC key** — a cryptographically random shared secret used to sign the EAB
+  token.  It authenticates the client to the CA and is never stored in
+  retrievable form after initial display.
+
 Accounts are managed with `ipa ca-acme-*` commands, where the sub-CA name
 (`ca-name`) is the primary object and the KID is the per-account identifier.
 A principal that uses two different ACME servers (backed by different sub-CAs)
@@ -29,9 +43,10 @@ ipa ca-acme-add acme-corp-us --host server1.ipa.example.com
 ipa ca-acme-add acme-corp-us --service HTTP/app.ipa.example.com
 ```
 
-The HMAC key is displayed once and cannot be retrieved again.  Copy it
-immediately and store it in a secrets manager or pass it directly to the ACME
-client configuration.
+The HMAC key is the shared secret the ACME client uses to sign its EAB token.
+It is displayed once and cannot be retrieved again — IPA stores only a hash.
+Copy it immediately and store it in a secrets manager or pass it directly to
+the ACME client configuration.
 
 ### Configuring the ACME Client
 
@@ -79,7 +94,8 @@ ipa ca-acme-add acme-corp-us --host server1.ipa.example.com
 # Show a single account by KID (status; never shows HMAC key)
 ipa ca-acme-show acme-corp-us a3f8e1c2d9b74650
 
-# List all EAB accounts for a given sub-CA
+# List all EAB accounts for a given sub-CA — returns the KID, principal,
+# and enabled status of every account; HMAC keys are never included
 ipa ca-acme-find acme-corp-us
 
 # List all ACME-dedicated sub-CAs
