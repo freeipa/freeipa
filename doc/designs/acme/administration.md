@@ -226,6 +226,66 @@ versions that do not include this feature.
 ACME-dedicated sub-CAs and EAB accounts must be created explicitly by an
 administrator after upgrading; they are not provisioned automatically.
 
+## Migration impact
+
+### IPA-to-IPA migration (`ipa-migrate`)
+
+`ipa-migrate` is the tool for moving data from one IPA deployment to another
+(e.g., upgrading to new hardware or a new OS major version).  It migrates
+objects by iterating over subtrees listed in `DB_OBJECTS`
+(`ipaserver/install/ipa_migrate_constants.py`).
+
+`cn=acmeaccounts,cn=ca,$SUFFIX` is a new subtree that `ipa-migrate` does not
+yet know about.  Without an explicit entry in `DB_OBJECTS`, EAB accounts will
+be silently omitted from the migration.  The `ipa-migrate` tool must be
+extended:
+
+1. **Add an `acmeaccounts` entry to `DB_OBJECTS`** — analogous to the existing
+   `caacls` entry — that names the `ipaACMEAccount` objectClass and sets the
+   subtree to `,cn=acmeaccounts,cn=ca,$SUFFIX`.
+
+2. **Handle `ipaACMEHMACKey` as a security-sensitive attribute** — the HMAC
+   secret must be migrated verbatim (not re-hashed), so the attribute must not
+   be excluded or redacted during transfer.  The target deployment must be
+   secured before migration is attempted.
+
+3. **Perform a schema check before migrating accounts** — `ipa-migrate` must
+   verify that `ipaACMEAccount` is present in the target schema before
+   attempting to write EAB accounts.  Migration is assumed to be
+   forward-looking (target is the same version or newer); if the target schema
+   is absent, `cn=acmeaccounts` must be skipped and a warning issued rather
+   than aborting the entire migration.
+
+### Standard in-place upgrade
+
+`ipa-upgrade` processes `install/updates/65-acme.update`, which:
+
+1. **Adds the LDAP schema** — the `ipaACMEAccount` objectClass and its
+   attributes (`ipaACMEAccountID`, `ipaACMEHMACKey`, `ipaACMESubCA`,
+   `ipaACMEPrincipal`, `ipaACMEEnabled`) and the `ipaACMECA` auxiliary
+   objectClass for marking sub-CAs.
+
+2. **Creates the accounts container** — `cn=acmeaccounts,cn=ca,$SUFFIX` if it
+   does not already exist.  This is a new node in the DIT.  It lives under
+   `cn=ca,$SUFFIX`, which is already replicated, so no new replication
+   agreement is required on any replica.
+
+3. **Adds the ACIs and permission entries** — the `Manage ACME Accounts`,
+   `Read ACME Account HMAC Keys`, and self-service ACIs are written to the
+   container and to `cn=permissions,cn=pbac,$SUFFIX`.
+
+4. **Does not touch existing sub-CA entries** — no `ipaACMECA` marker is
+   applied to existing sub-CAs, and existing sub-CAs cannot be converted to
+   ACME-dedicated ones.  An ACME-dedicated sub-CA must be created fresh with
+   `ipa ca-add <ca-name> --acme`.
+
+### Multi-replica deployments
+
+`cn=acmeaccounts,cn=ca,$SUFFIX` is replicated to all IPA replicas alongside
+the rest of `cn=ca,$SUFFIX`.  `ipa-upgrade` must be run on every replica; it
+is idempotent (the update file skips entries that already exist).  EAB account
+entries created after the upgrade are replicated automatically.
+
 ## Troubleshooting
 
 ### Verifying EAB Account Entries
