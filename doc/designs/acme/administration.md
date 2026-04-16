@@ -119,13 +119,25 @@ ipa ca-acme-mod acme-corp-us a3f8e1c2d9b74650 --enable
 ipa ca-acme-del acme-corp-us a3f8e1c2d9b74650
 ```
 
-When decommissioning a host, revoke any outstanding ACME-issued certificates
-before or after deleting the EAB account:
+When decommissioning a host, revoke all outstanding ACME-issued certificates
+and then delete the EAB account.  A single EAB account can have multiple valid
+certificates simultaneously (different SANs, overlapping renewals, or
+certificates obtained by different ACME clients), so a single `certbot revoke`
+is not sufficient — it only revokes what certbot locally tracks.  Use
+`ipa cert-find` to locate every valid certificate issued by the sub-CA for the
+principal and revoke each one:
 
 ```bash
+# 1. Find all valid certificates issued under this sub-CA for the host
+ipa cert-find --subject server1.ipa.example.com --ca acme-corp-us
+
+# 2. Revoke each certificate by serial number
+ipa cert-revoke <serial1>
+ipa cert-revoke <serial2>
+# ... repeat for every serial returned above
+
+# 3. Delete the EAB account so the KID cannot be re-used for new registrations
 ipa ca-acme-del acme-corp-us a3f8e1c2d9b74650
-# Revoke outstanding certs via ACME client or directly:
-certbot revoke --cert-path /etc/letsencrypt/live/server1/cert.pem
 ```
 
 ## CLI Reference
