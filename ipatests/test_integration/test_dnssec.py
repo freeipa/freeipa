@@ -473,16 +473,18 @@ class TestInstallDNSSECFirst(IntegrationTest):
         """
         INITIAL_KEY_FMT = '%s initial-key %d %d %d "%s";'
 
-        # delv reports its version on stderr
-        delv_version = self.master.run_command(
-            ["delv", "-v"]
-        ).stderr_text.rstrip().replace("delv ", "")
-        assert delv_version
+        # delv reports its version on stderr when version < 9.20, and
+        # on stdout otherwise. Parse BIND version instead, as it should match.
+        # example output: BIND 9.18.48 (Extended Support Version) <id:>
+        named_version = self.master.run_command(
+            ["named", "-v"]
+        ).stdout_text.split()[1]
+        assert named_version
 
-        delv_version_parsed = platform_tasks.parse_ipa_version(delv_version)
-        if delv_version_parsed < platform_tasks.parse_ipa_version("9.16"):
+        named_version_parsed = platform_tasks.parse_ipa_version(named_version)
+        if named_version_parsed < platform_tasks.parse_ipa_version("9.16"):
             pytest.skip(
-                f"Requires delv >= 9.16(+yaml), installed: '{delv_version}'"
+                f"Requires delv >= 9.16(+yaml), installed: '{named_version}'"
             )
 
         # extract DSKEY from root zone
@@ -541,7 +543,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "SOA",
         ]
 
-        # delv puts trace info on stderr
         for host in [self.master, self.replicas[0]]:
             result = host.run_command(args)
             yaml_data = yaml.safe_load(result.stdout_text)
