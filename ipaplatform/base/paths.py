@@ -221,6 +221,7 @@ class BasePathNamespace:
     LDAPMODIFY = "/usr/bin/ldapmodify"
     LDAPPASSWD = "/usr/bin/ldappasswd"
     MODUTIL = "/usr/bin/modutil"
+    NAMED = "/usr/bin/named"
     NET = "/usr/bin/net"
     BIN_NISDOMAINNAME = "/usr/bin/nisdomainname"
     NSUPDATE = "/usr/bin/nsupdate"
