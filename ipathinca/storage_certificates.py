@@ -18,7 +18,7 @@ from ipathinca.storage_base import BaseStorageBackend
 from ipalib import errors
 from ipapython.dn import DN
 from ipathinca import x509_utils
-from ipathinca.ca import (
+from ipathinca.certificate_types import (
     CertificateRecord,
     RevocationReason,
     CertificateRequest,
@@ -74,7 +74,7 @@ class CertificateStorage(BaseStorageBackend):
 
                 # Update existing entry
                 logger.debug(
-                    f"Updating certificate {serial} in LDAP (Dogtag schema)"
+                    "Updating certificate %s in LDAP (Dogtag schema)", serial
                 )
                 # Map ipathinca status to Dogtag status
                 dogtag_status = self._map_status_to_dogtag(
@@ -107,8 +107,8 @@ class CertificateStorage(BaseStorageBackend):
             except errors.NotFound:
                 # Create new entry using Dogtag objectClass
                 logger.debug(
-                    f"Storing new certificate {serial} in LDAP (Dogtag schema)"
-                    f" at {cert_dn}"
+                    "Storing new certificate %s in LDAP (Dogtag schema)",
+                    serial,
                 )
 
                 # Map ipathinca status to Dogtag status
@@ -151,8 +151,8 @@ class CertificateStorage(BaseStorageBackend):
                 entry = ldap.make_entry(cert_dn, **entry_attrs)
                 ldap.add_entry(entry)
                 logger.debug(
-                    f"Successfully stored certificate {serial} in LDAP (Dogtag"
-                    " schema)"
+                    "Successfully stored certificate %s in LDAP (Dogtag",
+                    serial,
                 )
 
     def _map_status_to_dogtag(self, status: str) -> str:
@@ -191,7 +191,7 @@ class CertificateStorage(BaseStorageBackend):
         """
 
         logger.debug(
-            "CAStorageBackend.get_certificate: serial_number=%s " "(type: %s)",
+            "CAStorageBackend.get_certificate: serial_number=%s (type: %s)",
             serial_number,
             type(serial_number).__name__,
         )
@@ -234,7 +234,7 @@ class CertificateStorage(BaseStorageBackend):
                     if attr_name in entry:
                         cert_data = entry[attr_name][0]
                         logger.debug(
-                            f"Found certificate in attribute: {attr_name}"
+                            "Found certificate in attribute: %s", attr_name
                         )
                         break
 
@@ -268,7 +268,7 @@ class CertificateStorage(BaseStorageBackend):
                     )[0]
                     if request_id and isinstance(request_id, bytes):
                         request_id = request_id.decode("utf-8")
-                logger.debug(f"Request ID: {request_id}")
+                logger.debug("Request ID: %s", request_id)
 
                 # Create dummy request for CertificateRecord
                 logger.debug("Creating dummy CertificateRequest...")
@@ -284,7 +284,7 @@ class CertificateStorage(BaseStorageBackend):
                 )
                 logger.debug("CertificateRecord created successfully")
                 cert_record.serial_number = int(serial)
-                logger.debug(f"Serial number set to {int(serial)}")
+                logger.debug("Serial number set to %s", int(serial))
 
                 # Extract status from LDAP
                 logger.debug("Parsing certificate status...")
@@ -297,7 +297,7 @@ class CertificateStorage(BaseStorageBackend):
                 # Map Dogtag status to ipathinca status
                 status_str = self._map_status_from_dogtag(status_str)
                 logger.debug(
-                    f"Status string (decoded and mapped): {status_str}"
+                    "Status string (decoded and mapped): %s", status_str
                 )
 
                 # Extract issued_at timestamp
@@ -326,8 +326,8 @@ class CertificateStorage(BaseStorageBackend):
 
                 # Reconstruct lifecycle state to match LDAP data
                 logger.debug(
-                    f"Reconstructing lifecycle state: status_str={status_str},"
-                    f" revocation_reason={revocation_reason}"
+                    "Reconstructing lifecycle state: status_str=%s,",
+                    status_str,
                 )
 
                 if status_str == "REVOKED":
@@ -357,14 +357,14 @@ class CertificateStorage(BaseStorageBackend):
 
             except errors.NotFound:
                 logger.debug(
-                    f"Certificate with serial {serial_number} not found in"
-                    " LDAP (Dogtag schema)"
+                    "Certificate with serial %s not found in", serial_number
                 )
                 return None
             except Exception as e:
                 logger.error(
-                    "Unexpected error retrieving certificate"
-                    f" {serial_number}: {e}",
+                    "Unexpected error retrieving certificate %s: %s",
+                    serial_number,
+                    e,
                     exc_info=True,
                 )
                 return None
@@ -426,8 +426,8 @@ class CertificateStorage(BaseStorageBackend):
                 ldap_filter = filters[0]
 
             logger.debug(
-                "Searching certificates with filter (Dogtag schema): "
-                f"{ldap_filter}"
+                "Searching certificates with filter (Dogtag schema): %s",
+                ldap_filter,
             )
 
             try:
@@ -467,8 +467,8 @@ class CertificateStorage(BaseStorageBackend):
 
                     if cert_data is None:
                         logger.warning(
-                            f"Skipping entry {entry.dn} - no certificate data "
-                            "found"
+                            "Skipping entry %s - no certificate data found",
+                            entry.dn,
                         )
                         continue
 
@@ -709,7 +709,7 @@ class CertificateStorage(BaseStorageBackend):
 
                 # Update existing entry
                 logger.debug(
-                    f"Updating request {request_id} in LDAP (Dogtag schema)"
+                    "Updating request %s in LDAP (Dogtag schema)", request_id
                 )
 
                 # Ensure extensibleObject is in objectClass (for older entries
@@ -717,8 +717,8 @@ class CertificateStorage(BaseStorageBackend):
                 existing_classes = existing_entry.get("objectClass", [])
                 if "extensibleObject" not in existing_classes:
                     logger.debug(
-                        "Adding extensibleObject to request"
-                        f" {request_id} objectClass"
+                        "Adding extensibleObject to request %s objectClass",
+                        request_id,
                     )
                     existing_entry["objectClass"] = existing_classes + [
                         "extensibleObject"
@@ -742,7 +742,8 @@ class CertificateStorage(BaseStorageBackend):
             except errors.NotFound:
                 # Create new entry using Dogtag objectClass
                 logger.debug(
-                    f"Storing new request {request_id} in LDAP (Dogtag schema)"
+                    "Storing new request %s in LDAP (Dogtag schema)",
+                    request_id,
                 )
 
                 entry_attrs = {
@@ -799,7 +800,7 @@ class CertificateStorage(BaseStorageBackend):
                     "extdata-cert-request", entry.get("requestData", [None])
                 )[0]
                 if csr_pem_attr is None:
-                    logger.warning(f"Request {request_id} has no CSR data")
+                    logger.warning("Request %s has no CSR data", request_id)
                     return None
 
                 if isinstance(csr_pem_attr, bytes):
@@ -863,9 +864,9 @@ class CertificateStorage(BaseStorageBackend):
 
             try:
                 ldap.delete_entry(request_dn)
-                logger.info(f"Deleted request {request_id}")
+                logger.info("Deleted request %s", request_id)
             except errors.NotFound:
-                logger.warning(f"Request {request_id} not found for deletion")
+                logger.warning("Request %s not found for deletion", request_id)
 
     # ========================================================================
     # Serial Number Management
@@ -899,13 +900,14 @@ class CertificateStorage(BaseStorageBackend):
                         ldap.get_entry(cert_dn, attrs_list=["dn"])
                         logger.warning(
                             "Random serial number collision detected (attempt"
-                            f" {attempt + 1}): {random_serial}."
-                            " Regenerating..."
+                            " %d): %s. Regenerating...",
+                            attempt + 1,
+                            random_serial,
                         )
                         continue
                 except errors.NotFound:
                     logger.debug(
-                        f"Allocated random serial number: {random_serial}"
+                        "Allocated random serial number: %s", random_serial
                     )
                     return random_serial
 
@@ -982,9 +984,9 @@ class CertificateStorage(BaseStorageBackend):
 
                     # Dogtag uses 'crlNumber'
                     current_crl_num = int(
-                        entry.get(
-                            "crlnumber", entry.get("crlNumber", ["0"])
-                        )[0]
+                        entry.get("crlnumber", entry.get("crlNumber", ["0"]))[
+                            0
+                        ]
                     )
                     next_crl_num = current_crl_num + 1
 
@@ -993,9 +995,7 @@ class CertificateStorage(BaseStorageBackend):
 
                     ldap.update_entry(entry)
 
-                    logger.debug(
-                        "Allocated CRL number: %d", next_crl_num
-                    )
+                    logger.debug("Allocated CRL number: %d", next_crl_num)
                     return next_crl_num
 
                 except errors.MidairCollision:

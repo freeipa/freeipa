@@ -43,22 +43,20 @@ LDAP Storage:
 """
 
 import datetime
-import enum
 import logging
-import os
 import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import ExtensionOID
 from ipalib import errors
 from ipathinca.profiles import ProfileManager
-from ipathinca.certificate_lifecycle import (
-    CertificateLifecycle,
-    CertificateState,
-    CertificateEvent,
-    InvalidStateTransition,
+from ipathinca.certificate_types import (  # noqa: F401 — re-exported
+    CertificateStatus,
+    RevocationReason,
+    CertificateRequest,
+    CertificateRecord,
+    REVOCATION_REASON_TO_FLAG,
 )
 from ipathinca.storage_factory import get_storage_backend
 from ipathinca.hsm import HSMConfig, HSMKeyBackend, HSMPrivateKeyProxy
@@ -76,444 +74,6 @@ except ImportError:
     CACHETOOLS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
-
-
-class CertificateStatus(enum.Enum):
-    """Certificate status enumeration"""
-
-    VALID = "VALID"
-    EXPIRED = "EXPIRED"
-    REVOKED = "REVOKED"
-    ON_HOLD = "ON_HOLD"
-
-
-class RevocationReason(enum.Enum):
-    """Certificate revocation reasons per RFC 5280"""
-
-    UNSPECIFIED = 0
-    KEY_COMPROMISE = 1
-    CA_COMPROMISE = 2
-    AFFILIATION_CHANGED = 3
-    SUPERSEDED = 4
-    CESSATION_OF_OPERATION = 5
-    CERTIFICATE_HOLD = 6
-    PRIVILEGE_WITHDRAWN = 9
-    AA_COMPROMISE = 10
-    REMOVE_FROM_CRL = 8  # Special case for unrevoke
-
-
-# Canonical mappings for RevocationReason — used by CertificateRecord,
-# CRL generation, and REST API.  Defined once to avoid drift.
-
-REVOCATION_REASON_TO_STRING = {
-    RevocationReason.UNSPECIFIED: "unspecified",
-    RevocationReason.KEY_COMPROMISE: "keyCompromise",
-    RevocationReason.CA_COMPROMISE: "CACompromise",
-    RevocationReason.AFFILIATION_CHANGED: "affiliationChanged",
-    RevocationReason.SUPERSEDED: "superseded",
-    RevocationReason.CESSATION_OF_OPERATION: "cessationOfOperation",
-    RevocationReason.CERTIFICATE_HOLD: "certificateHold",
-    RevocationReason.PRIVILEGE_WITHDRAWN: "privilegeWithdrawn",
-    RevocationReason.AA_COMPROMISE: "AACompromise",
-}
-
-REVOCATION_STRING_TO_REASON = {
-    v: k for k, v in REVOCATION_REASON_TO_STRING.items()
-}
-
-REVOCATION_REASON_TO_FLAG = {
-    RevocationReason.UNSPECIFIED: x509.ReasonFlags.unspecified,
-    RevocationReason.KEY_COMPROMISE: x509.ReasonFlags.key_compromise,
-    RevocationReason.CA_COMPROMISE: x509.ReasonFlags.ca_compromise,
-    RevocationReason.AFFILIATION_CHANGED: x509.ReasonFlags.affiliation_changed,
-    RevocationReason.SUPERSEDED: x509.ReasonFlags.superseded,
-    RevocationReason.CESSATION_OF_OPERATION: (
-        x509.ReasonFlags.cessation_of_operation
-    ),
-    RevocationReason.CERTIFICATE_HOLD: x509.ReasonFlags.certificate_hold,
-    RevocationReason.PRIVILEGE_WITHDRAWN: (
-        x509.ReasonFlags.privilege_withdrawn
-    ),
-    RevocationReason.AA_COMPROMISE: x509.ReasonFlags.aa_compromise,
-    RevocationReason.REMOVE_FROM_CRL: x509.ReasonFlags.remove_from_crl,
-}
-
-
-class CertificateRequest:
-    """Container for certificate request data"""
-
-    # Monotonic counter for generating Dogtag-compatible integer request IDs.
-    # Seeded from current time in microseconds plus PID-based offset to
-    # avoid collisions across restarts AND across gunicorn worker processes
-    # (which are forked from the master and would otherwise share the same
-    # seed).  Thread-safe via threading.Lock.
-    _request_counter_lock = threading.Lock()
-    _request_counter = 0
-    _request_counter_pid = 0
-
-    @classmethod
-    def _next_request_id(cls) -> str:
-        with cls._request_counter_lock:
-            pid = os.getpid()
-            if cls._request_counter_pid != pid:
-                # (Re-)seed after fork: time-in-microseconds * 65536 + PID
-                # gives each worker a unique starting range.
-                cls._request_counter = int(
-                    datetime.datetime.now(
-                        datetime.timezone.utc
-                    ).timestamp() * 1_000_000
-                ) * 65536 + pid
-                cls._request_counter_pid = pid
-            cls._request_counter += 1
-            return str(cls._request_counter)
-
-    def __init__(
-        self, csr: x509.CertificateSigningRequest, profile: str = None
-    ):
-        self.csr = csr
-        self.profile = profile or "caIPAserviceCert"
-        # Use integer-based request IDs for PKI client compatibility.
-        # IPA's dogtag.py calls int(request_id, 0), which crashes on UUIDs.
-        self.request_id = self._next_request_id()
-        # Use lowercase status to match PKI CertRequestStatus constants
-        self.status = "pending"
-        self.serial_number = None
-        self.submitted_at = datetime.datetime.now(datetime.timezone.utc)
-
-    @classmethod
-    def for_subca(cls, ca_id: str, profile: str = "caSubCACert"):
-        """Create a CertificateRequest for sub-CA certificate storage."""
-        obj = cls.__new__(cls)
-        obj.csr = None
-        obj.profile = profile
-        obj.request_id = f"subca-{ca_id}"
-        obj.status = "complete"
-        obj.serial_number = None
-        obj.submitted_at = datetime.datetime.now(datetime.timezone.utc)
-        return obj
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for storage/API"""
-        return {
-            "request_id": self.request_id,
-            "profile": self.profile,
-            "status": self.status,
-            "serial_number": self.serial_number,
-            "submitted_at": self.submitted_at.isoformat(),
-            "csr_pem": (
-                self.csr.public_bytes(serialization.Encoding.PEM).decode()
-                if self.csr
-                else None
-            ),
-        }
-
-
-class CertificateRecord:
-    """
-    Container for issued certificate data with lifecycle state management
-
-    This class now uses the CertificateLifecycle state machine for robust
-    state management and audit trailing. All state transitions are validated
-    and recorded.
-
-    Attributes:
-        certificate: The X.509 certificate
-        serial_number: Certificate serial number
-        lifecycle: State machine managing certificate lifecycle
-        issued_at: Timestamp when certificate was issued
-        request_id: Associated certificate request ID
-        profile: Certificate profile used
-    """
-
-    def __init__(
-        self,
-        certificate: x509.Certificate,
-        request: CertificateRequest,
-        principal: Optional[str] = None,
-    ):
-        """
-        Initialize certificate record
-
-        Args:
-            certificate: The X.509 certificate
-            request: The certificate request
-            principal: Who issued the certificate (for audit)
-        """
-        self.certificate = certificate
-        self.serial_number = certificate.serial_number
-        self.issued_at = datetime.datetime.now(datetime.timezone.utc)
-        self.request_id = request.request_id
-        self.profile = request.profile
-
-        # Initialize lifecycle state machine
-        self.lifecycle = CertificateLifecycle(
-            initial_state=CertificateState.PENDING,
-            serial_number=self.serial_number,
-        )
-
-        # Issue the certificate (transition PENDING -> VALID)
-        try:
-            self.lifecycle.transition(
-                CertificateEvent.ISSUE,
-                principal=principal,
-                reason=f"Certificate issued with profile {self.profile}",
-            )
-        except InvalidStateTransition as e:
-            logger.error(
-                f"Failed to issue certificate {self.serial_number}: {e}"
-            )
-            raise errors.CertificateOperationError(error=str(e))
-
-    @property
-    def status(self) -> CertificateStatus:
-        """
-        Get certificate status (for backward compatibility)
-
-        Maps new CertificateState to old CertificateStatus enum
-        """
-        state_mapping = {
-            # Shouldn't happen:
-            CertificateState.PENDING: CertificateStatus.VALID,
-            CertificateState.VALID: CertificateStatus.VALID,
-            CertificateState.EXPIRED: CertificateStatus.EXPIRED,
-            CertificateState.REVOKED: CertificateStatus.REVOKED,
-            CertificateState.ON_HOLD: CertificateStatus.ON_HOLD,
-            # Map to REVOKED:
-            CertificateState.SUPERSEDED: CertificateStatus.REVOKED,
-        }
-        return state_mapping.get(
-            self.lifecycle.current_state, CertificateStatus.VALID
-        )
-
-    @property
-    def revoked_at(self) -> Optional[datetime.datetime]:
-        """Get revocation timestamp (for backward compatibility)"""
-        revocation_info = self.lifecycle.get_revocation_info()
-        if revocation_info:
-            return revocation_info["revoked_at"]
-        return None
-
-    @property
-    def revocation_reason(self) -> Optional[RevocationReason]:
-        """Get revocation reason (for backward compatibility)"""
-        revocation_info = self.lifecycle.get_revocation_info()
-        if revocation_info and revocation_info.get("reason"):
-            reason_str = revocation_info["reason"]
-            return REVOCATION_STRING_TO_REASON.get(
-                reason_str, RevocationReason.UNSPECIFIED
-            )
-        return None
-
-    def revoke(
-        self,
-        reason: RevocationReason = RevocationReason.UNSPECIFIED,
-        principal: Optional[str] = None,
-    ):
-        """
-        Revoke the certificate
-
-        Args:
-            reason: Revocation reason (RFC 5280)
-            principal: Who is revoking the certificate (for audit)
-
-        Raises:
-            CertificateOperationError: If revocation is not allowed from
-                                       current state
-
-        Example:
-            >>> cert_record.revoke(
-            ...     reason=RevocationReason.KEY_COMPROMISE,
-            ...     principal='admin'
-            ... )
-        """
-        # Handle CERTIFICATE_HOLD specially (maps to HOLD event, not REVOKE)
-        if reason == RevocationReason.CERTIFICATE_HOLD:
-            return self.put_on_hold(principal=principal)
-
-        reason_str = REVOCATION_REASON_TO_STRING.get(reason, "unspecified")
-
-        try:
-            self.lifecycle.transition(
-                CertificateEvent.REVOKE,
-                principal=principal,
-                reason=reason_str,
-            )
-            logger.info(
-                f"Certificate {self.serial_number} revoked: {reason_str} "
-                f"by {principal}"
-            )
-        except InvalidStateTransition as e:
-            logger.error(
-                f"Cannot revoke certificate {self.serial_number}: {e}"
-            )
-            raise errors.CertificateOperationError(error=str(e))
-
-    def put_on_hold(self, principal: Optional[str] = None):
-        """
-        Put certificate on hold (temporary suspension)
-
-        Args:
-            principal: Who is putting the certificate on hold
-
-        Raises:
-            CertificateOperationError: If hold is not allowed from current
-                                       state
-
-        Example:
-            >>> cert_record.put_on_hold(principal='admin')
-        """
-        try:
-            self.lifecycle.transition(
-                CertificateEvent.HOLD,
-                principal=principal,
-                reason="certificateHold",
-            )
-            logger.info(
-                f"Certificate {self.serial_number} put on hold by {principal}"
-            )
-        except InvalidStateTransition as e:
-            logger.error(
-                f"Cannot put certificate {self.serial_number} on hold: {e}"
-            )
-            raise errors.CertificateOperationError(error=str(e))
-
-    def take_off_hold(self, principal: Optional[str] = None):
-        """
-        Remove certificate from hold (resume validity)
-
-        Args:
-            principal: Who is releasing the certificate from hold
-
-        Raises:
-            CertificateOperationError: If release is not allowed from current
-                                       state
-
-        Example:
-            >>> cert_record.take_off_hold(principal='admin')
-        """
-        try:
-            self.lifecycle.transition(
-                CertificateEvent.RELEASE,
-                principal=principal,
-                reason="Released from hold",
-            )
-            logger.info(
-                f"Certificate {self.serial_number} released from hold by "
-                f"{principal or 'system'}"
-            )
-        except InvalidStateTransition as e:
-            logger.error(
-                f"Cannot release certificate {self.serial_number} from hold: "
-                f"{e}"
-            )
-            raise errors.CertificateOperationError(error=str(e))
-
-    def mark_as_expired(self, principal: Optional[str] = None):
-        """
-        Mark certificate as expired
-
-        This is typically called automatically when not_after is reached.
-
-        Args:
-            principal: Who is marking the certificate as expired (usually
-                       'system')
-
-        Raises:
-            CertificateOperationError: If expiration is not allowed from
-                                       current state
-        """
-        try:
-            self.lifecycle.transition(
-                CertificateEvent.EXPIRE,
-                principal=principal or "system",
-                reason="Certificate validity period expired",
-            )
-            logger.info(f"Certificate {self.serial_number} marked as expired")
-        except InvalidStateTransition as e:
-            # Expired certificates might already be revoked, that's OK
-            logger.debug(
-                f"Cannot mark certificate {self.serial_number} as expired: {e}"
-            )
-
-    def supersede(
-        self,
-        principal: Optional[str] = None,
-        replacement_serial: Optional[int] = None,
-    ):
-        """
-        Mark certificate as superseded by a newer certificate
-
-        Args:
-            principal: Who is superseding the certificate
-            replacement_serial: Serial number of the replacement certificate
-
-        Raises:
-            CertificateOperationError: If superseding is not allowed from
-                                       current state
-        """
-        reason = (
-            f"Superseded by certificate {replacement_serial}"
-            if replacement_serial
-            else "Superseded"
-        )
-        try:
-            self.lifecycle.transition(
-                CertificateEvent.SUPERSEDE, principal=principal, reason=reason
-            )
-            logger.info(
-                f"Certificate {self.serial_number} superseded by "
-                f"{replacement_serial}"
-            )
-        except InvalidStateTransition as e:
-            logger.error(
-                f"Cannot supersede certificate {self.serial_number}: {e}"
-            )
-            raise errors.CertificateOperationError(error=str(e))
-
-    def get_state_history(self) -> List[Dict[str, Any]]:
-        """
-        Get complete state transition history
-
-        Returns:
-            List of state transitions with timestamps, principals, and reasons
-
-        Example:
-            >>> history = cert_record.get_state_history()
-            >>> for transition in history:
-            ...     print(f"{transition['event']}: {transition['timestamp']}")
-        """
-        return [t.to_dict() for t in self.lifecycle.get_history()]
-
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        Convert to dictionary for storage/API
-
-        Returns:
-            Dictionary with certificate data and lifecycle information
-        """
-        data = {
-            "serial_number": str(self.serial_number),
-            "status": self.status.value,
-            "issued_at": self.issued_at.isoformat(),
-            "revoked_at": (
-                self.revoked_at.isoformat() if self.revoked_at else None
-            ),
-            "revocation_reason": (
-                self.revocation_reason.value
-                if self.revocation_reason
-                else None
-            ),
-            "request_id": self.request_id,
-            "profile": self.profile,
-            "certificate_pem": self.certificate.public_bytes(
-                serialization.Encoding.PEM
-            ).decode(),
-        }
-
-        # Add lifecycle information
-        data["lifecycle"] = self.lifecycle.to_dict()
-
-        return data
 
 
 class PythonCA:
@@ -558,6 +118,7 @@ class PythonCA:
 
         # Cached CRL timing (populated on first call to _get_crl_timing)
         self._crl_timing = None
+        self._crl_timing_lock = threading.Lock()
 
         # Initialize storage backend (LDAP required for ipathinca)
         # Uses factory to select backend based on configuration
@@ -582,6 +143,7 @@ class PythonCA:
         # Use TTLCache to prevent memory leaks in long-running deployments
         # Cache up to 1000 recent requests for 1 hour (3600 seconds)
         # After TTL expiry, requests are still available from LDAP
+        self._requests_lock = threading.Lock()
         if CACHETOOLS_AVAILABLE:
             self.requests = TTLCache(maxsize=1000, ttl=3600)
             logger.debug(
@@ -606,7 +168,7 @@ class PythonCA:
             # Check if certificate file exists before trying to load it
             if not self.ca_cert_path.exists():
                 logger.debug(
-                    f"CA certificate file does not exist: {self.ca_cert_path}"
+                    "CA certificate file does not exist: %s", self.ca_cert_path
                 )
                 return False
 
@@ -622,8 +184,9 @@ class PythonCA:
                     hsm_config = self.storage.get_hsm_config(self.ca_id)
                 except Exception as e:
                     logger.debug(
-                        "Could not retrieve HSM config for "
-                        f"CA {self.ca_id}: {e}"
+                        "Could not retrieve HSM config for CA %s: %s",
+                        self.ca_id,
+                        e,
                     )
 
             if hsm_config and hsm_config.get("enabled"):
@@ -639,8 +202,9 @@ class PythonCA:
                     )
 
                 logger.debug(
-                    f"Loading CA private key from HSM token '{token_name}' "
-                    f"for CA {self.ca_id}"
+                    "Loading CA private key from HSM token '%s' for CA %s",
+                    token_name,
+                    self.ca_id,
                 )
 
                 hsm = HSMKeyBackend(HSMConfig(hsm_config))
@@ -648,14 +212,14 @@ class PythonCA:
                 self.ca_private_key = HSMPrivateKeyProxy(hsm, key_label)
 
                 logger.debug(
-                    f"Successfully loaded CA certificate and HSM private key "
-                    f"proxy for CA {self.ca_id}"
+                    "Successfully loaded CA certificate and HSM private key "
                 )
             else:
                 # NSSDB path - extract from NSSDB (Dogtag-compatible)
                 # Keys are stored in NSSDB, not as PEM files
                 logger.debug(
-                    f"Extracting CA private key from NSSDB for CA {self.ca_id}"
+                    "Extracting CA private key from NSSDB for CA %s",
+                    self.ca_id,
                 )
 
                 # Determine nickname based on CA ID
@@ -673,19 +237,21 @@ class PythonCA:
 
                     logger.debug(
                         "Successfully loaded CA certificate and extracted "
-                        f"private key from NSSDB for CA {self.ca_id}"
+                        "private key from NSSDB for CA %s",
+                        self.ca_id,
                     )
                 except RuntimeError as e:
                     logger.debug(
-                        f"CA private key not found in NSSDB: {ca_nickname}: "
-                        f"{e}"
+                        "CA private key not found in NSSDB: %s: %s",
+                        ca_nickname,
+                        e,
                     )
                     return False
 
             return True
 
         except Exception as e:
-            logger.error(f"Failed to load CA cert/key: {e}", exc_info=True)
+            logger.error("Failed to load CA cert/key: %s", e, exc_info=True)
             raise errors.CertificateOperationError(
                 error=f"Failed to load CA certificate or key: {e}"
             )
@@ -721,30 +287,37 @@ class PythonCA:
         if self._crl_timing is not None:
             return self._crl_timing
 
-        update_interval = int(
-            ipathinca.get_config_value(
-                "ca", "crl_update_interval", default="240"
+        with self._crl_timing_lock:
+            if self._crl_timing is not None:
+                return self._crl_timing
+
+            update_interval = int(
+                ipathinca.get_config_value(
+                    "ca", "crl_update_interval", default="240"
+                )
             )
-        )
-        grace_period = int(
-            ipathinca.get_config_value(
-                "ca", "crl_next_update_grace_period", default="0"
+            grace_period = int(
+                ipathinca.get_config_value(
+                    "ca", "crl_next_update_grace_period", default="0"
+                )
             )
-        )
-        if update_interval < 1:
-            logger.warning(
-                "crl_update_interval=%d is invalid, using 240 minutes",
+            if update_interval < 1:
+                logger.warning(
+                    "crl_update_interval=%d is invalid, using 240 minutes",
+                    update_interval,
+                )
+                update_interval = 240
+            if grace_period < 0:
+                logger.warning(
+                    "crl_next_update_grace_period=%d is invalid, using 0",
+                    grace_period,
+                )
+                grace_period = 0
+            self._crl_timing = (
                 update_interval,
+                update_interval + grace_period,
             )
-            update_interval = 240
-        if grace_period < 0:
-            logger.warning(
-                "crl_next_update_grace_period=%d is invalid, using 0",
-                grace_period,
-            )
-            grace_period = 0
-        self._crl_timing = (update_interval, update_interval + grace_period)
-        return self._crl_timing
+            return self._crl_timing
 
     def _get_next_serial_number(self) -> int:
         """Generate next serial number for certificate via LDAP storage
@@ -775,20 +348,23 @@ class PythonCA:
             # Create request record
             request = CertificateRequest(csr, profile)
 
-            # Store in memory cache
-            self.requests[request.request_id] = request
+            # Store in memory cache (thread-safe)
+            with self._requests_lock:
+                self.requests[request.request_id] = request
 
             # Persist to LDAP storage
             self.storage.store_request(request)
 
             logger.debug(
-                f"Certificate request {request.request_id} submitted with "
-                f"profile {profile} and persisted to LDAP"
+                "Certificate request %s submitted with profile %s and "
+                "persisted to LDAP",
+                request.request_id,
+                profile,
             )
             return request.request_id
 
         except Exception as e:
-            logger.error(f"Failed to submit certificate request: {e}")
+            logger.error("Failed to submit certificate request: %s", e)
             raise errors.CertificateOperationError(
                 error=f"Failed to submit certificate request: {e}"
             )
@@ -917,13 +493,14 @@ class PythonCA:
             self.storage.store_request(request)
 
             logger.debug(
-                f"Certificate {serial_number} issued for request {request_id},"
-                " request updated in LDAP"
+                "Certificate %s issued for request %s,",
+                serial_number,
+                request_id,
             )
             return serial_number
 
         except Exception as e:
-            logger.error(f"Failed to sign certificate: {e}")
+            logger.error("Failed to sign certificate: %s", e)
             # Use lowercase to match PKI CertRequestStatus constants
             request.status = "rejected"
 
@@ -932,8 +509,8 @@ class PythonCA:
                 self.storage.store_request(request)
             except Exception as storage_error:
                 logger.warning(
-                    "Failed to update rejected request in LDAP:"
-                    f" {storage_error}"
+                    "Failed to update rejected request in LDAP: %s",
+                    storage_error,
                 )
 
             raise errors.CertificateOperationError(
@@ -1018,7 +595,9 @@ class PythonCA:
         self, serial_number: int
     ) -> Optional[CertificateRecord]:
         """Retrieve certificate by serial number from LDAP storage"""
-        logger.debug(f"Getting certificate with serial_number={serial_number}")
+        logger.debug(
+            "Getting certificate with serial_number=%s", serial_number
+        )
         return self.storage.get_certificate(serial_number)
 
     def revoke_certificate(
@@ -1034,10 +613,10 @@ class PythonCA:
             )
 
         cert_record.revoke(reason)
-        self.storage.update_certificate(cert_record)
+        self.storage.store_certificate(cert_record)
 
         logger.debug(
-            f"Certificate {serial_number} revoked with reason {reason.name}"
+            "Certificate %s revoked with reason %s", serial_number, reason.name
         )
 
     def put_certificate_on_hold(self, serial_number: int):
@@ -1049,9 +628,9 @@ class PythonCA:
             )
 
         cert_record.put_on_hold()
-        self.storage.update_certificate(cert_record)
+        self.storage.store_certificate(cert_record)
 
-        logger.debug(f"Certificate {serial_number} put on hold")
+        logger.debug("Certificate %s put on hold", serial_number)
 
     def take_certificate_off_hold(self, serial_number: int):
         """Remove certificate from hold"""
@@ -1062,9 +641,9 @@ class PythonCA:
             )
 
         cert_record.take_off_hold()
-        self.storage.update_certificate(cert_record)
+        self.storage.store_certificate(cert_record)
 
-        logger.debug(f"Certificate {serial_number} taken off hold")
+        logger.debug("Certificate %s taken off hold", serial_number)
 
     def generate_crl(self) -> x509.CertificateRevocationList:
         """Generate Certificate Revocation List
@@ -1077,7 +656,7 @@ class PythonCA:
         self._ensure_ca_loaded()
 
         # Read CRL timing from config
-        _, next_update_minutes = self._get_crl_timing()
+        next_update_minutes = self._get_crl_timing()[1]
 
         # Get next CRL number from storage (RFC 5280 §5.2.3 requirement)
         crl_number = self.storage.get_next_crl_number()
@@ -1181,24 +760,26 @@ class PythonCA:
         Returns:
             CertificateRequest object or None if not found
         """
-        # Check cache first (fast path)
-        request = self.requests.get(request_id)
+        # Check cache first (fast path, thread-safe)
+        with self._requests_lock:
+            request = self.requests.get(request_id)
 
         if request is not None:
-            logger.debug(f"Request {request_id} found in cache")
+            logger.debug("Request %s found in cache", request_id)
             return request
 
         # Cache miss - check LDAP storage (slow path)
         logger.debug(
-            f"Request {request_id} not in cache, checking LDAP storage"
+            "Request %s not in cache, checking LDAP storage", request_id
         )
         request = self.storage.get_request(request_id)
 
         if request is not None:
-            # Restore to cache for future lookups
-            self.requests[request_id] = request
+            # Restore to cache for future lookups (thread-safe)
+            with self._requests_lock:
+                self.requests[request_id] = request
             logger.debug(
-                f"Request {request_id} restored to cache from LDAP storage"
+                "Request %s restored to cache from LDAP storage", request_id
             )
 
         return request

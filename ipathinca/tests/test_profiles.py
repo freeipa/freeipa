@@ -7,6 +7,8 @@ These tests verify that IPAthinCA can correctly parse and use Dogtag .cfg
 profile files, including constraint validation and default application.
 """
 
+import configparser
+
 import pytest
 from pathlib import Path
 from cryptography import x509
@@ -16,34 +18,67 @@ from ipathinca.profile_parser import ProfileParser
 from ipathinca.profile import Profile
 
 
+@pytest.fixture(scope="module")
+def ipathinca_config():
+    """Initialize ipathinca global config for tests that need it.
+
+    Reads /etc/ipa/ipathinca.conf if available, otherwise builds a
+    minimal config from the variable_context defaults.
+    """
+    import ipathinca
+
+    conf_path = Path("/etc/ipa/ipathinca.conf")
+    cfg = configparser.RawConfigParser()
+
+    if conf_path.exists():
+        cfg.read(str(conf_path))
+    else:
+        # Minimal config for unit-test environments
+        cfg.add_section("global")
+        cfg.set("global", "realm", "IPA.TEST")
+        cfg.set("global", "domain", "ipa.test")
+        cfg.set("global", "basedn", "dc=ipa,dc=test")
+        cfg.add_section("ca")
+
+    ipathinca.set_global_config(cfg)
+    return cfg
+
+
 @pytest.fixture
-def variable_context():
+def variable_context(ipathinca_config):
     """Provide variable substitution context"""
+    realm = ipathinca_config.get("global", "realm")
+    domain = ipathinca_config.get("global", "domain")
     return {
-        "DOMAIN": "ipa.test",
-        "IPA_CA_RECORD": "ipa-ca.ipa.test",
-        "SUBJECT_DN_O": "IPA.TEST",
-        "CRL_ISSUER": "CN=Certificate Authority,O=IPA.TEST",
-        "REALM": "IPA.TEST",
+        "DOMAIN": domain,
+        "IPA_CA_RECORD": f"ipa-ca.{domain}",
+        "SUBJECT_DN_O": realm,
+        "CRL_ISSUER": f"CN=Certificate Authority,O={realm}",
+        "REALM": realm,
     }
 
 
 @pytest.fixture
-def sample_csr():
+def sample_csr(ipathinca_config):
     """Generate sample CSR for testing"""
+    realm = ipathinca_config.get("global", "realm")
+    domain = ipathinca_config.get("global", "domain")
+
     # Generate key pair
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
     )
 
-    # Build CSR
+    # Build CSR — in X.509, the DN string representation reverses the
+    # attribute order, so O must come first in the list so that CN
+    # appears first in the string (matching pattern 'CN=[^,]+,.+')
     subject = x509.Name(
         [
+            x509.NameAttribute(x509.oid.NameOID.ORGANIZATION_NAME, realm),
             x509.NameAttribute(
-                x509.oid.NameOID.COMMON_NAME, "server.ipa.test"
+                x509.oid.NameOID.COMMON_NAME, f"server.{domain}"
             ),
-            x509.NameAttribute(x509.oid.NameOID.ORGANIZATION_NAME, "IPA.TEST"),
         ]
     )
 
@@ -251,7 +286,7 @@ def test_all_included_profiles_parse(variable_context):
         pytest.fail(msg)
 
 
-def test_profile_manager_integration(variable_context):
+def test_profile_manager_integration(variable_context, ipathinca_config):
     """Test ProfileManager integration with Dogtag profiles"""
     from ipathinca.profiles import ProfileManager
 
@@ -260,7 +295,7 @@ def test_profile_manager_integration(variable_context):
     if not profiles_dir.exists():
         pytest.skip(f"Profiles directory not found: {profiles_dir}")
 
-    manager = ProfileManager()
+    manager = ProfileManager(config=ipathinca_config)
 
     # Test has_profile
     assert manager.has_profile("caIPAserviceCert")

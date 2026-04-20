@@ -103,7 +103,7 @@ class PythonCABackend:
                 "ca", "random_serial_numbers"
             )
             logger.info(
-                f"Random serial numbers from config: {random_serial_numbers}"
+                "Random serial numbers from config: %s", random_serial_numbers
             )
 
         # Initialize CA with configuration
@@ -118,17 +118,11 @@ class PythonCABackend:
             config=self.config, storage_backend=self.ca.storage
         )
 
-        # Get CA host from configuration or API
-        ca_host = self._get_ca_host()
-        self.acme_server = ACMEServer(
-            self.ca, f"https://{ca_host}", self.config
-        )
-
-        # Initialize ACME state manager (for enable/disable)
-        self.acme_state = ACMEStateManager(self.config)
-
-        # Initialize pruning manager (for certificate/request cleanup)
-        self.pruning_manager = PruningManager(self.config, self.ca.storage)
+        # Lazy-initialized subsystems (created on first access via @property)
+        self._acme_server = None
+        self._acme_state = None
+        self._pruning_manager = None
+        self._lazy_init_lock = threading.Lock()
 
     def _validate_hostname_config(self):
         """
@@ -154,18 +148,20 @@ class PythonCABackend:
         # Compare hostnames (case-insensitive)
         if configured_host.lower() != system_fqdn.lower():
             logger.warning(
-                f"Configured hostname '{configured_host}' does not match "
-                f"system FQDN '{system_fqdn}'. This may cause certificate "
-                "validation issues, Kerberos authentication failures, and "
-                "replica communication problems."
+                "Configured hostname '%s' does not match system FQDN '%s'. "
+                "This may cause certificate validation issues, Kerberos "
+                "authentication failures, and replica communication problems.",
+                configured_host,
+                system_fqdn,
             )
             # Log warning but don't fail - admin may have valid reasons
             # (e.g., testing, migration, DNS not yet configured)
             # In production, this should match exactly
         else:
             logger.info(
-                f"Hostname validation passed: configured='{configured_host}', "
-                f"system='{system_fqdn}'"
+                "Hostname validation passed: configured='%s', system='%s'",
+                configured_host,
+                system_fqdn,
             )
 
     def _get_ca_host(self):
@@ -175,14 +171,46 @@ class PythonCABackend:
             try:
                 return self.config.get("global", "host")
             except Exception as e:
-                logger.debug(f"Failed to read host from config: {e}")
+                logger.debug("Failed to read host from config: %s", e)
 
         # Fallback to system hostname if not in config
         hostname = socket.getfqdn()
         logger.warning(
-            f"CA host not found in config, using system hostname: {hostname}"
+            "CA host not found in config, using system hostname: %s", hostname
         )
         return hostname
+
+    @property
+    def acme_server(self):
+        """Lazy-initialized ACME server (created on first access)"""
+        if self._acme_server is None:
+            with self._lazy_init_lock:
+                if self._acme_server is None:
+                    ca_host = self._get_ca_host()
+                    self._acme_server = ACMEServer(
+                        self.ca, f"https://{ca_host}", self.config
+                    )
+        return self._acme_server
+
+    @property
+    def acme_state(self):
+        """Lazy-initialized ACME state manager (created on first access)"""
+        if self._acme_state is None:
+            with self._lazy_init_lock:
+                if self._acme_state is None:
+                    self._acme_state = ACMEStateManager(self.config)
+        return self._acme_state
+
+    @property
+    def pruning_manager(self):
+        """Lazy-initialized pruning manager (created on first access)"""
+        if self._pruning_manager is None:
+            with self._lazy_init_lock:
+                if self._pruning_manager is None:
+                    self._pruning_manager = PruningManager(
+                        self.config, self.ca.storage
+                    )
+        return self._pruning_manager
 
     # Certificate Request Operations (replaces dogtag.py functions)
 
@@ -267,10 +295,10 @@ class PythonCABackend:
                 )
                 raise errors.NotFound(reason="CA is not configured")
             else:
-                logger.error(f"Certificate request failed: {e}")
+                logger.error("Certificate request failed: %s", e)
                 raise e
         except Exception as e:
-            logger.error(f"Certificate request failed: {e}", exc_info=True)
+            logger.error("Certificate request failed: %s", e, exc_info=True)
             error_msg = str(e) if str(e) else f"{type(e).__name__}: {repr(e)}"
             raise errors.CertificateOperationError(error=error_msg)
 
@@ -312,15 +340,15 @@ class PythonCABackend:
                 reason=f"Invalid serial number: {serial_number}"
             )
         cert_record = self.ca.get_certificate(serial_int)
-        logger.debug(f"CA returned cert_record: {cert_record}")
-        logger.debug(f"cert_record type: {type(cert_record)}")
+        logger.debug("CA returned cert_record: %s", cert_record)
+        logger.debug("cert_record type: %s", type(cert_record))
 
         if not cert_record:
             # Format serial number as hex to match Dogtag behavior
             serial_hex = f"0x{serial_int:x}"
             logger.error(
-                "Certificate not found, raising NotFound error for "
-                f"{serial_hex}"
+                "Certificate not found, raising NotFound error for %s",
+                serial_hex,
             )
             raise errors.NotFound(
                 reason=f"Certificate ID {serial_hex} not found"
@@ -408,7 +436,7 @@ class PythonCABackend:
             # Re-raise NotFound errors
             raise
         except Exception as e:
-            logger.error(f"Certificate revocation failed: {e}")
+            logger.error("Certificate revocation failed: %s", e)
             raise errors.CertificateOperationError(error=str(e))
 
     def take_certificate_off_hold(self, serial_number) -> dict:
@@ -435,7 +463,7 @@ class PythonCABackend:
             # Re-raise NotFound errors
             raise
         except Exception as e:
-            logger.error(f"Take certificate off hold failed: {e}")
+            logger.error("Take certificate off hold failed: %s", e)
             raise errors.CertificateOperationError(error=str(e))
 
     # Certificate Search Operations
@@ -494,7 +522,7 @@ class PythonCABackend:
             return {"entries": results, "total_entries": len(results)}
 
         except Exception as e:
-            logger.error(f"Certificate search failed: {e}")
+            logger.error("Certificate search failed: %s", e)
             raise errors.CertificateOperationError(error=str(e))
 
     # Profile Management Operations
@@ -534,7 +562,7 @@ class PythonCABackend:
             }
 
         except Exception as e:
-            logger.error(f"Profile read failed: {e}")
+            logger.error("Profile read failed: %s", e)
             raise errors.CertificateOperationError(error=str(e))
 
     def update_profile(self, profile_data) -> dict:
@@ -640,13 +668,15 @@ class PythonCABackend:
                 raise
 
             logger.debug(
-                f"CRL updated successfully: {crl_path} and {symlink_path} "
-                f"-> {timestamped_filename}"
+                "CRL updated successfully: %s and %s -> %s",
+                crl_path,
+                symlink_path,
+                timestamped_filename,
             )
             return {"status": "SUCCESS"}
 
         except Exception as e:
-            logger.error(f"CRL update failed: {e}")
+            logger.error("CRL update failed: %s", e)
             raise errors.CertificateOperationError(error=str(e))
 
     # ACME Operations
@@ -742,7 +772,7 @@ class PythonCABackend:
                 )
 
         except Exception as e:
-            logger.error(f"ACME request failed: {e}")
+            logger.error("ACME request failed: %s", e)
             raise errors.CertificateOperationError(error=str(e))
 
     def _get_account_id_from_key(self, account_key):
@@ -764,7 +794,7 @@ class PythonCABackend:
             Dict with 'certificate' and 'private_key' in PEM format
         """
         try:
-            logger.debug(f"Creating CA certificate with subject: {subject}")
+            logger.debug("Creating CA certificate with subject: %s", subject)
 
             # Generate private key (key size from config, default 3072)
             ca_key_size = int(
@@ -850,8 +880,8 @@ class PythonCABackend:
             ).decode("utf-8")
 
             logger.debug(
-                "CA certificate created successfully with serial number: "
-                f"{serial_number}"
+                "CA certificate created successfully with serial number: %s",
+                serial_number,
             )
 
             return {
@@ -861,7 +891,7 @@ class PythonCABackend:
             }
 
         except Exception as e:
-            logger.error(f"CA certificate creation failed: {e}")
+            logger.error("CA certificate creation failed: %s", e)
             raise errors.CertificateOperationError(
                 error=f"Failed to create CA certificate: {e}"
             )
@@ -875,7 +905,7 @@ class PythonCABackend:
             # Initialize ACME server (already done in __init__)
             return {"status": "SUCCESS"}
         except Exception as e:
-            logger.error(f"ACME setup failed: {e}")
+            logger.error("ACME setup failed: %s", e)
             raise errors.CertificateOperationError(
                 error=f"Failed to setup ACME: {e}"
             )

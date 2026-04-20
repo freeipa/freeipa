@@ -112,7 +112,7 @@ class SubCA:
         Returns:
             CA certificate
         """
-        logger.debug(f"Creating sub-CA: {self.ca_id}")
+        logger.debug("Creating sub-CA: %s", self.ca_id)
 
         # Generate private key
         self.ca_key = rsa.generate_private_key(
@@ -181,9 +181,9 @@ class SubCA:
             self._save_to_disk()
         except (PermissionError, OSError) as e:
             logger.warning(
-                f"Could not save sub-CA {self.ca_id} to disk "
-                f"(will use LDAP only): {e}"
+                "Could not save sub-CA %s to disk: %s", self.ca_id, e
             )
+            # TODO: Verify
             # Continue without disk storage - LDAP is primary storage
 
         # Initialize PythonCA instance
@@ -192,7 +192,7 @@ class SubCA:
         self.ca.ca_cert = self.ca_cert
         self.ca.ca_private_key = self.ca_key
 
-        logger.debug(f"Sub-CA created successfully: {self.ca_id}")
+        logger.debug("Sub-CA created successfully: %s", self.ca_id)
 
         return self.ca_cert
 
@@ -258,8 +258,9 @@ class SubCA:
                 hsm_config = storage_backend.get_hsm_config(self.ca_id)
             except Exception as e:
                 logger.debug(
-                    f"Could not retrieve HSM config for sub-CA "
-                    f"{self.ca_id}: {e}"
+                    "Could not retrieve HSM config for sub-CA %s: %s",
+                    self.ca_id,
+                    e,
                 )
                 hsm_config = None
 
@@ -267,7 +268,7 @@ class SubCA:
         if hsm_config and hsm_config.get("enabled"):
             # HSM path - use HSMPrivateKeyProxy
             logger.debug(
-                f"Loading sub-CA private key from HSM for {self.ca_id}"
+                "Loading sub-CA private key from HSM for %s", self.ca_id
             )
 
             token_name = hsm_config.get("token_name")
@@ -282,8 +283,9 @@ class SubCA:
             # Verify this is not an internal token (Dogtag validation)
             if is_internal_token(token_name):
                 logger.error(
-                    f"HSM enabled for sub-CA {self.ca_id} but token_name is "
-                    f"internal: {token_name}"
+                    "HSM enabled for sub-CA %s but token_name is internal: %s",
+                    self.ca_id,
+                    token_name,
                 )
                 raise errors.CertificateOperationError(
                     error=(
@@ -302,8 +304,10 @@ class SubCA:
             self.ca_key = HSMPrivateKeyProxy(hsm, key_label)
 
             logger.debug(
-                f"Successfully loaded sub-CA certificate and HSM private key "
-                f"(token={token_name}, label={key_label})"
+                "Successfully loaded sub-CA certificate and HSM private key "
+                "(token=%s, label=%s)",
+                token_name,
+                key_label,
             )
         else:
             # File path - load from PEM file
@@ -313,7 +317,7 @@ class SubCA:
                 )
 
             logger.debug(
-                f"Loading sub-CA private key from file for {self.ca_id}"
+                "Loading sub-CA private key from file for %s", self.ca_id
             )
 
             with open(self.key_path, "rb") as f:
@@ -394,8 +398,9 @@ class SubCAManager:
                 maxsize=cache_maxsize, ttl=cache_ttl
             )
             logger.debug(
-                "Initialized SubCA cache with "
-                f"maxsize={cache_maxsize}, ttl={cache_ttl}s"
+                "Initialized SubCA cache with maxsize=%d, ttl=%ds",
+                cache_maxsize,
+                cache_ttl,
             )
         else:
             logger.warning(
@@ -421,7 +426,8 @@ class SubCAManager:
             return get_ldap_connection(use_pool=True)
         except Exception as e:
             logger.error(
-                f"SubCAManager: Failed to get LDAP connection: {e}",
+                "SubCAManager: Failed to get LDAP connection: %s",
+                e,
                 exc_info=True,
             )
             raise StorageConnectionError(
@@ -458,7 +464,7 @@ class SubCAManager:
             ).replace(tzinfo=datetime.timezone.utc)
         except (ValueError, TypeError) as e:
             logger.warning(
-                f"Failed to parse LDAP timestamp '{timestamp_value}': {e}"
+                "Failed to parse LDAP timestamp '%s': %s", timestamp_value, e
             )
             return datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
 
@@ -496,57 +502,19 @@ class SubCAManager:
             except errors.NotFound:
                 # Entry deleted from LDAP - cache is stale
                 logger.debug(
-                    f"Sub-CA {ca_id} not found in LDAP, cache is stale"
+                    "Sub-CA %s not found in LDAP, cache is stale", ca_id
                 )
                 return datetime.datetime.max.replace(
                     tzinfo=datetime.timezone.utc
                 )
             except Exception as e:
                 logger.warning(
-                    f"Failed to get LDAP timestamp for {ca_id}: {e}"
+                    "Failed to get LDAP timestamp for %s: %s", ca_id, e
                 )
                 # On error, assume stale to be safe
                 return datetime.datetime.max.replace(
                     tzinfo=datetime.timezone.utc
                 )
-
-    def _is_cache_valid(self, ca_id: str) -> bool:
-        """Check if cached sub-CA is still fresh by comparing LDAP
-        modifyTimestamp
-
-        Performs a lightweight LDAP query to fetch only the modifyTimestamp
-        and compares it with the cached timestamp. Cache is valid if LDAP
-        timestamp hasn't changed since we cached the entry.
-
-        Args:
-            ca_id: CA identifier
-
-        Returns:
-            True if cache is still valid, False if stale
-        """
-        if ca_id not in self.cache_timestamps:
-            logger.debug(f"No cached timestamp for {ca_id}, cache invalid")
-            return False
-
-        try:
-            ldap_timestamp = self._get_ldap_modify_timestamp(ca_id)
-            cache_timestamp = self.cache_timestamps[ca_id]
-
-            # Cache is valid if LDAP timestamp hasn't changed
-            is_valid = ldap_timestamp <= cache_timestamp
-
-            if not is_valid:
-                logger.debug(
-                    f"Cache stale for {ca_id}: "
-                    f"LDAP={ldap_timestamp.isoformat()} > "
-                    f"cache={cache_timestamp.isoformat()}"
-                )
-
-            return is_valid
-
-        except Exception as e:
-            logger.warning(f"Failed to validate cache for {ca_id}: {e}")
-            return False  # On error, invalidate cache (safe)
 
     def initialize_ldap_schema(self):
         """Initialize LDAP schema for sub-CA storage"""
@@ -556,7 +524,9 @@ class SubCAManager:
             try:
                 entry = ldap.get_entry(self.ldap_base_dn)
             except errors.NotFound:
-                logger.debug(f"Creating sub-CA container: {self.ldap_base_dn}")
+                logger.debug(
+                    "Creating sub-CA container: %s", self.ldap_base_dn
+                )
                 entry = ldap.make_entry(
                     self.ldap_base_dn,
                     objectclass=["top", "nsContainer"],
@@ -587,11 +557,13 @@ class SubCAManager:
                 for existing_aci in entry.get("aci", []):
                     if aci_name in str(existing_aci):
                         aci_exists = True
-                        logger.debug(f"ACI '{aci_name}' already exists")
+                        logger.debug("ACI '%s' already exists", aci_name)
                         break
 
             if not aci_exists:
-                logger.debug(f"Adding ACI '{aci_name}' to {self.ldap_base_dn}")
+                logger.debug(
+                    "Adding ACI '%s' to %s", aci_name, self.ldap_base_dn
+                )
                 aci_value = (
                     f"{aci_target}"
                     '(targetattr = "*")'
@@ -618,7 +590,7 @@ class SubCAManager:
                     )
                 except Exception as e:
                     logger.warning(
-                        f"Failed to add ACI (may already exist): {e}"
+                        "Failed to add ACI (may already exist): %s", e
                     )
 
     def create_subca(
@@ -642,7 +614,7 @@ class SubCAManager:
         Returns:
             SubCA instance
         """
-        logger.debug(f"Creating sub-CA {ca_id} under parent {parent_ca_id}")
+        logger.debug("Creating sub-CA %s under parent %s", ca_id, parent_ca_id)
 
         # Get parent CA if specified, otherwise use main CA
         parent_ca = None
@@ -703,15 +675,15 @@ class SubCAManager:
         self._store_subca_in_ldap(subca)
 
         # Cache in memory with current LDAP timestamp
+        ldap_ts = self._get_ldap_modify_timestamp(ca_id)
         with self._cache_lock:
             self.subcas[ca_id] = subca
-            self.cache_timestamps[ca_id] = self._get_ldap_modify_timestamp(
-                ca_id
-            )
-            logger.debug(
-                f"Cached new sub-CA {ca_id} with timestamp "
-                f"{self.cache_timestamps[ca_id].isoformat()}"
-            )
+            self.cache_timestamps[ca_id] = ldap_ts
+        logger.debug(
+            "Cached new sub-CA %s with timestamp %s",
+            ca_id,
+            ldap_ts.isoformat(),
+        )
 
         return subca
 
@@ -737,40 +709,53 @@ class SubCAManager:
         if isinstance(ca_id, tuple):
             ca_id = ca_id[0]
 
+        # Check memory cache first (unless force_reload is True)
         with self._cache_lock:
-            # Check memory cache first (unless force_reload is True)
             if not force_reload and ca_id in self.subcas:
-                # Validate cache using LDAP modifyTimestamp
-                if self._is_cache_valid(ca_id):
-                    logger.debug(
-                        f"Cache hit for sub-CA {ca_id} (validated via "
-                        "timestamp)"
-                    )
-                    return self.subcas[ca_id]
-                else:
-                    # Cache is stale, invalidate it
-                    logger.debug(
-                        f"Cache invalidated for sub-CA {ca_id} "
-                        "(LDAP modified)"
-                    )
-                    del self.subcas[ca_id]
-                    if ca_id in self.cache_timestamps:
-                        del self.cache_timestamps[ca_id]
+                cached = self.subcas[ca_id]
+                cache_ts = self.cache_timestamps.get(ca_id)
+            else:
+                cached = None
+                cache_ts = None
+                # Invalidate stale entry
+                self.subcas.pop(ca_id, None)
+                self.cache_timestamps.pop(ca_id, None)
 
-            # Load from LDAP under lock to prevent concurrent duplicate loads
-            subca = self._load_subca_from_ldap(ca_id)
+        # Validate cache outside lock (LDAP I/O)
+        if cached is not None and cache_ts is not None:
+            try:
+                ldap_ts = self._get_ldap_modify_timestamp(ca_id)
+                if ldap_ts <= cache_ts:
+                    logger.debug(
+                        "Cache hit for sub-CA %s (validated via timestamp)",
+                        ca_id,
+                    )
+                    return cached
+            except Exception as e:
+                logger.warning("Failed to validate cache for %s: %s", ca_id, e)
+            # Cache is stale
+            logger.debug(
+                "Cache invalidated for sub-CA %s (LDAP modified)", ca_id
+            )
+            with self._cache_lock:
+                self.subcas.pop(ca_id, None)
+                self.cache_timestamps.pop(ca_id, None)
 
-            if subca:
-                # Cache in memory with current LDAP timestamp
+        # Load from LDAP (outside lock — LDAP I/O)
+        subca = self._load_subca_from_ldap(ca_id)
+
+        if subca:
+            # Cache in memory with current LDAP timestamp
+            ldap_ts = self._get_ldap_modify_timestamp(ca_id)
+            with self._cache_lock:
                 self.subcas[ca_id] = subca
-                self.cache_timestamps[ca_id] = self._get_ldap_modify_timestamp(
-                    ca_id
-                )
-                logger.debug(
-                    f"Cached sub-CA {ca_id} with timestamp "
-                    f"{self.cache_timestamps[ca_id].isoformat()}"
-                )
-                return subca
+                self.cache_timestamps[ca_id] = ldap_ts
+            logger.debug(
+                "Cached sub-CA %s with timestamp %s",
+                ca_id,
+                ldap_ts.isoformat(),
+            )
+            return subca
 
         return None
 
@@ -819,8 +804,9 @@ class SubCAManager:
                             subcas.append(subca)
                     except Exception as e:
                         logger.warning(
-                            f"Skipping sub-CA {ca_id} that cannot be "
-                            f"loaded: {e}"
+                            "Skipping sub-CA %s that cannot be loaded: %s",
+                            ca_id,
+                            e,
                         )
                         continue
 
@@ -840,7 +826,7 @@ class SubCAManager:
         if isinstance(ca_id, tuple):
             ca_id = ca_id[0]
 
-        logger.debug(f"Deleting sub-CA: {ca_id}")
+        logger.debug("Deleting sub-CA: %s", ca_id)
 
         # Remove from LDAP
         self._delete_subca_from_ldap(ca_id)
@@ -859,10 +845,10 @@ class SubCAManager:
                 import shutil
 
                 shutil.rmtree(subca_dir)
-                logger.info(f"Removed sub-CA directory: {subca_dir}")
+                logger.info("Removed sub-CA directory: %s", subca_dir)
             except Exception as e:
                 logger.warning(
-                    f"Failed to remove sub-CA directory {subca_dir}: {e}"
+                    "Failed to remove sub-CA directory %s: %s", subca_dir, e
                 )
 
     def _store_subca_in_ldap(self, subca: SubCA):
@@ -884,7 +870,7 @@ class SubCAManager:
         # TODO: When encryption is re-enabled, uncomment this:
         # self._store_subca_key_on_filesystem(subca)
 
-        logger.debug(f"Stored sub-CA {subca.ca_id} in LDAP")
+        logger.debug("Stored sub-CA %s in LDAP", subca.ca_id)
 
     def _store_subca_dogtag(self, subca: SubCA):
         """Store sub-CA using Dogtag LDAP schema via storage backend"""
@@ -910,8 +896,10 @@ class SubCAManager:
         # Store certificate in ou=certificateRepository,ou=ca,o=ipaca
         self.main_ca.storage.store_certificate(cert_record, allow_update=False)
         logger.debug(
-            f"Stored sub-CA {subca.ca_id} certificate (serial "
-            f"{subca.ca_cert.serial_number}) in certificate repository"
+            "Stored sub-CA %s certificate (serial %s) in certificate "
+            "repository",
+            subca.ca_id,
+            subca.ca_cert.serial_number,
         )
 
         # Use storage backend to store authority metadata
@@ -928,8 +916,7 @@ class SubCAManager:
 
         self.main_ca.storage.store_authority(authority_data)
         logger.debug(
-            f"Stored sub-CA {subca.ca_id} authority metadata in Dogtag LDAP"
-            " schema"
+            "Stored sub-CA %s authority metadata in Dogtag LDAP", subca.ca_id
         )
 
     def _store_encrypted_subca_key_on_filesystem(self, subca: SubCA):
@@ -957,7 +944,7 @@ class SubCAManager:
         key_file.write_bytes(encrypted_key)
         key_file.chmod(0o600)
 
-        logger.debug(f"Stored sub-CA {subca.ca_id} private key on filesystem")
+        logger.debug("Stored sub-CA %s private key on filesystem", subca.ca_id)
 
     def _load_subca_from_ldap(self, ca_id: str) -> Optional[SubCA]:
         """
@@ -982,22 +969,19 @@ class SubCAManager:
 
             if not authority_data:
                 logger.warning(
-                    f"Sub-CA {ca_id} not found in Dogtag LDAP storage"
+                    "Sub-CA %s not found in Dogtag LDAP storage", ca_id
                 )
                 return None
 
             # Get certificate from storage (by serial number)
             serial_number = authority_data.get("serial_number")
             if not serial_number:
-                logger.error(f"Sub-CA {ca_id} has no serial number in LDAP")
+                logger.error("Sub-CA %s has no serial number in LDAP", ca_id)
                 return None
 
             cert_record = self.main_ca.storage.get_certificate(serial_number)
             if not cert_record:
-                logger.error(
-                    f"Sub-CA {ca_id} certificate not found (serial"
-                    f" {serial_number})"
-                )
+                logger.error("Sub-CA %s certificate not found (serial", ca_id)
                 return None
 
             ca_cert = cert_record.certificate
@@ -1026,12 +1010,14 @@ class SubCAManager:
             # Set enabled status from authority data
             subca.enabled = authority_data.get("enabled", True)
 
-            logger.debug(f"Loaded sub-CA {ca_id} from Dogtag LDAP schema")
+            logger.debug("Loaded sub-CA %s from Dogtag LDAP schema", ca_id)
             return subca
 
         except Exception as e:
             logger.error(
-                f"Exception loading sub-CA {ca_id} from Dogtag storage: {e}",
+                "Exception loading sub-CA %s from Dogtag storage: %s",
+                ca_id,
+                e,
                 exc_info=True,
             )
             return None
@@ -1047,7 +1033,9 @@ class SubCAManager:
         key_file = subcas_base / ca_id / "ca.key.enc"
 
         if not key_file.exists():
-            logger.debug(f"Sub-CA {ca_id} private key not found on filesystem")
+            logger.debug(
+                "Sub-CA %s private key not found on filesystem", ca_id
+            )
             return None
 
         try:
@@ -1058,14 +1046,14 @@ class SubCAManager:
             # Load key from PEM
             ca_key = serialization.load_pem_private_key(key_pem, password=None)
 
-            logger.debug(f"Loaded private key for {ca_id} from filesystem")
+            logger.debug("Loaded private key for %s from filesystem", ca_id)
             return ca_key
 
         except Exception as e:
             logger.error(
-                f"Failed to load private key for CA {ca_id} from"
-                f" filesystem: {e}",
-                exc_info=True,
+                "Failed to load private key for CA %s from filesystem: %s",
+                ca_id,
+                e,
             )
             return None
 
@@ -1085,17 +1073,16 @@ class SubCAManager:
         self.main_ca.storage.update_authority_status(ca_id, enabled)
 
         # Update the in-memory cache
+        ldap_ts = self._get_ldap_modify_timestamp(ca_id)
         with self._cache_lock:
             if ca_id in self.subcas:
                 self.subcas[ca_id].enabled = enabled
                 # Refresh timestamp to reflect LDAP modification
-                self.cache_timestamps[ca_id] = self._get_ldap_modify_timestamp(
-                    ca_id
-                )
+                self.cache_timestamps[ca_id] = ldap_ts
                 logger.debug(
-                    f"Updated sub-CA {ca_id} cache with new "
-                    f"timestamp "
-                    f"{self.cache_timestamps[ca_id].isoformat()}"
+                    "Updated sub-CA %s cache with new timestamp %s",
+                    ca_id,
+                    ldap_ts.isoformat(),
                 )
 
     def _delete_subca_from_ldap(self, ca_id: str):
@@ -1106,4 +1093,4 @@ class SubCAManager:
 
         # Use Dogtag schema via storage backend
         self.main_ca.storage.delete_authority(ca_id)
-        logger.debug(f"Deleted sub-CA {ca_id} from Dogtag LDAP schema")
+        logger.debug("Deleted sub-CA %s from Dogtag LDAP schema", ca_id)

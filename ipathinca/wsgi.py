@@ -38,7 +38,7 @@ def setup_logging(config):
         log_dir.mkdir(parents=True, exist_ok=True)
     except PermissionError:
         logger.warning(
-            f"Cannot create log directory {log_dir}, logging to console only"
+            "Cannot create log directory %s, logging to console only", log_dir
         )
         return
 
@@ -68,10 +68,10 @@ def setup_logging(config):
         file_handler.setFormatter(formatter)
 
         root_logger.addHandler(file_handler)
-        logger.debug(f"Logging to file: {log_file}")
+        logger.debug("Logging to file: %s", log_file)
 
     except Exception as e:
-        logger.warning(f"Failed to setup file logging: {e}")
+        logger.warning("Failed to setup file logging: %s", e)
 
 
 def create_wsgi_app():
@@ -88,7 +88,7 @@ def create_wsgi_app():
     setup_logging(config)
 
     logger.debug(
-        f"Initializing Python CA REST API Server (config: {config_file})"
+        "Initializing Python CA REST API Server (config: %s)", config_file
     )
 
     # Import and create Flask app
@@ -103,16 +103,18 @@ def create_wsgi_app():
         app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
         logger.debug("Python CA REST API Server initialized successfully")
-        logger.debug(f"Configuration loaded from: {config_file}")
+        logger.debug("Configuration loaded from: %s", config_file)
 
         # Log key configuration values for debugging
         if config.has_section("server"):
             bind_host = config.get("server", "bind_host", fallback="not set")
             https_port = config.get("server", "https_port", fallback="not set")
             workers = config.get("server", "workers", fallback="not set")
-            logger.debug(f"Server bind_host: {bind_host}")
-            logger.debug(f"Server https_port: {https_port}")
-            logger.debug(f"Server workers: {workers}")
+            threads = config.get("server", "threads", fallback="not set")
+            logger.info("Server bind_host: %s", bind_host)
+            logger.info("Server https_port: %s", https_port)
+            logger.info("Server workers: %s", workers)
+            logger.info("Server threads: %s", threads)
 
         # Initialize certificate reload manager for graceful certificate reload
         # This allows sending SIGHUP to reload certificates without
@@ -126,7 +128,7 @@ def create_wsgi_app():
             )
         except Exception as e:
             logger.warning(
-                f"Failed to initialize certificate reload manager: {e}"
+                "Failed to initialize certificate reload manager: %s", e
             )
             logger.warning(
                 "Certificate reload via SIGHUP will not be available"
@@ -135,11 +137,11 @@ def create_wsgi_app():
         return app
 
     except ImportError as e:
-        logger.error(f"Failed to import ipathinca modules: {e}")
+        logger.error("Failed to import ipathinca modules: %s", e)
         logger.error("Make sure ipathinca is properly installed")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"Failed to initialize application: {e}", exc_info=True)
+        logger.error("Failed to initialize application: %s", e, exc_info=True)
         sys.exit(1)
 
 
@@ -161,12 +163,15 @@ def main():
         "--bind", default="0.0.0.0:8080", help="Bind address (host:port)"
     )
     parser.add_argument(
-        "--workers", type=int, default=4, help="Number of worker processes"
+        "--workers", type=int, default=1, help="Number of worker processes"
+    )
+    parser.add_argument(
+        "--threads", type=int, default=4, help="Number of threads per worker"
     )
     parser.add_argument(
         "--worker-class",
-        default="sync",
-        choices=["sync", "gevent", "eventlet"],
+        default="gthread",
+        choices=["sync", "gthread", "gevent", "eventlet"],
         help="Worker class type",
     )
     parser.add_argument("--certfile", help="SSL certificate file")
@@ -197,6 +202,8 @@ def main():
         args.bind,
         "--workers",
         str(args.workers),
+        "--threads",
+        str(args.threads),
         "--worker-class",
         args.worker_class,
         "--timeout",
@@ -207,6 +214,7 @@ def main():
         args.error_logfile,
         "--pid",
         args.pid,
+        "--preload",
     ]
 
     # Add SSL if specified
@@ -227,7 +235,7 @@ def main():
     # Add WSGI module
     gunicorn_args.append("ipathinca.wsgi:application")
 
-    logger.debug(f"Starting Gunicorn with: {' '.join(gunicorn_args)}")
+    logger.debug("Starting Gunicorn with: %s", " ".join(gunicorn_args))
 
     # Execute Gunicorn
     os.execvp("gunicorn", gunicorn_args)

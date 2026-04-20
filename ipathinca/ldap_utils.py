@@ -62,18 +62,18 @@ class LDAPConnectionPool:
         self._last_health_check = time.time()
 
         # Pre-create minimum connections
-        for _ in range(min_connections):
+        for _ in range(min_connections):  # pylint: disable=unused-variable
             try:
                 conn = self._create_connection()
                 self._pool.put_nowait(conn)
                 self._created_count += 1
             except Exception as e:
-                logger.warning(f"Failed to pre-create connection: {e}")
+                logger.warning("Failed to pre-create connection: %s", e)
 
     def _create_connection(self):
         """Create a new LDAP connection"""
         logger.debug(
-            f"Creating new LDAP connection (pool size: {self._created_count})"
+            "Creating new LDAP connection (pool size: %s)", self._created_count
         )
 
         realm = get_config_value("global", "realm")
@@ -248,8 +248,9 @@ def init_connection_pool(min_connections=None, max_connections=None):
                     max_connections = 10
 
             logger.debug(
-                f"Initializing LDAP connection pool (min={min_connections}, "
-                f"max={max_connections})"
+                "Initializing LDAP connection pool (min=%s, max=%s)",
+                min_connections,
+                max_connections,
             )
             _connection_pool = LDAPConnectionPool(
                 min_connections, max_connections
@@ -302,12 +303,17 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
 
     # Use connection pool if requested
     if use_pool:
-        global _connection_pool
         if _connection_pool is None:
             init_connection_pool()
         return _connection_pool.get_connection()
 
-    # Thread-safe singleton connection management
+    # Legacy singleton mode (deprecated, NOT thread-safe)
+    # python-ldap connections must not be shared across threads.
+    # Only use this for single-threaded contexts (e.g., install scripts).
+    logger.warning(
+        "Using legacy singleton LDAP connection (not thread-safe). "
+        "Use pooled connections (use_pool=True) for threaded workers."
+    )
     with _ldap_connection_lock:
         # Check if we need to reconnect
         if force_reconnect and _ldap_connection is not None:
@@ -323,9 +329,9 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
         # Check if we already have a valid connection
         if _ldap_connection is not None:
             try:
-                if _ldap_connection.isconnected():
-                    logger.debug("Reusing existing LDAP connection")
-                    return _ldap_connection
+                _ldap_connection.conn.whoami_s()
+                logger.debug("Reusing existing LDAP connection")
+                return _ldap_connection
             except Exception:
                 logger.debug(
                     "Cached LDAP connection is not valid, reconnecting"
@@ -336,7 +342,7 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
         try:
             realm = get_config_value("global", "realm")
             logger.debug(
-                f"Connecting to LDAP via LDAPI socket for realm {realm}"
+                "Connecting to LDAP via LDAPI socket for realm %s", realm
             )
 
             # Use from_realm() which properly configures LDAPI connection
@@ -367,7 +373,7 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
                 ldap_client.external_bind()
 
             except Exception as bind_err:
-                logger.error(f"EXTERNAL bind failed: {bind_err}")
+                logger.error("EXTERNAL bind failed: %s", bind_err)
                 # Simple bind as cn=Directory Manager is not available in
                 # production
                 raise errors.DatabaseError(
@@ -383,7 +389,7 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
 
         except Exception as e:
             logger.error(
-                f"Failed to create LDAP connection: {e}", exc_info=True
+                "Failed to create LDAP connection: %s", e, exc_info=True
             )
             raise StorageConnectionError(
                 f"Cannot connect to LDAP database: {e}"
@@ -403,7 +409,7 @@ def close_ldap_connection():
             _ldap_connection.close()
             logger.debug("LDAP connection closed")
         except Exception as e:
-            logger.warning(f"Error closing LDAP connection: {e}")
+            logger.warning("Error closing LDAP connection: %s", e)
         finally:
             _ldap_connection = None
 
@@ -421,7 +427,7 @@ def close_ldap_pool():
             _connection_pool.close_all()
             logger.debug("LDAP connection pool closed")
         except Exception as e:
-            logger.warning(f"Error closing LDAP connection pool: {e}")
+            logger.warning("Error closing LDAP connection pool: %s", e)
         finally:
             _connection_pool = None
 
