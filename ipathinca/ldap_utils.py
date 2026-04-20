@@ -307,7 +307,13 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
             init_connection_pool()
         return _connection_pool.get_connection()
 
-    # Thread-safe singleton connection management
+    # Legacy singleton mode (deprecated, NOT thread-safe)
+    # python-ldap connections must not be shared across threads.
+    # Only use this for single-threaded contexts (e.g., install scripts).
+    logger.warning(
+        "Using legacy singleton LDAP connection (not thread-safe). "
+        "Use pooled connections (use_pool=True) for threaded workers."
+    )
     with _ldap_connection_lock:
         # Check if we need to reconnect
         if force_reconnect and _ldap_connection is not None:

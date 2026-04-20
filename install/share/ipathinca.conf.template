@@ -13,7 +13,8 @@ pool_max_connections = 10
 [server]
 bind_host = 0.0.0.0
 https_port = 8443
-workers = 2
+workers = 1
+threads = 4
 ssl_cert = ${IPATHINCA_CERTS_DIR}server.crt
 ssl_key = ${IPATHINCA_PRIVATE_DIR}server.key
 pid_file = $IPATHINCA_PID

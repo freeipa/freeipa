@@ -118,17 +118,11 @@ class PythonCABackend:
             config=self.config, storage_backend=self.ca.storage
         )
 
-        # Get CA host from configuration or API
-        ca_host = self._get_ca_host()
-        self.acme_server = ACMEServer(
-            self.ca, f"https://{ca_host}", self.config
-        )
-
-        # Initialize ACME state manager (for enable/disable)
-        self.acme_state = ACMEStateManager(self.config)
-
-        # Initialize pruning manager (for certificate/request cleanup)
-        self.pruning_manager = PruningManager(self.config, self.ca.storage)
+        # Lazy-initialized subsystems (created on first access via @property)
+        self._acme_server = None
+        self._acme_state = None
+        self._pruning_manager = None
+        self._lazy_init_lock = threading.Lock()
 
     def _validate_hostname_config(self):
         """
@@ -183,6 +177,38 @@ class PythonCABackend:
             f"CA host not found in config, using system hostname: {hostname}"
         )
         return hostname
+
+    @property
+    def acme_server(self):
+        """Lazy-initialized ACME server (created on first access)"""
+        if self._acme_server is None:
+            with self._lazy_init_lock:
+                if self._acme_server is None:
+                    ca_host = self._get_ca_host()
+                    self._acme_server = ACMEServer(
+                        self.ca, f"https://{ca_host}", self.config
+                    )
+        return self._acme_server
+
+    @property
+    def acme_state(self):
+        """Lazy-initialized ACME state manager (created on first access)"""
+        if self._acme_state is None:
+            with self._lazy_init_lock:
+                if self._acme_state is None:
+                    self._acme_state = ACMEStateManager(self.config)
+        return self._acme_state
+
+    @property
+    def pruning_manager(self):
+        """Lazy-initialized pruning manager (created on first access)"""
+        if self._pruning_manager is None:
+            with self._lazy_init_lock:
+                if self._pruning_manager is None:
+                    self._pruning_manager = PruningManager(
+                        self.config, self.ca.storage
+                    )
+        return self._pruning_manager
 
     # Certificate Request Operations (replaces dogtag.py functions)
 

@@ -81,6 +81,7 @@ class OCSPResponder:
         self.cache_timeout = cache_timeout
         self.response_cache: OrderedDict = OrderedDict()
         self.cache_maxsize = 1000
+        self._cache_lock = threading.Lock()
 
         # OCSP signing certificate paths
         self.ocsp_cert_path = Path(ocsp_cert_path) if ocsp_cert_path else None
@@ -320,9 +321,10 @@ class OCSPResponder:
             # Get certificate serial number from request
             serial_number = ocsp_req.serial_number
 
-            # Check cache
+            # Check cache (thread-safe)
             cache_key = self._get_cache_key(serial_number, nonce)
-            cached_response = self.response_cache.get(cache_key)
+            with self._cache_lock:
+                cached_response = self.response_cache.get(cache_key)
             if cached_response is not None:
                 if not cached_response.is_expired():
                     logger.debug(
@@ -332,7 +334,8 @@ class OCSPResponder:
                     return cached_response.response_bytes
                 else:
                     # Remove expired entry
-                    self.response_cache.pop(cache_key, None)
+                    with self._cache_lock:
+                        self.response_cache.pop(cache_key, None)
 
             # Ensure CA cert is loaded
             self.ca._ensure_ca_loaded()
@@ -397,16 +400,19 @@ class OCSPResponder:
             )
 
             # Cache the response (bounded: evict expired, then oldest)
-            expired_keys = [
-                k for k, v in self.response_cache.items() if v.is_expired()
-            ]
-            for k in expired_keys:
-                del self.response_cache[k]
-            while len(self.response_cache) >= self.cache_maxsize:
-                self.response_cache.popitem(last=False)
-            self.response_cache[cache_key] = OCSPResponse(
-                response_bytes, cache_until=next_update
-            )
+            with self._cache_lock:
+                expired_keys = [
+                    k
+                    for k, v in self.response_cache.items()
+                    if v.is_expired()
+                ]
+                for k in expired_keys:
+                    del self.response_cache[k]
+                while len(self.response_cache) >= self.cache_maxsize:
+                    self.response_cache.popitem(last=False)
+                self.response_cache[cache_key] = OCSPResponse(
+                    response_bytes, cache_until=next_update
+                )
 
             logger.info(
                 f"Created OCSP response for serial {serial_number}, status: "
@@ -429,15 +435,19 @@ class OCSPResponder:
 
     def clear_cache(self):
         """Clear response cache"""
-        self.response_cache.clear()
+        with self._cache_lock:
+            self.response_cache.clear()
         logger.info("OCSP response cache cleared")
 
     def get_cache_stats(self) -> Dict:
         """Get cache statistics"""
-        total = len(self.response_cache)
-        expired = sum(
-            1 for resp in self.response_cache.values() if resp.is_expired()
-        )
+        with self._cache_lock:
+            total = len(self.response_cache)
+            expired = sum(
+                1
+                for resp in self.response_cache.values()
+                if resp.is_expired()
+            )
 
         return {
             "total_entries": total,
@@ -462,6 +472,7 @@ class OCSPResponderManager:
             base_storage_path: Base path for OCSP cert/key storage
         """
         self.responders: Dict[str, OCSPResponder] = {}
+        self._responders_lock = threading.Lock()
         self.base_storage_path = Path(
             base_storage_path or f"{paths.IPATHINCA_DIR}ocsp"
         )
@@ -479,32 +490,42 @@ class OCSPResponderManager:
             OCSPResponder instance
         """
         if ca_id not in self.responders:
-            # Create paths for this CA
-            ocsp_cert_path = self.base_storage_path / f"{ca_id}_ocsp.crt"
-            ocsp_key_path = self.base_storage_path / f"{ca_id}_ocsp.key"
+            with self._responders_lock:
+                if ca_id not in self.responders:
+                    # Create paths for this CA
+                    ocsp_cert_path = (
+                        self.base_storage_path / f"{ca_id}_ocsp.crt"
+                    )
+                    ocsp_key_path = (
+                        self.base_storage_path / f"{ca_id}_ocsp.key"
+                    )
 
-            # Create responder
-            self.responders[ca_id] = OCSPResponder(
-                ca=ca,
-                ocsp_cert_path=str(ocsp_cert_path),
-                ocsp_key_path=str(ocsp_key_path),
-            )
+                    # Create responder
+                    self.responders[ca_id] = OCSPResponder(
+                        ca=ca,
+                        ocsp_cert_path=str(ocsp_cert_path),
+                        ocsp_key_path=str(ocsp_key_path),
+                    )
 
-            logger.info(f"Created OCSP responder for CA: {ca_id}")
+                    logger.info(f"Created OCSP responder for CA: {ca_id}")
 
         return self.responders[ca_id]
 
     def clear_all_caches(self):
         """Clear all OCSP response caches"""
-        for responder in self.responders.values():
+        with self._responders_lock:
+            responders = dict(self.responders)
+        for responder in responders.values():
             responder.clear_cache()
         logger.info("Cleared all OCSP response caches")
 
     def get_all_stats(self) -> Dict[str, Dict]:
         """Get statistics for all responders"""
+        with self._responders_lock:
+            responders = dict(self.responders)
         return {
             ca_id: responder.get_cache_stats()
-            for ca_id, responder in self.responders.items()
+            for ca_id, responder in responders.items()
         }
 
 

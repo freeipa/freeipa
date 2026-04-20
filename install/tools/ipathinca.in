@@ -38,13 +38,18 @@ class IPAthinCAApplication(BaseApplication):
         https_port = cfg.get('server', 'https_port')
         self.cfg.set('bind', f'{bind_host}:{https_port}')
 
-        # Workers
+        # Workers and threads
         self.cfg.set('workers', int(cfg.get('server', 'workers')))
-        self.cfg.set('worker_class', 'sync')
+        self.cfg.set('worker_class', 'gthread')
+        self.cfg.set('threads', int(cfg.get('server', 'threads',
+                                             fallback='4')))
         self.cfg.set('timeout', 300)
 
         # Process naming
         self.cfg.set('proc_name', 'ipathinca')
+
+        # Preload app before forking workers so they share memory via CoW
+        self.cfg.set('preload_app', True)
 
         # Logging
         self.cfg.set('accesslog', cfg.get('logging', 'access_log'))

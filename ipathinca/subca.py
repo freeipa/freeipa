@@ -510,44 +510,6 @@ class SubCAManager:
                     tzinfo=datetime.timezone.utc
                 )
 
-    def _is_cache_valid(self, ca_id: str) -> bool:
-        """Check if cached sub-CA is still fresh by comparing LDAP
-        modifyTimestamp
-
-        Performs a lightweight LDAP query to fetch only the modifyTimestamp
-        and compares it with the cached timestamp. Cache is valid if LDAP
-        timestamp hasn't changed since we cached the entry.
-
-        Args:
-            ca_id: CA identifier
-
-        Returns:
-            True if cache is still valid, False if stale
-        """
-        if ca_id not in self.cache_timestamps:
-            logger.debug(f"No cached timestamp for {ca_id}, cache invalid")
-            return False
-
-        try:
-            ldap_timestamp = self._get_ldap_modify_timestamp(ca_id)
-            cache_timestamp = self.cache_timestamps[ca_id]
-
-            # Cache is valid if LDAP timestamp hasn't changed
-            is_valid = ldap_timestamp <= cache_timestamp
-
-            if not is_valid:
-                logger.debug(
-                    f"Cache stale for {ca_id}: "
-                    f"LDAP={ldap_timestamp.isoformat()} > "
-                    f"cache={cache_timestamp.isoformat()}"
-                )
-
-            return is_valid
-
-        except Exception as e:
-            logger.warning(f"Failed to validate cache for {ca_id}: {e}")
-            return False  # On error, invalidate cache (safe)
-
     def initialize_ldap_schema(self):
         """Initialize LDAP schema for sub-CA storage"""
         with self._get_ldap_connection() as ldap:
@@ -703,15 +665,14 @@ class SubCAManager:
         self._store_subca_in_ldap(subca)
 
         # Cache in memory with current LDAP timestamp
+        ldap_ts = self._get_ldap_modify_timestamp(ca_id)
         with self._cache_lock:
             self.subcas[ca_id] = subca
-            self.cache_timestamps[ca_id] = self._get_ldap_modify_timestamp(
-                ca_id
-            )
-            logger.debug(
-                f"Cached new sub-CA {ca_id} with timestamp "
-                f"{self.cache_timestamps[ca_id].isoformat()}"
-            )
+            self.cache_timestamps[ca_id] = ldap_ts
+        logger.debug(
+            f"Cached new sub-CA {ca_id} with timestamp "
+            f"{ldap_ts.isoformat()}"
+        )
 
         return subca
 
@@ -737,40 +698,54 @@ class SubCAManager:
         if isinstance(ca_id, tuple):
             ca_id = ca_id[0]
 
+        # Check memory cache first (unless force_reload is True)
         with self._cache_lock:
-            # Check memory cache first (unless force_reload is True)
             if not force_reload and ca_id in self.subcas:
-                # Validate cache using LDAP modifyTimestamp
-                if self._is_cache_valid(ca_id):
+                cached = self.subcas[ca_id]
+                cache_ts = self.cache_timestamps.get(ca_id)
+            else:
+                cached = None
+                cache_ts = None
+                # Invalidate stale entry
+                self.subcas.pop(ca_id, None)
+                self.cache_timestamps.pop(ca_id, None)
+
+        # Validate cache outside lock (LDAP I/O)
+        if cached is not None and cache_ts is not None:
+            try:
+                ldap_ts = self._get_ldap_modify_timestamp(ca_id)
+                if ldap_ts <= cache_ts:
                     logger.debug(
                         f"Cache hit for sub-CA {ca_id} (validated via "
                         "timestamp)"
                     )
-                    return self.subcas[ca_id]
-                else:
-                    # Cache is stale, invalidate it
-                    logger.debug(
-                        f"Cache invalidated for sub-CA {ca_id} "
-                        "(LDAP modified)"
-                    )
-                    del self.subcas[ca_id]
-                    if ca_id in self.cache_timestamps:
-                        del self.cache_timestamps[ca_id]
+                    return cached
+            except Exception as e:
+                logger.warning(
+                    f"Failed to validate cache for {ca_id}: {e}"
+                )
+            # Cache is stale
+            logger.debug(
+                f"Cache invalidated for sub-CA {ca_id} (LDAP modified)"
+            )
+            with self._cache_lock:
+                self.subcas.pop(ca_id, None)
+                self.cache_timestamps.pop(ca_id, None)
 
-            # Load from LDAP under lock to prevent concurrent duplicate loads
-            subca = self._load_subca_from_ldap(ca_id)
+        # Load from LDAP (outside lock — LDAP I/O)
+        subca = self._load_subca_from_ldap(ca_id)
 
-            if subca:
-                # Cache in memory with current LDAP timestamp
+        if subca:
+            # Cache in memory with current LDAP timestamp
+            ldap_ts = self._get_ldap_modify_timestamp(ca_id)
+            with self._cache_lock:
                 self.subcas[ca_id] = subca
-                self.cache_timestamps[ca_id] = self._get_ldap_modify_timestamp(
-                    ca_id
-                )
-                logger.debug(
-                    f"Cached sub-CA {ca_id} with timestamp "
-                    f"{self.cache_timestamps[ca_id].isoformat()}"
-                )
-                return subca
+                self.cache_timestamps[ca_id] = ldap_ts
+            logger.debug(
+                f"Cached sub-CA {ca_id} with timestamp "
+                f"{ldap_ts.isoformat()}"
+            )
+            return subca
 
         return None
 
@@ -1085,17 +1060,15 @@ class SubCAManager:
         self.main_ca.storage.update_authority_status(ca_id, enabled)
 
         # Update the in-memory cache
+        ldap_ts = self._get_ldap_modify_timestamp(ca_id)
         with self._cache_lock:
             if ca_id in self.subcas:
                 self.subcas[ca_id].enabled = enabled
                 # Refresh timestamp to reflect LDAP modification
-                self.cache_timestamps[ca_id] = self._get_ldap_modify_timestamp(
-                    ca_id
-                )
+                self.cache_timestamps[ca_id] = ldap_ts
                 logger.debug(
                     f"Updated sub-CA {ca_id} cache with new "
-                    f"timestamp "
-                    f"{self.cache_timestamps[ca_id].isoformat()}"
+                    f"timestamp {ldap_ts.isoformat()}"
                 )
 
     def _delete_subca_from_ldap(self, ca_id: str):

@@ -558,6 +558,7 @@ class PythonCA:
 
         # Cached CRL timing (populated on first call to _get_crl_timing)
         self._crl_timing = None
+        self._crl_timing_lock = threading.Lock()
 
         # Initialize storage backend (LDAP required for ipathinca)
         # Uses factory to select backend based on configuration
@@ -582,6 +583,7 @@ class PythonCA:
         # Use TTLCache to prevent memory leaks in long-running deployments
         # Cache up to 1000 recent requests for 1 hour (3600 seconds)
         # After TTL expiry, requests are still available from LDAP
+        self._requests_lock = threading.Lock()
         if CACHETOOLS_AVAILABLE:
             self.requests = TTLCache(maxsize=1000, ttl=3600)
             logger.debug(
@@ -721,30 +723,37 @@ class PythonCA:
         if self._crl_timing is not None:
             return self._crl_timing
 
-        update_interval = int(
-            ipathinca.get_config_value(
-                "ca", "crl_update_interval", default="240"
+        with self._crl_timing_lock:
+            if self._crl_timing is not None:
+                return self._crl_timing
+
+            update_interval = int(
+                ipathinca.get_config_value(
+                    "ca", "crl_update_interval", default="240"
+                )
             )
-        )
-        grace_period = int(
-            ipathinca.get_config_value(
-                "ca", "crl_next_update_grace_period", default="0"
+            grace_period = int(
+                ipathinca.get_config_value(
+                    "ca", "crl_next_update_grace_period", default="0"
+                )
             )
-        )
-        if update_interval < 1:
-            logger.warning(
-                "crl_update_interval=%d is invalid, using 240 minutes",
+            if update_interval < 1:
+                logger.warning(
+                    "crl_update_interval=%d is invalid, using 240 minutes",
+                    update_interval,
+                )
+                update_interval = 240
+            if grace_period < 0:
+                logger.warning(
+                    "crl_next_update_grace_period=%d is invalid, using 0",
+                    grace_period,
+                )
+                grace_period = 0
+            self._crl_timing = (
                 update_interval,
+                update_interval + grace_period,
             )
-            update_interval = 240
-        if grace_period < 0:
-            logger.warning(
-                "crl_next_update_grace_period=%d is invalid, using 0",
-                grace_period,
-            )
-            grace_period = 0
-        self._crl_timing = (update_interval, update_interval + grace_period)
-        return self._crl_timing
+            return self._crl_timing
 
     def _get_next_serial_number(self) -> int:
         """Generate next serial number for certificate via LDAP storage
@@ -775,8 +784,9 @@ class PythonCA:
             # Create request record
             request = CertificateRequest(csr, profile)
 
-            # Store in memory cache
-            self.requests[request.request_id] = request
+            # Store in memory cache (thread-safe)
+            with self._requests_lock:
+                self.requests[request.request_id] = request
 
             # Persist to LDAP storage
             self.storage.store_request(request)
@@ -1181,8 +1191,9 @@ class PythonCA:
         Returns:
             CertificateRequest object or None if not found
         """
-        # Check cache first (fast path)
-        request = self.requests.get(request_id)
+        # Check cache first (fast path, thread-safe)
+        with self._requests_lock:
+            request = self.requests.get(request_id)
 
         if request is not None:
             logger.debug(f"Request {request_id} found in cache")
@@ -1195,8 +1206,9 @@ class PythonCA:
         request = self.storage.get_request(request_id)
 
         if request is not None:
-            # Restore to cache for future lookups
-            self.requests[request_id] = request
+            # Restore to cache for future lookups (thread-safe)
+            with self._requests_lock:
+                self.requests[request_id] = request
             logger.debug(
                 f"Request {request_id} restored to cache from LDAP storage"
             )

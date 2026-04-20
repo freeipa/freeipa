@@ -110,9 +110,11 @@ def create_wsgi_app():
             bind_host = config.get("server", "bind_host", fallback="not set")
             https_port = config.get("server", "https_port", fallback="not set")
             workers = config.get("server", "workers", fallback="not set")
-            logger.debug(f"Server bind_host: {bind_host}")
-            logger.debug(f"Server https_port: {https_port}")
-            logger.debug(f"Server workers: {workers}")
+            threads = config.get("server", "threads", fallback="not set")
+            logger.info(f"Server bind_host: {bind_host}")
+            logger.info(f"Server https_port: {https_port}")
+            logger.info(f"Server workers: {workers}")
+            logger.info(f"Server threads: {threads}")
 
         # Initialize certificate reload manager for graceful certificate reload
         # This allows sending SIGHUP to reload certificates without
@@ -161,12 +163,15 @@ def main():
         "--bind", default="0.0.0.0:8080", help="Bind address (host:port)"
     )
     parser.add_argument(
-        "--workers", type=int, default=4, help="Number of worker processes"
+        "--workers", type=int, default=1, help="Number of worker processes"
+    )
+    parser.add_argument(
+        "--threads", type=int, default=4, help="Number of threads per worker"
     )
     parser.add_argument(
         "--worker-class",
-        default="sync",
-        choices=["sync", "gevent", "eventlet"],
+        default="gthread",
+        choices=["sync", "gthread", "gevent", "eventlet"],
         help="Worker class type",
     )
     parser.add_argument("--certfile", help="SSL certificate file")
@@ -197,6 +202,8 @@ def main():
         args.bind,
         "--workers",
         str(args.workers),
+        "--threads",
+        str(args.threads),
         "--worker-class",
         args.worker_class,
         "--timeout",
@@ -207,6 +214,7 @@ def main():
         args.error_logfile,
         "--pid",
         args.pid,
+        "--preload",
     ]
 
     # Add SSL if specified
