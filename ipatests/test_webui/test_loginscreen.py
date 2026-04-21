@@ -15,6 +15,7 @@ try:
     from selenium.webdriver.common.by import By
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.support.wait import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
 except ImportError:
     pass
 
@@ -66,12 +67,24 @@ class TestLoginScreen(UI_driver):
         """
 
         notification_type = 'div.validation-summary .alert-{}'.format(type)
-        # wait for a half sec for notification to appear
-        self.wait(0.5)
-        is_present = self.find(notification_type, By.CSS_SELECTOR)
-        # Notification not present
+
+        is_present = WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, notification_type)
+            ),
+            'Notification is not displayed: %s' % notification_type
+        )
+
         assert is_present
         if assert_text:
+            WebDriverWait(self.driver, 5).until(
+                EC.text_to_be_present_in_element(
+                    (By.CSS_SELECTOR, notification_type),
+                    assert_text,
+                ),
+                "Notification text is not present: %r not in element %s"
+                % (assert_text, notification_type),
+            )
             assert assert_text in is_present.text
 
         if link_text and link_url:
@@ -158,7 +171,6 @@ class TestLoginScreen(UI_driver):
         new_pass_field.send_keys(new_password)
         verify_pass_field.send_keys(new_password)
         verify_pass_field.send_keys(Keys.RETURN)
-        self.wait(0.5)
         self.assert_notification(assert_text='Password change complete',
                                  link_text=link_text, link_url=link_url)
 
@@ -280,7 +292,6 @@ class TestLoginScreen(UI_driver):
         username_field.send_keys(username)
         cur_pass_field.send_keys(current_password)
         cur_pass_field.send_keys(Keys.RETURN)
-        self.wait()
         self.assert_notification(
             type='info',
             assert_text=(
