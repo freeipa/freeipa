@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-04-16 19:58+0000\n"
+"PO-Revision-Date: 2026-04-22 23:58+0000\n"
 "Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/master/pt/>\n"
@@ -17248,12 +17248,17 @@ msgid ""
 "delegation in authoritative zone \"%(authzone)s\". Please add NS record "
 "\"%(ns_rec)s\" to parent zone \"%(authzone)s\"."
 msgstr ""
+"zona de encaminhamento \"%(fwzone)s\" não é efetiva porque da falta de "
+"delegação NS apropriada em zona autoritativa \"%(authzone)s\". Por favor "
+"adicione registo NS \"%(ns_rec)s\" na zona pai \"%(authzone)s\"."
 
 #, python-format
 msgid ""
 "DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
 "If DNSSEC validation is enabled on IPA server(s), please disable it."
 msgstr ""
+"Servidor DNS %(server)s não suporta EDNS0 (RFC 6891): %(error)s.\n"
+"Se a validação DNSSEC estiver ativa nos servidores IPA, por favor desative-a."
 
 #, python-format
 msgid ""
@@ -17261,6 +17266,9 @@ msgid ""
 "Please verify your DNSSEC configuration or disable DNSSEC validation on all "
 "IPA servers."
 msgstr ""
+"Validação DNSSEC falhou: %(error)s.\n"
+"Por favor verifique a sua configuração DNSSEC ou desative a validação DNSSEC "
+"em todos os servidores IPA."
 
 #, python-format
 msgid ""
@@ -17269,6 +17277,10 @@ msgid ""
 "This can happen if the zone is not managed by IPA. Please create the record "
 "manually, containing the following value: '%(realm)s'"
 msgstr ""
+"O registo TXT _kerberos do domínio %(domain)s não pôde ser criado (%(error)s)"
+".\n"
+"Isto pode acontecer se a zona não for gerida pelo IPA. Por favor crie um "
+"registo manualmente, contendo o seguinte valor: '%(realm)s'"
 
 #, python-format
 msgid ""
@@ -17277,11 +17289,17 @@ msgid ""
 "This can happen if the zone is not managed by IPA. Please remove the record "
 "manually."
 msgstr ""
+"O registo TXT _kerberos do domínio %(domain)s não pôde ser removido (%(error)"
+"s).\n"
+"Isto pode acontecer se a zona não for gerida pelo IPA. Por favor remova o "
+"registo manualmente."
 
 msgid ""
 "No DNSSEC key master is installed. DNSSEC zone signing will not work until "
 "the DNSSEC key master is installed."
 msgstr ""
+"Nenhuma chave mestre DNSSEC está instalada. A assinatura de zona DNSSEC não "
+"vai funcionar até que a chave mestre de DNSSEC seja instalada."
 
 #, python-format
 msgid ""
@@ -17289,6 +17307,9 @@ msgid ""
 "suffix, which results in FQDN '%(fqdn)s'. This is usually a mistake caused "
 "by a missing dot at the end of the name specification."
 msgstr ""
+"O nome de registo relativo '%(record)s' contém o nome da zona '%(zone)s' "
+"como um sufixo, o que resulta em FQDN '%(fqdn)s'. Isto é geralmente um "
+"engano causado por um ponto em falta no final da especificação do nome."
 
 #, python-format
 msgid "'%(command)s' is deprecated. %(additional_info)s"
@@ -17300,17 +17321,20 @@ msgstr "%(line)s"
 
 #, python-format
 msgid "Search result has been truncated: %(reason)s"
-msgstr ""
+msgstr "O resultado da busca foi truncado: %(reason)s"
 
 #, python-format
 msgid ""
 "Your trust to %(domain)s is broken. Please re-create it by running 'ipa "
 "trust-add' again."
 msgstr ""
+"A sua confiança para %(domain)s está quebrada. Por favor re-crie-a correndo "
+"'ipa trust-add' outra vez."
 
 #, python-format
 msgid "DNS record(s) of host %(host)s could not be removed. (%(reason)s)"
 msgstr ""
+"Os registos DNS da máquina %(host)s não puderam ser removidos. (%(reason)s)"
 
 msgid ""
 "Forwarding policy conflicts with some automatic empty zones. Queries for "
@@ -17318,59 +17342,74 @@ msgid ""
 "result in NXDOMAIN answers. To override this behavior use forward policy "
 "'only'."
 msgstr ""
+"A política de encaminhamento está em conflito com algumas zonas vazias "
+"automáticas. A consulta por zonas especificadas por RFC 6303 vai ignorar "
+"encaminhamento e recursão e vai resultar sempre em respostas NXDOMAIN. Para "
+"sobrepor este comportamento use a política de encaminhamento 'only'."
 
 #, python-format
 msgid "Update of system record '%(record)s' failed with error: %(error)s"
 msgstr ""
+"Atualização de registro de sistema '%(record)s' falhou com erro: %(error)s"
 
 #, python-format
 msgid ""
 "IPA does not manage the zone %(zone)s, please add records to your DNS server "
 "manually"
 msgstr ""
+"O IPA não gere a zona %(zone)s, por favor adicione registos no seu servidor "
+"DNS manualmente"
 
 msgid ""
 "Automatic update of DNS system records failed. Please re-run update of "
 "system records manually to get list of missing records."
 msgstr ""
+"Atualização automática de registos de sistema DNS falhou. Por favor re-"
+"execute a atualização dos registos de sistema manualmente para obter a lista "
+"dos registos em falta."
 
 #, python-format
 msgid ""
 "Service %(service)s requires restart on IPA server %(server)s to apply "
 "configuration changes."
 msgstr ""
+"O serviço %(service)s requer reiniciar do servidor IPA %(server)s para "
+"aplicar as alterações de configuração."
 
 #, python-format
 msgid ""
 "No DNS servers in IPA location %(location)s. Without DNS servers location is "
 "not working as expected."
 msgstr ""
+"Nenhuns servidores DNS na localização do IPA %(location)s. Sem servidores "
+"DNS a localização não funciona como esperado."
 
 #, python-format
 msgid "%(subject)s: Malformed certificate. %(reason)s"
-msgstr ""
+msgstr "%(subject)s: Certificado mal formado. %(reason)s"
 
 #, python-format
 msgid "The host was added but the DNS update failed with: %(reason)s"
-msgstr ""
+msgstr "A máquina foi adicionada mas a atualização DNS falhou com: %(reason)s"
 
 #, python-format
 msgid "The certificate for %(ca)s is not available on this server."
-msgstr ""
+msgstr "O certificado para %(ca)s não está disponível neste servidor."
 
 #, python-format
 msgid "The permission has %(right)s rights but no attributes are set."
 msgstr ""
+"A permissão tem direitos %(right)s mas nenhuns atributos estão definidos."
 
 #, python-format
 msgid "%(count)d variables"
-msgstr ""
+msgstr "%(count)d variáveis"
 
 #, python-format
 msgid "%(count)d plugin loaded"
 msgid_plural "%(count)d plugins loaded"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d plugin carregado"
+msgstr[1] "%(count)d plugins carregados"
 
 msgid "incorrect type"
 msgstr "tipo incorreto"
@@ -17382,100 +17421,102 @@ msgid "this option is deprecated"
 msgstr "esta opção está descontinuada"
 
 msgid "must be True or False"
-msgstr ""
+msgstr "tem de ser True ou False"
 
 msgid "must be an integer"
-msgstr ""
+msgstr "tem de ser um inteiro"
 
 #, python-format
 msgid "must be at least %(minvalue)d"
-msgstr ""
+msgstr "tem de ser pelo menos %(minvalue)d"
 
 #, python-format
 msgid "can be at most %(maxvalue)d"
-msgstr ""
+msgstr "pode ser no máximo %(maxvalue)d"
 
 msgid "must be a decimal number"
-msgstr ""
+msgstr "tem de ser um número decimal"
 
 #, python-format
 msgid "must be at least %(minvalue)s"
-msgstr ""
+msgstr "tem de ser pelo menos %(minvalue)s"
 
 #, python-format
 msgid "can be at most %(maxvalue)s"
-msgstr ""
+msgstr "pode ser no máximo %(maxvalue)s"
 
 #, python-format
 msgid ""
 "number class '%(cls)s' is not included in a list of allowed number classes: "
 "%(allowed)s"
 msgstr ""
+"classe de número '%(cls)s' não está incluída numa lista de classes de "
+"números permitidas: %(allowed)s"
 
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
-msgstr ""
+msgstr "tem de corresponde ao padrão \"%(pattern)s\""
 
 msgid "must be binary data"
-msgstr ""
+msgstr "tem de ser dados binários"
 
 #, python-format
 msgid "must be at least %(minlength)d bytes"
-msgstr ""
+msgstr "tem de ser pelo menos %(minlength)d bytes"
 
 #, python-format
 msgid "can be at most %(maxlength)d bytes"
-msgstr ""
+msgstr "pode ser no máximo %(maxlength)d bytes"
 
 #, python-format
 msgid "must be exactly %(length)d bytes"
-msgstr ""
+msgstr "tem de ser exatamente %(length)d bytes"
 
 msgid "must be a certificate"
-msgstr ""
+msgstr "tem de ser um certificado"
 
 msgid "must be a certificate signing request"
-msgstr ""
+msgstr "tem de ser um pedido de assinatura de certificado"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
-msgstr ""
+msgstr "Falha ao descodificar Pedido de Assinatura de Certificado: %s"
 
 msgid "must be Unicode text"
-msgstr ""
+msgstr "tem de ser texto Unicode"
 
 msgid "Leading and trailing spaces are not allowed"
 msgstr "Espaços no inicio e no final não são permitidos"
 
 #, python-format
 msgid "must be at least %(minlength)d characters"
-msgstr ""
+msgstr "tem de ter pelo menos %(minlength)d caracteres"
 
 #, python-format
 msgid "can be at most %(maxlength)d characters"
-msgstr ""
+msgstr "pode ter no máximo %(maxlength)d caracteres"
 
 #, python-format
 msgid "must be exactly %(length)d characters"
-msgstr ""
+msgstr "tem de ter exatamente %(length)d caracteres"
 
 #, python-format
 msgid "The character %(char)r is not allowed."
-msgstr ""
+msgstr "O caractere %(char)r não é permitido."
 
 #, python-format
 msgid "must be '%(value)s'"
-msgstr ""
+msgstr "tem de ser '%(value)s'"
 
 #, python-format
 msgid "must be one of %(values)s"
-msgstr ""
+msgstr "tem de ser um de %(values)s"
 
 msgid "must be datetime value"
 msgstr "tem de ser valor de data-hora"
 
 msgid "does not match any of accepted formats: "
-msgstr ""
+msgstr "não corresponde a nenhum dos formatos aceites: "
 
 msgid "incomplete time value"
 msgstr "valor de hora incompleto"
@@ -17497,10 +17538,10 @@ msgstr "tem de ser principal Kerberos"
 
 #, python-format
 msgid "Malformed principal: '%(value)s'"
-msgstr ""
+msgstr "Principal mal formado: '%(value)s'"
 
 msgid "Service principal is required"
-msgstr ""
+msgstr "O principal de serviço é requerido"
 
 msgid "must be at least 0"
 msgstr "tem de ser pelo menos 0"
@@ -17509,49 +17550,51 @@ msgid "invalid valid hex"
 msgstr "validação hexadecimal inválida"
 
 msgid "invalid serial number 0"
-msgstr ""
+msgstr "número série inválido 0"
 
 #, python-format
 msgid "%(filename)s: file not found"
-msgstr ""
+msgstr "%(filename)s: ficheiro não encontrado"
 
 #, python-brace-format
 msgid "Unable to parse option {item}"
-msgstr ""
+msgstr "Incapaz de analisar opção {item}"
 
 msgid "Filename is empty"
 msgstr "O nome de ficheiro está em branco"
 
 #, python-format
 msgid "Permission denied: %(file)s"
-msgstr ""
+msgstr "Permissão negada: %(file)s"
 
 msgid "empty DNS label"
-msgstr ""
+msgstr "etiqueta DNS vazia"
 
 msgid "DNS label cannot be longer that 63 characters"
-msgstr ""
+msgstr "etiqueta DNS não pode ser mais longa que 63 caracteres"
 
 #, python-format
 msgid ""
 "only letters, numbers, %(chars)s are allowed. DNS label may not start or end "
 "with %(chars2)s"
 msgstr ""
+"apenas letras, números, %(chars)s são permitidos. A etiqueta DNS não pode "
+"começar nem acabar com %(chars2)s"
 
 msgid "single label {}s are not supported"
-msgstr ""
+msgstr "etiqueta única {}s não é suportada"
 
 msgid "too many '@' characters"
-msgstr ""
+msgstr "demasiados caracteres '@'"
 
 msgid "cannot be longer that {} characters"
-msgstr ""
+msgstr "não pode ser mais longo que {} caracteres"
 
 msgid "hostname contains empty label (consecutive dots)"
-msgstr ""
+msgstr "nome de máquina contém etiqueta vazia (pontos consecutivos)"
 
 msgid "not fully qualified"
-msgstr ""
+msgstr "não totalmente qualificado"
 
 msgid "invalid SSH public key"
 msgstr "chave SSh pública inválida"
@@ -17560,7 +17603,7 @@ msgid "options are not allowed"
 msgstr "não são pertimidas opções"
 
 msgid "invalid hostmask"
-msgstr ""
+msgstr "máscara de máquina inválida"
 
 #, python-format
 msgid "query '%(owner)s %(rtype)s': %(error)s"
@@ -17575,26 +17618,29 @@ msgid ""
 "answer to query '%(owner)s %(rtype)s' is missing DNSSEC signatures (no RRSIG "
 "data)"
 msgstr ""
+"resposta a consulta '%(owner)s %(rtype)s' tem em falta assinaturas DNSSEC "
+"(nenhuns dados RSIG)"
 
 #, python-format
 msgid "record '%(owner)s %(rtype)s' failed DNSSEC validation on server %(ip)s"
 msgstr ""
+"registo '%(owner)s %(rtype)s' falhou validação DNSSEC no servidor %(ip)s"
 
 msgid "invalid escape code in domain name"
-msgstr ""
+msgstr "código de escape inválido e nome de domínio"
 
 msgid "domain name cannot be longer than 255 characters"
-msgstr ""
+msgstr "nome de domínio não pode ser mais longo que 255 caracteres"
 
 msgid "DNS label cannot be longer than 63 characters"
-msgstr ""
+msgstr "etiqueta DNS não pode ter mais de 63 caracteres"
 
 msgid "invalid domain name"
 msgstr "nome de domínio inválido"
 
 #, python-format
 msgid "domain name '%(domain)s' should be normalized to: %(normalized)s"
-msgstr ""
+msgstr "nome de domínio '%(domain)s' devia ser normalizado para: %(normalized)s"
 
 #, python-format
 msgid "invalid domain-name: %s"
@@ -17603,29 +17649,34 @@ msgstr "nome-de-domínio inválido: %s"
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
 msgstr ""
+"versão de endereço IP inválida (é %(value)d, tem de ser %(required_value)d)!"
 
 msgid "invalid IP address format"
-msgstr ""
+msgstr "formato de endereço de IP inválido"
 
 #, python-format
 msgid "%(port)s is not a valid port"
-msgstr ""
+msgstr "%(port)s não é um porto válido"
 
 msgid ""
 "at least one value equal to the canonical principal name must be present"
 msgstr ""
+"pelo menos um valor igual ao nome principal canônico tem de estar presente"
 
 msgid "realm or UPN suffix overlaps with trusted domain namespace"
 msgstr ""
+"reino ou sufixo UPN sobrepõe-se com o espaço de nome do domínio de confiança"
 
 msgid ""
 "realm or UPN suffix outside of supported realm domains or trusted domains "
 "namespace"
 msgstr ""
+"reino ou sufixo UPN fora dos domínios do reino ou espaço de nome dos "
+"domínios de confiança"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr ""
+msgstr "Insira %(label)s outra vez para verificação: "
 
 msgid "Passwords do not match!"
 msgstr "As palavras-passe não correspondem!"
@@ -17646,7 +17697,7 @@ msgid "To get command help, use:"
 msgstr "Para obter ajuda do comando, utilize:"
 
 msgid "  ipa <command> --help"
-msgstr ""
+msgstr "  ipa <comando> --help"
 
 msgid "Command name"
 msgstr "Nome do comando"
@@ -17656,79 +17707,80 @@ msgstr "Argumentos posicionais"
 
 #, python-format
 msgid "Same as --%s"
-msgstr ""
+msgstr "O mesmo que --%s"
 
 msgid "Deprecated options"
-msgstr ""
+msgstr "Opções descontinuadas"
 
 msgid "No file to read"
-msgstr ""
+msgstr "Nenhum ficheiro para ler"
 
 msgid "Results are truncated, try a more specific search"
-msgstr ""
+msgstr "Resultados foram truncados, tente uma busca mais específica"
 
 #, python-format
 msgid "Unknown option: %(option)s"
-msgstr ""
+msgstr "Opção desconhecida: %(option)s"
 
 msgid "Client version. Used to determine if server will accept request."
 msgstr ""
+"Versão cliente. Usada para determinar se o servidor vai aceitar o pedido."
 
 msgid "any of the configured servers"
-msgstr ""
+msgstr "qualquer um dos servidores configurados"
 
 msgid "Exceeded number of tries to forward a request."
-msgstr ""
+msgstr "Número de tentativas excedido para encaminhar um pedido."
 
 #, python-format
 msgid "Retrieving CA cert chain failed: %s"
-msgstr ""
+msgstr "Recuperação de cadeia de certificado CA falhou: %s"
 
 #, python-format
 msgid "request failed with HTTP status %d"
-msgstr ""
+msgstr "pedido falhado com estado HTTP %d"
 
 #, python-format
 msgid "Retrieving CA status failed: %s"
-msgstr ""
+msgstr "Recuperar estado CA falhou: %s"
 
 #, python-format
 msgid "Retrieving CA status failed with status %d"
-msgstr ""
+msgstr "Recuperar estado CA falhou com estado: %d"
 
 #, python-format
 msgid "objectclass %s not found"
-msgstr ""
+msgstr "classe de objeto %s não encontrada"
 
 #, python-format
 msgid "Replication agreement for %(hostname)s not found"
-msgstr ""
+msgstr "Acordo de replicação para %(hostname)s não encontrado"
 
 #, python-format
 msgid "Unable to communicate with CMS (status %d)"
-msgstr ""
+msgstr "Incapaz de comunicar com CMS (estado %d)"
 
 msgid "Failed to authenticate to CA REST API"
-msgstr ""
+msgstr "Falhou ao autenticar para API CA REST"
 
 msgid "delegation"
-msgstr ""
+msgstr "delegação"
 
 msgid "delegations"
-msgstr ""
+msgstr "delegações"
 
 msgid "Delegations"
-msgstr ""
+msgstr "Delegações"
 
 msgid "Delegation"
-msgstr ""
+msgstr "Delegação"
 
 msgid "ACI"
-msgstr ""
+msgstr "ACI"
 
 #, python-format
 msgid "Added delegation \"%(value)s\""
-msgstr ""
+msgstr "Delegação adicionada \"%(value)s\""
 
 #, python-format
 msgid "Deleted delegation \"%(value)s\""
@@ -17741,39 +17793,49 @@ msgstr "Delegação modificada \"%(value)s\""
 #, python-format
 msgid "%(count)d delegation matched"
 msgid_plural "%(count)d delegations matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d delegação correspondeu"
+msgstr[1] "%(count)d delegações corresponderam"
 
 msgid ""
 "\n"
 "DNS server configuration\n"
 msgstr ""
+"\n"
+"Configuração de servidor DNS\n"
 
 msgid ""
 "\n"
 "Manipulate DNS server configuration\n"
 msgstr ""
+"\n"
+"Manipular configuração de servidor DNS\n"
 
 msgid ""
 "\n"
 "  Show configuration of a specific DNS server:\n"
 "    ipa dnsserver-show\n"
 msgstr ""
+"\n"
+"  Mostrar configuração de um servidor DNS específico:\n"
+"    ipa dnsserver-show\n"
 
 msgid ""
 "\n"
 "  Update configuration of a specific DNS server:\n"
 "    ipa dnsserver-mod\n"
 msgstr ""
+"\n"
+"  Atualizar configuração de um servidor DNS específico:\n"
+"    ipa dnsserver-mod\n"
 
 msgid "DNS server"
-msgstr ""
+msgstr "servidor DNS"
 
 msgid "DNS servers"
 msgstr "Servidores DNS"
 
 msgid "DNS Servers"
-msgstr ""
+msgstr "Servidores DNS"
 
 msgid "DNS Server"
 msgstr "Servidor DNS"
@@ -17782,30 +17844,35 @@ msgid "DNS Server name"
 msgstr "Nome do Servidor DNS"
 
 msgid "SOA mname override"
-msgstr ""
+msgstr "sobrepor mname SOA"
 
 msgid "SOA mname (authoritative server) override"
-msgstr ""
+msgstr "sobrepor mname SOA (servidor autoritativo)"
 
 msgid "Forwarders"
-msgstr ""
+msgstr "Encaminhadores"
 
 msgid ""
 "Per-server forwarders. A custom port can be specified for each forwarder "
 "using a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
+"Encaminhadores por-servidor. Pode ser especificado um porto personalizado "
+"para cada encaminhador usando um formato standard \"ENDEREÇO_IP porto PORTO\""
 
 msgid ""
 "Per-server conditional forwarding policy. Set to \"none\" to disable "
 "forwarding to global forwarder for this zone. In that case, conditional zone "
 "forwarders are disregarded."
 msgstr ""
+"Politica de encaminhamento condicional por-servidor. Definir para \"none\" "
+"para desativar o encaminhamento para o encaminhador global para esta zona. "
+"Nesse caso, os encaminhadores de zona condicionais são ignorados."
 
 msgid "DNS is not configured"
 msgstr "DNS não está configurado"
 
 msgid "Modify DNS server configuration"
-msgstr ""
+msgstr "Modificar configuração de servidor DNS"
 
 #, python-format
 msgid "Modified DNS server \"%(value)s\""
@@ -17817,31 +17884,31 @@ msgstr "Procurar por servidores DNS."
 #, python-format
 msgid "%(count)d DNS server matched"
 msgid_plural "%(count)d DNS servers matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d servidor DNS correspondente"
+msgstr[1] "%(count)d servidores DNS correspondentes"
 
 msgid "IPA DNS Server is not installed"
-msgstr ""
+msgstr "O servidor DNS do IPA não está instalado"
 
 msgid "Display configuration of a DNS server."
 msgstr "Mostra a configuração de um servidor DNS."
 
 msgid "Add a new DNS server."
-msgstr ""
+msgstr "Adicionar um novo servidor DNS."
 
 #, python-format
 msgid "Added new DNS server \"%(value)s\""
-msgstr ""
+msgstr "Novo servidor DNS adicionado \"%(value)s\""
 
 msgid "Delete a DNS server"
-msgstr ""
+msgstr "Apagar um servidor DNS"
 
 #, python-format
 msgid "Deleted DNS server \"%(value)s\""
 msgstr "Servidor DNS apagado \"%(value)s\""
 
 msgid "Host-based access control commands"
-msgstr ""
+msgstr "Comandos de controle de acesso baseado em máquina"
 
 msgid ""
 "\n"
@@ -17866,15 +17933,37 @@ msgid ""
 "   ipa hbacsvc-del tftp\n"
 "\n"
 msgstr ""
+"\n"
+"Serviços HBAC\n"
+"\n"
+"Os serviços PAM que o HBAC pode controlar o acesso a eles. O nome usado "
+"aqui\n"
+"tem de corresponder ao nome do serviço que o PAM está a avaliar.\n"
+"\n"
+"EXEMPLOS:\n"
+"\n"
+" Adicionar um novo serviço HBAC:\n"
+"   ipa hbacsvc-add tftp\n"
+"\n"
+" Modificar um serviço HBAC existente:\n"
+"   ipa hbacsvc-mod --desc=\"TFTP service\" tftp\n"
+"\n"
+" Procurar por serviços HBAC. Este exemplo vai devolver dois resultados, o\n"
+" serviço FTP e o serviço tftp recentemente adicionado:\n"
+"   ipa hbacsvc-find ftp\n"
+"\n"
+" Apagar um serviço HBAC:\n"
+"   ipa hbacsvc-del tftp\n"
+"\n"
 
 msgid "HBAC services"
-msgstr "Serviços de HBAC"
+msgstr "serviços HBAC"
 
 msgid "HBAC Services"
-msgstr ""
+msgstr "Serviços HBAC"
 
 msgid "HBAC Service"
-msgstr ""
+msgstr "Serviço HBAC"
 
 #, python-format
 msgid "Added HBAC service \"%(value)s\""
@@ -17891,24 +17980,24 @@ msgstr "Serviço HBAC modificado \"%(value)s\""
 #, python-format
 msgid "%(count)d HBAC service matched"
 msgid_plural "%(count)d HBAC services matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d serviço HBAC correspondente"
+msgstr[1] "%(count)d serviços HBAC correspondentes"
 
 msgid "HBAC service group"
-msgstr ""
+msgstr "grupo de serviço HBAC"
 
 msgid "HBAC service groups"
-msgstr ""
+msgstr "grupos de serviço HBAC"
 
 msgid "HBAC Service Groups"
-msgstr ""
+msgstr "Grupos de Serviço HBAC"
 
 msgid "HBAC Service Group"
-msgstr ""
+msgstr "Grupo de Serviço HBAC"
 
 #, python-format
 msgid "Added HBAC service group \"%(value)s\""
-msgstr ""
+msgstr "Grupo de serviço HBAC adicionado \"%(value)s\""
 
 #, python-format
 msgid "Deleted HBAC service group \"%(value)s\""
@@ -17921,8 +18010,8 @@ msgstr "Grupo de serviço HBAC modificado \"%(value)s\""
 #, python-format
 msgid "%(count)d HBAC service group matched"
 msgid_plural "%(count)d HBAC service groups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d grupo de serviço HBAC correspondente"
+msgstr[1] "%(count)d grupos de serviço HBAC correspondentes"
 
 msgid "netgroups"
 msgstr "grupos de rede"
@@ -17942,6 +18031,8 @@ msgid ""
 "hostgroup with name \"%s\" already exists. Hostgroups and netgroups share a "
 "common namespace"
 msgstr ""
+"grupo de máquinas com nome \"%s\" já existe. Os grupos e máquinas e grupos "
+"de rede partilham um espaço de nome comum"
 
 #, python-format
 msgid "Deleted netgroup \"%(value)s\""
@@ -17953,21 +18044,25 @@ msgstr "Grupo de rede modificado \"%(value)s\""
 
 msgid "user category cannot be set to 'all' while there are allowed users"
 msgstr ""
+"categoria de utilizador não pode ser definida para 'all' enquanto existirem "
+"utilizadores permitidos"
 
 msgid "host category cannot be set to 'all' while there are allowed hosts"
 msgstr ""
+"categoria de máquina não pode ser definida para 'all' enquanto existirem "
+"máquinas permitidas"
 
 #, python-format
 msgid "%(count)d netgroup matched"
 msgid_plural "%(count)d netgroups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d grupo de rede correspondente"
+msgstr[1] "%(count)d grupos de rede correspondentes"
 
 msgid "One time password commands"
-msgstr ""
+msgstr "Comandos de palavra passe de uma vez"
 
 msgid "OTP configuration options"
-msgstr ""
+msgstr "opções de configuração de OTP"
 
 msgid "OTP Configuration"
 msgstr "Configuração de OTP"
@@ -17992,37 +18087,59 @@ msgid ""
 "\n"
 "https://www.freeipa.org/page/V4/Kerberos_PKINIT\n"
 msgstr ""
+"\n"
+"Ferramentas de reportar estado da funcionalidade PKINIT do Kerberos.\n"
+"\n"
+"Reportar mestres IPA nos quais o PKINIT Kerberos está ativo ou desativado\n"
+"\n"
+"EXEMPLOS:\n"
+" Listar estados PKINIT em todos os mestres:\n"
+"   ipa pkinit-status\n"
+"\n"
+" Verificar estado PKINIT em `ipa.example.com`:\n"
+"   ipa pkinit-status --server ipa.example.com\n"
+"\n"
+" Listar todos os mestres IPA com PKINIT desativado:\n"
+"   ipa pkinit-status --status='disabled'\n"
+"\n"
+"Para mais informação acerca de suporte a PKINIT veja:\n"
+"\n"
+"https://www.freeipa.org/page/V4/Kerberos_PKINIT\n"
 
 msgid "pkinit"
 msgstr "pkinit"
 
 msgid "PKINIT"
-msgstr ""
+msgstr "PKINIT"
 
 msgid "PKINIT status"
-msgstr ""
+msgstr "estado do PKINIT"
 
 msgid "Whether PKINIT is enabled or disabled"
 msgstr "Se o PKINIT é ativado ou desativado"
 
 msgid "Report PKINIT status on the IPA masters"
-msgstr ""
+msgstr "Reportar estado do PKINIT nos mestres de IPA"
 
 #, python-format
 msgid "%(count)s server matched"
 msgid_plural "%(count)s servers matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s servidor correspondente"
+msgstr[1] "%(count)s servidores correspondentes"
 
 msgid ""
 "\n"
 "RADIUS Proxy Servers\n"
 msgstr ""
+"\n"
+"Servidores Proxy RADIUS\n"
 
 msgid ""
 "\n"
 "Manage RADIUS Proxy Servers.\n"
 msgstr ""
+"\n"
+"Gerir Servidores Proxy RADIUS\n"
 
 msgid ""
 "\n"
@@ -18030,36 +18147,56 @@ msgid ""
 "authentications. This permits a great deal of flexibility when\n"
 "integrating with third-party authentication services.\n"
 msgstr ""
+"\n"
+"IPA suporta o uso dum servidor proxy RADIUS externo para autenticações\n"
+"krb5 OTP. Isto permite uma grande flexibilidade quando se faz \n"
+"integração com serviços de autenticação de terceiros.\n"
 
 msgid ""
 "\n"
 " Add a new server:\n"
 "   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
 msgstr ""
+"\n"
+" Adicionar um novo servidor:\n"
+"   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
 
 msgid ""
 "\n"
 " Find all servers whose entries include the string \"example.com\":\n"
 "   ipa radiusproxy-find example.com\n"
 msgstr ""
+"\n"
+" Encontrar todos os servidores cujas entradas incluem a string "
+"\"example.com\":\n"
+"   ipa radiusproxy-find example.com\n"
 
 msgid ""
 "\n"
 " Examine the configuration:\n"
 "   ipa radiusproxy-show MyRADIUS\n"
 msgstr ""
+"\n"
+" Examinar a configuração:\n"
+"   ipa radiusproxy-show MyRADIUS\n"
 
 msgid ""
 "\n"
 " Change the secret:\n"
 "   ipa radiusproxy-mod MyRADIUS --secret\n"
 msgstr ""
+"\n"
+" Mudar o segredo:\n"
+"   ipa radiusproxy-mod MyRADIUS --secret\n"
 
 msgid ""
 "\n"
 " Delete a configuration:\n"
 "   ipa radiusproxy-del MyRADIUS\n"
 msgstr ""
+"\n"
+" Apagar uma configuração:\n"
+"   ipa radiusproxy-del MyRADIUS\n"
 
 msgid "invalid attribute name"
 msgstr "nome de atributo inválido"
@@ -18068,20 +18205,20 @@ msgid "invalid port number"
 msgstr "número de porto inválido"
 
 msgid "RADIUS proxy server"
-msgstr ""
+msgstr "servidor proxy RADIUS"
 
 msgid "RADIUS proxy servers"
-msgstr ""
+msgstr "servidores proxy RADIUS"
 
 msgid "RADIUS Servers"
-msgstr ""
+msgstr "Servidores RADIUS"
 
 msgid "RADIUS Server"
-msgstr ""
+msgstr "Servidor RADIUS"
 
 #, python-format
 msgid "Added RADIUS proxy server \"%(value)s\""
-msgstr ""
+msgstr "servidor proxy RADIUS adicionado \"%(value)s\""
 
 #, python-format
 msgid "Deleted RADIUS proxy server \"%(value)s\""
@@ -18094,20 +18231,20 @@ msgstr "Servidor proxy RADIUS modificado \"%(value)s\""
 #, python-format
 msgid "%(count)d RADIUS proxy server matched"
 msgid_plural "%(count)d RADIUS proxy servers matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d servidor proxy RADIUS correspondente"
+msgstr[1] "%(count)d servidores proxy RADIUS correspondentes"
 
 msgid "self service permission"
-msgstr ""
+msgstr "permissão de auto atendimento"
 
 msgid "self service permissions"
-msgstr ""
+msgstr "permissões de auto atendimento"
 
 msgid "Self Service Permissions"
-msgstr ""
+msgstr "Permissões de Auto Atendimento"
 
 msgid "Self Service Permission"
-msgstr ""
+msgstr "Permissão de Auto Atendimento"
 
 #, python-format
 msgid "Added selfservice \"%(value)s\""
@@ -18124,11 +18261,11 @@ msgstr "Auto-atendimento modificado \"%(value)s\""
 #, python-format
 msgid "%(count)d selfservice matched"
 msgid_plural "%(count)d selfservices matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d auto atendimento correspondente"
+msgstr[1] "%(count)d auto atendimentos correspondentes"
 
 msgid "commands for controlling sudo configuration"
-msgstr ""
+msgstr "comandos para controlar a configuração do sudo"
 
 msgid ""
 "\n"
@@ -18178,28 +18315,28 @@ msgstr ""
 "   ipa sudocmdgroup-show admincmds\n"
 
 msgid "sudo command group"
-msgstr ""
+msgstr "grupo de comando sudo"
 
 msgid "sudo command groups"
-msgstr ""
+msgstr "grupos de comando sudo"
 
 #, python-format
 msgid "Added Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "Grupo de Comando Sudo Adicionado \"%(value)s\""
 
 #, python-format
 msgid "Deleted Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "Grupo de Comando Sudo Apagado \"%(value)s\""
 
 #, python-format
 msgid "Modified Sudo Command Group \"%(value)s\""
-msgstr ""
+msgstr "Grupo de Comando Sudo Modificado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d Sudo Command Group matched"
 msgid_plural "%(count)d Sudo Command Groups matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d Grupo de Comando Sudo correspondente"
+msgstr[1] "%(count)d Grupos de Comando Sudo correspondentes"
 
 msgid ""
 "\n"
@@ -18258,42 +18395,107 @@ msgid ""
 "   arguments: HTTP/ipa.example.com\n"
 "   ------------------------------------------\n"
 msgstr ""
+"\n"
+"Retorna informação acerca da entidade atualmente autenticada\n"
+"\n"
+"Comando Quem Sou Eu retorna informação sobre como obter\n"
+"mais detalhes acerca da identidade autenticada para este\n"
+"pedido. A informação inclui:\n"
+"\n"
+" * tipo de objeto\n"
+" * comando para recuperar detalhes do objeto\n"
+" * argumentos e opções para passar ao comando\n"
+"\n"
+"A informação é retornada como um dicionário. Os exemplos em baixo usam\n"
+"saída 'chave: valor' para objetivos ilustrativos.\n"
+"\n"
+"EXEMPLOS:\n"
+"\n"
+" Procurar como utilizador de IPA:\n"
+"   kinit admin\n"
+"   ipa console\n"
+"   >> api.Command.whoami()\n"
+"   ------------------------------------------\n"
+"   objeto: user\n"
+"   comando: user_show/1\n"
+"   argumentos: admin\n"
+"   ------------------------------------------\n"
+"\n"
+" Procurar como utilizador de um domínio de confiança:\n"
+"   kinit user@AD.DOMAIN\n"
+"   ipa console\n"
+"   >> api.Command.whoami()\n"
+"   ------------------------------------------\n"
+"   objeto: idoverrideuser\n"
+"   comando: idoverrideuser_show/1\n"
+"   argumentos: ('default trust view', 'user@ad.domain')\n"
+"   ------------------------------------------\n"
+"\n"
+" Procurar como uma máquina:\n"
+"   kinit -k\n"
+"   ipa console\n"
+"   >> api.Command.whoami()\n"
+"   ------------------------------------------\n"
+"   objeto: host\n"
+"   comando: host_show/1\n"
+"   argumentos: ipa.example.com\n"
+"   ------------------------------------------\n"
+"\n"
+" Procurar como um serviço Kerberos:\n"
+"   kinit -k -t /path/to/keytab HTTP/ipa.example.com\n"
+"   ipa console\n"
+"   >> api.Command.whoami()\n"
+"   ------------------------------------------\n"
+"   objeto: service\n"
+"   comando: service_show/1\n"
+"   argumentos: HTTP/ipa.example.com\n"
+"   ------------------------------------------\n"
 
 msgid "Describe currently authenticated identity."
-msgstr ""
+msgstr "Descreve identidade autenticada atualmente."
 
 msgid "Object class name"
-msgstr ""
+msgstr "Nome de classe de objeto"
 
 msgid "Function to get details"
-msgstr ""
+msgstr "Função para obter detalhes"
 
 msgid "Arguments to details function"
-msgstr ""
+msgstr "Argumentos para função de detalhes"
 
 msgid "Cannot query Directory Manager with API"
-msgstr ""
+msgstr "Não pode consultar Directory Manager com API"
 
 msgid ""
 "\n"
 "IPA server roles\n"
 msgstr ""
+"\n"
+"Funções de servidor IPA\n"
 
 msgid ""
 "\n"
 "Get status of roles (DNS server, CA, etc.) provided by IPA masters.\n"
 msgstr ""
+"\n"
+"Obter estado de funções (servidor DNS, CA, etc) fornecidas pelos mestres "
+"IPA.\n"
 
 msgid ""
 "\n"
 "The status of a role is either enabled, configured, or absent.\n"
 msgstr ""
+"\n"
+"O estado duma função é ou ativo, configurado, ou ausente.\n"
 
 msgid ""
 "\n"
 "  Show status of 'DNS server' role on a server:\n"
 "    ipa server-role-show ipa.example.com \"DNS server\"\n"
 msgstr ""
+"\n"
+"  Mostrar estado da função 'servidor DNS' num servidor:\n"
+"    ipa server-role-show ipa.example.com \"DNS server\"\n"
 
 msgid ""
 "\n"
@@ -18301,112 +18503,124 @@ msgid ""
 "    ipa server-role-find --server ipa.example.com --role=\"AD trust "
 "controller\"\n"
 msgstr ""
+"\n"
+"  Mostrar estado de todas as funções que contêm 'AD' num servidor:\n"
+"    ipa server-role-find --server ipa.example.com --role=\"AD trust "
+"controller\"\n"
 
 msgid ""
 "\n"
 "  Show status of all configured roles on a server:\n"
 "    ipa server-role-find ipa.example.com\n"
 msgstr ""
+"\n"
+"  Mostrar estado de todas as funções configuradas num servidor:\n"
+"    ipa server-role-find ipa.example.com\n"
 
 msgid ""
 "\n"
 "  Show implicit IPA master role:\n"
 "    ipa server-role-find --include-master\n"
 msgstr ""
+"\n"
+"  Mostrar função de mestre IPA implícita:\n"
+"    ipa server-role-find --include-master\n"
 
 msgid "server role"
-msgstr ""
+msgstr "função de servidor"
 
 msgid "server roles"
-msgstr ""
+msgstr "funções de servidor"
 
 msgid "IPA Server Roles"
-msgstr ""
+msgstr "Funções de Servidor IPA"
 
 msgid "IPA Server Role"
-msgstr ""
+msgstr "Função de Servidor IPA"
 
 msgid "IPA server role name"
-msgstr ""
+msgstr "nome de função de servidor IPA"
 
 msgid "Role status"
-msgstr ""
+msgstr "Estado de função"
 
 msgid "Status of the role"
-msgstr ""
+msgstr "Estado da função"
 
 msgid "Show role status on a server"
-msgstr ""
+msgstr "Mostrar estado de função num servidor"
 
 msgid "Find a server role on a server(s)"
-msgstr ""
+msgstr "Encontrar uma função de servidor em servidores"
 
 #, python-format
 msgid "%(count)s server role matched"
 msgid_plural "%(count)s server roles matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s função de servidor correspondente"
+msgstr[1] "%(count)s funções de servidor correspondentes"
 
 msgid "Include IPA master entries"
-msgstr ""
+msgstr "Incluir entradas de mestre IPA"
 
 msgid "roles"
 msgstr "funções"
 
 msgid "IPA role name"
-msgstr ""
+msgstr "Nome de função IPA"
 
 msgid "A list of ACI values"
 msgstr "Uma lista de valores ACI"
 
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
-msgstr ""
+msgstr "type, filter, subtree e targetgroup são mutuamente exclusivos"
 
 msgid "ACI prefix is required"
-msgstr ""
+msgstr "É necessário prefixo ACI"
 
 msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
 "required"
 msgstr ""
+"pelo menos um de: type, filter, subtree, targetgroup, attrs ou memberof é "
+"requerido"
 
 msgid "filter and memberof are mutually exclusive"
-msgstr ""
+msgstr "filter e memberof são mutuamente exclusivos"
 
 msgid "group, permission and self are mutually exclusive"
-msgstr ""
+msgstr "group, permission e self são mutuamente exclusivos"
 
 msgid "One of group, permission or self is required"
-msgstr ""
+msgstr "Um de group, permission ou self é requerido"
 
 #, python-format
 msgid "Group '%s' does not exist"
 msgstr "O grupo '%s' não existe"
 
 msgid "empty filter"
-msgstr ""
+msgstr "filtro vazio"
 
 #, python-format
 msgid "Syntax Error: %(error)s"
-msgstr ""
+msgstr "Erro de Sintaxe: %(error)s"
 
 #, python-format
 msgid "invalid DN (%s)"
-msgstr ""
+msgstr "DN inválido (%s)"
 
 #, python-format
 msgid "ACI with name \"%s\" not found"
-msgstr ""
+msgstr "ACI com o nome \"%s\" não encontrada"
 
 msgid "ACI object."
-msgstr ""
+msgstr "Objeto ACI."
 
 msgid "ACIs"
-msgstr ""
+msgstr "ACIs"
 
 #, python-format
 msgid "Created ACI \"%(value)s\""
-msgstr ""
+msgstr "ACI criada \"%(value)s\""
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
@@ -18419,17 +18633,19 @@ msgstr "ACI modificada \"%(value)s\""
 #, python-format
 msgid "%(count)d ACI matched"
 msgid_plural "%(count)d ACIs matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ACI correspondente"
+msgstr[1] "%(count)d ACIs correspondentes"
 
 #, python-format
 msgid "Renamed ACI to \"%(value)s\""
-msgstr ""
+msgstr "ACI renomeada para \"%(value)s\""
 
 msgid ""
 "\n"
 "Auto Membership Rule.\n"
 msgstr ""
+"\n"
+"Regra de Auto Adesão\n"
 
 msgid ""
 "\n"
@@ -18658,6 +18874,11 @@ msgid ""
 " Find all of the orphan automember rules and remove them:\n"
 "    ipa automember-find-orphans --type=hostgroup --remove\n"
 msgstr ""
+"\n"
+" Encontrar todas as regras de auto adesão órfãs:\n"
+"    ipa automember-find-orphans --type=hostgroup\n"
+" Encontrar todas as regras de auto adesão órfãs e remove-las:\n"
+"    ipa automember-find-orphans --type=hostgroup --remove\n"
 
 msgid ""
 "\n"
@@ -18720,15 +18941,15 @@ msgstr ""
 "hosts=web2.example.com\n"
 
 msgid "Auto Membership Rule"
-msgstr ""
+msgstr "Regra de Auto Adesão"
 
 #, python-format
 msgid "%(otype)s \"%(oname)s\" not found"
-msgstr ""
+msgstr "%(otype)s \"%(oname)s\" não encontrado"
 
 #, python-format
 msgid "%s is not a valid attribute."
-msgstr ""
+msgstr "%s não é um atributo válido."
 
 msgid ""
 "\n"
@@ -18741,10 +18962,10 @@ msgstr ""
 
 #, python-format
 msgid "Added automember rule \"%(value)s\""
-msgstr ""
+msgstr "Regra de auto adesão adicionada \"%(value)s\""
 
 msgid "Auto Membership is not configured"
-msgstr ""
+msgstr "Auto Adesão não está configurada"
 
 msgid ""
 "\n"
@@ -18757,11 +18978,11 @@ msgstr ""
 
 #, python-format
 msgid "Added condition(s) to \"%(value)s\""
-msgstr ""
+msgstr "Condições adicionadas para \"%(value)s\""
 
 #, python-format
 msgid "Auto member rule: %s not found!"
-msgstr ""
+msgstr "Regra de auto adesão: %s não encontrado!"
 
 msgid ""
 "\n"
@@ -18769,6 +18990,10 @@ msgid ""
 "result.\n"
 "        "
 msgstr ""
+"\n"
+"        Sobrepor isto para podermos adicionar completo e falhado ao "
+"resultado retornado.\n"
+"        "
 
 msgid ""
 "\n"
@@ -18781,13 +19006,16 @@ msgstr ""
 
 #, python-format
 msgid "Removed condition(s) from \"%(value)s\""
-msgstr ""
+msgstr "Condições removidas de \"%(value)s\""
 
 msgid ""
 "\n"
 "        Override this so we can set completed and failed.\n"
 "        "
 msgstr ""
+"\n"
+"        Sobrepor isto para podermos definir completo e falhado.\n"
+"        "
 
 msgid ""
 "\n"
@@ -18800,7 +19028,7 @@ msgstr ""
 
 #, python-format
 msgid "Modified automember rule \"%(value)s\""
-msgstr ""
+msgstr "Regra de auto adesão modificada \"%(value)s\""
 
 msgid ""
 "\n"
@@ -18813,7 +19041,7 @@ msgstr ""
 
 #, python-format
 msgid "Deleted automember rule \"%(value)s\""
-msgstr ""
+msgstr "Regra de auto adesão apagada \"%(value)s\""
 
 msgid ""
 "\n"
@@ -18827,8 +19055,8 @@ msgstr ""
 #, python-format
 msgid "%(count)d rules matched"
 msgid_plural "%(count)d rules matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d regra correspondente"
+msgstr[1] "%(count)d regras correspondentes"
 
 msgid ""
 "\n"
@@ -18844,23 +19072,31 @@ msgid ""
 "    Set default (fallback) group for all unmatched entries.\n"
 "    "
 msgstr ""
+"\n"
+"    Definir grupo predefinido (de recurso) para todas as entradas não "
+"correspondentes.\n"
+"    "
 
 #, python-format
 msgid "Set default (fallback) group for automember \"%(value)s\""
-msgstr ""
+msgstr "Definir grupo predefinido (de recurso) para auto adesão \"%(value)s\""
 
 msgid ""
 "\n"
 "    Remove default (fallback) group for all unmatched entries.\n"
 "    "
 msgstr ""
+"\n"
+"    Remover grupo predefinido (de recurso) para todas as entradas não "
+"correspondentes.\n"
+"    "
 
 #, python-format
 msgid "Removed default (fallback) group for automember \"%(value)s\""
-msgstr ""
+msgstr "Grupo predefinido (de recurso) removido para auto adesão \"%(value)s\""
 
 msgid "No default (fallback) group set"
-msgstr ""
+msgstr "Nenhum grupo predefinido (de recurso) definido"
 
 msgid ""
 "\n"
@@ -18873,35 +19109,36 @@ msgstr ""
 "    "
 
 msgid "Task DN"
-msgstr ""
+msgstr "DN de Tarefa"
 
 msgid "DN of the started task"
-msgstr ""
+msgstr "DN da tarefa iniciada"
 
 msgid "at least one of options: type, users, hosts must be specified"
-msgstr ""
+msgstr "pelo menos uma das opções: type, users, hosts tem de ser especificada"
 
 msgid "users and hosts cannot both be set"
-msgstr ""
+msgstr "utilizadores e máquinas não podem ser ambas definidas"
 
 msgid "hosts cannot be set when type is 'group'"
-msgstr ""
+msgstr "máquinas não podem ser definidas quando om tipo é 'grupo'"
 
 msgid "users cannot be set when type is 'hostgroup'"
 msgstr ""
+"utilizadores não podem ser definidos quando o tipo é 'grupo de máquinas'"
 
 msgid "Automember rebuild membership task started"
-msgstr ""
+msgstr "Tarefa de reconstrução das adesões de auto-adesão iniciada"
 
 msgid "Automember rebuild membership task completed"
-msgstr ""
+msgstr "Tarefa de reconstrução das adesões de auto-adesão completada"
 
 #, python-format
 msgid "Task DN = '%s'"
-msgstr ""
+msgstr "DN de Tarefa = '%s'"
 
 msgid "Automember"
-msgstr ""
+msgstr "Auto adesão"
 
 msgid ""
 "\n"
@@ -18909,35 +19146,40 @@ msgid ""
 "    a privileged user user to get all orphan rules.\n"
 "    "
 msgstr ""
+"\n"
+"    Procurar por regras de auto adesão órfãs. O programa pode precisar de "
+"correr como\n"
+"    um utilizador privilegiado para obter todas as regras órfãs.\n"
+"    "
 
 msgid "Remove orphan automember rules"
-msgstr ""
+msgstr "Remover regras de auto adesão órfãs"
 
 msgid "automount location"
-msgstr ""
+msgstr "localização de auto montagem"
 
 msgid "automount locations"
-msgstr ""
+msgstr "localizações de auto montagem"
 
 msgid "Automount Locations"
-msgstr ""
+msgstr "Localizações de Auto montagem"
 
 msgid "Automount Location"
-msgstr ""
+msgstr "Localização de Auto montagem"
 
 #, python-format
 msgid "Added automount location \"%(value)s\""
-msgstr ""
+msgstr "Localização de auto montagem adicionada \"%(value)s\""
 
 #, python-format
 msgid "Deleted automount location \"%(value)s\""
-msgstr ""
+msgstr "Localização de auto montagem apagada \"%(value)s\""
 
 #, python-format
 msgid "%(count)d automount location matched"
 msgid_plural "%(count)d automount locations matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d localização de auto montagem correspondente"
+msgstr[1] "%(count)d localizações de auto montagem correspondentes"
 
 msgid "automount map"
 msgstr "mapa de auto-montagem"
@@ -18953,24 +19195,24 @@ msgstr "Mapa de Auto-montagem"
 
 #, python-format
 msgid "Added automount map \"%(value)s\""
-msgstr ""
+msgstr "Mapa de auto montagem adicionado\"%(value)s\""
 
 #, python-format
 msgid "Deleted automount map \"%(value)s\""
-msgstr ""
+msgstr "Mapa de auto montagem apagado \"%(value)s\""
 
 #, python-format
 msgid "Modified automount map \"%(value)s\""
-msgstr "Mapa de automontagem modificado \"%(value)s\""
+msgstr "Mapa de auto montagem modificado \"%(value)s\""
 
 #, python-format
 msgid "%(count)d automount map matched"
 msgid_plural "%(count)d automount maps matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d mapa de auto montagem correspondente"
+msgstr[1] "%(count)d mapas de auto montagem correspondentes"
 
 msgid "Automount key object."
-msgstr ""
+msgstr "Objeto chave de auto montagem."
 
 msgid "automount key"
 msgstr "chave de auto-montagem"
@@ -18989,6 +19231,8 @@ msgid ""
 "The key,info pair must be unique. A key named %(key)s with info %(info)s "
 "already exists"
 msgstr ""
+"O par chave,informação tem de ser único. Uma chave chamada %(key)s com "
+"informação %(info)s já existe"
 
 #, python-format
 msgid "key named %(key)s already exists"
@@ -18996,90 +19240,92 @@ msgstr "a chave com nome %(key)s já existe"
 
 #, python-format
 msgid "The automount key %(key)s with info %(info)s does not exist"
-msgstr ""
+msgstr "A chave de auto montagem %(key)s com informação %(info)s não existe"
 
 #, python-format
 msgid ""
 "More than one entry with key %(key)s found, use --info to select specific "
 "entry."
 msgstr ""
+"Mais do que uma entrada com chave %(key)s encontrada, use --info para "
+"selecionar a entrada específica."
 
 #, python-format
 msgid "Added automount key \"%(value)s\""
-msgstr ""
+msgstr "Chave de auto montagem adicionada \"%(value)s\""
 
 #, python-format
 msgid "Added automount indirect map \"%(value)s\""
-msgstr ""
+msgstr "Mapa indireto de auto montagem adicionado \"%(value)s\""
 
 msgid "mount point is relative to parent map, cannot begin with /"
-msgstr ""
+msgstr "ponto de montagem é relativo ao mapa pai, não pode começar com /"
 
 #, python-format
 msgid "Deleted automount key \"%(value)s\""
-msgstr ""
+msgstr "Chave de auto montagem apagada \"%(value)s\""
 
 #, python-format
 msgid "Modified automount key \"%(value)s\""
-msgstr ""
+msgstr "Chave de auto montagem modificada \"%(value)s\""
 
 #, python-format
 msgid "%(count)d automount key matched"
 msgid_plural "%(count)d automount keys matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d chave de auto montagem correspondente"
+msgstr[1] "%(count)d chaves de auto montagem correspondentes"
 
 msgid "Member service groups"
-msgstr ""
+msgstr "Grupos de serviço membro"
 
 msgid "Member HBAC service groups"
-msgstr ""
+msgstr "Grupos de serviço HBAC membro"
 
 msgid "Member ID user overrides"
-msgstr ""
+msgstr "Sobreposições de utilizador do ID de Membro"
 
 msgid "Indirect Member ID user overrides"
-msgstr ""
+msgstr "Sobreposições de utilizador do ID de Membro Indireto"
 
 msgid "Indirect Member permissions"
-msgstr ""
+msgstr "Permissões de Membro Indireto"
 
 msgid "Indirect Member HBAC service"
-msgstr ""
+msgstr "Serviço HBAC Membro Indireto"
 
 msgid "Indirect Member HBAC service group"
-msgstr ""
+msgstr "Grupo de serviço HBAC Membro Indireto"
 
 msgid "Invalid format. Should be name=value"
-msgstr ""
+msgstr "Formato inválido. Deve ser nome=valor"
 
 msgid "An IPA master host cannot be deleted or disabled"
 msgstr "Uma máquina mestre IPA não pode ser apagada ou desativada"
 
 msgid "entry"
-msgstr ""
+msgstr "entrada"
 
 msgid "entries"
-msgstr ""
+msgstr "entradas"
 
 msgid "Entry"
-msgstr ""
+msgstr "Entrada"
 
 #, python-format
 msgid "container entry (%(container)s) not found"
-msgstr ""
+msgstr "entrada de contentor (%(container)s) não encontrada"
 
 #, python-format
 msgid "%(parent)s: %(oname)s not found"
-msgstr ""
+msgstr "%(parent)s: %(oname)s não encontrado"
 
 #, python-format
 msgid "%(pkey)s: %(oname)s not found"
-msgstr ""
+msgstr "%(pkey)s: %(oname)s não encontrado"
 
 #, python-format
 msgid "%(oname)s with name \"%(pkey)s\" already exists"
-msgstr ""
+msgstr "%(oname)s com nome \"%(pkey)s\" já existe"
 
 #, python-format
 msgid "attribute \"%(attribute)s\" not allowed"
@@ -19087,32 +19333,32 @@ msgstr "atributo \"%(attribute)s\" não permitido"
 
 #, python-format
 msgid "these attributes are not allowed: %(attrs)s"
-msgstr ""
+msgstr "estes atributos não são permitidos: %(attrs)s"
 
 msgid "attribute is not configurable"
-msgstr ""
+msgstr "atributo não é configurável"
 
 msgid "No such attribute on this entry"
-msgstr ""
+msgstr "Nenhum tal atributo nesta entrada"
 
 #, python-format
 msgid "Rename the %(ldap_obj_name)s object"
-msgstr ""
+msgstr "Renomear o objeto %(ldap_obj_name)s"
 
 msgid "the entry was deleted while being modified"
-msgstr ""
+msgstr "a entrada foi apagada ao ser modificada"
 
 #, python-format
 msgid "%s"
-msgstr ""
+msgstr "%s"
 
 #, python-format
 msgid "member %s"
-msgstr ""
+msgstr "%s membro"
 
 #, python-format
 msgid "%s to add"
-msgstr ""
+msgstr "%s a adicionar"
 
 #, python-format
 msgid "%s to remove"
@@ -19126,23 +19372,25 @@ msgstr "Resultados devem conter apenas atributo de chave primária (\"%s\")"
 msgid ""
 "Search for %(searched_object)s with these %(relationship)s %(ldap_object)s."
 msgstr ""
+"Procurar por %(searched_object)s com estes %(relationship)s %(ldap_object)s."
 
 #, python-format
 msgid ""
 "Search for %(searched_object)s without these %(relationship)s "
 "%(ldap_object)s."
 msgstr ""
+"Procurar por %(searched_object)s sem estes %(relationship)s %(ldap_object)s."
 
 #, python-format
 msgid "added attribute value to entry %(value)s"
-msgstr ""
+msgstr "valor de atributo adicionado a entrada %(value)s"
 
 #, python-format
 msgid "removed attribute values from entry %(value)s"
-msgstr ""
+msgstr "valores de atributo removidos da entrada %(value)s"
 
 msgid "one or more values to remove"
-msgstr ""
+msgstr "um ou mais valores a remover"
 
 msgid ""
 "\n"
@@ -19150,86 +19398,92 @@ msgid ""
 "\n"
 "This contains common definitions for user/stageuser\n"
 msgstr ""
+"\n"
+"Utilizador Base\n"
+"\n"
+"Isto contém definições comuns para utilizador/utilizador de estágio\n"
 
 msgid "must be TRUE or FALSE"
-msgstr ""
+msgstr "tem de ser TRUE ou FALSE"
 
 msgid ""
 "Object class ipaNTUserAttrs is missing, user entry cannot have SMB "
 "attributes."
 msgstr ""
+"Classe de objeto ipaNTUserAttrs em falta, entrada de utilizador não pode ter "
+"atributos SMB."
 
 msgid "Principal alias"
-msgstr ""
+msgstr "Nome alternativo de principal"
 
 msgid "User password expiration"
-msgstr ""
+msgstr "Validade da palavra passe de utilizador"
 
 msgid "SSH public key fingerprint"
-msgstr ""
+msgstr "impressão digital de chave pública SSH"
 
 msgid "External IdP configuration"
-msgstr ""
+msgstr "Configuração IdP externa"
 
 msgid "External IdP user identifier"
-msgstr ""
+msgstr "Identificador de utilizador IdP externo"
 
 msgid "A string that identifies the user at external IdP"
-msgstr ""
+msgstr "Uma string que identifica o utilizador no IdP externo"
 
 msgid "Base-64 encoded user certificate"
 msgstr "Certificado de utilizador codificado em base-64"
 
 msgid "Certificate mapping data"
-msgstr ""
+msgstr "Dados de mapeamento de certificado"
 
 msgid "SMB logon script path"
-msgstr ""
+msgstr "caminho de script de inicio de sessão SMB"
 
 msgid "SMB profile path"
-msgstr ""
+msgstr "caminho de perfil SMB"
 
 msgid "SMB Home Directory"
 msgstr "Directório Home do SMB"
 
 msgid "SMB Home Directory Drive"
-msgstr ""
+msgstr "Drive Diretório Home SMB"
 
 msgid "Passkey mapping"
-msgstr ""
+msgstr "Mapeamento de chave passe"
 
 #, python-format
 msgid "invalid e-mail format: %(email)s"
-msgstr ""
+msgstr "formato de e-mail inválido: %(email)s"
 
 #, python-format
 msgid "manager %(manager)s not found"
-msgstr ""
+msgstr "gestor %(manager)s não encontrado"
 
 #, python-format
 msgid "can be at most %(len)d characters"
-msgstr ""
+msgstr "pode ter no máximo %(len)d caracteres"
 
 msgid "Issuer"
-msgstr ""
+msgstr "Emissor"
 
 msgid "Issuer of the certificate"
-msgstr ""
+msgstr "Emissor do certificado"
 
 msgid "Subject"
 msgstr "Assunto"
 
 msgid "Subject of the certificate"
-msgstr ""
+msgstr "Assunto do certificado"
 
 msgid "cannot have an empty subject"
-msgstr ""
+msgstr "não pode ter um assunto vazio"
 
 msgid "cannot specify both subject/issuer and certificate"
-msgstr ""
+msgstr "não pode especificar ambos assunto/emissor e certificado"
 
 msgid "cannot specify both subject/issuer and ipacertmapdata"
-msgstr ""
+msgstr "não pode especificar ambos assunto/emissor e ipacertmapdata"
 
 msgid "Add one or more certificate mappings to the user entry."
 msgstr ""
@@ -19237,25 +19491,25 @@ msgstr ""
 
 #, python-format
 msgid "Added certificate mappings to user \"%(value)s\""
-msgstr ""
+msgstr "Mapeamentos de certificado adicionados ao utilizador \"%(value)s\""
 
 msgid "Remove one or more certificate mappings from the user entry."
-msgstr ""
+msgstr "Remover um ou mais mapeamentos de certificado da entrada de utilizador."
 
 #, python-format
 msgid "Removed certificate mappings from user \"%(value)s\""
-msgstr ""
+msgstr "Mapeamentos de certificado removidos do utilizador \"%(value)s\""
 
 #, python-format
 msgid "Added passkey mappings to user \"%(value)s\""
-msgstr ""
+msgstr "Mapeamentos de chave passe adicionados ao utilizador \"%(value)s\""
 
 msgid "Remove one or more passkey mappings from the user entry."
 msgstr "Remover um ou mais mapeamentos de chave-passe à entrada do utilizador."
 
 #, python-format
 msgid "Removed passkey mappings from user \"%(value)s\""
-msgstr ""
+msgstr "Mapeamentos de chave passe removidos do utilizador \"%(value)s\""
 
 msgid ""
 "\n"
@@ -19315,32 +19569,88 @@ msgid ""
 "  Remove a CA ACL:\n"
 "    ipa caacl-del test\n"
 msgstr ""
+"\n"
+"Gerir regras CA ACL.\n"
+"\n"
+"Este plugin é usado para definir regras que governam quais CAs e perfis\n"
+"pode ser usados para emitir certificados a principais particulares ou\n"
+"grupos de principais.\n"
+"\n"
+"ESCOPO PRINCIPAL DO ASSUNTO:\n"
+"\n"
+"Para um pedido de certificado ser autorizado, os principal(s) que são\n"
+"o assunto do pedido de certificado (não necessariamente o principal\n"
+"que realmente pede o certificado) tem de ser incluído no escopo\n"
+"da ACL CA que também inclui o alvo CA e o perfil.\n"
+"\n"
+"utilizadores ode ser incluídos por nome, grupo ou categoria \"all users\".\n"
+"Máquinas podem ser incluídas por nome, grupo de máquina ou a categoria\n"
+"\"all hosts\".  Serviços podem ser incluídos por nome de serviço ou a\n"
+"categoria \"all services\".  ACLs CA podem ser associadas a um único tipo\n"
+"de principal, ou múltiplos tipos.\n"
+"\n"
+"ESCOPO DA AUTORIDADE DO CERTIFICADO:\n"
+"\n"
+"Uma ACL CA pode ser associada com um ou mais CAs pelo nome, ou pela\n"
+"categoria \"all CAs\".  Por razões de compatibilidade, uma ACL CA sem\n"
+"nenhuma associação CA implica uma associação com a CA 'ipa' (e apenas\n"
+"esta CA).\n"
+"\n"
+"ESCOPO DO PERFIL:\n"
+"\n"
+"Uma ACL CA pode ser associada com um ou mais perfis pelo ID de Perfil.\n"
+"O ID de Perfil é uma string sem espaços nem pontuação que começa com\n"
+"uma letra e seguida de uma sequência de letras dígitos ou\n"
+"underscore (\"_\").\n"
+"\n"
+"EXEMPLOS:\n"
+"\n"
+"  Criar uma ACL CA \"test\" que concede a todos os utilizadores acesso ao\n"
+"  perfil \"UserCert\" em todos os CAs:\n"
+"    ipa caacl-add test --usercat=all --cacat=all\n"
+"    ipa caacl-add-profile test --certprofiles UserCert\n"
+"\n"
+"  Mostrar as propriedades duma ACL CA nomeada:\n"
+"    ipa caacl-show test\n"
+"\n"
+"  Criar uma ACL CA para deixar a utilizadora \"alice\" usar o perfil "
+"\"DNP3\" em \"DNP3-CA\":\n"
+"    ipa caacl-add alice_dnp3\n"
+"    ipa caacl-add-ca alice_dnp3 --cas DNP3-CA\n"
+"    ipa caacl-add-profile alice_dnp3 --certprofiles DNP3\n"
+"    ipa caacl-add-user alice_dnp3 --user=alice\n"
+"\n"
+"  Desativar uma ACL CA:\n"
+"    ipa caacl-disable test\n"
+"\n"
+"  Remover uma ACL CA:\n"
+"    ipa caacl-del test\n"
 
 msgid "CA ACL"
-msgstr ""
+msgstr "ACL CA"
 
 msgid "CA ACLs"
-msgstr ""
+msgstr "ACLs CA"
 
 msgid "CA category"
-msgstr ""
+msgstr "Categoria de CA"
 
 msgid "CA category the ACL applies to"
-msgstr ""
+msgstr "Categoria de CA a que a ACL se aplica"
 
 msgid "CAs"
-msgstr ""
+msgstr "CAs"
 
 #, python-format
 msgid "Added CA ACL \"%(value)s\""
-msgstr ""
+msgstr "ACL CA adicionada \"%(value)s\""
 
 #, python-format
 msgid "Deleted CA ACL \"%(value)s\""
 msgstr "ACL de CA apagada \"%(value)s\""
 
 msgid "default CA ACL can be only disabled"
-msgstr ""
+msgstr "a ACL CA predefinida só pode ser desativada"
 
 #, python-format
 msgid "Modified CA ACL \"%(value)s\""
@@ -19348,125 +19658,132 @@ msgstr "ACL de CA modificada \"%(value)s\""
 
 msgid "CA category cannot be set to 'all' while there are allowed CAs"
 msgstr ""
+"categoria de CA não pode ser definida para 'all' enquanto existirem CAs "
+"autorizados"
 
 msgid ""
 "profile category cannot be set to 'all' while there are allowed profiles"
 msgstr ""
+"categoria de perfil não pode ser definida para 'all' enquanto existirem "
+"perfis autorizados"
 
 msgid ""
 "service category cannot be set to 'all' while there are allowed services"
 msgstr ""
+"categoria de serviço não pode ser definida para 'all' enquanto existirem "
+"serviços autorizados"
 
 #, python-format
 msgid "%(count)d CA ACL matched"
 msgid_plural "%(count)d CA ACLs matched"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d ACL CA correspondente"
+msgstr[1] "%(count)d ACLs CA correspondentes"
 
 #, python-format
 msgid "Enabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "ACL CA ativa \"%(value)s\""
 
 #, python-format
 msgid "Disabled CA ACL \"%(value)s\""
-msgstr ""
+msgstr "ACL CA desativada \"%(value)s\""
 
 #, python-format
 msgid "%i user or group added."
-msgstr ""
+msgstr "%i utilizador ou grupo adicionado."
 
 #, python-format
 msgid "%i users or groups added."
-msgstr ""
+msgstr "%i utilizadores ou grupos adicionados."
 
 msgid "users cannot be added when user category='all'"
 msgstr ""
+"não podem ser adicionados utilizadores quando categoria de utilizador='all'"
 
 #, python-format
 msgid "%i user or group removed."
-msgstr ""
+msgstr "%i utilizador ou grupo removido."
 
 #, python-format
 msgid "%i users or groups removed."
-msgstr ""
+msgstr "%i utilizadores ou grupos removidos."
 
 #, python-format
 msgid "%i host or hostgroup added."
-msgstr ""
+msgstr "%i máquina ou grupo de máquinas adicionado."
 
 #, python-format
 msgid "%i hosts or hostgroups added."
-msgstr ""
+msgstr "%i máquinas ou grupos de máquinas adicionados."
 
 msgid "hosts cannot be added when host category='all'"
-msgstr ""
+msgstr "não podem ser adicionadas máquinas quando categoria de máquina='all'"
 
 #, python-format
 msgid "%i host or hostgroup removed."
-msgstr ""
+msgstr "%i máquina ou grupo de máquinas removido."
 
 #, python-format
 msgid "%i hosts or hostgroups removed."
-msgstr ""
+msgstr "%i máquinas ou grupos de máquinas removidos."
 
 #, python-format
 msgid "%i service added."
-msgstr ""
+msgstr "%i serviço adicionado."
 
 #, python-format
 msgid "%i services added."
-msgstr ""
+msgstr "%i serviços adicionados."
 
 msgid "services cannot be added when service category='all'"
-msgstr ""
+msgstr "não podem ser adicionados serviços quando categoria de serviço='all'"
 
 #, python-format
 msgid "%i service removed."
-msgstr ""
+msgstr "%i serviço removido."
 
 #, python-format
 msgid "%i services removed."
-msgstr ""
+msgstr "%i serviços removidos."
 
 #, python-format
 msgid "%i profile added."
-msgstr ""
+msgstr "%i perfil adicionado."
 
 #, python-format
 msgid "%i profiles added."
-msgstr ""
+msgstr "%i perfis adicionados."
 
 msgid "profiles cannot be added when profile category='all'"
-msgstr ""
+msgstr "não podem ser adicionados perfis quando categoria de perfil='all'"
 
 #, python-format
 msgid "%i profile removed."
-msgstr ""
+msgstr "%i perfil removido."
 
 #, python-format
 msgid "%i profiles removed."
-msgstr ""
+msgstr "%i perfis removidos."
 
 msgid "Add CAs to a CA ACL."
-msgstr ""
+msgstr "Adicionar CAs a uma ACL CA."
 
 #, python-format
 msgid "%i CA added."
-msgstr ""
+msgstr "%i CA adicionada."
 
 #, python-format
 msgid "%i CAs added."
-msgstr ""
+msgstr "%i CAs adicionadas."
 
 msgid "CAs cannot be added when CA category='all'"
-msgstr ""
+msgstr "não podem ser adicionadas CAs quando categoria de CA='all'"
 
 msgid "Remove CAs from a CA ACL."
-msgstr ""
+msgstr "Remover CAs de uma ACL CA."
 
 #, python-format
 msgid "%i CA removed."
-msgstr ""
+msgstr "%i CA removido."
 
 #, python-format
 msgid "%i CAs removed."
@@ -19476,11 +19793,15 @@ msgid ""
 "\n"
 "Certificate Identity Mapping\n"
 msgstr ""
+"\n"
+"Mapeamento de Identidade de Certificado\n"
 
 msgid ""
 "\n"
 "Manage Certificate Identity Mapping configuration and rules.\n"
 msgstr ""
+"\n"
+"Gerir configuração e regras de Mapeamento de Identidade de Certificado\n"
 
 msgid ""
 "\n"
@@ -19490,18 +19811,33 @@ msgid ""
 "This code enables the management of the rules allowing to link a\n"
 "certificate to a user entry.\n"
 msgstr ""
+"\n"
+"O IPA suporta o uso de certificados para autenticação. Os certificados "
+"podem\n"
+"ou serem guardados na entrada de utilizador (certificado total no atributo "
+"the usercertificate),\n"
+"ou simplesmente vinculado à entrada do utilizador através de um mapeamento.\n"
+"Este código ativa a gestão de regras que permitem vincular um certificado\n"
+"a uma entrada de utilizador.\n"
 
 msgid ""
 "\n"
 " Display the Certificate Identity Mapping global configuration:\n"
 "   ipa certmapconfig-show\n"
 msgstr ""
+"\n"
+" Mostrar a configuração global de Mapeamento de Identidade de Certificado:\n"
+"   ipa certmapconfig-show\n"
 
 msgid ""
 "\n"
 " Modify Certificate Identity Mapping global configuration:\n"
 "   ipa certmapconfig-mod --promptusername=TRUE\n"
 msgstr ""
+"\n"
+" Modificar a configuração global de Mapeamento de Identidade de "
+"Certificado:\n"
+"   ipa certmapconfig-mod --promptusername=TRUE\n"
 
 msgid ""
 "\n"
@@ -19509,6 +19845,10 @@ msgid ""
 "   ipa certmaprule-add rule1 --desc=\"Link certificate with subject and "
 "issuer\"\n"
 msgstr ""
+"\n"
+" Criar uma nova Regra de Mapeamento de Identidade de Certificado:\n"
+"   ipa certmaprule-add rule1 --desc=\"Link certificate with subject and "
+"issuer\"\n"
 
 msgid ""
 "\n"
@@ -19516,36 +19856,57 @@ msgid ""
 "   ipa certmaprule-mod rule1 --maprule=\"<ALT-SEC-ID-I-S:"
 "altSecurityIdentities>\"\n"
 msgstr ""
+"\n"
+" Modificar uma Regra de Mapeamento de Identidade de Certificado:\n"
+"   ipa certmaprule-mod rule1 --maprule=\"<ALT-SEC-ID-I-"
+"S:altSecurityIdentities>\"\n"
 
 msgid ""
 "\n"
 " Disable a Certificate Identity Mapping Rule:\n"
 "   ipa certmaprule-disable rule1\n"
 msgstr ""
+"\n"
+" Desativar uma Regra de Mapeamento de Identidade de Certificado:\n"
+"   ipa certmaprule-disable rule1\n"
 
 msgid ""
 "\n"
 " Enable a Certificate Identity Mapping Rule:\n"
 "   ipa certmaprule-enable rule1\n"
 msgstr ""
+"\n"
+" Ativar uma Regra de Mapeamento de Identidade de Certificado:\n"
+"   ipa certmaprule-enable rule1\n"
 
 msgid ""
 "\n"
 " Display information about a Certificate Identity Mapping Rule:\n"
 "   ipa certmaprule-show rule1\n"
 msgstr ""
+"\n"
+" Mostrar informação sobre uma Regra de Mapeamento de Identidade de "
+"Certificado:\n"
+"   ipa certmaprule-show rule1\n"
 
 msgid ""
 "\n"
 " Find all Certificate Identity Mapping Rules with the specified domain:\n"
 "   ipa certmaprule-find --domain example.com\n"
 msgstr ""
+"\n"
+" Encontrar todas as Regras de Mapeamento de Identidade de Certificado com o "
+"domínio especificado:\n"
+"   ipa certmaprule-find --domain example.com\n"
 
 msgid ""
 "\n"
 " Delete a Certificate Identity Mapping Rule:\n"
 "   ipa certmaprule-del rule1\n"
 msgstr ""
+"\n"
+" Apagar uma Regra de Mapeamento de Identidade de Certificado:\n"
+"   ipa certmaprule-del rule1\n"
 
 msgid "domain"
 msgstr "domínio"
@@ -19554,64 +19915,73 @@ msgstr "domínio"
 msgid ""
 "The domain(s) \"%s\" cannot be used to apply altSecurityIdentities check."
 msgstr ""
+"Os domínios \"%s\" não podem ser usados para aplicar a verificação "
+"altSecurityIdentities."
 
 msgid ""
 "The mapping rule with altSecurityIdentities should be applied to a trusted "
 "Active Directory domain but no domain was associated with the rule."
 msgstr ""
+"A regra de mapeamento com altSecurityIdentities deve ser aplicada a um "
+"domínio Active Directory de confiança mas nenhum domínio foi associado com a "
+"regra."
 
 #, python-format
 msgid "The domain %s is neither IPA domain nor a trusteddomain."
-msgstr ""
+msgstr "O domínio %s não é nem domínio IPA nem domínio de confiança."
 
 msgid "Certificate Identity Mapping configuration options"
-msgstr ""
+msgstr "Opções de configuração de Mapeamento de Identidade de Certificado"
 
 msgid "Certificate Identity Mapping Global Configuration"
-msgstr ""
+msgstr "Configuração Global de Mapeamento de Identidade de Certificado"
 
 msgid "Prompt for the username"
-msgstr ""
+msgstr "Pedir por nome de utilizador"
 
 msgid ""
 "Prompt for the username when multiple identities are mapped to a certificate"
 msgstr ""
+"Pedir por nome de utilizador quando várias identidades são mapeadas a um "
+"certificado"
 
 msgid "Modify Certificate Identity Mapping configuration."
-msgstr ""
+msgstr "Modificar a configuração de Mapeamento de Identidade de Certificado."
 
 msgid "Show the current Certificate Identity Mapping configuration."
 msgstr ""
+"Mostrar a configuração atual de Mapeamento de Identidade de Certificado."
 
 msgid "Certificate Identity Mapping Rules"
-msgstr ""
+msgstr "Regras de Mapeamento de Identidade de Certificado"
 
 msgid "Certificate Identity Mapping Rule"
-msgstr ""
+msgstr "Regra de Mapeamento de Identidade de Certificado"
 
 msgid "Certificate Identity Mapping Rule name"
-msgstr ""
+msgstr "Nome de Regra de Mapeamento de Identidade de Certificado"
 
 msgid "Certificate Identity Mapping Rule description"
-msgstr ""
+msgstr "Descrição de Regra de Mapeamento de Identidade de Certificado"
 
 msgid "Mapping rule"
 msgstr "Regra de mapeamento"
 
 msgid "Rule used to map the certificate with a user entry"
-msgstr ""
+msgstr "Regra usada para mapear o certificado com uma entrada de utilizador"
 
 msgid "Matching rule"
 msgstr "Regra de correspondência"
 
 msgid "Rule used to check if a certificate can be used for authentication"
 msgstr ""
+"Regra usada para verificar se um certificado pode ser usado para autenticação"
 
 msgid "Domain where the user entry will be searched"
-msgstr ""
+msgstr "Domínio onde a entrada de utilizador vai ser procurada"
 
 msgid "Priority of the rule (higher number means lower priority"
-msgstr ""
+msgstr "Prioridade da regra (números maiores significam prioridade baixa)"
 
 msgid "Create a new Certificate Identity Mapping Rule."
 msgstr ""
