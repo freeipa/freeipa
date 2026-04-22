@@ -50,6 +50,11 @@ DEFAULT_OUTPUT_DICT = {
     "token_name": None,
     "token_password": None,
     "token_library": None,
+    "azure_username": None,
+    "azure_user_password": None,
+    "azure_tenant_id": None,
+    "azure_admin_client_id": None,
+    "azure_admin_client_secret": None,
 }
 
 DEFAULT_OUTPUT_ENV = {
