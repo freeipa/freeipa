@@ -1,12 +1,17 @@
 # Hashed-password test data for test_hashedpwd_migration.
-# Only leaf entries — the base suffix, ou=People and ou=Groups are
-# already present from instance1.ldif.
+# Brings its own ou=HashedPwdPeople so it does not touch ou=People used by
+# instance1.ldif / other migrate-ds tests.
 #
 # Users:
 #   puser1  — posixAccount, SSHA password for fo0m4nchU
 #   puser2  — posixAccount, SSHA password for Secret123
 
-dn: uid=puser1,ou=People,dc=testrealm,dc=test
+dn: ou=HashedPwdPeople,dc=testrealm,dc=test
+objectClass: top
+objectClass: organizationalUnit
+ou: HashedPwdPeople
+
+dn: uid=puser1,ou=HashedPwdPeople,dc=testrealm,dc=test
 objectClass: top
 objectClass: person
 objectClass: posixAccount
@@ -18,7 +23,7 @@ gidNumber: 2001
 homeDirectory: /home/puser1
 userPassword: {SSHA}OzA3jqAnLtOHUqFwAXGCj+XUNryWFN/VwvkhcA==
 
-dn: uid=puser2,ou=People,dc=testrealm,dc=test
+dn: uid=puser2,ou=HashedPwdPeople,dc=testrealm,dc=test
 objectClass: top
 objectClass: person
 objectClass: posixAccount
