@@ -81,6 +81,57 @@ cn: bosgrp
 gidNumber: 2001
 member: uid=bosusr,ou=BostonUsers,ou=Boston,dc=testrealm,dc=test
 
+dn: uid=mgr_user,ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: mgr_user
+cn: Manager User
+sn: User
+givenName: Manager
+uidNumber: 3001
+gidNumber: 3001
+homeDirectory: /home/mgr_user
+userPassword: Secret123
+
+dn: uid=user_with_mgr,ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+uid: user_with_mgr
+cn: Subordinate User
+sn: User
+givenName: Subordinate
+uidNumber: 3002
+gidNumber: 3002
+homeDirectory: /home/user_with_mgr
+userPassword: Secret123
+manager: uid=mgr_user,ou=People,dc=testrealm,dc=test
+
+dn: uid=posixuser_no_privgrp,ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: posixAccount
+uid: posixuser_no_privgrp
+cn: Posix User No PrivGrp
+sn: User
+uidNumber: 4001
+gidNumber: 1001
+homeDirectory: /home/posixuser_no_privgrp
+userPassword: Secret123
+
+dn: cn=dupgid_group,ou=Groups,dc=testrealm,dc=test
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: dupgid_group
+gidNumber: 1001
+member: uid=ldapuser_0001,ou=People,dc=testrealm,dc=test
+
 dn: cn=HR Managers,ou=Groups,dc=testrealm,dc=test
 objectClass: top
 objectClass: groupOfNames
