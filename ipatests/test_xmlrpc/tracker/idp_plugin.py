@@ -6,6 +6,7 @@ from ipalib import api
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.base import Tracker
 from ipatests.test_xmlrpc import objectclasses
+from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_bytes
 from ipatests.util import assert_deepequal
 
 
@@ -16,13 +17,16 @@ class IdpTracker(Tracker):
         'dn', 'cn', 'ipaidpauthendpoint', 'ipaidpdevauthendpoint',
         'ipaidpuserinfoendpoint', 'ipaidpkeysendpoint',
         'ipaidptokenendpoint', 'ipaidpissuerurl',
-        'ipaidpclientid', 'ipaidpscope', 'ipaidpsub'}
+        'ipaidpclientid', 'ipaidpscope', 'ipaidpsub',
+        'ipaidpclientauthmethod', }
 
     retrieve_all_keys = retrieve_keys | {
-        'objectclass', 'ipaidpclientsecret'
+        'objectclass', 'ipaidpclientsecret', 'userpkcs12', 'usercertificate'
     }
 
-    create_keys = retrieve_all_keys
+    create_keys = retrieve_keys | {
+        'objectclass', 'ipaidpclientsecret', 'userpkcs12',
+    }
 
     update_keys = retrieve_keys - {'dn'}
 
@@ -46,12 +50,17 @@ class IdpTracker(Tracker):
         self.attrs = dict(
             dn=self.dn,
             cn=[self.cn],
-            objectclass=objectclasses.idp,
+            objectclass=objectclasses.idp.copy(),
         )
         for key, value in self.kwargs.items():
             if key == 'ipaidpclientsecret':
                 self.attrs[key] = [value.encode('utf-8')]
                 continue
+            if key == 'userpkcs12':
+                # generate the usercertificate attributes
+                self.attrs['usercertificate'] = [fuzzy_bytes]
+                if 'ipaidpclientauth' not in self.attrs['objectclass']:
+                    self.attrs['objectclass'].append('ipaidpclientauth')
             if type(value) is not list:
                 self.attrs[key] = [value]
             else:
@@ -137,6 +146,22 @@ class IdpTracker(Tracker):
         result = command()
 
         for key, value in updates.items():
+            if key == 'ipaidpclientsecret':
+                self.attrs[key] = [value.encode('utf-8')]
+                continue
+            if key == 'ipaidpclientauthmethod':
+                if value is None or value == 'client_secret':
+                    self.attrs.pop('userpkcs12', None)
+                    self.attrs.pop('usercertificate', None)
+                    self.attrs.pop('ipaidpclientauthmethod', None)
+                    if 'ipaidpclientauth' in self.attrs['objectclass']:
+                        self.attrs['objectclass'].remove('ipaidpclientauth')
+                    continue
+            if key == 'userpkcs12':
+                # generate the usercertificate attributes
+                self.attrs['usercertificate'] = [fuzzy_bytes]
+                if 'ipaidpclientauth' not in self.attrs['objectclass']:
+                    self.attrs['objectclass'].append('ipaidpclientauth')
             if value is None or value == '':
                 del self.attrs[key]
             elif key == 'rename':
