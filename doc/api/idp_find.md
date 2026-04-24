@@ -23,6 +23,10 @@ Search for Identity Provider references.
 * ipaidpclientsecret : :ref:`Password<Password>`
 * ipaidpscope : :ref:`Str<Str>`
 * ipaidpsub : :ref:`Str<Str>`
+* ipaidpclientauthmethod : :ref:`StrEnum<StrEnum>`
+ * Values: ('client_secret', 'private_key_jwt', 'tls_client_auth')
+* userpkcs12 : :ref:`Pkcs12Bytes<Pkcs12Bytes>`
+* usercertificate : :ref:`Certificate<Certificate>`
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`
