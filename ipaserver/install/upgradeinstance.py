@@ -39,7 +39,7 @@ from ipaserver.install import service
 logger = logging.getLogger(__name__)
 
 DSE = 'dse.ldif'
-COMPAT_DN = "cn=Schema Compatibility,cn=plugins,cn=config"
+COMPAT_DN = "cn=schema compatibility,cn=plugins,cn=config"
 REPL_PLUGIN_DN_TEMPLATE = "cn=Multi%s Replication Plugin,cn=plugins,cn=config"
 
 
