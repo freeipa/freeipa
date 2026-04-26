@@ -7,6 +7,10 @@ Integration tests for Kerberos key types management in FreeIPA.
 Validates that
 1. FreeIPA correctly derives encryption types from 'permitted_enctypes`.
 2. Stores principal keys in strongest-first order.
+
+Related upstream PR: https://github.com/freeipa/freeipa/pull/7861
+Ref: https://pagure.io/freeipa/issue/9840
+Ref: https://pagure.io/freeipa/issue/9370
 """
 
 from __future__ import absolute_import
@@ -19,6 +23,8 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix
 
 CRYPTO_POLICIES_KRB5 = '/etc/krb5.conf.d/crypto-policies'
+TEST_KEYTAB = '/tmp/test.keytab'
+TESTSERVICE = 'testservice'
 CIFS_KEYTAB = '/tmp/cifs_test.keytab'
 DOGTAG_KEYTAB = '/etc/pki/pki-tomcat/dogtag.keytab'
 DNSKEYSYNCD_KEYTAB = '/etc/ipa/dnssec/ipa-dnskeysyncd.keytab'
@@ -28,8 +34,6 @@ HOST_KEYTAB = '/etc/krb5.keytab'
 NAMED_KEYTAB = '/etc/named.keytab'
 NFS_KEYTAB = '/tmp/nfs_test.keytab'
 
-TEST_KEYTAB = '/tmp/test.keytab'
-TESTSERVICE = 'testservice'
 TESTUSER = 'keytype_user1'
 TESTPWD = 'Secret123'
 
@@ -82,6 +86,36 @@ def assert_keytab_works_with_kinit(host, keytab, principal, expected_enctype):
     assert principal in result.stdout_text
     assert expected_enctype in result.stdout_text
     tasks.kdestroy_all(host)
+
+
+def set_permitted_enctypes(host, enctypes):
+    """Override permitted_enctypes in the crypto-policies krb5 config."""
+    enctypes_string = ' '.join(enctypes)
+    content = (
+        "[libdefaults]\n"
+        "permitted_enctypes = {}\n".format(enctypes_string)
+    )
+    host.put_file_contents(CRYPTO_POLICIES_KRB5, content)
+
+
+def rotate_ds_keytab(host):
+    """Re-retrieve the DS keytab so it picks up the current enctype ordering."""
+    ds_princ = 'ldap/{}@{}'.format(host.hostname, host.domain.realm)
+    host.run_command([
+        'ipa-getkeytab', '-p', ds_princ, '-k', DS_KEYTAB,
+    ])
+
+
+def get_ldap_enc_salt_types(host, attr):
+    """Return ordered list of values for a kerberos enctype LDAP attribute."""
+    realm = host.domain.realm
+    dn = DN(('cn', realm), ('cn', 'kerberos'), realm_to_suffix(realm))
+    conn = host.ldap_connect()
+    try:
+        entry = conn.get_entry(dn)
+        return list(entry.get(attr, []))
+    finally:
+        conn.unbind_s()
 
 
 class TestKeyTypesAfterInstall(IntegrationTest):
@@ -406,3 +440,186 @@ class TestKeyTypesAfterInstall(IntegrationTest):
                 (f"Strongest enctype mismatch for {keytab}: "
                  f"master={master_enctypes[0]}, "
                  f"replica={replica_enctypes[0]}")
+
+
+class TestKeyTypesReordering(IntegrationTest):
+    """Verify that ``ipa-server-upgrade`` propagates ``permitted_enctypes``
+    changes to LDAP and that newly generated keytabs follow the updated order.
+
+    PR #7861 makes IPA derive ``krbSupportedEncSaltTypes`` and
+    ``krbDefaultEncSaltTypes`` from the system's ``permitted_enctypes``
+    during upgrade.  The correct test flow is therefore:
+
+    1. Override ``permitted_enctypes`` in the crypto-policies config.
+    2. Run ``ipa-server-upgrade`` to propagate the change to LDAP.
+    3. Verify the LDAP attribute **values** reflect the new ordering.
+    4. Generate a new keytab — it should follow the LDAP-derived order.
+    5. Verify authentication still works.
+    """
+
+    topology = 'star'
+    num_replicas = 1
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=False)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=False)
+        tasks.kinit_admin(cls.master)
+
+        cls.master_crypto_backup = tasks.FileBackup(
+            cls.master, CRYPTO_POLICIES_KRB5
+        )
+        cls.replica_crypto_backup = tasks.FileBackup(
+            cls.replicas[0], CRYPTO_POLICIES_KRB5
+        )
+
+        svc_princ = '{}/{}'.format(TESTSERVICE, cls.master.hostname)
+        cls.master.run_command(['ipa', 'service-add', '--force', svc_princ])
+
+    def test_reverse_enctypes_and_upgrade(self):
+        """Override permitted_enctypes to aes128-first, then run upgrade.
+        After ipa-server-upgrade, LDAP krbSupportedEncSaltTypes should
+        reflect the reversed ordering with aes128 entries before aes256.
+        """
+        reversed_enctypes = [
+            'aes128-cts-hmac-sha1-96',
+            'aes256-cts-hmac-sha1-96',
+        ]
+        set_permitted_enctypes(self.master, reversed_enctypes)
+        self.master.run_command(['ipa-server-upgrade'])
+
+        supported = get_ldap_enc_salt_types(
+            self.master, 'krbSupportedEncSaltTypes'
+        )
+        assert len(supported) > 0
+        aes128 = [e for e in supported if 'aes128' in e]
+        aes256 = [e for e in supported if 'aes256' in e]
+        assert aes128 and aes256, \
+            f"Both aes128 and aes256 expected in LDAP, got: {supported}"
+        assert supported.index(aes128[0]) < \
+            supported.index(aes256[0]), \
+            ("After upgrade, aes128 should precede"
+             f" aes256 in LDAP, got: {supported}")
+
+    def test_keytab_follows_reversed_ldap_order(self):
+        """After upgrade updated LDAP, new keytab should have aes128 first."""
+        tasks.kinit_admin(self.master)
+        svc_princ = '{}/{}'.format(TESTSERVICE, self.master.hostname)
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
+        self.master.run_command([
+            'ipa-getkeytab', '-p', svc_princ, '-k', TEST_KEYTAB,
+        ])
+        enctypes = parse_keytab_enctypes(self.master, TEST_KEYTAB)
+        assert len(enctypes) > 0
+        assert 'aes128' in enctypes[0], \
+            f"Expected aes128 first in keytab after upgrade, got: {enctypes}"
+
+    def test_kinit_works_after_reorder(self):
+        """Authentication should still work after enctype reordering."""
+        for host in [self.master, self.replicas[0]]:
+            tasks.kdestroy_all(host)
+            tasks.kinit_admin(host)
+            result = host.run_command(['klist', '-e'])
+            assert 'aes' in result.stdout_text.lower(), \
+                f"kinit failed on {host.hostname} after reorder"
+
+    def test_restrict_to_aes256_and_upgrade(self):
+        """Restrict permitted_enctypes to aes256 only, upgrade, verify LDAP."""
+        set_permitted_enctypes(self.master, ['aes256-cts-hmac-sha1-96'])
+        self.master.run_command(['ipa-server-upgrade'])
+
+        supported = get_ldap_enc_salt_types(
+            self.master, 'krbSupportedEncSaltTypes'
+        )
+        for entry in supported:
+            assert 'aes256' in entry, \
+                f"Expected only aes256 in LDAP after restriction, got: {entry}"
+
+    def test_restricted_keytab_has_only_aes256(self):
+        """After restricting LDAP to aes256, keytab should have only aes256."""
+        tasks.kinit_admin(self.master)
+        svc_princ = '{}/{}'.format(TESTSERVICE, self.master.hostname)
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
+        self.master.run_command([
+            'ipa-getkeytab', '-p', svc_princ, '-k', TEST_KEYTAB,
+        ])
+        enctypes = parse_keytab_enctypes(self.master, TEST_KEYTAB)
+        assert len(enctypes) > 0
+        for enc in enctypes:
+            assert 'aes256' in enc, \
+                f"Expected only aes256 in keytab, got: {enc}"
+
+    def test_kinit_works_after_restriction(self):
+        """Admin kinit should succeed with aes256-only configuration."""
+        for host in [self.master, self.replicas[0]]:
+            tasks.kdestroy_all(host)
+            tasks.kinit_admin(host)
+            result = host.run_command(['klist', '-e'])
+            assert 'aes256' in result.stdout_text, \
+                f"kinit failed on {host.hostname} after restriction"
+
+    def test_replica_upgrade_reflects_reorder(self):
+        """Replica upgrade should also update its LDAP to match config."""
+        set_permitted_enctypes(
+            self.replicas[0], ['aes256-cts-hmac-sha1-96'],
+        )
+        self.replicas[0].run_command(['ipa-server-upgrade'])
+
+        supported = get_ldap_enc_salt_types(
+            self.replicas[0], 'krbSupportedEncSaltTypes'
+        )
+        for entry in supported:
+            assert 'aes256' in entry, \
+                f"Expected only aes256 on replica after upgrade, got: {entry}"
+
+        rotate_ds_keytab(self.replicas[0])
+        replica_ds = parse_keytab_enctypes(self.replicas[0], DS_KEYTAB)
+        assert len(replica_ds) > 0
+        for enc in replica_ds:
+            assert 'aes256' in enc, \
+                f"Expected only aes256 in replica DS keytab, got: {enc}"
+
+    def test_restore_and_upgrade_recovers_default(self):
+        """Restoring config and running upgrade should recover default LDAP."""
+        self.master_crypto_backup.restore()
+        self.replica_crypto_backup.restore()
+        self.master.run_command(['ipa-server-upgrade'])
+
+        supported = get_ldap_enc_salt_types(
+            self.master, 'krbSupportedEncSaltTypes'
+        )
+        assert len(supported) > 0
+        assert supported[0].startswith('aes256'), \
+            f"After restore+upgrade, aes256 should be first, got: {supported}"
+
+        tasks.kinit_admin(self.master)
+        svc_princ = '{}/{}'.format(TESTSERVICE, self.master.hostname)
+        self.master.run_command(['rm', '-f', TEST_KEYTAB])
+        self.master.run_command([
+            'ipa-getkeytab', '-p', svc_princ, '-k', TEST_KEYTAB,
+        ])
+        enctypes = parse_keytab_enctypes(self.master, TEST_KEYTAB)
+        assert len(enctypes) > 0
+        assert 'aes256' in enctypes[0], \
+            ("After restore+upgrade, keytab should"
+             f" be aes256-first, got: {enctypes}")
+
+    @classmethod
+    def uninstall(cls, mh):
+        try:
+            cls.master_crypto_backup.restore()
+        except Exception:
+            pass
+        try:
+            cls.replica_crypto_backup.restore()
+        except Exception:
+            pass
+        tasks.kinit_admin(cls.master)
+        svc = '{}/{}'.format(TESTSERVICE, cls.master.hostname)
+        cls.master.run_command(
+            ['ipa', 'service-del', svc], raiseonerr=False,
+        )
+        cls.master.run_command(
+            ['rm', '-f', TEST_KEYTAB], raiseonerr=False,
+        )
+        super(TestKeyTypesReordering, cls).uninstall(mh)
