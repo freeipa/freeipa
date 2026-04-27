@@ -7,12 +7,22 @@ import re
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 
+PERMITTED_ENCTYPES = [
+    'aes256-cts-hmac-sha1-96',
+    'aes128-cts-hmac-sha1-96',
+    'camellia256-cts-cmac',
+    'camellia128-cts-cmac',
+]
 KRB5CONF_PATH = '/etc/krb5.conf.d/00-permitted-enctypes.conf'
-KRB5CONF_CONTENT = ('[libdefaults]\n'
-                    'permitted_enctypes = aes256-cts-hmac-sha1-96 '
-                    'aes128-cts-hmac-sha1-96 camellia256-cts-cmac '
-                    'camellia128-cts-cmac')
+KRB5CONF_CONTENT = (
+    '[libdefaults]\n'
+    f'permitted_enctypes = {" ".join(PERMITTED_ENCTYPES)}'
+)
+KDCCONF_PATH = '/var/kerberos/krb5kdc/kdc.conf'
 
+def supported_keytypes(expected_enctypes):
+    return [e + ':' + s for e in expected_enctypes
+            for s in ['special', 'normal']]
 class TestMkeyUpgrade(IntegrationTest):
 
     num_replicas = 1
@@ -52,6 +62,19 @@ class TestMkeyUpgrade(IntegrationTest):
         assert p.search(result.stdout_text)
         result = self.replicas[0].run_command(['kdb5_util', 'list_mkeys'])
         assert p.search(result.stdout_text)
+
+    def test_set_kdcconf_supported_enctypes(self):
+        supptypes = supported_keytypes(PERMITTED_ENCTYPES)
+        self.master.run_command([
+            'sed', '-i',
+            r's/^\( *supported_enctypes *=\).*$/\1 %s/' % (' '.join(supptypes)),
+            KDCCONF_PATH
+        ])
+        self.replicas[0].run_command([
+            'sed', '-i',
+            r's/^\( *supported_enctypes *=\).*$/\1 %s/' % (' '.join(supptypes)),
+            KDCCONF_PATH
+        ])
 
     def test_switch_mkey(self):
         self.master.run_command(['kdb5_util', 'use_mkey', '2'])
