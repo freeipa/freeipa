@@ -1,0 +1,230 @@
+#!/bin/bash
+# Copyright (C) 2025  FreeIPA Contributors see COPYING for license
+#
+# Sync renewed certificate from NSSDB to PEM files and trigger graceful reload
+# This is called by certmonger as a post-command after renewing certificates
+#
+# Usage: renew_ca_cert "nickname"
+
+set -e
+
+NICKNAME="$1"
+
+if [ -z "$NICKNAME" ]; then
+    echo "Error: Certificate nickname required" >&2
+    echo "Usage: renew_ca_cert \"nickname\"" >&2
+    exit 1
+fi
+
+# Paths
+NSSDB_DIR="/etc/pki/pki-tomcat/alias"
+PEM_DIR="/var/lib/ipathinca"
+PASSWORD_FILE="/etc/pki/pki-tomcat/password.conf"
+
+# Create secure temporary directory (mode 700, only accessible by owner)
+# Similar to Python's tempfile.mkdtemp()
+TEMP_DIR=$(mktemp -d -t renew_ca_cert.XXXXXXXXXX)
+if [ ! -d "$TEMP_DIR" ]; then
+    echo "Error: Failed to create secure temporary directory" >&2
+    exit 1
+fi
+
+# Ensure temporary directory is cleaned up on exit
+trap 'rm -rf "$TEMP_DIR"' EXIT INT TERM
+
+# Temporary files in secure directory
+TEMP_CERT="$TEMP_DIR/cert.pem"
+TEMP_P12="$TEMP_DIR/cert.p12"
+TEMP_KEY="$TEMP_DIR/key.pem"
+TEMP_PWD="$TEMP_DIR/password.txt"
+
+# Extract password from password.conf
+if [ ! -f "$PASSWORD_FILE" ]; then
+    echo "Error: Password file $PASSWORD_FILE not found" >&2
+    exit 1
+fi
+
+NSSDB_PASSWORD=$(grep "^internal=" "$PASSWORD_FILE" | cut -d= -f2)
+if [ -z "$NSSDB_PASSWORD" ]; then
+    echo "Error: Could not extract NSSDB password from $PASSWORD_FILE" >&2
+    exit 1
+fi
+
+# Function to export certificate from NSSDB to PEM
+export_cert_from_nssdb() {
+    local nickname="$1"
+
+    echo "Exporting certificate '$nickname' from NSSDB"
+
+    # Export certificate to PEM format
+    certutil -L -d "$NSSDB_DIR" -n "$nickname" -a > "$TEMP_CERT" 2>/dev/null || {
+        echo "Error: Failed to export certificate '$nickname' from NSSDB" >&2
+        return 1
+    }
+
+    # Write password to secure temporary file
+    echo "$NSSDB_PASSWORD" > "$TEMP_PWD"
+
+    # Export private key via PKCS#12
+    pk12util -o "$TEMP_P12" -d "$NSSDB_DIR" -n "$nickname" \
+        -k "$TEMP_PWD" -w "$TEMP_PWD" 2>/dev/null || {
+        echo "Error: Failed to export private key for '$nickname'" >&2
+        return 1
+    }
+
+    # Extract private key from PKCS#12
+    openssl pkcs12 -in "$TEMP_P12" -nodes -nocerts \
+        -passin pass:"$NSSDB_PASSWORD" -out "$TEMP_KEY" 2>/dev/null || {
+        echo "Error: Failed to extract private key from PKCS#12" >&2
+        return 1
+    }
+}
+
+# Map nickname to PEM file location
+# This follows the ipathinca certificate storage layout
+case "$NICKNAME" in
+    "caSigningCert cert-pki-ca")
+        echo "Syncing CA signing certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update CA certificate and key
+        cp "$TEMP_CERT" "$PEM_DIR/certs/ca.crt"
+        cp "$TEMP_KEY" "$PEM_DIR/ca/ca-signing.key"
+
+        # Also update /etc/ipa/ca.crt
+        cp "$TEMP_CERT" "/etc/ipa/ca.crt"
+
+        # Set ownership and permissions
+        chown ipaca:ipaca "$PEM_DIR/certs/ca.crt"
+        chown ipaca:ipaca "$PEM_DIR/ca/ca-signing.key"
+        chmod 644 "$PEM_DIR/certs/ca.crt"
+        chmod 640 "$PEM_DIR/ca/ca-signing.key"
+        chmod 644 "/etc/ipa/ca.crt"
+        ;;
+
+    "Server-Cert cert-pki-ca")
+        echo "Syncing server SSL certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update server certificate and key
+        cp "$TEMP_CERT" "$PEM_DIR/certs/server.crt"
+        cp "$TEMP_KEY" "$PEM_DIR/private/server.key"
+
+        # Set ownership and permissions
+        chown ipaca:ipaca "$PEM_DIR/certs/server.crt"
+        chown ipaca:ipaca "$PEM_DIR/private/server.key"
+        chmod 644 "$PEM_DIR/certs/server.crt"
+        chmod 600 "$PEM_DIR/private/server.key"
+        ;;
+
+    "subsystemCert cert-pki-ca")
+        echo "Syncing CA subsystem certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update subsystem certificate and key
+        cp "$TEMP_CERT" "$PEM_DIR/certs/ca_subsystem.crt"
+        cp "$TEMP_KEY" "$PEM_DIR/private/ca_subsystem.key"
+
+        # Set ownership and permissions
+        chown ipaca:ipaca "$PEM_DIR/certs/ca_subsystem.crt"
+        chown ipaca:ipaca "$PEM_DIR/private/ca_subsystem.key"
+        chmod 644 "$PEM_DIR/certs/ca_subsystem.crt"
+        chmod 600 "$PEM_DIR/private/ca_subsystem.key"
+        ;;
+
+    "auditSigningCert cert-pki-ca")
+        echo "Syncing CA audit signing certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update audit certificate and key
+        cp "$TEMP_CERT" "$PEM_DIR/certs/ca_audit.crt"
+        cp "$TEMP_KEY" "$PEM_DIR/private/ca_audit.key"
+
+        # Set ownership and permissions
+        chown ipaca:ipaca "$PEM_DIR/certs/ca_audit.crt"
+        chown ipaca:ipaca "$PEM_DIR/private/ca_audit.key"
+        chmod 644 "$PEM_DIR/certs/ca_audit.crt"
+        chmod 600 "$PEM_DIR/private/ca_audit.key"
+        ;;
+
+    "ocspSigningCert cert-pki-ca")
+        echo "Syncing OCSP signing certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update OCSP certificate and key
+        cp "$TEMP_CERT" "$PEM_DIR/certs/ocsp_subsystem.crt"
+        cp "$TEMP_KEY" "$PEM_DIR/private/ocsp_subsystem.key"
+
+        # Set ownership and permissions
+        chown ipaca:ipaca "$PEM_DIR/certs/ocsp_subsystem.crt"
+        chown ipaca:ipaca "$PEM_DIR/private/ocsp_subsystem.key"
+        chmod 644 "$PEM_DIR/certs/ocsp_subsystem.crt"
+        chmod 600 "$PEM_DIR/private/ocsp_subsystem.key"
+        ;;
+
+    "ipaCert")
+        echo "Syncing RA agent certificate to PEM files"
+        export_cert_from_nssdb "$NICKNAME" || exit 1
+
+        # Update RA agent certificate and key
+        cp "$TEMP_CERT" "/var/lib/ipa/ra-agent.pem"
+        cp "$TEMP_KEY" "/var/lib/ipa/ra-agent.key"
+
+        # Set ownership and permissions (same as IPA RA agent)
+        chgrp ipaapi "/var/lib/ipa/ra-agent.pem"
+        chgrp ipaapi "/var/lib/ipa/ra-agent.key"
+        chmod 440 "/var/lib/ipa/ra-agent.pem"
+        chmod 440 "/var/lib/ipa/ra-agent.key"
+        ;;
+
+    *)
+        echo "Warning: Unknown certificate nickname '$NICKNAME', skipping PEM sync" >&2
+        ;;
+esac
+
+# Note: Temporary directory cleanup is handled by trap on exit
+
+# Reload certificates in ipathinca service without restart (graceful reload via SIGHUP)
+if systemctl is-active --quiet ipathinca.service 2>/dev/null; then
+    echo "Sending SIGHUP to ipathinca service for graceful certificate reload"
+
+    # Get the main PID of ipathinca service
+    IPATHINCA_PID=$(systemctl show --property MainPID --value ipathinca.service)
+
+    if [ -n "$IPATHINCA_PID" ] && [ "$IPATHINCA_PID" != "0" ]; then
+        # Send SIGHUP to trigger graceful certificate reload
+        if kill -HUP "$IPATHINCA_PID" 2>/dev/null; then
+            echo "Certificate reload signal sent successfully (no service restart needed)"
+
+            # Wait briefly for reload to complete
+            sleep 2
+
+            # Verify service is still running
+            if systemctl is-active --quiet ipathinca.service; then
+                echo "Service is running, certificate reload successful"
+            else
+                echo "Warning: Service not running after reload, attempting restart" >&2
+                systemctl start ipathinca.service
+            fi
+        else
+            echo "Warning: Failed to send SIGHUP signal, restarting service instead" >&2
+            systemctl restart ipathinca.service
+        fi
+    else
+        echo "Warning: Could not get ipathinca PID, restarting service instead" >&2
+        systemctl restart ipathinca.service
+    fi
+elif systemctl is-enabled --quiet ipathinca.service 2>/dev/null; then
+    # Service is configured but not running, start it
+    echo "Starting ipathinca service with renewed certificate"
+    systemctl start ipathinca.service
+elif systemctl is-active --quiet pki-tomcatd@pki-tomcat.service 2>/dev/null; then
+    # Dogtag fallback for compatibility (Dogtag requires restart, no SIGHUP support)
+    echo "Restarting pki-tomcat service with renewed certificate (Dogtag mode)"
+    systemctl restart pki-tomcatd@pki-tomcat.service
+else
+    echo "Warning: No CA service running, not reloading certificates" >&2
+fi
+
+echo "Certificate renewal completed successfully for '$NICKNAME'"
+exit 0
