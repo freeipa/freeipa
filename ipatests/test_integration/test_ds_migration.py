@@ -74,6 +74,58 @@ def _setup_389ds_on_client(client, admin_password):
     )
 
 
+def migrate_ds(master, extra_args, password, raiseonerr=True):
+    """Run ``ipa migrate-ds`` with *extra_args*."""
+    return master.run_command(
+        ["ipa", "migrate-ds"] + extra_args,
+        stdin_text=password,
+        raiseonerr=raiseonerr,
+    )
+
+
+def cleanup_migrated_data(master, users, groups,
+                          extra_users=None, extra_groups=None):
+    """Remove all users and groups that migrate-ds may have created."""
+    all_users = list(users)
+    if extra_users:
+        all_users.extend(extra_users)
+    for user in all_users:
+        master.run_command(
+            ["ipa", "user-del", user], raiseonerr=False
+        )
+    all_groups = list(groups)
+    if extra_groups:
+        all_groups.extend(extra_groups)
+    for group in all_groups:
+        master.run_command(
+            ["ipa", "group-del", group], raiseonerr=False
+        )
+
+
+def kerberos_keys_available(master, uid):
+    """Return True if Kerberos keys are available for *uid*."""
+    result = master.run_command(
+        ["ipa", "user-show", uid],
+    )
+    return "Kerberos keys available: True" in result.stdout_text
+
+
+def migrate_bind(master, username, password):
+    """LDAP simple bind as *username* to trigger key generation."""
+    base_dn = master.domain.basedn
+    bind_dn = "uid={},cn=users,cn=accounts,{}".format(
+        username, base_dn
+    )
+    master.run_command(
+        [
+            "ldapwhoami", "-x",
+            "-H", "ldap://localhost",
+            "-D", bind_dn,
+            "-w", password,
+        ],
+    )
+
+
 class TestDSMigrationConfig(IntegrationTest):
     """
     Test ipa migrate-ds related scenarios.
@@ -421,28 +473,6 @@ class TestDSMigrationConfig(IntegrationTest):
                     raiseonerr=False,
                 )
 
-    def kerberos_keys_available(self, uid):
-        """Return True if Kerberos keys are available for *uid*."""
-        result = self.master.run_command(
-            ["ipa", "user-show", uid],
-        )
-        return "Kerberos keys available: True" in result.stdout_text
-
-    def migrate_bind(self, username, password):
-        """LDAP simple bind as *username* to trigger key generation."""
-        base_dn = self.master.domain.basedn
-        bind_dn = "uid={},cn=users,cn=accounts,{}".format(
-            username, base_dn
-        )
-        self.master.run_command(
-            [
-                "ldapwhoami", "-x",
-                "-H", "ldap://localhost",
-                "-D", bind_dn,
-                "-w", password,
-            ],
-        )
-
     def test_hashedpwd_migration(self):
         """
         Migrate users whose passwords are stored as SSHA hashes in
@@ -494,15 +524,15 @@ class TestDSMigrationConfig(IntegrationTest):
                 stdin_text=pwd_admin,
             )
 
-            assert not self.kerberos_keys_available(user1)
-            assert not self.kerberos_keys_available(user2)
+            assert not kerberos_keys_available(self.master, user1)
+            assert not kerberos_keys_available(self.master, user2)
 
-            self.migrate_bind(user1, user1pwd)
-            assert self.kerberos_keys_available(user1)
+            migrate_bind(self.master, user1, user1pwd)
+            assert kerberos_keys_available(self.master, user1)
             tasks.kinit_as_user(self.master, user1, user1pwd)
 
-            self.migrate_bind(user2, user2pwd)
-            assert self.kerberos_keys_available(user2)
+            migrate_bind(self.master, user2, user2pwd)
+            assert kerberos_keys_available(self.master, user2)
             tasks.kinit_as_user(self.master, user2, user2pwd)
         finally:
             tasks.kinit_admin(self.master)
@@ -511,3 +541,311 @@ class TestDSMigrationConfig(IntegrationTest):
                     ["ipa", "user-del", user],
                     raiseonerr=False,
                 )
+
+
+class TestDSMigrationOptions(IntegrationTest):
+    """
+    Option-validation tests and negative scenarios for ipa migrate-ds.
+    """
+    topology = "line"
+    num_replicas = 0
+    num_clients = 1
+
+    USER_CONTAINER = "ou=People"
+    GROUP_CONTAINER = "ou=Groups"
+    CA_CERT_FILE = "/etc/ipa/remoteds.crt"
+
+    COMMON_MIGRATE_OPTS = [
+        "--user-container", USER_CONTAINER,
+        "--group-container", GROUP_CONTAINER,
+        "--ca-cert-file", CA_CERT_FILE,
+    ]
+
+    MIGRATED_USERS = (
+        "ldapuser_0001", "ldapuser_0002", "ldapuser_0003",
+    )
+    MIGRATED_GROUPS = (
+        "ldapgroup_0001", "HR Managers", "Directory Administrators",
+    )
+
+    EXPECTED_BAD_OU_DN = "ou=bad,{}".format(DS_BASEDN)
+
+    @classmethod
+    def install(cls, mh):
+        super(TestDSMigrationOptions, cls).install(mh)
+        # Set up 389-ds on the client with base migration test data
+        _setup_389ds_on_client(
+            cls.clients[0], cls.master.config.admin_password,
+        )
+
+        # Load additional users needed by negative/exclude tests
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        ldif_path = os.path.join(
+            test_dir, "data", "ds_migration", "instance_negative.ldif"
+        )
+        with open(ldif_path) as f:
+            ldif_content = f.read()
+        cls.clients[0].put_file_contents(
+            "/tmp/instance_negative.ldif", ldif_content
+        )
+        cls.clients[0].run_command(
+            [
+                "/usr/bin/ldapmodify",
+                "-a", "-x",
+                "-H", "ldap://localhost:{}".format(DS_PORT),
+                "-D", "cn=Directory Manager",
+                "-w", cls.master.config.admin_password,
+                "-f", "/tmp/instance_negative.ldif",
+            ]
+        )
+
+        cls.ldaps_uri = "ldaps://{}:{}".format(
+            cls.clients[0].hostname, DS_SECURE_PORT
+        )
+
+        # Copy 389-ds CA cert from client to master for LDAPS
+        ds_cert_dir = "/etc/dirsrv/slapd-{}".format(DS_INSTANCE_NAME)
+        cert_result = cls.clients[0].run_command(
+            [
+                "certutil", "-d", ds_cert_dir, "-L", "-n",
+                "Self-Signed-CA", "-a",
+            ],
+        )
+        cls.master.put_file_contents(
+            cls.CA_CERT_FILE, cert_result.stdout_text
+        )
+        cls.master.run_command(
+            ["restorecon", cls.CA_CERT_FILE], raiseonerr=False
+        )
+
+        # Enable migration mode and disable compat plugin
+        tasks.kinit_admin(cls.master)
+        cls.master.run_command(
+            ["ipa", "config-mod", "--enable-migration", "TRUE"],
+        )
+        cls.master.run_command(
+            ["ipa-compat-manage", "disable"],
+            stdin_text=cls.master.config.admin_password,
+            raiseonerr=False,
+        )
+        tasks.service_control_dirsrv(cls.master, "restart")
+
+    def test_invalid_directory_server_unreachable(self):
+        """migrate-ds against an unreachable LDAP server must fail."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "ldap://ldap.example.com:389",
+        ]
+        result = migrate_ds(self.master, args, pwd, raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 1, out
+        assert "cannot connect" in out.lower(), out
+        assert "ldap.example.com" in out
+
+    def test_invalid_user_container(self):
+        """migrate-ds with a non-existent user container must fail."""
+        tasks.kinit_admin(self.master)
+        tasks.service_control_dirsrv(self.master, "restart")
+        time.sleep(10)
+        pwd = self.master.config.admin_password
+        args = [
+            "--user-container", "ou=bad",
+            "--ca-cert-file", self.CA_CERT_FILE,
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(self.master, args, pwd, raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 2, out
+        assert "user LDAP search did not return any result" in out, out
+        assert self.EXPECTED_BAD_OU_DN in out, out
+
+    def test_invalid_group_container(self):
+        """migrate-ds with a non-existent group container must fail."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = [
+            "--group-container", "ou=bad",
+            "--ca-cert-file", self.CA_CERT_FILE,
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(self.master, args, pwd, raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 2, out
+        assert "group LDAP search did not return any result" in out, out
+        assert self.EXPECTED_BAD_OU_DN in out, out
+
+    def test_invalid_user_object_class(self):
+        """migrate-ds with a non-existent user objectclass
+        returns no results."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--user-objectclass", "badclass",
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(self.master, args, pwd, raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 2, out
+        assert "user LDAP search did not return any result" in out, out
+        assert "badclass" in out, out
+
+    def test_invalid_group_object_class(self):
+        """migrate-ds with a non-existent group objectclass
+        returns no results."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--group-objectclass", "badclass",
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(self.master, args, pwd, raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 2, out
+        assert "group LDAP search did not return any result" in out, out
+        assert "badclass" in out, out
+
+    def test_invalid_schema_option(self):
+        """migrate-ds with an invalid --schema value must fail."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--schema", "RFC9999",
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(self.master, args, pwd, raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 1, out
+        assert "invalid" in out.lower() and "schema" in out.lower(), out
+        assert "RFC2307" in out, out
+
+    def test_invalid_bind_password(self):
+        """migrate-ds with a wrong bind password must fail."""
+        tasks.kinit_admin(self.master)
+        args = self.COMMON_MIGRATE_OPTS + [
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(self.master, args, "badpWd882", raiseonerr=False)
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 1, out
+        assert (
+            "invalid credentials" in out.lower()
+            or "insufficient access" in out.lower()
+        ), out
+
+    def test_bind_dn_non_directory_manager(self):
+        """migrate-ds using a regular user bind DN
+        instead of Directory Manager must fail because the
+        remote 389-ds has no ACIs granting search access."""
+        tasks.kinit_admin(self.master)
+        bind_dn = "uid=ldapuser_0001,{},{}".format(
+            self.USER_CONTAINER, DS_BASEDN
+        )
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--bind-dn", bind_dn,
+            self.ldaps_uri,
+        ]
+        result = migrate_ds(
+            self.master, args, "fo0m4nchU", raiseonerr=False
+        )
+        out = result.stdout_text + result.stderr_text
+        assert result.returncode == 2, out
+        assert "user LDAP search did not return any result" in out, out
+
+    def test_exclude_user(self):
+        """--exclude-users skips the specified user during migration."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--exclude-users", "ldapuser_0002",
+            self.ldaps_uri,
+        ]
+        try:
+            migrate_ds(self.master, args, pwd, raiseonerr=True)
+            self.master.run_command(["ipa", "user-show", "ldapuser_0001"])
+            assert self.master.run_command(
+                ["ipa", "user-show", "ldapuser_0002"],
+                raiseonerr=False,
+            ).returncode == 2
+            self.master.run_command(["ipa", "user-show", "ldapuser_0003"])
+            self.master.run_command(["ipa", "group-show", "ldapgroup_0001"])
+            self.master.run_command(["ipa", "group-show", "HR Managers"])
+        finally:
+            cleanup_migrated_data(
+                self.master, self.MIGRATED_USERS, self.MIGRATED_GROUPS,
+            )
+
+    def test_exclude_group(self):
+        """--exclude-groups skips the specified group during migration."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--exclude-groups", "HR Managers",
+            self.ldaps_uri,
+        ]
+        try:
+            migrate_ds(self.master, args, pwd, raiseonerr=True)
+            for uid in ("ldapuser_0001", "ldapuser_0002", "ldapuser_0003"):
+                self.master.run_command(["ipa", "user-show", uid])
+            self.master.run_command(["ipa", "group-show", "ldapgroup_0001"])
+            assert self.master.run_command(
+                ["ipa", "group-show", "HR Managers"],
+                raiseonerr=False,
+            ).returncode == 2
+        finally:
+            cleanup_migrated_data(
+                self.master, self.MIGRATED_USERS, self.MIGRATED_GROUPS,
+            )
+
+    def test_exclude_multiple_users(self):
+        """--exclude-users repeated skips multiple users during migration."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--exclude-users", "ldapuser_0001",
+            "--exclude-users", "ldapuser_0002",
+            self.ldaps_uri,
+        ]
+        try:
+            migrate_ds(self.master, args, pwd, raiseonerr=True)
+            assert self.master.run_command(
+                ["ipa", "user-show", "ldapuser_0001"],
+                raiseonerr=False,
+            ).returncode == 2
+            assert self.master.run_command(
+                ["ipa", "user-show", "ldapuser_0002"],
+                raiseonerr=False,
+            ).returncode == 2
+            self.master.run_command(["ipa", "user-show", "ldapuser_0003"])
+            self.master.run_command(["ipa", "group-show", "ldapgroup_0001"])
+            self.master.run_command(["ipa", "group-show", "HR Managers"])
+        finally:
+            cleanup_migrated_data(
+                self.master, self.MIGRATED_USERS, self.MIGRATED_GROUPS,
+            )
+
+    def test_exclude_multiple_groups(self):
+        """--exclude-groups repeated skips multiple groups during migration."""
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+        args = self.COMMON_MIGRATE_OPTS + [
+            "--exclude-groups", "ldapgroup_0001",
+            "--exclude-groups", "HR Managers",
+            self.ldaps_uri,
+        ]
+        try:
+            migrate_ds(self.master, args, pwd, raiseonerr=True)
+            for uid in ("ldapuser_0001", "ldapuser_0002", "ldapuser_0003"):
+                self.master.run_command(["ipa", "user-show", uid])
+            assert self.master.run_command(
+                ["ipa", "group-show", "ldapgroup_0001"],
+                raiseonerr=False,
+            ).returncode == 2
+            assert self.master.run_command(
+                ["ipa", "group-show", "HR Managers"],
+                raiseonerr=False,
+            ).returncode == 2
+        finally:
+            cleanup_migrated_data(
+                self.master, self.MIGRATED_USERS, self.MIGRATED_GROUPS,
+            )
