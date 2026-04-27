@@ -128,6 +128,7 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       krb5_tl_data **result, int *num)
 {
     struct berval **vals;
+    char *tld_val;
     krb5_tl_data *prev, *next;
     krb5_int16 be_type;
     int i;
@@ -154,15 +155,22 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
             /* fill tl_data struct with the data */
             memcpy(&be_type, vals[i]->bv_val, 2);
             next->tl_data_type = ntohs(be_type);
+
             next->tl_data_length = vals[i]->bv_len - 2;
+            tld_val = vals[i]->bv_val + 2;
+
+            /* Trim string null terminator if present. */
+            if (next->tl_data_length > 0
+                && tld_val[next->tl_data_length - 1] == '\0') {
+                --next->tl_data_length;
+            }
+
             next->tl_data_contents = malloc(next->tl_data_length);
             if (!next->tl_data_contents) {
                 ret = ENOMEM;
                 goto done;
             }
-            memcpy(next->tl_data_contents,
-                   vals[i]->bv_val + 2,
-                   next->tl_data_length);
+            memcpy(next->tl_data_contents, tld_val, next->tl_data_length);
 
             if (prev) {
                 prev->tl_data_next = next;
@@ -2681,7 +2689,7 @@ static krb5_error_code ipadb_get_ldap_mod_str_list(struct ipadb_mods *imods,
             kerr = ENOMEM;
             goto done;
         }
-        bvs[i]->bv_len = strlen(strlist[i]) + 1;
+        bvs[i]->bv_len = strlen(strlist[i]);
     }
 
     kerr = ipadb_get_ldap_mod_bvalues(imods, attrname, bvs, len, mod_op);
