@@ -1,14 +1,18 @@
 #
-# Copyright (C) 2016 FreeIPA Contributors see COPYING for license
+# Copyright (C) 2016-2024 FreeIPA Contributors see COPYING for license
 #
 
 """
-classes/utils for Kerberos principal name validation/manipulation
+classes/utils for Kerberos operations using MIT Kerberos libraries
 """
+
+import ctypes
 import re
 import six
+import sys
 
 from ipapython.ipautil import escape_seq, unescape_seq
+import ipapython.version as _ipa_version
 
 if six.PY3:
     unicode = str
@@ -202,3 +206,290 @@ class Principal:
     def __repr__(self):
         return "{0.__module__}.{0.__name__}('{1}')".format(
             self.__class__, self)
+
+
+KRB5_CC_NOSUPP = -1765328137
+
+if sys.platform == 'darwin':
+    LIBKRB5_FILENAME = 'libkrb5.dylib'
+else:
+    LIBKRB5_FILENAME = 'libkrb5.so.3'
+
+try:
+    LIBKRB5 = ctypes.CDLL(LIBKRB5_FILENAME)
+except OSError as e:  # pragma: no cover
+    raise ImportError(str(e))
+
+krb5_int32 = ctypes.c_int32
+krb5_error_code = krb5_int32
+krb5_magic = krb5_error_code
+krb5_enctype = krb5_int32
+krb5_octet = ctypes.c_uint8
+krb5_timestamp = krb5_int32
+
+
+class _krb5_context(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_context"""
+    _fields_ = []
+
+
+class _krb5_ccache(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_ccache"""
+    _fields_ = []
+
+
+class _krb5_data(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_data"""
+    _fields_ = [
+        ("magic", krb5_magic),
+        ("length", ctypes.c_uint),
+        ("data", ctypes.c_char_p),
+    ]
+
+
+class krb5_principal_data(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct krb5_principal_data"""
+    _fields_ = []
+
+
+class _krb5_keyblock(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_keyblock"""
+    _fields_ = [
+        ("magic", krb5_magic),
+        ("enctype", krb5_enctype),
+        ("length", ctypes.c_uint),
+        ("contents", ctypes.POINTER(krb5_octet))
+    ]
+
+
+class _krb5_ticket_times(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_ticket_times"""
+    _fields_ = [
+        ("authtime", krb5_timestamp),
+        ("starttime", krb5_timestamp),
+        ("endtime", krb5_timestamp),
+        ("renew_till", krb5_timestamp),
+    ]
+
+
+class _krb5_address(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_address"""
+    _fields_ = []
+
+
+class _krb5_authdata(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_authdata"""
+    _fields_ = []
+
+
+krb5_principal = ctypes.POINTER(krb5_principal_data)
+krb5_keyblock = _krb5_keyblock
+krb5_ticket_times = _krb5_ticket_times
+krb5_boolean = ctypes.c_uint
+krb5_flags = krb5_int32
+krb5_data = _krb5_data
+krb5_address_p = ctypes.POINTER(_krb5_address)
+krb5_authdata_p = ctypes.POINTER(_krb5_authdata)
+
+
+class _krb5_creds(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_creds"""
+    _fields_ = [
+        ("magic", krb5_magic),
+        ("client", krb5_principal),
+        ("server", krb5_principal),
+        ("keyblock", krb5_keyblock),
+        ("times", krb5_ticket_times),
+        ("is_skey", krb5_boolean),
+        ("ticket_flags", krb5_flags),
+        ("addresses", ctypes.POINTER(krb5_address_p)),
+        ("ticket", krb5_data),
+        ("second_ticket", krb5_data),
+        ("authdata", ctypes.POINTER(krb5_authdata_p))
+    ]
+
+
+class KRB5Error(Exception):
+    pass
+
+
+def krb5_errcheck(result, func, arguments):
+    """Error checker for krb5_error_code return value"""
+    if result != 0:
+        raise KRB5Error(result, func.__name__, arguments)
+
+
+krb5_context = ctypes.POINTER(_krb5_context)
+krb5_ccache = ctypes.POINTER(_krb5_ccache)
+krb5_data_p = ctypes.POINTER(_krb5_data)
+krb5_creds = _krb5_creds
+krb5_pointer = ctypes.c_void_p
+krb5_cc_cursor = krb5_pointer
+
+krb5_init_context = LIBKRB5.krb5_init_context
+krb5_init_context.argtypes = (ctypes.POINTER(krb5_context), )
+krb5_init_context.restype = krb5_error_code
+krb5_init_context.errcheck = krb5_errcheck
+
+krb5_free_context = LIBKRB5.krb5_free_context
+krb5_free_context.argtypes = (krb5_context, )
+krb5_free_context.restype = None
+
+krb5_free_principal = LIBKRB5.krb5_free_principal
+krb5_free_principal.argtypes = (krb5_context, krb5_principal)
+krb5_free_principal.restype = None
+
+krb5_free_data_contents = LIBKRB5.krb5_free_data_contents
+krb5_free_data_contents.argtypes = (krb5_context, krb5_data_p)
+krb5_free_data_contents.restype = None
+
+krb5_cc_default = LIBKRB5.krb5_cc_default
+krb5_cc_default.argtypes = (krb5_context, ctypes.POINTER(krb5_ccache), )
+krb5_cc_default.restype = krb5_error_code
+krb5_cc_default.errcheck = krb5_errcheck
+
+krb5_cc_close = LIBKRB5.krb5_cc_close
+krb5_cc_close.argtypes = (krb5_context, krb5_ccache, )
+krb5_cc_close.restype = krb5_error_code
+krb5_cc_close.errcheck = krb5_errcheck
+
+krb5_parse_name = LIBKRB5.krb5_parse_name
+krb5_parse_name.argtypes = (krb5_context, ctypes.c_char_p,
+                            ctypes.POINTER(krb5_principal), )
+krb5_parse_name.restype = krb5_error_code
+krb5_parse_name.errcheck = krb5_errcheck
+
+krb5_cc_set_config = LIBKRB5.krb5_cc_set_config
+krb5_cc_set_config.argtypes = (krb5_context, krb5_ccache, krb5_principal,
+                               ctypes.c_char_p, krb5_data_p, )
+krb5_cc_set_config.restype = krb5_error_code
+krb5_cc_set_config.errcheck = krb5_errcheck
+
+krb5_cc_get_principal = LIBKRB5.krb5_cc_get_principal
+krb5_cc_get_principal.argtypes = (krb5_context, krb5_ccache,
+                                  ctypes.POINTER(krb5_principal), )
+krb5_cc_get_principal.restype = krb5_error_code
+krb5_cc_get_principal.errcheck = krb5_errcheck
+
+# krb5_build_principal is a variadic function but that can't be expressed
+# in a ctypes argtypes definition, so I explicitly listed the number of
+# arguments we actually use through the code for type checking purposes
+krb5_build_principal = LIBKRB5.krb5_build_principal
+krb5_build_principal.argtypes = (krb5_context, ctypes.POINTER(krb5_principal),
+                                 ctypes.c_uint, ctypes.c_char_p,
+                                 ctypes.c_char_p, ctypes.c_char_p,
+                                 ctypes.c_char_p, ctypes.c_char_p, )
+krb5_build_principal.restype = krb5_error_code
+krb5_build_principal.errcheck = krb5_errcheck
+
+krb5_cc_start_seq_get = LIBKRB5.krb5_cc_start_seq_get
+krb5_cc_start_seq_get.argtypes = (krb5_context, krb5_ccache,
+                                  ctypes.POINTER(krb5_cc_cursor), )
+krb5_cc_start_seq_get.restype = krb5_error_code
+krb5_cc_start_seq_get.errcheck = krb5_errcheck
+
+krb5_cc_next_cred = LIBKRB5.krb5_cc_next_cred
+krb5_cc_next_cred.argtypes = (krb5_context, krb5_ccache,
+                              ctypes.POINTER(krb5_cc_cursor),
+                              ctypes.POINTER(krb5_creds), )
+krb5_cc_next_cred.restype = krb5_error_code
+krb5_cc_next_cred.errcheck = krb5_errcheck
+
+krb5_cc_end_seq_get = LIBKRB5.krb5_cc_end_seq_get
+krb5_cc_end_seq_get.argtypes = (krb5_context, krb5_ccache,
+                                ctypes.POINTER(krb5_cc_cursor), )
+krb5_cc_end_seq_get.restype = krb5_error_code
+krb5_cc_end_seq_get.errcheck = krb5_errcheck
+
+krb5_free_cred_contents = LIBKRB5.krb5_free_cred_contents
+krb5_free_cred_contents.argtypes = (krb5_context, ctypes.POINTER(krb5_creds))
+krb5_free_cred_contents.restype = None
+
+krb5_principal_compare = LIBKRB5.krb5_principal_compare
+krb5_principal_compare.argtypes = (krb5_context, krb5_principal,
+                                   krb5_principal, )
+krb5_principal_compare.restype = krb5_boolean
+
+krb5_unparse_name = LIBKRB5.krb5_unparse_name
+krb5_unparse_name.argtypes = (krb5_context, krb5_principal,
+                              ctypes.POINTER(ctypes.c_char_p), )
+krb5_unparse_name.restype = krb5_error_code
+krb5_unparse_name.errcheck = krb5_errcheck
+
+krb5_free_unparsed_name = LIBKRB5.krb5_free_unparsed_name
+krb5_free_unparsed_name.argtypes = (krb5_context, ctypes.c_char_p, )
+krb5_free_unparsed_name.restype = None
+
+# --- keytab types ---------------------------------------------------
+# KRB5_KT_END is extracted from krb5.h at build time (via AC_COMPUTE_INT)
+# and stored in ipapython.version.  Its numeric value differs across MIT
+# Kerberos releases.
+KRB5_KT_END: int = _ipa_version.KRB5_KT_END
+
+
+class _krb5_keytab(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct _krb5_keytab (opaque handle)"""
+    _fields_ = []
+
+
+krb5_keytab = ctypes.POINTER(_krb5_keytab)
+
+krb5_kvno = ctypes.c_uint32           # typedef unsigned int krb5_kvno
+krb5_kt_cursor = krb5_pointer         # typedef krb5_pointer krb5_kt_cursor
+
+
+class _krb5_keytab_entry(ctypes.Structure):  # noqa
+    """krb5/krb5.h struct krb5_keytab_entry_st"""
+    _fields_ = [
+        ("magic", krb5_magic),
+        ("principal", krb5_principal),
+        ("timestamp", krb5_timestamp),
+        ("vno", krb5_kvno),
+        ("key", krb5_keyblock),
+    ]
+
+
+krb5_keytab_entry = _krb5_keytab_entry
+
+# --- keytab function bindings ----------------------------------------
+
+krb5_kt_default = LIBKRB5.krb5_kt_default
+krb5_kt_default.argtypes = (krb5_context, ctypes.POINTER(krb5_keytab))
+krb5_kt_default.restype = krb5_error_code
+krb5_kt_default.errcheck = krb5_errcheck
+
+krb5_kt_resolve = LIBKRB5.krb5_kt_resolve
+krb5_kt_resolve.argtypes = (krb5_context, ctypes.c_char_p,
+                            ctypes.POINTER(krb5_keytab))
+krb5_kt_resolve.restype = krb5_error_code
+krb5_kt_resolve.errcheck = krb5_errcheck
+
+krb5_kt_close = LIBKRB5.krb5_kt_close
+krb5_kt_close.argtypes = (krb5_context, krb5_keytab)
+krb5_kt_close.restype = krb5_error_code
+krb5_kt_close.errcheck = krb5_errcheck
+
+krb5_kt_start_seq_get = LIBKRB5.krb5_kt_start_seq_get
+krb5_kt_start_seq_get.argtypes = (krb5_context, krb5_keytab,
+                                  ctypes.POINTER(krb5_kt_cursor))
+krb5_kt_start_seq_get.restype = krb5_error_code
+krb5_kt_start_seq_get.errcheck = krb5_errcheck
+
+krb5_kt_next_entry = LIBKRB5.krb5_kt_next_entry
+krb5_kt_next_entry.argtypes = (krb5_context, krb5_keytab,
+                               ctypes.POINTER(krb5_keytab_entry),
+                               ctypes.POINTER(krb5_kt_cursor))
+krb5_kt_next_entry.restype = krb5_error_code
+# no errcheck — KRB5_KT_END is the normal end-of-keytab signal, not an error
+
+krb5_kt_end_seq_get = LIBKRB5.krb5_kt_end_seq_get
+krb5_kt_end_seq_get.argtypes = (krb5_context, krb5_keytab,
+                                ctypes.POINTER(krb5_kt_cursor))
+krb5_kt_end_seq_get.restype = krb5_error_code
+krb5_kt_end_seq_get.errcheck = krb5_errcheck
+
+krb5_free_keytab_entry_contents = LIBKRB5.krb5_free_keytab_entry_contents
+krb5_free_keytab_entry_contents.argtypes = (
+    krb5_context, ctypes.POINTER(krb5_keytab_entry)
+)
+krb5_free_keytab_entry_contents.restype = None
