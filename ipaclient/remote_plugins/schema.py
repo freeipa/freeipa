@@ -530,6 +530,118 @@ class Schema:
 
         return self._help[namespace][member]
 
+    @classmethod
+    def from_file(cls, path):
+        """Load a Schema from a ZIP file exported by ``ipa schema-export``.
+
+        Equivalent to reading from the on-disk cache but uses an explicit
+        path rather than looking in ``~/.cache/ipa/schema/1/``.  Accepts any
+        ZIP file that was created by ``ipa schema-export`` (or by the Rust
+        client's ``schema-export`` command in Python-compatible ZIP format).
+
+        :param path: Filesystem path to the ZIP file.
+        :raises: :exc:`zipfile.BadZipFile` or :exc:`OSError` on read errors.
+        """
+        obj = cls.__new__(cls)
+        obj._dir = None
+        obj._dict = {}
+        obj._namespaces = {}
+        obj._help = None
+        obj.ttl = 0
+
+        for ns in cls.namespaces:
+            obj._dict[ns] = {}
+            obj._namespaces[ns] = _SchemaNameSpace(obj, ns)
+
+        with zipfile.ZipFile(path, 'r') as zf:
+            names = set(zf.namelist())
+            for name in names:
+                ns, _slash, key = name.partition('/')
+                if ns in cls.namespaces:
+                    obj._dict[ns][key] = zf.read(name)
+                elif name == '_help':
+                    obj._help = zf.read(name)
+
+            # Prefer the fingerprint stored inside the ZIP; fall back to the
+            # filename stem so the package name is always deterministic.
+            if 'fingerprint' in names:
+                raw = zf.read('fingerprint')
+                obj.fingerprint = json.loads(raw.decode('utf-8'))
+            else:
+                obj.fingerprint = os.path.splitext(os.path.basename(path))[0]
+
+        return obj
+
+
+def _make_package(schema):
+    """Build the dynamic Python plugin package from a loaded *schema*.
+
+    Factored out of :func:`get_package` so that both the normal (server /
+    cache) path and the ``--schema-file`` path share identical package
+    construction logic.
+    """
+    fingerprint = str(schema.fingerprint)
+    package_name = '{}${}'.format(__name__, fingerprint)
+    package_dir = '{}${}'.format(os.path.splitext(__file__)[0], fingerprint)
+
+    try:
+        return sys.modules[package_name]
+    except KeyError:
+        pass
+
+    package = types.ModuleType(package_name)
+    package.__file__ = os.path.join(package_dir, '__init__.py')
+    package.modules = ['plugins']
+    sys.modules[package_name] = package
+
+    module_name = '.'.join((package_name, 'plugins'))
+    module = types.ModuleType(module_name)
+    module.__file__ = os.path.join(package_dir, 'plugins.py')
+    module.register = plugable.Registry()
+    for plugin_cls in (_SchemaCommandPlugin, _SchemaObjectPlugin):
+        for full_name in schema[plugin_cls.schema_key]:
+            plugin = plugin_cls(schema, str(full_name))
+            plugin = module.register()(plugin)
+    sys.modules[module_name] = module
+
+    for full_name, topic in six.iteritems(schema['topics']):
+        name = str(topic['name'])
+        module_name = '.'.join((package_name, name))
+        try:
+            module = sys.modules[module_name]
+        except KeyError:
+            module = sys.modules[module_name] = types.ModuleType(module_name)
+            module.__file__ = os.path.join(
+                package_dir, '{}.py'.format(name))
+        module.__doc__ = topic.get('doc')
+        if 'topic_topic' in topic:
+            s = topic['topic_topic']
+            if isinstance(s, bytes):
+                s = s.decode('utf-8')
+            module.topic = str(s).partition('/')[0]
+        else:
+            module.topic = None
+
+    return package
+
+
+def get_package_from_file(path):
+    """Return a plugin package loaded from a schema ZIP file.
+
+    Reads the ZIP file at *path* (created by ``ipa schema-export``) without
+    contacting a server.  The resulting package is identical to the one
+    returned by :func:`get_package` for the same schema.
+
+    :raises: :exc:`NotAvailable` when the file cannot be opened or is not a
+             valid schema ZIP.
+    """
+    try:
+        schema = Schema.from_file(path)
+    except Exception as e:
+        logger.warning('--schema-file: failed to load %s: %s', path, e)
+        raise NotAvailable()
+    return _make_package(schema)
+
 
 def get_package(server_info, client):
     NO_FINGERPRINT = object()
@@ -563,45 +675,4 @@ def get_package(server_info, client):
     if fingerprint is None:
         raise NotAvailable()
 
-    fingerprint = str(fingerprint)
-    package_name = '{}${}'.format(__name__, fingerprint)
-    package_dir = '{}${}'.format(os.path.splitext(__file__)[0], fingerprint)
-
-    try:
-        return sys.modules[package_name]
-    except KeyError:
-        pass
-
-    package = types.ModuleType(package_name)
-    package.__file__ = os.path.join(package_dir, '__init__.py')
-    package.modules = ['plugins']
-    sys.modules[package_name] = package
-
-    module_name = '.'.join((package_name, 'plugins'))
-    module = types.ModuleType(module_name)
-    module.__file__ = os.path.join(package_dir, 'plugins.py')
-    module.register = plugable.Registry()
-    for plugin_cls in (_SchemaCommandPlugin, _SchemaObjectPlugin):
-        for full_name in schema[plugin_cls.schema_key]:
-            plugin = plugin_cls(schema, str(full_name))
-            plugin = module.register()(plugin)  # pylint: disable=no-member
-    sys.modules[module_name] = module
-
-    for full_name, topic in six.iteritems(schema['topics']):
-        name = str(topic['name'])
-        module_name = '.'.join((package_name, name))
-        try:
-            module = sys.modules[module_name]
-        except KeyError:
-            module = sys.modules[module_name] = types.ModuleType(module_name)
-            module.__file__ = os.path.join(package_dir, '{}.py'.format(name))
-        module.__doc__ = topic.get('doc')
-        if 'topic_topic' in topic:
-            s = topic['topic_topic']
-            if isinstance(s, bytes):
-                s = s.decode('utf-8')
-            module.topic = str(s).partition('/')[0]
-        else:
-            module.topic = None
-
-    return package
+    return _make_package(schema)
