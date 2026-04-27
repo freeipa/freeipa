@@ -34,6 +34,7 @@ from ipaserver.install.ipa_migrate_constants import (
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
     DNA_REGEN_VAL, DNA_REGEN_ATTRS, IGNORE_ATTRS,
     DB_EXCLUDE_TREES, POLICY_OP_ATTRS, STATE_OPTIONS, REDACTED_ATTRS,
+    CASE_INSENSITIVE_MATCHING_RULES,
 )
 
 """
@@ -318,6 +319,8 @@ class IPAMigrate():
     local_suffix = None
     log_file_name = LOG_FILE_NAME
     log_file_mode = "a"  # or "w" TBD
+    _case_insensitive_attrs = set()
+    _case_sensitive_attrs = set()
     local_conn = None
     remote_conn = None
     log = logger
@@ -558,6 +561,49 @@ class IPAMigrate():
         if attr_obj is not None:
             if attr_obj.usage == 1:
                 return True
+        return False
+
+    def attr_is_case_insensitive(self, attr):
+        """
+        Check the schema to determine if an attribute uses case-insensitive
+        equality matching. Results are cached in two sets for O(1) lookup
+        on subsequent calls.
+        """
+        attr_lower = attr.lower()
+
+        if attr_lower in self._case_insensitive_attrs:
+            return True
+        if attr_lower in self._case_sensitive_attrs:
+            return False
+
+        result = self._resolve_case_sensitivity(attr)
+        if result:
+            self._case_insensitive_attrs.add(attr_lower)
+        else:
+            self._case_sensitive_attrs.add(attr_lower)
+        return result
+
+    def _resolve_case_sensitivity(self, attr):
+        """
+        Look up the schema to determine if an attribute uses case-insensitive
+        equality matching. Walks the superior attribute type chain if the
+        equality rule is not set directly on the attribute.
+        """
+        schema = self.local_conn.schema
+        if schema is None:
+            return False
+
+        visited = set()
+        attr_name = attr
+        while attr_name and attr_name not in visited:
+            visited.add(attr_name)
+            attr_obj = schema.get_obj(ldap.schema.AttributeType, attr_name)
+            if attr_obj is None:
+                return False
+            if attr_obj.equality:
+                return attr_obj.equality in CASE_INSENSITIVE_MATCHING_RULES
+            # No equality rule set, walk up to the superior type
+            attr_name = attr_obj.sup[0] if attr_obj.sup else None
         return False
 
     def replace_suffix(self, entry_dn):
@@ -1413,7 +1459,13 @@ class IPAMigrate():
                 for val in remote_attrs[attr]:
                     local_attr_vals = self.get_ldapentry_attr_vals(local_entry,
                                                                    attr)
-                    if val not in local_attr_vals:
+                    if self.attr_is_case_insensitive(attr):
+                        val_exists = any(val.lower() == local_val.lower()
+                                         for local_val in local_attr_vals)
+                    else:
+                        val_exists = val in local_attr_vals
+
+                    if not val_exists:
                         # Check if we should reset the DNA range for this entry
                         if (
                             self.args.reset_range
