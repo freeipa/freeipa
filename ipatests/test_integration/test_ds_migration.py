@@ -86,6 +86,15 @@ class TestDSMigrationConfig(IntegrationTest):
     num_replicas = 0
     num_clients = 1
 
+    MIGRATED_USERS = [
+        "ldapuser_0001", "mgr_user", "user_with_mgr",
+        "posixuser_no_privgrp",
+    ]
+    MIGRATED_GROUPS = [
+        "ldapgroup_0001", "dupgid_group",
+        "HR Managers", "Directory Administrators",
+    ]
+
     @classmethod
     def install(cls, mh):
         # Install master and IPA client (full topology)
@@ -107,6 +116,23 @@ class TestDSMigrationConfig(IntegrationTest):
             stdin_text=cls.master.config.admin_password,
         )
         tasks.service_control_dirsrv(cls.master, "restart")
+
+    def cleanup_migrated_data(self, extra_users=None, extra_groups=None):
+        """Remove all users and groups that migrate-ds may have created."""
+        users = list(self.MIGRATED_USERS)
+        if extra_users:
+            users.extend(extra_users)
+        for user in users:
+            self.master.run_command(
+                ["ipa", "user-del", user], raiseonerr=False
+            )
+        groups = list(self.MIGRATED_GROUPS)
+        if extra_groups:
+            groups.extend(extra_groups)
+        for group in groups:
+            self.master.run_command(
+                ["ipa", "group-del", group], raiseonerr=False
+            )
 
     def test_attempt_migration_with_configuration_false(self):
         """
@@ -192,19 +218,7 @@ class TestDSMigrationConfig(IntegrationTest):
             ["ipa", "group-show", "ldapgroup_0001"]
         )
 
-        # Clean up migrated user and group
-        self.master.run_command(
-            ["ipa", "user-del", "ldapuser_0001"], raiseonerr=False
-        )
-        for group in [
-            "ldapgroup_0001",
-            "HR Managers",
-            "Directory Administrators",
-        ]:
-            self.master.run_command(
-                ["ipa", "group-del", group],
-                raiseonerr=False,
-            )
+        self.cleanup_migrated_data()
 
     def test_bz804807_invalid_user_and_group_container_rdn(self):
         """
@@ -340,18 +354,7 @@ class TestDSMigrationConfig(IntegrationTest):
                 raiseonerr=False,
             )
             tasks.service_control_dirsrv(self.master, "restart")
-            self.master.run_command(
-                ["ipa", "user-del", "ldapuser_0001"], raiseonerr=False
-            )
-            for group in [
-                "ldapgroup_0001",
-                "HR Managers",
-                "Directory Administrators",
-            ]:
-                self.master.run_command(
-                    ["ipa", "group-del", group],
-                    raiseonerr=False,
-                )
+            self.cleanup_migrated_data()
 
     def test_bz783270_02_migrate_ds_with_compat_enabled(self):
         """
@@ -407,19 +410,72 @@ class TestDSMigrationConfig(IntegrationTest):
                 raiseonerr=False,
             )
             tasks.service_control_dirsrv(self.master, "restart")
+            self.cleanup_migrated_data()
+
+    def test_bz804609_user_show_all_no_internal_error(self):
+        """
+        bz804609: ipa user-show --all on a migrated user with a manager
+        attribute must not return an internal error.
+        https://bugzilla.redhat.com/show_bug.cgi?id=804609
+        """
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+
+        # --group-container=ou=nonexistent so that no groups are migrated.
+        try:
             self.master.run_command(
-                ["ipa", "user-del", "ldapuser_0001"],
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container=ou=People",
+                    "--group-container=ou=nonexistent",
+                    "--continue",
+                    self.ldap_uri,
+                ],
+                stdin_text=pwd,
+            )
+            result = self.master.run_command(
+                ["ipa", "user-show", "--all", "user_with_mgr"],
+            )
+            out = result.stdout_text + result.stderr_text
+            assert "an internal error has occurred" not in out.lower(), out
+            assert "mgr_user" in result.stdout_text
+        finally:
+            self.cleanup_migrated_data()
+
+    def test_bz753966_delete_migrated_group_with_spaces(self):
+        """
+        bz753966: Migrated groups with spaces in their names must be
+        deletable via ipa group-del.
+        https://bugzilla.redhat.com/show_bug.cgi?id=753966
+        """
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+
+        try:
+            self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container=ou=People",
+                    "--group-container=ou=Groups",
+                    self.ldap_uri,
+                ],
+                stdin_text=pwd,
+            )
+            self.master.run_command(
+                ["ipa", "group-find", "HR Managers"]
+            )
+            self.master.run_command(
+                ["ipa", "group-del", "HR Managers"]
+            )
+            result = self.master.run_command(
+                ["ipa", "group-find", "HR Managers"],
                 raiseonerr=False,
             )
-            for group in [
-                "ldapgroup_0001",
-                "HR Managers",
-                "Directory Administrators",
-            ]:
-                self.master.run_command(
-                    ["ipa", "group-del", group],
-                    raiseonerr=False,
-                )
+            assert "0 groups matched" in result.stdout_text
+        finally:
+            self.cleanup_migrated_data()
 
     def kerberos_keys_available(self, uid):
         """Return True if Kerberos keys are available for *uid*."""
@@ -479,7 +535,6 @@ class TestDSMigrationConfig(IntegrationTest):
         pwd_admin = self.master.config.admin_password
         user_container = "ou=People,{}".format(DS_BASEDN)
         group_container = "ou=groups,{}".format(DS_BASEDN)
-
         try:
             self.master.run_command(
                 [
@@ -506,8 +561,75 @@ class TestDSMigrationConfig(IntegrationTest):
             tasks.kinit_as_user(self.master, user2, user2pwd)
         finally:
             tasks.kinit_admin(self.master)
-            for user in (user1, user2):
-                self.master.run_command(
-                    ["ipa", "user-del", user],
-                    raiseonerr=False,
-                )
+            self.cleanup_migrated_data(
+                extra_users=[user1, user2]
+            )
+
+    def test_bz809560_no_private_group_for_migrated_posix_user(self):
+        """
+        bz809560: Private groups must not be created for migrated posix
+        users whose GID points to another group.
+        https://bugzilla.redhat.com/show_bug.cgi?id=809560
+        """
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+
+        try:
+            self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container=ou=People",
+                    "--group-container=ou=Groups",
+                    self.ldap_uri,
+                ],
+                stdin_text=pwd,
+            )
+            self.master.run_command(
+                ["ipa", "user-show", "posixuser_no_privgrp"]
+            )
+            result = self.master.run_command(
+                ["ipa", "group-show", "posixuser_no_privgrp"],
+                raiseonerr=False,
+            )
+            assert result.returncode != 0, (
+                "Private group should not exist for migrated posix user"
+            )
+        finally:
+            self.cleanup_migrated_data()
+
+    def test_bz813389_duplicate_gid_warning(self):
+        """
+        bz813389: When two groups share the same GID, migrate-ds must
+        succeed and log a warning instead of failing with a cryptic error.
+        https://bugzilla.redhat.com/show_bug.cgi?id=813389
+        """
+        tasks.kinit_admin(self.master)
+        pwd = self.master.config.admin_password
+
+        try:
+            result = self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container=ou=People",
+                    "--group-container=ou=Groups",
+                    self.ldap_uri,
+                ],
+                stdin_text=pwd,
+            )
+            out = result.stdout_text + result.stderr_text
+            assert "Expected 1" not in out, (
+                "Migration should not fail with cryptic error"
+            )
+            self.master.run_command(
+                ["ipa", "user-show", "ldapuser_0001"]
+            )
+            log = self.master.get_file_contents(
+                "/var/log/httpd/error_log", encoding="utf-8"
+            )
+            assert (
+                "should match 1 group, but it matched 2 groups" in log
+            )
+        finally:
+            self.cleanup_migrated_data()
