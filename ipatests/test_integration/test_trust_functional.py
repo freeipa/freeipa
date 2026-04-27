@@ -9,6 +9,7 @@ import pytest
 
 from datetime import datetime, timedelta
 from packaging.version import parse as parse_version
+from ipaplatform.base.paths import BasePathNamespace
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
@@ -174,6 +175,41 @@ def get_localauth_module_from_plugin(host):
         if line.strip().startswith('module'):
             return line.split(':', 1)[-1].strip()
     raise ValueError("No 'module' line found in localauth plugin config")
+
+
+AD_PASSWORD = 'Secret123'
+
+AUTOMOUNT_LOCATION = 'trust_location'
+AUTOMOUNT_INDIRECT_MAP = 'auto.share'
+AUTOMOUNT_INDIRECT_MOUNTPOINT = '/automnt.d'
+AUTOMOUNT_DIRECT_MOUNTPOINT = '/automnt2.d'
+EXPORT_RW_DIR = '/export'
+EXPORT_RO_DIR = '/export2'
+
+
+def run_as_ad_user(host, user, domain, command, **kwargs):
+    """Run a shell command on host as user@domain via su.
+
+    Uses su without -l to avoid attempting cd to a potentially
+    non-existent AD user home directory.
+    """
+    return host.run_command(
+        ['su', f'{user}@{domain}', '-c', command], **kwargs
+    )
+
+
+def kinit_ad_user(host, user, domain, realm, password=AD_PASSWORD):
+    """Obtain a Kerberos ticket for an AD user via su."""
+    run_as_ad_user(
+        host, user, domain,
+        f'echo {password} | kinit {user}@{realm}'
+    )
+
+
+def umount_and_restart_autofs(host, mountpoint):
+    """Unmount a stale NFS mount and restart autofs."""
+    host.run_command(['umount', mountpoint], raiseonerr=False)
+    host.run_command(['systemctl', 'restart', 'autofs'])
 
 
 class TestTrustFunctionalHbac(BaseTestTrust):
@@ -2579,3 +2615,375 @@ class TestTrustFunctionalUser(BaseTestTrust):
                 f"Group {expected_group} not found for user {user}: "
                 f"{result.stdout_text}"
             )
+
+
+class TestTrustFunctionalAutomount(BaseTestTrust):
+    """Tests for NFS automount access by AD trusted users.
+
+    Verifies that AD trusted users (from both a top-level AD domain
+    and a child subdomain) can access Kerberized NFS mounts configured
+    via IPA automount. Covers allow/deny scenarios for read-only and
+    read-write NFS exports and ownership-based access control.
+
+    NFS is set up once in install() for all domains. Each test method
+    iterates over both root and subdomain users.
+    """
+
+    topology = 'line'
+    num_ad_treedomains = 0
+
+    @classmethod
+    def install(cls, mh):
+        super(TestTrustFunctionalAutomount, cls).install(mh)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(
+            cls.master, cls.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'])
+        tasks.clear_sssd_cache(cls.master)
+
+        # (domain, realm, user1_rw_owner, user2_ro_owner)
+        # user1 owns the rw export and is used for write/read tests;
+        # user2 owns the ro export and is used for read-only and
+        # cross-user ownership denial tests.
+        cls.nfs_configs = [
+            (cls.ad_domain, cls.ad_domain.upper(),
+             'testuser', 'nonposixuser'),
+        ]
+        if cls.num_ad_subdomains > 0:
+            # subdomain has only one active CI user
+            cls.nfs_configs.append(
+                (cls.ad_subdomain, cls.ad_subdomain.upper(),
+                 'subdomaintestuser', 'subdomaintestuser'))
+
+        master = cls.master
+        client = cls.clients[0]
+
+        tasks.install_packages(master, ['gssproxy'])
+        tasks.kinit_admin(master)
+
+        nfs_principal = f'nfs/{master.hostname}'
+        master.run_command(['ipa', 'service-add', nfs_principal])
+        master.run_command([
+            'ipa-getkeytab', '-k', paths.KRB5_KEYTAB,
+            '-s', master.hostname, '-p', nfs_principal
+        ])
+
+        content = master.get_file_contents(
+            paths.SYSCONFIG_NFS, encoding='utf-8')
+        master.put_file_contents(
+            paths.SYSCONFIG_NFS, content + 'SECURE_NFS="yes"\n')
+
+        exports_content = '/export  *(rw,sec=krb5:krb5i:krb5p)\n'
+
+        for domain, _realm, user1, user2 in cls.nfs_configs:
+            ad_user1 = f'{user1}@{domain}'
+            ad_user2 = f'{user2}@{domain}'
+            export_ro_dir = f'{EXPORT_RO_DIR}/{user2}'
+
+            master.run_command(
+                ['mkdir', '-p', f'/export/{user1}'])
+            master.run_command(
+                ['chmod', '770', f'/export/{user1}'])
+            master.run_command(
+                ['chown', f'{ad_user1}:{ad_user1}',
+                 f'/export/{user1}'])
+            master.put_file_contents(
+                f'/export/{user1}/rw_test',
+                'Read-Write-Test\n')
+            master.run_command(
+                ['chown', f'{ad_user1}:{ad_user1}',
+                 f'/export/{user1}/rw_test'])
+            master.run_command(
+                ['chmod', '664', f'/export/{user1}/rw_test'])
+
+            master.run_command(
+                ['mkdir', '-p', export_ro_dir])
+            master.run_command(
+                ['chmod', '770', export_ro_dir])
+            master.run_command(
+                ['chown', f'{ad_user2}:{ad_user2}',
+                 export_ro_dir])
+            master.put_file_contents(
+                f'{export_ro_dir}/ro_test',
+                'Read-Only-Test\n')
+            master.run_command(
+                ['chown', f'{ad_user2}:{ad_user2}',
+                 f'{export_ro_dir}/ro_test'])
+            master.run_command(
+                ['chmod', '664', f'{export_ro_dir}/ro_test'])
+
+            exports_content += (
+                f'{export_ro_dir}'
+                f'  *(ro,sec=krb5:krb5i:krb5p)\n')
+
+        master.put_file_contents('/etc/exports', exports_content)
+
+        master.run_command(
+            ['systemctl', 'restart', 'nfs-server'])
+        master.run_command(
+            ['systemctl', 'restart', 'rpc-gssd.service'])
+        master.run_command(
+            ['systemctl', 'restart', 'gssproxy'])
+        master.run_command(['exportfs', '-a'])
+
+        master.run_command(
+            ['ipa', 'automountlocation-add', AUTOMOUNT_LOCATION])
+        master.run_command([
+            'ipa', 'automountmap-add-indirect', AUTOMOUNT_LOCATION,
+            AUTOMOUNT_INDIRECT_MAP,
+            f'--mount={AUTOMOUNT_INDIRECT_MOUNTPOINT}',
+            '--parentmap=auto.master'
+        ])
+        master.run_command([
+            'ipa', 'automountkey-add', AUTOMOUNT_LOCATION,
+            AUTOMOUNT_INDIRECT_MAP,
+            '--key=*',
+            f'--info=-rw,soft,fstype=nfs4,sec=krb5 '
+            f'{master.hostname}:{EXPORT_RW_DIR}/&'
+        ])
+        for _domain, _realm, _user1, user2 in cls.nfs_configs:
+            export_ro_dir = f'{EXPORT_RO_DIR}/{user2}'
+            automount_direct_key = f'{AUTOMOUNT_DIRECT_MOUNTPOINT}/{user2}'
+            master.run_command([
+                'ipa', 'automountkey-add', AUTOMOUNT_LOCATION,
+                'auto.direct',
+                f'--key={automount_direct_key}',
+                f'--info=-rw,fstype=nfs4,sec=krb5 '
+                f'{master.hostname}:{export_ro_dir}'
+            ])
+
+        time.sleep(5)
+
+        client.run_command([
+            'ipa-client-automount',
+            f'--server={master.hostname}',
+            f'--location={AUTOMOUNT_LOCATION}', '-U'
+        ])
+
+    @classmethod
+    def uninstall(cls, mh):
+        tasks.kinit_admin(cls.master, raiseonerr=False)
+        cls.master.run_command(
+            ['ipa', 'automountlocation-del', AUTOMOUNT_LOCATION],
+            raiseonerr=False)
+        cls.master.run_command(
+            ['rm', '-rf', EXPORT_RW_DIR, EXPORT_RO_DIR],
+            raiseonerr=False)
+        cls.clients[0].run_command(
+            ['ipa-client-automount', '--uninstall', '-U'],
+            raiseonerr=False)
+        cls.master.run_command(
+            ['systemctl', 'stop', 'nfs-server'], raiseonerr=False)
+        cls.master.run_command(
+            ['systemctl', 'stop', 'rpc-gssd.service'],
+            raiseonerr=False)
+        cls.master.run_command(
+            ['systemctl', 'restart', 'gssproxy'], raiseonerr=False)
+        tasks.clear_sssd_cache(cls.master)
+        tasks.unconfigure_dns_for_trust(cls.master, cls.ad)
+        super(TestTrustFunctionalAutomount, cls).uninstall(mh)
+
+    def test_automount_default_domain_suffix(self):
+        """SSSD retrieves auto.master with default_domain_suffix."""
+        master = self.master
+        client = self.clients[0]
+
+        result = master.run_command(['ipa', 'trust-find'])
+        assert self.ad_domain in result.stdout_text
+
+        tasks.clear_sssd_cache(master)
+        tasks.wait_for_sssd_domain_status_online(master)
+
+        tasks.clear_sssd_cache(client)
+        tasks.wait_for_sssd_domain_status_online(client)
+
+        client.run_command(
+            ['getent', 'passwd', f'testuser@{self.ad_domain}'])
+
+        with tasks.FileBackup(client, paths.SSSD_CONF), \
+             tasks.FileBackup(client, BasePathNamespace.NSSWITCH_CONF):
+            # default_domain_suffix allows AD users to authenticate
+            # using short names (e.g. 'testuser') without the @domain
+            client.run_command([
+                'sed', '-i',
+                f'/\\[sssd\\]/ a default_domain_suffix = '
+                f'{self.ad_domain}',
+                paths.SSSD_CONF
+            ])
+            client.run_command([
+                'sed', '-i', 's/services.*/&, autofs/g',
+                paths.SSSD_CONF
+            ])
+            client.run_command([
+                'sed', '-i',
+                's/automount:.*/automount:  sss files/',
+                BasePathNamespace.NSSWITCH_CONF
+            ])
+
+            # Enable autofs debug logging in sssd
+            client.run_command([
+                'sh', '-c',
+                f'grep -q "\\[autofs\\]" {paths.SSSD_CONF} || '
+                f'printf "\\n[autofs]\\n" >> {paths.SSSD_CONF}'
+            ])
+            client.run_command([
+                'sed', '-i',
+                '/\\[autofs\\]/a\\debug_level = 10',
+                paths.SSSD_CONF
+            ])
+
+            result = client.run_command(
+                ['grep', '-A3', '\\[sssd\\]', paths.SSSD_CONF])
+            assert 'default_domain_suffix' in result.stdout_text
+
+            tasks.clear_sssd_cache(client)
+            tasks.wait_for_sssd_domain_status_online(client)
+            client.run_command(['systemctl', 'restart', 'autofs'])
+
+            client.run_command(['getent', 'passwd', 'testuser'])
+
+            result = client.run_command(['automount', '-m'])
+            assert ('setautomntent: lookup(sss): setautomntent: '
+                    'No such file or directory'
+                    not in result.stdout_text)
+            assert 'autofs dump map information' in result.stdout_text
+            assert 'Mount point: /-' in result.stdout_text
+
+            log_result = client.run_command(
+                ['cat', '/var/log/sssd/sssd_autofs.log'])
+            assert 'failed' not in log_result.stdout_text.lower()
+
+        client.run_command(['systemctl', 'restart', 'sssd'])
+        client.run_command(['systemctl', 'restart', 'autofs'])
+
+    def test_allow_ad_user_nfs_mount(self):
+        """AD user with valid Kerberos ticket can write/read NFS."""
+        client = self.clients[0]
+        master = self.master
+        for domain, realm, user1, _user2 in self.nfs_configs:
+            marker = f'mytest.{user1}'
+
+            client.run_command(
+                ['umount',
+                 f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}'],
+                raiseonerr=False)
+
+            kinit_ad_user(client, user1, domain, realm)
+
+            run_as_ad_user(
+                client, user1, domain,
+                f'cd {AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1};'
+                ' ls -ltra')
+
+            run_as_ad_user(
+                client, user1, domain,
+                f'echo {marker} > '
+                f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}/tfile')
+
+            result = run_as_ad_user(
+                client, user1, domain,
+                f'cat '
+                f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}/tfile')
+            assert marker in result.stdout_text
+
+            result = master.run_command(
+                ['cat', f'/export/{user1}/tfile'])
+            assert marker in result.stdout_text
+
+    def test_deny_ad_user_nfs_mount_no_ticket(self):
+        """AD user without Kerberos ticket is denied NFS access."""
+        client = self.clients[0]
+        for domain, _realm, user1, user2 in self.nfs_configs:
+            automount_direct_key = f'{AUTOMOUNT_DIRECT_MOUNTPOINT}/{user2}'
+            export_ro_dir = f'{EXPORT_RO_DIR}/{user2}'
+
+            umount_and_restart_autofs(client, automount_direct_key)
+
+            run_as_ad_user(client, user1, domain, 'kdestroy -A')
+
+            result = run_as_ad_user(
+                client, user1, domain,
+                f'cd {automount_direct_key}',
+                raiseonerr=False)
+            assert result.returncode != 0
+            output = result.stdout_text + result.stderr_text
+            assert 'Permission denied' in output
+
+            result = client.run_command(['mount'])
+            assert (f'{self.master.hostname}:{export_ro_dir}'
+                    in result.stdout_text)
+
+    def test_allow_ad_user_read_ro_nfs(self):
+        """AD user can read files on read-only NFS mount."""
+        client = self.clients[0]
+        for domain, realm, _user1, user2 in self.nfs_configs:
+            automount_direct_key = f'{AUTOMOUNT_DIRECT_MOUNTPOINT}/{user2}'
+
+            umount_and_restart_autofs(client, automount_direct_key)
+
+            kinit_ad_user(client, user2, domain, realm)
+
+            result = run_as_ad_user(
+                client, user2, domain,
+                f'cat {automount_direct_key}/ro_test')
+            assert 'Read-Only-Test' in result.stdout_text
+
+    def test_deny_ad_user_write_ro_nfs(self):
+        """AD user cannot write to read-only NFS mount."""
+        client = self.clients[0]
+        for domain, realm, _user1, user2 in self.nfs_configs:
+            automount_direct_key = f'{AUTOMOUNT_DIRECT_MOUNTPOINT}/{user2}'
+
+            umount_and_restart_autofs(client, automount_direct_key)
+
+            kinit_ad_user(client, user2, domain, realm)
+
+            result = run_as_ad_user(
+                client, user2, domain,
+                f'date >> {automount_direct_key}/ro_test',
+                raiseonerr=False)
+            assert result.returncode != 0
+            output = result.stdout_text + result.stderr_text
+            assert 'Read-only file system' in output
+
+    def test_allow_ad_user_read_rw_nfs(self):
+        """AD user can read files on read-write NFS mount."""
+        client = self.clients[0]
+        for domain, realm, user1, _user2 in self.nfs_configs:
+            umount_and_restart_autofs(
+                client,
+                f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}')
+
+            kinit_ad_user(client, user1, domain, realm)
+
+            result = run_as_ad_user(
+                client, user1, domain,
+                f'cat '
+                f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}/rw_test')
+            assert 'Read-Write-Test' in result.stdout_text
+
+    def test_deny_wrong_user_write_rw_nfs(self):
+        """Different AD user cannot write to another user's rw directory.
+
+        Uses the root domain config where user1 (testuser) and user2
+        (nonposixuser) are different, verifying that user2 is denied
+        write access to user1's directory.
+        """
+        client = self.clients[0]
+        domain, realm, user1, user2 = self.nfs_configs[0]
+
+        umount_and_restart_autofs(
+            client,
+            f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}')
+
+        run_as_ad_user(client, user2, domain, 'kdestroy -A')
+        kinit_ad_user(client, user2, domain, realm)
+
+        result = run_as_ad_user(
+            client, user2, domain,
+            f'echo Bad-Write >> '
+            f'{AUTOMOUNT_INDIRECT_MOUNTPOINT}/{user1}/rw_test',
+            raiseonerr=False)
+        assert result.returncode != 0
+        output = result.stdout_text + result.stderr_text
+        assert 'Permission denied' in output
