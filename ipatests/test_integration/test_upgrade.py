@@ -12,7 +12,6 @@ import io
 import textwrap
 from subprocess import CalledProcessError
 
-from cryptography.hazmat.primitives import serialization
 import pytest
 
 from ipaplatform.paths import paths
@@ -218,7 +217,7 @@ class TestUpgrade(IntegrationTest):
         entry = ldap.get_entry(dn)
         # Extract the certificate as DER then double-encode
         cacert = entry['cacertificate;binary'][0]
-        cacert_der = cacert.public_bytes(serialization.Encoding.DER)
+        cacert_der = cacert.public_bytes("DER")
         cacert_b64 = base64.b64encode(cacert_der)
         # overwrite the value with double-encoded cert
         entry.single_value['cACertificate;binary'] = cacert_b64

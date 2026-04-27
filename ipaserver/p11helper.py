@@ -8,9 +8,7 @@ import binascii
 import struct
 
 import six
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
+import synta
 from cffi import FFI
 
 if six.PY3:
@@ -1299,34 +1297,26 @@ class P11_Helper:
         if key_type_ptr[0] != CKK_RSA:
             raise Error("export_RSA_public_key: required RSA key type")
 
-        try:
-            n = bytes_to_int(string_to_pybytes_or_none(
-                modulus, obj_template[0].ulValueLen))
-        except Exception:
+        n_bytes = string_to_pybytes_or_none(
+            modulus, obj_template[0].ulValueLen)
+        if not n_bytes:
             raise Error("export_RSA_public_key: internal error: unable to "
                         "convert modulus")
 
-        try:
-            e = bytes_to_int(string_to_pybytes_or_none(
-                exponent, obj_template[1].ulValueLen))
-        except Exception:
+        e_bytes = string_to_pybytes_or_none(
+            exponent, obj_template[1].ulValueLen)
+        if not e_bytes:
             raise Error("export_RSA_public_key: internal error: unable to "
                         "convert exponent")
 
-        # set modulus and exponent
-        rsa_ = rsa.RSAPublicNumbers(e, n)
-
         try:
-            pkey = rsa_.public_key(default_backend())
+            pkey = synta.PublicKey.from_rsa_components(n_bytes, e_bytes)
         except Exception:
             raise Error("export_RSA_public_key: internal error: "
-                        "EVP_PKEY_set1_RSA failed")
+                        "invalid RSA key components")
 
         try:
-            ret = pkey.public_bytes(
-                format=serialization.PublicFormat.SubjectPublicKeyInfo,
-                encoding=serialization.Encoding.DER,
-            )
+            ret = pkey.to_der()
         except Exception:
             ret = None
 
@@ -1372,18 +1362,16 @@ class P11_Helper:
         keyType_ptr = new_ptr(CK_KEY_TYPE, CKK_RSA)
         cka_token = true_ptr
 
-        if not isinstance(pkey, rsa.RSAPublicKey):
+        if not (isinstance(pkey, synta.PublicKey) and pkey.key_type == 'rsa'):
             raise Error("Required RSA public key")
 
-        rsa_ = pkey.public_numbers()
-
         # convert BIGNUM to binary array
-        modulus = new_array(CK_BYTE, int_to_bytes(rsa_.n))
+        modulus = new_array(CK_BYTE, pkey.modulus)
         modulus_len = sizeof(modulus) - 1
         if modulus_len == 0:
             raise Error("import_RSA_public_key: BN_bn2bin modulus error")
 
-        exponent = new_array(CK_BYTE, int_to_bytes(rsa_.e))
+        exponent = new_array(CK_BYTE, pkey.public_exponent)
         exponent_len = sizeof(exponent) - 1
         if exponent_len == 0:
             raise Error("import_RSA_public_key: BN_bn2bin exponent error")
@@ -1457,10 +1445,10 @@ class P11_Helper:
 
         # decode from ASN1 DER
         try:
-            pkey = serialization.load_der_public_key(data, default_backend())
+            pkey = synta.PublicKey.from_der(data)
         except Exception:
             raise Error("import_public_key: d2i_PUBKEY error")
-        if isinstance(pkey, rsa.RSAPublicKey):
+        if pkey.key_type == 'rsa':
             ret = self._import_RSA_public_key(label, label_length, id_,
                                               id_length, pkey,
                                               cka_copyable_ptr,
@@ -1472,9 +1460,9 @@ class P11_Helper:
                                               cka_verify_ptr,
                                               cka_verify_recover_ptr,
                                               cka_wrap_ptr)
-        elif isinstance(pkey, dsa.DSAPublicKey):
+        elif pkey.key_type == 'dsa':
             raise Error("DSA is not supported")
-        elif isinstance(pkey, ec.EllipticCurvePublicKey):
+        elif pkey.key_type == 'ec':
             raise Error("EC is not supported")
         else:
             raise Error("Unsupported key type")

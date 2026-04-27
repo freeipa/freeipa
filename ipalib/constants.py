@@ -30,15 +30,7 @@ from ipaplatform.constants import constants as _constants
 from ipapython.dn import DN
 from ipapython.fqdn import gethostfqdn
 from ipapython.version import VERSION, API_VERSION
-from cryptography.hazmat.primitives.ciphers import modes
-try:
-    # cryptography>=43.0.0
-    from cryptography.hazmat.decrepit.ciphers.algorithms import TripleDES
-except ImportError:
-    # will be removed from this module in cryptography 48.0.0
-    from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
-
-from cryptography.hazmat.backends.openssl.backend import backend
+import synta.crypto as _synta_crypto
 
 
 FQDN = gethostfqdn()
@@ -403,7 +395,9 @@ VAULT_WRAPPING_SUPPORTED_ALGOS = (
 )
 VAULT_WRAPPING_DEFAULT_ALGO = VAULT_WRAPPING_AES128_CBC
 
-# Add 3DES for backwards compatibility if supported
-if backend.cipher_supported(TripleDES(
-                            b"\x00" * 8), modes.CBC(b"\x00" * 8)):
+# Add 3DES for backwards compatibility if supported by OpenSSL build
+try:
+    _synta_crypto.des3_cbc_encrypt(b"\x00" * 24, b"\x00" * 8, b"\x00" * 8)
     VAULT_WRAPPING_SUPPORTED_ALGOS += (VAULT_WRAPPING_3DES,)
+except Exception:
+    pass

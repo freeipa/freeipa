@@ -15,6 +15,7 @@ extension-pkg-allow-list=
     gssapi,
     lxml.etree,
     pysss_murmur,
+    synta,
 
 # We want to ignore freeipa-webui, linting is handled separately there
 ignore=freeipa-webui
@@ -24,6 +25,16 @@ ignore=freeipa-webui
 # List of valid names for the first argument in a metaclass class method.
 # This can be removed after upgrading to pylint 2.0
 valid-metaclass-classmethod-first-arg=cls
+
+[TYPECHECK]
+
+# synta submodules are Rust extensions registered via _synta.abi3.so;
+# their members are not visible to static analysis so suppress E1101 for them.
+ignored-modules=
+    synta.crypto,
+    synta.general_name,
+    synta.oids,
+    synta.oids.attr,
 
 [MESSAGES CONTROL]
 
@@ -128,8 +139,9 @@ disable=
     use-implicit-booleaness-not-comparison-to-zero,
     broad-exception-raised,
     possibly-used-before-assignment,
-    use-yield-from
-    
+    use-yield-from,
+    deprecated-class,  # argparse.FileType flagged by pylint 4.x but not 3.x
+
 
 [REPORTS]
 

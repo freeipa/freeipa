@@ -284,7 +284,7 @@ class CACertManage(admintool.AdminTool):
         new_cert = x509.load_pem_x509_certificate(new_cert_data)
         new_spki = new_cert.public_key_info_bytes
 
-        if new_cert.subject != old_cert.subject:
+        if DN(new_cert.subject) != DN(old_cert.subject):
             raise admintool.ScriptError(
                 "Subject name mismatch (visit "
                 "http://www.freeipa.org/page/Troubleshooting for "
@@ -611,7 +611,7 @@ def update_ipa_ca_entry(api, cert):
     The Issuer DN of the IPA CA may have changed.  Update the IPA CA entry.
 
     :param api: finalised API object, with *connected* LDAP backend
-    :param cert: a python-cryptography Certificate object
+    :param cert: an IPACertificate object
 
     """
     try:

@@ -50,7 +50,6 @@ if __name__ == '__main__':
             "cffi",
             # "ipalib",  # circular dependency
             "ipapython",
-            "pyasn1",
             "six",
         ],
     )

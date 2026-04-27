@@ -15,14 +15,12 @@ ifaddr
 netaddr
 qrcode
 six
-pyasn1
-pyasn1-modules
 requests
 
 ## C libraries with binary wheels
 cffi
-cryptography
 lxml
+synta
 
 ## C libraries without binaries wheels
 # gssapi
