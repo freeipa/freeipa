@@ -37,3 +37,4 @@ FreeIPA design documentation
    audit-ipa-api.md
    sysaccounts.md
    namespace.md
+   ipa-cert-fix-expansion.md
