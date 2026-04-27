@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'">
     <title>Identity Management</title>
 
     <!--[if IE]>
@@ -10,62 +11,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="js/libs/loader.js"></script>
-    <script type="text/javascript">
-
-        var dojoConfig = {
-            baseUrl: "js",
-            has: {
-                'dojo-firebug': false,
-                'dojo-debug-messages': true
-            },
-            parseOnLoad: false,
-            async: true,
-            packages: [
-                {
-                    name: 'libs',
-                    location: 'libs'
-                },
-                {
-                    name:'dojo',
-                    location:'dojo'
-                },
-                {
-                    name: 'freeipa',
-                    location: 'freeipa'
-                }
-            ],
-            cacheBust: ipa_loader.num_version || ""
-        };
-
-        (function() {
-            var ie = !!document.getElementById('ie-detector');
-            var styles = [
-                'css/patternfly.css',
-                'css/bootstrap-datepicker3.min.css',
-                'css/ipa.css',
-                'ipa.css'
-            ];
-            if (ie) styles.push('ie.css');
-            var icons = ['favicon.ico'];
-            var scripts = [
-                'js/libs/json2.js',
-                'js/libs/jquery.js',
-                'js/libs/bootstrap.js',
-                'js/libs/bootstrap-datepicker.js',
-                'js/libs/patternfly.js',
-                'js/libs/jquery.ordered-map.js',
-                'js/libs/browser.js',
-                'js/dojo/dojo.js',
-                'js/libs/qrcode.js'
-            ];
-            ipa_loader.scripts(scripts, function() {
-                require(['freeipa/app'], function(app){ app.run(); });
-            });
-            ipa_loader.styles(styles);
-            ipa_loader.icons(icons);
-
-        })();
-    </script>
+    <script type="text/javascript" src="js/inline/ipa_inline.js"></script>
 </head>
 
 <body>
