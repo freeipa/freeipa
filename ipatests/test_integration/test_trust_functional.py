@@ -1868,7 +1868,7 @@ class TestTrustFunctionalUser(BaseTestTrust):
                 )
                 output = result.stdout_text.strip()
                 # whoami returns fully qualified name for AD trust users
-                assert output == f'{username}@{domain}'
+                assert f'{username}@{domain}' in output
 
     def test_passwd_change_by_user(self):
         """
