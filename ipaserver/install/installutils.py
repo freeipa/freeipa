@@ -1384,7 +1384,8 @@ class ModifyLDIF(ldif.LDIFParser):
         self.writer = ldif.LDIFWriter(output_file)
         self.dn_updated = set()
 
-        self.modifications = {}  # keep modify operations in original order
+        # keep modify operations in original order
+        self.modifications = ipautil.CIDict()
 
     def add_value(self, dn, attr, values):
         """
@@ -1502,10 +1503,14 @@ class ModifyLDIF(ldif.LDIFParser):
         ldif.LDIFParser.parse(self)
 
         # check if there are any remaining modifications
-        remaining_changes = set(self.modifications.keys()) - self.dn_updated
-        for dn in remaining_changes:
+        updated_lower = set(dn.lower() for dn in self.dn_updated)
+        mods_lower = set(dn.lower() for dn in self.modifications)
+        remaining_modifications = mods_lower - updated_lower
+
+        for dn in remaining_modifications:
             logger.error(
-                "DN: %s does not exists or haven't been updated", dn)
+                "DN: %s does not exist or hasn't been updated", dn
+            )
 
 
 def remove_keytab(keytab_path):
