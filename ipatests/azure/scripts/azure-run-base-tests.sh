@@ -52,6 +52,7 @@ install_result=1
     -p "$server_password" -a "$server_password" \
     --setup-dns --setup-kra \
     $AUTO_FORWARDERS \
+    --use-ipathinca \
     && install_result=0 ; } || install_result=$?
 
 rm -rf "$IPA_TESTS_LOGSDIR"
