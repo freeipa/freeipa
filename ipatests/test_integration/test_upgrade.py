@@ -17,6 +17,7 @@ import pytest
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipapython.ipaldap import realm_to_serverid
 from ipapython.ipautil import template_str
 from ipaserver.install import bindinstance
 from ipaserver.install.sysupgrade import STATEFILE_FILE
@@ -197,10 +198,34 @@ class TestUpgrade(IntegrationTest):
             self.master.run_command(['ipa', 'location-del', location])
 
     def test_invoke_upgrader(self):
-        cmd = self.master.run_command(['ipa-server-upgrade'],
-                                      raiseonerr=False)
-        assert ("DN: cn=Schema Compatibility,cn=plugins,cn=config does not \
-                exists or haven't been updated" not in cmd.stdout_text)
+        """Test that ipa-server-upgrade handles DN case mismatch in dse.ldif.
+
+        ModifyLDIF must match DNs case-insensitively so that a DN stored
+        in dse.ldif with different capitalisation
+        (e.g. after update from old IPA version)
+        is still updated correctly during upgrade.
+        """
+        instance = realm_to_serverid(self.master.domain.realm)
+        dse_ldif = (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % instance
+                    + "/dse.ldif")
+
+        self.master.run_command(['ipactl', 'stop'])
+        self.master.run_command([
+            'sed', '-i',
+            r's/^dn: cn=Schema Compatibility,cn=plugins,cn=config/'
+            r'dn: cn=SCHEMA comPatIbilIty,cn=plugins,cn=config/',
+            dse_ldif,
+        ])
+        self.master.run_command(['ipactl', 'start'])
+        cmd = self.master.run_command(
+            ['ipa-server-upgrade'],
+            raiseonerr=False,
+        )
+        assert (
+            "cn=Schema Compatibility,cn=plugins,cn=config "
+            "does not exists or haven't been updated"
+            not in cmd.stdout_text
+        )
         assert cmd.returncode == 0
 
     def test_double_encoded_cacert(self):
