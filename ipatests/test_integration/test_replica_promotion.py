@@ -98,6 +98,7 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
             '-n', self.master.domain.name,
             '-r', self.master.domain.realm,
             '--server', self.master.hostname,
+            '--use-ipathinca',
             '-U'],
             raiseonerr=False)
         assert result.returncode == 1
@@ -1361,6 +1362,7 @@ class TestReplicaConn(IntegrationTest):
         self.replica.run_command(
             ["ipa-replica-install", "--setup-ca", "-U", "--ip-address",
              self.replica.ip, "--realm", self.replica.domain.realm,
+             "--use-ipathinca",
              "--domain", self.replica.domain.name,
              "--principal={0}".format(self.ad_admin),
              "--password", self.master.config.ad_admin_password]
