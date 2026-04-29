@@ -6710,7 +6710,7 @@ class test_dns_soa(Declarative):
                              api.env.container_dns, api.env.basedn),
                     'idnsname': [DNSName(u'domain.numeric.123.')],
                     'idnszoneactive': [True],
-                    'idnssoamname': [DNSName(api.env.host)],
+                    'idnssoamname': [self_server_ns_dnsname],
                     'nsrecord': lambda x: True,
                     'idnssoarname': lambda x: True,
                     'idnssoaserial': [fuzzy_digits],
