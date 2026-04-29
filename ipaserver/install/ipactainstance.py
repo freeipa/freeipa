@@ -1496,15 +1496,15 @@ class IpactaInstance(service.Service):
         self._ldap_setup._register_ca_service()
         logger.debug("CA service registered successfully")
 
-    def start(self):
+    def start(self, instance_name="", **kwargs):
         """Start ipacta service."""
         services.knownservices["ipacta"].start()
 
-    def stop(self):
+    def stop(self, instance_name="", **kwargs):
         """Stop ipacta service."""
         services.knownservices["ipacta"].stop()
 
-    def restart(self):
+    def restart(self, instance_name="", **kwargs):
         """Restart ipacta service."""
         services.knownservices["ipacta"].restart()
 
