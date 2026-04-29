@@ -2143,12 +2143,12 @@ class TestTrustFunctionalUser(BaseTestTrust):
                     )
                 time.sleep(60)
 
-                # Test on client: xfail on Fedora when SSSD is 2.12.0 or older
+                # Test on client: xfail on Fedora when SSSD is 2.12.0
                 client = self.clients[0]
                 with xfail_context(
                     osinfo.id == 'fedora'
                     and tasks.get_sssd_version(client)
-                    <= parse_version('2.12.0'),
+                    == parse_version('2.12.0'),
                     reason=(
                         "Fix available after 2.12.0; "
                         "https://github.com/SSSD/sssd/issues/8441"
