@@ -241,15 +241,10 @@ class _PKIConfigBuilder:
             "CA", "random_serial_numbers", str(random_serial_numbers).lower()
         )
 
-        immutable_snapshot = cls._snapshot_immutable(config)
-
         # Layer 3: ipaca_customize.ini
         if os.path.exists(cls._ipaca_customize):
             with open(cls._ipaca_customize) as f:
                 config.read_file(f)
-            cls._verify_immutable(
-                config, immutable_snapshot, cls._ipaca_customize
-            )
         else:
             logger.warning(
                 "ipaca_customize.ini not found: %s", cls._ipaca_customize
@@ -260,13 +255,15 @@ class _PKIConfigBuilder:
             if os.path.exists(cls._ipaca_softhsm2):
                 with open(cls._ipaca_softhsm2) as f:
                     config.read_file(f)
-                cls._verify_immutable(
-                    config, immutable_snapshot, cls._ipaca_softhsm2
-                )
             else:
                 logger.warning(
                     "ipaca_softhsm2.ini not found: %s", cls._ipaca_softhsm2
                 )
+
+        # Snapshot after all IPA-controlled layers (0-4) are merged so that
+        # interpolation variables like %(ipa_key_algorithm)s are fully defined.
+        # Only user overrides (layer 5) are checked against this baseline.
+        immutable_snapshot = cls._snapshot_immutable(config)
 
         # Layer 5: user overrides
         if pki_config_override:
