@@ -273,6 +273,23 @@ class _PKIConfigBuilder:
                 config, immutable_snapshot, pki_config_override
             )
 
+        # Final override: installer-specified signing algorithm wins over the
+        # SHA256withRSA default that ipaca_customize.ini hardcodes in
+        # [DEFAULT].  ConfigParser constructor defaults cannot override ini
+        # [DEFAULT] values, so we must set the keys in the defaults dict after
+        # all layers are loaded.  The interpolation chain
+        #   pki_ca_signing_signing_algorithm -> %(ipa_ca_signing_algorithm)s
+        #   ipa_ca_signing_algorithm         -> %(ipa_signing_algorithm)s
+        # then resolves correctly at get()-time.
+        if ca_signing_algorithm is not None:
+            alg_str = (
+                ca_signing_algorithm.value
+                if hasattr(ca_signing_algorithm, "value")
+                else str(ca_signing_algorithm)
+            )
+            config.defaults()["ipa_signing_algorithm"] = alg_str
+            config.defaults()["ipa_ca_signing_algorithm"] = alg_str
+
         return config
 
     @classmethod
