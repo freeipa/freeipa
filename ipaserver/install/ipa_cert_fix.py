@@ -25,16 +25,12 @@
 
 from __future__ import print_function, absolute_import
 
-import base64
-from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
 import logging
 import shutil
 
 from ipalib import api
 from ipalib import x509
 from ipalib.facts import is_ipa_configured
-from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython.admintool import AdminTool
 from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
@@ -42,6 +38,13 @@ from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
 from ipaserver.install.certs import is_ipa_issued_cert
+# Re-export public names from the helper module so that all symbols are
+# importable from ``ipaserver.install.ipa_cert_fix``.
+from ipaserver.install.ipa_cert_fix_services import (  # noqa: F401
+    CertmongerClient,
+    get_csr_from_certmonger,
+    print_cert_info,
+)
 from ipaserver.install.ipa_cert_fix_types import (
     CERT_EXPIRY_LOOKAHEAD,
     DOGTAG_CERTS,
@@ -291,42 +294,6 @@ def print_intentions(dogtag_certs, ipa_certs, non_renewed):
 
         for certtype, cert in non_renewed:
             print_cert_info("IPA", certtype.value, cert)
-
-
-def print_cert_info(context, desc, cert):
-    print("{} {} certificate:".format(context, desc))
-    print("  Subject: {}".format(DN(cert.subject)))
-    print("  Serial:  {}".format(cert.serial_number))
-    print("  Expires: {}".format(cert.not_valid_after_utc))
-    print()
-
-
-def get_csr_from_certmonger(nickname):
-    """
-    Get the csr for the provided nickname by asking certmonger.
-
-    Returns the csr in ASCII format without the header/footer in a single line
-    or None if not found.
-    """
-    criteria = {
-        'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
-        'cert-nickname': nickname,
-    }
-
-    id = certmonger.get_request_id(criteria)
-    if id:
-        csr = certmonger.get_request_value(id, "csr")
-        if csr:
-            try:
-                # Make sure the value can be parsed as valid CSR
-                csr_obj = crypto_x509.load_pem_x509_csr(
-                    csr.encode('ascii'), default_backend())
-                val = base64.b64encode(csr_obj.public_bytes(x509.Encoding.DER))
-                return val.decode('ascii')
-            except Exception as e:
-                # Fallthrough and return None
-                logger.debug("Unable to get CSR from certmonger: %s", e)
-    return None
 
 
 def fix_certreq_directives(certs):

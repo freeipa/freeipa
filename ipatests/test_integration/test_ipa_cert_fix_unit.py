@@ -8,12 +8,18 @@ Unit tests for ipa-cert-fix.
 These tests use mocks and do not require an IPA deployment.  They exercise
 pure logic and should run in seconds.
 """
+from unittest import mock
 import pytest
 
+from ipaserver.install.ipa_cert_fix import (
+    CertmongerClient,
+)
 from ipaserver.install.ipa_cert_fix_types import (
     CertIdentity,
     DOGTAG_CERTS,
 )
+
+SMOD = 'ipaserver.install.ipa_cert_fix_services'
 
 
 class TestCertIdentityRegistry:
@@ -90,3 +96,78 @@ class TestCertIdentityRegistry:
         """All CertIdentity instances report is_dogtag=True."""
         for ci in DOGTAG_CERTS.values():
             assert ci.is_dogtag is True
+
+
+class TestCertmongerClient:
+    """CertmongerClient adapter delegation and retry logic."""
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_get_request_id_delegates(self, mock_cm):
+        mock_cm.get_request_id.return_value = 'req-1'
+        client = CertmongerClient()
+        result = client.get_request_id({'cert-file': '/a'})
+        assert result == 'req-1'
+        mock_cm.get_request_id.assert_called_once_with({'cert-file': '/a'})
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_get_request_value_delegates(self, mock_cm):
+        mock_cm.get_request_value.return_value = 'MONITORING'
+        client = CertmongerClient()
+        result = client.get_request_value('req-1', 'status')
+        assert result == 'MONITORING'
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_resubmit_request_delegates(self, mock_cm):
+        client = CertmongerClient()
+        client.resubmit_request('req-1', ca='IPA')
+        mock_cm.resubmit_request.assert_called_once_with(
+            'req-1', ca='IPA', profile=None)
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_modify_ca_helper_delegates(self, mock_cm):
+        client = CertmongerClient()
+        client.modify_ca_helper('IPA', '/usr/libexec/ipa-submit')
+        mock_cm.modify_ca_helper.assert_called_once_with(
+            'IPA', '/usr/libexec/ipa-submit')
+
+    @mock.patch(SMOD + '.time.sleep')
+    @mock.patch(SMOD + '.time.monotonic')
+    @mock.patch(SMOD + '.ipautil')
+    def test_is_responsive_returns_true(
+        self, mock_ipautil, mock_mono, mock_sleep,
+    ):
+        mock_ipautil.run.return_value = mock.MagicMock()
+        mock_mono.return_value = 0
+        client = CertmongerClient()
+        assert client.is_responsive(timeout=10) is True
+
+    @mock.patch(SMOD + '.time.sleep')
+    @mock.patch(SMOD + '.time.monotonic')
+    @mock.patch(SMOD + '.ipautil')
+    def test_is_responsive_timeout_returns_false(
+        self, mock_ipautil, mock_mono, mock_sleep,
+    ):
+        mock_ipautil.run.side_effect = Exception("D-Bus down")
+        mock_mono.side_effect = [0, 0, 200]
+        client = CertmongerClient()
+        assert client.is_responsive(timeout=1) is False
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_start_tracking_delegates(self, mock_cm):
+        mock_cm.start_tracking.return_value = 'new-req'
+        client = CertmongerClient()
+        result = client.start_tracking(certpath='/cert', ca='IPA')
+        assert result == 'new-req'
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_stop_tracking_delegates(self, mock_cm):
+        client = CertmongerClient()
+        client.stop_tracking('req-1')
+        mock_cm.stop_tracking.assert_called_once_with(request_id='req-1')
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_get_requests_for_dir_delegates(self, mock_cm):
+        mock_cm.get_requests_for_dir.return_value = ['r1', 'r2']
+        client = CertmongerClient()
+        result = client.get_requests_for_dir('/etc/pki')
+        assert result == ['r1', 'r2']

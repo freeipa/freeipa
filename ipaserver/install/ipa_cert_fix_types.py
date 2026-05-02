@@ -109,6 +109,12 @@ DOGTAG_CERTS = {
 # Certs expiring within this window are treated as expired.
 CERT_EXPIRY_LOOKAHEAD = datetime.timedelta(weeks=2)
 
+# Timeouts and delays for certmonger and D-Bus operations (seconds).
+CERTMONGER_WAIT_TIMEOUT = 300
+DBUS_RETRY_TIMEOUT = 120
+DBUS_RETRY_DELAY = 5
+HELPER_KILL_SETTLE = 2
+
 RENEWED_CERT_PATH_TEMPLATE = "/etc/pki/pki-tomcat/certs/{}-renewed.crt"
 
 
