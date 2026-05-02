@@ -28,8 +28,6 @@ from __future__ import print_function, absolute_import
 import base64
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
-import datetime
-from enum import Enum
 import logging
 import shutil
 
@@ -44,46 +42,19 @@ from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
 from ipaserver.install.certs import is_ipa_issued_cert
+from ipaserver.install.ipa_cert_fix_types import (
+    CERT_EXPIRY_LOOKAHEAD,
+    DOGTAG_CERTS,
+    IPACertType,
+    RENEWAL_NOTE,
+    RENEWED_CERT_PATH_TEMPLATE,
+    WARNING_BANNER,
+    _utcnow,
+)
 from ipapython import directivesetter
 from ipapython import ipautil
 
-msg = """
-                          WARNING
-
-ipa-cert-fix is intended for recovery when expired certificates
-prevent the normal operation of IPA.  It should ONLY be used
-in such scenarios, and backup of the system, especially certificates
-and keys, is STRONGLY RECOMMENDED.
-
-"""
-
-renewal_note = """
-Note: Monitor the certmonger-initiated renewal of
-certificates after ipa-cert-fix and wait for its completion before
-any other administrative task.
-"""
-
-RENEWED_CERT_PATH_TEMPLATE = "/etc/pki/pki-tomcat/certs/{}-renewed.crt"
-
 logger = logging.getLogger(__name__)
-
-
-cert_nicknames = {
-    'ca_issuing': 'caSigningCert cert-pki-ca',
-    'sslserver': 'Server-Cert cert-pki-ca',
-    'subsystem': 'subsystemCert cert-pki-ca',
-    'ca_ocsp_signing': 'ocspSigningCert cert-pki-ca',
-    'ca_audit_signing': 'auditSigningCert cert-pki-ca',
-    'kra_transport': 'transportCert cert-pki-kra',
-    'kra_storage': 'storageCert cert-pki-kra',
-    'kra_audit_signing': 'auditSigningCert cert-pki-kra',
-}
-
-class IPACertType(Enum):
-    IPARA = "IPA RA"
-    HTTPS = "Apache HTTPS"
-    LDAPS = "LDAP"
-    KDC = "KDC"
 
 
 class IPACertFix(AdminTool):
@@ -142,9 +113,7 @@ class IPACertFix(AdminTool):
 
         ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
 
-        now = (
-            datetime.datetime.now(tz=datetime.timezone.utc)
-            + datetime.timedelta(weeks=2))
+        now = _utcnow() + CERT_EXPIRY_LOOKAHEAD
         certs, extra_certs, non_renewed = expired_certs(now)
 
         if not certs and not extra_certs:
@@ -173,7 +142,7 @@ class IPACertFix(AdminTool):
         IPA service certificates.  If any "shared" certificate is renewed,
         promotes this server to the renewal master.
         """
-        print(msg)
+        print(WARNING_BANNER)
 
         print_intentions(certs, extra_certs, non_renewed)
 
@@ -216,7 +185,7 @@ class IPACertFix(AdminTool):
         print("Restarting IPA")
         ipautil.run(['ipactl', 'restart'], raiseonerr=True)
 
-        print(renewal_note)
+        print(RENEWAL_NOTE)
         return 0
 
     def _confirm_execution(self):
@@ -244,9 +213,9 @@ def expired_dogtag_certs(now):
     certs = []
     db = NSSDatabase(nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
 
-    for certid, nickname in cert_nicknames.items():
+    for certid, ci in DOGTAG_CERTS.items():
         try:
-            cert = db.get_cert(nickname)
+            cert = db.get_cert(ci.nickname)
         except RuntimeError:
             pass  # unfortunately certdb doesn't give us a better exception
         else:
@@ -365,41 +334,25 @@ def fix_certreq_directives(certs):
     For all the certs to be fixed, ensure that the corresponding CSR is found
     in PKI config file, or try to get the CSR from certmonger.
     """
-    directives = {
-        'auditSigningCert cert-pki-ca': ('ca.audit_signing.certreq',
-                                         paths.CA_CS_CFG_PATH),
-        'ocspSigningCert cert-pki-ca': ('ca.ocsp_signing.certreq',
-                                        paths.CA_CS_CFG_PATH),
-        'subsystemCert cert-pki-ca': ('ca.subsystem.certreq',
-                                      paths.CA_CS_CFG_PATH),
-        'Server-Cert cert-pki-ca': ('ca.sslserver.certreq',
-                                    paths.CA_CS_CFG_PATH),
-        'auditSigningCert cert-pki-kra': ('kra.audit_signing.certreq',
-                                          paths.KRA_CS_CFG_PATH),
-        'storageCert cert-pki-kra': ('kra.storage.certreq',
-                                     paths.KRA_CS_CFG_PATH),
-        'transportCert cert-pki-kra': ('kra.transport.certreq',
-                                       paths.KRA_CS_CFG_PATH),
-    }
-
     # pki-server cert-fix needs to find the CSR in the subsystem config file
-    # otherwise it will fail
-    # For each cert to be fixed, check that the CSR is present or
-    # get it from certmonger
+    # otherwise it will fail.  Walk each cert to renew, check whether the CSR
+    # directive is present, and fall back to certmonger.
     for (certid, _cert) in certs:
-        # Check if the directive is set in the config file
-        nickname = cert_nicknames[certid]
-        (directive, cfg_path) = directives[nickname]
-        if directivesetter.get_directive(cfg_path, directive, '=') is None:
+        ci = DOGTAG_CERTS[certid]
+        if ci.certreq_directive is None or ci.cfg_path is None:
+            continue
+        if directivesetter.get_directive(
+            ci.cfg_path, ci.certreq_directive, '='
+        ) is None:
             # The CSR is missing, try to get it from certmonger
-            csr = get_csr_from_certmonger(nickname)
+            csr = get_csr_from_certmonger(ci.nickname)
             if csr:
-                # Update the directive
-                directivesetter.set_directive(cfg_path, directive, csr,
-                                              quotes=False, separator='=')
+                directivesetter.set_directive(
+                    ci.cfg_path, ci.certreq_directive, csr,
+                    quotes=False, separator='=')
 
 
-def run_cert_fix(certs, extra_certs):
+def run_cert_fix(certs, ipa_certs):
     ldapi_path = (
         paths.SLAPD_INSTANCE_SOCKET_TEMPLATE
         % '-'.join(api.env.realm.split('.'))
@@ -412,7 +365,7 @@ def run_cert_fix(certs, extra_certs):
     ]
     for certid, _cert in certs:
         cmd.extend(['--cert', certid])
-    for _certtype, cert in extra_certs:
+    for _certtype, cert in ipa_certs:
         cmd.extend(['--extra-cert', str(cert.serial_number)])
     ipautil.run(cmd, raiseonerr=True)
 
@@ -427,21 +380,32 @@ def replicate_dogtag_certs(subject_base, ca_subject_dn, certs):
 
 def check_renewed_ipa_certs(certs):
     """
-    Check whether all expected IPA-specific certs (extra_certs) were renewed
-    successfully.
+    Check whether all expected IPA-specific certs were renewed successfully by
+    ``pki-server cert-fix``.
 
-    For now this subroutine just checks that the files that we expect
-    ``pki-server cert-fix`` to have written do exist and contain an X.509
-    certificate.
+    Verifies that each renewed cert file:
+    - exists and contains valid X.509 data
+    - has a different serial number than the old cert
+    - is not expired (using the 2-week lookahead threshold)
 
-    Return ``True`` if everything seems to be as expected, otherwise ``False``.
-
+    Return ``True`` if everything looks good, otherwise ``False``.
     """
+    threshold = _utcnow() + CERT_EXPIRY_LOOKAHEAD
     for _certtype, oldcert in certs:
         cert_path = RENEWED_CERT_PATH_TEMPLATE.format(oldcert.serial_number)
         try:
-            x509.load_certificate_from_file(cert_path)
+            newcert = x509.load_certificate_from_file(cert_path)
         except (IOError, ValueError):
+            return False
+        if newcert.serial_number == oldcert.serial_number:
+            logger.warning(
+                "Renewed cert at %s has same serial as old (%s)",
+                cert_path, oldcert.serial_number)
+            return False
+        if newcert.not_valid_after_utc <= threshold:
+            logger.warning(
+                "Renewed cert at %s is expired or near expiry (notAfter=%s)",
+                cert_path, newcert.not_valid_after_utc)
             return False
 
     return True
