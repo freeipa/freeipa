@@ -1410,6 +1410,7 @@ class IpactaInstance(service.Service):
         )
         self.step("starting ipacta service", self._svc._start_service)
         self.step("generating initial CRL", self._svc._generate_initial_crl)
+        self.step("enabling CA instance", self.__enable_instance)
 
         if promote:
             self.step(
@@ -1417,6 +1418,11 @@ class IpactaInstance(service.Service):
             )
 
         self.start_creation()
+
+    def __enable_instance(self):
+        basedn = ipautil.realm_to_suffix(self.realm)
+        config = [] if self.clone else ['caRenewalMaster']
+        self.ldap_configure('CA', self.fqdn, None, basedn, config)
 
     def _import_replica_keys(self):
         """Import CA key material from the master's PKCS#12 into the NSSDB.
