@@ -12,19 +12,23 @@ handling, deployment detection) are added in subsequent commits.
 """
 
 import base64
+from contextlib import contextmanager
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 import logging
 import os
+import re
 import socket
 import time
 
 from ipalib import api, errors
+from ipalib.constants import IPA_CA_RECORD
 from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
+from ipapython.dogtag import KDC_PROFILE
 from ipapython.ipaldap import realm_to_serverid
 from ipapython import directivesetter
 from ipapython import ipautil
@@ -531,6 +535,512 @@ def expired_ipa_certs(now, ds_dbdir=None, ds_nickname=None):
         logger.debug("Cannot load KDC cert from %s: %s", paths.KDC_CERT, e)
 
     return certs, non_renewed
+
+
+class ExternalCertHandler:
+    """Handle expired externally-signed service certificates.
+
+    Offers per-cert transition to the internal IPA CA (interactive) or
+    generates CSRs for manual renewal with the external CA.
+
+    Extracted from IPACertFix so the logic can be tested and reused
+    independently of the AdminTool lifecycle.
+    """
+
+    DEFAULT_CSR_DIR = '/run/ipa/cert-fix'
+
+    def __init__(self, cm_client, unattended=False, csr_dir=None):
+        self._cm = cm_client
+        self._unattended = unattended
+        self._csr_dir = csr_dir or self.DEFAULT_CSR_DIR
+
+    def handle(self, ctx):
+        """Dispatch external cert handling.
+
+        If an internal CA exists in the topology, offers per-cert transition
+        to the IPA CA via :meth:`offer_transition`.  For remaining certs (or
+        if no CA exists), generates CSRs and prints manual installation
+        instructions via :meth:`generate_csrs`.
+
+        On ``CA_LESS_EXTERNAL`` deployments (no internal CA anywhere),
+        transitions are not possible -- only CSR generation is performed.
+
+        :param ctx: :class:`CertFixContext`
+        :returns: ``True`` if any certs were handled (transitioned or CSRs
+            generated), ``False`` if all failed
+        """
+        if not ctx.external_certs:
+            return True
+
+        remaining = list(ctx.external_certs)
+        handled = False
+
+        if ctx.deployment_type != DeploymentType.CA_LESS_EXTERNAL:
+            try:
+                ca_servers = find_providing_servers(
+                    'CA', conn=api.Backend.ldap2, api=api)
+            except Exception as e:
+                logger.warning("Failed to discover CA servers: %s", e)
+                ca_servers = []
+
+            # find_providing_servers returns all CA replicas including this
+            # host; filter so the helper override never points at self.
+            other_cas = [s for s in ca_servers if s != api.env.host]
+            master = ctx.master_server or (
+                other_cas[0] if other_cas else None)
+
+            if master is not None:
+                transitioned = (
+                    self.offer_transition(ctx.external_certs, master, ctx))
+                if transitioned:
+                    handled = True
+                remaining = [
+                    (t, c) for t, c in ctx.external_certs
+                    if t not in transitioned
+                ]
+
+        if remaining:
+            if self.generate_csrs(remaining, ctx):
+                handled = True
+
+        return handled
+
+    def offer_transition(self, external_certs, master, ctx):
+        """Offer to transition external certs to the internal CA.
+
+        Externally-signed certificates typically have no certmonger tracking
+        request (tracking is stopped when a cert is installed externally).
+        To transition, we stop any existing tracking, create a new tracking
+        request with the correct IPA parameters, optionally override the IPA
+        CA helper to point at *master*, and wait for renewal.
+
+        In unattended mode, no transitions are offered.
+        """
+        if self._unattended:
+            logger.info(
+                "Unattended mode: skipping external cert transition offers")
+            return set()
+
+        transitioned = set()
+
+        for certtype, cert in external_certs:
+            print(
+                "Certificate %s is signed by an external CA (issuer: %s)."
+                % (certtype.value, DN(cert.issuer)))
+            response = ipautil.user_input(
+                "Transition to internal IPA CA?",
+                default=False,)
+            if not response:
+                continue
+
+            try:
+                self._transition_cert(certtype, cert, master, ctx)
+                transitioned.add(certtype)
+            except Exception as e:
+                logger.error("Failed to transition %s: %s", certtype.value, e)
+                print("ERROR: Failed to transition %s: %s"
+                      % (certtype.value, e))
+
+        return transitioned
+
+    def _transition_cert(self, certtype, cert, master, ctx):
+        """Transition a single cert to the internal IPA CA."""
+        params = self._tracking_params(certtype, ctx)
+        if params is None:
+            raise RuntimeError(
+                "No tracking parameters for %s" % certtype.value)
+
+        criteria = self._cert_criteria(certtype, ctx)
+        if criteria:
+            old_id = self._cm.get_request_id(criteria)
+            if old_id is not None:
+                logger.debug(
+                    "Stopping existing tracking %s for %s",
+                    old_id, certtype.value,)
+                self._cm.stop_tracking(request_id=old_id)
+
+        print("  Creating IPA tracking request for %s..." % certtype.value)
+        logger.debug("Tracking params for %s: %s", certtype.value, params)
+
+        if master:
+            if not self._cm.is_responsive():
+                raise RuntimeError(
+                    "certmonger did not become responsive; "
+                    "cannot create tracking request for %s"
+                    % certtype.value)
+            with self._override_ca_helper(master):
+                request_id = self._create_tracking(certtype, params)
+                state = self._cm.wait_for_request(
+                    request_id,
+                    timeout=CERTMONGER_WAIT_TIMEOUT)
+        else:
+            request_id = self._create_tracking(certtype, params)
+            state = self._cm.wait_for_request(
+                request_id,
+                timeout=CERTMONGER_WAIT_TIMEOUT)
+
+        if state == 'MONITORING':
+            print("  %s transitioned successfully." % certtype.value)
+        else:
+            ca_error = self._cm.get_request_value(request_id, 'ca-error')
+            raise RuntimeError(
+                "%s transition failed: state=%s, error=%s"
+                % (certtype.value, state, ca_error))
+
+    def _create_tracking(self, certtype, params):
+        """Create a certmonger tracking request."""
+        request_id = self._cm.start_tracking(
+            certpath=params['certpath'],
+            ca=params['ca'],
+            storage=params['storage'],
+            profile=params['profile'],
+            post_command=params.get('post_command'),
+            pinfile=params.get('pinfile'),
+            nickname=params.get('nickname'),
+            dns=params.get('dns'),
+            perms=params.get('perms'),
+            token_name=params.get('token'),)
+        logger.debug(
+            "Created tracking request %s for %s",
+            request_id, certtype.value,)
+        if params.get('principal'):
+            self._cm.add_principal(request_id, params['principal'])
+        if params.get('subject'):
+            self._cm.add_subject(request_id, params['subject'])
+        return request_id
+
+    @staticmethod
+    def _tracking_params(certtype, ctx):
+        """Return certmonger tracking parameters for a cert.
+
+        These mirror the parameters used during IPA server installation.
+        """
+        subject = str(DN(('CN', api.env.host), ctx.subject_base))
+
+        if certtype is IPACertType.HTTPS:
+            passwd_file = (
+                paths.HTTPD_PASSWD_FILE_FMT.format(host=api.env.host))
+            return {
+                'certpath': (paths.HTTPD_CERT_FILE, paths.HTTPD_KEY_FILE),
+                'ca': 'IPA',
+                'storage': 'FILE',
+                'profile': IPA_SERVICE_PROFILE,
+                'post_command': 'restart_httpd',
+                'pinfile': passwd_file,
+                'dns': [
+                    api.env.host,
+                    '%s.%s' % (IPA_CA_RECORD,
+                               api.env.domain),
+                ],
+                'principal': 'HTTP/%s@%s' % (api.env.host, api.env.realm),
+                'subject': subject,
+            }
+
+        if certtype is IPACertType.LDAPS:
+            return {
+                'certpath': ctx.ds_dbdir,
+                'ca': 'IPA',
+                'storage': 'NSSDB',
+                'profile': IPA_SERVICE_PROFILE,
+                'post_command': ('restart_dirsrv %s'
+                                 % ctx.serverid),
+                'pinfile': os.path.join(ctx.ds_dbdir, 'pwdfile.txt'),
+                'nickname': ctx.ds_nickname,
+                'principal': 'ldap/%s@%s' % (api.env.host, api.env.realm),
+                'subject': subject,
+            }
+
+        if certtype is IPACertType.KDC:
+            return {
+                'certpath': (paths.KDC_CERT, paths.KDC_KEY),
+                'ca': 'IPA',
+                'storage': 'FILE',
+                'profile': KDC_PROFILE,
+                'post_command': 'renew_kdc_cert',
+                'dns': [api.env.host],
+                'perms': (0o644, 0o600),
+                'principal': 'krbtgt/%s@%s' % (api.env.realm, api.env.realm),
+                'subject': subject,
+            }
+
+        # IPARA is handled separately (fetched from master LDAP, not via
+        # certmonger tracking).
+        return None
+
+    def generate_csrs(self, external_certs, ctx):
+        """Generate CSR files for externally-signed certificates.
+
+        For each expired external cert, tries three sources for a CSR:
+
+        1. Extract existing CSR from certmonger tracking
+        2. Generate a new CSR from the existing private key and the expired
+           cert's subject/SANs
+        3. Fall back to manual instructions
+        """
+        csr_dir = self._csr_dir
+        os.makedirs(csr_dir, mode=0o700, exist_ok=True)
+
+        csr_paths = {}
+
+        for certtype, cert in external_certs:
+            csr_path = os.path.join(
+                csr_dir, '%s.csr'
+                % certtype.value.lower().replace(' ', '-'))
+
+            csr_pem = self._get_csr_from_tracking(certtype, ctx)
+
+            if csr_pem is None:
+                csr_pem = self._generate_csr_from_key(certtype, cert, ctx)
+
+            if csr_pem is None:
+                logger.warning("Cannot generate CSR for %s", certtype.value)
+                continue
+
+            try:
+                fd = os.open(
+                    csr_path,
+                    os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                    0o600)
+                with os.fdopen(fd, 'w') as f:
+                    f.write(csr_pem)
+                csr_paths[certtype] = csr_path
+                logger.debug(
+                    "Wrote CSR for %s to %s",
+                    certtype.value, csr_path,)
+            except IOError as e:
+                logger.error(
+                    "Failed to write CSR for %s: %s",
+                    certtype.value, e,)
+
+        install_cmds = {
+            IPACertType.HTTPS: (
+                "ipa-server-certinstall --http /path/to/renewed.crt"),
+            IPACertType.LDAPS: (
+                "ipa-server-certinstall --dirsrv /path/to/renewed.crt"),
+            IPACertType.KDC: (
+                "ipa-server-certinstall --kdc /path/to/renewed.crt"),
+        }
+
+        if csr_paths:
+            print()
+            print("CSR files have been generated for external renewal:")
+            print()
+            for certtype, path in csr_paths.items():
+                print("  %s:" % certtype.value)
+                print("    CSR: %s" % path)
+                cmd = install_cmds.get(certtype)
+                if cmd:
+                    print("    Install: %s" % cmd)
+            print()
+            print(
+                "Submit these CSRs to your external CA, "
+                "then install the renewed certificates "
+                "using the commands above.")
+            print()
+            return True
+        else:
+            print(
+                "Could not generate CSRs for the "
+                "externally-signed certificates.")
+            print(
+                "Generate CSRs manually from your existing "
+                "keys and submit them to your external CA, "
+                "then install using ipa-server-certinstall.")
+            print()
+            return False
+
+    def _get_csr_from_tracking(self, certtype, ctx):
+        """Try to extract a CSR from certmonger tracking."""
+        criteria = self._cert_criteria(certtype, ctx)
+        if criteria is None:
+            return None
+        request_id = self._cm.get_request_id(criteria)
+        if request_id is None:
+            logger.debug("No certmonger tracking for %s", certtype.value)
+            return None
+        csr = self._cm.get_request_value(request_id, 'csr')
+        if not csr:
+            logger.debug("No CSR in tracking for %s", certtype.value)
+            return None
+        logger.debug("Extracted CSR from certmonger for %s", certtype.value)
+        return csr
+
+    def _generate_csr_from_key(self, certtype, cert, ctx):
+        """Generate a CSR from the existing private key.
+
+        Uses the subject and SANs from the expired certificate to build a
+        new CSR signed with the existing private key.
+        """
+        from cryptography.exceptions import (UnsupportedAlgorithm)
+        from cryptography.hazmat.primitives import (hashes, serialization)
+
+        params = self._tracking_params(certtype, ctx)
+        if params is None:
+            return None
+
+        if params['storage'] == 'NSSDB':
+            return self._generate_csr_nssdb(certtype, cert, params)
+
+        certpath = params['certpath']
+        _cert_file, key_file = certpath
+
+        try:
+            with open(key_file, 'rb') as f:
+                key_pem = f.read()
+        except IOError as e:
+            logger.warning(
+                "Cannot read key for %s from %s: %s",
+                certtype.value, key_file, e,)
+            return None
+
+        try:
+            key = serialization.load_pem_private_key(key_pem, password=None)
+        except (ValueError, TypeError, UnsupportedAlgorithm):
+            pinfile = params.get('pinfile')
+            if pinfile:
+                try:
+                    with open(pinfile, 'rb') as f:
+                        pin = f.read().strip()
+                    key = serialization.load_pem_private_key(
+                        key_pem, password=pin,)
+                except Exception as e:
+                    logger.warning(
+                        "Cannot decrypt key for %s: %s",
+                        certtype.value, e,)
+                    return None
+            else:
+                logger.warning(
+                    "Key for %s is encrypted, no pin file available",
+                    certtype.value,)
+                return None
+
+        builder = crypto_x509.CertificateSigningRequestBuilder()
+        builder = builder.subject_name(cert.subject)
+
+        try:
+            san = cert.extensions.get_extension_for_class(
+                crypto_x509.SubjectAlternativeName)
+            builder = builder.add_extension(san.value, critical=san.critical)
+        except crypto_x509.ExtensionNotFound:
+            pass
+
+        csr = builder.sign(key, hashes.SHA256())
+        csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode('ascii')
+
+        logger.info(
+            "Generated CSR for %s from key %s",
+            certtype.value, key_file,)
+        return csr_pem
+
+    @staticmethod
+    def _generate_csr_nssdb(certtype, cert, params):
+        """Generate a CSR from an NSSDB private key."""
+        dbdir = params['certpath']
+        nickname = params.get('nickname')
+        pinfile = params.get('pinfile')
+        token = params.get('token')
+        subject = str(DN(cert.subject))
+
+        key_id = None
+        if nickname:
+            key_id = ExternalCertHandler._get_nssdb_key_id(
+                dbdir, nickname, pinfile, token)
+
+        cmd = ['certutil', '-R', '-d', dbdir, '-s', subject, '-a']
+        if token:
+            cmd.extend(['-h', token])
+        if key_id:
+            cmd.extend(['-k', key_id])
+        else:
+            logger.warning(
+                "Cannot find key ID for %s in %s, cannot generate CSR",
+                nickname, dbdir,)
+            return None
+        if pinfile:
+            cmd.extend(['-f', pinfile])
+
+        try:
+            san = cert.extensions.get_extension_for_class(
+                crypto_x509.SubjectAlternativeName)
+            dns_names = san.value.get_values_for_type(crypto_x509.DNSName)
+            if dns_names:
+                cmd.extend(['-8', ','.join(dns_names)])
+        except crypto_x509.ExtensionNotFound:
+            pass
+
+        try:
+            result = ipautil.run(cmd, capture_output=True)
+            csr_pem = result.output
+            begin = csr_pem.find('-----BEGIN CERTIFICATE REQUEST')
+            if begin >= 0:
+                csr_pem = csr_pem[begin:]
+            logger.info(
+                "Generated CSR for %s via certutil (key=%s in %s)",
+                certtype.value, nickname or 'new', dbdir,)
+            return csr_pem
+        except Exception as e:
+            logger.warning(
+                "certutil CSR generation failed for %s: %s",
+                certtype.value, e)
+            return None
+
+    @staticmethod
+    def _get_nssdb_key_id(dbdir, nickname, pinfile=None, token=None):
+        """Extract the hex key ID for a cert from NSSDB."""
+        cmd = ['certutil', '-K', '-d', dbdir]
+        if token:
+            cmd.extend(['-h', token])
+        if pinfile:
+            cmd.extend(['-f', pinfile])
+
+        try:
+            result = ipautil.run(cmd, capture_output=True)
+        except Exception as e:
+            logger.debug("certutil -K failed for %s: %s", nickname, e)
+            return None
+
+        # Output format: < 0> rsa <hex-key-id> <token>:<nickname>
+        hex_re = re.compile(r'^[0-9a-fA-F]{16,}$')
+
+        for line in result.output.splitlines():
+            line = line.strip()
+            if not line.startswith('<'):
+                continue
+            if nickname not in line:
+                continue
+            parts = line.split()
+            for part in parts:
+                if hex_re.match(part):
+                    logger.debug("Found key ID %s for %s", part, nickname)
+                    return part
+
+        logger.debug("No key ID found for %s in %s", nickname, dbdir)
+        return None
+
+    @staticmethod
+    def _cert_criteria(certtype, ctx):
+        """Return certmonger search criteria for a cert type."""
+        if certtype is IPACertType.HTTPS:
+            return {'cert-file': paths.HTTPD_CERT_FILE}
+        elif certtype is IPACertType.KDC:
+            return {'cert-file': paths.KDC_CERT}
+        elif certtype is IPACertType.LDAPS:
+            return {
+                'cert-database': ctx.ds_dbdir,
+                'cert-nickname': ctx.ds_nickname,
+            }
+        elif certtype is IPACertType.IPARA:
+            return {'cert-file': paths.RA_AGENT_PEM}
+        return None
+
+    @contextmanager
+    def _override_ca_helper(self, master):
+        """Temporarily override IPA CA helper to point at master."""
+        base = self._cm.set_ca_override('IPA', master)
+        try:
+            yield
+        finally:
+            self._cm.restore_ca_override('IPA', base)
 
 
 class CertRenewalFromMaster:

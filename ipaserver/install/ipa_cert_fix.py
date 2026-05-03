@@ -48,6 +48,7 @@ from ipaserver.install.ipa_cert_fix_services import (  # noqa: F401
     CertRenewalFromMaster,
     CertmongerClient,
     DeploymentDetector,
+    ExternalCertHandler,
     _ensure_ldap_connected,
     _find_current_renewal_master,
     _get_pki_nssdb,
@@ -132,6 +133,7 @@ class IPACertFix(AdminTool):
     _cm = None  # CertmongerClient; set in run()
     _ca_instance = None  # cainstance.CAInstance; set in _classify_and_dispatch
     _detector = None  # DeploymentDetector; set in _classify_and_dispatch
+    _external_handler = None  # ExternalCertHandler; set in dispatch
 
     @classmethod
     def add_options(cls, parser):
@@ -284,6 +286,10 @@ class IPACertFix(AdminTool):
             ds_nickname=ds_nickname,
         )
 
+        self._external_handler = ExternalCertHandler(
+            self._cm,
+            unattended=getattr(self.options, 'unattended', False))
+
         dispatch = {
             FixScenario.RENEWAL_MASTER: self.run_renewal_master_fix,
             FixScenario.CA_FULL_WITH_MASTER:
@@ -291,6 +297,7 @@ class IPACertFix(AdminTool):
             FixScenario.CA_FULL_PROMOTE: self.run_ca_full_promote,
             FixScenario.CA_LESS_WITH_MASTER:
                 lambda c: self._run_non_rm_replica_fix(c, is_ca_full=False),
+            FixScenario.EXTERNAL_CERTS: self.run_external_certs,
         }
         handler = dispatch.get(scenario)
         if handler is None:
@@ -363,6 +370,13 @@ class IPACertFix(AdminTool):
             print("Becoming renewal master.")
             cainstance.CAInstance().set_renewal_master()
 
+        # External certs are handled inline (not via a separate scenario
+        # dispatch) because the RM/replica path must complete first --
+        # certmonger state needs to be restored before transitioning or
+        # generating CSRs.
+        if ctx.external_certs:
+            self._external_handler.handle(ctx)
+
         print("Restarting IPA")
         ipautil.run(['ipactl', 'restart'], raiseonerr=True)
 
@@ -405,6 +419,9 @@ class IPACertFix(AdminTool):
             renewal = CertRenewalFromMaster(self._cm, master_server)
             renewal.renew(dogtag, ipa_certs, ctx)
 
+            if ctx.external_certs:
+                self._external_handler.handle(ctx)
+
             print("Restarting IPA")
             ipautil.run(['ipactl', 'restart', '--ignore-service-failures'])
             _ensure_ldap_connected()
@@ -413,6 +430,23 @@ class IPACertFix(AdminTool):
 
         print(RENEWAL_NOTE)
         return 0
+
+    def run_external_certs(self, ctx):
+        """Handle expired externally-signed certificates.
+
+        Delegates to :class:`ExternalCertHandler` for transition offers and
+        CSR generation.
+
+        :param ctx: :class:`CertFixContext` with external_certs
+        :returns: exit code
+        """
+        if not ctx.external_certs:
+            print("Nothing to do.")
+            return 0
+
+        if self._external_handler.handle(ctx):
+            return 0
+        return 1
 
     def run_ca_full_promote(self, ctx):
         """Promote this replica to renewal master and fix certs.
@@ -900,25 +934,21 @@ def _fetch_and_update_cert(remote_conn, dn, context, desc):
     return new_cert
 
 
-def print_intentions(dogtag_certs, ipa_certs, non_renewed):
-    print("The following certificates will be renewed:")
-    print()
-
-    for certid, cert in dogtag_certs:
-        print_cert_info("Dogtag", certid, cert)
-
-    for certtype, cert in ipa_certs:
-        print_cert_info("IPA", certtype.value, cert)
-
-    if non_renewed:
-        print(
-            "The following certificates will NOT be renewed because "
-            "they were not issued by the IPA CA:"
-        )
+def print_intentions(dogtag_certs, ipa_certs, external_certs=None):
+    if dogtag_certs or ipa_certs:
+        print("The following certificates will be renewed:")
         print()
-
-        for certtype, cert in non_renewed:
+        for certid, cert in dogtag_certs:
+            print_cert_info("Dogtag", certid, cert)
+        for certtype, cert in ipa_certs:
             print_cert_info("IPA", certtype.value, cert)
+    if external_certs:
+        print("The following externally-signed certificates require "
+              "separate handling")
+        print("(transition to IPA CA or CSR generation for external renewal):")
+        print()
+        for certtype, cert in external_certs:
+            print_cert_info("External", certtype.value, cert)
 
 
 def fix_certreq_directives(certs):

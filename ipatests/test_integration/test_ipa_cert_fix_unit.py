@@ -17,6 +17,7 @@ from ipaserver.install.ipa_cert_fix import (
     CertmongerClient,
     DeploymentDetector,
     DeploymentType,
+    ExternalCertHandler,
     FixScenario,
     IPACertType,
 )
@@ -650,3 +651,65 @@ class TestUnitPromoteRollback:
 
         obj._ca_instance.set_renewal_master.assert_called_with(
             'old-master.example.com')
+
+
+class TestUnitExternalCertsNoCA:
+    """ExternalCertHandler on fully-external deployments."""
+
+    @mock.patch(SMOD + '.os.makedirs')
+    @mock.patch(SMOD + '.find_providing_servers')
+    def test_caless_external_skips_ca_lookup(
+        self, mock_fps, mock_makedirs,
+    ):
+        """CA_LESS_EXTERNAL skips the CA server lookup entirely."""
+        cm = mock.MagicMock()
+        cm.get_request_id.return_value = None
+        handler = ExternalCertHandler(cm_client=cm, unattended=True)
+        handler._generate_csr_from_key = mock.MagicMock(return_value=None)
+
+        cert = mock.MagicMock()
+        ctx = _make_ctx(
+            deployment_type=DeploymentType.CA_LESS_EXTERNAL,
+            scenario=FixScenario.EXTERNAL_CERTS,
+            external_certs=[(IPACertType.HTTPS, cert)],
+            master_server=None,
+        )
+        handler.handle(ctx)
+
+        # find_providing_servers must NOT be called
+        mock_fps.assert_not_called()
+
+    def test_no_tracking_generates_csr_from_key(self, tmp_path):
+        """When no tracking exists, generate CSR from existing key."""
+        cm = mock.MagicMock()
+        cm.get_request_id.return_value = None
+        handler = ExternalCertHandler(
+            cm_client=cm, unattended=True, csr_dir=str(tmp_path))
+        fake_csr = (
+            "-----BEGIN CERTIFICATE REQUEST-----\nfake\n"
+            "-----END CERTIFICATE REQUEST-----\n"
+        )
+        handler._generate_csr_from_key = mock.MagicMock(return_value=fake_csr)
+
+        cert = mock.MagicMock()
+        ctx = _make_ctx(
+            deployment_type=DeploymentType.CA_LESS_EXTERNAL,
+            scenario=FixScenario.EXTERNAL_CERTS,
+            external_certs=[(IPACertType.HTTPS, cert)],
+            master_server=None,
+        )
+
+        import io
+        import sys
+        captured = io.StringIO()
+        old_stdout = sys.stdout
+        sys.stdout = captured
+        try:
+            handler.handle(ctx)
+        finally:
+            sys.stdout = old_stdout
+
+        output = captured.getvalue()
+        assert 'ipa-server-certinstall --http' in output
+        assert 'CSR:' in output
+        handler._generate_csr_from_key.assert_called_once()
