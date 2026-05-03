@@ -8,6 +8,7 @@ Unit tests for ipa-cert-fix.
 These tests use mocks and do not require an IPA deployment.  They exercise
 pure logic and should run in seconds.
 """
+import datetime
 from unittest import mock
 import pytest
 
@@ -713,3 +714,59 @@ class TestUnitExternalCertsNoCA:
         assert 'ipa-server-certinstall --http' in output
         assert 'CSR:' in output
         handler._generate_csr_from_key.assert_called_once()
+
+
+class TestUnitCheckCASigningCert:
+    """_check_ca_signing_cert validity threshold."""
+
+    def _make_detector(self):
+        return DeploymentDetector(
+            cm_client=mock.MagicMock(),
+            ca_instance=mock.MagicMock(),
+            options=mock.MagicMock(),
+        )
+
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    def test_valid_far_future_passes(self, mock_nssdb):
+        """CA cert valid for years -> True."""
+        import datetime as dt
+        cert = mock.MagicMock()
+        cert.not_valid_after_utc = dt.datetime(
+            2099, 1, 1, tzinfo=dt.timezone.utc)
+        mock_nssdb.return_value.get_cert.return_value = cert
+
+        det = self._make_detector()
+        assert det._check_ca_signing_cert() is True
+
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    def test_near_expiry_fails(self, mock_nssdb):
+        """CA cert near expiry -> False."""
+        cert = mock.MagicMock()
+        cert.not_valid_after_utc = (
+            DeploymentDetector._ca_minimum_valid_until()
+            - datetime.timedelta(days=1))
+        mock_nssdb.return_value.get_cert.return_value = cert
+
+        det = self._make_detector()
+        assert det._check_ca_signing_cert() is False
+
+
+class TestUnitVerifyCaChainValid:
+    """_verify_ca_chain_valid trust-path walking."""
+
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    @mock.patch(SMOD + '.x509')
+    def test_missing_chain_raises(self, mock_x509, mock_nssdb):
+        """Missing chain file -> RuntimeError."""
+        mock_x509.load_certificate_list_from_file.side_effect = (
+            FileNotFoundError())
+        with pytest.raises(RuntimeError, match="CA chain not available"):
+            DeploymentDetector._verify_ca_chain_valid('m.example.com')
+
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    @mock.patch(SMOD + '.x509')
+    def test_empty_chain_raises(self, mock_x509, mock_nssdb):
+        """Empty chain file -> RuntimeError."""
+        mock_x509.load_certificate_list_from_file.return_value = []
+        with pytest.raises(RuntimeError, match="empty"):
+            DeploymentDetector._verify_ca_chain_valid('m.example.com')

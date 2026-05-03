@@ -15,6 +15,7 @@ import base64
 from contextlib import contextmanager
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
+import datetime
 import logging
 import os
 import re
@@ -1416,15 +1417,22 @@ class CertRenewalFromMaster:
 class DeploymentDetector:
     """Detection, classification, and scenario routing.
 
-    Determines the deployment type, classifies expired certificates, and
-    routes to the appropriate fix scenario.  CA chain validation and
-    RA/subsystem LDAP consistency checks are added in a later commit.
+    Determines the deployment type, classifies expired certificates,
+    validates the CA chain, detects RA/subsystem LDAP mismatches, and
+    routes to the appropriate fix scenario.
     """
+
+    CA_SIGNING_MIN_VALIDITY = datetime.timedelta(days=30)
 
     def __init__(self, cm_client, ca_instance, options):
         self._cm = cm_client
         self._ca_instance = ca_instance
         self.options = options
+
+    @staticmethod
+    def _ca_minimum_valid_until():
+        """Threshold for CA signing cert validity checks."""
+        return _utcnow() + DeploymentDetector.CA_SIGNING_MIN_VALIDITY
 
     def detect_deployment_type(self):
         """Detect the deployment type of this replica.
@@ -1518,6 +1526,367 @@ class DeploymentDetector:
         external = non_renewed
 
         return dogtag, ipa, external
+
+    def _check_ca_signing_cert(self):
+        """Verify the CA signing certificate has enough validity.
+
+        The caSigningCert must have at least one month of remaining validity
+        for ``pki-server cert-fix`` to succeed.  If it is expired or near
+        expiry, prints guidance to use ``ipa-cacert-manage`` and returns
+        ``False``.
+        """
+        db = _get_pki_nssdb()
+        try:
+            ca_cert = db.get_cert(DOGTAG_CERTS['ca_issuing'].nickname)
+        except RuntimeError:
+            print("Cannot read the CA signing certificate.")
+            return False
+
+        if ca_cert.not_valid_after_utc <= self._ca_minimum_valid_until():
+            print(
+                "The CA signing certificate is expired or will expire within "
+                "the next %d days.\n\n"
+                "ipa-cert-fix cannot proceed. Please use ipa-cacert-manage "
+                "to renew the CA certificate first."
+                % self.CA_SIGNING_MIN_VALIDITY.days)
+            return False
+
+        logger.debug(
+            "CA signing cert validity OK: expires %s",
+            ca_cert.not_valid_after_utc)
+        return True
+
+    @staticmethod
+    def _verify_ca_chain_valid(master_server):
+        """Verify the CA trust chain is valid after ipa-certupdate.
+
+        Reads ``/etc/ipa/ca.crt``, finds the IPA issuing CA cert, then
+        walks up the chain of trust to a self-signed root.  Every cert in
+        that path must not be expired.
+
+        :raises RuntimeError: if the chain file is missing/empty or the
+            trust path contains an expired certificate
+        """
+        try:
+            certs = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
+        except Exception as e:
+            print("CA chain file %s is missing or unreadable after "
+                  "ipa-certupdate.\n"
+                  "Please manually copy %s from %s to this server and retry."
+                  % (paths.IPA_CA_CRT, paths.IPA_CA_CRT, master_server))
+            raise RuntimeError("CA chain not available: %s" % e)
+
+        if not certs:
+            raise RuntimeError(
+                "CA chain file %s is empty after ipa-certupdate"
+                % paths.IPA_CA_CRT)
+
+        # Build a subject->cert map; prefer the latest notAfter when there
+        # are multiple certs with the same subject.
+        by_subject = {}
+        for cert in certs:
+            subj = DN(cert.subject)
+            existing = by_subject.get(subj)
+            if (existing is None
+                    or cert.not_valid_after_utc
+                    > existing.not_valid_after_utc):
+                by_subject[subj] = cert
+
+        # Find the IPA issuing CA.  On CA-full, its subject matches
+        # caSigningCert.  On CA-less, use the first cert in the file.
+        issuing_cert = None
+        try:
+            db = _get_pki_nssdb()
+            ca_cert = db.get_cert(DOGTAG_CERTS['ca_issuing'].nickname)
+            issuing_cert = by_subject.get(DN(ca_cert.subject))
+        except Exception:
+            pass  # CA-less or NSS unreadable
+        if issuing_cert is None:
+            issuing_cert = certs[0]
+
+        now = _utcnow()
+        visited = set()
+        current = issuing_cert
+        while current is not None:
+            subj = DN(current.subject)
+            if subj in visited:
+                break  # cycle protection
+            visited.add(subj)
+
+            if current.not_valid_after_utc <= now:
+                raise RuntimeError(
+                    "CA certificate (subject: %s) from %s is expired "
+                    "(expired: %s).\nFix the CA on %s first, then retry."
+                    % (subj, master_server,
+                       current.not_valid_after_utc, master_server))
+
+            issuer = DN(current.issuer)
+            if issuer == subj:
+                break
+
+            current = by_subject.get(issuer)
+            if current is None:
+                raise RuntimeError(
+                    "Incomplete CA chain: issuer %s for cert %s "
+                    "not found in %s.\n"
+                    "The full chain (including root CA) must be present in "
+                    "the chain file."
+                    % (issuer, subj, paths.IPA_CA_CRT))
+
+        logger.debug("CA trust chain from %s verified (%d certs checked)",
+                     master_server, len(visited))
+
+    def _warn_ca_chain_near_expiry(self):
+        """Advisory: warn if any CA cert in the local chain is near expiry."""
+        try:
+            chain = x509.load_certificate_list_from_file(paths.IPA_CA_CRT)
+        except Exception:
+            return
+
+        threshold = self._ca_minimum_valid_until()
+        for cert in chain:
+            if cert.not_valid_after_utc <= threshold:
+                print(
+                    "WARNING: CA certificate (subject: %s) expires %s.\n"
+                    "Certmonger should renew it automatically from "
+                    "the master.\n"
+                    "If it does not, run ipa-cacert-manage on the "
+                    "renewal master.\n"
+                    % (DN(cert.subject), cert.not_valid_after_utc))
+                return  # one warning is enough
+
+    def _handle_expired_ca_signing_cert(self, deployment_type):
+        """Handle an expired CA signing certificate.
+
+        For self-signed CA deployments, the user must use
+        ``ipa-cacert-manage renew`` (no CSR needed).
+
+        For externally-signed CA deployments, extracts the existing CSR from
+        certmonger and writes it to ``/var/lib/ipa/ca.csr``, then prints
+        instructions for submitting it to the external CA.
+        """
+        if deployment_type in (
+            DeploymentType.CA_LESS,
+            DeploymentType.CA_LESS_EXTERNAL,
+        ):
+            raise RuntimeError(
+                "_handle_expired_ca_signing_cert called for CA-less "
+                "deployment %s"
+                % deployment_type.value)
+
+        ca_nickname = DOGTAG_CERTS['ca_issuing'].nickname
+        days = self.CA_SIGNING_MIN_VALIDITY.days
+
+        if deployment_type == DeploymentType.CA_SELF_SIGNED:
+            print(
+                "The CA signing certificate is expired or will expire "
+                "within the next %d days.\n\nipa-cert-fix cannot proceed.\n"
+                "Please use\n  ipa-cacert-manage renew\n"
+                "to renew the CA certificate, then retry ipa-cert-fix." % days)
+            return 1
+
+        print(
+            "The CA signing certificate is expired or will expire within "
+            "the next %d days.\n\n"
+            "This CA certificate is externally signed. A CSR is needed to "
+            "request a renewed certificate from your external CA." % days)
+
+        csr_b64 = get_csr_from_certmonger(ca_nickname)
+        if csr_b64 is None:
+            logger.warning("No CSR found in certmonger for %s", ca_nickname)
+            print(
+                "\nCould not extract the existing CSR from certmonger.\n"
+                "Please generate a CSR manually using:\n"
+                "  ipa-cacert-manage renew --external-ca\n"
+                "and submit it to your external CA.")
+            return 1
+
+        # get_csr_from_certmonger returns base64-encoded DER as a single
+        # line.  Re-wrap to 64-char PEM body and add headers.
+        csr_path = paths.IPA_CA_CSR
+        try:
+            wrapped = '\n'.join(
+                csr_b64[i:i + 64]
+                for i in range(0, len(csr_b64), 64))
+            pem_data = ("-----BEGIN CERTIFICATE REQUEST-----\n%s\n"
+                        "-----END CERTIFICATE REQUEST-----\n" % wrapped)
+            fd = os.open(
+                csr_path,
+                os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                0o600)
+            with os.fdopen(fd, 'w') as f:
+                f.write(pem_data)
+            logger.info("Wrote CA CSR to %s", csr_path)
+        except IOError as e:
+            logger.error("Failed to write CSR to %s: %s", csr_path, e)
+            print("\nFailed to write CSR to %s: %s" % (csr_path, e))
+            print("Please generate a CSR manually using:\n"
+                  "  ipa-cacert-manage renew --external-ca")
+            return 1
+
+        print(
+            "\nThe CA signing certificate CSR has been written to:\n  %s\n\n"
+            "Submit this CSR to your external CA to obtain a renewed "
+            "certificate.\nThen install it using:\n"
+            "  ipa-cacert-manage renew --external-cert-file=<renewed.crt> "
+            "--external-cert-file=<ca-chain.crt>\n\n"
+            "After the CA certificate is renewed, retry ipa-cert-fix to fix "
+            "the remaining certificates." % csr_path)
+        return 1
+
+    def _detect_ra_subsystem_mismatches(self, skip_ra=False,
+                                        skip_subsystem=False):
+        """Detect RA and subsystem cert vs LDAP mismatches.
+
+        For each cert, finds the **newest** cert among local (FS/NSSDB) and
+        LDAP blobs.  The newest is authoritative:
+            - If local is older, local needs updating.
+            - If LDAP is missing the newest cert or the description serial
+              is wrong, LDAP needs updating.
+        """
+        checks = []
+
+        if not skip_ra:
+            try:
+                ra_cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
+                ra_dn = DN(('uid', 'ipara'), ('ou', 'people'), ('o', 'ipaca'))
+                checks.append((
+                    'IPA RA', ra_cert, ra_dn,
+                    ('file', paths.RA_AGENT_PEM)))
+            except Exception as e:
+                logger.debug(
+                    "Cannot load RA cert for consistency check: %s", e)
+
+        if not skip_subsystem:
+            try:
+                db = _get_pki_nssdb()
+                sub_cert = db.get_cert(DOGTAG_CERTS['subsystem'].nickname)
+                sub_dn = DN(('uid', 'pkidbuser'),
+                            ('ou', 'people'), ('o', 'ipaca'))
+                checks.append((
+                    'CA Subsystem', sub_cert, sub_dn,
+                    ('nssdb', paths.PKI_TOMCAT_ALIAS_DIR,
+                     DOGTAG_CERTS['subsystem'].nickname)))
+            except Exception as e:
+                logger.debug(
+                    "Cannot load subsystem cert for consistency check: %s", e)
+
+        conn = api.Backend.ldap2
+        mismatches = []
+        logger.debug("LDAP consistency check: %d entries to verify",
+                     len(checks))
+        for label, local_cert, dn, path_info in checks:
+            try:
+                entry = conn.get_entry(dn, ['userCertificate', 'description'])
+            except Exception as e:
+                logger.warning(
+                    "Cannot read LDAP entry %s for %s: %s",
+                    dn, label, e)
+                continue
+
+            ldap_certs = entry.get('userCertificate', [])
+
+            all_certs = list(ldap_certs) + [local_cert]
+            newest = max(all_certs, key=lambda c: c.not_valid_after_utc)
+
+            newest_der = newest.public_bytes(x509.Encoding.DER)
+            local_der = local_cert.public_bytes(x509.Encoding.DER)
+
+            update_local = (local_der != newest_der)
+            ldap_has_newest = any(
+                c.public_bytes(x509.Encoding.DER) == newest_der
+                for c in ldap_certs)
+            expected_desc = '2;%d;%s;%s' % (
+                newest.serial_number,
+                DN(newest.issuer), DN(newest.subject))
+            try:
+                current_desc = entry.single_value.get('description', '')
+            except ValueError:
+                current_desc = None
+            update_desc = (current_desc != expected_desc)
+
+            logger.debug(
+                "%s: local_serial=%s, newest_serial=%s, "
+                "local_is_newest=%s, ldap_has_newest=%s, "
+                "desc_matches=%s",
+                label, local_cert.serial_number,
+                newest.serial_number, not update_local,
+                ldap_has_newest, not update_desc)
+
+            if not update_local and ldap_has_newest and not update_desc:
+                logger.debug("%s LDAP entry %s is consistent", label, dn)
+                continue
+
+            mismatches.append({
+                'label': label,
+                'newest': newest,
+                'dn': dn,
+                'entry': entry,
+                'update_local': update_local,
+                'update_ldap_cert': not ldap_has_newest,
+                'update_desc': update_desc,
+                'path_info': path_info,
+                'expected_desc': expected_desc,
+            })
+
+        return mismatches
+
+    @staticmethod
+    def _print_ra_subsystem_mismatches(mismatches):
+        """Print mismatch descriptions for user display."""
+        print("The following RA/Subsystem entries need updating:")
+        for m in mismatches:
+            label, dn = m['label'], m['dn']
+            serial = m['newest'].serial_number
+            if m['update_local']:
+                print("  %s: local cert is older than LDAP "
+                      "(will update local to serial %s)"
+                      % (label, serial))
+            if m['update_ldap_cert']:
+                print("  %s: certificate blob missing in %s (serial %s)"
+                      % (label, dn, serial))
+            if m['update_desc']:
+                print("  %s: description serial mismatch in %s (should be %s)"
+                      % (label, dn, serial))
+
+    @staticmethod
+    def _fix_ra_subsystem_mismatches(mismatches):
+        """Apply fixes for detected mismatches."""
+        conn = api.Backend.ldap2
+        for m in mismatches:
+            label = m['label']
+            newest = m['newest']
+            dn = m['dn']
+            entry = m['entry']
+
+            if m['update_local']:
+                path_info = m['path_info']
+                if path_info[0] == 'file':
+                    x509.write_certificate(newest, path_info[1])
+                    if path_info[1] == paths.RA_AGENT_PEM:
+                        cainstance.CAInstance._set_ra_cert_perms()
+                    print("  Updated local %s file" % label)
+                elif path_info[0] == 'nssdb':
+                    db = NSSDatabase(nssdir=path_info[1])
+                    _replace_cert_in_nssdb(db, path_info[2], newest)
+                    print("  Updated local %s in NSSDB" % label)
+
+            ldap_changed = False
+            if m['update_ldap_cert']:
+                entry['userCertificate'].append(newest)
+                ldap_changed = True
+            if m['update_desc']:
+                entry['description'] = m['expected_desc']
+                ldap_changed = True
+
+            if ldap_changed:
+                try:
+                    conn.update_entry(entry)
+                    print("  Updated %s LDAP entry %s" % (label, dn))
+                except Exception as e:
+                    logger.warning(
+                        "Failed to update LDAP entry %s for %s: %s",
+                        dn, label, e)
 
     def determine_scenario(self, deployment_type):
         """Determine the fix scenario and master server.

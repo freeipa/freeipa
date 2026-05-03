@@ -232,6 +232,24 @@ class IPACertFix(AdminTool):
         dogtag_certs, ipa_certs, external_certs = \
             self._detector._classify_certs(now, ds_dbdir, ds_nickname)
 
+        # On CA-full, detect RA/subsystem LDAP mismatches for certs we're NOT
+        # going to fetch from master (those will be fixed by the fetch itself
+        # plus a post-fix check).
+        ldap_mismatches = []
+        if has_ca:
+            ra_will_be_fetched = any(
+                ct is IPACertType.IPARA for ct, _ in ipa_certs)
+            sub_will_be_fetched = any(
+                cid == 'subsystem' for cid, _ in dogtag_certs)
+            try:
+                det = self._detector
+                ldap_mismatches = det._detect_ra_subsystem_mismatches(
+                    skip_ra=ra_will_be_fetched,
+                    skip_subsystem=sub_will_be_fetched)
+            except Exception as e:
+                logger.warning(
+                    "RA/subsystem consistency check failed: %s", e)
+
         # On CA-less replicas, the RA cert may be valid but stale (renewed
         # on the CA server, not yet updated here).  A stale RA cert causes
         # ipa commands to fail with auth errors even though no cert is
@@ -244,25 +262,24 @@ class IPACertFix(AdminTool):
             ra_stale = self._check_ra_cert_staleness()
 
         if (not dogtag_certs and not ipa_certs
-                and not external_certs and not ra_stale):
+                and not external_certs and not ldap_mismatches
+                and not ra_stale):
             print("Nothing to do.")
             return 0
 
-        if ra_stale and not (dogtag_certs or ipa_certs or external_certs):
+        if ldap_mismatches:
+            DeploymentDetector._print_ra_subsystem_mismatches(ldap_mismatches)
+
+        # Only LDAP mismatches and/or stale RA, no expired certs
+        if not dogtag_certs and not ipa_certs and not external_certs:
             if not self._confirm_execution():
                 return 0
-            self._fetch_ra_from_ca_server()
+            if ldap_mismatches:
+                DeploymentDetector._fix_ra_subsystem_mismatches(
+                    ldap_mismatches)
+            if ra_stale:
+                self._fetch_ra_from_ca_server()
             return 0
-
-        if any(key == 'ca_issuing' for key, _ in dogtag_certs):
-            logger.debug("CA signing cert is expired, exiting!")
-            print(
-                "The CA signing certificate is expired or will expire within "
-                "the next two weeks.\n\nipa-cert-fix cannot proceed, please "
-                "refer to the ipa-cacert-manage tool to renew the CA "
-                "certificate before proceeding."
-            )
-            return 1
 
         try:
             scenario, master = self._detector.determine_scenario(
@@ -306,10 +323,24 @@ class IPACertFix(AdminTool):
             return 1
 
         try:
-            return handler(ctx)
+            result = handler(ctx)
         except RuntimeError as e:
             print("ERROR: %s" % e)
             return 1
+
+        # Post-fix: detect and fix any RA/subsystem LDAP mismatches that
+        # arose during the fix (e.g. fetched RA cert needing a description
+        # update).
+        if has_ca and result == 0:
+            try:
+                det = self._detector
+                post_mismatches = det._detect_ra_subsystem_mismatches()
+                if post_mismatches:
+                    det._fix_ra_subsystem_mismatches(post_mismatches)
+            except Exception as e:
+                logger.warning("Post-fix consistency check failed: %s", e)
+
+        return result
 
     def run_renewal_master_fix(self, ctx):
         """Fix certificates on the renewal master via ``pki-server cert-fix``.
@@ -329,6 +360,10 @@ class IPACertFix(AdminTool):
                 "The 'pki-server cert-fix' command is not available; "
                 "cannot proceed.")
             return 1
+
+        if not self._detector._check_ca_signing_cert():
+            return self._detector._handle_expired_ca_signing_cert(
+                ctx.deployment_type)
 
         print(WARNING_BANNER)
 
@@ -359,6 +394,17 @@ class IPACertFix(AdminTool):
                     raise
             else:
                 raise
+
+        # If the CA signing cert was renewed, verify it is now valid.
+        # A partially-failed pki-server cert-fix could leave us with a
+        # still-expired CA cert.
+        if any(cid == 'ca_issuing' for cid, _ in certs):
+            if not self._detector._check_ca_signing_cert():
+                print(
+                    "The CA signing certificate is still expired after "
+                    "pki-server cert-fix.\n"
+                    "Please renew it manually using ipa-cacert-manage.")
+                return 1
 
         replicate_dogtag_certs(ctx.subject_base, ctx.ca_subject_dn, certs)
         install_ipa_certs(ctx.subject_base, ctx.ca_subject_dn, ipa_certs)
@@ -427,6 +473,9 @@ class IPACertFix(AdminTool):
             _ensure_ldap_connected()
         finally:
             _restore_kerberos(old_krb_env)
+
+        # Advisory: warn if any CA cert in the local chain is near expiry.
+        self._detector._warn_ca_chain_near_expiry()
 
         print(RENEWAL_NOTE)
         return 0
@@ -831,14 +880,40 @@ class IPACertFix(AdminTool):
     def update_ca_cert_from_master(self, master_server):
         """Update the CA certificate chain from the master server.
 
-        Runs ``ipa-certupdate --force-server <master_server>`` to refresh
-        the local CA trust store from the master before any other remote
-        operation.
+        If the local CA chain (``/etc/ipa/ca.crt``) is already present and
+        valid (no expired certs in the trust path) and TLS to the master
+        works, skips the expensive ``ipa-certupdate`` call.  Otherwise runs
+        ``ipa-certupdate --force-server <master_server>``.
 
-        ipa-certupdate may exit non-zero if some service restarts fail
-        (e.g. httpd, krb5kdc with expired certs), but the CA cert chain
-        update itself happens before any restarts.
+        ipa-certupdate may exit non-zero if some service restarts fail (e.g.
+        httpd, krb5kdc with expired certs), but the CA cert chain update
+        itself happens before any restarts.  We re-verify the chain after
+        the call to determine success.
         """
+        try:
+            DeploymentDetector._verify_ca_chain_valid(master_server)
+        except RuntimeError:
+            logger.debug("Local CA chain is missing or invalid, "
+                         "running ipa-certupdate")
+        else:
+            try:
+                _check_tls_handshake(master_server)
+                print("Local CA chain is valid and TLS to %s works, "
+                      "skipping ipa-certupdate." % master_server)
+                return
+            except Exception as e:
+                # Local chain is valid but TLS to master fails.  The
+                # master's CA cert was likely renewed and our trust store
+                # is stale.  ipa-certupdate would also fail here.
+                raise RuntimeError(
+                    "Cannot verify TLS to %s: %s\n\n"
+                    "The local CA chain (%s) is valid but does not match "
+                    "the master's current certificate.  Copy the updated "
+                    "%s from %s to this host (verify authenticity "
+                    "out-of-band first), then re-run ipa-cert-fix."
+                    % (master_server, e, paths.IPA_CA_CRT,
+                       paths.IPA_CA_CRT, master_server))
+
         print("Updating CA certificate chain from %s" % master_server)
         logger.debug("Running: ipa-certupdate --force-server %s",
                      master_server)
@@ -846,13 +921,21 @@ class IPACertFix(AdminTool):
             ['ipa-certupdate', '--force-server', master_server],
             raiseonerr=False)
         logger.debug("ipa-certupdate returncode=%s", result.returncode)
+
+        # Regardless of ipa-certupdate exit code, check whether the CA
+        # chain is present and valid.  ipa-certupdate may exit non-zero
+        # due to service restart failures (expected with expired certs),
+        # but the CA chain itself may be fine.
+        DeploymentDetector._verify_ca_chain_valid(master_server)
+
         if result.returncode != 0:
             logger.warning("ipa-certupdate exited with code %s",
                            result.returncode)
             print(
-                "WARNING: ipa-certupdate exited with an error.\n"
-                "This is expected if some services failed to restart "
-                "due to expired certificates. Continuing.")
+                "WARNING: ipa-certupdate exited with an error, but the CA "
+                "chain is valid.\nThis is expected if some services "
+                "failed to restart due to expired certificates. "
+                "Continuing.")
 
         if not dsinstance.is_ds_running(realm_to_serverid(api.env.realm)):
             raise RuntimeError(
