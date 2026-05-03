@@ -2,11 +2,13 @@ dist_noinst_DATA =     \
 	ipa.conf.in    \
 	ipaclient.conf.in \
 	ipa-dnssec.conf.in \
+	ipa-ipathinca.conf.in \
 	ipa-pki-tomcat.conf.in
 
 systemdtmpfiles_DATA =         \
 	ipa.conf \
 	ipaclient.conf \
+	ipa-ipathinca.conf \
 	ipa-pki-tomcat.conf
 
 appdir = $(IPA_DATA_DIR)

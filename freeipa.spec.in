@@ -1735,10 +1735,14 @@ fi
 %{python3_sitelib}/ipaserver-*.egg-info
 
 
+%post -n python3-ipathinca
+%tmpfiles_create ipa-ipathinca.conf
+
 %files -n python3-ipathinca
 %doc README.md Contributors.txt
 %license COPYING
 %attr(644,root,root) %{_tmpfilesdir}/ipa-pki-tomcat.conf
+%attr(644,root,root) %{_tmpfilesdir}/ipa-ipathinca.conf
 %{python3_sitelib}/ipathinca
 %{python3_sitelib}/ipathinca-*.egg-info
 
