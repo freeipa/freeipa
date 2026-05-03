@@ -41,6 +41,7 @@ from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
+from ipaserver.masters import find_providing_servers
 # Re-export public names from the helper modules so that all symbols are
 # importable from ``ipaserver.install.ipa_cert_fix``.
 from ipaserver.install.ipa_cert_fix_services import (  # noqa: F401
@@ -229,8 +230,26 @@ class IPACertFix(AdminTool):
         dogtag_certs, ipa_certs, external_certs = \
             self._detector._classify_certs(now, ds_dbdir, ds_nickname)
 
-        if not dogtag_certs and not ipa_certs and not external_certs:
+        # On CA-less replicas, the RA cert may be valid but stale (renewed
+        # on the CA server, not yet updated here).  A stale RA cert causes
+        # ipa commands to fail with auth errors even though no cert is
+        # technically expired.
+        ra_stale = False
+        if (not has_ca
+                and deployment_type == DeploymentType.CA_LESS
+                and not any(ct is IPACertType.IPARA
+                            for ct, _ in ipa_certs)):
+            ra_stale = self._check_ra_cert_staleness()
+
+        if (not dogtag_certs and not ipa_certs
+                and not external_certs and not ra_stale):
             print("Nothing to do.")
+            return 0
+
+        if ra_stale and not (dogtag_certs or ipa_certs or external_certs):
+            if not self._confirm_execution():
+                return 0
+            self._fetch_ra_from_ca_server()
             return 0
 
         if any(key == 'ca_issuing' for key, _ in dogtag_certs):
@@ -270,6 +289,8 @@ class IPACertFix(AdminTool):
             FixScenario.CA_FULL_WITH_MASTER:
                 lambda c: self._run_non_rm_replica_fix(c, is_ca_full=True),
             FixScenario.CA_FULL_PROMOTE: self.run_ca_full_promote,
+            FixScenario.CA_LESS_WITH_MASTER:
+                lambda c: self._run_non_rm_replica_fix(c, is_ca_full=False),
         }
         handler = dispatch.get(scenario)
         if handler is None:
@@ -509,6 +530,103 @@ class IPACertFix(AdminTool):
         except Exception as e:
             raise RuntimeError("Failed to set renewal master: %s" % e)
         logger.info("Successfully set %s as renewal master", api.env.host)
+
+    def _check_ra_cert_staleness(self):
+        """Check if the local RA cert is stale on a CA-less replica.
+
+        Compares the local RA cert serial against the CA server's LDAP
+        entry.  Returns True if the serials differ (local cert is
+        outdated), False if they match or the check fails.
+
+        Only meaningful on CA-less replicas where the RA cert is not
+        managed by local certmonger renewal.
+        """
+        try:
+            local_ra = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
+        except Exception:
+            logger.debug("Cannot load local RA cert, skipping staleness check")
+            return False
+
+        try:
+            ca_servers = find_providing_servers(
+                'CA', conn=api.Backend.ldap2, api=api)
+        except Exception as e:
+            logger.debug("Cannot discover CA servers: %s", e)
+            return False
+
+        if not ca_servers:
+            return False
+
+        server = ca_servers[0]
+        old_krb = _setup_kerberos()
+        try:
+            conn = ipaldap.LDAPClient.from_hostname_secure(server)
+            conn.gssapi_bind()
+            ra_dn = DN(('uid', 'ipara'), ('ou', 'people'), ('o', 'ipaca'))
+            entry = conn.get_entry(ra_dn, ['userCertificate'])
+            remote_ra = _get_newest_cert(entry['userCertificate'])
+            conn.unbind()
+        except Exception as e:
+            logger.debug("Cannot check RA cert on %s: %s", server, e)
+            return False
+        finally:
+            _restore_kerberos(old_krb)
+
+        if local_ra.serial_number != remote_ra.serial_number:
+            logger.info(
+                "Local RA cert (serial %s) differs from %s (serial %s)",
+                local_ra.serial_number, server, remote_ra.serial_number)
+            print(
+                "The local RA certificate (serial %s) is outdated.\n"
+                "The CA server %s has serial %s."
+                % (local_ra.serial_number, server,
+                   remote_ra.serial_number))
+            return True
+
+        logger.debug("Local RA cert matches CA server %s (serial %s)",
+                     server, local_ra.serial_number)
+        return False
+
+    def _fetch_ra_from_ca_server(self):
+        """Fetch the current RA cert from a CA server.
+
+        Used when the local RA cert is valid but stale (different serial
+        than the CA server's copy).
+        """
+        ca_servers = find_providing_servers(
+            'CA', conn=api.Backend.ldap2, api=api)
+        if not ca_servers:
+            print("ERROR: No CA servers found.")
+            return
+
+        server = ca_servers[0]
+        print("Fetching updated RA certificate from %s" % server)
+        old_krb = _setup_kerberos()
+        conn = None
+        try:
+            conn = ipaldap.LDAPClient.from_hostname_secure(server)
+            conn.gssapi_bind()
+            ra_dn = DN(('uid', 'ipara'), ('ou', 'people'), ('o', 'ipaca'))
+            entry = conn.get_entry(ra_dn, ['userCertificate'])
+            ra_cert = _get_newest_cert(entry['userCertificate'])
+
+            print_cert_info("Fetched", "IPA RA", ra_cert)
+            if ra_cert.not_valid_after_utc <= _utcnow():
+                print("ERROR: RA cert fetched from %s is expired "
+                      "(notAfter=%s). The CA server's RA cert "
+                      "must be renewed first."
+                      % (server, ra_cert.not_valid_after_utc))
+                return
+            x509.write_certificate(ra_cert, paths.RA_AGENT_PEM)
+            cainstance.CAInstance._set_ra_cert_perms()
+            print("RA certificate updated.")
+        except Exception as e:
+            print("ERROR: Failed to fetch RA cert from %s: %s"
+                  % (server, e))
+        finally:
+            if conn is not None:
+                conn.unbind()
+            _restore_kerberos(old_krb)
 
     def _fetch_certs_from_master(
         self, master_server, ctx, fetch_subsystem=True,
