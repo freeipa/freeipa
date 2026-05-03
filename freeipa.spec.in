@@ -1814,10 +1814,14 @@ fi
 %{python3_sitelib}/ipaserver-*.egg-info
 
 
+%post -n python3-ipacta
+%tmpfiles_create ipa-ipacta.conf
+
 %files -n python3-ipacta
 %doc README.md Contributors.txt
 %license COPYING
 %attr(644,root,root) %{_tmpfilesdir}/ipa-pki-tomcat.conf
+%attr(644,root,root) %{_tmpfilesdir}/ipa-ipacta.conf
 %{python3_sitelib}/ipacta
 %{python3_sitelib}/ipacta-*.egg-info
 
