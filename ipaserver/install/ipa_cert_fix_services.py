@@ -15,6 +15,7 @@ import base64
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 import logging
+import os
 import socket
 import time
 
@@ -22,9 +23,10 @@ from ipalib import api, errors
 from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
-from ipapython.certdb import NSSDatabase
+from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
+from ipapython import directivesetter
 from ipapython import ipautil
 from ipaserver.install import cainstance, dsinstance
 from ipaserver.install.certs import is_ipa_issued_cert
@@ -32,12 +34,16 @@ from ipaserver.masters import find_providing_servers
 
 from ipaserver.install.ipa_cert_fix_types import (
     CERT_EXPIRY_LOOKAHEAD,
+    CERTMONGER_WAIT_TIMEOUT,
     DBUS_RETRY_DELAY,
     DBUS_RETRY_TIMEOUT,
     DOGTAG_CERTS,
     DeploymentType,
     FixScenario,
+    HELPER_KILL_SETTLE,
     IPACertType,
+    IPA_SERVICE_PROFILE,
+    _CS_CFG_CERT_DIRECTIVES,
     _utcnow,
 )
 
@@ -47,6 +53,92 @@ logger = logging.getLogger(__name__)
 def _get_pki_nssdb():
     """Lazy accessor for the PKI Tomcat NSS database."""
     return NSSDatabase(nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
+
+
+def _replace_cert_in_nssdb(db, nickname, cert, trust_flags=EMPTY_TRUST_FLAGS):
+    """Replace a certificate in an NSS database.
+
+    Deletes the old cert (ignoring "not found") and adds the new
+    one.  This is the standard pattern for updating a cert in
+    NSSDB without losing the private key.
+
+    :param db: :class:`NSSDatabase` instance
+    :param nickname: certificate nickname
+    :param cert: new certificate to install
+    :param trust_flags: trust flags for the new cert
+    """
+    try:
+        db.delete_cert(nickname)
+    except ipautil.CalledProcessError:
+        logger.debug(
+            "Cert '%s' not found in NSS database, nothing to delete", nickname)
+    db.add_cert(cert, nickname, trust_flags)
+
+
+def _update_cs_cfg(nickname, cert):
+    """Update the certificate blob in the Dogtag CS.cfg file.
+
+    When a certificate is installed directly into the NSSDB (bypassing
+    certmonger's post-save commands), the base64 cert blob in CS.cfg
+    must be updated manually.  Otherwise Dogtag will have a stale
+    certificate in its configuration.
+
+    Also updates ``ca.connector.KRA.transportCert`` in the CA config
+    when the KRA transport cert is renewed (used by CA to encrypt
+    key archival requests to KRA).
+
+    :param nickname: NSSDB certificate nickname
+    :param cert: the new certificate (IPACertificate)
+    """
+    if nickname not in _CS_CFG_CERT_DIRECTIVES:
+        return
+
+    directive, cfg_path = _CS_CFG_CERT_DIRECTIVES[nickname]
+    if not os.path.exists(cfg_path):
+        logger.debug("CS.cfg not found at %s, skipping update", cfg_path)
+        return
+
+    cert_b64 = base64.b64encode(cert.public_bytes(x509.Encoding.DER))\
+        .decode('ascii')
+    logger.debug("Updating CS.cfg directive %s in %s", directive, cfg_path)
+    directivesetter.set_directive(
+        cfg_path, directive, cert_b64,
+        quotes=False, separator='=')
+
+    # KRA transport cert is also referenced in the CA config as
+    # ca.connector.KRA.transportCert
+    if nickname == 'transportCert cert-pki-kra':
+        if os.path.exists(paths.CA_CS_CFG_PATH):
+            logger.debug(
+                "Updating ca.connector.KRA.transportCert in %s",
+                paths.CA_CS_CFG_PATH)
+            directivesetter.set_directive(
+                paths.CA_CS_CFG_PATH,
+                'ca.connector.KRA.transportCert', cert_b64,
+                quotes=False, separator='=')
+
+
+def _kill_stuck_helpers():
+    """Kill running ipa-submit and ipa-server-guard processes.
+
+    Certmonger processes D-Bus requests serially.  If ``ipa-submit`` is
+    running (trying to contact httpd with expired certs), any D-Bus write
+    (like ``modify_ca_helper``) blocks until the helper times out --
+    which can take minutes.
+
+    Killing the helpers makes certmonger's D-Bus responsive immediately.
+    Certmonger will re-queue the requests and attempt them again later.
+    """
+    for proc_name in ('ipa-submit', 'ipa-server-guard'):
+        try:
+            result = ipautil.run(
+                ['pkill', '-f', proc_name],
+                raiseonerr=False, capture_output=True)
+            if result.returncode == 0:
+                logger.debug("Killed %s processes", proc_name)
+        except Exception as e:
+            logger.debug("pkill %s failed: %s", proc_name, e)
+    time.sleep(HELPER_KILL_SETTLE)
 
 
 def print_cert_info(context, desc, cert):
@@ -439,6 +531,376 @@ def expired_ipa_certs(now, ds_dbdir=None, ds_nickname=None):
         logger.debug("Cannot load KDC cert from %s: %s", paths.KDC_CERT, e)
 
     return certs, non_renewed
+
+
+class CertRenewalFromMaster:
+    """Renew expired certificates via certmonger pointed at a master.
+
+    Manages the IPA CA helper override, per-request CA/profile switching, and
+    cleanup.  Used by the CA-full and CA-less replica recovery scenarios.
+    """
+
+    def __init__(self, cm_client, master_server):
+        self._cm = cm_client
+        self._master = master_server
+        self._original_principals = {}
+        self._original_profiles = {}
+
+    def _set_helper(self):
+        """Point the IPA CA helper at the master server.
+
+        :returns: the base helper string (without ``-J``)
+        """
+        logger.debug("Setting IPA CA helper to master: %s", self._master)
+        base = self._cm.set_ca_override('IPA', self._master)
+        logger.debug("IPA CA helper base: '%s'", base)
+        return base
+
+    def _restore_helper(self, old_helper, timeout=DBUS_RETRY_TIMEOUT):
+        """Restore the IPA CA helper to its original value.
+
+        Retries for *timeout* seconds if certmonger's D-Bus is temporarily
+        unreachable (e.g., being restarted by a post-save command).
+
+        :param old_helper: value returned by :meth:`_set_helper`
+        :param timeout: max seconds to retry
+        """
+        logger.debug("Restoring IPA CA helper to: %s", old_helper)
+        deadline = time.monotonic() + timeout
+        delay = DBUS_RETRY_DELAY
+        while True:
+            try:
+                self._cm.restore_ca_override('IPA', old_helper)
+                return
+            except Exception as e:
+                if time.monotonic() >= deadline:
+                    logger.error(
+                        "Failed to restore IPA CA helper after %ds: %s",
+                        timeout, e,)
+                    print(
+                        "\nCRITICAL: Failed to restore the IPA CA certmonger "
+                        "helper.\n"
+                        "All future certificate renewals on this host may "
+                        "fail or contact the wrong server.\nRun manually:\n\n"
+                        "  getcert modify-ca -c IPA -e '%s'\n" % old_helper)
+                    return
+                logger.debug(
+                    "certmonger not ready for restore (%s), retrying in %ds",
+                    e, delay,)
+                time.sleep(delay)
+
+    def _resubmit(
+        self, desc, old_cert, request_id, original_ca, load_renewed,
+    ):
+        """Resubmit a single cert's tracking request via master.
+
+        Handles the Dogtag-vs-IPA distinction: Dogtag certs need their CA
+        switched to IPA, a host principal added, and the profile overridden
+        to ``caIPAserviceCert``.
+
+        Mutates ``self._original_principals`` and ``self._original_profiles``
+        for later cleanup by :meth:`_restore`.
+        """
+        desc_str = getattr(desc, 'display_name',
+                           getattr(desc, 'value', str(desc)))
+        print("\n  Renewing %s (request %s)..." % (desc_str, request_id))
+
+        _kill_stuck_helpers()
+
+        if self._cm.is_cert_valid(request_id):
+            print("  %s already has a valid cert, skipping." % desc_str)
+            return
+
+        print_cert_info("  Old", desc_str, old_cert)
+
+        is_dogtag = getattr(desc, 'is_dogtag', False)
+        override_profile = None
+
+        if is_dogtag:
+            host_principal = 'host/%s@%s' % (api.env.host, api.env.realm)
+            orig = self._cm.get_request_value(request_id, 'template-principal')
+            self._original_principals[request_id] = orig
+            logger.debug(
+                "Setting template-principal on request %s to %s "
+                "(original: %s)", request_id, host_principal, orig)
+            self._cm.add_principal(request_id, host_principal)
+
+            original_profile = self._cm.get_request_value(
+                request_id, 'template-profile')
+            if original_profile and original_profile != IPA_SERVICE_PROFILE:
+                override_profile = IPA_SERVICE_PROFILE
+                self._original_profiles[request_id] = (original_profile)
+                logger.debug(
+                    "Overriding profile on request %s: %s -> %s",
+                    request_id, original_profile, override_profile)
+
+        try:
+            current_ca = self._cm.get_request_value(request_id, 'ca-name')
+            logger.debug("Request %s current CA: %s", request_id, current_ca)
+            cas_output = ipautil.run(
+                ['getcert', 'list-cas', '-c', 'IPA'],
+                capture_output=True, raiseonerr=False)
+            logger.debug("IPA CA helper config:\n%s", cas_output.output)
+        except Exception as diag_err:
+            logger.debug("Pre-resubmit diagnostics failed: %s", diag_err)
+
+        logger.debug(
+            "Resubmitting request %s via %s CA (original CA: %s, "
+            "is_dogtag: %s, profile_override: %s)",
+            request_id,
+            'IPA' if is_dogtag else '%s (unchanged)' % original_ca,
+            original_ca, is_dogtag, override_profile)
+        self._cm.resubmit_request(
+            request_id,
+            ca='IPA' if is_dogtag else None,
+            profile=override_profile,)
+
+        try:
+            state = self._cm.wait_for_request(
+                request_id, timeout=CERTMONGER_WAIT_TIMEOUT)
+        except RuntimeError:
+            logger.error("Timeout waiting for request %s", request_id)
+            raise RuntimeError(
+                "Certmonger request %s for %s timed out"
+                % (request_id, desc_str))
+
+        if state != 'MONITORING':
+            ca_error = self._cm.get_request_value(request_id, 'ca-error')
+            raise RuntimeError(
+                "Certmonger request %s for %s failed: state=%s, ca-error=%s"
+                % (request_id, desc_str, state, ca_error))
+
+        if not self._cm.is_responsive():
+            raise RuntimeError(
+                "certmonger did not become responsive after renewing %s"
+                % desc_str)
+
+        try:
+            new_cert = load_renewed()
+            logger.debug(
+                "Renewed %s: serial=%s, issued=%s, expires=%s",
+                desc_str, new_cert.serial_number,
+                new_cert.not_valid_before_utc,
+                new_cert.not_valid_after_utc)
+            if new_cert.serial_number == old_cert.serial_number:
+                print("  WARNING: %s serial unchanged after renewal (%s) -- "
+                      "cert may not have been updated"
+                      % (desc_str, new_cert.serial_number))
+            else:
+                print("  %s renewed successfully." % desc_str)
+            print_cert_info("  New", desc_str, new_cert)
+        except Exception as e:
+            logger.warning("Could not read renewed cert for %s: %s",
+                           desc_str, e)
+            print("  %s submitted for renewal." % desc_str)
+
+    def _restore(self, request_id, original_ca):
+        """Restore a single certmonger request after renewal.
+
+        Restores the original CA name, profile, and removes any temporary
+        principal that was added for Dogtag cert renewal through the IPA CA.
+        """
+        try:
+            current_ca = self._cm.get_request_value(request_id, 'ca-name')
+            restore_profile = self._original_profiles.get(request_id)
+            if current_ca != original_ca or restore_profile:
+                logger.debug(
+                    "Restoring request %s: CA %s -> %s, profile -> %s",
+                    request_id, current_ca, original_ca, restore_profile)
+                self._cm.modify(
+                    request_id, ca=original_ca, profile=restore_profile,)
+        except Exception as e:
+            logger.warning(
+                "Failed to restore CA/profile for request %s: %s",
+                request_id, e)
+
+        if request_id in self._original_principals:
+            orig = self._original_principals[request_id]
+            if orig:
+                try:
+                    logger.debug(
+                        "Restoring template-principal on request %s to %s",
+                        request_id, orig)
+                    self._cm.add_request_value(
+                        request_id, 'template-principal', orig)
+                except Exception as e:
+                    logger.warning(
+                        "Failed to restore principal on request %s: %s",
+                        request_id, e)
+            else:
+                logger.debug(
+                    "Request %s had no original principals, "
+                    "skipping principal removal (harmless)",
+                    request_id)
+
+    def renew(self, certs, ipa_certs, ctx):
+        """Renew expired certificates from a master via certmonger.
+
+        Builds tracking criteria for each expired cert, temporarily overrides
+        the IPA CA helper to point at the master, resubmits each request, and
+        restores all certmonger state afterward.
+
+        :param certs: list of ``(certid, cert)`` for Dogtag certs
+        :param ipa_certs: list of ``(IPACertType, cert)`` for IPA service
+            certs
+        :param ctx: :class:`CertFixContext`
+        :returns: set of renewed request IDs
+        """
+        tracking = self._build_tracking_list(certs, ipa_certs, ctx)
+
+        if not tracking:
+            print("No certificates to renew from master.")
+            return set()
+
+        requests = self._resolve_tracking_requests(tracking)
+
+        if not requests:
+            print("No certmonger tracking requests found.")
+            return set()
+
+        _kill_stuck_helpers()
+
+        old_helper = self._set_helper()
+
+        failed = []
+        renewed_ids = set()
+        try:
+            print("Renewing certificates from %s" % self._master)
+            for (desc, old_cert, request_id,
+                 original_ca, load_renewed) in requests:
+                _kill_stuck_helpers()
+                try:
+                    self._resubmit(
+                        desc, old_cert, request_id,
+                        original_ca, load_renewed,)
+                    renewed_ids.add(request_id)
+                except Exception as e:
+                    desc_str = getattr(desc, 'display_name',
+                                       getattr(desc, 'value', str(desc)))
+                    logger.error("Failed to renew %s: %s", desc_str, e)
+                    print("  ERROR: %s failed: %s" % (desc_str, e))
+                    failed.append(desc_str)
+        finally:
+            for (_desc, _cert, request_id,
+                 original_ca, _load) in requests:
+                try:
+                    self._restore(request_id, original_ca)
+                except Exception as e:
+                    logger.error(
+                        "Failed to restore request %s: %s", request_id, e,)
+            self._restore_helper(old_helper)
+
+        if failed:
+            print(
+                "\nWARNING: %d certificate(s) failed to renew: %s\n"
+                "These may need manual intervention."
+                % (len(failed), ', '.join(failed)))
+
+        return renewed_ids
+
+    @staticmethod
+    def _make_cert_loader(storage, path, nickname=None):
+        """Create a callable that loads a renewed certificate.
+
+        :param storage: ``'NSSDB'`` or ``'FILE'``
+        :param path: NSS database dir or PEM file path
+        :param nickname: cert nickname (NSSDB only)
+        :returns: zero-arg callable returning the cert
+        """
+        if storage == 'NSSDB':
+            db = NSSDatabase(nssdir=path)
+
+            def _load(nn=nickname, _db=db):
+                return _db.get_cert(nn)
+            return _load
+
+        def _load(_p=path):
+            return x509.load_certificate_from_file(_p)
+        return _load
+
+    def _build_tracking_list(self, certs, ipa_certs, ctx):
+        """Build certmonger tracking criteria for expired certs.
+
+        Skips RA and subsystem certs (handled separately via
+        ``_fetch_certs_from_master``).
+        """
+        tracking = []
+
+        # Shared/replicated certs are fetched from master's LDAP
+        # (cn=ca_renewal), not renewed via certmonger. Only sslserver is
+        # server-specific and needs certmonger resubmit.
+        for certid, cert in certs:
+            if DOGTAG_CERTS[certid].is_shared:
+                logger.debug("Skipping shared cert %s (fetched from LDAP)",
+                             certid)
+                continue
+            ci = DOGTAG_CERTS[certid]
+            logger.debug(
+                "Adding dogtag cert to tracking: %s "
+                "(nickname=%s, serial=%s, expires=%s)",
+                certid, ci.nickname,
+                cert.serial_number, cert.not_valid_after_utc,)
+            tracking.append((
+                ci, cert,
+                {
+                    'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
+                    'cert-nickname': ci.nickname,
+                },
+                self._make_cert_loader(
+                    'NSSDB',
+                    paths.PKI_TOMCAT_ALIAS_DIR,
+                    ci.nickname,),
+            ))
+
+        cert_map = {
+            IPACertType.HTTPS: (
+                {'cert-file': paths.HTTPD_CERT_FILE},
+                self._make_cert_loader('FILE', paths.HTTPD_CERT_FILE),),
+            IPACertType.LDAPS: (
+                {
+                    'cert-database': ctx.ds_dbdir,
+                    'cert-nickname': ctx.ds_nickname,
+                },
+                self._make_cert_loader('NSSDB', ctx.ds_dbdir, ctx.ds_nickname),
+            ),
+            IPACertType.KDC: (
+                {'cert-file': paths.KDC_CERT},
+                self._make_cert_loader('FILE', paths.KDC_CERT),),
+        }
+
+        for certtype, cert in ipa_certs:
+            if certtype is IPACertType.IPARA:
+                logger.debug("Skipping RA cert (already fetched)")
+                continue
+            entry = cert_map.get(certtype)
+            if entry is None:
+                continue
+            criteria, loader = entry
+            logger.debug(
+                "Adding IPA cert to tracking: %s (serial=%s, expires=%s)",
+                certtype.value, cert.serial_number, cert.not_valid_after_utc,
+            )
+            tracking.append((certtype, cert, criteria, loader))
+
+        return tracking
+
+    def _resolve_tracking_requests(self, tracking):
+        """Look up certmonger request IDs for tracked certs."""
+        requests = []
+        for desc, old_cert, criteria, load_renewed in tracking:
+            request_id = self._cm.get_request_id(criteria)
+            if request_id is None:
+                logger.warning(
+                    "No certmonger tracking request found for %s "
+                    "(criteria: %s)", desc, criteria)
+                continue
+            original_ca = self._cm.get_request_value(request_id, 'ca-name')
+            requests.append(
+                (desc, old_cert, request_id, original_ca, load_renewed))
+            logger.debug(
+                "Found tracking request %s for %s (CA: %s)",
+                request_id, desc, original_ca)
+        return requests
 
 
 class DeploymentDetector:

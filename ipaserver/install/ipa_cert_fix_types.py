@@ -107,6 +107,15 @@ DOGTAG_CERTS = {
 }
 
 
+# Mapping from NSSDB nickname to (CS.cfg directive, config file path).
+# Derived from DOGTAG_CERTS; only entries with a cs_cfg_directive are
+# included (excludes sslserver and ca_issuing).
+_CS_CFG_CERT_DIRECTIVES = {
+    ci.nickname: (ci.cs_cfg_directive, ci.cfg_path)
+    for ci in DOGTAG_CERTS.values()
+    if ci.cs_cfg_directive is not None
+}
+
 # Certs expiring within this window are treated as expired.
 CERT_EXPIRY_LOOKAHEAD = datetime.timedelta(weeks=2)
 
@@ -116,6 +125,10 @@ DBUS_RETRY_TIMEOUT = 120
 DBUS_RETRY_DELAY = 5
 HELPER_KILL_SETTLE = 2
 
+# Profile used when renewing Dogtag certs through the IPA CA.
+IPA_SERVICE_PROFILE = 'caIPAserviceCert'
+
+DOGTAG_CERT_PATH_TEMPLATE = "/etc/pki/pki-tomcat/certs/{}.crt"
 RENEWED_CERT_PATH_TEMPLATE = "/etc/pki/pki-tomcat/certs/{}-renewed.crt"
 
 

@@ -12,6 +12,8 @@ from unittest import mock
 import pytest
 
 from ipaserver.install.ipa_cert_fix import (
+    CertFixContext,
+    CertRenewalFromMaster,
     CertmongerClient,
     DeploymentDetector,
     DeploymentType,
@@ -390,3 +392,154 @@ class TestUnitCertClassification:
 
         assert dogtag == []
         assert len(ipa) == 1
+
+
+def _make_ctx(**overrides):
+    """Build a minimal CertFixContext with optional field overrides."""
+    fields = dict(
+        deployment_type=DeploymentType.CA_SELF_SIGNED,
+        scenario=FixScenario.CA_FULL_WITH_MASTER,
+        subject_base='O=TEST',
+        ca_subject_dn='CN=CA',
+        dogtag_certs=[],
+        ipa_certs=[],
+        external_certs=[],
+        master_server='m.example.com',
+        serverid='TEST',
+        ds_dbdir='/etc/dirsrv/slapd-TEST',
+        ds_nickname='Server-Cert',
+    )
+    fields.update(overrides)
+    return CertFixContext(**fields)
+
+
+class TestUnitBuildTrackingList:
+    """_build_tracking_list filtering logic."""
+
+    def test_skips_subsystem_and_ra(self):
+        """subsystem and RA certs are skipped (fetched separately from
+        master's LDAP)."""
+        cert = mock.MagicMock()
+        ctx = _make_ctx()
+
+        dogtag = [('subsystem', cert), ('sslserver', cert)]
+        ipa = [(IPACertType.IPARA, cert), (IPACertType.HTTPS, cert)]
+
+        obj = CertRenewalFromMaster(mock.MagicMock(), 'm.example.com')
+        tracking = obj._build_tracking_list(dogtag, ipa, ctx)
+
+        descs = [d for d, _c, _cr, _l in tracking]
+        desc_ids = [getattr(d, 'id', d) for d in descs]
+        assert 'subsystem' not in desc_ids
+        assert IPACertType.IPARA not in descs
+        assert 'sslserver' in desc_ids
+        assert IPACertType.HTTPS in descs
+
+    def test_all_ipa_cert_types_mapped(self):
+        """HTTPS, LDAPS, KDC all produce tracking entries."""
+        cert = mock.MagicMock()
+        ctx = _make_ctx()
+
+        ipa = [
+            (IPACertType.HTTPS, cert),
+            (IPACertType.LDAPS, cert),
+            (IPACertType.KDC, cert),
+        ]
+
+        obj = CertRenewalFromMaster(mock.MagicMock(), 'm.example.com')
+        tracking = obj._build_tracking_list([], ipa, ctx)
+
+        descs = [d for d, _c, _cr, _l in tracking]
+        assert IPACertType.HTTPS in descs
+        assert IPACertType.LDAPS in descs
+        assert IPACertType.KDC in descs
+        assert len(tracking) == 3
+
+
+class TestUnitMakeCertLoader:
+    """_make_cert_loader factory."""
+
+    @mock.patch(SMOD + '.NSSDatabase')
+    def test_nssdb_loader(self, mock_nss):
+        """NSSDB loader calls db.get_cert(nickname)."""
+        db = mock.MagicMock()
+        mock_nss.return_value = db
+
+        loader = CertRenewalFromMaster._make_cert_loader(
+            'NSSDB', '/some/db', 'MyCert')
+        loader()
+        db.get_cert.assert_called_once_with('MyCert')
+
+    @mock.patch(SMOD + '.x509')
+    def test_file_loader(self, mock_x509):
+        """FILE loader calls load_certificate_from_file."""
+        loader = CertRenewalFromMaster._make_cert_loader(
+            'FILE', '/some/cert.pem')
+        loader()
+        mock_x509.load_certificate_from_file.assert_called_once_with(
+            '/some/cert.pem')
+
+
+class TestUnitSetIpaCaHelperStripping:
+    """_set_helper / set_ca_override strips leftover -J."""
+
+    @mock.patch(SMOD + '.certmonger')
+    def test_strips_stale_j_flag(self, mock_cm):
+        """If old helper already has -J from a crashed run, the stale
+        -J is stripped before appending the new one."""
+        stale = '/usr/libexec/ipa-submit -J https://old.example.com/ipa/json'
+        client = CertmongerClient()
+        client.get_ca_helper = mock.MagicMock(return_value=stale)
+
+        result = client.set_ca_override('IPA', 'new.example.com')
+
+        assert result == '/usr/libexec/ipa-submit'
+        new_helper = mock_cm.modify_ca_helper.call_args[0][1]
+        assert new_helper.count('-J') == 1
+        assert 'new.example.com' in new_helper
+
+
+class TestUnitPartialRenewalFailure:
+    """Partial failure in CertRenewalFromMaster.renew."""
+
+    def test_failed_cert_not_in_renewed_ids(self):
+        """Failed certs excluded from renewed_ids."""
+        obj = CertRenewalFromMaster(mock.MagicMock(), 'master.example.com')
+
+        obj._build_tracking_list = mock.MagicMock(return_value=[
+            ('sslserver', mock.MagicMock(), {}, mock.MagicMock()),
+            ('httpd', mock.MagicMock(), {}, mock.MagicMock()),
+        ])
+        obj._resolve_tracking_requests = mock.MagicMock(return_value=[
+            ('sslserver', mock.MagicMock(), 'req1', 'dogtag', None),
+            ('httpd', mock.MagicMock(), 'req2', 'IPA', None),
+        ])
+        obj._set_helper = mock.MagicMock(return_value='old')
+        obj._restore_helper = mock.MagicMock()
+        obj._restore = mock.MagicMock()
+
+        obj._resubmit = mock.MagicMock(
+            side_effect=[None, RuntimeError("timeout")])
+
+        ctx = mock.MagicMock()
+        ctx.dogtag_certs = []
+        ctx.ipa_certs = []
+        result = obj.renew([], [], ctx)
+
+        assert 'req1' in result
+        assert 'req2' not in result
+
+
+class TestUnitSetHelperTimeout:
+    """D-Bus timeout in _set_helper."""
+
+    def test_dbus_timeout_raises(self):
+        """_set_helper raises when set_ca_override fails."""
+        import dbus
+        cm = mock.MagicMock()
+        cm.set_ca_override.side_effect = \
+            dbus.exceptions.DBusException("timeout")
+
+        obj = CertRenewalFromMaster(cm, 'master.example.com')
+        with pytest.raises(dbus.exceptions.DBusException):
+            obj._set_helper()
