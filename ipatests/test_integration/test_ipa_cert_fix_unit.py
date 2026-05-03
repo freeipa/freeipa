@@ -13,12 +13,17 @@ import pytest
 
 from ipaserver.install.ipa_cert_fix import (
     CertmongerClient,
+    DeploymentDetector,
+    DeploymentType,
+    FixScenario,
+    IPACertType,
 )
 from ipaserver.install.ipa_cert_fix_types import (
     CertIdentity,
     DOGTAG_CERTS,
 )
 
+MODULE = 'ipaserver.install.ipa_cert_fix'
 SMOD = 'ipaserver.install.ipa_cert_fix_services'
 
 
@@ -171,3 +176,217 @@ class TestCertmongerClient:
         client = CertmongerClient()
         result = client.get_requests_for_dir('/etc/pki')
         assert result == ['r1', 'r2']
+
+
+class TestUnitDeploymentDetection:
+    """detect_deployment_type with all 4 return values."""
+
+    def _make_detector(self):
+        return DeploymentDetector(
+            cm_client=mock.MagicMock(),
+            ca_instance=None,
+            options=mock.MagicMock(),
+        )
+
+    @mock.patch(SMOD + '.find_providing_servers')
+    @mock.patch(SMOD + '.api')
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    @mock.patch(SMOD + '.cainstance')
+    def test_ca_self_signed(self, mock_ca, mock_nssdb, mock_api, mock_fps):
+        """CA installed, issuer == subject -> CA_SELF_SIGNED."""
+        mock_ca.is_ca_installed_locally.return_value = True
+        cert = mock.MagicMock()
+        cert.issuer = 'CN=Certificate Authority,O=EXAMPLE.COM'
+        cert.subject = 'CN=Certificate Authority,O=EXAMPLE.COM'
+        mock_nssdb.return_value.get_cert.return_value = cert
+
+        obj = self._make_detector()
+        result = obj.detect_deployment_type()
+        assert result == DeploymentType.CA_SELF_SIGNED
+
+    @mock.patch(SMOD + '.find_providing_servers')
+    @mock.patch(SMOD + '.api')
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    @mock.patch(SMOD + '.cainstance')
+    def test_ca_externally_signed(
+        self, mock_ca, mock_nssdb, mock_api, mock_fps,
+    ):
+        """CA installed, issuer != subject -> CA_EXTERNALLY_SIGNED."""
+        mock_ca.is_ca_installed_locally.return_value = True
+        cert = mock.MagicMock()
+        cert.issuer = 'CN=External Root CA,O=EXTCA'
+        cert.subject = 'CN=Certificate Authority,O=EXAMPLE.COM'
+        mock_nssdb.return_value.get_cert.return_value = cert
+
+        obj = self._make_detector()
+        result = obj.detect_deployment_type()
+        assert result == DeploymentType.CA_EXTERNALLY_SIGNED
+
+    @mock.patch(SMOD + '._ensure_ldap_connected')
+    @mock.patch(SMOD + '.find_providing_servers',
+                return_value=['ca1.example.com'])
+    @mock.patch(SMOD + '.api')
+    @mock.patch(SMOD + '.cainstance')
+    def test_ca_less_with_ca_servers(
+        self, mock_ca, mock_api, mock_fps, mock_elc,
+    ):
+        """No local CA, CA servers in topology -> CA_LESS."""
+        mock_ca.is_ca_installed_locally.return_value = False
+
+        obj = self._make_detector()
+        result = obj.detect_deployment_type()
+        assert result == DeploymentType.CA_LESS
+
+    @mock.patch(SMOD + '._ensure_ldap_connected')
+    @mock.patch(SMOD + '.find_providing_servers', return_value=[])
+    @mock.patch(SMOD + '.api')
+    @mock.patch(SMOD + '.cainstance')
+    def test_ca_less_external(self, mock_ca, mock_api, mock_fps, mock_elc):
+        """No local CA, no CA servers -> CA_LESS_EXTERNAL."""
+        mock_ca.is_ca_installed_locally.return_value = False
+
+        obj = self._make_detector()
+        result = obj.detect_deployment_type()
+        assert result == DeploymentType.CA_LESS_EXTERNAL
+
+    @mock.patch(SMOD + '._ensure_ldap_connected')
+    @mock.patch(SMOD + '.find_providing_servers',
+                side_effect=Exception("LDAP down"))
+    @mock.patch(SMOD + '.api')
+    @mock.patch(SMOD + '.cainstance')
+    def test_ca_less_ldap_fails_defaults_to_ca_less(
+        self, mock_ca, mock_api, mock_fps, mock_elc,
+    ):
+        """LDAP query failure on CA-less -> CA_LESS (not EXTERNAL)."""
+        mock_ca.is_ca_installed_locally.return_value = False
+
+        obj = self._make_detector()
+        result = obj.detect_deployment_type()
+        assert result == DeploymentType.CA_LESS
+
+    @mock.patch(SMOD + '.api')
+    @mock.patch(SMOD + '._get_pki_nssdb')
+    @mock.patch(SMOD + '.cainstance')
+    def test_nssdb_unreadable_raises(self, mock_ca, mock_nssdb, mock_api):
+        """CA installed but NSSDB unreadable -> RuntimeError."""
+        mock_ca.is_ca_installed_locally.return_value = True
+        mock_nssdb.return_value.get_cert.side_effect = RuntimeError("db error")
+
+        obj = self._make_detector()
+        with pytest.raises(RuntimeError, match="Cannot read caSigningCert"):
+            obj.detect_deployment_type()
+
+
+class TestUnitScenarioRouting:
+    """Scenario routing for each deployment type."""
+
+    def _make_detector(self, is_rm, master, force_rm=False):
+        options = mock.MagicMock()
+        options.renewal_master = force_rm
+        options.force_server = None
+        options.unattended = False
+        obj = DeploymentDetector(
+            cm_client=mock.MagicMock(),
+            ca_instance=mock.MagicMock(),
+            options=options,
+        )
+        obj.check_is_renewal_master = mock.MagicMock(return_value=is_rm)
+        obj.get_master_server = mock.MagicMock(return_value=master)
+        return obj
+
+    @pytest.mark.parametrize("dt,is_rm,master,expected_scenario", [
+        (DeploymentType.CA_SELF_SIGNED,
+         True, None, FixScenario.RENEWAL_MASTER),
+        (DeploymentType.CA_SELF_SIGNED,
+         False, 'master.example.com', FixScenario.CA_FULL_WITH_MASTER),
+        (DeploymentType.CA_SELF_SIGNED,
+         False, None, FixScenario.CA_FULL_PROMOTE),
+        (DeploymentType.CA_EXTERNALLY_SIGNED,
+         True, None, FixScenario.RENEWAL_MASTER),
+        (DeploymentType.CA_EXTERNALLY_SIGNED,
+         False, 'master.example.com', FixScenario.CA_FULL_WITH_MASTER),
+        (DeploymentType.CA_LESS,
+         False, 'master.example.com', FixScenario.CA_LESS_WITH_MASTER),
+        (DeploymentType.CA_LESS_EXTERNAL,
+         False, None, FixScenario.EXTERNAL_CERTS),
+    ])
+    def test_scenario_matrix(self, dt, is_rm, master, expected_scenario):
+        """Verify correct FixScenario for each combination."""
+        obj = self._make_detector(is_rm, master)
+        scenario, srv = obj.determine_scenario(dt)
+        assert scenario == expected_scenario
+        if expected_scenario in (
+            FixScenario.CA_FULL_WITH_MASTER,
+            FixScenario.CA_LESS_WITH_MASTER,
+        ):
+            assert srv == master
+        elif expected_scenario in (
+            FixScenario.RENEWAL_MASTER,
+            FixScenario.CA_FULL_PROMOTE,
+            FixScenario.EXTERNAL_CERTS,
+        ):
+            assert srv is None
+
+    def test_caless_no_server_raises(self):
+        """CA_LESS with no server selected raises RuntimeError."""
+        obj = self._make_detector(is_rm=False, master=None)
+        with pytest.raises(RuntimeError, match="No server"):
+            obj.determine_scenario(DeploymentType.CA_LESS)
+
+    def test_force_renewal_master_flag(self):
+        """--renewal-master forces RENEWAL_MASTER scenario."""
+        obj = self._make_detector(
+            is_rm=False, master='m.example.com', force_rm=True,
+        )
+        scenario, srv = obj.determine_scenario(
+            DeploymentType.CA_SELF_SIGNED)
+        assert scenario == FixScenario.RENEWAL_MASTER
+        assert srv is None
+
+
+class TestUnitCertClassification:
+    """Cert classification splits external from IPA."""
+
+    @mock.patch(SMOD + '.cainstance')
+    @mock.patch(SMOD + '.expired_dogtag_certs')
+    @mock.patch(SMOD + '.expired_ipa_certs')
+    def test_external_certs_split(
+        self, mock_exp_ipa, mock_exp_dog, mock_ca,
+    ):
+        """Verify _classify_certs moves non_renewed to external."""
+        import datetime as dt
+        now = dt.datetime(2030, 1, 1, tzinfo=dt.timezone.utc)
+        mock_ca.is_ca_installed_locally.return_value = True
+
+        cert_mock = mock.MagicMock()
+        mock_exp_dog.return_value = [('ca_audit', cert_mock)]
+        mock_exp_ipa.return_value = (
+            [(IPACertType.IPARA, cert_mock)],
+            [(IPACertType.HTTPS, cert_mock)],  # non_renewed -> external
+        )
+
+        dogtag, ipa, external = DeploymentDetector._classify_certs(now)
+
+        assert len(dogtag) == 1
+        assert len(ipa) == 1
+        assert len(external) == 1
+        assert external[0][0] == IPACertType.HTTPS
+
+    @mock.patch(SMOD + '.cainstance')
+    @mock.patch(SMOD + '.expired_ipa_certs')
+    def test_caless_skips_dogtag(self, mock_exp_ipa, mock_ca):
+        """On CA-less, dogtag certs list is empty."""
+        import datetime as dt
+        now = dt.datetime(2030, 1, 1, tzinfo=dt.timezone.utc)
+        mock_ca.is_ca_installed_locally.return_value = False
+
+        cert_mock = mock.MagicMock()
+        mock_exp_ipa.return_value = (
+            [(IPACertType.HTTPS, cert_mock)],
+            [],
+        )
+
+        dogtag, ipa, external = DeploymentDetector._classify_certs(now)
+
+        assert dogtag == []
+        assert len(ipa) == 1

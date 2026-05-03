@@ -37,17 +37,22 @@ from ipapython.certdb import NSSDatabase, EMPTY_TRUST_FLAGS
 from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipaserver.install import ca, cainstance, dsinstance
-from ipaserver.install.certs import is_ipa_issued_cert
-# Re-export public names from the helper module so that all symbols are
+# Re-export public names from the helper modules so that all symbols are
 # importable from ``ipaserver.install.ipa_cert_fix``.
 from ipaserver.install.ipa_cert_fix_services import (  # noqa: F401
     CertmongerClient,
+    DeploymentDetector,
+    expired_dogtag_certs,
+    expired_ipa_certs,
     get_csr_from_certmonger,
     print_cert_info,
 )
-from ipaserver.install.ipa_cert_fix_types import (
+from ipaserver.install.ipa_cert_fix_types import (  # noqa: F401
     CERT_EXPIRY_LOOKAHEAD,
+    CertFixContext,
     DOGTAG_CERTS,
+    DeploymentType,
+    FixScenario,
     IPACertType,
     RENEWAL_NOTE,
     RENEWED_CERT_PATH_TEMPLATE,
@@ -65,37 +70,37 @@ class IPACertFix(AdminTool):
     usage = "%prog"
     description = "Renew expired certificates."
 
+    _cm = None  # CertmongerClient; set in run()
+    _detector = None  # DeploymentDetector; set in _classify_and_dispatch
+
     def validate_options(self):
         super(IPACertFix, self).validate_options(needs_root=True)
 
     def run(self):
+        """Top-level entry point for ipa-cert-fix.
+
+        Detects the deployment type, classifies expired certificates,
+        determines the appropriate fix scenario, and dispatches to the
+        corresponding handler.
+
+        :returns: exit code (0 success, 1 error, 2 not configured)
+        """
         if not is_ipa_configured():
             print("IPA is not configured.")
             return 2
 
-        if not cainstance.is_ca_installed_locally():
-            print("CA is not installed on this server.")
-            return 1
-
-        try:
-            ipautil.run(['pki-server', 'cert-fix', '--help'], raiseonerr=True)
-        except ipautil.CalledProcessError:
-            print(
-                "The 'pki-server cert-fix' command is not available; "
-                "cannot proceed."
-            )
-            return 1
-
         api.bootstrap(in_server=True, confdir=paths.ETC_IPA)
         api.finalize()
 
+        if self._cm is None:
+            self._cm = CertmongerClient()
+
         if not dsinstance.is_ds_running(realm_to_serverid(api.env.realm)):
-            print(
-                "The LDAP server is not running; cannot proceed."
-            )
+            print("The LDAP server is not running; cannot proceed.\n"
+                  "Try starting IPA first with: ipactl start -f")
             return 1
 
-        api.Backend.ldap2.connect()  # ensure DS is up
+        api.Backend.ldap2.connect()
 
         try:
             return self._classify_and_dispatch()
@@ -106,24 +111,43 @@ class IPACertFix(AdminTool):
     def _classify_and_dispatch(self):
         """Classify expired certificates and dispatch to a fix scenario.
 
-        Currently only the renewal-master scenario is implemented.  Future
-        commits will add deployment-type detection and route to additional
-        scenarios (CA-full replica, CA-less replica, external certificates).
+        Detects deployment type, classifies expired certs, picks a scenario
+        via :class:`DeploymentDetector`, builds a :class:`CertFixContext`,
+        and dispatches to the appropriate handler.  Currently only the
+        renewal-master scenario is implemented; other scenarios raise a
+        clear "not implemented yet" error and will be filled in by
+        subsequent commits.
         """
-        subject_base = dsinstance.DsInstance().find_subject_base()
+        serverid = realm_to_serverid(api.env.realm)
+        ds = dsinstance.DsInstance(realm_name=api.env.realm)
+        subject_base = ds.find_subject_base()
         if not subject_base:
             raise RuntimeError("Cannot determine certificate subject base.")
+        ds_dbdir = dsinstance.config_dirname(serverid).rstrip('/')
+        ds_nickname = ds.get_server_cert_nickname(serverid)
 
-        ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
+        # CA-specific setup (skip on CA-less deployments)
+        ca_subject_dn = None
+        has_ca = cainstance.is_ca_installed_locally()
+        ca_inst = cainstance.CAInstance() if has_ca else None
+
+        self._detector = DeploymentDetector(
+            self._cm, ca_inst, self.options)
+
+        deployment_type = self._detector.detect_deployment_type()
+        logger.info("Deployment type: %s", deployment_type.value)
+        if has_ca:
+            ca_subject_dn = ca.lookup_ca_subject(api, subject_base)
 
         now = _utcnow() + CERT_EXPIRY_LOOKAHEAD
-        certs, extra_certs, non_renewed = expired_certs(now)
+        dogtag_certs, ipa_certs, external_certs = \
+            self._detector._classify_certs(now, ds_dbdir, ds_nickname)
 
-        if not certs and not extra_certs:
+        if not dogtag_certs and not ipa_certs and not external_certs:
             print("Nothing to do.")
             return 0
 
-        if any(key == 'ca_issuing' for key, _ in certs):
+        if any(key == 'ca_issuing' for key, _ in dogtag_certs):
             logger.debug("CA signing cert is expired, exiting!")
             print(
                 "The CA signing certificate is expired or will expire within "
@@ -133,53 +157,97 @@ class IPACertFix(AdminTool):
             )
             return 1
 
-        return self.run_renewal_master_fix(
-            subject_base, ca_subject_dn, certs, extra_certs, non_renewed)
+        try:
+            scenario, master = self._detector.determine_scenario(
+                deployment_type)
+        except RuntimeError as e:
+            print(str(e))
+            return 1
+        logger.info("Fix scenario: %s, master: %s", scenario.value, master)
 
-    def run_renewal_master_fix(
-        self, subject_base, ca_subject_dn, certs, extra_certs, non_renewed
-    ):
+        ctx = CertFixContext(
+            deployment_type=deployment_type,
+            scenario=scenario,
+            subject_base=subject_base,
+            ca_subject_dn=ca_subject_dn,
+            dogtag_certs=dogtag_certs,
+            ipa_certs=ipa_certs,
+            external_certs=external_certs,
+            master_server=master,
+            serverid=serverid,
+            ds_dbdir=ds_dbdir,
+            ds_nickname=ds_nickname,
+        )
+
+        dispatch = {
+            FixScenario.RENEWAL_MASTER: self.run_renewal_master_fix,
+        }
+        handler = dispatch.get(scenario)
+        if handler is None:
+            print(
+                "Scenario %s is not yet implemented." % scenario.value)
+            return 1
+
+        try:
+            return handler(ctx)
+        except RuntimeError as e:
+            print("ERROR: %s" % e)
+            return 1
+
+    def run_renewal_master_fix(self, ctx):
         """Fix certificates on the renewal master via ``pki-server cert-fix``.
 
         Regenerates expired Dogtag system certificates and installs renewed
         IPA service certificates.  If any "shared" certificate is renewed,
         promotes this server to the renewal master.
         """
+        certs = ctx.dogtag_certs
+        ipa_certs = ctx.ipa_certs
+        external_certs = ctx.external_certs
+
+        try:
+            ipautil.run(['pki-server', 'cert-fix', '--help'], raiseonerr=True)
+        except (ipautil.CalledProcessError, FileNotFoundError):
+            print(
+                "The 'pki-server cert-fix' command is not available; "
+                "cannot proceed.")
+            return 1
+
         print(WARNING_BANNER)
 
-        print_intentions(certs, extra_certs, non_renewed)
+        print_intentions(certs, ipa_certs, external_certs)
 
         if not self._confirm_execution():
             return 0
 
         try:
             fix_certreq_directives(certs)
-            run_cert_fix(certs, extra_certs)
+            run_cert_fix(certs, ipa_certs)
         except ipautil.CalledProcessError:
             if any(
                 x[0] is IPACertType.LDAPS
-                for x in extra_certs + non_renewed
+                for x in ipa_certs + external_certs
             ):
                 # The DS cert was expired.  This will cause 'pki-server
                 # cert-fix' to fail at the final restart, and return nonzero.
                 # So this exception *might* be OK to ignore.
                 #
                 # If 'pki-server cert-fix' has written new certificates
-                # corresponding to all the extra_certs, then ignore the
-                # CalledProcessError and proceed to installing the IPA-specific
-                # certs.  Otherwise re-raise.
-                if check_renewed_ipa_certs(extra_certs):
+                # corresponding to all the ipa_certs, then ignore the
+                # CalledProcessError and proceed to installing the
+                # IPA-specific certs.  Otherwise re-raise.
+                if check_renewed_ipa_certs(ipa_certs):
                     pass
                 else:
                     raise
             else:
-                raise  # otherwise re-raise
+                raise
 
-        replicate_dogtag_certs(subject_base, ca_subject_dn, certs)
-        install_ipa_certs(subject_base, ca_subject_dn, extra_certs)
+        replicate_dogtag_certs(ctx.subject_base, ctx.ca_subject_dn, certs)
+        install_ipa_certs(ctx.subject_base, ctx.ca_subject_dn, ipa_certs)
 
         if any(x[0] != 'sslserver' for x in certs) \
-                or any(x[0] is IPACertType.IPARA for x in extra_certs):
+                or any(x[0] is IPACertType.IPARA for x in ipa_certs):
             # we renewed a "shared" certificate, therefore we must
             # become the renewal master
             print("Becoming renewal master.")
@@ -199,80 +267,6 @@ class IPACertFix(AdminTool):
             return False
         print("Proceeding.")
         return True
-
-
-def expired_certs(now):
-    expired_ipa, non_renew_ipa = expired_ipa_certs(now)
-    return expired_dogtag_certs(now), expired_ipa, non_renew_ipa
-
-
-def expired_dogtag_certs(now):
-    """
-    Determine which Dogtag certs are expired, or close to expiry.
-
-    Return a list of (cert_id, cert) pairs.
-
-    """
-    certs = []
-    db = NSSDatabase(nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
-
-    for certid, ci in DOGTAG_CERTS.items():
-        try:
-            cert = db.get_cert(ci.nickname)
-        except RuntimeError:
-            pass  # unfortunately certdb doesn't give us a better exception
-        else:
-            if cert.not_valid_after_utc <= now:
-                certs.append((certid, cert))
-
-    return certs
-
-
-def expired_ipa_certs(now):
-    """
-    Determine which IPA certs are expired, or close to expiry.
-
-    Return a list of (IPACertType, cert) pairs.
-
-    """
-    certs = []
-    non_renewed = []
-
-    # IPA RA
-    cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
-    if cert.not_valid_after_utc <= now:
-        certs.append((IPACertType.IPARA, cert))
-
-    # Apache HTTPD
-    cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
-    if cert.not_valid_after_utc <= now:
-        if not is_ipa_issued_cert(api, cert):
-            non_renewed.append((IPACertType.HTTPS, cert))
-        else:
-            certs.append((IPACertType.HTTPS, cert))
-
-    # LDAPS
-    serverid = realm_to_serverid(api.env.realm)
-    ds = dsinstance.DsInstance(realm_name=api.env.realm)
-    ds_dbdir = dsinstance.config_dirname(serverid)
-    ds_nickname = ds.get_server_cert_nickname(serverid)
-    db = NSSDatabase(nssdir=ds_dbdir)
-    cert = db.get_cert(ds_nickname)
-    if cert.not_valid_after_utc <= now:
-        if not is_ipa_issued_cert(api, cert):
-            non_renewed.append((IPACertType.LDAPS, cert))
-        else:
-            certs.append((IPACertType.LDAPS, cert))
-
-    # KDC
-    cert = x509.load_certificate_from_file(paths.KDC_CERT)
-    if cert.not_valid_after_utc <= now:
-        if not is_ipa_issued_cert(api, cert):
-            non_renewed.append((IPACertType.HTTPS, cert))
-        else:
-            certs.append((IPACertType.KDC, cert))
-
-    return certs, non_renewed
 
 
 def print_intentions(dogtag_certs, ipa_certs, non_renewed):

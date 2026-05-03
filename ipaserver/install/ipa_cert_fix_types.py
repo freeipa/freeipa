@@ -16,6 +16,7 @@ from enum import Enum
 from typing import Optional
 
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 
 
 @dataclass(frozen=True)
@@ -124,6 +125,60 @@ class IPACertType(Enum):
     HTTPS = "HTTPS"
     LDAPS = "LDAP"
     KDC = "KDC"
+
+
+class DeploymentType(Enum):
+    """Classification of the local replica's deployment scenario."""
+    CA_SELF_SIGNED = "CA-full, self-signed"
+    CA_EXTERNALLY_SIGNED = "CA-full, externally-signed"
+    CA_LESS = "CA-less (internal CA on other replicas)"
+    CA_LESS_EXTERNAL = "CA-less (fully external)"
+
+
+class FixScenario(Enum):
+    """The fix path to execute based on deployment and topology."""
+    RENEWAL_MASTER = "renewal_master"
+    CA_FULL_WITH_MASTER = "ca_full_with_master"
+    CA_FULL_PROMOTE = "ca_full_promote"
+    CA_LESS_WITH_MASTER = "ca_less_with_master"
+    EXTERNAL_CERTS = "external_certs"
+
+
+@dataclass
+class CertFixContext:
+    """Shared context passed between fix methods.
+
+    :param deployment_type: detected deployment classification
+    :param scenario: the fix path being executed
+    :param subject_base: certificate subject base DN
+    :param ca_subject_dn: IPA CA subject DN
+    :param dogtag_certs: expired Dogtag certs as ``[(certid, cert), ...]``
+    :param ipa_certs: expired IPA-issued service certs as
+        ``[(IPACertType, cert), ...]``
+    :param external_certs: expired externally-signed service certs as
+        ``[(IPACertType, cert), ...]``
+    :param master_server: FQDN of the master to fetch certs from, or
+        ``None`` for renewal master / external-only scenarios
+    :param serverid: DS instance ID (e.g. ``EXAMPLE-COM``)
+    :param ds_dbdir: DS NSS database directory (no trailing slash, matching
+        certmonger convention)
+    :param ds_nickname: DS server cert nickname
+    :param hsm_enabled: whether HSM is configured for PKI
+    :param hsm_token_name: HSM token name, or ``None``
+    """
+    deployment_type: DeploymentType
+    scenario: FixScenario
+    subject_base: DN
+    ca_subject_dn: DN
+    dogtag_certs: list
+    ipa_certs: list
+    external_certs: list
+    master_server: Optional[str]
+    serverid: str = ''
+    ds_dbdir: str = ''
+    ds_nickname: str = ''
+    hsm_enabled: bool = False
+    hsm_token_name: Optional[str] = None
 
 
 WARNING_BANNER = """

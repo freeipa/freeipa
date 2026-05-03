@@ -15,23 +15,38 @@ import base64
 from cryptography import x509 as crypto_x509
 from cryptography.hazmat.backends import default_backend
 import logging
+import socket
 import time
 
+from ipalib import api, errors
 from ipalib import x509
 from ipalib.install import certmonger
 from ipaplatform.paths import paths
 from ipapython.certdb import NSSDatabase
 from ipapython.dn import DN
+from ipapython.ipaldap import realm_to_serverid
 from ipapython import ipautil
+from ipaserver.install import cainstance, dsinstance
+from ipaserver.install.certs import is_ipa_issued_cert
+from ipaserver.masters import find_providing_servers
 
 from ipaserver.install.ipa_cert_fix_types import (
     CERT_EXPIRY_LOOKAHEAD,
     DBUS_RETRY_DELAY,
     DBUS_RETRY_TIMEOUT,
+    DOGTAG_CERTS,
+    DeploymentType,
+    FixScenario,
+    IPACertType,
     _utcnow,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_pki_nssdb():
+    """Lazy accessor for the PKI Tomcat NSS database."""
+    return NSSDatabase(nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
 
 
 def print_cert_info(context, desc, cert):
@@ -236,3 +251,467 @@ class CertmongerClient:
             except Exception:
                 return False
         return False
+
+
+def _ensure_ldap_connected():
+    """Ensure the ldap2 backend is connected.
+
+    After operations that restart Directory Server (``ipa-certupdate``,
+    ``ipactl restart``, ``pki-server cert-fix``), the LDAPI socket is
+    recycled and our existing connection becomes a broken pipe.
+    ``isconnected()`` is unreliable in this case -- it may still
+    return ``True`` on the stale socket.
+
+    This function unconditionally disconnects and reconnects to guarantee
+    a live connection.
+    """
+    try:
+        if api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.disconnect()
+    except Exception as e:
+        logger.debug("ldap2 disconnect error (ignored): %s", e)
+    api.Backend.ldap2.connect()
+    logger.debug("ldap2 reconnected")
+
+
+def _check_tcp_reachable(server):
+    """Verify a server is TCP-reachable before using it.
+
+    Performs DNS resolution and a TCP connect to port 443.  This is
+    intentionally TCP-only (no TLS): the local CA trust store may be stale at
+    this point.  TLS verification happens later in ``_check_tls_handshake``
+    after ``ipa-certupdate`` updates the trust store.
+
+    :param server: FQDN to check
+    :raises RuntimeError: if the server is unreachable
+    """
+    logger.debug("Checking reachability of %s", server)
+    try:
+        addrs = socket.getaddrinfo(
+            server, 443, socket.AF_UNSPEC,
+            socket.SOCK_STREAM,)
+    except socket.gaierror as e:
+        raise RuntimeError("Cannot resolve %s: %s" % (server, e))
+
+    for family, socktype, proto, _cn, addr in addrs:
+        s = socket.socket(family, socktype, proto)
+        try:
+            s.settimeout(10)
+            s.connect(addr)
+            logger.debug("TCP connect to %s:%d succeeded", server, 443)
+            return
+        except OSError:
+            continue
+        finally:
+            s.close()
+
+    raise RuntimeError(
+        "Cannot connect to %s on port 443. Verify the server is running "
+        "and network connectivity is available." % server)
+
+
+def _find_current_renewal_master():
+    """Find the current renewal master FQDN.
+
+    :returns: FQDN string, or ``None`` if not found
+    """
+    try:
+        base_dn = DN(api.env.container_masters, api.env.basedn)
+        ldap_filter = ('(&(cn=CA)(ipaConfigString=caRenewalMaster))')
+        entries = api.Backend.ldap2.get_entries(
+            base_dn=base_dn,
+            filter=ldap_filter,
+            attrs_list=[],)
+        if entries:
+            fqdn = entries[0].dn[1].value
+            logger.debug("Current renewal master: %s", fqdn)
+            return fqdn
+    except Exception as e:
+        logger.debug("Cannot determine current renewal master: %s", e)
+    return None
+
+
+def expired_dogtag_certs(now):
+    """Determine which Dogtag certs are expired or close to expiry.
+
+    Return a list of (cert_id, cert) pairs.
+    """
+    certs = []
+    db = _get_pki_nssdb()
+
+    for certid, ci in DOGTAG_CERTS.items():
+        try:
+            cert = db.get_cert(ci.nickname)
+        except RuntimeError:
+            logger.debug("Dogtag cert %s (%s): not found in NSSDB",
+                         certid, ci.nickname)
+        else:
+            if cert.not_valid_after_utc <= now:
+                logger.debug("Dogtag cert %s: EXPIRED (expires %s)",
+                             certid, cert.not_valid_after_utc)
+                certs.append((certid, cert))
+            else:
+                logger.debug("Dogtag cert %s: valid (expires %s)",
+                             certid, cert.not_valid_after_utc)
+
+    return certs
+
+
+def _check_ipa_cert(certtype, cert, now, certs, non_renewed):
+    """Classify an expired IPA cert as IPA-issued or external.
+
+    :param certtype: :class:`IPACertType`
+    :param cert: loaded certificate
+    :param now: expiry threshold
+    :param certs: list to append IPA-issued certs to
+    :param non_renewed: list to append external certs to
+    """
+    if cert.not_valid_after_utc <= now:
+        if not is_ipa_issued_cert(api, cert):
+            logger.debug("IPA cert %s: EXPIRED, external (expires %s)",
+                         certtype.value, cert.not_valid_after_utc)
+            non_renewed.append((certtype, cert))
+        else:
+            logger.debug("IPA cert %s: EXPIRED (expires %s)",
+                         certtype.value, cert.not_valid_after_utc)
+            certs.append((certtype, cert))
+    else:
+        logger.debug("IPA cert %s: valid (expires %s)",
+                     certtype.value, cert.not_valid_after_utc)
+
+
+def expired_ipa_certs(now, ds_dbdir=None, ds_nickname=None):
+    """Determine which IPA certs are expired or close to expiry.
+
+    :param now: datetime threshold
+    :param ds_dbdir: DS NSS database directory (optional, avoids creating a
+        DsInstance if provided)
+    :param ds_nickname: DS server cert nickname (optional)
+    :returns: tuple of ``(certs, non_renewed)``
+    """
+    certs = []
+    non_renewed = []
+
+    # IPA RA (always IPA-issued, no external check)
+    try:
+        cert = x509.load_certificate_from_file(paths.RA_AGENT_PEM)
+        if cert.not_valid_after_utc <= now:
+            logger.debug("IPA cert RA: EXPIRED (expires %s)",
+                         cert.not_valid_after_utc)
+            certs.append((IPACertType.IPARA, cert))
+        else:
+            logger.debug("IPA cert RA: valid (expires %s)",
+                         cert.not_valid_after_utc)
+    except FileNotFoundError:
+        logger.debug("IPA cert RA: not present at %s "
+                     "(expected on CA-less-external deployments)",
+                     paths.RA_AGENT_PEM)
+    except Exception as e:
+        logger.debug("Cannot load RA cert from %s: %s",
+                     paths.RA_AGENT_PEM, e)
+
+    # Apache HTTPD
+    try:
+        cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
+        _check_ipa_cert(IPACertType.HTTPS, cert, now, certs, non_renewed)
+    except Exception as e:
+        logger.debug("Cannot load HTTP cert from %s: %s",
+                     paths.HTTPD_CERT_FILE, e)
+
+    # LDAPS
+    try:
+        if ds_dbdir is None or ds_nickname is None:
+            serverid = realm_to_serverid(api.env.realm)
+            ds = dsinstance.DsInstance(realm_name=api.env.realm)
+            ds_dbdir = dsinstance.config_dirname(serverid)
+            ds_nickname = ds.get_server_cert_nickname(serverid)
+        db = NSSDatabase(nssdir=ds_dbdir)
+        cert = db.get_cert(ds_nickname)
+        _check_ipa_cert(IPACertType.LDAPS, cert, now, certs, non_renewed)
+    except Exception as e:
+        logger.debug("Cannot load LDAP cert: %s", e)
+
+    # KDC (can be self-signed if PKINIT is disabled)
+    try:
+        cert = x509.load_certificate_from_file(paths.KDC_CERT)
+        _check_ipa_cert(IPACertType.KDC, cert, now, certs, non_renewed)
+    except Exception as e:
+        logger.debug("Cannot load KDC cert from %s: %s", paths.KDC_CERT, e)
+
+    return certs, non_renewed
+
+
+class DeploymentDetector:
+    """Detection, classification, and scenario routing.
+
+    Determines the deployment type, classifies expired certificates, and
+    routes to the appropriate fix scenario.  CA chain validation and
+    RA/subsystem LDAP consistency checks are added in a later commit.
+    """
+
+    def __init__(self, cm_client, ca_instance, options):
+        self._cm = cm_client
+        self._ca_instance = ca_instance
+        self.options = options
+
+    def detect_deployment_type(self):
+        """Detect the deployment type of this replica.
+
+        Checks whether a CA is installed locally and whether the CA signing
+        certificate is self-signed or externally signed.
+
+        :returns: :class:`DeploymentType` enum value
+        """
+        has_ca = cainstance.is_ca_installed_locally()
+
+        if not has_ca:
+            ca_servers = []
+            ldap_failed = False
+            try:
+                _ensure_ldap_connected()
+                ca_servers = find_providing_servers(
+                    'CA', conn=api.Backend.ldap2,
+                    api=api,)
+            except Exception as e:
+                logger.warning("Failed to discover CA servers: %s", e)
+                ldap_failed = True
+
+            if not ca_servers:
+                if ldap_failed:
+                    # LDAP query failed -- don't assume fully external. Warn
+                    # and default to CA_LESS so the user is prompted for a
+                    # server FQDN.
+                    print(
+                        "WARNING: Could not query topology for CA servers "
+                        "(LDAP error).\n"
+                        "Assuming CA servers exist. Use --force-server "
+                        "to specify one explicitly.")
+                    return DeploymentType.CA_LESS
+
+                logger.info(
+                    "No CA servers in topology, deployment is fully external."
+                )
+                return DeploymentType.CA_LESS_EXTERNAL
+            logger.info(
+                "CA-less replica, CA servers in topology: %s",
+                ca_servers)
+            return DeploymentType.CA_LESS
+
+        # CA is installed locally -- check if self-signed
+        db = _get_pki_nssdb()
+        try:
+            ca_cert = db.get_cert(DOGTAG_CERTS['ca_issuing'].nickname)
+        except RuntimeError:
+            logger.error(
+                "Cannot read caSigningCert from %s",
+                paths.PKI_TOMCAT_ALIAS_DIR)
+            raise RuntimeError(
+                "Cannot read caSigningCert from NSS database "
+                "at %s" % paths.PKI_TOMCAT_ALIAS_DIR)
+
+        is_self_signed = (DN(ca_cert.issuer) == DN(ca_cert.subject))
+        logger.debug(
+            "caSigningCert: issuer=%s, subject=%s, self_signed=%s",
+            DN(ca_cert.issuer), DN(ca_cert.subject), is_self_signed)
+
+        if is_self_signed:
+            return DeploymentType.CA_SELF_SIGNED
+        return DeploymentType.CA_EXTERNALLY_SIGNED
+
+    @staticmethod
+    def _classify_certs(now, ds_dbdir=None, ds_nickname=None):
+        """Classify expired certificates into categories.
+
+        Wraps :func:`expired_dogtag_certs` and :func:`expired_ipa_certs`,
+        then re-classifies certs that are not IPA-issued as external.
+
+        For CA-less deployments, Dogtag certs are skipped (the NSS database
+        does not exist).
+
+        :param now: datetime threshold for expiry check
+        :param ds_dbdir: DS NSS database directory
+        :param ds_nickname: DS server cert nickname
+        :returns: tuple of ``(dogtag_certs, ipa_certs, external_certs)``
+        """
+        has_ca = cainstance.is_ca_installed_locally()
+        if has_ca:
+            dogtag = expired_dogtag_certs(now)
+        else:
+            dogtag = []
+
+        ipa, non_renewed = expired_ipa_certs(now, ds_dbdir, ds_nickname)
+
+        # non_renewed from expired_ipa_certs() contains certs where
+        # is_ipa_issued_cert() returned False, i.e. they are externally signed.
+        external = non_renewed
+
+        return dogtag, ipa, external
+
+    def determine_scenario(self, deployment_type):
+        """Determine the fix scenario and master server.
+
+        Uses the deployment type, renewal master status, and CLI options to
+        choose the correct fix path.  May prompt the user interactively for
+        a master server FQDN.
+
+        :param deployment_type: :class:`DeploymentType` value
+        :returns: tuple of ``(FixScenario, master_server_or_None)``
+        """
+        opt_renewal_master = getattr(self.options, 'renewal_master', False)
+        opt_force_server = getattr(self.options, 'force_server', None)
+
+        # CA-less paths
+        if deployment_type in (
+            DeploymentType.CA_LESS,
+            DeploymentType.CA_LESS_EXTERNAL,
+        ):
+            if opt_renewal_master:
+                raise RuntimeError(
+                    "--renewal-master cannot be used on a CA-less replica "
+                    "(no local CA to become renewal master of).")
+            if deployment_type == DeploymentType.CA_LESS_EXTERNAL:
+                return FixScenario.EXTERNAL_CERTS, None
+            master = self.get_master_server()
+            if master is None:
+                raise RuntimeError(
+                    "No server was selected. Re-run with "
+                    "--force-server=<FQDN> to renew certificates "
+                    "from a working CA server.")
+            return FixScenario.CA_LESS_WITH_MASTER, master
+
+        # CA-full paths
+        is_rm = self.check_is_renewal_master()
+        if opt_renewal_master or is_rm:
+            if opt_force_server and is_rm:
+                print(
+                    "WARNING: --force-server ignored -- this server is the "
+                    "renewal master and will use the renewal master fix path.")
+            return FixScenario.RENEWAL_MASTER, None
+
+        master = self.get_master_server()
+        if master is not None:
+            return FixScenario.CA_FULL_WITH_MASTER, master
+
+        # No master available -- promotion is the only option. Prerequisites
+        # are validated in run_ca_full_promote() before any destructive action
+        # (promotion is a topology-wide change).
+        return FixScenario.CA_FULL_PROMOTE, None
+
+    def check_is_renewal_master(self):
+        """Check if the current server is the renewal master.
+
+        Uses LDAP via LDAPI (unix socket) which works even when TLS
+        certificates are expired.
+
+        :returns: ``True`` if this server is the renewal master,
+            ``False`` otherwise
+        :raises RuntimeError: if no CA instance is available (CA-less)
+        """
+        if self._ca_instance is None:
+            raise RuntimeError(
+                "check_is_renewal_master called without a CA instance "
+                "(CA-less deployment?)")
+        try:
+            result = self._ca_instance.is_renewal_master()
+            logger.debug("Renewal master check result: %s", result)
+            return result
+        except (errors.NetworkError, errors.DatabaseError) as e:
+            logger.warning("Failed to determine renewal master status: %s", e)
+            return False
+        except Exception as e:
+            logger.warning("Unexpected error checking renewal master: %s", e)
+            return False
+
+    def get_master_server(self):
+        """Determine the master server FQDN.
+
+        Resolution order:
+
+        1. ``--force-server`` CLI option
+        2. Interactive prompt (default from LDAP if any)
+        3. ``None`` if no server selected (caller decides whether to fall
+           back to promote or external path)
+
+        :returns: FQDN string, or ``None``
+        """
+        opt_force_server = getattr(self.options, 'force_server', None)
+        opt_unattended = getattr(self.options, 'unattended', False)
+
+        if opt_force_server:
+            server = opt_force_server
+            _check_tcp_reachable(server)
+            logger.info("Using server from --force-server: %s", server)
+            return server
+
+        # Find the current renewal master to use as default
+        default_server = None
+        ca_servers = []
+        renewal_master = _find_current_renewal_master()
+        if renewal_master and renewal_master != api.env.host:
+            default_server = renewal_master
+        elif renewal_master:
+            logger.debug("Renewal master is this server, not using as default")
+
+        # Find other CA servers in the topology (excluding ourselves)
+        if not default_server:
+            try:
+                ca_servers = find_providing_servers(
+                    'CA', conn=api.Backend.ldap2, api=api)
+                ca_servers = [s for s in ca_servers if s != api.env.host]
+                logger.debug("CA servers in topology: %s", ca_servers)
+            except Exception as e:
+                logger.warning("Failed to discover CA servers: %s", e)
+                ca_servers = []
+
+            if ca_servers:
+                print("The following CA servers were found in the topology:")
+                for s in ca_servers:
+                    print("  %s" % s)
+                print()
+
+        if not default_server and ca_servers:
+            default_server = ca_servers[0]
+
+        # In unattended mode, use the default server if found, otherwise fall
+        # back to the destructive path.
+        if opt_unattended:
+            if default_server:
+                logger.info("Unattended mode: using server %s", default_server)
+                return default_server
+            logger.warning("Unattended mode: no working server found")
+            return None
+
+        while True:
+            if default_server:
+                prompt = ("Enter FQDN of a working CA server with valid "
+                          "certificates\n(press Enter to use %s, or type "
+                          "a different FQDN)" % default_server)
+            else:
+                prompt = ("Enter FQDN of a working CA server with valid "
+                          "certificates\n(leave empty to skip; re-run with "
+                          "--renewal-master to promote this server)")
+            server = ipautil.user_input(prompt, default=default_server)
+
+            if server:
+                if server == api.env.host:
+                    print(
+                        "Cannot use the current server (%s) as the source."
+                        % server)
+                    print("Please enter a different server.")
+                    continue
+                try:
+                    _check_tcp_reachable(server)
+                except RuntimeError as e:
+                    print("  %s" % e)
+                    print("Please enter a different server.")
+                    continue
+                logger.debug("User selected master server: %s", server)
+                return server
+
+            # User chose empty -- fall back
+            break
+
+        # No server selected -- caller decides whether to fall back to the
+        # promote/external path.
+        logger.info("No master server selected")
+        return None
