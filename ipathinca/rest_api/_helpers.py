@@ -170,16 +170,12 @@ def require_agent_auth(f):
         # This takes priority over localhost trust
         cert_subject_dn = None
 
-        # Try Apache-style environment variables first (for reverse proxy
-        # deployments)
-        # Check both direct WSGI env vars and HTTP headers (RequestHeader)
-        ssl_client_verify = request.environ.get(
-            "SSL_CLIENT_VERIFY"
-        ) or request.environ.get("HTTP_SSL_CLIENT_VERIFY")
+        # Try Apache-style environment variables (set by mod_ssl via
+        # reverse proxy).  Only trust the bare SSL_* keys — the HTTP_SSL_*
+        # variants come from client-supplied HTTP headers and can be forged.
+        ssl_client_verify = request.environ.get("SSL_CLIENT_VERIFY")
         if ssl_client_verify == "SUCCESS":
-            cert_subject_dn = request.environ.get(
-                "SSL_CLIENT_S_DN"
-            ) or request.environ.get("HTTP_SSL_CLIENT_S_DN")
+            cert_subject_dn = request.environ.get("SSL_CLIENT_S_DN")
 
         # If not found, try gunicorn's direct socket access
         if not cert_subject_dn:
