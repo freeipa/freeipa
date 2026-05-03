@@ -209,6 +209,14 @@ Note: Monitor the certmonger-initiated renewal of certificates after
 ipa-cert-fix and wait for its completion before any other administrative task.
 """
 
+PROMOTE_WARNING = """
+                      WARNING
+
+No working CA server was found.  Proceeding will promote this server to
+the renewal master role.  This is a topology-wide change and should only be
+done if the current renewal master is permanently unavailable.
+"""
+
 
 def _utcnow():
     """Current UTC time.  Mockable for testing."""

@@ -25,6 +25,7 @@
 
 from __future__ import print_function, absolute_import
 
+from dataclasses import replace
 import logging
 import os
 import shutil
@@ -47,6 +48,7 @@ from ipaserver.install.ipa_cert_fix_services import (  # noqa: F401
     CertmongerClient,
     DeploymentDetector,
     _ensure_ldap_connected,
+    _find_current_renewal_master,
     _get_pki_nssdb,
     _replace_cert_in_nssdb,
     _update_cs_cfg,
@@ -62,6 +64,7 @@ from ipaserver.install.ipa_cert_fix_types import (  # noqa: F401
     DeploymentType,
     FixScenario,
     IPACertType,
+    PROMOTE_WARNING,
     RENEWAL_NOTE,
     RENEWED_CERT_PATH_TEMPLATE,
     WARNING_BANNER,
@@ -126,11 +129,16 @@ class IPACertFix(AdminTool):
     description = "Renew expired certificates."
 
     _cm = None  # CertmongerClient; set in run()
+    _ca_instance = None  # cainstance.CAInstance; set in _classify_and_dispatch
     _detector = None  # DeploymentDetector; set in _classify_and_dispatch
 
     @classmethod
     def add_options(cls, parser):
         super(IPACertFix, cls).add_options(parser)
+        parser.add_option(
+            "--force-server",
+            dest="force_server",
+            help="FQDN of the master server to fetch certificates from")
         parser.add_option(
             "--renewal-master",
             dest="renewal_master",
@@ -142,6 +150,10 @@ class IPACertFix(AdminTool):
 
     def validate_options(self):
         super(IPACertFix, self).validate_options(needs_root=True)
+
+        if self.options.renewal_master and self.options.force_server:
+            self.option_parser.error(
+                "--renewal-master and --force-server are mutually exclusive")
 
     def run(self):
         """Top-level entry point for ipa-cert-fix.
@@ -161,6 +173,13 @@ class IPACertFix(AdminTool):
 
         if self._cm is None:
             self._cm = CertmongerClient()
+
+        if (self.options.force_server
+                and self.options.force_server == api.env.host):
+            print(
+                "--force-server must point to a different server, "
+                "not this one (%s)" % api.env.host)
+            return 1
 
         if not dsinstance.is_ds_running(realm_to_serverid(api.env.realm)):
             print("The LDAP server is not running; cannot proceed.\n"
@@ -196,10 +215,10 @@ class IPACertFix(AdminTool):
         # CA-specific setup (skip on CA-less deployments)
         ca_subject_dn = None
         has_ca = cainstance.is_ca_installed_locally()
-        ca_inst = cainstance.CAInstance() if has_ca else None
+        self._ca_instance = cainstance.CAInstance() if has_ca else None
 
         self._detector = DeploymentDetector(
-            self._cm, ca_inst, self.options)
+            self._cm, self._ca_instance, self.options)
 
         deployment_type = self._detector.detect_deployment_type()
         logger.info("Deployment type: %s", deployment_type.value)
@@ -250,6 +269,7 @@ class IPACertFix(AdminTool):
             FixScenario.RENEWAL_MASTER: self.run_renewal_master_fix,
             FixScenario.CA_FULL_WITH_MASTER:
                 lambda c: self._run_non_rm_replica_fix(c, is_ca_full=True),
+            FixScenario.CA_FULL_PROMOTE: self.run_ca_full_promote,
         }
         handler = dispatch.get(scenario)
         if handler is None:
@@ -372,6 +392,123 @@ class IPACertFix(AdminTool):
 
         print(RENEWAL_NOTE)
         return 0
+
+    def run_ca_full_promote(self, ctx):
+        """Promote this replica to renewal master and fix certs.
+
+        Used when the current renewal master is unrecoverable.  Sets this
+        server as the renewal master, then delegates to
+        :meth:`run_renewal_master_fix`.  If the cert fix fails after
+        promotion, attempts a best-effort rollback of the renewal master
+        role.
+
+        :param ctx: :class:`CertFixContext`
+        :returns: exit code
+        """
+        # Verify pki-server cert-fix is available BEFORE promoting --
+        # promotion is a topology-wide change that is hard to undo.
+        try:
+            ipautil.run(
+                ['pki-server', 'cert-fix', '--help'],
+                raiseonerr=True, capture_output=True)
+        except (ipautil.CalledProcessError, FileNotFoundError):
+            print(
+                "No working master server was found and "
+                "'pki-server cert-fix' is not available.\n"
+                "Cannot proceed with promotion or renewal.\n"
+                "Either point to a working master with\n"
+                "--force-server=<FQDN>, or install/update "
+                "pki-server on this host.")
+            return 1
+
+        # In unattended mode, refuse to silently promote.  Promotion is the
+        # most destructive path -- it must be explicitly requested via
+        # --renewal-master (which routes to RENEWAL_MASTER, not here).
+        if getattr(self.options, 'unattended', False):
+            print(
+                "No working CA server was found. In unattended mode,\n"
+                "promotion to renewal master requires the explicit "
+                "--renewal-master flag.\n"
+                "Alternatively, use --force-server=<FQDN> to point to "
+                "a working master.")
+            return 1
+
+        print(PROMOTE_WARNING)
+        response = ipautil.user_input('Enter "yes" to promote and proceed')
+        if response.lower() != 'yes':
+            print("Not proceeding.")
+            return 0
+
+        # Record the current RM (if any) so we can attempt rollback if the
+        # cert fix fails after promotion.
+        old_rm = _find_current_renewal_master()
+
+        self._promote_to_renewal_master()
+
+        rm_ctx = replace(ctx, scenario=FixScenario.RENEWAL_MASTER)
+        try:
+            result = self.run_renewal_master_fix(rm_ctx)
+            if result != 0:
+                # RM-fix returned a guarded failure (pre-flight check, partial
+                # cert-fix, post-fix CA still expired). The promotion is a
+                # topology-wide change -- attempt to roll it back so we don't
+                # leave the cluster with this host as RM holding expired
+                # certs.
+                self._rollback_promotion(old_rm)
+                return result
+            print(
+                "IMPORTANT: This server is now the renewal master.\n"
+                "Enable CRL generation on this server:\n"
+                "  ipa-crlgen-manage enable\n"
+                "Disable CRL generation on all other CA servers:\n"
+                "  ipa-crlgen-manage disable\n")
+            return 0
+        except Exception:
+            self._rollback_promotion(old_rm)
+            raise
+
+    def _rollback_promotion(self, old_rm):
+        """Best-effort rollback of an RM promotion.
+
+        Called when ``run_renewal_master_fix`` either raises or returns a
+        non-zero exit code after this host was promoted.  Failure is logged
+        and printed -- never re-raised -- because the caller is already on
+        an error path.
+
+        :param old_rm: previous renewal master FQDN (may be ``None``)
+        """
+        if not old_rm or old_rm == api.env.host:
+            return
+        logger.warning(
+            "Certificate fix failed after promotion. "
+            "Attempting to restore renewal master to %s", old_rm)
+        try:
+            self._ca_instance.set_renewal_master(old_rm)
+            print("Restored renewal master to %s" % old_rm)
+        except Exception as rollback_err:
+            logger.error(
+                "Failed to restore renewal master to %s: %s",
+                old_rm, rollback_err,)
+            print(
+                "WARNING: Could not restore renewal master to %s.\n"
+                "This server (%s) is now the renewal master with "
+                "expired certs.\nManual intervention required."
+                % (old_rm, api.env.host))
+
+    def _promote_to_renewal_master(self):
+        """Promote the current replica to renewal master.
+
+        Sets this server as the renewal master in LDAP.
+
+        :raises RuntimeError: if promotion fails
+        """
+        _ensure_ldap_connected()
+        print("Setting this server as the renewal master.")
+        try:
+            self._ca_instance.set_renewal_master(api.env.host)
+        except Exception as e:
+            raise RuntimeError("Failed to set renewal master: %s" % e)
+        logger.info("Successfully set %s as renewal master", api.env.host)
 
     def _fetch_certs_from_master(
         self, master_server, ctx, fetch_subsystem=True,

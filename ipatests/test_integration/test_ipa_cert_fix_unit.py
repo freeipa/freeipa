@@ -543,3 +543,110 @@ class TestUnitSetHelperTimeout:
         obj = CertRenewalFromMaster(cm, 'master.example.com')
         with pytest.raises(dbus.exceptions.DBusException):
             obj._set_helper()
+
+
+class TestUnitValidateOptions:
+    """Option validation."""
+
+    @mock.patch('ipapython.admintool.AdminTool.validate_options')
+    def test_renewal_master_and_force_server_exclusive(self, mock_super):
+        """--renewal-master + --force-server is rejected."""
+        from ipaserver.install.ipa_cert_fix import IPACertFix
+
+        obj = object.__new__(IPACertFix)
+        obj.options = mock.MagicMock()
+        obj.options.renewal_master = True
+        obj.options.force_server = 'master.example.com'
+        obj.option_parser = mock.MagicMock()
+
+        obj.validate_options()
+
+        obj.option_parser.error.assert_called_once()
+        assert "mutually exclusive" in \
+            obj.option_parser.error.call_args[0][0]
+
+    def test_renewal_master_on_caless_rejected(self):
+        """--renewal-master on CA-less raises RuntimeError."""
+        options = mock.MagicMock()
+        options.renewal_master = True
+        obj = DeploymentDetector(
+            cm_client=mock.MagicMock(),
+            ca_instance=mock.MagicMock(),
+            options=options,
+        )
+
+        with pytest.raises(RuntimeError, match="CA-less"):
+            obj.determine_scenario(DeploymentType.CA_LESS)
+
+    def test_renewal_master_on_caless_external_rejected(self):
+        """--renewal-master on CA_LESS_EXTERNAL raises RuntimeError."""
+        options = mock.MagicMock()
+        options.renewal_master = True
+        obj = DeploymentDetector(
+            cm_client=mock.MagicMock(),
+            ca_instance=mock.MagicMock(),
+            options=options,
+        )
+
+        with pytest.raises(RuntimeError, match="CA-less"):
+            obj.determine_scenario(DeploymentType.CA_LESS_EXTERNAL)
+
+
+class TestUnitForceServerSelf:
+    """--force-server=self is rejected early in run()."""
+
+    @mock.patch(MODULE + '.is_ipa_configured', return_value=True)
+    @mock.patch(MODULE + '.api')
+    def test_force_server_self_rejected(self, mock_api, _mock_cfg):
+        """run() returns 1 when --force-server points to self."""
+        from ipaserver.install.ipa_cert_fix import IPACertFix
+
+        mock_api.env.host = 'replica.example.com'
+        mock_api.bootstrap = mock.MagicMock()
+        mock_api.finalize = mock.MagicMock()
+
+        obj = object.__new__(IPACertFix)
+        obj.options = mock.MagicMock()
+        obj.options.force_server = 'replica.example.com'
+
+        result = obj.run()
+        assert result == 1
+
+
+class TestUnitPromoteRollback:
+    """run_ca_full_promote rollback on failure."""
+
+    @mock.patch(MODULE + '.ipautil')
+    @mock.patch(MODULE + '._find_current_renewal_master',
+                return_value='old-master.example.com')
+    @mock.patch(MODULE + '.api')
+    def test_rm_restored_on_failure(
+        self, mock_api, mock_find_rm, mock_ipautil,
+    ):
+        """Renewal master is rolled back if cert fix fails."""
+        from ipaserver.install.ipa_cert_fix import IPACertFix
+
+        mock_ipautil.run.return_value = mock.MagicMock(returncode=0)
+        mock_ipautil.CalledProcessError = Exception
+        mock_api.env.host = 'replica.example.com'
+
+        obj = object.__new__(IPACertFix)
+        obj.options = mock.MagicMock()
+        obj.options.unattended = False
+
+        obj._promote_to_renewal_master = mock.MagicMock()
+        obj._ca_instance = mock.MagicMock()
+        obj.run_renewal_master_fix = mock.MagicMock(
+            side_effect=RuntimeError("cert-fix failed"))
+
+        ctx = _make_ctx(
+            scenario=FixScenario.CA_FULL_PROMOTE,
+            master_server=None,
+        )
+
+        with mock.patch(MODULE + '.ipautil.user_input', return_value='yes'):
+            with pytest.raises(RuntimeError, match="cert-fix failed"):
+                obj.run_ca_full_promote(ctx)
+
+        obj._ca_instance.set_renewal_master.assert_called_with(
+            'old-master.example.com')
