@@ -134,6 +134,7 @@ class IPACertFix(AdminTool):
     _ca_instance = None  # cainstance.CAInstance; set in _classify_and_dispatch
     _detector = None  # DeploymentDetector; set in _classify_and_dispatch
     _external_handler = None  # ExternalCertHandler; set in dispatch
+    _scenario_made_changes = False  # set by _confirm_execution
 
     @classmethod
     def add_options(cls, parser):
@@ -150,6 +151,18 @@ class IPACertFix(AdminTool):
             help="Force this replica to become the renewal master. Use with "
                  "caution, and verify CRL generation and IPA config after "
                  "the topology is stable again!")
+        parser.add_option(
+            "--dry-run",
+            dest="dry_run",
+            action="store_true",
+            default=False,
+            help="Print intended actions without executing them")
+        parser.add_option(
+            "-U", "--unattended",
+            dest="unattended",
+            action="store_true",
+            default=False,
+            help="Unattended mode, never prompts the user")
 
     def validate_options(self):
         super(IPACertFix, self).validate_options(needs_root=True)
@@ -272,7 +285,16 @@ class IPACertFix(AdminTool):
 
         # Only LDAP mismatches and/or stale RA, no expired certs
         if not dogtag_certs and not ipa_certs and not external_certs:
-            if not self._confirm_execution():
+            extras = []
+            if ldap_mismatches:
+                extras.append("Would fix RA/Subsystem LDAP entries above")
+            if ra_stale:
+                extras.append("Would fetch updated RA cert from a CA server")
+            if not self._confirm_execution(
+                "RA/subsystem reconciliation",
+                "fix the entries above",
+                dry_extra_lines=extras,
+            ):
                 return 0
             if ldap_mismatches:
                 DeploymentDetector._fix_ra_subsystem_mismatches(
@@ -330,8 +352,9 @@ class IPACertFix(AdminTool):
 
         # Post-fix: detect and fix any RA/subsystem LDAP mismatches that
         # arose during the fix (e.g. fetched RA cert needing a description
-        # update).
-        if has_ca and result == 0:
+        # update).  Skip when the user declined the confirmation prompt
+        # (no changes were actually made).
+        if has_ca and result == 0 and self._scenario_made_changes:
             try:
                 det = self._detector
                 post_mismatches = det._detect_ra_subsystem_mismatches()
@@ -369,7 +392,33 @@ class IPACertFix(AdminTool):
 
         print_intentions(certs, ipa_certs, external_certs)
 
-        if not self._confirm_execution():
+        dry_extra = []
+        if certs:
+            dry_extra.append(
+                "Dogtag certs for pki-server cert-fix: "
+                + ", ".join(cid for cid, _ in certs))
+        if ipa_certs:
+            dry_extra.append(
+                "IPA service certs (extra-cert): "
+                + ", ".join(ct.value for ct, _ in ipa_certs))
+        if ctx.external_certs:
+            dry_extra.append(
+                "External certs (handled separately): "
+                + ", ".join(ct.value for ct, _ in ctx.external_certs))
+        has_shared = (
+            any(DOGTAG_CERTS[cid].is_shared for cid, _ in certs)
+            or any(ct is IPACertType.IPARA for ct, _ in ipa_certs))
+        if has_shared:
+            if self._detector.check_is_renewal_master():
+                dry_extra.append("Would remain renewal master")
+            else:
+                dry_extra.append("Would become renewal master")
+        dry_extra.append("Would restart IPA services")
+        if not self._confirm_execution(
+            "renewal master certificate fix",
+            "proceed",
+            dry_extra_lines=dry_extra,
+        ):
             return 0
 
         try:
@@ -424,7 +473,18 @@ class IPACertFix(AdminTool):
             self._external_handler.handle(ctx)
 
         print("Restarting IPA")
-        ipautil.run(['ipactl', 'restart'], raiseonerr=True)
+        ipautil.run(['ipactl', 'restart', '--ignore-service-failures'])
+        _ensure_ldap_connected()
+
+        if self._cm.is_responsive():
+            self.resubmit_expired_certs()
+        else:
+            print(
+                "WARNING: certmonger is not responding. "
+                "Certificate renewal completed successfully, but "
+                "certmonger tracking requests were not resubmitted.\n"
+                "Run 'getcert list' once certmonger recovers to "
+                "verify tracking status.")
 
         print(RENEWAL_NOTE)
         return 0
@@ -447,12 +507,28 @@ class IPACertFix(AdminTool):
 
         print(WARNING_BANNER)
         print_intentions(dogtag, ipa_certs, ctx.external_certs)
-        print("This will fetch certificates from %s." % master_server)
-        if not self._confirm_execution():
-            return 0
 
-        print("Proceeding with %s fix using server %s."
-              % (label, master_server))
+        dry_extra = ["Would fetch certificates from %s" % master_server]
+        if dogtag:
+            dry_extra.append(
+                "Dogtag certs to renew: "
+                + ", ".join(cid for cid, _ in dogtag))
+        if ipa_certs:
+            dry_extra.append(
+                "IPA service certs to renew: "
+                + ", ".join(ct.value for ct, _ in ipa_certs))
+        if ctx.external_certs:
+            dry_extra.append(
+                "External certs (handled separately): "
+                + ", ".join(ct.value for ct, _ in ctx.external_certs))
+        if is_ca_full:
+            dry_extra.append("Would NOT become renewal master")
+        if not self._confirm_execution(
+            "%s certificate fix" % label,
+            "proceed with %s fix using server %s" % (label, master_server),
+            dry_extra_lines=dry_extra,
+        ):
+            return 0
 
         old_krb_env = _setup_kerberos()
         try:
@@ -463,7 +539,7 @@ class IPACertFix(AdminTool):
                 fetch_subsystem=is_ca_full,)
 
             renewal = CertRenewalFromMaster(self._cm, master_server)
-            renewal.renew(dogtag, ipa_certs, ctx)
+            renewed_ids = renewal.renew(dogtag, ipa_certs, ctx)
 
             if ctx.external_certs:
                 self._external_handler.handle(ctx)
@@ -471,6 +547,16 @@ class IPACertFix(AdminTool):
             print("Restarting IPA")
             ipautil.run(['ipactl', 'restart', '--ignore-service-failures'])
             _ensure_ldap_connected()
+
+            if self._cm.is_responsive():
+                self.resubmit_expired_certs(renewed_ids)
+            else:
+                print(
+                    "WARNING: certmonger is not responding. "
+                    "Certificate renewal completed successfully, but "
+                    "certmonger tracking requests were not resubmitted.\n"
+                    "Run 'getcert list' once certmonger recovers to "
+                    "verify tracking status.")
         finally:
             _restore_kerberos(old_krb_env)
 
@@ -491,6 +577,18 @@ class IPACertFix(AdminTool):
         """
         if not ctx.external_certs:
             print("Nothing to do.")
+            return 0
+
+        if self.options.dry_run:
+            print("[DRY RUN] Would handle external certificates:")
+            for certtype, _cert in ctx.external_certs:
+                print("[DRY RUN]   %s: CSR to %s/%s.csr"
+                      % (certtype.value,
+                         ExternalCertHandler.DEFAULT_CSR_DIR,
+                         certtype.value.lower().replace(' ', '-')))
+            if ctx.deployment_type != DeploymentType.CA_LESS_EXTERNAL:
+                print("[DRY RUN]   Transition to IPA CA would be offered "
+                      "(interactive only)")
             return 0
 
         if self._external_handler.handle(ctx):
@@ -525,10 +623,15 @@ class IPACertFix(AdminTool):
                 "pki-server on this host.")
             return 1
 
+        if self.options.dry_run:
+            print("[DRY RUN] Would promote this server to renewal master")
+            return self.run_renewal_master_fix(
+                replace(ctx, scenario=FixScenario.RENEWAL_MASTER))
+
         # In unattended mode, refuse to silently promote.  Promotion is the
         # most destructive path -- it must be explicitly requested via
         # --renewal-master (which routes to RENEWAL_MASTER, not here).
-        if getattr(self.options, 'unattended', False):
+        if self.options.unattended:
             print(
                 "No working CA server was found. In unattended mode,\n"
                 "promotion to renewal master requires the explicit "
@@ -550,6 +653,10 @@ class IPACertFix(AdminTool):
         self._promote_to_renewal_master()
 
         rm_ctx = replace(ctx, scenario=FixScenario.RENEWAL_MASTER)
+        # User already confirmed promotion -- suppress the second
+        # confirmation inside run_renewal_master_fix.
+        saved_unattended = self.options.unattended
+        self.options.unattended = True
         try:
             result = self.run_renewal_master_fix(rm_ctx)
             if result != 0:
@@ -570,6 +677,8 @@ class IPACertFix(AdminTool):
         except Exception:
             self._rollback_promotion(old_rm)
             raise
+        finally:
+            self.options.unattended = saved_unattended
 
     def _rollback_promotion(self, old_rm):
         """Best-effort rollback of an RM promotion.
@@ -947,14 +1056,86 @@ class IPACertFix(AdminTool):
         # connection.
         _ensure_ldap_connected()
 
-    def _confirm_execution(self):
-        """Interactively confirm before performing destructive actions."""
-        response = ipautil.user_input('Enter "yes" to proceed')
+    def _confirm_execution(self, dry_label, prompt, dry_extra_lines=None):
+        """Handle dry-run, unattended, or interactive confirmation.
+
+        :param dry_label: short label printed in [DRY RUN] output
+        :param prompt: action description for the confirmation prompt
+        :param dry_extra_lines: extra lines printed when --dry-run is set
+        :returns: ``True`` if the caller should proceed, ``False`` to exit
+            without making changes (dry-run, declined, or unattended skip)
+        """
+        if getattr(self.options, 'dry_run', False):
+            label = dry_label or "this action"
+            print("[DRY RUN] Would perform: %s" % label)
+            for line in (dry_extra_lines or []):
+                print("[DRY RUN]   %s" % line)
+            return False
+
+        if getattr(self.options, 'unattended', False):
+            self._scenario_made_changes = True
+            return True
+
+        text = 'Enter "yes" to %s' % (prompt or "proceed")
+        response = ipautil.user_input(text)
         if response.lower() != 'yes':
             print("Not proceeding.")
             return False
         print("Proceeding.")
+        self._scenario_made_changes = True
         return True
+
+    def resubmit_expired_certs(self, renewed_ids=None):
+        """Resubmit lingering certmonger requests after a fix.
+
+        Walks the certmonger requests for the local PKI and IPA service
+        cert directories, skipping those already renewed in this run, and
+        resubmits any that are still tracking an expired or
+        about-to-expire certificate.
+        """
+        if renewed_ids is None:
+            renewed_ids = set()
+        ipa_request_dirs = [
+            paths.PKI_TOMCAT_ALIAS_DIR,
+            os.path.dirname(paths.HTTPD_CERT_FILE),
+            dsinstance.config_dirname(
+                realm_to_serverid(api.env.realm)).rstrip('/'),
+            os.path.dirname(paths.KDC_CERT),
+        ]
+        seen = set()
+        for d in ipa_request_dirs:
+            try:
+                ids = self._cm.get_requests_for_dir(d) or []
+            except Exception as e:
+                logger.debug("Cannot list certmonger requests in %s: %s",
+                             d, e)
+                continue
+            for rid in ids:
+                if rid in seen or rid in renewed_ids:
+                    continue
+                seen.add(rid)
+                try:
+                    state = self._cm.get_request_value(rid, 'status')
+                except Exception:
+                    state = None
+                if state == 'MONITORING':
+                    if self._cm.is_cert_valid(rid):
+                        continue
+                if state in (None, 'CA_UNREACHABLE',
+                             'NEED_KEYINFO', 'NEED_GUIDANCE',
+                             'CA_REJECTED', 'CA_UNCONFIGURED'):
+                    logger.debug(
+                        "Resubmitting certmonger request %s (state=%s)",
+                        rid, state)
+                    try:
+                        self._cm.resubmit_request(rid)
+                    except Exception as e:
+                        logger.warning(
+                            "Failed to resubmit %s: %s", rid, e)
+                else:
+                    logger.debug(
+                        "Skipping certmonger request %s in state %s",
+                        rid, state)
 
 
 def _get_newest_cert(certs):

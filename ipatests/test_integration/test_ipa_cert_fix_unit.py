@@ -635,6 +635,7 @@ class TestUnitPromoteRollback:
         obj = object.__new__(IPACertFix)
         obj.options = mock.MagicMock()
         obj.options.unattended = False
+        obj.options.dry_run = False
 
         obj._promote_to_renewal_master = mock.MagicMock()
         obj._ca_instance = mock.MagicMock()
@@ -770,3 +771,34 @@ class TestUnitVerifyCaChainValid:
         mock_x509.load_certificate_list_from_file.return_value = []
         with pytest.raises(RuntimeError, match="empty"):
             DeploymentDetector._verify_ca_chain_valid('m.example.com')
+
+
+class TestUnitDryRunExitCode:
+    """--dry-run short-circuits _confirm_execution."""
+
+    def test_confirm_execution_returns_false_on_dry_run(self):
+        """In --dry-run mode, _confirm_execution returns False (no
+        prompt, no scenario_made_changes flag)."""
+        from ipaserver.install.ipa_cert_fix import IPACertFix
+
+        obj = object.__new__(IPACertFix)
+        obj.options = mock.MagicMock()
+        obj.options.dry_run = True
+        obj.options.unattended = False
+
+        result = obj._confirm_execution(
+            "scenario", "do thing", dry_extra_lines=["a", "b"])
+        assert result is False
+        assert obj._scenario_made_changes is False
+
+    def test_confirm_execution_unattended_skips_prompt(self):
+        """-U returns True without prompting and sets the flag."""
+        from ipaserver.install.ipa_cert_fix import IPACertFix
+
+        obj = object.__new__(IPACertFix)
+        obj.options = mock.MagicMock()
+        obj.options.dry_run = False
+        obj.options.unattended = True
+
+        assert obj._confirm_execution("scenario", "do thing") is True
+        assert obj._scenario_made_changes is True
