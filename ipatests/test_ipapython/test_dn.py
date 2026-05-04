@@ -2,7 +2,8 @@
 import contextlib
 import pytest
 
-from cryptography import x509
+import synta
+import synta.oids.attr as _attr
 import six
 
 from ipapython.dn import DN, RDN, AVA, str2dn, dn2str, DECODING_ERROR
@@ -664,21 +665,14 @@ class TestDN:
         self.base_container_dn = DN((self.attr1, self.value1),
                                     self.container_dn, self.base_dn)
 
-        ou = x509.NameAttribute(
-            x509.NameOID.ORGANIZATIONAL_UNIT_NAME, self.value2)
-        cn = x509.NameAttribute(x509.NameOID.COMMON_NAME, self.value1)
-        c = x509.NameAttribute(x509.NameOID.COUNTRY_NAME, 'AU')
-        st = x509.NameAttribute(
-            x509.NameOID.STATE_OR_PROVINCE_NAME, 'Queensland')
-        self.x500name = x509.Name([ou, cn])
-        self.x500nameMultiRDN = x509.Name([
-            x509.RelativeDistinguishedName([c, st]),
-            x509.RelativeDistinguishedName([cn]),
-        ])
-        self.x500nameMultiRDN2 = x509.Name([
-            x509.RelativeDistinguishedName([st, c]),
-            x509.RelativeDistinguishedName([cn]),
-        ])
+        self.x500name = (
+            synta.NameBuilder()
+            .add_attr(str(_attr.ORG_UNIT), self.value2)
+            .add_attr(str(_attr.COMMON_NAME), self.value1)
+            .build()
+        )
+        self.x500nameMultiRDN = 'CN=%s,C=AU+ST=Queensland' % self.value1
+        self.x500nameMultiRDN2 = 'CN=%s,ST=Queensland+C=AU' % self.value1
 
     def assertExpectedClass(self, klass, obj, component):
         assert obj.__class__ is expected_class(klass, component)
@@ -817,7 +811,7 @@ class TestDN:
         assert dn1[0] == self.rdn1
         assert dn1[1] == self.rdn2
 
-        # Create with a python-cryptography 'Name'
+        # Create with a DER-encoded X.500 Name (bytes)
         dn1 = DN(self.x500name)
         assert len(dn1) == 2
         self.assertExpectedClass(DN, dn1, 'self')

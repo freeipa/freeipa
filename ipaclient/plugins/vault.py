@@ -28,22 +28,8 @@ import os
 import ssl
 import tempfile
 
-from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-try:
-    # cryptography>=43.0.0
-    from cryptography.hazmat.decrepit.ciphers.algorithms import TripleDES
-except ImportError:
-    # will be removed from this module in cryptography 48.0.0
-    from cryptography.hazmat.primitives.ciphers.algorithms import TripleDES
-from cryptography.hazmat.primitives.padding import PKCS7
-from cryptography.hazmat.primitives.serialization import (
-    load_pem_public_key, load_pem_private_key)
-from cryptography.exceptions import InternalError as CryptographyInternalError
+import synta
+import synta.crypto as _synta_crypto
 
 from ipaclient.frontend import MethodOverride
 from ipalib import x509
@@ -91,19 +77,23 @@ register = Registry()
 MAX_VAULT_DATA_SIZE = 2**20  # = 1 MB
 
 
+class _SessionKey:
+    """Thin wrapper holding a raw symmetric key for vault data wrapping."""
+    __slots__ = ('key', 'block_size', 'name')
+
+    def __init__(self, key, block_size, name):
+        self.key = key
+        self.block_size = block_size  # in bits
+        self.name = name
+
+
 def generate_symmetric_key(password, salt):
     """
     Generates symmetric key from password and salt.
     """
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=salt,
-        iterations=100000,
-        backend=default_backend()
-    )
-
-    return base64.b64encode(kdf.derive(password.encode('utf-8')))
+    key = _synta_crypto.pbkdf2_hmac(
+        'sha256', password.encode('utf-8'), salt, 100000, 32)
+    return base64.b64encode(key)
 
 
 def encrypt(data, symmetric_key=None, public_key=None):
@@ -115,22 +105,11 @@ def encrypt(data, symmetric_key=None, public_key=None):
             raise ValueError(
                 "Either a symmetric or a public key is required, not both."
             )
-        fernet = Fernet(symmetric_key)
-        return fernet.encrypt(data)
+        return _synta_crypto.Fernet(symmetric_key).encrypt(data)
 
     elif public_key is not None:
-        public_key_obj = load_pem_public_key(
-            data=public_key,
-            backend=default_backend()
-        )
-        return public_key_obj.encrypt(
-            data,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
-        )
+        pub = synta.PublicKey.from_pem(public_key)
+        return pub.rsa_oaep_encrypt(data, 'sha256')
     else:
         raise ValueError("Either a symmetric or a public key is required.")
 
@@ -145,27 +124,15 @@ def decrypt(data, symmetric_key=None, private_key=None):
                 "Either a symmetric or a private key is required, not both."
             )
         try:
-            fernet = Fernet(symmetric_key)
-            return fernet.decrypt(data)
-        except InvalidToken:
+            return _synta_crypto.Fernet(symmetric_key).decrypt(data)
+        except ValueError:
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
 
     elif private_key is not None:
         try:
-            private_key_obj = load_pem_private_key(
-                data=private_key,
-                password=None,
-                backend=default_backend()
-            )
-            return private_key_obj.decrypt(
-                data,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )
+            priv = synta.PrivateKey.from_pem(private_key)
+            return priv.rsa_oaep_decrypt(data, 'sha256')
         except ValueError:
             raise errors.AuthenticationError(
                 message=_('Invalid credentials'))
@@ -332,11 +299,8 @@ class vault_add(Local):
             # validate public key and prevent users from accidentally
             # sending a private key to the server.
             try:
-                load_pem_public_key(
-                    data=public_key,
-                    backend=default_backend()
-                )
-            except ValueError as e:
+                synta.PublicKey.from_pem(public_key)
+            except Exception as e:
                 raise errors.ValidationError(
                     name='ipavaultpublickey',
                     error=_('Invalid or unsupported vault public key: %s') % e,
@@ -665,9 +629,9 @@ class ModVaultData(Local):
             msg = _("{algo} is not a supported vault wrapping algorithm")
             raise errors.ValidationError(msg.format(algo=repr(name)))
         if name == constants.VAULT_WRAPPING_AES128_CBC:
-            return algorithms.AES(os.urandom(128 // 8))
+            return _SessionKey(os.urandom(128 // 8), 128, name)
         elif name == constants.VAULT_WRAPPING_3DES:
-            return TripleDES(os.urandom(196 // 8))
+            return _SessionKey(os.urandom(192 // 8), 64, name)
         else:
             # unreachable
             raise ValueError(name)
@@ -717,31 +681,15 @@ class ModVaultData(Local):
         # KRA may be configured using either the default PKCS1v15 or RSA-OAEP.
         # there is no way to query this info using the REST interface.
         if not use_oaep:
-            # PKCS1v15() causes an OpenSSL exception when FIPS is enabled
-            # if so, we fallback to RSA-OAEP
+            # PKCS1v15 may fail on FIPS-enforced systems; fall back to OAEP
             try:
-                wrapped_session_key = public_key.encrypt(
-                    algo.key,
-                    padding.PKCS1v15()
-                )
-            except (ValueError, CryptographyInternalError):
-                wrapped_session_key = public_key.encrypt(
-                    algo.key,
-                    padding.OAEP(
-                        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                        algorithm=hashes.SHA256(),
-                        label=None
-                    )
-                )
+                wrapped_session_key = public_key.rsa_pkcs1v15_encrypt(algo.key)
+            except ValueError:
+                wrapped_session_key = public_key.rsa_oaep_encrypt(
+                    algo.key, 'sha256')
         else:
-            wrapped_session_key = public_key.encrypt(
-                algo.key,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
-            )
+            wrapped_session_key = public_key.rsa_oaep_encrypt(
+                algo.key, 'sha256')
 
         options['session_key'] = wrapped_session_key
 
@@ -861,21 +809,17 @@ class vault_archive(ModVaultData):
     def _wrap_data(self, algo, json_vault_data):
         """Encrypt data with wrapped session key and transport cert
 
-        :param algo: wrapping algorithm instance
+        :param algo: _SessionKey instance
         :param bytes json_vault_data: dumped vault data
         :return:
         """
         nonce = os.urandom(algo.block_size // 8)
-
-        # wrap vault_data with session key
-        padder = PKCS7(algo.block_size).padder()
-        padded_data = padder.update(json_vault_data)
-        padded_data += padder.finalize()
-
-        cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
-        encryptor = cipher.encryptor()
-        wrapped_vault_data = encryptor.update(padded_data) + encryptor.finalize()
-
+        if algo.name == constants.VAULT_WRAPPING_3DES:
+            wrapped_vault_data = _synta_crypto.des3_cbc_encrypt(
+                algo.key, nonce, json_vault_data)
+        else:
+            wrapped_vault_data = _synta_crypto.aes_cbc_encrypt(
+                algo.key, nonce, json_vault_data)
         return nonce, wrapped_vault_data
 
     def forward(self, *args, **options):
@@ -1111,16 +1055,12 @@ class vault_retrieve(ModVaultData):
         return self.api.Command.vault_retrieve_internal.output()
 
     def _unwrap_response(self, algo, nonce, vault_data):
-        cipher = Cipher(algo, modes.CBC(nonce), backend=default_backend())
-        # decrypt
-        decryptor = cipher.decryptor()
-        padded_data = decryptor.update(vault_data)
-        padded_data += decryptor.finalize()
-        # remove padding
-        unpadder = PKCS7(algo.block_size).unpadder()
-        json_vault_data = unpadder.update(padded_data)
-        json_vault_data += unpadder.finalize()
-        # load JSON
+        if algo.name == constants.VAULT_WRAPPING_3DES:
+            json_vault_data = _synta_crypto.des3_cbc_decrypt(
+                algo.key, nonce, vault_data)
+        else:
+            json_vault_data = _synta_crypto.aes_cbc_decrypt(
+                algo.key, nonce, vault_data)
         return json.loads(json_vault_data.decode('utf-8'))
 
     def forward(self, *args, **options):

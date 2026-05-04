@@ -18,7 +18,7 @@
 #
 from __future__ import absolute_import
 
-# pylint: disable=deprecated-module, disable=unused-import
+# pylint: disable=unused-import
 from optparse import (Option, Values, OptionGroup, OptionParser, SUPPRESS_HELP,
                       IndentedHelpFormatter, OptionValueError, make_option)
 # pylint: enable=deprecated-module

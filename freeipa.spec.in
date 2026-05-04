@@ -319,6 +319,7 @@ BuildRequires:  nspr-devel
 BuildRequires:  openssl-devel
 BuildRequires:  libini_config-devel
 BuildRequires:  cyrus-sasl-devel
+BuildRequires:  python3-synta
 %if ! %{ONLY_CLIENT}
 BuildRequires:  389-ds-base-devel >= %{ds_version}
 BuildRequires:  samba-devel >= %{samba_version}
@@ -361,8 +362,6 @@ BuildRequires:  python3-dns
 BuildRequires:  python3-ldap >= %{python_ldap_version}
 BuildRequires:  python3-libsss_nss_idmap
 BuildRequires:  python3-netaddr >= %{python_netaddr_version}
-BuildRequires:  python3-pyasn1
-BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-six
 BuildRequires:  python3-psutil
 
@@ -412,7 +411,6 @@ BuildRequires:  softhsm
 BuildRequires:  keyutils
 BuildRequires:  python3-augeas
 BuildRequires:  python3-cffi
-BuildRequires:  python3-cryptography >= 1.6
 BuildRequires:  python3-dbus
 BuildRequires:  python3-dns >= 1.15
 BuildRequires:  python3-docker
@@ -429,8 +427,6 @@ BuildRequires:  python3-netaddr >= %{python_netaddr_version}
 BuildRequires:  python3-ifaddr
 BuildRequires:  python3-pki >= %{pki_version}
 BuildRequires:  python3-polib
-BuildRequires:  python3-pyasn1
-BuildRequires:  python3-pyasn1-modules
 BuildRequires:  python3-pycodestyle
 # .wheelconstraints.in limits pylint version in Azure and tox tests
 BuildRequires:  python3-pylint
@@ -445,6 +441,7 @@ BuildRequires:  python3-sssdconfig >= %{sssd_version}
 BuildRequires:  python3-systemd
 BuildRequires:  python3-yaml
 BuildRequires:  python3-yubico
+BuildRequires:  python3-synta
 # with_lint
 %endif
 
@@ -586,7 +583,6 @@ Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-kdcproxy >= %{kdcproxy_version}
 Requires: python3-lxml
 Requires: python3-pki >= %{pki_version}
-Requires: python3-pyasn1 >= 0.3.2-2
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: python3-psutil
 Requires: rpm-libs
@@ -895,6 +891,7 @@ Requires: augeas-libs >= %{augeas_version}
 Requires: python3-dns >= 1.15
 Requires: python3-jinja2
 
+
 %description -n python3-ipaclient
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
@@ -970,7 +967,6 @@ Requires: gnupg2
 Requires: keyutils
 Requires: python3-argcomplete
 Requires: python3-cffi
-Requires: python3-cryptography >= 1.6
 Requires: python3-dbus
 Requires: python3-dns >= 1.15
 Requires: python3-gssapi >= 1.2.0
@@ -979,8 +975,6 @@ Requires: python3-libipa_hbac
 Requires: python3-netaddr >= %{python_netaddr_version}
 Requires: python3-ifaddr
 Requires: python3-packaging
-Requires: python3-pyasn1 >= 0.3.2-2
-Requires: python3-pyasn1-modules >= 0.3.2-2
 Requires: python3-pyusb
 Requires: python3-qrcode-core >= 5.0.0
 Requires: python3-requests
@@ -994,6 +988,7 @@ Requires: python3-urllib3 >= 1.24.2-3
 Requires: python3-urllib3 >= 1.25.8
 %endif
 Requires: python3-systemd
+Requires: python3-synta
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -1040,7 +1035,6 @@ BuildArch: noarch
 Requires: python3-ipaclient = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
 Requires: iptables
-Requires: python3-cryptography >= 1.6
 %if 0%{?fedora}
 # These packages do not exist on RHEL and for ipatests use
 # they are installed on the controller through other means

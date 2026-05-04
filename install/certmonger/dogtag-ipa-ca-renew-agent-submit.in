@@ -34,8 +34,7 @@ import shutil
 import contextlib
 import json
 
-from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
+import synta
 
 import six
 
@@ -74,8 +73,8 @@ def get_nickname():
     # components thus changing the CERTMONGER_REQ_SUBJECT
     # https://pagure.io/certmonger/issue/62
     csr = os.environ.get('CERTMONGER_CSR').encode('ascii')
-    csr_obj = crypto_x509.load_pem_x509_csr(csr, default_backend())
-    subject = csr_obj.subject
+    csr_obj = synta.CertificationRequest.from_pem(csr)
+    subject = csr_obj.subject_raw_der
     if not subject:
         return None
 

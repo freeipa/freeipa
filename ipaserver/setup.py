@@ -50,7 +50,6 @@ if __name__ == '__main__':
             'ipaserver.install.server',
         ],
         install_requires=[
-            "cryptography",
             "dbus-python",
             "dnspython",
             # dogtag-pki is just the client package on PyPI. ipaserver
@@ -64,7 +63,6 @@ if __name__ == '__main__':
             "lxml",
             "netaddr",
             "psutil",
-            "pyasn1",
             "requests",
             "six",
             "python-augeas",

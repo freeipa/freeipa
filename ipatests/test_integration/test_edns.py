@@ -8,7 +8,6 @@ import pytest
 import textwrap
 import os
 from ipatests.test_integration.test_caless import ExternalCA
-from cryptography.hazmat.primitives import serialization
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_dns import TestDNS
@@ -388,11 +387,7 @@ class TestDNSOverTLS_RelaxedPolicy(IntegrationTest):
         # Create external CA cert + key.
         external_ca = ExternalCA(days=36500)
         cert_pem = external_ca.create_ca()
-        key_pem = external_ca.ca_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
+        key_pem = external_ca.ca_key.to_pem()
         cert_dest = "/etc/pki/tls/certs/certificate.pem"
         key_dest = "/etc/pki/tls/certs/privkey.pem"
 
@@ -567,11 +562,7 @@ class TestDNSOverTLS_EnforcedPolicy_External_CA(IntegrationTest):
         # Create external CA cert + key
         external_ca = ExternalCA(days=36500)
         cert_pem = external_ca.create_ca()
-        key_pem = external_ca.ca_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption(),
-        )
+        key_pem = external_ca.ca_key.to_pem()
         cert_dest = "/etc/pki/tls/certs/certificate.pem"
         key_dest = "/etc/pki/tls/certs/privkey.pem"
 

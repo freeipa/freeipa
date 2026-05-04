@@ -12,8 +12,7 @@ import tempfile
 import types
 import zipfile
 
-from cryptography import x509 as crypto_x509
-
+import synta
 import six
 
 from ipaclient.frontend import ClientCommand, ClientMethod
@@ -46,7 +45,7 @@ _TYPES = {
     'list': list,
     'tuple': tuple,
     'unicode': unicode,
-    'Certificate': crypto_x509.Certificate,
+    'Certificate': synta.Certificate,
 }
 
 _PARAMS = {
@@ -584,7 +583,7 @@ def get_package(server_info, client):
     for plugin_cls in (_SchemaCommandPlugin, _SchemaObjectPlugin):
         for full_name in schema[plugin_cls.schema_key]:
             plugin = plugin_cls(schema, str(full_name))
-            plugin = module.register()(plugin)  # pylint: disable=no-member
+            plugin = module.register()(plugin)
     sys.modules[module_name] = module
 
     for full_name, topic in six.iteritems(schema['topics']):

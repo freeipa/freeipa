@@ -124,8 +124,6 @@ extraction:
         - polib
         - requests
         - python-augeas
-        - pyasn1
-        - pyasn1-modules
         - pytest
         - pytest_multihost
         - python-ldap

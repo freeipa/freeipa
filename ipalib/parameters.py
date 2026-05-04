@@ -109,7 +109,7 @@ import typing
 from xmlrpc.client import MAXINT, MININT
 
 import six
-from cryptography import x509 as crypto_x509
+import synta
 import dns.name
 
 from ipalib.text import _ as ugettext
@@ -124,7 +124,7 @@ from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_F
 from ipalib.text import Gettext, FixMe
 from ipalib.util import json_serialize, validate_idna_domain
 from ipalib.x509 import (
-    load_der_x509_certificate, IPACertificate, default_backend)
+    load_der_x509_certificate, IPACertificate)
 from ipalib.util import strip_csr_header, apirepr
 from ipapython import kerberos
 from ipapython.dn import DN
@@ -1465,7 +1465,7 @@ class Bytes(Data):
 
 
 class Certificate(Param):
-    type = crypto_x509.Certificate
+    type = synta.Certificate
     type_error = _('must be a certificate')
     allowed_types = (IPACertificate, bytes, unicode)
 
@@ -1501,9 +1501,9 @@ class Certificate(Param):
 
 
 class CertificateSigningRequest(Param):
-    type = crypto_x509.CertificateSigningRequest
+    type = synta.CertificationRequest
     type_error = _('must be a certificate signing request')
-    allowed_types = (crypto_x509.CertificateSigningRequest, bytes, unicode)
+    allowed_types = (synta.CertificationRequest, bytes, unicode)
 
     def __extract_der_from_input(self, value):
         """
@@ -1533,10 +1533,9 @@ class CertificateSigningRequest(Param):
     def _convert_scalar(self, value, index=None):
         """
         :param value:
-            either DER csr, base64-encoded csr or an object implementing the
-            cryptography.CertificateSigningRequest interface
+            either DER csr, base64-encoded csr or a synta.CertificationRequest
         :returns:
-            an object with the cryptography.CertificateSigningRequest interface
+            a synta.CertificationRequest object
         """
         if isinstance(value, unicode):
             try:
@@ -1548,8 +1547,10 @@ class CertificateSigningRequest(Param):
             # try to extract DER from whatever we got
             value = self.__extract_der_from_input(value)
             try:
-                value = crypto_x509.load_der_x509_csr(
-                    value, backend=default_backend())
+                value = synta.CertificationRequest.from_der(value)
+                # Force eager decode: from_der() is lazy and only raises
+                # ValueError when an attribute is first accessed.
+                _subj = value.subject
             except ValueError as e:
                 raise CertificateOperationError(
                     error=_("Failure decoding Certificate Signing Request:"
@@ -2198,8 +2199,8 @@ class Principal(Param):
 
 
 _map_types = {
-    # map internal certificate subclass to generic cryptography class
-    IPACertificate: crypto_x509.Certificate,
+    # map internal certificate subclass to synta Certificate
+    IPACertificate: synta.Certificate,
     # map internal DNS name class to generic dnspython class
     DNSName: dns.name.Name,
     # DN, Principal have their names mangled in ipaapi.__init__
