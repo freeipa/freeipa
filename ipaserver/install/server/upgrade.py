@@ -553,6 +553,133 @@ def dnssec_set_openssl_provider(dnskeysyncd):
     return True
 
 
+def dnssec_migrate_softhsm_to_kryoptic(dnskeysyncd):
+    """Migrate DNSSEC PKCS#11 token from SoftHSM to Kryoptic.
+
+    Returns True if migration was performed and services need restart.
+    """
+    if sysupgrade.get_upgrade_state('dns', 'kryoptic_migration'):
+        return False
+
+    if not os.path.exists(paths.DNSSEC_SOFTHSM2_CONF):
+        sysupgrade.set_upgrade_state('dns', 'kryoptic_migration', True)
+        return False
+
+    old_pin_path = paths.LEGACY_DNSSEC_SOFTHSM_PIN
+    old_pin_so_path = paths.LEGACY_DNSSEC_SOFTHSM_PIN_SO
+
+    if not os.path.exists(old_pin_path):
+        logger.info('[DNSSEC migration] No SoftHSM PIN file found, '
+                    'skipping migration')
+        sysupgrade.set_upgrade_state('dns', 'kryoptic_migration', True)
+        return False
+
+    logger.info('[Migrating DNSSEC token from SoftHSM to Kryoptic]')
+
+    with open(old_pin_path, 'r') as f:
+        user_pin = f.read()
+
+    so_pin = None
+    if os.path.exists(old_pin_so_path):
+        with open(old_pin_so_path, 'r') as f:
+            so_pin = f.read()
+
+    dnskeysyncinstance.write_kryoptic_config()
+
+    from ipalib.constants import DNSSEC_TOKEN_LABEL
+    from ipaserver import p11helper
+
+    if so_pin is None:
+        pin_length = 30
+        so_pin = ipautil.ipa_generate_password(
+            entropy_bits=0, special=None, min_len=pin_length)
+        logger.debug("Saving generated SO PIN to %s", paths.DNSSEC_HSM_PIN_SO)
+        with open(paths.DNSSEC_HSM_PIN_SO, 'w') as f:
+            os.fchmod(f.fileno(), 0o400)
+            f.write(so_pin)
+
+    logger.debug("Initializing Kryoptic token")
+    os.environ["KRYOPTIC_CONF"] = paths.DNSSEC_KRYOPTIC_CONF
+    try:
+        p11helper.init_token(
+            paths.LIBKRYOPTIC_SO, DNSSEC_TOKEN_LABEL, so_pin, user_pin)
+    except Exception:
+        logger.error("Failed to initialize Kryoptic token")
+        ipautil.remove_file(
+            os.path.join(paths.DNSSEC_TOKENS_DIR, "kryoptic.sql"))
+        ipautil.remove_file(paths.DNSSEC_KRYOPTIC_CONF)
+        return False
+
+    softhsm_token_dir = None
+    for entry in os.listdir(paths.DNSSEC_TOKENS_DIR):
+        candidate = os.path.join(paths.DNSSEC_TOKENS_DIR, entry)
+        if os.path.isdir(candidate):
+            for f in os.listdir(candidate):
+                if f.endswith('.object'):
+                    softhsm_token_dir = candidate
+                    break
+            if softhsm_token_dir:
+                break
+
+    if softhsm_token_dir is None:
+        logger.warning("No SoftHSM token directory with .object files found, "
+                       "skipping key migration")
+    else:
+        cmd = [
+            paths.SOFTHSM_MIGRATE,
+            '-m', paths.LIBKRYOPTIC_SO,
+            '-i', 'kryoptic_conf=%s' % paths.DNSSEC_KRYOPTIC_CONF,
+            '-p', user_pin,
+            '-q', user_pin,
+            softhsm_token_dir,
+        ]
+        try:
+            ipautil.run(cmd)
+            logger.info("SoftHSM token data migrated to Kryoptic")
+        except Exception:
+            logger.error("softhsm_migrate failed, migration will be retried "
+                         "on next upgrade")
+            ipautil.remove_file(
+                os.path.join(paths.DNSSEC_TOKENS_DIR, "kryoptic.sql"))
+            ipautil.remove_file(paths.DNSSEC_KRYOPTIC_CONF)
+            return False
+
+    if os.path.exists(old_pin_path) and old_pin_path != paths.DNSSEC_HSM_PIN:
+        logger.debug("Renaming %s to %s", old_pin_path, paths.DNSSEC_HSM_PIN)
+        shutil.move(old_pin_path, paths.DNSSEC_HSM_PIN)
+
+    if (os.path.exists(old_pin_so_path)
+            and old_pin_so_path != paths.DNSSEC_HSM_PIN_SO):
+        logger.debug("Renaming %s to %s",
+                     old_pin_so_path, paths.DNSSEC_HSM_PIN_SO)
+        shutil.move(old_pin_so_path, paths.DNSSEC_HSM_PIN_SO)
+
+    dnskeysyncd.setup_named_openssl_conf()
+    dnskeysyncd.setup_named_sysconfig()
+    dnskeysyncd.setup_ipa_dnskeysyncd_sysconfig()
+
+    # Remove stale SoftHSM directives from sysconfig files
+    for sysconfig in (paths.SYSCONFIG_NAMED,
+                      paths.SYSCONFIG_IPA_DNSKEYSYNCD):
+        if os.path.exists(sysconfig):
+            directivesetter.set_directive(
+                sysconfig, 'SOFTHSM2_CONF', None,
+                quotes=False, separator='=')
+            directivesetter.set_directive(
+                sysconfig, 'DNSSEC_SOFTHSM_PIN', None,
+                quotes=False, separator='=')
+
+    softhsm2_module = os.path.join(
+        paths.ETC_PKCS11_MODULES_DIR, "softhsm2.module")
+    ipautil.remove_file(softhsm2_module)
+
+    ipautil.remove_file(paths.DNSSEC_SOFTHSM2_CONF)
+
+    sysupgrade.set_upgrade_state('dns', 'kryoptic_migration', True)
+    logger.info("DNSSEC token migration from SoftHSM to Kryoptic completed")
+    return True
+
+
 def certificate_renewal_update(ca, kra, ds, http):
     """
     Update certmonger certificate renewal configuration.
@@ -1876,7 +2003,12 @@ def upgrade_configuration():
                 dnskeysyncd.create_instance(fqdn, api.env.realm)
                 dnskeysyncd.start_dnskeysyncd()
             else:
+                changed = False
+                if dnssec_migrate_softhsm_to_kryoptic(dnskeysyncd):
+                    changed = True
                 if dnssec_set_openssl_provider(dnskeysyncd):
+                    changed = True
+                if changed:
                     dnskeysyncd.start_dnskeysyncd()
             dnskeysyncd.set_dyndb_ldap_workdir_permissions()
 
