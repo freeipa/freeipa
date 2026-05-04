@@ -1,0 +1,462 @@
+body {
+    color: black;
+    font-size: 16px;
+    font-family: sans-serif;
+    margin: 0px auto 0px auto;
+    max-width: 650px;
+    width: 100%;
+    padding: 0 15px;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+div#header {
+    font-family: serif;
+    border-bottom: 2px solid black;
+    margin-bottom: 12px;
+    padding: 12px 0px 12px 0px;
+}
+
+div#header::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+div#logo a {
+    color: black;
+    float: left;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+div#header #navigation {
+    text-align: right;
+}
+
+div#header #navigation a {
+    color: black;
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 12px;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+#recent ul {
+    padding-left: 20px;
+}
+
+.clear {
+    clear: both;
+}
+
+.footer {
+    border-top: solid 2px black;
+    color: #555;
+    font-size: 12px;
+    margin-top: 12px;
+    padding: 12px 0px 12px 0px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#nav .back {
+    width: 40%;
+    text-align: left;
+}
+
+#nav .up {
+    width: 20%;
+    text-align: center;
+}
+
+#nav .next {
+    width: 40%;
+    text-align: right;
+}
+
+#nav .back a::before {
+    content: "←\a";
+    white-space: pre;
+}
+
+#nav .up a::before {
+    content: "↑\a";
+    white-space: pre;
+}
+
+#nav .next a::before {
+    content: "→\a";
+    white-space: pre;
+}
+
+#nav a {
+    text-decoration: none;
+    color: #333;
+}
+
+#nav a:hover {
+    color: #000;
+}
+
+#license {
+    width: 70%;
+}
+#license img {
+    margin: 2px;
+    margin-right: 5px;
+}
+
+#content img {
+    max-width: 100%;
+}
+
+li {
+    padding: 2px;
+}
+
+h1 {
+    font-size: 24px;
+}
+h2 {
+    font-size: 20px;
+}
+h3 {
+    font-size: 16px;
+}
+h4 {
+    color: grey;
+    font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: serif;
+}
+
+a.section {
+    text-decoration: none;
+    color: grey;
+    visibility: hidden;
+}
+
+:hover > a.section {
+    visibility: visible;
+}
+
+div.info {
+    color: #555;
+    font-size: 14px;
+    font-style: italic;
+}
+
+table {
+    margin: auto;
+    border-collapse: collapse;
+}
+
+td, th {
+    padding: 5px;
+    border-bottom: 1px solid lightgrey;
+}
+
+th {
+    border-top: 1px solid lightgrey;
+}
+
+p {
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+div p:first-child {
+    margin-top: 0;
+}
+
+.note :last-child, .note :last-child :last-child {
+    margin-bottom: 0;
+}
+
+li:last-child :last-child {
+    margin-bottom: 0;
+}
+
+blockquote {
+    font-style: italic;
+}
+
+code {
+    background: #f7f7ff;
+    color: #3f3f3f;
+    border: solid 1px #d0d0f0;
+    padding: 1px 2px;
+    hyphens: none;
+    white-space: nowrap;
+}
+
+pre code {
+    border: none;
+    padding: 0px;
+    white-space: pre;
+}
+
+pre.command, pre.output {
+    background: black;
+    box-shadow: 0 0 5px black;
+}
+
+pre.command code {
+    background: black;
+    color: lime;
+}
+
+pre.output code {
+    background: black;
+    color: grey;
+}
+
+pre.command code::before {
+    content: "$ ";
+    color: pink;
+}
+
+pre.command.web code::before {
+    content: "[web]$ ";
+}
+
+pre.command.ipa code::before {
+    content: "[ipa]$ ";
+}
+
+pre.command.client code::before {
+    content: "[client]$ ";
+}
+
+pre.command.workstation code::before {
+    content: "[client]$ ";
+}
+
+/* delete the margin between command and output */
+pre.command:has(+ pre.output) {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+pre.command + pre.output {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+
+/*** CODE FOR COPY BUTTONS ***/
+
+pre.command, pre.copy {
+    position: relative;
+    overflow: visible;
+}
+
+.copy-button {
+    top: -8px;
+    right: -8px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 3px 6px;
+    background-color: white;
+    color: #333;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    position: absolute;
+}
+
+.copy-button:hover {
+    background: #f0f0f0;
+    border-color: #999;
+}
+
+
+pre {
+    border: solid 1px #d0d0f0;
+    background: #f7f7ff;
+    padding: 5px 10px;
+    overflow: auto;
+}
+
+.note {
+    border: solid 1px gold;
+    border-radius: 10px;
+    background: lightyellow;
+    padding: 15px;
+    overflow: auto;
+}
+
+.sourceCode .im { color: mediumvioletred; } /* import */
+.sourceCode .kw { color: mediumvioletred; } /* keyword */
+.sourceCode .fu { color: mediumvioletred; } /* function */
+.sourceCode .cf { color: mediumvioletred; } /* control flow token */
+.sourceCode .op { color: mediumvioletred; } /* operator */
+.sourceCode .dt { color: blue; } /* data type */
+.sourceCode .va { color: blue; } /* variable */
+.sourceCode .bu { color: blue; } /* built-in */
+.sourceCode .ex { color: blue; } /* extension */
+.sourceCode .at { color: blue; } /* attribute token */
+.sourceCode .pp { color: brown; } /* preprocessor directive */
+.sourceCode .st { color: brown; } /* string */
+.sourceCode .vs { color: brown; } /* verbatim string */
+.sourceCode .ss { color: brown; } /* special string */
+.sourceCode .dv { color: brown; } /* decimal value */
+.sourceCode .bn { color: brown; } /* base n */
+.sourceCode .fl { color: brown; } /* float literal */
+.sourceCode .ch { color: brown; } /* char */
+.sourceCode .sc { color: red; } /* special char */
+.sourceCode .cn { color: brown; } /* constant */
+.sourceCode .co { color: darkgreen; } /* comment */
+.sourceCode .cv { color: green; } /* comment variable */
+.sourceCode .ot { color: blue; } /* other token */
+.sourceCode .do { color: darkgreen; } /* documentation token */
+.sourceCode .re { color: red; } /* region marker */
+.sourceCode .er { color: red; } /* error token */
+.sourceCode .an { color: red; } /* annotation */
+.sourceCode .wa { color: red; } /* warning */
+.sourceCode .in { color: red; } /* info */
+
+/* ========== RESPONSIVE MOBILE STYLES ========== */
+
+/* Make tables scrollable on small screens */
+@media (max-width: 650px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 480px) {
+    body {
+        font-size: 15px;
+        padding: 0 10px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    div#header {
+        padding: 10px 0;
+    }
+
+    div#logo a,
+    div#header #navigation a {
+        font-size: 16px;
+    }
+
+    /* Stack footer items vertically on mobile */
+    .footer {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #license {
+        width: 100%;
+    }
+
+    #license > div {
+        float: none;
+    }
+
+    #license img {
+        display: none;
+    }
+
+    /* Improve navigation for mobile */
+    #nav {
+        border-top: 2px solid black;
+        padding-top: 15px;
+        padding-bottom: 0px;
+        margin-bottom: 15px;
+        margin-top: 20px;
+        gap: 8px;
+    }
+
+    #nav .back,
+    #nav .up,
+    #nav .next {
+        font-size: 15px;
+        padding: 0;
+        width: auto;
+        flex: 1;
+        min-width: 0;
+    }
+
+    #nav a {
+        display: block;
+        padding: 12px 8px;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 500;
+        transition: all 0.15s ease;
+    }
+
+    #nav a:active {
+        background: #e0e0e0;
+    }
+
+    #nav .back a::before {
+        content: "← ";
+        white-space: normal;
+    }
+
+    #nav .up a::before, #nav .up a::after {
+        content: " ↑ ";
+        white-space: normal;
+    }
+
+    #nav .next a::before {
+        content: "";
+    }
+    #nav .next a::after {
+        content: " →";
+        white-space: normal;
+    }
+
+    /* Make code blocks more mobile-friendly */
+    pre {
+        padding: 5px;
+        font-size: 13px;
+    }
+
+    code {
+        font-size: 13px;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+
+    pre code {
+        word-break: normal;
+        white-space: pre;
+    }
+
+    /* Allow inline code to wrap on mobile */
+    p code,
+    li code,
+    td code {
+        white-space: pre-wrap;
+    }
+
+    /* Adjust copy button position for mobile */
+    .copy-button {
+        font-size: 11px;
+        padding: 2px 4px;
+    }
+
+}

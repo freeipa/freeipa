@@ -1,0 +1,4 @@
+BASE_REALM=PKI.EXAMPLE.COM
+BASE_DOMAIN=pki.example.com
+KEY_LOCATION=https://pki-workshop.example.com/keys/e$N.pem
+FEEDBACK_URL=https://feedback-form.example.com/
