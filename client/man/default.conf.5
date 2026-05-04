@@ -187,6 +187,9 @@ The number of seconds for the ipa tool to cache the IPA API and help schema. Red
 .B server <hostname>
 Specifies the IPA Server hostname.
 .TP
+.B skip_keytab_rotation <boolean>
+Allows skipping keytab rotation when encryption types are being updated. Otherwise keytabs are automatically rotated whenever permitted encryption types are changed.
+.TP
 .B skip_version_check <boolean>
 Skip client vs. server API version checking. Can lead to errors/strange behavior when newer clients talk to older servers. Use with caution.
 .TP

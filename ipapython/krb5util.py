@@ -448,7 +448,12 @@ def _get_principal_by_keytab(keytab: str, host: str, realm: str) -> str:
     return principal
 
 
-def check_and_rotate_keytabs(instance, host: str, realm: str) -> bool:
+def check_and_rotate_keytabs(
+    instance,
+    host: str,
+    realm: str,
+    skip_keytab_rotation: bool
+) -> bool:
     """
     Checks the encryption keys for all the keytabs, schedules removal of
     old invalid ones and generates new pairs.
@@ -459,9 +464,15 @@ def check_and_rotate_keytabs(instance, host: str, realm: str) -> bool:
     :type host: str
     :param realm: Realm
     :type realm: str
+    :param skip_keytab_rotation: Skip keytab rotation
+    :type skip_keytab_rotation: bool
     :returns: True if the keys have been rotated
     :rtype: bool
     """
+
+    if skip_keytab_rotation:
+        logger.info("Skipping keytab rotation")
+        return False
 
     krbmaxrenewableage = _get_krbmaxrenewableage(instance)
     permitted_types = _get_krb_permitted_types()

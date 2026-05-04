@@ -150,6 +150,13 @@ def parse_options():
         default=False,
         help="skip version check",
     )
+    parser.add_option(
+        "--skip-keytab-rotation",
+        action="store_true",
+        dest="skip_keytab_rotation",
+        default=False,
+        help="skip keytab rotation",
+    )
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -752,6 +759,11 @@ def main():
         context="ipactl",
         confdir=paths.ETC_IPA,
         debug=options.debug,
+        **(
+            {"skip_keytab_rotation": options.skip_keytab_rotation}
+            if options.skip_keytab_rotation
+            else {}
+        ),
     )
     api.finalize()
 

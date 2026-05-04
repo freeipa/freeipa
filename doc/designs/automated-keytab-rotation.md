@@ -329,7 +329,12 @@ on its next start.
 
 ### Configuration
 
-No option to disable this feature.
+Feature can be disabled by setting `skip_keytab_rotation = True` in `/etc/ipa/default.conf`.
+
+The option can also be passed as an argument to `ipactl` command.
+```bash
+ipactl restart --skip-keytab-rotation
+```
 
 ## Upgrade
 

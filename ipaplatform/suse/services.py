@@ -182,7 +182,10 @@ class SuseKRB5KDCService(SuseService):
     def start(self, instance_name="", capture_output=True, wait=True):
         super().start(instance_name, capture_output, wait)
         self.rotated_keys = check_and_rotate_keytabs(
-            self, self.api.env.host, self.api.env.realm
+            self,
+            self.api.env.host,
+            self.api.env.realm,
+            self.api.env.skip_keytab_rotation,
         )
 
     def restart(self, instance_name="", capture_output=True, wait=True):
