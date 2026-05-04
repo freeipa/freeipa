@@ -38,6 +38,13 @@ skip_mod_md_tests = osinfo.id not in ['rhel', 'fedora', ]
 
 CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
+# OpenSSL `x509 -text` substrings per curve (openssl ecparam -name values).
+ECDSA_CURVE_EXPECTATIONS = {
+    'secp256r1': ('Public-Key: (256 bit)', 'prime256v1'),
+    'secp384r1': ('Public-Key: (384 bit)', 'secp384r1'),
+    'secp521r1': ('Public-Key: (521 bit)', 'secp521r1'),
+}
+
 
 def check_acme_status(host, exp_status, timeout=60):
     """Helper method to check the status of acme server"""
@@ -325,6 +332,137 @@ class TestACME(CALessBase):
             '--manual-cleanup-hook', CERTBOT_DNS_IPA_SCRIPT,
             '--key-type', 'rsa',
         ])
+
+    def assert_ecdsa_pem_cert_curve(
+            self, cert_info, curve, ec_pubkey_marker='id-ecPublicKey'):
+        """Assert openssl ``x509 -text`` output is ECDSA and matches ``curve``.
+
+        ``ec_pubkey_marker`` is the substring openssl prints for the subject
+        public key algorithm (ECDSA uses ``id-ecPublicKey``).
+        """
+        assert ec_pubkey_marker in cert_info.stdout_text
+        expected_bitlen, expected_curve_name = ECDSA_CURVE_EXPECTATIONS[curve]
+        assert expected_bitlen in cert_info.stdout_text
+        assert expected_curve_name in cert_info.stdout_text
+
+    ##############
+    # ECDSA tests
+    ##############
+
+    @pytest.mark.skipif(skip_certbot_tests, reason='certbot not available')
+    @pytest.mark.parametrize("curve", ('secp256r1', 'secp384r1', 'secp521r1'))
+    def test_certbot_certonly_standalone_ecdsa(self, curve):
+        """Test ACME cert issuance with an ECDSA subject key.
+
+        Verifies that the acmeIPAServerCert profile accepts EC keys
+        (nistp384 / secp384r1) end-to-end via certbot standalone HTTP-01.
+
+        related: https://pagure.io/freeipa/issue/9760
+        """
+        self.clients[0].run_command(['systemctl', 'stop', 'httpd'])
+        self.clients[0].run_command(
+            [
+                'certbot',
+                '--server', self.acme_server,
+                'certonly',
+                '--domain', self.clients[0].hostname,
+                '--standalone',
+                '--cert-name', self.clients[0].hostname,
+                '--key-type', 'ecdsa',
+                '--elliptic-curve', curve,
+                '--force-renewal',
+                '--non-interactive'
+            ]
+        )
+
+        cert_path = (
+            f'/etc/letsencrypt/live/{self.clients[0].hostname}/cert.pem'
+        )
+        cert_info = self.clients[0].run_command(
+            ['openssl', 'x509', '-in', cert_path, '-noout', '-text']
+        )
+        self.assert_ecdsa_pem_cert_curve(cert_info, curve)
+
+        self.clients[0].run_command(['systemctl', 'start', 'httpd'])
+
+    @pytest.mark.parametrize("curve", ('secp256r1', 'secp384r1', 'secp521r1'))
+    def test_ipa_cert_request_ecdsa(self, curve):
+        """Test caIPAserviceCert profile with an ECDSA subject key.
+
+        Generates an EC CSR with the specified curve and
+        requests a certificate via ipa cert-request,
+        exercising the caIPAserviceCert profile key
+        constraint that must accept specified curve.
+
+        related: https://pagure.io/freeipa/issue/9760
+        """
+        service_name = f'testecdsa/{self.master.hostname}'
+        csr_file = '/tmp/ecdsa_test.csr'
+        key_file = '/tmp/ecdsa_test.key'
+        cert_file = '/tmp/ecdsa_test.pem'
+
+        self.master.run_command(['ipa', 'service-add', service_name])
+
+        self.master.run_command(
+            [
+                'openssl', 'ecparam', '-name', curve,
+                '-genkey', '-noout', '-out', key_file,
+            ]
+        )
+        self.master.run_command(
+            [
+                'openssl', 'req', '-new',
+                '-key', key_file,
+                '-out', csr_file,
+                '-subj', f'/CN={self.master.hostname}',
+            ]
+        )
+
+        self.master.run_command(
+            [
+                'ipa', 'cert-request',
+                '--principal', service_name,
+                '--certificate-out', cert_file,
+                csr_file,
+            ]
+        )
+
+        cert_info = self.master.run_command(
+            ['openssl', 'x509', '-in', cert_file, '-noout', '-text']
+        )
+        self.assert_ecdsa_pem_cert_curve(cert_info, curve)
+
+        try:
+            self.master.run_command(
+                [
+                    'ipa-getcert', 'request','-G', 'EC',
+                    '-g', curve, '-f', cert_file, '-k',
+                    key_file, '-K', service_name, '-vw'
+                ]
+            )
+            cert_on_master = self.master.run_command(
+                ['test', '-f', cert_file], raiseonerr=False
+            )
+            key_on_master = self.master.run_command(
+                ['test', '-f', key_file], raiseonerr=False
+            )
+            if (cert_on_master.returncode == 0
+                    and key_on_master.returncode == 0):
+                self.master.run_command(
+                    ["getcert", "stop-tracking", "-f", cert_file]
+                )
+                self.master.run_command(
+                    ['rm', '-f', cert_file, key_file]
+                )
+        except Exception as e:
+            print("Error requesting certificate: {}".format(e))
+
+        self.master.run_command(
+            ['ipa', 'service-del', service_name], raiseonerr=False
+        )
+        self.master.run_command(
+            ['rm', '-f', csr_file, key_file, cert_file]
+        )
 
     ##############
     # mod_md tests
