@@ -28,7 +28,9 @@ import ldapurl
 from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname
 from ipaserver.install.installutils import ScriptError
-from ipaserver.masters import ENABLED_SERVICE, HIDDEN_SERVICE
+from ipaserver.masters import (
+    ENABLED_SERVICE, HIDDEN_SERVICE, get_ca_systemd_service_name
+)
 from ipalib import api, errors
 from ipalib.facts import is_ipa_configured
 from ipapython.ipaldap import LDAPClient, realm_to_serverid
@@ -302,7 +304,11 @@ def get_config(dirsrv):
     ordered_list = []
     for order, svc in sorted(svc_list):
         if svc in service.SERVICE_LIST:
-            ordered_list.append(service.SERVICE_LIST[svc].systemd_name)
+            systemd_name = service.SERVICE_LIST[svc].systemd_name
+            # Handle CA service specially - use ca_backend from config
+            if svc == 'CA':
+                systemd_name = get_ca_systemd_service_name()
+            ordered_list.append(systemd_name)
     return deduplicate(ordered_list)
 
 
@@ -337,7 +343,12 @@ def get_config_from_file(rval):
     ordered_list = []
     for _order, svc in sorted(def_svc_list):
         if svc in svc_list:
-            ordered_list.append(svc)
+            # Handle CA service mapping - use ca_backend from config
+            # The cached file might have old service name, so normalize it
+            if svc in ('pki-tomcatd', 'ipathinca'):
+                ordered_list.append(get_ca_systemd_service_name())
+            else:
+                ordered_list.append(svc)
 
     return deduplicate(ordered_list)
 

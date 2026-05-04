@@ -1,0 +1,92 @@
+# This file is read by the IPAthinCA service and WSGI application
+
+[global]
+realm = $REALM
+domain = $DOMAIN
+host = $FQDN
+basedn = $BASEDN
+
+[ldap]
+pool_min_connections = 2
+pool_max_connections = 10
+
+[server]
+bind_host = 0.0.0.0
+https_port = 8443
+workers = 1
+threads = 4
+ssl_cert = ${IPATHINCA_CERTS_DIR}server.crt
+ssl_key = ${IPATHINCA_PRIVATE_DIR}server.key
+pid_file = $IPATHINCA_PID
+user = ipaca
+group = ipaca
+
+[logging]
+level = INFO
+log_file = ${IPATHINCA_LOG_DIR}ipathinca.log
+access_log = ${IPATHINCA_LOG_DIR}access.log
+gunicorn_log = ${IPATHINCA_LOG_DIR}gunicorn.log
+max_log_size = 10485760
+backup_count = 10
+
+############################################
+# Be careful with changes after this line! #
+############################################
+
+[ca]
+ca_cert = $IPA_CA_CRT
+random_serial_numbers = $RANDOM_SERIAL_NUMBERS
+# Serial number length in bits (default: 128, matching Dogtag RSNv3)
+# Common values: 128 (32 hex digits), 160 (40 hex digits)
+serial_number_bits = 128
+# Maximum collision recovery attempts when generating random serial numbers
+# (default: 100, Dogtag uses 3 regenerations × 10 steps = 30)
+collision_recovery_attempts = 100
+
+# Signing Algorithm Configuration (runtime-configurable, matching Dogtag CS.cfg)
+# Default signing algorithm for certificate issuance (when profile specifies "-")
+default_signing_algorithm = $DEFAULT_SIGNING_ALGORITHM
+# Allowed signing algorithms (comma-separated, enforced by profile constraints)
+allowed_signing_algorithms = SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA256withEC,SHA384withEC,SHA512withEC
+# CRL signing algorithm
+crl_signing_algorithm = $CRL_SIGNING_ALGORITHM
+# Audit log signing algorithm
+audit_signing_algorithm = $AUDIT_SIGNING_ALGORITHM
+# OCSP response signing algorithm (from PKI config hierarchy)
+ocsp_signing_algorithm = $OCSP_SIGNING_ALGORITHM
+
+# CRL Configuration (matching Dogtag ca.crl.MasterCRL.*)
+# CRL update interval in minutes (default: 240 = 4 hours)
+crl_update_interval = 240
+# Enable daily CRL updates at specific time (true/false)
+crl_enable_daily_updates = true
+# Daily update time in HH:MM format (24-hour)
+crl_daily_update_time = 01:00
+# Include expired certificates in CRL (true/false)
+crl_include_expired_certs = false
+# Next update grace period in minutes (0 = no grace period)
+crl_next_update_grace_period = 0
+
+# Search and Query Limits (matching Dogtag ca.maxSearchReturns)
+# Maximum number of search results returned (default: 1000)
+max_search_returns = 1000
+
+# Default Key Sizes (from PKI config hierarchy)
+# Default RSA key size in bits (2048, 3072, 4096)
+default_rsa_key_size = $DEFAULT_RSA_KEY_SIZE
+# Default ECC curve (nistp256, nistp384, nistp521)
+default_ecc_curve = $DEFAULT_ECC_CURVE
+# OCSP signing key size (from pki_ocsp_signing_key_size)
+ocsp_signing_key_size = $OCSP_SIGNING_KEY_SIZE
+
+# Key Algorithm Constraints (matching Dogtag ca.Policy.rule.RSAKeyRule.*)
+# Minimum RSA key size in bits (default: 2048)
+min_rsa_key_size = 2048
+# Maximum RSA key size in bits (default: 8192)
+max_rsa_key_size = 8192
+# Allowed RSA exponents (comma-separated: 3,17,65537)
+allowed_rsa_exponents = 65537
+
+# OCSP Configuration (matching Dogtag ca.defaultOcspUri)
+# Default OCSP responder URI (used in AIA extension)
+default_ocsp_uri = http://ipa-ca.$DOMAIN/ca/ocsp

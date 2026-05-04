@@ -346,6 +346,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         '-p', host.config.dirman_password,
         '-a', host.config.admin_password,
         "--domain-level=%i" % domain_level,
+        "--use-ipathinca",
     ]
 
     if random_serial:
@@ -479,6 +480,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     # Otherwise ipa-client-install would not create a PTR
     # and replica installation would fail
     args = ['ipa-replica-install',
+            '--use-ipathinca',
             '--admin-password', replica.config.admin_password]
 
     if promote:  # while promoting we use directory manager password

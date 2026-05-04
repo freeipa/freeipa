@@ -23,6 +23,7 @@ from ipaserver.install import sysupgrade
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipaserver.install import acmeinstance, cainstance, bindinstance, dsinstance
+from ipaserver.install.ipathincainstance import IPAThinCAInstance
 from ipapython import ipautil, certdb
 from ipapython import ipaldap
 from ipapython.admintool import ScriptError
@@ -30,8 +31,10 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
+from ipaserver.masters import get_ca_service
 from ipalib import api, errors, x509
 from ipapython.dn import DN
+from cryptography.hazmat.primitives import serialization
 
 from . import conncheck, dogtag, cainstance
 
@@ -308,6 +311,7 @@ def print_ca_configuration(options):
 
 def uninstall_check(options):
     """IPA needs to be running so pkidestroy can unregister CA"""
+
     ca = cainstance.CAInstance(api.env.realm)
     if not ca.is_installed():
         return
@@ -611,32 +615,73 @@ def install_step_0(standalone, replica_config, options, custodia):
     # In both cases, 389-DS is already configured to have a trusted cert.
     use_ldaps = standalone or replica_config is not None
 
-    ca = cainstance.CAInstance(
-        realm=realm_name, host_name=host_name, custodia=custodia
-    )
-    ca.configure_instance(
-        host_name, dm_password, dm_password,
-        subject_base=subject_base,
-        ca_subject=ca_subject,
-        ca_signing_algorithm=ca_signing_algorithm,
-        ca_type=ca_type,
-        external_ca_profile=external_ca_profile,
-        csr_file=csr_file,
-        cert_file=cert_file,
-        cert_chain_file=cert_chain_file,
-        pkcs12_info=pkcs12_info,
-        master_host=master_host,
-        master_replication_port=master_replication_port,
-        ra_p12=ra_p12,
-        ra_only=ra_only,
-        promote=promote,
-        use_ldaps=use_ldaps,
-        pki_config_override=options.pki_config_override,
-        random_serial_numbers=options._random_serial_numbers,
-        token_name=token_name,
-        token_library_path=options.token_library_path,
-        token_password=options.token_password,
-    )
+    # Check if --use-ipathinca was specified
+    use_ipathinca = getattr(options, 'use_ipathinca', False)
+
+    if use_ipathinca:
+        # Use ipathinca Python CA instead of Dogtag/PKI
+        logger.info("Configuring ipathinca Python CA (replacing pki-tomcat)")
+
+        ca = IPAThinCAInstance(
+            realm=realm_name,
+            host_name=host_name,
+            random_serial_numbers=options._random_serial_numbers,
+            ca_signing_algorithm=ca_signing_algorithm,
+            subject_base=subject_base,
+            ca_subject=ca_subject,
+            external_ca=(ca_type is not None),
+            external_ca_type=ca_type,
+            external_ca_profile=external_ca_profile,
+            csr_file=csr_file,
+            cert_file=cert_file,
+            cert_chain_file=cert_chain_file,
+            pki_config_override=options.pki_config_override,
+            token_name=token_name,
+            token_library_path=(
+                options.token_library_path
+                if hasattr(options, 'token_library_path') else None
+            ),
+            token_password=(
+                options.token_password
+                if hasattr(options, 'token_password') else None
+                ),
+            pkcs12_info=pkcs12_info,
+            master_host=master_host,
+            promote=promote,
+        )
+
+        if replica_config is not None and replica_config.setup_ca:
+            ca.create_instance(promote=promote)
+        else:
+            ca.create_instance()
+    else:
+        # Default: Use standard Dogtag/PKI
+        ca = cainstance.CAInstance(
+            realm=realm_name, host_name=host_name, custodia=custodia
+        )
+        ca.configure_instance(
+            host_name, dm_password, dm_password,
+            subject_base=subject_base,
+            ca_subject=ca_subject,
+            ca_signing_algorithm=ca_signing_algorithm,
+            ca_type=ca_type,
+            external_ca_profile=external_ca_profile,
+            csr_file=csr_file,
+            cert_file=cert_file,
+            cert_chain_file=cert_chain_file,
+            pkcs12_info=pkcs12_info,
+            master_host=master_host,
+            master_replication_port=master_replication_port,
+            ra_p12=ra_p12,
+            ra_only=ra_only,
+            promote=promote,
+            use_ldaps=use_ldaps,
+            pki_config_override=options.pki_config_override,
+            random_serial_numbers=options._random_serial_numbers,
+            token_name=token_name,
+            token_library_path=options.token_library_path,
+            token_password=options.token_password,
+        )
 
 
 def install_step_1(standalone, replica_config, options, custodia):
@@ -647,53 +692,97 @@ def install_step_1(standalone, replica_config, options, custodia):
     host_name = options.host_name
     subject_base = options._subject_base
     basedn = ipautil.realm_to_suffix(realm_name)
+    use_ipathinca = options.use_ipathinca
 
-    ca = cainstance.CAInstance(
-        realm=realm_name, host_name=host_name, custodia=custodia
-    )
+    if use_ipathinca:
+        # ipathinca doesn't use pki-tomcat, so skip those steps
+        logger.debug("Configuring ipathinca CA (step 1)")
 
-    ca.stop('pki-tomcat')
+        serverid = ipaldap.realm_to_serverid(realm_name)
 
-    # This is done within stopped_service context, which restarts CA
-    ca.enable_client_auth_to_db()
+        if standalone and replica_config is None:
+            dirname = dsinstance.config_dirname(serverid)
 
-    # Lightweight CA key retrieval is configured in step 1 instead
-    # of CAInstance.configure_instance (which is invoked from step
-    # 0) because kadmin_addprinc fails until krb5.conf is installed
-    # by krb.create_instance.
-    #
-    ca.setup_lightweight_ca_key_retrieval()
+            # Store the IPA CA cert chain in DS NSS database and LDAP
+            # For ipathinca, CA cert is in /etc/ipa/ca.crt
+            with open(paths.IPA_CA_CRT, 'rb') as f:
+                cacert_der = x509.load_pem_x509_certificate(
+                    f.read()
+                ).public_bytes(
+                    serialization.Encoding.DER
+                )
 
-    serverid = ipaldap.realm_to_serverid(realm_name)
+            dsdb = certs.CertDB(
+                realm_name, nssdir=dirname, subject_base=subject_base)
+            nickname = certdb.get_ca_nickname(realm_name)
+            trust_flags = certdb.IPA_CA_TRUST_FLAGS
+            dsdb.add_cert(cacert_der, nickname, trust_flags)
+            certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
+                                      cacert_der, nickname, trust_flags,
+                                      config_ipa=True, config_compat=True)
 
-    if standalone and replica_config is None:
-        dirname = dsinstance.config_dirname(serverid)
+        if replica_config is not None:
+            ca = IPAThinCAInstance(
+                realm=realm_name, host_name=host_name
+            )
+            ca.setup_lightweight_ca_key_retrieval()
 
-        # Store the new IPA CA cert chain in DS NSS database and LDAP
-        cadb = certs.CertDB(
-            realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
-            subject_base=subject_base)
-        dsdb = certs.CertDB(
-            realm_name, nssdir=dirname, subject_base=subject_base)
-        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca')
-        nickname = certdb.get_ca_nickname(realm_name)
-        trust_flags = certdb.IPA_CA_TRUST_FLAGS
-        dsdb.add_cert(cacert, nickname, trust_flags)
-        certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
-                                  cacert, nickname, trust_flags,
-                                  config_ipa=True, config_compat=True)
+        installutils.restart_dirsrv()
 
-        # Store DS CA cert in Dogtag NSS database
-        trust_flags = dict(reversed(dsdb.list_certs()))
-        server_certs = dsdb.find_server_certs()
-        trust_chain = dsdb.find_root_cert(server_certs[0][0])[:-1]
-        nickname = trust_chain[-1]
-        cert = dsdb.get_cert_from_db(nickname)
-        cadb.add_cert(cert, nickname, trust_flags[nickname])
+        # Note: CA service registration in LDAP is deferred until after PKINIT
+        # is configured to ensure PKINIT uses dogtag-submit during initial
+        # installation. See enable_ca_service() function below.
 
-    installutils.restart_dirsrv()
+        logger.debug("ipathinca CA service is running")
 
-    ca.start('pki-tomcat')
+    else:
+        # Default: Use standard Dogtag/PKI
+        ca = cainstance.CAInstance(
+            realm=realm_name, host_name=host_name, custodia=custodia
+        )
+
+        ca.stop('pki-tomcat')
+
+        # This is done within stopped_service context, which restarts CA
+        ca.enable_client_auth_to_db()
+
+        # Lightweight CA key retrieval is configured in step 1 instead
+        # of CAInstance.configure_instance (which is invoked from step
+        # 0) because kadmin_addprinc fails until krb5.conf is installed
+        # by krb.create_instance.
+        #
+        ca.setup_lightweight_ca_key_retrieval()
+
+        serverid = ipaldap.realm_to_serverid(realm_name)
+
+        if standalone and replica_config is None:
+            dirname = dsinstance.config_dirname(serverid)
+
+            # Store the new IPA CA cert chain in DS NSS database and LDAP
+            cadb = certs.CertDB(
+                realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                subject_base=subject_base)
+            dsdb = certs.CertDB(
+                realm_name, nssdir=dirname, subject_base=subject_base)
+            cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca')
+            nickname = certdb.get_ca_nickname(realm_name)
+            trust_flags = certdb.IPA_CA_TRUST_FLAGS
+            dsdb.add_cert(cacert, nickname, trust_flags)
+            certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
+                                      cacert, nickname, trust_flags,
+                                      config_ipa=True, config_compat=True)
+
+            # Store DS CA cert in Dogtag NSS database
+            trust_flags = dict(reversed(dsdb.list_certs()))
+            server_certs = dsdb.find_server_certs()
+            trust_chain = dsdb.find_root_cert(server_certs[0][0])[:-1]
+            nickname = trust_chain[-1]
+            cert = dsdb.get_cert_from_db(nickname)
+            cadb.add_cert(cert, nickname, trust_flags[nickname])
+
+        installutils.restart_dirsrv()
+
+        ca.start('pki-tomcat')
 
     if standalone or replica_config is not None:
         # We need to restart apache as we drop a new config file in there
@@ -706,12 +795,39 @@ def install_step_1(standalone, replica_config, options, custodia):
             bind.update_system_records()
 
 
+def enable_ca_service(options):
+    """
+    Register CA service in LDAP (called after PKINIT is configured)
+
+    This function is called from install.py after PKINIT certificate is issued
+    to ensure that during initial installation, PKINIT uses dogtag-submit to
+    contact the CA directly instead of going through the IPA framework.
+    """
+    use_ipathinca = getattr(options, 'use_ipathinca', False)
+
+    if use_ipathinca:
+        logger.info("Registering ipathinca CA service in LDAP")
+        from ipaserver.install.ipathincainstance import IPAThinCAInstance  # pylint: disable=reimported
+        ca_instance = IPAThinCAInstance(
+            realm=options.realm_name,
+            host_name=options.host_name,
+            random_serial_numbers=options.random_serial_numbers
+        )
+        ca_instance.enable_and_start()
+        logger.debug("CA service registered in LDAP")
+
+
 def uninstall():
     acme = acmeinstance.ACMEInstance(api.env.realm)
     acme.uninstall()
 
-    ca_instance = cainstance.CAInstance(api.env.realm)
-    ca_instance.stop_tracking_certificates()
+    use_ipathinca = get_ca_service() == "ipathinca"
+
+    if use_ipathinca:
+        ca_instance = IPAThinCAInstance(api.env.realm, api.env.host)
+    else:
+        ca_instance = cainstance.CAInstance(api.env.realm)
+        ca_instance.stop_tracking_certificates()
     ipautil.remove_file(paths.RA_AGENT_PEM)
     ipautil.remove_file(paths.RA_AGENT_KEY)
     if ca_instance.is_configured():
@@ -844,3 +960,8 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     @random_serial_numbers.validator
     def random_serial_numbers(self, value):
         random_serial_numbers_validator(value)
+
+    use_ipathinca = knob(
+        None,
+        description="Use ipathinca Python CA instead of Dogtag/PKI",
+    )
