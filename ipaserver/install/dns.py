@@ -243,7 +243,7 @@ def install_check(standalone, api, replica, options, hostname):
         print("")
         print("This includes:")
         print("  * Configure DNS (bind)")
-        print("  * Configure SoftHSM (required by DNSSEC)")
+        print("  * Configure PKCS#11 token (required by DNSSEC)")
         print("  * Configure ipa-dnskeysyncd (required by DNSSEC)")
         if options.dnssec_master:
             print("  * Configure ipa-ods-exporter (required by DNSSEC key master)")

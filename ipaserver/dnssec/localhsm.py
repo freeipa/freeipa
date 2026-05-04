@@ -199,7 +199,7 @@ if __name__ == '__main__':
     if 'SOFTHSM2_CONF' not in os.environ:
         os.environ['SOFTHSM2_CONF'] = paths.DNSSEC_SOFTHSM2_CONF
     localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
-            open(paths.DNSSEC_SOFTHSM_PIN).read())
+            open(paths.DNSSEC_HSM_PIN).read())
 
     print('replica public keys: CKA_WRAP = TRUE')
     print('====================================')

@@ -20,6 +20,6 @@ pkcs11 = pkcs11_bind_sect
 activate = 1
 
 [pkcs11_bind_sect]
-pkcs11-module-path = $SOFTHSM_MODULE
-pkcs11-module-token-pin = file:$SOFTHSM_PIN
+pkcs11-module-path = $PKCS11_MODULE
+pkcs11-module-token-pin = file:$PKCS11_PIN
 activate = 1
