@@ -272,6 +272,37 @@ def lookup_ldap_backend(api):
     return ldap_backend
 
 
+def get_ca_key_algorithm(api):
+    """Detect the key type and signing algorithm using the IPA CA
+       certificate.
+
+       This returns a tuple of (key_type, key_algorithm)
+    """
+    algs = {
+        '1.2.840.113549.1.1.11': ('rsa', 'SHA256withRSA'),
+        '1.2.840.113549.1.1.12': ('rsa', 'SHA384withRSA'),
+        '1.2.840.113549.1.1.13': ('rsa', 'SHA512withRSA'),
+        '2.16.840.1.101.3.4.3.17': ('mldsa', 'ML-DSA-44'),
+        '2.16.840.1.101.3.4.3.18': ('mldsa', 'ML-DSA-65'),
+        '2.16.840.1.101.3.4.3.19': ('mldsa', 'ML-DSA-87'),
+    }
+    config_dn = DN(('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    container_dn = DN(('cn', 'certificates'), config_dn)
+
+    dn = DN(('cn', certs.get_ca_nickname(api.env.realm)),
+            container_dn)
+    data = api.Backend.ldap2.get_entry(dn)
+    cacert = data['cACertificate'][0]
+    oid = cacert.signature_algorithm_oid.dotted_string
+
+    (type, algorithm) = algs[oid]
+    if type == "rsa":
+        strength = cacert.public_key().key_size
+    elif type == "mldsa":
+        strength = algorithm.replace('ML-DSA-', '')
+
+    return (type, strength, algorithm)
+
 class InconsistentCRLGenConfigException(Exception):
     pass
 
@@ -342,6 +373,7 @@ class CAInstance(DogtagInstance):
                            master_replication_port=389,
                            subject_base=None, ca_subject=None,
                            ca_signing_algorithm=None,
+                           ca_key_type="rsa",
                            ca_type=None, external_ca_profile=None,
                            ra_p12=None, ra_only=False,
                            promote=False, use_ldaps=False,
@@ -383,6 +415,7 @@ class CAInstance(DogtagInstance):
             ca_subject or installutils.default_ca_subject_dn(self.subject_base)
 
         self.ca_signing_algorithm = ca_signing_algorithm
+        self.ca_key_type = ca_key_type
         if ca_type is not None:
             self.ca_type = ca_type
         else:
@@ -479,6 +512,8 @@ class CAInstance(DogtagInstance):
                 self.step("configure certmonger for renewals",
                           self.configure_certmonger_renewal_helpers)
                 if not self.clone:
+                    self.step("updating CA profiles to allow ML-DSA",
+                              self.__allow_mldsa_profiles)
                     self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 elif promote:
                     self.step("Importing RA key", self.__import_ra_key)
@@ -564,8 +599,55 @@ class CAInstance(DogtagInstance):
             cfg['pki_token_password'] = self.token_password
             cfg['pki_sslserver_token'] = 'internal'
 
-        if self.ca_signing_algorithm is not None:
-            cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
+        ipa_ca_key_size = None
+        if self.ca_key_type:
+            (self.ca_key_type, ipa_ca_key_size) = (
+                certs.get_key_type_and_strength(self.ca_key_type, True)
+            )
+
+        if self.ca_key_type == "rsa":
+            if self.ca_signing_algorithm is not None:
+                ipa_ca_key_algorithm = self.ca_signing_algorithm
+            else:
+                ipa_ca_key_algorithm = "SHA256withRSA"
+            if ipa_ca_key_size is None:
+                # the default
+                ipa_ca_key_size = "3072"
+            ipa_key_algorithm = "SHA256withRSA"
+            ipa_key_size = "2048"
+            ipa_signing_algorithm = "SHA256withRSA"
+        elif self.ca_key_type == "mldsa":
+            if ipa_ca_key_size is None:
+                # the default
+                ipa_ca_key_size = "65"
+                # ipa_ca_key_size = "87"  # FIXME
+            ipa_key_size = "65"
+            ipa_ca_key_algorithm = f"ML-DSA-{ipa_ca_key_size}"
+            if self.ca_signing_algorithm is not None:
+                cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
+            else:
+                ipa_signing_algorithm = ipa_ca_key_algorithm
+            ipa_key_algorithm = ipa_ca_key_algorithm
+            ipa_signing_algorithm = ipa_ca_key_algorithm
+        else:
+            # Replica install. Determine the CA settings from the CA
+            # certificate.
+            (self.ca_key_type, ipa_ca_key_size, ipa_ca_key_algorithm) = (
+                get_ca_key_algorithm(api)
+            )
+            ipa_signing_algorithm = ipa_ca_key_algorithm
+            ipa_key_size = None
+            ipa_key_algorithm = None
+
+        # FIXME: add some validation that the options are compatible.
+        #        e.g. that an ML-DSA key doesn't have an RSA signing method.
+        cfg['ipa_ca_key_size'] = ipa_ca_key_size
+        cfg['ipa_ca_key_algorithm'] = ipa_ca_key_algorithm
+
+        cfg['ipa_key_size'] = ipa_key_size
+        cfg['ipa_key_algorithm'] = ipa_key_algorithm
+        cfg['ipa_key_type'] = self.ca_key_type
+        cfg['ipa_signing_algorithm'] = ipa_signing_algorithm
 
         cfg['pki_random_serial_numbers_enable'] = self.random_serial_numbers
         if self.random_serial_numbers:
@@ -800,6 +882,41 @@ class CAInstance(DogtagInstance):
                                       'jobsScheduler.job.pruning.owner',
                                       'ipara', quotes=False, separator='=')
 
+    def __allow_mldsa_profiles(self):
+        """
+        Allow ML-DSA in some of the default CA profiles that IPA uses.
+        """
+        profiles = (
+            'caSignedLogCert',
+            'caOCSPCert',
+            'caSubsystemCert',
+            'caCACert',
+            'caInternalAuthTransportCert',  # KRA
+            'caInternalAuthDRMstorageCert',  # KRA
+        )
+        for profile_id in profiles:
+            logger.debug("Replacing profile %s", profile_id)
+            dn = DN(('cn', profile_id),
+                    ('ou', 'certificateProfiles'),
+                    ('ou', 'ca'), ('o', 'ipaca'))
+            entry = api.Backend.ldap2.get_entry(dn)
+
+            lines = entry['certProfileConfig'][0].split('\n')
+            new = ''
+            for line in lines:
+                if '=' in line:
+                    (key, value) = line.split('=', 1)
+                    if 'keyParameters' in key and "44,65,87" not in value:
+                        new = f"{new}\n{key}={value},44,65,87\n"
+                    elif 'keyType' in key and value == 'RSA':
+                        new = f"{new}\n{key}=-\n"
+                    else:
+                        new = new + line + '\n'
+                else:
+                    new = new + line + '\n'
+            entry['certProfileConfig'] = new
+            api.Backend.ldap2.update_entry(entry)
+
     def __import_ra_cert(self):
         """
         Helper method for IPA domain level 0 replica install
@@ -952,7 +1069,9 @@ class CAInstance(DogtagInstance):
             tmpdb.import_pkcs12(
                 paths.DOGTAG_ADMIN_P12, pkcs12_passwd=self.dm_password)
 
-            (keytype, keysize) = api.env.key_type_size.split(':', 1)
+            (keytype, keysize) = (
+                certs.get_key_type_and_strength(api.env.key_type_size)
+            )
 
             if keytype == "mldsa":
                 # convert to the format NSS expects

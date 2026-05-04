@@ -501,7 +501,15 @@ class KrbInstance(service.Service):
                     certmonger_ca, helper
                 )
 
+            """PKINIT currently doesn't support PQC. Force it to
+               use an RSA key until that is supported.
+            """
             (keytype, keysize) = installutils.lookup_key_type(api)
+            if keytype.lower() != "rsa":
+                logger.info("Forcing PKINIT certificate to RSA:2048")
+                keytype = "rsa"
+                keysize = "2048"
+
             certmonger.request_and_wait_for_cert(
                 certpath=certpath,
                 subject=subject,
