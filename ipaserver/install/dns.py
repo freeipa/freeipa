@@ -246,7 +246,7 @@ def install_check(standalone, api, replica, options, hostname):
         print("")
         print("This includes:")
         print("  * Configure DNS (bind)")
-        print("  * Configure SoftHSM (required by DNSSEC)")
+        print("  * Configure PKCS#11 token (required by DNSSEC)")
         print("  * Configure ipa-dnskeysyncd (required by DNSSEC)")
         if options.dnssec_master:
             print("  * Configure ipa-ods-exporter (required by DNSSEC key master)")
@@ -324,7 +324,7 @@ def install_check(standalone, api, replica, options, hostname):
             # check if replica can be the DNSSEC master
             cmd = [paths.IPA_DNSKEYSYNCD_REPLICA]
             environment = {
-                "SOFTHSM2_CONF": paths.DNSSEC_SOFTHSM2_CONF,
+                "KRYOPTIC_CONF": paths.DNSSEC_KRYOPTIC_CONF,
             }
 
             # stop dnskeysyncd before test
