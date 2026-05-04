@@ -18,6 +18,7 @@ AM_CPPFLAGS =						\
 	$(WARN_CFLAGS)					\
 	$(NDRPAC_CFLAGS)				\
 	$(SSSCERTMAP_CFLAGS)				\
+	$(OPENSSL_CFLAGS)				\
 	$(NULL)
 
 plugindir = $(libdir)/krb5/plugins/kdb
@@ -55,6 +56,10 @@ if BUILD_IPA_KDCPOLICY_PLUGIN
 ipadb_la_SOURCES += ipa_kdb_kdcpolicy.c
 endif
 
+if BUILD_IPA_S4U_X509
+ipadb_la_SOURCES += ipa_kdb_s4u_x509.c
+endif
+
 ipadb_la_LDFLAGS = 		\
 	-avoid-version 		\
 	-module			\
@@ -66,6 +71,7 @@ ipadb_la_LIBADD = 		\
 	$(NDRPAC_LIBS)		\
 	$(UNISTRING_LIBS)	\
 	$(SSSCERTMAP_LIBS)	\
+	$(OPENSSL_LIBS)		\
 	$(top_builddir)/util/libutil.la	\
         -lsamba-errors          \
 	$(NULL)
@@ -75,6 +81,11 @@ TESTS_ENVIRONMENT = . $(srcdir)/tests/test_setup.sh;
 dist_ipa_kdb_tests_SOURCES = tests/test_setup.sh
 TESTS = ipa_kdb_tests
 check_PROGRAMS = ipa_kdb_tests
+
+if BUILD_IPA_S4U_X509
+TESTS += ipa_kdb_s4u_x509_tests
+check_PROGRAMS += ipa_kdb_s4u_x509_tests
+endif
 endif
 
 ipa_kdb_tests_SOURCES =        \
@@ -104,6 +115,10 @@ if BUILD_IPA_KDCPOLICY_PLUGIN
 ipa_kdb_tests_SOURCES += ipa_kdb_kdcpolicy.c
 endif
 
+if BUILD_IPA_S4U_X509
+ipa_kdb_tests_SOURCES += ipa_kdb_s4u_x509.c
+endif
+
 ipa_kdb_tests_CFLAGS = $(CMOCKA_CFLAGS)
 ipa_kdb_tests_LDFLAGS = -L$(libdir)/samba -Wl,-rpath=$(libdir)/samba
 ipa_kdb_tests_LDADD =          \
@@ -113,12 +128,29 @@ ipa_kdb_tests_LDADD =          \
        $(NDRPAC_LIBS)          \
        $(UNISTRING_LIBS)       \
        $(SSSCERTMAP_LIBS)      \
+       $(OPENSSL_LIBS)         \
        $(top_builddir)/util/libutil.la	\
        -lkdb5                  \
        -lsss_idmap             \
        -l$(SAMBA_SECURITY_LIBS)\
        -lsamba-errors          \
        $(NULL)
+
+# Dedicated unit test binary for S4U X.509 attestation code.
+# It includes ipa_kdb_s4u_x509.c directly (via #include) to access static
+# functions, so it does NOT list ipa_kdb_s4u_x509.c here as a source.
+ipa_kdb_s4u_x509_tests_SOURCES = \
+	tests/ipa_kdb_s4u_x509_tests.c \
+	$(NULL)
+ipa_kdb_s4u_x509_tests_CPPFLAGS = $(AM_CPPFLAGS)
+ipa_kdb_s4u_x509_tests_CFLAGS = $(CMOCKA_CFLAGS)
+ipa_kdb_s4u_x509_tests_LDADD =  \
+	$(CMOCKA_LIBS)		\
+	$(KRB5_LIBS)		\
+	$(LDAP_LIBS)		\
+	$(OPENSSL_LIBS)		\
+	-lkdb5			\
+	$(NULL)
 
 appdir = $(libexecdir)/ipa
 app_PROGRAMS = ipa-print-pac

@@ -34,6 +34,7 @@ if __name__ == '__main__':
         packages=[
             "ipalib",
             "ipalib.install",
+            "ipalib.x509_attestation",
         ],
         install_requires=[
             "ipaplatform",

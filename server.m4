@@ -99,6 +99,14 @@ AC_CHECK_MEMBER([kdb_vftabl.issue_pac],
                 [have_kdb_issue_pac=no], [#include <kdb.h>])
 
 dnl ---------------------------------------------------------------------------
+dnl - Check for OpenSSL (required for S4U X.509 attestation in ipa-kdb)
+dnl ---------------------------------------------------------------------------
+PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto],
+                  [have_openssl=yes],
+                  [have_openssl=no
+                   AC_MSG_NOTICE([OpenSSL not found; S4U X.509 attestation disabled])])
+
+dnl ---------------------------------------------------------------------------
 dnl - Check for KRB5 krb5_kdc_sign_ticket function
 dnl ---------------------------------------------------------------------------
 
