@@ -294,6 +294,11 @@ class DNSKeySyncInstance(service.Service):
             sysconfig,
             'DNSSEC_HSM_PIN', paths.DNSSEC_HSM_PIN,
             quotes=False, separator='=')
+        # deprecated, needs to be migrated to DNSSEC_HSM_PIN
+        directivesetter.set_directive(
+            sysconfig,
+            'DNSSEC_SOFTHSM_PIN', paths.DNSSEC_HSM_PIN,
+            quotes=False, separator='=')
 
         if any([constants.NAMED_OPENSSL_ENGINE is not None,
                 constants.NAMED_OPENSSL_PROVIDER is not None]):

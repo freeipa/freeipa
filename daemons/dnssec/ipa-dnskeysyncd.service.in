@@ -4,7 +4,8 @@ Description=IPA key daemon
 [Service]
 Environment=LC_ALL=C.UTF-8
 EnvironmentFile=@sysconfenvdir@/ipa-dnskeysyncd
-ExecStartPre=/bin/sh -c '/bin/sed -e "s,@DNSSEC_TOKENS_DIR@,${DNSSEC_TOKENS_DIR},g;s,@DNSSEC_SOFTHSM_PIN@,${DNSSEC_SOFTHSM_PIN},g" @IPA_DATA_DIR@/ipa-dnssec.conf | /usr/bin/systemd-tmpfiles --create -'
+# The DNSSEC_SOFTHSM_PIN needs to be migrated to DNSSEC_HSM_PIN
+ExecStartPre=/bin/sh -c '/bin/sed -e "s,@DNSSEC_TOKENS_DIR@,${DNSSEC_TOKENS_DIR},g;s,@DNSSEC_HSM_PIN@,${DNSSEC_SOFTHSM_PIN},g" @IPA_DATA_DIR@/ipa-dnssec.conf | /usr/bin/systemd-tmpfiles --create -'
 ExecStart=@libexecdir@/ipa/ipa-dnskeysyncd
 User=@ODS_USER@
 Group=@NAMED_GROUP@
