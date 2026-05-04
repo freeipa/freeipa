@@ -246,6 +246,9 @@ DEFAULT_CONFIG = (
     # Used when verifying that the API hasn't changed. Not for production.
     ('validate_api', False),
 
+    # By default, keytabs are rotated when permitted encryption types are changed.
+    ('skip_keytab_rotation', False),
+
     # Skip client vs. server API version checking. Can lead to errors/strange
     # behavior when newer clients talk to older servers. Use with caution.
     ('skip_version_check', False),

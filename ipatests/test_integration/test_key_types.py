@@ -30,6 +30,8 @@ CAMELLIA_LONG = ['camellia256-cts-cmac', 'camellia128-cts-cmac']
 CAMELLIA_SHORT = ['camellia256-cts', 'camellia128-cts']
 CAMELLIA = ['camellia']
 
+IPA_CONFIG = "/etc/ipa/default.conf"
+
 
 def set_legacy_adsupport_cryptopol(host, enabled):
     host.run_command(['update-crypto-policies', '--set',
@@ -137,6 +139,7 @@ class KeyTypeTest(IntegrationTest):
         set_permitted_enctypes(cls.master, cls.configured)
         allow_rc4_session_if_needed(cls.master, cls.expected)
         tasks.install_master(cls.master, setup_dns=False)
+        cls.master.run_command(['echo', 'skip_keytab_rotation = True', '>>', IPA_CONFIG])
 
     def test_initial_tgs_keytypes(self):
         realm = self.master.domain.realm

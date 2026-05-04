@@ -329,7 +329,7 @@ on its next start.
 
 ### Configuration
 
-No option to disable this feature.
+Feature can be disabled by setting `skip_keytab_rotation = True` in `/etc/ipa/default.conf`.
 
 ## Upgrade
 

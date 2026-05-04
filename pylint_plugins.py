@@ -491,6 +491,7 @@ AstroidBuilder(MANAGER).string_build(textwrap.dedent(
     api.env.server = ''
     api.env.script = ''  # object
     api.env.site_packages = ''  # object
+    api.env.skip_keytab_rotation = False
     api.env.skip_version_check = False
     api.env.smb_princ = ''
     api.env.startup_timeout = 0

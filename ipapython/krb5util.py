@@ -463,6 +463,10 @@ def check_and_rotate_keytabs(instance, host: str, realm: str) -> bool:
     :rtype: bool
     """
 
+    if instance.api.env.skip_keytab_rotation:
+        logger.info("Skipping keytab rotation")
+        return False
+
     krbmaxrenewableage = _get_krbmaxrenewableage(instance)
     permitted_types = _get_krb_permitted_types()
 
