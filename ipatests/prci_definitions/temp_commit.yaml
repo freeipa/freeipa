@@ -69,14 +69,41 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
+  fedora-latest/test_commands:
     requires: [fedora-latest/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_commands.py
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 5400
+        topology: *master_1repl_1client
+
+  fedora-rawhide/build:
+    requires: []
+    priority: 100
+    job:
+      class: Build
+      args:
+        git_repo: '{git_repo}'
+        git_refspec: '{git_refspec}'
+        template: &ci-master-frawhide
+          name: freeipa/ci-master-frawhide
+          version: 0.10.1
+        timeout: 1800
+        topology: *build
+
+  fedora-rawhide/test_commands:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_commands.py
+        template: *ci-master-frawhide
+        timeout: 5400
         topology: *master_1repl_1client
