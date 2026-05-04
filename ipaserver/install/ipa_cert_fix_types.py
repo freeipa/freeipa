@@ -16,7 +16,6 @@ from enum import Enum
 from typing import Optional
 
 from ipaplatform.paths import paths
-from ipapython.dn import DN
 
 
 @dataclass(frozen=True)
@@ -181,8 +180,8 @@ class CertFixContext:
     """
     deployment_type: DeploymentType
     scenario: FixScenario
-    subject_base: DN
-    ca_subject_dn: DN
+    subject_base: 'DN'
+    ca_subject_dn: 'DN'
     dogtag_certs: list
     ipa_certs: list
     external_certs: list
