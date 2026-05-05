@@ -343,17 +343,16 @@ class TestInstallCA(IntegrationTest):
                     '-d', paths.NSS_DB_DIR, '-n', 'test', '-W', pkcs_passwd]
         self.master.run_command(cmd_args)
 
-        # add softhsm lib
+        # add kryoptic lib
         cmd_args = ['modutil', '-dbdir', paths.NSS_DB_DIR, '-add',
-                    'softhsm', '-libfile', '/usr/lib64/softhsm/libsofthsm.so']
+                    'kryoptic', '-libfile', paths.LIBKRYOPTIC_SO]
         self.master.run_command(cmd_args, stdin_text="\n\n")
 
         # create a token
-        cmd_args = ['softhsm2-util', '--init-token', '--label', 'test',
-                    '--pin', pin, '--so-pin', pin, '--free']
+        cmd_args = ['pkcs11-tool', '--module', paths.LIBKRYOPTIC_SO,
+                    '--init-token', '--label', 'test',
+                    '--so-pin', pin, '--init-pin', '--pin', pin]
         self.master.run_command(cmd_args)
-
-        self.master.run_command(['softhsm2-util', '--show-slots'])
 
         cmd_args = ['certutil', '-F', '-d', paths.NSS_DB_DIR, '-n', 'test']
         self.master.run_command(cmd_args)
@@ -972,13 +971,14 @@ class TestInstallMaster(IntegrationTest):
             ['trust', 'list'],
             raiseonerr=False).stdout_text
 
-    def test_p11_kit_softhsm2(self):
-        # check that p11-kit-proxy does not inject SoftHSM2
+    def test_p11_kit_kryoptic(self):
+        # check that p11-kit-proxy does not inject Kryoptic
         result = self.master.run_command([
             "modutil", "-dbdir", paths.PKI_TOMCAT_ALIAS_DIR, "-list"
         ])
-        assert "softhsm" not in result.stdout_text.lower()
+        assert "kryoptic" not in result.stdout_text.lower()
         assert "opendnssec" not in result.stdout_text.lower()
+        assert "softhsm" not in result.stdout_text.lower()
 
     @pytest.mark.skipif(
         not platformtasks.is_selinux_enabled(),

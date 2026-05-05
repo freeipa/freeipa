@@ -48,12 +48,13 @@ hsm_lib_path = ''
 if config.token_library:
     hsm_lib_path = config.token_library
 else:
-    hsm_lib_path = '/usr/lib64/pkcs11/libsofthsm2.so'
+    hsm_lib_path = paths.LIBKRYOPTIC_SO
 
 
 def get_hsm_token(host):
-    """Helper method to get an hsm token
-    This method creates a softhsm token if the hsm hardware
+    """Helper method to get an hsm token.
+
+    This method creates a kryoptic token if the hsm hardware
     token is not found.
     """
     if host.config.token_name:
@@ -65,15 +66,11 @@ def get_hsm_token(host):
     token_passwd = ''.join(
         random.choice(string.ascii_letters) for i in range(10)
     )
-    # remove the token if already exist
     host.run_command(
-        ['softhsm2-util', '--delete-token', '--token', token_name],
-        raiseonerr=False
-    )
-    host.run_command(
-        ['runuser', '-u', 'pkiuser', '--', 'softhsm2-util', '--init-token',
-         '--free', '--pin', token_passwd, '--so-pin', token_passwd,
-         '--label', token_name]
+        ['runuser', '-u', 'pkiuser', '--',
+         'pkcs11-tool', '--module', hsm_lib_path,
+         '--init-token', '--label', token_name,
+         '--so-pin', token_passwd, '--init-pin', '--pin', token_passwd]
     )
     return (token_name, token_passwd)
 
@@ -81,22 +78,24 @@ def get_hsm_token(host):
 def delete_hsm_token(hosts, token_name):
     for host in hosts:
         if host.config.token_name:
-            # assumption: for time being /root/cleantoken.sh is copied
-            # host manually. This should be removed in final iteration.
+            # Hardware HSM: cleantoken.sh iterates over the NSS database
+            # and removes keys and certs from the HSM token.
             host.run_command(['sh', '/root/cleantoken.sh'])
         else:
+            kryoptic_db = os.path.join(
+                paths.DNSSEC_TOKENS_DIR, 'kryoptic.sql')
             host.run_command(
-                ['softhsm2-util', '--delete-token', '--token', token_name],
+                ['rm', '-f', kryoptic_db, paths.DNSSEC_KRYOPTIC_CONF],
                 raiseonerr=False
             )
 
 
-def find_softhsm_token_files(host, token):
+def find_kryoptic_token_files(host, token):
     if not host.transport.file_exists(paths.PKI_TOMCAT_ALIAS_DIR):
         return None, []
 
     result = host.run_command([
-        paths.MODUTIL, '-list', 'libsofthsm2',
+        paths.MODUTIL, '-list', 'kryoptic',
         '-dbdir', paths.PKI_TOMCAT_ALIAS_DIR
     ])
 
@@ -114,32 +113,22 @@ def find_softhsm_token_files(host, token):
             break
 
     if serial is None:
-        raise RuntimeError("can't find softhsm token serial for %s"
+        raise RuntimeError("can't find kryoptic token serial for %s"
                            % token)
 
-    result = host.run_command(
-        ['ls', '-l', '/var/lib/softhsm/tokens/'])
-    serialdir = None
-    for r in result.stdout_text.split('\n'):
-        if serial in r:
-            dirname = r.split()[-1:][0]
-            serialdir = f'/var/lib/softhsm/tokens/{dirname}'
-            break
-    if serialdir is None:
-        raise RuntimeError("can't find softhsm token directory for %s"
-                           % serial)
-    result = host.run_command(['ls', '-1', serialdir])
-    return serialdir, [
-        os.path.join(serialdir, file)
-        for file in result.stdout_text.strip().split('\n')
-    ]
+    kryoptic_db = os.path.join(paths.DNSSEC_TOKENS_DIR, "kryoptic.sql")
+    if host.transport.file_exists(kryoptic_db):
+        return os.path.dirname(kryoptic_db), [kryoptic_db]
+
+    raise RuntimeError("can't find kryoptic token database for %s"
+                       % serial)
 
 
 def copy_token_files(src_host, dest_host, token_name):
     """Helper method to copy the token files to replica"""
     # copy the token files to replicas
     if not src_host.config.token_name:
-        serialdir, token_files = find_softhsm_token_files(
+        serialdir, token_files = find_kryoptic_token_files(
             src_host, token_name
         )
         if serialdir:
@@ -169,7 +158,7 @@ class BaseHSMTest(IntegrationTest):
     @classmethod
     def install(cls, mh):
         check_version(cls.master)
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
@@ -320,7 +309,7 @@ class TestHSMInstallPasswordFile(BaseHSMTest):
     @classmethod
     def install(cls, mh):
         check_version(cls.master)
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
         cls.master.put_file_contents(
@@ -452,7 +441,7 @@ class TestHSMCALessToExternalToSelfSignedCA(CALessBase, BaseHSMTest):
     def install(cls, mh):
         check_version(cls.master)
         super(TestHSMCALessToExternalToSelfSignedCA, cls).install(mh)
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
@@ -549,7 +538,7 @@ class TestHSMExternalToSelfSignedCA(BaseHSMTest):
     @classmethod
     def install(cls, mh):
         check_version(cls.master)
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
@@ -830,7 +819,7 @@ class TestHSMNegative(IntegrationTest):
     @classmethod
     def install(cls, mh):
         check_version(cls.master)
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
@@ -838,10 +827,7 @@ class TestHSMNegative(IntegrationTest):
     @classmethod
     def uninstall(cls, mh):
         check_version(cls.master)
-        cls.master.run_command(
-            ['softhsm2-util', '--delete-token', '--token', cls.token_name],
-            raiseonerr=False
-        )
+        delete_hsm_token([cls.master], cls.token_name)
 
     def test_hsm_negative_wrong_token_details(self):
         check_version(self.master)
@@ -879,7 +865,7 @@ class TestHSMNegative(IntegrationTest):
         assert result.returncode != 0
 
     def test_hsm_negative_bad_token_dir_permissions(self):
-        """Create an unreadable softhsm2 token and install should fail.
+        """Create an unreadable token and install should fail.
 
            This is most often seen on replicas where the pkiuser is not
            a member of the ods group.
@@ -888,16 +874,12 @@ class TestHSMNegative(IntegrationTest):
         token_name = 'bad_perms'
         token_passwd = 'Secret123'
         self.master.run_command(
-            ['softhsm2-util', '--delete-token', '--token', token_name],
-            raiseonerr=False
-        )
-        self.master.run_command(
             ['usermod', 'pkiuser', '-a', '-G', 'ods']
         )
         self.master.run_command(
-            ['softhsm2-util', '--init-token',
-             '--free', '--pin', token_passwd, '--so-pin', token_passwd,
-             '--label', token_name]
+            ['pkcs11-tool', '--module', hsm_lib_path,
+             '--init-token', '--label', token_name,
+             '--so-pin', token_passwd, '--init-pin', '--pin', token_passwd]
         )
         self.master.run_command(
             ['gpasswd', '-d', 'pkiuser', 'ods']
@@ -913,8 +895,10 @@ class TestHSMNegative(IntegrationTest):
         self.master.run_command(
             ['usermod', 'pkiuser', '-a', '-G', 'ods']
         )
+        kryoptic_db = os.path.join(
+            paths.DNSSEC_TOKENS_DIR, 'kryoptic.sql')
         self.master.run_command(
-            ['softhsm2-util', '--delete-token', '--token', token_name],
+            ['rm', '-f', kryoptic_db],
             raiseonerr=False
         )
         assert result.returncode != 0
@@ -928,13 +912,10 @@ class TestHSMNegative(IntegrationTest):
         token_name = 'hsm:token'
         token_passwd = 'Secret123'
         self.master.run_command(
-            ['softhsm2-util', '--delete-token', '--token', token_name],
-            raiseonerr=False
-        )
-        self.master.run_command(
-            ['runuser', '-u', 'pkiuser', '--', 'softhsm2-util', '--init-token',
-             '--free', '--pin', token_passwd, '--so-pin', token_passwd,
-             '--label', token_name]
+            ['runuser', '-u', 'pkiuser', '--',
+             'pkcs11-tool', '--module', hsm_lib_path,
+             '--init-token', '--label', token_name,
+             '--so-pin', token_passwd, '--init-pin', '--pin', token_passwd]
         )
 
         # special character in token name
@@ -967,8 +948,10 @@ class TestHSMNegative(IntegrationTest):
                 '--token-password-file', self.token_password_file
             )
         )
+        kryoptic_db = os.path.join(
+            paths.DNSSEC_TOKENS_DIR, 'kryoptic.sql')
         self.master.run_command(
-            ['softhsm2-util', '--delete-token', '--token', self.token_name],
+            ['rm', '-f', kryoptic_db],
             raiseonerr=False
         )
         # assert 'error message non existing token lib' in result.stderr_text
@@ -987,7 +970,7 @@ class TestHSMACME(CALessBase):
         # install packages before client install in case of IPA DNS problems
         cls.acme_server = prepare_acme_client(cls.master, cls.clients[0])
 
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
@@ -1165,7 +1148,7 @@ class TestHSMACMEPrune(IntegrationTest):
         # install packages before client install in case of IPA DNS problems
         cls.acme_server = prepare_acme_client(cls.master, cls.clients[0])
 
-        # Enable pkiuser to read softhsm tokens
+        # Enable pkiuser to read HSM tokens
         cls.master.run_command(['usermod', 'pkiuser', '-a', '-G', 'ods'])
 
         cls.token_name, cls.token_password = get_hsm_token(cls.master)
