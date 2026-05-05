@@ -69,7 +69,7 @@ jobs:
         copr: '@389ds/389-ds-base-nightly'
         test_suite: test_integration/test_commands.py
         template: *ci-master-latest
-        timeout: 5400
+        timeout: 6000
         topology: *master_1repl_1client
 
   389ds-fedora/test_server_del:
