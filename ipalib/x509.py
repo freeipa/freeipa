@@ -35,21 +35,13 @@ import os
 import binascii
 import datetime
 import enum
-import ipaddress
-import base64
 import re
 
-from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import (
-    Encoding, PublicFormat, PrivateFormat, load_pem_private_key
-)
-import pyasn1
-import pyasn1.error
-from pyasn1.type import univ, char, namedtype, tag
-from pyasn1.codec.der import decoder, encoder
-from pyasn1_modules import rfc2315, rfc2459
+import synta
+import synta.general_name as gn
+import synta.krb5 as _krb5
+import synta.oids
+import synta.oids.attr as name_oids
 import six
 
 try:
@@ -58,7 +50,7 @@ except ImportError:
     from urllib3.packages import ssl_match_hostname
 
 from ipalib import errors
-from ipapython.dnsutil import DNSName
+from ipapython.dnsutil import DNSName as _IPADnsName
 
 PEM = 0
 DER = 1
@@ -75,143 +67,156 @@ PEM_PRIV_REGEX = re.compile(
     b'-----END(?: ENCRYPTED)?(?: (?:RSA|DSA|DH|EC))? PRIVATE KEY-----',
     re.DOTALL)
 
-EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
-EKU_CLIENT_AUTH = '1.3.6.1.5.5.7.3.2'
-EKU_CODE_SIGNING = '1.3.6.1.5.5.7.3.3'
-EKU_EMAIL_PROTECTION = '1.3.6.1.5.5.7.3.4'
-EKU_PKINIT_CLIENT_AUTH = '1.3.6.1.5.2.3.4'
-EKU_PKINIT_KDC = '1.3.6.1.5.2.3.5'
-EKU_ANY = '2.5.29.37.0'
+
+class Encoding(enum.Enum):
+    """Encoding sentinel used by public_bytes()."""
+    PEM = "PEM"
+    DER = "DER"
+
+
+EKU_SERVER_AUTH = str(synta.oids.KP_SERVER_AUTH)
+EKU_CLIENT_AUTH = str(synta.oids.KP_CLIENT_AUTH)
+EKU_CODE_SIGNING = str(synta.oids.KP_CODE_SIGNING)
+EKU_EMAIL_PROTECTION = str(synta.oids.KP_EMAIL_PROTECTION)
+EKU_PKINIT_CLIENT_AUTH = str(synta.oids.PKINIT_KP_CLIENT_AUTH)
+EKU_PKINIT_KDC = str(synta.oids.PKINIT_KP_KDC)
+EKU_ANY = str(synta.oids.ANY_EXTENDED_KEY_USAGE)
 EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
 
-SAN_UPN = '1.3.6.1.4.1.311.20.2.3'
-SAN_KRB5PRINCIPALNAME = '1.3.6.1.5.2.2'
+SAN_UPN = str(synta.oids.MS_SAN_UPN)
+SAN_KRB5PRINCIPALNAME = str(synta.oids.PKINIT_SAN)
+
+
+# GeneralName types — re-export synta.general_name types for convenience.
+# Callers that previously imported from ipalib.x509 continue to work.
+# Note: ipapython.dnsutil.DNSName is imported above as _IPADnsName to avoid
+# shadowing this alias.
+OtherName = gn.OtherName
+RFC822Name = gn.RFC822Name
+DNSName = gn.DNSName
+DirectoryName = gn.DirectoryName
+UniformResourceIdentifier = gn.UniformResourceIdentifier
+IPAddress = gn.IPAddress
+RegisteredID = gn.RegisteredID
 
 
 class IPACertificate:
     """
-    A proxy class wrapping a python-cryptography certificate representation for
-    IPA purposes
+    A proxy class wrapping a synta.Certificate representation for IPA purposes.
     """
-    def __init__(self, cert, backend=None):
+    def __init__(self, cert):
         """
-        :param cert: A python-cryptography Certificate object
-        :param backend: A python-cryptography Backend object
+        :param cert: A synta.Certificate object.
         """
-        self._cert = cert
-        self.backend = default_backend() if backend is None else backend()
+        self._synta_cert = cert
 
-        # initialize the certificate fields
-        # we have to do it this way so that some systems don't explode since
-        # some field types encode-decoding is not strongly defined
-        self._subject = self.__get_der_field('subject')
-        self._issuer = self.__get_der_field('issuer')
-        self._serial_number = self.__get_der_field('serialNumber')
+        self._subject = self._synta_cert.subject_raw_der
+        self._issuer = self._synta_cert.issuer_raw_der
+        enc = synta.Encoder(synta.Encoding.DER)
+        enc.encode_integer(self._synta_cert.serial_number)
+        self._serial_number = enc.finish()
 
-        if self.version.name != 'v3':
-            raise ValueError('X.509 %s is not supported' %
-                             self.version.name)
+        # X.509 version field: v3 is encoded as integer 2
+        if self._synta_cert.version != 2:
+            raise ValueError(
+                'X.509 v%d is not supported'
+                % ((self._synta_cert.version or 0) + 1))
 
     def __getstate__(self):
-        state = {
-            '_cert': self.public_bytes(Encoding.DER),
-            '_subject': self.subject_bytes,
-            '_issuer': self.issuer_bytes,
+        return {
+            '_cert': self._synta_cert.to_der(),
+            '_subject': self._subject,
+            '_issuer': self._issuer,
             '_serial_number': self._serial_number,
         }
-        return state
 
     def __setstate__(self, state):
         self._subject = state['_subject']
         self._issuer = state['_issuer']
-        self._issuer = state['_serial_number']
-        self._cert = crypto_x509.load_der_x509_certificate(
-            state['_cert'], backend=default_backend())
+        self._serial_number = state['_serial_number']
+        self._synta_cert = synta.Certificate.from_der(state['_cert'])
 
     def __eq__(self, other):
-        """
-        Checks equality.
-
-        :param other: either cryptography.Certificate or IPACertificate or
-                      bytes representing a DER-formatted certificate
-        """
-        if (isinstance(other, (crypto_x509.Certificate, IPACertificate))):
-            return (self.public_bytes(Encoding.DER) ==
-                    other.public_bytes(Encoding.DER))
+        if isinstance(other, IPACertificate):
+            return self._synta_cert.to_der() == other._synta_cert.to_der()
         elif isinstance(other, bytes):
-            return self.public_bytes(Encoding.DER) == other
+            return self._synta_cert.to_der() == other
         else:
             return False
 
     def __ne__(self, other):
-        """
-        Checks not equal.
-        """
         return not self.__eq__(other)
 
     def __hash__(self):
-        """
-        Computes a hash of the wrapped cryptography.Certificate.
-        """
-        return hash(self._cert)
+        return hash(self._synta_cert.to_der())
 
     def __encode_extension(self, oid, critical, value):
-        # TODO: have another proxy for crypto_x509.Extension which would
-        # provide public_bytes on the top of what python-cryptography has
-        ext = rfc2459.Extension()
-        # TODO: this does not have to be so weird, pyasn1 now has codecs
-        # which are capable of providing python-native types
-        ext['extnID'] = univ.ObjectIdentifier(oid)
-        ext['critical'] = univ.Boolean(critical)
-        if pyasn1.__version__.startswith('0.3'):
-            # pyasn1 <= 0.3.7 needs explicit encoding
-            # see https://pagure.io/freeipa/issue/7685
-            value = encoder.encode(univ.OctetString(value))
-        ext['extnValue'] = univ.Any(value)
-        ext = encoder.encode(ext)
-        return ext
-
-    def __get_pyasn1_field(self, field):
-        """
-        :returns: a field of the certificate in pyasn1 representation
-        """
-        cert_bytes = self.tbs_certificate_bytes
-        cert = decoder.decode(cert_bytes, rfc2459.TBSCertificate())[0]
-        field = cert[field]
-        return field
-
-    def __get_der_field(self, field):
-        """
-        :field: the name of the field of the certificate
-        :returns: bytes representing the value of a certificate field
-        """
-        return encoder.encode(self.__get_pyasn1_field(field))
+        # Extension ::= SEQUENCE { extnID OID, critical BOOLEAN DEFAULT FALSE,
+        #                          extnValue OCTET STRING }
+        inner = synta.Encoder(synta.Encoding.DER)
+        inner.encode_oid(oid)
+        if critical:
+            inner.encode_boolean(True)
+        inner.encode_octet_string(value)
+        outer = synta.Encoder(synta.Encoding.DER)
+        outer.encode_sequence(inner.finish())
+        return outer.finish()
 
     def public_bytes(self, encoding):
         """
         Serializes the certificate to PEM or DER format.
+
+        *encoding* may be an ``Encoding`` enum value or a plain string
+        ``"PEM"`` / ``"DER"``.
         """
-        return self._cert.public_bytes(encoding)
+        enc_val = encoding.value if isinstance(encoding, Encoding) else encoding
+        if enc_val == "PEM":
+            return synta.Certificate.to_pem(self._synta_cert)
+        return self._synta_cert.to_der()
 
     def is_self_signed(self):
         """
         :returns: True if this certificate is self-signed, False otherwise
         """
-        return self._cert.issuer == self._cert.subject
+        return synta.name_der_equal(
+            self._synta_cert.subject_raw_der,
+            self._synta_cert.issuer_raw_der,
+        )
 
     def fingerprint(self, algorithm):
         """
-        Counts fingerprint of the wrapped cryptography.Certificate
+        Compute a fingerprint of the certificate.
+
+        *algorithm* may be a string (``"sha256"``) or a
+        any object with a ``.name`` attribute (e.g. ``hashes.SHA256()``).
         """
-        return self._cert.fingerprint(algorithm)
+        if isinstance(algorithm, str):
+            algo = algorithm.lower()
+        else:
+            algo = getattr(algorithm, 'name', str(algorithm)).lower()
+        return self._synta_cert.fingerprint(algo)
+
+    def get_extension_value_der(self, oid):
+        """Return the raw DER value bytes of the named extension, or None."""
+        return self._synta_cert.get_extension_value_der(oid)
 
     @property
     def cert(self):
-        return self._cert
+        """The underlying synta.Certificate object."""
+        return self._synta_cert
+
+    def to_pyca(self):
+        """Return a ``cryptography.x509.Certificate`` (PyCA) object.
+
+        Use this when passing the certificate to a Dogtag or other third-party
+        API that requires a PyCA object (e.g.
+        ``pki.crypto.CryptographyCryptoProvider``).
+        """
+        return self._synta_cert.to_pyca()
 
     @property
     def serial_number(self):
-        return self._cert.serial_number
+        return self._synta_cert.serial_number
 
     @property
     def serial_number_bytes(self):
@@ -219,118 +224,95 @@ class IPACertificate:
 
     @property
     def version(self):
-        return self._cert.version
+        """X.509 version as an integer (v3 = 2)."""
+        return self._synta_cert.version
 
     @property
     def subject(self):
-        return self._cert.subject
+        """DER bytes of the subject Name SEQUENCE."""
+        return self._subject
 
     @property
     def subject_bytes(self):
         return self._subject
 
     @property
-    def signature_hash_algorithm(self):
-        """
-        Returns a HashAlgorithm corresponding to the type of the digest signed
-        in the certificate.
-        """
-        return self._cert.signature_hash_algorithm
-
-    @property
-    def signature_algorithm_oid(self):
-        """
-        Returns the ObjectIdentifier of the signature algorithm.
-        """
-        return self._cert.signature_algorithm_oid
-
-    if hasattr(crypto_x509.Certificate, "signature_algorithm_parameters"):
-        # added in python-cryptography 41.0
-        @property
-        def signature_algorithm_parameters(self):
-            return self._cert.signature_algorithm_parameters
-
-    @property
-    def signature(self):
-        """
-        Returns the signature bytes.
-        """
-        return self._cert.signature
-
-    @property
     def issuer(self):
-        return self._cert.issuer
+        """DER bytes of the issuer Name SEQUENCE."""
+        return self._issuer
 
     @property
     def issuer_bytes(self):
         return self._issuer
 
     @property
+    def signature_hash_algorithm(self):
+        """
+        Returns the hash algorithm name string used to sign the certificate,
+        or None for algorithms without a separate hash (e.g. Ed25519).
+        """
+        return self._synta_cert.signature_hash_algorithm_name
+
+    @property
+    def signature_algorithm_oid(self):
+        """Returns the synta.ObjectIdentifier of the signature algorithm."""
+        return self._synta_cert.signature_algorithm_oid
+
+    @property
+    def signature_algorithm_parameters(self):
+        """Raw DER bytes of signature algorithm parameters, or None."""
+        return self._synta_cert.signature_algorithm_params
+
+    @property
+    def signature(self):
+        """Returns the signature bytes."""
+        return self._synta_cert.signature_value
+
+    @property
     def not_valid_before(self):
-        return self._cert.not_valid_before.replace(tzinfo=datetime.timezone.utc)
+        return self._synta_cert.not_before_utc
 
     @property
     def not_valid_after(self):
-        return self._cert.not_valid_after.replace(tzinfo=datetime.timezone.utc)
+        return self._synta_cert.not_after_utc
 
-    if hasattr(crypto_x509.Certificate, "not_valid_before_utc"):
-        # added in python-cryptography 42.0.0
-        @property
-        def not_valid_before_utc(self):
-            return self._cert.not_valid_before_utc
+    @property
+    def not_valid_before_utc(self):
+        return self._synta_cert.not_before_utc
 
-        @property
-        def not_valid_after_utc(self):
-            return self._cert.not_valid_after_utc
-    else:
-        @property
-        def not_valid_before_utc(self):
-            return self._cert.not_valid_before.replace(
-                tzinfo=datetime.timezone.utc
-            )
+    @property
+    def not_valid_after_utc(self):
+        return self._synta_cert.not_after_utc
 
-        @property
-        def not_valid_after_utc(self):
-            return self._cert.not_valid_after.replace(
-                tzinfo=datetime.timezone.utc
-            )
-
-    if hasattr(crypto_x509.Certificate, "public_key_algorithm_oid"):
-        # added in python-cryptography 43.0.0
-        @property
-        def public_key_algorithm_oid(self):
-            """
-            Returns the ObjectIdentifier of the public key.
-            """
-            return self._cert.public_key_algorithm_oid
+    @property
+    def public_key_algorithm_oid(self):
+        """Returns the synta.ObjectIdentifier of the public key algorithm."""
+        return self._synta_cert.public_key_algorithm_oid
 
     @property
     def tbs_certificate_bytes(self):
-        return self._cert.tbs_certificate_bytes
-
-    @property
-    def extensions(self):
-        # TODO: own Extension and Extensions classes proxying
-        # python-cryptography
-        return self._cert.extensions
+        return self._synta_cert.tbs_certificate_der
 
     def public_key(self):
-        return self._cert.public_key()
+        """Return the public key as a synta.PublicKey object."""
+        return synta.PublicKey.from_der(
+            self._synta_cert.subject_public_key_info_der)
 
     @property
     def public_key_info_bytes(self):
-        return self._cert.public_key().public_bytes(
-            encoding=Encoding.DER, format=PublicFormat.SubjectPublicKeyInfo)
+        return self._synta_cert.subject_public_key_info_der
 
     @property
     def extended_key_usage(self):
-        try:
-            ext_key_usage = self._cert.extensions.get_extension_for_oid(
-                crypto_x509.oid.ExtensionOID.EXTENDED_KEY_USAGE).value
-        except crypto_x509.ExtensionNotFound:
+        eku_der = self._synta_cert.get_extension_value_der(
+            synta.oids.EXTENDED_KEY_USAGE)
+        if eku_der is None:
             return None
-
-        return set(oid.dotted_string for oid in ext_key_usage)
+        seq = synta.Decoder(eku_der, synta.Encoding.DER).decode_sequence()
+        oids = set()
+        while not seq.is_empty():
+            oids.add(str(seq.decode_oid()))
+        return oids
 
     @property
     def extended_key_usage_bytes(self):
@@ -338,134 +320,74 @@ class IPACertificate:
         if eku is None:
             return None
 
-        ekurfc = rfc2459.ExtKeyUsageSyntax()
-        for i, oid in enumerate(sorted(eku)):
-            ekurfc[i] = univ.ObjectIdentifier(oid)
-        ekurfc = encoder.encode(ekurfc)
-        return self.__encode_extension('2.5.29.37', EKU_ANY not in eku, ekurfc)
+        # ExtKeyUsageSyntax ::= SEQUENCE SIZE (1..MAX) OF KeyPurposeId
+        inner = synta.Encoder(synta.Encoding.DER)
+        for oid in sorted(eku):
+            inner.encode_oid(synta.ObjectIdentifier(oid))
+        outer = synta.Encoder(synta.Encoding.DER)
+        outer.encode_sequence(inner.finish())
+        ekurfc = outer.finish()
+        return self.__encode_extension(
+            synta.oids.EXTENDED_KEY_USAGE, EKU_ANY not in eku, ekurfc)
 
     @property
     def san_general_names(self):
         """
-        Return SAN general names from a python-cryptography
-        certificate object.  If the SAN extension is not present,
-        return an empty sequence.
+        Return SAN general names as typed ``synta.general_name`` objects.
+        If the SAN extension is not present, return an empty list.
 
-        Because python-cryptography does not yet provide a way to
-        handle unrecognised critical extensions (which may occur),
-        we must parse the certificate and extract the General Names.
-        For uniformity with other code, we manually construct values
-        of python-crytography GeneralName subtypes.
-
-        python-cryptography does not yet provide types for
-        ediPartyName or x400Address, so we drop these name types.
-
-        otherNames are NOT instantiated to more specific types where
-        the type is known.  Use ``process_othernames`` to do that.
-
-        When python-cryptography can handle certs with unrecognised
-        critical extensions and implements ediPartyName and
-        x400Address, this function (and helpers) will be redundant
-        and should go away.
-
+        OtherName types are NOT resolved to more specific types here.
+        Use ``process_othernames`` to do that.
         """
-        gns = self.__pyasn1_get_san_general_names()
-
-        GENERAL_NAME_CONSTRUCTORS = {
-            'rfc822Name': lambda x: crypto_x509.RFC822Name(str(x)),
-            'dNSName': lambda x: crypto_x509.DNSName(str(x)),
-            'directoryName': _pyasn1_to_cryptography_directoryname,
-            'registeredID': _pyasn1_to_cryptography_registeredid,
-            'iPAddress': _pyasn1_to_cryptography_ipaddress,
-            'uniformResourceIdentifier':
-                lambda x: crypto_x509.UniformResourceIdentifier(
-                    str(x)),
-            'otherName': _pyasn1_to_cryptography_othername,
-        }
-
-        result = []
-
-        for gn in gns:
-            gn_type = gn.getName()
-            if gn_type in GENERAL_NAME_CONSTRUCTORS:
-                result.append(
-                    GENERAL_NAME_CONSTRUCTORS[gn_type](gn.getComponent()))
-
-        return result
-
-    def __pyasn1_get_san_general_names(self):
-        # pyasn1 returns None when the key is not present in the certificate
-        # but we need an iterable
-        extensions = self.__get_pyasn1_field('extensions') or []
-        OID_SAN = univ.ObjectIdentifier('2.5.29.17')
-        gns = []
-        for ext in extensions:
-            if ext['extnID'] == OID_SAN:
-                der = ext['extnValue']
-                if pyasn1.__version__.startswith('0.3'):
-                    # pyasn1 <= 0.3.7 needs explicit unwrap of ANY container
-                    # see https://pagure.io/freeipa/issue/7685
-                    der = decoder.decode(der, asn1Spec=univ.OctetString())[0]
-                gns = decoder.decode(der, asn1Spec=rfc2459.SubjectAltName())[0]
-                break
-        return gns
+        return list(self._synta_cert.subject_alt_names())
 
     @property
     def san_a_label_dns_names(self):
-        gns = self.__pyasn1_get_san_general_names()
-        result = []
-
-        for gn in gns:
-            if gn.getName() == 'dNSName':
-                result.append(str(gn.getComponent()))
-
-        return result
+        return [item.value for item in self.san_general_names
+                if isinstance(item, gn.DNSName)]
 
     def match_hostname(self, hostname):
         # The caller is expected to catch any exceptions
         match_cert = {}
 
         match_cert['subject'] = match_subject = []
-        for rdn in self._cert.subject.rdns:
-            match_rdn = []
-            for ava in rdn:
-                if ava.oid == crypto_x509.oid.NameOID.COMMON_NAME:
-                    match_rdn.append(('commonName', ava.value))
-            match_subject.append(match_rdn)
+        cn_oid = str(name_oids.COMMON_NAME)
+        for oid_str, val in synta.parse_name_attrs(self._subject):
+            if oid_str == cn_oid:
+                match_subject.append([('commonName', val)])
 
         values = self.san_a_label_dns_names
         if values:
-            match_cert['subjectAltName'] = match_san = []
-            for value in values:
-                match_san.append(('DNS', value))
+            match_cert['subjectAltName'] = [('DNS', v) for v in values]
 
         ssl_match_hostname.match_hostname(
-            match_cert, DNSName(hostname).ToASCII()
+            match_cert, _IPADnsName(hostname).ToASCII()
         )
 
-    # added in python-cryptography 38.0
-    @property
-    def tbs_precertificate_bytes(self):
-        return self._cert.tbs_precertificate_bytes
+    def verify_directly_issued_by(self, issuer):
+        if isinstance(issuer, IPACertificate):
+            return self._synta_cert.verify_issued_by(issuer._synta_cert)
+        return self._synta_cert.verify_issued_by(issuer)
 
-    if hasattr(crypto_x509.Certificate, "verify_directly_issued_by"):
-        # added in python-cryptography 40.0
-        def verify_directly_issued_by(self, issuer):
-            return self._cert.verify_directly_issued_by(issuer)
+
 
 
 def load_pem_x509_certificate(data):
     """
     Load an X.509 certificate in PEM format.
 
+    Loads the first certificate when the PEM data contains multiple blocks,
+    matching the behaviour of ``cryptography.x509.load_pem_x509_certificate``.
+
     :returns: a ``IPACertificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
     """
     if isinstance(data, IPACertificate):
         return data
-    return IPACertificate(
-        crypto_x509.load_pem_x509_certificate(data, backend=default_backend())
-    )
+    result = synta.Certificate.from_pem(data)
+    if isinstance(result, list):
+        result = result[0]
+    return IPACertificate(result)
 
 
 def load_der_x509_certificate(data):
@@ -477,9 +399,7 @@ def load_der_x509_certificate(data):
     """
     if isinstance(data, IPACertificate):
         return data
-    return IPACertificate(
-        crypto_x509.load_der_x509_certificate(data, backend=default_backend())
-    )
+    return IPACertificate(synta.Certificate.from_der(data))
 
 
 def load_unknown_x509_certificate(data):
@@ -490,17 +410,20 @@ def load_unknown_x509_certificate(data):
     :returns: a ``IPACertificate`` object.
     :raises: ``ValueError`` if unable to load the certificate.
     """
-    try:
-        return load_pem_x509_certificate(data)
-    except ValueError:
-        return load_der_x509_certificate(data)
+    if isinstance(data, IPACertificate):
+        return data
+    blocks = synta.read_pki_blocks(data)
+    if not blocks:
+        raise ValueError("no certificate found in data")
+    _label, der = blocks[0]
+    return IPACertificate(synta.Certificate.from_der(der))
 
 
 def load_certificate_from_file(filename):
     """
     Load a certificate from a PEM file.
 
-    Returns a python-cryptography ``Certificate`` object.
+    Returns an ``IPACertificate`` object.
     """
     with open(filename, mode='rb') as f:
         return load_pem_x509_certificate(f.read())
@@ -510,18 +433,18 @@ def load_certificate_list(data):
     """
     Load a certificate list from a sequence of concatenated PEMs.
 
-    Return a list of python-cryptography ``Certificate`` objects.
+    Return a list of ``IPACertificate`` objects.
     """
-    certs = PEM_CERT_REGEX.findall(data)
-    return [load_pem_x509_certificate(cert[0]) for cert in certs]
+    return [IPACertificate(synta.Certificate.from_der(der))
+            for label, der in synta.read_pki_blocks(data)
+            if label == "CERTIFICATE"]
 
 
 def load_certificate_list_from_file(filename):
     """
     Load a certificate list from a PEM file.
 
-    Return a list of python-cryptography ``Certificate`` objects.
-
+    Return a list of ``IPACertificate`` objects.
     """
     with open(filename, 'rb') as f:
         return load_certificate_list(f.read())
@@ -534,24 +457,17 @@ def load_private_key_list(data, password=None):
     :param data: bytes containing the private keys
     :param password: bytes, the password to encrypted keys in the bundle
 
-    :returns: List of python-cryptography ``PrivateKey`` objects
+    :returns: List of ``synta.PrivateKey`` objects
     """
-    crypto_backend = default_backend()
     priv_keys = []
 
     for match in re.finditer(PEM_PRIV_REGEX, data):
-        if re.search(b"ENCRYPTED", match.group()) is not None:
-            if password is None:
-                raise RuntimeError("Password is required for the encrypted "
-                                   "keys in the bundle.")
-            # Load private key as encrypted
-            priv_keys.append(
-                load_pem_private_key(match.group(), password,
-                                     backend=crypto_backend))
-        else:
-            priv_keys.append(
-                load_pem_private_key(match.group(), None,
-                                     backend=crypto_backend))
+        is_encrypted = re.search(b"ENCRYPTED", match.group()) is not None
+        if is_encrypted and password is None:
+            raise RuntimeError("Password is required for the encrypted "
+                               "keys in the bundle.")
+        pw = password if is_encrypted else None
+        priv_keys.append(synta.PrivateKey.from_pem(match.group(), pw))
 
     return priv_keys
 
@@ -560,43 +476,19 @@ def pkcs7_to_certs(data, datatype=PEM):
     """
     Extract certificates from a PKCS #7 object.
 
+    *datatype* is accepted for API compatibility but is no longer used:
+    ``synta.read_pki_blocks`` auto-detects PEM, PKCS#7, PKCS#12, and raw DER.
+
     :returns: a ``list`` of ``IPACertificate`` objects.
     """
-    if datatype == PEM:
-        match = re.match(
-            br'-----BEGIN PKCS7-----(.*?)-----END PKCS7-----',
-            data,
-            re.DOTALL)
-        if not match:
-            raise ValueError("not a valid PKCS#7 PEM")
-
-        data = base64.b64decode(match.group(1))
-
-    content_info, tail = decoder.decode(data, rfc2315.ContentInfo())
-    if tail:
-        raise ValueError("not a valid PKCS#7 message")
-
-    if content_info['contentType'] != rfc2315.signedData:
-        raise ValueError("not a PKCS#7 signed data message")
-
-    signed_data, tail = decoder.decode(bytes(content_info['content']),
-                                       rfc2315.SignedData())
-    if tail:
-        raise ValueError("not a valid PKCS#7 signed data message")
-
-    result = []
-
-    for certificate in signed_data['certificates']:
-        certificate = encoder.encode(certificate)
-        certificate = load_der_x509_certificate(certificate)
-        result.append(certificate)
-
-    return result
+    return [IPACertificate(synta.Certificate.from_der(der))
+            for label, der in synta.read_pki_blocks(data)
+            if label == "CERTIFICATE"]
 
 
 def validate_pem_x509_certificate(cert):
     """
-    Perform cert validation by trying to load it via python-cryptography.
+    Perform cert validation by trying to load it.
     """
     try:
         load_pem_x509_certificate(cert)
@@ -606,7 +498,7 @@ def validate_pem_x509_certificate(cert):
 
 def validate_der_x509_certificate(cert):
     """
-    Perform cert validation by trying to load it via python-cryptography.
+    Perform cert validation by trying to load it.
     """
     try:
         load_der_x509_certificate(cert)
@@ -618,9 +510,8 @@ def write_certificate(cert, filename):
     """
     Write the certificate to a file in PEM format.
 
-    :param cert: cryptograpy ``Certificate`` object
+    :param cert: ``IPACertificate`` object
     """
-
     try:
         with open(filename, 'wb') as fp:
             fp.write(cert.public_bytes(Encoding.PEM))
@@ -635,7 +526,6 @@ def write_certificate_list(certs, filename, mode=None):
     :param certs: a list of IPACertificate objects to be written to a file
     :param filename: a path to the file the certificates should be written into
     """
-
     try:
         with open(filename, 'wb') as f:
             if mode is not None:
@@ -651,71 +541,21 @@ def write_pem_private_key(priv_key, filename, passwd=None):
     Write a private key to a file in PEM format. Will force 0x600 permissions
     on file.
 
-    :param priv_key: cryptography ``PrivateKey`` object
+    :param priv_key: ``synta.PrivateKey`` object
     :param passwd: ``bytes`` representing the password to store the
                     private key with
     """
-    if passwd is not None:
-        enc_alg = serialization.BestAvailableEncryption(passwd)
-    else:
-        enc_alg = serialization.NoEncryption()
     try:
         with open(filename, 'wb') as fp:
             os.fchmod(fp.fileno(), 0o600)
-            fp.write(priv_key.private_bytes(
-                Encoding.PEM,
-                PrivateFormat.PKCS8,
-                encryption_algorithm=enc_alg))
+            fp.write(priv_key.to_pem(password=passwd))
     except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 
 
-class _PrincipalName(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('name-type', univ.Integer().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
-        ),
-        namedtype.NamedType('name-string', univ.SequenceOf(char.GeneralString()).subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
-        ),
-    )
-
-
-class _KRB5PrincipalName(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('realm', char.GeneralString().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
-        ),
-        namedtype.NamedType('principalName', _PrincipalName().subtype(
-            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
-        ),
-    )
-
-
-def _decode_krb5principalname(data):
-    principal = decoder.decode(data, asn1Spec=_KRB5PrincipalName())[0]
-    realm = (str(principal['realm']).replace('\\', '\\\\')
-                                        .replace('@', '\\@'))
-    name = principal['principalName']['name-string']
-    name = u'/'.join(str(n).replace('\\', '\\\\')
-                               .replace('/', '\\/')
-                               .replace('@', '\\@') for n in name)
-    name = u'%s@%s' % (name, realm)
-    return name
-
-
-class KRB5PrincipalName(crypto_x509.general_name.OtherName):
-    def __init__(self, type_id, value):
-        super(KRB5PrincipalName, self).__init__(type_id, value)
-        self.name = _decode_krb5principalname(value)
-
-
-class UPN(crypto_x509.general_name.OtherName):
-    def __init__(self, type_id, value):
-        super(UPN, self).__init__(type_id, value)
-        self.name = str(
-            decoder.decode(value, asn1Spec=char.UTF8String())[0])
-
+# KRB5PrincipalName and UPN are provided by synta.krb5.
+KRB5PrincipalName = _krb5.Krb5PrincipalName
+UPN = _krb5.UPN
 
 OTHERNAME_CLASS_MAP = {
     SAN_KRB5PRINCIPALNAME: KRB5PrincipalName,
@@ -725,53 +565,62 @@ OTHERNAME_CLASS_MAP = {
 
 def process_othernames(gns):
     """
-    Process python-cryptography GeneralName values, yielding
-    OtherName values of more specific type if type is known.
+    Yield GeneralName objects, resolving ``OtherName`` entries whose type-id
+    is known to a more specific type (``KRB5PrincipalName`` or ``UPN``).
 
+    *gns* must be a list of typed ``synta.general_name`` objects as returned
+    by ``cert.san_general_names`` or ``cert.subject_alt_names()``.
     """
-    for gn in gns:
-        if isinstance(gn, crypto_x509.general_name.OtherName):
-            cls = OTHERNAME_CLASS_MAP.get(
-                gn.type_id.dotted_string,
-                crypto_x509.general_name.OtherName)
-            yield cls(gn.type_id, gn.value)
+    for item in gns:
+        if isinstance(item, gn.OtherName):
+            oid_str = str(item.type_id)
+            cls = OTHERNAME_CLASS_MAP.get(oid_str)
+            if cls is not None:
+                yield cls.from_der(item.value)
+            else:
+                yield item
         else:
-            yield gn
+            yield item
 
 
-def _pyasn1_to_cryptography_directoryname(dn):
-    attrs = []
-
-    # Name is CHOICE { RDNSequence } (only one possibility)
-    for rdn in dn.getComponent():
-        for ava in rdn:
-            attr = crypto_x509.NameAttribute(
-                _pyasn1_to_cryptography_oid(ava['type']),
-                str(decoder.decode(ava['value'])[0])
-            )
-            attrs.append(attr)
-
-    return crypto_x509.DirectoryName(crypto_x509.Name(attrs))
+# Module-level state for _parse_san_tuples: a throwaway EC key and name
+# used to wrap CSR SAN tuples into a temporary cert for typed GN parsing.
+_san_parse_key = None
+_san_parse_name = None
 
 
-def _pyasn1_to_cryptography_registeredid(oid):
-    return crypto_x509.RegisteredID(_pyasn1_to_cryptography_oid(oid))
+def _parse_san_tuples(san_tuples):
+    """Convert (tag, bytes) SAN tuples from
+    ``CertificationRequest.subject_alt_names()`` into typed
+    ``synta.general_name`` objects suitable for ``process_othernames()``.
 
-
-def _pyasn1_to_cryptography_ipaddress(octet_string):
-    return crypto_x509.IPAddress(
-        ipaddress.ip_address(bytes(octet_string)))
-
-
-def _pyasn1_to_cryptography_othername(on):
-    return crypto_x509.OtherName(
-        _pyasn1_to_cryptography_oid(on['type-id']),
-        bytes(on['value'])
-    )
-
-
-def _pyasn1_to_cryptography_oid(oid):
-    return crypto_x509.ObjectIdentifier(str(oid))
+    ``CertificationRequest.subject_alt_names()`` returns raw ``(int, bytes)``
+    tuples; this helper re-encodes them as a SAN extension DER value and
+    parses it through a throwaway certificate to obtain the same typed
+    ``synta.general_name`` objects that ``Certificate.general_names()``
+    produces.
+    """
+    global _san_parse_key, _san_parse_name
+    if _san_parse_key is None:
+        _san_parse_key = synta.PrivateKey.generate_ec('P-256')
+        _san_parse_name = (
+            synta.NameBuilder().common_name(u'_ipa').build()
+        )
+    san_der = synta.encode_subject_alt_names(san_tuples)
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    cert = synta.Certificate.from_der(synta.Certificate.to_der(
+        synta.CertificateBuilder()
+        .serial_number(1)
+        .issuer_name(_san_parse_name)
+        .subject_name(_san_parse_name)
+        .public_key(_san_parse_key.public_key)
+        .not_valid_before_utc(now)
+        .not_valid_after_utc(now + datetime.timedelta(days=1))
+        .add_extension(
+            str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
+        .sign(_san_parse_key, 'sha256')
+    ))
+    return list(cert.subject_alt_names())
 
 
 def chunk(size, s):
@@ -860,13 +709,13 @@ class ExternalCAProfile:
         parts = s.split(':')
 
         try:
-            # Is the first part on OID?
-            _oid = univ.ObjectIdentifier(parts[0])
+            # Is the first part an OID?
+            synta.ObjectIdentifier(parts[0])
 
             # It is; construct a V2 template
             return MSCSTemplateV2.__new__(MSCSTemplateV2, s)
 
-        except pyasn1.error.PyAsn1Error:
+        except ValueError:
             # It is not an OID; treat as a template name
             return MSCSTemplateV1.__new__(MSCSTemplateV1, s)
 
@@ -884,17 +733,14 @@ class MSCSTemplate(ExternalCAProfile):
 
     Subclasses MUST set ext_oid.
 
-    Subclass constructors MUST set asn1obj.
-
     """
     valid_for = set([ExternalCAType.MS_CS.value])
 
     ext_oid = None  # extension OID, as a Python str
-    asn1obj = None  # unencoded extension data
 
     def get_ext_data(self):
         """Return DER-encoded extension data."""
-        return encoder.encode(self.asn1obj)
+        raise NotImplementedError
 
 
 class MSCSTemplateV1(MSCSTemplate):
@@ -911,7 +757,7 @@ class MSCSTemplateV1(MSCSTemplate):
     But note that a bare BMPString is used in practice.
 
     """
-    ext_oid = "1.3.6.1.4.1.311.20.2"
+    ext_oid = str(synta.oids.MS_CERTIFICATE_TEMPLATE_NAME)
 
     def __init__(self, s):
         super(MSCSTemplateV1, self).__init__(s)
@@ -919,7 +765,13 @@ class MSCSTemplateV1(MSCSTemplate):
         if len(parts) > 1:
             raise ValueError(
                 "Cannot specify certificate template version when using name.")
-        self.asn1obj = char.BMPString(str(parts[0]))
+        self._template_name = str(parts[0])
+
+    def get_ext_data(self):
+        """Return DER-encoded BMPString of the template name."""
+        enc = synta.Encoder(synta.Encoding.DER)
+        enc.encode_bmp_string(self._template_name)
+        return enc.finish()
 
 
 class MSCSTemplateV2(MSCSTemplate):
@@ -938,7 +790,7 @@ class MSCSTemplateV2(MSCSTemplate):
         TemplateVersion ::= INTEGER (0..4294967295)
 
     """
-    ext_oid = "1.3.6.1.4.1.311.21.7"
+    ext_oid = str(synta.oids.MS_CERTIFICATE_TEMPLATE)
 
     @staticmethod
     def check_version_in_range(desc, n):
@@ -952,31 +804,38 @@ class MSCSTemplateV2(MSCSTemplate):
 
         parts = s.split(':')
 
-        obj = CertificateTemplateV2()
         if len(parts) < 2 or len(parts) > 3:
             raise ValueError(
                 "Incorrect template specification; required format is: "
                 "<oid>:<majorVersion>[:<minorVersion>]")
+
         try:
-            obj['templateID'] = univ.ObjectIdentifier(parts[0])
-
-            major = int(parts[1])
-            self.check_version_in_range("major", major)
-            obj['templateMajorVersion'] = major
-
-            if len(parts) > 2:
-                minor = int(parts[2])
-                self.check_version_in_range("minor", minor)
-                obj['templateMinorVersion'] = int(parts[2])
-
-        except pyasn1.error.PyAsn1Error:
+            synta.ObjectIdentifier(parts[0])
+        except ValueError:
             raise ValueError("Could not parse certificate template specifier.")
-        self.asn1obj = obj
+        self._template_oid = parts[0]
 
+        major = int(parts[1])
+        self.check_version_in_range("major", major)
+        self._major = major
 
-class CertificateTemplateV2(univ.Sequence):
-    componentType = namedtype.NamedTypes(
-        namedtype.NamedType('templateID', univ.ObjectIdentifier()),
-        namedtype.NamedType('templateMajorVersion', univ.Integer()),
-        namedtype.OptionalNamedType('templateMinorVersion', univ.Integer())
-    )
+        if len(parts) > 2:
+            minor = int(parts[2])
+            self.check_version_in_range("minor", minor)
+            self._minor = minor
+        else:
+            self._minor = None
+
+    def get_ext_data(self):
+        """
+        Return DER-encoded CertificateTemplate SEQUENCE:
+            SEQUENCE { OID, INTEGER, INTEGER OPTIONAL }
+        """
+        inner = synta.Encoder(synta.Encoding.DER)
+        inner.encode_oid(synta.ObjectIdentifier(self._template_oid))
+        inner.encode_integer(self._major)
+        if self._minor is not None:
+            inner.encode_integer(self._minor)
+        outer = synta.Encoder(synta.Encoding.DER)
+        outer.encode_sequence(inner.finish())
+        return outer.finish()

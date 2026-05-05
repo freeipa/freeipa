@@ -64,7 +64,6 @@ if __name__ == '__main__':
             'ipatests.test_xmlrpc': ['data/*'],
         },
         install_requires=[
-            "cryptography",
             "dnspython",
             "gssapi",
             "ipaclient",

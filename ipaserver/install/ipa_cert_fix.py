@@ -26,8 +26,7 @@
 from __future__ import print_function, absolute_import
 
 import base64
-from cryptography import x509 as crypto_x509
-from cryptography.hazmat.backends import default_backend
+import synta
 import datetime
 from enum import Enum
 import logging
@@ -319,9 +318,9 @@ def get_csr_from_certmonger(nickname):
         if csr:
             try:
                 # Make sure the value can be parsed as valid CSR
-                csr_obj = crypto_x509.load_pem_x509_csr(
-                    csr.encode('ascii'), default_backend())
-                val = base64.b64encode(csr_obj.public_bytes(x509.Encoding.DER))
+                csr_obj = synta.CertificationRequest.from_pem(
+                    csr.encode('ascii'))
+                val = base64.b64encode(csr_obj.to_der())
                 return val.decode('ascii')
             except Exception as e:
                 # Fallthrough and return None

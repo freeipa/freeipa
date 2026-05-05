@@ -19,7 +19,7 @@ import socket
 import subprocess
 import sys
 import time
-from cryptography import x509 as crypto_x509
+import synta
 from ldap.controls import SimplePagedResultsControl
 from ipalib import api, errors
 from ipalib.facts import is_ipa_configured
@@ -1044,10 +1044,8 @@ class IPAMigrate():
     # DB Migration
     #
     def get_cert_issuer(self, cert_value):
-        cert = crypto_x509.load_der_x509_certificate(cert_value)
-        ipacert = IPACertificate(cert)
-        issuer = str(DN(ipacert.issuer))
-        return issuer
+        ipacert = IPACertificate(synta.Certificate.from_der(cert_value))
+        return DN(ipacert.issuer)
 
     def remove_usercert(self, entry_dn, cert_values):
         """

@@ -39,8 +39,6 @@ if __name__ == '__main__':
             "ipaplatform",
             "ipapython",
             "netaddr",
-            "pyasn1",
-            "pyasn1-modules",
             "six",
             "urllib3",
         ],

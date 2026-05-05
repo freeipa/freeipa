@@ -39,8 +39,7 @@ import gssapi
 import requests
 
 import ldap.controls
-from pyasn1.type import univ, namedtype
-from pyasn1.codec.ber import encoder
+import synta
 import six
 
 from ipalib import plugable, errors
@@ -1270,14 +1269,7 @@ class sync_token(Backend, HTTP_Status):
     content_type = 'text/plain'
     key = '/session/sync_token'
 
-    class OTPSyncRequest(univ.Sequence):
-        OID = "2.16.840.1.113730.3.8.10.6"
-
-        componentType = namedtype.NamedTypes(
-            namedtype.NamedType('firstCode', univ.OctetString()),
-            namedtype.NamedType('secondCode', univ.OctetString()),
-            namedtype.OptionalNamedType('tokenDN', univ.OctetString())
-        )
+    OTP_SYNC_REQUEST_OID = "2.16.840.1.113730.3.8.10.6"
 
     def _on_finalize(self):
         super(sync_token, self)._on_finalize()
@@ -1316,9 +1308,13 @@ class sync_token(Backend, HTTP_Status):
                 return self.bad_request(environ, start_response, "no %s specified" % field)
 
         # Create the request control.
-        sr = self.OTPSyncRequest()
-        sr.setComponentByName('firstCode', data['first_code'])
-        sr.setComponentByName('secondCode', data['second_code'])
+        # OTPSyncRequest ::= SEQUENCE {
+        #   firstCode   OCTET STRING,
+        #   secondCode  OCTET STRING,
+        #   tokenDN     OCTET STRING OPTIONAL }
+        _inner = synta.Encoder(synta.Encoding.DER)
+        _inner.encode_octet_string(data['first_code'].encode('utf-8'))
+        _inner.encode_octet_string(data['second_code'].encode('utf-8'))
         if 'token' in data:
             try:
                 token_dn = DN(data['token'])
@@ -1326,8 +1322,11 @@ class sync_token(Backend, HTTP_Status):
                 token_dn = DN((self.api.Object.otptoken.primary_key.name, data['token']),
                               self.api.env.container_otp, self.api.env.basedn)
 
-            sr.setComponentByName('tokenDN', str(token_dn))
-        rc = ldap.controls.RequestControl(sr.OID, True, encoder.encode(sr))
+            _inner.encode_octet_string(str(token_dn).encode('utf-8'))
+        _outer = synta.Encoder(synta.Encoding.DER)
+        _outer.encode_sequence(_inner.finish())
+        rc = ldap.controls.RequestControl(
+            self.OTP_SYNC_REQUEST_OID, True, _outer.finish())
 
         # Resolve the user DN
         bind_dn = DN((self.api.Object.user.primary_key.name, data['user']),

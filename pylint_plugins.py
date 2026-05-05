@@ -10,6 +10,7 @@ import sys
 import textwrap
 
 from astroid import MANAGER, register_module_extender
+from astroid.exceptions import AstroidImportError
 from astroid.nodes import scoped_nodes
 from pylint.checkers import BaseChecker
 from pylint.checkers.utils import only_required_for_messages
@@ -28,12 +29,12 @@ def _warning_already_exists(cls, member):
     )
 
 
-def fake_class(name_or_class_obj, members=()):
+def fake_class(name_or_class_obj, members=(), parent=None):
     if isinstance(name_or_class_obj, scoped_nodes.ClassDef):
         cl = name_or_class_obj
     else:
         cl = scoped_nodes.ClassDef(
-            name=name_or_class_obj, lineno=None, col_offset=None, parent=None,
+            name=name_or_class_obj, lineno=None, col_offset=None, parent=parent,
             end_lineno=None, end_col_offset=None)
 
     for m in members:
@@ -42,7 +43,7 @@ def fake_class(name_or_class_obj, members=()):
                 _warning_already_exists(cl, m)
             else:
                 cl.locals[m] = [scoped_nodes.ClassDef(
-                    name=m, lineno=None, col_offset=None, parent=None,
+                    name=m, lineno=None, col_offset=None, parent=cl,
                     end_lineno=None, end_col_offset=None)]
         elif isinstance(m, dict):
             for key, val in m.items():
@@ -51,7 +52,7 @@ def fake_class(name_or_class_obj, members=()):
                     _warning_already_exists(cl, key)
                     fake_class(cl.locals[key], val)
                 else:
-                    cl.locals[key] = [fake_class(key, val)]
+                    cl.locals[key] = [fake_class(key, val, parent=cl)]
         else:
             # here can be used any astroid type
             if m.name in cl.locals:
@@ -238,6 +239,294 @@ register_module_extender(MANAGER, 'ipaplatform.services',
                          ipaplatform_services_transform)
 register_module_extender(MANAGER, 'ipaplatform.tasks',
                          ipaplatform_tasks_transform)
+
+
+def _synta_failed_import_hook(modname):
+    """Provide stubs for synta submodules that live in the Rust extension."""
+    if modname == 'synta.general_name':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                OTHER_NAME = 0
+                RFC822_NAME = 1
+                DNS_NAME = 2
+                X400_ADDRESS = 3
+                DIRECTORY_NAME = 4
+                EDI_PARTY_NAME = 5
+                URI = 6
+                IP_ADDRESS = 7
+                REGISTERED_ID = 8
+                class OtherName:
+                    type_id = None
+                    value = b''
+                class DNSName:
+                    value = ''
+                class RFC822Name:
+                    value = ''
+                class IPAddress:
+                    value = None
+                class DirectoryName:
+                    value = b''
+                class UniformResourceIdentifier:
+                    value = ''
+                class RegisteredID:
+                    value = None
+            '''),
+            modname='synta.general_name')
+    if modname == 'synta.oids':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                class _OID:
+                    def __str__(self):
+                        return ''
+                    def components(self):
+                        return ()
+                KP_SERVER_AUTH = _OID()
+                KP_CLIENT_AUTH = _OID()
+                KP_CODE_SIGNING = _OID()
+                KP_EMAIL_PROTECTION = _OID()
+                PKINIT_KP_CLIENT_AUTH = _OID()
+                PKINIT_KP_KDC = _OID()
+                ANY_EXTENDED_KEY_USAGE = _OID()
+                MS_SAN_UPN = _OID()
+                PKINIT_SAN = _OID()
+                EXTENDED_KEY_USAGE = _OID()
+                MS_CERTIFICATE_TEMPLATE_NAME = _OID()
+                MS_CERTIFICATE_TEMPLATE = _OID()
+                KEY_USAGE = _OID()
+                BASIC_CONSTRAINTS = _OID()
+                SUBJECT_KEY_IDENTIFIER = _OID()
+                AUTHORITY_KEY_IDENTIFIER = _OID()
+                SUBJECT_ALT_NAME = _OID()
+                AUTHORITY_INFO_ACCESS = _OID()
+                CRL_DISTRIBUTION_POINTS = _OID()
+                SHA256_WITH_RSA = _OID()
+                class attr:
+                    class _Attr:
+                        def __str__(self):
+                            return ''
+                    COMMON_NAME = _Attr()
+                    COUNTRY = _Attr()
+                    LOCALITY = _Attr()
+                    STATE = _Attr()
+                    ORGANIZATION = _Attr()
+                    ORG_UNIT = _Attr()
+                    SERIAL_NUMBER = _Attr()
+                    SURNAME = _Attr()
+                    GIVEN_NAME = _Attr()
+                    TITLE = _Attr()
+                    GENERATION_QUALIFIER = _Attr()
+                    DN_QUALIFIER = _Attr()
+                    PSEUDONYM = _Attr()
+                    DOMAIN_COMPONENT = _Attr()
+                    EMAIL_ADDRESS = _Attr()
+                    JURISDICTION_COUNTRY = _Attr()
+                    JURISDICTION_LOCALITY = _Attr()
+                    JURISDICTION_STATE = _Attr()
+                    BUSINESS_CATEGORY = _Attr()
+                    STREET = _Attr()
+                    POSTAL_CODE = _Attr()
+                    USER_ID = _Attr()
+                    ORG_IDENTIFIER = _Attr()
+            '''),
+            modname='synta.oids')
+    if modname == 'synta.oids.attr':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                class _Attr:
+                    def __str__(self):
+                        return ''
+                COMMON_NAME = _Attr()
+                COUNTRY = _Attr()
+                LOCALITY = _Attr()
+                STATE = _Attr()
+                ORGANIZATION = _Attr()
+                ORG_UNIT = _Attr()
+                SERIAL_NUMBER = _Attr()
+                SURNAME = _Attr()
+                GIVEN_NAME = _Attr()
+                TITLE = _Attr()
+                GENERATION_QUALIFIER = _Attr()
+                DN_QUALIFIER = _Attr()
+                PSEUDONYM = _Attr()
+                DOMAIN_COMPONENT = _Attr()
+                EMAIL_ADDRESS = _Attr()
+                JURISDICTION_COUNTRY = _Attr()
+                JURISDICTION_LOCALITY = _Attr()
+                JURISDICTION_STATE = _Attr()
+                BUSINESS_CATEGORY = _Attr()
+                STREET = _Attr()
+                POSTAL_CODE = _Attr()
+                USER_ID = _Attr()
+                ORG_IDENTIFIER = _Attr()
+            '''),
+            modname='synta.oids.attr')
+    if modname == 'synta.ext':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                KU_DIGITAL_SIGNATURE = 0
+                KU_NON_REPUDIATION = 1
+                KU_KEY_ENCIPHERMENT = 2
+                KU_DATA_ENCIPHERMENT = 3
+                KU_KEY_AGREEMENT = 4
+                KU_KEY_CERT_SIGN = 5
+                KU_CRL_SIGN = 6
+                KU_ENCIPHER_ONLY = 7
+                KU_DECIPHER_ONLY = 8
+                def key_usage(bits):
+                    return b''
+                def basic_constraints(ca=False, path_length=None):
+                    return b''
+                def subject_key_identifier(spki_der):
+                    return b''
+                def authority_key_identifier(spki_der):
+                    return b''
+                class SubjectAlternativeNameBuilder:
+                    def dns_name(self, name):
+                        return self
+                    def other_name(self, der):
+                        return self
+                    def ip_address(self, addr):
+                        return self
+                    def rfc822_name(self, name):
+                        return self
+                    def build(self):
+                        return b''
+                SAN = SubjectAlternativeNameBuilder
+                class CRLDistributionPointsBuilder:
+                    def full_name_uri(self, uri):
+                        return self
+                    def full_name_dns(self, dns):
+                        return self
+                    def build(self):
+                        return b''
+                CDP = CRLDistributionPointsBuilder
+                class ExtendedKeyUsageBuilder:
+                    def server_auth(self):
+                        return self
+                    def client_auth(self):
+                        return self
+                    def add_oid(self, comps):
+                        return self
+                    def build(self):
+                        return b''
+            '''),
+            modname='synta.ext')
+    if modname == 'synta.crypto':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                def hmac_sign(algorithm, key, data):
+                    return b''
+                def hmac_verify(algorithm, key, data, expected):
+                    pass
+                def pbkdf2_hmac(algorithm, password, salt, iterations, length):
+                    return b''
+                def symmetric_encrypt(algorithm, key, data, iv=None):
+                    return b''
+                def symmetric_decrypt(algorithm, key, data, iv=None):
+                    return b''
+                def generate_symmetric_key(algorithm):
+                    return b''
+                def wrap_aes_key_wrap(wrapping_key, key_to_wrap):
+                    return b''
+                def unwrap_aes_key_wrap(wrapping_key, wrapped_key):
+                    return b''
+                def rsa_oaep_encrypt(public_key, data, algorithm):
+                    return b''
+                def rsa_oaep_decrypt(private_key, data, algorithm):
+                    return b''
+                def triple_des_encrypt(key, data, iv=None):
+                    return b''
+                def triple_des_decrypt(key, data, iv=None):
+                    return b''
+            '''),
+            modname='synta.crypto')
+    if modname == 'synta.krb5':
+        return AstroidBuilder(MANAGER).string_build(
+            textwrap.dedent('''\
+                NT_PRINCIPAL = 1
+                NT_SRV_INST = 2
+                NT_SRV_HST = 3
+                NT_X500_PRINCIPAL = 6
+                KRB5_PRINCIPAL_NAME_OID = '1.3.6.1.5.2.2'
+                UPN_OID = '1.3.6.1.4.1.311.20.2.3'
+                class Krb5PrincipalName:
+                    realm = ''
+                    name_type = 0
+                    components = []
+                    def __init__(self, realm, name_type, components):
+                        pass
+                    @classmethod
+                    def from_der(cls, der):
+                        return cls('', 0, [])
+                    def to_der(self):
+                        return b''
+                    def to_othername_der(self):
+                        return b''
+                class UPN:
+                    name = ''
+                    @classmethod
+                    def from_der(cls, der):
+                        return cls()
+                class ExternalPrincipalIdentifier:
+                    pass
+                class PrincipalName:
+                    pass
+            '''),
+            modname='synta.krb5')
+    raise AstroidImportError(modname)
+
+
+MANAGER.register_failed_import_hook(_synta_failed_import_hook)
+
+
+def synta_krb5_transform():
+    """Provide symbols for synta.krb5 that live in the Rust _krb5 extension.
+
+    The synta/krb5.py stub is documentation-only; the real module is
+    populated by the Rust initialiser.  Pylint sees only the empty .py file
+    so we inject the Rust-backed classes here.
+    """
+    return AstroidBuilder(MANAGER).string_build(
+        textwrap.dedent('''\
+            NT_UNKNOWN = 0
+            NT_PRINCIPAL = 1
+            NT_SRV_INST = 2
+            NT_SRV_HST = 3
+            NT_SRV_XHST = 4
+            NT_UID = 5
+            NT_X500_PRINCIPAL = 6
+            NT_SMTP_NAME = 7
+            NT_ENTERPRISE = 10
+            NT_WELLKNOWN = 11
+            NT_SRV_HST_DOMAIN = 12
+            KRB5_PRINCIPAL_NAME_OID = '1.3.6.1.5.2.2'
+            UPN_OID = '1.3.6.1.4.1.311.20.2.3'
+            class Krb5PrincipalName:
+                realm = ''
+                name_type = 0
+                components = []
+                def __init__(self, realm, name_type, components):
+                    pass
+                @classmethod
+                def from_der(cls, der):
+                    return cls('', 0, [])
+                def to_der(self):
+                    return b''
+                def to_othername_der(self):
+                    return b''
+            class UPN:
+                name = ''
+                @classmethod
+                def from_der(cls, der):
+                    return cls()
+            class ExternalPrincipalIdentifier:
+                pass
+            class PrincipalName:
+                pass
+        '''))
+
+
+register_module_extender(MANAGER, 'synta.krb5', synta_krb5_transform)
 
 
 def ipalib_request_transform():

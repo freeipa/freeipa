@@ -242,7 +242,6 @@ def verify_samba_component_presence(ldap, api):
         )
 
     # We're ok in this case, bail out
-    # pylint: disable-next=used-before-assignment
     if adtrust_present and _bindings_installed:
         return
 
@@ -341,7 +340,6 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
             + basedn
 
         # Get the domain validator
-        # pylint: disable=used-before-assignment
         domain_validator = ipaserver.dcerpc.DomainValidator(myapi)
         # pylint: enable=used-before-assignment
         if not domain_validator.is_configured():

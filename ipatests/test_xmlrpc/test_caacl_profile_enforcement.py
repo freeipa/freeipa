@@ -11,11 +11,10 @@ import tempfile
 
 import six
 
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+import synta
+import synta.ext
+import synta.oids
+import synta.oids.attr as _attr
 
 from ipalib import api, errors
 from ipaplatform.paths import paths
@@ -407,37 +406,29 @@ def santest_service_host_2(request, santest_host_2):
 
 @pytest.fixture
 def santest_csr(request, santest_host_1, santest_host_2):
-    backend = default_backend()
-    pkey = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=backend
-    )
+    pkey = synta.PrivateKey.generate_rsa(2048)
 
-    csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, santest_host_1.fqdn),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, api.env.realm)
-    ])).add_extension(x509.SubjectAlternativeName([
-        x509.DNSName(santest_host_1.name),
-        x509.DNSName(santest_host_2.name)
-    ]), False
-    ).add_extension(
-        x509.BasicConstraints(ca=False, path_length=None),
-        True
-    ).add_extension(
-        x509.KeyUsage(
-            digital_signature=True, content_commitment=True,
-            key_encipherment=True, data_encipherment=False,
-            key_agreement=False, key_cert_sign=False,
-            crl_sign=False, encipher_only=False,
-            decipher_only=False
-        ),
-        False
-    ).sign(
-        pkey, hashes.SHA256(), backend
-    ).public_bytes(serialization.Encoding.PEM)
+    name_der = (synta.NameBuilder()
+                .common_name(santest_host_1.fqdn)
+                .add_attr(str(_attr.ORGANIZATION), api.env.realm)
+                .build())
+    san_der = (synta.ext.SAN()
+               .dns_name(santest_host_1.name)
+               .dns_name(santest_host_2.name)
+               .build())
+    ku_bits = (synta.ext.KU_DIGITAL_SIGNATURE | synta.ext.KU_NON_REPUDIATION
+               | synta.ext.KU_KEY_ENCIPHERMENT)
+    csr = (synta.CsrBuilder()
+           .subject_name(name_der)
+           .public_key(pkey.public_key)
+           .add_extension(str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
+           .add_extension(str(synta.oids.BASIC_CONSTRAINTS), True,
+                          synta.ext.basic_constraints(ca=False))
+           .add_extension(str(synta.oids.KEY_USAGE), False,
+                          synta.ext.key_usage(ku_bits))
+           .sign(pkey, "sha256"))
 
-    return csr.decode('ascii')
+    return synta.CertificationRequest.to_pem(csr).decode('ascii')
 
 
 class SubjectAltNameOneServiceBase(XMLRPC_test):

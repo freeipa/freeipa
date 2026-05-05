@@ -17,9 +17,7 @@ import textwrap
 
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from cryptography import x509
-from cryptography.x509.oid import ExtensionOID
-from cryptography.hazmat.backends import default_backend
+from ipalib import x509
 from packaging.version import parse as parse_version
 
 from ipatests.pytest_ipa.integration import tasks
@@ -162,14 +160,12 @@ class TestInstallMasterClient(IntegrationTest):
 
         certdata = self.clients[0].get_file_contents(certfile)
         cert = x509.load_pem_x509_certificate(
-            certdata, default_backend()
+            certdata
         )
-        ext = cert.extensions.get_extension_for_oid(
-            ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-        )
-        dnsnames = ext.value.get_values_for_type(x509.DNSName)
+        san = cert.san_general_names
+        dnsnames = [gn.value for gn in san if isinstance(gn, x509.DNSName)]
         assert dnsnames == [self.clients[0].hostname]
-        ipaddrs = ext.value.get_values_for_type(x509.IPAddress)
+        ipaddrs = [gn.value for gn in san if isinstance(gn, x509.IPAddress)]
         assert ipaddrs == [ipaddress.ip_address(self.clients[0].ip)]
 
     def test_getcert_list_profile(self):
@@ -395,7 +391,7 @@ class TestCertmongerRekey(IntegrationTest):
             os.path.join(paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem")
         )
         cert = x509.load_pem_x509_certificate(
-            certdata, default_backend()
+            certdata
         )
         assert cert.public_key().key_size == 2048
 
@@ -411,7 +407,7 @@ class TestCertmongerRekey(IntegrationTest):
             os.path.join(paths.OPENSSL_CERTS_DIR, f"{self.request_id}.pem")
         )
         cert = x509.load_pem_x509_certificate(
-            certdata, default_backend()
+            certdata
         )
         # check if rekey command updated the key size
         assert cert.public_key().key_size == 3072

@@ -21,7 +21,6 @@
 
 import logging
 
-from cryptography.hazmat.primitives import hashes
 import six
 
 from ipalib import api, errors, messages
@@ -307,9 +306,9 @@ def set_certificate_attrs(entry_attrs):
     entry_attrs['valid_not_after'] = x509.format_datetime(
         cert.not_valid_after_utc)
     entry_attrs['sha1_fingerprint'] = x509.to_hex_with_colons(
-        cert.fingerprint(hashes.SHA1()))
+        cert.fingerprint('sha1'))
     entry_attrs['sha256_fingerprint'] = x509.to_hex_with_colons(
-        cert.fingerprint(hashes.SHA256()))
+        cert.fingerprint('sha256'))
 
 def check_required_principal(ldap, principal):
     """

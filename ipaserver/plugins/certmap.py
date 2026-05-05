@@ -22,7 +22,6 @@ import logging
 import dbus
 import six
 
-from cryptography import x509 as crypto_x509
 
 from ipalib import api, errors, x509
 from ipalib.crud import Search
@@ -511,7 +510,7 @@ class _sssd:
         :param cert: DER cert, Certificate instances (IPACertificate)
         :raise RemoteRetrieveError: if DBus error occurs
         """
-        if isinstance(cert, crypto_x509.Certificate):
+        if isinstance(cert, x509.IPACertificate):
             cert_pem = cert.public_bytes(x509.Encoding.PEM)
         else:
             cert_obj = x509.load_der_x509_certificate(cert)

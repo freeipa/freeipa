@@ -9,8 +9,7 @@ Module provides tests for the ipa-crlgen-manage command.
 from __future__ import absolute_import
 
 import os
-from cryptography.hazmat.backends import default_backend
-from cryptography import x509
+import synta
 
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
@@ -51,15 +50,13 @@ def check_crlgen_status(host, rc=0, msg=None, enabled=True, check_crl=False):
             # We expect CRL generation to be enabled and need to check for
             # MasterCRL.bin
             crl_content = host.get_file_contents(CRL_FILENAME)
-            crl = x509.load_der_x509_crl(crl_content, default_backend())
-            last_update_msg = 'Last CRL update: {}'.format(crl.last_update)
+            crl = synta.CertificateList.from_der(crl_content)
+            last_update_msg = 'Last CRL update: {}'.format(crl.this_update)
             assert last_update_msg in result.stdout_text
 
-            for ext in crl.extensions:
-                if ext.oid == x509.oid.ExtensionOID.CRL_NUMBER:
-                    number_msg = "Last CRL Number: {}".format(
-                        ext.value.crl_number)
-                    assert number_msg in result.stdout_text
+            if crl.crl_number is not None:
+                number_msg = "Last CRL Number: {}".format(crl.crl_number)
+                assert number_msg in result.stdout_text
 
         try:
             value = get_CS_cfg_value(host, 'ca.certStatusUpdateInterval')

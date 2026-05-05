@@ -22,8 +22,6 @@
 LDAP shared certificate store.
 """
 
-from pyasn1.error import PyAsn1Error
-
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname, TrustFlags
 from ipalib import errors, x509
@@ -36,7 +34,7 @@ def _parse_cert(cert):
         issuer = DN(cert.issuer)
         serial_number = cert.serial_number
         public_key_info = cert.public_key_info_bytes
-    except (ValueError, PyAsn1Error) as e:
+    except ValueError as e:
         raise ValueError("failed to decode certificate: %s" % e)
 
     subject = str(subject).replace('\\;', '\\3b')

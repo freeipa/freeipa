@@ -17,11 +17,9 @@ test.
 import ipaddress
 import pytest
 
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
+import synta
+import synta.ext
+import synta.oids
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
@@ -172,77 +170,80 @@ def cname2(host):
 
 @pytest.fixture(scope='module')
 def private_key():
-    return rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
+    return synta.PrivateKey.generate_rsa(2048)
 
 
 def csr(altnames, cn=host_fqdn):
     """
     Return a fixture that generates a CSR with the given altnames.
-    The altname values MUST be of type x509.DNSName, x509.IPAddress, etc.
+    altnames is a list of ('dns', name_str) or ('ip', ipaddress_obj) tuples.
 
-    The subject DN is always to CN={host_fqdn}.
-
+    The subject DN is always CN={host_fqdn}.
     """
     def inner(private_key):
-        builder = x509.CertificateSigningRequestBuilder()
-        builder = builder.subject_name(
-            x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, cn)]))
-        if len(altnames) > 0:
+        name_der = synta.NameBuilder().common_name(cn).build()
+        builder = (synta.CsrBuilder()
+                   .subject_name(name_der)
+                   .public_key(private_key.public_key))
+        if altnames:
+            san = synta.ext.SAN()
+            for tag, value in altnames:
+                if tag == 'dns':
+                    san = san.dns_name(value)
+                elif tag == 'ip':
+                    san = san.ip_address(value.packed)
             builder = builder.add_extension(
-                x509.SubjectAlternativeName(altnames), False)
-        csr = builder.sign(private_key, hashes.SHA256(), default_backend())
-        return csr.public_bytes(serialization.Encoding.PEM).decode('ascii')
+                str(synta.oids.SUBJECT_ALT_NAME), False, san.build()
+            )
+        csr = builder.sign(private_key, "sha256")
+        return synta.CertificationRequest.to_pem(csr).decode('ascii')
 
     return pytest.fixture(scope='module')(inner)
 
 
 csr_ipv4 = csr([
-    x509.DNSName(host_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    ('dns', host_fqdn),
+    ('ip', ipaddress.ip_address(ipv4_address)),
 ])
 csr_ipv6 = csr([
-    x509.DNSName(host_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv6_address)),
+    ('dns', host_fqdn),
+    ('ip', ipaddress.ip_address(ipv6_address)),
 ])
 csr_ipv4_ipv6 = csr([
-    x509.DNSName(host_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
-    x509.IPAddress(ipaddress.ip_address(ipv6_address)),
+    ('dns', host_fqdn),
+    ('ip', ipaddress.ip_address(ipv4_address)),
+    ('ip', ipaddress.ip_address(ipv6_address)),
 ])
 csr_extra_ipv4 = csr([
-    x509.DNSName(host_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
-    x509.IPAddress(ipaddress.ip_address('172.16.254.254')),
+    ('dns', host_fqdn),
+    ('ip', ipaddress.ip_address(ipv4_address)),
+    ('ip', ipaddress.ip_address('172.16.254.254')),
 ])
 csr_no_dnsname = csr([
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    ('ip', ipaddress.ip_address(ipv4_address)),
 ])
 csr_alice = csr([
-    x509.DNSName(host_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    ('dns', host_fqdn),
+    ('ip', ipaddress.ip_address(ipv4_address)),
 ], cn='alice')
 csr_iptest_other = csr([
-    x509.DNSName(host_fqdn),
-    x509.DNSName(other_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    ('dns', host_fqdn),
+    ('dns', other_fqdn),
+    ('ip', ipaddress.ip_address(ipv4_address)),
 ])
 csr_cname1 = csr([
-    x509.DNSName(f'cname1.{api.env.domain}'),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    ('dns', f'cname1.{api.env.domain}'),
+    ('ip', ipaddress.ip_address(ipv4_address)),
 ])
 csr_cname2 = csr([
-    x509.DNSName(f'cname2.{api.env.domain}'),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
+    ('dns', f'cname2.{api.env.domain}'),
+    ('ip', ipaddress.ip_address(ipv4_address)),
 ])
 csr_two_dnsname_two_ip = csr([
-    x509.DNSName(host_fqdn),
-    x509.IPAddress(ipaddress.ip_address(ipv4_address)),
-    x509.DNSName(host2_fqdn),
-    x509.IPAddress(ipaddress.ip_address(host2_ipv4_address)),
+    ('dns', host_fqdn),
+    ('ip', ipaddress.ip_address(ipv4_address)),
+    ('dns', host2_fqdn),
+    ('ip', ipaddress.ip_address(host2_ipv4_address)),
 ])
 
 

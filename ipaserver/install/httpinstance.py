@@ -307,11 +307,11 @@ class HTTPInstance(service.Service):
             p12_certs, p12_priv_keys = certs.pkcs12_to_certkeys(
                 *self.pkcs12_info)
             keys_dict = {
-                k.public_key().public_numbers(): k
+                k.public_key.to_der(): k
                 for k in p12_priv_keys
             }
             certs_keys = [
-                (c, keys_dict.get(c.public_key().public_numbers()))
+                (c, keys_dict.get(c.public_key().to_der()))
                 for c in p12_certs
             ]
             server_certs_keys = [

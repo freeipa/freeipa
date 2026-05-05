@@ -34,13 +34,11 @@ import random
 from hashlib import sha256
 
 import six
-# pylint: disable=import-error
 if six.PY3:
     # The SafeConfigParser class has been renamed to ConfigParser in Py3
     from configparser import ConfigParser as SafeConfigParser
 else:
     from ConfigParser import SafeConfigParser
-# pylint: enable=import-error
 
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths

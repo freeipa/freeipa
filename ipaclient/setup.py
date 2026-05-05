@@ -42,7 +42,6 @@ if __name__ == '__main__':
             "ipaclient.remote_plugins.2_164",
         ],
         install_requires=[
-            "cryptography",
             "ipalib",
             "ipapython",
             "qrcode",

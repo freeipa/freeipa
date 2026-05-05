@@ -37,7 +37,6 @@ if __name__ == '__main__':
         ],
         install_requires=[
             "cffi",
-            "cryptography",
             "dnspython",
             "gssapi",
             # "ipalib",  # circular dependency

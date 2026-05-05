@@ -32,7 +32,8 @@ import tempfile
 from ctypes.util import find_library
 from tempfile import NamedTemporaryFile
 
-import cryptography.x509
+import synta
+import synta.oids
 
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -198,13 +199,8 @@ def verify_kdc_cert_validity(kdc_cert, ca_certs, realm):
         except ipautil.CalledProcessError as e:
             raise ValueError(e.output)
 
-        try:
-            eku = kdc_cert.extensions.get_extension_for_class(
-                cryptography.x509.ExtendedKeyUsage)
-            list(eku.value).index(
-                cryptography.x509.ObjectIdentifier(x509.EKU_PKINIT_KDC))
-        except (cryptography.x509.ExtensionNotFound,
-                ValueError):
+        eku_oids = kdc_cert.extended_key_usage
+        if eku_oids is None or x509.EKU_PKINIT_KDC not in eku_oids:
             raise ValueError("invalid for a KDC")
 
         principal = str(Principal(['krbtgt', realm], realm))
@@ -658,109 +654,70 @@ class NSSDatabase:
                 raise RuntimeError(
                     "Failed to open %s: %s" % (filename, e.strerror))
 
-            # Try to parse the file as PEM file
-            matches = list(
-                re.finditer(
+            loaded = False
+
+            # ── Certificates: PEM certs, PKCS#7 bundles, and raw DER ─────────
+            for _label, der in synta.read_pki_blocks(data):
+                if _label != "CERTIFICATE":
+                    continue
+                try:
+                    cert = x509.IPACertificate(
+                        synta.Certificate.from_der(der))
+                except ValueError as e:
+                    logger.warning(
+                        "Skipping certificate in %s: %s", filename, e)
+                    continue
+                extracted_certs.append(cert)
+                loaded = True
+
+            # ── Private keys (PEM only — not yielded by read_pki_blocks) ─────
+            for match in re.finditer(
                     br'-----BEGIN (.+?)-----(.*?)-----END \1-----',
-                    data, re.DOTALL
-                )
-            )
-            if matches:
-                loaded = False
-                for match in matches:
-                    body = match.group()
-                    label = match.group(1)
-                    line = len(data[:match.start() + 1].splitlines())
-
-                    if label in (b'CERTIFICATE', b'X509 CERTIFICATE',
-                                 b'X.509 CERTIFICATE'):
-                        try:
-                            cert = x509.load_pem_x509_certificate(body)
-                        except ValueError as e:
-                            if label != b'CERTIFICATE':
-                                logger.warning(
-                                    "Skipping certificate in %s at line %s: "
-                                    "%s",
-                                    filename, line, e)
-                                continue
-                            logger.error('Failed to load certificate in %s '
-                                         'at line %s: %s',
-                                         filename, line, e)
-                        else:
-                            extracted_certs.append(cert)
-                            loaded = True
-                            continue
-
-                    if label in (b'PKCS7', b'PKCS #7 SIGNED DATA',
-                                 b'CERTIFICATE'):
-                        try:
-                            certs = x509.pkcs7_to_certs(body)
-                        except ipautil.CalledProcessError as e:
-                            if label == b'CERTIFICATE':
-                                logger.warning(
-                                    "Skipping certificate in %s at line %s: "
-                                    "%s",
-                                    filename, line, e)
-                            else:
-                                logger.warning(
-                                    "Skipping PKCS#7 in %s at line %s: %s",
-                                    filename, line, e)
-                            continue
-                        else:
-                            extracted_certs.extend(certs)
-                            loaded = True
-                            continue
-
-                    if label in (b'PRIVATE KEY', b'ENCRYPTED PRIVATE KEY',
+                    data, re.DOTALL):
+                label = match.group(1)
+                if label not in (b'PRIVATE KEY', b'ENCRYPTED PRIVATE KEY',
                                  b'RSA PRIVATE KEY', b'DSA PRIVATE KEY',
                                  b'EC PRIVATE KEY'):
-                        if not import_keys:
-                            continue
-
-                        if key_file:
-                            raise RuntimeError(
-                                "Can't load private key from both %s and %s" %
-                                (key_file, filename))
-
-                        # the args -v2 aes256 -v2prf hmacWithSHA256 are needed
-                        # on OpenSSL 1.0.2 (fips mode). As soon as FreeIPA
-                        # requires OpenSSL 1.1.0 we'll be able to drop them
-                        args = [
-                            paths.OPENSSL, 'pkcs8',
-                            '-topk8',
-                            '-v2', 'aes256', '-v2prf', 'hmacWithSHA256',
-                            '-passout', 'file:' + self.pwd_file,
-                        ]
-                        if ((label != b'PRIVATE KEY' and key_password) or
-                                label == b'ENCRYPTED PRIVATE KEY'):
-                            key_pwdfile = ipautil.write_tmp_file(key_password)
-                            args += [
-                                '-passin', 'file:' + key_pwdfile.name,
-                            ]
-                        try:
-                            result = ipautil.run(
-                                args, stdin=body, capture_output=True)
-                        except ipautil.CalledProcessError as e:
-                            logger.warning(
-                                "Skipping private key in %s at line %s: %s",
-                                filename, line, e)
-                            continue
-                        else:
-                            extracted_key = result.raw_output
-                            key_file = filename
-                            loaded = True
-                            continue
-                if loaded:
                     continue
-                raise RuntimeError("Failed to load %s" % filename)
+                if not import_keys:
+                    continue
 
-            # Try to load the file as DER certificate
-            try:
-                cert = x509.load_der_x509_certificate(data)
-            except ValueError:
-                pass
-            else:
-                extracted_certs.append(cert)
+                if key_file:
+                    raise RuntimeError(
+                        "Can't load private key from both %s and %s" %
+                        (key_file, filename))
+
+                body = match.group()
+                line = len(data[:match.start() + 1].splitlines())
+                # the args -v2 aes256 -v2prf hmacWithSHA256 are needed
+                # on OpenSSL 1.0.2 (fips mode). As soon as FreeIPA
+                # requires OpenSSL 1.1.0 we'll be able to drop them
+                args = [
+                    paths.OPENSSL, 'pkcs8',
+                    '-topk8',
+                    '-v2', 'aes256', '-v2prf', 'hmacWithSHA256',
+                    '-passout', 'file:' + self.pwd_file,
+                ]
+                if (label != b'PRIVATE KEY' and key_password is not None) or (
+                    label == b'ENCRYPTED PRIVATE KEY'
+                ):
+                    key_pwdfile = ipautil.write_tmp_file(key_password)
+                    args += [
+                        '-passin', 'file:' + key_pwdfile.name,
+                    ]
+                try:
+                    result = ipautil.run(
+                        args, stdin=body, capture_output=True)
+                except ipautil.CalledProcessError as e:
+                    logger.warning(
+                        "Skipping private key in %s at line %s: %s",
+                        filename, line, e)
+                    continue
+                extracted_key = result.raw_output
+                key_file = filename
+                loaded = True
+
+            if loaded:
                 continue
 
             # Try to import the file as PKCS#12 file
@@ -1017,17 +974,18 @@ class NSSDatabase:
             if not cert.subject:
                 raise ValueError("has empty subject")
 
-            try:
-                bc = cert.extensions.get_extension_for_class(
-                    cryptography.x509.BasicConstraints)
-            except cryptography.x509.ExtensionNotFound:
+            bc_der = cert.get_extension_value_der(synta.oids.BASIC_CONSTRAINTS)
+            if bc_der is None:
                 raise ValueError("missing basic constraints")
-
-            if not bc.value.ca:
+            bc_seq = synta.Decoder(bc_der).decode_sequence()
+            ca = (bool(bc_seq.decode_boolean())
+                  if not bc_seq.is_empty() else False)
+            if not ca:
                 raise ValueError("not a CA certificate")
             if minpathlen is not None:
                 # path_length is None means no limitation
-                pl = bc.value.path_length
+                pl = (bc_seq.decode_integer().to_int()
+                      if not bc_seq.is_empty() else None)
                 if pl is not None and pl < minpathlen:
                     raise ValueError(
                         "basic contraint pathlen {}, "
@@ -1036,14 +994,13 @@ class NSSDatabase:
                         )
                     )
 
-            try:
-                ski = cert.extensions.get_extension_for_class(
-                    cryptography.x509.SubjectKeyIdentifier)
-            except cryptography.x509.ExtensionNotFound:
+            ski_der = cert.get_extension_value_der(
+                synta.oids.SUBJECT_KEY_IDENTIFIER)
+            if ski_der is None:
                 raise ValueError("missing subject key identifier extension")
-            else:
-                if len(ski.value.digest) == 0:
-                    raise ValueError("subject key identifier must not be empty")
+            ski_octets = synta.Decoder(ski_der).decode_octet_string()
+            if len(ski_octets) == 0:
+                raise ValueError("subject key identifier must not be empty")
 
             try:
                 self.run_certutil(

@@ -400,7 +400,6 @@ class hbactest(Command):
         if options['user'] != u'all':
             # check first if this is not a trusted domain user
             if _dcerpc_bindings_installed:
-                # pylint: disable=used-before-assignment
                 is_valid_sid = ipaserver.dcerpc.is_sid_valid(options['user'])
                 # pylint: enable=used-before-assignment
             else:

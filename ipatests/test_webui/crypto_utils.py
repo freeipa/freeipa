@@ -2,13 +2,12 @@
 # Copyright (C) 2018  FreeIPA Contributors see COPYING for license
 #
 
+import os
 from datetime import datetime, timedelta, timezone
 UTC = timezone.utc
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.x509.oid import NameOID
+import synta
+import synta.ext
+import synta.oids
 
 
 def generate_csr(cn, is_hostname=True):
@@ -18,25 +17,22 @@ def generate_csr(cn, is_hostname=True):
     :param cn: common name (str|unicode)
     :param is_hostname: is the common name a hostname (default: True)
     """
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
+    key = synta.PrivateKey.generate_rsa(2048)
     if isinstance(cn, bytes):
         cn = cn.decode()
-    csr = x509.CertificateSigningRequestBuilder()
-    csr = csr.subject_name(
-        x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, cn)])
+    name_der = synta.NameBuilder().common_name(cn).build()
+    builder = (
+        synta.CsrBuilder()
+        .subject_name(name_der)
+        .public_key(key.public_key)
     )
     if is_hostname:
-        csr = csr.add_extension(
-            x509.SubjectAlternativeName([x509.DNSName(cn)]),
-            critical=False
+        san_der = synta.ext.SAN().dns_name(cn).build()
+        builder = builder.add_extension(
+            str(synta.oids.SUBJECT_ALT_NAME), False, san_der
         )
-
-    csr = csr.sign(key, hashes.SHA256(), default_backend())
-    return csr.public_bytes(serialization.Encoding.PEM).decode()
+    csr = builder.sign(key, "sha256")
+    return synta.CertificationRequest.to_pem(csr).decode()
 
 
 def generate_certificate(hostname):
@@ -46,28 +42,22 @@ def generate_certificate(hostname):
 
     :param hostname: DNS name (str|unicode)
     """
-    key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
+    key = synta.PrivateKey.generate_rsa(2048)
     if isinstance(hostname, bytes):
         hostname = hostname.decode()
-    subject = issuer = x509.Name(
-        [x509.NameAttribute(NameOID.COMMON_NAME, hostname)]
+    name_der = synta.NameBuilder().common_name(hostname).build()
+    pub = key.public_key
+    now = datetime.now(tz=UTC)
+    san_der = synta.ext.SAN().dns_name(hostname).build()
+    cert = (
+        synta.CertificateBuilder()
+        .subject_name(name_der)
+        .issuer_name(name_der)
+        .public_key(pub)
+        .serial_number(int.from_bytes(os.urandom(20), 'big'))
+        .not_valid_before_utc(now)
+        .not_valid_after_utc(now + timedelta(days=100))
+        .add_extension(str(synta.oids.SUBJECT_ALT_NAME), False, san_der)
+        .sign(key, "sha256")
     )
-
-    cert = x509.CertificateBuilder()
-    cert = cert.subject_name(subject).issuer_name(issuer).public_key(
-        key.public_key()
-    ).serial_number(
-        x509.random_serial_number()
-    ).not_valid_before(
-        datetime.now(tz=UTC)
-    ).not_valid_after(
-        datetime.now(tz=UTC) + timedelta(days=100)
-    ).add_extension(
-        x509.SubjectAlternativeName([x509.DNSName(hostname)]),
-        critical=False
-    ).sign(key, hashes.SHA256(), default_backend())
-    return cert.public_bytes(serialization.Encoding.PEM).decode()
+    return synta.Certificate.to_pem(cert).decode()

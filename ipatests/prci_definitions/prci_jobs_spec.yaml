@@ -28,6 +28,7 @@ fixed_n_jobs:
 prci_job_spec:
   gating:
     job_prefix: 'fedora-latest/'
+    copr_defined: True
   nightly_latest:
     job_prefix: 'fedora-latest/'
   nightly_latest_389ds:

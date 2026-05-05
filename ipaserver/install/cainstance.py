@@ -1856,7 +1856,7 @@ def update_ca_renewal_entry(conn, nickname, cert):
 
     :param conn: A *connected* LDAP handle
     :param nickname: NSSDB nickname
-    :param cert: python-cryptography X509Certificate
+    :param cert: IPACertificate
 
     """
     dn = DN(('cn', nickname), api.env.container_ca_renewal, api.env.basedn)

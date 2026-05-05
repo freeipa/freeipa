@@ -12,10 +12,7 @@ import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.twofactor.hotp import HOTP
-from cryptography.hazmat.primitives.twofactor.totp import TOTP
+import synta.crypto
 from ldap.controls.simple import BooleanControl
 from paramiko import AuthenticationException
 
@@ -61,12 +58,12 @@ def add_otptoken(host, owner, *, otptype="hotp", digits=6, algo="sha1"):
     key = base64.b32decode(query["secret"][0])
     assert len(key) == 35
 
-    hashcls = getattr(hashes, algo.upper())
     if otptype == "hotp":
-        return otpuid, HOTP(key, digits, hashcls(), default_backend())
+        return otpuid, synta.crypto.HOTP(key, digits, algorithm=algo.lower())
     else:
         period = int(query["period"][0])
-        return otpuid, TOTP(key, digits, hashcls(), period, default_backend())
+        return otpuid, synta.crypto.TOTP(key, digits, algorithm=algo.lower(),
+                                         period=period)
 
 
 def del_otptoken(host, otpuid):
@@ -236,14 +233,14 @@ class TestOTPToken(IntegrationTest):
             ["kinit", USER], stdin_text=f"{PASSWORD}\n", ok_returncode=1
         )
         # OTP login works
-        otpvalue = hotp.generate(0).decode("ascii")
+        otpvalue = hotp.generate(0)
         kinit_otp(master, USER, password=PASSWORD, otp=otpvalue)
         # repeating OTP fails
         kinit_otp(
             master, USER, password=PASSWORD, otp=otpvalue, success=False
         )
         # skipping an OTP is ok
-        otpvalue = hotp.generate(2).decode("ascii")
+        otpvalue = hotp.generate(2)
         kinit_otp(master, USER, password=PASSWORD, otp=otpvalue)
         # TGT with OTP auth indicator can get a ticket for OTP-only service
         master.run_command(["kvno", self.service_name])
@@ -259,7 +256,7 @@ class TestOTPToken(IntegrationTest):
         otpuid, hotp = add_otptoken(self.master, USER, otptype="hotp")
 
         # skipping too many OTP fails
-        otp1 = hotp.generate(10).decode("ascii")
+        otp1 = hotp.generate(10)
         kinit_otp(self.master, USER, password=PASSWORD, otp=otp1,
                   success=False)
         # Now the token is desynchronized
@@ -271,9 +268,8 @@ class TestOTPToken(IntegrationTest):
         """ Test if sync fails when incorrect password is provided """
         otpuid, hotp = desynchronized_hotp
 
-        otp2 = hotp.generate(20).decode("ascii")
-        otp3 = hotp.generate(21).decode("ascii")
-
+        otp2 = hotp.generate(20)
+        otp3 = hotp.generate(21)
         # Try to sync with a wrong password
         result = self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
@@ -293,9 +289,8 @@ class TestOTPToken(IntegrationTest):
         otpuid, hotp = desynchronized_hotp
 
         otp2 = "12345a"
-        otp3 = hotp.generate(20).decode("ascii")
-        otp4 = hotp.generate(21).decode("ascii")
-
+        otp3 = hotp.generate(20)
+        otp4 = hotp.generate(21)
         # Try to sync with a wrong first value (contains non-digit)
         result = self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
@@ -314,8 +309,8 @@ class TestOTPToken(IntegrationTest):
         """ Test if sync fails when incorrect 2nd token value is provided """
         otpuid, hotp = desynchronized_hotp
 
-        otp2 = hotp.generate(20).decode("ascii")
-        otp3 = hotp.generate(21).decode("ascii")
+        otp2 = hotp.generate(20)
+        otp3 = hotp.generate(21)
         # Try to sync with wrong order
         result = self.master.run_command(
             ["ipa", "otptoken-sync", "--user", USER, otpuid],
@@ -336,7 +331,7 @@ class TestOTPToken(IntegrationTest):
         tasks.kinit_admin(self.master)
         otpuid, totp = add_otptoken(master, USER, otptype="totp")
 
-        otpvalue = totp.generate(int(time.time())).decode("ascii")
+        otpvalue = totp.generate(int(time.time()))
         kinit_otp(master, USER, password=PASSWORD, otp=otpvalue)
         # TGT with OTP auth indicator can get a ticket for OTP-only service
         master.run_command(["kvno", self.service_name])
@@ -351,24 +346,22 @@ class TestOTPToken(IntegrationTest):
         tasks.kinit_admin(self.master)
         otpuid, hotp = add_otptoken(master, USER, otptype="hotp")
 
-        otp1 = hotp.generate(10).decode("ascii")
-        otp2 = hotp.generate(11).decode("ascii")
-
+        otp1 = hotp.generate(10)
+        otp2 = hotp.generate(11)
         master.run_command(
             ["ipa", "otptoken-sync", "--user", USER],
             stdin_text=f"{PASSWORD}\n{otp1}\n{otp2}\n",
         )
-        otpvalue = hotp.generate(12).decode("ascii")
+        otpvalue = hotp.generate(12)
         kinit_otp(master, USER, password=PASSWORD, otp=otpvalue)
 
-        otp1 = hotp.generate(20).decode("ascii")
-        otp2 = hotp.generate(21).decode("ascii")
-
+        otp1 = hotp.generate(20)
+        otp2 = hotp.generate(21)
         master.run_command(
             ["ipa", "otptoken-sync", otpuid, "--user", USER],
             stdin_text=f"{PASSWORD}\n{otp1}\n{otp2}\n",
         )
-        otpvalue = hotp.generate(22).decode("ascii")
+        otpvalue = hotp.generate(22)
         kinit_otp(master, USER, password=PASSWORD, otp=otpvalue)
 
         del_otptoken(master, otpuid)
@@ -399,7 +392,7 @@ class TestOTPToken(IntegrationTest):
         try:
             otpuid, totp = add_otptoken(master, USER1, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
-            otpvalue = totp.generate(int(time.time())).decode('ascii')
+            otpvalue = totp.generate(int(time.time()))
             password = '{0}{1}'.format(PASSWORD, otpvalue)
             tasks.run_ssh_cmd(
                 to_host=self.master.external_hostname, username=USER1,
@@ -446,7 +439,7 @@ class TestOTPToken(IntegrationTest):
         try:
             otpuid, totp = add_otptoken(master, USER2, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
-            otpvalue = totp.generate(int(time.time())).decode('ascii')
+            otpvalue = totp.generate(int(time.time()))
             answers = {
                 first_prompt: PASSWORD,
                 second_prompt: otpvalue
@@ -489,7 +482,7 @@ class TestOTPToken(IntegrationTest):
         try:
             otpuid, totp = add_otptoken(master, USER3, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
-            totp.generate(int(time.time())).decode('ascii')
+            totp.generate(int(time.time()))
             otpvalue = "\n"
             tasks.clear_sssd_cache(self.master)
             github_ticket = "https://github.com/SSSD/sssd/pull/7500"
@@ -549,7 +542,7 @@ class TestOTPToken(IntegrationTest):
         try:
             otpuid, totp = add_otptoken(master, USER4, otptype='totp')
             master.run_command(['ipa', 'otptoken-show', otpuid])
-            otpvalue = totp.generate(int(time.time())).decode('ascii')
+            otpvalue = totp.generate(int(time.time()))
             tasks.clear_sssd_cache(self.master)
             result = ssh_2fa_with_cmd(master,
                                       self.master.hostname,
@@ -607,7 +600,7 @@ class TestOTPToken(IntegrationTest):
         otpuid, totp = add_otptoken(self.master, USER, otptype="totp")
         try:
             # kinit with OTP auth
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            otpvalue = totp.generate(int(time.time()))
             kinit_otp(self.master, USER, password=PASSWORD, otp=otpvalue)
             time.sleep(60)
             # ldapsearch will wake up slapd and force walking through
@@ -668,7 +661,7 @@ class TestOTPToken(IntegrationTest):
             otpuid, totp = add_otptoken(master, USER1, otptype="totp")
             # Next, authenticate with Password+OTP and with the LDAP control
             # this operation should succeed
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            otpvalue = totp.generate(int(time.time()))
             conn = master.ldap_connect()
             conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
                              client_controls=[
@@ -680,7 +673,7 @@ class TestOTPToken(IntegrationTest):
             time.sleep(45)
             # Use OTP token again, without LDAP control, should succeed
             # because OTP enforcement is implicit
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            otpvalue = totp.generate(int(time.time()))
             conn = master.ldap_connect()
             conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}")
             conn.unbind()
@@ -697,7 +690,7 @@ class TestOTPToken(IntegrationTest):
             time.sleep(45)
             # Use OTP token again, without LDAP control, should succeed
             # because OTP enforcement is implicit
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            otpvalue = totp.generate(int(time.time()))
             # Finally, change password again, now that otp is present
             master.run_command(['curl', '-d', f'user={USER1}',
                                 '-d', f'old_password={PASSWORD}',
@@ -749,7 +742,7 @@ class TestOTPToken(IntegrationTest):
             otpuid, totp = add_otptoken(master, USER1, otptype="totp")
 
             # Make sure OTP auth is working
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            otpvalue = totp.generate(int(time.time()))
             conn = master.ldap_connect()
             conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
                              client_controls=controls)
@@ -768,8 +761,7 @@ class TestOTPToken(IntegrationTest):
             # Next, authenticate with Password+OTP again and with the LDAP
             # control this operation should now fail
             time.sleep(45)
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
-
+            otpvalue = totp.generate(int(time.time()))
             conn = master.ldap_connect()
             with pytest.raises(errors.ACIError):
                 conn.simple_bind(binddn, f"{PASSWORD}{otpvalue}",
@@ -780,7 +772,7 @@ class TestOTPToken(IntegrationTest):
 
             # Use OTP token again but authenticate over ssh and make sure it
             # doesn't fallthrough to asking for a password
-            otpvalue = totp.generate(int(time.time())).decode("ascii")
+            otpvalue = totp.generate(int(time.time()))
             answers = {
                 'Enter first factor:': PASSWORD,
                 'Enter second factor:': otpvalue
