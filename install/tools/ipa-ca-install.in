@@ -131,6 +131,11 @@ def parse_options():
                       default=False, help="Enable random serial numbers",
                       action="store_true")
 
+    parser.add_option("--use-ipathinca", dest="use_ipathinca",
+                      default=False,
+                      help="Use ipathinca Python CA instead of Dogtag/PKI",
+                      action="store_true")
+
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
     admin_cleanup_global_argv(parser, options, sys.argv)
