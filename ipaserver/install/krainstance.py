@@ -116,12 +116,12 @@ class KRAInstance(DogtagInstance):
         if self.is_installed():
             raise RuntimeError(
                 "KRA already installed.")
-        # Confirm that a Dogtag 10 CA instance already exists
+        # Confirm that a Dogtag 10 CA or IPAthinCA instance already exists
         ca = cainstance.CAInstance(self.realm)
         if not ca.is_installed():
             raise RuntimeError(
                 "KRA configuration failed.  "
-                "A Dogtag CA must be installed first")
+                "A CA must be installed first")
 
         if promote:
             self.step("creating ACIs for admin", self.add_ipaca_aci)
