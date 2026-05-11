@@ -1178,7 +1178,6 @@ class CAInstance(DogtagInstance):
 
         return publishdir
 
-
     def __enable_crl_publish(self):
         """
         Enable file-based CRL publishing and disable LDAP publishing.

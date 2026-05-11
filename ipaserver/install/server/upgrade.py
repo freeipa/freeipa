@@ -1732,21 +1732,27 @@ def upgrade_configuration():
                 ca.add_ipa_wait()
 
             # Handle upgrade of AJP connector configuration
-            rewrite = ca.secure_ajp_connector()
+            secret_needs_sync = ca.secure_ajp_connector()
             if ca.ajp_secret:
                 sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(
                     ca.ajp_secret)
             else:
                 sub_dict['DOGTAG_AJP_SECRET'] = ''
 
+            ajp_packet_size = ca.get_ajp_packet_size()
+            if ajp_packet_size:
+                sub_dict['DOGTAG_AJP_PACKET_SIZE'] = (
+                    "ProxyIOBufferSize {}".format(ajp_packet_size))
+            else:
+                sub_dict['DOGTAG_AJP_PACKET_SIZE'] = ''
+
             # force=True will ensure the secret is updated if it changes
-            if rewrite:
-                upgrade_file(
-                    sub_dict,
-                    paths.HTTPD_IPA_PKI_PROXY_CONF,
-                    os.path.join(paths.USR_SHARE_IPA_DIR,
-                                 "ipa-pki-proxy.conf.template"),
-                    add=True, force=True)
+            upgrade_file(
+                sub_dict,
+                paths.HTTPD_IPA_PKI_PROXY_CONF,
+                os.path.join(paths.USR_SHARE_IPA_DIR,
+                             "ipa-pki-proxy.conf.template"),
+                add=True, force=secret_needs_sync)
         else:
             if os.path.isfile(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
