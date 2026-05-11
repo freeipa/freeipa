@@ -489,8 +489,39 @@ class DogtagInstance(service.Service):
 
         return rewrite
 
+    def get_ajp_packet_size(self):
+        """Return packetSize if set in the AJP connectors
+
+           There are multiple connectors but the value should be the same.
+
+           We aren't trying to keep the values in sync between PKI and
+           Apache. They should both be 65536.
+
+           There are several opportunities for a user to mess this up:
+           * the attribute name is case-sensitive
+           * we only want the max possible value, nothing creative
+
+           Return the value if set, None if not.
+        """
+
+        server_xml = lxml.etree.parse(paths.PKI_TOMCAT_SERVER_XML)
+        doc = server_xml.getroot()
+
+        # no AJP connector is probably bad.
+        connectors = doc.xpath('//Connector[@protocol="AJP/1.3"]')
+        if len(connectors) == 0:
+            logger.debug("No AJP connectors found in get_ajp_packet_size")
+            return None
+
+        for connector in connectors:
+            if 'packetSize' in connector.attrib:
+                return connector.get('packetSize')
+
+        return None
+
     def http_proxy(self):
         """ Update the http proxy file  """
+        ajp_packet_size = self.get_ajp_packet_size()
         template_filename = (
             os.path.join(paths.USR_SHARE_IPA_DIR,
                          "ipa-pki-proxy.conf.template"))
@@ -499,9 +530,14 @@ class DogtagInstance(service.Service):
             CLONE='' if self.clone else '#',
             FQDN=self.fqdn,
             DOGTAG_AJP_SECRET='',
+            DOGTAG_AJP_PACKET_SIZE='',
         )
         if self.ajp_secret:
             sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(self.ajp_secret)
+        if ajp_packet_size:
+            sub_dict['DOGTAG_AJP_PACKET_SIZE'] = (
+                "ProxyIOBufferSize {}".format(ajp_packet_size)
+            )
         template = ipautil.template_file(template_filename, sub_dict)
         with open(paths.HTTPD_IPA_PKI_PROXY_CONF, "w") as fd:
             fd.write(template)
