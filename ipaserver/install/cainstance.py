@@ -1138,6 +1138,19 @@ class CAInstance(DogtagInstance):
 
         return publishdir
 
+    def set_ajp_packetsize(self):
+        ajp_packet_size = self.get_ajp_packet_size()
+        if ajp_packet_size:
+            logger.info("Editing %s", paths.HTTPD_IPA_PKI_PROXY_CONF)
+            p = re.compile(r"^ProxyIOBufferSize 65536", re.MULTILINE)
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF) as f:
+                content = f.read()
+            if p.search(content):
+                return
+            content += "ProxyIOBufferSize {}\n".format(ajp_packet_size)
+            with open(paths.HTTPD_IPA_PKI_PROXY_CONF, 'w') as f:
+                f.write(content)
+
 
     def __enable_crl_publish(self):
         """
