@@ -237,7 +237,11 @@ def configure_krb5_conf(realm, kdc, filename):
     krbconf.setSubSectionDelimiters(("{","}"))
     krbconf.setIndent(("","  ","    "))
 
-    opts = [{'name':'comment', 'type':'comment', 'value':'File created by ipa-replica-conncheck'},
+    opts = [{'name':'comment', 'type':'comment',
+             'value':'File created by ipa-replica-conncheck'},
+            {'name':'empty', 'type':'empty'},
+            {'name':'include', 'type':'option', 'delim':' ',
+             'value':'/etc/krb5.conf.d/crypto-policies'},
             {'name':'empty', 'type':'empty'}]
 
     #[libdefaults]
