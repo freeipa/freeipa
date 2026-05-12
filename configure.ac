@@ -701,6 +701,7 @@ AC_CONFIG_FILES([
     ipapython/Makefile
     ipasphinx/Makefile
     ipaserver/Makefile
+    ipathinca/Makefile
     ipatests/Makefile
     ipatests/man/Makefile
     pypi/Makefile

@@ -479,6 +479,7 @@ Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
 Requires: python3-ipaserver = %{version}-%{release}
+Requires: python3-ipathinca = %{version}-%{release}
 Requires: python3-ldap >= %{python_ldap_version}
 Requires: 389-ds-base >= %{ds_version}
 Requires: openldap-clients > 2.4.35-4
@@ -575,6 +576,7 @@ BuildArch: noarch
 %{?python_provide:%python_provide python3-ipaserver}
 Requires: %{name}-server-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
+Requires: python3-ipathinca = %{version}-%{release}
 # we need pre-requires since earlier versions may break upgrade
 Requires(pre): python3-ldap >= %{python_ldap_version}
 Requires: python3-augeas
@@ -598,6 +600,29 @@ Requires: python3-urllib3 >= 1.25.8
 %endif
 
 %description -n python3-ipaserver
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+If you are installing an IPA server, you need to install this package.
+
+
+%package -n python3-ipathinca
+Summary: Python ipathinca library used by IPA server
+BuildArch: noarch
+%{?python_provide:%python_provide python3-ipaserver}
+Requires: %{name}-server-common = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
+# we need pre-requires since earlier versions may break upgrade
+Requires(pre): python3-ldap >= %{python_ldap_version}
+Requires: python3-gunicorn
+Requires: python3-flask
+Requires: python3-cachetools
+Requires: python3-pykcs11
+Requires: rpm-libs
+
+%description -n python3-ipathinca
 IPA is an integrated solution to provide centrally managed Identity (users,
 hosts, services), Authentication (SSO, 2FA), and Authorization
 (host access control, SELinux user roles, services). The solution provides
@@ -1150,7 +1175,6 @@ autoreconf -ivf
 # -Onone is workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1398405
 %make_build -Onone
 
-
 %check
 make %{?_smp_mflags} check VERBOSE=yes LIBDIR=%{_libdir}
 
@@ -1621,11 +1645,13 @@ fi
 %{_sbindir}/ipa-idrange-fix
 %{_sbindir}/ipa-acme-manage
 %{_sbindir}/ipa-migrate
+%{_sbindir}/ipathinca
 %if 0%{?fedora} >= 38
 %{bash_completions_dir}/ipa-migrate
 %endif
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/certmonger/ipa-server-guard
+%{_libexecdir}/certmonger/renew_ca_cert
 %dir %{_libexecdir}/ipa
 %{_libexecdir}/ipa/ipa-ccache-sweeper
 %{_libexecdir}/ipa/ipa-custodia
@@ -1707,6 +1733,13 @@ fi
 %license COPYING
 %{python3_sitelib}/ipaserver
 %{python3_sitelib}/ipaserver-*.egg-info
+
+
+%files -n python3-ipathinca
+%doc README.md Contributors.txt
+%license COPYING
+%{python3_sitelib}/ipathinca
+%{python3_sitelib}/ipathinca-*.egg-info
 
 
 %files server-common

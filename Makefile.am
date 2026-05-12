@@ -3,7 +3,7 @@ NULL =
 ACLOCAL_AMFLAGS = -I m4
 
 if ENABLE_SERVER
-    IPASERVER_SUBDIRS = ipaserver ipasphinx
+    IPASERVER_SUBDIRS = ipaserver ipathinca ipasphinx
     SERVER_SUBDIRS = daemons init install
 endif
 
