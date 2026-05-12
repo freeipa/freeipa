@@ -296,7 +296,9 @@ class idp(LDAPObject):
         if not p12file_data:
             return
 
-        secret = entry_attrs['ipaidpclientsecret']
+        # Empty string is converted to None but None.encode() raises
+        # an exception. Assume the p12 data is protected by an empty pwd
+        secret = entry_attrs['ipaidpclientsecret'] or ''
         try:
             key, cert, _other_certs = pkcs12.load_key_and_certificates(
                 p12file_data, secret.encode())
