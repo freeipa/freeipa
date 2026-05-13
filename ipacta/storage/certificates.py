@@ -9,7 +9,8 @@ from __future__ import absolute_import
 import logging
 from typing import Dict, Any, List
 import secrets
-from datetime import datetime, timezone
+import re
+from datetime import datetime, timedelta, timezone
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -27,6 +28,55 @@ from ipacta.storage.base import biginteger_to_db
 
 # Import LDAP filter escaping from shared location
 from ipacta.storage.base import escape_filter_chars
+
+# LDAP GeneralizedTime: YYYYMMDDHHmmss[.fff][Z|±HHMM]
+_GENERALIZEDTIME_RE = re.compile(
+    r'^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})'
+    r'(?:\.(\d+))?'
+    r'(Z|[+-]\d{4})?$'
+)
+
+
+def _parse_ldap_date(value: str) -> datetime:
+    """Parse an ISO format or LDAP GeneralizedTime date string."""
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        pass
+    m = _GENERALIZEDTIME_RE.match(value)
+    if m:
+        year, month, day, hour, minute, second = (
+            int(g) for g in m.groups()[:6]
+        )
+        frac = m.group(7) or "0"
+        microsecond = int(frac[:6].ljust(6, "0"))
+        tz_token = m.group(8) or "Z"
+        if tz_token == "Z":
+            tz = timezone.utc
+        else:
+            sign = 1 if tz_token[0] == "+" else -1
+            tz = timezone(
+                timedelta(
+                    hours=sign * int(tz_token[1:3]),
+                    minutes=sign * int(tz_token[3:5]),
+                )
+            )
+        return datetime(
+            year, month, day, hour, minute, second, microsecond, tz
+        )
+    raise ValueError(f"Cannot parse date/time string: {value!r}")
+
+
+def _to_generalizedtime(dt: datetime) -> str:
+    """Format a datetime as LDAP GeneralizedTime (YYYYMMDDHHmmssZ).
+
+    Always emits UTC with second precision, matching Dogtag's format so that
+    mixed Dogtag/ipacta deployments share a consistent date representation
+    in the o=ipaca database.
+    """
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc)
+    return dt.strftime("%Y%m%d%H%M%SZ")
 
 
 logger = logging.getLogger(__name__)
@@ -57,10 +107,12 @@ class CertificateStorage(BaseStorageBackend):
             # Extract certificate details
             subject = x509_utils.get_subject_dn_str(cert_record.certificate)
             issuer = x509_utils.get_issuer_dn_str(cert_record.certificate)
-            not_before = (
-                cert_record.certificate.not_valid_before_utc.isoformat()
+            not_before = _to_generalizedtime(
+                cert_record.certificate.not_valid_before_utc
             )
-            not_after = cert_record.certificate.not_valid_after_utc.isoformat()
+            not_after = _to_generalizedtime(
+                cert_record.certificate.not_valid_after_utc
+            )
 
             try:
                 # Check if certificate already exists
@@ -82,13 +134,13 @@ class CertificateStorage(BaseStorageBackend):
                 )
                 existing_entry["certStatus"] = [dogtag_status]
                 existing_entry["dateOfCreate"] = [
-                    cert_record.issued_at.isoformat()
+                    _to_generalizedtime(cert_record.issued_at)
                 ]
 
                 # Handle revocation attributes
                 if cert_record.revoked_at:
                     existing_entry["revokedOn"] = [
-                        cert_record.revoked_at.isoformat()
+                        _to_generalizedtime(cert_record.revoked_at)
                     ]
                 else:
                     if "revokedOn" in existing_entry:
@@ -130,7 +182,7 @@ class CertificateStorage(BaseStorageBackend):
                     "notAfter": [not_after],
                     "certStatus": [dogtag_status],
                     "userCertificate;binary": [cert_der],
-                    "dateOfCreate": [cert_record.issued_at.isoformat()],
+                    "dateOfCreate": [_to_generalizedtime(cert_record.issued_at)],
                 }
 
                 # Note: requestId is not stored in certificate entries in
@@ -140,7 +192,7 @@ class CertificateStorage(BaseStorageBackend):
 
                 if cert_record.revoked_at:
                     entry_attrs["revokedOn"] = [
-                        cert_record.revoked_at.isoformat()
+                        _to_generalizedtime(cert_record.revoked_at)
                     ]
 
                 if cert_record.revocation_reason:
@@ -310,7 +362,7 @@ class CertificateStorage(BaseStorageBackend):
                 )[0]
                 if isinstance(created, bytes):
                     created = created.decode("utf-8")
-                issued_at = datetime.fromisoformat(created)
+                issued_at = _parse_ldap_date(created)
                 cert_record.issued_at = issued_at
 
                 # Extract revocation_reason if present
@@ -519,7 +571,7 @@ class CertificateStorage(BaseStorageBackend):
                     )[0]
                     if isinstance(created, bytes):
                         created = created.decode("utf-8")
-                    cert_record.issued_at = datetime.fromisoformat(created)
+                    cert_record.issued_at = _parse_ldap_date(created)
 
                     # Extract revocation_reason
                     revocation_reason = None
@@ -634,7 +686,7 @@ class CertificateStorage(BaseStorageBackend):
                 "errors": [],
             }
 
-            revocation_time = datetime.now(timezone.utc).isoformat()
+            revocation_time = _to_generalizedtime(datetime.now(timezone.utc))
 
             for serial_number in serial_numbers:
                 try:
@@ -751,7 +803,7 @@ class CertificateStorage(BaseStorageBackend):
                     "cn": [request_id],
                     "requestState": [cert_request.status],
                     "extdata-cert-request": [csr_pem],
-                    "dateOfCreate": [cert_request.submitted_at.isoformat()],
+                    "dateOfCreate": [_to_generalizedtime(cert_request.submitted_at)],
                 }
 
                 # Store profile (using extdata-* attribute which
@@ -835,7 +887,7 @@ class CertificateStorage(BaseStorageBackend):
                 )[0]
                 if isinstance(create_date, bytes):
                     create_date = create_date.decode("utf-8")
-                cert_request.submitted_at = datetime.fromisoformat(create_date)
+                cert_request.submitted_at = _parse_ldap_date(create_date)
 
                 # Extract serial number if present
                 if "extdata-cert-serial-number" in entry:
