@@ -383,7 +383,7 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
                 raise errors.DatabaseError(
                     desc="Cannot connect to LDAP database",
                     info=f"EXTERNAL bind failed: {bind_err}",
-                )
+                ) from bind_err
 
             logger.debug("Successfully connected to LDAP via LDAPI")
 
@@ -397,7 +397,7 @@ def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
             )
             raise StorageConnectionError(
                 f"Cannot connect to LDAP database: {e}"
-            )
+            ) from e
 
 
 def close_ldap_connection():

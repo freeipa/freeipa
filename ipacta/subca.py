@@ -432,7 +432,7 @@ class SubCAManager:
             )
             raise StorageConnectionError(
                 f"Cannot connect to LDAP database for sub-CA operations: {e}"
-            )
+            ) from e
 
     def _parse_ldap_timestamp(self, timestamp_value) -> datetime.datetime:
         """Parse LDAP generalized time format to datetime
