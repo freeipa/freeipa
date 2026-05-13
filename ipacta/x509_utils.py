@@ -628,7 +628,7 @@ def load_certificate_from_ldap_data(cert_data) -> x509.Certificate:
         try:
             return x509.load_pem_x509_certificate(cert_bytes)
         except Exception as e:
-            raise ValueError(f"Could not load certificate from LDAP data: {e}")
+            raise ValueError(f"Could not load certificate from LDAP data: {e}") from e
 
 
 def decode_ldap_attribute(value, expected_type: type = str):

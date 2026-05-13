@@ -157,7 +157,7 @@ class LDAPStorageMixin:
             )
             raise StorageConnectionError(
                 f"Cannot connect to LDAP database: {e}"
-            )
+            ) from e
 
     def _create_ou_if_not_exists(self, ldap: LDAPClient, dn: DN, ou_name: str):
         """Create organizational unit if it doesn't exist."""

@@ -254,7 +254,7 @@ class PythonCA:
             logger.error("Failed to load CA cert/key: %s", e, exc_info=True)
             raise errors.CertificateOperationError(
                 error=f"Failed to load CA certificate or key: {e}"
-            )
+            ) from e
 
     def _ensure_ca_loaded(self):
         """Ensure CA certificate and key are loaded"""
@@ -367,7 +367,7 @@ class PythonCA:
             logger.error("Failed to submit certificate request: %s", e)
             raise errors.CertificateOperationError(
                 error=f"Failed to submit certificate request: {e}"
-            )
+            ) from e
 
     def sign_certificate_request(self, request_id: str) -> int:
         """
@@ -515,7 +515,7 @@ class PythonCA:
 
             raise errors.CertificateOperationError(
                 error=f"Failed to sign certificate: {e}"
-            )
+            ) from e
 
     def _add_extensions_for_profile(
         self,
