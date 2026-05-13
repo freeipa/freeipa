@@ -476,9 +476,17 @@ def ocsp_request(ocsp_data=None):
                 mimetype="application/ocsp-response",
                 status=500,
             )
-        except Exception:
+        except Exception as inner_e:
+            logger.error(
+                "Failed to build OCSP error response: %s",
+                inner_e,
+                exc_info=True,
+            )
+            # RFC 6960 OCSPResponse with responseStatus = internalError (2)
             return Response(
-                b"", mimetype="application/ocsp-response", status=500
+                b"\x30\x03\x0a\x01\x02",
+                mimetype="application/ocsp-response",
+                status=500,
             )
 
 
