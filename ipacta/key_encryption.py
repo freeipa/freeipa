@@ -10,10 +10,11 @@ Security Design:
     - Master encryption key derived from system secrets (Custodia/Vault)
     - AES-256-GCM for authenticated encryption
     - Unique IV per encryption operation
-    - Key derivation using PBKDF2-HMAC-SHA256
+    - Per-encryption key via HKDF-Extract(salt, master_key)
     - Forward secrecy: each key encrypted independently
 """
 
+import hmac as _hmac
 import logging
 import os
 import threading
@@ -21,8 +22,6 @@ from pathlib import Path
 from typing import Optional
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from ipaplatform.paths import paths
 
@@ -44,14 +43,12 @@ class KeyEncryption:
         - Confidentiality: AES-256-GCM encryption
         - Integrity: GCM authentication tag
         - Uniqueness: Random IV per encryption
-        - Key derivation: PBKDF2-HMAC-SHA256
+        - Key derivation: HKDF-Extract(salt, master_key) via HMAC-SHA256
     """
 
     # Master key file path (should be protected by filesystem permissions)
     MASTER_KEY_PATH = f"{paths.IPACTA_PRIVATE_DIR}/ipacta-master.key"
 
-    # Key derivation parameters
-    PBKDF2_ITERATIONS = 600000  # OWASP recommendation (2023)
     KEY_SIZE = 32  # 256 bits for AES-256
     IV_SIZE = 12  # 96 bits (recommended for GCM)
 
@@ -138,24 +135,22 @@ class KeyEncryption:
 
     def _derive_key(self, salt: bytes) -> bytes:
         """
-        Derive encryption key from master key using PBKDF2
+        Derive per-encryption key via HKDF-Extract(salt, master_key).
+
+        The master key is os.urandom(32) — already full-entropy, so
+        PBKDF2 iteration cost is unnecessary and misleading.
+        HKDF-Extract (RFC 5869 §2.2) is the correct primitive for
+        combining a high-entropy IKM with a per-use salt.
 
         Args:
-            salt: Cryptographic salt (random per encryption)
+            salt: Per-encryption random salt (KEY_SIZE bytes)
 
         Returns:
-            Derived 32-byte key
+            Derived 32-byte key (HMAC-SHA256 output)
         """
         master_key = self._get_master_key()
-
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=self.KEY_SIZE,
-            salt=salt,
-            iterations=self.PBKDF2_ITERATIONS,
-        )
-
-        return kdf.derive(master_key)
+        # HKDF-Extract: PRK = HMAC-SHA256(salt, IKM)
+        return _hmac.new(salt, master_key, 'sha256').digest()
 
     def encrypt_key(self, private_key_pem: bytes) -> bytes:
         """

@@ -118,5 +118,9 @@ class TestKeyEncryptionConstants:
     def test_iv_size(self):
         assert KeyEncryption.IV_SIZE == 12
 
-    def test_pbkdf2_iterations(self):
-        assert KeyEncryption.PBKDF2_ITERATIONS == 600000
+    def test_derive_key_length(self):
+        # _derive_key uses HKDF-Extract (HMAC-SHA256), always 32 bytes
+        ke = KeyEncryption.__new__(KeyEncryption)
+        ke._master_key = b'\x00' * 32
+        salt = b'\x01' * 32
+        assert len(ke._derive_key(salt)) == KeyEncryption.KEY_SIZE
