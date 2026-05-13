@@ -3,6 +3,7 @@
 # This proxies CA/KRA/ACME requests to ipacta service on port 8443
 
 ProxyRequests Off
+ProxyIOBufferSize 65000
 
 # Enable SSL proxy module and configure certificate verification
 SSLProxyEngine on
