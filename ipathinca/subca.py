@@ -588,10 +588,12 @@ class SubCAManager:
                     logger.debug(
                         "Successfully added ACI for ipacasrv to manage sub-CAs"
                     )
-                except Exception as e:
-                    logger.warning(
-                        "Failed to add ACI (may already exist): %s", e
+                except ldap_module.TYPE_OR_VALUE_EXISTS:
+                    logger.debug(
+                        "ACI for ipacasrv already exists, skipping"
                     )
+                except Exception as e:
+                    logger.warning("Failed to add ACI: %s", e)
 
     def create_subca(
         self,
