@@ -197,10 +197,14 @@ class Profile:
             if policy.default:
                 try:
                     builder = policy.default.apply(builder, csr, context)
-                except Exception:
+                except Exception as e:
                     # Some defaults may fail on dummy builder (that's OK)
-                    # We only care about context population
-                    pass
+                    # We only care about context population, not builder state
+                    logger.debug(
+                        "Policy default %s skipped on dummy builder: %s",
+                        policy.default.__class__.__name__,
+                        e,
+                    )
 
             # Validate constraint
             if policy.constraint:
