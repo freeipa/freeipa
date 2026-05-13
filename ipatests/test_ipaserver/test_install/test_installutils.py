@@ -286,7 +286,12 @@ def test_cgroup_v2_insufficient_ram_with_ca(mock_exists, mock_in_container):
 def test_cgroup_v2_no_limit_ok(mock_psutil, mock_exists, mock_in_container):
     """In a container and just miss the minimum RAM required"""
     mock_in_container.return_value = True
-    fake_memory = psutil._pslinux.svmem
+    # pylint: disable=E1101
+    try:
+        fake_memory = psutil._pslinux.svmem
+    except AttributeError:
+        fake_memory = psutil._pslinux.ntp.svmem
+    # pylint: enable=E1101
     fake_memory.available = int(RAM_OK)
     mock_psutil.return_value = fake_memory
     mock_exists.side_effect = [False, True, True]
@@ -301,7 +306,12 @@ def test_cgroup_v2_no_limit_ok(mock_psutil, mock_exists, mock_in_container):
 def test_cgroup_v2_no_limit_not_ok(mock_psutil, mock_exists, mock_in_container):
     """In a container and just miss the minimum RAM required"""
     mock_in_container.return_value = True
-    fake_memory = psutil._pslinux.svmem
+    # pylint: disable=E1101
+    try:
+        fake_memory = psutil._pslinux.svmem
+    except AttributeError:
+        fake_memory = psutil._pslinux.ntp.svmem
+    # pylint: enable=E1101
     fake_memory.available = int(RAM_NOT_OK)
     mock_psutil.return_value = fake_memory
     mock_exists.side_effect = [False, True, True]
@@ -315,7 +325,12 @@ def test_cgroup_v2_no_limit_not_ok(mock_psutil, mock_exists, mock_in_container):
 def test_bare_insufficient_ram_with_ca(mock_psutil, mock_in_container):
     """Not a container and insufficient RAM"""
     mock_in_container.return_value = False
-    fake_memory = psutil._pslinux.svmem
+    # pylint: disable=E1101
+    try:
+        fake_memory = psutil._pslinux.svmem
+    except AttributeError:
+        fake_memory = psutil._pslinux.ntp.svmem
+    # pylint: enable=E1101
     fake_memory.available = int(RAM_NOT_OK)
     mock_psutil.return_value = fake_memory
 
@@ -328,7 +343,12 @@ def test_bare_insufficient_ram_with_ca(mock_psutil, mock_in_container):
 def test_bare_ram_ok(mock_psutil, mock_in_container):
     """Not a container and sufficient RAM"""
     mock_in_container.return_value = False
-    fake_memory = psutil._pslinux.svmem
+    # pylint: disable=E1101
+    try:
+        fake_memory = psutil._pslinux.svmem
+    except AttributeError:
+        fake_memory = psutil._pslinux.ntp.svmem
+    # pylint: enable=E1101
     fake_memory.available = int(RAM_OK)
     mock_psutil.return_value = fake_memory
 
