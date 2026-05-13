@@ -258,8 +258,11 @@ class InternalCA(PythonCA):
             is_main_ca = is_main_ca_id(ca_id, self.ca_id, self.config)
 
             if not is_main_ca:
-                # Try to use sub-CA for signing, but fall back to main CA if
-                # not found
+                # Use sub-CA for signing. Only fall back to the main CA when
+                # the sub-CA genuinely does not exist (NotFound); any
+                # infrastructure failure (LDAP timeout, key decryption error,
+                # etc.) must abort signing so we never issue a certificate
+                # under the wrong issuer.
                 try:
                     subca = self.subca_manager.get_subca(ca_id)
                     if subca and subca.ca_cert and subca.ca_key:
@@ -268,13 +271,23 @@ class InternalCA(PythonCA):
                         logger.debug(
                             "Using sub-CA %s to sign certificate", ca_id
                         )
+                    elif subca is None:
+                        raise errors.NotFound(
+                            reason=f"Sub-CA '{ca_id}' not found"
+                        )
+                    else:
+                        raise errors.CertificateOperationError(
+                            error=f"Sub-CA '{ca_id}' has no certificate or key"
+                        )
+                except errors.NotFound:
+                    raise
+                except errors.CertificateOperationError:
+                    raise
                 except Exception as e:
-                    logger.warning(
-                        "Sub-CA '%s' lookup failed, "
-                        "falling back to main CA: %s",
-                        ca_id,
-                        e,
-                    )
+                    raise errors.CertificateOperationError(
+                        error="Infrastructure error loading"
+                        f" sub-CA '{ca_id}': {e}"
+                    ) from e
 
             # Retry loop for LDAP collisions (multi-worker).
             # MidairCollision can occur at any LDAP write step:
@@ -300,19 +313,19 @@ class InternalCA(PythonCA):
                 builder = builder.serial_number(serial_number)
                 builder = builder.issuer_name(signing_cert.subject)
 
-                # Try to load Dogtag profile for full compatibility
-
+                # Load profile — failure must abort signing; a missing or
+                # broken profile must not silently bypass all policy.
                 try:
                     profile = self.profile_manager.get_profile_for_signing(
                         request.profile
                     )
                     is_dogtag = isinstance(profile, Profile)
+                except errors.NotFound:
+                    raise
                 except Exception as e:
-                    logger.warning(
-                        "Failed to load profile %s: %s", request.profile, e
-                    )
-                    profile = None
-                    is_dogtag = False
+                    raise errors.CertificateOperationError(
+                        error=f"Failed to load profile '{request.profile}': {e}"
+                    ) from e
 
                 if is_dogtag:
                     # Use Dogtag profile policy chain
