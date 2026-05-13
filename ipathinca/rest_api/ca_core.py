@@ -263,6 +263,7 @@ def remove_security_domain_host(host_id):
             )
 
         subsystem, hostname, port = parts
+        subsystem = subsystem.upper()
 
         if subsystem not in ("CA", "KRA", "OCSP", "TKS", "TPS"):
             return error_response("BadRequest", "Invalid subsystem type", 400)
