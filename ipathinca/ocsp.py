@@ -86,6 +86,8 @@ class OCSPResponder:
         self.response_cache: OrderedDict = OrderedDict()
         self.cache_maxsize = 1000
         self._cache_lock = threading.Lock()
+        # secondary index: serial_number → set of cache keys (for fast invalidation)
+        self._serial_to_keys: "Dict[int, set]" = {}
 
         # OCSP signing certificate paths
         self.ocsp_cert_path = Path(ocsp_cert_path) if ocsp_cert_path else None
@@ -423,6 +425,9 @@ class OCSPResponder:
                 self.response_cache[cache_key] = OCSPResponse(
                     response_bytes, cache_until=next_update
                 )
+                self._serial_to_keys.setdefault(serial_number, set()).add(
+                    cache_key
+                )
 
             logger.info(
                 "Created OCSP response for serial %s, status: %s",
@@ -444,10 +449,29 @@ class OCSPResponder:
         )
         return error_response.public_bytes(serialization.Encoding.DER)
 
+    def invalidate_serial(self, serial_number: int):
+        """Remove all cached OCSP responses for a specific certificate serial.
+
+        Call this immediately after revoking or changing the hold status of a
+        certificate so the next OCSP request fetches a fresh status rather than
+        serving a stale "good" response for the remainder of the cache TTL.
+        """
+        with self._cache_lock:
+            keys = self._serial_to_keys.pop(serial_number, set())
+            for k in keys:
+                self.response_cache.pop(k, None)
+        if keys:
+            logger.debug(
+                "Invalidated %d OCSP cache entries for serial %s",
+                len(keys),
+                serial_number,
+            )
+
     def clear_cache(self):
         """Clear response cache"""
         with self._cache_lock:
             self.response_cache.clear()
+            self._serial_to_keys.clear()
         logger.info("OCSP response cache cleared")
 
     def get_cache_stats(self) -> Dict:
@@ -519,6 +543,17 @@ class OCSPResponderManager:
                     logger.info("Created OCSP responder for CA: %s", ca_id)
 
         return self.responders[ca_id]
+
+    def invalidate_serial(self, serial_number: int):
+        """Invalidate OCSP cache entries for a certificate serial across all CAs.
+
+        Call this after revoking or changing hold status so OCSP clients see
+        the updated status immediately rather than after the cache TTL expires.
+        """
+        with self._responders_lock:
+            responders = dict(self.responders)
+        for responder in responders.values():
+            responder.invalidate_serial(serial_number)
 
     def clear_all_caches(self):
         """Clear all OCSP response caches"""
