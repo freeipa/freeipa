@@ -112,23 +112,35 @@ class PythonKeyEscrowBackend:
 
     def _generate_transport_cert(self):
         """
-        Generate self-signed transport certificate for key wrapping
+        Generate self-signed transport certificate for key wrapping.
+
+        Key size: RSA-3072 per NIST SP 800-131A Rev 2 (keys protecting data
+        past 2030 require at least 3072-bit RSA).
+        Validity: 2 years (short-lived; certmonger renews before expiry).
         """
-        # Generate private key
+        # RSA-3072: meets NIST SP 800-131A Rev 2 security strength requirement
         private_key = rsa.generate_private_key(
-            public_exponent=65537, key_size=2048
+            public_exponent=65537, key_size=3072
         )
 
-        # Create self-signed certificate
+        # Build subject DN from IPA realm config; fall back to generic value
+        # when running without a fully configured IPA environment.
+        try:
+            realm = get_config_value("global", "realm")
+            org = realm
+        except Exception:
+            org = "IPA Key Escrow"
+
         subject = issuer = x509_utils.build_x509_name(
             [
-                ("CN", "Transport Certificate"),
-                ("O", "IPA Key Escrow"),
-                ("L", "Unknown"),
-                ("ST", "Unknown"),
-                ("C", "US"),
+                ("CN", "IPA KRA Transport Certificate"),
+                ("O", org),
             ]
         )
+
+        now = datetime.now(timezone.utc)
+        # 2-year validity: short enough to stay within NIST key-lifetime limits
+        not_after = now.replace(year=now.year + 2)
 
         cert = (
             x509.CertificateBuilder()
@@ -136,12 +148,8 @@ class PythonKeyEscrowBackend:
             .issuer_name(issuer)
             .public_key(private_key.public_key())
             .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.now(timezone.utc))
-            .not_valid_after(
-                datetime.now(timezone.utc).replace(
-                    year=datetime.now().year + 10
-                )
-            )
+            .not_valid_before(now)
+            .not_valid_after(not_after)
             .add_extension(
                 x509.SubjectAlternativeName(
                     [
