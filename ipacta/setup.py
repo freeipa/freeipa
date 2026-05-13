@@ -28,9 +28,10 @@ if __name__ == "__main__":
             "cryptography",
             "python-gunicorn",
             "python-flask",
+            "ipapython",  # ipautil.run, ipautil.fsdecode
+            "ipalib",     # errors, constants — used unconditionally at import
+            "ipaplatform",  # paths — used unconditionally at import
+            "python-ldap",  # ipapython.ipaldap
+            "cachetools",  # TTLCache for sub-CA and profile caches
         ],
-        extras_require={
-            "install": ["ipaplatform"],
-            "ldap": ["python-ldap"],  # ipapython.ipaldap
-        },
     )
