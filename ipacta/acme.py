@@ -7,10 +7,13 @@ RFC 8555 compliant ACME server using python-cryptography
 
 import base64
 import hashlib
+import ipaddress
 import json
 import logging
 import os
+import re
 import secrets
+import socket
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List
 
@@ -25,6 +28,81 @@ from ipacta.jwk import JWK
 from ipacta.storage.acme import ACMEStorageBackend
 
 logger = logging.getLogger(__name__)
+
+# RFC 1123 label: letters, digits, hyphens; not starting/ending with hyphen
+_LABEL_RE = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$")
+# Private/reserved address ranges — used when acme.allow_private_ips=false
+_BLOCKED_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),   # link-local
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),          # ULA
+    ipaddress.ip_network("fe80::/10"),         # link-local v6
+    ipaddress.ip_network("100.64.0.0/10"),     # shared address space
+]
+
+
+def _validate_acme_fqdn(fqdn: str) -> None:
+    """Validate that fqdn is a safe ACME DNS identifier for outbound HTTP-01.
+
+    Always enforced:
+    - Must be a syntactically valid DNS name (no bare IP literals).
+    - Labels must comply with RFC 1123.
+
+    Optional (set acme.allow_private_ips = false in ipacta.conf):
+    - Resolves the name and rejects private/loopback/reserved addresses.
+      Default is true (IPA is typically deployed in private networks where
+      ACME clients are also on private addresses).
+
+    Raises ValueError on any validation failure.
+    """
+    if not fqdn or len(fqdn) > 253:
+        raise ValueError(f"Invalid FQDN length: {fqdn!r}")
+
+    # Reject bare IP literals
+    try:
+        ipaddress.ip_address(fqdn)
+        raise ValueError(
+            f"ACME identifier must be a DNS name, not an IP literal: {fqdn!r}"
+        )
+    except ValueError as exc:
+        if "DNS name" in str(exc) or "IP literal" in str(exc):
+            raise
+
+    # Validate each DNS label (RFC 1123)
+    labels = fqdn.rstrip(".").split(".")
+    if len(labels) < 2:
+        raise ValueError(f"FQDN must have at least two labels: {fqdn!r}")
+    for label in labels:
+        if not _LABEL_RE.match(label):
+            raise ValueError(f"Invalid DNS label {label!r} in FQDN {fqdn!r}")
+
+    # Private-IP range check — opt-in hardening; default allows private IPs
+    allow_private = get_config_value(
+        "acme", "allow_private_ips", default="true"
+    ).lower() not in ("0", "false", "no", "off")
+    if allow_private:
+        return
+
+    # Resolve and reject addresses in blocked ranges
+    try:
+        results = socket.getaddrinfo(fqdn, 80, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise ValueError(f"Cannot resolve FQDN {fqdn!r}: {exc}") from exc
+
+    for (_fam, _type, _proto, _canonname, sockaddr) in results:
+        addr_str = sockaddr[0]
+        addr = ipaddress.ip_address(addr_str)
+        for blocked in _BLOCKED_NETWORKS:
+            if addr in blocked:
+                raise ValueError(
+                    f"FQDN {fqdn!r} resolves to blocked address {addr_str} "
+                    "(set acme.allow_private_ips=true in ipacta.conf to "
+                    "permit private-network ACME clients)"
+                )
 
 
 def _generate_token(nbytes: int = 32) -> str:
@@ -886,16 +964,26 @@ class ACMEServer:
         key_authorization = f"{challenge.token}.{key_thumbprint}"
 
         # Try to fetch the challenge response
-        # RFC 8555 §8.3: follow redirects (HTTP → HTTPS is common)
         try:
             import requests
 
+            hostname = identifier["value"]
+            try:
+                _validate_acme_fqdn(hostname)
+            except ValueError as exc:
+                logger.warning("HTTP-01 identifier rejected: %s", exc)
+                return False
+
             url = (
-                f"http://{identifier['value']}/.well-known/acme-challenge/"
+                f"http://{hostname}/.well-known/acme-challenge/"
                 f"{challenge.token}"
             )
+            # RFC 8555 §8.3: do not follow redirects — the challenge token
+            # must be served directly at the well-known URL.  Following
+            # redirects would allow an adversary to redirect validation to an
+            # internal service (SSRF).
             response = requests.get(
-                url, timeout=10, allow_redirects=True, verify=True
+                url, timeout=10, allow_redirects=False, verify=True
             )
 
             if response.status_code != 200:
