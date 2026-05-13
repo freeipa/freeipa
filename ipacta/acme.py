@@ -615,6 +615,15 @@ class ACMEServer:
 
         # Check if account already exists in LDAP
         existing_account = self.db.get_account(account_id)
+
+        # RFC 8555 §7.3.1: onlyReturnExisting must 400 if account not found
+        if payload.get("onlyReturnExisting") and not existing_account:
+            raise ACMEError(
+                "accountDoesNotExist",
+                "No account found for the provided key",
+                400,
+            )
+
         if existing_account:
             # Return existing account as ACMEAccount object
             account = ACMEAccount(
