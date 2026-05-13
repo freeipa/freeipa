@@ -6,7 +6,7 @@
 #
 # Usage: renew_ca_cert "nickname"
 
-set -e
+set -euo pipefail
 umask 077
 
 NICKNAME="$1"
@@ -45,7 +45,7 @@ if [ ! -f "$PASSWORD_FILE" ]; then
     exit 1
 fi
 
-NSSDB_PASSWORD=$(grep "^internal=" "$PASSWORD_FILE" | cut -d= -f2)
+NSSDB_PASSWORD=$(grep "^internal=" "$PASSWORD_FILE" | cut -d= -f2-)
 if [ -z "$NSSDB_PASSWORD" ]; then
     echo "Error: Could not extract NSSDB password from $PASSWORD_FILE" >&2
     exit 1
@@ -64,7 +64,7 @@ export_cert_from_nssdb() {
     }
 
     # Write password to secure temporary file
-    echo "$NSSDB_PASSWORD" > "$TEMP_PWD"
+    printf '%s\n' "$NSSDB_PASSWORD" > "$TEMP_PWD"
 
     # Export private key via PKCS#12
     pk12util -o "$TEMP_P12" -d "$NSSDB_DIR" -n "$nickname" \
@@ -73,9 +73,10 @@ export_cert_from_nssdb() {
         return 1
     }
 
-    # Extract private key from PKCS#12
+    # Extract private key from PKCS#12 — use password file, not argv,
+    # to avoid exposing the secret in /proc/<pid>/cmdline
     openssl pkcs12 -in "$TEMP_P12" -nodes -nocerts \
-        -passin pass:"$NSSDB_PASSWORD" -out "$TEMP_KEY" 2>/dev/null || {
+        -passin "file:$TEMP_PWD" -out "$TEMP_KEY" 2>/dev/null || {
         echo "Error: Failed to extract private key from PKCS#12" >&2
         return 1
     }
@@ -193,8 +194,14 @@ if systemctl is-active --quiet ipacta.service 2>/dev/null; then
     IPACTA_PID=$(systemctl show --property MainPID --value ipacta.service)
 
     if [ -n "$IPACTA_PID" ] && [ "$IPACTA_PID" != "0" ]; then
+        # Validate PID is a positive integer before passing to kill
+        if ! [[ "$IPACTA_PID" =~ ^[0-9]+$ ]]; then
+            echo "Warning: Unexpected MainPID value '$IPACTA_PID', restarting service" >&2
+            systemctl restart ipacta.service
+            exit 0
+        fi
         # Send SIGHUP to trigger graceful certificate reload
-        if kill -HUP "$IPACTA_PID" 2>/dev/null; then
+        if kill -HUP -- "$IPACTA_PID" 2>/dev/null; then
             echo "Certificate reload signal sent successfully (no service restart needed)"
 
             # Wait briefly for reload to complete
