@@ -31,6 +31,10 @@ _ldap_connection_lock = Lock()
 _connection_pool = None
 _pool_lock = Lock()
 
+# Cached main IPA CA UUID — static after installation, never changes at runtime
+_main_ca_uuid: "str | None" = None
+_main_ca_uuid_lock = Lock()
+
 
 class LDAPConnectionPool:
     """
@@ -451,46 +455,38 @@ def is_main_ca_id(ca_id, ca_name="ipa", config=None):
     if not ca_id or ca_id in ("ipa", "host-authority") or ca_id == ca_name:
         return True
 
-    # Check if this is the UUID of the main IPA CA by querying LDAP
-    try:
-        import ldap as python_ldap
+    # Check against the cached main CA UUID (static after installation)
+    global _main_ca_uuid
+    with _main_ca_uuid_lock:
+        if _main_ca_uuid is None:
+            try:
+                if config:
+                    basedn = config.get("global", "basedn")
+                else:
+                    basedn = get_config_value("global", "basedn")
 
-        # Get realm and basedn from config
-        if config:
-            realm = config.get("global", "realm")
-            basedn = config.get("global", "basedn")
-        else:
-            realm = get_config_value("global", "realm")
-            basedn = get_config_value("global", "basedn")
+                ca_dn = DN(
+                    ("cn", "ipa"), ("cn", "cas"), ("cn", "ca"), basedn
+                )
+                with get_ldap_connection() as conn:
+                    entry = conn.get_entry(ca_dn, ["ipaCaId"])
+                    if entry and "ipaCaId" in entry:
+                        _main_ca_uuid = entry.single_value["ipaCaId"]
+                        logger.debug(
+                            "Cached main CA UUID: %s", _main_ca_uuid
+                        )
+            except Exception as e:
+                logger.debug("Could not resolve main CA UUID: %s", e)
 
-        # Connect to LDAP via socket
-        ldap_socket = (
-            f'ldapi://%2Frun%2Fslapd-{realm.replace(".", "-")}.socket'
+    if _main_ca_uuid is not None:
+        is_main = ca_id == _main_ca_uuid
+        logger.debug(
+            "UUID check: ca_id=%s, main_ca_uuid=%s, is_main=%s",
+            ca_id,
+            _main_ca_uuid,
+            is_main,
         )
-        conn = python_ldap.initialize(ldap_socket)
-        conn.sasl_interactive_bind_s("", python_ldap.sasl.external())
-
-        # Read the main CA's UUID from IPA's CA entry
-        ca_dn = str(DN(("cn", "ipa"), ("cn", "cas"), ("cn", "ca"), basedn))
-        result = conn.search_s(
-            ca_dn, python_ldap.SCOPE_BASE, "(objectClass=*)", ["ipaCaId"]
-        )
-
-        if result and result[0][1] and "ipaCaId" in result[0][1]:
-            main_ca_uuid = result[0][1]["ipaCaId"][0].decode("utf-8")
-            is_main = ca_id == main_ca_uuid
-            logger.debug(
-                "UUID check: ca_id=%s, main_ca_uuid=%s, is_main=%s",
-                ca_id,
-                main_ca_uuid,
-                is_main,
-            )
-            conn.unbind()
-            return is_main
-
-        conn.unbind()
-    except Exception as e:
-        logger.debug("Could not check if %s is main CA UUID: %s", ca_id, e)
+        return is_main
 
     return False
 
