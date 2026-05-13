@@ -9,17 +9,11 @@ or other WSGI servers for production deployment.
 """
 
 import os
-import sys
 import logging
 from pathlib import Path
 
 from ipaplatform.paths import paths
 
-# Configure logging before imports
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
 
 
@@ -76,6 +70,15 @@ def setup_logging(config):
 
 def create_wsgi_app():
     """Create WSGI application with configuration"""
+    # Bootstrap logging before any other import so early errors are visible.
+    # Guard against re-configuration when the module is imported multiple times
+    # (e.g. test suites) or after Gunicorn forks.
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+
     # Load configuration from file specified in environment or default
     from ipacta.config import IpactaConfig, WSGI_DEFAULTS
 
@@ -139,13 +142,16 @@ def create_wsgi_app():
     except ImportError as e:
         logger.error("Failed to import ipacta modules: %s", e)
         logger.error("Make sure ipacta is properly installed")
-        sys.exit(1)
+        raise
     except Exception as e:
         logger.error("Failed to initialize application: %s", e, exc_info=True)
-        sys.exit(1)
+        raise
 
 
-# Create WSGI application instance
+# Create WSGI application instance.
+# This runs at module import time so Gunicorn can find 'application'.
+# Callers (tests, tools) that import this module should be prepared for
+# exceptions here when the environment is not configured.
 application = create_wsgi_app()
 
 
