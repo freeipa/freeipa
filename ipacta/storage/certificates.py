@@ -615,6 +615,74 @@ class CertificateStorage(BaseStorageBackend):
         """Get all revoked certificates for CRL generation"""
         return self.find_certificates({"status": "REVOKED"})
 
+    def get_revoked_for_crl(self):
+        """Yield lightweight revocation entries for CRL generation.
+
+        Returns a generator of (serial_number, revoked_at, reason_int) tuples,
+        fetching only the three LDAP attributes that are actually needed for
+        a CRL entry (no binary certificate DER).  This avoids loading the full
+        certificate into memory for every revoked entry — critical for large
+        deployments where a full load would cause OOM and LDAP saturation.
+
+        Yields:
+            Tuple[int, datetime, int]: (serial_number, revoked_at, reason_code)
+            serial_number is a positive integer.
+            revoked_at is a timezone-aware UTC datetime.
+            reason_code is an integer (0 = unspecified).
+        """
+        ldap_filter = (
+            "(&(objectClass=certificateRecord)(certStatus=REVOKED))"
+        )
+        with self._get_ldap_connection() as ldap:
+            try:
+                entries = ldap.get_entries(
+                    self.certs_base_dn,
+                    scope=ldap.SCOPE_ONELEVEL,
+                    filter=ldap_filter,
+                    attrs_list=["cn", "revInfo", "dateOfCreate"],
+                )
+            except errors.NotFound:
+                return
+
+            for entry in entries:
+                serial_raw = entry.get("cn", [None])[0]
+                if serial_raw is None:
+                    continue
+                if isinstance(serial_raw, bytes):
+                    serial_raw = serial_raw.decode("utf-8")
+                try:
+                    serial = int(serial_raw)
+                except ValueError:
+                    logger.warning(
+                        "Skipping CRL entry with non-integer cn: %s",
+                        serial_raw,
+                    )
+                    continue
+
+                created_raw = entry.get(
+                    "dateofcreate", entry.get("dateOfCreate", [None])
+                )[0]
+                if created_raw is None:
+                    revoked_at = datetime.now(timezone.utc)
+                else:
+                    if isinstance(created_raw, bytes):
+                        created_raw = created_raw.decode("utf-8")
+                    revoked_at = _parse_ldap_date(created_raw)
+
+                reason_int = 0
+                rev_raw = entry.get(
+                    "revinfo", entry.get("revInfo", [None])
+                )[0]
+                if rev_raw is not None:
+                    if isinstance(rev_raw, bytes):
+                        rev_raw = rev_raw.decode("utf-8")
+                    try:
+                        reason_int = int(rev_raw)
+                    except ValueError:
+                        pass
+
+                yield serial, revoked_at, reason_int
+
     # ========================================================================
     # Batch Operations (Performance Optimization)
     # ========================================================================
