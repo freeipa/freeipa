@@ -231,7 +231,7 @@ class IpactaConfig:
                     raise CAConfigurationError(
                         f"Failed to load configuration from "
                         f"{config_file}: {e}"
-                    )
+                    ) from e
                 logger.warning(
                     "Failed to load config file %s: %s", config_file, e
                 )
