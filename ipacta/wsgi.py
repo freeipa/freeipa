@@ -204,6 +204,10 @@ def main():
     # Build Gunicorn command
     gunicorn_args = [
         "gunicorn",
+        # gunicorn_conf.py defines post_fork() to reinitialise the LDAP
+        # pool in every worker after --preload forks them from the master.
+        "--config",
+        "python:ipacta.gunicorn_conf",
         "--bind",
         args.bind,
         "--workers",
