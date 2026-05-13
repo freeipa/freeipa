@@ -618,6 +618,7 @@ class PythonCA:
         logger.debug(
             "Certificate %s revoked with reason %s", serial_number, reason.name
         )
+        self._invalidate_ocsp_cache(serial_number)
 
     def put_certificate_on_hold(self, serial_number: int):
         """Put certificate on hold"""
@@ -631,6 +632,7 @@ class PythonCA:
         self.storage.store_certificate(cert_record)
 
         logger.debug("Certificate %s put on hold", serial_number)
+        self._invalidate_ocsp_cache(serial_number)
 
     def take_certificate_off_hold(self, serial_number: int):
         """Remove certificate from hold"""
@@ -644,6 +646,23 @@ class PythonCA:
         self.storage.store_certificate(cert_record)
 
         logger.debug("Certificate %s taken off hold", serial_number)
+        self._invalidate_ocsp_cache(serial_number)
+
+    def _invalidate_ocsp_cache(self, serial_number: int):
+        """Invalidate OCSP cache for a serial after a status change.
+
+        Imported lazily to avoid circular imports and because the OCSP manager
+        may not be initialised when running without OCSP support.
+        """
+        try:
+            from ipacta.ocsp import get_ocsp_manager
+            get_ocsp_manager().invalidate_serial(serial_number)
+        except Exception as e:
+            logger.warning(
+                "Could not invalidate OCSP cache for serial %s: %s",
+                serial_number,
+                e,
+            )
 
     def generate_crl(self) -> x509.CertificateRevocationList:
         """Generate Certificate Revocation List
