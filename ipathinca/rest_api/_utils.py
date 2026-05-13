@@ -16,17 +16,24 @@ logger = logging.getLogger(__name__)
 def _account_login():
     """Shared implementation for account login endpoint.
 
-    IPA's dogtag plugin uses client certificate authentication and expects
-    a session cookie to be returned for subsequent requests.
+    IPA's dogtag plugin (ipaserver/plugins/dogtag.py) expects a JSESSIONID
+    cookie in the login response so it can attach the cookie to subsequent
+    requests.  The cookie value is never validated server-side: every
+    protected endpoint is guarded by require_agent_auth(), which re-validates
+    the client TLS certificate on every request regardless of cookie state.
+    The JSESSIONID is therefore a Dogtag compatibility shim only.
+
+    DO NOT add server-side session validation based on JSESSIONID value —
+    the security boundary is the per-request client certificate check, not
+    this cookie.
 
     Used by both CA and KRA subsystems.
     """
-    # Generate a simple session token
+    # Dogtag compat: return a JSESSIONID cookie value (not stored server-side)
     session_token = secrets.token_hex(32)
 
-    # Create response and convert tuple to Response object
     response = make_response(success_response({"Status": "success"}))
-    # Set session cookie that expires in 30 minutes
+
     response.set_cookie(
         "JSESSIONID",
         session_token,
