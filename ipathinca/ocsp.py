@@ -201,7 +201,15 @@ class OCSPResponder:
 
             if self.ocsp_key_path:
                 self.ocsp_key_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(self.ocsp_key_path, "wb") as f:
+                # Use O_CREAT|O_TRUNC|O_WRONLY with mode at creation to avoid
+                # the window between open() and chmod() where the key is
+                # readable by anyone matching the process umask.
+                fd = os.open(
+                    self.ocsp_key_path,
+                    os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+                    0o600,
+                )
+                with os.fdopen(fd, "wb") as f:
                     f.write(
                         self.ocsp_key.private_bytes(
                             encoding=serialization.Encoding.PEM,
@@ -209,7 +217,6 @@ class OCSPResponder:
                             encryption_algorithm=serialization.NoEncryption(),
                         )
                     )
-                os.chmod(self.ocsp_key_path, 0o600)
 
             logger.info(
                 "OCSP signing certificate generated with serial %s",
