@@ -51,7 +51,7 @@ from cryptography import x509
 from cryptography.x509.oid import ExtensionOID
 from ipalib import errors
 from ipacta.profile.manager import ProfileManager
-from ipacta.certificate.types import (  # noqa: F401 — re-exported
+from ipacta.certificate.types import (  # noqa: F401 pylint: disable=W0611
     CertificateStatus,
     RevocationReason,
     CertificateRequest,
@@ -702,52 +702,28 @@ class PythonCA:
             critical=False,
         )
 
-        # Get all revoked certificates from LDAP storage
-        # Optionally filter out expired certificates
-        include_expired = (
-            ipacta.get_config_value(
-                "ca", "crl_include_expired_certs", default="false"
-            ).lower()
-            == "true"
-        )
-        revoked_certs = self.storage.find_certificates({"status": "REVOKED"})
-        if not include_expired:
-            revoked_certs = [
-                c
-                for c in revoked_certs
-                if c.certificate is not None
-                and c.certificate.not_valid_after_utc > now
-            ]
+        # Add revoked certificates to CRL.
+        # Use get_revoked_for_crl() which fetches only serial, revocation time,
+        # and reason code — no binary certificate DER — to avoid loading all
+        # revoked cert payloads into memory at once on large deployments.
+        for serial, revoked_at, reason_int in (
+            self.storage.get_revoked_for_crl()
+        ):
+            revoked_cert = x509.RevokedCertificateBuilder()
+            revoked_cert = revoked_cert.serial_number(serial)
+            revoked_cert = revoked_cert.revocation_date(revoked_at)
 
-        # Add revoked certificates to CRL
-        for cert_record in revoked_certs:
-            if cert_record.status == CertificateStatus.REVOKED:
-                if cert_record.revoked_at is None:
-                    logger.warning(
-                        "Revoked certificate %s has no revocation date, "
-                        "skipping in CRL",
-                        cert_record.serial_number,
-                    )
-                    continue
-                revoked_cert = x509.RevokedCertificateBuilder()
-                revoked_cert = revoked_cert.serial_number(
-                    cert_record.serial_number
+            if reason_int:
+                reason_flag = REVOCATION_REASON_TO_FLAG.get(
+                    RevocationReason(reason_int),
+                    x509.ReasonFlags.unspecified,
                 )
-                revoked_cert = revoked_cert.revocation_date(
-                    cert_record.revoked_at
+                revoked_cert = revoked_cert.add_extension(
+                    x509.CRLReason(reason_flag),
+                    critical=False,
                 )
 
-                if cert_record.revocation_reason:
-                    reason_flag = REVOCATION_REASON_TO_FLAG.get(
-                        cert_record.revocation_reason,
-                        x509.ReasonFlags.unspecified,
-                    )
-                    revoked_cert = revoked_cert.add_extension(
-                        x509.CRLReason(reason_flag),
-                        critical=False,
-                    )
-
-                builder = builder.add_revoked_certificate(revoked_cert.build())
+            builder = builder.add_revoked_certificate(revoked_cert.build())
 
         # Sign CRL with algorithm matching CA certificate
         # Extract algorithm from the CA cert that will sign this CRL
