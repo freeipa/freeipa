@@ -7,6 +7,7 @@
 # Usage: renew_ca_cert "nickname"
 
 set -e
+umask 077
 
 NICKNAME="$1"
 
