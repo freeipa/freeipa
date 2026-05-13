@@ -75,10 +75,8 @@ def ca_status():
         info = _g.ca_backend.get_ca_info()
         return Response(f"status={info['status']}", mimetype="text/plain")
     except Exception as e:
-        logger.error("Error in ca_status: %s", e)
-        return Response(
-            f"status=ERROR: {e}", mimetype="text/plain", status=500
-        )
+        logger.error("Error in ca_status: %s", e, exc_info=True)
+        return Response("status=ERROR", mimetype="text/plain", status=500)
 
 
 @bp.route("/ca/ee/ca/getStatus", methods=["GET"])

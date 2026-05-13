@@ -46,8 +46,10 @@ def get_ca_service():
         conf = SafeConfigParser()
         conf.read(paths.IPA_DEFAULT_CONF)
         return conf.get('global', 'ca_backend', fallback='dogtag')
-    except Exception:
-        # If we can't read the config, assume dogtag
+    except Exception as e:
+        logger.debug(
+            "Cannot read ca_backend from %s: %s", paths.IPA_DEFAULT_CONF, e
+        )
         return 'dogtag'
 
 
