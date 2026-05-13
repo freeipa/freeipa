@@ -126,7 +126,7 @@ class InternalCA(PythonCA):
             )
             raise StorageConnectionError(
                 f"LDAP storage is required but failed to initialize: {e}"
-            )
+            ) from e
 
         # Initialize sub-CA manager with reference to main CA
         self.subca_manager = SubCAManager(main_ca=self)
@@ -206,7 +206,7 @@ class InternalCA(PythonCA):
             logger.error("Failed to submit certificate request: %s", e)
             raise errors.CertificateOperationError(
                 error=f"Failed to submit certificate request: {e}"
-            )
+            ) from e
 
     def sign_certificate_request(
         self, request_id: str, principal: Optional[str] = None
@@ -469,7 +469,7 @@ class InternalCA(PythonCA):
 
             raise errors.CertificateOperationError(
                 error=f"Failed to sign certificate: {e}"
-            )
+            ) from e
 
     def _execute_policy_chain(self, profile, builder, csr, context: dict):
         """Execute Dogtag profile policy chain

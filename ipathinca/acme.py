@@ -192,7 +192,7 @@ class JWS:
             payload = base64.urlsafe_b64decode(payload_b64)
             signature = base64.urlsafe_b64decode(signature_b64)
         except Exception as e:
-            raise ValueError(f"Failed to decode JWS: {e}")
+            raise ValueError(f"Failed to decode JWS: {e}") from e
 
         # Verify signature
         signing_input = (
@@ -522,7 +522,7 @@ class ACMEServer:
         except ACMEError:
             raise
         except Exception as e:
-            raise ACMEError("malformed", f"JWS processing failed: {e}")
+            raise ACMEError("malformed", f"JWS processing failed: {e}") from e
 
     def _jwk_to_cryptography_key(self, jwk_dict: Dict[str, Any]):
         """Convert JWK dictionary to cryptography key object"""
@@ -887,7 +887,7 @@ class ACMEServer:
         try:
             csr = x509.load_der_x509_csr(csr_der)
         except Exception as e:
-            raise ACMEError("badCSR", f"Invalid CSR: {e}")
+            raise ACMEError("badCSR", f"Invalid CSR: {e}") from e
 
         # Validate CSR against order identifiers
         self._validate_csr_identifiers(csr, order_data["identifiers"])
@@ -1155,4 +1155,4 @@ class ACMEServer:
         except Exception as e:
             raise ACMEError(
                 "badRevocationRequest", f"Failed to revoke certificate: {e}"
-            )
+            ) from e
