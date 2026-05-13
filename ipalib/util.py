@@ -292,6 +292,7 @@ def get_proper_tls_version_span(tls_version_min, tls_version_max):
 def create_https_connection(
     host, port=HTTPSConnection.default_port,
     cafile=None,
+    capath=None,
     client_certfile=None, client_keyfile=None,
     keyfile_passwd=None,
     tls_version_min=TLS_VERSION_DEFAULT_MIN,
@@ -327,13 +328,23 @@ def create_https_connection(
         "tls1.3": getattr(ssl, "OP_NO_TLSv1_3", 0),
     }
 
-    if cafile is None:
-        raise RuntimeError("cafile argument is required to perform server "
-                           "certificate verification")
+    if cafile is None and capath is None:
+        raise RuntimeError("cafile or capth argument is required to perform "
+                           "server certificate verification")
 
-    if not os.path.isfile(cafile) or not os.access(cafile, os.R_OK):
+    if (
+        cafile
+        and (not os.path.isfile(cafile) or not os.access(cafile, os.R_OK))
+    ):
         raise RuntimeError("cafile \'{file}\' doesn't exist or is unreadable".
                            format(file=cafile))
+
+    if (
+        capath
+        and (not os.path.isdir(capath) or not os.access(capath, os.R_OK))
+    ):
+        raise RuntimeError("capath \'{file}\' doesn't exist or is unreadable".
+                           format(file=capath))
 
     # official Python documentation states that the best option to get
     # TLSv1 and later is to setup SSLContext with PROTOCOL_SSLv23
@@ -370,7 +381,7 @@ def create_https_connection(
 
     ctx.verify_mode = ssl.CERT_REQUIRED
     ctx.check_hostname = True
-    ctx.load_verify_locations(cafile)
+    ctx.load_verify_locations(cafile, capath)
 
     if client_certfile is not None:
         if keyfile_passwd is not None:
