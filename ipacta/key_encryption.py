@@ -116,11 +116,17 @@ class KeyEncryption:
             # Generate cryptographically secure random key
             self._master_key = os.urandom(self.KEY_SIZE)
 
-            # Write key with restrictive permissions (owner read-only)
-            with open(self.master_key_path, "wb") as f:
+            # Write key with restrictive permissions atomically.
+            # O_CREAT|O_EXCL|O_WRONLY with mode=0o400 ensures:
+            # - the file is never world-readable (no chmod race)
+            # - concurrent creation fails rather than silently overwriting
+            fd = os.open(
+                self.master_key_path,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                0o400,
+            )
+            with os.fdopen(fd, "wb") as f:
                 f.write(self._master_key)
-
-            self.master_key_path.chmod(0o400)
 
             logger.info("Master encryption key generated and stored securely")
             return self._master_key
