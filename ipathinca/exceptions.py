@@ -392,10 +392,6 @@ class ProfileAlreadyExists(ProfileError):
         return result
 
 
-# Deprecated alias for backward compatibility
-DuplicateProfileError = ProfileAlreadyExists
-
-
 # ============================================================================
 # CA Configuration Exceptions
 # ============================================================================
