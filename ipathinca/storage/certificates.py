@@ -7,7 +7,7 @@ Storage module extracted from storage_ca.py for modularity
 from __future__ import absolute_import
 
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import secrets
 import re
 from datetime import datetime, timedelta, timezone
@@ -182,7 +182,9 @@ class CertificateStorage(BaseStorageBackend):
                     "notAfter": [not_after],
                     "certStatus": [dogtag_status],
                     "userCertificate;binary": [cert_der],
-                    "dateOfCreate": [_to_generalizedtime(cert_record.issued_at)],
+                    "dateOfCreate": [
+                        _to_generalizedtime(cert_record.issued_at)
+                    ],
                 }
 
                 # Note: requestId is not stored in certificate entries in
@@ -420,7 +422,9 @@ class CertificateStorage(BaseStorageBackend):
                     )
                 ) from e
 
-    def find_certificates(self, criteria: Dict[str, Any] = None) -> List:
+    def find_certificates(
+        self, criteria: Optional[Dict[str, Any]] = None
+    ) -> List:
         """
         Search certificates in Dogtag-compatible LDAP schema
 
@@ -885,7 +889,9 @@ class CertificateStorage(BaseStorageBackend):
                     "cn": [request_id],
                     "requestState": [cert_request.status],
                     "extdata-cert-request": [csr_pem],
-                    "dateOfCreate": [_to_generalizedtime(cert_request.submitted_at)],
+                    "dateOfCreate": [
+                        _to_generalizedtime(cert_request.submitted_at)
+                    ],
                 }
 
                 # Store profile (using extdata-* attribute which

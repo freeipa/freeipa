@@ -14,6 +14,7 @@ import time
 from queue import Queue, Empty, Full
 from threading import Lock
 from contextlib import contextmanager
+from typing import Optional
 
 from ipalib import errors
 from ipapython import ipaldap
@@ -262,7 +263,9 @@ def init_connection_pool(min_connections=None, max_connections=None):
         return _connection_pool
 
 
-def get_ldap_connection(force_reconnect: bool = False, use_pool: bool = None):
+def get_ldap_connection(
+    force_reconnect: bool = False, use_pool: Optional[bool] = None
+):
     """Get shared LDAP connection using Directory Manager credentials
 
     This function provides a pooled LDAP connection for optimal performance.

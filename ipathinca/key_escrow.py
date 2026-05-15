@@ -15,7 +15,7 @@ import json
 import os
 import secrets
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -312,7 +312,9 @@ class PythonKeyEscrowBackend:
         logger.info("Successfully archived data with key ID: %s", key_id)
         return key_id
 
-    def list_keys(self, client_key_id: str, status: str = None) -> KeyResponse:
+    def list_keys(
+        self, client_key_id: str, status: Optional[str] = None
+    ) -> KeyResponse:
         """
         List keys for a client (replacement for KRA list_keys)
 
@@ -476,7 +478,7 @@ class PythonKeyEscrowClient:
             nonce_iv,
         )
 
-    def list_keys(self, client_key_id: str, status: str = None):
+    def list_keys(self, client_key_id: str, status: Optional[str] = None):
         """List keys"""
         return self.backend.list_keys(client_key_id, status)
 
