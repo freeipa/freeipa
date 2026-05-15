@@ -181,7 +181,7 @@ class NSSDatabase:
                     check=False,
                 )
             except subprocess.TimeoutExpired:
-                raise RuntimeError(
+                raise CertificateOperationError(
                     f"pk12util timed out extracting key for {nickname} "
                     "(possible NSSDB lock contention)"
                 )
@@ -210,15 +210,14 @@ class NSSDatabase:
                     check=False,
                 )
             except subprocess.TimeoutExpired:
-                raise RuntimeError(
-                    f"openssl pkcs12 timed out converting key for "
-                    f"{nickname}"
+                raise CertificateOperationError(
+                    f"openssl pkcs12 timed out converting key for {nickname}"
                 )
 
             if proc.returncode != 0:
                 stderr = proc.stderr.decode(errors="replace")
                 logger.error("openssl pkcs12 failed: %s", stderr)
-                raise RuntimeError(
+                raise CertificateOperationError(
                     f"Failed to convert PKCS#12 to PEM for {nickname}"
                 )
 
