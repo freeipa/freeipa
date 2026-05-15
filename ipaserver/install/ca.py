@@ -23,7 +23,6 @@ from ipaserver.install import sysupgrade
 from ipapython.install import typing
 from ipapython.install.core import group, knob, extend_knob
 from ipaserver.install import acmeinstance, cainstance, bindinstance, dsinstance
-from ipaserver.install.ipathincainstance import IPAThinCAInstance
 from ipapython import ipautil, certdb
 from ipapython import ipaldap
 from ipapython.admintool import ScriptError
@@ -623,6 +622,7 @@ def install_step_0(standalone, replica_config, options, custodia):
     if use_ipathinca:
         # Use ipathinca Python CA instead of Dogtag/PKI
         logger.info("Configuring ipathinca Python CA (replacing pki-tomcat)")
+        from ipaserver.install.ipathincainstance import IPAThinCAInstance
 
         ca = IPAThinCAInstance(
             realm=realm_name,
@@ -726,6 +726,7 @@ def install_step_1(standalone, replica_config, options, custodia):
                                       config_ipa=True, config_compat=True)
 
         if replica_config is not None:
+            from ipaserver.install.ipathincainstance import IPAThinCAInstance
             ca = IPAThinCAInstance(
                 realm=realm_name, host_name=host_name
             )
@@ -811,7 +812,7 @@ def enable_ca_service(options):
 
     if use_ipathinca:
         logger.info("Registering ipathinca CA service in LDAP")
-        from ipaserver.install.ipathincainstance import IPAThinCAInstance  # pylint: disable=reimported
+        from ipaserver.install.ipathincainstance import IPAThinCAInstance
         ca_instance = IPAThinCAInstance(
             realm=options.realm_name,
             host_name=options.host_name,
@@ -828,6 +829,7 @@ def uninstall():
     use_ipathinca = get_ca_service() == "ipathinca"
 
     if use_ipathinca:
+        from ipaserver.install.ipathincainstance import IPAThinCAInstance
         ca_instance = IPAThinCAInstance(api.env.realm, api.env.host)
     else:
         ca_instance = cainstance.CAInstance(api.env.realm)
