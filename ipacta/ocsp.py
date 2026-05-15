@@ -339,21 +339,20 @@ class OCSPResponder:
             # Get certificate serial number from request
             serial_number = ocsp_req.serial_number
 
-            # Check cache (thread-safe)
+            # Check cache under a single lock acquisition so that expiry
+            # check and removal are atomic.
             cache_key = self._get_cache_key(serial_number, nonce)
             with self._cache_lock:
                 cached_response = self.response_cache.get(cache_key)
+                if cached_response is not None and cached_response.is_expired():
+                    self.response_cache.pop(cache_key, None)
+                    cached_response = None
             if cached_response is not None:
-                if not cached_response.is_expired():
-                    logger.debug(
-                        "Returning cached OCSP response for serial %s",
-                        serial_number,
-                    )
-                    return cached_response.response_bytes
-                else:
-                    # Remove expired entry
-                    with self._cache_lock:
-                        self.response_cache.pop(cache_key, None)
+                logger.debug(
+                    "Returning cached OCSP response for serial %s",
+                    serial_number,
+                )
+                return cached_response.response_bytes
 
             # Ensure CA cert is loaded
             self.ca._ensure_ca_loaded()
@@ -534,27 +533,25 @@ class OCSPResponderManager:
         Returns:
             OCSPResponder instance
         """
-        if ca_id not in self.responders:
-            with self._responders_lock:
-                if ca_id not in self.responders:
-                    # Create paths for this CA
-                    ocsp_cert_path = (
-                        self.base_storage_path / f"{ca_id}_ocsp.crt"
-                    )
-                    ocsp_key_path = (
-                        self.base_storage_path / f"{ca_id}_ocsp.key"
-                    )
+        with self._responders_lock:
+            if ca_id not in self.responders:
+                ocsp_cert_path = (
+                    self.base_storage_path / f"{ca_id}_ocsp.crt"
+                )
+                ocsp_key_path = (
+                    self.base_storage_path / f"{ca_id}_ocsp.key"
+                )
+                # Construct first; only store on success so a failed
+                # construction doesn't leave a broken entry in the map.
+                responder = OCSPResponder(
+                    ca=ca,
+                    ocsp_cert_path=str(ocsp_cert_path),
+                    ocsp_key_path=str(ocsp_key_path),
+                )
+                self.responders[ca_id] = responder
+                logger.info("Created OCSP responder for CA: %s", ca_id)
 
-                    # Create responder
-                    self.responders[ca_id] = OCSPResponder(
-                        ca=ca,
-                        ocsp_cert_path=str(ocsp_cert_path),
-                        ocsp_key_path=str(ocsp_key_path),
-                    )
-
-                    logger.info("Created OCSP responder for CA: %s", ca_id)
-
-        return self.responders[ca_id]
+            return self.responders[ca_id]
 
     def invalidate_serial(self, serial_number: int):
         """Invalidate OCSP cache entries for a certificate serial across all CAs.
