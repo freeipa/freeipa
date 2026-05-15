@@ -192,7 +192,7 @@ class NSSDatabase:
                     "-nocerts",
                     "-nodes",
                     "-passin",
-                    f"pass:{self.nssdb_password}",
+                    f"file:{temp_password_file}",
                 ],
                 capture_output=True,
                 raiseonerr=True,
@@ -345,7 +345,7 @@ class NSSDatabase:
                     "-name",
                     nickname,
                     "-passout",
-                    f"pass:{self.nssdb_password}",
+                    f"file:{temp_password_file}",
                 ],
                 raiseonerr=True,
             )
