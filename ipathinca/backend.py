@@ -639,7 +639,7 @@ class PythonCABackend:
             # Generate timestamped filename
             # (Dogtag format: MasterCRL-YYYYMMDD-HHMMSS.der)
 
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S-%f")
             timestamped_filename = f"MasterCRL-{timestamp}.der"
             timestamped_path = os.path.join(publish_dir, timestamped_filename)
 
