@@ -294,6 +294,7 @@ class InternalCA(PythonCA):
             # serial number allocation, certificate storage, or request
             # update.  Retry the entire sign-and-store sequence.
             max_retries = 10
+            cert_record = None
             for attempt in range(max_retries):
                 try:
                     # Generate serial number
