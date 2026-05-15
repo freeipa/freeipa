@@ -161,21 +161,31 @@ class PythonKeyEscrowBackend:
             .sign(private_key, hashes.SHA256())
         )
 
-        # Save certificate and key
+        # Write private key with mode 0o600 from creation (no world-readable
+        # window between open() and chmod()).
+        key_fd = os.open(
+            self.transport_key_path,
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+            0o600,
+        )
+        try:
+            with os.fdopen(key_fd, "wb") as f:
+                f.write(
+                    private_key.private_bytes(
+                        encoding=serialization.Encoding.PEM,
+                        format=serialization.PrivateFormat.PKCS8,
+                        encryption_algorithm=serialization.NoEncryption(),
+                    )
+                )
+        except Exception:
+            try:
+                os.unlink(self.transport_key_path)
+            except OSError:
+                pass
+            raise
+
         with open(self.transport_cert_path, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.PEM))
-
-        with open(self.transport_key_path, "wb") as f:
-            f.write(
-                private_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.PKCS8,
-                    encryption_algorithm=serialization.NoEncryption(),
-                )
-            )
-
-        # Set restrictive permissions
-        os.chmod(self.transport_key_path, 0o600)
         os.chmod(self.transport_cert_path, 0o644)
 
     def get_transport_cert(self):
@@ -266,11 +276,20 @@ class PythonKeyEscrowBackend:
         # Add new record
         records.append(key_record)
 
-        # Save updated records
-        with open(storage_file, "w") as f:
-            json.dump(records, f, indent=2)
-
-        # Set restrictive permissions
+        # Write to a temp file then rename atomically so disk-full or OOM
+        # during json.dump never truncates the existing record store.
+        tmp_file = storage_file + ".tmp"
+        tmp_fd = os.open(tmp_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        try:
+            with os.fdopen(tmp_fd, "w") as f:
+                json.dump(records, f, indent=2)
+        except Exception:
+            try:
+                os.unlink(tmp_file)
+            except OSError:
+                pass
+            raise
+        os.replace(tmp_file, storage_file)
         os.chmod(storage_file, 0o600)
 
         logger.info("Successfully archived data with key ID: %s", key_id)
@@ -342,8 +361,20 @@ class PythonKeyEscrowBackend:
                     break
 
             if modified:
-                with open(filepath, "w") as f:
-                    json.dump(records, f, indent=2)
+                tmp_file = filepath + ".tmp"
+                tmp_fd = os.open(
+                    tmp_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600
+                )
+                try:
+                    with os.fdopen(tmp_fd, "w") as f:
+                        json.dump(records, f, indent=2)
+                except Exception:
+                    try:
+                        os.unlink(tmp_file)
+                    except OSError:
+                        pass
+                    raise
+                os.replace(tmp_file, filepath)
                 logger.info("Updated key %s status to %s", key_id, new_status)
                 return
 
