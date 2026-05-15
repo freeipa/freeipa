@@ -365,6 +365,12 @@ class IpactaInstance(service.Service):
     can treat the two interchangeably.
     """
 
+    # Dogtag-specific class attributes — set to neutral values so that
+    # the upgrade and other callers that were written for Dogtag do not fail
+    # with AttributeError when ipacta is the active CA backend.
+    ajp_secret = None
+    hsm_sstore = None
+
     @staticmethod
     def configure_certmonger_renewal_helpers():
         """Configure certmonger renewal helpers for ipacta HTTPS.
@@ -637,24 +643,56 @@ class IpactaInstance(service.Service):
         config_path = Path(paths.IPACTA_CONF)
         return config_path.exists()
 
+    def is_dogtag_configured(self):
+        return False
+
     def create_certstore_passwdfile(self):
-        passwd = None
-        token = "internal"
-        with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as f:
-            for line in f:
-                if '=' not in line:
-                    continue
-                tok, pin = line.split('=', 1)
-                if token == tok:
-                    passwd = pin.strip()
-                    break
-            else:
-                raise RuntimeError(
-                    "The password to the 'internal' token of the "
-                    "certificate store was not found in "
-                    f"{paths.PKI_TOMCAT_PASSWORD_CONF}")
-        db = certs.CertDB(self.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
-        db.create_passwd_file(passwd)
+        """ipacta has no Dogtag NSSDB — nothing to do."""
+
+    # ------------------------------------------------------------------
+    # Dogtag-compatible stubs
+    #
+    # upgrade.py and other callers written for Dogtag call these on
+    # whatever object CAInstance() returns.  When ipacta is the active
+    # backend the methods below are no-ops (or return safe neutral values)
+    # because the corresponding Dogtag concepts do not exist here.
+    # ------------------------------------------------------------------
+
+    def backup_config(self):
+        """No Dogtag CS.cfg to back up — no-op."""
+
+    def add_ipa_wait(self):
+        """Dogtag systemd drop-in — not applicable to ipacta."""
+
+    def secure_ajp_connector(self):
+        """No AJP connector — return False (no rewrite needed)."""
+        return False
+
+    def unconfigure_certmonger_renewal_guard(self):
+        """Dogtag certmonger guard — not applicable to ipacta."""
+
+    def reindex_task(self, force=False):
+        """Dogtag o=ipaca LDAP reindex — not applicable to ipacta."""
+
+    def configure_renewal(self):
+        """Certmonger renewal tracking for Dogtag NSSDB certs.
+
+        ipacta manages its own certmonger tracking during install;
+        nothing extra is needed at upgrade time.
+        """
+
+    def configure_agent_renewal(self):
+        """Dogtag RA agent certificate tracking — not applicable."""
+
+    def enable_pkix(self):
+        """Dogtag PKIX validation flag in CS.cfg — not applicable."""
+
+    def prepare_crl_publish_dir(self):
+        """Dogtag CRL publish-directory setup — not applicable."""
+        return None
+
+    def set_hsm_state(self, config):
+        """Dogtag HSM state in sysrestore — not applicable."""
 
     def is_crlgen_enabled(self):
         """Check if CRL generation is enabled.
@@ -1036,6 +1074,7 @@ class IpactaInstance(service.Service):
 
     def setup_acme(self):
         """Set up ACME service — delegates to ACME helper."""
+        self._ensure_global_config()
         if self._acme is None:
             self._acme = ACME(self.ldap, self.config, self._ldap_mod)
         self._acme.setup_acme()
