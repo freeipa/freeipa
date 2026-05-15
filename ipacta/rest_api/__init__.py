@@ -102,7 +102,7 @@ def main():
     """Main entry point for running the server"""
 
     parser = argparse.ArgumentParser(description="Python CA REST API Server")
-    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
     parser.add_argument(
         "--port", type=int, default=8080, help="Port to bind to"
     )
