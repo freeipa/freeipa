@@ -1268,8 +1268,9 @@ class Certs:
                 "healthcheck"
             )
         except Exception as e:
-            logger.warning("Failed to create pkidbuser entry: %s", e)
-            # Non-fatal - healthcheck will fail but CA continues to work
+            raise errors.CertificateOperationError(
+                error=f"Failed to create pkidbuser LDAP entry: {e}"
+            ) from e
 
     def _generate_server_cert(self):
         """Generate server SSL certificate through ipacta CA.
