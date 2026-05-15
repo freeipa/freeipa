@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives import serialization
 import ipacta.rest_api._globals as _g
 from ipacta.rest_api._globals import require_ca_backend, init_ca
 from ipacta.ocsp import get_ocsp_manager
+import ipacta.rate_limit as _rl
 from ipacta.rest_api._helpers import (
     handle_ca_errors,
     require_agent_auth,
@@ -407,6 +408,15 @@ def ocsp_request(ocsp_data=None):
     - GET: OCSP request in URL (base64-encoded)
     """
     try:
+        ip = request.remote_addr or "unknown"
+        if not _rl.ocsp.is_allowed(ip):
+            return Response(
+                b"\x30\x03\x0a\x01\x03",  # OCSPResponse: tryLater (3)
+                status=429,
+                mimetype="application/ocsp-response",
+                headers={"Retry-After": "60"},
+            )
+
         init_ca()
 
         # Get OCSP manager
