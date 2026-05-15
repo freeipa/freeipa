@@ -12,6 +12,7 @@ Security Modules (HSMs).
 
 import logging
 import os
+import re
 import threading
 from typing import Optional, Dict, Any, List, Tuple
 
@@ -22,6 +23,18 @@ from ipalib import errors
 from ipacta.exceptions import CAConfigurationError
 
 logger = logging.getLogger(__name__)
+
+_PIN_VALUE_RE = re.compile(r'(?<=\?|&)pin-value=[^&]*', re.IGNORECASE)
+
+
+def _sanitize_uri(uri: str) -> str:
+    """Return a PKCS#11 URI with any pin-value= component replaced by '***'.
+
+    Use this whenever a URI needs to appear in a log message or exception
+    string to avoid leaking the HSM PIN into log files.
+    """
+    return _PIN_VALUE_RE.sub("pin-value=***", uri)
+
 
 # Try to import PyKCS11 (optional dependency)
 try:
@@ -200,9 +213,10 @@ class HSMKeyBackend:
                 "Loaded PKCS#11 library: %s", self.config.pkcs11_library
             )
         except PyKCS11.PyKCS11Error as e:
+            safe_msg = _sanitize_uri(str(e))
             raise errors.CertificateOperationError(
-                error=f"Failed to load PKCS#11 library: {e}"
-            )
+                error=f"Failed to load PKCS#11 library: {safe_msg}"
+            ) from e
 
         # Find slot
         self.slot_id = self._find_slot()
