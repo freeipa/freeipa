@@ -305,8 +305,12 @@ class OCSPResponder:
                 "Error checking certificate status for serial %s: %s",
                 serial_number,
                 e,
+                exc_info=True,
             )
-            return ocsp.OCSPCertStatus.UNKNOWN, None, None, None
+            # Re-raise so create_response() can return internalError (RFC 6960
+            # §2.3).  Returning UNKNOWN here would make revoked certs appear
+            # valid to TLS stacks that treat unknown as good.
+            raise
 
     def create_response(self, request_der: bytes) -> bytes:
         """
@@ -354,10 +358,18 @@ class OCSPResponder:
             # Ensure CA cert is loaded
             self.ca._ensure_ca_loaded()
 
-            # Get certificate status and certificate object
-            cert_status, revocation_time, revocation_reason, certificate = (
-                self._get_cert_status(serial_number)
-            )
+            # Get certificate status; LDAP / storage failures raise here so
+            # we return internalError per RFC 6960 §2.3 rather than UNKNOWN,
+            # which TLS stacks may treat as good.
+            try:
+                (
+                    cert_status,
+                    revocation_time,
+                    revocation_reason,
+                    certificate,
+                ) = self._get_cert_status(serial_number)
+            except Exception:
+                return self._create_error_response()
 
             # Build response
             now = datetime.now(timezone.utc)

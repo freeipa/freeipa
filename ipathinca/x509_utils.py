@@ -309,6 +309,8 @@ def get_ocsp_key_usage_extension() -> x509.KeyUsage:
     Get OCSP signing certificate KeyUsage extension
 
     For OCSP responder certificates (caOCSPCert profile).
+    RFC 5280 §4.2.1.3 and RFC 6960 §4.2.2.2 allow only digitalSignature
+    for OCSP responder certs.
 
     Returns:
         x509.KeyUsage extension configured for OCSP signing
@@ -321,8 +323,8 @@ def get_ocsp_key_usage_extension() -> x509.KeyUsage:
     """
     return x509.KeyUsage(
         digital_signature=True,
-        key_encipherment=True,
-        data_encipherment=True,
+        key_encipherment=False,
+        data_encipherment=False,
         key_agreement=False,
         key_cert_sign=False,
         crl_sign=False,
