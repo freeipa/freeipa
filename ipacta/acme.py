@@ -843,6 +843,15 @@ class ACMEServer:
             self.db.update_authorization_status(
                 challenge_data["authz_id"], "valid"
             )
+        else:
+            # RFC 8555 §8: failed challenges MUST be set to "invalid", not
+            # left as "pending". Clients poll "pending" forever; "invalid"
+            # signals that they must restart the order.
+            challenge.status = "invalid"
+            self.db.update_challenge_status(token, "invalid")
+            self.db.update_authorization_status(
+                challenge_data["authz_id"], "invalid"
+            )
 
         return challenge
 
