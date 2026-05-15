@@ -635,14 +635,17 @@ class IpactaInstance(service.Service):
         token = "internal"
         with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as f:
             for line in f:
-                (tok, pin) = line.split('=', 1)
+                if '=' not in line:
+                    continue
+                tok, pin = line.split('=', 1)
                 if token == tok:
                     passwd = pin.strip()
                     break
             else:
                 raise RuntimeError(
                     "The password to the 'internal' token of the "
-                    "certificate store was not found.")
+                    "certificate store was not found in "
+                    f"{paths.PKI_TOMCAT_PASSWORD_CONF}")
         db = certs.CertDB(self.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
         db.create_passwd_file(passwd)
 
@@ -1112,8 +1115,10 @@ class IpactaInstance(service.Service):
                 comment_rewriterule()
             else:
                 uncomment_rewriterule()
-        except IOError:
-            raise RuntimeError("Unable to access {}".format(proxy_conf))
+        except IOError as e:
+            raise RuntimeError(
+                "Unable to access {}".format(proxy_conf)
+            ) from e
 
         http_service = services.knownservices.httpd
         logger.info("Restarting %s", http_service.service_name)
@@ -1133,7 +1138,8 @@ class IpactaInstance(service.Service):
         try:
             get_global_config()
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug("Global config not set, attempting to load: %s", e)
             try:
                 config_path = Path(paths.IPACTA_CONF)
                 if not config_path.exists():
@@ -1392,7 +1398,8 @@ class IpactaInstance(service.Service):
         """Check if ipacta service is running."""
         try:
             return services.knownservices["ipacta"].is_running()
-        except Exception:
+        except Exception as e:
+            logger.debug("Could not determine ipacta service status: %s", e)
             return False
 
     def uninstall(self):
