@@ -1362,6 +1362,9 @@ class DogtagCAInstance(DogtagInstance):
             logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
 
+    def is_dogtag_configured(self):
+        return self.is_configured()
+
     def is_renewal_master(self, fqdn=None):
         if fqdn is None:
             fqdn = api.env.host
