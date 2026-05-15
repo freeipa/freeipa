@@ -1400,10 +1400,6 @@ class IpactaInstance(service.Service):
             self._svc._install_renewal_scripts,
         )
         self.step(
-            "configuring certmonger for renewals",
-            self._svc._configure_certmonger_renewal,
-        )
-        self.step(
             "installing systemd service",
             self._svc._install_systemd_service,
         )
@@ -1417,6 +1413,10 @@ class IpactaInstance(service.Service):
             self._nssdb.apply_nssdb_permissions,
         )
         self.step("starting ipacta service", self._svc._start_service)
+        self.step(
+            "configuring certmonger for renewals",
+            self._svc._configure_certmonger_renewal,
+        )
         self.step("generating initial CRL", self._svc._generate_initial_crl)
         self.step("enabling CA instance", self.__enable_instance)
 
