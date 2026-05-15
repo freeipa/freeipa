@@ -12,6 +12,7 @@ from ipacta.rest_api._helpers import (
     require_agent_auth,
     success_response,
 )
+import ipacta.rate_limit as _rl
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +67,21 @@ def acme_endpoint(endpoint):
     """Generic ACME endpoint handler with JWS parsing"""
     try:
         init_ca()
+
+        # Per-endpoint rate limiting keyed by client IP
+        ip = request.remote_addr or "unknown"
+        if endpoint == "new-account":
+            limiter = _rl.acme_new_account
+        elif endpoint == "new-order":
+            limiter = _rl.acme_new_order
+        elif endpoint == "revoke-cert":
+            limiter = _rl.acme_revoke
+        else:
+            limiter = _rl.acme_general
+        if not limiter.is_allowed(ip):
+            return error_response(
+                "rateLimited", "Too many requests, please try again later", 429
+            )
 
         # Get raw request body (JWS-signed request)
         jws_data = request.get_json()

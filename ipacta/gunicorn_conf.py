@@ -20,8 +20,60 @@ explicit reinitialisation:
 import io
 import logging
 import sys
+import threading
+import time
 
 logger = logging.getLogger(__name__)
+
+_RATE_LIMITER_PURGE_INTERVAL = 300  # seconds
+
+
+def _start_rate_limiter_purge(worker_pid):
+    """Start a daemon thread that purges stale rate-limiter buckets.
+
+    RateLimiter._windows grows without bound unless purge_stale() is called:
+    every unique source IP that contacts any ACME or OCSP endpoint gets a deque
+    entry that persists until explicitly evicted.  On a server that sees many
+    distinct IPs (scanners, load-balancer health-checks, short-lived clients)
+    this causes steady RSS growth without any new certificates being issued.
+
+    Called once per worker from post_fork() so each worker owns its own copy
+    of the module-level singletons (they are not shared across fork boundaries).
+    """
+    from ipacta import rate_limit as _rl
+
+    limiters = [
+        _rl.acme_new_account,
+        _rl.acme_new_order,
+        _rl.acme_revoke,
+        _rl.acme_general,
+        _rl.ocsp,
+    ]
+
+    def _purge_loop():
+        while True:
+            time.sleep(_RATE_LIMITER_PURGE_INTERVAL)
+            for lim in limiters:
+                try:
+                    lim.purge_stale()
+                except Exception as exc:
+                    logger.warning(
+                        "Worker %s: rate-limiter purge failed: %s",
+                        worker_pid,
+                        exc,
+                    )
+
+    t = threading.Thread(
+        target=_purge_loop,
+        daemon=True,
+        name=f"rate-limiter-purge-{worker_pid}",
+    )
+    t.start()
+    logger.debug(
+        "Worker %s: rate-limiter purge thread started (interval=%ds)",
+        worker_pid,
+        _RATE_LIMITER_PURGE_INTERVAL,
+    )
 
 
 def _reopen_log_handlers(worker_pid):
@@ -98,6 +150,37 @@ def post_fork(server, worker):
             worker.pid,
             e,
         )
+
+    _start_rate_limiter_purge(worker.pid)
+
+
+def when_ready(server):
+    """Notify systemd that the service is ready to accept connections.
+
+    Called by Gunicorn in the arbiter process after all initial workers have
+    been spawned and are listening on their sockets.  Sends READY=1 via
+    $NOTIFY_SOCKET so that ``systemctl start ipacta.service`` returns
+    only after the service is truly ready (requires Type=notify in the unit
+    file).  No-op when not running under systemd.
+    """
+    import os
+    import socket as _socket
+
+    notify_socket = os.environ.get("NOTIFY_SOCKET")
+    if not notify_socket:
+        return
+
+    try:
+        if notify_socket.startswith("@"):
+            addr = "\0" + notify_socket[1:]
+        else:
+            addr = notify_socket
+        with _socket.socket(_socket.AF_UNIX, _socket.SOCK_DGRAM) as sock:
+            sock.connect(addr)
+            sock.sendall(b"READY=1")
+        logger.debug("Sent READY=1 to systemd notify socket")
+    except Exception as exc:
+        logger.warning("Failed to send sd_notify READY=1: %s", exc)
 
 
 def worker_exit(server, worker):
