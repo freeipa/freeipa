@@ -33,6 +33,7 @@ from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
 from ipacta.ca import CertificateRequest, CertificateRecord, PythonCA
+from ipacta.exceptions import ExternalCAStep1Complete
 from ipacta.hsm import HSMConfig, HSMKeyBackend, HSMPrivateKeyProxy
 from ipacta.nss_utils import NSSDatabase
 from ipacta.storage.factory import get_storage_backend
@@ -222,10 +223,12 @@ class Certs:
             # During fresh installation, we need to generate the CA certificate
             # Check for external CA mode
             if self.external_ca_step == 1:
-                # External CA Step 1: Generate CSR and exit
+                # External CA Step 1: Generate CSR and exit.
                 logger.debug("External CA Step 1: Generating CSR")
-                self._generate_external_ca_csr()
-                # Never returns - exits after CSR generation
+                try:
+                    self._generate_external_ca_csr()
+                except ExternalCAStep1Complete:
+                    sys.exit(0)
             elif self.external_ca_step == 2:
                 # External CA Step 2: Install signed certificate
                 logger.debug(
@@ -378,8 +381,11 @@ class Certs:
             % sys.argv[0]
         )
 
-        logger.info("External CA Step 1 complete - exiting")
-        sys.exit(0)
+        logger.info("External CA Step 1 complete")
+        raise ExternalCAStep1Complete(
+            "CSR generated successfully; re-run installer with "
+            "--external-cert-file after signing."
+        )
 
     def _install_external_ca_cert(self):
         """Install externally-signed CA certificate (Step 2).
