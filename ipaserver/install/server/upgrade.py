@@ -1630,6 +1630,55 @@ def set_default_grace_time():
     api.Backend.ldap2.update_entry(entry)
 
 
+def _upgrade_dogtag_ca(ca, kra, ds, http, fqdn, ca_restart):
+    """Dogtag-specific CA upgrade steps, run with pki-tomcat running."""
+    # Schema must be updated before LDAP profiles, but schema changes
+    # do not require a pki-tomcat restart (pagure.io/freeipa/issue/9204).
+    ca_upgrade_schema(ca)
+
+    ca_restart = any([
+        ca_restart,
+        certificate_renewal_update(ca, kra, ds, http),
+        ca_enable_pkix(ca),
+        ca_configure_profiles_acl(ca),
+        ca_configure_lightweight_ca_acls(ca),
+        ca_ensure_lightweight_cas_container(ca),
+        ca_enable_lightweight_ca_monitor(ca),
+        ca_add_default_ocsp_uri(ca),
+        ca_disable_publish_cert(ca),
+    ])
+
+    if ca_restart:
+        logger.info('pki-tomcat configuration changed, restart pki-tomcat')
+        try:
+            ca.restart('pki-tomcat')
+        except ipautil.CalledProcessError as e:
+            logger.error("Failed to restart %s: %s", ca.service_name, e)
+
+    ca_enable_ldap_profile_subsystem(ca)
+
+    # This step MUST be done after ca_enable_ldap_profile_subsystem and
+    # ca_configure_profiles_acl, and the consequent restart, but does not
+    # itself require a restart.
+    ca_import_included_profiles(ca)
+
+    ca.reindex_task()
+    cainstance.repair_profile_caIPAserviceCert()
+    ca.setup_lightweight_ca_key_retrieval()
+    cainstance.ensure_ipa_authority_entry()
+    ca.setup_acme()
+    ca_update_acme_configuration(ca, fqdn)
+    ca_initialize_hsm_state(ca)
+    add_agent_to_security_domain_admins()
+
+
+def _upgrade_ipacta_ca(ca, kra, ds, http, fqdn):
+    """ipacta-specific CA upgrade steps."""
+    certificate_renewal_update(ca, kra, ds, http)
+    ca.setup_lightweight_ca_key_retrieval()
+    ca.setup_acme()
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1697,23 +1746,28 @@ def upgrade_configuration():
 
     # create passswd.txt file in PKI_TOMCAT_ALIAS_DIR if it does not exist
     # this file will be required on most actions over this NSS DB in FIPS
-    if ca.is_configured() and not os.path.exists(os.path.join(
+    if ca.is_dogtag_configured() and not os.path.exists(os.path.join(
             paths.PKI_TOMCAT_ALIAS_DIR, 'pwdfile.txt')):
         ca.create_certstore_passwdfile()
 
     with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
         # Dogtag must be stopped to be able to backup CS.cfg config
-        if ca.is_configured():
+        if ca.is_dogtag_configured():
             ca.backup_config()
 
         # migrate CRL publish dir before the location in ipa.conf is updated
-        ca_restart = migrate_crl_publish_dir(ca)
+        ca_restart = migrate_crl_publish_dir(ca) if ca.is_dogtag_configured() \
+            else False
 
-        if ca.is_configured():
+        if ca.is_dogtag_configured():
             crl = directivesetter.get_directive(
-                paths.CA_CS_CFG_PATH, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
+                paths.CA_CS_CFG_PATH,
+                'ca.crl.MasterCRL.enableCRLUpdates', '=')
             sub_dict['CLONE'] = '#' if crl is not None and \
                                 crl.lower() == 'true' else ''
+        elif ca.is_configured():
+            # ipacta: CLONE suppresses local CRL generation in ipa.conf
+            sub_dict['CLONE'] = '' if ca.is_crlgen_enabled() else '#'
 
         ds_dirname = dsinstance.config_dirname(ds.serverid)
 
@@ -1726,7 +1780,8 @@ def upgrade_configuration():
         upgrade_file(sub_dict, paths.HTTPD_IPA_KDCPROXY_CONF,
                      os.path.join(paths.USR_SHARE_IPA_DIR,
                                   "ipa-kdc-proxy.conf.template"))
-        if ca.is_configured():
+        sub_dict['DOGTAG_AJP_SECRET'] = ''
+        if ca.is_dogtag_configured():
             # Ensure that the drop-in file is present
             if not os.path.isfile(paths.SYSTEMD_PKI_TOMCAT_IPA_CONF):
                 ca.add_ipa_wait()
@@ -1736,8 +1791,6 @@ def upgrade_configuration():
             if ca.ajp_secret:
                 sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(
                     ca.ajp_secret)
-            else:
-                sub_dict['DOGTAG_AJP_SECRET'] = ''
 
             # force=True will ensure the secret is updated if it changes
             if rewrite:
@@ -1747,7 +1800,7 @@ def upgrade_configuration():
                     os.path.join(paths.USR_SHARE_IPA_DIR,
                                  "ipa-pki-proxy.conf.template"),
                     add=True, force=True)
-        else:
+        elif not ca.is_configured():
             if os.path.isfile(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
         if subject_base:
@@ -1782,10 +1835,10 @@ def upgrade_configuration():
                 else:
                     logger.info('OAEP key wrap algo is already enabled')
 
-    # several upgrade steps require running CA.  If CA is configured,
+    # several upgrade steps require running Dogtag.  If Dogtag is configured,
     # always run ca.start() because we need to wait until CA is really ready
     # by checking status using http
-    if ca.is_configured():
+    if ca.is_dogtag_configured():
         ca.start('pki-tomcat')
     if kra.is_installed() and not kra.is_running():
         # This is for future-proofing in case the KRA is ever standalone.
@@ -1890,48 +1943,11 @@ def upgrade_configuration():
     custodia = custodiainstance.CustodiaInstance(api.env.host, api.env.realm)
     custodia.upgrade_instance()
 
-    # Don't include schema upgrades in restart consideration, see
-    # https://pagure.io/freeipa/issue/9204
-    ca_upgrade_schema(ca)
-
-    ca_restart = any([
-        ca_restart,
-        certificate_renewal_update(ca, kra, ds, http),
-        ca_enable_pkix(ca),
-        ca_configure_profiles_acl(ca),
-        ca_configure_lightweight_ca_acls(ca),
-        ca_ensure_lightweight_cas_container(ca),
-        ca_enable_lightweight_ca_monitor(ca),
-        ca_add_default_ocsp_uri(ca),
-        ca_disable_publish_cert(ca),
-    ])
-
-    if ca_restart:
-        logger.info(
-            'pki-tomcat configuration changed, restart pki-tomcat')
-        try:
-            ca.restart('pki-tomcat')
-        except ipautil.CalledProcessError as e:
-            logger.error("Failed to restart %s: %s", ca.service_name, e)
-
-    ca_enable_ldap_profile_subsystem(ca)
-
-    # This step MUST be done after ca_enable_ldap_profile_subsystem and
-    # ca_configure_profiles_acl, and the consequent restart, but does not
-    # itself require a restart.
-    #
-    ca_import_included_profiles(ca)
+    if ca.is_dogtag_configured():
+        _upgrade_dogtag_ca(ca, kra, ds, http, fqdn, ca_restart)
+    elif ca.is_configured():
+        _upgrade_ipacta_ca(ca, kra, ds, http, fqdn)
     add_default_caacl(ca)
-
-    if ca.is_configured():
-        ca.reindex_task()
-        cainstance.repair_profile_caIPAserviceCert()
-        ca.setup_lightweight_ca_key_retrieval()
-        cainstance.ensure_ipa_authority_entry()
-        ca.setup_acme()
-        ca_update_acme_configuration(ca, fqdn)
-        ca_initialize_hsm_state(ca)
-        add_agent_to_security_domain_admins()
 
     migrate_to_authselect()
     add_systemd_user_hbac()
@@ -1981,7 +1997,7 @@ def upgrade_configuration():
     if not ds_running:
         ds.stop(ds.serverid)
 
-    if ca.is_configured():
+    if ca.is_dogtag_configured():
         if ca_running and not ca.is_running():
             ca.start('pki-tomcat')
         elif not ca_running and ca.is_running():
