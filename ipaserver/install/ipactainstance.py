@@ -31,6 +31,7 @@ import os
 import pwd
 import re
 import shutil
+import tempfile
 import threading
 from pathlib import Path
 
@@ -429,6 +430,7 @@ class IpactaInstance(service.Service):
         token_library_path=None,
         token_password=None,
         pkcs12_info=None,
+        pkcs12_pwd=None,
         master_host=None,
         promote=False,
     ):
@@ -539,6 +541,7 @@ class IpactaInstance(service.Service):
 
         # Clone / replica / promote state
         self.pkcs12_info = pkcs12_info
+        self.pkcs12_pwd = pkcs12_pwd
         self.master_host = master_host
         self.clone = bool(pkcs12_info)
         self.no_db_setup = promote
@@ -601,6 +604,7 @@ class IpactaInstance(service.Service):
                 token_library_path=self.token_library_path,
                 token_password=self.token_password,
                 load_external_cert_fn=self._load_external_cert,
+                clone=self.clone,
             )
             self._kra = KRAInstall(
                 self.ldap,
@@ -1279,6 +1283,11 @@ class IpactaInstance(service.Service):
             "creating directory structure", self._svc._create_directories
         )
         self.step("creating NSS database", self._nssdb.create_nssdb)
+        if self.pkcs12_info and self.pkcs12_pwd:
+            self.step(
+                "importing CA keys from master",
+                self._import_replica_keys,
+            )
         self.step(
             "creating service configuration",
             self._svc._create_service_config,
@@ -1369,6 +1378,58 @@ class IpactaInstance(service.Service):
             )
 
         self.start_creation()
+
+    def _import_replica_keys(self):
+        """Import CA key material from the master's PKCS#12 into the NSSDB.
+
+        Called during replica promote when pkcs12_info and pkcs12_pwd are set.
+        Imports all CA certs (caSigningCert, ocspSigningCert, auditSigningCert,
+        subsystemCert) so subsequent cert generation steps find them already
+        in the NSSDB and skip regeneration.
+        """
+        pkcs12_file = self.pkcs12_info[0]
+        if not pkcs12_file or not os.path.exists(pkcs12_file):
+            raise RuntimeError(
+                f"Replica CA PKCS#12 file not found: {pkcs12_file}"
+            )
+
+        logger.info(
+            "Importing CA keys from master PKCS#12 into NSSDB: %s",
+            pkcs12_file,
+        )
+
+        self._nssdb.load_nssdb_password()
+        nssdb_pwd = self._nssdb.nssdb_password
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as nf:
+            os.fchmod(nf.fileno(), 0o600)
+            nf.write(nssdb_pwd)
+            nssdb_pwd_file = nf.name
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as pf:
+            os.fchmod(pf.fileno(), 0o600)
+            pf.write(self.pkcs12_pwd)
+            pkcs12_pwd_file = pf.name
+
+        try:
+            ipautil.run(
+                [
+                    "pk12util",
+                    "-i", pkcs12_file,
+                    "-d", str(self._nssdb.nssdb_dir),
+                    "-k", nssdb_pwd_file,
+                    "-w", pkcs12_pwd_file,
+                ],
+                raiseonerr=True,
+            )
+            logger.info("Successfully imported CA keys into replica NSSDB")
+        finally:
+            Path(nssdb_pwd_file).unlink(missing_ok=True)
+            Path(pkcs12_pwd_file).unlink(missing_ok=True)
 
     # -----------------------------------------------------------------------
     # Service lifecycle

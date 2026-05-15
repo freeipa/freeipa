@@ -143,6 +143,7 @@ class Certs:
         token_library_path=None,
         token_password=None,
         load_external_cert_fn=None,
+        clone=False,
     ):
         self.ldap = ldap
         self.config = config
@@ -165,6 +166,7 @@ class Certs:
         self.token_library_path = token_library_path
         self.token_password = token_password
         self._load_external_cert = load_external_cert_fn
+        self.clone = clone
 
         # Paths (from platform constants)
         self.ca_cert_path = Path(paths.IPA_CA_CRT)
@@ -220,6 +222,31 @@ class Certs:
                 shutil.copy2(self.ca_cert_working, self.ca_cert_path)
                 self.ca_cert_path.chmod(0o644)
                 logger.debug("Copied CA certificate to /etc/ipa/ca.crt")
+
+        elif self.clone:
+            ca_nickname = "caSigningCert cert-pki-ca"
+            nssdb = NSSDatabase(
+                nssdb_dir=self.nssdb_dir,
+                nssdb_password=self.nssdb_password,
+            )
+            if not nssdb.cert_exists(ca_nickname):
+                raise RuntimeError(
+                    "Replica install: CA cert not found in NSSDB after "
+                    "key import — check that keys were transferred "
+                    "from master"
+                )
+            ca_cert = nssdb.extract_certificate(ca_nickname)
+            ca_cert_pem = ca_cert.public_bytes(serialization.Encoding.PEM)
+            with open(self.ca_cert_working, "wb") as f:
+                f.write(ca_cert_pem)
+            self.ca_cert_working.chmod(0o644)
+            shutil.chown(self.ca_cert_working, user="ipaca", group="ipaca")
+            shutil.copy2(self.ca_cert_working, self.ca_cert_path)
+            self.ca_cert_path.chmod(0o644)
+            logger.debug(
+                "Replica: extracted CA cert from NSSDB to %s",
+                self.ca_cert_working,
+            )
 
         else:
             # During fresh installation, we need to generate the CA certificate
@@ -762,8 +789,11 @@ class Certs:
 
             entry["cACertificate"] = [cert_der]
             # Don't modify cn - it's the RDN and cannot be changed
-            ldap.update_entry(entry)
-            logger.debug("Updated CA certificate in LDAP")
+            try:
+                ldap.update_entry(entry)
+                logger.debug("Updated CA certificate in LDAP")
+            except errors.EmptyModlist:
+                logger.debug("CA certificate in LDAP already up to date")
 
         except errors.NotFound:
             # Create new entry

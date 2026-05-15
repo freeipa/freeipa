@@ -576,6 +576,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         token_name = options.token_name
 
         pkcs12_info = None
+        pkcs12_pwd = None
         master_host = None
         master_replication_port = None
         ra_p12 = None
@@ -601,6 +602,7 @@ def install_step_0(standalone, replica_config, options, custodia):
         cert_chain_file = None
 
         pkcs12_info = (cafile,)
+        pkcs12_pwd = replica_config.dirman_password
         master_host = replica_config.ca_host_name
         master_replication_port = replica_config.ca_ds_port
         ra_p12 = os.path.join(replica_config.dir, 'ra.p12')
@@ -650,6 +652,7 @@ def install_step_0(standalone, replica_config, options, custodia):
                 if hasattr(options, 'token_password') else None
                 ),
             pkcs12_info=pkcs12_info,
+            pkcs12_pwd=pkcs12_pwd,
             master_host=master_host,
             promote=promote,
         )
@@ -674,6 +677,7 @@ def install_step_0(standalone, replica_config, options, custodia):
             cert_file=cert_file,
             cert_chain_file=cert_chain_file,
             pkcs12_info=pkcs12_info,
+            pkcs12_pwd=pkcs12_pwd,
             master_host=master_host,
             master_replication_port=master_replication_port,
             ra_p12=ra_p12,
