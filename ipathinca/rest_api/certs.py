@@ -529,11 +529,15 @@ def get_revoked_certificates():
             # Apply pagination
             total = len(revoked)
             paginated = revoked[offset : offset + limit]
+            entries = [
+                r.to_dict() if hasattr(r, "to_dict") else r
+                for r in paginated
+            ]
 
             return (
                 jsonify(
                     {
-                        "entries": paginated,
+                        "entries": entries,
                         "total": total,
                         "limit": limit,
                         "offset": offset,
