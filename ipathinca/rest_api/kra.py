@@ -1,6 +1,7 @@
 # Copyright (C) 2025  FreeIPA Contributors see COPYING for license
 
 import base64
+import hmac
 import json
 import logging
 import secrets
@@ -257,9 +258,9 @@ def submit_key_request():
                         raise ValueError(
                             "Padding length exceeds data length"
                         )
-                    if not all(
-                        b == padding_length
-                        for b in plaintext_padded[-padding_length:]
+                    if not hmac.compare_digest(
+                        bytes([padding_length] * padding_length),
+                        plaintext_padded[-padding_length:],
                     ):
                         raise ValueError("Invalid PKCS7 padding bytes")
                     plaintext = plaintext_padded[:-padding_length]

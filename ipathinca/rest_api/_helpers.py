@@ -813,6 +813,12 @@ class ProfileHandler:
 
         Returns the full profile object like Dogtag PKI does.
         """
+        if not validate_profile_id(profile_id):
+            return error_response(
+                "BadRequest",
+                f"Invalid profile ID format: {profile_id!r}",
+                400,
+            )
         logger.info("create_raw: Creating profile %s", profile_id)
         # Extract description from .cfg if present, or use default
         description = f"Profile {profile_id}"
