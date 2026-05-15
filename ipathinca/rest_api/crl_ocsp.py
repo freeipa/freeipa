@@ -491,6 +491,7 @@ def ocsp_request(ocsp_data=None):
 
 
 @bp.route("/ca/rest/ocsp/stats", methods=["GET"])
+@require_agent_auth
 def ocsp_stats():
     """Get OCSP responder statistics"""
     try:
@@ -508,6 +509,7 @@ def ocsp_stats():
 
 
 @bp.route("/ca/rest/ocsp/cache/clear", methods=["POST"])
+@require_agent_auth
 def ocsp_clear_cache():
     """Clear OCSP response cache"""
     try:
@@ -572,6 +574,7 @@ def get_ocsp_cert():
 
 
 @bp.route("/ca/rest/ocsp/cert/renew", methods=["POST"])
+@require_agent_auth
 def renew_ocsp_cert():
     """Regenerate OCSP signing certificate"""
     try:
@@ -609,6 +612,7 @@ def renew_ocsp_cert():
 
 
 @bp.route("/ca/rest/ocsp/responders", methods=["GET"])
+@require_agent_auth
 def list_ocsp_responders():
     """List all OCSP responders (multi-CA support)"""
     try:
