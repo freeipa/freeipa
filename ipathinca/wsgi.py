@@ -166,7 +166,7 @@ def main():
         help="Configuration file path",
     )
     parser.add_argument(
-        "--bind", default="0.0.0.0:8080", help="Bind address (host:port)"
+        "--bind", default="127.0.0.1:8080", help="Bind address (host:port)"
     )
     parser.add_argument(
         "--workers", type=int, default=1, help="Number of worker processes"
