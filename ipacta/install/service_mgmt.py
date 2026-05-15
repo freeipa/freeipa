@@ -20,7 +20,7 @@ from ipalib.constants import CA_TRACKING_REQS, RENEWAL_CA_NAME
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
-from ipacta import set_global_config
+from ipacta import get_config_value, set_global_config
 from ipacta.backend import get_python_ca_backend
 
 logger = logging.getLogger(__name__)
@@ -463,11 +463,37 @@ class ServiceMgmt:
 
         logger.debug("Apache HTTP proxy configured successfully")
 
+    def _wait_for_ds(self, timeout=120):
+        """Wait for Directory Server LDAPI socket to be ready.
+
+        Called after certmonger's post-save restart commands have completed.
+        Gates on the LDAPI socket file appearing in the filesystem: once
+        present, 389-DS is accepting connections and the autobind mapping
+        is active.
+        """
+        instance = get_config_value("global", "realm").replace(".", "-")
+        socket_path = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % instance
+        logger.debug(
+            "Waiting for Directory Server LDAPI socket: %s", socket_path
+        )
+
+        try:
+            ipautil.wait_for_open_socket(socket_path, timeout=timeout)
+        except Exception as e:
+            raise RuntimeError(
+                f"Directory Server socket did not appear within {timeout}s "
+                f"({socket_path}): {e}"
+            ) from e
+
+        logger.debug("Directory Server LDAPI socket is available")
+
     def _start_service(self):
         """Start ipacta service and wait for it to be ready."""
         logger.debug("Starting ipa-ca service")
 
         try:
+            self._wait_for_ds()
+
             ipautil.run(["systemctl", "start", "ipacta.service"])
             logger.debug("ipacta service started successfully")
 
