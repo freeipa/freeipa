@@ -1356,6 +1356,10 @@ class IpactaInstance(service.Service):
             self._svc._configure_audit_logging,
         )
         self.step("configuring Apache HTTP proxy", self._svc._http_proxy)
+        self.step(
+            "applying NSSDB permissions",
+            self._nssdb.apply_nssdb_permissions,
+        )
         self.step("starting ipacta service", self._svc._start_service)
         self.step("generating initial CRL", self._svc._generate_initial_crl)
 
