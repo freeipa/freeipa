@@ -45,11 +45,9 @@ _OCSP_NONCE_OID = getattr(
 class OCSPResponse:
     """OCSP Response container"""
 
-    def __init__(self, response_bytes: bytes, cache_until: datetime = None):
+    def __init__(self, response_bytes: bytes, cache_until: datetime):
         self.response_bytes = response_bytes
-        self.cache_until = cache_until or (
-            datetime.now(timezone.utc) + timedelta(minutes=5)
-        )
+        self.cache_until = cache_until
 
     def is_expired(self) -> bool:
         """Check if cached response is expired"""
@@ -324,7 +322,13 @@ class OCSPResponder:
         """
         try:
             # Parse OCSP request
-            ocsp_req = ocsp.load_der_ocsp_request(request_der)
+            try:
+                ocsp_req = ocsp.load_der_ocsp_request(request_der)
+            except Exception as e:
+                logger.warning("Failed to parse OCSP request: %s", e)
+                return self._create_error_response(
+                    ocsp.OCSPResponseStatus.MALFORMED_REQUEST
+                )
 
             # Extract nonce if present (for replay protection)
             nonce = None
@@ -452,12 +456,15 @@ class OCSPResponder:
             # Return internal error response
             return self._create_error_response()
 
-    def _create_error_response(self) -> bytes:
-        """Create OCSP error response"""
-        builder = ocsp.OCSPResponseBuilder()
-        error_response = builder.build_unsuccessful(
+    def _create_error_response(
+        self,
+        status: ocsp.OCSPResponseStatus = (
             ocsp.OCSPResponseStatus.INTERNAL_ERROR
-        )
+        ),
+    ) -> bytes:
+        """Create OCSP error response (RFC 6960 section 2.3)."""
+        builder = ocsp.OCSPResponseBuilder()
+        error_response = builder.build_unsuccessful(status)
         return error_response.public_bytes(serialization.Encoding.DER)
 
     def invalidate_serial(self, serial_number: int):
