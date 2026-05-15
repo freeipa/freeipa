@@ -30,6 +30,7 @@ import logging
 import os
 import pwd
 import re
+import threading
 from pathlib import Path
 
 import dbus
@@ -119,6 +120,7 @@ class _PKIConfigBuilder:
 
     # Immutable keys (loaded lazily from ipaca_default.ini + code)
     _immutable_keys_cache = None
+    _immutable_keys_lock = threading.Lock()
     _immutable_code_keys = frozenset(
         {
             ("global", "realm"),
@@ -299,16 +301,19 @@ class _PKIConfigBuilder:
 
     @classmethod
     def _get_immutable_keys(cls):
-        if cls._immutable_keys_cache is None:
-            immutable = set(cls._immutable_code_keys)
-            if os.path.exists(cls._ipaca_default):
-                cfg = configparser.RawConfigParser()
-                with open(cls._ipaca_default) as f:
-                    cfg.read_file(f)
-                for section in cfg.sections():
-                    for k, _v in cfg.items(section, raw=True):
-                        immutable.add((section, k))
-            cls._immutable_keys_cache = frozenset(immutable)
+        if cls._immutable_keys_cache is not None:
+            return cls._immutable_keys_cache
+        with cls._immutable_keys_lock:
+            if cls._immutable_keys_cache is None:
+                immutable = set(cls._immutable_code_keys)
+                if os.path.exists(cls._ipaca_default):
+                    cfg = configparser.RawConfigParser()
+                    with open(cls._ipaca_default) as f:
+                        cfg.read_file(f)
+                    for section in cfg.sections():
+                        for k, _v in cfg.items(section, raw=True):
+                            immutable.add((section, k))
+                cls._immutable_keys_cache = frozenset(immutable)
         return cls._immutable_keys_cache
 
     @classmethod
@@ -355,9 +360,6 @@ class IpactaInstance(service.Service):
     The public API matches ``DogtagCAInstance`` so that the rest of IPA
     can treat the two interchangeably.
     """
-
-    # Certificate tracking requests (for healthcheck compatibility)
-    tracking_reqs = dict()
 
     @staticmethod
     def configure_certmonger_renewal_helpers():
@@ -434,6 +436,7 @@ class IpactaInstance(service.Service):
             service_user="ipaca",
         )
 
+        self.tracking_reqs = {}
         self.subsystem = "ipacta"
         self.realm = realm
         self.fqdn = host_name
