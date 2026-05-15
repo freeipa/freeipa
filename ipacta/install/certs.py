@@ -111,10 +111,11 @@ def convert_signing_algorithm(signing_alg):
     elif "SHA1" in signing_alg:
         return hashes.SHA1()
     else:
-        logger.warning(
-            "Unknown signing algorithm '%s', defaulting to SHA256", signing_alg
+        raise ValueError(
+            f"Unknown signing algorithm {signing_alg!r}. "
+            f"Supported: SHA256withRSA, SHA384withRSA, "
+            f"SHA512withRSA, SHA256withEC, SHA384withEC, SHA512withEC."
         )
-        return hashes.SHA256()
 
 
 class Certs:
@@ -250,43 +251,24 @@ class Certs:
     def _get_signing_hash_algorithm(self):
         """Map CA signing algorithm to cryptography hash function.
 
-        Uses ipaserver.install.ca.CASigningAlgorithm enum values.
-        Default from ipaca_customize.ini: SHA256withRSA
+        Delegates to convert_signing_algorithm() which handles RSA and EC
+        uniformly.
 
         Returns:
             cryptography.hazmat.primitives.hashes hash algorithm instance
 
         Raises:
-            ValueError: If algorithm is unsupported
+            ValueError: If algorithm is unsupported.
         """
-        # Map CASigningAlgorithm enum to hash function
-        # Default: SHA256withRSA (from ipaca_customize.ini)
         if self.ca_signing_algorithm is None:
-            # Default from ipaca_customize.ini
             return hashes.SHA256()
 
-        # Get the algorithm string value from enum
         if hasattr(self.ca_signing_algorithm, "value"):
             alg_str = self.ca_signing_algorithm.value
         else:
             alg_str = str(self.ca_signing_algorithm)
 
-        algorithm_map = {
-            "SHA1withRSA": hashes.SHA1(),
-            "SHA256withRSA": hashes.SHA256(),
-            "SHA384withRSA": hashes.SHA384(),
-            "SHA512withRSA": hashes.SHA512(),
-        }
-
-        hash_alg = algorithm_map.get(alg_str)
-        if hash_alg is None:
-            raise ValueError(
-                f"Unsupported CA signing algorithm: {alg_str}. "
-                f"Supported algorithms: {', '.join(algorithm_map.keys())}"
-            )
-
-        logger.info("Using CA signing algorithm: %s", alg_str)
-        return hash_alg
+        return convert_signing_algorithm(alg_str)
 
     def _generate_external_ca_csr(self):
         """Generate CA signing CSR for external CA
