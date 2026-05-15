@@ -24,6 +24,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ipapython import ipautil
+from ipacta.exceptions import CertificateOperationError
 from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ class NSSDatabase:
     def _load_password(self) -> str:
         """Load NSSDB password from password.conf file"""
         if not self.password_file.exists():
-            raise RuntimeError(
+            raise CertificateOperationError(
                 f"NSSDB password file not found: {self.password_file}"
             )
 
@@ -77,7 +78,9 @@ class NSSDatabase:
                     logger.debug("Loaded NSSDB password from file")
                     return password
 
-        raise RuntimeError(f"NSSDB password not found in {self.password_file}")
+        raise CertificateOperationError(
+            f"NSSDB password not found in {self.password_file}"
+        )
 
     def generate_key_pair(
         self, nickname: str, key_size: int = 4096
@@ -186,7 +189,7 @@ class NSSDatabase:
             if proc.returncode != 0:
                 stderr = proc.stderr.decode(errors="replace")
                 logger.error("pk12util export failed: %s", stderr)
-                raise RuntimeError(
+                raise CertificateOperationError(
                     f"Failed to extract key for {nickname} from NSSDB"
                 )
 
@@ -266,7 +269,7 @@ class NSSDatabase:
 
         if result.returncode != 0:
             logger.error("certutil -L failed: %s", result.error_output)
-            raise RuntimeError(
+            raise CertificateOperationError(
                 f"Failed to extract certificate for {nickname} from NSSDB"
             )
 
@@ -479,7 +482,7 @@ class NSSDatabase:
 
             if result.returncode != 0:
                 logger.error("certutil -A failed: %s", result.error_output)
-                raise RuntimeError(
+                raise CertificateOperationError(
                     f"Failed to import certificate for {nickname} to NSSDB"
                 )
 
