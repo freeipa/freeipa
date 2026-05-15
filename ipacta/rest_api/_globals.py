@@ -20,6 +20,7 @@ ca_backend = None
 
 # Global KRA instance
 kra_backend = None
+kra_init_error = None
 
 # Global configuration (loaded from ipacta.conf)
 ipa_ca_config = None
@@ -62,7 +63,7 @@ def init_ca():
 
 def init_kra():
     """Initialize KRA backend"""
-    global kra_backend
+    global kra_backend, kra_init_error
     if kra_backend is not None:
         return
     with _kra_init_lock:
@@ -108,11 +109,13 @@ def init_kra():
                     "CA keys not found, KRA initialization failed: %s", e
                 )
                 logger.error(traceback.format_exc())
+                kra_init_error = f"CA keys not found: {e}"
             except Exception as e:
                 logger.error("Failed to load CA keys for KRA: %s", e)
                 logger.error(traceback.format_exc())
+                kra_init_error = f"Key load error: {e}"
 
         except Exception as e:
             logger.error("Failed to initialize KRA backend: %s", e)
             logger.error(traceback.format_exc())
-            # Don't raise - KRA is optional
+            kra_init_error = str(e)
