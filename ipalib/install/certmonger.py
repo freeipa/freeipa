@@ -811,6 +811,76 @@ def check_state(dirs):
     return reqids
 
 
+def wait_for_requests_by_postsave(patterns, timeout=300):
+    """Wait until every certmonger request whose post-save command matches
+    any of the given substrings has reached a terminal state.
+
+    :param patterns: iterable of substrings matched against
+                     cert-postsave-command (e.g. ('restart_dirsrv',
+                     'restart_httpd'))
+    :param timeout: maximum wait time in seconds
+    :raises RuntimeError: if timeout is exceeded with requests still pending
+    """
+    TERMINAL = frozenset({
+        'MONITORING', 'CA_REJECTED', 'CA_UNREACHABLE',
+        'CA_UNCONFIGURED', 'NEED_GUIDANCE', 'NEED_CA',
+    })
+
+    cm = _certmonger()
+    deadline = time.monotonic() + timeout
+
+    while True:
+        if time.monotonic() >= deadline:
+            raise RuntimeError(
+                "Certmonger requests matching %r did not reach a stable "
+                "state within %ds" % (list(patterns), timeout)
+            )
+
+        pending = []
+        for req_path in cm.obj_if.get_requests():
+            request = _cm_dbus_object(
+                cm.bus, cm, req_path, DBUS_CM_REQUEST_IF, DBUS_CM_IF, True
+            )
+            try:
+                postsave = str(
+                    request.prop_if.Get(
+                        DBUS_CM_REQUEST_IF, 'cert-postsave-command'
+                    )
+                )
+            except Exception:
+                continue
+
+            if not any(p in postsave for p in patterns):
+                continue
+
+            status = str(request.prop_if.Get(DBUS_CM_REQUEST_IF, 'status'))
+            if status in TERMINAL:
+                continue
+
+            try:
+                nickname = str(
+                    request.prop_if.Get(DBUS_CM_REQUEST_IF, 'nickname')
+                )
+            except Exception:
+                nickname = str(req_path)
+
+            pending.append((nickname, status))
+
+        if not pending:
+            logger.debug(
+                "All certmonger requests matching %r are stable",
+                list(patterns),
+            )
+            return
+
+        logger.debug(
+            "Waiting for %d certmonger request(s): %s",
+            len(pending),
+            ', '.join("%r (%s)" % (n, s) for n, s in pending),
+        )
+        time.sleep(2)
+
+
 def wait_for_request(request_id, timeout=120):
     sleep = Sleeper(
         sleep=0.5,  # getcert.c:waitfor() uses 125ms

@@ -17,6 +17,7 @@ from pathlib import Path
 import requests
 
 from ipalib.constants import CA_TRACKING_REQS, RENEWAL_CA_NAME
+from ipalib.install.certmonger import wait_for_requests_by_postsave
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
@@ -492,6 +493,10 @@ class ServiceMgmt:
         logger.debug("Starting ipa-ca service")
 
         try:
+            wait_for_requests_by_postsave(
+                ('restart_dirsrv', 'restart_httpd'), timeout=300
+            )
+
             self._wait_for_ds()
 
             ipautil.run(["systemctl", "start", "ipacta.service"])
