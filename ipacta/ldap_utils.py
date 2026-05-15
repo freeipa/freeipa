@@ -197,6 +197,16 @@ class LDAPConnectionPool:
                         # Connection already closed or invalid
                         logger.debug("Error closing excess connection: %s", e)
 
+    def get_stats(self) -> "LDAPPoolStats":
+        """Return current pool statistics as a LDAPPoolStats object."""
+        from ipacta.resource_tracker import LDAPPoolStats
+        return LDAPPoolStats(
+            created=self._created_count,
+            idle=self._pool.qsize(),
+            max_connections=self.max_connections,
+            min_connections=self.min_connections,
+        )
+
     def close_all(self):
         """Close all connections in pool"""
         while not self._pool.empty():
