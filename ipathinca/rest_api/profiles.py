@@ -322,9 +322,8 @@ def update_profile(profile_id):
             return ProfileHandler.create_or_update(
                 profile_id, data, _g.ca_backend, is_update
             )
-    except Exception:
-        # Not valid JSON, try as .cfg content
-        pass
+    except Exception as e:
+        logger.debug("Request body is not valid JSON, trying as .cfg: %s", e)
 
     # Fall back to treating as .cfg content
     cfg_content = request.get_data(as_text=True)
