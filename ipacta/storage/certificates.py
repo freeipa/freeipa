@@ -413,13 +413,12 @@ class CertificateStorage(BaseStorageBackend):
                 )
                 return None
             except Exception as e:
-                logger.error(
-                    "Unexpected error retrieving certificate %s: %s",
-                    serial_number,
-                    e,
-                    exc_info=True,
-                )
-                return None
+                raise errors.CertificateOperationError(
+                    error=(
+                        f"Failed to decode certificate record for "
+                        f"serial {serial_number}: {e}"
+                    )
+                ) from e
 
     def find_certificates(self, criteria: Dict[str, Any] = None) -> List:
         """
