@@ -224,13 +224,17 @@ class OCSPResponder:
             )
 
         except Exception as e:
-            logger.error("Failed to generate OCSP signing certificate: %s", e)
-            # Fall back to using CA cert for OCSP signing
-            logger.warning(
-                "Falling back to using CA certificate for OCSP signing"
+            logger.error(
+                "Failed to generate OCSP signing certificate: %s",
+                e,
+                exc_info=True,
             )
-            self.ocsp_cert = self.ca.ca_cert
-            self.ocsp_key = self.ca.ca_private_key
+            # Do NOT fall back to the CA private key: using the CA key for
+            # OCSP signing would expose root key material to the OCSP path
+            # and mask the underlying failure.  Let the exception propagate
+            # so the operator receives a clear error and create_response()
+            # returns internalError OCSP responses until the problem is fixed.
+            raise
 
     def _get_cache_key(self, serial_number: int, nonce: bytes = None) -> str:
         """Generate cache key for OCSP response"""
