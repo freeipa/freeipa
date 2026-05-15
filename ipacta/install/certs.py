@@ -63,7 +63,7 @@ def get_cert_params_from_config(pki_config, cert_type):
         tuple: (key_size, signing_algorithm) with defaults if not in config
     """
     if pki_config is None:
-        return (2048, "SHA256withRSA")
+        return (3072, "SHA256withRSA")
 
     config_prefix = {
         "ca_signing": "pki_ca_signing",
@@ -76,7 +76,9 @@ def get_cert_params_from_config(pki_config, cert_type):
     key_size = pki_config.getint(
         "CA",
         f"{config_prefix}_key_size",
-        fallback=pki_config.getint("DEFAULT", "ipa_key_size", fallback=2048),
+        fallback=pki_config.getint(
+            "DEFAULT", "ipa_key_size", fallback=3072
+        ),
     )
 
     signing_alg = pki_config.get(
