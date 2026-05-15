@@ -37,13 +37,16 @@ class CertificateReloadManager:
         self.ca_backend = ca_backend
         self._reload_lock = threading.Lock()
         self._signal_handler_registered = False
+        # Event set by the signal handler; consumed by the watcher thread.
+        # Using an Event is async-signal-safe unlike acquiring a Lock directly
+        # from a signal handler context.
+        self._reload_event = threading.Event()
+        self._stopped = False
+        self._watcher_thread: Optional[threading.Thread] = None
 
     def setup_signal_handler(self):
         """
-        Register SIGHUP handler for certificate reload
-
-        This sets up the signal handler so that sending SIGHUP to the
-        ipacta process will trigger a certificate reload.
+        Register SIGHUP handler for certificate reload and start watcher thread.
         """
         if self._signal_handler_registered:
             logger.debug("Signal handler already registered")
@@ -55,20 +58,42 @@ class CertificateReloadManager:
             logger.info(
                 "SIGHUP signal handler registered for certificate reload"
             )
+            # Start watcher thread that performs the actual reload work.
+            self._watcher_thread = threading.Thread(
+                target=self._watcher_loop,
+                name="cert-reload-watcher",
+                daemon=True,
+            )
+            self._watcher_thread.start()
         except Exception as e:
             logger.error("Failed to register signal handler: %s", e)
 
     def _handle_reload_signal(self, signum, frame):
-        """
-        Signal handler for SIGHUP - triggers certificate reload
+        """Signal handler for SIGHUP — sets an event; never acquires locks."""
+        # threading.Event.set() is async-signal-safe.
+        self._reload_event.set()
 
-        This is called by the OS when SIGHUP is received.
-        """
-        logger.info("Received SIGHUP signal, initiating certificate reload")
-        try:
-            self.reload_certificates()
-        except Exception as e:
-            logger.error("Certificate reload failed in signal handler: %s", e)
+    def _watcher_loop(self):
+        """Background thread: wait for reload events and do the real work."""
+        while not self._stopped:
+            if self._reload_event.wait(timeout=1.0):
+                self._reload_event.clear()
+                logger.info(
+                    "Received SIGHUP signal, initiating certificate reload"
+                )
+                try:
+                    self.reload_certificates()
+                except Exception as e:
+                    logger.error(
+                        "Certificate reload failed: %s", e, exc_info=True
+                    )
+
+    def shutdown(self):
+        """Stop the watcher thread (called on service shutdown)."""
+        self._stopped = True
+        self._reload_event.set()
+        if self._watcher_thread is not None:
+            self._watcher_thread.join(timeout=5.0)
 
     def reload_certificates(self) -> dict:
         """
@@ -312,25 +337,19 @@ class CertificateReloadManager:
 
 # Global certificate reload manager instance
 _reload_manager: Optional[CertificateReloadManager] = None
+_reload_manager_lock = threading.Lock()
 
 
 def get_reload_manager(ca_backend=None) -> CertificateReloadManager:
-    """
-    Get or create the global certificate reload manager
-
-    Args:
-        ca_backend: CA backend instance (only used on first call)
-
-    Returns:
-        CertificateReloadManager: The global reload manager instance
-    """
+    """Get or create the global certificate reload manager (thread-safe)."""
     global _reload_manager
 
     if _reload_manager is None:
-        _reload_manager = CertificateReloadManager(ca_backend)
+        with _reload_manager_lock:
+            if _reload_manager is None:
+                _reload_manager = CertificateReloadManager(ca_backend)
 
-    # Update CA backend if provided and manager exists
-    elif ca_backend is not None and _reload_manager.ca_backend is None:
+    if ca_backend is not None and _reload_manager.ca_backend is None:
         _reload_manager.ca_backend = ca_backend
 
     return _reload_manager
