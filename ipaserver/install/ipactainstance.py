@@ -30,6 +30,7 @@ import logging
 import os
 import pwd
 import re
+import shutil
 import threading
 from pathlib import Path
 
@@ -335,21 +336,23 @@ class _PKIConfigBuilder:
 
     @classmethod
     def _verify_immutable(cls, config, snapshot, filename):
-        errors = []
+        violations = []
         for (section, key), expected in snapshot.items():
             if not config.has_section(section):
-                errors.append(f"[{section}] {key}: section removed")
+                violations.append(f"[{section}] {key}: section removed")
                 continue
             if not config.has_option(section, key):
-                errors.append(f"[{section}] {key}: key removed")
+                violations.append(f"[{section}] {key}: key removed")
                 continue
             actual = config.get(section, key)
             if actual != expected:
-                errors.append(f"[{section}] {key}: '{actual}' != '{expected}'")
-        if errors:
+                violations.append(
+                    f"[{section}] {key}: '{actual}' != '{expected}'"
+                )
+        if violations:
             raise ValueError(
                 f"{filename} attempts to override immutable settings:\n"
-                + "\n".join(errors)
+                + "\n".join(violations)
             )
 
 
@@ -1476,8 +1479,6 @@ class IpactaInstance(service.Service):
         # Clean up ipacta directories
         if self.ipaca_dir.exists():
             try:
-                import shutil
-
                 shutil.rmtree(self.ipaca_dir)
                 logger.debug("Removed %s", self.ipaca_dir)
             except Exception as e:
@@ -1486,8 +1487,6 @@ class IpactaInstance(service.Service):
         # Remove audit logs
         if self.audit_log_dir.exists():
             try:
-                import shutil
-
                 shutil.rmtree(self.audit_log_dir)
                 logger.debug("Removed %s", self.audit_log_dir)
             except Exception as e:
