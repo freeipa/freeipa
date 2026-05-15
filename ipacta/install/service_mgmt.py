@@ -14,8 +14,6 @@ import shutil
 import time
 from pathlib import Path
 
-import requests
-
 from ipalib.constants import CA_TRACKING_REQS, RENEWAL_CA_NAME
 from ipalib.install.certmonger import wait_for_requests_by_postsave
 from ipaplatform.paths import paths
@@ -509,36 +507,60 @@ class ServiceMgmt:
             raise
 
     def _wait_for_ca_ready(self):
-        """Wait for CA REST API to be ready to accept requests."""
-        logger.debug("Waiting for CA REST API to be ready")
+        """Confirm the CA REST API is accepting connections.
 
-        # URL to check CA status
-        status_url = f"https://{self.fqdn}:8443/ca/rest/info"
+        The ipacta service unit uses Type=notify, so ``systemctl start``
+        above already blocked until gunicorn sent READY=1 — meaning all
+        workers are up and listening on their sockets.  This method does a
+        single direct probe on the internal HTTPS port to catch the rare case
+        where gunicorn signalled readiness before the Flask app finished
+        loading (e.g. a background LDAP connection error at startup).
 
-        max_wait = 60  # Maximum wait time in seconds
-        wait_interval = 2  # Check every 2 seconds
+        Deliberately skips going through the Apache proxy: the proxy depends
+        on httpd's own HTTPS certificate being present, which has not been
+        issued yet at this point in the installation.  Port 8443 is ipacta's
+        own TLS listener, reachable without any Apache involvement.
+        """
+        import http.client
+        import ssl
+
+        logger.debug("Verifying CA REST API is reachable on port 8443")
+
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
+        max_wait = 30
+        wait_interval = 2
         elapsed = 0
-
         while elapsed < max_wait:
             try:
-                # Try to connect to the CA status endpoint
-                # Use the CA certificate for verification (installed in
-                # previous step)
-                response = requests.get(
-                    status_url, verify=paths.IPA_CA_CRT, timeout=5
+                conn = http.client.HTTPSConnection(
+                    self.fqdn, 8443, context=ctx, timeout=5
                 )
-                if response.status_code == 200:
+                conn.request("GET", "/ca/rest/info")
+                resp = conn.getresponse()
+                if resp.status == 200:
                     logger.debug("CA REST API is ready")
                     return
+                logger.debug(
+                    "CA not ready yet: HTTP %s", resp.status
+                )
             except Exception as e:
                 logger.debug("CA not ready yet: %s", e)
-
+            finally:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
             time.sleep(wait_interval)
             elapsed += wait_interval
 
-        logger.warning("CA did not become ready within %s seconds", max_wait)
-        # Don't raise an error - let the installation continue and fail
-        # later if the CA is truly not working
+        logger.warning(
+            "CA did not respond on port 8443 within %s seconds; "
+            "installation will continue",
+            max_wait,
+        )
 
     def _generate_initial_crl(self):
         """Generate initial Certificate Revocation List.
