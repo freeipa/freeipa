@@ -1817,6 +1817,7 @@ fi
 %files -n python3-ipacta
 %doc README.md Contributors.txt
 %license COPYING
+%attr(644,root,root) %{_tmpfilesdir}/ipa-pki-tomcat.conf
 %{python3_sitelib}/ipacta
 %{python3_sitelib}/ipacta-*.egg-info
 
