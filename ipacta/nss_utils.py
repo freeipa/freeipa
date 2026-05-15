@@ -148,10 +148,12 @@ class NSSDatabase:
             pwdfile.flush()
             temp_password_file = pwdfile.name
 
-        # Create temporary PKCS#12 file
+        # Create temporary PKCS#12 file with restricted permissions from the
+        # start (no world-readable window between creation and chmod).
         with tempfile.NamedTemporaryFile(
             suffix=".p12", delete=False
         ) as p12_file:
+            os.fchmod(p12_file.fileno(), 0o600)
             p12_path = p12_file.name
 
         try:
@@ -298,10 +300,12 @@ class NSSDatabase:
             pwdfile.flush()
             temp_password_file = pwdfile.name
 
-        # Create temporary PKCS#12 file
+        # Create temporary PKCS#12 file with restricted permissions from the
+        # start (no world-readable window between creation and chmod).
         with tempfile.NamedTemporaryFile(
             suffix=".p12", delete=False
         ) as p12_file:
+            os.fchmod(p12_file.fileno(), 0o600)
             p12_path = p12_file.name
 
         temp_key_file = None
