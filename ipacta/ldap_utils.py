@@ -14,7 +14,10 @@ import time
 from queue import Queue, Empty, Full
 from threading import Lock
 from contextlib import contextmanager
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from ipacta.resource_tracker import LDAPPoolStats
 
 from ipalib import errors
 from ipapython import ipaldap
