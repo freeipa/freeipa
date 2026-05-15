@@ -15,7 +15,9 @@ Dogtag-compatible implementation:
 import hashlib
 import logging
 import base64
+import os
 import secrets
+import shutil
 import threading
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
@@ -164,6 +166,17 @@ class AuditLogger:
                 f"Cannot open audit log file {self.log_file}: {e}",
                 context={"log_file": str(self.log_file)},
             ) from e
+
+        # During ipa-server-install the process runs as root, which means
+        # RotatingFileHandler creates audit.log owned by root.  Fix the
+        # ownership immediately so that ipacta.service (running as ipaca)
+        # can append to the file when it starts later.
+        if os.getuid() == 0:
+            try:
+                shutil.chown(str(self.log_file), user="ipaca", group="ipaca")
+                os.chmod(str(self.log_file), 0o640)
+            except (LookupError, PermissionError, OSError):
+                pass
 
         # Hash chain: each record includes the hash of the previous record
         self._previous_hash = ""
