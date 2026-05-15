@@ -1324,10 +1324,6 @@ class IpactaInstance(service.Service):
             )
             self.step("setting up ACME service", self._acme.setup_acme)
         self.step(
-            "installing CA certificate to system trust",
-            self._certs._install_ca_trust,
-        )
-        self.step(
             "generating server SSL certificate",
             self._certs._generate_server_cert,
         )
