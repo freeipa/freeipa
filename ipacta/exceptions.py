@@ -295,23 +295,21 @@ class UnsupportedKeyType(CertificateRequestError):
 
 
 class CertificateOperationError(IpactaError):
+    """Internal CA certificate operation failure (nss_utils, key ops, etc.).
+
+    This is the ipacta-internal error type.  It is distinct from and
+    unrelated to ipalib.errors.CertificateOperationError (a CertificateError
+    subclass used at the IPA API boundary).
+
+    ipacta code that raises this exception does so in lower-level helpers
+    such as nss_utils.  The backend layer wraps those helpers in broad
+    except-Exception blocks and re-raises as
+    ipalib.errors.CertificateOperationError so the REST API layer sees a
+    consistent error type.
+
+    Do NOT catch this at REST API boundaries — catch
+    ipalib.errors.CertificateOperationError there instead.
     """
-    Certificate operation failed
-
-    General exception for certificate operations (signing, revoking, etc.)
-    """
-
-
-class RevocationError(CertificateOperationError):
-    """Certificate revocation operation failed"""
-
-
-class SigningError(CertificateOperationError):
-    """Certificate signing operation failed"""
-
-
-class CRLGenerationError(CertificateOperationError):
-    """CRL generation failed"""
 
 
 # ============================================================================

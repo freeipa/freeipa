@@ -10,11 +10,17 @@ import threading
 from pathlib import Path
 from typing import Dict, Optional
 
-from ipapython import dogtag
 from ipacta.exceptions import ProfileNotFound
 from ipacta.profile.monitor import ProfileChangeMonitor
 
 logger = logging.getLogger(__name__)
+
+
+_DEFAULT_PROFILE = 'caIPAserviceCert'
+_KDC_PROFILE = 'KDCs_PKINIT_Certs'
+_SUBSYSTEM_PROFILE = 'caSubsystemCert'
+_OCSP_PROFILE = 'caOCSPCert'
+_AUDIT_PROFILE = 'caSignedLogCert'
 
 
 class ProfileManager:
@@ -23,13 +29,13 @@ class ProfileManager:
     # Whitelist of required profiles for ipacta
     # Only these profiles are installed to LDAP during deployment
     REQUIRED_PROFILES = [
-        dogtag.DEFAULT_PROFILE,  # caIPAserviceCert - IPA service certificates
-        "IECUserRoles",  # User certificates with IEC roles
-        dogtag.KDC_PROFILE,  # KDCs_PKINIT_Certs - Kerberos KDC PKINIT
+        _DEFAULT_PROFILE,   # caIPAserviceCert - IPA service certificates
+        "IECUserRoles",     # User certificates with IEC roles
+        _KDC_PROFILE,       # KDCs_PKINIT_Certs - Kerberos KDC PKINIT
         "acmeIPAServerCert",  # ACME-issued server certificates
-        dogtag.SUBSYSTEM_PROFILE,  # caSubsystemCert - CA subsystem certs
-        dogtag.OCSP_PROFILE,  # caOCSPCert - OCSP responder certificates
-        dogtag.AUDIT_PROFILE,  # caSignedLogCert - Audit log signing certs
+        _SUBSYSTEM_PROFILE,  # caSubsystemCert - CA subsystem certs
+        _OCSP_PROFILE,       # caOCSPCert - OCSP responder certificates
+        _AUDIT_PROFILE,      # caSignedLogCert - Audit log signing certs
     ]
 
     def __init__(
