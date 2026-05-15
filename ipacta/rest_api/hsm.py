@@ -11,6 +11,7 @@ from ipacta.hsm import HSMConfig, HSMKeyBackend, list_pkcs11_slots
 from ipacta.hsm import get_hsm_info as get_hsm_device_info
 from ipacta.rest_api._helpers import (
     error_response,
+    require_agent_auth,
     success_response,
 )
 
@@ -25,7 +26,7 @@ bp = Blueprint("hsm", __name__)
 
 
 @bp.route("/ca/rest/hsm/config", methods=["GET"])
-
+@require_agent_auth
 def get_hsm_config():
     """Get HSM configuration for a CA"""
     try:
@@ -67,7 +68,7 @@ def get_hsm_config():
 
 
 @bp.route("/ca/rest/hsm/config", methods=["PUT", "POST"])
-
+@require_agent_auth
 def update_hsm_config():
     """Update HSM configuration"""
     try:
@@ -116,7 +117,7 @@ def update_hsm_config():
 
 
 @bp.route("/ca/rest/hsm/config", methods=["DELETE"])
-
+@require_agent_auth
 def delete_hsm_config():
     """Delete/disable HSM configuration"""
     try:
@@ -177,7 +178,7 @@ def delete_hsm_config():
 
 
 @bp.route("/ca/rest/hsm/test", methods=["POST"])
-
+@require_agent_auth
 def test_hsm_connection():
     """Test HSM connection"""
     try:
@@ -238,7 +239,7 @@ def test_hsm_connection():
 
 
 @bp.route("/ca/rest/hsm/slots", methods=["GET"])
-
+@require_agent_auth
 def list_hsm_slots():
     """
     List available HSM slots
@@ -290,7 +291,7 @@ def list_hsm_slots():
 
 
 @bp.route("/ca/rest/hsm/info", methods=["GET"])
-
+@require_agent_auth
 def get_hsm_info():
     """
     Get HSM device information
@@ -345,7 +346,7 @@ def get_hsm_info():
 
 
 @bp.route("/ca/rest/hsm/keys", methods=["GET"])
-
+@require_agent_auth
 def list_hsm_keys():
     """List keys in HSM"""
     try:
@@ -399,7 +400,7 @@ def list_hsm_keys():
 
 
 @bp.route("/ca/rest/hsm/keys/generate", methods=["POST"])
-
+@require_agent_auth
 def generate_hsm_key():
     """
     Generate a new key pair in HSM
@@ -498,7 +499,7 @@ def generate_hsm_key():
 
 
 @bp.route("/ca/rest/hsm/keys/<key_label>", methods=["DELETE"])
-
+@require_agent_auth
 def delete_hsm_key(key_label):
     """
     Delete a key from HSM

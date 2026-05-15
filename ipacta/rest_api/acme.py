@@ -9,6 +9,7 @@ import ipacta.rest_api._globals as _g
 from ipacta.rest_api._globals import init_ca
 from ipacta.rest_api._helpers import (
     error_response,
+    require_agent_auth,
     success_response,
 )
 
@@ -172,6 +173,7 @@ def acme_endpoint(endpoint):
 
 
 @bp.route("/acme/enable", methods=["POST"])
+@require_agent_auth
 def acme_enable():
     """
     Enable ACME service (Dogtag compatibility endpoint)
@@ -190,6 +192,7 @@ def acme_enable():
 
 
 @bp.route("/acme/disable", methods=["POST"])
+@require_agent_auth
 def acme_disable():
     """
     Disable ACME service (Dogtag compatibility endpoint)
