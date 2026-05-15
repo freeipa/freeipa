@@ -29,7 +29,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from ipalib import errors
 from ipalib.constants import IPA_CA_CN, IPAAPI_GROUP
 from ipaplatform.paths import paths
-from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
 from ipacta.ca import CertificateRequest, CertificateRecord, PythonCA
@@ -721,28 +720,6 @@ class Certs:
             "serial %s",
             serial_number,
         )
-
-    def _install_ca_trust(self):
-        """Install CA certificate to system trust store."""
-        logger.debug("Installing CA certificate to system trust store")
-
-        try:
-            # Use 'trust anchor --store' to properly add CA as a trust anchor
-            # This is more reliable than copying to anchors directory
-            logger.debug("Adding CA certificate as trust anchor")
-            ipautil.run(["trust", "anchor", "--store", str(self.ca_cert_path)])
-
-            logger.debug(
-                "CA certificate installed to system trust successfully"
-            )
-        except Exception as e:
-            logger.warning(
-                "Failed to install CA certificate to system trust store: %s. "
-                "Run 'trust anchor --store %s' manually after installation.",
-                e,
-                str(self.ca_cert_path),
-                exc_info=True,
-            )
 
     def _store_ca_cert_ldap(self):
         """Store CA certificate in LDAP with proper nickname."""
