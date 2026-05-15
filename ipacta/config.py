@@ -56,7 +56,7 @@ IPACTA_DEFAULTS = {
 # These are applied before reading the config file so file values override.
 WSGI_DEFAULTS = {
     "server": {
-        "host": "0.0.0.0",
+        "host": "127.0.0.1",
         "port": "8080",
         "ssl_port": "8443",
         "workers": "1",
