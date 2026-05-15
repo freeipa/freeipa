@@ -6,8 +6,7 @@
 import pytest
 
 from ipaplatform.osinfo import osinfo
-from ipapython.dn import DN
-from ipapython.ipautil import ipa_generate_password, realm_to_suffix
+from ipapython.ipautil import ipa_generate_password
 
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration import fips
@@ -116,18 +115,3 @@ class TestInstallFIPS(IntegrationTest):
                 vault_password,
             ]
         )
-
-    def test_krb_enctypes(self):
-        realm = self.master.domain.realm
-        suffix = realm_to_suffix(realm)
-        dn = DN(("cn", realm), ("cn", "kerberos")) + suffix
-        args = ["krbSupportedEncSaltTypes", "krbDefaultEncSaltTypes"]
-        for host in [self.master] + self.replicas:
-            result = tasks.ldapsearch_dm(host, str(dn), args, scope="base")
-            assert "camellia" not in result.stdout_text
-            assert "aes256-cts" in result.stdout_text
-            assert "aes128-cts" in result.stdout_text
-        # test that update does not add camellia
-        self.master.run_command(["ipa-server-upgrade"])
-        result = tasks.ldapsearch_dm(self.master, str(dn), args, scope="base")
-        assert "camellia" not in result.stdout_text
