@@ -610,9 +610,21 @@ class CertificateStorage(BaseStorageBackend):
             except errors.NotFound:
                 return []
 
-    def get_revoked_certificates(self) -> List:
-        """Get all revoked certificates for CRL generation"""
-        return self.find_certificates({"status": "REVOKED"})
+    def get_revoked_certificates(
+        self, offset: int = 0, limit: int = 0
+    ) -> List:
+        """Get revoked certificates.
+
+        Args:
+            offset: Number of entries to skip (0 = no skip).
+            limit:  Maximum entries to return (0 = all).
+        """
+        results = self.find_certificates({"status": "REVOKED"})
+        if offset:
+            results = results[offset:]
+        if limit:
+            results = results[:limit]
+        return results
 
     def get_revoked_for_crl(self):
         """Yield lightweight revocation entries for CRL generation.
