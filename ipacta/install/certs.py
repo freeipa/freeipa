@@ -29,7 +29,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from ipalib import errors
 from ipalib.constants import IPA_CA_CN, IPAAPI_GROUP
 from ipaplatform.paths import paths
-from ipapython import ipautil, dogtag
+from ipapython import ipautil
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
 from ipacta.ca import CertificateRequest, CertificateRecord, PythonCA
@@ -43,6 +43,11 @@ from ipacta.x509_utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+_SUBSYSTEM_PROFILE = 'caSubsystemCert'
+_AUDIT_PROFILE = 'caSignedLogCert'
+_OCSP_PROFILE = 'caOCSPCert'
+_CASERVER_PROFILE = 'caServerCert'
 
 
 def get_cert_params_from_config(pki_config, cert_type):
@@ -1068,27 +1073,27 @@ class Certs:
         # Define subsystem certificates to generate
         # Format: (common_name, profile, file_prefix)
         subsystem_certs = [
-            ("CA Subsystem", dogtag.SUBSYSTEM_PROFILE, "ca_subsystem"),
-            ("CA Audit", dogtag.AUDIT_PROFILE, "ca_audit"),
-            ("OCSP Subsystem", dogtag.OCSP_PROFILE, "ocsp_subsystem"),
-            ("ipa-ca-agent", dogtag.CASERVER_PROFILE, "ipa_ca_agent"),
+            ("CA Subsystem", _SUBSYSTEM_PROFILE, "ca_subsystem"),
+            ("CA Audit", _AUDIT_PROFILE, "ca_audit"),
+            ("OCSP Subsystem", _OCSP_PROFILE, "ocsp_subsystem"),
+            ("ipa-ca-agent", _CASERVER_PROFILE, "ipa_ca_agent"),
         ]
 
         # Map profile to NSSDB nickname (Dogtag-compatible naming)
         nickname_map = {
-            dogtag.SUBSYSTEM_PROFILE: "subsystemCert cert-pki-ca",
-            dogtag.AUDIT_PROFILE: "auditSigningCert cert-pki-ca",
-            dogtag.OCSP_PROFILE: "ocspSigningCert cert-pki-ca",
-            dogtag.CASERVER_PROFILE: "ipa-ca-agent cert-pki-ca",
+            _SUBSYSTEM_PROFILE: "subsystemCert cert-pki-ca",
+            _AUDIT_PROFILE: "auditSigningCert cert-pki-ca",
+            _OCSP_PROFILE: "ocspSigningCert cert-pki-ca",
+            _CASERVER_PROFILE: "ipa-ca-agent cert-pki-ca",
         }
 
         # Map profile to cert_type for config lookup
         cert_type_map = {
-            dogtag.SUBSYSTEM_PROFILE: "subsystem",
-            dogtag.AUDIT_PROFILE: "audit_signing",
-            dogtag.OCSP_PROFILE: "ocsp_signing",
+            _SUBSYSTEM_PROFILE: "subsystem",
+            _AUDIT_PROFILE: "audit_signing",
+            _OCSP_PROFILE: "ocsp_signing",
             # Use subsystem settings for CA agent
-            dogtag.CASERVER_PROFILE: "subsystem",
+            _CASERVER_PROFILE: "subsystem",
         }
 
         for cn, profile, file_prefix in subsystem_certs:
@@ -1160,10 +1165,10 @@ class Certs:
 
             # Import key and certificate to NSSDB
             trust_flags_map = {
-                dogtag.SUBSYSTEM_PROFILE: "u,u,u",
-                dogtag.AUDIT_PROFILE: "u,u,Pu",
-                dogtag.OCSP_PROFILE: "u,u,u",
-                dogtag.CASERVER_PROFILE: "u,u,u",
+                _SUBSYSTEM_PROFILE: "u,u,u",
+                _AUDIT_PROFILE: "u,u,Pu",
+                _OCSP_PROFILE: "u,u,u",
+                _CASERVER_PROFILE: "u,u,u",
             }
             trust_flags = trust_flags_map.get(profile, "u,u,u")
 
@@ -1198,7 +1203,7 @@ class Certs:
 
             # For subsystem cert, create pkidbuser LDAP entry (healthcheck
             # compatibility)
-            if profile == dogtag.SUBSYSTEM_PROFILE:
+            if profile == _SUBSYSTEM_PROFILE:
                 self._create_pkidbuser_entry(cert_record.certificate)
 
         logger.debug(
