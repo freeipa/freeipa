@@ -688,10 +688,17 @@ class PythonCABackend:
         return self.acme_server.get_directory()
 
     def process_acme_request(
-        self, endpoint, payload, account_key=None
+        self, endpoint, payload, account_key=None, account_id=None
     ) -> dict:
         """
         Process ACME protocol requests
+
+        Args:
+            endpoint: ACME endpoint name (e.g. "new-account", "revoke-cert").
+            payload: Decoded JWS payload dict.
+            account_key: JWK dict for the account key (from jwk header).
+            account_id: Pre-validated account ID (from process_jws_request).
+                        Preferred over re-deriving from account_key.
 
         Returns:
             For new-account: tuple of (account_dict, is_new)
@@ -760,11 +767,39 @@ class PythonCABackend:
                         reason=f"Invalid ACME endpoint: {endpoint}"
                     )
                 order_id = parts[1]
-                account_id = self._get_account_id_from_key(account_key)
+                if account_id is None:
+                    account_id = self._get_account_id_from_key(account_key)
                 cert_pem = self.acme_server.get_certificate(
                     order_id, account_id
                 )
                 return {"certificate": cert_pem}
+
+            elif endpoint == "revoke-cert":
+                # RFC 8555 §7.6 — revoke a certificate issued via ACME.
+                cert_b64 = payload.get("certificate")
+                if not cert_b64:
+                    from ipacta.acme import ACMEError
+                    raise ACMEError(
+                        "malformed",
+                        "Missing 'certificate' in revoke-cert payload",
+                    )
+                try:
+                    cert_der = base64.urlsafe_b64decode(
+                        cert_b64 + "=" * (4 - len(cert_b64) % 4)
+                    )
+                except Exception as exc:
+                    from ipacta.acme import ACMEError
+                    raise ACMEError(
+                        "malformed",
+                        f"Cannot decode certificate in revoke-cert: {exc}",
+                    ) from exc
+                reason = int(payload.get("reason", 0))
+                if account_id is None:
+                    account_id = self._get_account_id_from_key(account_key)
+                self.acme_server.revoke_certificate(
+                    cert_der, reason, account_id=account_id
+                )
+                return {}
 
             else:
                 raise errors.NotFound(
