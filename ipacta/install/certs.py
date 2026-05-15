@@ -1303,9 +1303,47 @@ class Certs:
             nssdb_password=self.nssdb_password,
         )
 
-        # Skip if server certificate already exists in NSSDB
+        # If the cert is already in NSSDB (replica install or reinstall) we
+        # still need the PEM files on disk because gunicorn reads them directly.
+        # Export them from NSSDB when they are absent.
         if nssdb.cert_exists(server_nickname):
             logger.debug("Server SSL certificate already exists in NSSDB")
+            if not server_cert_path.exists() or not server_key_path.exists():
+                logger.debug(
+                    "Server PEM files missing — exporting from NSSDB"
+                )
+                private_key = nssdb.extract_private_key(server_nickname)
+                cert = nssdb.extract_certificate(server_nickname)
+                with open(self.ca_cert_path, "rb") as f:
+                    ca_cert = x509.load_pem_x509_certificate(f.read())
+                server_cert_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(server_cert_path, "wb") as f:
+                    f.write(
+                        cert.public_bytes(serialization.Encoding.PEM)
+                    )
+                    f.write(
+                        ca_cert.public_bytes(serialization.Encoding.PEM)
+                    )
+                server_cert_path.chmod(0o644)
+                shutil.chown(
+                    server_cert_path, user="ipaca", group="ipaca"
+                )
+                server_key_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(server_key_path, "wb") as f:
+                    f.write(
+                        private_key.private_bytes(
+                            encoding=serialization.Encoding.PEM,
+                            format=serialization.PrivateFormat.PKCS8,
+                            encryption_algorithm=(
+                                serialization.NoEncryption()
+                            ),
+                        )
+                    )
+                server_key_path.chmod(0o600)
+                shutil.chown(
+                    server_key_path, user="ipaca", group="ipaca"
+                )
+                logger.debug("Server PEM files written from NSSDB export")
             return
 
         # Initialize ipacta CA instance for certificate issuance
