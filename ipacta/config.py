@@ -267,6 +267,14 @@ class IpactaConfig:
     def basedn(self):
         return self._basedn
 
+    @property
+    def random_serial_numbers(self):
+        return self._random_serial_numbers
+
+    @random_serial_numbers.setter
+    def random_serial_numbers(self, value):
+        self._random_serial_numbers = bool(value)
+
     # -----------------------------------------------------------------------
     # ConfigParser pass-through
     # -----------------------------------------------------------------------
