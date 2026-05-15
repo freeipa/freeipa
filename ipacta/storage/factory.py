@@ -119,8 +119,6 @@ def get_storage_backend(
         collision_recovery_attempts,
     )
 
-    # Late import to avoid circular dependency
-    # (storage_ca imports from storage_factory)
     from ipacta.storage.ca import CAStorageBackend
 
     return CAStorageBackend(
@@ -218,52 +216,6 @@ def _read_from_config_object(
         return default
 
 
-def _read_config(config_path: str) -> dict:
-    """
-    Read configuration from file (backward compatibility for tests)
-
-    Args:
-        config_path: Path to configuration file
-
-    Returns:
-        Dictionary with configuration values
-
-    Note:
-        This function is kept for backward compatibility with existing tests.
-        New code should use get_storage_backend() which handles config
-        internally.
-    """
-    default_config = {
-        "random_serial_numbers": False,
-    }
-
-    if not Path(config_path).exists():
-        logger.debug("Config file not found: %s. Using defaults.", config_path)
-        return default_config
-
-    try:
-        from ipacta import load_config
-
-        config = load_config(config_path)
-
-        result = {}
-        if config.has_section("ca"):
-            if config.has_option("ca", "random_serial_numbers"):
-                result["random_serial_numbers"] = config.getboolean(
-                    "ca", "random_serial_numbers"
-                )
-
-        return {**default_config, **result}
-
-    except Exception as e:
-        logger.warning(
-            "Error reading configuration file %s: %s. Using defaults.",
-            config_path,
-            e,
-        )
-        return default_config
-
-
 def create_default_config(
     config_path: Optional[str] = None,
     random_serial_numbers: bool = False,
@@ -307,31 +259,3 @@ def create_default_config(
         )
         raise
 
-
-# Backward compatibility aliases (used by tests)
-def get_ldap_storage_backend(
-    ca_id: str = "ipa", random_serial_numbers: bool = False
-):
-    """
-    Backward compatibility alias for get_storage_backend()
-
-    Deprecated: Use get_storage_backend() instead
-    """
-    return get_storage_backend(
-        ca_id=ca_id,
-        random_serial_numbers=random_serial_numbers,
-    )
-
-
-def get_dogtag_storage_backend(
-    ca_id: str = "ipa", random_serial_numbers: bool = False
-):
-    """
-    Backward compatibility alias for get_storage_backend()
-
-    Deprecated: Use get_storage_backend() instead
-    """
-    return get_storage_backend(
-        ca_id=ca_id,
-        random_serial_numbers=random_serial_numbers,
-    )
