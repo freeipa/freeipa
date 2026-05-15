@@ -137,6 +137,35 @@ def create_wsgi_app():
                 "Certificate reload via SIGHUP will not be available"
             )
 
+        # Start resource tracking if configured under [debug] section.
+        # resource_log_interval = 300   (seconds; 0 = disabled)
+        # tracemalloc = false           (set true for allocation tracing)
+        try:
+            raw_interval = config.get(
+                "debug", "resource_log_interval", fallback="0"
+            )
+            interval = float(raw_interval)
+            if interval > 0:
+                from ipacta.resource_tracker import (
+                    enable_tracemalloc,
+                    start_periodic_logging,
+                )
+                tm_env = os.environ.get(
+                    "IPACTA_TRACEMALLOC", ""
+                ).lower()
+                tm_cfg = config.get(
+                    "debug", "tracemalloc", fallback="false"
+                ).lower()
+                if tm_env in ("1", "true", "yes") or tm_cfg in (
+                    "1",
+                    "true",
+                    "yes",
+                ):
+                    enable_tracemalloc()
+                start_periodic_logging(interval)
+        except Exception as e:
+            logger.warning("Failed to start resource tracking: %s", e)
+
         return app
 
     except ImportError as e:
