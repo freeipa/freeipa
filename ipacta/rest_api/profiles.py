@@ -83,6 +83,7 @@ def list_profiles():
 
 @bp.route("/ca/rest/profiles", methods=["POST"])
 @bp.route("/ca/v2/profiles", methods=["POST"])
+@require_agent_auth
 @require_ca_backend
 @handle_ca_errors
 def create_profile():
@@ -201,6 +202,7 @@ def get_profile(profile_id):
 
 @bp.route("/ca/rest/profiles/raw", methods=["POST"])
 @bp.route("/ca/v2/profiles/raw", methods=["POST"])
+@require_agent_auth
 @require_ca_backend
 @handle_ca_errors
 def create_profile_from_raw():
@@ -341,6 +343,7 @@ def update_profile(profile_id):
 
 @bp.route("/ca/rest/profiles/<profile_id>", methods=["DELETE"])
 @bp.route("/ca/v2/profiles/<profile_id>", methods=["DELETE"])
+@require_agent_auth
 @require_ca_backend
 @validate_input(profile_id=validate_profile_id)
 @handle_ca_errors
@@ -447,6 +450,7 @@ def get_profile_raw(profile_id):
 
 @bp.route("/ca/rest/profiles/<profile_id>/raw", methods=["PUT"])
 @bp.route("/ca/v2/profiles/<profile_id>/raw", methods=["PUT"])
+@require_agent_auth
 @require_ca_backend
 @validate_input(profile_id=validate_profile_id)
 @handle_ca_errors
