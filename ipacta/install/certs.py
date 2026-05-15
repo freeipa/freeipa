@@ -754,8 +754,13 @@ class Certs:
                 "CA certificate installed to system trust successfully"
             )
         except Exception as e:
-            logger.warning("Failed to install CA to system trust: %s", e)
-            # Don't fail the installation if this step fails
+            logger.warning(
+                "Failed to install CA certificate to system trust store: %s. "
+                "Run 'trust anchor --store %s' manually after installation.",
+                e,
+                str(self.ca_cert_path),
+                exc_info=True,
+            )
 
     def _store_ca_cert_ldap(self):
         """Store CA certificate in LDAP with proper nickname."""
@@ -852,11 +857,14 @@ class Certs:
             ldap.update_entry(entry)
             logger.info("Stored HSM configuration in LDAP: %s", self.tokenname)
 
-        except errors.NotFound:
-            logger.warning(
-                "IPA CA entry not found yet - HSM configuration will be "
-                "added when CA entry is created"
-            )
+        except errors.NotFound as e:
+            raise errors.NotFound(
+                reason=(
+                    f"IPA CA LDAP entry not found at {ipa_ca_dn}; cannot "
+                    f"store HSM configuration.  Ensure _create_ipa_ca_entry() "
+                    f"runs before _store_hsm_configuration()."
+                )
+            ) from e
 
     def _create_ipa_ca_entry(self):
         """Create IPA CA entry in cn=cas,cn=ca,{basedn} with certificate and
@@ -948,12 +956,10 @@ class Certs:
             backend.initialize_schema()
 
             logger.debug("Certificate storage schema initialized successfully")
-        except Exception as e:
-            logger.warning(
-                "Failed to initialize certificate storage schema: %s", e
+        except errors.DuplicateEntry:
+            logger.debug(
+                "Certificate storage schema already exists, continuing"
             )
-            # Don't fail installation if schema already exists
-            logger.debug("Schema may already exist, continuing...")
 
     def _store_ca_cert_in_certdb(self):
         """Store CA certificate in certificate database using Dogtag storage
@@ -1275,10 +1281,16 @@ class Certs:
                 "Created pkidbuser LDAP entry with subsystem certificate for "
                 "healthcheck"
             )
+        except errors.DuplicateEntry:
+            logger.debug("pkidbuser LDAP entry already exists")
         except Exception as e:
-            raise errors.CertificateOperationError(
-                error=f"Failed to create pkidbuser LDAP entry: {e}"
-            ) from e
+            logger.error(
+                "Failed to create pkidbuser LDAP entry: %s. "
+                "Health checks will fail until this entry is created. "
+                "Run 'ipa-healthcheck' to verify after installation.",
+                e,
+                exc_info=True,
+            )
 
     def _generate_server_cert(self):
         """Generate server SSL certificate through ipacta CA.
