@@ -1307,6 +1307,14 @@ class IpactaInstance(service.Service):
                     ldap_backend,
                 )
                 self.random_serial_numbers = True
+                # Propagate to self.config (written to disk by
+                # _create_service_config) and self._certs (used during
+                # certificate generation), both of which were constructed
+                # in __init__ before the LDAP backend was known.
+                if self.config is not None:
+                    self.config.random_serial_numbers = True
+                if self._certs is not None:
+                    self._certs.random_serial_numbers = True
 
         # Promote path: set up o=ipaca replication BEFORE the main steps so
         # that LDAP data (CA certs, profiles, etc.) is already present.
