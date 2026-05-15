@@ -305,13 +305,14 @@ def _validate_ra_agent_cert(cert_subject_dn: str) -> bool:
                 "Realm not available in config - cannot validate RA agent "
                 "certificate"
             )
-            # In this case, accept any cert with "IPA RA" CN as a fallback
-            # This is less secure but allows operation during startup
+            # Exact match only: the RA agent cert always has CN=IPA RA.
+            # Substring matching would allow any cert containing "ipa ra"
+            # to bypass mTLS authentication.
             cert_cn = cert_dn[0].attr
             cert_cn_value = str(cert_dn[0].value)
-            if cert_cn.lower() == "cn" and "ipa ra" in cert_cn_value.lower():
+            if cert_cn.lower() == "cn" and cert_cn_value == "IPA RA":
                 logger.info(
-                    "Accepting client cert with 'IPA RA' CN (config "
+                    "Accepting client cert with CN=IPA RA (config "
                     "unavailable): %s",
                     cert_subject_dn,
                 )
