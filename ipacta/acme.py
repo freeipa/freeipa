@@ -1124,14 +1124,45 @@ class ACMEServer:
                     f"CSR contains unauthorized wildcard: {san_name}",
                 )
 
-    def revoke_certificate(self, certificate_der: bytes, reason: int = 0):
-        """Revoke certificate (RFC 8555 Section 7.6)"""
+    def revoke_certificate(
+        self,
+        certificate_der: bytes,
+        reason: int = 0,
+        account_id: str = None,
+    ):
+        """Revoke certificate (RFC 8555 Section 7.6).
 
+        Args:
+            certificate_der: DER-encoded certificate to revoke.
+            reason: ACME revocation reason code (RFC 5280 CRLReason).
+            account_id: Authenticated account ID making the request.
+                Must own the order that issued the certificate.
+                If None the ownership check is skipped (legacy / internal).
+
+        Raises:
+            ACMEError("unauthorized") when account_id is provided but does
+            not own the certificate.
+            ACMEError("badRevocationRequest") on any other error.
+        """
         try:
             cert = x509.load_der_x509_certificate(certificate_der)
             serial_number = cert.serial_number
 
-            # Map ACME reason codes to RevocationReason
+            # Ownership check: the requesting account must be the same
+            # account that originally ordered the certificate (RFC 8555 §7.6).
+            if account_id is not None:
+                order = self.db.find_order_for_certificate(certificate_der)
+                if order is None:
+                    raise ACMEError(
+                        "unauthorized",
+                        "Certificate not found in ACME order store; "
+                        "cannot verify ownership",
+                    )
+                if order.get("account_id") != account_id:
+                    raise ACMEError(
+                        "unauthorized",
+                        "Requesting account does not own this certificate",
+                    )
 
             reason_map = {
                 0: RevocationReason.UNSPECIFIED,
@@ -1149,9 +1180,14 @@ class ACMEServer:
                 reason, RevocationReason.UNSPECIFIED
             )
             self.ca.revoke_certificate(serial_number, revocation_reason)
+            logger.info(
+                "Revoked certificate %s via ACME (account=%s)",
+                serial_number,
+                account_id,
+            )
 
-            logger.info("Revoked certificate %s via ACME", serial_number)
-
+        except ACMEError:
+            raise
         except Exception as e:
             raise ACMEError(
                 "badRevocationRequest", f"Failed to revoke certificate: {e}"

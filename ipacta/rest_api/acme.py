@@ -112,10 +112,12 @@ def acme_endpoint(endpoint):
         # others, use kid)
         account_key = protected_header.get("jwk")
 
-        # Call backend to process the request
+        # Call backend to process the request.
+        # Pass account_id directly (already validated by process_jws_request)
+        # so handlers do not need to re-derive it from account_key.
         logger.debug("Processing ACME endpoint: %s", endpoint)
         result = _g.ca_backend.process_acme_request(
-            endpoint, payload, account_key
+            endpoint, payload, account_key, account_id=account_id
         )
         result_value = (
             result
