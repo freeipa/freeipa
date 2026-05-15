@@ -84,7 +84,7 @@ class OCSPResponder:
         self.response_cache: OrderedDict = OrderedDict()
         self.cache_maxsize = 1000
         self._cache_lock = threading.Lock()
-        # secondary index: serial_number → set of cache keys (for fast invalidation)
+        # secondary index: serial_number → set of cache keys
         self._serial_to_keys: "Dict[int, set]" = {}
 
         # OCSP signing certificate paths
@@ -561,7 +561,7 @@ class OCSPResponderManager:
             return self.responders[ca_id]
 
     def invalidate_serial(self, serial_number: int):
-        """Invalidate OCSP cache entries for a certificate serial across all CAs.
+        """Invalidate OCSP cache for a serial across all CAs.
 
         Call this after revoking or changing hold status so OCSP clients see
         the updated status immediately rather than after the cache TTL expires.
@@ -594,7 +594,9 @@ _ocsp_manager = None
 _ocsp_manager_lock = threading.Lock()
 
 
-def get_ocsp_manager(base_storage_path: str = None) -> OCSPResponderManager:
+def get_ocsp_manager(
+    base_storage_path: Optional[str] = None,
+) -> OCSPResponderManager:
     """Get singleton OCSP responder manager"""
     global _ocsp_manager
     with _ocsp_manager_lock:
