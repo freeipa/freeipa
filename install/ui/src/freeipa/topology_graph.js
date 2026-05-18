@@ -32,7 +32,7 @@ topology_graph.TopoGraph = declare([Evented], {
     _adder_anim_duration: 200,
     _adder_inner_radius: 15,
     _adder_outer_radius: 30,
-    _colors: d3.scale.category10(),
+    _colors: d3.scaleOrdinal(d3.schemeCategory10),
     _svg : null,
     _path: null,
     _circle: null,
@@ -84,20 +84,21 @@ topology_graph.TopoGraph = declare([Evented], {
     update: function(nodes, links, suffixes) {
         var curr_trasform = this._get_stored_transformation();
 
-        var zoomed = function() {
-            var translate = d3.event.translate;
-            var scale = d3.event.scale;
-            var transform = "translate(" + translate + ")scale(" + scale + ")";
+        var zoomed = function(event) {
+            var t = event.transform;
+            var transform = "translate(" + t.x + "," + t.y + ")scale(" + t.k + ")";
 
             this._svg.selectAll('g.shapes')
                 .attr("transform", transform);
-            this._store_current_transformation();
+            this._store_current_transformation(event);
         }.bind(this);
 
+        var initial_transform = d3.zoomIdentity
+            .translate(curr_trasform.translate[0], curr_trasform.translate[1])
+            .scale(+curr_trasform.scale);
+
         // adds zoom behavior to the svg
-        var zoom = d3.behavior.zoom()
-            .translate(curr_trasform.translate)
-            .scale(curr_trasform.scale)
+        var zoom = d3.zoom()
             .scaleExtent([0.2, 1])
             .on("zoom", zoomed);
 
@@ -105,31 +106,33 @@ topology_graph.TopoGraph = declare([Evented], {
         this._svg.selectAll("*").remove();
         this._svg.attr('width', this.width)
                  .attr('height', this.height)
-                 .call(zoom);
+                 .call(zoom)
+                 .call(zoom.transform, initial_transform);
 
         this.links = links;
         this.nodes = nodes;
         this.suffixes = suffixes;
 
         // load saved coordinates
-        // node.fixed uses integer
-        // this is useful when you need to store the original value and set
-        // the node temporarily fixed
         for (var i=0,l=nodes.length; i<l; i++) {
             var node = nodes[i];
-            node.fixed = 0;
+            node._pinned = false;
+            node.fx = null;
+            node.fy = null;
             if (this._get_local_storage_attr(node.id, 'fixed')) {
-                node.fixed = 1;
+                node._pinned = true;
                 node.x = Number(this._get_local_storage_attr(node.id, 'x'));
                 node.y = Number(this._get_local_storage_attr(node.id, 'y'));
+                node.fx = node.x;
+                node.fy = node.y;
             }
-            node.ca_adder = d3.svg.arc()
+            node.ca_adder = d3.arc()
                 .innerRadius(this._adder_inner_radius)
                 .outerRadius(this._adder_inner_radius)
                 .startAngle(2 * (Math.PI/180))
                 .endAngle(178 * (Math.PI/180));
 
-            node.domain_adder = d3.svg.arc()
+            node.domain_adder = d3.arc()
                 .innerRadius(this._adder_inner_radius)
                 .outerRadius(this._adder_inner_radius)
                 .startAngle(182 * (Math.PI/180))
@@ -154,9 +157,9 @@ topology_graph.TopoGraph = declare([Evented], {
             .style('marker-end', 'url(#end-arrow)')
             .attr('class', 'link dragline hidden')
             .attr('d', 'M0,0L0,0')
-            .on('click', function() {
-                d3.event.preventDefault();
-                d3.event.stopPropagation();
+            .on('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
 
                 this._create_agreement = false;
                 this.reset_mouse_vars();
@@ -189,15 +192,15 @@ topology_graph.TopoGraph = declare([Evented], {
             attr('height', this.height).
             on('mousemove', mousemove);
 
-            function mousemove(d) {
+            function mousemove(event) {
                 if (!self._source_node && !self._create_agreement) return;
 
-                var translate = self._get_stored_transformation();
                 var x = self._source_node.x;
                 var y = self._source_node.y;
 
-                var mouse_x = x + d3.mouse(self._source_node_html)[0];
-                var mouse_y = y + d3.mouse(self._source_node_html)[1];
+                var mouse = d3.pointer(event, self._source_node_html);
+                var mouse_x = x + mouse[0];
+                var mouse_y = y + mouse[1];
 
                 // update drag line
                 self._drag_line.attr('d', 'M' + x + ',' + y + 'L' + mouse_x + ',' + mouse_y);
@@ -208,28 +211,31 @@ topology_graph.TopoGraph = declare([Evented], {
     },
 
     _init_layout: function() {
-        var l = this._layout = d3.layout.force();
-        l.links(this.links);
-        l.nodes(this.nodes);
-        l.size([this.width, this.height]);
-        l.linkDistance(150);
-        l.charge(-1000);
-        l.on('tick', this._tick.bind(this));
-
         var that = this;
 
-        l.on('end', function () {
-            var nodes = l.nodes();
+        this._force_link = d3.forceLink(this.links)
+            .distance(150);
 
-            for (var i = 0; i < nodes.length; i++) {
-                var curr_node = nodes[i];
+        var l = this._layout = d3.forceSimulation(this.nodes)
+            .force('link', this._force_link)
+            .force('charge', d3.forceManyBody().strength(-1000))
+            .force('center', d3.forceCenter(this.width / 2, this.height / 2))
+            .on('tick', this._tick.bind(this))
+            .on('end', function () {
+                var nodes = l.nodes();
 
-                if (!curr_node.fixed) {
-                    curr_node.fixed = 1;
-                    that._save_node_info(curr_node);
+                for (var i = 0; i < nodes.length; i++) {
+                    var curr_node = nodes[i];
+
+                    if (!curr_node._pinned) {
+                        curr_node._pinned = true;
+                        curr_node.fx = curr_node.x;
+                        curr_node.fy = curr_node.y;
+                        that._save_node_info(curr_node);
+                    }
                 }
-            }
-        });
+            })
+            .stop();
     },
 
     _get_local_storage_attr: function(id, attr) {
@@ -245,8 +251,8 @@ topology_graph.TopoGraph = declare([Evented], {
     },
 
     _save_node_info: function(d) {
-        if (d.fixed) {
-            this._set_local_storage_attr(d.id, 'fixed', d.fixed + '');
+        if (d._pinned) {
+            this._set_local_storage_attr(d.id, 'fixed', '1');
             this._set_local_storage_attr(d.id, 'x', d.x);
             this._set_local_storage_attr(d.id, 'y', d.y);
         } else {
@@ -256,16 +262,15 @@ topology_graph.TopoGraph = declare([Evented], {
         }
     },
 
-    _store_current_transformation: function(d) {
+    _store_current_transformation: function(event) {
         var prefix = "graph_";
-        var translate = d3.event.translate;
-        var scale = d3.event.scale;
+        var t = event.transform;
 
-        this._set_local_storage_attr(prefix, "translate", translate);
-        this._set_local_storage_attr(prefix, "scale", scale);
+        this._set_local_storage_attr(prefix, "translate", t.x + "," + t.y);
+        this._set_local_storage_attr(prefix, "scale", t.k);
     },
 
-    _get_stored_transformation: function(d) {
+    _get_stored_transformation: function() {
         var prefix = "graph_";
         var current_translate = this._get_local_storage_attr(prefix, "translate");
         var current_scale = this._get_local_storage_attr(prefix, "scale");
@@ -297,6 +302,7 @@ topology_graph.TopoGraph = declare([Evented], {
      * - saves node position
      */
     _tick: function() {
+        if (!this._path || !this._circle) return;
         var self = this;
         // draw directed edges with proper padding from node centers
         this._path.attr('d', function(d) {
@@ -435,10 +441,10 @@ topology_graph.TopoGraph = declare([Evented], {
         var self = this;
 
         // set the graph in motion
-        self._layout.start();
+        self._layout.alpha(1).restart();
 
         // path (link) group
-        this._path = this._path.data(self._layout.links());
+        this._path = this._path.data(self.links);
 
         // update existing links
         this._path
@@ -473,8 +479,8 @@ topology_graph.TopoGraph = declare([Evented], {
                 var name = self._get_marker_name(d.suffix, false);
                 return d.right ? 'url(#'+name+')' : '';
             })
-            .on('mousedown', function(d) {
-                if (d3.event.ctrlKey) return;
+            .on('mousedown', function(event, d) {
+                if (event.ctrlKey) return;
 
                 // select link
                 self._mousedown_link = d;
@@ -498,33 +504,30 @@ topology_graph.TopoGraph = declare([Evented], {
             }
         );
 
-        var drag = d3.behavior.drag()
-            .on("dragstart", dragstarted)
+        var drag = d3.drag()
+            .on("start", dragstarted)
             .on("drag", dragged)
-            .on("dragend", dragended);
+            .on("end", dragended);
 
-        function dragstarted(d) {
+        function dragstarted(event, d) {
             d.drag_mode = true;
             hide_semicircles.bind(this, d)();
-            d3.event.sourceEvent.stopPropagation();
-            // Store the original value of fixed and set the node fixed.
-            d.fixed = d.fixed << 1;
-            d.fixed |= 1;
+            event.sourceEvent.stopPropagation();
+            if (!event.active) self._layout.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
         }
 
-        function dragged(d) {
-            d.px = d3.event.x;
-            d.py = d3.event.y;
-            var translate = "translate(" + d.x + "," + d.y + ")";
-            d3.select(this).attr('transform', translate);
-            self._layout.resume();
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
         }
 
-        function dragended(d) {
+        function dragended(event, d) {
             d.drag_mode = false;
-            // Restore old value of fixed.
-            d.fixed = d.fixed >> 1;
-            self._layout.resume();
+            if (!event.active) self._layout.alphaTarget(0);
+            d._pinned = true;
+            self._save_node_info(d);
         }
 
         function add_labels(type, color, adder_group) {
@@ -599,21 +602,21 @@ topology_graph.TopoGraph = declare([Evented], {
                 .classed('adder', true)
                 .attr("d", d[type + '_adder'])
                 .attr("fill", color)
-                .on('mouseover', function(d) {
+                .on('mouseover', function(event, d) {
                     window.clearTimeout(d._timeout_hide);
 
                     d3.select(this).attr('transform', 'scale('+scale+')');
                     adder_group.select('text.' + type + '_plus')
                         .attr('transform', 'scale('+scale+')');
                 })
-                .on('mouseout', function(d) {
+                .on('mouseout', function(event, d) {
                     d3.select(this).attr('transform', '');
                     adder_group.select('text.' + type + '_plus')
                         .attr('transform', '');
                 })
-                .on('click', function(d) {
-                    d3.event.preventDefault();
-                    d3.event.stopPropagation();
+                .on('click', function(event, d) {
+                    event.preventDefault();
+                    event.stopPropagation();
                     self.emit('link-selected', { link: null });
 
                     hide_semicircles.bind(this, d)();
@@ -628,14 +631,14 @@ topology_graph.TopoGraph = declare([Evented], {
 
                     self._selected_link = null;
 
-                    var translate = self._get_stored_transformation();
                     var x = self._source_node.x;
                     var y = self._source_node.y;
 
                     // add position of node + translation of whole graph + relative
                     // position of the mouse
-                    var mouse_x = d.x + d3.mouse(this)[0];
-                    var mouse_y = d.y + d3.mouse(this)[1];
+                    var mouse = d3.pointer(event, this);
+                    var mouse_x = d.x + mouse[0];
+                    var mouse_y = d.y + mouse[1];
 
                     // reposition drag line
                     self._drag_line
@@ -648,15 +651,15 @@ topology_graph.TopoGraph = declare([Evented], {
 
                     self.restart();
                 }.bind(this))
-                .on('mousedown.drag', function() {
-                    d3.event.preventDefault();
-                    d3.event.stopPropagation();
+                .on('mousedown.drag', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
                 })
                 .transition()
                     .duration(self._adder_anim_duration)
                     .attr("d", d[type + '_adder']
                         .outerRadius(self._adder_outer_radius))
-                    .each('end', function() {
+                    .on('end', function() {
                         add_labels(type, color, adder_group);
                     });
         }
@@ -689,7 +692,7 @@ topology_graph.TopoGraph = declare([Evented], {
             var curr_nod = d3.select(this);
             curr_nod.selectAll('.plus,.adder_label,rect')
                 .transition()
-                    .ease('exp')
+                    .ease(d3.easeExp)
                     .duration(100)
                     .style('font-size', '0px')
                     .remove();
@@ -733,28 +736,34 @@ topology_graph.TopoGraph = declare([Evented], {
         // add new nodes
         var g = this._circle.enter()
             .append('svg:g')
-            .on("dblclick", function(d) {
+            .on("dblclick", function(event, d) {
                 // Stops propagation dblclick event to the zoom behavior.
-                d3.event.preventDefault();
-                d3.event.stopPropagation();
-                //xor operation switch value of fixed from 1 to 0 and vice versa
-                d.fixed = d.fixed ^ 1;
-                self._layout.resume();
+                event.preventDefault();
+                event.stopPropagation();
+                d._pinned = !d._pinned;
+                if (d._pinned) {
+                    d.fx = d.x;
+                    d.fy = d.y;
+                } else {
+                    d.fx = null;
+                    d.fy = null;
+                }
+                self._layout.alpha(0.3).restart();
             })
-            .on('mouseover', function(d) {
+            .on('mouseover', function(event, d) {
                 window.clearTimeout(d._timeout_hide);
                 show_semicircles.bind(this, d)();
                 d3.select('circle.cover').classed('cover', true);
             })
-            .on('mouseout', function(d) {
+            .on('mouseout', function(event, d) {
                 d._timeout_hide = window.setTimeout(hide_semicircles
                                                         .bind(this, d), 50);
             })
-            .on('click', function(d) {
+            .on('click', function(event, d) {
                 if (!self._create_agreement) return;
 
-                d3.event.preventDefault();
-                d3.event.stopPropagation();
+                event.preventDefault();
+                event.stopPropagation();
 
                 if (self._source_node !== d) {
                     self._target_node = d;
