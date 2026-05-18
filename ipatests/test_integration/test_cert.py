@@ -61,13 +61,76 @@ def get_certmonger_request_value(host, requestid, state):
     return val
 
 
+def _expected_ml_dsa_httpd_public_key_label(ipa_key_type):
+    """Return substring expected on ``openssl x509 ... | grep Public-Key``.
+
+    Used when the IPA server was installed with ``--key-type-size`` ML-DSA.
+    ``None`` means the install is not ML-DSA (caller should not assert).
+    """
+    if not ipa_key_type:
+        return None
+    kt = ipa_key_type.strip().lower()
+    if not kt.startswith('mldsa'):
+        return None
+    if kt == 'mldsa':
+        return 'ML-DSA-65'
+    if ':' in ipa_key_type:
+        strength = ipa_key_type.split(':', 1)[1].strip()
+        if strength.isdigit():
+            return 'ML-DSA-{}'.format(strength)
+    return None
+
+
 class TestInstallMasterClient(IntegrationTest):
     num_clients = 1
     topology = 'line'
+    # When set, ``install`` uses ``ipa-server-install`` PQC options instead of
+    # the default ``install_topo`` master path (which cannot pass master
+    # ``extra_args``). Subclasses may set these for ML-DSA integration runs.
+    ipa_key_type = None
+    ca_key_type = None
+
+    @classmethod
+    def _uses_pqc_install_keys(cls):
+        return cls.ipa_key_type is not None or cls.ca_key_type is not None
+
+    @classmethod
+    def _install_line_master_client_with_pqc(cls, mh):
+        """Equivalent to line topology with zero replicas and one client."""
+        extra_args = []
+        if cls.domain_level is not None:
+            domain_level = cls.domain_level
+        else:
+            domain_level = cls.master.config.domain_level
+
+        if cls.master.config.fips_mode:
+            cls.fips_mode = True
+        if cls.fips_mode:
+            cls.enable_fips_mode()
+
+        if cls.token_password:
+            extra_args.extend(('--token-password', cls.token_password,))
+        if cls.ipa_key_type:
+            extra_args.extend(['--key-type-size', cls.ipa_key_type])
+        if cls.ca_key_type:
+            extra_args.extend(['--ca-key-type', cls.ca_key_type])
+
+        tasks.install_master(
+            cls.master,
+            setup_dns=True,
+            domain_level=domain_level,
+            random_serial=cls.random_serial,
+            extra_args=extra_args,
+        )
+        tasks.add_a_records_for_hosts_in_master_domain(cls.master)
+        tasks.install_clients([cls.master], cls.clients)
 
     @classmethod
     def install(cls, mh):
-        super().install(mh)
+        if cls._uses_pqc_install_keys():
+            cls._install_line_master_client_with_pqc(mh)
+        else:
+            super().install(mh)
 
         # store the start time to look into journal logs in
         # test_certmonger_ipa_responder_jsonrpc
@@ -185,6 +248,13 @@ class TestInstallMasterClient(IntegrationTest):
             ["getcert", "list", "-n", "Server-Cert cert-pki-ca"]
         )
         assert "profile: caServerCert" in result.stdout_text
+        ml_label = _expected_ml_dsa_httpd_public_key_label(self.ipa_key_type)
+        if ml_label:
+            pk = self.master.run_command(
+                'openssl x509 -text -noout -in %s | grep Public-Key'
+                % paths.HTTPD_CERT_FILE
+            ).stdout_text
+            assert ml_label in pk
 
     def test_multiple_user_certificates(self):
         """Test that a user may be issued multiple certificates"""
@@ -325,6 +395,17 @@ class TestInstallMasterClient(IntegrationTest):
         tasks.ldapmodify_dm(self.master, remove_ca_ldif)
 
         self.master.run_command(['ipa', 'ca-del', lwca])
+
+
+class TestInstallMasterClientMLDSA(TestInstallMasterClient):
+    """Same scenarios as :class:`TestInstallMasterClient` with ML-DSA IPA keys.
+
+    The CA remains RSA (default); PKINIT and user CSRs in individual tests
+    may still use RSA where the scenario requires it.
+    """
+
+    ipa_key_type = 'mldsa'
+    ca_key_type = None
 
 
 class TestCertmongerRekey(IntegrationTest):
@@ -674,3 +755,219 @@ class TestCAShowErrorHandling(IntegrationTest):
             os.path.join(paths.OPENSSL_CERTS_DIR, 'test.pem'),
             os.path.join(paths.OPENSSL_PRIVATE_DIR, 'test.key')
         ])
+
+
+class PQCCertEnrollmentInstallMixin:
+    """Shared ipa-server-install options for ML-DSA integration tests.
+
+    Mirrors ``TestInstallPQCBase.install`` in ``test_installation`` without
+    importing that module (``test_installation`` already imports this file).
+    """
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = None
+    ca_key_type = None
+    # getcert/ipa key generation label for ``getcert request -G`` (NSS)
+    mldsa_cert_keygen = "ML-DSA-65"
+
+    @classmethod
+    def install(cls, mh):
+        extra_args = []
+        if cls.ipa_key_type:
+            extra_args.extend(["--key-type-size", cls.ipa_key_type])
+        if cls.ca_key_type:
+            extra_args.extend(["--ca-key-type", cls.ca_key_type])
+        tasks.install_master(cls.master, setup_dns=True, extra_args=extra_args)
+        tasks.install_replica(
+            cls.master, cls.replicas[0], setup_ca=True,
+        )
+
+    def _cleanup_mldsa_enroll_files(self, host, req_id):
+        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, f"{req_id}.pem")
+        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, f"{req_id}.key")
+        host.run_command(["getcert", "stop-tracking", "-i", req_id],
+                         raiseonerr=False)
+        host.run_command(["rm", "-f", certfile, keyfile], raiseonerr=False)
+
+    def _request_mldsa_caIPAservice_cert(self, host, req_id):
+        """Issue a new host cert via Dogtag profile ``caIPAserviceCert``."""
+        certfile = os.path.join(paths.OPENSSL_CERTS_DIR, f"{req_id}.pem")
+        keyfile = os.path.join(paths.OPENSSL_PRIVATE_DIR, f"{req_id}.key")
+        hostname = host.hostname
+        host.run_command(["rm", "-f", certfile, keyfile], raiseonerr=False)
+        cmd_arg = [
+            "getcert",
+            "request",
+            "-c",
+            "ipa",
+            "-I",
+            req_id,
+            "-k",
+            keyfile,
+            "-f",
+            certfile,
+            "-D",
+            hostname,
+            "-K",
+            "host/%s" % hostname,
+            "-N",
+            "CN={}".format(hostname),
+            "-U",
+            "id-kp-clientAuth",
+            "-T",
+            "caIPAserviceCert",
+            "-G",
+            self.mldsa_cert_keygen,
+        ]
+        result = host.run_command(cmd_arg)
+        assert (
+            'New signing request "%s" added.\n' % req_id in result.stdout_text
+        )
+        status = tasks.wait_for_request(host, req_id, 300)
+        assert status == "MONITORING", (
+            "certmonger request %s is in state %s" % (req_id, status)
+        )
+        list_out = host.run_command(
+            ["getcert", "list", "-i", req_id]
+        ).stdout_text
+        assert "profile: caIPAserviceCert" in list_out
+        pk_out = host.run_command(
+            "openssl x509 -in %s -noout -text | grep Public-Key" % certfile
+        ).stdout_text
+        assert self.mldsa_cert_keygen in pk_out
+
+    def _request_mldsa_via_ipa_cert_request(self, host, stem, service_suffix):
+        """Issue a cert with ``ipa cert-request`` and profile ``caIPAserviceCert``.
+
+        Unlike certmonger ``getcert``, this path sends a PKCS#10 CSR through
+        the IPA RA. The CSR must be built with an OpenSSL that supports the
+        chosen ML-DSA algorithm (OpenSSL 3.5+ on the test host).
+        """
+        csr = os.path.join(paths.OPENSSL_CERTS_DIR, f"{stem}.csr")
+        key = os.path.join(paths.OPENSSL_PRIVATE_DIR, f"{stem}.key")
+        cert = os.path.join(paths.OPENSSL_CERTS_DIR, f"{stem}.crt")
+        algo = self.mldsa_cert_keygen
+        principal = "mldsaenr{}/{}".format(service_suffix, host.hostname)
+
+        host.run_command(["rm", "-f", csr, key, cert], raiseonerr=False)
+        gen = host.run_command(
+            ["openssl", "genpkey", "-algorithm", algo, "-out", key],
+            raiseonerr=False,
+        )
+        if gen.returncode != 0:
+            host.run_command(["rm", "-f", key], raiseonerr=False)
+            pytest.skip(
+                "OpenSSL on %s cannot generate %s keys (need OpenSSL with "
+                "ML-DSA support)." % (host.hostname, algo)
+            )
+        cn = host.hostname
+        try:
+            host.run_command(
+                [
+                    "openssl",
+                    "req",
+                    "-new",
+                    "-key",
+                    key,
+                    "-out",
+                    csr,
+                    "-subj",
+                    "/CN={}".format(cn),
+                ]
+            )
+            tasks.kinit_admin(host)
+            try:
+                host.run_command(
+                    [
+                        "ipa",
+                        "cert-request",
+                        "--add",
+                        "--principal",
+                        principal,
+                        "--certificate-out",
+                        cert,
+                        "--profile-id",
+                        "caIPAserviceCert",
+                        csr,
+                    ]
+                )
+            finally:
+                tasks.kdestroy_all(host)
+
+            pk_out = host.run_command(
+                "openssl x509 -in %s -noout -text | grep Public-Key" % cert
+            ).stdout_text
+            assert algo in pk_out
+        finally:
+            host.run_command(["ipa", "service-del", principal], raiseonerr=False)
+            host.run_command(["rm", "-f", csr, key, cert], raiseonerr=False)
+
+
+class TestPQCCertEnrollmentIPACerts(PQCCertEnrollmentInstallMixin,
+                                    IntegrationTest):
+    """Certmonger enrollment on IPA with ML-DSA service keys (RSA CA)."""
+
+    ipa_key_type = "mldsa"
+    ca_key_type = None
+    mldsa_cert_keygen = "ML-DSA-65"
+
+    def test_getcert_enroll_caIPAserviceCert_mldsa_key_master(self):
+        """Host certificate via ``caIPAserviceCert`` with an ML-DSA key pair."""
+        req_id = "pqc-mldsa-enroll-master"
+        try:
+            self._request_mldsa_caIPAservice_cert(self.master, req_id)
+        finally:
+            self._cleanup_mldsa_enroll_files(self.master, req_id)
+
+    def test_getcert_enroll_caIPAserviceCert_mldsa_key_replica(self):
+        """Same enrollment path against a replica with a CA."""
+        req_id = "pqc-mldsa-enroll-replica"
+        try:
+            self._request_mldsa_caIPAservice_cert(self.replicas[0], req_id)
+        finally:
+            self._cleanup_mldsa_enroll_files(self.replicas[0], req_id)
+
+    def test_ipa_cert_request_mldsa_caIPAservice_profile_master(self):
+        """``ipa cert-request`` with PKCS#10 CSR (explicit ``caIPAserviceCert``).
+
+        Requires OpenSSL on the master that implements ``openssl genpkey``
+        for the configured ML-DSA variant (otherwise the test is skipped).
+        """
+        suffix = "".join(
+            random.choice(string.ascii_lowercase) for _ in range(8)
+        )
+        stem = "pqc-ipa-cr-%s" % suffix
+        self._request_mldsa_via_ipa_cert_request(self.master, stem, suffix)
+
+
+class TestPQCCertEnrollmentCACerts(PQCCertEnrollmentInstallMixin,
+                                   IntegrationTest):
+    """Enrollment when both IPA service keys and the CA use ML-DSA."""
+
+    ipa_key_type = "mldsa:44"
+    ca_key_type = "mldsa"
+    mldsa_cert_keygen = "ML-DSA-44"
+
+    def test_getcert_enroll_caIPAserviceCert_mldsa_key_master(self):
+        """Host certificate via ``caIPAserviceCert`` with ML-DSA-44 keys."""
+        req_id = "pqc-mldsa44-enroll-master"
+        try:
+            self._request_mldsa_caIPAservice_cert(self.master, req_id)
+        finally:
+            self._cleanup_mldsa_enroll_files(self.master, req_id)
+
+    def test_getcert_enroll_caIPAserviceCert_mldsa_key_replica(self):
+        req_id = "pqc-mldsa44-enroll-replica"
+        try:
+            self._request_mldsa_caIPAservice_cert(self.replicas[0], req_id)
+        finally:
+            self._cleanup_mldsa_enroll_files(self.replicas[0], req_id)
+
+    def test_ipa_cert_request_mldsa_caIPAservice_profile_master(self):
+        """``ipa cert-request`` with ML-DSA CSR when the CA uses ML-DSA keys."""
+        suffix = "".join(
+            random.choice(string.ascii_lowercase) for _ in range(8)
+        )
+        stem = "pqc-ipa-cr44-%s" % suffix
+        self._request_mldsa_via_ipa_cert_request(self.master, stem, suffix)
