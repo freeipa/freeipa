@@ -1,0 +1,24 @@
+/*
+ * Bootstrap 5 transition CSS
+ *
+ * FreeIPA uses PatternFly 3 CSS (based on Bootstrap 3).  This shim adds the
+ * small set of Bootstrap 5 JS-driven class names that differ from Bootstrap 3
+ * so that Bootstrap 5 JS components work correctly with the existing CSS.
+ */
+
+/* Collapse: Bootstrap 5 uses .show, Bootstrap 3 used .in */
+.collapse.show,
+.navbar-collapse.show { display: block; }
+.navbar-collapse.collapse.show { display: flex; }
+
+/* Dropdown: Bootstrap 5 adds .show to .dropdown-menu itself;
+   Bootstrap 3 added .open to the parent .dropdown */
+.dropdown-menu.show { display: block; }
+
+/* Fade transitions: Bootstrap 5 uses .fade + .show, Bootstrap 3 used .fade + .in */
+.modal.fade.show { opacity: 1; }
+.tooltip.fade.show { opacity: .9; }
+.popover.fade.show { opacity: 1; }
+
+/* Alert close: Bootstrap 5 removes the element; ensure .fade works */
+.alert.fade:not(.show) { opacity: 0; }

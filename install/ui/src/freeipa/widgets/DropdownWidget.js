@@ -85,7 +85,7 @@ define(['dojo/_base/declare',
         /**
          * Toggle classes
          *
-         * e.g.: `btn btn-default`
+         * e.g.: `btn btn-secondary`
          *
          * @property {String}
          */
@@ -182,7 +182,7 @@ define(['dojo/_base/declare',
 
             this.toggle_node = construct.create('a', {
                 'class': 'dropdown-toggle',
-                'data-toggle': 'dropdown',
+                'data-bs-toggle': 'dropdown',
                 href: '#'
             });
             if (this.toggle_class) dom_class.add(this.toggle_node, this.toggle_class);

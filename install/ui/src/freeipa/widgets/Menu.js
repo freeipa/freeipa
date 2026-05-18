@@ -134,8 +134,8 @@ define(['dojo/_base/declare',
                 dom_class.add(item_node, 'dropdown-submenu');
                 dom_class.add(a_node, 'dropdown-toggle');
                 prop.set(item_node, 'onclick', undefined);
-                attr.set(a_node, 'data-toggle', 'dropdown');
-                attr.set(a_node, 'data-target', '#');
+                attr.set(a_node, 'data-bs-toggle', 'dropdown');
+                attr.set(a_node, 'data-bs-target', '#');
                 $(a_node).dropdown();
             }
 

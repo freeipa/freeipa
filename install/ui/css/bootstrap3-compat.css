@@ -1,0 +1,45 @@
+/*
+ * Bootstrap 3 → Bootstrap 5 compatibility CSS for external UI plugins.
+ *
+ * External plugins written against Bootstrap 3 / PatternFly 3 use class names
+ * that were renamed or removed in Bootstrap 5.  Load this AFTER Bootstrap 5 /
+ * PatternFly CSS to restore backward-compatible rendering during a transition
+ * period.  Remove once all known plugins have been updated.
+ */
+
+/* Buttons */
+.btn-default { color: #333; background-color: #fff; border-color: #ccc; }
+.btn-default:hover, .btn-default:focus { background-color: #e6e6e6; }
+
+/* Layout helpers */
+.pull-left  { float: left  !important; }
+.pull-right { float: right !important; }
+
+/* Grid: xs tier was removed; map to the un-prefixed (xs-equivalent) tier */
+.col-xs-1  { flex: 0 0 auto; width:  8.3333%; }
+.col-xs-2  { flex: 0 0 auto; width: 16.6667%; }
+.col-xs-3  { flex: 0 0 auto; width: 25%; }
+.col-xs-4  { flex: 0 0 auto; width: 33.3333%; }
+.col-xs-5  { flex: 0 0 auto; width: 41.6667%; }
+.col-xs-6  { flex: 0 0 auto; width: 50%; }
+.col-xs-7  { flex: 0 0 auto; width: 58.3333%; }
+.col-xs-8  { flex: 0 0 auto; width: 66.6667%; }
+.col-xs-9  { flex: 0 0 auto; width: 75%; }
+.col-xs-10 { flex: 0 0 auto; width: 83.3333%; }
+.col-xs-11 { flex: 0 0 auto; width: 91.6667%; }
+.col-xs-12 { flex: 0 0 auto; width: 100%; }
+
+/* Panels → Cards */
+.panel                { background-color: #fff; border: 1px solid transparent; border-radius: 4px; margin-bottom: 20px; }
+.panel-default        { border-color: #ddd; }
+.panel-heading        { padding: 10px 15px; border-bottom: 1px solid transparent; border-radius: 3px 3px 0 0; }
+.panel-default > .panel-heading { color: #333; background-color: #f5f5f5; border-color: #ddd; }
+.panel-title          { margin: 0; font-size: 16px; font-weight: 500; }
+.panel-body           { padding: 15px; }
+.panel-footer         { padding: 10px 15px; background-color: #f5f5f5; border-top: 1px solid #ddd; }
+
+/* Well */
+.well { min-height: 20px; padding: 19px; background-color: #f5f5f5; border: 1px solid #e3e3e3; border-radius: 4px; }
+
+/* Dropdown: Bootstrap 5 uses .show on the menu, Bootstrap 3 used .open on parent */
+.open > .dropdown-menu { display: block; }
