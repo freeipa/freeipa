@@ -210,6 +210,7 @@ struct ipadb_e_data {
     char **authz_data;
     bool has_tktpolaux;
     enum ipadb_user_auth user_auth;
+    krb5_timestamp pw_expiration;
     struct ipadb_e_pol_limits pol_limits[IPADB_USER_AUTH_IDX_MAX];
     bool has_sid;
     struct dom_sid *sid;
