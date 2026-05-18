@@ -52,26 +52,17 @@ class KeytabRecordBase(ABC):
 
     Equivalent of modern @dataclass
     """
-
-    filepath: str
-    kvno: int
-    principal: str
-
-    def __init__(self, filepath: str, kvno: int, principal: str):
-        assert isinstance(filepath, str)
-        assert isinstance(kvno, int)
-        assert isinstance(principal, str)
-
+    def __init__(self, filepath, kvno, principal):
         self.filepath = filepath
         self.kvno = kvno
         self.principal = principal
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f"{self.__class__.__name__}(" + ", ".join(
             (f"{k}={v}" for k, v in vars(self).items())
         ) + ")"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.__repr__()
 
 
@@ -99,11 +90,11 @@ class KeytabDeletion(KeytabRecordBase):
         return hash((self.filepath, self.kvno, self.principal))
 
     @staticmethod
-    def from_file(filepath: str) -> KeytabDeletion:
+    def from_file(filepath):
         with open(filepath, 'r') as f:
             return KeytabDeletion(**json.load(f))
 
-    def to_file(self, filepath: str) -> None:
+    def to_file(self, filepath):
         with open(filepath, 'w') as f:
             json.dump(vars(self), f)
 
@@ -114,26 +105,13 @@ class KeytabEntry(KeytabRecordBase):
     klist -ekt
     """
 
-    timestamp: datetime
-    enctypes: list[str]
-
-    def __init__(
-        self,
-        filepath: str,
-        kvno: int,
-        timestamp: datetime,
-        principal: str,
-        enctype: str,
-    ):
-        assert isinstance(timestamp, datetime)
-        assert isinstance(enctype, str)
-
+    def __init__(self, filepath, kvno, timestamp, principal, enctype):
         super().__init__(filepath, kvno, principal)
 
         self.timestamp = timestamp
         self.enctypes = [enctype]
 
-    def valid_enctypes(self, permitted_enctypes) -> bool:
+    def valid_enctypes(self, permitted_enctypes):
         """
         Validates that current enctypes are equal to permitted encryption
         types. Validates order as well.
@@ -145,8 +123,6 @@ class KeytabEntry(KeytabRecordBase):
         :return: Are enctypes valid?
         :rtype: bool
         """
-        assert isinstance(permitted_enctypes, list)
-
         if len(self.enctypes) != len(permitted_enctypes):
             return False
 
@@ -156,7 +132,7 @@ class KeytabEntry(KeytabRecordBase):
 
         return True
 
-    def known_principal(self, host: str, realm: str) -> bool:
+    def known_principal(self, host, realm):
         anonymous_principal = ANON_USER + "@" + realm
         if self.principal == anonymous_principal:
             return True
@@ -170,11 +146,11 @@ class KeytabEntry(KeytabRecordBase):
 
         return self.principal.rsplit('/', maxsplit=1)[1] == principal
 
-    def as_deletion(self) -> KeytabDeletion:
+    def as_deletion(self):
         return KeytabDeletion(self.filepath, self.kvno, self.principal)
 
 
-def _get_krb_permitted_types() -> list[str]:
+def _get_krb_permitted_types():
     """
     Retrieves permitted keys as a list of strings, normalizes :special, :normal
     by removing these.
@@ -185,7 +161,7 @@ def _get_krb_permitted_types() -> list[str]:
     result = ipautil.run(
         [paths.IPA_GETKEYTAB, "--permitted-enctypes"], capture_output=True
     )
-    permitted_enctypes: list[str] = result.output.splitlines()
+    permitted_enctypes = result.output.splitlines()
 
     for i in range(len(permitted_enctypes)):
         if ":" in permitted_enctypes[i]:
@@ -194,7 +170,7 @@ def _get_krb_permitted_types() -> list[str]:
     return permitted_enctypes
 
 
-def _list_keytab(keytab: str) -> list[KeytabEntry]:
+def _list_keytab(keytab):
     """
     Reads keytab and gathers it's entries as a list of KeytabEntry.
     Errors are skipped and logged.
@@ -209,10 +185,10 @@ def _list_keytab(keytab: str) -> list[KeytabEntry]:
     result = ipautil.run(
         [paths.KLIST, "-ekt", keytab], env={"LANG": "C"}, capture_output=True
     )
-    lines: list[str] = result.output.splitlines()
+    lines = result.output.splitlines()
 
     # Keytab is not guaranteed to have records ordered by KVNO
-    keytab_records: list[KeytabEntry] = []
+    keytab_records = []
 
     # First skip header lines, such as KVNO Timestamp... and ----
     for line in lines[3:]:
@@ -252,10 +228,7 @@ def _list_keytab(keytab: str) -> list[KeytabEntry]:
     return keytab_records
 
 
-def _schedule_deletion(
-    keytab: KeytabEntry,
-    krbmaxrenewableage: int,
-) -> None:
+def _schedule_deletion(keytab, krbmaxrenewableage):
     """
     Schedules deletion of keytab on today + krbmaxrenewableage.
     On failure deletions are repeated daily, see: ipa-keytab-cleaner@.service
@@ -290,10 +263,7 @@ def _schedule_deletion(
     )
 
 
-def _generate_keys(
-    krb_principal: str,
-    keytab_entries: list[tuple[str, str]],
-) -> None:
+def _generate_keys(krb_principal, keytab_entries):
     """
     Generates new keys in keytabs.
 
@@ -316,7 +286,7 @@ def _generate_keys(
     ipautil.run([paths.KDESTROY])
 
 
-def _get_files_from_directory(directory: str) -> list[str]:
+def _get_files_from_directory(directory):
     """
     Retrieves all entries from a directory or an empty list.
     Logs a warning when unable to read the directory.
@@ -334,7 +304,7 @@ def _get_files_from_directory(directory: str) -> list[str]:
         return []
 
 
-def _get_realm_suffix(instance) -> DN:
+def _get_realm_suffix(instance):
     """
     Should behave the same way as
     ipaserver/install/krbinstance.py:get_realm_service
@@ -349,7 +319,7 @@ def _get_realm_suffix(instance) -> DN:
     return DN(("cn", realm), ("cn", "kerberos"), suffix)
 
 
-def _get_krbmaxrenewableage(instance) -> int:
+def _get_krbmaxrenewableage(instance):
     """
     Handles ldap connection in itself if not already connected.
 
@@ -372,14 +342,14 @@ def _get_krbmaxrenewableage(instance) -> int:
     return krbmaxrenewableage
 
 
-def _get_systemd_scheduled_units() -> list[str]:
+def _get_systemd_scheduled_units():
     result = ipautil.run([
         paths.SYSTEMCTL, 'list-timers'
     ], capture_output=True)
-    lines: list[str] = result.output.splitlines()
+    lines = result.output.splitlines()
     start_index = lines[0].find("UNIT")
 
-    units: list[str] = []
+    units = []
     for line in lines[1:-3]:
         unit = line[start_index:].split(' ', maxsplit=1)[0]
         units.append(unit)
@@ -387,10 +357,10 @@ def _get_systemd_scheduled_units() -> list[str]:
     return units
 
 
-def _get_scheduled_keytabs() -> list[KeytabDeletion]:
+def _get_scheduled_keytabs():
     units = _get_systemd_scheduled_units()
 
-    keytabs: list[KeytabDeletion] = []
+    keytabs = []
     for unit in units:
         if unit.startswith(TIMER_PREFIX):
             filename = unit.replace(TIMER_PREFIX, "")
@@ -408,7 +378,7 @@ def _get_scheduled_keytabs() -> list[KeytabDeletion]:
     return keytabs
 
 
-def cleanup_scheduled_keytab_removals() -> None:
+def cleanup_scheduled_keytab_removals():
     units = _get_systemd_scheduled_units()
 
     for unit in units:
@@ -424,7 +394,7 @@ def cleanup_scheduled_keytab_removals() -> None:
             pass
 
 
-def _get_principal_by_keytab(keytab: str, host: str, realm: str) -> str:
+def _get_principal_by_keytab(keytab, host, realm):
     """Returns prinicipal based on keytab filepath
 
     :param keytab: Path to the keytab
@@ -448,12 +418,7 @@ def _get_principal_by_keytab(keytab: str, host: str, realm: str) -> str:
     return principal
 
 
-def check_and_rotate_keytabs(
-    instance,
-    host: str,
-    realm: str,
-    skip_keytab_rotation: bool
-) -> bool:
+def check_and_rotate_keytabs(instance, host, realm, skip_keytab_rotation):
     """
     Checks the encryption keys for all the keytabs, schedules removal of
     old invalid ones and generates new pairs.
@@ -478,7 +443,7 @@ def check_and_rotate_keytabs(
     permitted_types = _get_krb_permitted_types()
 
     # For generate_keys, tuples of filepath and principal
-    keytab_entries: list[tuple[str, str]] = []
+    keytab_entries = []
     scheduled_deletions = _get_scheduled_keytabs()
     for keytab in (
         *(
@@ -492,14 +457,14 @@ def check_and_rotate_keytabs(
             continue
 
         try:
-            items: list[KeytabEntry] = _list_keytab(keytab)
+            items = _list_keytab(keytab)
         except ipautil.CalledProcessError as e:
             logger.error(
                 "File %s seems to not be a valid keytab: %s",
                 keytab,
                 e
             )
-            items: list[KeytabEntry] = []
+            items = []
 
         invalid = False
         max_kvno = max(i.kvno for i in items)
