@@ -879,11 +879,16 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                            "krbPasswordExpiration", &restime);
     switch (ret) {
     case 0:
-        entry->pw_expiration = restime;
-
-        /* If we are using only RADIUS, we don't know expiration. */
-        if (ua == IPADB_USER_AUTH_RADIUS)
+        /* If user can authenticate without a password (RADIUS, PKINIT, passkey, or IdP),
+         * skip password expiration check since password is not used. */
+        if (ua != IPADB_USER_AUTH_NONE &&
+            !(ua & IPADB_USER_AUTH_PASSWORD) &&
+            !(ua & IPADB_USER_AUTH_OTP) &&
+            !(ua & IPADB_USER_AUTH_HARDENED)) {
             entry->pw_expiration = 0;
+        } else {
+            entry->pw_expiration = restime;
+        }
     case ENOENT:
         break;
     default:
