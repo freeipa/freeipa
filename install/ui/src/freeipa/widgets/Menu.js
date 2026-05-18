@@ -177,7 +177,7 @@ define(['dojo/_base/declare',
             if (container) {
                 construct.place(item_container, container);
                 // use jQuery resize to make use of window.resize throttling
-                $(window).bind('resize', function() {
+                $(window).on('resize', function() {
                     this._adjust_size(container, item_container, level);
                 }.bind(this));
             }
