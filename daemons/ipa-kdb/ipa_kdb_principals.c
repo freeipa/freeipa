@@ -791,6 +791,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     char *princ_sid;
     char **acl_list;
     krb5_timestamp restime;
+    krb5_timestamp pw_exp_from_ldap = 0;
     bool resbool;
     int result;
     int ret;
@@ -879,11 +880,22 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                            "krbPasswordExpiration", &restime);
     switch (ret) {
     case 0:
-        entry->pw_expiration = restime;
-
-        /* If we are using only RADIUS, we don't know expiration. */
-        if (ua == IPADB_USER_AUTH_RADIUS)
+        pw_exp_from_ldap = restime;
+        /* If the user has any passwordless authentication method available
+         * (RADIUS, PKINIT, passkey, or IdP), skip the password expiration
+         * check here.  The KDC checks pw_expiration before pre-authentication
+         * runs, so keeping it set would block passwordless methods from
+         * even being attempted.
+         *
+         * The real expiration is preserved in ied->pw_expiration so that
+         * ipa_kdcpolicy_check_as() can still enforce it when a password-based
+         * method is actually used. */
+        if (ua & (IPADB_USER_AUTH_RADIUS | IPADB_USER_AUTH_PKINIT |
+                  IPADB_USER_AUTH_IDP | IPADB_USER_AUTH_PASSKEY)) {
             entry->pw_expiration = 0;
+        } else {
+            entry->pw_expiration = restime;
+        }
     case ENOENT:
         break;
     default:
@@ -1150,6 +1162,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     }
 
     ied->user_auth = ua;
+    ied->pw_expiration = pw_exp_from_ldap;
 
     /* If enabled, set the otp user string, enabling otp. */
     if (ua & IPADB_USER_AUTH_OTP) {

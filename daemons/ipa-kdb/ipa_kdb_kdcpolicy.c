@@ -57,6 +57,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     struct ipadb_e_data *ied;
     struct ipadb_e_pol_limits *pol_limits = NULL;
     int valid_auth_indicators = 0, flags = 0;
+    bool passwordless_auth = false;
     krb5_db_entry *client_actual = NULL;
 
 #ifdef KRB5_KDB_FLAG_ALIAS_OK
@@ -111,6 +112,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_OTP]);
         } else if (strcmp(auth_indicator, "radius") == 0) {
             valid_auth_indicators++;
+            passwordless_auth = true;
             if (!(ua & IPADB_USER_AUTH_RADIUS)) {
                 *status = "OTP pre-authentication not allowed for this user.";
                 kerr = KRB5KDC_ERR_POLICY;
@@ -119,6 +121,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_RADIUS]);
         } else if (strcmp(auth_indicator, "pkinit") == 0) {
             valid_auth_indicators++;
+            passwordless_auth = true;
             /* allow PKINIT unconditionally -- it has passed already at this
              * point so some certificate was useful, only apply the limits */
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_PKINIT]);
@@ -133,7 +136,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_HARDENED]);
         } else if (strcmp(auth_indicator, "idp") == 0) {
             valid_auth_indicators++;
-            /* Allow hardened even if only password pre-auth is allowed */
+            passwordless_auth = true;
             if (!(ua & IPADB_USER_AUTH_IDP)) {
                 *status = "IdP pre-authentication not allowed for this user.";
                 kerr = KRB5KDC_ERR_POLICY;
@@ -142,7 +145,7 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
             pol_limits = &(ied->pol_limits[IPADB_USER_AUTH_IDX_IDP]);
         } else if (strcmp(auth_indicator, "passkey") == 0) {
             valid_auth_indicators++;
-            /* Allow hardened even if only password pre-auth is allowed */
+            passwordless_auth = true;
             if (!(ua & IPADB_USER_AUTH_PASSKEY)) {
                 *status = "Passkey pre-authentication not allowed for this user.";
                 kerr = KRB5KDC_ERR_POLICY;
@@ -158,6 +161,24 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
         if (!(ua & IPADB_USER_AUTH_PASSWORD)) {
             *status = "Non-hardened password authentication not allowed for this user.";
             kerr = KRB5KDC_ERR_POLICY;
+            goto done;
+        }
+    }
+
+    /* When a passwordless method is available, ipadb_parse_ldap_entry() clears
+     * entry->pw_expiration so the KDC does not reject the AS-REQ before
+     * pre-authentication.  Now that pre-auth is complete and we know the
+     * actual method used, enforce password expiration for password-based
+     * authentication. */
+    if (!passwordless_auth && ied->pw_expiration != 0) {
+        krb5_timestamp now;
+        kerr = krb5_timeofday(context, &now);
+        if (kerr)
+            goto done;
+
+        if ((uint32_t)now > (uint32_t)ied->pw_expiration) {
+            *status = "CLIENT KEY EXPIRED";
+            kerr = KRB5KDC_ERR_KEY_EXP;
             goto done;
         }
     }
