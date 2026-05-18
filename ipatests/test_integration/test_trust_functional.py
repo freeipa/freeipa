@@ -2768,9 +2768,46 @@ class TestTrustFunctionalAutomount(BaseTestTrust):
             f'--location={AUTOMOUNT_LOCATION}', '-U'
         ])
 
-        # rpc-gssd on the client is needed for krb5 NFS mounts
+        # NFS client services needed for krb5 NFS mounts
+        client.run_command(
+            ['systemctl', 'restart', 'nfs-client.target'])
         client.run_command(
             ['systemctl', 'restart', 'rpc-gssd.service'])
+        client.run_command(
+            ['systemctl', 'restart', 'gssproxy.service'],
+            raiseonerr=False)
+
+        # Verify NFS/automount setup
+        master.run_command(['exportfs', '-v'])
+        client.run_command(['automount', '-m'])
+        client.run_command(
+            ['systemctl', 'status', 'autofs'],
+            raiseonerr=False)
+        client.run_command(
+            ['systemctl', 'status', 'rpc-gssd'],
+            raiseonerr=False)
+        client.run_command(
+            ['systemctl', 'status', 'gssproxy'],
+            raiseonerr=False)
+        client.run_command(
+            ['cat', paths.SYSCONFIG_NFS], raiseonerr=False)
+
+        # Verify NFS connectivity before running tests
+        tasks.kinit_admin(client)
+        for domain, realm, user1, user2 in cls.nfs_configs:
+            client.run_command(
+                ['getent', 'passwd', f'{user1}@{domain}'])
+            client.run_command(
+                ['mount', '-t', 'nfs4', '-o',
+                 'sec=krb5,vers=4',
+                 f'{master.hostname}:{EXPORT_RW_DIR}/{user1}',
+                 f'/mnt'],
+                raiseonerr=False)
+            client.run_command(['mount'], raiseonerr=False)
+            client.run_command(['ls', '-la', '/mnt'],
+                               raiseonerr=False)
+            client.run_command(['umount', '/mnt'],
+                               raiseonerr=False)
 
     @classmethod
     def uninstall(cls, mh):
