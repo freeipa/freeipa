@@ -64,7 +64,7 @@ define(['dojo/_base/declare',
             this.cancel_btn_node = IPA.button({
                 name: 'cancel',
                 label: text.get('@i18n:buttons.cancel', "Cancel"),
-                'class': 'btn-default btn-lg',
+                'class': 'btn-secondary btn-lg',
                 click: this.on_cancel.bind(this)
             })[0];
             if (this.allow_cancel) {

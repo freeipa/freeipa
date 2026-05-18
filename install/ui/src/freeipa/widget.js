@@ -1260,7 +1260,7 @@ IPA.multivalued_widget = function(spec) {
         if (!that.custom_actions) {
             row.remove_link = $('<button/>', {
                 name: 'remove',
-                'class': 'btn btn-default',
+                'class': 'btn btn-secondary',
                 title: text.get('@i18n:buttons.remove'),
                 html: text.get('@i18n:buttons.remove'),
                 click: function () {
@@ -1334,7 +1334,7 @@ IPA.multivalued_widget = function(spec) {
 
         that.add_link = $('<button/>', {
             name: 'add',
-            'class': 'btn btn-default',
+            'class': 'btn btn-secondary',
             title: text.get('@i18n:buttons.add'),
             html: text.get('@i18n:buttons.add'),
             click: function() {
@@ -5304,7 +5304,7 @@ IPA.button = function(spec) {
     spec = spec || {};
 
     var el = spec.element || '<button/>';
-    var button_class = spec.button_class || 'btn btn-default';
+    var button_class = spec.button_class || 'btn btn-secondary';
 
     var button = $(el, {
         id: spec.id,
@@ -5583,7 +5583,7 @@ IPA.layout = function(spec) {
         if (!widget.tooltip) return null;
 
         var el = $('<span/>', {
-            'data-toggle': 'tooltip'
+            'data-bs-toggle': 'tooltip'
         }).append($('<i/>', {
             'class': 'fa fa-info-circle'
         }));
@@ -6544,7 +6544,7 @@ IPA.sshkey_widget = function(spec) {
 
         that.link = $('<a/>', {
             type: that.type,
-            'class': 'sshkey-set btn btn-default',
+            'class': 'sshkey-set btn btn-secondary',
             name: that.name,
             href: '#show-certificate',
             title: that.tooltip,
@@ -7016,7 +7016,7 @@ exp.alert_helper = IPA.alert_helper = {
         if (close_icon) {
             el.addClass('alert-dismissable');
             el.append("<button type=\"button\" class=\"close\" \
-            data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;\
+            data-bs-dismiss=\"alert\"><span aria-hidden=\"true\">&times;\
             </span><span class=\"sr-only\">Close</span></button>");
         }
         $('<span/>', { 'class': alert.icon }).appendTo(el);

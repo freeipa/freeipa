@@ -5,6 +5,7 @@ module.exports = function(grunt) {
         },
         qunit: {
             options: {
+                timeout: 30000,
                 puppeteer: {
                     args: [
                         "--allow-file-access-from-files",

@@ -186,7 +186,7 @@ IPA.dialog_button = function(spec) {
     /** @property {boolean} enabled=true Button is enabled */
     that.enabled = spec.enabled !== undefined ? spec.enabled : true;
     /** @property {String} button's css classes */
-    that.button_class = spec.button_class || 'btn btn-default';
+    that.button_class = spec.button_class || 'btn btn-secondary';
     /** @property {jQuery} element Button element */
     that.element = null;
 
@@ -597,7 +597,7 @@ IPA.dialog = function(spec) {
 
         this.dom_node.modal({
             backdrop: 'static',
-            keyboard: 'false'
+            keyboard: false
         });
     };
 
@@ -958,7 +958,7 @@ IPA.adder_dialog = function(spec) {
         }).appendTo(buttons_panel);
 
         var div = $('<div/>', {
-            'class': 'col-sm-12 col-xs-6'
+            'class': 'col-sm-12 col-6'
         }).appendTo(btn_row);
         IPA.button({
             name: 'add',
@@ -972,7 +972,7 @@ IPA.adder_dialog = function(spec) {
         }).appendTo(div);
 
         div = $('<div/>', {
-            'class': 'col-sm-12 col-xs-6'
+            'class': 'col-sm-12 col-6'
         }).appendTo(btn_row);
         IPA.button({
             name: 'remove',
@@ -1380,10 +1380,10 @@ IPA.confirm_dialog = function(spec) {
     that.cancel_label = text.get(spec.cancel_label || '@i18n:buttons.cancel');
 
     /** @property {String} on_ok css class */
-    that.ok_button_class = spec.ok_button_class || 'btn btn-default';
+    that.ok_button_class = spec.ok_button_class || 'btn btn-secondary';
 
     /** @property {String} on_cancel css class */
-    that.cancel_button_class = spec.cancel_button_class || 'btn btn-default';
+    that.cancel_button_class = spec.cancel_button_class || 'btn btn-secondary';
 
     /**
      * Dialog is confirmed
