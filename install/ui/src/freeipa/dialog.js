@@ -1681,8 +1681,8 @@ IPA.confirm_mixin = function() {
                 this._on_key_up_listener = function(e) { self.on_key_up(e); };
                 this._on_key_down_listener = function(e) { self._on_key_down(e); };
                 var dialog_container = $(this.dom_node);
-                dialog_container.bind('keyup', this._on_key_up_listener);
-                dialog_container.bind('keydown', this._on_key_down_listener);
+                dialog_container.on('keyup', this._on_key_up_listener);
+                dialog_container.on('keydown', this._on_key_down_listener);
             },
 
             /**
@@ -1690,8 +1690,8 @@ IPA.confirm_mixin = function() {
              */
             remove_listeners: function() {
                 var dialog_container = $(this.dom_node);
-                dialog_container.unbind('keyup', this._on_key_up_listener);
-                dialog_container.unbind('keydown', this._on_key_down_listener);
+                dialog_container.off('keyup', this._on_key_up_listener);
+                dialog_container.off('keydown', this._on_key_down_listener);
             },
 
             /**
