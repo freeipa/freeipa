@@ -58,7 +58,7 @@ define(function() {
                 if ( !element.href || !mapName || map.nodeName.toLowerCase() !== "map" ) {
                         return false;
                 }
-                img = $( "img[usemap=#" + mapName + "]" )[0];
+                img = $( "img[usemap='#" + mapName + "']" )[0];
                 return !!img && visible( img );
         }
         return ( /input|select|textarea|button|object/.test( nodeName ) ?
@@ -71,13 +71,16 @@ define(function() {
     }
 
     function visible( element ) {
-        return $.expr.filters.visible( element ) &&
+        // $.expr.filters.visible was removed in jQuery 3.6.0; use :visible pseudo
+        return $( element ).is( ":visible" ) &&
                 !$( element ).parents().addBack().filter(function() {
-                        return $.css( this, "visibility" ) === "hidden";
+                        return $( this ).css( "visibility" ) === "hidden";
                 }).length;
     }
 
-    $.extend( $.expr[ ":" ], {
+    // Register using $.expr.pseudos (canonical since jQuery 3.0).
+    // Also populate $.expr[":"] for code that uses the older alias.
+    $.extend( $.expr.pseudos, {
 
         focusable: function( element ) {
                 return focusable( element, !isNaN( $.attr( element, "tabindex" ) ) );
@@ -90,6 +93,26 @@ define(function() {
         }
     });
 
+    $.expr[":"].focusable = $.expr.pseudos.focusable;
+    $.expr[":"].tabbable  = $.expr.pseudos.tabbable;
+
+    //
+    // Backward-compatibility shims for external plugins written against jQuery < 3.6
+    //
+
+    // $.expr.filters was an alias of $.expr.pseudos removed in jQuery 3.6.0.
+    // Restore it so plugins that reference it directly continue to work.
+    if ( !$.expr.filters ) {
+        $.expr.filters = $.expr.pseudos;
+    }
+
+    // $.css(element, property) was an undocumented internal jQuery function.
+    // Restore as a thin wrapper so plugins that call it continue to work.
+    if ( !$.css ) {
+        $.css = function( element, property ) {
+            return $( element ).css( property );
+        };
+    }
 
     return $;
 });
