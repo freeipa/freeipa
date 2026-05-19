@@ -32,7 +32,7 @@ import time
 import traceback
 from io import BytesIO
 from sys import version_info
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 from xmlrpc.client import Fault
 
 import gssapi
@@ -160,13 +160,38 @@ class HTTP_Status(plugable.Plugin):
         if "HTTP_REFERER" not in environ:
             logger.error("Rejecting request with missing Referer")
             return False
-        if (not environ["HTTP_REFERER"].startswith(
-                "https://%s/ipa" % self.api.env.host)
-                and not self.env.in_tree):
-            logger.error("Rejecting request with bad Referer %s",
-                         environ["HTTP_REFERER"])
+
+        if self.env.in_tree:
+            return True
+
+        referer = environ["HTTP_REFERER"]
+
+        if referer.count("://") > 1:
+            logger.error(
+                "Rejecting request with multiple Referer values %s",
+                referer,
+            )
             return False
-        logger.debug("Valid Referer %s", environ["HTTP_REFERER"])
+
+        try:
+            parsed = urlparse(referer)
+        except Exception as e:
+            logger.error(
+                "Rejecting request with unparseable Referer %s: %s", referer, e
+            )
+            return False
+
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != self.api.env.host
+            or (parsed.path != "/ipa" and not parsed.path.startswith("/ipa/"))
+        ):
+            logger.error(
+                "Rejecting request with bad Referer %s", referer
+            )
+            return False
+
+        logger.debug("Valid Referer %s", referer)
         return True
 
     def not_found(self, environ, start_response, url, message):
@@ -1284,6 +1309,9 @@ class sync_token(Backend, HTTP_Status):
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def __call__(self, environ, start_response):
+        if not self.check_referer(environ):
+            return self.bad_request(environ, start_response, 'denied')
+
         # Make sure this is a form request.
         content_type = environ.get('CONTENT_TYPE', '').lower()
         if not content_type.startswith('application/x-www-form-urlencoded'):
