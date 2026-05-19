@@ -3139,6 +3139,11 @@ def get_healthcheck_version(host):
     return get_package_version(host, '*ipa-healthcheck')
 
 
+def get_softhsm_version(host):
+    """Get softhsm version on remote host"""
+    return get_package_version(host, 'softhsm')
+
+
 def wait_for_ipa_to_start(host, timeout=60):
     """Wait up to timeout seconds for ipa to start on a given host.
 

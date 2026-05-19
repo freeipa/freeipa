@@ -19,6 +19,7 @@ import yaml
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.pytest_ipa.integration.firewall import Firewall
+from ipatests.util import xfail_context
 from ipaplatform.tasks import tasks as platform_tasks
 from ipaplatform.paths import paths
 from ipapython.dnsutil import DNSResolver
@@ -346,9 +347,13 @@ class TestInstallDNSSECFirst(IntegrationTest):
         ]
         self.master.run_command(args)
         # test master
-        assert wait_until_record_is_signed(
-            self.master.ip, root_zone, timeout=100
-        ), "Zone %s is not signed (master)" % root_zone
+        softhsm_version = tasks.parse_version(
+            tasks.get_softhsm_version(self.master))
+        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
+                           'https://pagure.io/freeipa/issue/9920'):
+            assert wait_until_record_is_signed(
+                self.master.ip, root_zone, timeout=100
+            ), "Zone %s is not signed (master)" % root_zone
 
         # test replica
         assert wait_until_record_is_signed(
@@ -369,9 +374,13 @@ class TestInstallDNSSECFirst(IntegrationTest):
         tasks.restart_named(self.master, self.replicas[0])
 
         # wait until zone is signed
-        assert wait_until_record_is_signed(
-            self.master.ip, example_test_zone, timeout=100
-        ), "Zone %s is not signed (master)" % example_test_zone
+        softhsm_version = tasks.parse_version(
+            tasks.get_softhsm_version(self.master))
+        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
+                           'https://pagure.io/freeipa/issue/9920'):
+            assert wait_until_record_is_signed(
+                self.master.ip, example_test_zone, timeout=100
+            ), "Zone %s is not signed (master)" % example_test_zone
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[0].ip, example_test_zone, timeout=200
@@ -425,8 +434,12 @@ class TestInstallDNSSECFirst(IntegrationTest):
         Validate signed DNS records, using our own signed root zone
         """
         # extract DSKEY from root zone
-        ans = resolve_with_dnssec(self.master.ip, root_zone,
-                                  rtype="DNSKEY")
+        softhsm_version = tasks.parse_version(
+            tasks.get_softhsm_version(self.master))
+        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
+                           'https://pagure.io/freeipa/issue/9920'):
+            ans = resolve_with_dnssec(self.master.ip, root_zone,
+                                      rtype="DNSKEY")
         dnskey_rrset = ans.response.get_rrset(ans.response.answer,
                                               dns.name.from_text(root_zone),
                                               dns.rdataclass.IN,
@@ -486,9 +499,13 @@ class TestInstallDNSSECFirst(IntegrationTest):
             )
 
         # extract DSKEY from root zone
-        ans = resolve_with_dnssec(
-            self.master.ip, root_zone, rtype="DNSKEY"
-        )
+        softhsm_version = tasks.parse_version(
+            tasks.get_softhsm_version(self.master))
+        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
+                           'https://pagure.io/freeipa/issue/9920'):
+            ans = resolve_with_dnssec(
+                self.master.ip, root_zone, rtype="DNSKEY"
+            )
         dnskey_rrset = ans.response.get_rrset(
             ans.response.answer,
             dns.name.from_text(root_zone),
