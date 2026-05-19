@@ -2403,7 +2403,7 @@ def hbacrule_remove_service(host, rulename, services=None,
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
-def hbacrule_del(host, rulename, extra_args=()):
+def hbacrule_del(host, rulename, extra_args=(), raiseonerr=True):
     cmd = [
         "ipa", "hbacrule-del", rulename
     ]
@@ -2418,6 +2418,92 @@ def hbacrule_enable(host, rulename, raiseonerr=True):
 
 def hbacrule_disable(host, rulename, raiseonerr=True):
     cmd = ["ipa", "hbacrule-disable", rulename]
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_add(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-add", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_del(host, mapname, extra_args=(), raiseonerr=True):
+    cmd = ["ipa", "selinuxusermap-del", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_show(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-show", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_add_user(host, mapname, users=None, groups=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-add-user", mapname]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_add_host(host, mapname, hosts=None,
+                            raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-add-host", mapname]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_enable(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-enable", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_disable(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-disable", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_mod(host, mapname, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-mod", mapname]
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_find(host, criteria=None, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-find"]
+    if criteria is not None:
+        cmd.append(criteria)
+    cmd.extend(extra_args)
+    return host.run_command(cmd)
+
+
+def selinuxusermap_remove_user(host, mapname, users=None, groups=None,
+                               raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-remove-user", mapname]
+    if users:
+        cmd.append(f"--users={users}")
+    if groups:
+        cmd.append(f"--groups={groups}")
+    cmd.extend(extra_args)
+    return host.run_command(cmd, raiseonerr=raiseonerr)
+
+
+def selinuxusermap_remove_host(host, mapname, hosts=None,
+                               raiseonerr=True, extra_args=()):
+    cmd = ["ipa", "selinuxusermap-remove-host", mapname]
+    if hosts:
+        cmd.append("--hosts")
+        cmd.append(hosts)
+    cmd.extend(extra_args)
     return host.run_command(cmd, raiseonerr=raiseonerr)
 
 
