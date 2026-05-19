@@ -632,11 +632,13 @@ input[type="radio"]    + label::before {
    PATTERNFLY 3 SIDEBAR
    ================================================================ */
 
-.sidebar-pf { background-color: #151515; color: #ccc; min-height: calc(100vh - 50px); }
+.sidebar-pf { background-color: #fff; color: #363636; min-height: calc(100vh - 50px); }
 .sidebar-pf-left { border-right: 1px solid #d2d2d2; }
-.sidebar-pf .nav > li > a { color: #ccc; }
-.sidebar-pf .nav > li > a:hover { color: #fff; background-color: rgba(255,255,255,.1); }
-.sidebar-pf .nav > li.active > a { color: #fff; background-color: var(--pf-t--global--color--brand--default, #06c); }
+.sidebar-pf .nav > li > a { color: #363636; font-size: 13px; line-height: 21px; padding: 1px 20px; border-bottom: 1px solid transparent; border-top: 1px solid transparent; }
+.sidebar-pf .nav > li > a:hover { background-color: #def3ff; border-color: #bee1f4; }
+.sidebar-pf .nav > li.active > a { color: #fff; background-color: #0088ce; border-color: #0088ce; }
+.sidebar-pf .nav-category h2 { color: #9c9c9c; font-size: 12px; font-weight: 400; line-height: 21px; margin: 0; padding: 8px 0; }
+.sidebar-pf .nav-category + .nav-category { margin-top: 10px; }
 
 /* ================================================================
    MISC
