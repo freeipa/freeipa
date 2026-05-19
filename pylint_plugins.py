@@ -28,22 +28,32 @@ def _warning_already_exists(cls, member):
     )
 
 
+def _make_classdef(name):
+    """Build a ClassDef rooted in a throw-away Module.
+
+    astroid 3.x calls implicit_locals() during ClassDef.__init__, which
+    traverses parent links and asserts it reaches a Module node.  Creating
+    the node via AstroidBuilder.string_build() gives it a proper parent
+    chain so that assertion passes.
+    """
+    module = AstroidBuilder(MANAGER).string_build(
+        "class {}: pass".format(name)
+    )
+    return module.body[0]
+
+
 def fake_class(name_or_class_obj, members=()):
     if isinstance(name_or_class_obj, scoped_nodes.ClassDef):
         cl = name_or_class_obj
     else:
-        cl = scoped_nodes.ClassDef(
-            name=name_or_class_obj, lineno=None, col_offset=None, parent=None,
-            end_lineno=None, end_col_offset=None)
+        cl = _make_classdef(name_or_class_obj)
 
     for m in members:
         if isinstance(m, str):
             if m in cl.locals:
                 _warning_already_exists(cl, m)
             else:
-                cl.locals[m] = [scoped_nodes.ClassDef(
-                    name=m, lineno=None, col_offset=None, parent=None,
-                    end_lineno=None, end_col_offset=None)]
+                cl.locals[m] = [_make_classdef(m)]
         elif isinstance(m, dict):
             for key, val in m.items():
                 assert isinstance(key, str), "key must be string"
