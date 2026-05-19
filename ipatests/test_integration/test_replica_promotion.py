@@ -901,6 +901,28 @@ def restore_etc_hosts(host):
                      raiseonerr=False)
 
 
+def _log_resolver_state(host, step):
+    """DEBUG: log resolver tracking vs on-disk state (remove after CI review)."""
+    resolver = host.resolver
+    on_disk = resolver._get_state()
+    tracked = resolver.current_state
+    in_sync = on_disk == tracked
+    print(
+        '\n[resolver {}] host={} class={} backups={} in_sync={}'.format(
+            step, host, type(resolver).__name__, len(resolver.backups),
+            in_sync),
+        flush=True,
+    )
+    print('[resolver {}] tracked:\n{}'.format(
+        step, tracked.get('resolv_conf', tracked)), flush=True)
+    print('[resolver {}] on_disk:\n{}'.format(
+        step, on_disk.get('resolv_conf', on_disk)), flush=True)
+    if resolver.backups:
+        top = resolver.backups[-1]
+        print('[resolver {}] backup_top:\n{}'.format(
+            step, top.get('resolv_conf', top)), flush=True)
+
+
 class TestReplicaInForwardZone(IntegrationTest):
     """
     Pagure Reference: https://pagure.io/freeipa/issue/7369
@@ -914,6 +936,12 @@ class TestReplicaInForwardZone(IntegrationTest):
     @classmethod
     def install(cls, mh):
         tasks.install_master(cls.master, setup_dns=True)
+
+    @classmethod
+    def uninstall(cls, mh):
+        for replica in cls.replicas:
+            _log_resolver_state(replica, 'class uninstall (before)')
+        super().uninstall(mh)
 
     def test_replica_install_in_forward_zone(self):
         master = self.master
@@ -940,10 +968,12 @@ class TestReplicaInForwardZone(IntegrationTest):
         update_etc_hosts(replica, replica.ip, replica.hostname,
                          r_new_hostname)
 
+        _log_resolver_state(replica, 'before install_client')
         try:
             # install client with a hostname in the forward zone
             tasks.install_client(self.master, replica,
                                  extra_args=['--hostname', r_new_hostname])
+            _log_resolver_state(replica, 'after install_client')
 
             # Configure firewall first
             Firewall(replica).enable_services(["freeipa-ldap",
@@ -955,7 +985,9 @@ class TestReplicaInForwardZone(IntegrationTest):
                                  '--setup-dns',
                                  '--forwarder', master.config.dns_forwarder,
                                  '-U'])
+            _log_resolver_state(replica, 'after ipa-replica-install')
         finally:
+            _log_resolver_state(replica, 'finally')
             # Restore /etc/hosts on master and replica
             restore_etc_hosts(master)
             restore_etc_hosts(replica)
