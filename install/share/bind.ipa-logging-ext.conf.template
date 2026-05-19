@@ -86,6 +86,5 @@ category database       { database; };
 category client         { default_syslog; named; };
 category network        { default_syslog; named; };
 category unmatched      { named; };
-category delegation-only { named; };
 category update         { default_syslog; update; };
 category update-security { default_syslog; update; };
