@@ -1,0 +1,27 @@
+# Additional test entries for TestDSMigrationNegative.
+# Loaded after instance1.ldif; base suffix, ou=People and ou=Groups
+# already exist.
+
+dn: uid=ldapuser_0002,ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: posixAccount
+uid: ldapuser_0002
+cn: LDAP User 2
+sn: User 2
+uidNumber: 1002
+gidNumber: 1002
+homeDirectory: /home/ldapuser_0002
+userPassword: fo0m4nchU
+
+dn: uid=ldapuser_0003,ou=People,dc=testrealm,dc=test
+objectClass: top
+objectClass: person
+objectClass: posixAccount
+uid: ldapuser_0003
+cn: LDAP User 3
+sn: User 3
+uidNumber: 1003
+gidNumber: 1003
+homeDirectory: /home/ldapuser_0003
+userPassword: fo0m4nchU
