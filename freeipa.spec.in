@@ -1760,6 +1760,11 @@ fi
 %{_usr}/share/ipa/ui/js/freeipa/core.js
 %dir %{_usr}/share/ipa/ui/js/plugins
 %dir %{_usr}/share/ipa/ui/images
+%dir %{_usr}/share/ipa/ui/css/assets
+%dir %{_usr}/share/ipa/ui/css/assets/fonts
+%dir %{_usr}/share/ipa/ui/css/assets/pficon
+%{_usr}/share/ipa/ui/css/assets/fonts/*/*.woff2
+%{_usr}/share/ipa/ui/css/assets/pficon/*.woff2
 %if 0%{?rhel}
 %{_usr}/share/ipa/ui/images/facet-*.png
 # Moved branding logos and background to redhat-logos-ipa-80.4:
