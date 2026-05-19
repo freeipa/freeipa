@@ -49,20 +49,25 @@ def apply_enforced_dns_preconfig(host, master_ip, master_host,
     host.put_file_contents(dest_ca_path, ca_cert_data)
     host.run_command(["update-ca-trust", "extract"])
 
+    # Get the domain from the master host for search domain configuration
+    domain = master_host.domain.name
+
     platform = tasks.get_platform(host)
     if platform in ['rhel', 'centos']:
         # RHEL/CentOS configuration
-        # Install and configure dnsconfd
-        tasks.install_packages(host, ['dnsconfd'])
+        # Configure dnsconfd (already installed in test class install method)
         host.run_command(["dnsconfd", "config", "install"])
         host.run_command(["systemctl", "enable", "--now", "dnsconfd"])
         host.run_command(["nmcli", "g", "reload"])
 
         # Configure DNS over TLS via NetworkManager device-specific settings.
         # Device-specific DNS settings work alongside global resolver config.
+        # Set both DNS server and search domain so the client can resolve
+        # the master's hostname via DoT.
         host.run_command([
             "nmcli", "device", "modify", iface,
-            "ipv4.dns", f"dns+tls://{master_ip}"
+            "ipv4.dns", f"dns+tls://{master_ip}",
+            "ipv4.dns-search", domain
         ])
 
     elif platform == 'fedora':
@@ -138,7 +143,9 @@ def setup_dns_over_tls_environment(cls):
                 package = '*ipa-client-encrypted-dns'
             else:
                 package = '*ipa-server-encrypted-dns'
-            tasks.install_packages(host, [package])
+            host.run_command([
+                '/usr/bin/dnf', 'install', '-y', '--allowerasing', package
+            ])
 
 
 def verify_queries_encrypted(master, replicas, clients,
@@ -468,6 +475,12 @@ class TestDNSOverTLS_EnforcedPolicy_IPA_CA(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        # Install dnsconfd on RHEL/CentOS before setup_dns_over_tls_environment
+        # as encrypted-dns packages may modify DNS config
+        #for host in [cls.clients[0], cls.replicas[0]]:
+        #    platform = tasks.get_platform(host)
+        #    if platform in ['rhel', 'centos']:
+        #        tasks.install_packages(host, ['dnsconfd'])
         setup_dns_over_tls_environment(cls)
 
     def test_dot_enforced_dns_policy_with_ipa_ca(self):
@@ -492,7 +505,10 @@ class TestDNSOverTLS_EnforcedPolicy_IPA_CA(IntegrationTest):
             self.clients[0], self.master.ip, self.master,
             paths.IPA_CA_CRT, "ca.crt"
         )
-
+        self.clients[0].put_file_contents(
+            paths.RESOLV_CONF,
+            "nameserver %s" % self.master.ip
+        )
         # Install client with enforced policy
         args = [
             "--dns-over-tls",
@@ -511,7 +527,6 @@ class TestDNSOverTLS_EnforcedPolicy_IPA_CA(IntegrationTest):
             self.replicas[0], self.master.ip, self.master,
             paths.IPA_CA_CRT, "ipa-ca.crt"
         )
-
         # Install replica with enforced policy
         args = [
             "--dns-over-tls",
@@ -556,6 +571,12 @@ class TestDNSOverTLS_EnforcedPolicy_External_CA(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
+        # Install dnsconfd on RHEL/CentOS before setup_dns_over_tls_environment
+        # as encrypted-dns packages may modify DNS config
+        #for host in [cls.clients[0], cls.replicas[0]]:
+        #    platform = tasks.get_platform(host)
+        #    if platform in ['rhel', 'centos']:
+        #       tasks.install_packages(host, ['dnsconfd'])
         setup_dns_over_tls_environment(cls)
 
     def test_dot_enforced_dns_policy_with_external_ca(self):
@@ -597,7 +618,10 @@ class TestDNSOverTLS_EnforcedPolicy_External_CA(IntegrationTest):
             self.clients[0], self.master.ip, self.master,
             cert_dest, "certificate.pem"
         )
-
+        self.clients[0].put_file_contents(
+            paths.RESOLV_CONF,
+            "nameserver %s" % self.master.ip
+        )
         # Install client with enforced policy
         args = [
             "--dns-over-tls",
