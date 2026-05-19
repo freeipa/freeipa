@@ -195,7 +195,49 @@ h2 { font-size: 22px; }
    FORMS
    ================================================================ */
 
-.form-group { margin-bottom: 15px; }
+/* css/ipa.css (compiled from less/ipa.less) hides native checkboxes and radios
+   with opacity:0 + position:absolute and overlays FontAwesome 4 icons on the
+   adjacent label::before.  FA4 (font-family:FontAwesome) is not present in the
+   PF6 setup — only FA5 (font-family:"Font Awesome 5 Free") is, and the
+   codepoints differ.  Revert to native controls; css/ipa.css loads after this
+   file so we need !important to win. */
+input[type="checkbox"],
+input[type="radio"] {
+    display: inline-block !important;
+    position: relative !important;
+    opacity: 1 !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 4px 0 0 !important;
+    overflow: visible !important;
+    border: initial !important;
+    outline: initial !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+input[type="checkbox"] + label::before,
+input[type="radio"]    + label::before {
+    content: "" !important;
+    display: none !important;
+}
+
+.form-group { margin-bottom: 10px; }
+
+/* Bootstrap 3 horizontal form layout — used by IPA.fluid_layout */
+.form-horizontal .form-group {
+    display: flex;
+    align-items: baseline;
+    margin-right: -15px;
+    margin-left: -15px;
+    margin-bottom: 10px;
+}
+.form-horizontal .control-label {
+    font-weight: normal;
+    padding-top: 7px;
+    text-align: right;
+    display: block;
+    margin-bottom: 0;
+}
 
 .form-control {
     display: block;
@@ -223,7 +265,7 @@ h2 { font-size: 22px; }
 
 .form-control-static { min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
 
-.control-label { font-weight: 600; margin-bottom: 5px; display: inline-block; }
+.control-label { font-weight: normal; margin-bottom: 5px; display: inline-block; }
 
 .has-error .form-control  { border-color: var(--pf-t--global--color--status--danger--default, #c9190b); }
 .has-error .control-label,
