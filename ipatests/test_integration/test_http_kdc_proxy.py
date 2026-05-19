@@ -257,3 +257,66 @@ class TestHttpKdcProxy(IntegrationTest):
         """
         with self.configure_kdc_proxy_for_ad_trust(use_tcp=True):
             self.check_kerberos_requests(users['ad'], skip_kpasswd_check=True)
+
+    @contextmanager
+    def block_kerberos_to_ad(self):
+        """Block Kerberos traffic (port 88) from master to the AD DC."""
+        ad_ip = self.ad.ip
+        fw = Firewall(self.master)
+        fw_rules = [
+            ['OUTPUT', '-p', 'udp', '-d', ad_ip, '--dport', '88',
+             '-j', 'DROP'],
+            ['OUTPUT', '-p', 'tcp', '-d', ad_ip, '--dport', '88',
+             '-j', 'DROP'],
+        ]
+        fw.add_passthrough_rules(fw_rules, ipv='ipv4')
+        try:
+            yield
+        finally:
+            fw.remove_passthrough_rules(fw_rules, ipv='ipv4')
+
+    @contextmanager
+    def kdcproxy_use_dns(self):
+        """Enable DNS-based realm discovery in kdcproxy."""
+        backup = tasks.FileBackup(self.master, paths.KDCPROXY_CONFIG)
+        with tasks.remote_ini_file(
+                self.master, paths.KDCPROXY_CONFIG) as conf:
+            conf.set('global', 'use_dns', 'true')
+            conf.set('global', 'dns_realm_discovery', 'true')
+        try:
+            self.master.run_command(['ipactl', 'restart'])
+            yield
+        finally:
+            backup.restore()
+            self.master.run_command(['ipactl', 'restart'])
+
+    @pytest.mark.usefixtures('client_use_kdcproxy')
+    def test_kdcproxy_logs_timeout_on_unreachable_ad(self, users):
+        """Check that kdcproxy logs a timeout warning for unreachable AD KDC.
+
+        This is a regression test for the bug in kdcproxy:
+        When the upstream AD KDC is unreachable, kdcproxy should log a
+        WARNING indicating exchange failure with a timeout message
+        rather than silently failing.
+        """
+        ad_user = users['ad']
+        with self.kdcproxy_use_dns(), self.block_kerberos_to_ad():
+            kinit_result = tasks.kinit_as_user(
+                self.client, ad_user['name'], ad_user['password'],
+                raiseonerr=False)
+            assert kinit_result.returncode != 0, (
+                "kinit unexpectedly succeeded; AD KDC should be unreachable"
+            )
+
+            error_log = self.master.get_file_contents(
+                paths.VAR_LOG_HTTPD_ERROR, encoding='utf-8')
+            timeout_pattern = (
+                r'WARNING:kdcproxy:Exchange with '
+                r'(udp|tcp):\[[0-9.]+\]:[0-9]+ failed: '
+                r'Timeout while sending packets after '
+                r'[0-9.]+s and [0-9]+ tries:'
+            )
+            assert re.search(timeout_pattern, error_log), (
+                'Expected kdcproxy timeout warning not found in '
+                'httpd error_log'
+            )
