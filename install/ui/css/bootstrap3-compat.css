@@ -339,43 +339,196 @@ input[type="radio"]    + label::before {
 .nav-stacked { flex-direction: column; }
 
 .nav-category {
-    padding: 8px 15px 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6c757d;
+    padding: 0 15px;
+}
+
+/* Bootstrap 3 breadcrumb — <ol class="breadcrumb"> */
+.breadcrumb {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+}
+.breadcrumb > li { display: inline-block; }
+.breadcrumb > li + li::before {
+    content: "\00bb\00a0";  /* >> separator */
+    padding: 0 5px;
+    color: #666;
 }
 
 /* ================================================================
-   NAVBAR (PatternFly 3 navbar-pf style)
+   NAVBAR — Bootstrap 3 / PatternFly 3 float-based three-row layout
+   Row 1 (50px dark):    [brand logo float:left] ... [utility nav float:right]
+   Row 2 (45px gradient):[Identity][Policy][Authentication]...  (clear:left)
+   Row 3 (38px gray):    [Users][Hosts][Services]...  (position:absolute below row 2)
    ================================================================ */
 
 .navbar {
     position: relative;
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
     min-height: 50px;
     background-color: #151515;
     border: 1px solid transparent;
+    overflow: visible;
 }
-.navbar-pf, .navbar-pf-vertical { background-color: #151515; border-color: #151515; }
-.navbar-header { display: flex; align-items: center; }
-.navbar-brand  { display: flex; align-items: center; padding: 15px; font-size: 1.125rem; color: #fff; text-decoration: none; }
+.navbar::before, .navbar::after { content: ""; display: table; }
+.navbar::after { clear: both; }
+
+.navbar-pf, .navbar-pf-vertical { background-color: #151515; border-color: #151515; border-width: 0; min-height: 0; }
+.navbar-pf { border-top: 3px solid #39a5dc; }
+
+/* Row 1 left: brand floats left at header height */
+.navbar-header { float: left; }
+.navbar-brand {
+    display: block;
+    padding: 8px 0 7px;
+    font-size: 1.125rem;
+    color: #fff;
+    text-decoration: none;
+}
+@media (min-width: 768px) {
+    .navbar-pf .navbar-brand { padding: 2px 0 3px; }
+}
 .navbar-brand:hover { color: #ccc; }
+.navbar-brand img { height: 20px; vertical-align: middle; }
+
+/* Collapse is a plain block — children use floats/clear.
+   Override Bootstrap 5 collapse JS which may set height:0 or overflow:hidden. */
+.navbar-collapse {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0;
+}
+
+/* Row 1 right: utility nav floats right, same 50px height as header */
+.navbar-utility {
+    float: right !important;
+    display: flex !important;
+    flex-direction: row !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: stretch;
+}
+.navbar-utility > li { display: flex; align-items: stretch; }
+.navbar-utility > li > a {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    color: #ccc;
+    text-decoration: none;
+    border-left: 1px solid #2b3035;
+    white-space: nowrap;
+    line-height: 1;
+}
+.navbar-utility > li > a:hover { color: #fff; background-color: #3d3d3d; }
+.navbar-utility > li.open > a,
+.navbar-utility > li.open > a:hover { color: #fff; background-color: #4a4a4a; }
+
+/* Row 2: primary tabs — clears header float, full width, dark gradient */
+.navbar-primary {
+    clear: left;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    background: linear-gradient(to bottom, #474C50 0%, #383F43 100%);
+    position: relative;
+    overflow: visible !important;
+    z-index: 1020;
+}
+/* Menu.js _adjust_size() sets marginBottom via inline style to push content below
+   the persistent secondary.  That inflates the flex container height and breaks
+   top:100% positioning.  Neutralise it here — padding-top on .content handles
+   the spacing instead. */
+/* position:static so ul.navbar-primary (position:relative) is the containing block
+   for the absolutely-positioned .navbar-persistent (not the narrow li itself).
+   display:inline-block as non-flex fallback; flex containers override it to block. */
+.navbar-primary > li {
+    position: static !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+    margin-bottom: 0 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    float: none !important;
+}
+.navbar-primary > li > a {
+    display: block;
+    padding: 10px 20px;
+    color: #9c9c9c;
+    text-decoration: none;
+    border-right: 1px solid #252525;
+    white-space: nowrap;
+    line-height: 1;
+}
+.navbar-primary > li:hover > a { color: #fff; background-color: rgba(255,255,255,0.1); }
+.navbar-primary > li.active > a {
+    color: #fff;
+    background: linear-gradient(to bottom, #535B60 0%, #434A4F 100%);
+}
+
+/* Row 3: persistent secondary — absolutely below row 2, full viewport width */
+.navbar-primary > li > .navbar-persistent {
+    display: none !important;
+}
+.navbar-primary > li.active > .navbar-persistent {
+    display: flex !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: #f6f6f6 !important;
+    border-bottom: 1px solid #cecdcd !important;
+    z-index: 1000 !important;
+}
+.navbar-persistent > li {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    float: none !important;
+}
+.navbar-persistent > li > a {
+    display: block !important;
+    padding: 10px 15px !important;
+    color: #363636 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+.navbar-persistent > li:hover > a { color: #0066cc !important; }
+.navbar-persistent > li.active > a,
+.navbar-persistent > li.t.active > a {
+    color: #0066cc !important;
+    border-bottom: 3px solid #0066cc !important;
+    font-weight: 600 !important;
+}
+.navbar-persistent .dropdown-submenu > a::after { content: " \25BE"; font-size: 0.75em; }
+
+/* Push page content below the persistent secondary bar */
+.content { padding-top: 38px; }
+
+/* Generic navbar-nav fallback */
 .navbar-nav    { display: flex; flex-direction: row; list-style: none; padding: 0; margin: 0; }
 .navbar-nav > li > a { color: #ccc; padding: 15px; display: block; text-decoration: none; }
 .navbar-nav > li > a:hover { color: #fff; background-color: rgba(255,255,255,0.1); }
 .navbar-nav > li.active > a { color: #fff; background-color: rgba(255,255,255,0.15); }
-.navbar-right  { margin-left: auto; }
-.navbar-form   { display: flex; align-items: center; padding: 8px 0; }
+
+.navbar-right  { float: right; margin-right: -15px; }
+.navbar-form   { display: flex; align-items: center; padding: 8px 15px; }
 .navbar-toggle {
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 8px 10px; background: transparent; border: 1px solid #444; border-radius: 4px; cursor: pointer;
+    display: none; float: right; margin: 8px 15px 8px 0;
+    padding: 9px 10px; background: transparent; border: 1px solid #444;
+    border-radius: 4px; cursor: pointer;
 }
-.navbar-toggle .icon-bar { display: block; width: 22px; height: 2px; background-color: #ccc; margin: 2px 0; }
-.navbar-collapse { display: flex !important; flex-basis: auto; }
+.navbar-toggle .icon-bar { display: block; width: 22px; height: 2px; background-color: #ccc; margin: 4px 0; }
 
 /* ================================================================
    DROPDOWNS
