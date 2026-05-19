@@ -4,8 +4,8 @@
 
 	<RepositoryList>
 
-		<Repository name="SoftHSM">
-			<Module>$SOFTHSM_LIB</Module>
+		<Repository name="Kryoptic">
+			<Module>$PKCS11_LIB</Module>
 			<TokenLabel>$TOKEN_LABEL</TokenLabel>
 			<PIN>$PIN</PIN>
             <AllowExtraction/>

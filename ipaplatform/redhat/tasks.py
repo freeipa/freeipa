@@ -59,7 +59,8 @@ logger = logging.getLogger(__name__)
 # base filename, module, list of disabled-in
 # 'p11-kit-proxy' disables proxying of module, see man(5) pkcs11.conf
 PKCS11_MODULES = [
-    ('softhsm2', paths.LIBSOFTHSM2_SO, ['p11-kit-proxy']),
+    ('kryoptic', paths.LIBKRYOPTIC_SO, ['p11-kit-proxy']),
+    ('softhsm2', paths.LIBSOFTHSM2_SO_64, ['p11-kit-proxy']),
 ]
 
 

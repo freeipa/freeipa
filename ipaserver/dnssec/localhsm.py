@@ -8,7 +8,7 @@ from collections.abc import MutableMapping
 import os
 from pprint import pprint
 
-from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
+from ipalib.constants import DNSSEC_TOKEN_LABEL
 from ipaplatform.paths import paths
 from ipaserver import p11helper as _ipap11helper
 from ipaserver.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
@@ -23,9 +23,11 @@ private_key_api_params = set(["label", "id", "data", "unwrapping_key",
     "cka_private", "cka_sensitive", "cka_sign", "cka_sign_recover",
     "cka_unwrap", "cka_wrap_with_trusted"])
 
-public_key_api_params = set(["label", "id", "data", "cka_copyable",
+public_key_api_params = set([
+    "label", "id", "data", "cka_copyable",
     "cka_derive", "cka_encrypt", "cka_modifiable", "cka_private",
-    "cka_trusted", "cka_verify", "cka_verify_recover", "cka_wrap"])
+    "cka_verify", "cka_verify_recover", "cka_wrap",
+])
 
 
 class Key(MutableMapping):
@@ -188,10 +190,11 @@ class LocalHSM(AbstractHSM):
 
 
 if __name__ == '__main__':
-    if 'SOFTHSM2_CONF' not in os.environ:
-        os.environ['SOFTHSM2_CONF'] = paths.DNSSEC_SOFTHSM2_CONF
-    localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
-            open(paths.DNSSEC_SOFTHSM_PIN).read())
+    if 'KRYOPTIC_CONF' not in os.environ:
+        os.environ['KRYOPTIC_CONF'] = paths.DNSSEC_KRYOPTIC_CONF
+    localhsm = LocalHSM(
+        paths.LIBKRYOPTIC_SO, DNSSEC_TOKEN_LABEL,
+        open(paths.DNSSEC_HSM_PIN).read())
 
     print('replica public keys: CKA_WRAP = TRUE')
     print('====================================')
