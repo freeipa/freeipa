@@ -462,7 +462,8 @@ topology_graph.TopoGraph = declare([Evented], {
 
 
         // add new links
-        this._path.enter().append('svg:path')
+        // D3 v7: capture enter selection; merged back below so _tick updates all paths
+        var pathEnter = this._path.enter().append('svg:path')
             .attr('class', 'link')
             .style('stroke', function(d) {
                 var suffix = d.suffix ? d.suffix.cn[0] : '';
@@ -495,6 +496,8 @@ topology_graph.TopoGraph = declare([Evented], {
 
         // remove old links
         this._path.exit().remove();
+        // merge enter + update so _tick can position/style all paths
+        this._path = pathEnter.merge(this._path);
 
         // circle (node) group
         this._circle = this._circle.data(
@@ -817,6 +820,8 @@ topology_graph.TopoGraph = declare([Evented], {
 
         // remove old nodes
         self._circle.exit().remove();
+        // merge enter + update so _tick can position all circles (D3 v7 requirement)
+        this._circle = g.merge(this._circle);
 
         // get previously set position and scale of the graph and move current
         // graph to the proper position
