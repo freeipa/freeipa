@@ -1,0 +1,700 @@
+/*
+ * Bootstrap 3 / PatternFly 3 → PatternFly 6 compatibility CSS.
+ *
+ * FreeIPA's JS files embed Bootstrap 3 and PatternFly 3 class names as
+ * strings throughout ~115 AMD modules.  Rather than rewriting all JS
+ * templates, this shim re-implements those class names on top of
+ * PatternFly 6 CSS custom properties.  Load this AFTER patternfly.css.
+ *
+ * Remove once all JS templates have been migrated to pf-v6-* class names.
+ */
+
+/* ================================================================
+   RESET / BASE HELPERS
+   ================================================================ */
+
+.clearfix::after { display: block; content: ""; clear: both; }
+.pull-left  { float: left  !important; }
+.pull-right { float: right !important; }
+.text-center { text-align: center !important; }
+.text-right  { text-align: right  !important; }
+.text-left   { text-align: left   !important; }
+.text-muted  { color: #6c757d !important; }
+.hidden      { display: none !important; }
+.sr-only     { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* Bootstrap 3 heading sizes (matches original PF3 ipa.css) */
+h1 { font-size: 24px; }
+h2 { font-size: 22px; }
+
+/* ================================================================
+   GRID — 12-column Bootstrap-compatible grid
+   PF6 has its own grid (.pf-v6-l-grid) but FreeIPA JS uses col-sm-*
+   ================================================================ */
+
+.container       { width: 100%; max-width: 1140px; margin-right: auto; margin-left: auto; padding-right: 15px; padding-left: 15px; }
+.container-fluid { width: 100%; padding-right: 15px; padding-left: 15px; }
+.row             { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; }
+/* details.js:create_content overwrites that.content (to details-content.row), so
+   facet.js:show_content applies display:block inline — override it here. */
+.details-content.row { display: flex !important; flex-wrap: wrap !important; }
+[class*="col-"]  { position: relative; width: 100%; padding-right: 15px; padding-left: 15px; }
+
+/* xs tier (removed in Bootstrap 4+) */
+.col-xs-1  { flex: 0 0 auto; width:  8.3333%; }
+.col-xs-2  { flex: 0 0 auto; width: 16.6667%; }
+.col-xs-3  { flex: 0 0 auto; width: 25%; }
+.col-xs-4  { flex: 0 0 auto; width: 33.3333%; }
+.col-xs-5  { flex: 0 0 auto; width: 41.6667%; }
+.col-xs-6  { flex: 0 0 auto; width: 50%; }
+.col-xs-7  { flex: 0 0 auto; width: 58.3333%; }
+.col-xs-8  { flex: 0 0 auto; width: 66.6667%; }
+.col-xs-9  { flex: 0 0 auto; width: 75%; }
+.col-xs-10 { flex: 0 0 auto; width: 83.3333%; }
+.col-xs-11 { flex: 0 0 auto; width: 91.6667%; }
+.col-xs-12 { flex: 0 0 auto; width: 100%; }
+
+/* sm tier (>=576px) */
+@media (min-width: 576px) {
+    .col-sm-1  { flex: 0 0 auto; width:  8.3333%; }
+    .col-sm-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-sm-3  { flex: 0 0 auto; width: 25%; }
+    .col-sm-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-sm-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-sm-6  { flex: 0 0 auto; width: 50%; }
+    .col-sm-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-sm-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-sm-9  { flex: 0 0 auto; width: 75%; }
+    .col-sm-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-sm-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-sm-12 { flex: 0 0 auto; width: 100%; }
+    .col-sm-pull-0  { right: 0; order: 0; }
+    .col-sm-pull-3  { right: 0; order: -1; }
+    .col-sm-pull-4  { right: 0; order: -1; }
+    .col-sm-pull-8  { right: 0; order: -1; }
+    .col-sm-pull-9  { right: 0; order: -1; }
+    .col-sm-push-0  { left: 0; }
+    .col-sm-push-3  { left: 0; }
+    .col-sm-push-4  { left: 0; }
+    .col-sm-push-8  { left: 0; }
+    .col-sm-push-9  { left: 0; }
+}
+
+/* md tier (>=768px) */
+@media (min-width: 768px) {
+    .col-md-1  { flex: 0 0 auto; width:  8.3333%; }
+    .col-md-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-md-3  { flex: 0 0 auto; width: 25%; }
+    .col-md-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-md-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-md-6  { flex: 0 0 auto; width: 50%; }
+    .col-md-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-md-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-md-9  { flex: 0 0 auto; width: 75%; }
+    .col-md-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-md-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-md-12 { flex: 0 0 auto; width: 100%; }
+    .col-md-pull-0  { right: 0; order: 0; }
+    .col-md-pull-2  { right: 0; order: -1; }
+    .col-md-pull-3  { right: 0; order: -1; }
+    .col-md-pull-9  { right: 0; order: -1; }
+    .col-md-pull-10 { right: 0; order: -1; }
+    .col-md-push-0  { left: 0; }
+    .col-md-push-2  { left: 0; }
+    .col-md-push-3  { left: 0; }
+    .col-md-push-9  { left: 0; }
+    .col-md-push-10 { left: 0; }
+}
+
+/* lg tier (>=992px) */
+@media (min-width: 992px) {
+    .col-lg-1  { flex: 0 0 auto; width:  8.3333%; }
+    .col-lg-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-lg-3  { flex: 0 0 auto; width: 25%; }
+    .col-lg-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-lg-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-lg-6  { flex: 0 0 auto; width: 50%; }
+    .col-lg-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-lg-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-lg-9  { flex: 0 0 auto; width: 75%; }
+    .col-lg-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-lg-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-lg-12 { flex: 0 0 auto; width: 100%; }
+}
+
+/* ================================================================
+   BUTTONS
+   ================================================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    cursor: pointer;
+    padding: 6px 12px;
+    font-size: var(--pf-t--global--font--size--200, 0.875rem);
+    font-weight: 400;
+    line-height: 1.5;
+    border-radius: var(--pf-t--global--border--radius--100, 4px);
+    border: 1px solid transparent;
+    text-decoration: none;
+    white-space: nowrap;
+    user-select: none;
+    background-image: none;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+.btn:focus { outline: 2px solid var(--pf-t--global--color--brand--default, #06c); outline-offset: 2px; }
+.btn:disabled, .btn.disabled { opacity: 0.65; cursor: not-allowed; }
+
+.btn-default { color: #333; background-color: #fff; border-color: #ccc; }
+.btn-default:hover, .btn-default:focus { background-color: #e6e6e6; border-color: #adadad; }
+
+.btn-primary {
+    color: #fff;
+    background-color: var(--pf-t--global--color--brand--default, #06c);
+    border-color:     var(--pf-t--global--color--brand--default, #06c);
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--pf-t--global--color--brand--hover, #004e8a);
+    border-color:     var(--pf-t--global--color--brand--hover, #004e8a);
+    color: #fff;
+}
+
+.btn-secondary {
+    color: var(--pf-t--global--color--brand--default, #06c);
+    background-color: #fff;
+    border-color:     var(--pf-t--global--color--brand--default, #06c);
+}
+.btn-secondary:hover, .btn-secondary:focus { background-color: #e8f1fb; }
+
+.btn-danger {
+    color: #fff;
+    background-color: var(--pf-t--global--color--status--danger--default, #c9190b);
+    border-color:     var(--pf-t--global--color--status--danger--default, #c9190b);
+}
+.btn-danger:hover, .btn-danger:focus { background-color: #a30000; border-color: #a30000; color: #fff; }
+
+.btn-link {
+    color: var(--pf-t--global--color--brand--default, #06c);
+    background-color: transparent;
+    border-color: transparent;
+    text-decoration: underline;
+}
+.btn-link:hover, .btn-link:focus { text-decoration: none; }
+
+.btn-sm, .btn-xs { padding: 3px 8px; font-size: 0.75rem; }
+.btn-lg          { padding: 10px 16px; font-size: 1.125rem; }
+
+.btn-group { display: inline-flex; }
+.btn-group > .btn + .btn { margin-left: -1px; }
+.btn-group > .btn:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.btn-group > .btn:not(:last-child)  { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+
+/* ================================================================
+   FORMS
+   ================================================================ */
+
+/* css/ipa.css (compiled from less/ipa.less) hides native checkboxes and radios
+   with opacity:0 + position:absolute and overlays FontAwesome 4 icons on the
+   adjacent label::before.  FA4 (font-family:FontAwesome) is not present in the
+   PF6 setup — only FA5 (font-family:"Font Awesome 5 Free") is, and the
+   codepoints differ.  Revert to native controls; css/ipa.css loads after this
+   file so we need !important to win. */
+input[type="checkbox"],
+input[type="radio"] {
+    display: inline-block !important;
+    position: relative !important;
+    opacity: 1 !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 4px 0 0 !important;
+    overflow: visible !important;
+    border: initial !important;
+    outline: initial !important;
+    padding: 0 !important;
+    vertical-align: middle !important;
+}
+input[type="checkbox"] + label::before,
+input[type="radio"]    + label::before {
+    content: "" !important;
+    display: none !important;
+}
+
+.form-group { margin-bottom: 10px; }
+
+/* Bootstrap 3 horizontal form layout — used by IPA.fluid_layout */
+.form-horizontal .form-group {
+    display: flex;
+    align-items: baseline;
+    margin-right: -15px;
+    margin-left: -15px;
+    margin-bottom: 10px;
+}
+.form-horizontal .control-label {
+    font-weight: normal;
+    padding-top: 7px;
+    text-align: right;
+    display: block;
+    margin-bottom: 0;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    font-size: var(--pf-t--global--font--size--200, 0.875rem);
+    line-height: 1.5;
+    color: var(--pf-t--global--text--color--regular, #151515);
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid var(--pf-t--global--border--color--default, #8a8d90);
+    border-radius: var(--pf-t--global--border--radius--100, 4px);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    box-sizing: border-box;
+}
+.form-control:focus {
+    border-color: var(--pf-t--global--color--brand--default, #06c);
+    outline: 2px solid var(--pf-t--global--color--brand--default, #06c);
+    outline-offset: -2px;
+}
+.form-control[disabled], .form-control[readonly] {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.form-control-static { min-height: 34px; padding-top: 7px; padding-bottom: 7px; margin-bottom: 0; }
+
+.control-label { font-weight: normal; margin-bottom: 5px; display: inline-block; }
+
+.has-error .form-control  { border-color: var(--pf-t--global--color--status--danger--default, #c9190b); }
+.has-error .control-label,
+.has-error .help-block    { color: var(--pf-t--global--color--status--danger--default, #c9190b); }
+
+.help-block { display: block; margin-top: 5px; color: #6c757d; }
+
+.input-group { display: flex; align-items: stretch; }
+.input-group .form-control { flex: 1 1 auto; min-width: 0; border-radius: 0; }
+.input-group .form-control:first-child { border-radius: var(--pf-t--global--border--radius--100, 4px) 0 0 var(--pf-t--global--border--radius--100, 4px); }
+.input-group .form-control:last-child  { border-radius: 0 var(--pf-t--global--border--radius--100, 4px) var(--pf-t--global--border--radius--100, 4px) 0; }
+
+.input-group-addon,
+.input-group-btn {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    color: #555;
+    background-color: #e9ecef;
+    border: 1px solid var(--pf-t--global--border--color--default, #8a8d90);
+    white-space: nowrap;
+}
+.input-group-addon:first-child { border-right: 0; border-radius: var(--pf-t--global--border--radius--100, 4px) 0 0 var(--pf-t--global--border--radius--100, 4px); }
+.input-group-addon:last-child  { border-left: 0;  border-radius: 0 var(--pf-t--global--border--radius--100, 4px) var(--pf-t--global--border--radius--100, 4px) 0; }
+.input-group-btn { padding: 0; }
+.input-group-btn:first-child > .btn { border-right: 0; border-radius: var(--pf-t--global--border--radius--100, 4px) 0 0 var(--pf-t--global--border--radius--100, 4px); }
+.input-group-btn:last-child  > .btn { border-left: 0;  border-radius: 0 var(--pf-t--global--border--radius--100, 4px) var(--pf-t--global--border--radius--100, 4px) 0; }
+
+/* ================================================================
+   TABLES
+   ================================================================ */
+
+.table { width: 100%; max-width: 100%; margin-bottom: 20px; border-collapse: collapse; background-color: transparent; }
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th,
+.table > thead > tr > td,
+.table > tbody > tr > td,
+.table > tfoot > tr > td { padding: 8px; line-height: 20px; vertical-align: top; border-top: 1px solid #d2d2d2; }
+.table > thead > tr > th { vertical-align: bottom; border-bottom: 2px solid #d2d2d2; font-weight: 600; }
+.table-striped > tbody > tr:nth-of-type(odd) { background-color: #f5f5f5; }
+.table-hover   > tbody > tr:hover            { background-color: #e8f1fb; }
+.table-bordered,
+.table-bordered > thead > tr > th,
+.table-bordered > tbody > tr > td           { border: 1px solid #d2d2d2; }
+/* IPA listing tables always carry .table-condensed; use !important to
+   guarantee this wins over same-specificity rules in later stylesheets. */
+.table-condensed > thead > tr > th,
+.table-condensed > tbody > tr > th,
+.table-condensed > tfoot > tr > th,
+.table-condensed > thead > tr > td,
+.table-condensed > tbody > tr > td,
+.table-condensed > tfoot > tr > td { padding: 2px 5px 3px !important; }
+.table-responsive { overflow-x: auto; }
+
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
+
+.nav { display: flex; flex-wrap: wrap; padding-left: 0; margin-bottom: 0; list-style: none; }
+.nav > li { position: relative; display: block; }
+.nav > li > a { position: relative; display: block; padding: 10px 15px; text-decoration: none; }
+.nav > li > a:hover { background-color: #e8f1fb; }
+.nav > li.active > a { background-color: var(--pf-t--global--color--brand--default, #06c); color: #fff; }
+
+.nav-pills { flex-direction: row; gap: 2px; }
+.nav-pills > li > a { border-radius: var(--pf-t--global--border--radius--100, 4px); }
+.nav-pills > li.active > a { background-color: var(--pf-t--global--color--brand--default, #06c); color: #fff; }
+
+.nav-stacked { flex-direction: column; }
+
+.nav-category {
+    padding: 0 15px;
+}
+
+/* Bootstrap 3 breadcrumb — <ol class="breadcrumb"> */
+.breadcrumb {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+}
+.breadcrumb > li { display: inline-block; }
+.breadcrumb > li + li::before {
+    content: "\00bb\00a0";  /* >> separator */
+    padding: 0 5px;
+    color: #666;
+}
+
+/* ================================================================
+   NAVBAR — Bootstrap 3 / PatternFly 3 float-based three-row layout
+   Row 1 (50px dark):    [brand logo float:left] ... [utility nav float:right]
+   Row 2 (45px gradient):[Identity][Policy][Authentication]...  (clear:left)
+   Row 3 (38px gray):    [Users][Hosts][Services]...  (position:absolute below row 2)
+   ================================================================ */
+
+.navbar {
+    position: relative;
+    min-height: 50px;
+    background-color: #151515;
+    border: 1px solid transparent;
+    overflow: visible;
+}
+.navbar::before, .navbar::after { content: ""; display: table; }
+.navbar::after { clear: both; }
+
+.navbar-pf, .navbar-pf-vertical { background-color: #151515; border-color: #151515; border-width: 0; min-height: 0; }
+.navbar-pf { border-top: 3px solid #39a5dc; }
+
+/* Row 1 left: brand floats left at header height */
+.navbar-header { float: left; }
+.navbar-brand {
+    display: block;
+    padding: 8px 0 7px;
+    font-size: 1.125rem;
+    color: #fff;
+    text-decoration: none;
+}
+@media (min-width: 768px) {
+    .navbar-pf .navbar-brand { padding: 2px 0 3px; }
+}
+.navbar-brand:hover { color: #ccc; }
+.navbar-brand img { height: 20px; vertical-align: middle; }
+
+/* Collapse is a plain block — children use floats/clear.
+   Override Bootstrap 5 collapse JS which may set height:0 or overflow:hidden. */
+.navbar-collapse {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0;
+}
+
+/* Row 1 right: utility nav floats right, same 50px height as header */
+.navbar-utility {
+    float: right !important;
+    display: flex !important;
+    flex-direction: row !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: stretch;
+}
+.navbar-utility > li { display: flex; align-items: stretch; }
+.navbar-utility > li > a {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    color: #ccc;
+    text-decoration: none;
+    border-left: 1px solid #2b3035;
+    white-space: nowrap;
+    line-height: 1;
+}
+.navbar-utility > li > a:hover { color: #fff; background-color: #3d3d3d; }
+.navbar-utility > li.open > a,
+.navbar-utility > li.open > a:hover { color: #fff; background-color: #4a4a4a; }
+
+/* Row 2: primary tabs — clears header float, full width, dark gradient */
+.navbar-primary {
+    clear: left;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    background: linear-gradient(to bottom, #474C50 0%, #383F43 100%);
+    position: relative;
+    overflow: visible !important;
+    z-index: 1020;
+}
+/* Menu.js _adjust_size() sets marginBottom via inline style to push content below
+   the persistent secondary.  That inflates the flex container height and breaks
+   top:100% positioning.  Neutralise it here — padding-top on .content handles
+   the spacing instead. */
+/* position:static so ul.navbar-primary (position:relative) is the containing block
+   for the absolutely-positioned .navbar-persistent (not the narrow li itself).
+   display:inline-block as non-flex fallback; flex containers override it to block. */
+.navbar-primary > li {
+    position: static !important;
+    display: inline-block !important;
+    vertical-align: top !important;
+    margin-bottom: 0 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    float: none !important;
+}
+.navbar-primary > li > a {
+    display: block;
+    padding: 10px 20px;
+    color: #9c9c9c;
+    text-decoration: none;
+    border-right: 1px solid #252525;
+    white-space: nowrap;
+    line-height: 1;
+}
+.navbar-primary > li:hover > a { color: #fff; background-color: rgba(255,255,255,0.1); }
+.navbar-primary > li.active > a {
+    color: #fff;
+    background: linear-gradient(to bottom, #535B60 0%, #434A4F 100%);
+}
+
+/* Row 3: persistent secondary — absolutely below row 2, full viewport width */
+.navbar-primary > li > .navbar-persistent {
+    display: none !important;
+}
+.navbar-primary > li.active > .navbar-persistent {
+    display: flex !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: #f6f6f6 !important;
+    border-bottom: 1px solid #cecdcd !important;
+    z-index: 1000 !important;
+}
+.navbar-persistent > li {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    float: none !important;
+}
+.navbar-persistent > li > a {
+    display: block !important;
+    padding: 10px 15px !important;
+    color: #363636 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+.navbar-persistent > li:hover > a { color: #0066cc !important; }
+.navbar-persistent > li.active > a,
+.navbar-persistent > li.t.active > a {
+    color: #0066cc !important;
+    border-bottom: 3px solid #0066cc !important;
+    font-weight: 600 !important;
+}
+.navbar-persistent .dropdown-submenu > a::after { content: " \25BE"; font-size: 0.75em; }
+
+/* Push page content below the persistent secondary bar */
+.content { padding-top: 38px; }
+
+/* Generic navbar-nav fallback */
+.navbar-nav    { display: flex; flex-direction: row; list-style: none; padding: 0; margin: 0; }
+.navbar-nav > li > a { color: #ccc; padding: 15px; display: block; text-decoration: none; }
+.navbar-nav > li > a:hover { color: #fff; background-color: rgba(255,255,255,0.1); }
+.navbar-nav > li.active > a { color: #fff; background-color: rgba(255,255,255,0.15); }
+
+.navbar-right  { float: right; margin-right: -15px; }
+.navbar-form   { display: flex; align-items: center; padding: 8px 15px; }
+.navbar-toggle {
+    display: none; float: right; margin: 8px 15px 8px 0;
+    padding: 9px 10px; background: transparent; border: 1px solid #444;
+    border-radius: 4px; cursor: pointer;
+}
+.navbar-toggle .icon-bar { display: block; width: 22px; height: 2px; background-color: #ccc; margin: 4px 0; }
+
+/* ================================================================
+   DROPDOWNS
+   ================================================================ */
+
+.dropdown        { position: relative; }
+.dropdown-toggle { cursor: pointer; }
+.dropdown-menu {
+    position: absolute; top: 100%; left: 0; z-index: 1000;
+    display: none; min-width: 160px; padding: 5px 0; margin: 2px 0 0;
+    font-size: 0.875rem; background-color: #fff;
+    border: 1px solid #d2d2d2; border-radius: var(--pf-t--global--border--radius--100, 4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,.175); list-style: none;
+}
+.dropdown-menu.show,
+.open > .dropdown-menu { display: block; }
+.dropdown-menu > li > a { display: block; padding: 4px 20px; color: #333; text-decoration: none; white-space: nowrap; }
+.dropdown-menu > li > a:hover { background-color: #e8f1fb; }
+.dropdown-submenu { position: relative; }
+.dropdown-submenu > .dropdown-menu { top: 0; left: 100%; margin-top: -6px; }
+.dropdown-submenu:hover > .dropdown-menu { display: block; }
+.dropdown-divider, .divider { height: 1px; margin: 9px 0; overflow: hidden; background-color: #e5e5e5; }
+
+/* ================================================================
+   ALERTS
+   ================================================================ */
+
+.alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: var(--pf-t--global--border--radius--100, 4px); }
+.alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+.alert-info    { color: #0c5460; background-color: #d1ecf1; border-color: #bee5eb; }
+.alert-warning { color: #856404; background-color: #fff3cd; border-color: #ffeeba; }
+.alert-danger  { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+.alert-dismissible { padding-right: 40px; }
+
+/* ================================================================
+   BADGES AND LABELS
+   ================================================================ */
+
+.badge {
+    display: inline-block; min-width: 10px; padding: 3px 7px;
+    font-size: 0.75rem; font-weight: 700; line-height: 1; color: #fff;
+    text-align: center; white-space: nowrap; vertical-align: middle;
+    background-color: var(--pf-t--global--color--brand--default, #06c); border-radius: 10px;
+}
+
+.label {
+    display: inline; padding: 0.2em 0.6em 0.3em; font-size: 75%; font-weight: 700;
+    line-height: 1; color: #fff; text-align: center; white-space: nowrap;
+    vertical-align: baseline; border-radius: 0.25em; background-color: #6c757d;
+}
+.label-default { background-color: #6c757d; }
+.label-primary { background-color: var(--pf-t--global--color--brand--default, #06c); }
+.label-success { background-color: var(--pf-t--global--color--status--success--default, #3e8635); }
+.label-info    { background-color: var(--pf-t--global--color--status--info--default, #2b9af3); }
+.label-warning { background-color: var(--pf-t--global--color--status--warning--default, #f0ab00); color: #151515; }
+.label-danger  { background-color: var(--pf-t--global--color--status--danger--default, #c9190b); }
+
+/* ================================================================
+   PANELS
+   ================================================================ */
+
+.panel { background-color: #fff; border: 1px solid #d2d2d2; border-radius: var(--pf-t--global--border--radius--100, 4px); margin-bottom: 20px; box-shadow: 0 1px 1px rgba(0,0,0,.05); }
+.panel-default { border-color: #d2d2d2; }
+.panel-heading { padding: 10px 15px; border-bottom: 1px solid transparent; border-radius: 3px 3px 0 0; background-color: #f5f5f5; }
+.panel-default > .panel-heading { color: #333; border-color: #d2d2d2; }
+.panel-title   { margin: 0; font-size: 1rem; font-weight: 600; }
+.panel-body    { padding: 15px; }
+.panel-footer  { padding: 10px 15px; background-color: #f5f5f5; border-top: 1px solid #d2d2d2; border-radius: 0 0 3px 3px; }
+
+/* ================================================================
+   WELL
+   ================================================================ */
+
+.well { min-height: 20px; padding: 19px; background-color: #f5f5f5; border: 1px solid #d2d2d2; border-radius: var(--pf-t--global--border--radius--100, 4px); box-shadow: inset 0 1px 1px rgba(0,0,0,.05); }
+
+/* ================================================================
+   PAGINATION
+   ================================================================ */
+
+.pagination { display: flex; padding-left: 0; list-style: none; border-radius: var(--pf-t--global--border--radius--100, 4px); margin: 20px 0; }
+.pagination > li > a,
+.pagination > li > span { display: block; padding: 6px 12px; margin-left: -1px; line-height: 1.5; color: var(--pf-t--global--color--brand--default, #06c); background-color: #fff; border: 1px solid #d2d2d2; text-decoration: none; }
+.pagination > li > a:hover { background-color: #e9ecef; }
+.pagination > .active > a,
+.pagination > .active > span { background-color: var(--pf-t--global--color--brand--default, #06c); border-color: var(--pf-t--global--color--brand--default, #06c); color: #fff; }
+.pagination > .disabled > a,
+.pagination > .disabled > span { color: #6c757d; cursor: not-allowed; background-color: #fff; }
+
+/* ================================================================
+   MODALS
+   ================================================================ */
+
+.modal-dialog  { margin: 30px auto; }
+.modal-content { background-color: #fff; border: 1px solid rgba(0,0,0,.2); border-radius: var(--pf-t--global--border--radius--200, 6px); box-shadow: 0 5px 15px rgba(0,0,0,.5); }
+.modal-header  { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #d2d2d2; }
+.modal-title   { margin: 0; font-size: 1.125rem; font-weight: 600; }
+.modal-body    { padding: 15px; }
+.modal-footer  { padding: 15px; border-top: 1px solid #d2d2d2; display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ================================================================
+   PATTERNFLY 3 SIDEBAR
+   ================================================================ */
+
+.sidebar-pf { background-color: #fff; color: #363636; min-height: calc(100vh - 50px); }
+.sidebar-pf-left { border-right: 1px solid #d2d2d2; }
+.sidebar-pf .nav > li > a { color: #363636; font-size: 13px; line-height: 21px; padding: 1px 20px; border-bottom: 1px solid transparent; border-top: 1px solid transparent; }
+.sidebar-pf .nav > li > a:hover { background-color: #def3ff; border-color: #bee1f4; }
+.sidebar-pf .nav > li.active > a { color: #fff; background-color: #0088ce; border-color: #0088ce; }
+.sidebar-pf .nav-category h2 { color: #9c9c9c; font-size: 12px; font-weight: 400; line-height: 21px; margin: 0; padding: 8px 0; }
+.sidebar-pf .nav-category + .nav-category { margin-top: 10px; }
+
+/* ================================================================
+   MISC
+   ================================================================ */
+
+.caret { display: inline-block; width: 0; height: 0; margin-left: 2px; vertical-align: middle; border-top: 4px dashed; border-right: 4px solid transparent; border-left: 4px solid transparent; }
+
+.close { float: right; font-size: 1.5rem; font-weight: 700; line-height: 1; color: #000; text-shadow: 0 1px 0 #fff; opacity: .5; background: transparent; border: 0; cursor: pointer; }
+.close:hover { opacity: .75; }
+
+.divider { height: 1px; margin: 9px 0; background-color: #e5e5e5; }
+
+.thumbnail { display: block; padding: 4px; background-color: #fff; border: 1px solid #ddd; border-radius: 4px; }
+
+.pficon { display: inline-block; font-family: "PatternFlyIcons-webfont", "FontAwesome", sans-serif; font-weight: normal; font-style: normal; }
+
+/* ================================================================
+   FA4 → FA5 RENAMED ICON ALIASES
+   JS throughout the codebase still emits FA4 class names (e.g. fa-gear,
+   fa-warning).  patternfly.css (FA5) has no :before rules for those names.
+   Map each renamed icon to its FA5 codepoint so glyphs render.
+   The .fa/.fas rule in patternfly.css already sets font-family and weight 900
+   on the element, so only the content override is needed here.
+   ================================================================ */
+.fa-gear:before         { content: "\f013"; } /* → fa-cog               */
+.fa-refresh:before      { content: "\f021"; } /* → fa-sync              */
+.fa-repeat:before       { content: "\f01e"; } /* → fa-redo              */
+.fa-trash-o:before      { content: "\f1f8"; } /* → fa-trash             */
+.fa-warning:before      { content: "\f071"; } /* → fa-exclamation-triangle */
+.fa-check-circle-o:before { content: "\f058"; } /* → fa-check-circle (solid) */
+
+/* ================================================================
+   FACET TITLE ICON — ipa.css uses FA4 (FontAwesome); force FA5 Solid here
+   so the header icon (check/minus/wrench) renders instead of showing raw
+   codepoints like "f00c".
+   ================================================================ */
+.facet-title .header-icon {
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+}
+
+/* ================================================================
+   LOGIN PAGE — restore PF3 vertical centering (lost when patternfly.css
+   was replaced with PF6; the old PF3 patternfly.css provided these rules)
+   ================================================================ */
+html, body { height: 100%; }
+.login-pf { height: 100%; position: relative; }
+.login-pf .login-pf-body { height: 100%; }
+.login-pf .container {
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+    width: 100%;
+}
+/* Undo absolute centering on very short viewports (mirrors login.less mixin) */
+@media (max-height: 520px) {
+    .login-pf .container { position: relative; top: auto; transform: none; }
+}
