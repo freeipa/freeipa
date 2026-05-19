@@ -33,7 +33,7 @@ Restart SSSD::
 
   [client]$ sudo systemctl restart sssd
 
-Permitting ``alice`` to run all commmands
+Permitting ``alice`` to run all commands
 -----------------------------------------
 
 Let's deal with ``alice`` first.  Before we do anything else, log in
