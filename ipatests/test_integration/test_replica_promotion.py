@@ -941,10 +941,10 @@ class TestReplicaInForwardZone(IntegrationTest):
                          r_new_hostname)
 
         try:
-            # install client with a hostname in the forward zone
-            tasks.install_client(self.master, replica,
-                                 extra_args=['--hostname', r_new_hostname])
-
+            tasks.install_client(
+                self.master, replica,
+                extra_args=['--hostname', r_new_hostname],
+            )
             # Configure firewall first
             Firewall(replica).enable_services(["freeipa-ldap",
                                                "freeipa-ldaps"])
@@ -959,6 +959,10 @@ class TestReplicaInForwardZone(IntegrationTest):
             # Restore /etc/hosts on master and replica
             restore_etc_hosts(master)
             restore_etc_hosts(replica)
+            if replica.resolver.has_backups():
+                # NM may rewrite resolv.conf during replica install (RHEL)
+                replica.resolver.current_state = replica.resolver._get_state()
+                replica.resolver.restore()
 
 
 class TestHiddenReplicaPromotion(IntegrationTest):
