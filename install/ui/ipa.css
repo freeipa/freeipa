@@ -492,9 +492,9 @@ table.scrollable tbody {
     vertical-align: 20%;
     /* Font awesome style, TODO: use mixin */
     display: inline-block;
-    font-family: FontAwesome;
+    font-family: "Font Awesome 5 Free";
     font-style: normal;
-    font-weight: normal;
+    font-weight: 900;
     line-height: 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -511,7 +511,7 @@ table.scrollable tbody {
 }
 
 .facet-title.preserved .header-icon:before {
-    content: "\f014";
+    content: "\f1f8";
     margin-right: 5px;
 }
 
