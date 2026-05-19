@@ -2681,7 +2681,7 @@ static krb5_error_code ipadb_get_ldap_mod_str_list(struct ipadb_mods *imods,
             kerr = ENOMEM;
             goto done;
         }
-        bvs[i]->bv_len = strlen(strlist[i]) + 1;
+        bvs[i]->bv_len = strlen(strlist[i]);
     }
 
     kerr = ipadb_get_ldap_mod_bvalues(imods, attrname, bvs, len, mod_op);
