@@ -517,7 +517,13 @@ int ipadb_ldap_attr_to_strlist(LDAP *lcontext, LDAPMessage *le,
     }
 
     for (i = 0; vals[i]; i++) {
-        strlist[i] = strndup(vals[i]->bv_val, vals[i]->bv_len);
+        size_t len = vals[i]->bv_len;
+
+        /* Trim trailing null terminator if present (backwards compatibility) */
+        if (len > 0 && vals[i]->bv_val[len - 1] == '\0')
+            --len;
+
+        strlist[i] = strndup(vals[i]->bv_val, len);
         if (!strlist[i]) {
             ret = ENOMEM;
             goto fail;
