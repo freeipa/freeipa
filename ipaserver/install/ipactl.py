@@ -22,6 +22,7 @@ from __future__ import print_function
 import sys
 import os
 import json
+import traceback
 
 import ldapurl
 
@@ -147,6 +148,13 @@ def parse_options():
         dest="skip_version_check",
         default=False,
         help="skip version check",
+    )
+    parser.add_option(
+        "--skip-keytab-rotation",
+        action="store_true",
+        dest="skip_keytab_rotation",
+        default=False,
+        help="skip keytab rotation",
     )
 
     options, args = parser.parse_args()
@@ -342,13 +350,34 @@ def get_config_from_file(rval):
     return deduplicate(ordered_list)
 
 
-def stop_services(svc_list):
+def stop_services(svc_list, verbose=False):
     for svc in svc_list:
         svc_off = services.service(svc, api=api)
         try:
+            if verbose:
+                print("Stopping %s Service" % svc)
             svc_off.stop(capture_output=False)
         except Exception:
-            pass
+            if verbose:
+                emit_err("Failed to stop %s Service" % svc)
+
+
+def start_dirsrv(dirsrv, options):
+    """Start Directory Service
+
+    :param dirsrv: Directory Service
+    :type dirsrv: PlatformService
+    :param options: Options
+    :type options: any
+    :raises IpactlError: Failed to start Directory Service
+    """
+    try:
+        print("Starting Directory Service")
+        dirsrv.start(
+            capture_output=get_capture_output("dirsrv", options.debug)
+        )
+    except Exception as e:
+        raise IpactlError("Failed to start Directory Service: " + str(e))
 
 
 def stop_dirsrv(dirsrv):
@@ -356,6 +385,75 @@ def stop_dirsrv(dirsrv):
         dirsrv.stop(capture_output=False)
     except Exception:
         pass
+
+
+def restart_dirsrv(dirsrv, svc_list, options):
+    """Restart Directory Service
+
+    :param dirsrv: Directory Service
+    :type dirsrv: PlatformService
+    :param svc_list: List of services to restart
+    :type svc_list: list[str]
+    :param options: Options
+    :type options: any
+    :raises IpactlError: Failed to restart Directory Service
+    """
+    try:
+        print("Restarting Directory Service")
+        dirsrv.restart(
+            capture_output=get_capture_output("dirsrv", options.debug)
+        )
+    except Exception as e:
+        emit_err("Failed to restart Directory Service: " + str(e))
+        emit_err("Shutting down")
+
+        if not options.ignore_service_failures:
+            stop_services(reversed(svc_list))
+            stop_dirsrv(dirsrv)
+
+        raise IpactlError("Aborting ipactl")
+
+
+def start_service(svchandle, svc_list, dirsrv, svc, options):
+    """Start Service svc, in case of failure, stop the all services in
+    svc_list and the directory service
+
+    :param svchandle: Service
+    :type svchandle: PlatformService
+    :param svc_list: List of services to stop in case of failure
+    :type svc_list: list[str]
+    :param dirsrv: Directory Service
+    :type dirsrv: PlatformService
+    :param svc: Service to start
+    :type svc: str
+    :param options: Options
+    :type options: any
+    :raises IpactlError: Failed to start Service
+    """
+    try:
+        print("Starting %s Service" % svc)
+        svchandle.start(
+            capture_output=get_capture_output(svc, options.debug)
+        )
+    except Exception:
+        emit_err("Failed to start %s Service" % svc)
+        emit_err(traceback.format_exc())
+        # if ignore_service_failures is specified, skip rollback and
+        # continue with the next service
+        if options.ignore_service_failures:
+            emit_err(
+                "Forced start, ignoring %s Service, "
+                "continuing normal operation"
+                % svc
+            )
+            return
+
+        emit_err("Shutting down")
+        stop_services(svc_list)
+        stop_dirsrv(dirsrv)
+
+        emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
+        raise IpactlError("Aborting ipactl")
 
 
 def ipa_start(options):
@@ -376,13 +474,7 @@ def ipa_start(options):
         os.unlink(paths.SVC_LIST_FILE)
 
     dirsrv = services.knownservices.dirsrv
-    try:
-        print("Starting Directory Service")
-        dirsrv.start(
-            capture_output=get_capture_output("dirsrv", options.debug)
-        )
-    except Exception as e:
-        raise IpactlError("Failed to start Directory Service: " + str(e))
+    start_dirsrv(dirsrv, options)
 
     try:
         svc_list = get_config(dirsrv)
@@ -399,35 +491,27 @@ def ipa_start(options):
         else:
             raise IpactlError()
 
-    if len(svc_list) == 0:
-        # no service to start
-        return
+    # Handle krb5kdc first, in case we need to do keytab rotation
+    if "krb5kdc" in svc_list:
+        svc_list.insert(0, svc_list.pop(svc_list.index("krb5kdc")))
 
-    for svc in svc_list:
+        svchandle = services.service("krb5kdc", api=api)
+        start_service(svchandle, svc_list, dirsrv, "krb5kdc", options)
+
+        if svchandle.rotated_keys:
+            print("Performed key rotation, restarting all services")
+            # We need to restart everything, to be on the safer side
+            stop_services(reversed(svc_list), verbose=True)
+
+            # After rotating the keys, we need to restart everything
+            # once again, to ensure proper keypair is being used
+            restart_dirsrv(dirsrv, svc_list, options)
+            start_service(svchandle, svc_list, dirsrv, "krb5kdc", options)
+
+    # krb5kdc has already been processed, that's why [1:]
+    for svc in svc_list[1:]:
         svchandle = services.service(svc, api=api)
-        try:
-            print("Starting %s Service" % svc)
-            svchandle.start(
-                capture_output=get_capture_output(svc, options.debug)
-            )
-        except Exception:
-            emit_err("Failed to start %s Service" % svc)
-            # if ignore_service_failures is specified, skip rollback and
-            # continue with the next service
-            if options.ignore_service_failures:
-                emit_err(
-                    "Forced start, ignoring %s Service, "
-                    "continuing normal operation"
-                    % svc
-                )
-                continue
-
-            emit_err("Shutting down")
-            stop_services(svc_list)
-            stop_dirsrv(dirsrv)
-
-            emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
-            raise IpactlError("Aborting ipactl")
+        start_service(svchandle, svc_list, dirsrv, svc, options)
 
 
 def ipa_stop(options):
@@ -449,13 +533,7 @@ def ipa_stop(options):
             finally:
                 raise IpactlError()
 
-    for svc in reversed(svc_list):
-        svchandle = services.service(svc, api=api)
-        try:
-            print("Stopping %s Service" % svc)
-            svchandle.stop(capture_output=False)
-        except Exception:
-            emit_err("Failed to stop %s Service" % svc)
+    stop_services(reversed(svc_list), verbose=True)
 
     try:
         print("Stopping Directory Service")
@@ -489,14 +567,8 @@ def ipa_restart(options):
     new_svc_list = []
     dirsrv_restart = True
     if not dirsrv.is_running():
-        try:
-            print("Starting Directory Service")
-            dirsrv.start(
-                capture_output=get_capture_output("dirsrv", options.debug)
-            )
-            dirsrv_restart = False
-        except Exception as e:
-            raise IpactlError("Failed to start Directory Service: " + str(e))
+        start_dirsrv(dirsrv, options)
+        dirsrv_restart = False
 
     try:
         new_svc_list = get_config(dirsrv)
@@ -535,87 +607,76 @@ def ipa_restart(options):
         if s in new_svc_list:
             new_svc_list.remove(s)
 
-    if len(old_svc_list) != 0:
-        # we need to definitely stop some services
-        for svc in reversed(old_svc_list):
-            svchandle = services.service(svc, api=api)
-            try:
-                print("Stopping %s Service" % svc)
-                svchandle.stop(capture_output=False)
-            except Exception:
-                emit_err("Failed to stop %s Service" % svc)
+    # we need to definitely stop some services
+    for svc in reversed(old_svc_list):
+        svchandle = services.service(svc, api=api)
+        try:
+            print("Stopping %s Service" % svc)
+            svchandle.stop(capture_output=False)
+        except Exception:
+            emit_err("Failed to stop %s Service" % svc)
 
-    try:
-        if dirsrv_restart:
-            print("Restarting Directory Service")
-            dirsrv.restart(
-                capture_output=get_capture_output("dirsrv", options.debug)
+    if dirsrv_restart:
+        restart_dirsrv(dirsrv, svc_list, options)
+
+    # First we need to handle krb5kdc, if it's in either of
+    # the two lists
+    handle_krb5kdc = False
+    if "krb5kdc" in svc_list:
+        svc_list.insert(0, svc_list.pop(svc_list.index("krb5kdc")))
+        stop_services(['krb5kdc'], verbose=True)
+        handle_krb5kdc = True
+    elif "krb5kdc" in new_svc_list:
+        svc_list.insert(0, new_svc_list.pop(new_svc_list.index("krb5kdc")))
+        handle_krb5kdc = True
+
+    if handle_krb5kdc:
+        svchandle = services.service("krb5kdc", api=api)
+        start_service(svchandle, svc_list, dirsrv, "krb5kdc", options)
+
+        if svchandle.rotated_keys:
+            print("Performed key rotation, restarting all services")
+            # krb5kdc is enough, rest will be restarted later
+            stop_services(["krb5kdc"], verbose=True)
+
+            # After rotating the keys, we need to restart everything
+            # once again, to ensure proper keypair is being used
+            restart_dirsrv(dirsrv, svc_list, options)
+            start_service(svchandle, svc_list, dirsrv, "krb5kdc", options)
+
+    # there are services to restart
+    # If we've handled krb5kdc already, we should respect the offset
+    offset = 1 if len(svc_list) > 0 and "krb5kdc" == svc_list[0] else 0
+    for svc in svc_list[offset:]:
+        svchandle = services.service(svc, api=api)
+        try:
+            print("Restarting %s Service" % svc)
+            svchandle.restart(
+                capture_output=get_capture_output(svc, options.debug)
             )
-    except Exception as e:
-        emit_err("Failed to restart Directory Service: " + str(e))
-        emit_err("Shutting down")
+        except Exception:
+            emit_err("Failed to restart %s Service" % svc)
+            # if ignore_service_failures is specified,
+            # skip rollback and continue with the next service
+            if options.ignore_service_failures:
+                emit_err(
+                    "Forced restart, ignoring %s Service, "
+                    "continuing normal operation"
+                    % svc
+                )
+                continue
 
-        if not options.ignore_service_failures:
-            stop_services(reversed(svc_list))
+            emit_err("Shutting down")
+            stop_services(svc_list)
             stop_dirsrv(dirsrv)
 
-        raise IpactlError("Aborting ipactl")
+            emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
+            raise IpactlError("Aborting ipactl")
 
-    if len(svc_list) != 0:
-        # there are services to restart
-        for svc in svc_list:
-            svchandle = services.service(svc, api=api)
-            try:
-                print("Restarting %s Service" % svc)
-                svchandle.restart(
-                    capture_output=get_capture_output(svc, options.debug)
-                )
-            except Exception:
-                emit_err("Failed to restart %s Service" % svc)
-                # if ignore_service_failures is specified,
-                # skip rollback and continue with the next service
-                if options.ignore_service_failures:
-                    emit_err(
-                        "Forced restart, ignoring %s Service, "
-                        "continuing normal operation"
-                        % svc
-                    )
-                    continue
-
-                emit_err("Shutting down")
-                stop_services(svc_list)
-                stop_dirsrv(dirsrv)
-
-                emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
-                raise IpactlError("Aborting ipactl")
-
-    if len(new_svc_list) != 0:
-        # we still need to start some services
-        for svc in new_svc_list:
-            svchandle = services.service(svc, api=api)
-            try:
-                print("Starting %s Service" % svc)
-                svchandle.start(
-                    capture_output=get_capture_output(svc, options.debug)
-                )
-            except Exception:
-                emit_err("Failed to start %s Service" % svc)
-                # if ignore_service_failures is specified, skip rollback and
-                # continue with the next service
-                if options.ignore_service_failures:
-                    emit_err(
-                        "Forced start, ignoring %s Service, "
-                        "continuing normal operation"
-                        % svc
-                    )
-                    continue
-
-                emit_err("Shutting down")
-                stop_services(svc_list)
-                stop_dirsrv(dirsrv)
-
-                emit_err(MSG_HINT_IGNORE_SERVICE_FAILURE)
-                raise IpactlError("Aborting ipactl")
+    # we still need to start some services
+    for svc in new_svc_list:
+        svchandle = services.service(svc, api=api)
+        start_service(svchandle, svc_list, dirsrv, svc, options)
 
 
 def ipa_status(options):
@@ -722,6 +783,11 @@ def main():
         context="ipactl",
         confdir=paths.ETC_IPA,
         debug=options.debug,
+        **(
+            {"skip_keytab_rotation": options.skip_keytab_rotation}
+            if options.skip_keytab_rotation
+            else {}
+        ),
     )
     api.finalize()
 

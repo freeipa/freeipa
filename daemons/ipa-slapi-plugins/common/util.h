@@ -67,7 +67,7 @@
                     "[file %s, line %d]: " fmt, \
                     __FILE__, __LINE__, ##__VA_ARGS__)
 
-#define LOG_ALERT(fmt, ...) \
+#define LOG_ALERT_S(fmt, ...) \
     slapi_log_error(SLAPI_LOG_ALERT, log_func, fmt, ##__VA_ARGS__)
 
 #define LOG_PWDPOLICY(fmt, ...) \

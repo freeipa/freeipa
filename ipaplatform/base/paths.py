@@ -32,6 +32,7 @@ class BasePathNamespace:
     LS = "/bin/ls"
     SYSTEMCTL = "/bin/systemctl"
     SYSTEMD_RUN = "/bin/systemd-run"
+    SYSTEMD_ESCAPE = "/bin/systemd-escape"
     SYSTEMD_DETECT_VIRT = "/usr/bin/systemd-detect-virt"
     SYSTEMD_TMPFILES = "/bin/systemd-tmpfiles"
     TAR = "/bin/tar"
@@ -57,6 +58,7 @@ class BasePathNamespace:
     HTTPD_PASSWD_FILE_FMT = "/var/lib/ipa/passwds/{host}-443-RSA"
     # only used on Fedora
     HTTPD_IPA_WSGI_MODULES_CONF = None
+    ANON_KEYTAB = "/var/lib/ipa/api/anon.keytab"
     OLD_IPA_KEYTAB = "/etc/httpd/conf/ipa.keytab"
     HTTP_KEYTAB = "/var/lib/ipa/gssproxy/http.keytab"
     HTTPD_PASSWORD_CONF = "/etc/httpd/conf/password.conf"
@@ -172,6 +174,9 @@ class BasePathNamespace:
     SYSTEMD_SYSTEM_HTTPD_D_DIR = "/etc/systemd/system/httpd.service.d/"
     SYSTEMD_SYSTEM_HTTPD_IPA_CONF = "/etc/systemd/system/httpd.service.d/ipa.conf"
     SYSTEMD_CERTMONGER_SERVICE = "/etc/systemd/system/multi-user.target.wants/certmonger.service"
+    SYSTEMD_KEYTAB_CLEANER_SERVICE_TEMPLATE = (
+        '/usr/lib/systemd/system/ipa-keytab-cleaner@%s.service'
+    )
     SYSTEMD_IPA_SERVICE = "/etc/systemd/system/multi-user.target.wants/ipa.service"
     SYSTEMD_SSSD_SERVICE = "/etc/systemd/system/multi-user.target.wants/sssd.service"
     SYSTEMD_PKI_TOMCAT_SERVICE = "/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service"
@@ -184,6 +189,7 @@ class BasePathNamespace:
     ROOT_IPA_CACHE = "/root/.ipa_cache"
     ROOT_PKI = "/root/.pki"
     DOGTAG_ADMIN_P12 = "/root/ca-agent.p12"
+    DOGTAG_KEYTAB = "/etc/pki/pki-tomcat/dogtag.keytab"
     RA_AGENT_PEM = "/var/lib/ipa/ra-agent.pem"
     RA_AGENT_KEY = "/var/lib/ipa/ra-agent.key"
     CACERT_P12 = "/root/cacert.p12"
@@ -427,6 +433,7 @@ class BasePathNamespace:
     IPA_CUSTODIA_HANDLER = "/usr/libexec/ipa/custodia"
     IPA_CUSTODIA_CHECK = "/usr/libexec/ipa/ipa-custodia-check"
     IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
+    IPA_KEYTAB_CLEANER_CONF_DIR = '/etc/ipa/cleaner'
     IPA_MIGRATE_LOG = '/var/log/ipa-migrate.log'
     EXTERNAL_SCHEMA_DIR = '/usr/share/ipa/schema.d'
     GSSPROXY_CONF = '/etc/gssproxy/10-ipa.conf'
