@@ -1,8 +1,10 @@
 #
 # Copyright (C) 2021  FreeIPA Contributors see COPYING for license
 #
+
 import logging
 import string
+from cryptography.hazmat.primitives.serialization import pkcs12
 from urllib.parse import urlparse
 
 from .baseldap import (
@@ -11,9 +13,13 @@ from .baseldap import (
     LDAPDelete,
     LDAPUpdate,
     LDAPSearch,
-    LDAPRetrieve)
-from ipalib import api, errors, Password, Str, StrEnum, _, ngettext
+    LDAPRetrieve,
+    add_missing_object_class,
+)
+from ipalib import api, errors, Bytes, Password, Str, StrEnum, _, ngettext
+from ipalib.parameters import Certificate
 from ipalib.plugable import Registry
+from ipalib.x509 import Encoding
 from ipapython.dn import DN
 from ipapython.ipautil import template_str
 from copy import deepcopy
@@ -39,6 +45,21 @@ EXAMPLES:
  Add a new external Identity Provider reference using github predefined
  endpoints:
    ipa idp-add MyIdp --client-id jhkQty13 --provider github --secret
+""") + _("""
+ Add a new external Identity Provider reference using JWT assertion
+ authentication:
+   ipa idp-add MyIdP --provider keycloak \
+      --org myrealm --base-url keycloak.example.com \
+      --client-id ipa-client \
+      --client-auth-method private_key_jwt \
+      --client-cert-p12-file idp-client.p12
+""") + _("""
+ Add a new external Identity Provider reference using mTLS authentication:
+   ipa idp-add MyIdP --provider keycloak \
+      --org myrealm --base-url keycloak.example.com \
+      --client-id ipa-client \
+      --client-auth-method tls_client_auth \
+      --client-cert-p12-file idp-client.p12
 """) + _("""
  Find all external Identity Provider references whose entries include the string
  "test.com":
@@ -75,6 +96,17 @@ def validate_uri(ugettext, uri):
     return None
 
 
+class Pkcs12Bytes(Bytes):
+    """
+    A data type for pkcs12 data to avoid logging the content
+
+    The Bytes type does not hide the content.
+    """
+
+    def safe_value(self, value):
+        return u'********'
+
+
 @register()
 class idp(LDAPObject):
     """
@@ -84,11 +116,13 @@ class idp(LDAPObject):
     object_name = _('Identity Provider reference')
     object_name_plural = _('Identity Provider references')
     object_class = ['ipaidp']
+    possible_objectclasses = ['ipaidpclientauth']
     default_attributes = [
         'cn', 'ipaidpauthendpoint', 'ipaidpdevauthendpoint',
         'ipaidpuserinfoendpoint', 'ipaidpkeysendpoint',
         'ipaidptokenendpoint', 'ipaidpissuerurl',
         'ipaidpclientid', 'ipaidpscope', 'ipaidpsub',
+        'ipaidpclientauthmethod',
     ]
     search_attributes = [
         'cn', 'ipaidpauthendpoint', 'ipaidpdevauthendpoint',
@@ -164,6 +198,24 @@ class idp(LDAPObject):
             label=_('External IdP user identifier attribute'),
             doc=_('Attribute for user identity in OAuth 2.0 userinfo'),
             ),
+        StrEnum('ipaidpclientauthmethod?',
+                cli_name='client_auth_method',
+                label=_('Client Authentication Method'),
+                doc=_('Method used for client authentication to the IdP'),
+                values=('client_secret', 'private_key_jwt', 'tls_client_auth')
+                ),
+        Pkcs12Bytes(
+            'userpkcs12?',
+            cli_name='client_cert_p12',
+            label=_('Client pkcs12 bundle'),
+            doc=_('Pkcs12 bundle used for client authentication to the IdP'),
+            flags=['no_output', 'no_option'],
+        ),
+        Certificate('usercertificate*',
+                    label=_('Certificate'),
+                    doc=_('Base-64 encoded user certificate'),
+                    flags=['no_option', 'no_create', 'no_update'],
+                    ),
     )
 
     permission_filter_objectclasses = ['ipaidp']
@@ -182,7 +234,8 @@ class idp(LDAPObject):
                 'ipaidpdevauthendpoint', 'ipaidpuserinfoendpoint',
                 'ipaidptokenendpoint', 'ipaidpkeysendpoint',
                 'ipaidpissuerurl', 'ipaidpclientid', 'ipaidpscope',
-                'ipaidpsub',
+                'ipaidpsub', 'ipaidpclientauthmethod',
+                'usercertificate',
             },
             'ipapermlocation': DN(container_dn, api.env.basedn),
             'ipapermtargetfilter': {
@@ -197,7 +250,8 @@ class idp(LDAPObject):
                 'ipaidpdevauthendpoint', 'ipaidpuserinfoendpoint',
                 'ipaidptokenendpoint', 'ipaidpkeysendpoint',
                 'ipaidpissuerurl', 'ipaidpclientid', 'ipaidpscope',
-                'ipaidpclientsecret', 'ipaidpsub',
+                'ipaidpclientsecret', 'ipaidpsub', 'ipaidpclientauthmethod',
+                'usercertificate',
             },
             'default_privileges': {'External IdP server Administrators'}
         },
@@ -216,12 +270,58 @@ class idp(LDAPObject):
                 'ipaidpdevauthendpoint', 'ipaidpuserinfoendpoint',
                 'ipaidptokenendpoint', 'ipaidpissuerurl',
                 'ipaidpkeysendpoint', 'ipaidpclientid', 'ipaidpscope',
-                'ipaidpclientsecret', 'ipaidpsub',
+                'ipaidpclientsecret', 'ipaidpsub', 'ipaidpclientauthmethod',
+                'usercertificate', 'userpkcs12',
             },
             'ipapermtargetfilter': {
                 '(objectclass=ipaidp)'},
         }
     }
+
+    def convert_usercertificate_post(self, entry_attrs, **options):
+        for attrname in ['usercertificate', 'userpkcs12']:
+            if attrname + ';binary' in entry_attrs:
+                entry_attrs[attrname] = entry_attrs.pop(attrname + ';binary')
+
+    def check_client_auth_attrs(self, entry_attrs):
+        # When private_key_jwt or tls_client_auth, P12file required
+        if 'userpkcs12' not in entry_attrs:
+            raise errors.RequirementError(name='client-cert-p12-file')
+        # The client secret is also required
+        if 'ipaidpclientsecret' not in entry_attrs:
+            raise errors.RequirementError(name='PKCS12 password')
+
+    def fill_usercertificate(self, entry_attrs):
+        p12file_data = entry_attrs.get('userpkcs12', None)
+        if not p12file_data:
+            return
+
+        # Empty string is converted to None but None.encode() raises
+        # an exception. Assume the p12 data is protected by an empty pwd
+        secret = entry_attrs['ipaidpclientsecret'] or ''
+        try:
+            key, cert, _other_certs = pkcs12.load_key_and_certificates(
+                p12file_data, secret.encode())
+        except ValueError as e:
+            raise errors.ValidationError(
+                name='client_cert_p12_file',
+                error=_(f"Cannot decode PKCS12 file: {e}")
+            )
+        if not key:
+            raise errors.ValidationError(
+                name='client_cert_p12_file',
+                error=_("No private key found in PKCS12 file")
+            )
+        if not cert:
+            raise errors.ValidationError(
+                name='client_cert_p12_file',
+                error=_("No certificate matching key in PKCS12 file")
+            )
+
+        entry_attrs['usercertificate;binary'] = cert.public_bytes(Encoding.DER)
+
+        # transform also pkcs12 with ;binary option
+        entry_attrs['userpkcs12;binary'] = entry_attrs.pop('userpkcs12')
 
 
 @register()
@@ -408,6 +508,33 @@ class idp_add(LDAPCreate):
         self._convert_provider_to_endpoints(entry_attrs,
                                             provider=provider,
                                             elements=options)
+
+        # Checks for client authentication
+        if (
+            entry_attrs.get('ipaidpclientauthmethod', 'client_secret')
+            == 'client_secret'
+        ):
+            # When no value is provided or client_secret, do not accept
+            # a PKCS12 file and usercertificate
+            if 'userpkcs12' in entry_attrs:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('cannot use client_secret authentication '
+                             'and client-cert-p12-file'))
+            # Drop the auth method if it is client secret
+            # as it is the default value
+            entry_attrs['ipaidpclientauthmethod'] = None
+        else:
+            self.obj.check_client_auth_attrs(entry_attrs)
+
+        if entry_attrs.get('ipaidpclientauthmethod', None):
+            add_missing_object_class(ldap, 'ipaidpclientauth', dn,
+                                     entry_attrs, update=False)
+
+        self.obj.fill_usercertificate(entry_attrs)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 
@@ -421,6 +548,65 @@ class idp_del(LDAPDelete):
 class idp_mod(LDAPUpdate):
     __doc__ = _('Modify an Identity Provider reference.')
     msg_summary = _('Modified Identity Provider reference "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        try:
+            old_attrs = ldap.get_entry(dn, ['*'])
+        except errors.NotFound:
+            raise self.obj.handle_not_found(*keys)
+
+        old_meth = old_attrs.single_value.get(
+            'ipaidpclientauthmethod', 'client_secret')
+        new_meth = entry_attrs.get('ipaidpclientauthmethod', old_meth)
+
+        # The objectclasses either come from the existing entry
+        # or from new values
+        if 'objectclass' in entry_attrs:
+            ocs = entry_attrs['objectclass']
+        else:
+            ocs = entry_attrs['objectclass'] = old_attrs['objectclass']
+        # IMPORTANT: compare objectclasses as case insensitive
+        obj_classes = [o.lower() for o in ocs]
+
+        # Check if there is a change in auth method
+        if old_meth != new_meth:
+            # If the method switches to cert auth, ensure we have p12data
+            # and secret
+            if old_meth == "client_secret":
+                self.obj.check_client_auth_attrs(entry_attrs)
+                self.obj.fill_usercertificate(entry_attrs)
+                if 'ipaidpclientauth' not in obj_classes:
+                    entry_attrs['objectclass'].append('ipaidpclientauth')
+            elif new_meth == "client_secret":
+                if 'userpkcs12' in entry_attrs:
+                    raise errors.MutuallyExclusiveError(
+                        reason=_('cannot use client_secret authentication '
+                                 'and client-cert-p12-file'))
+                # switching from something to client-secret:
+                # remove the certificate and p12 file
+                entry_attrs['usercertificate;binary'] = None
+                entry_attrs['userpkcs12;binary'] = None
+            else:
+                # switching between tls_client_auth and private_key_jwt
+                # ensure the p12data is either already available or
+                # provided with the options
+                if 'userpkcs12;binary' not in old_attrs:
+                    if 'userpkcs12' not in entry_attrs:
+                        raise errors.RequirementError(
+                            name='client-cert-p12-file')
+
+        # Drop the auth method if it is client secret
+        # as it is the default value
+        if new_meth == 'client_secret':
+            entry_attrs['ipaidpclientauthmethod'] = None
+            if 'ipaidpclientauth' in obj_classes:
+                entry_attrs['objectclass'].remove('ipaidpclientauth')
+        self.obj.fill_usercertificate(entry_attrs)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
+        return dn
 
 
 @register()
@@ -444,3 +630,7 @@ class idp_find(LDAPSearch):
 class idp_show(LDAPRetrieve):
     __doc__ = _('Display information about an Identity Provider '
                 'reference.')
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
+        return dn
