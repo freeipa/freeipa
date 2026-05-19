@@ -23,6 +23,10 @@
 .hidden      { display: none !important; }
 .sr-only     { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+/* Bootstrap 3 heading sizes (matches original PF3 ipa.css) */
+h1 { font-size: 24px; }
+h2 { font-size: 22px; }
+
 /* ================================================================
    GRID — 12-column Bootstrap-compatible grid
    PF6 has its own grid (.pf-v6-l-grid) but FreeIPA JS uses col-sm-*
@@ -31,6 +35,9 @@
 .container       { width: 100%; max-width: 1140px; margin-right: auto; margin-left: auto; padding-right: 15px; padding-left: 15px; }
 .container-fluid { width: 100%; padding-right: 15px; padding-left: 15px; }
 .row             { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; }
+/* details.js:create_content overwrites that.content (to details-content.row), so
+   facet.js:show_content applies display:block inline — override it here. */
+.details-content.row { display: flex !important; flex-wrap: wrap !important; }
 [class*="col-"]  { position: relative; width: 100%; padding-right: 15px; padding-left: 15px; }
 
 /* xs tier (removed in Bootstrap 4+) */
@@ -61,12 +68,16 @@
     .col-sm-10 { flex: 0 0 auto; width: 83.3333%; }
     .col-sm-11 { flex: 0 0 auto; width: 91.6667%; }
     .col-sm-12 { flex: 0 0 auto; width: 100%; }
-    .col-sm-pull-0  { right: auto; }
-    .col-sm-pull-4  { right: 33.3333%; }
-    .col-sm-pull-8  { right: 66.6667%; }
-    .col-sm-push-0  { left: auto; }
-    .col-sm-push-4  { left: 33.3333%; }
-    .col-sm-push-8  { left: 66.6667%; }
+    .col-sm-pull-0  { right: 0; order: 0; }
+    .col-sm-pull-3  { right: 0; order: -1; }
+    .col-sm-pull-4  { right: 0; order: -1; }
+    .col-sm-pull-8  { right: 0; order: -1; }
+    .col-sm-pull-9  { right: 0; order: -1; }
+    .col-sm-push-0  { left: 0; }
+    .col-sm-push-3  { left: 0; }
+    .col-sm-push-4  { left: 0; }
+    .col-sm-push-8  { left: 0; }
+    .col-sm-push-9  { left: 0; }
 }
 
 /* md tier (>=768px) */
@@ -83,12 +94,16 @@
     .col-md-10 { flex: 0 0 auto; width: 83.3333%; }
     .col-md-11 { flex: 0 0 auto; width: 91.6667%; }
     .col-md-12 { flex: 0 0 auto; width: 100%; }
-    .col-md-pull-0  { right: auto; }
-    .col-md-pull-3  { right: 25%; }
-    .col-md-pull-9  { right: 75%; }
-    .col-md-push-0  { left: auto; }
-    .col-md-push-3  { left: 25%; }
-    .col-md-push-9  { left: 75%; }
+    .col-md-pull-0  { right: 0; order: 0; }
+    .col-md-pull-2  { right: 0; order: -1; }
+    .col-md-pull-3  { right: 0; order: -1; }
+    .col-md-pull-9  { right: 0; order: -1; }
+    .col-md-pull-10 { right: 0; order: -1; }
+    .col-md-push-0  { left: 0; }
+    .col-md-push-2  { left: 0; }
+    .col-md-push-3  { left: 0; }
+    .col-md-push-9  { left: 0; }
+    .col-md-push-10 { left: 0; }
 }
 
 /* lg tier (>=992px) */
@@ -115,6 +130,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    vertical-align: middle;
     cursor: pointer;
     padding: 6px 12px;
     font-size: var(--pf-t--global--font--size--200, 0.875rem);
