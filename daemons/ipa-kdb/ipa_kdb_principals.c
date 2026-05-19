@@ -139,6 +139,12 @@ static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
     vals = ldap_get_values_len(lcontext, le, attrname);
     if (vals) {
         for (i = 0; vals[i]; i++) {
+            /* There should be at least 2 bytes encoding the tl_data type. */
+            if (vals[i]->bv_len < 2) {
+                ret = EINVAL;
+                goto done;
+            }
+
             next = calloc(1, sizeof(krb5_tl_data));
             if (!next) {
                 ret = ENOMEM;
@@ -2675,7 +2681,7 @@ static krb5_error_code ipadb_get_ldap_mod_str_list(struct ipadb_mods *imods,
             kerr = ENOMEM;
             goto done;
         }
-        bvs[i]->bv_len = strlen(strlist[i]) + 1;
+        bvs[i]->bv_len = strlen(strlist[i]);
     }
 
     kerr = ipadb_get_ldap_mod_bvalues(imods, attrname, bvs, len, mod_op);
