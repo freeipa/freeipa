@@ -68,9 +68,11 @@ def test_tls_version_span(minver, maxver, opt, expected):
     assert get_proper_tls_version_span(minver, maxver) == expected
     # file must exist and contain certs
     cafile = ssl.get_default_verify_paths().cafile
+    capath = ssl.get_default_verify_paths().capath
     conn = create_https_connection(
         "invalid.test",
         cafile=cafile,
+        capath=capath,
         tls_version_min=minver,
         tls_version_max=maxver
     )
