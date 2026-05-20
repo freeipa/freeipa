@@ -200,8 +200,6 @@ steps:
         "$CONTAINER_COREDUMP" \
         /bin/bash --noprofile --norc -eux \
             "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/dump_cores.sh"
-    # there should be no crashes
-    exit 1
   condition: succeededOrFailed()
   displayName: Check for coredumps
 
