@@ -122,7 +122,7 @@ class idp(LDAPObject):
         'ipaidpuserinfoendpoint', 'ipaidpkeysendpoint',
         'ipaidptokenendpoint', 'ipaidpissuerurl',
         'ipaidpclientid', 'ipaidpscope', 'ipaidpsub',
-        'ipaidpclientauthmethod',
+        'ipaidpclientauthmethod', 'usercertificate'
     ]
     search_attributes = [
         'cn', 'ipaidpauthendpoint', 'ipaidpdevauthendpoint',
