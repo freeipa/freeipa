@@ -18,10 +18,10 @@ class IdpTracker(Tracker):
         'ipaidpuserinfoendpoint', 'ipaidpkeysendpoint',
         'ipaidptokenendpoint', 'ipaidpissuerurl',
         'ipaidpclientid', 'ipaidpscope', 'ipaidpsub',
-        'ipaidpclientauthmethod', }
+        'ipaidpclientauthmethod', 'usercertificate'}
 
     retrieve_all_keys = retrieve_keys | {
-        'objectclass', 'ipaidpclientsecret', 'userpkcs12', 'usercertificate'
+        'objectclass', 'ipaidpclientsecret', 'userpkcs12'
     }
 
     create_keys = retrieve_keys | {

@@ -4,7 +4,9 @@
 
 from ipaclient.frontend import MethodOverride
 from ipalib import errors
-from ipalib.parameters import BinaryFile
+from ipalib import util
+from ipalib import x509
+from ipalib.parameters import BinaryFile, Str
 from ipalib.plugable import Registry
 from ipalib.text import _
 
@@ -52,3 +54,37 @@ class idp_add(IdpOverride):
 @register(override=True, no_fail=True)
 class idp_mod(IdpOverride):
     pass
+
+
+@register(override=True, no_fail=True)
+class idp_show(MethodOverride):
+    takes_options = (
+        Str(
+            'out?',
+            doc=_('Write certificate to file'),
+            include='cli',
+            cli_metavar='FILE',
+        ),
+    )
+
+    def forward(self, *args, **options):
+        filename = None
+        if 'out' in options:
+            filename = options.pop('out')
+
+        result = super(idp_show, self).forward(*args, **options)
+
+        if filename is not None:
+            try:
+                util.check_writable_file(filename)
+            except errors.FileError as e:
+                raise errors.ValidationError(name='out',
+                                             error=str(e))
+            try:
+                cert = result['result']['usercertificate'][0]
+                x509cert = x509.load_der_x509_certificate(cert)
+                x509.write_certificate(x509cert, filename)
+            except KeyError:
+                self.Backend.textui.print_plain(_(
+                    "Idp has no certificate, ignoring --out option"))
+        return result
