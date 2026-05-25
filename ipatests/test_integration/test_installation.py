@@ -2363,7 +2363,10 @@ class TestInstallPQCIPACerts(TestInstallPQCBase):
 
 
 class TestInstallPQCCACerts(TestInstallPQCBase):
-    """ML-DSA-44 server keys with ML-DSA-65 (default) CA (legacy name; see also 006a)."""
+    """ML-DSA-44 server keys with ML-DSA-65 (default) CA.
+
+    Legacy name; see also 006a.
+    """
 
     num_replicas = 1
     master_with_dns = True
