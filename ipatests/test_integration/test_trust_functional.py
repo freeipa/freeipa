@@ -16,6 +16,10 @@ from ipatests.test_integration.test_trust import BaseTestTrust
 from ipatests.util import xfail_context
 
 PLUGIN_CONF = "/var/lib/sss/pubconf/krb5.include.d/localauth_plugin"
+# SELinux user contexts used by ipa-trust-functional selinuxusermap tests
+SELINUX_DEFAULT_VERIF = r'unconfined_u:.*s0-s0:c0.c1023'
+SELINUX_T1 = 'staff_u:s0-s0:c0.c1023'
+SELINUX_T1_VERIF = r'staff_u:.*s0-s0:c0.c1023'
 
 
 def xfail_fedora_sssd_before_2_12(host):
@@ -157,6 +161,94 @@ def passwd_change_with_retry(host, user_fqdn, current_password,
     pytest.fail(
         f"Password change for {user_fqdn} failed after "
         f"{max_retries} attempts. Last output: {last_output}"
+    )
+
+
+def _ssh_id_z_over_gssapi(host, login, target_hostname, retries=10):
+    """SSH with GSSAPI and return remote ``id -Z`` output.
+
+    Retries the SSH command when it fails (e.g. while SELinux context is
+    still propagating).
+
+    :param host: Host from which SSH is run (must already have a Kerberos
+        ticket for ``login``).
+    :param login: SSH login name (``-l`` argument).
+    :param target_hostname: Hostname to connect to.
+    :param retries: Number of attempts before failing (default 10).
+    :returns: ``stdout`` from a successful ``id -Z`` run.
+    :raises AssertionError: If SSH does not succeed within ``retries`` attempts.
+    """
+    for _attempt in range(retries):
+        result = host.run_command(
+            [
+                'ssh', '-o', 'StrictHostKeyChecking=no', '-K',
+                '-o', 'PubkeyAuthentication=no',
+                '-l', login, target_hostname, 'id -Z',
+            ],
+            raiseonerr=False,
+        )
+        if result.returncode == 0:
+            return result.stdout_text
+        time.sleep(10)
+    output = f'{result.stdout_text}{result.stderr_text}'
+    raise AssertionError(
+        f'SSH with GSSAPI from {host.hostname} as {login} to '
+        f'{target_hostname} failed on attempt {_attempt + 1}/{retries}: '
+        f'{output}'
+    )
+
+
+def _verify_selinuxuser_pattern(
+        output, login, target_hostname, selinux_pattern, expect_match):
+    """Check ``id -Z`` output against *selinux_pattern*.
+
+    :param expect_match: If ``True``, the pattern must match; if ``False``,
+        it must not match.
+    """
+    matched = re.search(selinux_pattern, output)
+    assert bool(matched) == expect_match, (
+        f'SELinux context {selinux_pattern!r} for {login} on '
+        f'{target_hostname} (expect_match={expect_match}): {output!r}'
+    )
+
+
+def verify_ssh_selinuxuser_with_krbcred(
+        host, login, target_host, selinux_pattern, expect_match=True):
+    """Assert GSSAPI SSH ``id -Z`` output matches *selinux_pattern*.
+
+    :param host: Host from which GSSAPI SSH is run.
+    :param login: SSH login name.
+    :param target_host: Target host object (``.hostname`` is used).
+    :param selinux_pattern: Regex for the expected SELinux user context.
+    :param expect_match: ``True`` if the pattern must match, ``False`` if it
+        must not.
+    """
+    output = _ssh_id_z_over_gssapi(host, login, target_host.hostname)
+    _verify_selinuxuser_pattern(
+        output, login, target_host.hostname, selinux_pattern, expect_match,
+    )
+
+
+def verify_ssh_auth_selinuxuser(
+        ssh_host, login, password, target_host, selinux_pattern,
+        expect_match=True):
+    """Assert password SSH ``id -Z`` output matches *selinux_pattern*.
+
+    :param ssh_host: Host from which password SSH is run.
+    :param login: SSH login name.
+    :param password: Password for authentication.
+    :param target_host: Target host object (``.hostname`` is used).
+    :param selinux_pattern: Regex for the expected SELinux user context.
+    :param expect_match: ``True`` if the pattern must match, ``False`` if it
+        must not.
+    """
+    result = ssh_with_password(
+        ssh_host, login, target_host.hostname, password,
+        remote_cmd='id -Z',
+    )
+    _verify_selinuxuser_pattern(
+        result.stdout_text, login, target_host.hostname,
+        selinux_pattern, expect_match,
     )
 
 
@@ -2579,3 +2671,393 @@ class TestTrustFunctionalUser(BaseTestTrust):
                 f"Group {expected_group} not found for user {user}: "
                 f"{result.stdout_text}"
             )
+
+
+class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
+    """
+    Test class for SELinux user map with trusted AD domains.
+
+    Tests cover host-scoped and master-scoped maps, HBAC-linked maps, and
+    SSH SELinux context checks for forest-root and subdomain users. Trust
+    setup and external IPA groups are created in install; each test runs
+    the same scenario on the master and both clients for both domains.
+    """
+
+    topology = 'line'
+    num_clients = 2
+    num_ad_treedomains = 0
+    ad_user_password = 'Secret123'
+
+    @classmethod
+    def install(cls, mh):
+        super().install(mh)
+        tasks.kinit_admin(cls.master)
+        for host in (cls.master, *cls.clients):
+            host.run_command(
+                ['authselect', 'enable-feature', 'with-mkhomedir']
+            )
+            host.run_command(
+                ['systemctl', 'enable', '--now', 'oddjobd']
+            )
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(
+            cls.master, cls.ad_domain,
+            extra_args=['--range-type', 'ipa-ad-trust'],
+        )
+        tasks.kinit_admin(cls.master)
+        for case in cls._selinux_domain_cases():
+            cls._setup_selinux_groups(case)
+
+    @classmethod
+    def _selinux_cache_reset_all(cls):
+        for host in (cls.master, *cls.clients):
+            tasks.clear_sssd_cache(host)
+            tasks.wait_for_sssd_domain_status_online(host)
+
+    @classmethod
+    def _selinux_domain_cases(cls):
+        """Forest-root and subdomain user/group data for one test iteration."""
+        return [
+            {
+                'name': 'root',
+                'user1': cls.testuser1,
+                'user2': cls.testuser2,
+                'domain': cls.ad_domain,
+                'group1_ext': 'ad_testgrp1_ext',
+                'group1': 'ad_testgrp1',
+                'group2_ext': 'ad_testgrp2_ext',
+                'group2': 'ad_testgrp2',
+            },
+            {
+                'name': 'subdomain',
+                'user1': cls.subaduser,
+                'user2': cls.subdomaintestuser2,
+                'domain': cls.ad_subdomain,
+                'group1_ext': 'ad_subtestgrp1_ext',
+                'group1': 'ad_subtestgrp1',
+                'group2_ext': 'ad_subtestgrp2_ext',
+                'group2': 'ad_subtestgrp2',
+            },
+        ]
+
+    def _user_upn(self, user_fqdn, domain):
+        base = self._ad_user_base(user_fqdn)
+        return self._ad_principal(base, domain, realm=True)
+
+    def _kinit_trust_user(self, host, user_fqdn, domain):
+        upn = self._user_upn(user_fqdn, domain)
+        tasks.kdestroy_all(host)
+        tasks.kinit_as_user(host, upn, self.ad_user_password)
+
+    @classmethod
+    def _setup_selinux_groups(cls, case):
+        """Create external IPA groups and POSIX groups for one AD domain.
+
+        :param case: One dict from :meth:`_selinux_domain_cases` (forest-root
+            or subdomain) with AD user FQDNs, ``domain``, and external/POSIX
+            group name keys used by the selinux user map tests.
+        """
+        tasks.kinit_admin(cls.master)
+        for ext, posix, user in (
+            (case['group1_ext'], case['group1'], case['user1']),
+            (case['group2_ext'], case['group2'], case['user2']),
+        ):
+            tasks.group_add(
+                cls.master, ext, extra_args=['--desc=0', '--external']
+            )
+            tasks.group_add(cls.master, posix, extra_args=['--desc=0'])
+            tasks.group_add_member(
+                cls.master, ext,
+                extra_args=[f'--external={user}'],
+                noninteractive=True,
+            )
+            tasks.group_add_member(
+                cls.master, posix, extra_args=[f'--groups={ext}'],
+            )
+        cls._selinux_cache_reset_all()
+        cls.master.run_command(['getent', 'passwd', case['user1']])
+        cls.master.run_command(['getent', 'passwd', case['user2']])
+        ssh_with_password(
+            cls.master, case['user1'], cls.master.hostname,
+            cls.ad_user_password,
+        )
+        ssh_with_password(
+            cls.master, case['user2'], cls.master.hostname,
+            cls.ad_user_password,
+        )
+
+    def test_selinuxusermap_001_map_on_particular_host(self):
+        """
+        Test that AD users are mapped to SELinux users on a particular host.
+
+        This test runs the same checks for forest-root and subdomain trusted
+        domains. It creates a SELinux user map (``staff_u``) for members of
+        the test POSIX group, scoped to ``client1`` only, then verifies SSH
+        from the master (GSSAPI) and from both clients (password):
+
+        * Mapped user receives ``staff_u`` on ``client1`` and the default
+          SELinux user on ``client2``.
+        * User not in the map receives the default context on ``client1``.
+        * From ``client2``, password SSH to ``client1`` still applies the map;
+          SSH to ``client2`` uses the default context.
+        """
+        for case in self._selinux_domain_cases():
+            self._selinux_cache_reset_all()
+            tasks.kinit_admin(self.master)
+            try:
+                tasks.selinuxusermap_add(
+                    self.master, 'selinuxusermaprule1',
+                    [f'--selinuxuser={SELINUX_T1}'],
+                )
+                tasks.selinuxusermap_add_user(
+                    self.master, 'selinuxusermaprule1',
+                    groups=case['group1'],
+                )
+                tasks.selinuxusermap_add_hosts(
+                    self.master, 'selinuxusermaprule1',
+                    hosts=self.clients[0].hostname,
+                )
+                self._selinux_cache_reset_all()
+
+                user1 = case['user1']
+                user2 = case['user2']
+                domain = case['domain']
+                self._kinit_trust_user(self.master, user1, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[0], SELINUX_T1_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_DEFAULT_VERIF)
+                self._kinit_trust_user(self.master, user2, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[0], SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[0], SELINUX_DEFAULT_VERIF)
+
+                tasks.kinit_admin(self.clients[0])
+                self.clients[0].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user1])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user1, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF)
+                self.clients[0].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user2])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user2, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF, expect_match=False)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user2, self.ad_user_password,
+                    self.clients[0], SELINUX_DEFAULT_VERIF)
+
+                tasks.kinit_admin(self.clients[1])
+                self.clients[1].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user1])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user1, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user1, self.ad_user_password,
+                    self.clients[1], SELINUX_T1_VERIF, expect_match=False)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user1, self.ad_user_password,
+                    self.clients[1], SELINUX_DEFAULT_VERIF)
+            finally:
+                tasks.kinit_admin(self.master)
+                tasks.selinuxusermap_del(
+                    self.master, 'selinuxusermaprule1', raiseonerr=False,
+                )
+
+    def test_selinuxusermap_002_map_on_master(self):
+        """
+        Test that AD users are mapped to SELinux users on the IPA master.
+
+        This test runs the same checks for forest-root and subdomain trusted
+        domains. The SELinux user map (``staff_u``) is scoped to the IPA
+        master host. It verifies SSH from the master (GSSAPI) and password
+        SSH from ``client1`` and ``client2`` to the master:
+
+        * Mapped user receives ``staff_u`` on the master and the default
+          context on both clients.
+        * User not in the map receives the default context on the master.
+        * From ``client2``, mapped user can reach the master with ``staff_u``;
+          a user outside the map is denied the mapped context on the master.
+        """
+        for case in self._selinux_domain_cases():
+            self._selinux_cache_reset_all()
+            tasks.kinit_admin(self.master)
+            try:
+                tasks.selinuxusermap_add(
+                    self.master, 'selinuxusermaprule2',
+                    [f'--selinuxuser={SELINUX_T1}'],
+                )
+                tasks.selinuxusermap_add_user(
+                    self.master, 'selinuxusermaprule2',
+                    groups=case['group1'],
+                )
+                tasks.selinuxusermap_add_hosts(
+                    self.master, 'selinuxusermaprule2',
+                    hosts=self.master.hostname,
+                )
+                self._selinux_cache_reset_all()
+
+                user1 = case['user1']
+                user2 = case['user2']
+                domain = case['domain']
+                self._kinit_trust_user(self.master, user1, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.master, SELINUX_T1_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[0], SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[0], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_DEFAULT_VERIF)
+                self._kinit_trust_user(self.master, user2, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.master, SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.master, SELINUX_DEFAULT_VERIF)
+
+                tasks.kinit_admin(self.clients[0])
+                self.clients[0].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user1])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user1, self.ad_user_password,
+                    self.master, SELINUX_T1_VERIF)
+                self.clients[0].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user2])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user2, self.ad_user_password,
+                    self.master, SELINUX_T1_VERIF, expect_match=False)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user2, self.ad_user_password,
+                    self.master, SELINUX_DEFAULT_VERIF)
+
+                tasks.kinit_admin(self.clients[1])
+                self.clients[1].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user1])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user1, self.ad_user_password,
+                    self.master, SELINUX_T1_VERIF)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user1, self.ad_user_password,
+                    self.master, SELINUX_DEFAULT_VERIF, expect_match=False)
+                self.clients[1].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user2])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user2, self.ad_user_password,
+                    self.master, SELINUX_T1_VERIF, expect_match=False)
+            finally:
+                tasks.kinit_admin(self.master)
+                tasks.selinuxusermap_del(
+                    self.master, 'selinuxusermaprule2', raiseonerr=False,
+                )
+
+    def test_selinuxusermap_003_hbac_linked_map(self):
+        """
+        AD user part of hbac rule is allowed to access client with given
+        selinux policy.
+
+        This test runs the same checks for forest-root and subdomain trusted
+        domains. It adds ``hbacrule3_1`` (``sshd`` on ``client1`` for the
+        mapped group) and a SELinux user map linked to that HBAC rule
+        (``staff_u``). It verifies GSSAPI SSH from the master and password
+        SSH from ``client1`` and ``client2``:
+
+        * Mapped user receives ``staff_u`` on ``client1`` where HBAC allows
+          access; other hosts keep the default context.
+        * User not in the map is denied the mapped context on ``client1``.
+        * From ``client2``, password SSH to ``client1`` still applies the
+          HBAC-linked map for the mapped user.
+        """
+        for case in self._selinux_domain_cases():
+            user1 = case['user1']
+            user2 = case['user2']
+            domain = case['domain']
+            self._selinux_cache_reset_all()
+            try:
+                tasks.kdestroy_all(self.master)
+                ssh_with_password(
+                    self.master, user1, self.master.hostname,
+                    self.ad_user_password,
+                )
+                ssh_with_password(
+                    self.master, user2, self.master.hostname,
+                    self.ad_user_password,
+                )
+                tasks.kdestroy_all(self.master)
+                tasks.kinit_admin(self.master)
+
+                tasks.hbacrule_add(self.master, 'hbacrule3_1')
+                tasks.hbacrule_add_user(
+                    self.master, 'hbacrule3_1', groups=case['group1'],
+                )
+                tasks.hbacrule_add_host(
+                    self.master, 'hbacrule3_1', hosts=self.clients[0].hostname,
+                )
+                tasks.hbacrule_add_service(
+                    self.master, 'hbacrule3_1', services='sshd',
+                )
+                tasks.selinuxusermap_add(
+                    self.master, 'selinuxusermap3_1',
+                    [
+                        f'--selinuxuser={SELINUX_T1}',
+                        '--hbacrule=hbacrule3_1',
+                    ],
+                )
+                self._selinux_cache_reset_all()
+
+                self._kinit_trust_user(self.master, user1, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[0], SELINUX_T1_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_DEFAULT_VERIF)
+
+                self._kinit_trust_user(self.master, user2, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[0], SELINUX_T1_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[0], SELINUX_DEFAULT_VERIF)
+
+                tasks.kinit_admin(self.clients[0])
+                self.clients[0].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user1])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user1, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user2, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF, expect_match=False)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[0], user2, self.ad_user_password,
+                    self.clients[0], SELINUX_DEFAULT_VERIF)
+
+                tasks.kinit_admin(self.clients[1])
+                self.clients[1].run_command(
+                    ['getent', '-s', 'sss', 'passwd', user1])
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user1, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF)
+                verify_ssh_auth_selinuxuser(
+                    self.clients[1], user2, self.ad_user_password,
+                    self.clients[0], SELINUX_T1_VERIF, expect_match=False)
+            finally:
+                tasks.kinit_admin(self.master)
+                tasks.selinuxusermap_del(
+                    self.master, 'selinuxusermap3_1', raiseonerr=False,
+                )
+                tasks.hbacrule_del(
+                    self.master, 'hbacrule3_1', raiseonerr=False,
+                )
