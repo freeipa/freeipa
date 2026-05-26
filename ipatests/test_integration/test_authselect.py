@@ -84,10 +84,18 @@ class TestClientInstallation(IntegrationTest):
         cmd.extend(extraargs)
         return self.client.run_command(cmd, raiseonerr=False)
 
+    def _remove_client_host_from_master(self):
+        tasks.kinit_admin(self.master)
+        tasks.host_del(
+            self.master, self.client.hostname, '--updatedns',
+            raiseonerr=False)
+
     def _uninstall_client(self):
-        return self.client.run_command(
+        result = self.client.run_command(
             ['ipa-client-install', '--uninstall', '-U'],
             raiseonerr=False)
+        self._remove_client_host_from_master()
+        return result
 
     def test_install_client_no_preconfigured_profile(self):
         """
