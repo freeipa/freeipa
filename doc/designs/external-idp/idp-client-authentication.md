@@ -255,8 +255,8 @@ only used when `ipaIdpClientAuthMethod` is `private_key_jwt` or
 format, extracted from the PKCS#12 bundle during upload. This contains public
 information only (no private key). This attribute is protected by the "System:
 Read External IdP" permission. Used for displaying certificate metadata
-(subject, issuer, expiration) and for exporting the public certificate without
-requiring access to the PKCS#12 bundle.
+(subject, issuer, expiration) in the webui and for exporting the public
+certificate without requiring access to the PKCS#12 bundle.
 
 #### New Auxiliary Object Class
 
@@ -417,8 +417,6 @@ IdP server" permission):
   - Can see that an IdP entry exists
   - Can read `ipaIdpClientAuthMethod` if present
   - Can read `usercertificate` (public certificate only - no private key)
-  - Can view certificate metadata: subject, issuer, expiration date, serial
-  number
   - Cannot read `userPKCS12` or `ipaIdpClientSecret`
 
 - **Read External IdP server client secret permission** (users with "System:
@@ -611,7 +609,6 @@ To display certificate information (requires "System: Read External IdP"
 permission):
 - Read `usercertificate` attribute directly from LDAP
 - Parse base64-encoded certificate
-- Display metadata: subject, issuer, expiration, serial number, key size
 - Export public certificate to PEM file using `ipa idp-show <name> --out=<file>`
 
 ### Backup and Restore
@@ -649,7 +646,6 @@ Users with the "System: Read External IdP server" permission can:
 - Read `ipaIdpClientAuthMethod` attribute
 - Read `usercertificate` attribute (public certificate only, no private key
 material)
-- View certificate metadata: subject, issuer, expiration, serial number
 - Export public certificates for verification purposes
 
 This permission provides controlled access to IdP configuration data. Even
@@ -809,10 +805,7 @@ ipa idp-show MyIdP
 # Output includes:
 #   Identity Provider server name: MyIdP
 #   Authentication method: private_key_jwt
-#   Certificate subject: CN=ipa-oauth-client.example.com
-#   Certificate issuer: CN=Example CA
-#   Certificate expiration: 2026-03-31 12:00:00 UTC
-#   Certificate serial number: 1234567890ABCDEF
+#   Certificate: MII...
 
 # Export public certificate
 # (requires 'System: Read External IdP' permission)
@@ -905,8 +898,6 @@ ipa idp-mod <name> --client-auth-method private_key_jwt \
    - Test PKCS#12 validation (can be decrypted)
    - Test public certificate display without special permissions
    - Test permission checks for PKCS#12 access (requires special permission)
-   - Verify certificate metadata extraction (subject, issuer, expiration,
-   serial)
 
 ### Integration Tests
 
@@ -1078,7 +1069,7 @@ oidc_child_debug_level=10
 # View public certificate information
 # (requires 'System: Read External IdP server' permission)
 ipa idp-show MyIdP
-# Shows: subject, issuer, expiration, serial number
+# Shows: certificate
 
 # Export and verify certificate
 ipa idp-show MyIdP --out=/tmp/idp-cert.pem
@@ -1103,7 +1094,7 @@ openssl x509 -in /tmp/idp-cert.pem -enddate -noout
 ```bash
 ipa idp-show MyIdP
 # Check Authentication method
-# Certificate subject, issuer, expiration
+# Certificate
 # (requires 'System: Read External IdP server' permission)
 
 # Verify certificate is valid
