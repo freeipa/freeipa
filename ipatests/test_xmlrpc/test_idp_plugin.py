@@ -9,6 +9,7 @@ Test the `ipaserver.plugins.idp` module.
 import datetime
 import os
 import pytest
+import shutil
 import tempfile
 
 from cryptography import x509
@@ -358,12 +359,16 @@ def get_pkcs12_path(subject_cn, password):
 
 @pytest.fixture(scope='class')
 def pkcs12_path():
-    return get_pkcs12_path("ipa-oauth-client", PKCS12PASSWORD)
+    tmpdir = get_pkcs12_path("ipa-oauth-client", PKCS12PASSWORD)
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 @pytest.fixture(scope='class')
 def pkcs12_new_path():
-    return get_pkcs12_path("ipa-new-oauth-client", PKCS12PASSWORD)
+    tmpdir = get_pkcs12_path("ipa-new-oauth-client", PKCS12PASSWORD)
+    yield tmpdir
+    shutil.rmtree(tmpdir)
 
 
 def read_pkcs12(p12file):
