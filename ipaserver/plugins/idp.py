@@ -251,7 +251,7 @@ class idp(LDAPObject):
                 'ipaidptokenendpoint', 'ipaidpkeysendpoint',
                 'ipaidpissuerurl', 'ipaidpclientid', 'ipaidpscope',
                 'ipaidpclientsecret', 'ipaidpsub', 'ipaidpclientauthmethod',
-                'usercertificate',
+                'usercertificate', 'userpkcs12',
             },
             'default_privileges': {'External IdP server Administrators'}
         },
