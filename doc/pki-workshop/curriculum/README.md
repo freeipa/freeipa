@@ -2,7 +2,11 @@
 
 ## Building and deploying the curriculum website
 
-1. Update values in `subst.txt` to match:
+1. Update values in `subst.txt` (locally; don't commit):
+
+    - `EDITION` is the event or conference name, e.g.
+      "DevConf.CZ 2026"
+
     - `BASE_REALM` and `BASE_DOMAIN` match the parent domain of the
       cloud environments.
 

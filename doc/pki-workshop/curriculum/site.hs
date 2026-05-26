@@ -93,6 +93,7 @@ context =
   <> snapshotField "title" "title"
   <> snapshotField "fancyTitle" "fancyTitle"
   <> constField "siteTitle" siteTitle
+  <> substField "edition" "EDITION"
   <> urlFieldNoVersion "url0"
   <> defaultContext
 
@@ -104,6 +105,16 @@ snapshotField
   -> Context String   -- ^ Resulting context
 snapshotField key snap = field key $ \item ->
   loadSnapshotBody (setVersion (Just "recent") (itemIdentifier item)) snap
+
+
+-- | Get a field value from subst.txt
+substField :: String -> Text -> Context a
+substField key substKey = field key $ \_ -> do
+  substBody <- loadBody "subst.txt"
+  let substMap = parseSubstitutions substBody
+  case M.lookup substKey substMap of
+    Just val -> pure (T.unpack val)
+    Nothing -> fail $ "Key not found in subst.txt: " <> T.unpack substKey
 
 
 -- | Set a url field that looks for url of non-versioned identifier

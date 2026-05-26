@@ -1,3 +1,4 @@
+EDITION=TODO.CONF 2026
 BASE_REALM=PKI.EXAMPLE.COM
 BASE_DOMAIN=pki.example.com
 CNAME_DOMAIN=pki-workshop.example.com

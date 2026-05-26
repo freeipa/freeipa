@@ -116,7 +116,8 @@ user account.
 If you use OpenSSH, the login command is:
 
 ```command
-ssh -i path/to/key.pem fedora@client.e$N.__BASE_DOMAIN__
+ssh -i path/to/key.pem \
+    fedora@client.e$N.__BASE_DOMAIN__
 ```
 
 You will need to change the permissions on the key file:
