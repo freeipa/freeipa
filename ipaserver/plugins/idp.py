@@ -594,7 +594,13 @@ class idp_mod(LDAPUpdate):
                     if 'userpkcs12' not in entry_attrs:
                         raise errors.RequirementError(
                             name='client-cert-p12-file')
-
+        else:
+            # Didn't change authentication method
+            if old_meth == "client_secret":
+                if 'userpkcs12' in entry_attrs:
+                    raise errors.MutuallyExclusiveError(
+                        reason=_('cannot use client_secret authentication '
+                                 'and client-cert-p12-file'))
         # Drop the auth method if it is client secret
         # as it is the default value
         if new_meth == 'client_secret':
