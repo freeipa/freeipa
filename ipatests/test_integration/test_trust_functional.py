@@ -21,6 +21,12 @@ PLUGIN_CONF = "/var/lib/sss/pubconf/krb5.include.d/localauth_plugin"
 SELINUX_DEFAULT_VERIF = r'unconfined_u:.*s0-s0:c0.c1023'
 SELINUX_T1 = 'staff_u:s0-s0:c0.c1023'
 SELINUX_T1_VERIF = r'staff_u:.*s0-s0:c0.c1023'
+SELINUX_T2 = 'user_u:s0'
+SELINUX_T2_VERIF = r'user_u:.*s0'
+SELINUX_T3 = 'xguest_u:s0'
+SELINUX_T3_VERIF = r'xguest_u:.*s0'
+SELINUX_T4 = 'guest_u:s0'
+SELINUX_T4_VERIF = r'guest_u:.*s0'
 
 
 def xfail_fedora_sssd_before_2_12(host):
@@ -177,7 +183,7 @@ def _ssh_id_z_over_gssapi(host, login, target_hostname, retries=10):
     :param target_hostname: Hostname to connect to.
     :param retries: Number of attempts before failing (default 10).
     :returns: ``stdout`` from a successful ``id -Z`` run.
-    :raises AssertionError: If SSH does not succeed within ``retries`` attempts.
+    :raises AssertionError: If SSH fails within ``retries`` attempts.
     """
     for _attempt in range(retries):
         result = host.run_command(
@@ -2747,6 +2753,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
         for host in (cls.master, *cls.clients):
             tasks.clear_sssd_cache(host)
             tasks.wait_for_sssd_domain_status_online(host)
+        # give time to SSSD to retrieve new records (HBAC, selinux maps, trust)
+        time.sleep(30)
 
     @classmethod
     def _selinux_domain_cases(cls):
@@ -2783,6 +2791,63 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
         tasks.kdestroy_all(host)
         tasks.kinit_as_user(host, upn, self.ad_user_password)
 
+    def _warmup_sssd_trust_user_on_hosts(self, user, group1):
+        """Prime SSSD on master and clients with trust user and HBAC group.
+
+        :param user: AD user FQDN.
+        :param group1: IPA POSIX group name.
+        """
+        for host in (self.master, *self.clients):
+            host.run_command(['getent', '-s', 'sss', 'group', group1])
+            host.run_command(['getent', '-s', 'sss', 'passwd', user])
+            # Force initgroups resolution used later by PAM/HBAC checks.
+            host.run_command(['id', user])
+
+    def _verify_password_ssh_selinux_from(self, source_host, user, checks):
+        """Run password SSH from source_host and verify SELinux context.
+
+        :param source_host: Host that initiates SSH.
+        :param user: AD user login name.
+        :param checks: List of target host, SELinux pattern, and whether the
+            pattern should match.
+        """
+        tasks.kinit_admin(source_host)
+        source_host.run_command(['getent', '-s', 'sss', 'passwd', user])
+        for target_host, selinux_user, expect_match in checks:
+            verify_ssh_auth_selinuxuser(
+                source_host, user, self.ad_user_password,
+                target_host, selinux_user,
+                expect_match=expect_match,
+            )
+
+    def _verify_password_ssh_access(
+        self, source_host, user, checks, selinux_verification=None,
+    ):
+        """Run password SSH from source_host with optional SELinux check.
+
+        :param source_host: Host that initiates SSH.
+        :param user: AD user login name.
+        :param checks: List of target host and whether SSH should succeed.
+        :param selinux_verification: Optional single check before SSH
+            attempts: target host, SELinux pattern, and whether the pattern
+            should match.
+        """
+        tasks.kinit_admin(source_host)
+        source_host.run_command(['getent', '-s', 'sss', 'passwd', user])
+        if selinux_verification is not None:
+            target_host, selinux_user, expect_match = selinux_verification
+            verify_ssh_auth_selinuxuser(
+                source_host, user, self.ad_user_password,
+                target_host, selinux_user,
+                expect_match=expect_match,
+            )
+        for target_host, expect_success in checks:
+            ssh_with_password(
+                source_host, user, target_host.hostname,
+                self.ad_user_password,
+                expect_success=expect_success,
+            )
+
     @classmethod
     def _setup_selinux_groups(cls, case):
         """Create external IPA groups and POSIX groups for one AD domain.
@@ -2792,6 +2857,12 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
             group name keys used by the selinux user map tests.
         """
         tasks.kinit_admin(cls.master)
+        for user in (case['user1'], case['user2']):
+            result = cls.master.run_command(['id', user])
+            assert user in result.stdout_text, (
+                f'Trust user {user!r} not resolved before group setup: '
+                f'{result.stdout_text!r}'
+            )
         for ext, posix, user in (
             (case['group1_ext'], case['group1'], case['user1']),
             (case['group2_ext'], case['group2'], case['user2']),
@@ -2804,6 +2875,11 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 cls.master, ext,
                 extra_args=[f'--external={user}'],
                 noninteractive=True,
+            )
+            result = cls.master.run_command(['ipa', 'group-show', ext])
+            assert user in result.stdout_text, (
+                f'External member {user!r} not in group {ext!r}: '
+                f'{result.stdout_text!r}'
             )
             tasks.group_add_member(
                 cls.master, posix, extra_args=[f'--groups={ext}'],
@@ -2836,6 +2912,10 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
           SSH to ``client2`` uses the default context.
         """
         for case in self._selinux_domain_cases():
+            user1 = case['user1']
+            user2 = case['user2']
+            domain = case['domain']
+            group1 = case['group1']
             self._selinux_cache_reset_all()
             tasks.kinit_admin(self.master)
             try:
@@ -2845,7 +2925,7 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 tasks.selinuxusermap_add_user(
                     self.master, 'selinuxusermaprule1',
-                    groups=case['group1'],
+                    groups=group1,
                 )
                 tasks.selinuxusermap_add_hosts(
                     self.master, 'selinuxusermaprule1',
@@ -2853,9 +2933,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 self._selinux_cache_reset_all()
 
-                user1 = case['user1']
-                user2 = case['user2']
-                domain = case['domain']
                 self._kinit_trust_user(self.master, user1, domain)
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user1, self.clients[0], SELINUX_T1_VERIF)
@@ -2920,6 +2997,10 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
           a user outside the map is denied the mapped context on the master.
         """
         for case in self._selinux_domain_cases():
+            user1 = case['user1']
+            user2 = case['user2']
+            domain = case['domain']
+            group1 = case['group1']
             self._selinux_cache_reset_all()
             tasks.kinit_admin(self.master)
             try:
@@ -2929,7 +3010,7 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 tasks.selinuxusermap_add_user(
                     self.master, 'selinuxusermaprule2',
-                    groups=case['group1'],
+                    groups=group1,
                 )
                 tasks.selinuxusermap_add_hosts(
                     self.master, 'selinuxusermaprule2',
@@ -2937,9 +3018,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 self._selinux_cache_reset_all()
 
-                user1 = case['user1']
-                user2 = case['user2']
-                domain = case['domain']
                 self._kinit_trust_user(self.master, user1, domain)
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user1, self.master, SELINUX_T1_VERIF)
@@ -3016,6 +3094,7 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
             user1 = case['user1']
             user2 = case['user2']
             domain = case['domain']
+            group1 = case['group1']
             self._selinux_cache_reset_all()
             try:
                 tasks.kdestroy_all(self.master)
@@ -3032,7 +3111,7 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
 
                 tasks.hbacrule_add(self.master, 'hbacrule3_1')
                 tasks.hbacrule_add_user(
-                    self.master, 'hbacrule3_1', groups=case['group1'],
+                    self.master, 'hbacrule3_1', groups=group1,
                 )
                 tasks.hbacrule_add_host(
                     self.master, 'hbacrule3_1', hosts=self.clients[0].hostname,
@@ -3094,6 +3173,742 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 tasks.hbacrule_del(
                     self.master, 'hbacrule3_1', raiseonerr=False,
+                )
+                self._selinux_cache_reset_all()
+
+    def test_selinuxusermap_004_evaluating_rules(self):
+        """
+        Evaluate precedence when multiple SELinux user maps apply.
+
+        This test runs the same checks for forest-root and subdomain trusted
+        domains. It creates overlapping SELinux user maps linked to HBAC
+        rules with different specificity, then verifies map precedence via
+        GSSAPI SSH from the master and password SSH from both clients.
+        Sub-scenarios remove maps in order (004_2 through 004_4) and re-check
+        that the next applicable map applies.
+        """
+        for case in self._selinux_domain_cases():
+            user1 = case['user1']
+            user2 = case['user2']
+            domain = case['domain']
+            group1 = case['group1']
+            tasks.kinit_admin(self.master)
+            try:
+                # 004 setup: restrict HBAC and add maps
+                tasks.hbacrule_add(
+                    self.master, 'admin_allow_all',
+                    ['--hostcat=all', '--servicecat=all'],
+                )
+                tasks.hbacrule_add_user(
+                    self.master, 'admin_allow_all', groups='admins',
+                )
+                tasks.hbacrule_disable(self.master, 'allow_all')
+
+                # selinuxusermap4_0: all users/services/hosts (allow_all)
+                tasks.selinuxusermap_add(
+                    self.master, 'selinuxusermap4_0',
+                    [f'--selinuxuser={SELINUX_T3}'],
+                )
+                tasks.selinuxusermap_mod(
+                    self.master, 'selinuxusermap4_0',
+                    ['--hbacrule=allow_all'],
+                )
+
+                # hbacrule4_1: group1 users, all hosts, all services
+                tasks.hbacrule_add(
+                    self.master, 'hbacrule4_1',
+                    ['--servicecat=all', '--hostcat=all'],
+                )
+                tasks.hbacrule_add_user(
+                    self.master, 'hbacrule4_1', groups=group1,
+                )
+                # selinuxusermap4_1: linked to hbacrule4_1
+                tasks.selinuxusermap_add(
+                    self.master, 'selinuxusermap4_1',
+                    [f'--selinuxuser={SELINUX_T2}'],
+                )
+                tasks.selinuxusermap_mod(
+                    self.master, 'selinuxusermap4_1',
+                    ['--hbacrule=hbacrule4_1'],
+                )
+
+                # hbacrule4_2: group1 users, sshd on client1 only
+                tasks.hbacrule_add(self.master, 'hbacrule4_2')
+                tasks.hbacrule_add_user(
+                    self.master, 'hbacrule4_2', groups=group1,
+                )
+                tasks.hbacrule_add_host(
+                    self.master, 'hbacrule4_2', hosts=self.clients[0].hostname,
+                )
+                tasks.hbacrule_add_service(
+                    self.master, 'hbacrule4_2', services='sshd',
+                )
+                # selinuxusermap4_2: linked to hbacrule4_2 (most specific)
+                tasks.selinuxusermap_add(
+                    self.master, 'selinuxusermap4_2',
+                    [
+                        f'--selinuxuser={SELINUX_T1}',
+                        '--hbacrule=hbacrule4_2',
+                    ],
+                )
+                self._selinux_cache_reset_all()
+                self._warmup_sssd_trust_user_on_hosts(user1, group1)
+
+                with xfail_context(
+                    osinfo.id == 'fedora'
+                    and tasks.get_sssd_version(self.master)
+                    == parse_version('2.12.0'),
+                    reason=(
+                        "Fix available after 2.12.0; "
+                        "https://github.com/SSSD/sssd/issues/7921"
+                    ),
+                ):
+                    # 004: user1 in group1 - T1 map on client1
+                    # 004: GSSAPI SSH from master
+                    self._kinit_trust_user(self.master, user1, domain)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[0], SELINUX_T1_VERIF)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.master, SELINUX_T1_VERIF,
+                        expect_match=False)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.master, SELINUX_T2_VERIF)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[1], SELINUX_T1_VERIF,
+                        expect_match=False)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[1], SELINUX_T2_VERIF)
+
+                    # 004: password SSH from client1
+                    self._verify_password_ssh_selinux_from(
+                        self.clients[0], user1,
+                        (
+                            (self.clients[0], SELINUX_T1_VERIF, True),
+                            (self.clients[0], SELINUX_T2_VERIF, False),
+                            (self.master, SELINUX_T2_VERIF, True),
+                            (self.clients[1], SELINUX_T2_VERIF, True),
+                        ),
+                    )
+
+                    # 004: password SSH from client2
+                    self._verify_password_ssh_selinux_from(
+                        self.clients[1], user1,
+                        (
+                            (self.clients[0], SELINUX_T2_VERIF, False),
+                            (self.clients[0], SELINUX_T1_VERIF, True),
+                            (self.master, SELINUX_T2_VERIF, True),
+                            (self.clients[1], SELINUX_T2_VERIF, True),
+                        ),
+                    )
+
+                    # 004_2 setup: remove selinuxusermap4_2 and hbacrule4_2
+                    tasks.kinit_admin(self.master)
+                    tasks.selinuxusermap_del(self.master, 'selinuxusermap4_2')
+                    tasks.hbacrule_del(self.master, 'hbacrule4_2')
+                    self._selinux_cache_reset_all()
+
+                    # 004_2: user1 - hbacrule4_1 map (T2) applies on client1
+                    # 004_2: GSSAPI SSH from master
+                    self._kinit_trust_user(self.master, user1, domain)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[0], SELINUX_T2_VERIF)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[0], SELINUX_T1_VERIF,
+                        expect_match=False)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.master, SELINUX_T1_VERIF,
+                        expect_match=False)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.master, SELINUX_T2_VERIF)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[1], SELINUX_T1_VERIF,
+                        expect_match=False)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user1, self.clients[1], SELINUX_T2_VERIF)
+
+                    # 004_2: password SSH from client1
+                    self._verify_password_ssh_selinux_from(
+                        self.clients[0], user1,
+                        (
+                            (self.clients[0], SELINUX_T2_VERIF, True),
+                            (self.clients[0], SELINUX_DEFAULT_VERIF, False),
+                            (self.master, SELINUX_T2_VERIF, True),
+                            (self.clients[1], SELINUX_T2_VERIF, True),
+                        ),
+                    )
+
+                    # 004_2: password SSH from client2
+                    self._verify_password_ssh_selinux_from(
+                        self.clients[1], user1,
+                        (
+                            (self.clients[0], SELINUX_T2_VERIF, True),
+                            (self.clients[0], SELINUX_DEFAULT_VERIF, False),
+                            (self.master, SELINUX_T2_VERIF, True),
+                            (self.clients[1], SELINUX_T2_VERIF, True),
+                        ),
+                    )
+
+                    # 004_3 setup: drop map4_1/hbacrule4_1, enable allow_all
+                    tasks.kinit_admin(self.master)
+                    tasks.selinuxusermap_del(self.master, 'selinuxusermap4_1')
+                    tasks.hbacrule_del(self.master, 'hbacrule4_1')
+                    tasks.hbacrule_enable(self.master, 'allow_all')
+                    self._selinux_cache_reset_all()
+                    self._warmup_sssd_trust_user_on_hosts(user1, group1)
+
+                    # 004_3: user1 - allow_all map (T3) on all hosts
+                    self._kinit_trust_user(self.master, user1, domain)
+                    for host in (
+                        self.clients[0], self.master, self.clients[1],
+                    ):
+                        verify_ssh_selinuxuser_with_krbcred(
+                            self.master, user1, host, SELINUX_T3_VERIF)
+                        verify_ssh_selinuxuser_with_krbcred(
+                            self.master, user1, host, SELINUX_T1_VERIF,
+                            expect_match=False)
+                        verify_ssh_selinuxuser_with_krbcred(
+                            self.master, user1, host, SELINUX_T2_VERIF,
+                            expect_match=False)
+
+                    # 004_3: user2 in group2 - T3 on client1, not T2 on master
+                    self._kinit_trust_user(self.master, user2, domain)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user2, self.clients[0], SELINUX_T3_VERIF)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user2, self.master, SELINUX_T2_VERIF,
+                        expect_match=False)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user2, self.master, SELINUX_T3_VERIF)
+
+                    # 004_3: password SSH from client1 (user1 and user2)
+                    tasks.kinit_admin(self.clients[0])
+                    self.clients[0].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user1])
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[0], user1, self.ad_user_password,
+                        self.clients[0], SELINUX_T3_VERIF)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[0], user1, self.ad_user_password,
+                        self.clients[0], SELINUX_DEFAULT_VERIF,
+                        expect_match=False)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[0], user1, self.ad_user_password,
+                        self.clients[0], SELINUX_T2_VERIF,
+                        expect_match=False)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[0], user1, self.ad_user_password,
+                        self.master, SELINUX_T3_VERIF)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[0], user1, self.ad_user_password,
+                        self.clients[1], SELINUX_T3_VERIF)
+                    self.clients[0].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user2])
+                    for host in (
+                        self.clients[0], self.clients[1], self.master,
+                    ):
+                        verify_ssh_auth_selinuxuser(
+                            self.clients[0], user2, self.ad_user_password,
+                            host, SELINUX_T3_VERIF)
+
+                    # 004_3: password SSH from client2 (user1 and user2)
+                    tasks.kinit_admin(self.clients[1])
+                    self.clients[1].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user1])
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[1], user1, self.ad_user_password,
+                        self.clients[0], SELINUX_T3_VERIF)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[1], user1, self.ad_user_password,
+                        self.clients[0], SELINUX_DEFAULT_VERIF,
+                        expect_match=False)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[1], user1, self.ad_user_password,
+                        self.clients[0], SELINUX_T2_VERIF,
+                        expect_match=False)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[1], user1, self.ad_user_password,
+                        self.master, SELINUX_T3_VERIF)
+                    verify_ssh_auth_selinuxuser(
+                        self.clients[1], user1, self.ad_user_password,
+                        self.clients[1], SELINUX_T3_VERIF)
+                    self.clients[1].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user2])
+                    for host in (
+                        self.clients[0], self.master, self.clients[1],
+                    ):
+                        verify_ssh_auth_selinuxuser(
+                            self.clients[1], user2, self.ad_user_password,
+                            host, SELINUX_T3_VERIF)
+
+                    # 004_4 setup: remove selinuxusermap4_0 (allow_all map)
+                    tasks.kinit_admin(self.master)
+                    tasks.selinuxusermap_del(self.master, 'selinuxusermap4_0')
+                    self._selinux_cache_reset_all()
+
+                    # 004_4: user1 and user2 - default SELinux on all hosts
+                    for user in (user1, user2):
+                        self._kinit_trust_user(self.master, user, domain)
+                        for host in (
+                            self.clients[0], self.master, self.clients[1],
+                        ):
+                            verify_ssh_selinuxuser_with_krbcred(
+                                self.master, user, host, SELINUX_DEFAULT_VERIF)
+
+                    # 004_4: password SSH from client1 (user1 and user2)
+                    tasks.kinit_admin(self.clients[0])
+                    self.clients[0].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user1])
+                    for host in (
+                        self.clients[0], self.master, self.clients[1],
+                    ):
+                        verify_ssh_auth_selinuxuser(
+                            self.clients[0], user1, self.ad_user_password,
+                            host, SELINUX_DEFAULT_VERIF)
+
+                    self.clients[0].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user2])
+                    for host in (
+                        self.clients[0], self.clients[1], self.master,
+                    ):
+                        verify_ssh_auth_selinuxuser(
+                            self.clients[0], user2, self.ad_user_password,
+                            host, SELINUX_DEFAULT_VERIF)
+
+                    # 004_4: password SSH from client2 (user1 and user2)
+                    tasks.kinit_admin(self.clients[1])
+                    self.clients[1].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user1])
+                    for host in (
+                        self.clients[0], self.master, self.clients[1],
+                    ):
+                        verify_ssh_auth_selinuxuser(
+                            self.clients[1], user1, self.ad_user_password,
+                            host, SELINUX_DEFAULT_VERIF)
+
+                    self.clients[1].run_command(
+                        ['getent', '-s', 'sss', 'passwd', user2])
+                    for host in (
+                        self.clients[0], self.master, self.clients[1],
+                    ):
+                        verify_ssh_auth_selinuxuser(
+                            self.clients[1], user2, self.ad_user_password,
+                            host, SELINUX_DEFAULT_VERIF)
+            finally:
+                # Cleanup 004 (ipa_trust_func_selinuxusermap_004_4 cleanup)
+                tasks.kinit_admin(self.master)
+                tasks.hbacrule_del(
+                    self.master, 'admin_allow_all', raiseonerr=False,
+                )
+                for name in (
+                    'selinuxusermap4_0', 'selinuxusermap4_1',
+                    'selinuxusermap4_2',
+                ):
+                    tasks.selinuxusermap_del(
+                        self.master, name, raiseonerr=False,
+                    )
+                for name in ('hbacrule4_1', 'hbacrule4_2'):
+                    tasks.hbacrule_del(
+                        self.master, name, raiseonerr=False,
+                    )
+                tasks.hbacrule_enable(
+                    self.master, 'allow_all', raiseonerr=False,
+                )
+
+    def test_selinuxusermap_005_hostgroup_map(self):
+        """
+        Test SELinux user map scoped to a hostgroup.
+
+        This test runs the same checks for forest-root and subdomain trusted
+        domains. It creates a SELinux user map for members of the test group,
+        limited to hosts in ``hostgrp1`` (``client2``), then verifies SSH
+        from the master (GSSAPI) and from both clients (password). Sub-scenario
+        005_2 removes the group from the map and confirms the default context.
+        """
+        for case in self._selinux_domain_cases():
+            user1 = case['user1']
+            user2 = case['user2']
+            domain = case['domain']
+            group2 = case['group2']
+            self._selinux_cache_reset_all()
+            try:
+                # 005 setup: hostgroup and host-scoped map
+                tasks.kdestroy_all(self.master)
+                ssh_with_password(
+                    self.master, user1, self.master.hostname,
+                    self.ad_user_password,
+                )
+                ssh_with_password(
+                    self.master, user2, self.master.hostname,
+                    self.ad_user_password,
+                )
+                tasks.kdestroy_all(self.master)
+                tasks.kinit_admin(self.master)
+                self.master.run_command([
+                    'ipa', 'hostgroup-add', 'hostgrp1', '--desc=hostgrp1',
+                ])
+                self.master.run_command([
+                    'ipa', 'hostgroup-add-member', 'hostgrp1',
+                    f'--hosts={self.clients[1].hostname}',
+                ])
+                # test_user_specific_hostgroup: group2, T4 on hostgrp1
+                tasks.selinuxusermap_add(
+                    self.master, 'test_user_specific_hostgroup',
+                    [f'--selinuxuser={SELINUX_T4}'],
+                )
+                tasks.selinuxusermap_add_hosts(
+                    self.master, 'test_user_specific_hostgroup',
+                    extra_args=['--hostgroups=hostgrp1'],
+                )
+                tasks.selinuxusermap_add_user(
+                    self.master, 'test_user_specific_hostgroup',
+                    groups=group2,
+                )
+                self._selinux_cache_reset_all()
+
+                # 005: user2 (group2) - T4 on client2 only
+                # 005: GSSAPI SSH from master
+                self._kinit_trust_user(self.master, user2, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[1], SELINUX_T4_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[0], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.master, SELINUX_DEFAULT_VERIF)
+
+                # 005: user1 (group1) - default context (not in map group)
+                self._kinit_trust_user(self.master, user1, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_T4_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[0], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.master, SELINUX_DEFAULT_VERIF)
+
+                # 005: password SSH from client1
+                self._verify_password_ssh_selinux_from(
+                    self.clients[0], user2,
+                    (
+                        (self.clients[1], SELINUX_T4_VERIF, True),
+                        (self.clients[0], SELINUX_T4_VERIF, False),
+                        (self.master, SELINUX_T4_VERIF, False),
+                    ),
+                )
+                self._verify_password_ssh_selinux_from(
+                    self.clients[0], user1,
+                    (
+                        (self.clients[1], SELINUX_T4_VERIF, False),
+                        (self.clients[1], SELINUX_DEFAULT_VERIF, True),
+                        (self.clients[0], SELINUX_DEFAULT_VERIF, True),
+                        (self.master, SELINUX_DEFAULT_VERIF, True),
+                    ),
+                )
+
+                # 005: password SSH from client2
+                self._verify_password_ssh_selinux_from(
+                    self.clients[1], user2,
+                    (
+                        (self.clients[1], SELINUX_T4_VERIF, True),
+                        (self.clients[0], SELINUX_T4_VERIF, False),
+                        (self.master, SELINUX_T4_VERIF, False),
+                    ),
+                )
+                self._verify_password_ssh_selinux_from(
+                    self.clients[1], user1,
+                    (
+                        (self.clients[1], SELINUX_T4_VERIF, False),
+                        (self.clients[1], SELINUX_DEFAULT_VERIF, True),
+                        (self.clients[0], SELINUX_DEFAULT_VERIF, True),
+                        (self.master, SELINUX_DEFAULT_VERIF, True),
+                    ),
+                )
+
+                # 005_2 setup: remove group2 from selinuxusermap
+                self._selinux_cache_reset_all()
+                tasks.kinit_admin(self.master)
+                tasks.selinuxusermap_remove_user(
+                    self.master, 'test_user_specific_hostgroup',
+                    groups=group2,
+                )
+                self._selinux_cache_reset_all()
+
+                # 005_2: user2 - default context after removal from map
+                # 005_2: GSSAPI SSH from master
+                self._kinit_trust_user(self.master, user2, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[1], SELINUX_T4_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[1], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.clients[0], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user2, self.master, SELINUX_DEFAULT_VERIF)
+
+                # 005_2: user1 - default context on all hosts
+                self._kinit_trust_user(self.master, user1, domain)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_T4_VERIF,
+                    expect_match=False)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[1], SELINUX_DEFAULT_VERIF)
+                verify_ssh_selinuxuser_with_krbcred(
+                    self.master, user1, self.clients[0], SELINUX_DEFAULT_VERIF)
+
+                # 005_2: password SSH from client1
+                self._verify_password_ssh_selinux_from(
+                    self.clients[0], user2,
+                    (
+                        (self.clients[1], SELINUX_T4_VERIF, False),
+                        (self.clients[1], SELINUX_DEFAULT_VERIF, True),
+                        (self.clients[0], SELINUX_DEFAULT_VERIF, True),
+                        (self.master, SELINUX_DEFAULT_VERIF, True),
+                    ),
+                )
+                self._verify_password_ssh_selinux_from(
+                    self.clients[0], user1,
+                    (
+                        (self.clients[1], SELINUX_DEFAULT_VERIF, True),
+                        (self.clients[0], SELINUX_DEFAULT_VERIF, True),
+                        (self.master, SELINUX_DEFAULT_VERIF, True),
+                    ),
+                )
+
+                # 005_2: password SSH from client2
+                self._verify_password_ssh_selinux_from(
+                    self.clients[1], user2,
+                    (
+                        (self.clients[1], SELINUX_T4_VERIF, False),
+                        (self.clients[1], SELINUX_DEFAULT_VERIF, True),
+                        (self.master, SELINUX_DEFAULT_VERIF, True),
+                    ),
+                )
+                self._verify_password_ssh_selinux_from(
+                    self.clients[1], user1,
+                    (
+                        (self.clients[1], SELINUX_DEFAULT_VERIF, True),
+                        (self.clients[0], SELINUX_DEFAULT_VERIF, True),
+                        (self.master, SELINUX_DEFAULT_VERIF, True),
+                    ),
+                )
+            finally:
+                # Cleanup 005 (ipa_trust_func_selinuxusermap_005 cleanup)
+                tasks.kinit_admin(self.master)
+                self.master.run_command(
+                    ['ipa', 'hostgroup-del', 'hostgrp1'], raiseonerr=False
+                )
+                tasks.selinuxusermap_del(
+                    self.master,
+                    'test_user_specific_hostgroup',
+                    raiseonerr=False,
+                )
+
+    def test_selinuxusermap_006_hbac_hostgroup_map(self):
+        """
+        Test HBAC hostgroup rule with linked SELinux user map.
+
+        This test runs the same checks for forest-root and subdomain trusted
+        domains. It disables ``allow_all``, adds HBAC rule ``rule6`` scoped
+        to a hostgroup, and links a SELinux user map. It verifies mapped users
+        can SSH to allowed hosts with the expected context; sub-scenario
+        006_2 removes the group from the HBAC rule and denies access.
+        """
+        for case in self._selinux_domain_cases():
+            user1 = case['user1']
+            user2 = case['user2']
+            domain = case['domain']
+            group1 = case['group1']
+            group2 = case['group2']
+            self._selinux_cache_reset_all()
+            try:
+                # 006 setup: HBAC rule6 and linked map
+                tasks.kdestroy_all(self.master)
+                ssh_with_password(
+                    self.master, user1, self.master.hostname,
+                    self.ad_user_password,
+                )
+                ssh_with_password(
+                    self.master, user2, self.master.hostname,
+                    self.ad_user_password,
+                )
+                tasks.kdestroy_all(self.master)
+                tasks.kinit_admin(self.master)
+                tasks.hbacrule_disable(self.master, 'allow_all')
+                self.master.run_command([
+                    'ipa', 'hostgroup-add', 'hostgrp1', '--desc=hostgrp1',
+                ])
+                self.master.run_command([
+                    'ipa', 'hostgroup-add-member', 'hostgrp1',
+                    f'--hosts={self.clients[1].hostname}',
+                ])
+                # rule6: group2 users, sshd on hostgrp1 (client2)
+                tasks.hbacrule_add(self.master, 'rule6')
+                tasks.hbacrule_add_service(
+                    self.master, 'rule6', services='sshd',
+                )
+                tasks.hbacrule_add_user(
+                    self.master, 'rule6', groups=group2,
+                )
+                tasks.hbacrule_add_host(
+                    self.master, 'rule6',
+                    extra_args=['--hostgroups=hostgrp1'],
+                )
+                # test_user_specific_hostgroup: T1 linked to rule6
+                tasks.selinuxusermap_add(
+                    self.master, 'test_user_specific_hostgroup',
+                    [
+                        f'--selinuxuser={SELINUX_T1}',
+                        '--hbacrule=rule6',
+                    ],
+                )
+                self._selinux_cache_reset_all()
+                self._warmup_sssd_trust_user_on_hosts(user2, group2)
+                self._warmup_sssd_trust_user_on_hosts(user1, group1)
+
+                with xfail_context(
+                    osinfo.id == 'fedora'
+                    and tasks.get_sssd_version(self.master)
+                    == parse_version('2.12.0'),
+                    reason=(
+                        "Fix available after 2.12.0; "
+                        "https://github.com/SSSD/sssd/issues/7921"
+                    ),
+                ):
+                    # 006: user2 (group2) - T1 on client2 via HBAC-linked map
+                    # 006: GSSAPI SSH from master
+                    self._kinit_trust_user(self.master, user2, domain)
+                    verify_ssh_selinuxuser_with_krbcred(
+                        self.master, user2, self.clients[1], SELINUX_T1_VERIF)
+                    # 006: password SSH from master (HBAC allows client2 only)
+                    tasks.kdestroy_all(self.master)
+                    ssh_with_password(
+                        self.master, user2, self.clients[1].hostname,
+                        self.ad_user_password,
+                    )
+                    ssh_with_password(
+                        self.master, user1, self.clients[1].hostname,
+                        self.ad_user_password, expect_success=False,
+                    )
+                    ssh_with_password(
+                        self.master, user2, self.master.hostname,
+                        self.ad_user_password, expect_success=False,
+                    )
+
+                    # 006: password SSH from client1
+                    self._verify_password_ssh_access(
+                        self.clients[0], user2,
+                        (
+                            (self.master, False),
+                            (self.clients[1], True),
+                        ),
+                        selinux_verification=(
+                            self.clients[1], SELINUX_T1_VERIF, True,
+                        ),
+                    )
+                    self._verify_password_ssh_access(
+                        self.clients[0], user1,
+                        (
+                            (self.clients[1], False),
+                            (self.master, False),
+                        ),
+                    )
+
+                    # 006: password SSH from client2
+                    self._verify_password_ssh_access(
+                        self.clients[1], user2,
+                        (
+                            (self.clients[0], False),
+                            (self.master, False),
+                            (self.clients[1], True),
+                        ),
+                        selinux_verification=(
+                            self.clients[1], SELINUX_T1_VERIF, True,
+                        ),
+                    )
+                    self._verify_password_ssh_access(
+                        self.clients[1], user1,
+                        (
+                            (self.clients[0], False),
+                            (self.clients[1], False),
+                            (self.master, False),
+                        ),
+                    )
+
+                    # 006_2 setup: remove group2 from rule6
+                    tasks.kinit_admin(self.master)
+                    tasks.hbacrule_remove_user(
+                        self.master, 'rule6', groups=group2,
+                    )
+                    self._selinux_cache_reset_all()
+                    self._warmup_sssd_trust_user_on_hosts(user2, group2)
+                    self._warmup_sssd_trust_user_on_hosts(user1, group1)
+
+                    # 006_2: user2 and user1 - SSH denied on all hosts
+                    # 006_2: password SSH from master
+                    tasks.kdestroy_all(self.master)
+                    for user in (user2, user1):
+                        ssh_with_password(
+                            self.master, user, self.clients[1].hostname,
+                            self.ad_user_password, expect_success=False,
+                        )
+                        ssh_with_password(
+                            self.master, user, self.clients[0].hostname,
+                            self.ad_user_password, expect_success=False,
+                        )
+                        ssh_with_password(
+                            self.master, user, self.master.hostname,
+                            self.ad_user_password, expect_success=False,
+                        )
+
+                    # 006_2: password SSH from client1
+                    self._verify_password_ssh_access(
+                        self.clients[0], user2,
+                        (
+                            (self.clients[1], False),
+                            (self.master, False),
+                        ),
+                    )
+                    self._verify_password_ssh_access(
+                        self.clients[0], user1,
+                        (
+                            (self.clients[1], False),
+                            (self.master, False),
+                        ),
+                    )
+
+                    # 006_2: password SSH from client2
+                    self._verify_password_ssh_access(
+                        self.clients[1], user2,
+                        (
+                            (self.clients[1], False),
+                            (self.clients[0], False),
+                            (self.master, False),
+                        ),
+                    )
+                    self._verify_password_ssh_access(
+                        self.clients[1], user1,
+                        (
+                            (self.clients[1], False),
+                            (self.clients[0], False),
+                            (self.master, False),
+                        ),
+                    )
+            finally:
+                # Cleanup 006 (ipa_trust_func_selinuxusermap_006 cleanup)
+                tasks.kinit_admin(self.master)
+                self.master.run_command(
+                    ['ipa', 'hostgroup-del', 'hostgrp1'], raiseonerr=False
+                )
+                tasks.selinuxusermap_del(
+                    self.master,
+                    'test_user_specific_hostgroup',
+                    raiseonerr=False,
+                )
+                tasks.hbacrule_del(self.master, 'rule6', raiseonerr=False)
+                tasks.hbacrule_enable(
+                    self.master, 'allow_all', raiseonerr=False,
                 )
 
 
