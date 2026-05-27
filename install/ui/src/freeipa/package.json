@@ -44,7 +44,8 @@
     "dojo-util": "^1.17.3",
     "grunt": "",
     "grunt-contrib-qunit": "",
-    "grunt-qunit-junit": ""
+    "grunt-qunit-junit": "",
+    "terser": "^5.0.0"
   },
   "dependencies": {
     "dojo": "~1.17.3"
