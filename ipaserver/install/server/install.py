@@ -772,12 +772,6 @@ def install_check(installer):
         options.ntp_servers, options.ntp_pool = timeconf.get_time_source()
 
     (keytype, keysize) = get_key_type_and_strength(api.env.key_type_size)
-    if options.ca_key_type:
-        (ca_key_type, ca_key_size) = (
-            get_key_type_and_strength(options.ca_key_type, True)
-        )
-    else:
-        (ca_key_type, ca_key_size) = ("rsa", "2048")
 
     print()
     print("The IPA Master Server will be configured with:")
@@ -785,7 +779,6 @@ def install_check(installer):
     print("IP address(es):   %s" % ", ".join(str(ip) for ip in ip_addresses))
     print("Domain name:      %s" % domain_name)
     print("Realm name:       %s" % realm_name)
-    print("CA Key type/size: %s:%s" % (ca_key_type.upper(), ca_key_size))
     print("Key type/size:    %s:%s" % (keytype.upper(), keysize))
     print()
 
