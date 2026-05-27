@@ -197,28 +197,26 @@ h2 { font-size: 22px; }
 
 /* css/ipa.css (compiled from less/ipa.less) hides native checkboxes and radios
    with opacity:0 + position:absolute and overlays FontAwesome 4 icons on the
-   adjacent label::before.  FA4 (font-family:FontAwesome) is not present in the
-   PF6 setup — only FA5 (font-family:"Font Awesome 5 Free") is, and the
-   codepoints differ.  Revert to native controls; css/ipa.css loads after this
-   file so we need !important to win. */
+   adjacent label::before.  FA4 is absent in the PF6 setup; revert to native
+   controls.  This file loads last so natural cascade priority suffices. */
 input[type="checkbox"],
 input[type="radio"] {
-    display: inline-block !important;
-    position: relative !important;
-    opacity: 1 !important;
-    width: auto !important;
-    height: auto !important;
-    margin: 0 4px 0 0 !important;
-    overflow: visible !important;
-    border: initial !important;
-    outline: initial !important;
-    padding: 0 !important;
-    vertical-align: middle !important;
+    display: inline-block;
+    position: relative;
+    opacity: 1;
+    width: auto;
+    height: auto;
+    margin: 0 4px 0 0;
+    overflow: visible;
+    border: initial;
+    outline: initial;
+    padding: 0;
+    vertical-align: middle;
 }
 input[type="checkbox"] + label::before,
 input[type="radio"]    + label::before {
-    content: "" !important;
-    display: none !important;
+    content: "";
+    display: none;
 }
 
 .form-group { margin-bottom: 10px; }
@@ -312,14 +310,12 @@ input[type="radio"]    + label::before {
 .table-bordered,
 .table-bordered > thead > tr > th,
 .table-bordered > tbody > tr > td           { border: 1px solid #d2d2d2; }
-/* IPA listing tables always carry .table-condensed; use !important to
-   guarantee this wins over same-specificity rules in later stylesheets. */
 .table-condensed > thead > tr > th,
 .table-condensed > tbody > tr > th,
 .table-condensed > tfoot > tr > th,
 .table-condensed > thead > tr > td,
 .table-condensed > tbody > tr > td,
-.table-condensed > tfoot > tr > td { padding: 2px 5px 3px !important; }
+.table-condensed > tfoot > tr > td { padding: 2px 5px 3px; }
 .table-responsive { overflow-x: auto; }
 
 /* ================================================================
@@ -390,23 +386,22 @@ input[type="radio"]    + label::before {
 .navbar-brand:hover { color: #ccc; }
 .navbar-brand img { height: 20px; vertical-align: middle; }
 
-/* Collapse is a plain block — children use floats/clear.
-   Override Bootstrap 5 collapse JS which may set height:0 or overflow:hidden. */
+/* Collapse is a plain block — children use floats/clear. */
 .navbar-collapse {
-    display: block !important;
-    height: auto !important;
-    overflow: visible !important;
+    display: block;
+    height: auto;
+    overflow: visible;
     padding: 0;
 }
 
 /* Row 1 right: utility nav floats right, same 50px height as header */
 .navbar-utility {
-    float: right !important;
-    display: flex !important;
-    flex-direction: row !important;
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    float: right;
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    padding: 0;
+    margin: 0;
     align-items: stretch;
 }
 .navbar-utility > li { display: flex; align-items: stretch; }
@@ -427,17 +422,17 @@ input[type="radio"]    + label::before {
 /* Row 2: primary tabs — clears header float, full width, dark gradient */
 .navbar-primary {
     clear: left;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    align-items: stretch !important;
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    list-style: none;
+    padding: 0;
+    margin: 0;
     width: 100%;
     background: linear-gradient(to bottom, #474C50 0%, #383F43 100%);
     position: relative;
-    overflow: visible !important;
+    overflow: visible;
     z-index: 1020;
 }
 /* Menu.js _adjust_size() sets marginBottom via inline style to push content below
@@ -448,13 +443,13 @@ input[type="radio"]    + label::before {
    for the absolutely-positioned .navbar-persistent (not the narrow li itself).
    display:inline-block as non-flex fallback; flex containers override it to block. */
 .navbar-primary > li {
-    position: static !important;
-    display: inline-block !important;
-    vertical-align: top !important;
-    margin-bottom: 0 !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    float: none !important;
+    position: static;
+    display: inline-block;
+    vertical-align: top;
+    margin-bottom: 0 !important; /* Menu.js._adjust_size() sets this via inline style */
+    flex: 0 0 auto;
+    width: auto;
+    float: none;
 }
 .navbar-primary > li > a {
     display: block;
@@ -473,42 +468,42 @@ input[type="radio"]    + label::before {
 
 /* Row 3: persistent secondary — absolutely below row 2, full viewport width */
 .navbar-primary > li > .navbar-persistent {
-    display: none !important;
+    display: none;
 }
 .navbar-primary > li.active > .navbar-persistent {
-    display: flex !important;
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    right: 0 !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    list-style: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    background-color: #f6f6f6 !important;
-    border-bottom: 1px solid #cecdcd !important;
-    z-index: 1000 !important;
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: #f6f6f6;
+    border-bottom: 1px solid #cecdcd;
+    z-index: 1000;
 }
 .navbar-persistent > li {
-    display: block !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    float: none !important;
+    display: block;
+    flex: 0 0 auto;
+    width: auto;
+    float: none;
 }
 .navbar-persistent > li > a {
-    display: block !important;
-    padding: 10px 15px !important;
-    color: #363636 !important;
-    text-decoration: none !important;
-    white-space: nowrap !important;
+    display: block;
+    padding: 10px 15px;
+    color: #363636;
+    text-decoration: none;
+    white-space: nowrap;
 }
-.navbar-persistent > li:hover > a { color: #0066cc !important; }
+.navbar-persistent > li:hover > a { color: #0066cc; }
 .navbar-persistent > li.active > a,
 .navbar-persistent > li.t.active > a {
-    color: #0066cc !important;
-    border-bottom: 3px solid #0066cc !important;
-    font-weight: 600 !important;
+    color: #0066cc;
+    border-bottom: 3px solid #0066cc;
+    font-weight: 600;
 }
 .navbar-persistent .dropdown-submenu > a::after { content: " \25BE"; font-size: 0.75em; }
 
@@ -671,14 +666,12 @@ input[type="radio"]    + label::before {
 .fa-check-circle-o:before { content: "\f058"; } /* → fa-check-circle (solid) */
 
 /* ================================================================
-   FACET TITLE ICON — ipa.css uses FA4 (FontAwesome); force FA5 Solid here
-   so the header icon (check/minus/wrench) renders instead of showing raw
-   codepoints like "f00c".
+   FACET TITLE ICON — override root ipa.css FA4 font reference with FA5.
    ================================================================ */
 .facet-title .header-icon {
-    font-family: "Font Awesome 5 Free" !important;
-    font-weight: 900 !important;
-    font-style: normal !important;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-style: normal;
 }
 
 /* ================================================================
