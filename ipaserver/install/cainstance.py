@@ -587,6 +587,16 @@ class CAInstance(DogtagInstance):
         cfg = dict(
             pki_ds_secure_connection=self.use_ldaps
         )
+        # Force the IPA-specific options to None. They should be
+        # overridden later.
+        cfg['ipa_key_algorithm'] = None
+        cfg['ipa_key_size'] = None
+        cfg['ipa_key_type'] = None
+        cfg['ipa_signing_algorithm'] = None
+        if self.pki_config_override:
+            pre_config = self._create_spawn_config(cfg)
+        else:
+            pre_config = {'CA': {}}
 
         if self.tokenname:
             module_name = os.path.basename(
@@ -599,36 +609,62 @@ class CAInstance(DogtagInstance):
             cfg['pki_token_password'] = self.token_password
             cfg['pki_sslserver_token'] = 'internal'
 
+        pki_key_size = pre_config[self.subsystem].get(
+            "pki_ca_signing_key_size"
+        )
+        pki_key_alg = pre_config[self.subsystem].get(
+            "pki_ca_signing_key_algorithm"
+        )
+        pki_sign_alg = pre_config[self.subsystem].get(
+            "pki_ca_signing_signing_algorithm"
+        )
         ipa_ca_key_size = None
         if self.ca_key_type:
             (self.ca_key_type, ipa_ca_key_size) = (
                 certs.get_key_type_and_strength(self.ca_key_type, True)
             )
+        if pki_key_size:
+            ipa_ca_key_size = pki_key_size
 
         if self.ca_key_type == "rsa":
-            if self.ca_signing_algorithm is not None:
-                ipa_ca_key_algorithm = self.ca_signing_algorithm
+            if pki_key_alg:
+                ipa_ca_key_algorithm = pki_key_alg
             else:
+                # the default
                 ipa_ca_key_algorithm = "SHA256withRSA"
+            if self.ca_signing_algorithm is not None:
+                ipa_key_algorithm = self.ca_signing_algorithm
+            elif pki_sign_alg:
+                ipa_key_algorithm = pki_sign_alg
+            else:
+                # the default
+                ipa_key_algorithm = "SHA256withRSA"
             if ipa_ca_key_size is None:
                 # the default
                 ipa_ca_key_size = "3072"
-            ipa_key_algorithm = "SHA256withRSA"
             ipa_key_size = "2048"
-            ipa_signing_algorithm = "SHA256withRSA"
+            ipa_signing_algorithm = ipa_key_algorithm
         elif self.ca_key_type == "mldsa":
+            # overriding ML-DSA via override is complex
             if ipa_ca_key_size is None:
                 # the default
                 ipa_ca_key_size = "65"
                 # ipa_ca_key_size = "87"  # FIXME
             ipa_key_size = "65"
-            ipa_ca_key_algorithm = f"ML-DSA-{ipa_ca_key_size}"
+            if pki_key_alg:
+                ipa_ca_key_algorithm = pki_key_alg
+            else:
+                ipa_ca_key_algorithm = f"ML-DSA-{ipa_ca_key_size}"
             if self.ca_signing_algorithm is not None:
-                cfg['ipa_ca_signing_algorithm'] = self.ca_signing_algorithm
+                ipa_key_algorithm = self.ca_signing_algorithm
+            elif pki_sign_alg:
+                ipa_key_algorithm = pki_sign_alg
+            else:
+                ipa_key_algorithm = ipa_ca_key_algorithm
+            if pki_sign_alg:
+                ipa_signing_algorithm = pki_sign_alg
             else:
                 ipa_signing_algorithm = ipa_ca_key_algorithm
-            ipa_key_algorithm = ipa_ca_key_algorithm
-            ipa_signing_algorithm = ipa_ca_key_algorithm
         else:
             # Replica install. Determine the CA settings from the CA
             # certificate.
@@ -642,12 +678,16 @@ class CAInstance(DogtagInstance):
         # FIXME: add some validation that the options are compatible.
         #        e.g. that an ML-DSA key doesn't have an RSA signing method.
         cfg['ipa_ca_key_size'] = ipa_ca_key_size
-        cfg['ipa_ca_key_algorithm'] = ipa_ca_key_algorithm
-
         cfg['ipa_key_size'] = ipa_key_size
-        cfg['ipa_key_algorithm'] = ipa_key_algorithm
         cfg['ipa_key_type'] = self.ca_key_type
+        # signature on the CA certificate
+        cfg['pki_ca_signing_key_algorithm'] = ipa_ca_key_algorithm
+        # signature on the certificates the CA issues
+        cfg['ipa_key_algorithm'] = ipa_key_algorithm
+        # signature the CA uses to sign keys
         cfg['ipa_signing_algorithm'] = ipa_signing_algorithm
+        # tomcat Server-Cert
+        cfg['pki_ssl_server_key_algorithm'] = ipa_signing_algorithm
 
         cfg['pki_random_serial_numbers_enable'] = self.random_serial_numbers
         if self.random_serial_numbers:
