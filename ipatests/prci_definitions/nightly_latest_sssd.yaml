@@ -266,7 +266,7 @@ jobs:
         copr: '@sssd/nightly'
         test_suite: test_integration/test_sudo.py
         template: *ci-master-latest
-        timeout: 4800
+        timeout: 5400
         topology: *master_1repl_1client
 
   sssd-fedora/test_trust:
