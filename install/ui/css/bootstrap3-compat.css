@@ -617,14 +617,51 @@ input[type="radio"]    + label::before {
 
 /* ================================================================
    MODALS
+   dialog.js appends <div class="modal fade"> to body and shows it via
+   Bootstrap 5's jQuery plugin (.modal({…})).  Bootstrap 5's CSS is not
+   loaded, so we must supply the base .modal rules here.
    ================================================================ */
 
-.modal-dialog  { margin: 30px auto; }
-.modal-content { background-color: #fff; border: 1px solid rgba(0,0,0,.2); border-radius: var(--pf-t--global--border--radius--200, 6px); box-shadow: 0 5px 15px rgba(0,0,0,.5); }
+/* Hidden by default; Bootstrap 5 JS sets display:block via inline style. */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1055;
+    width: 100%; height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+}
+/* Bootstrap 5 also appends a .modal-backdrop element for the dark overlay. */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1050;
+    width: 100vw; height: 100vh;
+    background-color: #000;
+}
+.modal-backdrop.fade { opacity: 0; transition: opacity 0.15s linear; }
+.modal-backdrop.show { opacity: 0.5; }
+
+/* Fade transition on the modal dialog panel itself. */
+.modal.fade .modal-dialog { transition: transform 0.3s ease-out; transform: translate(0, -50px); }
+.modal.show .modal-dialog { transform: none; }
+
+/* body gets .modal-open when a modal is visible (Bootstrap 5 adds this). */
+.modal-open { overflow: hidden; }
+.modal-open .modal { overflow-x: hidden; overflow-y: auto; }
+
+.modal-dialog  { position: relative; width: auto; margin: 30px auto; pointer-events: none; }
+.modal-content { position: relative; display: flex; flex-direction: column; width: 100%; pointer-events: auto; background-color: #fff; border: 1px solid rgba(0,0,0,.2); border-radius: var(--pf-t--global--border--radius--200, 6px); box-shadow: 0 5px 15px rgba(0,0,0,.5); outline: 0; }
 .modal-header  { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #d2d2d2; }
 .modal-title   { margin: 0; font-size: 1.125rem; font-weight: 600; }
-.modal-body    { padding: 15px; }
+.modal-body    { position: relative; flex: 1 1 auto; padding: 15px; }
 .modal-footer  { padding: 15px; border-top: 1px solid #d2d2d2; display: flex; justify-content: flex-end; gap: 8px; }
+
+@media (min-width: 576px) { .modal-dialog { max-width: 500px; } }
+.modal-lg { max-width: 800px; }
+.modal-sm { max-width: 300px; }
 
 /* ================================================================
    PATTERNFLY 3 SIDEBAR
