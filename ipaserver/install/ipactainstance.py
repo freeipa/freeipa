@@ -1073,6 +1073,7 @@ class IpactaInstance(service.Service):
 
     def enable_kra(self):
         """Enable KRA functionality — delegates to KRAInstall helper."""
+        self._ensure_global_config()
         if self._kra is None:
             self._kra = KRAInstall(
                 self.ldap,
