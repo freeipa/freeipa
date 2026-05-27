@@ -385,6 +385,9 @@ input[type="radio"]    + label::before {
 }
 .navbar-brand:hover { color: #ccc; }
 .navbar-brand img { height: 20px; vertical-align: middle; }
+/* PF3 static info pages (unauthorized.html, ssbrowser.html) use class="brand" */
+.brand { display: block; padding: 8px 0 7px; font-size: 1.125rem; color: #fff; text-decoration: none; }
+.brand img { height: 20px; vertical-align: middle; }
 
 /* Collapse is a plain block — children use floats/clear. */
 .navbar-collapse {
