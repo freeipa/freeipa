@@ -221,10 +221,18 @@ input[type="radio"]    + label::before {
 
 .form-group { margin-bottom: 10px; }
 
+/* Bootstrap 3 inline form — widget.js uses class="form-inline controls" for
+   multi-valued widget search rows.  Make elements inline-flex at sm+ so they
+   sit side-by-side instead of stacking. */
+.form-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.form-inline .form-group { display: inline-flex; align-items: center; margin-bottom: 0; }
+.form-inline .form-control { display: inline-block; width: auto; }
+.form-inline .control-label { margin-bottom: 0; }
+
 /* Bootstrap 3 horizontal form layout — used by IPA.fluid_layout */
 .form-horizontal .form-group {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     margin-right: -15px;
     margin-left: -15px;
     margin-bottom: 10px;
