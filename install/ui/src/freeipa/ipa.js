@@ -29,7 +29,6 @@ define([
         'dojo/keys',
         'dojo/topic',
         './jquery',
-        './json2',
         './_base/i18n',
         './auth',
         './config',
@@ -41,7 +40,7 @@ define([
         './text',
         './util',
         'exports'
-    ], function(declare, Deferred, Evented, keys, topic, $, JSON, i18n, auth,
+    ], function(declare, Deferred, Evented, keys, topic, $, i18n, auth,
         config, datetime, metadata_provider, builder, reg, rpc, text,
         util, exports) {
 

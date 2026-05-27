@@ -8,7 +8,6 @@ app_DATA =				\
 	d3.js 			\
 	jquery.js 			\
 	jquery.ordered-map.js 		\
-	json2.js 			\
 	patternfly.js		\
 	qrcode.js 			\
 	$(NULL)

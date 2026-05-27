@@ -27,7 +27,6 @@ define([
         'dojo/query',
         'dojo/dom-class',
         './auth',
-        './json2',
         './widgets/App',
         './widgets/FacetContainer',
         './ipa',
@@ -42,7 +41,7 @@ define([
         './plugins/load_page'
        ],
        function(declare, array, Deferred, on, topic, query, dom_class, auth,
-            JSON, App_widget, FacetContainer, IPA, rpc, reg, config, widget_mod,
+            App_widget, FacetContainer, IPA, rpc, reg, config, widget_mod,
             Menu, Router, routing, menu_spec) {
 
     /**
