@@ -2328,7 +2328,7 @@ class TestInstallPQCBase(IntegrationTest):
         assert "2048 bit" in result.stdout_text
 
     def check_ca_keys(self, host):
-        """Verify that the CA keys are all RSA"""
+        """Verify Dogtag CA signing keys match the configured CA key type."""
         key_type = self._get_key_type(self.ca_key_type)
         if "ML-DSA-" in key_type:
             key_type = "mldsa"
@@ -2363,8 +2363,39 @@ class TestInstallPQCIPACerts(TestInstallPQCBase):
 
 
 class TestInstallPQCCACerts(TestInstallPQCBase):
+    """ML-DSA-44 server keys with ML-DSA-65 (default) CA.
+
+    Legacy name; see also 006a.
+    """
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa"
+    ca_key_type = "mldsa:44"
+
+
+class TestInstallPQC006a(TestInstallPQCBase):
+    """IPA-PQC-006a: install with ML-DSA-44 CA and server keys."""
 
     num_replicas = 1
     master_with_dns = True
     ipa_key_type = "mldsa:44"
-    ca_key_type = "mldsa"
+    ca_key_type = "mldsa:44"
+
+
+class TestInstallPQC006b(TestInstallPQCBase):
+    """IPA-PQC-006b: install with ML-DSA-65 CA and server keys."""
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa:65"
+    ca_key_type = "mldsa:65"
+
+
+class TestInstallPQC006c(TestInstallPQCBase):
+    """IPA-PQC-006c: install with ML-DSA-87 CA and server keys."""
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa:87"
+    ca_key_type = "mldsa:87"

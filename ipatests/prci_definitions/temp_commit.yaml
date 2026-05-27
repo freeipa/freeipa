@@ -53,9 +53,8 @@ topologies:
     name: ipa_ipa_trust
     cpu: 7
     memory: 14750
-
 jobs:
-  fedora-latest/build:
+  fedora-rawhide/build:
     requires: []
     priority: 100
     job:
@@ -63,20 +62,125 @@ jobs:
       args:
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
-        template: &ci-master-latest
-          name: freeipa/ci-master-f43
-          version: 0.0.2
+        template: &ci-master-frawhide
+          name: freeipa/ci-master-frawhide
+          version: 0.10.1
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
-    requires: [fedora-latest/build]
+  fedora-rawhide/temp_commit1:
+    requires: [fedora-rawhide/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
-        template: *ci-master-latest
-        timeout: 3600
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallPQCIPACerts
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit2:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallPQCCACerts
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit3:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallPQC006a
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit4:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallPQC006b
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit5:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_installation.py::TestInstallPQC006c
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit6:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_cert_pqc.py::TestPQCCertEnrollmentIPACerts
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit7:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_cert_pqc.py::TestPQCCertEnrollmentCACerts
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl
+
+  fedora-rawhide/temp_commit8:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_cert_pqc.py::TestInstallMasterClientMLDSA
+        template: *ci-master-frawhide
+        timeout: 4800
+        topology: *master_1repl_1client
+
+  fedora-rawhide/temp_commit9:
+    requires: [fedora-rawhide/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        test_suite: test_integration/test_cert_pqc.py::TestInstallMasterClientMLDSACA
+        template: *ci-master-frawhide
+        timeout: 4800
         topology: *master_1repl_1client
