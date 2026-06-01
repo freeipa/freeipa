@@ -325,6 +325,34 @@ on its next start.
   `ipa-getkeytab -p <principal> -k <keytab>` for each such keytab, and schedule
   removal of outdated KVNOs.
 
+### When rotation is skipped
+
+Rotation is intended to run on deliberate IPA service startup (`ipactl start`,
+`ipactl restart`, and the final KDC restart at the end of
+`ipa-server-install` / replica install).
+
+The platform KDC classes accept `skip_keytab_rotation` on `start()` and
+`restart()`. `KrbInstance` forwards the same keyword to the platform service.
+Rotation is skipped if either the call passes `skip_keytab_rotation=True` or
+`api.env.skip_keytab_rotation` is true.
+
+**Call sites that pass `skip_keytab_rotation=True`:**
+
+| Location | Reason |
+|----------|--------|
+| `KrbInstance.enable_ssl()` | Reload KDC after PKINIT cert install |
+| `KrbInstance.uninstall()` | Restore KDC after PKINIT teardown |
+| `ipa-certupdate` | Reload KDC CA bundle after trust store update |
+| `renew_kdc_cert` (certmonger hook) | Reload KDC after cert renewal |
+| `ipa-server-upgrade` (`setup_pkinit`, `setup_spake`) | Reload KDC after `kdc.conf` edit |
+
+**Paths where rotation still runs** (unless disabled globally):
+
+* `ipactl start` / `ipactl restart` (normal operator-driven startup)
+* First KDC start during `ipa-server-install` (`KrbInstance.__start_instance`)
+* Post-install `krb.restart()` after LDAP updates in `ipa-server-install` and
+  replica install
+
 ## Feature Management
 
 ### Configuration

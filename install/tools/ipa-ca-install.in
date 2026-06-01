@@ -363,8 +363,12 @@ def main():
     api.Backend.ldap2.disconnect()
 
     # execute ipactl to refresh services status
-    ipautil.run([paths.IPACTL, 'start', '--ignore-service-failures'],
-                raiseonerr=False)
+    ipautil.run([
+        paths.IPACTL,
+        'start',
+        '--ignore-service-failures',
+        '--skip-keytab-rotation',
+    ], raiseonerr=False)
 
 
 fail_message = '''
