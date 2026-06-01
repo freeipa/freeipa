@@ -12,6 +12,15 @@ KRB5CONF_CONTENT = ('[libdefaults]\n'
                     'permitted_enctypes = aes256-cts-hmac-sha1-96 '
                     'aes128-cts-hmac-sha1-96 camellia256-cts-cmac '
                     'camellia128-cts-cmac')
+IPA_CONFIG = "/etc/ipa/default.conf"
+
+
+def _disable_keytab_rotation(host):
+    contents = host.get_file_contents(IPA_CONFIG)
+    contents = contents[:-1]  # strip \n at the end
+    contents += b'skip_keytab_rotation = True\n\n'
+    host.put_file_contents(IPA_CONFIG, contents)
+
 
 class TestMkeyUpgrade(IntegrationTest):
 
@@ -24,6 +33,8 @@ class TestMkeyUpgrade(IntegrationTest):
         cls.replicas[0].put_file_contents(KRB5CONF_PATH, KRB5CONF_CONTENT)
         tasks.install_master(cls.master, setup_dns=False)
         tasks.install_replica(cls.master, cls.replicas[0], setup_dns=False)
+        _disable_keytab_rotation(cls.master)
+        _disable_keytab_rotation(cls.replicas[0])
 
     def test_old_active_mkey(self):
         p = re.compile('^KVNO: 1, Enctype: aes256-cts-hmac-sha1-96, .+ \\*$',
