@@ -1,0 +1,63 @@
+#!/usr/bin/python3
+#
+# Authors: David Hanina <dhanina@redhat.com>
+#
+# Copyright (C) 2026  Red Hat
+# see file 'COPYING' for use and warranty information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+"""
+Utility to help periodically cleanup keytab and obsolete KVNOs
+config files are created when starting krb5kdc, referenced through
+systemd service template and then processed here.
+"""
+
+import argparse
+import os
+
+from ipaplatform.paths import paths
+from ipapython import ipautil
+from ipapython.krb5util import KeytabDeletion
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Remove KVNO keypairs from keytab'
+    )
+    parser.add_argument(
+        "filename", type=str, help="Name of the config file"
+    )
+    args = parser.parse_args()
+
+    filepath = os.path.join(paths.IPA_KEYTAB_CLEANER_CONF_DIR, args.filename)
+    print("Running keytab cleaner with config: %s" % filepath)
+
+    config = KeytabDeletion.from_file(filepath)
+
+    ipautil.run(
+        [
+            paths.KADMIN_LOCAL,
+            "ktremove",
+            "-k",
+            config.filepath,
+            config.principal,
+            str(config.kvno),
+        ]
+    )
+
+    try:
+        os.remove(filepath)
+    except FileNotFoundError:
+        pass
