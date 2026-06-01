@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2022-06-29 16:26+0200\n"
-"PO-Revision-Date: 2026-02-26 23:58+0000\n"
+"PO-Revision-Date: 2026-06-02 18:01+0000\n"
 "Last-Translator: Américo Monteiro <a_monteiro@gmx.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "freeipa/ipa-4-11/pt/>\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 5.16.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 msgid ""
 "\n"
@@ -223,16 +223,16 @@ msgid "invalid '%(name)s': %(error)s"
 msgstr "'%(name)s' inválido: %(error)s"
 
 msgid "invalid SSH public key"
-msgstr "chave SSh pública inválida"
+msgstr "chave SSH pública inválida"
 
 msgid "options are not allowed"
-msgstr "não são pertimidas opções"
+msgstr "não são permitidas opções"
 
 msgid "password policy"
 msgstr "política de palavra-passe"
 
 msgid "trusts"
-msgstr "interligações"
+msgstr "confianças"
 
 #, python-format
 msgid "unknown command '%(name)s'"
