@@ -652,7 +652,7 @@ class KrbInstance(service.Service):
             self.issue_selfsigned_pkinit_certs()
 
         try:
-            self.restart()
+            self.restart(skip_keytab_rotation=True)
         except Exception:
             logger.critical("krb5kdc service failed to restart")
             raise
@@ -738,7 +738,7 @@ class KrbInstance(service.Service):
         self.delete_pkinit_cert()
 
         if running:
-            self.restart()
+            self.restart(skip_keytab_rotation=True)
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.uninstall()
