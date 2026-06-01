@@ -682,6 +682,34 @@ class KrbInstance(service.Service):
         ipautil.remove_file(paths.KDC_CERT)
         ipautil.remove_file(paths.KDC_KEY)
 
+    def start(
+        self,
+        instance_name="",
+        capture_output=True,
+        wait=True,
+        skip_keytab_rotation=False,
+    ):
+        self.service.start(
+            instance_name,
+            capture_output=capture_output,
+            wait=wait,
+            skip_keytab_rotation=skip_keytab_rotation,
+        )
+
+    def restart(
+        self,
+        instance_name="",
+        capture_output=True,
+        wait=True,
+        skip_keytab_rotation=False,
+    ):
+        self.service.restart(
+            instance_name,
+            capture_output=capture_output,
+            wait=wait,
+            skip_keytab_rotation=skip_keytab_rotation,
+        )
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)

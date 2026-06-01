@@ -26,7 +26,6 @@ import traceback
 
 import ldapurl
 
-from ipaplatform.base.services import PlatformService
 from ipaserver.install import service, installutils
 from ipaserver.install.dsinstance import config_dirname
 from ipaserver.install.installutils import ScriptError
@@ -149,6 +148,13 @@ def parse_options():
         dest="skip_version_check",
         default=False,
         help="skip version check",
+    )
+    parser.add_option(
+        "--skip-keytab-rotation",
+        action="store_true",
+        dest="skip_keytab_rotation",
+        default=False,
+        help="skip keytab rotation",
     )
 
     options, args = parser.parse_args()
@@ -356,7 +362,15 @@ def stop_services(svc_list, verbose=False):
                 emit_err("Failed to stop %s Service" % svc)
 
 
-def start_dirsrv(dirsrv: PlatformService, options: any) -> None:
+def start_dirsrv(dirsrv, options):
+    """Start Directory Service
+
+    :param dirsrv: Directory Service
+    :type dirsrv: PlatformService
+    :param options: Options
+    :type options: any
+    :raises IpactlError: Failed to start Directory Service
+    """
     try:
         print("Starting Directory Service")
         dirsrv.start(
@@ -373,9 +387,17 @@ def stop_dirsrv(dirsrv):
         pass
 
 
-def restart_dirsrv(
-    dirsrv: PlatformService, svc_list: list[str], options: any
-) -> None:
+def restart_dirsrv(dirsrv, svc_list, options):
+    """Restart Directory Service
+
+    :param dirsrv: Directory Service
+    :type dirsrv: PlatformService
+    :param svc_list: List of services to restart
+    :type svc_list: list[str]
+    :param options: Options
+    :type options: any
+    :raises IpactlError: Failed to restart Directory Service
+    """
     try:
         print("Restarting Directory Service")
         dirsrv.restart(
@@ -392,13 +414,22 @@ def restart_dirsrv(
         raise IpactlError("Aborting ipactl")
 
 
-def start_service(
-    svchandle: PlatformService,
-    svc_list: list[str],
-    dirsrv: str,
-    svc: str,
-    options: any,
-) -> None:
+def start_service(svchandle, svc_list, dirsrv, svc, options):
+    """Start Service svc, in case of failure, stop the all services in
+    svc_list and the directory service
+
+    :param svchandle: Service
+    :type svchandle: PlatformService
+    :param svc_list: List of services to stop in case of failure
+    :type svc_list: list[str]
+    :param dirsrv: Directory Service
+    :type dirsrv: PlatformService
+    :param svc: Service to start
+    :type svc: str
+    :param options: Options
+    :type options: any
+    :raises IpactlError: Failed to start Service
+    """
     try:
         print("Starting %s Service" % svc)
         svchandle.start(
@@ -752,6 +783,11 @@ def main():
         context="ipactl",
         confdir=paths.ETC_IPA,
         debug=options.debug,
+        **(
+            {"skip_keytab_rotation": options.skip_keytab_rotation}
+            if options.skip_keytab_rotation
+            else {}
+        ),
     )
     api.finalize()
 
