@@ -179,15 +179,30 @@ class SuseNoService(base_services.PlatformService):
 
 
 class SuseKRB5KDCService(SuseService):
-    def start(self, instance_name="", capture_output=True, wait=True):
+    def start(
+        self,
+        instance_name="",
+        capture_output=True,
+        wait=True,
+        skip_keytab_rotation=False,
+    ):
         super().start(instance_name, capture_output, wait)
         self.rotated_keys = check_and_rotate_keytabs(
-            self, self.api.env.host, self.api.env.realm
+            self,
+            self.api.env.host,
+            self.api.env.realm,
+            self.api.env.skip_keytab_rotation or skip_keytab_rotation,
         )
 
-    def restart(self, instance_name="", capture_output=True, wait=True):
+    def restart(
+        self,
+        instance_name="",
+        capture_output=True,
+        wait=True,
+        skip_keytab_rotation=False,
+    ):
         super().stop(instance_name, capture_output)
-        self.start(instance_name, capture_output, wait)
+        self.start(instance_name, capture_output, wait, skip_keytab_rotation)
 
 
 def suse_service_class_factory(name, api):

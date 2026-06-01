@@ -106,6 +106,7 @@
                "fallback" : true,
                "webui_prod" : true,
                "container_hbac" : "cn=hbac",
+               "skip_keytab_rotation" : false,
                "skip_version_check" : false,
                "kinit_lifetime" : null,
                "container_permission" : "cn=permissions,cn=pbac",
