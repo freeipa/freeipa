@@ -242,6 +242,8 @@ class DsInstance(service.Service):
         self.step("configure password logging", self.__password_logging)
         self.step("configuring replication version plugin", self.__config_version_module)
         self.step("enabling IPA enrollment plugin", self.__add_enrollment_module)
+        self.step("configuring krbPrincipalMatch plugin",
+                  self.__config_krbprinc_mr_module)
         self.step("configuring uniqueness plugin", self.__set_unique_attrs)
         self.step("configuring uuid plugin", self.__config_uuid_module)
         self.step("configuring modrdn plugin", self.__config_modrdn_module)
@@ -720,6 +722,18 @@ class DsInstance(service.Service):
 
     def __add_referint_module(self):
         self._ldap_mod("referint-conf.ldif")
+
+    def __config_krbprinc_mr_module(self):
+        self._ldap_mod("ipa-krbprinc-mr-conf.ldif")
+
+    def config_krbprinc_mr_module(self):
+        if not api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.connect()
+        dn = DN('cn=IPA Kerberos Principal Match,cn=plugins,cn=config')
+        try:
+            api.Backend.ldap2.get_entry(dn)
+        except errors.NotFound:
+            self._ldap_mod("ipa-krbprinc-mr-conf.ldif")
 
     def __set_unique_attrs(self):
         self._ldap_mod("unique-attributes.ldif", self.sub_dict)

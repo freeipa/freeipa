@@ -6,6 +6,7 @@ SUBDIRS =			\
 	ipa-dns			\
 	ipa-enrollment		\
 	ipa-graceperiod		\
+	ipa-krbprinc-mr		\
 	ipa-lockout		\
 	ipa-modrdn		\
 	ipa-otp-counter		\

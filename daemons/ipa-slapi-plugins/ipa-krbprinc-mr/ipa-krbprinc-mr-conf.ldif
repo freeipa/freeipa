@@ -1,0 +1,14 @@
+dn: cn=IPA Kerberos Principal Match,cn=plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: nsSlapdPlugin
+objectClass: extensibleObject
+cn: IPA Kerberos Principal Match
+nsslapd-pluginPath: libipa_krbprinc_mr
+nsslapd-pluginInitfunc: ipa_krbprinc_mr_init
+nsslapd-pluginType: matchingRule
+nsslapd-pluginEnabled: on
+nsslapd-pluginId: ipa-krbprinc-mr
+nsslapd-pluginVersion: 1.0
+nsslapd-pluginVendor: Red Hat, Inc.
+nsslapd-pluginDescription: Kerberos principal matching rule
