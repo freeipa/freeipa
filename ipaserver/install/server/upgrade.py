@@ -1127,6 +1127,17 @@ def ds_enable_graceperiod_plugin(ds):
     return True
 
 
+def ds_enable_krbprinc_mr_plugin(ds):
+    """krbPrincipalMatch matching rule plugin needs to be enabled on upgrade"""
+    if sysupgrade.get_upgrade_state('ds', 'enable_ds_krbprinc_mr_plugin'):
+        logger.debug('krbPrincipalMatch plugin is enabled already')
+        return False
+
+    ds.config_krbprinc_mr_module()
+    sysupgrade.set_upgrade_state('ds', 'enable_ds_krbprinc_mr_plugin', True)
+    return True
+
+
 def ca_upgrade_schema(ca):
     logger.info('[Upgrading CA schema]')
     if not ca.is_configured():
@@ -1835,7 +1846,8 @@ def upgrade_configuration():
 
     if any([
         ds_enable_sidgen_extdom_plugins(ds),
-        ds_enable_graceperiod_plugin(ds)
+        ds_enable_graceperiod_plugin(ds),
+        ds_enable_krbprinc_mr_plugin(ds),
     ]):
         ds.restart(ds.serverid)
 
