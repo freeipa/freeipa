@@ -44,6 +44,11 @@
 #define discard_const(ptr) ((void *)((uintptr_t)(ptr)))
 #endif
 
+/* LOG_ALERT comes from syslog.h, we don't use it directly */
+#ifdef LOG_ALERT
+#undef LOG_ALERT
+#endif
+
 #define log_func discard_const(__func__)
 
 #define LOG_PLUGIN_NAME(NAME, fmt, ...) \
