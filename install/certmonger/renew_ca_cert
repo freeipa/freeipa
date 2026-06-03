@@ -100,7 +100,7 @@ case "$NICKNAME" in
         chown ipaca:ipaca "$PEM_DIR/certs/ca.crt"
         chown ipaca:ipaca "$PEM_DIR/ca/ca-signing.key"
         chmod 644 "$PEM_DIR/certs/ca.crt"
-        chmod 640 "$PEM_DIR/ca/ca-signing.key"
+        chmod 600 "$PEM_DIR/ca/ca-signing.key"
         chmod 644 "/etc/ipa/ca.crt"
         ;;
 
