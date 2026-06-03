@@ -2567,6 +2567,41 @@ def ldapmodify_dm(host, ldif_text, **kwargs):
     return host.run_command(args, stdin_text=ldif_text, **kwargs)
 
 
+def ldapadd_dm(host, ldif_text, **kwargs):
+    """Run ldapadd as Directory Manager
+
+    :param host: host object
+    :param ldif_text: ldif string
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapadd',
+        '-x',
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password,
+    ]
+    return host.run_command(args, stdin_text=ldif_text, **kwargs)
+
+
+def ldapdelete_dm(host, dn, **kwargs):
+    """Run ldapdelete as Directory Manager
+
+    :param host: host object
+    :param dn: DN of the entry to delete
+    :param kwargs: additional keyword arguments to run_command()
+    :return: result object
+    """
+    args = [
+        'ldapdelete',
+        '-x',
+        '-D', str(host.config.dirman_dn),
+        '-w', host.config.dirman_password,
+        dn,
+    ]
+    return host.run_command(args, **kwargs)
+
+
 def ldapsearch_dm(host, base, ldap_args, scope='sub', **kwargs):
     """Run ldapsearch as Directory Manager
 
