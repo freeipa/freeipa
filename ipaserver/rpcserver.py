@@ -38,7 +38,7 @@ from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
 import six
 # pylint: disable=import-error
-from six.moves.urllib.parse import parse_qs
+from six.moves.urllib.parse import parse_qs, urlparse
 from six.moves.xmlrpc_client import Fault
 # pylint: enable=import-error
 
@@ -153,13 +153,38 @@ class HTTP_Status(plugable.Plugin):
         if "HTTP_REFERER" not in environ:
             logger.error("Rejecting request with missing Referer")
             return False
-        if (not environ["HTTP_REFERER"].startswith(
-                "https://%s/ipa" % self.api.env.host)
-                and not self.env.in_tree):
-            logger.error("Rejecting request with bad Referer %s",
-                         environ["HTTP_REFERER"])
+
+        if self.env.in_tree:
+            return True
+
+        referer = environ["HTTP_REFERER"]
+
+        if referer.count("://") > 1:
+            logger.error(
+                "Rejecting request with multiple Referer values %s",
+                referer,
+            )
             return False
-        logger.debug("Valid Referer %s", environ["HTTP_REFERER"])
+
+        try:
+            parsed = urlparse(referer)
+        except Exception as e:
+            logger.error(
+                "Rejecting request with unparseable Referer %s: %s", referer, e
+            )
+            return False
+
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != self.api.env.host
+            or (parsed.path != "/ipa" and not parsed.path.startswith("/ipa/"))
+        ):
+            logger.error(
+                "Rejecting request with bad Referer %s", referer
+            )
+            return False
+
+        logger.debug("Valid Referer %s", referer)
         return True
 
     def not_found(self, environ, start_response, url, message):
