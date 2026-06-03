@@ -492,7 +492,8 @@ def is_main_ca_id(ca_id, ca_name="ipa", config=None):
                             "Cached main CA UUID: %s", _main_ca_uuid
                         )
             except Exception as e:
-                logger.debug("Could not resolve main CA UUID: %s", e)
+                logger.error("Could not resolve main CA UUID: %s", e)
+                raise
 
     if _main_ca_uuid is not None:
         is_main = ca_id == _main_ca_uuid
