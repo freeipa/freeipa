@@ -1309,9 +1309,6 @@ class sync_token(Backend, HTTP_Status):
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def __call__(self, environ, start_response):
-        if not self.check_referer(environ):
-            return self.bad_request(environ, start_response, 'denied')
-
         # Make sure this is a form request.
         content_type = environ.get('CONTENT_TYPE', '').lower()
         if not content_type.startswith('application/x-www-form-urlencoded'):
