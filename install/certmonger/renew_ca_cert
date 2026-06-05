@@ -82,6 +82,19 @@ export_cert_from_nssdb() {
     }
 }
 
+# Atomically install a file: copy to temp in target dir, set perms, then mv.
+install_file() {
+    local src="$1" dst="$2" owner="$3" mode="$4"
+    local dst_dir
+    dst_dir=$(dirname "$dst")
+    local tmp
+    tmp=$(mktemp "${dst_dir}/.renew.XXXXXXXXXX")
+    cp "$src" "$tmp"
+    chown "$owner" "$tmp"
+    chmod "$mode" "$tmp"
+    mv "$tmp" "$dst"
+}
+
 # Map nickname to PEM file location
 # This follows the ipacta certificate storage layout
 case "$NICKNAME" in
@@ -89,94 +102,55 @@ case "$NICKNAME" in
         echo "Syncing CA signing certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1
 
-        # Update CA certificate and key
-        cp "$TEMP_CERT" "$PEM_DIR/certs/ca.crt"
-        cp "$TEMP_KEY" "$PEM_DIR/ca/ca-signing.key"
-
-        # Also update /etc/ipa/ca.crt
-        cp "$TEMP_CERT" "/etc/ipa/ca.crt"
-
-        # Set ownership and permissions
-        chown ipaca:ipaca "$PEM_DIR/certs/ca.crt"
-        chown ipaca:ipaca "$PEM_DIR/ca/ca-signing.key"
-        chmod 644 "$PEM_DIR/certs/ca.crt"
-        chmod 600 "$PEM_DIR/ca/ca-signing.key"
-        chmod 644 "/etc/ipa/ca.crt"
+        # Update CA certificate and key (atomic)
+        install_file "$TEMP_CERT" "$PEM_DIR/certs/ca.crt" ipaca:ipaca 644
+        install_file "$TEMP_KEY" "$PEM_DIR/ca/ca-signing.key" ipaca:ipaca 600
+        install_file "$TEMP_CERT" "/etc/ipa/ca.crt" root:root 644
         ;;
 
     "Server-Cert cert-pki-ca")
         echo "Syncing server SSL certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1
 
-        # Update server certificate and key
-        cp "$TEMP_CERT" "$PEM_DIR/certs/server.crt"
-        cp "$TEMP_KEY" "$PEM_DIR/private/server.key"
-
-        # Set ownership and permissions
-        chown ipaca:ipaca "$PEM_DIR/certs/server.crt"
-        chown ipaca:ipaca "$PEM_DIR/private/server.key"
-        chmod 644 "$PEM_DIR/certs/server.crt"
-        chmod 600 "$PEM_DIR/private/server.key"
+        # Update server certificate and key (atomic)
+        install_file "$TEMP_CERT" "$PEM_DIR/certs/server.crt" ipaca:ipaca 644
+        install_file "$TEMP_KEY" "$PEM_DIR/private/server.key" ipaca:ipaca 600
         ;;
 
     "subsystemCert cert-pki-ca")
         echo "Syncing CA subsystem certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1
 
-        # Update subsystem certificate and key
-        cp "$TEMP_CERT" "$PEM_DIR/certs/ca_subsystem.crt"
-        cp "$TEMP_KEY" "$PEM_DIR/private/ca_subsystem.key"
-
-        # Set ownership and permissions
-        chown ipaca:ipaca "$PEM_DIR/certs/ca_subsystem.crt"
-        chown ipaca:ipaca "$PEM_DIR/private/ca_subsystem.key"
-        chmod 644 "$PEM_DIR/certs/ca_subsystem.crt"
-        chmod 600 "$PEM_DIR/private/ca_subsystem.key"
+        # Update subsystem certificate and key (atomic)
+        install_file "$TEMP_CERT" "$PEM_DIR/certs/ca_subsystem.crt" ipaca:ipaca 644
+        install_file "$TEMP_KEY" "$PEM_DIR/private/ca_subsystem.key" ipaca:ipaca 600
         ;;
 
     "auditSigningCert cert-pki-ca")
         echo "Syncing CA audit signing certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1
 
-        # Update audit certificate and key
-        cp "$TEMP_CERT" "$PEM_DIR/certs/ca_audit.crt"
-        cp "$TEMP_KEY" "$PEM_DIR/private/ca_audit.key"
-
-        # Set ownership and permissions
-        chown ipaca:ipaca "$PEM_DIR/certs/ca_audit.crt"
-        chown ipaca:ipaca "$PEM_DIR/private/ca_audit.key"
-        chmod 644 "$PEM_DIR/certs/ca_audit.crt"
-        chmod 600 "$PEM_DIR/private/ca_audit.key"
+        # Update audit certificate and key (atomic)
+        install_file "$TEMP_CERT" "$PEM_DIR/certs/ca_audit.crt" ipaca:ipaca 644
+        install_file "$TEMP_KEY" "$PEM_DIR/private/ca_audit.key" ipaca:ipaca 600
         ;;
 
     "ocspSigningCert cert-pki-ca")
         echo "Syncing OCSP signing certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1
 
-        # Update OCSP certificate and key
-        cp "$TEMP_CERT" "$PEM_DIR/certs/ocsp_subsystem.crt"
-        cp "$TEMP_KEY" "$PEM_DIR/private/ocsp_subsystem.key"
-
-        # Set ownership and permissions
-        chown ipaca:ipaca "$PEM_DIR/certs/ocsp_subsystem.crt"
-        chown ipaca:ipaca "$PEM_DIR/private/ocsp_subsystem.key"
-        chmod 644 "$PEM_DIR/certs/ocsp_subsystem.crt"
-        chmod 600 "$PEM_DIR/private/ocsp_subsystem.key"
+        # Update OCSP certificate and key (atomic)
+        install_file "$TEMP_CERT" "$PEM_DIR/certs/ocsp_subsystem.crt" ipaca:ipaca 644
+        install_file "$TEMP_KEY" "$PEM_DIR/private/ocsp_subsystem.key" ipaca:ipaca 600
         ;;
 
     "ipaCert")
         echo "Syncing RA agent certificate to PEM files"
         export_cert_from_nssdb "$NICKNAME" || exit 1
 
-        # Update RA agent certificate and key
-        cp "$TEMP_CERT" "/var/lib/ipa/ra-agent.pem"
-        cp "$TEMP_KEY" "/var/lib/ipa/ra-agent.key"
-
-        # Set ownership and permissions (same as IPA RA agent)
-        chgrp ipaapi "/var/lib/ipa/ra-agent.pem"
-        chgrp ipaapi "/var/lib/ipa/ra-agent.key"
-        chmod 440 "/var/lib/ipa/ra-agent.pem"
-        chmod 440 "/var/lib/ipa/ra-agent.key"
+        # Update RA agent certificate and key (atomic)
+        install_file "$TEMP_CERT" "/var/lib/ipa/ra-agent.pem" root:ipaapi 440
+        install_file "$TEMP_KEY" "/var/lib/ipa/ra-agent.key" root:ipaapi 440
         ;;
 
     *)
