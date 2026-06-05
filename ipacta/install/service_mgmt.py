@@ -20,7 +20,6 @@ from ipaplatform.paths import paths
 from ipapython import ipautil
 
 from ipacta import get_config_value, set_global_config
-from ipacta.backend import get_python_ca_backend
 
 logger = logging.getLogger(__name__)
 
@@ -575,7 +574,7 @@ class ServiceMgmt:
         logger.debug("Generating initial CRL")
 
         try:
-            # Get CA backend instance
+            from ipacta.backend import get_python_ca_backend
             backend = get_python_ca_backend()
 
             # Generate and publish CRL
