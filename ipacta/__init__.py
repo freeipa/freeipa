@@ -17,6 +17,8 @@ from ipacta.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+_UNSET = object()
+
 # Global configuration singleton
 # Set by backend.py during initialization, used by all ipacta components
 _global_config = None
@@ -58,26 +60,26 @@ def get_global_config():
     return config
 
 
-def get_config_value(section, option, default=None):
+def get_config_value(section, option, default=_UNSET):
     """
     Get a value from the global config
 
     Args:
         section: Config section (e.g., "global", "ca")
         option: Config option (e.g., "realm", "basedn")
-        default: Default value if option not found (None = raise exception)
+        default: Default value if option not found (omit to raise exception)
 
     Returns:
         Config value as string
 
     Raises:
         Exception: If config not initialized or option not found (when
-                   default=None)
+                   no default given)
     """
     config = get_global_config()
 
     if not config.has_option(section, option):
-        if default is None:
+        if default is _UNSET:
             raise InvalidCAConfiguration(
                 f"Config option [{section}] {option} not found in "
                 "ipacta.conf"
