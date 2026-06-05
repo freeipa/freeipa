@@ -949,8 +949,10 @@ class SubCAManager:
             ca_key = self._load_subca_key_from_nssdb(ca_id)
 
             if not ca_key:
-                # Continue without key (read-only mode)
-                pass
+                logger.warning(
+                    "Sub-CA %s loaded without private key (read-only mode)",
+                    ca_id,
+                )
 
             # Determine parent CA from parent_id
             parent_ca = None
