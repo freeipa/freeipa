@@ -9,25 +9,40 @@ from collections import deque
 from typing import Dict
 
 
+_NUM_SHARDS = 16
+
+
+class _Shard:
+    __slots__ = ("lock", "windows")
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.windows: Dict[str, deque] = {}
+
+
 class RateLimiter:
     """Sliding-window rate limiter keyed by arbitrary string (IP, account, …).
 
     Thread-safe.  Maintains a deque of request timestamps per key and evicts
-    those older than ``window_seconds`` on each check.
+    those older than ``window_seconds`` on each check.  Keys are distributed
+    across shards to reduce lock contention under high concurrency.
     """
 
     def __init__(self, limit: int, window_seconds: int):
         self._limit = limit
         self._window = window_seconds
-        self._lock = threading.Lock()
-        self._windows: Dict[str, deque] = {}
+        self._shards = [_Shard() for _ in range(_NUM_SHARDS)]
+
+    def _get_shard(self, key: str) -> _Shard:
+        return self._shards[hash(key) % _NUM_SHARDS]
 
     def is_allowed(self, key: str) -> bool:
         """Record a request attempt and return True if within limit."""
         now = time.monotonic()
         cutoff = now - self._window
-        with self._lock:
-            dq = self._windows.setdefault(key, deque())
+        shard = self._get_shard(key)
+        with shard.lock:
+            dq = shard.windows.setdefault(key, deque())
             while dq and dq[0] < cutoff:
                 dq.popleft()
             if len(dq) >= self._limit:
@@ -43,14 +58,15 @@ class RateLimiter:
         """
         now = time.monotonic()
         cutoff = now - self._window
-        with self._lock:
-            stale = [
-                k
-                for k, dq in self._windows.items()
-                if not dq or dq[-1] < cutoff
-            ]
-            for k in stale:
-                del self._windows[k]
+        for shard in self._shards:
+            with shard.lock:
+                stale = [
+                    k
+                    for k, dq in shard.windows.items()
+                    if not dq or dq[-1] < cutoff
+                ]
+                for k in stale:
+                    del shard.windows[k]
 
 
 def rate_limit_flask(limiter: RateLimiter, error_type: str = "rateLimited"):
