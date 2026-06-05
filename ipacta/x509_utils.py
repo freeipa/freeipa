@@ -532,13 +532,12 @@ def build_x509_name(attributes, reverse: bool = False) -> x509.Name:
     # This ensures consistent DN ordering regardless of input order
     ordered_attrs = []
 
-    # First, add attributes in standard order
+    # First, add attributes in standard order (preserving duplicates)
     for standard_name in STANDARD_DN_ORDER:
         for attr_name, attr_value in attr_list:
             # Case-insensitive comparison
             if attr_name.upper() == standard_name.upper():
                 ordered_attrs.append((attr_name, attr_value))
-                break
 
     # Then add any remaining attributes not in standard order
     for attr_name, attr_value in attr_list:
