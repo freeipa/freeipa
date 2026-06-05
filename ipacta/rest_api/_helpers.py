@@ -25,7 +25,10 @@ from flask import jsonify, request
 from ipalib import errors
 
 from ipacta import get_config_value
-from ipacta.exceptions import ProfileNotFound
+from ipacta.exceptions import (
+    CertificateOperationError as IpactaCertOpError,
+    ProfileNotFound,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +71,9 @@ def handle_ca_errors(f):
             if not error_msg:
                 error_msg = f"{resource_type} not found"
             return error_response(f"{resource_type}NotFound", error_msg, 404)
-        except errors.CertificateOperationError as e:
+        except (
+            errors.CertificateOperationError, IpactaCertOpError
+        ) as e:
             logger.error(
                 "Certificate operation failed in %s: %s", f.__name__, e
             )
