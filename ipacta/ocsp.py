@@ -19,10 +19,11 @@ import hashlib
 import logging
 import os
 import threading
-from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional, Dict, Tuple
+
+from cachetools import TTLCache
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
@@ -81,8 +82,10 @@ class OCSPResponder:
         """
         self.ca = ca
         self.cache_timeout = cache_timeout
-        self.response_cache: OrderedDict = OrderedDict()
         self.cache_maxsize = 1000
+        self.response_cache: TTLCache = TTLCache(
+            maxsize=self.cache_maxsize, ttl=cache_timeout
+        )
         self._cache_lock = threading.Lock()
         # secondary index: serial_number → set of cache keys
         self._serial_to_keys: "Dict[int, set]" = {}
@@ -352,9 +355,6 @@ class OCSPResponder:
             cache_key = self._get_cache_key(serial_number, nonce)
             with self._cache_lock:
                 cached_response = self.response_cache.get(cache_key)
-                if cached_response is not None and cached_response.is_expired():
-                    self.response_cache.pop(cache_key, None)
-                    cached_response = None
             if cached_response is not None:
                 logger.debug(
                     "Returning cached OCSP response for serial %s",
@@ -432,15 +432,8 @@ class OCSPResponder:
                 serialization.Encoding.DER
             )
 
-            # Cache the response (bounded: evict expired, then oldest)
+            # Cache the response (TTLCache handles expiry and size eviction)
             with self._cache_lock:
-                expired_keys = [
-                    k for k, v in self.response_cache.items() if v.is_expired()
-                ]
-                for k in expired_keys:
-                    del self.response_cache[k]
-                while len(self.response_cache) >= self.cache_maxsize:
-                    self.response_cache.popitem(last=False)
                 self.response_cache[cache_key] = OCSPResponse(
                     response_bytes, cache_until=next_update
                 )
@@ -500,14 +493,10 @@ class OCSPResponder:
         """Get cache statistics"""
         with self._cache_lock:
             total = len(self.response_cache)
-            expired = sum(
-                1 for resp in self.response_cache.values() if resp.is_expired()
-            )
 
         return {
             "total_entries": total,
-            "expired_entries": expired,
-            "valid_entries": total - expired,
+            "cache_maxsize": self.cache_maxsize,
             "cache_timeout": self.cache_timeout,
         }
 
