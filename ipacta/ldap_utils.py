@@ -78,6 +78,11 @@ class LDAPConnectionPool:
             except Exception as e:
                 logger.warning("Failed to pre-create connection: %s", e)
 
+        if self._created_count == 0 and min_connections > 0:
+            raise StorageConnectionError(
+                "LDAP connection pool failed to create any connections"
+            )
+
     def _create_connection(self):
         """Create a new LDAP connection"""
         logger.debug(
