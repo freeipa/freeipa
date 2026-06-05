@@ -36,7 +36,7 @@ from ipaplatform.paths import paths
 from ipacta.ldap_utils import get_ldap_connection, is_internal_token
 from ipacta.exceptions import StorageConnectionError
 
-from ipacta.key_encryption import encrypt_private_key, decrypt_private_key
+from ipacta.nss_utils import NSSDatabase
 from ipacta.x509_utils import (
     ipa_dn_to_x509_name,
     get_ca_key_usage_extension,
@@ -176,15 +176,8 @@ class SubCA:
         # Sign the certificate
         self.ca_cert = builder.sign(signing_key, hashes.SHA256())
 
-        # Save to disk (skip if permission denied - LDAP storage is primary)
-        try:
-            self._save_to_disk()
-        except (PermissionError, OSError) as e:
-            logger.warning(
-                "Could not save sub-CA %s to disk: %s", self.ca_id, e
-            )
-            # TODO: Verify
-            # Continue without disk storage - LDAP is primary storage
+        # Save cert to disk and key+cert to NSSDB
+        self._save_to_nssdb()
 
         # Initialize PythonCA instance
         # Use LDAP storage for the sub-CA
@@ -196,28 +189,20 @@ class SubCA:
 
         return self.ca_cert
 
-    def _save_to_disk(self):
-        """Save CA certificate and key to disk"""
-        # Create storage directory
+    def _save_to_nssdb(self):
+        """Save CA certificate to disk and key+cert to NSSDB"""
+        # Save certificate to disk (for compatibility)
         self.storage_path.mkdir(parents=True, exist_ok=True, mode=0o750)
-
-        # Save certificate
         with open(self.cert_path, "wb") as f:
             f.write(self.ca_cert.public_bytes(serialization.Encoding.PEM))
-
-        # Save private key
-        with open(self.key_path, "wb") as f:
-            f.write(
-                self.ca_key.private_bytes(
-                    encoding=serialization.Encoding.PEM,
-                    format=serialization.PrivateFormat.PKCS8,
-                    encryption_algorithm=serialization.NoEncryption(),
-                )
-            )
-
-        # Set restrictive permissions
-        self.key_path.chmod(0o600)
         self.cert_path.chmod(0o644)
+
+        # Import key+cert into NSSDB (Dogtag-compatible nickname)
+        nickname = f"caSigningCert cert-pki-ca {self.ca_id}"
+        nssdb = NSSDatabase()
+        nssdb.import_key_and_cert(
+            nickname, self.ca_key, self.ca_cert, trust_flags="u,u,u"
+        )
 
     def load_from_disk(self, storage_backend=None):
         """Load CA certificate and key from disk or HSM
@@ -310,24 +295,19 @@ class SubCA:
                 key_label,
             )
         else:
-            # File path - load from PEM file
-            if not self.key_path.exists():
-                raise errors.NotFound(
-                    reason=f"Sub-CA {self.ca_id} private key not found on disk"
-                )
-
+            # Load private key from NSSDB (Dogtag-compatible)
+            nickname = f"caSigningCert cert-pki-ca {self.ca_id}"
             logger.debug(
-                "Loading sub-CA private key from file for %s", self.ca_id
+                "Loading sub-CA private key from NSSDB for %s: %s",
+                self.ca_id, nickname,
             )
 
-            with open(self.key_path, "rb") as f:
-                self.ca_key = serialization.load_pem_private_key(
-                    f.read(), password=None
-                )
+            nssdb = NSSDatabase()
+            self.ca_key = nssdb.extract_private_key(nickname)
 
             logger.debug(
-                "Successfully loaded sub-CA certificate and private key from "
-                "files"
+                "Successfully loaded sub-CA certificate and private key "
+                "from NSSDB"
             )
 
         # Initialize PythonCA instance
@@ -859,18 +839,10 @@ class SubCAManager:
 
         Stores authority metadata in ou=authorities,ou=ca,o=ipaca (Dogtag
         schema).
-        Private keys are always stored on filesystem (not in LDAP) for security
-        and Dogtag compatibility.
-
-        NOTE: Private key is already stored by _save_to_disk() called earlier,
-        so we don't need to call _store_subca_key_on_filesystem() here.
+        Private keys are stored in NSSDB by _save_to_nssdb() called earlier.
         """
         # Use Dogtag schema via storage backend
         self._store_subca_dogtag(subca)
-
-        # Private key already stored by _save_to_disk()
-        # TODO: When encryption is re-enabled, uncomment this:
-        # self._store_subca_key_on_filesystem(subca)
 
         logger.debug("Stored sub-CA %s in LDAP", subca.ca_id)
 
@@ -921,39 +893,21 @@ class SubCAManager:
             "Stored sub-CA %s authority metadata in Dogtag LDAP", subca.ca_id
         )
 
-    def _store_encrypted_subca_key_on_filesystem(self, subca: SubCA):
-        """Store encrypted sub-CA private key on filesystem.
-
-        Keys are encrypted with AES-256-GCM using the master encryption key
-        before writing to disk.
-        """
-        subcas_base = Path(paths.IPACTA_SUBCAS_DIR)
-        subca_dir = subcas_base / subca.ca_id
-        subca_dir.mkdir(parents=True, exist_ok=True)
-
-        # Encode private key in PEM format
-        key_pem = subca.ca_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption(),
+    def _store_subca_key_in_nssdb(self, subca: SubCA):
+        """Store sub-CA private key and certificate in NSSDB."""
+        nickname = f"caSigningCert cert-pki-ca {subca.ca_id}"
+        nssdb = NSSDatabase()
+        nssdb.import_key_and_cert(
+            nickname, subca.ca_key, subca.ca_cert, trust_flags="u,u,u"
         )
-
-        # Encrypt private key before storing
-        encrypted_key = encrypt_private_key(key_pem)
-
-        # Store encrypted key on filesystem
-        key_file = subca_dir / "ca.key.enc"
-        key_file.write_bytes(encrypted_key)
-        key_file.chmod(0o600)
-
-        logger.debug("Stored sub-CA %s private key on filesystem", subca.ca_id)
+        logger.debug("Stored sub-CA %s key in NSSDB: %s", subca.ca_id, nickname)
 
     def _load_subca_from_ldap(self, ca_id: str) -> Optional[SubCA]:
         """
         Load sub-CA from LDAP using Dogtag storage backend
 
         Loads authority metadata from Dogtag LDAP schema and private keys from
-        filesystem.
+        NSSDB.
         """
         # Ensure ca_id is a string, not a tuple (can happen from dict
         # iterations)
@@ -991,8 +945,8 @@ class SubCAManager:
             # Get subject DN from authority data
             subject_dn = authority_data["subject_dn"]
 
-            # Load encrypted private key from filesystem
-            ca_key = self._load_encrypted_subca_key_from_filesystem(ca_id)
+            # Load private key from NSSDB
+            ca_key = self._load_subca_key_from_nssdb(ca_id)
 
             if not ca_key:
                 # Continue without key (read-only mode)
@@ -1028,39 +982,27 @@ class SubCAManager:
             )
             raise
 
-    def _load_encrypted_subca_key_from_filesystem(
+    def _load_subca_key_from_nssdb(
         self, ca_id: str
     ) -> Optional[rsa.RSAPrivateKey]:
-        """Load encrypted sub-CA private key from filesystem.
+        """Load sub-CA private key from NSSDB."""
+        nickname = f"caSigningCert cert-pki-ca {ca_id}"
+        nssdb = NSSDatabase()
 
-        Keys are encrypted with AES-256-GCM using the master encryption key.
-        """
-        subcas_base = Path(paths.IPACTA_SUBCAS_DIR)
-        key_file = subcas_base / ca_id / "ca.key.enc"
-
-        if not key_file.exists():
+        if not nssdb.cert_exists(nickname):
             logger.debug(
-                "Sub-CA %s private key not found on filesystem", ca_id
+                "Sub-CA %s key not found in NSSDB: %s", ca_id, nickname
             )
             return None
 
         try:
-            # Read encrypted key and decrypt
-            encrypted_key = key_file.read_bytes()
-            key_pem = decrypt_private_key(encrypted_key)
-
-            # Load key from PEM
-            ca_key = serialization.load_pem_private_key(key_pem, password=None)
-
-            logger.debug("Loaded private key for %s from filesystem", ca_id)
+            ca_key = nssdb.extract_private_key(nickname)
+            logger.debug("Loaded private key for %s from NSSDB", ca_id)
             return ca_key
-
         except Exception as e:
             logger.error(
-                "Failed to load private key for CA %s from filesystem: %s",
-                ca_id,
-                e,
-                exc_info=True,
+                "Failed to load private key for CA %s from NSSDB: %s",
+                ca_id, e, exc_info=True,
             )
             raise
 
