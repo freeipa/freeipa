@@ -180,6 +180,7 @@ class AuditLogger:
 
         # Hash chain: each record includes the hash of the previous record
         self._previous_hash = ""
+        self._log_lock = threading.Lock()
 
         # Load audit signing private key from NSSDB (Dogtag-compatible)
         if enable_signing:
@@ -294,43 +295,46 @@ class AuditLogger:
         """
         details = details or {}
 
-        # Build audit record (Dogtag PKI format)
-        timestamp = datetime.now(timezone.utc).isoformat()
+        with self._log_lock:
+            # Build audit record (Dogtag PKI format)
+            timestamp = datetime.now(timezone.utc).isoformat()
 
-        audit_record = {
-            "type": event_type,
-            "outcome": outcome,
-            "timestamp": timestamp,
-            "principal": principal or "System",
-            "source_ip": source_ip or "localhost",
-        }
+            audit_record = {
+                "type": event_type,
+                "outcome": outcome,
+                "timestamp": timestamp,
+                "principal": principal or "System",
+                "source_ip": source_ip or "localhost",
+            }
 
-        # Add details
-        audit_record.update(details)
+            # Add details
+            audit_record.update(details)
 
-        # Format as key=value pairs (Dogtag format)
-        record_parts = []
-        for key, value in audit_record.items():
-            if value is not None:
-                # Escape special characters
-                value_str = str(value).replace(";", "\\;").replace("=", "\\=")
-                record_parts.append(f"{key}={value_str}")
+            # Format as key=value pairs (Dogtag format)
+            record_parts = []
+            for key, value in audit_record.items():
+                if value is not None:
+                    # Escape special characters
+                    value_str = (
+                        str(value).replace(";", "\\;").replace("=", "\\=")
+                    )
+                    record_parts.append(f"{key}={value_str}")
 
-        record_parts.append(f"prev_hash={self._previous_hash}")
-        record_line = "[" + "; ".join(record_parts) + "]"
+            record_parts.append(f"prev_hash={self._previous_hash}")
+            record_line = "[" + "; ".join(record_parts) + "]"
 
-        # Add signature if enabled
-        if self.enable_signing:
-            signature = self._sign_message(record_line)
-            record_line += f" [signature={signature}]"
+            # Add signature if enabled
+            if self.enable_signing:
+                signature = self._sign_message(record_line)
+                record_line += f" [signature={signature}]"
 
-        # Update hash chain for next record
-        self._previous_hash = hashlib.sha256(
-            record_line.encode("utf-8")
-        ).hexdigest()
+            # Update hash chain for next record
+            self._previous_hash = hashlib.sha256(
+                record_line.encode("utf-8")
+            ).hexdigest()
 
-        # Write to audit log
-        self.logger.info(record_line)
+            # Write to audit log
+            self.logger.info(record_line)
 
     def log_action(
         self,
