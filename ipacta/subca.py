@@ -372,10 +372,14 @@ class SubCAManager:
             cache_ttl: Time-to-live for cache entries in seconds (default:
                        300 = 5 minutes)
         """
+        self._ts_check_interval = 30
         if CACHETOOLS_AVAILABLE:
             self.subcas = TTLCache(maxsize=cache_maxsize, ttl=cache_ttl)
             self.cache_timestamps = TTLCache(
                 maxsize=cache_maxsize, ttl=cache_ttl
+            )
+            self._ts_last_checked = TTLCache(
+                maxsize=cache_maxsize, ttl=self._ts_check_interval
             )
             logger.debug(
                 "Initialized SubCA cache with maxsize=%d, ttl=%ds",
@@ -388,6 +392,7 @@ class SubCAManager:
             )
             self.subcas: Dict[str, SubCA] = {}
             self.cache_timestamps: Dict[str, datetime.datetime] = {}
+            self._ts_last_checked: Dict[str, float] = {}
 
         basedn = get_config_value("global", "basedn")
         self.ldap_base_dn = DN(("cn", "cas"), ("cn", "ca"), basedn)
@@ -705,9 +710,13 @@ class SubCAManager:
 
         # Validate cache outside lock (LDAP I/O)
         if cached is not None and cache_ts is not None:
+            # Skip LDAP timestamp check if we verified recently
+            if ca_id in self._ts_last_checked:
+                return cached
             try:
                 ldap_ts = self._get_ldap_modify_timestamp(ca_id)
                 if ldap_ts <= cache_ts:
+                    self._ts_last_checked[ca_id] = True
                     logger.debug(
                         "Cache hit for sub-CA %s (validated via timestamp)",
                         ca_id,
@@ -722,6 +731,7 @@ class SubCAManager:
             with self._cache_lock:
                 self.subcas.pop(ca_id, None)
                 self.cache_timestamps.pop(ca_id, None)
+                self._ts_last_checked.pop(ca_id, None)
 
         # Load from LDAP (outside lock — LDAP I/O)
         subca = self._load_subca_from_ldap(ca_id)
