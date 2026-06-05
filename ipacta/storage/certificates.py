@@ -485,18 +485,18 @@ class CertificateStorage(BaseStorageBackend):
                 ldap_filter,
             )
 
+            size_limit = criteria.get("sizelimit", 0)
+            time_limit = criteria.get("timelimit", 0)
+            offset = criteria.get("offset", 0)
+
             try:
-                # OPTIMIZED: Fetch only required attributes for
-                # CertificateRecord reconstruction (avoid fetching unused
-                # attributes like subjectName, issuerName, notBefore, notAfter
-                # which are also in the certificate)
-                entries = ldap.get_entries(
-                    self.certs_base_dn,
+                entries, _truncated = ldap.find_entries(
+                    base_dn=self.certs_base_dn,
                     scope=ldap.SCOPE_ONELEVEL,
                     filter=ldap_filter,
                     attrs_list=[
-                        "userCertificate;binary",  # Primary cert storage
-                        "usercertificate;binary",  # Alternate format
+                        "userCertificate;binary",
+                        "usercertificate;binary",
                         "serialno",
                         "cn",
                         "certStatus",
@@ -504,6 +504,8 @@ class CertificateStorage(BaseStorageBackend):
                         "revInfo",
                         "requestId",
                     ],
+                    size_limit=size_limit or None,
+                    time_limit=time_limit or None,
                 )
 
                 results = []
@@ -609,6 +611,8 @@ class CertificateStorage(BaseStorageBackend):
 
                     results.append(cert_record)
 
+                if offset:
+                    results = results[offset:]
                 return results
 
             except errors.NotFound:
@@ -623,12 +627,12 @@ class CertificateStorage(BaseStorageBackend):
             offset: Number of entries to skip (0 = no skip).
             limit:  Maximum entries to return (0 = all).
         """
-        results = self.find_certificates({"status": "REVOKED"})
+        criteria = {"status": "REVOKED"}
         if offset:
-            results = results[offset:]
+            criteria["offset"] = offset
         if limit:
-            results = results[:limit]
-        return results
+            criteria["sizelimit"] = offset + limit
+        return self.find_certificates(criteria)
 
     def get_revoked_for_crl(self):
         """Yield lightweight revocation entries for CRL generation.
