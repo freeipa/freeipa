@@ -42,7 +42,7 @@ def require_ca_backend(f):
 
 
 def init_ca():
-    """Initialize CA backend"""
+    """Initialize CA backend (lazy, called on first request)"""
     global ca_backend
     if ca_backend is not None:
         return
@@ -55,10 +55,28 @@ def init_ca():
             logger.debug(
                 "Python CA backend initialized successfully with LDAP storage"
             )
+            _setup_reload_manager(ca_backend)
         except Exception as e:
             logger.error("Failed to initialize CA backend: %s", e)
             logger.error(traceback.format_exc())
             raise
+
+
+def _setup_reload_manager(backend):
+    """Set up certificate reload manager after CA init"""
+    try:
+        from ipacta.certificate.reload_manager import get_reload_manager
+
+        reload_manager = get_reload_manager(backend)
+        reload_manager.setup_signal_handler()
+        logger.info(
+            "Certificate reload manager initialized - send SIGHUP "
+            "to reload certificates without service restart"
+        )
+    except Exception as e:
+        logger.warning(
+            "Failed to initialize certificate reload manager: %s", e
+        )
 
 
 def init_kra():

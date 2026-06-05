@@ -91,10 +91,6 @@ def create_app(config=None):
         # Update Flask's internal config
         app.config.update(config)
 
-    # Initialize backends on startup
-    with app.app_context():
-        _g.init_ca()
-
     return app
 
 
