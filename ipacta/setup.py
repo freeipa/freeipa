@@ -25,7 +25,7 @@ if __name__ == "__main__":
             "ipacta.storage",
         ],
         install_requires=[
-            "cryptography",
+            "cryptography>=42.0",
             "python-gunicorn",
             "python-flask",
             "ipapython",  # ipautil.run, ipautil.fsdecode
