@@ -365,7 +365,13 @@ class PythonKeyEscrowBackend:
 
             filepath = os.path.join(self.storage_path, filename)
 
-            records = self._load_records(filepath)
+            try:
+                records = self._load_records(filepath)
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning(
+                    "Skipping corrupt key escrow file %s: %s", filepath, e
+                )
+                continue
 
             modified = False
             for record in records:
@@ -404,7 +410,13 @@ class PythonKeyEscrowBackend:
 
             filepath = os.path.join(self.storage_path, filename)
 
-            records = self._load_records(filepath)
+            try:
+                records = self._load_records(filepath)
+            except (json.JSONDecodeError, ValueError) as e:
+                logger.warning(
+                    "Skipping corrupt key escrow file %s: %s", filepath, e
+                )
+                continue
 
             for record in records:
                 if record["key_id"] == key_id:
