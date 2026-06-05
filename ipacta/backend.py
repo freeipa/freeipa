@@ -38,7 +38,7 @@ from ipapython.dn import DN
 from ipaplatform.paths import paths
 import ipacta
 from ipacta import x509_utils, set_global_config, load_config
-from ipacta.acme import ACMEServer
+from ipacta.acme import ACMEError, ACMEServer
 from ipacta.acme_state import ACMEStateManager
 from ipacta.ca import RevocationReason
 from ipacta.ca_internal import InternalCA
@@ -778,7 +778,6 @@ class PythonCABackend:
                 # RFC 8555 §7.6 — revoke a certificate issued via ACME.
                 cert_b64 = payload.get("certificate")
                 if not cert_b64:
-                    from ipacta.acme import ACMEError
                     raise ACMEError(
                         "malformed",
                         "Missing 'certificate' in revoke-cert payload",
@@ -788,7 +787,6 @@ class PythonCABackend:
                         cert_b64 + "=" * (4 - len(cert_b64) % 4)
                     )
                 except Exception as exc:
-                    from ipacta.acme import ACMEError
                     raise ACMEError(
                         "malformed",
                         f"Cannot decode certificate in revoke-cert: {exc}",
@@ -806,6 +804,8 @@ class PythonCABackend:
                     reason=f"Unknown ACME endpoint: {endpoint}"
                 )
 
+        except (ACMEError, errors.NotFound, errors.CertificateOperationError):
+            raise
         except Exception as e:
             logger.error("ACME request failed: %s", e)
             raise errors.CertificateOperationError(error=str(e)) from e
