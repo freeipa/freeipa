@@ -382,7 +382,7 @@ class IpactaConfig:
                 OCSP_SIGNING_KEY_SIZE=self._ocsp_signing_key_size,
             ),
         )
-        config_file.chmod(0o644)
+        config_file.chmod(0o640)
 
         # Read it back so pass-through methods work
         config = RawConfigParser()
