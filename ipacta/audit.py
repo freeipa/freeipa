@@ -24,6 +24,7 @@ from typing import Dict, Any, Optional
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import padding
 
 from ipaplatform.paths import paths
@@ -606,7 +607,8 @@ class AuditLogger:
 
     def verify_log_integrity(self, log_file: Optional[str] = None) -> bool:
         """
-        Verify audit log integrity using signatures
+        Verify audit log integrity using the signing certificate's
+        public key.
 
         Args:
             log_file: Log file to verify (default: current log file)
@@ -624,6 +626,20 @@ class AuditLogger:
             logger.error("Log file not found: %s", log_path)
             return False
 
+        # Load public key from the audit signing certificate in NSSDB
+        try:
+            nssdb = NSSDatabase()
+            cert = nssdb.extract_certificate(self.audit_cert_nickname)
+            public_key = cert.public_key()
+        except Exception as e:
+            logger.error("Failed to load audit signing certificate: %s", e)
+            return False
+
+        audit_alg = ipacta.get_config_value(
+            "ca", "audit_signing_algorithm", default="SHA256withRSA"
+        )
+        hash_alg = x509_utils.parse_signature_algorithm(audit_alg)
+
         try:
             with open(log_path, "r") as f:
                 for line_num, line in enumerate(f, 1):
@@ -632,24 +648,26 @@ class AuditLogger:
                     if not line:
                         continue
 
-                    # Extract message and signature
                     if "[signature=" not in line:
                         logger.warning("Line %s: No signature found", line_num)
                         continue
 
                     parts = line.rsplit(" [signature=", 1)
                     message = parts[0]
-                    signature = parts[1].rstrip("]")
+                    signature_b64 = parts[1].rstrip("]")
 
-                    # Verify signature
-                    expected_signature = self._sign_message(message)
-
-                    if not secrets.compare_digest(
-                        signature, expected_signature
-                    ):
+                    try:
+                        signature_bytes = base64.b64decode(signature_b64)
+                        public_key.verify(
+                            signature_bytes,
+                            message.encode("utf-8"),
+                            padding.PKCS1v15(),
+                            hash_alg,
+                        )
+                    except InvalidSignature:
                         logger.error(
-                            "Line %s: Signature mismatch! Log may be "
-                            "tampered.",
+                            "Line %s: Signature verification failed! "
+                            "Log may be tampered.",
                             line_num,
                         )
                         return False
