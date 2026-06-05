@@ -21,5 +21,15 @@ RestartSec=10
 StandardOutput=journal
 StandardError=journal
 
+# Hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ipacta /var/lib/ipa/pki-ca/publish /etc/pki/pki-tomcat/alias
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+
 [Install]
 WantedBy=multi-user.target
