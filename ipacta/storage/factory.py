@@ -157,7 +157,19 @@ def _get_config_value(
             config, section, option, default, value_type
         )
 
-    # Load config from file
+    # Try global config singleton (avoids re-reading from disk)
+    if config_path is None:
+        try:
+            from ipacta import get_global_config
+
+            cfg = get_global_config()
+            return _read_from_config_object(
+                cfg, section, option, default, value_type
+            )
+        except Exception:
+            pass
+
+    # Fall back to loading config from file
     if config_path is None:
         config_path = paths.IPACTA_CONF
 
