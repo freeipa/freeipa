@@ -62,7 +62,6 @@ from ipacta.ca import (
     PythonCA,
     CertificateRequest,
     CertificateRecord,
-    CertificateStatus,
     RevocationReason,
     REVOCATION_REASON_TO_FLAG,
 )
@@ -678,42 +677,33 @@ class InternalCA(PythonCA):
                 x509.CRLNumber(crl_number), critical=False
             )
 
-            # Get revoked certificates from LDAP
-            revoked_certs = self.ldap_storage.get_revoked_certificates()
-
-            # Add revoked certificates
+            # Add revoked certificates to CRL.
+            # Use get_revoked_for_crl() which fetches only serial,
+            # revocation time, and reason code — no binary certificate
+            # DER — to avoid loading all revoked cert payloads into
+            # memory at once on large deployments.
             num_revoked = 0
-            for cert_record in revoked_certs:
-                if cert_record.status == CertificateStatus.REVOKED:
-                    if cert_record.revoked_at is None:
-                        logger.warning(
-                            "Revoked certificate %s has no revocation "
-                            "date, skipping in CRL",
-                            cert_record.serial_number,
-                        )
-                        continue
-                    revoked_cert = x509.RevokedCertificateBuilder()
-                    revoked_cert = revoked_cert.serial_number(
-                        cert_record.serial_number
+            for serial, revoked_at, reason_int in (
+                self.ldap_storage.get_revoked_for_crl()
+            ):
+                revoked_cert = x509.RevokedCertificateBuilder()
+                revoked_cert = revoked_cert.serial_number(serial)
+                revoked_cert = revoked_cert.revocation_date(revoked_at)
+
+                if reason_int:
+                    reason_flag = REVOCATION_REASON_TO_FLAG.get(
+                        RevocationReason(reason_int),
+                        x509.ReasonFlags.unspecified,
                     )
-                    revoked_cert = revoked_cert.revocation_date(
-                        cert_record.revoked_at
+                    revoked_cert = revoked_cert.add_extension(
+                        x509.CRLReason(reason_flag),
+                        critical=False,
                     )
 
-                    if cert_record.revocation_reason:
-                        reason_flag = REVOCATION_REASON_TO_FLAG.get(
-                            cert_record.revocation_reason,
-                            x509.ReasonFlags.unspecified,
-                        )
-                        revoked_cert = revoked_cert.add_extension(
-                            x509.CRLReason(reason_flag),
-                            critical=False,
-                        )
-
-                    builder = builder.add_revoked_certificate(
-                        revoked_cert.build()
-                    )
-                    num_revoked += 1
+                builder = builder.add_revoked_certificate(
+                    revoked_cert.build()
+                )
+                num_revoked += 1
 
             # Sign CRL with algorithm matching CA certificate
             # Extract algorithm from the CA cert that will sign this CRL
