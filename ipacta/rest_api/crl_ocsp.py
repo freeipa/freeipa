@@ -3,10 +3,12 @@
 import base64
 import logging
 import os
+from datetime import datetime, timezone
 from xml.sax.saxutils import escape as xml_escape
 
 from flask import Blueprint, Response, request, jsonify
 
+from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 
 import ipacta.rest_api._globals as _g
@@ -38,22 +40,34 @@ def get_crl():
     """Get Certificate Revocation List
 
     Serves CRL at /ca/ee/ca/getCRL (Dogtag format).
+    Returns the cached CRL if it has not expired yet; regenerates
+    only when the CRL's nextUpdate has passed.
 
     Note: /ipa/crl/MasterCRL.bin is served by Apache directly via Alias
     directive from /var/lib/ipa/pki-ca/publish/MasterCRL.bin (not via this
     REST API).
     """
-    # Generate fresh CRL
-    _g.ca_backend.update_crl()
-
-    # Read CRL from file (avoid TOCTOU race with direct open)
     crl_path = os.path.join(paths.IPACTA_CERTS_DIR, "ca_crl.der")
+
+    regenerate = True
     try:
         with open(crl_path, "rb") as f:
             crl_data = f.read()
-        return Response(crl_data, mimetype="application/pkix-crl")
-    except FileNotFoundError:
-        return error_response("CRLNotFound", "CRL file not found", 404)
+        crl = x509.load_der_x509_crl(crl_data)
+        if crl.next_update_utc > datetime.now(timezone.utc):
+            regenerate = False
+    except (FileNotFoundError, ValueError):
+        crl_data = None
+
+    if regenerate:
+        _g.ca_backend.update_crl()
+        try:
+            with open(crl_path, "rb") as f:
+                crl_data = f.read()
+        except FileNotFoundError:
+            return error_response("CRLNotFound", "CRL file not found", 404)
+
+    return Response(crl_data, mimetype="application/pkix-crl")
 
 
 @bp.route("/ca/rest/agent/crl", methods=["POST"])
