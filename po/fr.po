@@ -3,14 +3,14 @@
 # Jérôme Fenal <jfenal@gmail.com>, 2016. #zanata
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
-# Léane GRASSER <leane.grasser@proton.me>, 2024.
+# Léane GRASSER <leane.grasser@proton.me>, 2024, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://codeberg.org/freeipa/freeipa/issues/new\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-06-01 13:58+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Léane GRASSER <leane.grasser@proton.me>\n"
 "Language-Team: French <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fr/>\n"
 "Language: fr\n"
@@ -23948,9 +23948,9 @@ msgstr ""
 "\n"
 "Pour activer le DN de liaison, exécutez la commande suivante pour définir le "
 "mot de passe :\n"
-"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -H ldap://ipa."
-"example.com -ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,"
-"dc=example,dc=com\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -H ldap://"
+"ipa.example.com -ZZ -D \"cn=Directory Manager\" "
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
 
 msgid ""
 "\n"
