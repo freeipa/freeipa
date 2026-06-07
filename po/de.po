@@ -5,14 +5,14 @@
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Paul Ritter <paul-ritter@gmx.net>, 2018. #zanata
 # Alexander Bokovoy <abokovoy@redhat.com>, 2021, 2026.
-# Christian Rohr <christian.rohr@mailbox.org>, 2025.
+# Christian Rohr <christian.rohr@mailbox.org>, 2025, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-06-01 13:10+0000\n"
-"Last-Translator: Alexander Bokovoy <abokovoy@redhat.com>\n"
+"Last-Translator: Christian Rohr <christian.rohr@mailbox.org>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/freeipa/"
 "master/de/>\n"
 "Language: de\n"
