@@ -4,13 +4,14 @@
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 # Léane GRASSER <leane.grasser@proton.me>, 2024, 2026.
+# William Oprandi <william.oprandi@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-06-01 13:58+0000\n"
-"Last-Translator: Léane GRASSER <leane.grasser@proton.me>\n"
+"PO-Revision-Date: 2026-06-07 09:01+0000\n"
+"Last-Translator: William Oprandi <william.oprandi@gmail.com>\n"
 "Language-Team: French <https://translate.fedoraproject.org/projects/freeipa/"
 "master/fr/>\n"
 "Language: fr\n"
@@ -18,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.6\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -142,10 +143,8 @@ msgstr "impossible d'ouvrir le fichier de configuration %s\n"
 msgid "Failed to parse config file %s\n"
 msgstr "Impossible d'analyser le fichier de configuration %s\n"
 
-#, fuzzy
-#| msgid "Failed to open keytab\n"
 msgid "Failed to resolve symlink to keytab.\n"
-msgstr "Impossible d'ouvrir le tableau de clés\n"
+msgstr "Impossible de résoudre le lien symbolique vers le tableau de clés.\n"
 
 msgid "keytab is a dangling symlink and owned by another user.\n"
 msgstr ""
