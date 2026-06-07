@@ -1,13 +1,13 @@
 # Marco Aurélio Krause <ouesten@me.com>, 2015. #zanata
 # Rafael Fontenelle <rafaelff@gnome.org>, 2020, 2021, 2024, 2026.
-# Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020, 2021.
+# Daniel Lara Souza <daniellarasouza@yahoo.com.br>, 2020, 2021, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-06-01 13:54+0000\n"
-"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
+"Last-Translator: Daniel Lara Souza <daniellarasouza@yahoo.com.br>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/master/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -12056,8 +12056,8 @@ msgid ""
 "%(key)s cannot be deleted or disabled because it is the last member of "
 "%(label)s %(container)s"
 msgstr ""
-"%(key)s não pode ser excluído ou desabilitado porque é o último membro de "
-"%(label)s %(container)s"
+"%(key)s não pode ser excluído ou desabilitado porque é o último membro de %"
+"(label)s %(container)s"
 
 #, python-format
 msgid "%(label)s %(key)s cannot be deleted/modified: %(reason)s"
