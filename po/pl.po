@@ -1,12 +1,12 @@
 # Piotr Drąg <piotrdrag@gmail.com>, 2016. #zanata, 2020, 2021, 2022, 2025, 2026.
-# Marcin Stanclik <mstanclik@yahoo.com>, 2021.
+# Marcin Stanclik <mstanclik@yahoo.com>, 2021, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-06-01 13:22+0000\n"
-"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Last-Translator: Marcin Stanclik <mstanclik@yahoo.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/freeipa/"
 "master/pl/>\n"
 "Language: pl\n"
