@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR Red Hat
 # This file is distributed under the same license as the freeipa package.
-# Thomas Dombradi <ddt@atomki.hu>, 2021.
+# Thomas Dombradi <ddt@atomki.hu>, 2021, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://codeberg.org/freeipa/freeipa/issues/new\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-06-01 13:46+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Thomas Dombradi <ddt@atomki.hu>\n"
 "Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
 "freeipa/master/hu/>\n"
 "Language: hu\n"
