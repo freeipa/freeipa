@@ -1,5 +1,5 @@
 var dojoConfig = {
-    baseUrl: "../ui/js",
+    baseUrl: "./ui/js",
     has: {
         'dojo-firebug': false,
         'dojo-debug-messages': true
@@ -19,16 +19,16 @@ var dojoConfig = {
 };
 (function() {
     var icons = [
-        '../ui/favicon.ico'
+        './ui/favicon.ico'
     ];
     var styles = [
-        '../ui/css/patternfly.css',
-        '../ui/css/ipa.css'
+        './ui/css/patternfly.css',
+        './ui/css/ipa.css'
     ];
     var scripts = [
-        '../ui/js/libs/jquery.js',
-        '../ui/js/libs/jquery.ordered-map.js',
-        '../ui/js/dojo/dojo.js'
+        './ui/js/libs/jquery.js',
+        './ui/js/libs/jquery.ordered-map.js',
+        './ui/js/dojo/dojo.js'
     ];
 
     ipa_loader.scripts(scripts, function() {
@@ -41,6 +41,8 @@ var dojoConfig = {
                 var text = require('freeipa/text');
                 var msg = text.get('@i18n:unauthorized-page');
                 if (msg) {
+                    // Unauthorized is rendered through /ipa/whatever, but most pages expect /ipa/ui/whatever
+                    msg = msg.replace('<a href="ssbrowser.html">', '<a href="config/ssbrowser.html">');
                     dom.byId('unauthorized-msg').innerHTML=msg;
                 }
             });
