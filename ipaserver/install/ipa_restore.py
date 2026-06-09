@@ -521,7 +521,7 @@ class Restore(admintool.AdminTool):
                 # Restart IPA a final time.
                 # Starting then restarting is necessary to make sure some
                 # daemons like httpd are restarted
-                # (https://pagure.io/freeipa/issue/8226).
+                # (https://codeberg.org/freeipa/freeipa/issues/8226).
                 logger.info('Restarting IPA services')
                 result = run([paths.IPACTL, 'restart'], raiseonerr=False)
                 if result.returncode != 0:

@@ -282,7 +282,7 @@ class test_pwpolicy(UI_driver):
         """
         Verify existence of grace login limit field and its constraints
 
-        Related: https://pagure.io/freeipa/issue/9211
+        Related: https://codeberg.org/freeipa/freeipa/issues/9211
         """
         self.init_app()
         self.add_record(group.ENTITY, [group.DATA])

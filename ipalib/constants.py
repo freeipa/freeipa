@@ -385,7 +385,7 @@ CA_TRACKING_REQS = {
 }
 
 # moved from ipaserver/install/krainstance.py::KRAInstance to avoid duplication
-# as per https://pagure.io/freeipa/issue/8795
+# as per https://codeberg.org/freeipa/freeipa/issues/8795
 KRA_TRACKING_REQS = {
     'auditSigningCert cert-pki-kra': 'caAuditSigningCert',
     'transportCert cert-pki-kra': 'caTransportCert',

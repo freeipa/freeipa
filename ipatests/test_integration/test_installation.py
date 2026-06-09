@@ -217,7 +217,7 @@ class TestInstallWithCA1(InstallTestBase1):
     def test_install_with_bad_ldap_conf(self):
         """
         Test a client install with a non standard ldap.config
-        https://pagure.io/freeipa/issue/7418
+        https://codeberg.org/freeipa/freeipa/issues/7418
         """
         ldap_conf = paths.OPENLDAP_LDAP_CONF
         base_dn = self.master.domain.basedn
@@ -735,7 +735,7 @@ class TestInstallMaster(IntegrationTest):
     )
     def test_smoke_test_for_debug_mode(self):
         """Test if an IPA server works in debug mode.
-        Related: https://pagure.io/freeipa/issue/8891
+        Related: https://codeberg.org/freeipa/freeipa/issues/8891
 
         Note: this test hardcodes the "httpd" service name.
         """
@@ -763,7 +763,7 @@ class TestInstallMaster(IntegrationTest):
         This is to ensure if said entry is set after installation.
         It also checks if compat tree is disable.
 
-        related: https://pagure.io/freeipa/issue/8193
+        related: https://codeberg.org/freeipa/freeipa/issues/8193
         """
         conn = self.master.ldap_connect()
         entry = conn.get_entry(DN(
@@ -791,7 +791,7 @@ class TestInstallMaster(IntegrationTest):
         for pki-tomcatd. This test validates that restart
         called on pki-tomcat properly.
 
-        related ticket : https://pagure.io/freeipa/issue/7927
+        related ticket : https://codeberg.org/freeipa/freeipa/issues/7927
         """
         # get process id of pki-tomcatd
         pki_pid = get_pki_tomcatd_pid(self.master)
@@ -886,7 +886,7 @@ class TestInstallMaster(IntegrationTest):
     def test_WSGI_worker_process(self):
         """ Test if WSGI worker process count is set to 4
 
-        related ticket : https://pagure.io/freeipa/issue/7587
+        related ticket : https://codeberg.org/freeipa/freeipa/issues/7587
         """
         # check process count in httpd conf file i.e expected string
         exp = b'WSGIDaemonProcess ipa processes=%d' % constants.WSGI_PROCESSES
@@ -907,7 +907,7 @@ class TestInstallMaster(IntegrationTest):
         It needs Yubikey hardware to make command successfull. This test
         just check of proper error thrown when hardware is not attached.
 
-        related ticket : https://pagure.io/freeipa/issue/6979
+        related ticket : https://codeberg.org/freeipa/freeipa/issues/6979
         """
         # try to add yubikey to the user
         args = ['ipa', 'otptoken-add-yubikey', '--owner=admin']
@@ -1049,7 +1049,7 @@ class TestInstallMaster(IntegrationTest):
             assert group_warnings == [], msg.format(group_warnings)
 
     def test_ds_disable_upgrade_hash(self):
-        # Test case for https://pagure.io/freeipa/issue/8315
+        # Test case for https://codeberg.org/freeipa/freeipa/issues/8315
         # Disable password schema migration on LDAP bind
         result = tasks.ldapsearch_dm(
             self.master,
@@ -1081,7 +1081,7 @@ class TestInstallMaster(IntegrationTest):
     def test_nsslapd_sizelimit(self):
         """ Test for default value of nsslapd-sizelimit.
 
-        Related : https://pagure.io/freeipa/issue/8962
+        Related : https://codeberg.org/freeipa/freeipa/issues/8962
         """
         result = tasks.ldapsearch_dm(
             self.master,
@@ -1215,7 +1215,7 @@ class TestInstallMaster(IntegrationTest):
         """
         Test that --hostname parameter is respected in interactive mode.
 
-        https://pagure.io/freeipa/issue/2692
+        https://codeberg.org/freeipa/freeipa/issues/2692
         """
         original_hostname = self.master.hostname
         new_hostname = 'new.' + original_hostname
@@ -1272,7 +1272,7 @@ class TestInstallMaster(IntegrationTest):
         Test if the installer is not dependant on trust-ad package and
         succeeds even when AD subpackage is not installed
 
-        https://pagure.io/freeipa/issue/4011
+        https://codeberg.org/freeipa/freeipa/issues/4011
         """
         if osinfo.id == 'fedora':
             package_name = 'freeipa-server-trust-ad'
@@ -1296,7 +1296,7 @@ class TestInstallMaster(IntegrationTest):
         Test that the installer backs up CS.cfg configuration before it's
         being modified.
 
-        https://pagure.io/freeipa/issue/4166
+        https://codeberg.org/freeipa/freeipa/issues/4166
         """
         bcp_location = paths.CA_CS_CFG_PATH + '.ipabkp'
         original_cfg_content = None
@@ -1343,7 +1343,7 @@ class TestInstallMasterKRA(IntegrationTest):
         This test checks that ipa-ccache-sweep.timer is enabled by default
         during the ipa installation.
 
-        related: https://pagure.io/freeipa/issue/9107
+        related: https://codeberg.org/freeipa/freeipa/issues/9107
         """
         result = self.master.run_command(
             ['systemctl', 'is-enabled', 'ipa-ccache-sweep.timer'],
@@ -1425,7 +1425,7 @@ class TestInstallMasterDNS(IntegrationTest):
         'allow-recursion { any; };'. It also checks if ipa-backup
         command backup the /etc/named/ipa-ext.conf file as well
 
-        related : https://pagure.io/freeipa/issue/8079
+        related : https://codeberg.org/freeipa/freeipa/issues/8079
         """
         # check of /etc/named/ipa-ext.conf exist
         assert self.master.transport.file_exists(paths.NAMED_CUSTOM_CONF)
@@ -1448,7 +1448,7 @@ class TestInstallMasterDNS(IntegrationTest):
         Installer wizard should prompt for DNS even if --setup-dns is not
         provided as an argument.
 
-        https://pagure.io/freeipa/issue/2575
+        https://codeberg.org/freeipa/freeipa/issues/2575
         """
         cmd = ['ipa-server-install']
         netbios = create_netbios_name(self.master)
@@ -1531,7 +1531,7 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
     This test checks if ipa server installation throws an error when
     0.0.0.0 is specified as forwarder IP address.
 
-    related ticket: https://pagure.io/freeipa/issue/6894
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/6894
     """
 
     def test_reserved_ip_as_forwarder(self):
@@ -1576,7 +1576,7 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
     KRA installation was failing after ca-agent cert gets renewed.
     This test checks if the symptoms no longer exist.
 
-    related ticket: https://pagure.io/freeipa/issue/7288
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/7288
     """
 
     def test_KRA_install_after_cert_renew(self):
@@ -1635,8 +1635,10 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
             # /root/.dogtag/pki-tomcat/ca_admin.cert is checked
             # and KRA install fails. Known IPA issue
             pki_version = tasks.get_pki_version(self.master)
-            with xfail_context(pki_version >= tasks.parse_version('11.6.0'),
-                               'https://pagure.io/freeipa/issue/9763'):
+            with xfail_context(
+                pki_version >= tasks.parse_version('11.6.0'),
+                'https://codeberg.org/freeipa/freeipa/issues/9763'
+            ):
                 cmd = self.master.run_command([
                     'ipa-kra-install', '-p', dm_pass, '-U'
                 ])
@@ -1650,7 +1652,7 @@ class TestKRAinstallOnReplicaWithCAHost(IntegrationTest):
     KRA install on a replica should fail
     if the ca_host line in /etc/ipa/default.conf is present
 
-    Related: https://pagure.io/freeipa/issue/8245
+    Related: https://codeberg.org/freeipa/freeipa/issues/8245
     """
 
     num_replicas = 1
@@ -1682,7 +1684,7 @@ class TestMaskInstall(IntegrationTest):
     This test checks that master/replica installation fails (expectedly) if
     mask > 022.
 
-    related ticket: https://pagure.io/freeipa/issue/7193
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/7193
     """
     topology = 'star'
 
@@ -1722,7 +1724,7 @@ class TestMaskInstall(IntegrationTest):
 
 
 class TestInstallMasterReplica(IntegrationTest):
-    """https://pagure.io/freeipa/issue/7929
+    """https://codeberg.org/freeipa/freeipa/issues/7929
     Problem:
     If a replica installation fails before all the services
     have been enabled then
@@ -1764,7 +1766,7 @@ class TestInstallMasterReplica(IntegrationTest):
         4. On master,
            run ipa-replica-manage del <replicaFQDN> --cleanup --force
         """
-        # https://pagure.io/freeipa/issue/7929
+        # https://codeberg.org/freeipa/freeipa/issues/7929
         # modify the replica entry on Master
         cmd_output = None
         dn_entry = 'dn: cn=KDC,cn=%s,cn=masters,cn=ipa,' \
@@ -1802,7 +1804,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
     install replica2 from replica1 and expect it to get fail as specified
     server is not providing all the services.
 
-    related ticket: https://pagure.io/freeipa/issue/7566
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/7566
     """
 
     num_replicas = 2
@@ -2004,7 +2006,7 @@ class TestInstallWithoutNamed(IntegrationTest):
     @classmethod
     def remove_named(cls, host):
         # remove the bind package and make sure the named user does not exist.
-        # https://pagure.io/freeipa/issue/8936
+        # https://codeberg.org/freeipa/freeipa/issues/8936
         result = host.run_command(['id', 'named'], raiseonerr=False)
         if result.returncode == 0:
             tasks.uninstall_packages(host, ['bind'])
@@ -2107,7 +2109,7 @@ class TestHostnameValidator(IntegrationTest):
         ]
 
     def test_user_input_hostname(self):
-        # https://pagure.io/freeipa/issue/9111
+        # https://codeberg.org/freeipa/freeipa/issues/9111
         # Validate the user-provided hostname
         self.master.run_command(['hostname', 'fedora'])
         result = self.master.run_command(
@@ -2129,7 +2131,7 @@ class TestHostnameValidator(IntegrationTest):
         assert hostname == self.master.hostname
 
     def test_hostname_with_dot(self):
-        # https://pagure.io/freeipa/issue/9111
+        # https://codeberg.org/freeipa/freeipa/issues/9111
         # Validate the user-provided hostname
         self.master.run_command(['hostname', 'fedora'])
         result = self.master.run_command(
@@ -2151,7 +2153,7 @@ class TestHostnameValidator(IntegrationTest):
         assert hostname == self.master.hostname
 
     def test_hostname_matching_domain(self):
-        # https://pagure.io/freeipa/issue/9003
+        # https://codeberg.org/freeipa/freeipa/issues/9003
         # Prevent hostname from matching the domain
         self.master.run_command(['hostname', self.master.hostname])
         args = self.get_args(self.master)

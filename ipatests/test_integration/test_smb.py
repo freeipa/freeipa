@@ -167,7 +167,7 @@ class TestSMB(IntegrationTest):
             assert file_contents_at_server == test_string
 
             # Detect whether smbclient uses -k or --use-kerberos=required
-            # https://pagure.io/freeipa/issue/8926
+            # https://codeberg.org/freeipa/freeipa/issues/8926
             # then check access using smbclient.
             res = run_smb_client(
                 [
@@ -264,7 +264,7 @@ class TestSMB(IntegrationTest):
         server as its alias. Test that we can actually initialize credentials
         using this alias. We don't need to use it anywhere in Samba, just
         verify that alias works.
-        Test for  https://pagure.io/freeipa/issue/8291"""
+        Test for  https://codeberg.org/freeipa/freeipa/issues/8291"""
         netbiosname = self.smbserver.hostname.split('.')[0].upper() + '$'
         copier = tasks.KerberosKeyCopier(self.smbserver)
 
@@ -422,7 +422,8 @@ class TestSMB(IntegrationTest):
         """Repeatedly try to authenticate with username and password with
         automatic domain discovery.
 
-        This is a regression test for https://pagure.io/freeipa/issue/8636
+        This is a regression test for
+        https://codeberg.org/freeipa/freeipa/issues/8636
         """
         tasks.kdestroy_all(self.smbclient)
 
@@ -467,7 +468,7 @@ class TestSMB(IntegrationTest):
     def test_repeated_uninstall_samba(self):
         """Test samba uninstallation after successful uninstallation.
 
-        Test for bug https://pagure.io/freeipa/issue/8019.
+        Test for bug https://codeberg.org/freeipa/freeipa/issues/8019.
         """
         self.smbserver.run_command(['ipa-client-samba', '--uninstall', '-U'])
 
@@ -475,7 +476,7 @@ class TestSMB(IntegrationTest):
         """Test samba can be reinstalled.
 
         Test installation after uninstallation and do some sanity checks.
-        Test for bug https://pagure.io/freeipa/issue/8021
+        Test for bug https://codeberg.org/freeipa/freeipa/issues/8021
         """
         self.test_install_samba()
         self.test_smb_access_for_ipa_user_at_ipa_client()

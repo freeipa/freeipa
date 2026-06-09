@@ -45,7 +45,7 @@
 # Update rules
 # ------------
 #
-# - cn uses "only" to avoid bugs like https://pagure.io/freeipa/issue/6975
+# - cn uses "only" to avoid bugs like https://codeberg.org/freeipa/freeipa/issues/6975
 # - nsIndexType and nsMatchingRule use "add" to allow users to add
 #   additional index types and matching rules more easily. The "add" command
 #   adds additional attribute values that are required by IPA but does not

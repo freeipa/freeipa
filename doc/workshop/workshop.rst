@@ -264,7 +264,7 @@ the workshop is over:
   <https://www.freeipa.org/page/Troubleshooting>`_: how to debug
   common problems; how to report bugs
 
-- `Bug tracker <https://pagure.io/freeipa>`_
+- `Bug tracker <https://codeberg.org/freeipa/freeipa>`_
 
 - Information about the `FreeIPA public demo
   <https://www.freeipa.org/page/Demo>`_ instance

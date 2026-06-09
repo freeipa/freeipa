@@ -178,7 +178,7 @@ def install(api, replica_config, options, custodia):
     # Restart apache for new proxy config file
     services.knownservices.httpd.restart(capture_output=True)
     # Restarted named to restore bind-dyndb-ldap operation, see
-    # https://pagure.io/freeipa/issue/5813
+    # https://codeberg.org/freeipa/freeipa/issues/5813
     named = services.knownservices.named  # alias for current named
     if named.is_running():
         named.restart(capture_output=True)

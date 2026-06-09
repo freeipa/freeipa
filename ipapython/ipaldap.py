@@ -579,7 +579,7 @@ class LDAPEntry(MutableMapping):
             else:
                 # dels before adds, in case the same value occurs in
                 # both due to encoding differences
-                # (https://pagure.io/freeipa/issue/7750)
+                # (https://codeberg.org/freeipa/freeipa/issues/7750)
                 if dels:
                     modlist.append((ldap.MOD_DELETE, name, dels))
                 if adds:

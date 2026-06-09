@@ -418,7 +418,7 @@ class TestUpgrade(IntegrationTest):
     def test_kra_detection(self):
         """Test that ipa-server-upgrade correctly detects KRA presence
 
-        Test for https://pagure.io/freeipa/issue/8596
+        Test for https://codeberg.org/freeipa/freeipa/issues/8596
         When the directory /var/lib/pki/pki-tomcat/kra/ exists, the upgrade
         wrongly assumes that KRA component is installed and crashes.
         The test creates an empty dir and calls kra.is_installed()
@@ -448,7 +448,7 @@ class TestUpgrade(IntegrationTest):
     def test_krb_uri_txt_to_cname(self, setup_locations):
         """Test that ipa-server-upgrade correctly updates Kerberos DNS records
 
-        Test for https://pagure.io/freeipa/issue/9257
+        Test for https://codeberg.org/freeipa/freeipa/issues/9257
         Kerberos URI and TXT DNS records should be location-aware in case the
         server is part of a location, in order for DNS discovery to prioritize
         servers from the same location. This means that for such servers the

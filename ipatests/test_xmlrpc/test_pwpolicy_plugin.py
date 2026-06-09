@@ -241,7 +241,7 @@ class test_pwpolicy(XMLRPC_test):
         But when minlife == maxlife specfied, It works.
         This test check that error message says what exactly it does.
 
-        related: https://pagure.io/freeipa/issue/9038
+        related: https://codeberg.org/freeipa/freeipa/issues/9038
         """
         # test pwpolicy_mod
         # create a test group

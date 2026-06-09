@@ -133,7 +133,7 @@ class TestUninstallWithoutDNS(IntegrationTest):
         IPA server uninstall was failing if dns was not setup.
         This test check if it uninstalls properly.
 
-        related: https://pagure.io/freeipa/issue/8630
+        related: https://codeberg.org/freeipa/freeipa/issues/8630
         """
         tasks.uninstall_master(self.master)
 
@@ -223,7 +223,7 @@ class TestUninstallReinstall(IntegrationTest):
     """Test install, uninstall, re-install.
 
        Reinstall with PKI 11.6.0 was failing
-       https://pagure.io/freeipa/issue/9673
+       https://codeberg.org/freeipa/freeipa/issues/9673
     """
 
     num_replicas = 0
@@ -243,7 +243,7 @@ class TestUninstallCRLGen(IntegrationTest):
     """Test uninstallation of a replica with broken CRL configuration.
 
        Removing ca.crl.MasterCRL.enableCRLCache from CS.cfg crashed.
-       https://pagure.io/freeipa/issue/9921
+       https://codeberg.org/freeipa/freeipa/issues/9921
     """
 
     num_replicas = 1

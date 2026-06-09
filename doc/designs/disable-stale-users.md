@@ -9,7 +9,7 @@ amount of time be automatically disabled in the identity management system.
 
 FreeIPA does not keep track of successful authentication events.
 The krbLastSuccessfulAuth attribute is not updated by default since
-https://pagure.io/freeipa/issue/5313 for reliability reasons.
+https://codeberg.org/freeipa/freeipa/issues/5313 for reliability reasons.
 Therefore distinguishing between stale and active accounts cannot be done with
 existing logon data.
 
@@ -38,7 +38,7 @@ For environments where user passwords never expire, a new mechanism must be
 added to FreeIPA plugins ipa-kdb and ipa-lockout to account for each user
 account authentication events. Since updating a LDAP user account attribute on
 each authentication event must be avoided as the update frequency could easily
-be high, (see https://pagure.io/freeipa/issue/5313 for background
+be high, (see https://codeberg.org/freeipa/freeipa/issues/5313 for background
 information), a coarse update mechanism is proposed.
 
 An attribute containing a timestamp is added to each user:

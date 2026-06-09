@@ -339,7 +339,7 @@ class test_ipagetkeytab(KeytabRetrievalTest):
         )
 
     def test_dangling_symlink(self, test_service):
-        # see https://pagure.io/freeipa/issue/4607
+        # see https://codeberg.org/freeipa/freeipa/issues/4607
         test_service.ensure_exists()
 
         fd, symlink_target = tempfile.mkstemp()

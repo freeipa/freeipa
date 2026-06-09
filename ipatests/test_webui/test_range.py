@@ -71,7 +71,8 @@ class test_range(range_tasks):
         self.wait_for_request(n=2)
 
         # the user should not be able to change the ID allocation for
-        # IPA domain, as it's explained in https://pagure.io/freeipa/issue/4826
+        # IPA domain, as it's explained in
+        # https://codeberg.org/freeipa/freeipa/issues/4826
         dialog = self.get_last_error_dialog()
         assert ("can not be used to change ID allocation for local IPA domain"
                 in dialog.text)

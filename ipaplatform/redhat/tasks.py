@@ -510,7 +510,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
     def configure_httpd_wsgi_conf(self):
         """Configure WSGI for correct Python version (Fedora)
 
-        See https://pagure.io/freeipa/issue/7394
+        See https://codeberg.org/freeipa/freeipa/issues/7394
         """
         conf = paths.HTTPD_IPA_WSGI_MODULES_CONF
         if sys.version_info.major == 2:

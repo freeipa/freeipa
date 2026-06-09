@@ -130,7 +130,7 @@ class TestSsoBridge(IntegrationTest):
         Test case to authenticate via ssh to IPA client as Keycloak
         user with password set in IPA without using external IdP
 
-        related: https://pagure.io/freeipa/issue/9250
+        related: https://codeberg.org/freeipa/freeipa/issues/9250
         """
         username = "kcuser1"
         password = self.keycloak.config.admin_password

@@ -443,7 +443,7 @@ interface(`ipa_custodia_stream_connect',`
 ##      Manage apache pid objects.
 ##      The interface is defined by selinux-policy since Fedora 31 and is
 ##      conditionally defined here for Fedora 30.
-##      See https://pagure.io/freeipa/issue/8241.
+##      See https://codeberg.org/freeipa/freeipa/issues/8241.
 ## </summary>
 ## <param name="domain">
 ##      <summary>

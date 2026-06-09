@@ -19,10 +19,10 @@ class TestCACustomSubjectDN(IntegrationTest):
     Generating a random DN might be interest, but for now we construct one
     that regression tests some previously encountered issues:
 
-    * Comma in RDN value: https://pagure.io/freeipa/issue/7347
+    * Comma in RDN value: https://codeberg.org/freeipa/freeipa/issues/7347
 
     * KRA authentication failed for all custom subject DNs:
-      https://pagure.io/freeipa/issue/8084
+      https://codeberg.org/freeipa/freeipa/issues/8084
 
     """
 
@@ -32,7 +32,7 @@ class TestCACustomSubjectDN(IntegrationTest):
     def install(cls, mh):
         """
         Successful installation is sufficient to verify
-        https://pagure.io/freeipa/issue/7347.
+        https://codeberg.org/freeipa/freeipa/issues/7347.
 
         """
         tasks.install_master(
@@ -47,7 +47,7 @@ class TestCACustomSubjectDN(IntegrationTest):
     def test_kra_authn(self):
         """
         vault-add is sufficient to verify
-        https://pagure.io/freeipa/issue/8084.
+        https://codeberg.org/freeipa/freeipa/issues/8084.
 
         """
         self.master.run_command([

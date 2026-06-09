@@ -27,7 +27,7 @@ def skip_in_fips_mode_due_to_issue_8715(test_method):
     def wrapper(instance):
         if fips.is_fips_enabled(instance.master):
             pytest.skip('Skipping in FIPS mode due to '
-                        'https://pagure.io/freeipa/issue/8715')
+                        'https://codeberg.org/freeipa/freeipa/issues/8715')
         else:
             test_method(instance)
     return wrapper
@@ -406,7 +406,7 @@ class TestTrust(BaseTestTrust):
         error with 'Invalid credentials' thrown when AD user tries to run
         IPA commands.
 
-        related: https://pagure.io/freeipa/issue/8163
+        related: https://codeberg.org/freeipa/freeipa/issues/8163
         """
         tasks.kdestroy_all(self.master)
         ad_admin = 'Administrator@%s' % self.ad_domain
@@ -669,7 +669,8 @@ class TestTrust(BaseTestTrust):
         check that requests from IPA for suffix.ad.test
         are properly routed to ad.test.
 
-        This is a regression test for https://pagure.io/freeipa/issue/8554
+        This is a regression test for
+        https://codeberg.org/freeipa/freeipa/issues/8554
         """
 
         # Create subordinate UPN suffix
@@ -726,7 +727,7 @@ class TestTrust(BaseTestTrust):
         and ssh with this ticket should be successful
         with no password prompt.
 
-        Related : https://pagure.io/freeipa/issue/9316
+        Related : https://codeberg.org/freeipa/freeipa/issues/9316
         """
         testuser = 'testuser@{0}'.format(self.ad_domain)
         testusersub = 'subdomaintestuser@{0}'.format(self.ad_subdomain)
@@ -838,7 +839,7 @@ class TestTrust(BaseTestTrust):
     def test_extdom_plugin(self):
         """Extdom plugin should not return error (32)/'No such object'
 
-        Regression test for https://pagure.io/freeipa/issue/8044
+        Regression test for https://codeberg.org/freeipa/freeipa/issues/8044
 
         If there is a timeout during a request to SSSD the extdom plugin
         should not return error 'No such object' and the existing user should
@@ -1234,7 +1235,8 @@ class TestTrust(BaseTestTrust):
         The SRV records for AD services can point to hosts unreachable for
         ipa master. In this case we must be able to establish trust and
         fetch domains list by using "--server" option.
-        This is the regression test for https://pagure.io/freeipa/issue/7895.
+        This is the regression test for
+        https://codeberg.org/freeipa/freeipa/issues/7895.
         """
         # To simulate Windows Server advertising unreachable hosts in SRV
         # records we create specially crafted zone file for BIND DNS server
@@ -1344,7 +1346,7 @@ class TestTrust(BaseTestTrust):
 class TestNonPosixAutoPrivateGroup(BaseTestTrust):
     """
     Tests for auto-private-groups option with non posix AD trust
-    Related : https://pagure.io/freeipa/issue/8807
+    Related : https://codeberg.org/freeipa/freeipa/issues/8807
     """
     topology = 'line'
     num_ad_domains = 1
@@ -1398,8 +1400,10 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
             bad_version = (tasks.parse_version("2.8.2") <= sssd_version
                            < tasks.parse_version("2.9.4"))
             cond = (type == 'hybrid') and bad_version
-            with xfail_context(condition=cond,
-                               reason="https://pagure.io/freeipa/issue/9295"):
+            with xfail_context(
+                condition=cond,
+                reason="https://codeberg.org/freeipa/freeipa/issues/9295"
+            ):
                 (uid, gid) = self.get_user_id(self.clients[0], nonposixuser)
                 assert (uid == self.uid_override and gid == self.gid_override)
             test_group = self.clients[0].run_command(
@@ -1435,7 +1439,7 @@ class TestNonPosixAutoPrivateGroup(BaseTestTrust):
 class TestPosixAutoPrivateGroup(BaseTestTrust):
     """
     Tests for auto-private-groups option with posix AD trust
-    Related : https://pagure.io/freeipa/issue/8807
+    Related : https://codeberg.org/freeipa/freeipa/issues/8807
     """
     topology = 'line'
     num_ad_domains = 1
@@ -1486,7 +1490,7 @@ class TestPosixAutoPrivateGroup(BaseTestTrust):
             bad_version = (tasks.parse_version("2.8.2") <= sssd_version
                            < tasks.parse_version("2.9.4"))
             with xfail_context(bad_version,
-                 "https://pagure.io/freeipa/issue/9295"):
+                 "https://codeberg.org/freeipa/freeipa/issues/9295"):
                 (uid, gid) = self.get_user_id(self.clients[0], posixuser)
                 assert uid == gid
         else:

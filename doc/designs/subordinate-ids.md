@@ -15,7 +15,7 @@ provide them to userspace tools.
 
 Feature requests
 
-* [FreeIPA feature request #8361](https://pagure.io/freeipa/issue/8361)
+* [FreeIPA feature request #8361](https://codeberg.org/freeipa/freeipa/issues/8361)
 * [SSSD feature request #5197](https://github.com/SSSD/sssd/issues/5197)
 * [shadow-util feature request #154](https://github.com/shadow-maint/shadow/issues/154)
 * [389-DS RFE for DNA plugin rhbz#1938239](https://bugzilla.redhat.com/show_bug.cgi?id=1938239)

@@ -1446,7 +1446,7 @@ def fix_permissions():
     In case IPA was installed with restricted umask, some public files and
     directories may not be readable and accessible.
 
-    See https://pagure.io/freeipa/issue/7594
+    See https://codeberg.org/freeipa/freeipa/issues/7594
     """
     candidates = [
         os.path.dirname(paths.GSSAPI_SESSION_KEY),
@@ -1891,7 +1891,7 @@ def upgrade_configuration():
     custodia.upgrade_instance()
 
     # Don't include schema upgrades in restart consideration, see
-    # https://pagure.io/freeipa/issue/9204
+    # https://codeberg.org/freeipa/freeipa/issues/9204
     ca_upgrade_schema(ca)
 
     ca_restart = any([

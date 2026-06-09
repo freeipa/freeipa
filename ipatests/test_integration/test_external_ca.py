@@ -621,7 +621,7 @@ class TestExternalCAdirsrvStop(IntegrationTest):
     This test checks if second phase installs successfully when dirsrv
     is stoped.
 
-    related ticket: https://pagure.io/freeipa/issue/6611"""
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/6611"""
     def test_external_ca_dirsrv_stop(self):
 
         # Step 1 of ipa-server-install
@@ -694,7 +694,7 @@ class TestExternalCAInvalidCert(IntegrationTest):
 
 
 class TestExternalCAInvalidIntermediate(IntegrationTest):
-    """Test case for https://pagure.io/freeipa/issue/7877"""
+    """Test case for https://codeberg.org/freeipa/freeipa/issues/7877"""
 
     def test_invalid_intermediate(self):
         install_server_external_ca_step1(self.master)

@@ -34,10 +34,10 @@
     }
   ],
   "license": "GPL-3.0",
-  "bugs": "https://pagure.io/freeipa/issues",
+  "bugs": "https://codeberg.org/freeipa/freeipa/issues",
   "repository": {
     "type": "git",
-    "url": "https://pagure.io/freeipa.git",
+    "url": "https://codeberg.org/freeipa/freeipa.git",
     "path": "install/ui/js/freeipa"
   },
   "devDependencies": {

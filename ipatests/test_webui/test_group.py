@@ -421,7 +421,7 @@ class test_group(UI_driver):
     @screenshot
     def test_settings_new_columns(self):
         '''
-        Related: https://pagure.io/freeipa/issue/9390
+        Related: https://codeberg.org/freeipa/freeipa/issues/9390
         Test that the new columns 'givenname', 'sn' and 'nsaccountlock'
         are visible when creating new user groups and inspecting its
         'settings' section.

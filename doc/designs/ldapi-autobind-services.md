@@ -131,5 +131,5 @@ https://www.port389.org/docs/389ds/FAQ/ldapi-and-autobind.html)
 * [LDAPI autobind DN rewriter](
 https://www.port389.org/docs/389ds/design/ldapi-auto-auth-dn-design.html)
 * 389-DS feature request [GH-4381](https://github.com/389ds/389-ds-base/issues/4381)
-* FreeIPA bug report [pagure-8544](https://pagure.io/freeipa/issue/8544)
+* FreeIPA bug report [pagure-8544](https://codeberg.org/freeipa/freeipa/issues/8544)
   for replication issue due to clock mismatch.

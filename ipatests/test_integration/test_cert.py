@@ -82,7 +82,7 @@ class TestInstallMasterClient(IntegrationTest):
         specified by -F option. This fix is to check that cacert file
         creates immediately after certificate goes into MONITORING state.
 
-        related: https://pagure.io/freeipa/issue/8105
+        related: https://codeberg.org/freeipa/freeipa/issues/8105
         """
         cmd_arg = [
             "ipa-getcert", "request",
@@ -111,7 +111,7 @@ class TestInstallMasterClient(IntegrationTest):
         This test utilizes the cert request made in previous test.
         (test_cacert_file_appear_with_option_F)
 
-        related: https://pagure.io/freeipa/issue/3299
+        related: https://codeberg.org/freeipa/freeipa/issues/3299
         """
         # check that request is made against /ipa/json so that
         # IPA enforce json data type
@@ -485,7 +485,7 @@ class TestCertmongerInterruption(IntegrationTest):
         that the request was resubmitted and not rely on catching
         the states directly.
 
-        Pagure Issue: https://pagure.io/freeipa/issue/8164
+        Codeberg Issue: https://codeberg.org/freeipa/freeipa/issues/8164
         """
         cmd = ['getcert', 'list', '-f', paths.RA_AGENT_PEM]
         result = self.replicas[0].run_command(cmd)
@@ -594,8 +594,10 @@ class TestCAShowErrorHandling(IntegrationTest):
         # The regression was introduced in 11.5 and fixed in 11.7
         bad_version = (tasks.parse_version('11.5.0') <= pki_version
                        < tasks.parse_version('11.7.0'))
-        with xfail_context(bad_version,
-                           reason="https://pagure.io/freeipa/issue/9606"):
+        with xfail_context(
+            bad_version,
+            reason="https://codeberg.org/freeipa/freeipa/issues/9606"
+        ):
             assert (error_msg in result.stderr_text
                     or new_error_msg in result.stderr_text)
 

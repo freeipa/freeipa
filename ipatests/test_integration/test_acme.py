@@ -357,7 +357,7 @@ class TestACME(CALessBase):
         Verifies that the acmeIPAServerCert profile accepts EC keys
         (nistp384 / secp384r1) end-to-end via certbot standalone HTTP-01.
 
-        related: https://pagure.io/freeipa/issue/9984
+        related: https://codeberg.org/freeipa/freeipa/issues/9984
         """
         self.clients[0].run_command(['systemctl', 'stop', 'httpd'])
         self.clients[0].run_command(
@@ -394,7 +394,7 @@ class TestACME(CALessBase):
         exercising the caIPAserviceCert profile key
         constraint that must accept specified curve.
 
-        related: https://pagure.io/freeipa/issue/9984
+        related: https://codeberg.org/freeipa/freeipa/issues/9984
         """
         service_name = f'testecdsa/{self.master.hostname}'
         csr_file = '/tmp/ecdsa_test.csr'
@@ -623,7 +623,7 @@ class TestACMECALess(IntegrationTest):
         Deployment where one server is deployed as CA-less, when converted
         to CA full, should have ACME enabled by default.
 
-        related: https://pagure.io/freeipa/issue/8524
+        related: https://codeberg.org/freeipa/freeipa/issues/8524
         """
         tasks.kinit_admin(self.master)
         # enable acme on master
@@ -660,7 +660,7 @@ class TestACMECALess(IntegrationTest):
         After converting ca-less replica to ca-full, ACME can be
         enabled or disabled.
 
-        related: https://pagure.io/freeipa/issue/8524
+        related: https://codeberg.org/freeipa/freeipa/issues/8524
         """
         tasks.kinit_admin(self.master)
 
@@ -809,7 +809,7 @@ class TestACMERenew(IntegrationTest):
         This test is to check if ACME certificate renews upon
         reaching expiry
 
-        related: https://pagure.io/freeipa/issue/4751
+        related: https://codeberg.org/freeipa/freeipa/issues/4751
         """
         issue_and_expire_acme_cert(
             self.master, self.clients[0], self.acme_server)

@@ -21,7 +21,7 @@ class fix_kra_people_entry(Updater):
 
     There was a bug where this was created with an incorrect
     'description' attribute, breaking authentication:
-    https://pagure.io/freeipa/issue/8084.
+    https://codeberg.org/freeipa/freeipa/issues/8084.
 
     """
     def execute(self, **options):

@@ -673,7 +673,7 @@ class server_del(LDAPDelete):
             # since this will break replication.
             # ldap principal to be cleaned later by topology plugin
             # necessary changes to a topology plugin are tracked
-            # under https://pagure.io/freeipa/issue/7359
+            # under https://codeberg.org/freeipa/freeipa/issues/7359
             if master == self.api.env.host:
                 filter = (
                     '(&(krbprincipalname=*/{}@{})'

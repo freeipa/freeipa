@@ -419,7 +419,7 @@ class TestLoginScreen(UI_driver):
         Verify logging as root, using admin password.
         Root should be recognized as an alias for admin user.
 
-        Related: https://pagure.io/freeipa/issue/9226
+        Related: https://codeberg.org/freeipa/freeipa/issues/9226
         """
         self.load()
         assert self.login_screen_visible()

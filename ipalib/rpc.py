@@ -590,7 +590,7 @@ class KerbTransport(SSLTransport):
                     # https://docs.python.org/3/library/http.client.html
                     #   #http.client.HTTPConnection.getresponse
                     #
-                    # https://pagure.io/freeipa/issue/7752
+                    # https://codeberg.org/freeipa/freeipa/issues/7752
                     #
                     response.read()
 

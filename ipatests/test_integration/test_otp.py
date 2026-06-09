@@ -596,7 +596,7 @@ class TestOTPToken(IntegrationTest):
     def test_check_otpd_after_idle_timeout(self, setup_otp_nsslapd):
         """Test for OTP when the LDAP connection timed out.
 
-        Test for : https://pagure.io/freeipa/issue/6587
+        Test for : https://codeberg.org/freeipa/freeipa/issues/6587
 
         ipa-otpd was exiting with failure when LDAP connection timed out.
         Test to verify that when the nsslapd-idletimeout is exceeded (30s idle,

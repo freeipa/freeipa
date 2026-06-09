@@ -522,7 +522,7 @@ class TestSSSDWithAdTrust(IntegrationTest):
         Verify that query to the AD specific attributes for a
         user or a group directly is successful.
 
-        Related : https://pagure.io/freeipa/issue/9127
+        Related : https://codeberg.org/freeipa/freeipa/issues/9127
         """
         tasks.remove_trust_with_ad(self.master, self.ad.domain.name,
                                    self.ad.hostname)
@@ -672,7 +672,7 @@ class TestNestedMembers(IntegrationTest):
 
         clear_sssd_cache(client)
 
-        # Workaround for https://pagure.io/freeipa/issue/9615
+        # Workaround for https://codeberg.org/freeipa/freeipa/issues/9615
         # Make sure that / on the client has expected permissions
         client.run_command(['chmod', '755', '/'])
 

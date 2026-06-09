@@ -141,7 +141,7 @@ class TestServicePermissions(IntegrationTest):
 
     def test_service_del(self):
         """ Test that host can add and remove its own services.
-        Related to : https://pagure.io/freeipa/issue/7486"""
+        Related to : https://codeberg.org/freeipa/freeipa/issues/7486"""
 
         self.master.run_command(['kinit', '-kt', '/etc/krb5.keytab'])
         # Add service

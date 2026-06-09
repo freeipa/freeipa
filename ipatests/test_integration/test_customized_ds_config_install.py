@@ -4,7 +4,7 @@ from ipatests.pytest_ipa.integration import tasks
 
 DIRSRV_CONFIG_MODS = """
 # https://fedorahosted.org/freeipa/ticket/4949
-# https://pagure.io/freeipa/issue/8515
+# https://codeberg.org/freeipa/freeipa/issues/8515
 dn: cn=bdb,cn=config,cn=ldbm database,cn=plugins,cn=config
 changetype: modify
 replace: nsslapd-db-locks

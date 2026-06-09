@@ -215,7 +215,7 @@ def validate_auth_indicator(entry):
         return
     # The following services are considered internal IPA services
     # and shouldn't be allowed to have auth indicators.
-    # https://pagure.io/freeipa/issue/8206
+    # https://codeberg.org/freeipa/freeipa/issues/8206
     pkey = api.Object['service'].get_primary_key_from_dn(entry.dn)
     if pkey == str(entry.dn):
         # krbcanonicalname may not be set yet if this is a host entry,
@@ -318,7 +318,7 @@ def check_required_principal(ldap, principal):
     """
     if not principal.is_service:
         # bypass check if principal is not a service principal,
-        # see https://pagure.io/freeipa/issue/7793
+        # see https://codeberg.org/freeipa/freeipa/issues/7793
         return
     try:
         host_is_master(ldap, principal.hostname)

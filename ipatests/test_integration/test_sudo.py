@@ -140,7 +140,7 @@ class TestSudo(IntegrationTest):
     def test_advise_script_enable_sudo_admins(self):
         """
             Test for advise scipt to add sudo permissions for admin users
-            https://pagure.io/freeipa/issue/7538
+            https://codeberg.org/freeipa/freeipa/issues/7538
         """
         result = self.master.run_command('ipa-advise enable_admins_sudo')
         script = result.stdout_text

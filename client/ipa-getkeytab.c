@@ -880,7 +880,7 @@ static int resolve_ktname(const char *keytab, char **ktname, char **err_msg)
 	*err_msg = NULL;
 
     /* Resolve keytab symlink to support dangling symlinks, see
-     * https://pagure.io/freeipa/issue/4607. To prevent symlink attacks,
+     * https://codeberg.org/freeipa/freeipa/issues/4607. To prevent symlink attacks,
      * the symlink is only resolved owned by the current user or by
      * root. For simplicity, only one level if indirection is resolved.
      */

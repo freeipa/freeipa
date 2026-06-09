@@ -175,7 +175,7 @@ ipapwd_pre_bind_otp() return 0 if any authentication indicator is set.
 Additionally, multiple mechanisms should be supported simultaneously
 so a user configured with PKINIT and RADIUS can authenticate using
 either. Currently only RADIUS will work. See 
-https://pagure.io/freeipa/issue/8820 for more details. This should
+https://codeberg.org/freeipa/freeipa/issues/8820 for more details. This should
 also work for an LDAP bind for consistency.
 
 ### The workflow

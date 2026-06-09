@@ -38,7 +38,7 @@ tools for the following components:
 * PKI based on [Dogtag project](http://pki.fedoraproject.org/wiki/PKI_Main_Page)
 * [Samba](http://www.samba.org/) libraries for Active Directory integration
 * DNS Server based on [BIND](https://www.isc.org/software/bind) and the
-  [Bind-DynDB-LDAP plugin](https://pagure.io/bind-dyndb-ldap)
+  [Bind-DynDB-LDAP plugin](https://codeberg.org/freeipa/bind-dyndb-ldap)
 
 ## Project Website
 
@@ -72,7 +72,7 @@ Please see the file called COPYING.
   subscribe to the freeipa-announce mailing list at
   https://www.redhat.com/mailman/listinfo/freeipa-interest/ .
 * If you have a bug report please submit it at:
-  https://pagure.io/freeipa/issues
+  https://codeberg.org/freeipa/freeipa/issues
 * If you want to participate in actively developing IPA please
   subscribe to the freeipa-devel mailing list at
   https://lists.fedoraproject.org/archives/list/freeipa-devel@lists.fedorahosted.org/ or join

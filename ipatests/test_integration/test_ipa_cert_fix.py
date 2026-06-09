@@ -159,7 +159,7 @@ class TestIpaCertFix(IntegrationTest):
         """
         Test that ipa-cert-fix succeeds when CSR is missing from CS.cfg
 
-        Test case for https://pagure.io/freeipa/issue/8618
+        Test case for https://codeberg.org/freeipa/freeipa/issues/8618
         Scenario:
         - move the date so that ServerCert cert-pki-ca is expired
         - remove the ca.sslserver.certreq directive from CS.cfg
@@ -223,7 +223,7 @@ class TestIpaCertFix(IntegrationTest):
         to renew them. This certs include subsystem, audit-signing,
         OCSP signing, Dogtag HTTPS, IPA RA agent, LDAP and KDC certs.
 
-        related: https://pagure.io/freeipa/issue/7885
+        related: https://codeberg.org/freeipa/freeipa/issues/7885
         """
         expire_cert_critical(self.master)
 
@@ -247,7 +247,7 @@ class TestIpaCertFix(IntegrationTest):
 
         ipa-cert-fix tool should not work on non ipa system.
 
-        related: https://pagure.io/freeipa/issue/7885
+        related: https://codeberg.org/freeipa/freeipa/issues/7885
         """
         result = self.master.run_command(['ipa-cert-fix', '-v'],
                                          stdin_text='yes\n',
@@ -263,7 +263,7 @@ class TestIpaCertFix(IntegrationTest):
         message. It also checks that underlying command 'pki-server cert-fix'
         should fail to renew the cert.
 
-        related: https://pagure.io/freeipa/issue/8721
+        related: https://codeberg.org/freeipa/freeipa/issues/8721
 
         With https://github.com/dogtagpki/pki/pull/3466, it changed to display
         a warning than failing.
@@ -272,7 +272,7 @@ class TestIpaCertFix(IntegrationTest):
         directive is missing from CS.cfg, ipa-cert-fix dsplay proper warning
         (depending on pki version)
 
-        related: https://pagure.io/freeipa/issue/8890
+        related: https://codeberg.org/freeipa/freeipa/issues/8890
         """
         expire_cert_critical(self.master)
         # pki must be stopped in order to edit CS.cfg
@@ -308,12 +308,12 @@ class TestIpaCertFix(IntegrationTest):
         In order to fix expired certs using ipa-cert-fix, CA cert should be
         valid. If CA cert expired, ipa-cert-fix won't work.
 
-        related: https://pagure.io/freeipa/issue/8721
+        related: https://codeberg.org/freeipa/freeipa/issues/8721
 
         If CA cert is close to expiry, there's no reason to issue new certs
         with short validity period. So, ipa-cert-fix should fail in this case.
 
-        related: https://pagure.io/freeipa/issue/9760
+        related: https://codeberg.org/freeipa/freeipa/issues/9760
         """
         result = self.master.run_command(['ipa-cert-fix', '-v'],
                                          stdin_text='yes\n',
@@ -383,7 +383,7 @@ class TestCertFixKRA(IntegrationTest):
         This test check if ipa-cert-fix renews certs with kra
         certificate installed.
 
-        related: https://pagure.io/freeipa/issue/7885
+        related: https://codeberg.org/freeipa/freeipa/issues/7885
         """
         expire_cert_critical(self.master, setup_kra=True)
 
@@ -448,7 +448,7 @@ class TestCertFixReplica(IntegrationTest):
         This is to check that ipa-cert-fix renews the certificates
         on replica
 
-        related: https://pagure.io/freeipa/issue/7885
+        related: https://codeberg.org/freeipa/freeipa/issues/7885
         """
         # wait for cert expiry
         check_status(self.master, 8, "CA_UNREACHABLE")

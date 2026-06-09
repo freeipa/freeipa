@@ -119,7 +119,7 @@ def prepare_host(host):
 def rpcbind_kadmin_workaround(host):
     """Restart rpcbind in case it blocks 749/TCP, 464/UDP, or 464/TCP
 
-    See https://pagure.io/freeipa/issue/7769
+    See https://codeberg.org/freeipa/freeipa/issues/7769
     See https://bugzilla.redhat.com/show_bug.cgi?id=1592883
     """
     cmd = [
@@ -1125,7 +1125,7 @@ def uninstall_master(host, ignore_topology_disconnect=True,
     assert "Traceback" not in result.stdout_text
 
     # Check that IPA certs have been deleted after uninstall
-    # Related: https://pagure.io/freeipa/issue/8614
+    # Related: https://codeberg.org/freeipa/freeipa/issues/8614
     assert host.run_command(['test', '-f', paths.IPA_CA_CRT],
                             raiseonerr=False).returncode == 1
     assert host.run_command(['test', '-f', paths.IPA_P11_KIT],
@@ -2721,7 +2721,7 @@ def kinit_as_user(host, user, password, krb5_trace=False, raiseonerr=True):
     If krb5_trace, then set KRB5_TRACE=/dev/stdout, SSSD_KRB5_LOCATOR_DEBUG=1
     and collect /var/lib/sss/pubconf/kdcinfo.$REALM
     as this file contains the list of KRB5KDC IPs SSSD uses.
-    https://pagure.io/freeipa/issue/8510
+    https://codeberg.org/freeipa/freeipa/issues/8510
     """
 
     if krb5_trace:

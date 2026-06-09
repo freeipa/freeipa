@@ -8,7 +8,7 @@
         <homepage rdf:resource="https://www.freeipa.org" />
         <shortdesc>FreeIPA is the upstream open-source project for Red Hat Identity Manager</shortdesc>
         <description>FreeIPA is an integrated security information management solution combining Linux (Fedora), 389 Directory Server, MIT Kerberos, Chronyd, DNS, Dogtag (Certificate System). It consists of a web interface and command-line administration tools.</description>
-        <bug-database rdf:resource="https://pagure.io/freeipa/" />
+        <bug-database rdf:resource="https://codeberg.org/freeipa/freeipa/" />
         <mailing-list rdf:resource="https://www.freeipa.org/page/Contribute" />
         <mailing-list>freeipa-interest@redhat.com</mailing-list>
         <mailing-list>freeipa-devel@lists.fedorahosted.org</mailing-list>

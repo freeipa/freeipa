@@ -7,7 +7,7 @@ for trust. The goal of this feature is to allow PAC generation in the
 general use case, even without trust, as it is a first step towards
 IPA-IPA trust.
 
-Reference: https://pagure.io/freeipa/issue/8995
+Reference: https://codeberg.org/freeipa/freeipa/issues/8995
 
 In order to generate PAC data for a kerberos principal, IPA needs to assign
 a SID to the users and groups. IPA installers (`ipa-server-install`,

@@ -223,7 +223,7 @@ class TestNFS(IntegrationTest):
         # maybe re-use m1.group(0) if it exists.
         assert m1 is None
 
-        # https://pagure.io/freeipa/issue/7918
+        # https://codeberg.org/freeipa/freeipa/issues/7918
         # check whether idmapd.conf was setup using the IPA domain
         automntclt.run_command([
             "grep", "Domain = %s" % self.master.domain.name, "/etc/idmapd.conf"
@@ -248,7 +248,7 @@ class TestNFS(IntegrationTest):
 
         time.sleep(WAIT_AFTER_UNINSTALL)
 
-        # https://pagure.io/freeipa/issue/7918
+        # https://codeberg.org/freeipa/freeipa/issues/7918
         # test for --idmap-domain DNS
         automntclt.run_command([
             'ipa-client-automount', '--location', 'default',
@@ -270,7 +270,7 @@ class TestNFS(IntegrationTest):
 
         time.sleep(WAIT_AFTER_UNINSTALL)
 
-        # https://pagure.io/freeipa/issue/7918
+        # https://codeberg.org/freeipa/freeipa/issues/7918
         # test for --idmap-domain exampledomain.net
         nfs_domain = "exampledomain.net"
         automntclt.run_command([
@@ -343,7 +343,7 @@ class TestIpaClientAutomountFileRestore(IntegrationTest):
             "ipa-client-automount", "--uninstall", "-U"
         ])
 
-        # https://pagure.io/freeipa/issue/8190
+        # https://codeberg.org/freeipa/freeipa/issues/8190
         # check that no ipa_automount_location is left in sssd.conf
         # also check for autofs_provider for good measure
         grep_automount_in_sssdconf_cmd = \
