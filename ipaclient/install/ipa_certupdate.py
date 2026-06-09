@@ -174,7 +174,7 @@ def run_with_args(api, options=None):
         # update_client() may have updated KDC cert bundle; restart KDC to pick
         # up changes.
         if services.knownservices.krb5kdc.is_running():
-            services.knownservices.krb5kdc.restart()
+            services.knownservices.krb5kdc.restart(skip_keytab_rotation=True)
 
 
 def update_client(certs):

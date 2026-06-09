@@ -1235,7 +1235,7 @@ def setup_pkinit(krb):
 
             if krb.is_running():
                 krb.stop()
-            krb.start()
+            krb.start(skip_keytab_rotation=True)
     finally:
         aug.close()
 
@@ -1266,7 +1266,7 @@ def setup_spake(krb):
 
         if krb.is_running():
             krb.stop()
-            krb.start()
+            krb.start(skip_keytab_rotation=True)
     finally:
         aug.close()
 

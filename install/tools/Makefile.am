@@ -35,6 +35,7 @@ dist_noinst_DATA =		\
 	ipa-custodia-check.in	\
 	ipa-httpd-kdcproxy.in	\
 	ipa-httpd-pwdreader.in	\
+	ipa-keytab-cleaner.in	\
 	ipa-pki-retrieve-key.in	\
 	ipa-pki-wait-running.in	\
 	ipa-acme-manage.in	\
@@ -79,6 +80,7 @@ nodist_app_SCRIPTS =		\
 	ipa-custodia-check	\
 	ipa-httpd-kdcproxy	\
 	ipa-httpd-pwdreader	\
+	ipa-keytab-cleaner	\
 	ipa-pki-retrieve-key	\
 	ipa-pki-wait-running	\
 	ipa-subids	\

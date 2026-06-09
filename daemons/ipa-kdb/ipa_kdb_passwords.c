@@ -134,7 +134,7 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
                                  int new_kvno, krb5_boolean keepold,
                                  krb5_db_entry *db_entry)
 {
-    krb5_error_code kerr;
+    krb5_error_code kerr = 0;
     krb5_data pwd;
     struct ipadb_context *ipactx;
     struct ipadb_e_data *ied;
@@ -150,17 +150,20 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
 
     ipactx = ipadb_get_context(context);
     if (!ipactx) {
-        return KRB5_KDB_DBNOTINITED;
+        kerr = KRB5_KDB_DBNOTINITED;
+        goto end;
     }
 
     if (!db_entry->e_data) {
         if (!ipactx->override_restrictions) {
-            return EINVAL;
+            kerr = EINVAL;
+            goto end;
         } else {
             /* kadmin is creating a new principal */
             ied = calloc(1, sizeof(struct ipadb_e_data));
             if (!ied) {
-                return ENOMEM;
+                kerr = ENOMEM;
+                goto end;
             }
             ied->magic = IPA_E_DATA_MAGIC;
             /* set the default policy on new entries */
@@ -168,7 +171,8 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
                            "cn=global_policy,%s", ipactx->realm_base);
             if (ret == -1) {
                 free(ied);
-                return ENOMEM;
+                kerr = ENOMEM;
+                goto end;
             }
             db_entry->e_data = (krb5_octet *)ied;
         }
@@ -177,7 +181,7 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     /* check pwd policy before doing any other work */
     kerr = ipadb_check_pw_policy(context, passwd, db_entry);
     if (kerr) {
-        return kerr;
+        goto end;
     }
 
     old_kvno = krb5_db_get_key_data_kvno(context, db_entry->n_key_data,
@@ -190,7 +194,7 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     pwd.length = strlen(passwd);
 
     /* detect if kadmin is just passing along the default set */
-    if (ks_tuple_count == ipactx->n_supp_encs) {
+    if (ks_tuple_count == (int)ipactx->n_supp_encs) {
         for (i = 0; i < ks_tuple_count; i++) {
             if (ks_tuple[i].ks_enctype != ipactx->supp_encs[i].ks_enctype)
                 break;
@@ -201,25 +205,32 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
             /* we got passed the default supported enctypes, replace with
              * the actual default enctypes to use */
             ks_tuple = ipactx->def_encs;
-            ks_tuple_count = ipactx->n_def_encs;
+            ks_tuple_count = (int)ipactx->n_def_encs;
         }
     }
 
     /* We further filter supported enctypes to restrict to the list
      * we have in ldap */
-    kerr = filter_key_salt_tuples(context, ks_tuple, ks_tuple_count,
-                                       ipactx->supp_encs, ipactx->n_supp_encs,
-                                       &fks, &n_fks);
+    fks = malloc(ks_tuple_count * sizeof(*ks_tuple));
+    if (!fks) {
+        kerr = ENOMEM;
+        goto end;
+    }
+
+    n_fks = ks_tuple_count;
+    memcpy(fks, ks_tuple, ks_tuple_count * sizeof(*ks_tuple));
+
+    kerr = ipa_sort_and_filter_keysalt_types_i(
+        context, fks, &n_fks, ipa_is_cifs_princ(context, db_entry->princ));
     if (kerr) {
-        return kerr;
+        goto end;
     }
 
     kerr = ipa_krb5_generate_key_data(context, db_entry->princ,
                                       pwd, new_kvno, master_key,
                                       n_fks, fks, &n_keys, &keys);
-    free(fks);
     if (kerr) {
-        return kerr;
+        goto end;
     }
 
     if (keepold) {
@@ -230,7 +241,8 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
                         sizeof(krb5_key_data) * (t_keys + n_keys));
         if (!tdata) {
             ipa_krb5_free_key_data(keys, n_keys);
-            return ENOMEM;
+            kerr = ENOMEM;
+            goto end;
         }
         db_entry->key_data = tdata;
         db_entry->n_key_data = t_keys + n_keys;
@@ -247,7 +259,10 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
         db_entry->n_key_data = n_keys;
     }
 
-    return 0;
+end:
+    free(fks);
+
+    return kerr;
 }
 
 /*
