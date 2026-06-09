@@ -284,7 +284,7 @@ class TestIPACommand(IntegrationTest):
         was not enabled in IPA. This test is to check if these types are
         enabled.
 
-        related: https://pagure.io/freeipa/issue/8110
+        related: https://codeberg.org/freeipa/freeipa/issues/8110
         """
         tasks.kinit_admin(self.master)
         dn = DN(("cn", self.master.domain.realm), ("cn", "kerberos"),
@@ -298,7 +298,7 @@ class TestIPACommand(IntegrationTest):
         assert "aes256-sha2:special" in result.stdout_text
 
     def test_certmap_match_issue7520(self):
-        # https://pagure.io/freeipa/issue/7520
+        # https://codeberg.org/freeipa/freeipa/issues/7520
         tasks.kinit_admin(self.master)
         result = self.master.run_command(
             ['ipa', 'certmap-match', paths.IPA_CA_CRT],
@@ -318,7 +318,7 @@ class TestIPACommand(IntegrationTest):
         assert "0 users matched" in result.stdout_text
 
     def test_cert_find_issue7520(self):
-        # https://pagure.io/freeipa/issue/7520
+        # https://codeberg.org/freeipa/freeipa/issues/7520
         tasks.kinit_admin(self.master)
         subject = 'CN=Certificate Authority,O={}'.format(
             self.master.domain.realm)
@@ -339,7 +339,7 @@ class TestIPACommand(IntegrationTest):
         assert '1 certificate matched' in result.stdout_text
 
     def test_cert_find_issue9837(self):
-        # https://pagure.io/freeipa/issue/9837
+        # https://codeberg.org/freeipa/freeipa/issues/9837
         user = 'testuser'
         password = 'Secret123'
         testview = 'testview'
@@ -364,7 +364,7 @@ class TestIPACommand(IntegrationTest):
         self.master.run_command(['ipa', 'user-del', user])
 
     def test_add_permission_failure_issue5923(self):
-        # https://pagure.io/freeipa/issue/5923
+        # https://codeberg.org/freeipa/freeipa/issues/5923
         # error response used to contain bytes instead of text
 
         tasks.kinit_admin(self.master)
@@ -741,7 +741,7 @@ class TestIPACommand(IntegrationTest):
         to apache error log. This test ensures that the password should
         not be log in cleartext.
 
-        related: https://pagure.io/freeipa/issue/8017
+        related: https://codeberg.org/freeipa/freeipa/issues/8017
         """
         hostname = 'test.{}'.format(self.master.domain.name)
         passwd = 'Secret123'
@@ -850,7 +850,7 @@ class TestIPACommand(IntegrationTest):
         self.master.run_command(['chmod', '755', '/'])
 
         # start to look at logs a bit before "now"
-        # https://pagure.io/freeipa/issue/8432
+        # https://codeberg.org/freeipa/freeipa/issues/8432
         since = time.strftime(
             '%Y-%m-%d %H:%M:%S',
             (datetime.now() - timedelta(seconds=10)).timetuple()
@@ -981,7 +981,7 @@ class TestIPACommand(IntegrationTest):
 
     def test_sssd_ifp_access_ipaapi(self):
         # check that ipaapi is allowed to access sssd-ifp for smartcard auth
-        # https://pagure.io/freeipa/issue/7751
+        # https://codeberg.org/freeipa/freeipa/issues/7751
         username = 'admin'
         # get UID for user
         result = self.master.run_command(['ipa', 'user-show', username])
@@ -1048,7 +1048,7 @@ class TestIPACommand(IntegrationTest):
         self.master.run_command(['rm', '-f', filename])
 
     def test_hbac_systemd_user(self):
-        # https://pagure.io/freeipa/issue/7831
+        # https://codeberg.org/freeipa/freeipa/issues/7831
         tasks.kinit_admin(self.master)
         # check for presence
         self.master.run_command(
@@ -1113,7 +1113,7 @@ class TestIPACommand(IntegrationTest):
         assert 'HBAC rule not found' in result.stderr_text
 
     def test_config_show_configured_services(self):
-        # https://pagure.io/freeipa/issue/7929
+        # https://codeberg.org/freeipa/freeipa/issues/7929
         states = {CONFIGURED_SERVICE, ENABLED_SERVICE, HIDDEN_SERVICE}
         dn = DN(
             ('cn', 'HTTP'), ('cn', self.master.hostname), ('cn', 'masters'),
@@ -1205,8 +1205,8 @@ class TestIPACommand(IntegrationTest):
         throw the error 'ipa: ERROR: Type or value exists:' and
         instead gets modified
 
-        This is a test case for Pagure issue
-        https://pagure.io/freeipa/issue/5879
+        This is a test case for Codeberg issue
+        https://codeberg.org/freeipa/freeipa/issues/5879
 
         Steps:
         1. setup a master
@@ -1241,7 +1241,7 @@ class TestIPACommand(IntegrationTest):
         """Check Apache has same TLS versions enabled as crypto policy
 
         This is the regression test for issue
-        https://pagure.io/freeipa/issue/7995.
+        https://codeberg.org/freeipa/freeipa/issues/7995.
         """
         def is_tls_version_enabled(tls_version):
             res = self.master.run_command(
@@ -1393,8 +1393,8 @@ class TestIPACommand(IntegrationTest):
         This test checks that ipa-adtrust-install command runs successfully
         on a system with locale en_IN.UTF-8 without displaying error below
         'IndexError: list index out of range'
-        This is a testcase for Pagure issue
-        https://pagure.io/freeipa/issue/8066
+        This is a testcase for Codeberg issue
+        https://codeberg.org/freeipa/freeipa/issues/8066
         """
         # Set locale to en_IN.UTF-8 in .bashrc file to avoid reboot
         tasks.kinit_admin(self.master)
@@ -1449,7 +1449,7 @@ class TestIPACommand(IntegrationTest):
                          ' available from fedora32 onwards')
 
         # start to look at logs a bit before "now"
-        # https://pagure.io/freeipa/issue/8432
+        # https://codeberg.org/freeipa/freeipa/issues/8432
         since = time.strftime(
             '%Y-%m-%d %H:%M:%S',
             (datetime.now() - timedelta(seconds=10)).timetuple()
@@ -2150,7 +2150,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         server context. This test checks that groups have correct userclass
         when external is set to true or false with group-add.
 
-        related: https://pagure.io/freeipa/issue/9349
+        related: https://codeberg.org/freeipa/freeipa/issues/9349
         """
         user_code_script = textwrap.dedent("""
             from ipalib import api, errors
@@ -2178,7 +2178,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         that all following group_add calls to add posix groups calls are
         not failing with missing attribute.
 
-        related: https://pagure.io/freeipa/issue/9349
+        related: https://codeberg.org/freeipa/freeipa/issues/9349
         """
         user_code_script2 = textwrap.dedent("""
             from ipalib import api, errors
@@ -2217,7 +2217,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
             - verify that old error message is not seen in dirsrv error log
             - verify that new error message is seen in dirsrv error log
 
-        related: https://pagure.io/freeipa/issue/9618
+        related: https://codeberg.org/freeipa/freeipa/issues/9618
         """
         test_user1 = 'test_user1'
         test_user2 = 'test_user2'
@@ -2293,7 +2293,7 @@ class TestIPACommandWithoutReplica(IntegrationTest):
 
     def test_empty_ipaconfigstring(self, update_ipaconfigstring):
         """
-        Test for https://pagure.io/freeipa/issue/9794
+        Test for https://codeberg.org/freeipa/freeipa/issues/9794
 
         Test that setting an empty ipaconfigstring does not fail.
         Subsequent calls to ipa subid-stats should also succeed.

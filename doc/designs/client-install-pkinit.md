@@ -2,7 +2,7 @@
 
 This design document proposes PKINIT as an additional authentication
 mechanism for `ipa-client-install`, ticket
-[https://pagure.io/freeipa/issue/9271](https://pagure.io/freeipa/issue/9271).
+[https://codeberg.org/freeipa/freeipa/issues/9271](https://codeberg.org/freeipa/freeipa/issues/9271).
 
 ## Overview
 

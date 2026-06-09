@@ -194,7 +194,7 @@ class TestAdvice(IntegrationTest):
 
         The command should not fail with error in command.
 
-        Related: https://pagure.io/freeipa/issue/6044
+        Related: https://codeberg.org/freeipa/freeipa/issues/6044
         """
         test = self.master.run_command(["ipa-advise"], raiseonerr=False)
         error = "object of type 'type' has no len()"

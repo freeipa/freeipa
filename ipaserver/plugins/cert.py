@@ -1971,7 +1971,7 @@ Search for existing certificates.
         complete = False
 
         # Do not execute the CA sub-search in CA-less deployment.
-        # See https://pagure.io/freeipa/issue/8369.
+        # See https://codeberg.org/freeipa/freeipa/issues/8369.
         searches = [self._cert_search]
         if ca_enabled:
             searches.append(self._ca_search)

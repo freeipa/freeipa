@@ -1284,7 +1284,7 @@ def uninstall(installer):
     dsinstance.DsInstance(fstore=fstore).uninstall()
     adtrustinstance.ADTRUSTInstance(fstore).uninstall()
     # realm isn't used, but IPAKEMKeys parses /etc/ipa/default.conf
-    # otherwise, see https://pagure.io/freeipa/issue/7474 .
+    # otherwise, see https://codeberg.org/freeipa/freeipa/issues/7474 .
     custodiainstance.CustodiaInstance(realm='REALM.INVALID').uninstall()
     otpdinstance.OtpdInstance().uninstall()
     tasks.restore_hostname(fstore, sstore)

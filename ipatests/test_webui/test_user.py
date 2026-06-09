@@ -358,7 +358,7 @@ class test_user(user_tasks):
         Long certificate serial no were shown in scientific notation
         at user details page. This test checks that it is no longer shown
         in scientific notation
-        related:https://pagure.io/freeipa/issue/8754
+        related:https://codeberg.org/freeipa/freeipa/issues/8754
         """
         if not self.has_ca():
             self.skip('CA is not configured')
@@ -486,7 +486,7 @@ class test_user(user_tasks):
         Verify existence of grace login limit field and its
         value based on pwpolicy value
 
-        Related: https://pagure.io/freeipa/issue/9211
+        Related: https://codeberg.org/freeipa/freeipa/issues/9211
         """
         self.init_app()
         self.add_record(group.ENTITY, [group.DATA])
@@ -765,7 +765,7 @@ class test_user(user_tasks):
         Test if menu is clickable when there is notification
         in minimized browser window.
 
-        related: https://pagure.io/freeipa/issue/8120
+        related: https://codeberg.org/freeipa/freeipa/issues/8120
         """
         self.init_app()
 
@@ -787,7 +787,7 @@ class test_user(user_tasks):
         Test if valid user created in both ca and
         caless env is enabled by default.
 
-        https://pagure.io/freeipa/issue/8203
+        https://codeberg.org/freeipa/freeipa/issues/8203
         """
         self.init_app()
 
@@ -906,7 +906,8 @@ class TestLifeCycles(UI_driver):
         self.dialog_button_click('ok')
         self.assert_no_error_dialog()
         self.wait(2)
-        # fix assert after https://pagure.io/freeipa/issue/7477 is closed
+        # fix assert after
+        # https://codeberg.org/freeipa/freeipa/issues/7477 is closed
         self.assert_notification(assert_text='1 users(s) staged')
 
         # add new "itest-user2" - one is already staged (should pass)

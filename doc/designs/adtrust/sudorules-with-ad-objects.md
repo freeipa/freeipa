@@ -110,7 +110,7 @@ attribute.
 
 Note that direct manipulation of `externalUser` attribute through IPA
 parameters is not allowed since 2011 (FreeIPA tickets
-https://pagure.io/freeipa/issue/1320). With membership validation method SUDO
+https://codeberg.org/freeipa/freeipa/issues/1320). With membership validation method SUDO
 rules can now handle those members through the normal `--users` mechanism.
 
 Same approach is used to provide handling of `RunAs_Member` specification

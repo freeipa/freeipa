@@ -61,7 +61,7 @@ Any impact on upgrades? Remove this section if not applicable.
 
 ## Test plan
 
-Test scenarios that will be transformed to test cases for FreeIPA [Continuous Integration](https://www.freeipa.org/page/V3/Integration_testing) during implementation or review phase. This can be also link to source in [pagure](https://pagure.io/freeipa.git) with the test, if appropriate. 
+Test scenarios that will be transformed to test cases for FreeIPA [Continuous Integration](https://www.freeipa.org/page/V3/Integration_testing) during implementation or review phase. This can be also link to source in [Codeberg](https://codeberg.org/freeipa/freeipa.git) with the test, if appropriate. 
 
 ## Troubleshooting and debugging
 

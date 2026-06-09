@@ -822,7 +822,8 @@ class test_service(Declarative):
             ),
         ),
 
-        # DN is case insensitive, see https://pagure.io/freeipa/issue/8308
+        # DN is case insensitive, see
+        # https://codeberg.org/freeipa/freeipa/issues/8308
         dict(
             desc=(
                 'Delete the current host (master?) %s HTTP service, should '

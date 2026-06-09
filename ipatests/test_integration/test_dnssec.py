@@ -350,7 +350,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
         softhsm_version = tasks.parse_version(
             tasks.get_softhsm_version(self.master))
         with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             assert wait_until_record_is_signed(
                 self.master.ip, root_zone, timeout=100
             ), "Zone %s is not signed (master)" % root_zone
@@ -377,7 +377,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
         softhsm_version = tasks.parse_version(
             tasks.get_softhsm_version(self.master))
         with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             assert wait_until_record_is_signed(
                 self.master.ip, example_test_zone, timeout=100
             ), "Zone %s is not signed (master)" % example_test_zone
@@ -437,7 +437,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
         softhsm_version = tasks.parse_version(
             tasks.get_softhsm_version(self.master))
         with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             ans = resolve_with_dnssec(self.master.ip, root_zone,
                                       rtype="DNSKEY")
         dnskey_rrset = ans.response.get_rrset(ans.response.answer,
@@ -502,7 +502,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
         softhsm_version = tasks.parse_version(
             tasks.get_softhsm_version(self.master))
         with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             ans = resolve_with_dnssec(
                 self.master.ip, root_zone, rtype="DNSKEY"
             )

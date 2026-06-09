@@ -45,7 +45,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
     def test_samba_config_file(self):
         """Check that ipa-adtrust-install generates sane smb.conf
         This is regression test for issue
-        https://pagure.io/freeipa/issue/6951
+        https://codeberg.org/freeipa/freeipa/issues/6951
         """
         self.master.run_command(
             ['ipa-adtrust-install', '-a', self.master.config.admin_password,
@@ -68,7 +68,8 @@ class TestIpaAdTrustInstall(IntegrationTest):
                 "cat",
                 "/var/lib/sss/pubconf/kdcinfo.%s" % self.master.domain.realm
             ], raiseonerr=False)
-            # Set krb5_trace to True: https://pagure.io/freeipa/issue/8353
+            # Set krb5_trace to True:
+            # https://codeberg.org/freeipa/freeipa/issues/8353
             tasks.create_active_user(
                 self.master, user, passwd, first=user, last=user,
                 krb5_trace=True
@@ -101,7 +102,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
         The tool must detect that the replica is stopped and warn that
         a part of the configuration failed.
 
-        Test for https://pagure.io/freeipa/issue/8148
+        Test for https://codeberg.org/freeipa/freeipa/issues/8148
         """
         self.unconfigure_replica_as_agent(self.replicas[0])
         self.replicas[0].run_command(['ipactl', 'stop'])
@@ -244,7 +245,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
 
         This is to ensure if said entry is set after installation with AD.
 
-        related: https://pagure.io/freeipa/issue/8193
+        related: https://codeberg.org/freeipa/freeipa/issues/8193
         """
         conn = self.replicas[0].ldap_connect()
         entry = conn.get_entry(DN(
@@ -605,7 +606,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
         """
         Test checks that samba credential cache is removed after
         ipa-server is uninstalled.
-        https://pagure.io/freeipa/issue/3479
+        https://codeberg.org/freeipa/freeipa/issues/3479
         """
         self.master.run_command(
             ["ipa-adtrust-install", "-a",
@@ -678,7 +679,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
         """
         Test checks that ipa-adtrust-install works fine even
         without smbpasswd file
-        https://pagure.io/freeipa/issue/3181
+        https://codeberg.org/freeipa/freeipa/issues/3181
         """
         error_msg = (
             "< type 'file' > was not found on this system "
@@ -750,7 +751,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
         Test checks that ipa-adtrust-install doesn't fail
         with 'Syntax Error' when dns_lookup_kdc is set to False
         in /etc/krb5.conf
-        https://pagure.io/freeipa/issue/3132
+        https://codeberg.org/freeipa/freeipa/issues/3132
         """
         error_msg = (
             'The ipa-adtrust-install command failed, exception: '
@@ -839,7 +840,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
         """
         This testcase checks that cldap responder doesnot hang
         for domain discovery.
-        https://pagure.io/freeipa/issue/3639
+        https://codeberg.org/freeipa/freeipa/issues/3639
         """
         version = tasks.get_openldap_client_version(self.master)
         if parse_version(version) >= parse_version('2.6'):
@@ -869,7 +870,7 @@ class TestIpaAdTrustInstall(IntegrationTest):
         members of the "admins" group
         Access the share as admin, should work
 
-        https://pagure.io/freeipa/issue/4234
+        https://codeberg.org/freeipa/freeipa/issues/4234
         """
         msg = "tree connect failed: NT_STATUS_ACCESS_DENIED"
         self.master.run_command(

@@ -359,7 +359,7 @@ class TestIpaHealthCheck(IntegrationTest):
         Test if in case no  failures were found, informative string is printed
         in human output.
 
-        https://pagure.io/freeipa/issue/8892
+        https://codeberg.org/freeipa/freeipa/issues/8892
         """
         returncode, output = run_healthcheck(self.master, output_type="human",
                                              failures_only=True)
@@ -370,7 +370,7 @@ class TestIpaHealthCheck(IntegrationTest):
         """
         Test if FIPS is enabled and the check exists.
 
-        https://pagure.io/freeipa/issue/8951
+        https://codeberg.org/freeipa/freeipa/issues/8951
         """
         healthcheck_version = tasks.get_healthcheck_version(self.master)
         if (
@@ -1464,7 +1464,7 @@ class TestIpaHealthCheck(IntegrationTest):
         source.
         The test modifies permissions of ipainstall log file and checks the
         response from healthcheck.
-        https://pagure.io/freeipa/issue/8949
+        https://codeberg.org/freeipa/freeipa/issues/8949
         """
         self.modify_perms_run_healthcheck(
             paths.IPASERVER_INSTALL_LOG, modify_permissions,

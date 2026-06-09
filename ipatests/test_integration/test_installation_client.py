@@ -32,7 +32,7 @@ class TestInstallClient(IntegrationTest):
     def check_dns_lookup_kdc(self, client):
         """Check that dns_lookup_kdc is never set to false.
 
-        https://pagure.io/freeipa/issue/6523
+        https://codeberg.org/freeipa/freeipa/issues/6523
 
         Setting dns_lookup_kdc to False would result in a hardcoded
         configuration which is less reliable in the long run.
@@ -71,7 +71,7 @@ class TestInstallClient(IntegrationTest):
         Test checks for non-existence of param HostKeyAlgorithms in
         ssh_config after client-install.
 
-        related: https://pagure.io/freeipa/issue/8082
+        related: https://codeberg.org/freeipa/freeipa/issues/8082
         """
         tasks.install_client(self.master, self.clients[0],
                              extra_args=['--ssh-trust-dns'])
@@ -86,7 +86,7 @@ class TestInstallClient(IntegrationTest):
         Test checks that krb5.conf does not include
         SSSD_PUBCONF_KRB5_INCLUDE_D_DIR.
 
-        related: https://pagure.io/freeipa/issue/9267
+        related: https://codeberg.org/freeipa/freeipa/issues/9267
         """
         krb5_cfg = self.master.get_file_contents(paths.KRB5_CONF)
         assert 'includedir {dir}'.format(
@@ -211,7 +211,7 @@ class TestClientInstallBind(IntegrationTest):
         and during client-install 'nsupdate -g' fails then it should run with
         second call using unauthenticated nsupdate.
 
-        Related : https://pagure.io/freeipa/issue/8402
+        Related : https://codeberg.org/freeipa/freeipa/issues/8402
         """
         # with pre-configured bind server, install ipa-server without dns.
         tasks.install_master(self.master, setup_dns=False)

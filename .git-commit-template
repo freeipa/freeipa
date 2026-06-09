@@ -5,9 +5,9 @@ Explanation
 # Explanation must describe the fix or feature + the method
 # chosen to implement it, and can span across multiple lines.
 
-Fixes: https://pagure.io/freeipa/issue/XXXX
+Fixes: https://codeberg.org/freeipa/freeipa/issues/XXXX
 or
-Related: https://pagure.io/freeipa/issue/XXXX
+Related: https://codeberg.org/freeipa/freeipa/issues/XXXX
 # Fixes: means that the commit fixes the referenced issue(s).
 # Related: means that the commit is related to the issue(s)
 # in some way, but does not resolve it/them.

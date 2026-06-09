@@ -14,7 +14,7 @@ class TestIPANotConfigured(IntegrationTest):
         Launches ipa backup command on system with ipa server not configured.
         As the server is not configured yet, command should fail and stderr
         should not contain link to /var/log, as no such log is created.
-        Issue URl: https://pagure.io/freeipa/issue/6843
+        Issue URl: https://codeberg.org/freeipa/freeipa/issues/6843
         """
         exp_str = "not configured on this system"
         unexp_str = "/var/log"
@@ -25,7 +25,7 @@ class TestIPANotConfigured(IntegrationTest):
 
     def test_ipa_idrange_fix(self):
         """
-        Test for https://pagure.io/freeipa/issue/9809
+        Test for https://codeberg.org/freeipa/freeipa/issues/9809
         Launch ipa-idrange-fix command when the server is not configured.
         """
         exp_str = "IPA is not configured"

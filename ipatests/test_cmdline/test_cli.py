@@ -312,7 +312,7 @@ class TestCLIParsing:
 
 
 def test_cli_fsencoding():
-    # https://pagure.io/freeipa/issue/5887
+    # https://codeberg.org/freeipa/freeipa/issues/5887
     env = {
         key: value for key, value in os.environ.items()
         if not key.startswith(('LC_', 'LANG'))

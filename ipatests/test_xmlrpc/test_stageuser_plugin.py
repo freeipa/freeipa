@@ -649,7 +649,7 @@ class TestPreserved(XMLRPC_test):
 
 @pytest.mark.tier1
 class TestCustomAttr(XMLRPC_test):
-    """Test for pagure ticket 7597
+    """Test for codeberg ticket 7597
 
     When a staged user is activated, preserved and finally staged again,
     the custom attributes are lost.

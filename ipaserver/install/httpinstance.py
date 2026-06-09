@@ -185,14 +185,15 @@ class HTTPInstance(service.Service):
         self.update_httpd_service_ipa_conf()
         self.update_httpd_wsgi_conf()
 
-        # create /etc/httpd/alias, see https://pagure.io/freeipa/issue/7529
+        # create /etc/httpd/alias, see
+        # https://codeberg.org/freeipa/freeipa/issues/7529
         session_dir = os.path.dirname(self.sub_dict['GSSAPI_SESSION_KEY'])
         if not os.path.isdir(session_dir):
             os.makedirs(session_dir)
         # Must be world-readable / executable
         os.chmod(session_dir, 0o755)
         # Restore SELinux context of session_dir /etc/httpd/alias, see
-        # https://pagure.io/freeipa/issue/7662
+        # https://codeberg.org/freeipa/freeipa/issues/7662
         tasks.restore_context(session_dir)
 
         target_fname = paths.HTTPD_IPA_CONF

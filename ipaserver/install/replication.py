@@ -655,7 +655,7 @@ class ReplicationManager:
         When installing multiple replicas in parallel, one replica may
         finalize the values while another is still installing.
 
-        See https://pagure.io/freeipa/issue/7617
+        See https://codeberg.org/freeipa/freeipa/issues/7617
         """
         self._finalize_replica_settings(self.conn)
 

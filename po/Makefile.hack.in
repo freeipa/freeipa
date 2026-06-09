@@ -9,7 +9,7 @@ MSGATTRIB = @MSGATTRIB@
 PYTHON = @PYTHON@
 GIT_BRANCH = @GIT_BRANCH@
 
-# Don't use strip-po[t] as a dependency, https://pagure.io/freeipa/issue/8323
+# Don't use strip-po[t] as a dependency, https://codeberg.org/freeipa/freeipa/issues/8323
 .PHONY: strip-po strip-pot
 strip-pot: $(DOMAIN).pot
 	grep -v '#: ipaclient/remote_plugins/' $(DOMAIN).pot > $(DOMAIN).pot.tmp

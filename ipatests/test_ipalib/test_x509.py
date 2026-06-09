@@ -286,7 +286,7 @@ class test_x509:
         """
         Test the not_before and not_after values in a diffent timezone
 
-        Test for https://pagure.io/freeipa/issue/9462
+        Test for https://codeberg.org/freeipa/freeipa/issues/9462
         """
         # Store initial timezone, then set to New York
         tz = os.environ.get('TZ', None)

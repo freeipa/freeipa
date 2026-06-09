@@ -1148,7 +1148,7 @@ class TestReplicaInstall(CALessBase):
 
     @replica_install_teardown
     def test_certs_with_no_password(self):
-        # related to https://pagure.io/freeipa/issue/7274
+        # related to https://codeberg.org/freeipa/freeipa/issues/7274
 
         self.create_pkcs12('ca1/replica', filename='http.p12',
                            password='')
@@ -1163,7 +1163,7 @@ class TestReplicaInstall(CALessBase):
 
     @replica_install_teardown
     def test_certs_with_no_password_interactive(self):
-        # related to https://pagure.io/freeipa/issue/7274
+        # related to https://codeberg.org/freeipa/freeipa/issues/7274
 
         self.create_pkcs12('ca1/replica', filename='http.p12',
                            password='')

@@ -134,7 +134,7 @@
 %global krb5_kdb_version 9.0
 %endif
 
-# fix for segfault in python3-ldap, https://pagure.io/freeipa/issue/7324
+# fix for segfault in python3-ldap, https://codeberg.org/freeipa/freeipa/issues/7324
 %global python_ldap_version 3.1.0-1
 
 # Make sure to use 389-ds-base versions that fix https://github.com/389ds/389-ds-base/issues/6857
@@ -205,14 +205,14 @@
 
 %if 0%{?fedora} >= 33 || 0%{?rhel} >= 9
 # systemd with resolved enabled
-# see https://pagure.io/freeipa/issue/8275
+# see https://codeberg.org/freeipa/freeipa/issues/8275
 %global systemd_version 246.6-3
 %else
 %global systemd_version 239
 %endif
 
 # augeas support for new chrony options
-# see https://pagure.io/freeipa/issue/8676
+# see https://codeberg.org/freeipa/freeipa/issues/8676
 # https://bugzilla.redhat.com/show_bug.cgi?id=1931787
 %if 0%{?fedora} >= 33
 %global augeas_version 1.12.0-6
@@ -250,10 +250,10 @@ Summary:        The Identity, Policy and Audit system
 
 License:        GPL-3.0-or-later
 URL:            http://www.freeipa.org/
-Source0:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz
+Source0:        https://codeberg.org/freeipa/freeipa/releases/download/%{version}/freeipa-%{version}%{?rc_version}.tar.gz
 # Only use detached signature for the distribution builds. If it is a developer build, skip it
 %if %{NON_DEVELOPER_BUILD}
-Source1:        https://releases.pagure.org/freeipa/freeipa-%{version}%{?rc_version}.tar.gz.asc
+Source1:        https://codeberg.org/freeipa/freeipa/releases/download/%{version}/freeipa-%{version}%{?rc_version}.tar.gz.asc
 # https://www.freeipa.org/page/Verify_Release_Signature
 #
 # The following commands can be used to fetch the signing key via fingerprint
@@ -330,10 +330,10 @@ BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_certmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= %{sssd_version}
 %if 0%{?fedora} >= 41 || 0%{?rhel} >= 10
-# Do not use nodejs22 on fedora < 41, https://pagure.io/freeipa/issue/9643
+# Do not use nodejs22 on fedora < 41, https://codeberg.org/freeipa/freeipa/issues/9643
 BuildRequires: nodejs(abi), /usr/bin/node, /usr/bin/npm
 %elif 0%{?fedora} >= 39
-# Do not use nodejs20 on fedora < 39, https://pagure.io/freeipa/issue/9374
+# Do not use nodejs20 on fedora < 39, https://codeberg.org/freeipa/freeipa/issues/9374
 BuildRequires:  nodejs(abi) < 127, nodejs-npm
 %else
 BuildRequires:  nodejs(abi) < 111, nodejs-npm
@@ -520,7 +520,7 @@ Requires(pre): 389-ds-base >= %{ds_version}
 Requires: font(fontawesome)
 Requires: open-sans-fonts
 %if 0%{?fedora} >= 32 || 0%{?rhel} >= 9
-# https://pagure.io/freeipa/issue/8632
+# https://codeberg.org/freeipa/freeipa/issues/8632
 Requires: openssl > 1.1.1i
 %else
 Requires: openssl
@@ -684,7 +684,7 @@ Requires: bind-dyndb-ldap >= 11.11
 Requires: bind >= %{bind_version}
 Requires: bind-utils >= %{bind_version}
 # bind-dnssec-utils is required by the OpenDNSSec integration
-# https://pagure.io/freeipa/issue/9026
+# https://codeberg.org/freeipa/freeipa/issues/9026
 Requires: bind-dnssec-utils >= %{bind_version}
 %if %{with bind_pkcs11}
 Requires: bind-pkcs11 >= %{bind_version}
@@ -805,7 +805,7 @@ Requires: sssd-tools >= %{sssd_version}
 Requires(post): policycoreutils
 Recommends: %{name}-client-encrypted-dns
 
-# https://pagure.io/freeipa/issue/8530
+# https://codeberg.org/freeipa/freeipa/issues/8530
 Recommends: libsss_sudo
 Recommends: sudo
 Requires: (libsss_sudo if sudo)
@@ -1417,7 +1417,7 @@ if [ $1 -gt 1 ] ; then
             if grep -E -q '^HostKeyAlgorithms ssh-rsa,ssh-dss' $SSH_CLIENT_SYSTEM_CONF 2>/dev/null; then
                 sed -E --in-place=.orig 's/^(HostKeyAlgorithms ssh-rsa,ssh-dss)$/# disabled by ipa-client update\n# \1/' "$SSH_CLIENT_SYSTEM_CONF"
             fi
-            # https://pagure.io/freeipa/issue/9536
+            # https://codeberg.org/freeipa/freeipa/issues/9536
             # replace sss_ssh_knownhostsproxy with sss_ssh_knownhosts
             if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
                 if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
@@ -1487,7 +1487,7 @@ test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/v
 if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
     SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
     if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
-        # https://pagure.io/freeipa/issue/9536
+        # https://codeberg.org/freeipa/freeipa/issues/9536
         # downgrade sss_ssh_knownhosts with sss_ssh_knownhostsproxy
         if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
             if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then
@@ -1511,7 +1511,7 @@ test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/v
 if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
     SSH_CLIENT_SYSTEM_CONF="/etc/ssh/ssh_config"
     if [ -f "$SSH_CLIENT_SYSTEM_CONF" ]; then
-        # https://pagure.io/freeipa/issue/9536
+        # https://codeberg.org/freeipa/freeipa/issues/9536
         # upgrade sss_ssh_knownhostsproxy with sss_ssh_knownhosts
         if [ -f '/usr/bin/sss_ssh_knownhosts' ]; then
             if grep -E -q 'Include' $SSH_CLIENT_SYSTEM_CONF  2>/dev/null ; then

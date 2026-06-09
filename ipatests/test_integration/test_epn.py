@@ -255,7 +255,7 @@ def validate_mail(host, id, content):
 
 
 class TestEPN(IntegrationTest):
-    """Test Suite for EPN: https://pagure.io/freeipa/issue/3687
+    """Test Suite for EPN: https://codeberg.org/freeipa/freeipa/issues/3687
     """
 
     num_clients = 1
@@ -349,7 +349,7 @@ class TestEPN(IntegrationTest):
     )
     def test_EPN_config_file(self):
         """Check that the EPN configuration file is installed.
-           https://pagure.io/freeipa/issue/8374
+           https://codeberg.org/freeipa/freeipa/issues/8374
         """
         epn_conf = "/etc/ipa/epn.conf"
         epn_template = "/etc/ipa/epn/expire_msg.template"

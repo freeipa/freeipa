@@ -107,7 +107,7 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
     def test_install_with_host_auth_ind_set(self):
         """ A client shouldn't be able to be promoted if it has
         any auth indicator set in the host principal.
-        https://pagure.io/freeipa/issue/8206
+        https://codeberg.org/freeipa/freeipa/issues/8206
         """
 
         client = self.replicas[0]
@@ -333,7 +333,7 @@ class TestWrongClientDomain(IntegrationTest):
                   a pure client install suite is added this can be
                   moved.
 
-           Ticket https://pagure.io/freeipa/issue/7729
+           Ticket https://codeberg.org/freeipa/freeipa/issues/7729
         """
         client = self.replicas[0]
 
@@ -470,7 +470,7 @@ class TestRenewalMaster(IntegrationTest):
         - when called without principal and password, and without any kerberos
           TGT (it should default to principal=admin and prompt for a password)
 
-          related: https://pagure.io/freeipa/issue/9047
+          related: https://codeberg.org/freeipa/freeipa/issues/9047
         """
         exp_str1 = "Connection from replica to master is OK."
         exp_str2 = "Connection from master to replica is OK"
@@ -544,7 +544,7 @@ class TestReplicaInstallWithExistingEntry(IntegrationTest):
     `cn=ipa-http-delegation,cn=s4u2proxy,cn=etc,$SUFFIX` etc. The situation
     may arise due to incorrect uninstall of replica.
 
-    https://pagure.io/freeipa/issue/7174"""
+    https://codeberg.org/freeipa/freeipa/issues/7174"""
 
     num_replicas = 1
 
@@ -831,7 +831,7 @@ class TestSubCAkeyReplication(IntegrationTest):
 
 class TestReplicaInstallCustodia(IntegrationTest):
     """
-    Pagure Reference: https://pagure.io/freeipa/issue/7518
+    Codeberg Reference: https://codeberg.org/freeipa/freeipa/issues/7518
     """
 
     topology = 'line'
@@ -903,7 +903,7 @@ def restore_etc_hosts(host):
 
 class TestReplicaInForwardZone(IntegrationTest):
     """
-    Pagure Reference: https://pagure.io/freeipa/issue/7369
+    Codeberg Reference: https://codeberg.org/freeipa/freeipa/issues/7369
 
     Scenario: install a replica whose name is in a forwarded zone
     """
@@ -1089,8 +1089,10 @@ class TestHiddenReplicaPromotion(IntegrationTest):
                 or (os_version[0] == 'rhel'
                     and os_version[1][0] == 9
                     and pki_version < tasks.parse_version('11.0.4'))
-            with xfail_context(pki_too_old,
-                               'https://pagure.io/freeipa/issue/8582'):
+            with xfail_context(
+                pki_too_old,
+                'https://codeberg.org/freeipa/freeipa/issues/8582'
+            ):
                 assert returncode == 0
 
     def test_hide_last_visible_server_fails(self):
@@ -1221,7 +1223,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         tasks.kinit_admin(self.replicas[0])
 
         # restore turns a hidden replica into an enabled replica
-        # https://pagure.io/freeipa/issue/7894
+        # https://codeberg.org/freeipa/freeipa/issues/7894
         self._check_config([self.master, self.replicas[0]])
         self._check_server_role(self.replicas[0], 'enabled')
 
@@ -1253,7 +1255,7 @@ class TestHiddenReplicaPromotion(IntegrationTest):
     def test_hidden_replica_renew_pkinit_cert(self):
         """Renew the PKINIT cert on a hidden replica.
 
-        Test for https://pagure.io/freeipa/issue/9611
+        Test for https://codeberg.org/freeipa/freeipa/issues/9611
         """
         # Get Request ID
         cmd = ['getcert', 'list', '-f', paths.KDC_CERT]
@@ -1296,7 +1298,7 @@ class TestHiddenReplicaKRA(IntegrationTest):
     @pytest.mark.xfail(reason='freeipa ticket 8240', strict=True)
     def test_kra_hidden_no_preconfig(self):
         """Test installing KRA on a replica when all KRAs are hidden.
-           https://pagure.io/freeipa/issue/8240
+           https://codeberg.org/freeipa/freeipa/issues/8240
         """
 
         result = tasks.install_kra(self.replicas[1], raiseonerr=False)
@@ -1314,7 +1316,7 @@ class TestHiddenReplicaKRA(IntegrationTest):
 
     def test_kra_hidden_temp(self):
         """Test for workaround: temporarily un-hide the hidden replica.
-           https://pagure.io/freeipa/issue/8240
+           https://codeberg.org/freeipa/freeipa/issues/8240
         """
         self.replicas[0].run_command([
             'ipa', 'server-state',
@@ -1351,7 +1353,7 @@ class TestReplicaConn(IntegrationTest):
         Administrator@AD.EXAMPLE.COM is used for the deployment
         or promotion of a replica.
 
-        Related : https://pagure.io/freeipa/issue/9542
+        Related : https://codeberg.org/freeipa/freeipa/issues/9542
         """
         self.master.run_command(
             ['ipa', 'idoverrideuser-add', self.adview, self.ad_admin]

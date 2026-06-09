@@ -180,7 +180,7 @@ class test_navigation(UI_driver):
         navigates to target (desired behaviour) compared to creation of copy of
         current state of page on new tab (old behaviour).
 
-        Related: https://pagure.io/freeipa/issue/7137
+        Related: https://codeberg.org/freeipa/freeipa/issues/7137
         """
         self.init_app()
         crubs = {

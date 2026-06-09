@@ -112,14 +112,14 @@ def check_kinit(host):
 
 
 def check_custodia_files(host):
-    """regression test for https://pagure.io/freeipa/issue/7247"""
+    """regression test for https://codeberg.org/freeipa/freeipa/issues/7247"""
     assert host.transport.file_exists(paths.IPA_CUSTODIA_KEYS)
     assert host.transport.file_exists(paths.IPA_CUSTODIA_CONF)
     return True
 
 
 def check_pkcs11_modules(host):
-    """regression test for https://pagure.io/freeipa/issue/8073"""
+    """regression test for https://codeberg.org/freeipa/freeipa/issues/8073"""
     # Return a dictionary with key = filename, value = file content
     # containing all the PKCS11 modules modified by the installer
     result = dict()
@@ -203,7 +203,7 @@ class TestBackupAndRestore(IntegrationTest):
 
             # check the file permssion and ownership is set to 770 and
             # dirsrv:dirsrv after restore on /var/log/dirsrv/slapd-<instance>
-            # related ticket : https://pagure.io/freeipa/issue/7725
+            # related ticket : https://codeberg.org/freeipa/freeipa/issues/7725
             instance = realm_to_serverid(self.master.domain.realm)
             log_path = paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance
             cmd = self.master.run_command(['stat', '-c',
@@ -316,7 +316,7 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
     def _full_backup_restore_with_DNS_zone(self, reinstall=False):
         """backup, uninstall, restore.
 
-        Test for bug https://pagure.io/freeipa/issue/7630.
+        Test for bug https://codeberg.org/freeipa/freeipa/issues/7630.
         """
         with restore_checker(self.master):
             self.master.run_command([
@@ -545,7 +545,7 @@ class TestBackupReinstallRestoreWithKRA(BaseBackupAndRestoreWithKRA):
         uninstalled. This test check that there is no error message in
         uninstall log for kra instance.
 
-        related: https://pagure.io/freeipa/issue/8550
+        related: https://codeberg.org/freeipa/freeipa/issues/8550
         """
         cmd = self.master.run_command(['ipa-server-install',
                                        '--uninstall',
@@ -556,10 +556,10 @@ class TestBackupReinstallRestoreWithKRA(BaseBackupAndRestoreWithKRA):
 class TestBackupAndRestoreWithReplica(IntegrationTest):
     """Regression tests for issues 7234 and 7455
 
-    https://pagure.io/freeipa/issue/7234
+    https://codeberg.org/freeipa/freeipa/issues/7234
         - check that oddjobd service is started after restore
         - check new replica  setup after restore
-    https://pagure.io/freeipa/issue/7455
+    https://codeberg.org/freeipa/freeipa/issues/7455
         check that after restore and replication reinitialization
             - users and CA data are at state before backup
             - CA can be installed on existing replica
@@ -744,12 +744,12 @@ class TestUserRootFilesOwnershipPermission(IntegrationTest):
     This test check if files are owned by dirsrv and db2ldif doesn't
     fail
 
-    related ticket: https://pagure.io/freeipa/issue/7010
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/7010
 
     This test also checks if the access rights for user/group
     are set and umask 0022 set while restoring.
 
-    related ticket: https://pagure.io/freeipa/issue/6844
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/6844
     """
 
     @classmethod
@@ -860,7 +860,7 @@ class TestReplicaInstallAfterRestore(IntegrationTest):
     tool which was not backing up the /etc/ipa/custodia/custodia.conf and
     /etc/ipa/custodia/server.keys.
 
-    related ticket: https://pagure.io/freeipa/issue/7247
+    related ticket: https://codeberg.org/freeipa/freeipa/issues/7247
     """
 
     num_replicas = 2
@@ -932,7 +932,7 @@ class TestBackupAndRestoreTrust(IntegrationTest):
     def test_restore_trust_pkg_before_restore(self):
         """Test restore with adtrust when trust-ad pkg is missing.
 
-        Test for bug https://pagure.io/freeipa/issue/7630.
+        Test for bug https://codeberg.org/freeipa/freeipa/issues/7630.
         """
         tasks.install_packages(self.master, ['*ipa-server-trust-ad'])
         self.master.run_command(['ipa-adtrust-install', '-U',
@@ -966,7 +966,7 @@ class TestBackupAndRestoreTrust(IntegrationTest):
 
 class TestBackupRoles(IntegrationTest):
     """ipa-backup should only run on replicas with all the in-use roles
-    https://pagure.io/freeipa/issue/8217
+    https://codeberg.org/freeipa/freeipa/issues/8217
     """
 
     num_replicas = 1

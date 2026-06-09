@@ -259,7 +259,7 @@ class TestSubordinateId(IntegrationTest):
         """
         Test if subid-match command shows UID of the owner instead of DN
 
-        https://pagure.io/freeipa/issue/8977
+        https://codeberg.org/freeipa/freeipa/issues/8977
         """
         uid = "admin"
         self.subid_generate(uid)

@@ -223,7 +223,7 @@ class TestUserPermissions(IntegrationTest):
         """
         Test that non admin user can search hbac rule.
 
-        Related : https://pagure.io/freeipa/issue/5130
+        Related : https://codeberg.org/freeipa/freeipa/issues/5130
         """
         user = 'hbacuser'
         password = 'Secret123'
@@ -255,7 +255,7 @@ class TestInstallClientNoAdmin(IntegrationTest):
 
         In ipaclient-install.log it should use the username that was entered
         earlier in the install process at the prompt.
-        Related to : https://pagure.io/freeipa/issue/5406
+        Related to : https://codeberg.org/freeipa/freeipa/issues/5406
         """
         client = self.clients[0]
         tasks.install_master(self.master)

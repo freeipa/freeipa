@@ -165,7 +165,7 @@ class IPACertificate:
         ext['critical'] = univ.Boolean(critical)
         if pyasn1.__version__.startswith('0.3'):
             # pyasn1 <= 0.3.7 needs explicit encoding
-            # see https://pagure.io/freeipa/issue/7685
+            # see https://codeberg.org/freeipa/freeipa/issues/7685
             value = encoder.encode(univ.OctetString(value))
         ext['extnValue'] = univ.Any(value)
         ext = encoder.encode(ext)
@@ -404,7 +404,7 @@ class IPACertificate:
                 der = ext['extnValue']
                 if pyasn1.__version__.startswith('0.3'):
                     # pyasn1 <= 0.3.7 needs explicit unwrap of ANY container
-                    # see https://pagure.io/freeipa/issue/7685
+                    # see https://codeberg.org/freeipa/freeipa/issues/7685
                     der = decoder.decode(der, asn1Spec=univ.OctetString())[0]
                 gns = decoder.decode(der, asn1Spec=rfc2459.SubjectAltName())[0]
                 break

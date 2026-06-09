@@ -5,10 +5,10 @@
 Improved password quality checking using the capabilities of libpwquality.
 
 Tickets:
-    [https://pagure.io/freeipa/issue/6964](https://pagure.io/freeipa/issue/6964)
-    [https://pagure.io/freeipa/issue/5948](https://pagure.io/freeipa/issue/5948)
-    [https://pagure.io/freeipa/issue/2445](https://pagure.io/freeipa/issue/2445)
-    [https://pagure.io/freeipa/issue/298](https://pagure.io/freeipa/issue/298)
+    [https://codeberg.org/freeipa/freeipa/issues/6964](https://codeberg.org/freeipa/freeipa/issues/6964)
+    [https://codeberg.org/freeipa/freeipa/issues/5948](https://codeberg.org/freeipa/freeipa/issues/5948)
+    [https://codeberg.org/freeipa/freeipa/issues/2445](https://codeberg.org/freeipa/freeipa/issues/2445)
+    [https://codeberg.org/freeipa/freeipa/issues/298](https://codeberg.org/freeipa/freeipa/issues/298)
 
 ## User Stories
 

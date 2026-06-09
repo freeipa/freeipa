@@ -247,7 +247,7 @@ class TestMemberManager(IntegrationTest):
         Using ACI modification to demonstrate unability before upgrading
         ipa server.
 
-        Related: https://pagure.io/freeipa/issue/9286
+        Related: https://codeberg.org/freeipa/freeipa/issues/9286
         """
         user, password, group2 = prepare_mbr_manager_upgrade
 

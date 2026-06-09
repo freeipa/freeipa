@@ -5,7 +5,7 @@
 ## Overview
 
 A method to warn users via email that their IPA account password is about to expire.
-Ticket [link](https://pagure.io/freeipa/issue/3687).
+Ticket [link](https://codeberg.org/freeipa/freeipa/issues/3687).
 
 ## User Stories
 
@@ -174,7 +174,7 @@ The documentation should be enhanced:
 * Systemd Timer
 A man page must cover ipa-epn.
 
-The WebUI [notification feature](https://pagure.io/freeipa/issue/3687) (ipapwdexpadvnotify) must be mentioned in the documentation as well.
+The WebUI [notification feature](https://codeberg.org/freeipa/freeipa/issues/3687) (ipapwdexpadvnotify) must be mentioned in the documentation as well.
 
 
 ## Testing
