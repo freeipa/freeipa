@@ -1053,6 +1053,10 @@ Requires: python3-pytest >= 3.9.1
 Requires: python3-pytest-multihost >= 0.5
 Requires: python3-pytest-sourceorder
 Requires: sshpass
+# test_integration smartcard helpers — pkcs11-tool / softhsm2-util (virt-cacard is optional;
+# not in all CI repos; tests skip if virt_cacard.service is missing)
+Requires: softhsm
+Requires: opensc
 %endif
 Requires: python3-sssdconfig >= %{sssd_version}
 Requires: tar
