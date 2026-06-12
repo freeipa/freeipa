@@ -123,6 +123,19 @@ class IPACertFix(AdminTool):
 
         api.Backend.ldap2.connect()  # ensure DS is up
 
+        try:
+            return self._classify_and_dispatch()
+        finally:
+            if api.Backend.ldap2.isconnected():
+                api.Backend.ldap2.disconnect()
+
+    def _classify_and_dispatch(self):
+        """Classify expired certificates and dispatch to a fix scenario.
+
+        Currently only the renewal-master scenario is implemented.  Future
+        commits will add deployment-type detection and route to additional
+        scenarios (CA-full replica, CA-less replica, external certificates).
+        """
         subject_base = dsinstance.DsInstance().find_subject_base()
         if not subject_base:
             raise RuntimeError("Cannot determine certificate subject base.")
@@ -148,15 +161,24 @@ class IPACertFix(AdminTool):
             )
             return 1
 
+        return self.run_renewal_master_fix(
+            subject_base, ca_subject_dn, certs, extra_certs, non_renewed)
+
+    def run_renewal_master_fix(
+        self, subject_base, ca_subject_dn, certs, extra_certs, non_renewed
+    ):
+        """Fix certificates on the renewal master via ``pki-server cert-fix``.
+
+        Regenerates expired Dogtag system certificates and installs renewed
+        IPA service certificates.  If any "shared" certificate is renewed,
+        promotes this server to the renewal master.
+        """
         print(msg)
 
         print_intentions(certs, extra_certs, non_renewed)
 
-        response = ipautil.user_input('Enter "yes" to proceed')
-        if response.lower() != 'yes':
-            print("Not proceeding.")
+        if not self._confirm_execution():
             return 0
-        print("Proceeding.")
 
         try:
             fix_certreq_directives(certs)
@@ -196,6 +218,15 @@ class IPACertFix(AdminTool):
 
         print(renewal_note)
         return 0
+
+    def _confirm_execution(self):
+        """Interactively confirm before performing destructive actions."""
+        response = ipautil.user_input('Enter "yes" to proceed')
+        if response.lower() != 'yes':
+            print("Not proceeding.")
+            return False
+        print("Proceeding.")
+        return True
 
 
 def expired_certs(now):
