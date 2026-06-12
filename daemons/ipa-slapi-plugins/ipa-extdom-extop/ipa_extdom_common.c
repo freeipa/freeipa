@@ -50,14 +50,6 @@
 #include "back_extdom.h"
 #include "util.h"
 
-#if defined HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_TIMEOUT && !HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_TIMEOUT
-#define sss_nss_getorigbyusername_timeout sss_nss_getorigbyname_timeout
-#endif
-
-#if defined HAVE_DECL_SSS_NSS_GETORIGBYGROUPNAME_TIMEOUT && !HAVE_DECL_SSS_NSS_GETORIGBYGROUPNAME_TIMEOUT
-#define sss_nss_getorigbygroupname_timeout sss_nss_getorigbyname_timeout
-#endif
-
 #define SSSD_DOMAIN_SEPARATOR '@'
 
 int get_buffer(size_t *_buf_len, char **_buf)
