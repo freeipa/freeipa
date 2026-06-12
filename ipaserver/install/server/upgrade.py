@@ -1756,6 +1756,7 @@ def upgrade_configuration():
                 os.path.join(ds_dirname, "certmap.conf"),
                 os.path.join(paths.USR_SHARE_IPA_DIR, "certmap.conf.template")
             )
+        ca.set_ajp_packetsize()
 
         if kra.is_installed():
             logger.info('[Ensuring ephemeralRequest is enabled in KRA]')
