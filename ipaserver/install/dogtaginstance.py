@@ -1090,8 +1090,8 @@ class PKIIniLoader:
             pki_subsystem=subsystem.upper(),
             pki_subsystem_type=subsystem.lower(),
             home_dir=os.path.expanduser("~"),
-            # for softhsm2 testing
-            softhsm2_so=paths.LIBSOFTHSM2_SO,
+            # for kryoptic HSM testing
+            kryoptic_so=paths.LIBKRYOPTIC_SO,
             # Configure a more secure AJP password by default
             ipa_ajp_secret=ipautil.ipa_generate_password(special=None),
             # in FIPS mode use RSA-OAEP wrapping padding algo as default
@@ -1297,7 +1297,7 @@ def test():
         ipaca_default = os.path.join(sharedir, 'ipaca_default.ini')
         ipaca_customize = os.path.join(sharedir, 'ipaca_customize.ini')
 
-    override = os.path.join(sharedir, 'ipaca_softhsm2.ini')
+    override = os.path.join(sharedir, 'ipaca_kryoptic.ini')
 
     base_settings = dict(
         fqdn='replica.ipa.example',
