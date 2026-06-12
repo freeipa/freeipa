@@ -85,6 +85,9 @@ static char *std_principal_attrs[] = {
     "ipaNTSecurityIdentifier",
     "ipaUniqueID",
     "memberPrincipal",
+    "ipaKrbServiceAttestationKey",
+    "ipaKrbServiceAttestationType",
+    "ipasshpubkey",
 
     "objectClass",
     NULL
@@ -717,6 +720,11 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          IPADB_USER_AUTH_IDP, IPADB_USER_AUTH_IDX_IDP},
         {"krbAuthIndMaxTicketLife;passkey",
          IPADB_USER_AUTH_PASSKEY, IPADB_USER_AUTH_IDX_PASSKEY},
+        /* S4U2Self indicators: no user_auth flag, always parsed (flag==0) */
+        {"krbAuthIndMaxTicketLife;ssh-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_SSH_AUTHN},
+        {"krbAuthIndMaxTicketLife;oidc-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_OIDC_AUTHN},
 	    {NULL, IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_MAX},
     }, age_authind_map[] = {
         {"krbAuthIndMaxRenewableAge;otp",
@@ -731,6 +739,11 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          IPADB_USER_AUTH_IDP, IPADB_USER_AUTH_IDX_IDP},
         {"krbAuthIndMaxRenewableAge;passkey",
          IPADB_USER_AUTH_PASSKEY, IPADB_USER_AUTH_IDX_PASSKEY},
+        /* S4U2Self indicators: no user_auth flag, always parsed (flag==0) */
+        {"krbAuthIndMaxRenewableAge;ssh-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_SSH_AUTHN},
+        {"krbAuthIndMaxRenewableAge;oidc-authn",
+         IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_OIDC_AUTHN},
         {NULL, IPADB_USER_AUTH_NONE, IPADB_USER_AUTH_IDX_MAX},
     };
 
@@ -744,7 +757,7 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
          * if the value wasn't set yet. This function gets called twice:
          * - for the principal entry
          * - for the associated policy lookup */
-        if ((ua & life_authind_map[i].flag) &&
+        if ((!life_authind_map[i].flag || (ua & life_authind_map[i].flag)) &&
             (ied->pol_limits[life_authind_map[i].idx].max_life == 0)) {
 
             ret = ipadb_ldap_attr_to_int(lcontext, lentry,
@@ -762,8 +775,188 @@ static void ipadb_parse_authind_policies(krb5_context kcontext,
             }
         }
     }
+
+    /*
+     * Per-method S4U2Self limits: scan for krbAuthIndMaxTicketLife;{svc}-authn--{detail}
+     * and krbAuthIndMaxRenewableAge;{svc}-authn--{detail}.
+     *
+     * The "--" in the LDAP attribute option encodes the ":" separator that is
+     * invalid in LDAP attribute options (RFC 4512 keychar = ALPHA/DIGIT/HYPHEN).
+     * Decoding: "ssh-authn--publickey" -> indicator "ssh-authn:publickey".
+     *
+     * The base attribute names (krbAuthIndMaxTicketLife, krbAuthIndMaxRenewableAge)
+     * are already listed in std_principal_attrs[], so the LDAP server returns
+     * all their option subtypes in the same response — no extra round-trip needed.
+     */
+    {
+        static const char life_pfx[] = "krbAuthIndMaxTicketLife;";
+        static const char age_pfx[]  = "krbAuthIndMaxRenewableAge;";
+        static const size_t life_plen = sizeof(life_pfx) - 1;
+        static const size_t age_plen  = sizeof(age_pfx)  - 1;
+        BerElement *ber = NULL;
+        char *attrname;
+
+        for (attrname = ldap_first_attribute(lcontext, lentry, &ber);
+             attrname != NULL;
+             attrname = ldap_next_attribute(lcontext, lentry, ber)) {
+
+            const char *option = NULL;
+            bool is_life;
+
+            if (strncasecmp(attrname, life_pfx, life_plen) == 0) {
+                option = attrname + life_plen;
+                is_life = true;
+            } else if (strncasecmp(attrname, age_pfx, age_plen) == 0) {
+                option = attrname + age_plen;
+                is_life = false;
+            }
+
+            if (option) {
+                /* Match <svc>-authn--<detail>: "--" is the encoded ":" */
+                const char *sep = strstr(option, "--");
+                if (sep && sep > option && sep[2] != '\0') {
+                    char *indicator = NULL;
+                    if (asprintf(&indicator, "%.*s:%s",
+                                 (int)(sep - option), option, sep + 2) < 0) {
+                        ldap_memfree(attrname);
+                        continue;
+                    }
+
+                    /* Find or insert entry for this indicator */
+                    struct ipadb_s4u_ind_limit *lim = NULL;
+                    for (int k = 0; k < ied->n_s4u_ind_limits; k++) {
+                        if (strcmp(ied->s4u_ind_limits[k].indicator,
+                                   indicator) == 0) {
+                            lim = &ied->s4u_ind_limits[k];
+                            break;
+                        }
+                    }
+                    if (!lim) {
+                        struct ipadb_s4u_ind_limit *tmp =
+                            realloc(ied->s4u_ind_limits,
+                                    (ied->n_s4u_ind_limits + 1) * sizeof(*tmp));
+                        if (!tmp) {
+                            free(indicator);
+                            ldap_memfree(attrname);
+                            continue;
+                        }
+                        ied->s4u_ind_limits = tmp;
+                        lim = &tmp[ied->n_s4u_ind_limits++];
+                        lim->indicator = indicator;
+                        indicator = NULL;
+                        lim->limits.max_life = 0;
+                        lim->limits.max_renewable_life = 0;
+                    }
+                    free(indicator); /* NULL if consumed above */
+
+                    /* Only set if not already set (called twice: entry + policy) */
+                    ret = ipadb_ldap_attr_to_int(lcontext, lentry,
+                                                 attrname, &result);
+                    if (ret == 0) {
+                        if (is_life && lim->limits.max_life == 0)
+                            lim->limits.max_life = result;
+                        else if (!is_life && lim->limits.max_renewable_life == 0)
+                            lim->limits.max_renewable_life = result;
+                    }
+                }
+            }
+            ldap_memfree(attrname);
+        }
+        if (ber)
+            ber_free(ber, 0);
+    }
 }
 
+
+/*
+ * Allocate and populate the ipadb_s4u_data block for a principal entry.
+ *
+ * Fetches three LDAP attributes that are pre-included in std_principal_attrs[]:
+ *   ipaKrbServiceAttestationKey  – DER SPKI blobs (service principals only)
+ *   ipaKrbServiceAttestationType – allowed service types (service principals only)
+ *   ipasshpubkey                 – registered SSH public keys (user principals only)
+ *
+ * Attributes absent from the entry are silently skipped; only allocation
+ * failures cause an error return.
+ */
+static krb5_error_code
+ipadb_parse_s4u_data(LDAP *lcontext, LDAPMessage *lentry,
+                     struct ipadb_e_data *ied)
+{
+    struct berval **vals = NULL;
+    char **atypes = NULL;
+    int n, j, k;
+    int ret;
+
+    ied->s4u = calloc(1, sizeof(*ied->s4u));
+    if (!ied->s4u)
+        return ENOMEM;
+
+    /* ipaKrbServiceAttestationKey: binary DER SPKI values */
+    vals = ldap_get_values_len(lcontext, lentry, "ipaKrbServiceAttestationKey");
+    if (vals && vals[0]) {
+        for (n = 0; vals[n]; n++) ;
+        ied->s4u->keys = calloc(n, sizeof(krb5_data));
+        if (!ied->s4u->keys) {
+            ldap_value_free_len(vals);
+            return ENOMEM;
+        }
+        for (j = 0; j < n; j++) {
+            ied->s4u->keys[j].magic  = KV5M_DATA;
+            ied->s4u->keys[j].length = (unsigned int)vals[j]->bv_len;
+            ied->s4u->keys[j].data   = malloc(vals[j]->bv_len);
+            if (!ied->s4u->keys[j].data) {
+                for (k = 0; k < j; k++)
+                    free(ied->s4u->keys[k].data);
+                free(ied->s4u->keys);
+                ied->s4u->keys = NULL;
+                ldap_value_free_len(vals);
+                return ENOMEM;
+            }
+            memcpy(ied->s4u->keys[j].data, vals[j]->bv_val, vals[j]->bv_len);
+        }
+        ied->s4u->n_keys = n;
+    }
+    ldap_value_free_len(vals);
+
+    /* ipaKrbServiceAttestationType: allowed service type strings */
+    ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
+                                     "ipaKrbServiceAttestationType", &atypes);
+    if (ret == 0)
+        ied->s4u->types = atypes;
+    else if (ret != ENOENT)
+        return KRB5_KDB_INTERNAL_ERROR;
+
+    /* ipasshpubkey: OpenSSH authorized_keys format public key strings */
+    vals = ldap_get_values_len(lcontext, lentry, "ipasshpubkey");
+    if (vals && vals[0]) {
+        for (n = 0; vals[n]; n++) ;
+        ied->s4u->ssh_pubkeys = calloc(n, sizeof(krb5_data));
+        if (!ied->s4u->ssh_pubkeys) {
+            ldap_value_free_len(vals);
+            return ENOMEM;
+        }
+        for (j = 0; j < n; j++) {
+            ied->s4u->ssh_pubkeys[j].magic  = KV5M_DATA;
+            ied->s4u->ssh_pubkeys[j].length = (unsigned int)vals[j]->bv_len;
+            ied->s4u->ssh_pubkeys[j].data   = malloc(vals[j]->bv_len);
+            if (!ied->s4u->ssh_pubkeys[j].data) {
+                for (k = 0; k < j; k++)
+                    free(ied->s4u->ssh_pubkeys[k].data);
+                free(ied->s4u->ssh_pubkeys);
+                ied->s4u->ssh_pubkeys = NULL;
+                ldap_value_free_len(vals);
+                return ENOMEM;
+            }
+            memcpy(ied->s4u->ssh_pubkeys[j].data,
+                   vals[j]->bv_val, vals[j]->bv_len);
+        }
+        ied->s4u->n_ssh_pubkeys = n;
+    }
+    ldap_value_free_len(vals);
+
+    return 0;
+}
 
 static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               char *principal,
@@ -1174,9 +1367,16 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             goto done;
     }
 
-    if (ua & ~IPADB_USER_AUTH_NONE) {
-        ipadb_parse_authind_policies(kcontext, lcontext, lentry, entry, ua);
-    }
+    /* Always parse auth indicator policies.  For user entries, ua controls
+     * which method-specific pol_limits[] slots are populated (otp, pkinit,
+     * etc.).  For service entries ua is IPADB_USER_AUTH_NONE (0) so those
+     * slots are left at zero — but the per-method S4U2Self limits block at
+     * the bottom of ipadb_parse_authind_policies() scans ALL LDAP attributes
+     * unconditionally and populates ied->s4u_ind_limits[] from any
+     * krbAuthIndMaxTicketLife;{svc}-authn--{detail} attributes present.
+     * This is required so that ipa_kdb_s4u_x509 can enforce per-indicator
+     * ticket lifetime limits on S4U2Self issuance for service entries. */
+    ipadb_parse_authind_policies(kcontext, lcontext, lentry, entry, ua);
 
     /* Add SID if it is associated with the principal account */
     ied->has_sid = false;
@@ -1222,6 +1422,11 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
             }
         }
     }
+
+    /* Always allocate s4u block; populate keys/types/ssh_pubkeys from LDAP */
+    kerr = ipadb_parse_s4u_data(lcontext, lentry, ied);
+    if (kerr)
+        goto done;
 
     kerr = 0;
 
@@ -2121,6 +2326,27 @@ void ipadb_free_principal_e_data(krb5_context kcontext, krb5_octet *e_data)
 	free(ied->authz_data);
 	free(ied->pol);
 	free_sid(&ied->sid);
+	if (ied->s4u) {
+	    for (i = 0; i < ied->s4u->n_keys; i++)
+		krb5_free_data_contents(kcontext, &ied->s4u->keys[i]);
+	    free(ied->s4u->keys);
+	    for (i = 0; ied->s4u->types && ied->s4u->types[i]; i++)
+		free(ied->s4u->types[i]);
+	    free(ied->s4u->types);
+	    for (i = 0; i < ied->s4u->n_ssh_pubkeys; i++)
+		krb5_free_data_contents(kcontext, &ied->s4u->ssh_pubkeys[i]);
+	    free(ied->s4u->ssh_pubkeys);
+	    free(ied->s4u->service_type);
+	    for (i = 0; ied->s4u->auth_methods && ied->s4u->auth_methods[i]; i++)
+		free(ied->s4u->auth_methods[i]);
+	    free(ied->s4u->auth_methods);
+	    free(ied->s4u->ssh_key_fingerprint);
+	    free(ied->s4u->ssh_client_address);
+	    free(ied->s4u);
+	}
+	for (i = 0; i < ied->n_s4u_ind_limits; i++)
+	    free(ied->s4u_ind_limits[i].indicator);
+	free(ied->s4u_ind_limits);
 	free(ied);
     }
 }

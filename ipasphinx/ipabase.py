@@ -98,6 +98,9 @@ def fake_ipaython_version(defs):
         NUM_VERSION = defs["IPA_NUM_VERSION"]
         API_VERSION = defs["IPA_API_VERSION"]
         DEFAULT_PLUGINS = frozenset()
+        # KRB5_KT_END is extracted from krb5.h at build time; provide a
+        # placeholder so kerberos.py can be imported during doc builds.
+        KRB5_KT_END: int = 0
 
     fake = FakeIpapythonVersion()
     sys.modules[fake.__name__] = fake

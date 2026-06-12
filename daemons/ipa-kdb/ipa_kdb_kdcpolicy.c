@@ -176,6 +176,10 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
         }
     }
 
+    krb5_klog_syslog(LOG_INFO,
+                     "AS-REQ policy: set life times "
+                     "to %ld s and %ld s",
+                     (long)(*lifetime_out), (long)(*renew_lifetime_out));
 done:
     ipadb_free_principal(context, client_actual);
 
@@ -191,11 +195,72 @@ ipa_kdcpolicy_check_tgs(krb5_context context, krb5_kdcpolicy_moddata moddata,
                         const char **status, krb5_deltat *lifetime_out,
                         krb5_deltat *renew_lifetime_out)
 {
+    krb5_error_code kerr;
+    struct ipadb_e_data *ied;
+    struct ipadb_e_pol_limits *pol_limits = NULL;
+
     *status = NULL;
     *lifetime_out = 0;
     *renew_lifetime_out = 0;
 
-    return ipadb_enforce_pac(context, ticket, status);
+    kerr = ipadb_enforce_pac(context, ticket, status);
+    if (kerr)
+        return kerr;
+
+    /* Apply per-indicator ticket lifetime limits for S4U2Self indicators.
+     * ssh-authn:* and oidc-authn:* indicators are set by ipadb_v9_issue_pac()
+     * during S4U2Self and propagate into delegated (S4U2Proxy) tickets.
+     * The server's krbAuthIndMaxTicketLife;{ssh,oidc}-authn policy limits apply. */
+    ied = (struct ipadb_e_data *)server->e_data;
+    if (ied == NULL || ied->magic != IPA_E_DATA_MAGIC)
+        return 0;
+
+    for (int i = 0; auth_indicators && auth_indicators[i] != NULL; i++) {
+        const char *ind = auth_indicators[i];
+        struct ipadb_e_pol_limits *cand = NULL;
+
+        /* Exact match against per-method limits takes precedence over prefix. */
+        for (int k = 0; k < ied->n_s4u_ind_limits; k++) {
+            if (strcmp(ind, ied->s4u_ind_limits[k].indicator) == 0) {
+                if (ied->s4u_ind_limits[k].limits.max_life != 0)
+                    cand = &ied->s4u_ind_limits[k].limits;
+                break;
+            }
+        }
+
+        /* Fall back to prefix-level limits (ssh-authn:*, oidc-authn:*). */
+        if (cand == NULL) {
+            enum ipadb_user_auth_idx idx = IPADB_USER_AUTH_IDX_MAX;
+
+            if (strncmp(ind, "ssh-authn:", 10) == 0)
+                idx = IPADB_USER_AUTH_IDX_SSH_AUTHN;
+            else if (strncmp(ind, "oidc-authn:", 11) == 0)
+                idx = IPADB_USER_AUTH_IDX_OIDC_AUTHN;
+
+            if (idx != IPADB_USER_AUTH_IDX_MAX &&
+                ied->pol_limits[idx].max_life != 0)
+                cand = &ied->pol_limits[idx];
+        }
+
+        /* Apply the tightest (smallest non-zero) limit found across all indicators. */
+        if (cand != NULL &&
+            (pol_limits == NULL || cand->max_life < pol_limits->max_life))
+            pol_limits = cand;
+    }
+
+    if (pol_limits != NULL) {
+        if (pol_limits->max_life != 0)
+            jitter(pol_limits->max_life, lifetime_out);
+        if (pol_limits->max_renewable_life != 0)
+            *renew_lifetime_out = pol_limits->max_renewable_life;
+    }
+
+    krb5_klog_syslog(LOG_INFO,
+                     "TGS-REQ policy: set life times "
+                     "to %ld s and %ld s",
+                     (long)(*lifetime_out), (long)(*renew_lifetime_out));
+
+    return 0;
 }
 
 krb5_error_code kdcpolicy_ipakdb_initvt(krb5_context context,

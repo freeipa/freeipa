@@ -82,6 +82,7 @@ doc/workshop/anaconda-ks.cfg
 /daemons/dnssec/ipa-ods-exporter.socket
 /daemons/ipa-kdb/ipa_kdb_tests
 /daemons/ipa-kdb/ipa-print-pac
+/daemons/ipa-kdb/ipa_kdb_s4u_x509_tests
 /daemons/ipa-kdb/tests/.dirstamp
 /daemons/ipa-otpd/ipa-otpd
 /daemons/ipa-otpd/ipa-otpd.socket
