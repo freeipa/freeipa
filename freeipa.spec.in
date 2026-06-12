@@ -1751,6 +1751,8 @@ fi
 %dir %{_usr}/share/ipa/ui/css
 %{_usr}/share/ipa/ui/css/*.css
 %dir %{_usr}/share/ipa/ui/js
+%dir %{_usr}/share/ipa/ui/js/inline
+%{_usr}/share/ipa/ui/js/inline/*.js
 %dir %{_usr}/share/ipa/ui/js/dojo
 %{_usr}/share/ipa/ui/js/dojo/dojo.js
 %dir %{_usr}/share/ipa/ui/js/libs
