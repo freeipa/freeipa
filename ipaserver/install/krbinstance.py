@@ -80,6 +80,20 @@ def is_pkinit_enabled():
     return False
 
 
+def get_krb_key_types():
+    result = ipautil.run([paths.IPA_GETKEYTAB, '--permitted-enctypes'],
+                         capture_output=True)
+    permitted_enctypes = result.output.splitlines()
+    if not permitted_enctypes:
+        raise EnvironmentError('ipa-getkeytab provided no permitted '
+                               'encryption types')
+
+    supported_enctypes = [e + ':' + s for e in permitted_enctypes
+                          for s in ['special', 'normal']]
+
+    return (permitted_enctypes[0], ' '.join(supported_enctypes))
+
+
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
         service.SimpleServiceInstance.__init__(self, "kadmin")
@@ -271,18 +285,10 @@ class KrbInstance(service.Service):
                              INCLUDES=includes,
                              FIPS='#' if fips_enabled else '')
 
-        supported_enctypes = tasks.get_supported_enctypes()
-        str_supported_enctypes = ' '.join(supported_enctypes)
-        ldif_supported_enctypes = ''.join(f'krbSupportedEncSaltTypes: {e}\n'
-                                          for e in supported_enctypes)
-        ldif_default_enctypes = ''.join(f'krbDefaultEncSaltTypes: {e}\n'
-                                        for e in tasks.get_default_enctypes())
+        mkey_type, supported_key_types = get_krb_key_types()
 
-        self.sub_dict['SUPPORTED_ENCTYPES'] = str_supported_enctypes
-        self.sub_dict['LDIF_SUPPORTED_ENCTYPES'] = ldif_supported_enctypes
-        self.sub_dict['LDIF_DEFAULT_ENCTYPES'] = ldif_default_enctypes
-
-        self.sub_dict['MASTER_KEY_TYPE'] = tasks.get_masterkey_enctype()
+        self.sub_dict['SUPPORTED_ENCTYPES'] = supported_key_types
+        self.sub_dict['MASTER_KEY_TYPE'] = mkey_type
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified

@@ -510,29 +510,4 @@ class BaseTaskNamespace:
                 'ipa-client-automount-nsswitch', 'previous-automount'
             )
 
-    def get_masterkey_enctype(self):
-        return 'aes256-sha2'
-
-    # Encryption types allowed for Kerberos keys
-    def get_supported_enctypes(self):
-        return ('aes256-sha2:special', 'aes128-sha2:special',
-                'aes256-sha2:normal', 'aes128-sha2:normal',
-                'aes256-cts:special', 'aes128-cts:special',
-                'aes256-cts:normal', 'aes128-cts:normal',
-                'camellia256-cts:special', 'camellia128-cts:special',
-                'camellia256-cts:normal', 'camellia128-cts:normal')
-
-    # Encryption types used in the past, not supported anymore
-    def get_removed_supported_enctypes(self):
-        return ('des3-hmac-sha1:special')
-
-    # Encryption types used by default when generating Kerberos keys
-    def get_default_enctypes(self):
-        return ('aes256-sha2:special', 'aes128-sha2:special',
-                'aes256-cts:special', 'aes128-cts:special')
-
-    # Encryption types no longer used by default when generating keys
-    def get_removed_default_enctypes(self):
-        return ('des3-hmac-sha1:special', 'arcfour-hmac:special')
-
 tasks = BaseTaskNamespace()

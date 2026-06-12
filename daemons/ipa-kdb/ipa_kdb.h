@@ -167,9 +167,9 @@ struct ipadb_context {
     krb5_context kcontext;
     bool override_restrictions;
     krb5_key_salt_tuple *supp_encs;
-    int n_supp_encs;
+    size_t n_supp_encs;
     krb5_key_salt_tuple *def_encs;
-    int n_def_encs;
+    size_t n_def_encs;
     struct ipadb_mspac *mspac;
 #ifdef HAVE_KRB5_CERTAUTH_PLUGIN
     krb5_certauth_moddata certauth_moddata;
@@ -459,9 +459,6 @@ void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
                            enum ipadb_user_auth *user_auth);
 const struct ipadb_global_config *
 ipadb_get_global_config(struct ipadb_context *ipactx);
-int ipadb_get_enc_salt_types(struct ipadb_context *ipactx, LDAPMessage *entry,
-                             char *attr, krb5_key_salt_tuple **enc_salt_types,
-                             int *n_enc_salt_types);
 
 #ifdef HAVE_KRB5_CERTAUTH_PLUGIN
 /* CERTAUTH PLUGIN */
