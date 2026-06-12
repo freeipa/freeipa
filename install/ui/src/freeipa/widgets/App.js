@@ -136,8 +136,8 @@ define(['dojo/_base/declare',
 
             var button = construct.create('button', {
                 'class': 'navbar-toggle',
-                'data-toggle': 'collapse',
-                'data-target': '.navbar-collapse-21'
+                'data-bs-toggle': 'collapse',
+                'data-bs-target': '.navbar-collapse-21'
             });
 
             construct.create('span', {

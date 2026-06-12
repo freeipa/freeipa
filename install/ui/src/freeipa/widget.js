@@ -920,7 +920,7 @@ IPA.text_widget = function(spec) {
             'class': 'input-group-btn'
         }).appendTo(that.input_group);
 
-        that.input.bind('input', function() {
+        that.input.on('input', function() {
             that.on_value_changed();
         });
 
@@ -1260,7 +1260,7 @@ IPA.multivalued_widget = function(spec) {
         if (!that.custom_actions) {
             row.remove_link = $('<button/>', {
                 name: 'remove',
-                'class': 'btn btn-default',
+                'class': 'btn btn-secondary',
                 title: text.get('@i18n:buttons.remove'),
                 html: text.get('@i18n:buttons.remove'),
                 click: function () {
@@ -1334,7 +1334,7 @@ IPA.multivalued_widget = function(spec) {
 
         that.add_link = $('<button/>', {
             name: 'add',
-            'class': 'btn btn-default',
+            'class': 'btn btn-secondary',
             title: text.get('@i18n:buttons.add'),
             html: text.get('@i18n:buttons.add'),
             click: function() {
@@ -2917,7 +2917,7 @@ IPA.textarea_widget = function (spec) {
 
         if (that.style) that.input.css(that.style);
 
-        that.input.bind('input', function() {
+        that.input.on('input', function() {
             that.on_value_changed();
         });
 
@@ -3290,13 +3290,13 @@ IPA.datetime_widget = function(spec) {
             'class': 'input-group-btn'
         }).appendTo(that.input_group);
 
-        that.date_input.bind('input', function() {
+        that.date_input.on('input', function() {
             that.on_value_changed();
         });
-        that.hour_input.bind('input', function() {
+        that.hour_input.on('input', function() {
             that.on_value_changed();
         });
-        that.minutes_input.bind('input', function() {
+        that.minutes_input.on('input', function() {
             that.on_value_changed();
         });
         that.date_input.datepicker(that.datepicker_options);
@@ -4604,7 +4604,7 @@ IPA.combobox_widget = function(spec) {
         }).appendTo(that.input_container);
 
 
-        that.input.bind('input', that.on_input_input);
+        that.input.on('input', that.on_input_input);
 
         that.open_button = IPA.action_button({
             name: 'open',
@@ -4623,7 +4623,7 @@ IPA.combobox_widget = function(spec) {
             }
         }).appendTo(that.input_container);
 
-        that.open_button.bind('mousedown', that.on_no_close);
+        that.open_button.on('mousedown', that.on_no_close);
 
         that.list_container = $('<div/>', {
             'class': 'combobox-widget-list',
@@ -4660,7 +4660,7 @@ IPA.combobox_widget = function(spec) {
                 }
             }).appendTo(div);
 
-            that.search_button.bind('mousedown', that.on_no_close);
+            that.search_button.on('mousedown', that.on_no_close);
         }
 
         that.list = $('<select/>', {
@@ -5304,7 +5304,7 @@ IPA.button = function(spec) {
     spec = spec || {};
 
     var el = spec.element || '<button/>';
-    var button_class = spec.button_class || 'btn btn-default';
+    var button_class = spec.button_class || 'btn btn-secondary';
 
     var button = $(el, {
         id: spec.id,
@@ -5583,7 +5583,7 @@ IPA.layout = function(spec) {
         if (!widget.tooltip) return null;
 
         var el = $('<span/>', {
-            'data-toggle': 'tooltip'
+            'data-bs-toggle': 'tooltip'
         }).append($('<i/>', {
             'class': 'fa fa-info-circle'
         }));
@@ -5738,7 +5738,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
         if (input && input.id) {
             label_el.prop('for', input.id);
         } else {
-            label_el.bind('click', function() {
+            label_el.on('click', function() {
                 widget.focus_input();
             });
         }
@@ -6544,7 +6544,7 @@ IPA.sshkey_widget = function(spec) {
 
         that.link = $('<a/>', {
             type: that.type,
-            'class': 'sshkey-set btn btn-default',
+            'class': 'sshkey-set btn btn-secondary',
             name: that.name,
             href: '#show-certificate',
             title: that.tooltip,
@@ -7016,7 +7016,7 @@ exp.alert_helper = IPA.alert_helper = {
         if (close_icon) {
             el.addClass('alert-dismissable');
             el.append("<button type=\"button\" class=\"close\" \
-            data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;\
+            data-bs-dismiss=\"alert\"><span aria-hidden=\"true\">&times;\
             </span><span class=\"sr-only\">Close</span></button>");
         }
         $('<span/>', { 'class': alert.icon }).appendTo(el);

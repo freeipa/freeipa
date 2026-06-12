@@ -134,8 +134,8 @@ define(['dojo/_base/declare',
                 dom_class.add(item_node, 'dropdown-submenu');
                 dom_class.add(a_node, 'dropdown-toggle');
                 prop.set(item_node, 'onclick', undefined);
-                attr.set(a_node, 'data-toggle', 'dropdown');
-                attr.set(a_node, 'data-target', '#');
+                attr.set(a_node, 'data-bs-toggle', 'dropdown');
+                attr.set(a_node, 'data-bs-target', '#');
                 $(a_node).dropdown();
             }
 
@@ -177,7 +177,7 @@ define(['dojo/_base/declare',
             if (container) {
                 construct.place(item_container, container);
                 // use jQuery resize to make use of window.resize throttling
-                $(window).bind('resize', function() {
+                $(window).on('resize', function() {
                     this._adjust_size(container, item_container, level);
                 }.bind(this));
             }
