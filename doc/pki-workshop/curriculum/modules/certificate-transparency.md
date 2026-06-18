@@ -1,5 +1,5 @@
 ---
-back-href: acme-httpd-mod_md.md
+back-href: acme-httpd-mod_md.html
 back-text: ACME - Apache and mod_md
 up-href: "../index.html#toc"
 up-text: Up to index
