@@ -20,9 +20,9 @@ encryption applications.  Common use cases include:
 Smart cards use a variety of physical interfaces including USB, NFC,
 and the classic plastic card with contact pad.  TPMs and smartphone
 *secure elements* can also be configured as smart cards.  The **PKCS
-#11** standard provides a common interface to access smart card
-cryptographic operations, including key generation and signing.  The
-principle is that keys cannot be extracted from the hardware.
+#11** standard provides a common interface to cryptographic
+operations on hardware tokens, including key generation and signing.
+The principle is that keys cannot be extracted from the hardware.
 
 ::: note
 
@@ -58,9 +58,8 @@ without it, but you will miss out on some of the payoff.
 The exact commands for initialising and configuring a smart card
 differ by vendor.  In this workshop we are using the *SoftHSM*
 software token implementation.  Because it is not a physical device,
-SoftHSM is **not recommended for real world use**.  But it is
-perfect for developing an understanding of the general procedure
-required to use smart cards for X.509 applications.
+SoftHSM is **not recommended for real world use**.  But it is useful
+for learning the general setup steps for smart card authentication.
 
 The first step is to create a token.  This is the only
 SoftHSM-specific operation.  Later steps will use the PKCS #11
@@ -121,7 +120,7 @@ it in the next step.  **Make sure you surround the value in quotes
 (`"..."`).**
 
 ```command {.client .no-copy}
-PKCS11_URI="pkcs11:model=…;object=ipa-key;type=public"
+PKCS11_URI="pkcs11:model=…=ipa-key;type=public"
 ```
 
 Now create the CSR.  **OpenSSL will prompt for the user PIN** you
@@ -180,7 +179,8 @@ ipa cert-request softhsm-user.csr \
 Finally, import the certificate into the token:
 
 ```command {.client}
-sudo p11-kit import-object pkcs11:token=FakeSmartCard \
+sudo p11-kit import-object \
+  pkcs11:token=FakeSmartCard \
   --file softhsm-user.crt \
   --label ipa-key --id deadbeef
 ```
@@ -418,7 +418,7 @@ You need an RDP client on your local machine for these final steps.
 
 :::
 
-Use your RDP client to connect to `client.e$N.__BASE_DOMAIN__`.
+Connect your RDP client to `client.e$N.__BASE_DOMAIN__`.
 You may need to prefix the domain name with `rdp://`.  The TCP port
 is `3389`.
 

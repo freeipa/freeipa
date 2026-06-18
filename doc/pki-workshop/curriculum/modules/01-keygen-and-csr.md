@@ -26,7 +26,8 @@ All steps in this module are to be performed on `client.$DOMAIN`.
 SSH into this machine now:
 
 ```command {.no-copy}
-ssh -i path/to/key.pem fedora@client.e$N.__BASE_DOMAIN__
+ssh -i path/to/key.pem \
+    fedora@client.e$N.__BASE_DOMAIN__
 ```
 
 :::
