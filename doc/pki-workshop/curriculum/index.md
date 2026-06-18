@@ -107,11 +107,35 @@ shell session on your local machine.
 
 ### Accessing the environment
 
-The unique SSH private key you'll use to access your environment is
-available at **`__KEY_LOCATION__`**.
-Download it and provide it to your SSH client.  Then you can log
-into any of the machines in your environment, using the `fedora`
-user account.
+Enter your Environment Number to download your unique SSH private
+key.  Then provide it to your SSH client.
+
+<div style="margin: 1em 0; display: flex; align-items: center; gap: 0.5em;">
+  <label for="env-number">Environment Number:</label>
+  <input type="text" inputmode="numeric" pattern="[0-9]*" id="env-number"
+         style="width: 3em; font-size: 1.2em; padding: 0.3em; text-align: center;"
+         oninput="var n=parseInt(this.value);document.getElementById('dl-key').disabled=!(n>=1&&n<=25)">
+  <a id="dl-key-link" href="#">
+    <button type="button" id="dl-key" disabled
+            style="font-size: 1.2em; font-weight: bold; padding: 0.3em 0.8em;">Download SSH Key</button>
+  </a>
+</div>
+<script>
+document.getElementById('env-number').addEventListener('input', function() {
+  var n = parseInt(this.value);
+  var link = document.getElementById('dl-key-link');
+  if (n >= 1 && n <= 25) {
+    link.href = './keys/env' + n + '.pem';
+    link.download = 'env' + n + '.pem';
+  } else {
+    link.href = '#';
+    link.removeAttribute('download');
+  }
+});
+</script>
+
+You can then log into any of the machines in your environment, using
+the `fedora` user account.
 
 If you use OpenSSH, the login command is:
 

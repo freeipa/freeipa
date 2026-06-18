@@ -10,10 +10,6 @@
     - `BASE_REALM` and `BASE_DOMAIN` match the parent domain of the
       cloud environments.
 
-    - `KEY_LOCATION` is the base URL for where the keys are
-      published.  **Don't publish the key for the environment you,
-      as presenter, will use.**
-
     - `FEEDBACK_URL` is the URL of a feedback form.  You should set
       up a feedback form for each workshop you run.
 
@@ -27,6 +23,16 @@
     cabal run site build
 
   The built site is now in the `_site` subdirectory.
+
+1. Add the workshop environment SSH keys
+
+Participants need access to the **private keys** for their unique
+workshop environments.  The Terraform plan outputs a `keys/`
+directory.  Copy that directory to the `_site/` directory containing
+the built website (so, `_site/keys/...`).  **Remove
+`_site/keys/env1.pem`** which you as the workshop presenter will use
+(so that mischeievous people cannot interefere with your
+environment).
 
 1. Use GitHub pages to publish the site.
     1. Create a **new repo** (GitHub Pages has one-per-repo limit).
