@@ -3178,14 +3178,48 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
 
     def test_selinuxusermap_004_evaluating_rules(self):
         """
-        Evaluate precedence when multiple SELinux user maps apply.
+        Verify map precedence when several HBAC-linked SELinux user maps
+        overlap.
 
-        This test runs the same checks for forest-root and subdomain trusted
-        domains. It creates overlapping SELinux user maps linked to HBAC
-        rules with different specificity, then verifies map precedence via
-        GSSAPI SSH from the master and password SSH from both clients.
-        Sub-scenarios remove maps in order (004_2 through 004_4) and re-check
-        that the next applicable map applies.
+        Runs for both forest-root and subdomain trusted users. user1 is in
+        group1, user2 is in group2. clients[0] is client1, clients[1] is
+        client2.
+
+        Setup
+        -----
+        allow_all is disabled. Three maps are created; IPA uses the most
+        specific HBAC match for a given login:
+
+        - selinuxusermap4_0 maps to xguest_u via allow_all (inactive until
+          allow_all is enabled again in 004_3).
+        - selinuxusermap4_1 maps to user_u via hbacrule4_1 (group1, all
+          hosts, all services).
+        - selinuxusermap4_2 maps to staff_u via hbacrule4_2 (group1, client1
+          only, sshd). This is the narrowest rule.
+
+        Why staff_u on client1 (sub-scenario 004)
+        -----------------------------------------
+        user1 is in group1 and logs in on client1 over sshd. hbacrule4_2
+        matches that combination, so the linked map4_2 wins and staff_u is
+        set. On the master or client2 the same user does not match
+        hbacrule4_2 (wrong host), so hbacrule4_1 applies and user_u is set
+        instead.
+
+        004_2
+        -----
+        map4_2 and hbacrule4_2 are removed. map4_1 is the only HBAC-linked
+        map left for group1, so user_u is expected on every host.
+
+        004_3
+        -----
+        map4_1 and hbacrule4_1 are removed and allow_all is enabled.
+        map4_0 applies to all users on all hosts, so xguest_u is expected
+        everywhere (including user2, who is not in group1).
+
+        004_4
+        -----
+        map4_0 is removed. No map matches and trusted users fall back to
+        unconfined_u.
         """
         for case in self._selinux_domain_cases():
             user1 = case['user1']
@@ -3204,7 +3238,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 tasks.hbacrule_disable(self.master, 'allow_all')
 
-                # selinuxusermap4_0: all users/services/hosts (allow_all)
                 tasks.selinuxusermap_add(
                     self.master, 'selinuxusermap4_0',
                     [f'--selinuxuser={SELINUX_T3}'],
@@ -3214,7 +3247,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     ['--hbacrule=allow_all'],
                 )
 
-                # hbacrule4_1: group1 users, all hosts, all services
                 tasks.hbacrule_add(
                     self.master, 'hbacrule4_1',
                     ['--servicecat=all', '--hostcat=all'],
@@ -3222,7 +3254,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 tasks.hbacrule_add_user(
                     self.master, 'hbacrule4_1', groups=group1,
                 )
-                # selinuxusermap4_1: linked to hbacrule4_1
                 tasks.selinuxusermap_add(
                     self.master, 'selinuxusermap4_1',
                     [f'--selinuxuser={SELINUX_T2}'],
@@ -3232,7 +3263,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     ['--hbacrule=hbacrule4_1'],
                 )
 
-                # hbacrule4_2: group1 users, sshd on client1 only
                 tasks.hbacrule_add(self.master, 'hbacrule4_2')
                 tasks.hbacrule_add_user(
                     self.master, 'hbacrule4_2', groups=group1,
@@ -3243,7 +3273,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 tasks.hbacrule_add_service(
                     self.master, 'hbacrule4_2', services='sshd',
                 )
-                # selinuxusermap4_2: linked to hbacrule4_2 (most specific)
                 tasks.selinuxusermap_add(
                     self.master, 'selinuxusermap4_2',
                     [
@@ -3263,8 +3292,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         "https://github.com/SSSD/sssd/issues/7921"
                     ),
                 ):
-                    # 004: user1 in group1 - T1 map on client1
-                    # 004: GSSAPI SSH from master
+                    # 004: user1 (group1) — precedence with all three maps.
+                    # client1 gets staff_u (map4_2); master/client2 user_u.
                     self._kinit_trust_user(self.master, user1, domain)
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user1, self.clients[0], SELINUX_T1_VERIF)
@@ -3279,7 +3308,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user1, self.clients[1], SELINUX_T2_VERIF)
 
-                    # 004: password SSH from client1
                     self._verify_password_ssh_selinux_from(
                         self.clients[0], user1,
                         (
@@ -3290,7 +3318,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         ),
                     )
 
-                    # 004: password SSH from client2
                     self._verify_password_ssh_selinux_from(
                         self.clients[1], user1,
                         (
@@ -3307,8 +3334,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     tasks.hbacrule_del(self.master, 'hbacrule4_2')
                     self._selinux_cache_reset_all()
 
-                    # 004_2: user1 - hbacrule4_1 map (T2) applies on client1
-                    # 004_2: GSSAPI SSH from master
+                    # 004_2: map4_2 removed — map4_1 is only match for group1.
+                    # user_u on all hosts; staff_u must no longer apply.
                     self._kinit_trust_user(self.master, user1, domain)
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user1, self.clients[0], SELINUX_T2_VERIF)
@@ -3326,7 +3353,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user1, self.clients[1], SELINUX_T2_VERIF)
 
-                    # 004_2: password SSH from client1
                     self._verify_password_ssh_selinux_from(
                         self.clients[0], user1,
                         (
@@ -3337,7 +3363,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         ),
                     )
 
-                    # 004_2: password SSH from client2
                     self._verify_password_ssh_selinux_from(
                         self.clients[1], user1,
                         (
@@ -3356,7 +3381,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     self._selinux_cache_reset_all()
                     self._warmup_sssd_trust_user_on_hosts(user1, group1)
 
-                    # 004_3: user1 - allow_all map (T3) on all hosts
+                    # 004_3: allow_all on — map4_0 gives xguest_u to everyone.
+                    # user1 and user2 on all hosts (GSSAPI and password SSH).
                     self._kinit_trust_user(self.master, user1, domain)
                     for host in (
                         self.clients[0], self.master, self.clients[1],
@@ -3370,7 +3396,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                             self.master, user1, host, SELINUX_T2_VERIF,
                             expect_match=False)
 
-                    # 004_3: user2 in group2 - T3 on client1, not T2 on master
                     self._kinit_trust_user(self.master, user2, domain)
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user2, self.clients[0], SELINUX_T3_VERIF)
@@ -3380,7 +3405,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user2, self.master, SELINUX_T3_VERIF)
 
-                    # 004_3: password SSH from client1 (user1 and user2)
                     tasks.kinit_admin(self.clients[0])
                     self.clients[0].run_command(
                         ['getent', '-s', 'sss', 'passwd', user1])
@@ -3410,7 +3434,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                             self.clients[0], user2, self.ad_user_password,
                             host, SELINUX_T3_VERIF)
 
-                    # 004_3: password SSH from client2 (user1 and user2)
                     tasks.kinit_admin(self.clients[1])
                     self.clients[1].run_command(
                         ['getent', '-s', 'sss', 'passwd', user1])
@@ -3445,7 +3468,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     tasks.selinuxusermap_del(self.master, 'selinuxusermap4_0')
                     self._selinux_cache_reset_all()
 
-                    # 004_4: user1 and user2 - default SELinux on all hosts
+                    # 004_4: no maps left — trusted users get unconfined_u.
+                    # user1 and user2 on all hosts (GSSAPI and password SSH).
                     for user in (user1, user2):
                         self._kinit_trust_user(self.master, user, domain)
                         for host in (
@@ -3454,7 +3478,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                             verify_ssh_selinuxuser_with_krbcred(
                                 self.master, user, host, SELINUX_DEFAULT_VERIF)
 
-                    # 004_4: password SSH from client1 (user1 and user2)
                     tasks.kinit_admin(self.clients[0])
                     self.clients[0].run_command(
                         ['getent', '-s', 'sss', 'passwd', user1])
@@ -3474,7 +3497,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                             self.clients[0], user2, self.ad_user_password,
                             host, SELINUX_DEFAULT_VERIF)
 
-                    # 004_4: password SSH from client2 (user1 and user2)
                     tasks.kinit_admin(self.clients[1])
                     self.clients[1].run_command(
                         ['getent', '-s', 'sss', 'passwd', user1])
@@ -3516,13 +3538,24 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
 
     def test_selinuxusermap_005_hostgroup_map(self):
         """
-        Test SELinux user map scoped to a hostgroup.
+        SELinux user map limited to a hostgroup (no HBAC link).
 
-        This test runs the same checks for forest-root and subdomain trusted
-        domains. It creates a SELinux user map for members of the test group,
-        limited to hosts in ``hostgrp1`` (``client2``), then verifies SSH
-        from the master (GSSAPI) and from both clients (password). Sub-scenario
-        005_2 removes the group from the map and confirms the default context.
+        Runs for both trusted domains. hostgrp1 contains client2 only.
+        The map test_user_specific_hostgroup gives guest_u to group2 on
+        hosts in that hostgroup. allow_all remains enabled, so this test
+        only checks SELinux context, not whether SSH is allowed.
+
+        user2 is in group2. A login on client2 should get guest_u because
+        that host is in hostgrp1. Logins on client1 or the master are
+        outside the map scope, so unconfined_u is expected there.
+
+        user1 is in group1 and is not listed in the map, so unconfined_u
+        is expected on every host including client2.
+
+        005_2
+        -----
+        group2 is removed from the map. user2 is no longer mapped and should
+        get unconfined_u on all hosts, same as user1.
         """
         for case in self._selinux_domain_cases():
             user1 = case['user1']
@@ -3550,7 +3583,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     'ipa', 'hostgroup-add-member', 'hostgrp1',
                     f'--hosts={self.clients[1].hostname}',
                 ])
-                # test_user_specific_hostgroup: group2, T4 on hostgrp1
                 tasks.selinuxusermap_add(
                     self.master, 'test_user_specific_hostgroup',
                     [f'--selinuxuser={SELINUX_T4}'],
@@ -3565,8 +3597,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 self._selinux_cache_reset_all()
 
-                # 005: user2 (group2) - T4 on client2 only
-                # 005: GSSAPI SSH from master
+                # 005: guest_u for group2 on client2 only (hostgrp1 scope).
+                # user1 not in map — unconfined_u on every host.
                 self._kinit_trust_user(self.master, user2, domain)
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user2, self.clients[1], SELINUX_T4_VERIF)
@@ -3575,7 +3607,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user2, self.master, SELINUX_DEFAULT_VERIF)
 
-                # 005: user1 (group1) - default context (not in map group)
                 self._kinit_trust_user(self.master, user1, domain)
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user1, self.clients[1], SELINUX_T4_VERIF,
@@ -3587,7 +3618,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user1, self.master, SELINUX_DEFAULT_VERIF)
 
-                # 005: password SSH from client1
                 self._verify_password_ssh_selinux_from(
                     self.clients[0], user2,
                     (
@@ -3606,7 +3636,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     ),
                 )
 
-                # 005: password SSH from client2
                 self._verify_password_ssh_selinux_from(
                     self.clients[1], user2,
                     (
@@ -3634,8 +3663,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 )
                 self._selinux_cache_reset_all()
 
-                # 005_2: user2 - default context after removal from map
-                # 005_2: GSSAPI SSH from master
+                # 005_2: group2 removed from map — guest_u no longer applies.
+                # user2 and user1 should both get unconfined_u everywhere.
                 self._kinit_trust_user(self.master, user2, domain)
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user2, self.clients[1], SELINUX_T4_VERIF,
@@ -3647,7 +3676,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user2, self.master, SELINUX_DEFAULT_VERIF)
 
-                # 005_2: user1 - default context on all hosts
                 self._kinit_trust_user(self.master, user1, domain)
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user1, self.clients[1], SELINUX_T4_VERIF,
@@ -3657,7 +3685,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 verify_ssh_selinuxuser_with_krbcred(
                     self.master, user1, self.clients[0], SELINUX_DEFAULT_VERIF)
 
-                # 005_2: password SSH from client1
                 self._verify_password_ssh_selinux_from(
                     self.clients[0], user2,
                     (
@@ -3676,7 +3703,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     ),
                 )
 
-                # 005_2: password SSH from client2
                 self._verify_password_ssh_selinux_from(
                     self.clients[1], user2,
                     (
@@ -3707,13 +3733,25 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
 
     def test_selinuxusermap_006_hbac_hostgroup_map(self):
         """
-        Test HBAC hostgroup rule with linked SELinux user map.
+        HBAC hostgroup rule with a linked SELinux user map.
 
-        This test runs the same checks for forest-root and subdomain trusted
-        domains. It disables ``allow_all``, adds HBAC rule ``rule6`` scoped
-        to a hostgroup, and links a SELinux user map. It verifies mapped users
-        can SSH to allowed hosts with the expected context; sub-scenario
-        006_2 removes the group from the HBAC rule and denies access.
+        Runs for both trusted domains. allow_all is disabled. hostgrp1
+        contains client2. rule6 permits sshd for group2 on hosts in
+        hostgrp1. The map test_user_specific_hostgroup is linked to rule6
+        and sets staff_u.
+
+        Unlike test 005, access and SELinux context both depend on rule6.
+        user2 is in group2 and may SSH only where that rule matches. A
+        login on client2 should succeed with staff_u. Logins on the master
+        or client1 should fail because those hosts are not in hostgrp1.
+
+        user1 is in group1, not covered by rule6. With allow_all off, SSH
+        should be denied on every host.
+
+        006_2
+        -----
+        group2 is removed from rule6. No HBAC rule grants sshd to either
+        user, so SSH should fail everywhere.
         """
         for case in self._selinux_domain_cases():
             user1 = case['user1']
@@ -3743,7 +3781,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     'ipa', 'hostgroup-add-member', 'hostgrp1',
                     f'--hosts={self.clients[1].hostname}',
                 ])
-                # rule6: group2 users, sshd on hostgrp1 (client2)
                 tasks.hbacrule_add(self.master, 'rule6')
                 tasks.hbacrule_add_service(
                     self.master, 'rule6', services='sshd',
@@ -3755,7 +3792,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     self.master, 'rule6',
                     extra_args=['--hostgroups=hostgrp1'],
                 )
-                # test_user_specific_hostgroup: T1 linked to rule6
                 tasks.selinuxusermap_add(
                     self.master, 'test_user_specific_hostgroup',
                     [
@@ -3776,12 +3812,11 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         "https://github.com/SSSD/sssd/issues/7921"
                     ),
                 ):
-                    # 006: user2 (group2) - T1 on client2 via HBAC-linked map
-                    # 006: GSSAPI SSH from master
+                    # 006: rule6 lets group2 ssh to client2 with staff_u.
+                    # user1 not in rule6 is denied; user2 denied elsewhere.
                     self._kinit_trust_user(self.master, user2, domain)
                     verify_ssh_selinuxuser_with_krbcred(
                         self.master, user2, self.clients[1], SELINUX_T1_VERIF)
-                    # 006: password SSH from master (HBAC allows client2 only)
                     tasks.kdestroy_all(self.master)
                     ssh_with_password(
                         self.master, user2, self.clients[1].hostname,
@@ -3796,7 +3831,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         self.ad_user_password, expect_success=False,
                     )
 
-                    # 006: password SSH from client1
                     self._verify_password_ssh_access(
                         self.clients[0], user2,
                         (
@@ -3815,7 +3849,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         ),
                     )
 
-                    # 006: password SSH from client2
                     self._verify_password_ssh_access(
                         self.clients[1], user2,
                         (
@@ -3845,8 +3878,8 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                     self._warmup_sssd_trust_user_on_hosts(user2, group2)
                     self._warmup_sssd_trust_user_on_hosts(user1, group1)
 
-                    # 006_2: user2 and user1 - SSH denied on all hosts
-                    # 006_2: password SSH from master
+                    # 006_2: group2 removed from rule6, allow_all still off.
+                    # No HBAC rule left — SSH must fail for both users.
                     tasks.kdestroy_all(self.master)
                     for user in (user2, user1):
                         ssh_with_password(
@@ -3862,7 +3895,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                             self.ad_user_password, expect_success=False,
                         )
 
-                    # 006_2: password SSH from client1
                     self._verify_password_ssh_access(
                         self.clients[0], user2,
                         (
@@ -3878,7 +3910,6 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                         ),
                     )
 
-                    # 006_2: password SSH from client2
                     self._verify_password_ssh_access(
                         self.clients[1], user2,
                         (
