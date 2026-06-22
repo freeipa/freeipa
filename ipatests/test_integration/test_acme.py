@@ -137,7 +137,7 @@ def certbot_standalone_cert(host, acme_server, no_of_cert=1):
     """method to issue a certbot's certonly standalone cert"""
     # Get a cert from ACME service using HTTP challenge and Certbot's
     # standalone HTTP server mode
-    host.run_command(['systemctl', 'stop', 'httpd'])
+    host.run_command(['systemctl', 'stop', 'httpd'], ok_returncode=(0, 5))
     for _i in range(0, no_of_cert):
         host.run_command(
             [
