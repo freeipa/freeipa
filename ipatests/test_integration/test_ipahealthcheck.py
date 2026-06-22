@@ -161,7 +161,7 @@ TOMCAT_CONFIG_FILES = (
 )
 
 def run_healthcheck(host, source=None, check=None, output_type="json",
-                    failures_only=False, config=None):
+                    failures_only=False, config=None, timeout=None):
     """
     Run ipa-healthcheck on the remote host and return the result
 
@@ -200,7 +200,7 @@ def run_healthcheck(host, source=None, check=None, output_type="json",
         cmd.append("--config")
         cmd.append(config)
 
-    result = host.run_command(cmd, raiseonerr=False)
+    result = host.run_command(cmd, raiseonerr=False, timeout=timeout)
 
     if result.stdout_text:
         if output_type == "json":
