@@ -1078,7 +1078,8 @@ class TestHiddenReplicaPromotion(IntegrationTest):
         for srv in (self.master, self.replicas[0]):
             returncode, _unused = run_healthcheck(
                 srv,
-                failures_only=True
+                failures_only=True,
+                timeout=30
             )
             pki_too_old = \
                 (os_version[0] == 'fedora'
