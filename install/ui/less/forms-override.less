@@ -110,20 +110,24 @@ input[type="checkbox"]:disabled:checked + label {
 }
 
 input[type="checkbox"] + label:before {
-    content: @fa-var-square-o;
+    content: "\f0c8"; // fa-square (FA5 regular \f0c8, replaces FA4 fa-square-o \f096)
+    font-weight: 400;
 }
 
 input[type="checkbox"]:checked + label:before {
-    content: @fa-var-check-square-o;
+    content: "\f14a"; // fa-check-square (FA5 regular \f14a, replaces FA4 fa-check-square-o \f046)
+    font-weight: 400;
     color: @checkbox-selected-color;
 }
 
 input[type="radio"] + label:before {
-    content: @fa-var-circle-o;
+    content: "\f111"; // fa-circle (FA5 regular \f111, replaces FA4 fa-circle-o \f10c)
+    font-weight: 400;
 }
 
 input[type="radio"]:checked + label:before {
-    content: @fa-var-dot-circle-o;
+    content: "\f192"; // fa-dot-circle (FA5 regular, same codepoint; weight 400 not 900)
+    font-weight: 400;
     color: @checkbox-selected-color;
 }
 

@@ -1262,7 +1262,7 @@ IPA.cert.cert_widget = function(spec) {
         that.dropdown = builder.build(null, {
             $ctor: DropdownWidget,
             toggle_text: text.get('@i18n:actions.title'),
-            toggle_class: 'btn btn-default dropdown-toggle',
+            toggle_class: 'btn btn-secondary dropdown-toggle',
             toggle_icon: 'caret',
             right_aligned: true,
             name: 'cert-actions',

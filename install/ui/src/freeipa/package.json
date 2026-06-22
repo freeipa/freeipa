@@ -41,12 +41,14 @@
     "path": "install/ui/js/freeipa"
   },
   "devDependencies": {
+    "dojo-util": "^1.17.3",
     "grunt": "",
     "grunt-contrib-qunit": "",
-    "grunt-qunit-junit": ""
+    "grunt-qunit-junit": "",
+    "terser": "^5.0.0"
   },
   "dependencies": {
-    "dojo": "~1.16.2"
+    "dojo": "~1.17.3"
   },
   "main": "src",
   "homepage": "http://freeipa.org/",
