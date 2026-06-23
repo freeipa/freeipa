@@ -200,7 +200,20 @@ def run_healthcheck(host, source=None, check=None, output_type="json",
         cmd.append("--config")
         cmd.append(config)
 
-    result = host.run_command(cmd, raiseonerr=False, timeout=timeout)
+    if timeout is not None:
+        HC_CONF = '/etc/ipahealthcheck/ipahealthcheck.conf'
+        conf = host.get_file_contents(HC_CONF, encoding='utf-8')
+        cfg = RawConfigParser()
+        cfg.read_string(conf)
+        if not cfg.has_section('default'):
+            cfg.add_section('default')
+        cfg.set('default', 'timeout', str(timeout))
+        out = io.StringIO()
+        cfg.write(out)
+        out.seek(0)
+        host.put_file_contents(HC_CONF, out.read())
+
+    result = host.run_command(cmd, raiseonerr=False)
 
     if result.stdout_text:
         if output_type == "json":
