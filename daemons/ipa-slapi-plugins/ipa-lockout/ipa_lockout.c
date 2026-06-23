@@ -548,12 +548,19 @@ static int ipalockout_postop(Slapi_PBlock *pb)
             tm.tm_year -= 1900;
             tm.tm_mon -= 1;
 
-            if (failedcount >= max_fail) {
-                if ((lockout_duration == 0) ||
-                    (time_now < timegm(&tm) + lockout_duration)) {
-                    /* Within lockout duration */
-                    LOG_ALERT("User %s is locked out. Too many failed authentication attempts.\n", dn);
-                    goto done;
+			/* skip the alert if we have either no fail count or we
+             * aren't enforcing lockout (max_fail == 0). This avoids a
+             * spurious error message but allows the code to fall through
+             * and clear the failed count and failed date values.
+             */
+            if ((failedcount > 0) && (max_fail > 0)) {
+                if (failedcount >= max_fail) {
+                    if ((lockout_duration == 0) ||
+                        (time_now < timegm(&tm) + lockout_duration)) {
+                        /* Within lockout duration */
+                        LOG_ALERT("User %s is locked out. Too many failed authentication attempts.\n", dn);
+                        goto done;
+                    }
                 }
             }
             if (time_now > timegm(&tm) + failcnt_interval) {
