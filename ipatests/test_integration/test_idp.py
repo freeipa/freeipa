@@ -324,6 +324,111 @@ class TestIDPKeycloak(TestIDP):
         self.kinit_idp_keycloak(self.master, self.KEYCLOAK_USER,
                                 keycloak_server=self.client)
 
+    def test_idp_login_with_expired_password(self):
+        """
+        Password expiration must not block passwordless authentication.
+
+        The KDC checks pw_expiration before pre-authentication runs, so
+        when a passwordless method is available the IPA KDB plugin clears
+        pw_expiration to let the request through.  The kdcpolicy plugin
+        then enforces expiration only when a password-based method was
+        actually used.
+
+        This test verifies four scenarios:
+        1. IdP-only user with expired password   -> IdP kinit succeeds
+        2. IdP+password user with expired password -> IdP kinit succeeds
+        3. IdP+password user with expired password -> password kinit fails
+        4. Password-only user with expired password -> password kinit fails
+
+        Related: https://pagure.io/freeipa/issue/XXXX
+        """
+        PAST_EXPIRATION = "20200101000000Z"
+        pwuser = "pwexpireuser"
+        pwuser_password = "Secret123"
+
+        tasks.kinit_admin(self.master)
+        try:
+            # Give the IdP user a password so we can test password kinit
+            # later when both auth types are enabled.
+            self.master.run_command(
+                ["ipa", "passwd", self.KEYCLOAK_USER],
+                stdin_text="{0}\n{0}\n".format(pwuser_password),
+            )
+
+            # Expire the IdP user's password
+            self.master.run_command([
+                "ipa", "user-mod", self.KEYCLOAK_USER,
+                "--password-expiration", PAST_EXPIRATION,
+            ])
+
+            # --- Scenario 1: IdP-only, expired password, IdP kinit ---
+            tasks.clear_sssd_cache(self.master)
+            self.kinit_idp_keycloak(
+                self.master, self.KEYCLOAK_USER,
+                keycloak_server=self.client,
+            )
+
+            # --- Scenario 2 & 3: IdP+password, expired password ---
+            tasks.kinit_admin(self.master)
+            self.master.run_command([
+                "ipa", "user-mod", self.KEYCLOAK_USER,
+                "--user-auth-type=idp", "--user-auth-type=password",
+            ])
+            tasks.clear_sssd_cache(self.master)
+
+            # Scenario 2: IdP kinit must still succeed
+            self.kinit_idp_keycloak(
+                self.master, self.KEYCLOAK_USER,
+                keycloak_server=self.client,
+            )
+
+            # Scenario 3: password kinit must fail
+            tasks.kdestroy_all(self.master)
+            result = tasks.kinit_as_user(
+                self.master, self.KEYCLOAK_USER, pwuser_password,
+                raiseonerr=False,
+            )
+            assert result.returncode != 0, (
+                "kinit should fail for idp+password user authenticating "
+                "with expired password"
+            )
+
+            # --- Scenario 4: password-only user, expired password ---
+            tasks.kinit_admin(self.master)
+            tasks.user_add(
+                self.master, pwuser, password=pwuser_password,
+                extra_args=["--user-auth-type=password"],
+            )
+            self.master.run_command([
+                "ipa", "user-mod", pwuser,
+                "--password-expiration", PAST_EXPIRATION,
+            ])
+            tasks.kdestroy_all(self.master)
+            tasks.clear_sssd_cache(self.master)
+
+            result = tasks.kinit_as_user(
+                self.master, pwuser, pwuser_password,
+                raiseonerr=False,
+            )
+            assert result.returncode != 0, (
+                "kinit should fail for password-only user with expired "
+                "password"
+            )
+        finally:
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_admin(self.master)
+            # Restore KEYCLOAK_USER to idp-only with no expiration
+            self.master.run_command([
+                "ipa", "user-mod", self.KEYCLOAK_USER,
+                "--user-auth-type=idp",
+            ], raiseonerr=False)
+            self.master.run_command([
+                "ipa", "user-mod", self.KEYCLOAK_USER,
+                "--password-expiration", "29991231235959Z",
+            ], raiseonerr=False)
+            tasks.user_del(self.master, pwuser, raiseonerr=False)
+            tasks.clear_sssd_cache(self.master)
+
     @pytest.fixture
     def hbac_setup_teardown(self):
         tasks.kinit_admin(self.master)
