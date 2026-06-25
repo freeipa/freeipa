@@ -35,14 +35,14 @@ def install_check(api, replica_config, options):
         return
 
     # Check if using ipacta instead of Dogtag
-    use_ipacta = getattr(options, 'use_ipacta', False)
+    internal_ca = getattr(options, 'internal_ca', False)
 
     kra = krainstance.KRAInstance(api.env.realm)
     if kra.is_installed():
         raise RuntimeError("KRA is already installed.")
 
     if not options.setup_ca:
-        if use_ipacta:
+        if internal_ca:
             # ipacta doesn't use Dogtag, so check for ipacta CA instead
             ca_service = get_ca_service()
             if ca_service != "ipacta":
@@ -129,9 +129,9 @@ def install_check(api, replica_config, options):
 
 def install(api, replica_config, options, custodia):
     # Check if using ipacta instead of Dogtag
-    use_ipacta = getattr(options, 'use_ipacta', False)
+    internal_ca = getattr(options, 'internal_ca', False)
 
-    if use_ipacta:
+    if internal_ca:
         # Use ipacta KRA (part of ipacta service, not separate)
         logger.info("Configuring KRA in ipacta")
         from ipaserver.install.ipactainstance import IpactaInstance
