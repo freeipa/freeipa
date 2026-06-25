@@ -42,7 +42,7 @@ class ConfigPageBase(UI_driver):
         host = self.config.get('ipa_server')
         if not host:
             self.skip('FreeIPA server hostname not configured')
-        return 'https://%s/ipa/config' % host
+        return 'https://%s/ipa' % host
 
     def files_loaded(self):
         """
@@ -70,8 +70,6 @@ class ConfigPageBase(UI_driver):
         conn = util.create_https_connection(host, cafile=cacert)
         conn.request('GET', self.url)
         response = conn.getresponse()
-        # check successful response from a server
-        assert response.status == 200
         return response.read().decode('utf-8')
 
     def has_no_child(self, tag, child_tag):
@@ -127,7 +125,7 @@ class TestSsbrowserPage(ConfigPageBase):
     Test translation of ssbrowser.html page
     """
 
-    page_name = 'ssbrowser.html'
+    page_name = 'config/ssbrowser.html'
 
     @screenshot
     def test_long_text_of_ssbrowser_page(self):
@@ -146,7 +144,10 @@ class TestUnauthorizedPage(ConfigPageBase):
     Test translation of unauthorized.html page
     """
 
-    page_name = 'unauthorized.html'
+    # We should be testing unauthorized. As in httpd 401,
+    # not just by navigating to the page unauthorized.html,
+    # as nothing redirects here.
+    page_name = 'xxx'
 
     @screenshot
     def test_long_text_of_unauthorized_page(self):
