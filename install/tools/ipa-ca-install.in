@@ -137,7 +137,7 @@ def parse_options():
                       default=False, help="Enable random serial numbers",
                       action="store_true")
 
-    parser.add_option("--use-ipacta", dest="use_ipacta",
+    parser.add_option("--internal-ca", dest="internal_ca",
                       default=False,
                       help="Use ipacta Python CA instead of Dogtag/PKI",
                       action="store_true")

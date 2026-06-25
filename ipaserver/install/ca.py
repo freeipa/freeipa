@@ -620,10 +620,10 @@ def install_step_0(standalone, replica_config, options, custodia):
     # In both cases, 389-DS is already configured to have a trusted cert.
     use_ldaps = standalone or replica_config is not None
 
-    # Check if --use-ipacta was specified
-    use_ipacta = getattr(options, 'use_ipacta', False)
+    # Check if --internal-ca was specified
+    internal_ca = getattr(options, 'internal_ca', False)
 
-    if use_ipacta:
+    if internal_ca:
         # Use ipacta Python CA instead of Dogtag/PKI
         logger.info("Configuring ipacta Python CA (replacing pki-tomcat)")
         from ipaserver.install.ipactainstance import IpactaInstance
@@ -699,9 +699,9 @@ def install_step_1(standalone, replica_config, options, custodia):
     host_name = options.host_name
     subject_base = options._subject_base
     basedn = ipautil.realm_to_suffix(realm_name)
-    use_ipacta = options.use_ipacta
+    internal_ca = options.internal_ca
 
-    if use_ipacta:
+    if internal_ca:
         # ipacta doesn't use pki-tomcat, so skip those steps
         logger.debug("Configuring ipacta CA (step 1)")
 
@@ -811,9 +811,9 @@ def enable_ca_service(options):
     to ensure that during initial installation, PKINIT uses dogtag-submit to
     contact the CA directly instead of going through the IPA framework.
     """
-    use_ipacta = getattr(options, 'use_ipacta', False)
+    internal_ca = getattr(options, 'internal_ca', False)
 
-    if use_ipacta:
+    if internal_ca:
         logger.info("Registering ipacta CA service in LDAP")
         from ipaserver.install.ipactainstance import IpactaInstance
         ca_instance = IpactaInstance(
@@ -829,9 +829,9 @@ def uninstall():
     acme = acmeinstance.ACMEInstance(api.env.realm)
     acme.uninstall()
 
-    use_ipacta = get_ca_service() == "ipacta"
+    internal_ca = get_ca_service() == "ipacta"
 
-    if use_ipacta:
+    if internal_ca:
         from ipaserver.install.ipactainstance import IpactaInstance
         ca_instance = IpactaInstance(api.env.realm, api.env.host)
     else:
@@ -984,7 +984,7 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     def random_serial_numbers(self, value):
         random_serial_numbers_validator(value)
 
-    use_ipacta = knob(
+    internal_ca = knob(
         None,
         description="Use ipacta Python CA instead of Dogtag/PKI",
     )

@@ -475,7 +475,7 @@ def install_check(installer):
     if options.setup_kra:
         kra_backend = (
             "ipacta"
-            if getattr(options, 'use_ipacta', False) else "dogtag"
+            if getattr(options, 'internal_ca', False) else "dogtag"
         )
         print(f"  * Configure KRA ({kra_backend}) for secret management")
     if options.setup_dns:
@@ -715,8 +715,8 @@ def install_check(installer):
 
     if setup_ca:
         # Determine CA backend: ipacta or dogtag (default)
-        use_ipacta = getattr(options, 'use_ipacta', False)
-        ca_backend = 'ipacta' if use_ipacta else 'dogtag'
+        internal_ca = getattr(options, 'internal_ca', False)
+        ca_backend = 'ipacta' if internal_ca else 'dogtag'
 
         gopts.extend([
             ipaconf.setOption('enable_ra', 'True'),
@@ -1082,7 +1082,7 @@ def install(installer):
     # in CA service registration between ipacta and dogtag. Without this
     # restart, anonymous kinit fails with "Pre-authentication failed". Not
     # needed for dogtag.
-    if setup_ca and getattr(options, 'use_ipacta', False):
+    if setup_ca and getattr(options, 'internal_ca', False):
         service.print_msg("Restarting the KDC")
         krb.restart()
 
