@@ -192,3 +192,37 @@ class TestServicePermissions(IntegrationTest):
         assert result.returncode > 0
 
         self.master.run_command(['ipa', 'service-del', service_name4])
+
+    def test_service_add_rejects_ldap_filter_chars(self):
+        """Test that service-add rejects principals with LDAP filter
+        metacharacters to prevent filter injection in the KDB delegation
+        ACL lookup (ipa_kdb_delegation.c).
+
+        A principal like 'HTTP/evil)(memberPrincipal=*' would allow
+        S4U2Proxy filter injection if not rejected.
+        """
+        tasks.kinit_admin(self.master)
+
+        # Parentheses - would allow filter injection
+        result = self.master.run_command(
+            ['ipa', 'service-add',
+             'HTTP/evil)(memberPrincipal=*/%s' % self.master.hostname],
+            raiseonerr=False)
+        assert result.returncode > 0
+        assert 'invalid characters' in result.stderr_text
+
+        # Asterisk in service name
+        result = self.master.run_command(
+            ['ipa', 'service-add',
+             'HT*P/%s' % self.master.hostname],
+            raiseonerr=False)
+        assert result.returncode > 0
+        assert 'invalid characters' in result.stderr_text
+
+        # Backslash in service name
+        result = self.master.run_command(
+            ['ipa', 'service-add',
+             'HT\\TP/%s' % self.master.hostname],
+            raiseonerr=False)
+        assert result.returncode > 0
+        assert 'invalid characters' in result.stderr_text

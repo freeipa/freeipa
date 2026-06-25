@@ -1329,6 +1329,22 @@ def check_principal_realm_supported(api_instance, *suffixes,
                         'domains or trusted domains namespace'))
 
 
+def validate_principal_chars(principal):
+    """
+    Validate that no component of a principal contains characters that
+    are special in LDAP filter syntax (RFC 4515).
+
+    :param principal: a Principal instance
+    :raises ValueError: if a component contains invalid characters
+    """
+    import ldap.filter
+    for component in principal.components:
+        if ldap.filter.escape_filter_chars(component) != component:
+            raise ValueError(
+                "Principal component '%s' contains invalid characters"
+                % component)
+
+
 def no_matching_interface_for_ip_address_warning(addr_list):
     for ip in addr_list:
         if not ip.get_matching_interface():

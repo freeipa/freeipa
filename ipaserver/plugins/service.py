@@ -544,7 +544,7 @@ class service(LDAPObject):
             require_service=True,
             flags={'no_create'}
         ),
-        Str(
+        Principal(
             'memberprincipal*',
             cli_name='principal',
             label=_('Delegation principal'),

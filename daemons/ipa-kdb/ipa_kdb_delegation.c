@@ -43,6 +43,7 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
     struct ipadb_context *ipactx;
     krb5_error_code kerr;
     char *filter = NULL, *basedn = NULL;
+    char *esc_principal = NULL;
     int ret;
 
     ipactx = ipadb_get_context(kcontext);
@@ -50,9 +51,14 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
+    esc_principal = ipadb_filter_escape(srv_principal, true);
+    if (esc_principal == NULL) {
+        return ENOMEM;
+    }
+
     ret = asprintf(&filter,
                    "(&(objectclass=ipaKrb5DelegationACL)"
-                     "(memberPrincipal=%s))", srv_principal);
+                     "(memberPrincipal=%s))", esc_principal);
     if (ret == -1) {
         kerr = ENOMEM;
         goto done;
@@ -73,6 +79,7 @@ static krb5_error_code ipadb_get_delegation_acl(krb5_context kcontext,
 done:
     free(basedn);
     free(filter);
+    free(esc_principal);
     return kerr;
 }
 
