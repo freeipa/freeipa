@@ -12,8 +12,9 @@ import pytest
 
 from ipalib.util import (
     get_pager, create_https_connection, get_proper_tls_version_span,
-    validate_domain_name
+    validate_domain_name, validate_principal_chars
 )
+from ipapython.kerberos import Principal
 
 from ipaplatform.constants import constants
 
@@ -94,3 +95,28 @@ def test_validate_domain_name(domain_input, expected_valid, description):
 
     with pytest.raises((ValueError, TypeError)):
         validate_domain_name(domain_input)
+
+
+@pytest.mark.parametrize('principal_str', [
+    u'HTTP/host.example.com@REALM',
+    u'host/host.example.com@REALM',
+    u'ldap/host.example.com@REALM',
+    u'cifs/host.example.com@REALM',
+    u'HTTP/host.example.com',
+    u'user@REALM',
+    u'admin',
+])
+def test_validate_principal_chars_valid(principal_str):
+    validate_principal_chars(Principal(principal_str))
+
+
+@pytest.mark.parametrize('principal_str', [
+    u'HT(TP/host.example.com@REALM',
+    u'HTTP/host.example.com)',
+    u'HT*P/host.example.com@REALM',
+    u'HTTP/host*.example.com@REALM',
+    u'us\\er@REALM',
+])
+def test_validate_principal_chars_invalid(principal_str):
+    with pytest.raises(ValueError):
+        validate_principal_chars(Principal(principal_str))

@@ -122,7 +122,8 @@ from ipalib.errors import (
 )
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.text import Gettext, FixMe
-from ipalib.util import json_serialize, validate_idna_domain
+from ipalib.util import (
+    json_serialize, validate_idna_domain, validate_principal_chars)
 from ipalib.x509 import (
     load_der_x509_certificate, IPACertificate, default_backend)
 from ipalib.util import strip_csr_header, apirepr
@@ -2171,6 +2172,7 @@ class Principal(Param):
     type_error = _('must be Kerberos principal')
     kwargs = Param.kwargs + (
         ('require_service', bool, False),
+        ('principal_chars', bool, False),
     )
 
     @property
@@ -2195,6 +2197,14 @@ class Principal(Param):
                 name=self.get_param_name(),
                 error=_("Service principal is required")
             )
+
+    def _rule_principal_chars(self, _, value):
+        try:
+            validate_principal_chars(value)
+        except ValueError as e:
+            raise ValidationError(
+                name=self.get_param_name(),
+                error=str(e))
 
 
 _map_types = {

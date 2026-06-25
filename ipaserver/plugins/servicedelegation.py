@@ -17,6 +17,7 @@ from .baseldap import (
     LDAPRetrieve)
 from ipalib import _, ngettext
 from ipalib import errors
+from ipalib.util import validate_principal_chars
 from ipapython.dn import DN
 from ipapython import kerberos
 
@@ -183,6 +184,7 @@ class servicedelegation(LDAPObject):
 def normalize_principal_name(name, realm):
     try:
         princ = kerberos.Principal(name, realm=realm)
+        validate_principal_chars(princ)
     except ValueError as e:
         raise errors.ValidationError(
             name='principal',

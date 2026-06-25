@@ -583,7 +583,7 @@ class host(LDAPObject):
             normalizer=normalize_principal,
             flags=['no_create', 'no_search'],
         ),
-        Str(
+        Principal(
             'memberprincipal*',
             cli_name='principal',
             label=_('Delegation principal'),
