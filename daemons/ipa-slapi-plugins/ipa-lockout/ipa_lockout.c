@@ -552,7 +552,7 @@ static int ipalockout_postop(Slapi_PBlock *pb)
                 if ((lockout_duration == 0) ||
                     (time_now < timegm(&tm) + lockout_duration)) {
                     /* Within lockout duration */
-                    LOG_ALERT("User %s is locked out. Too many failed authentication attempts.\n", dn);
+                    LOG_ALERT_S("User %s is locked out. Too many failed authentication attempts.\n", dn);
                     goto done;
                 }
             }

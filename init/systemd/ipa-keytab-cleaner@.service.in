@@ -1,0 +1,11 @@
+[Unit]
+Description=Remove specified KVNO from keytab
+
+[Service]
+Type=simple
+ExecStart=@libexecdir@/ipa/ipa-keytab-cleaner %i
+Restart=on-failure
+RestartSec=1d
+
+[Install]
+WantedBy=multi-user.target

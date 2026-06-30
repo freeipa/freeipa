@@ -42,6 +42,7 @@ from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
 from ipapython.dn import DN
 from ipapython.dogtag import KDC_PROFILE
+from ipapython.krb5util import cleanup_scheduled_keytab_removals
 
 from ipaserver.install import replication
 from ipaserver.install import certs
@@ -84,6 +85,31 @@ def is_pkinit_enabled():
             return True
 
     return False
+
+
+def _get_krb_key_types():
+    """
+    Retrieves master key and supported types through ipa-getkeytab
+    as strings, supported types are delimited by a space.
+
+    :raise EnvironmentError: If no encryption types are provided
+
+    :return: master key type, supported key types
+    :rtype: str, str
+    """
+    result = ipautil.run([paths.IPA_GETKEYTAB, '--permitted-enctypes'],
+                         capture_output=True)
+    permitted_enctypes = result.output.splitlines()
+    if not permitted_enctypes:
+        raise EnvironmentError(
+            "ipa-getkeytab provided no permitted encryption types"
+        )
+
+    supported_enctypes = [
+        e + ":" + s for e in permitted_enctypes for s in ["special", "normal"]
+    ]
+
+    return (permitted_enctypes[0], " ".join(supported_enctypes))
 
 
 class KpasswdInstance(service.SimpleServiceInstance):
@@ -295,18 +321,10 @@ class KrbInstance(service.Service):
                              INCLUDES=includes,
                              FIPS='#' if fips_enabled else '')
 
-        supported_enctypes = tasks.get_supported_enctypes()
-        str_supported_enctypes = ' '.join(supported_enctypes)
-        ldif_supported_enctypes = ''.join(f'krbSupportedEncSaltTypes: {e}\n'
-                                          for e in supported_enctypes)
-        ldif_default_enctypes = ''.join(f'krbDefaultEncSaltTypes: {e}\n'
-                                        for e in tasks.get_default_enctypes())
+        mkey_type, supported_key_types = _get_krb_key_types()
 
-        self.sub_dict['SUPPORTED_ENCTYPES'] = str_supported_enctypes
-        self.sub_dict['LDIF_SUPPORTED_ENCTYPES'] = ldif_supported_enctypes
-        self.sub_dict['LDIF_DEFAULT_ENCTYPES'] = ldif_default_enctypes
-
-        self.sub_dict['MASTER_KEY_TYPE'] = tasks.get_masterkey_enctype()
+        self.sub_dict['SUPPORTED_ENCTYPES'] = supported_key_types
+        self.sub_dict['MASTER_KEY_TYPE'] = mkey_type
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified
@@ -634,7 +652,7 @@ class KrbInstance(service.Service):
             self.issue_selfsigned_pkinit_certs()
 
         try:
-            self.restart()
+            self.restart(skip_keytab_rotation=True)
         except Exception:
             logger.critical("krb5kdc service failed to restart")
             raise
@@ -664,6 +682,34 @@ class KrbInstance(service.Service):
         ipautil.remove_file(paths.KDC_CERT)
         ipautil.remove_file(paths.KDC_KEY)
 
+    def start(
+        self,
+        instance_name="",
+        capture_output=True,
+        wait=True,
+        skip_keytab_rotation=False,
+    ):
+        self.service.start(
+            instance_name,
+            capture_output=capture_output,
+            wait=wait,
+            skip_keytab_rotation=skip_keytab_rotation,
+        )
+
+    def restart(
+        self,
+        instance_name="",
+        capture_output=True,
+        wait=True,
+        skip_keytab_rotation=False,
+    ):
+        self.service.restart(
+            instance_name,
+            capture_output=capture_output,
+            wait=wait,
+            skip_keytab_rotation=skip_keytab_rotation,
+        )
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
@@ -692,7 +738,7 @@ class KrbInstance(service.Service):
         self.delete_pkinit_cert()
 
         if running:
-            self.restart()
+            self.restart(skip_keytab_rotation=True)
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.uninstall()
@@ -700,3 +746,5 @@ class KrbInstance(service.Service):
         ipautil.remove_file(paths.KRB5_KEYTAB)
         ipautil.remove_file(paths.KRB5_FREEIPA_DEFAULTS)
         ipautil.remove_file(paths.KRB5_FREEIPA_SERVER)
+
+        cleanup_scheduled_keytab_removals()
