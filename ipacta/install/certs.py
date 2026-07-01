@@ -59,10 +59,11 @@ def get_cert_params_from_config(pki_config, cert_type):
                    'audit_signing', 'ocsp_signing', 'sslserver')
 
     Returns:
-        tuple: (key_size, signing_algorithm) with defaults if not in config
+        tuple: (key_size, signing_algorithm, key_type) with defaults
+               if not in config
     """
     if pki_config is None:
-        return (3072, "SHA256withRSA")
+        return (3072, "SHA256withRSA", "rsa")
 
     config_prefix = {
         "ca_signing": "pki_ca_signing",
@@ -88,7 +89,15 @@ def get_cert_params_from_config(pki_config, cert_type):
         ),
     )
 
-    return (key_size, signing_alg)
+    key_type = pki_config.get(
+        "CA",
+        f"{config_prefix}_key_type",
+        fallback=pki_config.get(
+            "DEFAULT", "ipa_key_type", fallback="rsa"
+        ),
+    )
+
+    return (key_size, signing_alg, key_type)
 
 
 def convert_signing_algorithm(signing_alg):
@@ -96,12 +105,15 @@ def convert_signing_algorithm(signing_alg):
 
     Args:
         signing_alg: PKI algorithm string (e.g., 'SHA256withRSA',
-                     'SHA512withRSA')
+                     'SHA512withRSA', 'ML-DSA-65')
 
     Returns:
-        cryptography hash algorithm instance
+        cryptography hash algorithm instance, or None for ML-DSA
+        (ML-DSA does not use a separate hash algorithm)
     """
-    if "SHA512" in signing_alg:
+    if signing_alg.startswith("ML-DSA-"):
+        return None
+    elif "SHA512" in signing_alg:
         return hashes.SHA512()
     elif "SHA384" in signing_alg:
         return hashes.SHA384()
@@ -113,7 +125,8 @@ def convert_signing_algorithm(signing_alg):
         raise ValueError(
             f"Unknown signing algorithm {signing_alg!r}. "
             f"Supported: SHA256withRSA, SHA384withRSA, "
-            f"SHA512withRSA, SHA256withEC, SHA384withEC, SHA512withEC."
+            f"SHA512withRSA, SHA256withEC, SHA384withEC, SHA512withEC, "
+            f"ML-DSA-44, ML-DSA-65, ML-DSA-87."
         )
 
 
@@ -539,14 +552,23 @@ class Certs:
         ca_nickname = "caSigningCert cert-pki-ca"
 
         # Get CA signing key size from config
-        ca_key_size, ca_signing_alg = get_cert_params_from_config(
-            self.pki_config, "ca_signing"
+        ca_key_size, ca_signing_alg, ca_key_type = (
+            get_cert_params_from_config(self.pki_config, "ca_signing")
         )
         logger.info(
-            "CA signing certificate parameters: key_size=%s, signing_alg=%s",
+            "CA signing certificate parameters: key_type=%s, key_size=%s, "
+            "signing_alg=%s",
+            ca_key_type,
             ca_key_size,
             ca_signing_alg,
         )
+
+        if ca_key_type == "mldsa":
+            raise NotImplementedError(
+                "ML-DSA key generation is not yet supported by ipacta. "
+                "Use --ca-key-type rsa or wait for ML-DSA support in "
+                "the cryptography library."
+            )
 
         # Check if HSM is enabled
         use_hsm = self.tokenname and self.tokenname != "internal"
@@ -567,15 +589,15 @@ class Certs:
 
             hsm = HSMKeyBackend(hsm_config)
 
-            # Generate RSA key pair in HSM with configured key size
             key_label = "ipa-ca-signing"
             logger.debug(
-                "Generating %s-bit RSA key in HSM with label: %s",
+                "Generating %s-bit %s key in HSM with label: %s",
                 ca_key_size,
+                ca_key_type.upper(),
                 key_label,
             )
             hsm.generate_key_pair(
-                key_label, key_size=ca_key_size, key_type="RSA"
+                key_label, key_size=ca_key_size, key_type=ca_key_type.upper()
             )
 
             # Get public key for certificate building
@@ -591,8 +613,9 @@ class Certs:
 
             # Generate private key (in memory, will be imported to NSSDB)
             logger.debug(
-                "Generating %s-bit RSA key pair for NSSDB: %s",
+                "Generating %s-bit %s key pair for NSSDB: %s",
                 ca_key_size,
+                ca_key_type.upper(),
                 ca_nickname,
             )
             private_key = nssdb.generate_key_pair(
@@ -1110,7 +1133,7 @@ class Certs:
 
             # Get certificate parameters from config
             cert_type = cert_type_map.get(profile, "subsystem")
-            key_size, signing_alg = get_cert_params_from_config(
+            key_size, signing_alg, _key_type = get_cert_params_from_config(
                 self.pki_config, cert_type
             )
             hash_alg = convert_signing_algorithm(signing_alg)
@@ -1356,7 +1379,7 @@ class Certs:
         )
 
         # Get certificate parameters from config
-        key_size, signing_alg = get_cert_params_from_config(
+        key_size, signing_alg, _key_type = get_cert_params_from_config(
             self.pki_config, "sslserver"
         )
         hash_alg = convert_signing_algorithm(signing_alg)
@@ -1486,7 +1509,7 @@ class Certs:
 
         # Get certificate parameters from config (use sslserver settings for
         # RA cert)
-        key_size, signing_alg = get_cert_params_from_config(
+        key_size, signing_alg, _key_type = get_cert_params_from_config(
             self.pki_config, "sslserver"
         )
         hash_alg = convert_signing_algorithm(signing_alg)
