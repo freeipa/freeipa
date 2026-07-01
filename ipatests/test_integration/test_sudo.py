@@ -20,6 +20,7 @@
 import pytest
 import re
 from ipaplatform.paths import paths
+from ipaplatform.osinfo import osinfo
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.tasks import (
     clear_sssd_cache, get_host_ip_with_hostmask, remote_sssd_config,
@@ -1607,6 +1608,9 @@ class TestSudo_Functional(IntegrationTest):
         master.run_command([
             "ipa", "group-del", self.GROUP])
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora',
+        reason='freeipa ticket 10000', strict=True)
     def test_007_sudorule_offline_caching_option_command(self):
         master = self.master
         kinit_admin(master)
@@ -1659,6 +1663,9 @@ class TestSudo_Functional(IntegrationTest):
         clear_sssd_cache(self.client)
         clear_sssd_cache(master)
 
+    @pytest.mark.xfail(
+        osinfo.id == 'fedora',
+        reason='freeipa ticket 10000', strict=True)
     def test_008_disable_sudorule_offline_caching(self):
         master = self.master
         kinit_admin(master)
