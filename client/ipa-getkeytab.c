@@ -570,23 +570,17 @@ static int ldap_set_keytab(krb5_context krbctx,
 	}
 
 	for (i = 0; i < keys->nkeys; i++) {
-		ret = ber_scanf(sctrl, "{i}", &encs[i]);
+		ber_int_t enctype = 0;
+		ret = ber_scanf(sctrl, "{i}", &enctype);
 		if (ret == LBER_ERROR) {
-			char enc[79]; /* fit std terminal or truncate */
-			krb5_error_code krberr;
-			krberr = krb5_enctype_to_string(
-				keys->ksdata[i].enctype, enc, 79);
-			if (krberr) {
-				fprintf(stderr, _("Failed to retrieve "
-					"encryption type type #%d\n"),
-					keys->ksdata[i].enctype);
-			} else {
-				fprintf(stderr, _("Failed to retrieve "
-					"encryption type %1$s (#%2$d)\n"),
-					enc, keys->ksdata[i].enctype);
+			break;
+		}
+		for (int j = 0; j < keys->nkeys; j++) {
+			if (enctype == keys->ksdata[j].enctype) {
+				encs[j] = enctype;
+				successful_keys++;
+				break;
 			}
-                } else {
-			successful_keys++;
 		}
 	}
 
