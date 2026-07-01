@@ -592,6 +592,14 @@ class API(ReadOnly):
                 dest='fallback',
                 help='Only use the server configured in /etc/ipa/default.conf'
             )
+            parser.add_option(
+                '--schema-file',
+                dest='schema_file',
+                metavar='FILE',
+                help='Load server schema from FILE instead of the network '
+                     'cache.  FILE must be a ZIP created by '
+                     '``ipa schema-export``.',
+            )
 
         return parser
 
@@ -616,7 +624,7 @@ class API(ReadOnly):
                     raise errors.OptionError(_('Unable to parse option {item}'
                                                .format(item=item)))
         for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive',
-                    'forced_server', 'fallback', 'delegate'):
+                    'forced_server', 'fallback', 'delegate', 'schema_file'):
             value = getattr(options, key, None)
             if value is not None:
                 overrides[key] = value
