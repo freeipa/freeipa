@@ -25,6 +25,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+import shutil
 from configparser import RawConfigParser
 from pathlib import Path
 
@@ -388,6 +389,7 @@ class IpactaConfig:
             ),
         )
         config_file.chmod(0o640)
+        shutil.chown(config_file, user="root", group="ipaca")
 
         # Read it back so pass-through methods work
         config = RawConfigParser()
