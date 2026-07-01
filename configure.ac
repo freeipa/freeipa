@@ -95,6 +95,17 @@ if test "x$ac_cv_member_kdb_vftabl_free_principal" = "xno" \
     AC_MSG_WARN([See https://github.com/krb5/krb5/pull/596 for details])
 fi
 
+dnl Extract KRB5_KT_END from the installed krb5 headers.  The numeric value
+dnl differs across MIT Kerberos releases; storing it in version.py avoids
+dnl hard-coding a potentially wrong value in ipapython/kerberos.py.
+SAVE_CPPFLAGS=$CPPFLAGS
+CPPFLAGS="$KRB5_CFLAGS $CPPFLAGS"
+AC_COMPUTE_INT([IPA_KRB5_KT_END],
+    [KRB5_KT_END],
+    [#include <krb5.h>],
+    [AC_MSG_ERROR([could not determine KRB5_KT_END value from krb5.h])])
+CPPFLAGS=$SAVE_CPPFLAGS
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for OpenLDAP SDK
 dnl ---------------------------------------------------------------------------
@@ -310,6 +321,15 @@ AM_CONDITIONAL([BUILD_IPA_KDCPOLICY_PLUGIN],
 AM_CONDITIONAL([BUILD_IPA_ISSUE_PAC],
                [test x$have_kdb_issue_pac = xyes])
 
+AM_CONDITIONAL([BUILD_IPA_S4U_X509],
+               [test x$have_openssl = xyes -a x$have_kdb_issue_pac = xyes])
+AM_COND_IF([BUILD_IPA_S4U_X509],
+           [AC_DEFINE([BUILD_IPA_S4U_X509], [1],
+               [Build IPA KDB S4U X.509 attestation support])
+            AC_MSG_NOTICE([Build IPA KDB S4U X.509 attestation support])],
+           [AC_MSG_NOTICE([Skipping IPA KDB S4U X.509 attestation \
+(requires OpenSSL and DAL v9 issue_pac)])])
+
 dnl ---------------------------------------------------------------------------
 dnl - Check for program paths
 dnl ---------------------------------------------------------------------------
@@ -482,6 +502,7 @@ AC_SUBST([VERSION], [IPA_VERSION])
 AC_SUBST([GIT_VERSION], [IPA_GIT_VERSION])
 AC_SUBST([GIT_BRANCH], [IPA_GIT_BRANCH])
 AC_SUBST([KRB5_BUILD_VERSION], [IPA_KRB5_BUILD_VERSION])
+AC_SUBST([KRB5_KT_END], [$IPA_KRB5_KT_END])
 # used by Makefile.am for files depending on templates
 AC_SUBST([CONFIG_STATUS])
 

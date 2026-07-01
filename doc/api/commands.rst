@@ -341,6 +341,7 @@ IPA API Commands
    server_show.md
    server_state.md
    service_add.md
+   service_add_attestation_key.md
    service_add_cert.md
    service_add_delegation.md
    service_add_host.md
@@ -356,6 +357,7 @@ IPA API Commands
    service_disallow_retrieve_keytab.md
    service_find.md
    service_mod.md
+   service_remove_attestation_key.md
    service_remove_cert.md
    service_remove_delegation.md
    service_remove_host.md

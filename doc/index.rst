@@ -29,6 +29,7 @@ installation and configuration tasks.
    :caption: Contents:
 
    designs/index.rst
+   examples/index.rst
    workshop.rst
    api/index.rst
 
