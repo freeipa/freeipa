@@ -3284,11 +3284,11 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 self._warmup_sssd_trust_user_on_hosts(user1, group1)
 
                 with xfail_context(
-                    osinfo.id == 'fedora'
+                    osinfo.id in ('fedora', 'rhel')
                     and tasks.get_sssd_version(self.master)
-                    == parse_version('2.12.0'),
+                    < parse_version('2.12.0'),
                     reason=(
-                        "Fix available after 2.12.0; "
+                        "Requires SSSD 2.12.0+ (fixed in "
                         "https://github.com/SSSD/sssd/issues/7921"
                     ),
                 ):
@@ -3804,11 +3804,11 @@ class TestTrustFunctionalSelinuxUsermap(BaseTestTrust):
                 self._warmup_sssd_trust_user_on_hosts(user1, group1)
 
                 with xfail_context(
-                    osinfo.id == 'fedora'
+                    osinfo.id in ('fedora', 'rhel')
                     and tasks.get_sssd_version(self.master)
-                    == parse_version('2.12.0'),
+                    < parse_version('2.12.0'),
                     reason=(
-                        "Fix available after 2.12.0; "
+                        "Requires SSSD 2.12.0+ (fixed in "
                         "https://github.com/SSSD/sssd/issues/7921"
                     ),
                 ):
