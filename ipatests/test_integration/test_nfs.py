@@ -25,6 +25,7 @@ from ipaplatform.paths import paths
 from ipatests.test_integration.base import (
     IntegrationTest, MultiDomainIntegrationTest)
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.firewall import Firewall
 # give some time for units to stabilize
 # otherwise we get transient errors
 WAIT_AFTER_INSTALL = 5
@@ -68,6 +69,7 @@ class TestNFS(IntegrationTest):
 
         nfssrv.run_command(["systemctl", "stop", "nfs-server"])
         nfssrv.run_command(["systemctl", "disable", "nfs-server"])
+        Firewall(nfssrv).disable_service("nfs")
         nfssrv.run_command([
             "rm", "-f", "/etc/exports.d/krbnfs.exports",
             "/etc/exports.d/stdnfs.exports"
@@ -123,6 +125,8 @@ class TestNFS(IntegrationTest):
         ])
         nfssrv.run_command(["systemctl", "restart", "nfs-server"])
         nfssrv.run_command(["systemctl", "enable", "nfs-server"])
+        # Firewall allowing nfs port
+        Firewall(nfssrv).enable_service("nfs")
         time.sleep(WAIT_AFTER_INSTALL)
 
         basedir = "exports"
@@ -151,17 +155,18 @@ class TestNFS(IntegrationTest):
 
         # for journalctl --since
         since = time.strftime('%Y-%m-%d %H:%M:%S')
-        nfsclt.run_command(["systemctl", "restart", "rpc-gssd"])
+        for svc in ['gssproxy', 'rpc-gssd']:
+            nfsclt.run_command(["systemctl", "restart", svc])
         time.sleep(WAIT_AFTER_INSTALL)
         mountpoints = ("/mnt/krb", "/mnt/std", "/home")
         for mountpoint in mountpoints:
             nfsclt.run_command(["mkdir", "-p", mountpoint])
         nfsclt.run_command([
             "systemctl", "status", "gssproxy"
-        ])
+        ], raiseonerr=False)
         nfsclt.run_command([
             "systemctl", "status", "rpc-gssd"
-        ])
+        ], raiseonerr=False)
         nfsclt.run_command([
             "mount", "-t", "nfs4", "-o", "sec=krb5p,vers=4.0",
             "%s:/exports/krbnfs" % nfssrv.hostname, "/mnt/krb", "-v"
