@@ -44,7 +44,6 @@ import ipalib.constants
 from ipalib.install import certmonger
 from ipaplatform import services
 from ipaplatform.paths import paths
-from ipaplatform.services import knownservices
 from ipaplatform.tasks import tasks
 
 from ipapython import directivesetter
@@ -256,14 +255,9 @@ def is_step_one_done():
 
 def is_ca_installed_locally():
     """Check if CA is installed locally by checking for existence of CS.cfg
-    (Dogtag) or ipacta.conf (ipacta)
     :return:True/False
     """
-    # Check for Dogtag and ipacta configuration files
-    if os.path.exists(paths.CA_CS_CFG_PATH) or \
-       os.path.exists(paths.IPACTA_CONF):
-        return True
-    return False
+    return os.path.exists(paths.CA_CS_CFG_PATH)
 
 
 def lookup_ldap_backend(api):
@@ -313,10 +307,8 @@ class InconsistentCRLGenConfigException(Exception):
     pass
 
 
-class DogtagCAInstance(DogtagInstance):
+class CAInstance(DogtagInstance):
     """
-    Dogtag CA instance implementation.
-
     When using a dogtag CA the DS database contains just the
     server cert for DS. The RA agent cert that will be used
     to do authenticated requests against dogtag.
@@ -347,7 +339,7 @@ class DogtagCAInstance(DogtagInstance):
         "[L,R=301,NC]"
 
     def __init__(self, realm=None, host_name=None, custodia=None):
-        super().__init__(
+        super(CAInstance, self).__init__(
             realm=realm,
             subsystem="CA",
             service_desc="certificate server",
@@ -834,7 +826,7 @@ class DogtagCAInstance(DogtagInstance):
         don't stop the current installer.
         """
         try:
-            super().backup_config()
+            super(CAInstance, self).backup_config()
         except Exception as e:
             logger.warning("Failed to backup CS.cfg: %s", e)
 
@@ -1309,7 +1301,7 @@ class DogtagCAInstance(DogtagInstance):
         during upgrade to fix discrepancies.
 
         """
-        super().stop_tracking_certificates()
+        super(CAInstance, self).stop_tracking_certificates()
 
         # stop tracking lightweight CA signing certs
         for request_id in certmonger.get_requests_for_dir(self.nss_db):
@@ -1322,9 +1314,6 @@ class DogtagCAInstance(DogtagInstance):
         except RuntimeError as e:
             logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
-
-    def is_dogtag_configured(self):
-        return self.is_configured()
 
     def is_renewal_master(self, fqdn=None):
         if fqdn is None:
@@ -1394,7 +1383,7 @@ class DogtagCAInstance(DogtagInstance):
             syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
         if nickname in directives:
-            super().update_cert_cs_cfg(
+            super(CAInstance, self).update_cert_cs_cfg(
                 directives[nickname], cert)
 
     def __create_ds_db(self):
@@ -2651,67 +2640,3 @@ def check_ipa_ca_san(cert):
             name='certificate',
             error='Does not have a \'{}\' SAN'.format(expect)
         )
-
-
-# ============================================================================
-# CA Instance Factory
-# ============================================================================
-
-def CAInstance(realm=None, **kwargs):
-    """
-    Factory function that returns the appropriate CA instance.
-
-    Detects whether ipacta or Dogtag is installed and returns:
-    - IpactaInstance if ipacta is installed
-    - DogtagCAInstance if Dogtag is installed
-
-    Args:
-        realm: IPA realm name (optional)
-        **kwargs: Additional arguments to pass to the instance constructor
-
-    Returns:
-        Instance of either IpactaInstance or DogtagCAInstance
-
-    Usage:
-        from ipaserver.install import cainstance
-        ca = cainstance.CAInstance(realm)
-        if ca.is_installed():
-            ...
-
-        # Static methods:
-        uid = cainstance.CAInstance.acme_uid(fqdn)
-        cainstance.CAInstance.delete_user(uid)
-    """
-    # Check if ipacta is installed
-    # Use service check as primary indicator
-    if hasattr(knownservices, 'ipacta'):
-        ipacta_service = knownservices.ipacta
-        if ipacta_service.is_installed():
-            # Import IpactaInstance
-            from ipaserver.install.ipactainstance import IpactaInstance
-            logger.debug("CAInstance factory: Using IpactaInstance")
-            return IpactaInstance(realm=realm, **kwargs)
-
-    # Check for ipacta config file as fallback
-    if os.path.exists(paths.IPACTA_CONF):
-        from ipaserver.install.ipactainstance import IpactaInstance
-        logger.debug(
-            "CAInstance factory: Using IpactaInstance (config file found)"
-        )
-        return IpactaInstance(realm=realm, **kwargs)
-
-    # Default to Dogtag CA
-    logger.debug("CAInstance factory: Using DogtagCAInstance")
-    return DogtagCAInstance(realm=realm, **kwargs)
-
-
-# Attach static methods to the factory function for backward compatibility
-# This allows calling: cainstance.CAInstance.acme_uid(fqdn)
-CAInstance.acme_uid = staticmethod(DogtagCAInstance.acme_uid)
-CAInstance.delete_user = staticmethod(DogtagInstance.delete_user)
-CAInstance._set_ra_cert_perms = staticmethod(
-    DogtagCAInstance._set_ra_cert_perms
-)
-CAInstance.configure_agent_renewal = staticmethod(
-    DogtagCAInstance.configure_agent_renewal
-)

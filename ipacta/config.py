@@ -44,6 +44,7 @@ _UNSET = object()
 # a caller passes None for a particular parameter in from_install_params().
 IPACTA_DEFAULTS = {
     "random_serial_numbers": True,
+    "ca_key_type": "rsa",
     "ca_signing_algorithm": "SHA256withRSA",
     "ca_signing_key_size": "3072",
     "ocsp_signing_algorithm": "SHA256withRSA",
@@ -110,6 +111,7 @@ class IpactaConfig:
         self._random_serial_numbers = IPACTA_DEFAULTS[
             "random_serial_numbers"
         ]
+        self._ca_key_type = IPACTA_DEFAULTS["ca_key_type"]
         self._ca_signing_algorithm = IPACTA_DEFAULTS["ca_signing_algorithm"]
         self._ca_signing_key_size = IPACTA_DEFAULTS["ca_signing_key_size"]
         self._ocsp_signing_algorithm = IPACTA_DEFAULTS[
@@ -138,6 +140,7 @@ class IpactaConfig:
         host,
         basedn,
         random_serial_numbers=None,
+        ca_key_type=None,
         ca_signing_algorithm=None,
         ca_signing_key_size=None,
         ocsp_signing_algorithm=None,
@@ -167,6 +170,8 @@ class IpactaConfig:
         cfg._domain = realm.lower() if realm else None
         if random_serial_numbers is not None:
             cfg._random_serial_numbers = random_serial_numbers
+        if ca_key_type is not None:
+            cfg._ca_key_type = ca_key_type
         if ca_signing_algorithm is not None:
             cfg._ca_signing_algorithm = ca_signing_algorithm
         if ca_signing_key_size is not None:

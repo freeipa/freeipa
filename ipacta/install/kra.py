@@ -158,7 +158,7 @@ class KRAInstall:
             return
 
         # Get certificate parameters from config
-        key_size, signing_alg = get_cert_params_from_config(
+        key_size, signing_alg, _key_type = get_cert_params_from_config(
             self.pki_config, "audit_signing"
         )
         hash_alg = convert_signing_algorithm(signing_alg)

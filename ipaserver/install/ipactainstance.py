@@ -118,6 +118,10 @@ class _PKIConfigBuilder:
             "ecc_curve",
             "nistp256",
         ),
+        ("DEFAULT", "ipa_key_type"): (
+            "ca_key_type",
+            "rsa",
+        ),
     }
 
     # Immutable keys (loaded lazily from ipaca_default.ini + code)
@@ -139,6 +143,7 @@ class _PKIConfigBuilder:
         subject_base,
         ca_subject,
         ca_signing_algorithm,
+        ca_key_type,
         random_serial_numbers,
         pki_config_override,
         token_name,
@@ -290,6 +295,37 @@ class _PKIConfigBuilder:
             config.defaults()["ipa_signing_algorithm"] = alg_str
             config.defaults()["ipa_ca_signing_algorithm"] = alg_str
 
+        if ca_key_type is not None:
+            kt_str = (
+                ca_key_type.value
+                if hasattr(ca_key_type, "value")
+                else str(ca_key_type)
+            ).lower()
+            key_type = kt_str.split(":")[0] if ":" in kt_str else kt_str
+            config.defaults()["ipa_key_type"] = key_type
+
+            if key_type == "mldsa":
+                from ipaserver.install.certs import (
+                    get_key_type_and_strength,
+                    default_ca_key_strength,
+                )
+                (_kt, ca_key_size) = get_key_type_and_strength(
+                    kt_str, is_ca=True
+                )
+                cert_key_size = default_ca_key_strength.get(key_type, "65")
+                ca_key_algorithm = f"ML-DSA-{ca_key_size}"
+                config.defaults()["ipa_ca_key_size"] = ca_key_size
+                config.defaults()["ipa_key_size"] = cert_key_size
+                config.defaults()["ipa_key_algorithm"] = ca_key_algorithm
+                config.defaults()["ipa_ca_key_algorithm"] = ca_key_algorithm
+                if ca_signing_algorithm is None:
+                    config.defaults()["ipa_signing_algorithm"] = (
+                        ca_key_algorithm
+                    )
+                    config.defaults()["ipa_ca_signing_algorithm"] = (
+                        ca_key_algorithm
+                    )
+
         return config
 
     @classmethod
@@ -437,6 +473,7 @@ class IpactaInstance(service.Service):
         host_name=None,
         random_serial_numbers=False,
         ca_signing_algorithm=None,
+        ca_key_type="rsa",
         subject_base=None,
         ca_subject=None,
         external_ca=False,
@@ -496,6 +533,7 @@ class IpactaInstance(service.Service):
 
         self.random_serial_numbers = random_serial_numbers
         self.ca_signing_algorithm = ca_signing_algorithm
+        self.ca_key_type = ca_key_type
         self.pki_config_override = pki_config_override
 
         # Build PKI config hierarchy and derive ipacta-native config
@@ -511,6 +549,7 @@ class IpactaInstance(service.Service):
                 subject_base=self.subject_base,
                 ca_subject=self.ca_subject,
                 ca_signing_algorithm=ca_signing_algorithm,
+                ca_key_type=ca_key_type,
                 random_serial_numbers=random_serial_numbers,
                 pki_config_override=pki_config_override,
                 token_name=token_name,

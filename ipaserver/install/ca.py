@@ -633,6 +633,7 @@ def install_step_0(standalone, replica_config, options, custodia):
             host_name=host_name,
             random_serial_numbers=options._random_serial_numbers,
             ca_signing_algorithm=ca_signing_algorithm,
+            ca_key_type=getattr(options, 'ca_key_type', None) or "rsa",
             subject_base=subject_base,
             ca_subject=ca_subject,
             external_ca=(ca_type is not None),
