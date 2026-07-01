@@ -404,13 +404,13 @@ class BaseTaskNamespace:
         """Disable p11-kit modules
 
         The p11-kit configuration injects p11-kit-proxy into all NSS
-        databases. Amongst other p11-kit loads SoftHSM2 PKCS#11 provider.
+        databases. Amongst other p11-kit loads the Kryoptic PKCS#11 provider.
         This interferes with 389-DS, certmonger, Dogtag and other services.
-        For example certmonger tries to open OpenDNSSEC's SoftHSM2 token,
+        For example certmonger tries to open OpenDNSSEC's PKCS#11 token,
         although it doesn't use it at all. It also breaks Dogtag HSM support
-        testing with SoftHSM2.
+        testing with Kryoptic.
 
-        IPA server does neither need nor use SoftHSM2 proxied by p11-kit.
+        IPA server does neither need nor use Kryoptic proxied by p11-kit.
         """
         raise NotImplementedError
 
