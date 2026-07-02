@@ -487,7 +487,7 @@ class IpactaInstance(service.Service):
         token_library_path=None,
         token_password=None,
         pkcs12_info=None,
-        pkcs12_pwd=None,
+        dm_password=None,
         master_host=None,
         promote=False,
     ):
@@ -600,7 +600,7 @@ class IpactaInstance(service.Service):
 
         # Clone / replica / promote state
         self.pkcs12_info = pkcs12_info
-        self.pkcs12_pwd = pkcs12_pwd
+        self.dm_password = dm_password
         self.master_host = master_host
         self.clone = bool(pkcs12_info)
         self.no_db_setup = promote
@@ -1384,7 +1384,7 @@ class IpactaInstance(service.Service):
             "creating directory structure", self._svc._create_directories
         )
         self.step("creating NSS database", self._nssdb.create_nssdb)
-        if self.pkcs12_info and self.pkcs12_pwd:
+        if self.pkcs12_info and self.dm_password:
             self.step(
                 "importing CA keys from master",
                 self._import_replica_keys,
@@ -1489,7 +1489,7 @@ class IpactaInstance(service.Service):
     def _import_replica_keys(self):
         """Import CA key material from the master's PKCS#12 into the NSSDB.
 
-        Called during replica promote when pkcs12_info and pkcs12_pwd are set.
+        Called during replica promote when pkcs12_info and dm_password are set.
         Imports all CA certs (caSigningCert, ocspSigningCert, auditSigningCert,
         subsystemCert) so subsequent cert generation steps find them already
         in the NSSDB and skip regeneration.
@@ -1519,8 +1519,8 @@ class IpactaInstance(service.Service):
             mode="w", suffix=".txt", delete=False
         ) as pf:
             os.fchmod(pf.fileno(), 0o600)
-            pf.write(self.pkcs12_pwd)
-            pkcs12_pwd_file = pf.name
+            pf.write(self.dm_password)
+            dm_password_file = pf.name
 
         try:
             ipautil.run(
@@ -1529,14 +1529,14 @@ class IpactaInstance(service.Service):
                     "-i", pkcs12_file,
                     "-d", str(self._nssdb.nssdb_dir),
                     "-k", nssdb_pwd_file,
-                    "-w", pkcs12_pwd_file,
+                    "-w", dm_password_file,
                 ],
                 raiseonerr=True,
             )
             logger.info("Successfully imported CA keys into replica NSSDB")
         finally:
             Path(nssdb_pwd_file).unlink(missing_ok=True)
-            Path(pkcs12_pwd_file).unlink(missing_ok=True)
+            Path(dm_password_file).unlink(missing_ok=True)
 
     # -----------------------------------------------------------------------
     # Service lifecycle
