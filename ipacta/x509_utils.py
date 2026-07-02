@@ -679,128 +679,118 @@ def decode_ldap_attribute(value, expected_type: type = str):
 
 def parse_signature_algorithm(algorithm_string: str):
     """
-    Parse Dogtag algorithm string to hash algorithm
-
-    Converts Dogtag-style signature algorithm strings (e.g., "SHA256withRSA")
-    to cryptography hash algorithm objects.
+    Parse Dogtag algorithm string to hash algorithm.
 
     Args:
-        algorithm_string: Dogtag algorithm string like "SHA256withRSA",
-                         "SHA384withEC", etc.
+        algorithm_string: e.g. "SHA256withRSA", "SHA384withEC",
+                         "ML-DSA-65"
 
     Returns:
-        Hash algorithm object from cryptography.hazmat.primitives.hashes
+        Hash algorithm object, or None for ML-DSA (no pre-hash).
 
     Raises:
         ValueError: If algorithm string is not recognized
-
-    Example:
-        >>> hash_alg = parse_signature_algorithm("SHA256withRSA")
-        >>> # Use for signing:
-        >>> cert = builder.sign(private_key, hash_alg)
     """
     from cryptography.hazmat.primitives import hashes
 
-    # Map algorithm strings to hash objects
     alg_upper = algorithm_string.upper()
 
+    if "ML-DSA" in alg_upper or "MLDSA" in alg_upper:
+        return None
+    if "SHA512" in alg_upper:
+        return hashes.SHA512()
+    if "SHA384" in alg_upper:
+        return hashes.SHA384()
+    if "SHA256" in alg_upper:
+        return hashes.SHA256()
     if "SHA1" in alg_upper:
         return hashes.SHA1()
-    elif "SHA256" in alg_upper:
-        return hashes.SHA256()
-    elif "SHA384" in alg_upper:
-        return hashes.SHA384()
-    elif "SHA512" in alg_upper:
-        return hashes.SHA512()
-    elif "MD5" in alg_upper:
+    if "MD5" in alg_upper or "MD2" in alg_upper:
         return hashes.MD5()
-    elif "MD2" in alg_upper:
-        # MD2 is not supported by cryptography, use MD5 as fallback
-        logger.warning("MD2 not supported, using MD5")
-        return hashes.MD5()
-    else:
-        raise ValueError(f"Unknown signature algorithm: {algorithm_string}")
+    raise ValueError(f"Unknown signature algorithm: {algorithm_string}")
 
 
 def get_default_algorithm_for_key(public_key) -> str:
     """
-    Infer appropriate signature algorithm from public key type
+    Infer appropriate signature algorithm from public key type.
 
     Args:
         public_key: Public key object from CSR or certificate
 
     Returns:
-        Dogtag-style algorithm string (e.g., "SHA256withRSA")
-
-    Example:
-        >>> from cryptography.hazmat.primitives.asymmetric import rsa
-        >>> public_key = csr.public_key()
-        >>> algorithm = get_default_algorithm_for_key(public_key)
-        'SHA256withRSA'
+        Algorithm string, e.g. "SHA256withRSA" or "ML-DSA-65"
     """
     from cryptography.hazmat.primitives.asymmetric import rsa, ec, dsa
 
+    try:
+        from cryptography.hazmat.primitives.asymmetric import mldsa
+        if isinstance(public_key, mldsa.MLDSA44PublicKey):
+            return "ML-DSA-44"
+        if isinstance(public_key, mldsa.MLDSA65PublicKey):
+            return "ML-DSA-65"
+        if isinstance(public_key, mldsa.MLDSA87PublicKey):
+            return "ML-DSA-87"
+    except ImportError:
+        pass
+
     if isinstance(public_key, rsa.RSAPublicKey):
         return "SHA256withRSA"
-    elif isinstance(public_key, ec.EllipticCurvePublicKey):
+    if isinstance(public_key, ec.EllipticCurvePublicKey):
         return "SHA256withEC"
-    elif isinstance(public_key, dsa.DSAPublicKey):
+    if isinstance(public_key, dsa.DSAPublicKey):
         return "SHA256withDSA"
-    else:
-        logger.warning(
-            "Unknown key type %s, using SHA256withRSA",
-            type(public_key).__name__,
-        )
-        return "SHA256withRSA"
+    logger.warning(
+        "Unknown key type %s, using SHA256withRSA",
+        type(public_key).__name__,
+    )
+    return "SHA256withRSA"
 
 
 def get_certificate_signature_algorithm(certificate: x509.Certificate) -> str:
     """
-    Extract the signature algorithm from an existing certificate
-
-    Determines the Dogtag-style algorithm string that was used to sign
-    a certificate, which should be used for signing related objects like
-    CRLs and OCSP responses.
+    Extract the signature algorithm from an existing certificate.
 
     Args:
         certificate: X.509 certificate object
 
     Returns:
-        Dogtag-style algorithm string (e.g., "SHA256withRSA")
-
-    Example:
-        >>> algorithm = get_certificate_signature_algorithm(ca_cert)
-        'SHA256withRSA'
-        >>> # Use same algorithm for CRL signing
-        >>> hash_alg = parse_signature_algorithm(algorithm)
+        Algorithm string, e.g. "SHA256withRSA" or "ML-DSA-65"
     """
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.asymmetric import rsa, ec, dsa
 
-    # Get hash algorithm from certificate
-    hash_alg = certificate.signature_hash_algorithm
+    _MLDSA_OIDS = {
+        "2.16.840.1.101.3.4.3.17": "ML-DSA-44",
+        "2.16.840.1.101.3.4.3.18": "ML-DSA-65",
+        "2.16.840.1.101.3.4.3.19": "ML-DSA-87",
+    }
+    sig_oid = certificate.signature_algorithm_oid.dotted_string
+    if sig_oid in _MLDSA_OIDS:
+        return _MLDSA_OIDS[sig_oid]
 
-    # Get public key to determine key type
+    hash_alg = certificate.signature_hash_algorithm
+    if hash_alg is None:
+        return get_default_algorithm_for_key(certificate.public_key())
+
     public_key = certificate.public_key()
 
-    # Map hash algorithm to string
-    if isinstance(hash_alg, hashes.SHA1):
-        hash_str = "SHA1"
-    elif isinstance(hash_alg, hashes.SHA256):
-        hash_str = "SHA256"
+    if isinstance(hash_alg, hashes.SHA512):
+        hash_str = "SHA512"
     elif isinstance(hash_alg, hashes.SHA384):
         hash_str = "SHA384"
-    elif isinstance(hash_alg, hashes.SHA512):
-        hash_str = "SHA512"
+    elif isinstance(hash_alg, hashes.SHA256):
+        hash_str = "SHA256"
+    elif isinstance(hash_alg, hashes.SHA1):
+        hash_str = "SHA1"
     elif isinstance(hash_alg, hashes.MD5):
         hash_str = "MD5"
     else:
         logger.warning(
-            "Unknown hash algorithm %s, using SHA256", type(hash_alg).__name__
+            "Unknown hash algorithm %s, using SHA256",
+            type(hash_alg).__name__,
         )
         hash_str = "SHA256"
 
-    # Determine key type
     if isinstance(public_key, rsa.RSAPublicKey):
         key_str = "RSA"
     elif isinstance(public_key, ec.EllipticCurvePublicKey):
@@ -809,7 +799,8 @@ def get_certificate_signature_algorithm(certificate: x509.Certificate) -> str:
         key_str = "DSA"
     else:
         logger.warning(
-            "Unknown key type %s, using RSA", type(public_key).__name__
+            "Unknown key type %s, using RSA",
+            type(public_key).__name__,
         )
         key_str = "RSA"
 

@@ -21,10 +21,10 @@ from pathlib import Path
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ipapython import ipautil
 from ipacta.exceptions import CertificateOperationError
+from ipacta.key_utils import generate_private_key
 from ipaplatform.paths import paths
 
 logger = logging.getLogger(__name__)
@@ -83,45 +83,40 @@ class NSSDatabase:
         )
 
     def generate_key_pair(
-        self, nickname: str, key_size: int = 4096
-    ) -> rsa.RSAPrivateKey:
-        """
-        Generate RSA key pair for NSSDB
+        self,
+        nickname,
+        key_size=4096,
+        signing_alg="SHA256withRSA",
+        ec_curve="P-256",
+    ):
+        """Generate a key pair for NSSDB.
 
-        Hybrid approach (Option B):
-        - Generate key in memory using cryptography library
-        - Key will be imported to NSSDB later via import_key_and_cert()
-        - No PEM files created on disk
-        - Key ends up ONLY in NSSDB
-
-        This avoids certutil hanging issues while maintaining NSSDB-only
-        storage.
+        The key is generated in memory and imported to NSSDB later via
+        import_key_and_cert(). No PEM files are created on disk.
 
         Args:
-            nickname: Certificate/key nickname in NSSDB (for logging)
-            key_size: RSA key size in bits (default: 4096)
+            nickname:    Certificate/key nickname in NSSDB (for logging).
+            key_size:    Key size in bits (used for RSA; ignored for
+                         ML-DSA).
+            signing_alg: PKI signing algorithm string such as
+                         ``"SHA256withRSA"`` or ``"ML-DSA-65"``.
+            ec_curve:    EC curve name (NSS form "nistp256" or standard
+                         form "P-256"). Ignored for RSA and ML-DSA.
 
         Returns:
-            RSA private key object (in memory, will be imported to NSSDB)
-
-        Raises:
-            RuntimeError: If key generation fails
+            Private key object (in memory, will be imported to NSSDB).
         """
         logger.debug(
-            "Generating %s-bit RSA key pair for NSSDB: %s", key_size, nickname
+            "Generating %s key pair for NSSDB: %s",
+            signing_alg, nickname,
         )
-
-        # Generate RSA key pair in memory
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=key_size,
+        private_key = generate_private_key(
+            signing_alg, key_size, ec_curve
         )
-
         logger.debug(
-            "Generated %s-bit RSA key pair (will be imported to NSSDB)",
-            key_size,
+            "Generated %s key pair (will be imported to NSSDB)",
+            signing_alg,
         )
-
         return private_key
 
     def extract_private_key(self, nickname: str) -> rsa.RSAPrivateKey:
@@ -204,6 +199,8 @@ class NSSDatabase:
                         "-nocerts",
                         "-nodes",
                         "-passin", f"file:{temp_password_file}",
+                        "-provparam",
+                        "ml-dsa.output_formats=seed-only",
                     ],
                     capture_output=True,
                     timeout=60,
@@ -336,7 +333,7 @@ class NSSDatabase:
                 keyfile.write(
                     private_key.private_bytes(
                         encoding=serialization.Encoding.PEM,
-                        format=serialization.PrivateFormat.TraditionalOpenSSL,
+                        format=serialization.PrivateFormat.PKCS8,
                         encryption_algorithm=serialization.NoEncryption(),
                     )
                 )
