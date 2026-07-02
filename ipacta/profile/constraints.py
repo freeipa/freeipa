@@ -152,6 +152,27 @@ class KeyConstraint(Constraint):
         errors = []
         public_key = csr.public_key()
 
+        # ML-DSA: legacy profiles specify keyType=RSA; allow ML-DSA
+        # through unless the profile explicitly demands EC or DSA.
+        try:
+            from cryptography.hazmat.primitives.asymmetric import (
+                mldsa,
+            )
+            mldsa_types = (
+                mldsa.MLDSA44PublicKey,
+                mldsa.MLDSA65PublicKey,
+                mldsa.MLDSA87PublicKey,
+            )
+            if isinstance(public_key, mldsa_types):
+                if self.key_type in ("EC", "DSA"):
+                    errors.append(
+                        f"Key type must be {self.key_type}, "
+                        f"not {type(public_key).__name__}"
+                    )
+                return errors
+        except ImportError:
+            pass
+
         # Check key type
         if self.key_type == "RSA":
             if not isinstance(public_key, rsa.RSAPublicKey):
@@ -220,6 +241,30 @@ class KeyConstraint(Constraint):
                     f"Key type must be DSA, not {type(public_key).__name__}"
                 )
 
+        elif self.key_type in (
+            "MLDSA", "ML-DSA",
+            "ML-DSA-44", "ML-DSA-65", "ML-DSA-87",
+        ):
+            try:
+                from cryptography.hazmat.primitives.asymmetric import (
+                    mldsa,
+                )
+                mldsa_types = (
+                    mldsa.MLDSA44PublicKey,
+                    mldsa.MLDSA65PublicKey,
+                    mldsa.MLDSA87PublicKey,
+                )
+                if not isinstance(public_key, mldsa_types):
+                    errors.append(
+                        f"Key type must be ML-DSA, not "
+                        f"{type(public_key).__name__}"
+                    )
+            except ImportError:
+                errors.append(
+                    "ML-DSA keys require "
+                    "python-cryptography >= 49.0"
+                )
+
         return errors
 
 
@@ -243,7 +288,11 @@ class SigningAlgConstraint(Constraint):
                 config_allowed = ipacta.get_config_value(
                     "ca",
                     "allowed_signing_algorithms",
-                    default="SHA256withRSA,SHA384withRSA,SHA512withRSA",
+                    default=(
+                        "SHA256withRSA,SHA384withRSA,"
+                        "SHA512withRSA,"
+                        "ML-DSA-44,ML-DSA-65,ML-DSA-87"
+                    ),
                 )
                 self.allowed = [
                     alg.strip() for alg in config_allowed.split(",")
