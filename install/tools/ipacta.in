@@ -41,7 +41,7 @@ class IpactaApplication(BaseApplication):
         self.cfg.set('workers', int(cfg.get('server', 'workers')))
         self.cfg.set('worker_class', 'gthread')
         self.cfg.set('threads', int(cfg.get('server', 'threads',
-                                             fallback='4')))
+                                            fallback='4')))
         self.cfg.set('timeout', 300)
 
         # Process naming

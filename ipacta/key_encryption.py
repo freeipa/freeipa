@@ -192,7 +192,9 @@ class KeyEncryption:
             return encrypted_data
 
         except Exception as e:
-            raise KeyEncryptionError(f"Failed to encrypt private key: {e}") from e
+            raise KeyEncryptionError(
+                f"Failed to encrypt private key: {e}"
+            ) from e
 
     def decrypt_key(self, encrypted_data: bytes) -> bytes:
         """

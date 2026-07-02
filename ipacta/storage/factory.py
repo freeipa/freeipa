@@ -270,4 +270,3 @@ def create_default_config(
             "Failed to create configuration file %s: %s", config_path, e
         )
         raise
-

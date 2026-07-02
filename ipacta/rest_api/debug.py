@@ -8,7 +8,7 @@ All endpoints require agent authentication (RA agent certificate).
 
 import logging
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ipacta.rest_api._helpers import require_agent_auth
 
@@ -53,6 +53,12 @@ def force_gc():
     after = gc.get_count()
     return jsonify({
         "collected_unreachable": collected,
-        "gc_counts_before": {"gen0": before[0], "gen1": before[1], "gen2": before[2]},
-        "gc_counts_after": {"gen0": after[0], "gen1": after[1], "gen2": after[2]},
+        "gc_counts_before": {
+            "gen0": before[0], "gen1": before[1],
+            "gen2": before[2],
+        },
+        "gc_counts_after": {
+            "gen0": after[0], "gen1": after[1],
+            "gen2": after[2],
+        },
     })
