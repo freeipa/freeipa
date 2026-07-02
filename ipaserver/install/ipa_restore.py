@@ -94,12 +94,13 @@ def recursive_chown(path, uid, gid):
     '''
     Change ownership of all files and directories in a path.
     '''
-    for root, dirs, files in os.walk(path):
+    for root, dirs, files in os.walk(path, topdown=True, followlinks=False):
+        dirs[:] = [d for d in dirs if not os.path.islink(os.path.join(root, d))]
         for dir in dirs:
-            os.chown(os.path.join(root, dir), uid, gid)
+            os.chown(os.path.join(root, dir), uid, gid, follow_symlinks=False)
             os.chmod(os.path.join(root, dir), 0o750)
         for file in files:
-            os.chown(os.path.join(root, file), uid, gid)
+            os.chown(os.path.join(root, file), uid, gid, follow_symlinks=False)
             os.chmod(os.path.join(root, file), 0o640)
 
 
@@ -386,12 +387,9 @@ class Restore(admintool.AdminTool):
 
         # Temporary directory for decrypting files before restoring
         self.top_dir = tempfile.mkdtemp("ipa")
-        constants.DS_USER.chown(self.top_dir)
-        os.chmod(self.top_dir, 0o750)
+        os.chmod(self.top_dir, 0o700)
         self.dir = os.path.join(self.top_dir, "ipa")
-        os.mkdir(self.dir)
-        os.chmod(self.dir, 0o750)
-        constants.DS_USER.chown(self.dir)
+        os.mkdir(self.dir, 0o700)
 
         logger.info("Temporary setting umask to 022")
         old_umask = os.umask(0o022)
@@ -868,10 +866,10 @@ class Restore(admintool.AdminTool):
                 ]
         run(args, cwd=self.dir)
 
-        constants.DS_USER.chown(self.top_dir)
         recursive_chown(
             self.dir, constants.DS_USER.uid, constants.DS_USER.pgid
         )
+        constants.DS_USER.chown(self.top_dir)
 
         if encrypt:
             # We can remove the decoded tarball
