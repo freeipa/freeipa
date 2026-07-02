@@ -24,7 +24,6 @@ from pathlib import Path
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
 
 from ipalib import errors
 from ipalib.constants import IPA_CA_CN, IPAAPI_GROUP
@@ -34,6 +33,7 @@ from ipapython.certdb import get_ca_nickname
 from ipacta.ca import CertificateRequest, CertificateRecord, PythonCA
 from ipacta.exceptions import ExternalCAStep1Complete
 from ipacta.hsm import HSMConfig, HSMKeyBackend, HSMPrivateKeyProxy
+from ipacta.key_utils import generate_private_key
 from ipacta.nss_utils import NSSDatabase
 from ipacta.storage.factory import get_storage_backend
 from ipacta.x509_utils import (
@@ -96,6 +96,9 @@ def get_cert_params_from_config(pki_config, cert_type):
             "DEFAULT", "ipa_key_type", fallback="rsa"
         ),
     )
+
+    if "ML-DSA" in signing_alg.upper() or "MLDSA" in signing_alg.upper():
+        key_size = 0
 
     return (key_size, signing_alg, key_type)
 
@@ -329,17 +332,20 @@ class Certs:
 
         ca_nickname = "caSigningCert cert-pki-ca"
 
-        # Get CA signing key size from config
-        ca_key_size = get_cert_params_from_config(
-            self.pki_config, "ca_signing"
-        )[0]
+        # Get CA signing parameters from config
+        ca_key_size, ca_signing_alg, _ca_key_type = (
+            get_cert_params_from_config(self.pki_config, "ca_signing")
+        )
 
         # Generate key pair in NSSDB
         logger.info(
-            "Generating %s-bit RSA key in NSSDB: %s", ca_key_size, ca_nickname
+            "Generating %s key in NSSDB: %s",
+            ca_signing_alg, ca_nickname,
         )
         private_key = nssdb.generate_key_pair(
-            ca_nickname, key_size=ca_key_size
+            ca_nickname,
+            key_size=ca_key_size,
+            signing_alg=ca_signing_alg,
         )
 
         # Build CSR
@@ -563,13 +569,6 @@ class Certs:
             ca_signing_alg,
         )
 
-        if ca_key_type == "mldsa":
-            raise NotImplementedError(
-                "ML-DSA key generation is not yet supported by ipacta. "
-                "Use --ca-key-type rsa or wait for ML-DSA support in "
-                "the cryptography library."
-            )
-
         # Check if HSM is enabled
         use_hsm = self.tokenname and self.tokenname != "internal"
 
@@ -613,13 +612,14 @@ class Certs:
 
             # Generate private key (in memory, will be imported to NSSDB)
             logger.debug(
-                "Generating %s-bit %s key pair for NSSDB: %s",
-                ca_key_size,
-                ca_key_type.upper(),
+                "Generating %s key pair for NSSDB: %s",
+                ca_signing_alg,
                 ca_nickname,
             )
             private_key = nssdb.generate_key_pair(
-                ca_nickname, key_size=ca_key_size
+                ca_nickname,
+                key_size=ca_key_size,
+                signing_alg=ca_signing_alg,
             )
 
         # Build certificate subject using shared utility
@@ -700,7 +700,9 @@ class Certs:
         # Sign the certificate with configured algorithm
         # (default: SHA256withRSA from ipaca_customize.ini)
         hash_alg = self._get_signing_hash_algorithm()
-        logger.debug("Signing CA certificate with %s", hash_alg.name)
+        logger.debug(
+            "Signing CA certificate with %s", ca_signing_alg,
+        )
         certificate = cert_builder.sign(private_key, hash_alg)
 
         if use_hsm:
@@ -729,7 +731,8 @@ class Certs:
         else:
             # NSSDB path - import key and certificate to NSSDB
             logger.debug(
-                "Importing CA key and certificate to NSSDB: %s", ca_nickname
+                "Importing CA key and certificate to NSSDB: %s",
+                ca_nickname,
             )
             nssdb.import_key_and_cert(
                 ca_nickname,
@@ -738,7 +741,8 @@ class Certs:
                 trust_flags="CTu,Cu,Cu",  # CA trust flags
             )
             logger.debug(
-                "CA private key generated in NSSDB (no PEM file created)"
+                "CA private key generated in NSSDB "
+                "(no PEM file created)"
             )
 
         # Save certificate to file (for compatibility with IPA tools)
@@ -1151,7 +1155,9 @@ class Certs:
             # cert)
             logger.debug("Generating key pair for NSSDB: %s", nssdb_nickname)
             private_key = nssdb.generate_key_pair(
-                nssdb_nickname, key_size=key_size
+                nssdb_nickname,
+                key_size=key_size,
+                signing_alg=signing_alg,
             )
 
             # Build subject using shared utility
@@ -1395,7 +1401,9 @@ class Certs:
             "Generating server key pair for NSSDB: %s", server_nickname
         )
         private_key = nssdb.generate_key_pair(
-            server_nickname, key_size=key_size
+            server_nickname,
+            key_size=key_size,
+            signing_alg=signing_alg,
         )
 
         # Build subject for server certificate (CN=<fqdn>)
@@ -1521,8 +1529,8 @@ class Certs:
         )
 
         # Generate private key
-        private_key = rsa.generate_private_key(
-            public_exponent=65537, key_size=key_size
+        private_key = generate_private_key(
+            signing_alg, key_size
         )
 
         # Build subject for RA certificate

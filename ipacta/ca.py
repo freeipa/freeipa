@@ -227,22 +227,26 @@ class PythonCA:
                     ca_nickname = "caSigningCert cert-pki-ca"
                 else:
                     # Sub-CA nickname format
-                    ca_nickname = f"caSigningCert cert-pki-ca {self.ca_id}"
+                    ca_nickname = (
+                        f"caSigningCert cert-pki-ca {self.ca_id}"
+                    )
 
                 try:
                     nssdb = NSSDatabase()
-                    self.ca_private_key = nssdb.extract_private_key(
-                        ca_nickname
+                    self.ca_private_key = (
+                        nssdb.extract_private_key(ca_nickname)
                     )
 
                     logger.debug(
-                        "Successfully loaded CA certificate and extracted "
-                        "private key from NSSDB for CA %s",
+                        "Successfully loaded CA certificate and "
+                        "extracted private key from NSSDB "
+                        "for CA %s",
                         self.ca_id,
                     )
                 except RuntimeError as e:
                     logger.debug(
-                        "CA private key not found in NSSDB: %s: %s",
+                        "CA private key not found in NSSDB: "
+                        "%s: %s",
                         ca_nickname,
                         e,
                     )

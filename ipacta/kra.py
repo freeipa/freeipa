@@ -40,6 +40,10 @@ from ipaplatform.paths import paths
 from ipacta.hsm import HSMConfig, HSMKeyBackend, HSMPrivateKeyProxy
 from ipacta.ldap_utils import is_internal_token
 from ipacta.nss_utils import NSSDatabase
+from ipacta.x509_utils import (
+    get_default_algorithm_for_key,
+    parse_signature_algorithm,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +186,9 @@ class TransportKey:
         )
 
         # Sign certificate with CA key
-        certificate = builder.sign(ca_key, hashes.SHA256())
+        ca_alg = get_default_algorithm_for_key(ca_key.public_key())
+        ca_hash = parse_signature_algorithm(ca_alg)
+        certificate = builder.sign(ca_key, ca_hash)
 
         # Import key and certificate to NSSDB
         logger.debug(
@@ -520,7 +526,9 @@ class StorageKey:
         )
 
         # Sign with CA key
-        certificate = builder.sign(ca_key, hashes.SHA256())
+        ca_alg = get_default_algorithm_for_key(ca_key.public_key())
+        ca_hash = parse_signature_algorithm(ca_alg)
+        certificate = builder.sign(ca_key, ca_hash)
 
         # Import key and certificate to NSSDB
         logger.debug(

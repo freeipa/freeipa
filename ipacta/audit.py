@@ -257,15 +257,23 @@ class AuditLogger:
         try:
             message_bytes = message.encode("utf-8")
 
-            # Traditional RSA signature (read algorithm from config)
-            # Matches Dogtag's ca.audit_signing.defaultSigningAlgorithm
             audit_alg = ipacta.get_config_value(
-                "ca", "audit_signing_algorithm", default="SHA256withRSA"
+                "ca", "audit_signing_algorithm",
+                default="SHA256withRSA",
             )
-            hash_alg = x509_utils.parse_signature_algorithm(audit_alg)
-            signature_bytes = self.signing_key.sign(
-                message_bytes, padding.PKCS1v15(), hash_alg
+            hash_alg = x509_utils.parse_signature_algorithm(
+                audit_alg
             )
+
+            if hash_alg is None:
+                # ML-DSA: no padding, no hash
+                signature_bytes = self.signing_key.sign(
+                    message_bytes
+                )
+            else:
+                signature_bytes = self.signing_key.sign(
+                    message_bytes, padding.PKCS1v15(), hash_alg
+                )
 
             # Base64 encode for text log format
             signature = base64.b64encode(signature_bytes).decode("ascii")

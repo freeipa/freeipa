@@ -21,7 +21,11 @@ from ipacta.kra import KRA
 from ipacta.nss_utils import NSSDatabase
 from ipacta.storage.factory import get_storage_backend
 from ipacta.storage.kra import KRAStorageBackend
-from ipacta.x509_utils import get_audit_key_usage_extension
+from ipacta.x509_utils import (
+    get_audit_key_usage_extension,
+    get_default_algorithm_for_key,
+    parse_signature_algorithm,
+)
 
 from .certs import get_cert_params_from_config, convert_signing_algorithm
 
@@ -161,7 +165,10 @@ class KRAInstall:
         key_size, signing_alg, _key_type = get_cert_params_from_config(
             self.pki_config, "audit_signing"
         )
-        hash_alg = convert_signing_algorithm(signing_alg)
+
+        # Derive signing hash from CA key (not from audit cert config)
+        ca_alg = get_default_algorithm_for_key(ca_key.public_key())
+        ca_hash = parse_signature_algorithm(ca_alg)
 
         logger.debug(
             "Generating KRA audit certificate (key_size=%s, signing_alg=%s)",
@@ -169,9 +176,11 @@ class KRAInstall:
             signing_alg,
         )
 
-        # Generate RSA key pair in memory (will be imported to NSSDB with cert)
+        # Generate key pair in memory (will be imported to NSSDB with cert)
         private_key = nssdb.generate_key_pair(
-            kra_audit_nickname, key_size=key_size
+            kra_audit_nickname,
+            key_size=key_size,
+            signing_alg=signing_alg,
         )
 
         # Create certificate subject
@@ -207,8 +216,8 @@ class KRAInstall:
             )
         )
 
-        # Sign with CA key using configured hash algorithm
-        certificate = builder.sign(ca_key, hash_alg)
+        # Sign with CA key
+        certificate = builder.sign(ca_key, ca_hash)
 
         # Import key and certificate to NSSDB
         logger.debug(
