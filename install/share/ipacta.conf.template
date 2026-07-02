@@ -47,7 +47,7 @@ collision_recovery_attempts = 100
 # Default signing algorithm for certificate issuance (when profile specifies "-")
 default_signing_algorithm = $DEFAULT_SIGNING_ALGORITHM
 # Allowed signing algorithms (comma-separated, enforced by profile constraints)
-allowed_signing_algorithms = SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA256withEC,SHA384withEC,SHA512withEC
+allowed_signing_algorithms = SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA256withEC,SHA384withEC,SHA512withEC,ML-DSA-44,ML-DSA-65,ML-DSA-87
 # CRL signing algorithm
 crl_signing_algorithm = $CRL_SIGNING_ALGORITHM
 # Audit log signing algorithm
