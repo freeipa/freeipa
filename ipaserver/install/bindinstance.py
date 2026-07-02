@@ -769,7 +769,7 @@ class BindInstance(service.Service):
             if installutils.record_in_hosts(str(ip_address), self.fqdn) is None:
                 installutils.add_record_to_hosts(str(ip_address), self.fqdn)
 
-        # Make sure generate-rndc-key.sh runs before named restart
+        # Make sure named-setup-rndc runs before named restart
         self.step("generating rndc key file", self.__generate_rndc_key)
 
         if self.first_instance:
@@ -1218,7 +1218,17 @@ class BindInstance(service.Service):
 
     def __generate_rndc_key(self):
         installutils.check_entropy()
-        ipautil.run([paths.GENERATE_RNDC_KEY])
+        named_setup_rndc = services.service(
+            'named-setup-rndc', self.api
+        )
+        if named_setup_rndc.is_installed():
+            ipautil.run([
+                paths.SYSTEMCTL, "start", "named-setup-rndc.service"
+            ])
+        else:
+            logger.debug(
+                "named-setup-rndc.service not found, skipping"
+            )
 
     def add_master_dns_records(self, fqdn, ip_addresses, realm_name, domain_name,
                                reverse_zones):
