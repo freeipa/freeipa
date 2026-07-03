@@ -382,6 +382,22 @@ def install_check(standalone, replica_config, options):
         else:
             # We got here through ipa-ca-install
             setup_ca = True
+
+        ca_key_type = getattr(options, 'ca_key_type', None)
+        ca_signing_alg = getattr(options, 'ca_signing_algorithm', None)
+        _is_mldsa = False
+        if ca_key_type and 'mldsa' in str(ca_key_type).lower():
+            _is_mldsa = True
+        if ca_signing_alg and 'ML-DSA' in str(ca_signing_alg):
+            _is_mldsa = True
+        if _is_mldsa:
+            from ipacta.key_utils import MLDSA_AVAILABLE
+            if not MLDSA_AVAILABLE:
+                raise ScriptError(
+                    "ML-DSA (post-quantum) key types require "
+                    "python-cryptography >= 49.0 with "
+                    "OpenSSL >= 3.5"
+                )
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
@@ -410,6 +426,38 @@ def install_check(standalone, replica_config, options):
             if not options.token_library_path:
                 options.token_library_path = token_library_path
         setup_ca = replica_config.setup_ca
+
+        if setup_ca:
+            _MLDSA_SIG_OIDS = {
+                "2.16.840.1.101.3.4.3.17",
+                "2.16.840.1.101.3.4.3.18",
+                "2.16.840.1.101.3.4.3.19",
+            }
+            try:
+                ca_certs = certstore.get_ca_certs(
+                    _api.Backend.ldap2, _api.env.basedn,
+                    _api.env.realm, False)
+                for cert_der, _nick, _trusted, _eku, _serial in ca_certs:
+                    cert = x509.load_der_x509_certificate(cert_der)
+                    sig_oid = cert.signature_algorithm_oid.dotted_string
+                    if sig_oid in _MLDSA_SIG_OIDS:
+                        from ipacta.key_utils import (
+                            MLDSA_AVAILABLE,
+                        )
+                        if not MLDSA_AVAILABLE:
+                            raise ScriptError(
+                                "The CA on the remote master uses "
+                                "ML-DSA (post-quantum) keys. "
+                                "python-cryptography >= 49.0 with "
+                                "OpenSSL >= 3.5 is required on "
+                                "this system to install a CA "
+                                "replica."
+                            )
+                        break
+            except ScriptError:
+                raise
+            except Exception:
+                pass
 
     if setup_ca and token_name:
         if (options.token_password_file and options.token_password):
