@@ -27,6 +27,10 @@ steps:
         podman \
         python3-paramiko \
         python3-pyyaml \
+        python3-gunicorn \
+        python3-flask \
+        python3-cachetools \
+        python3-pykcs11 \
 
     echo "Installing FreeIPA development dependencies"
     sudo dnf builddep -y freeipa
