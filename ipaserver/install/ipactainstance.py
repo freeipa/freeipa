@@ -623,7 +623,7 @@ class IpactaInstance(service.Service):
         # Composition helpers
         # ---------------------------------------------------------------
         self._nssdb = NSSDB()
-        self._repl = Replication(self.basedn, self._ldap_mod)
+        self._repl = Replication(self.basedn, self._ldap_update)
 
         if self.realm and host_name:
             self._svc = ServiceMgmt(
