@@ -865,6 +865,11 @@ def promote_check(installer):
         raise ScriptError("--setup-ca and --*-cert-file options are "
                           "mutually exclusive")
 
+    if getattr(options, 'internal_ca', False) and not options.setup_ca:
+        raise ScriptError(
+            "--internal-ca requires --setup-ca"
+        )
+
     ipa_client_installed = is_ipa_client_configured(on_master=True)
     if not ipa_client_installed:
         # One-step replica installation

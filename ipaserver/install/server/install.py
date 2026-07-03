@@ -428,6 +428,9 @@ def install_check(installer):
     if not setup_ca and options.setup_kra:
         raise ScriptError(
             "--setup-kra cannot be used with CA-less installation")
+    if not setup_ca and getattr(options, 'internal_ca', False):
+        raise ScriptError(
+            "--internal-ca cannot be used with CA-less installation")
     if setup_ca:
         if any(
             (
