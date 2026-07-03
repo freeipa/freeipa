@@ -697,7 +697,7 @@ def install_step_0(standalone, replica_config, options, custodia):
             token_password=(
                 options.token_password
                 if hasattr(options, 'token_password') else None
-                ),
+            ),
             pkcs12_info=pkcs12_info,
             dm_password=dm_password,
             master_host=master_host,

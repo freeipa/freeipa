@@ -909,7 +909,10 @@ class ACMEStorageBackend(LDAPStorageMixin):
                 entries = conn.get_entries(
                     nonces_dn,
                     scope=conn.SCOPE_ONELEVEL,
-                    filter=f"(&(objectClass=acmeNonce)(acmeExpires<={now_str}))",
+                    filter=(
+                        "(&(objectClass=acmeNonce)"
+                        f"(acmeExpires<={now_str}))"
+                    ),
                     attrs_list=["cn"],
                 )
                 for entry in entries:
@@ -934,7 +937,10 @@ class ACMEStorageBackend(LDAPStorageMixin):
                 entries = conn.get_entries(
                     orders_dn,
                     scope=conn.SCOPE_ONELEVEL,
-                    filter=f"(&(objectClass=acmeOrder)(acmeExpires<={now_str}))",
+                    filter=(
+                        "(&(objectClass=acmeOrder)"
+                        f"(acmeExpires<={now_str}))"
+                    ),
                     attrs_list=["cn"],
                 )
                 for entry in entries:
