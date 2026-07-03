@@ -829,6 +829,11 @@ def uninstall():
 
     internal_ca = get_ca_service() == "ipacta"
 
+    # Fallback: detect ipacta by config file even if ca_backend
+    # is missing from default.conf
+    if not internal_ca and os.path.exists(paths.IPACTA_CONF):
+        internal_ca = True
+
     if internal_ca:
         from ipaserver.install.ipactainstance import IpactaInstance
         ca_instance = IpactaInstance(api.env.realm, api.env.host)

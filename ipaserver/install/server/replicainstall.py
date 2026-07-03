@@ -181,7 +181,9 @@ def install_dns_records(config, options, remote_api, fstore=None):
                     'on master: %s', str(e))
 
 
-def create_ipa_conf(fstore, config, ca_enabled, master=None):
+def create_ipa_conf(
+    fstore, config, ca_enabled, master=None, ca_backend=None
+):
     """
     Create /etc/ipa/default.conf master configuration
     :param fstore: sysrestore file store used for backup and restore of
@@ -224,6 +226,11 @@ def create_ipa_conf(fstore, config, ca_enabled, master=None):
             ipaconf.setOption('ra_plugin', 'dogtag'),
             ipaconf.setOption('dogtag_version', '10')
         ])
+
+        if config.setup_ca and ca_backend:
+            gopts.append(
+                ipaconf.setOption('ca_backend', ca_backend)
+            )
 
         if not config.setup_ca:
             gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
