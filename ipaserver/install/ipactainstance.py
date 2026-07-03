@@ -47,7 +47,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipaserver.install import certs, service
+from ipaserver.install import service
 from ipaserver.install.cainstance import lookup_ldap_backend
 from ipacta import load_config, set_global_config, get_global_config
 from ipacta.config import IpactaConfig

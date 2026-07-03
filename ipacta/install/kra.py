@@ -27,7 +27,7 @@ from ipacta.x509_utils import (
     parse_signature_algorithm,
 )
 
-from .certs import get_cert_params_from_config, convert_signing_algorithm
+from .certs import get_cert_params_from_config
 
 logger = logging.getLogger(__name__)
 

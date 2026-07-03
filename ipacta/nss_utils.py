@@ -119,7 +119,7 @@ class NSSDatabase:
         )
         return private_key
 
-    def extract_private_key(self, nickname: str) -> rsa.RSAPrivateKey:
+    def extract_private_key(self, nickname: str):
         """
         Extract private key from NSSDB for cryptographic operations
 
@@ -283,7 +283,7 @@ class NSSDatabase:
     def import_key_and_cert(
         self,
         nickname: str,
-        private_key: rsa.RSAPrivateKey,
+        private_key,
         certificate: x509.Certificate,
         trust_flags: str = "u,u,u",
     ) -> None:

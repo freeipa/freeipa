@@ -30,7 +30,7 @@ _SYNTA_CURVE_MAP = {
 
 try:
     from cryptography.hazmat.primitives.asymmetric import mldsa
-    from cryptography.hazmat.primitives.asymmetric.mldsa import generate_key
+    from cryptography.hazmat.primitives.asymmetric.mldsa import generate_key  # pylint: disable=unused-import  # noqa: F401
     MLDSA_AVAILABLE = True
 except ImportError:
     MLDSA_AVAILABLE = False
