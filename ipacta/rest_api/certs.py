@@ -223,7 +223,7 @@ def get_enrollment_template(profile_id):
     # IPA doesn't actually use most of these fields, it just needs to know the
     # profile exists
     template = {
-        "ProfileId": profile_id,
+        "ProfileID": profile_id,
         "Renewal": False,
         "RemoteAddr": "",
         "RemoteHost": "",
