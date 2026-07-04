@@ -14,7 +14,11 @@ import shutil
 import time
 from pathlib import Path
 
-from ipalib.constants import CA_TRACKING_REQS, RENEWAL_CA_NAME
+from ipalib.constants import (
+    CA_TRACKING_REQS,
+    KRA_TRACKING_REQS,
+    RENEWAL_CA_NAME,
+)
 from ipalib.install.certmonger import wait_for_requests_by_postsave
 from ipaplatform.paths import paths
 from ipapython import ipautil
@@ -315,6 +319,37 @@ class ServiceMgmt:
                 )
 
         logger.debug("Certmonger tracking configuration completed")
+
+    def configure_kra_tracking(self):
+        """Configure certmonger tracking for KRA NSSDB certificates."""
+        logger.debug("Configuring certmonger tracking for KRA certificates")
+
+        from ipalib.install import certmonger
+
+        for nickname, profile in KRA_TRACKING_REQS.items():
+            try:
+                logger.debug(
+                    "Starting certmonger tracking for '%s' with profile '%s'",
+                    nickname,
+                    profile,
+                )
+                certmonger.start_tracking(
+                    certpath=str(self.nssdb_dir),
+                    pin=certmonger.get_pin("internal"),
+                    nickname=nickname,
+                    ca=RENEWAL_CA_NAME,
+                    profile=profile,
+                    post_command=f'renew_ca_cert "{nickname}"',
+                )
+                logger.debug("Started tracking '%s' successfully", nickname)
+            except Exception as e:
+                logger.warning(
+                    "Failed to start certmonger tracking for '%s': %s",
+                    nickname,
+                    e,
+                )
+
+        logger.debug("KRA certmonger tracking configuration completed")
 
     def _cleanup_existing_tracking(self):
         """Clean up existing certmonger tracking requests.

@@ -41,6 +41,7 @@ from ipalib import api, errors
 from ipalib.constants import (
     CA_DBUS_TIMEOUT,
     PKI_GSSAPI_SERVICE_NAME,
+    RA_AGENT_PROFILE,
     RENEWAL_CA_NAME,
 )
 from ipaplatform import services
@@ -450,7 +451,7 @@ class IpactaInstance(service.Service):
 
         for suffix, args in [
             ("", ""),
-            ("-reuse", " --force-new-key"),
+            ("-reuse", " --reuse-existing"),
             ("-selfsigned", " --force-self-signed"),
         ]:
             name = RENEWAL_CA_NAME + suffix
@@ -735,7 +736,23 @@ class IpactaInstance(service.Service):
         """
 
     def configure_agent_renewal(self):
-        """Dogtag RA agent certificate tracking — not applicable."""
+        """Configure certmonger tracking for RA agent certificate."""
+        from ipalib.install import certmonger
+
+        try:
+            certmonger.start_tracking(
+                certpath=(paths.RA_AGENT_PEM, paths.RA_AGENT_KEY),
+                ca=RENEWAL_CA_NAME,
+                profile=RA_AGENT_PROFILE,
+                pre_command='renew_ra_cert_pre',
+                post_command='renew_ra_cert',
+                storage='FILE',
+            )
+        except RuntimeError as e:
+            logger.error(
+                "certmonger failed to start tracking RA agent "
+                "certificate: %s", e
+            )
 
     def enable_pkix(self):
         """Dogtag PKIX validation flag in CS.cfg — not applicable."""
@@ -1125,6 +1142,8 @@ class IpactaInstance(service.Service):
                 self._ldap_mod,
             )
         self._kra.enable_kra()
+        if self._svc is not None:
+            self._svc.configure_kra_tracking()
 
     def setup_acme(self):
         """Set up ACME service — delegates to ACME helper."""
@@ -1470,6 +1489,10 @@ class IpactaInstance(service.Service):
         self.step(
             "configuring certmonger for renewals",
             self._svc._configure_certmonger_renewal,
+        )
+        self.step(
+            "configuring RA agent certificate renewal",
+            self.configure_agent_renewal,
         )
         self.step("generating initial CRL", self._svc._generate_initial_crl)
         self.step("enabling CA instance", self.__enable_instance)
