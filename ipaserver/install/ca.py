@@ -774,12 +774,11 @@ def install_step_1(standalone, replica_config, options, custodia):
                                       cacert_der, nickname, trust_flags,
                                       config_ipa=True, config_compat=True)
 
-        if replica_config is not None:
-            from ipaserver.install.ipactainstance import IpactaInstance
-            ca = IpactaInstance(
-                realm=realm_name, host_name=host_name
-            )
-            ca.setup_lightweight_ca_key_retrieval()
+        from ipaserver.install.ipactainstance import IpactaInstance
+        ca = IpactaInstance(
+            realm=realm_name, host_name=host_name
+        )
+        ca.setup_lightweight_ca_key_retrieval()
 
         installutils.restart_dirsrv()
 
