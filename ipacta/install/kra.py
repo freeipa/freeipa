@@ -188,14 +188,14 @@ class KRAInstall:
             [
                 x509.NameAttribute(NameOID.ORGANIZATION_NAME, self.realm),
                 x509.NameAttribute(
-                    NameOID.COMMON_NAME, "KRA Audit Signing Certificate"
+                    NameOID.COMMON_NAME, "KRA Audit"
                 ),
             ]
         )
 
-        # Build certificate (valid for 10 years like Dogtag)
+        # Build certificate (valid for 2 years matching Dogtag)
         not_before = datetime.datetime.now(datetime.timezone.utc)
-        not_after = not_before + datetime.timedelta(days=3650)
+        not_after = not_before + datetime.timedelta(days=730)
 
         # Use Dogtag-compatible audit signing key usage
         builder = (

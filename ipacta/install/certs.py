@@ -626,10 +626,10 @@ class Certs:
         # Convert IPA DN to x509.Name with proper RDN wrapping and ordering
         cert_subject = ipa_dn_to_x509_name(str(subject_dn))
 
-        # Set validity period (10 years, matching OpenSSL version)
+        # Set validity period (20 years, matching Dogtag)
         now = datetime.datetime.now(datetime.timezone.utc)
         not_valid_before = now
-        not_valid_after = now + datetime.timedelta(days=3650)
+        not_valid_after = now + datetime.timedelta(days=7300)
 
         # Generate serial number for CA certificate
         # Use serial 1 when random serial numbers are disabled (matching
@@ -673,12 +673,12 @@ class Certs:
         cert_builder = cert_builder.add_extension(
             x509.KeyUsage(
                 digital_signature=True,
+                content_commitment=True,
                 key_cert_sign=True,
                 crl_sign=True,
                 key_encipherment=False,
                 data_encipherment=False,
                 key_agreement=False,
-                content_commitment=False,
                 encipher_only=False,
                 decipher_only=False,
             ),
@@ -1406,8 +1406,10 @@ class Certs:
             signing_alg=signing_alg,
         )
 
-        # Build subject for server certificate (CN=<fqdn>)
-        subject = build_x509_name([("CN", self.fqdn)], reverse=True)
+        # Build subject for server certificate (CN=<fqdn>,O=<realm>)
+        subject = build_x509_name(
+            [("CN", self.fqdn), ("O", self.realm)], reverse=True
+        )
 
         # Create CSR with Subject Alternative Name
         csr_builder = x509.CertificateSigningRequestBuilder()
@@ -1533,9 +1535,8 @@ class Certs:
             signing_alg, key_size
         )
 
-        # Build subject for RA certificate
-        # Simple DN: CN=IPA RA (matches what validator expects)
-        ra_dn = DN(("CN", "IPA RA"))
+        # Build subject for RA certificate (CN=IPA RA,O=<realm>)
+        ra_dn = DN(("CN", "IPA RA"), ("O", self.realm))
         logger.debug("RA agent certificate subject: %s", ra_dn)
         subject = ipa_dn_to_x509_name(str(ra_dn))
 

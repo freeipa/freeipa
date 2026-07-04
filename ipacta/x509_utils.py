@@ -262,12 +262,12 @@ def get_ca_key_usage_extension() -> x509.KeyUsage:
     """
     return x509.KeyUsage(
         digital_signature=True,
+        content_commitment=True,
         key_cert_sign=True,
         crl_sign=True,
         key_encipherment=False,
         data_encipherment=False,
         key_agreement=False,
-        content_commitment=False,
         encipher_only=False,
         decipher_only=False,
     )

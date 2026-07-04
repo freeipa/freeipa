@@ -157,16 +157,16 @@ class TransportKey:
         builder = builder.serial_number(x509.random_serial_number())
         builder = builder.not_valid_before(datetime.now(timezone.utc))
         builder = builder.not_valid_after(
-            datetime.now(timezone.utc) + timedelta(days=3650)  # 10 years
+            datetime.now(timezone.utc) + timedelta(days=730)
         )
 
         # Add extensions for transport certificate
         builder = builder.add_extension(
             x509.KeyUsage(
-                digital_signature=False,
-                content_commitment=False,
-                key_encipherment=True,  # For wrapping keys
-                data_encipherment=True,  # For encrypting data
+                digital_signature=True,
+                content_commitment=True,
+                key_encipherment=True,
+                data_encipherment=True,
                 key_agreement=False,
                 key_cert_sign=False,
                 crl_sign=False,
@@ -179,7 +179,7 @@ class TransportKey:
         builder = builder.add_extension(
             x509.ExtendedKeyUsage(
                 [
-                    ExtendedKeyUsageOID.CLIENT_AUTH,  # For authentication
+                    ExtendedKeyUsageOID.CLIENT_AUTH,
                 ]
             ),
             critical=False,
@@ -504,11 +504,11 @@ class StorageKey:
             .public_key(private_key.public_key())
             .serial_number(x509.random_serial_number())
             .not_valid_before(datetime.now(timezone.utc))
-            .not_valid_after(datetime.now(timezone.utc) + timedelta(days=3650))
+            .not_valid_after(datetime.now(timezone.utc) + timedelta(days=730))
             .add_extension(
                 x509.KeyUsage(
-                    digital_signature=False,
-                    content_commitment=False,
+                    digital_signature=True,
+                    content_commitment=True,
                     key_encipherment=True,
                     data_encipherment=True,
                     key_agreement=False,
@@ -520,8 +520,10 @@ class StorageKey:
                 critical=True,
             )
             .add_extension(
-                x509.ExtendedKeyUsage([ExtendedKeyUsageOID.EMAIL_PROTECTION]),
-                critical=True,
+                x509.ExtendedKeyUsage(
+                    [ExtendedKeyUsageOID.CLIENT_AUTH]
+                ),
+                critical=False,
             )
         )
 
