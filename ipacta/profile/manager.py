@@ -693,7 +693,7 @@ class ProfileManager:
                         default, "digital_signature", False
                     ),
                     content_commitment=getattr(
-                        default, "non_repudiation", False
+                        default, "content_commitment", False
                     ),
                     key_encipherment=getattr(
                         default, "key_encipherment", False
@@ -716,16 +716,12 @@ class ProfileManager:
                 extensions.append(ext)
 
             # ExtendedKeyUsage
-            if hasattr(default, "eku_oids"):
-                # This is ExtendedKeyUsageExtDefault
-                from cryptography.x509.oid import ObjectIdentifier
-
-                oids = [ObjectIdentifier(oid) for oid in default.eku_oids]
+            if getattr(default, "oids", None):
                 critical = getattr(default, "critical", False)
                 ext = x509.Extension(
                     oid=ExtensionOID.EXTENDED_KEY_USAGE,
                     critical=critical,
-                    value=x509.ExtendedKeyUsage(oids),
+                    value=x509.ExtendedKeyUsage(default.oids),
                 )
                 extensions.append(ext)
 
