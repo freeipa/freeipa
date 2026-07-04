@@ -210,10 +210,6 @@ class KRAInstall:
                 get_audit_key_usage_extension(),
                 critical=True,
             )
-            .add_extension(
-                x509.BasicConstraints(ca=False, path_length=None),
-                critical=True,
-            )
         )
 
         # Sign with CA key

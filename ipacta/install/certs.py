@@ -44,6 +44,14 @@ from ipacta.x509_utils import (
 
 logger = logging.getLogger(__name__)
 
+# Note: Dogtag's deployed RSA subsystem cert has NonRepudiation=true even
+# though caSubsystemCert.cfg sets keyUsageNonRepudiation=false.  This is
+# because pkispawn uses a separate bootstrap profile (rsaSubsystemCert.profile)
+# that hardcodes NonRepudiation=true for RSA keys only.  The ECC and ML-DSA
+# bootstrap profiles have it false, and online renewal via the .cfg profile
+# also produces false.  ipacta uses the .cfg profile directly, so the
+# subsystem cert will NOT have NonRepudiation — this is a known difference
+# from Dogtag RSA installs, caused by a PKI bootstrap profile inconsistency.
 _SUBSYSTEM_PROFILE = 'caSubsystemCert'
 _AUDIT_PROFILE = 'caSignedLogCert'
 _OCSP_PROFILE = 'caOCSPCert'
@@ -1551,8 +1559,7 @@ class Certs:
         csr_pem = csr.public_bytes(serialization.Encoding.PEM).decode("utf-8")
 
         # Submit certificate request through ipacta CA
-        # Use caIPAserviceCert profile (same as ipa-ca-agent subsystem cert)
-        profile = "caIPAserviceCert"
+        profile = _SUBSYSTEM_PROFILE
         request_id = ca.submit_certificate_request(csr_pem, profile)
         logger.debug("Submitted RA agent certificate request %s", request_id)
 
