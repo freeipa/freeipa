@@ -181,7 +181,7 @@ class NSSDB:
             fpath = alias_dir / fname
             if fpath.exists():
                 os.chown(fpath, ipaca_uid, ipaca_gid)
-                os.chmod(fpath, 0o640)
+                os.chmod(fpath, 0o600)
 
         for fpath in alias_dir.glob("*.db-wal"):
             os.chown(fpath, ipaca_uid, ipaca_gid)
