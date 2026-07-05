@@ -265,8 +265,9 @@ class Certs:
                 f.write(ca_cert_pem)
             self.ca_cert_working.chmod(0o644)
             shutil.chown(self.ca_cert_working, user="ipaca", group="ipaca")
-            shutil.copy2(self.ca_cert_working, self.ca_cert_path)
-            self.ca_cert_path.chmod(0o644)
+            if not self.ca_cert_path.exists():
+                shutil.copy2(self.ca_cert_working, self.ca_cert_path)
+                self.ca_cert_path.chmod(0o644)
             logger.debug(
                 "Replica: extracted CA cert from NSSDB to %s",
                 self.ca_cert_working,
@@ -1548,9 +1549,9 @@ class Certs:
             trust_flags="u,u,u",
         )
 
-        # Load CA certificate for creating chain file
+        # Load full CA chain for creating chain file
         with open(self.ca_cert_path, "rb") as f:
-            ca_cert = x509.load_pem_x509_certificate(f.read())
+            ca_chain_pem = f.read()
 
         # Save server certificate with CA chain
         logger.debug("Writing server certificate to %s", server_cert_path)
@@ -1561,8 +1562,8 @@ class Certs:
                     serialization.Encoding.PEM
                 )
             )
-            # Append CA certificate for complete chain
-            f.write(ca_cert.public_bytes(serialization.Encoding.PEM))
+            # Append full CA chain (IPA CA + external root if present)
+            f.write(ca_chain_pem)
         server_cert_path.chmod(0o644)
         shutil.chown(server_cert_path, user="ipaca", group="ipaca")
 
