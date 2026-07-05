@@ -151,22 +151,18 @@ class NSSDB:
         logger.debug("Created NSSDB pwdfile.txt at %s", pwdfile_txt)
 
     def apply_nssdb_permissions(self):
-        """Apply ownership, mode, and ACLs on NSSDB and parent directories.
+        """Apply ownership and mode on NSSDB and parent directories.
 
         Must be called after ALL pk12util / certutil write operations so that
         NSS WAL and SHM files (cert9.db-wal, cert9.db-shm, ...) created by
-        root-run install steps also receive the correct ownership and ACLs.
+        root-run install steps also receive the correct ownership.
         Without this, ipacta (runas: ipaca) cannot open the NSSDB.
-
-        Mirrors ipa-pki-tomcat.conf.in directly instead of invoking
-        systemd-tmpfiles, which rejects root-owned files inside a
-        pkiuser-owned directory as an "unsafe path transition".
         """
-        logger.debug("Applying NSSDB ownership and ACLs")
+        logger.debug("Applying NSSDB ownership and permissions")
 
         try:
-            pkiuser_uid = pwd.getpwnam("pkiuser").pw_uid
-            pkiuser_gid = grp.getgrnam("pkiuser").gr_gid
+            ipaca_uid = pwd.getpwnam("ipaca").pw_uid
+            ipaca_gid = grp.getgrnam("ipaca").gr_gid
         except KeyError as e:
             logger.warning(
                 "Cannot apply NSSDB permissions, user/group missing: %s", e
@@ -178,41 +174,21 @@ class NSSDB:
 
         for d, mode in [(pki_tomcat, 0o750), (alias_dir, 0o750)]:
             if d.exists():
-                os.chown(d, pkiuser_uid, pkiuser_gid)
+                os.chown(d, ipaca_uid, ipaca_gid)
                 os.chmod(d, mode)
 
         for fname in ("cert9.db", "key4.db", "pkcs11.txt", "pwdfile.txt"):
             fpath = alias_dir / fname
             if fpath.exists():
-                os.chown(fpath, pkiuser_uid, pkiuser_gid)
+                os.chown(fpath, ipaca_uid, ipaca_gid)
                 os.chmod(fpath, 0o640)
 
         for fpath in alias_dir.glob("*.db-wal"):
-            os.chown(fpath, pkiuser_uid, pkiuser_gid)
+            os.chown(fpath, ipaca_uid, ipaca_gid)
         for fpath in alias_dir.glob("*.db-shm"):
-            os.chown(fpath, pkiuser_uid, pkiuser_gid)
+            os.chown(fpath, ipaca_uid, ipaca_gid)
 
-        ipautil.run(
-            ["setfacl", "-m", "group:ipaca:rx", str(pki_tomcat)],
-            raiseonerr=False,
-        )
-        ipautil.run(
-            ["setfacl", "-R", "-m",
-             "user:pkiuser:rw,group:ipaca:rw", str(alias_dir)],
-            raiseonerr=False,
-        )
-        ipautil.run(
-            ["setfacl", "-m",
-             "user:pkiuser:rwx,group:ipaca:rwx", str(alias_dir)],
-            raiseonerr=False,
-        )
-        ipautil.run(
-            ["setfacl", "-d", "-m",
-             "user:pkiuser:rw,group:ipaca:rw", str(alias_dir)],
-            raiseonerr=False,
-        )
-
-        logger.debug("NSS database created and verified")
+        logger.debug("NSSDB ownership and permissions applied")
 
     def load_nssdb_password(self):
         """Load NSSDB password from file if not already in memory.
