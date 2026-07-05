@@ -1318,6 +1318,92 @@ class Certs:
                 exc_info=True,
             )
 
+    def _create_ca_agent(self):
+        """Create uid=ipara,ou=People,o=ipaca agent entry and group memberships.
+
+        Dogtag creates this entry in cainstance.py __create_ca_agent().
+        ipacta must create the same entry for healthcheck compatibility
+        and Dogtag interoperability.
+        """
+        logger.debug("Creating CA agent (ipara) LDAP entry")
+
+        if not self.ldap.isconnected():
+            self.ldap.connect()
+
+        basedn = DN(("o", "ipaca"))
+        user_dn = DN(("uid", "ipara"), ("ou", "People"), basedn)
+
+        try:
+            self.ldap.get_entry(user_dn)
+            logger.debug("ipara agent entry already exists")
+            return
+        except errors.NotFound:
+            pass
+
+        ra_cert = x509.load_pem_x509_certificate(
+            Path(paths.RA_AGENT_PEM).read_bytes()
+        )
+        ra_cert_der = ra_cert.public_bytes(serialization.Encoding.DER)
+
+        entry = self.ldap.make_entry(
+            user_dn,
+            objectClass=[
+                "top", "person", "organizationalPerson",
+                "inetOrgPerson", "cmsuser",
+            ],
+            uid=["ipara"],
+            sn=["ipara"],
+            cn=["ipara"],
+            usertype=["agentType"],
+            userstate=["1"],
+            userCertificate=[ra_cert_der],
+            description=[
+                "2;%s;%s;%s"
+                % (
+                    ra_cert.serial_number,
+                    DN(self.ca_subject),
+                    DN(("CN", "IPA RA"), self.subject_base),
+                )
+            ],
+        )
+
+        try:
+            self.ldap.add_entry(entry)
+            logger.info("Created ipara agent LDAP entry")
+        except errors.DuplicateEntry:
+            logger.debug("ipara agent LDAP entry already exists")
+            return
+        except Exception as e:
+            logger.error("Failed to create ipara agent entry: %s", e)
+            return
+
+        groups = [
+            DN(("cn", "Certificate Manager Agents"),
+               ("ou", "groups"), basedn),
+            DN(("cn", "Registration Manager Agents"),
+               ("ou", "groups"), basedn),
+            DN(("cn", "Security Domain Administrators"),
+               ("ou", "groups"), basedn),
+        ]
+        for group_dn in groups:
+            try:
+                try:
+                    self.ldap.get_entry(group_dn)
+                except errors.NotFound:
+                    group_entry = self.ldap.make_entry(
+                        group_dn,
+                        objectClass=["top", "groupOfUniqueNames"],
+                        cn=[group_dn[0].value],
+                    )
+                    self.ldap.add_entry(group_entry)
+                self.ldap.add_entry_to_group(
+                    user_dn, group_dn, "uniqueMember"
+                )
+            except Exception as e:
+                logger.error(
+                    "Failed to add ipara to %s: %s", group_dn, e
+                )
+
     def _generate_server_cert(self):
         """Generate server SSL certificate through ipacta CA.
 

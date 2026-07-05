@@ -40,6 +40,7 @@ import dbus
 from ipalib import api, errors
 from ipalib.constants import (
     CA_DBUS_TIMEOUT,
+    CA_TRACKING_REQS,
     PKI_GSSAPI_SERVICE_NAME,
     RA_AGENT_PROFILE,
     RENEWAL_CA_NAME,
@@ -499,7 +500,7 @@ class IpactaInstance(service.Service):
             service_user="ipaca",
         )
 
-        self.tracking_reqs = {}
+        self.tracking_reqs = dict(CA_TRACKING_REQS)
         self.subsystem = "ipacta"
         self.realm = realm
         self.fqdn = host_name
@@ -675,6 +676,8 @@ class IpactaInstance(service.Service):
                 self.fqdn,
                 self.pki_config,
                 self._ldap_mod,
+                subject_base=self.subject_base,
+                ca_subject=self.ca_subject,
             )
             self._acme = ACME(self.ldap, self.config, self._ldap_mod)
             self._lwca = LWCA(self.ldap, self.basedn)
@@ -1140,6 +1143,8 @@ class IpactaInstance(service.Service):
                 self.fqdn,
                 self.pki_config,
                 self._ldap_mod,
+                subject_base=self.subject_base,
+                ca_subject=self.ca_subject,
             )
         self._kra.enable_kra()
         if self._svc is not None:
@@ -1461,6 +1466,10 @@ class IpactaInstance(service.Service):
             self._certs._generate_ra_cert,
         )
         self.step(
+            "creating CA agent LDAP entry",
+            self._certs._create_ca_agent,
+        )
+        self.step(
             "verifying RA key accessibility for replicas",
             self._certs._verify_ra_key_custodia,
         )
@@ -1604,6 +1613,7 @@ class IpactaInstance(service.Service):
         logger.debug("Uninstalling ipacta Python CA instance")
 
         # Stop certmonger tracking for all ipacta certificates
+        self.stop_tracking_certificates()
         if self._svc is None:
             # Minimal ServiceMgmt for uninstall
             self._svc = ServiceMgmt(
@@ -1684,5 +1694,40 @@ class IpactaInstance(service.Service):
                 logger.warning(
                     "Failed to remove %s: %s", self.audit_log_dir, e
                 )
+
+        # Clean up PKI NSSDB and related files under /etc/pki/pki-tomcat/
+        pki_tomcat_dir = Path(paths.PKI_TOMCAT)
+        alias_dir = Path(paths.PKI_TOMCAT_ALIAS_DIR)
+        if alias_dir.exists():
+            try:
+                shutil.rmtree(alias_dir)
+                logger.debug("Removed %s", alias_dir)
+            except Exception as e:
+                logger.warning("Failed to remove %s: %s", alias_dir, e)
+
+        for fname in (
+            paths.PKI_TOMCAT_PASSWORD_CONF,
+            os.path.join(
+                paths.PKI_TOMCAT, PKI_GSSAPI_SERVICE_NAME + ".keytab"
+            ),
+            os.path.join(
+                paths.PKI_TOMCAT, PKI_GSSAPI_SERVICE_NAME + ".keys"
+            ),
+        ):
+            fpath = Path(fname)
+            if fpath.exists():
+                try:
+                    fpath.unlink()
+                    logger.debug("Removed %s", fpath)
+                except Exception as e:
+                    logger.warning("Failed to remove %s: %s", fpath, e)
+
+        # Remove /etc/pki/pki-tomcat/ if empty
+        if pki_tomcat_dir.exists():
+            try:
+                pki_tomcat_dir.rmdir()
+                logger.debug("Removed %s", pki_tomcat_dir)
+            except OSError:
+                pass
 
         logger.debug("ipacta uninstalled successfully")
