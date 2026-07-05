@@ -781,6 +781,9 @@ class TestInstallNoDnssecValidation(IntegrationTest):
             '--auto-reverse',
             '--allow-zone-overlap'
         ]
+        ca_backend = cls.master.config.ca_backend
+        if ca_backend == 'ipacta':
+            cls.install_args.append('--internal-ca')
 
     def test_install_withDnssecValidation(self):
         cmd = self.master.run_command(self.install_args, raiseonerr=False)

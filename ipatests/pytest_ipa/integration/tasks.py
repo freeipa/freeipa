@@ -392,7 +392,7 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
         args.append('--external-ca')
 
     if ca_backend is None:
-        ca_backend = getattr(host.config, 'ca_backend', 'ipacta')
+        ca_backend = host.config.ca_backend
     ca_less = any(
         a.startswith('--http-cert-file')
         or a.startswith('--dirsrv-cert-file')
@@ -535,7 +535,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     if setup_ca:
         args.append('--setup-ca')
         if ca_backend is None:
-            ca_backend = getattr(master.config, 'ca_backend', 'ipacta')
+            ca_backend = master.config.ca_backend
         if ca_backend == 'ipacta':
             args.append('--internal-ca')
     if setup_kra:
@@ -1867,6 +1867,9 @@ def install_ca(
     if cert_files:
         for fname in cert_files:
             command.extend(['--external-cert-file', fname])
+    if not external_ca and not cert_files:
+        if host.config.ca_backend == 'ipacta':
+            command.append('--internal-ca')
     result = host.run_command(command, raiseonerr=raiseonerr)
     return result
 

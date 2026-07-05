@@ -1248,6 +1248,8 @@ class TestInstallMaster(IntegrationTest):
 
         try:
             cmd = ['ipa-server-install', '--hostname', new_hostname]
+            if self.master.config.ca_backend == 'ipacta':
+                cmd.append('--internal-ca')
             with self.master.spawn_expect(cmd, default_timeout=100) as e:
                 e.expect_exact('Do you want to configure integrated '
                                'DNS (BIND)? [no]: ')
@@ -1473,6 +1475,8 @@ class TestInstallMasterDNS(IntegrationTest):
         https://codeberg.org/freeipa/freeipa/issues/2575
         """
         cmd = ['ipa-server-install']
+        if self.master.config.ca_backend == 'ipacta':
+            cmd.append('--internal-ca')
         netbios = create_netbios_name(self.master)
         with self.master.spawn_expect(cmd, default_timeout=100) as e:
             e.expect_exact('Do you want to configure integrated '
@@ -2125,7 +2129,7 @@ class TestHostnameValidator(IntegrationTest):
     num_replicas = 0
 
     def get_args(self, host):
-        return [
+        args = [
             'ipa-server-install',
             '-n', host.domain.name,
             '-r', host.domain.realm,
@@ -2137,6 +2141,9 @@ class TestHostnameValidator(IntegrationTest):
             '--allow-zone-overlap',
             '--netbios-name', 'EXAMPLE',
         ]
+        if host.config.ca_backend == 'ipacta':
+            args.append('--internal-ca')
+        return args
 
     def test_user_input_hostname(self):
         # https://codeberg.org/freeipa/freeipa/issues/9111

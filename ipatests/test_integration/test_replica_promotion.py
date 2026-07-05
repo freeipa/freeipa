@@ -1366,13 +1366,15 @@ class TestReplicaConn(IntegrationTest):
         )
         tasks.clear_sssd_cache(self.master)
 
-        self.replica.run_command(
-            ["ipa-replica-install", "--setup-ca", "-U", "--ip-address",
-             self.replica.ip, "--realm", self.replica.domain.realm,
-             "--domain", self.replica.domain.name,
-             "--principal={0}".format(self.ad_admin),
-             "--password", self.master.config.ad_admin_password]
-        )
+        replica_cmd = [
+            "ipa-replica-install", "--setup-ca", "-U", "--ip-address",
+            self.replica.ip, "--realm", self.replica.domain.realm,
+            "--domain", self.replica.domain.name,
+            "--principal={0}".format(self.ad_admin),
+            "--password", self.master.config.ad_admin_password]
+        if self.master.config.ca_backend == 'ipacta':
+            replica_cmd.append('--internal-ca')
+        self.replica.run_command(replica_cmd)
         logs = self.replica.get_file_contents(paths.IPAREPLICA_CONNCHECK_LOG)
         error = "not allowed to perform server connection check"
         assert error.encode() not in logs
@@ -1452,11 +1454,14 @@ class TestReplicaPromotionRandomPassword(IntegrationTest):
                                            "freeipa-ldaps"])
         replica.run_command(['ipa-replica-install', '-U'])
         tasks.kinit_admin(replica)
-        replica.run_command([
+        ca_install_cmd = [
             'ipa-ca-install', '-p',
             self.master.config.admin_password,
             '-w', self.master.config.admin_password
-        ])
+        ]
+        if self.master.config.ca_backend == 'ipacta':
+            ca_install_cmd.append('--internal-ca')
+        replica.run_command(ca_install_cmd)
         result = self.replicas[0].run_command([
             'ipa', 'server-role-find',
             '--server', self.replicas[0].hostname,
