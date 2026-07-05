@@ -212,20 +212,14 @@ def require_agent_auth(f):
                             dn_parts = []
                             for rdn in subject:
                                 for attr, value in rdn:
-                                    # Use short form if available, otherwise
-                                    # use as-is
                                     short_attr = attr_map.get(attr, attr)
                                     dn_parts.append(f"{short_attr}={value}")
+                            # getpeercert() returns DER order (O before CN);
+                            # reverse for conventional RFC 4514 order
+                            dn_parts.reverse()
                             cert_subject_dn = ",".join(dn_parts)
-                            logger.debug(
-                                "Extracted client cert DN from gunicorn "
-                                "socket: %s",
-                                cert_subject_dn,
-                            )
-            except Exception as e:
-                logger.debug(
-                    "Failed to get client cert from gunicorn socket: %s", e
-                )
+            except Exception:
+                pass
 
         if cert_subject_dn:
             # Client certificate provided - verify it's RA agent cert
@@ -298,46 +292,21 @@ def _validate_ra_agent_cert(cert_subject_dn: str) -> bool:
             logger.warning("Failed to parse client certificate DN: %s", e)
             return False
 
-        # Try to get realm from config
-        try:
-            get_config_value("global", "realm")
-        except Exception:
-            logger.warning(
-                "Realm not available in config - cannot validate RA agent "
-                "certificate"
+        # Expected RA agent DN: CN=IPA RA,O=<REALM>
+        realm = get_config_value("global", "realm")
+        expected_dn = DN(("CN", "IPA RA"), ("O", realm))
+
+        if cert_dn == expected_dn:
+            logger.info(
+                "Client certificate matches RA agent cert: %s",
+                expected_dn,
             )
-            # Exact match only: the RA agent cert always has CN=IPA RA.
-            # Substring matching would allow any cert containing "ipa ra"
-            # to bypass mTLS authentication.
-            cert_cn = cert_dn[0].attr
-            cert_cn_value = str(cert_dn[0].value)
-            if cert_cn.lower() == "cn" and cert_cn_value == "IPA RA":
-                logger.info(
-                    "Accepting client cert with CN=IPA RA (config "
-                    "unavailable): %s",
-                    cert_subject_dn,
-                )
-                return True
-            return False
-
-        # Expected RA agent DN: CN=IPA RA (the actual RA agent cert only has
-        # CN)
-        # We just check that CN=IPA RA is present in the certificate
-        # The certificate issuer will be the IPA CA, so the trust chain
-        # validates it
-
-        # Check if the first (and possibly only) component is CN=IPA RA
-        if len(cert_dn) > 0:
-            first_rdn = cert_dn[0]
-            if first_rdn.attr.upper() == "CN" and first_rdn.value == "IPA RA":
-                logger.info(
-                    "Client certificate matches RA agent cert: CN=IPA RA"
-                )
-                return True
+            return True
 
         logger.warning(
-            "Client certificate DN does not match RA agent pattern. Expected "
-            "CN=IPA RA, Got: %s",
+            "Client certificate DN does not match RA agent pattern. "
+            "Expected %s, Got: %s",
+            expected_dn,
             cert_dn,
         )
         return False
