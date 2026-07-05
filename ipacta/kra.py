@@ -40,6 +40,7 @@ from ipaplatform.paths import paths
 from ipacta.hsm import HSMConfig, HSMKeyBackend, HSMPrivateKeyProxy
 from ipacta.ldap_utils import is_internal_token
 from ipacta.nss_utils import NSSDatabase
+from ipacta.storage.factory import get_storage_backend
 from ipacta.x509_utils import (
     get_default_algorithm_for_key,
     parse_signature_algorithm,
@@ -154,7 +155,9 @@ class TransportKey:
         builder = builder.subject_name(subject)
         builder = builder.issuer_name(ca_cert.subject)
         builder = builder.public_key(private_key.public_key())
-        builder = builder.serial_number(x509.random_serial_number())
+        builder = builder.serial_number(
+            get_storage_backend(ca_id="ipa").get_next_serial_number()
+        )
         builder = builder.not_valid_before(datetime.now(timezone.utc))
         builder = builder.not_valid_after(
             datetime.now(timezone.utc) + timedelta(days=730)
@@ -502,7 +505,9 @@ class StorageKey:
             .subject_name(subject)
             .issuer_name(ca_cert.subject)
             .public_key(private_key.public_key())
-            .serial_number(x509.random_serial_number())
+            .serial_number(
+                get_storage_backend(ca_id="ipa").get_next_serial_number()
+            )
             .not_valid_before(datetime.now(timezone.utc))
             .not_valid_after(datetime.now(timezone.utc) + timedelta(days=730))
             .add_extension(
