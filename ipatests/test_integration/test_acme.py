@@ -11,6 +11,7 @@ from ipalib import x509
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration.firewall import Firewall
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipatests.test_integration.test_random_serial_numbers import (
     pki_supports_RSNv3
@@ -18,6 +19,8 @@ from ipatests.test_integration.test_random_serial_numbers import (
 from ipaplatform.osinfo import osinfo
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+
+ipatest_config = get_global_config()
 from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step1,
     install_server_external_ca_step2,
@@ -851,6 +854,10 @@ class TestACMEPrune(IntegrationTest):
             raise pytest.skip("RSNv3 not supported")
         super(TestACMEPrune, cls).uninstall(mh)
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_enable_pruning(self):
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('11.3.0')):
@@ -863,6 +870,10 @@ class TestACMEPrune(IntegrationTest):
         assert "jobsScheduler.job.pruning.enabled=true".encode() in cs_cfg
         assert "jobsScheduler.job.pruning.owner=ipara".encode() in cs_cfg
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_pruning_options(self):
         if (tasks.get_pki_version(self.master)
            < tasks.parse_version('11.3.0')):

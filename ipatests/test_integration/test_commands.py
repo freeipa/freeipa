@@ -35,6 +35,9 @@ from ipapython.certdb import get_ca_nickname
 from ipatests.test_integration.base import IntegrationTest
 
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
+
+ipatest_config = get_global_config()
 from ipaplatform.tasks import tasks as platform_tasks
 from ipatests.create_external_ca import ExternalCA
 from ipatests.test_ipalib.test_x509 import good_pkcs7, badcert
@@ -1480,6 +1483,10 @@ class TestIPACommand(IntegrationTest):
         serverid = realm_to_serverid(self.master.domain.realm)
         return ("dirsrv@%s.service" % serverid)
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="pkispawn logs do not exist with ipacta backend"
+    )
     def test_pkispawn_log_is_present(self):
         """
         This testcase checks if pkispawn logged properly.

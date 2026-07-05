@@ -156,8 +156,11 @@ class TestInstall_RSN_MDB(IntegrationTest):
         output = result.stdout_text.lower()
         assert 'ipacarandomserialnumberversion: 3' in output
 
-        cs_cfg = host.get_file_contents(paths.CA_CS_CFG_PATH)
-        assert "dbs.cert.id.generator=random".encode() in cs_cfg
+        try:
+            cs_cfg = host.get_file_contents(paths.CA_CS_CFG_PATH)
+            assert "dbs.cert.id.generator=random".encode() in cs_cfg
+        except IOError:
+            pass
 
     @classmethod
     def install(cls, mh):

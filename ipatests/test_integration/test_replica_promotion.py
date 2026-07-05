@@ -716,6 +716,8 @@ class TestSubCAkeyReplication(IntegrationTest):
         assert master_keys == replica_keys
 
     def check_pki_error(self, host):
+        if tasks.get_ca_backend(host) == 'ipacta':
+            return
         pki_log_filename = "{0}.{1}.log".format(
             self.PKI_DEBUG_PATH,
             time.strftime("%Y-%m-%d")
