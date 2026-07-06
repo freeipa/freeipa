@@ -25,8 +25,7 @@ import secrets
 import threading
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
-import pwd
-import grp
+from ipaplatform.constants import constants
 
 from cryptography import x509
 from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
@@ -92,8 +91,8 @@ class TransportKey:
 
         # Set ownership to ipaca:ipaca
         try:
-            ipaca_uid = pwd.getpwnam("ipaca").pw_uid
-            ipaca_gid = grp.getgrnam("ipaca").gr_gid
+            ipaca_uid = constants.IPACA_USER.uid
+            ipaca_gid = constants.IPACA_GROUP.gid
             os.chown(self.kra_dir, ipaca_uid, ipaca_gid)
         except KeyError:
             logger.warning(
@@ -213,8 +212,8 @@ class TransportKey:
             f.write(cert_pem)
         os.chmod(self.transport_cert_path, 0o640)
         try:
-            ipaca_uid = pwd.getpwnam("ipaca").pw_uid
-            ipaca_gid = grp.getgrnam("ipaca").gr_gid
+            ipaca_uid = constants.IPACA_USER.uid
+            ipaca_gid = constants.IPACA_GROUP.gid
             os.chown(self.transport_cert_path, ipaca_uid, ipaca_gid)
         except KeyError:
             logger.warning(
@@ -442,8 +441,8 @@ class StorageKey:
 
         # Set ownership to ipaca:ipaca
         try:
-            ipaca_uid = pwd.getpwnam("ipaca").pw_uid
-            ipaca_gid = grp.getgrnam("ipaca").gr_gid
+            ipaca_uid = constants.IPACA_USER.uid
+            ipaca_gid = constants.IPACA_GROUP.gid
             os.chown(self.kra_dir, ipaca_uid, ipaca_gid)
         except KeyError:
             logger.warning(
@@ -557,8 +556,8 @@ class StorageKey:
             f.write(cert_pem)
         os.chmod(self.storage_cert_path, 0o640)
         try:
-            ipaca_uid = pwd.getpwnam("ipaca").pw_uid
-            ipaca_gid = grp.getgrnam("ipaca").gr_gid
+            ipaca_uid = constants.IPACA_USER.uid
+            ipaca_gid = constants.IPACA_GROUP.gid
             os.chown(self.storage_cert_path, ipaca_uid, ipaca_gid)
         except KeyError:
             logger.warning(

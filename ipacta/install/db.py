@@ -8,14 +8,13 @@ Handles creation and management of the NSSDB at
 
 from __future__ import absolute_import
 
-import grp
 import logging
 import os
-import pwd
 import shutil
 import tempfile
 from pathlib import Path
 
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
@@ -105,7 +104,10 @@ class NSSDB:
         )
         with os.fdopen(fd, "w") as f:
             f.write(f"internal={self.nssdb_password}\n")
-        shutil.chown(self.nssdb_password_file, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.nssdb_password_file,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP
+        )
 
         # Create NSS database using certutil
         logger.debug("Initializing NSSDB at %s", self.nssdb_dir)
@@ -161,8 +163,8 @@ class NSSDB:
         logger.debug("Applying NSSDB ownership and permissions")
 
         try:
-            ipaca_uid = pwd.getpwnam("ipaca").pw_uid
-            ipaca_gid = grp.getgrnam("ipaca").gr_gid
+            ipaca_uid = constants.IPACA_USER.uid
+            ipaca_gid = constants.IPACA_GROUP.gid
         except KeyError as e:
             logger.warning(
                 "Cannot apply NSSDB permissions, user/group missing: %s", e

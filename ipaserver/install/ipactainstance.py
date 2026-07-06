@@ -46,6 +46,7 @@ from ipalib.constants import (
     RENEWAL_CA_NAME,
 )
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -497,7 +498,7 @@ class IpactaInstance(service.Service):
             "ipacta",
             service_desc="IPA Python CA",
             realm_name=realm,
-            service_user="ipaca",
+            service_user=constants.IPACA_USER,
         )
 
         self.tracking_reqs = dict(CA_TRACKING_REQS)
@@ -878,7 +879,7 @@ class IpactaInstance(service.Service):
         # sysaccount
         # Get ipaca UID/GID
         try:
-            ipaca_info = pwd.getpwnam("ipaca")
+            ipaca_info = pwd.getpwnam(constants.IPACA_USER)
             ipaca_uid = ipaca_info.pw_uid
             ipaca_gid = ipaca_info.pw_gid
         except KeyError:

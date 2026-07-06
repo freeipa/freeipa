@@ -29,6 +29,7 @@ import shutil
 from configparser import RawConfigParser
 from pathlib import Path
 
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -389,7 +390,7 @@ class IpactaConfig:
             ),
         )
         config_file.chmod(0o640)
-        shutil.chown(config_file, user="root", group="ipaca")
+        shutil.chown(config_file, user="root", group=constants.IPACA_GROUP)
 
         # Read it back so pass-through methods work
         config = RawConfigParser()

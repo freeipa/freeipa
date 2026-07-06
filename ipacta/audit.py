@@ -26,6 +26,7 @@ from logging.handlers import RotatingFileHandler
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import padding
 
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 import ipacta
 from ipacta import x509_utils
@@ -173,7 +174,11 @@ class AuditLogger:
         # can append to the file when it starts later.
         if os.getuid() == 0:
             try:
-                shutil.chown(str(self.log_file), user="ipaca", group="ipaca")
+                shutil.chown(
+                    str(self.log_file),
+                    user=constants.IPACA_USER,
+                    group=constants.IPACA_GROUP,
+                )
                 os.chmod(str(self.log_file), 0o640)
             except (LookupError, PermissionError, OSError):
                 pass

@@ -27,6 +27,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 
 from ipalib import errors
 from ipalib.constants import IPA_CA_CN, IPAAPI_GROUP
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.certdb import get_ca_nickname
@@ -222,12 +223,18 @@ class Certs:
             # Copy CA certificate to working directory
             shutil.copy2(self.ca_signing_cert, self.ca_cert_working)
             self.ca_cert_working.chmod(0o644)
-            shutil.chown(self.ca_cert_working, user="ipaca", group="ipaca")
+            shutil.chown(
+                self.ca_cert_working,
+                user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+            )
 
             # Copy CA key to private directory
             shutil.copy2(self.ca_signing_key, self.ca_key_path)
             self.ca_key_path.chmod(0o640)
-            shutil.chown(self.ca_key_path, user="ipaca", group="ipaca")
+            shutil.chown(
+                self.ca_key_path,
+                user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+            )
 
             # Copy CA certificate to standard IPA location
             shutil.copy2(self.ca_cert_working, self.ca_cert_path)
@@ -264,7 +271,10 @@ class Certs:
             with open(self.ca_cert_working, "wb") as f:
                 f.write(ca_cert_pem)
             self.ca_cert_working.chmod(0o644)
-            shutil.chown(self.ca_cert_working, user="ipaca", group="ipaca")
+            shutil.chown(
+                self.ca_cert_working,
+                user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+            )
             if not self.ca_cert_path.exists():
                 shutil.copy2(self.ca_cert_working, self.ca_cert_path)
                 self.ca_cert_path.chmod(0o644)
@@ -527,7 +537,10 @@ class Certs:
         with open(self.ca_key_path, "wb") as f:
             f.write(key_pem)
         self.ca_key_path.chmod(0o600)
-        shutil.chown(self.ca_key_path, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ca_key_path,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
 
         # Store full chain
         ca_chain_path = Path(paths.IPA_CA_CRT)
@@ -761,7 +774,10 @@ class Certs:
 
         # Set ownership and permissions on certificate
         self.ca_cert_working.chmod(0o644)
-        shutil.chown(self.ca_cert_working, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ca_cert_working,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Set permissions on %s", self.ca_cert_working)
 
         # Copy CA certificate to standard IPA location
@@ -776,7 +792,10 @@ class Certs:
         logger.debug("Exporting CA certificate to %s", ca_crt_alias)
         shutil.copy2(self.ca_cert_working, ca_crt_alias)
         ca_crt_alias.chmod(0o600)  # Dogtag uses -rw------- for ca.crt
-        shutil.chown(ca_crt_alias, user="ipaca", group="ipaca")
+        shutil.chown(
+            ca_crt_alias,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
 
         logger.debug(
             "CA certificate and private key generated successfully with "
@@ -1234,7 +1253,10 @@ class Certs:
                     )
                 )
             cert_path.chmod(0o644)
-            shutil.chown(cert_path, user="ipaca", group="ipaca")
+            shutil.chown(
+                cert_path,
+                user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+            )
 
             logger.debug(
                 "%s certificate issued and saved (serial: %s)",
@@ -1320,7 +1342,9 @@ class Certs:
             )
 
     def _create_ca_agent(self):
-        """Create uid=ipara,ou=People,o=ipaca agent entry and group memberships.
+        """Create uid=ipara,ou=People,o=ipaca agent entry.
+
+        Also handles group memberships.
 
         Dogtag creates this entry in cainstance.py __create_ca_agent().
         ipacta must create the same entry for healthcheck compatibility
@@ -1428,7 +1452,8 @@ class Certs:
         )
 
         # If the cert is already in NSSDB (replica install or reinstall) we
-        # still need the PEM files on disk because gunicorn reads them directly.
+        # still need the PEM files on disk because gunicorn reads
+        # them directly.
         # Export them from NSSDB when they are absent.
         if nssdb.cert_exists(server_nickname):
             logger.debug("Server SSL certificate already exists in NSSDB")
@@ -1450,7 +1475,9 @@ class Certs:
                     )
                 server_cert_path.chmod(0o644)
                 shutil.chown(
-                    server_cert_path, user="ipaca", group="ipaca"
+                    server_cert_path,
+                    user=constants.IPACA_USER,
+                    group=constants.IPACA_GROUP,
                 )
                 server_key_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(server_key_path, "wb") as f:
@@ -1465,7 +1492,9 @@ class Certs:
                     )
                 server_key_path.chmod(0o600)
                 shutil.chown(
-                    server_key_path, user="ipaca", group="ipaca"
+                    server_key_path,
+                    user=constants.IPACA_USER,
+                    group=constants.IPACA_GROUP,
                 )
                 logger.debug("Server PEM files written from NSSDB export")
             return
@@ -1565,7 +1594,10 @@ class Certs:
             # Append full CA chain (IPA CA + external root if present)
             f.write(ca_chain_pem)
         server_cert_path.chmod(0o644)
-        shutil.chown(server_cert_path, user="ipaca", group="ipaca")
+        shutil.chown(
+            server_cert_path,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
 
         # Save server private key (required for gunicorn HTTPS)
         # This is an exception to the NSSDB-only policy, similar to RA agent
@@ -1580,7 +1612,10 @@ class Certs:
                 )
             )
         server_key_path.chmod(0o600)
-        shutil.chown(server_key_path, user="ipaca", group="ipaca")
+        shutil.chown(
+            server_key_path,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
 
         logger.debug(
             "Server SSL certificate generated successfully (serial: %s)",

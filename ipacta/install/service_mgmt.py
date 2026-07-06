@@ -20,6 +20,7 @@ from ipalib.constants import (
     RENEWAL_CA_NAME,
 )
 from ipalib.install.certmonger import wait_for_requests_by_postsave
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
@@ -66,46 +67,67 @@ class ServiceMgmt:
         # Create /var/lib/ipacta
         self.ipaca_dir.mkdir(parents=True, exist_ok=True)
         self.ipaca_dir.chmod(0o750)
-        shutil.chown(self.ipaca_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ipaca_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", self.ipaca_dir)
 
         # Create /var/lib/ipacta/ca (for CA signing key - most critical
         # key)
         self.ipaca_ca_dir.mkdir(parents=True, exist_ok=True)
         self.ipaca_ca_dir.chmod(0o700)
-        shutil.chown(self.ipaca_ca_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ipaca_ca_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", self.ipaca_ca_dir)
 
         # Create /var/lib/ipacta/audit (for audit signing key)
         self.ipaca_audit_dir.mkdir(parents=True, exist_ok=True)
         self.ipaca_audit_dir.chmod(0o700)
-        shutil.chown(self.ipaca_audit_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ipaca_audit_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", self.ipaca_audit_dir)
 
         # Create /var/lib/ipacta/private (for operational TLS and
         # subsystem keys)
         self.ipaca_private_dir.mkdir(parents=True, exist_ok=True)
         self.ipaca_private_dir.chmod(0o700)
-        shutil.chown(self.ipaca_private_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ipaca_private_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", self.ipaca_private_dir)
 
         # Create /var/lib/ipacta/certs (for certificates)
         self.ipaca_certs_dir.mkdir(parents=True, exist_ok=True)
         self.ipaca_certs_dir.chmod(0o755)
-        shutil.chown(self.ipaca_certs_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ipaca_certs_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", self.ipaca_certs_dir)
 
         # Create /var/log/ipacta (for log files)
         self.ipaca_logs_dir.mkdir(parents=True, exist_ok=True)
         self.ipaca_logs_dir.chmod(0o755)
-        shutil.chown(self.ipaca_logs_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            self.ipaca_logs_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", self.ipaca_logs_dir)
 
         # Create /var/lib/ipacta/profiles
         ipacta_profiles_dir = self.ipaca_dir / "profiles"
         ipacta_profiles_dir.mkdir(parents=True, exist_ok=True)
         ipacta_profiles_dir.chmod(0o755)
-        shutil.chown(ipacta_profiles_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            ipacta_profiles_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", ipacta_profiles_dir)
 
         # Create /var/lib/ipa/pki-ca/publish (for CRL publication)
@@ -115,7 +137,10 @@ class ServiceMgmt:
         publish_dir = Path(paths.IPA_PKI_PUBLISH_DIR)
         publish_dir.mkdir(parents=True, exist_ok=True)
         publish_dir.chmod(0o755)
-        shutil.chown(publish_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            publish_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
         logger.debug("Created %s", publish_dir)
 
         logger.debug("Directory structure created successfully")
@@ -170,7 +195,10 @@ class ServiceMgmt:
         # Create audit log directory
         audit_log_dir = Path(paths.IPACTA_LOG_DIR)
         audit_log_dir.mkdir(parents=True, exist_ok=True)
-        shutil.chown(audit_log_dir, user="ipaca", group="ipaca")
+        shutil.chown(
+            audit_log_dir,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
 
         logger.debug(
             "Audit logging configured - signing uses auditSigningCert from "

@@ -14,6 +14,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import serialization
 
 from ipalib import errors
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
@@ -87,7 +88,10 @@ class KRAInstall:
         kra_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
 
         try:
-            shutil.chown(kra_dir, user="ipaca", group="ipaca")
+            shutil.chown(
+                kra_dir,
+                user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+            )
         except Exception as e:
             logger.warning("Could not set ownership on %s: %s", kra_dir, e)
 
@@ -258,7 +262,10 @@ class KRAInstall:
                 certificate.public_bytes(encoding=serialization.Encoding.PEM)
             )
         kra_audit_cert_path.chmod(0o644)
-        shutil.chown(kra_audit_cert_path, user="ipaca", group="ipaca")
+        shutil.chown(
+            kra_audit_cert_path,
+            user=constants.IPACA_USER, group=constants.IPACA_GROUP,
+        )
 
         # Store in CA certificate repository
         self._store_cert_in_ca_repository(certificate, "caAuditSigningCert")
