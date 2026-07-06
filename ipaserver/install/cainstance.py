@@ -255,9 +255,11 @@ def is_step_one_done():
 
 def is_ca_installed_locally():
     """Check if CA is installed locally by checking for existence of CS.cfg
+    or ipacta.conf
     :return:True/False
     """
-    return os.path.exists(paths.CA_CS_CFG_PATH)
+    return (os.path.exists(paths.CA_CS_CFG_PATH)
+            or os.path.exists(paths.IPACTA_CONF))
 
 
 def lookup_ldap_backend(api):
