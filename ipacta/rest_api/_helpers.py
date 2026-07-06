@@ -24,7 +24,6 @@ from flask import jsonify, request
 
 from ipalib import errors
 
-from ipacta import get_config_value
 from ipacta.exceptions import (
     CertificateOperationError as IpactaCertOpError,
     ProfileNotFound,
@@ -293,7 +292,13 @@ def _validate_ra_agent_cert(cert_subject_dn: str) -> bool:
             return False
 
         # Expected RA agent DN: CN=IPA RA,O=<REALM>
-        realm = get_config_value("global", "realm")
+        # Read realm from ipa_ca_config (set at app creation,
+        # before fork) rather than _global_config (set lazily
+        # by @require_ca_backend) to avoid a race in
+        # multi-worker deployments where login can hit a
+        # worker whose CA backend hasn't been initialized yet.
+        from ipacta.rest_api import _globals as _g
+        realm = _g.ipa_ca_config.get("global", "realm")
         expected_dn = DN(("CN", "IPA RA"), ("O", realm))
 
         if cert_dn == expected_dn:

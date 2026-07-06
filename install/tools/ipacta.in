@@ -68,6 +68,14 @@ class IpactaApplication(BaseApplication):
         self.cfg.set('ca_certs', cfg.get('ca', 'ca_cert'))
         self.cfg.set('cert_reqs', 1)  # ssl.CERT_OPTIONAL
 
+        # Gunicorn lifecycle hooks
+        from ipacta.gunicorn_conf import (
+            post_fork, when_ready, worker_exit,
+        )
+        self.cfg.set('post_fork', post_fork)
+        self.cfg.set('when_ready', when_ready)
+        self.cfg.set('worker_exit', worker_exit)
+
     def load(self):
         from ipacta.wsgi import application
         return application
