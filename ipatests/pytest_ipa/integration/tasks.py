@@ -72,6 +72,20 @@ from .fips import is_fips_enabled, enable_crypto_subpolicy
 logger = logging.getLogger(__name__)
 
 
+def get_ca_backend(host):
+    """Return the CA backend ('dogtag' or 'ipacta') configured on host."""
+    result = host.run_command(
+        ['python3', '-c',
+         'from ipaserver.masters import get_ca_service; '
+         'print(get_ca_service())'],
+        raiseonerr=False)
+    if result.returncode == 0:
+        backend = result.stdout_text.strip()
+        if backend in ('dogtag', 'ipacta'):
+            return backend
+    return 'dogtag'
+
+
 def check_arguments_are(slice, instanceof):
     """
     :param: slice - tuple of integers denoting the beginning and the end
@@ -326,7 +340,8 @@ def set_default_ttl_for_ipa_dns_zone(host, raiseonerr=True):
 def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
                    extra_args=(), domain_level=None, unattended=True,
                    external_ca=False, stdin_text=None, raiseonerr=True,
-                   random_serial=False, allow_zone_overlap=True):
+                   random_serial=False, allow_zone_overlap=True,
+                   ca_backend=None):
     if domain_level is None:
         domain_level = host.config.domain_level
     check_domain_level(domain_level)
@@ -375,6 +390,16 @@ def install_master(host, setup_dns=True, setup_kra=False, setup_adtrust=False,
             enable_crypto_subpolicy(host, "AD-SUPPORT")
     if external_ca:
         args.append('--external-ca')
+
+    if ca_backend is None:
+        ca_backend = getattr(host.config, 'ca_backend', 'ipacta')
+    ca_less = any(
+        a.startswith('--http-cert-file')
+        or a.startswith('--dirsrv-cert-file')
+        for a in extra_args
+    )
+    if ca_backend == 'ipacta' and not external_ca and not ca_less:
+        args.append('--internal-ca')
 
     args.extend(extra_args)
     result = host.run_command(args, raiseonerr=raiseonerr,
@@ -451,7 +476,8 @@ def copy_nfast_data(src_host, dest_host):
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False, setup_adtrust=False, extra_args=(),
                     domain_level=None, unattended=True, stdin_text=None,
-                    raiseonerr=True, promote=True, nameservers='master'):
+                    raiseonerr=True, promote=True, nameservers='master',
+                    ca_backend=None):
     """
     This task installs client and then promote it to the replica
 
@@ -508,6 +534,10 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         args.append('-U')
     if setup_ca:
         args.append('--setup-ca')
+        if ca_backend is None:
+            ca_backend = getattr(master.config, 'ca_backend', 'ipacta')
+        if ca_backend == 'ipacta':
+            args.append('--internal-ca')
     if setup_kra:
         assert setup_ca, "CA must be installed on replica with KRA"
         args.append('--setup-kra')
@@ -1108,6 +1138,8 @@ def get_credential_cache(host):
 
 def uninstall_master(host, ignore_topology_disconnect=True,
                      ignore_last_of_role=True, clean=True, verbose=False):
+    ca_backend = get_ca_backend(host)
+
     uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
     host_domain_level = domainlevel(host)
@@ -1138,8 +1170,9 @@ def uninstall_master(host, ignore_topology_disconnect=True,
         Firewall(host).disable_services(["freeipa-ldap", "freeipa-ldaps",
                                          "freeipa-trust", "dns"])
 
-    host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
-                     raiseonerr=False)
+    if ca_backend != 'ipacta':
+        host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
+                         raiseonerr=False)
     host.run_command(['rm', '-rf',
                       paths.TOMCAT_TOPLEVEL_DIR,
                       paths.SYSCONFIG_PKI_TOMCAT,
@@ -1457,7 +1490,7 @@ def double_circle_topo(master, replicas, site_size=6):
 def install_topo(topo, master, replicas, clients, domain_level=None,
                  skip_master=False, setup_replica_cas=True,
                  setup_replica_kras=False, clients_extra_args=(),
-                 random_serial=False, extra_args=()):
+                 random_serial=False, extra_args=(), ca_backend=None):
     """Install IPA servers and clients in the given topology"""
     if setup_replica_kras and not setup_replica_cas:
         raise ValueError("Option 'setup_replica_kras' requires "
@@ -1470,6 +1503,7 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
             domain_level=domain_level,
             setup_kra=setup_replica_kras,
             random_serial=random_serial,
+            ca_backend=ca_backend,
         )
 
     add_a_records_for_hosts_in_master_domain(master)
@@ -1486,6 +1520,7 @@ def install_topo(topo, master, replicas, clients, domain_level=None,
                 setup_kra=setup_replica_kras,
                 nameservers=master.ip,
                 extra_args=extra_args,
+                ca_backend=ca_backend,
             )
         installed.add(child)
     install_clients([master] + replicas, clients, clients_extra_args)
