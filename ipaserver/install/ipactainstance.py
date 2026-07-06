@@ -1575,17 +1575,6 @@ class IpactaInstance(service.Service):
     # Service lifecycle
     # -----------------------------------------------------------------------
 
-    def enable_and_start(self):
-        """Enable and register CA service in LDAP (called from install_step_1).
-
-        This is called AFTER PKINIT is configured to ensure that during
-        initial installation, PKINIT uses dogtag-submit to contact the CA
-        directly instead of going through the IPA framework.
-        """
-        logger.debug("Registering CA service in LDAP")
-        self._ldap_setup._register_ca_service()
-        logger.debug("CA service registered successfully")
-
     def start(self, instance_name="", **kwargs):
         """Start ipacta service."""
         services.knownservices["ipacta"].start()

@@ -278,49 +278,6 @@ nsslapd-localssf: 71
 
         logger.debug("LDAPI autobind configuration completed")
 
-    def _register_ca_service(self):
-        """Register CA service in LDAP under cn=masters."""
-        logger.debug("Registering CA service in LDAP")
-
-        if not self.ldap.isconnected():
-            self.ldap.connect()
-
-        ldap = self.ldap
-
-        # Create service entry:
-        # cn=CA,cn={fqdn},cn=masters,cn=ipa,cn=etc,{basedn}
-
-        service_dn = DN(
-            ("cn", "CA"),
-            ("cn", self.fqdn),
-            ("cn", "masters"),
-            ("cn", "ipa"),
-            ("cn", "etc"),
-            self.basedn,
-        )
-
-        try:
-            # Check if entry already exists
-            ldap.get_entry(service_dn)
-            logger.debug("CA service entry already exists: %s", service_dn)
-        except errors.NotFound:
-            logger.debug("Creating CA service entry: %s", service_dn)
-
-            # Build ipaConfigString - non-clone installs become renewal master
-            ipa_config = ["enabledService", "startOrder 50"]
-            if not self.clone:
-                ipa_config.append("caRenewalMaster")
-
-            # Create the entry with proper object classes
-            entry = ldap.make_entry(
-                service_dn,
-                objectClass=["nsContainer", "ipaConfigObject"],
-                cn=["CA"],
-                ipaConfigString=ipa_config,
-            )
-            ldap.add_entry(entry)
-            logger.debug("CA service entry created successfully")
-
     def _import_profiles_ldap(self):
         """Import default certificate profiles to LDAP."""
         logger.debug("Importing certificate profiles to LDAP")

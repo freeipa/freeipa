@@ -782,10 +782,6 @@ def install_step_1(standalone, replica_config, options, custodia):
 
         installutils.restart_dirsrv()
 
-        # Note: CA service registration in LDAP is deferred until after PKINIT
-        # is configured to ensure PKINIT uses dogtag-submit during initial
-        # installation. See enable_ca_service() function below.
-
         logger.debug("ipacta CA service is running")
 
     else:
@@ -846,28 +842,6 @@ def install_step_1(standalone, replica_config, options, custodia):
         if bindinstance.dns_container_exists(basedn):
             bind = bindinstance.BindInstance()
             bind.update_system_records()
-
-
-def enable_ca_service(options):
-    """
-    Register CA service in LDAP (called after PKINIT is configured)
-
-    This function is called from install.py after PKINIT certificate is issued
-    to ensure that during initial installation, PKINIT uses dogtag-submit to
-    contact the CA directly instead of going through the IPA framework.
-    """
-    internal_ca = getattr(options, 'internal_ca', False)
-
-    if internal_ca:
-        logger.info("Registering ipacta CA service in LDAP")
-        from ipaserver.install.ipactainstance import IpactaInstance
-        ca_instance = IpactaInstance(
-            realm=options.realm_name,
-            host_name=options.host_name,
-            random_serial_numbers=options.random_serial_numbers
-        )
-        ca_instance.enable_and_start()
-        logger.debug("CA service registered in LDAP")
 
 
 def uninstall():
