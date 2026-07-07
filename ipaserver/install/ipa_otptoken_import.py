@@ -262,8 +262,12 @@ class XMLDecryptor:
         if len(self.__key) * 8 != klen:
             raise ValidationError("Invalid key length!")
 
-        # If a MAC is present, perform validation.
-        if mac:
+        if self.__hmac is not None:
+            # The document declared <MACMethod>; per RFC 6030 §6.1.1 every
+            # encrypted value MUST carry a ValueMAC. Refuse a stripped one.
+            if not mac:
+                raise ValidationError(
+                    "MACMethod declared but <ValueMAC> missing on key")
             tmp = self.__hmac.copy()
             tmp.update(data)
             try:
