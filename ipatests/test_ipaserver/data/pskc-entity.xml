@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE KeyContainer [
+  <!ENTITY xxe SYSTEM "file:///etc/hosts">
+]>
+<KeyContainer Version="1.0" xmlns="urn:ietf:params:xml:ns:keyprov:pskc">
+ <KeyPackage>
+  <DeviceInfo><Manufacturer>&xxe;</Manufacturer><SerialNo>1</SerialNo></DeviceInfo>
+  <Key Id="Entity1" Algorithm="urn:ietf:params:xml:ns:keyprov:pskc:hotp">
+   <Issuer>&xxe;</Issuer>
+   <AlgorithmParameters><ResponseFormat Length="6" Encoding="DECIMAL"/></AlgorithmParameters>
+   <Data><Secret><PlainValue>MTIzNDU2Nzg5MDEyMzQ1Njc4OTA=</PlainValue></Secret>
+         <Counter><PlainValue>0</PlainValue></Counter></Data>
+  </Key>
+ </KeyPackage>
+</KeyContainer>
