@@ -112,6 +112,16 @@ class test_otptoken_import:
         else:
             assert False
 
+    def test_missingmac(self):
+        doc = PSKCDocument(os.path.join(basename, "pskc-missingmac.xml"))
+        doc.setKey(codecs.decode('12345678901234567890123456789012', 'hex'))
+        try:
+            [(t.id, t.options) for t in doc.getKeyPackages()]
+        except ValidationError as e:  # <ValueMAC> missing on key
+            assert str(e) == "MACMethod declared but <ValueMAC> missing on key"
+        else:
+            assert False
+
     def test_full(self):
         doc = PSKCDocument(os.path.join(basename, "full.xml"))
         assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
