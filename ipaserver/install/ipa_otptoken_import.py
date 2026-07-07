@@ -51,6 +51,12 @@ from ipaserver.plugins.ldap2 import AUTOBIND_DISABLED
 
 logger = logging.getLogger(__name__)
 
+SAFE_XML_PARSER = etree.XMLParser(
+    resolve_entities=False,
+    no_network=True,
+    load_dtd=False,
+    dtd_validation=False,
+)
 
 class ValidationError(Exception):
     pass
@@ -466,7 +472,7 @@ class PSKCDocument:
     def __init__(self, filename):
         self.__keyname = None
         self.__decryptor = None
-        self.__doc = etree.parse(filename)
+        self.__doc = etree.parse(filename, parser=SAFE_XML_PARSER)
         self.__mkey = fetch(self.__doc, "./pskc:MACMethod/pskc:MACKey")
         self.__algo = fetch(self.__doc, "./pskc:MACMethod/@Algorithm", convertHMACType)
 
