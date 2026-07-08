@@ -79,7 +79,10 @@ if version_info < (3, 7):
 
 logger = logging.getLogger(__name__)
 
+MAX_REQUEST_BODY_SIZE = 1024 * 1024 # 1MB
+
 HTTP_STATUS_SUCCESS = '200 Success'
+HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE = '413 Request Entity Too Large'
 HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'
 HTTP_STATUS_SERVICE_UNAVAILABLE = "503 Service Unavailable"
 
@@ -101,6 +104,18 @@ _bad_request_template = """<html>
 </head>
 <body>
 <h1>Bad Request</h1>
+<p>
+<strong>%(message)s</strong>
+</p>
+</body>
+</html>"""
+
+_request_body_too_large_template = """<html>
+<head>
+<title>413 Request Entity Too Large</title>
+</head>
+<body>
+<h1>Request Entity Too Large</h1>
 <p>
 <strong>%(message)s</strong>
 </p>
@@ -219,6 +234,21 @@ class HTTP_Status(plugable.Plugin):
         output = _bad_request_template % dict(message=escape(message))
         return [output.encode('utf-8')]
 
+    def request_body_too_large(self, environ, start_response):
+        """
+        Return a 413 Request Entity Too Large error.
+        """
+        status = HTTP_STATUS_REQUEST_ENTITY_TOO_LARGE
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+
+        logger.info('%s: Request body too large', status)
+
+        start_response(status, response_headers)
+        output = _request_body_too_large_template % (
+            dict(message='Request body too large')
+        )
+        return [output.encode('utf-8')]
+
     def internal_error(self, environ, start_response, message):
         """
         Return a 500 Internal Server Error.
@@ -261,12 +291,15 @@ class HTTP_Status(plugable.Plugin):
         return [output.encode('utf-8')]
 
 
-def read_input(environ):
+def read_input(environ, max_size=None):
     """
-    Read the request body from environ['wsgi.input'].
+    Read the request body from environ['wsgi.input']
+    and return None if the request body is too large.
     """
     try:
         length = int(environ.get('CONTENT_LENGTH'))
+        if length < 0 or (max_size is not None and length > max_size):
+            return None
     except (ValueError, TypeError):
         return None
     return environ['wsgi.input'].read(length).decode('utf-8')
@@ -906,9 +939,14 @@ class jsonserver_i18n_messages(jsonserver):
         if environ['REQUEST_METHOD'] != 'POST':
             return self.not_allowed(start_response)
 
-        data = read_input(environ)
-        unmarshal_data = super(jsonserver_i18n_messages, self
-                               ).unmarshal(data)
+        data = read_input(environ, MAX_REQUEST_BODY_SIZE)
+        if data is None:
+            return self.request_body_too_large(environ, start_response)
+        try:
+            unmarshal_data = super(jsonserver_i18n_messages, self
+                                ).unmarshal(data)
+        except JSONError as e:
+            return self.bad_request(environ, start_response, str(e))
         name = unmarshal_data[0] if unmarshal_data else ''
         if name != 'i18n_messages':
             return self.forbidden(start_response)
