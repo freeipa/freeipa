@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://codeberg.org/freeipa/freeipa/issues/new\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
 "PO-Revision-Date: 2026-07-08 11:51+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/freeipa/master/pt_BR/>\n"
 "Language: pt_BR\n"
@@ -11712,8 +11712,7 @@ msgstr ""
 
 #, python-format
 msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
-msgstr ""
-"Cliente %(cver)s incompatível com o servidor %(sver)s em \"%(server)s\""
+msgstr "Cliente %(cver)s incompatível com o servidor %(sver)s em \"%(server)s\""
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -11755,9 +11754,8 @@ msgid ""
 "System encoding must be UTF-8, '%(encoding)s' is not supported. Set "
 "LC_ALL=\"C.UTF-8\", or LC_ALL=\"\" and LC_CTYPE=\"C.UTF-8\"."
 msgstr ""
-"O sistema de codificação deve ser UTF-8, não tendo suporte a "
-"\"%(encoding)s\". Defina LC_ALL=\"C.UTF-8\", ou LC_ALL=\"\" e "
-"LC_CTYPE=\"C.UTF-8\"."
+"O sistema de codificação deve ser UTF-8, não tendo suporte a \"%(encoding)"
+"s\". Defina LC_ALL=\"C.UTF-8\", ou LC_ALL=\"\" e LC_CTYPE=\"C.UTF-8\"."
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
@@ -11928,8 +11926,8 @@ msgid ""
 "A problem was encountered when verifying that all members were %(verb)s: "
 "%(exc)s"
 msgstr ""
-"Um problema foi encontrado ao verificar se todos os membros eram %(verb)s: "
-"%(exc)s"
+"Um problema foi encontrado ao verificar se todos os membros eram %(verb)s: %"
+"(exc)s"
 
 #, python-format
 msgid "%(attr)s does not contain '%(value)s'"
