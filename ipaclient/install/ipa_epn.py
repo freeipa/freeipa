@@ -118,11 +118,11 @@ def drop_privileges(new_username="daemon", new_groupname="daemon"):
             return
 
         os.setgroups([])
-        os.setgid(pwd.getpwnam(new_username).pw_uid)
-        os.setuid(grp.getgrnam(new_groupname).gr_gid)
+        os.setgid(grp.getgrnam(new_groupname).gr_gid)
+        os.setuid(pwd.getpwnam(new_username).pw_uid)
 
         if os.getuid() == 0:
-            raise errors.RequiresRoot("Cannot drop privileges!")
+            raise RuntimeError("still uid 0 after setuid()")
 
         logger.debug(
             "Dropped privileges to user=%s, group=%s",
@@ -131,11 +131,11 @@ def drop_privileges(new_username="daemon", new_groupname="daemon"):
         )
 
     except Exception as e:
-        logger.error(
-            "Failed to drop privileges to %s, %s: %s",
-            new_username,
-            new_groupname,
-            e,
+        # Fail closed: do NOT continue as root.
+        raise admintool.ScriptError(
+            "Failed to drop privileges to %s, %s: %s" % (
+                new_username, new_groupname, e,
+            )
         )
 
 
