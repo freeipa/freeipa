@@ -32,6 +32,13 @@ import ipatests.test_webui.data_sudo as sudo
 import ipatests.test_webui.data_user as user
 import pytest
 
+try:
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.wait import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+except ImportError:
+    pass
+
 
 def check_invalid_names(self, names, error_link):
     self.navigate_to_entity(hostgroup.ENTITY)
@@ -271,15 +278,23 @@ class test_hostgroup(UI_driver):
         assert hostgroup.DESCRIPTION_ERROR_DIALOG in \
             self.get_last_error_dialog().text
         self.dialog_button_click('cancel')
-        self.wait()
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.NAME, 'description'))
+        )
 
+        # Modal is still open
         self.fill_textarea('description', hostgroup.TRAILING_SPACE)
         self.dialog_button_click('add')
         assert hostgroup.DESCRIPTION_ERROR_DIALOG in \
             self.get_last_error_dialog().text
         self.dialog_button_click('cancel')
-        self.wait(0.6)  # wait for modal dialog to appear
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.NAME, 'description'))
+        )
         self.dialog_button_click('cancel')
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.NAME, 'add'))
+        )
 
         # duplicate
         self.button_click(name='add')
@@ -288,16 +303,26 @@ class test_hostgroup(UI_driver):
         assert hostgroup.DUPLICATE_WARNING_MSG in \
             self.get_last_error_dialog().text
         self.dialog_button_click('cancel')
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.NAME, 'description'))
+        )
         self.dialog_button_click('cancel')
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.NAME, 'add'))
+        )
 
+        # Empty name
         self.button_click(name='add')
         self.fill_input('cn', "")
         self.dialog_button_click('add')
         text_warning = self.get_text('.help-block', parent=self.get_dialog())
         assert text_warning in hostgroup.EMPTY_WARNING_MSG
         self.dialog_button_click(name='cancel')
+        WebDriverWait(self.driver, 5).until(
+            EC.visibility_of_element_located((By.NAME, 'add'))
+        )
 
-        # test buttons
+        # Modal is still open, test buttons
         self.button_click('add')
         self.fill_input('cn', hostgroup.DATA['pkey'])
         self.dialog_button_click(name='add_and_add_another')
@@ -315,7 +340,10 @@ class test_hostgroup(UI_driver):
         self.select_record(hostgroup.PKEY)
         self.button_click('remove')
         self.dialog_button_click('cancel')
-        self.wait()
+        # ok button is Delete in the modal, we can use this fact
+        WebDriverWait(self.driver, 5).until(
+            EC.invisibility_of_element_located((By.NAME, 'ok'))
+        )
         self.select_record(hostgroup.PKEY, unselect=True)
 
         # test to rewrite invalid input_type
