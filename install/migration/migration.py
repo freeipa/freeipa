@@ -33,12 +33,25 @@ from ipalib import errors, create_api
 
 logger = logging.getLogger(os.path.basename(__file__))
 
+MAX_REQUEST_BODY = 1024 * 1024  # 1 MiB
+
 
 def bad_request(start_response):
     """
     Return a 400 Bad Request error.
     """
     status = '400 Bad Request'
+    response_headers = []
+    response = b''
+
+    start_response(status, response_headers)
+    return [response]
+
+def request_entity_too_large(start_response):
+    """
+    Return a 413 Content Too Large error.
+    """
+    status = '413 Content Too Large'
     response_headers = []
     response = b''
 
@@ -84,6 +97,9 @@ def application(environ, start_response):
         length = int(environ.get("CONTENT_LENGTH"))
     except (ValueError, TypeError):
         return bad_request(start_response)
+
+    if length < 0 or length > MAX_REQUEST_BODY:
+        return request_entity_too_large(start_response)
 
     query_string = environ["wsgi.input"].read(length).decode("utf-8")
 
