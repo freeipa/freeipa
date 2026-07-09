@@ -752,6 +752,11 @@ class TestHostFalsePwdChange(XMLRPC_test):
         with pytest.raises(errors.ValidationError):
             command()
 
+        # Try to change the pwd of enrolled host with --setattr userpassword
+        command = host.make_update_command(updates=dict(
+            setattr=u'userpassword=pass_123'))
+        with pytest.raises(errors.ValidationError):
+            command()
 
 @pytest.fixture(scope='class')
 def dns_setup_nonameserver(host4):

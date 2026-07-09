@@ -929,7 +929,11 @@ class host_mod(LDAPUpdate):
         fqdn = resolve_fqdn(keys[-1])
         # Allow an existing OTP to be reset but don't allow a OTP to be
         # added to an enrolled host.
-        if options.get('userpassword') or options.get('random'):
+        if (
+            options.get('userpassword')
+            or options.get('random')
+            or entry_attrs.get('userpassword')
+        ):
             entry = {}
             self.obj.get_password_attributes(ldap, dn, entry)
             if not entry['has_password'] and entry['has_keytab']:
