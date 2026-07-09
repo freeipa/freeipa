@@ -683,6 +683,68 @@ class TestDSMigrationConfig(BaseTestDSMigration):
         finally:
             self.cleanup_migrated_data()
 
+    def test_privilege(self):
+        """ Test that an unprivileged user can't run migrate-ds"""
+        user = 'migrationuser'
+        password = 'Secret123'
+
+        # Create an unprivileged user who will perform migration
+        # Should fail
+        tasks.create_active_user(self.master, user, password)
+        try:
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_as_user(self.master, user, password)
+            result = self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container=ou=People",
+                    "--group-container=ou=Groups",
+                    self.ldap_uri,
+                ],
+                stdin_text=self.master.config.admin_password,
+                raiseonerr=False
+            )
+            assert "not allowed to run migration" in result.stderr_text
+
+            # Now add the "Security Architect" role to this user
+            # (which grants Replication Administrators privilege)
+            # and "User Administrator" role (which allows to write users)
+            # and retry migrate-ds.
+            # Should succeed
+            tasks.kinit_admin(self.master)
+            self.master.run_command(
+                [
+                    "ipa",
+                    "role-add-member",
+                    "User Administrator",
+                    "--user", user
+                ]
+            )
+            self.master.run_command(
+                [
+                    "ipa",
+                    "role-add-member",
+                    "Security Architect",
+                    "--user", user
+                ]
+            )
+            tasks.kdestroy_all(self.master)
+            tasks.kinit_as_user(self.master, user, password)
+            result = self.master.run_command(
+                [
+                    "ipa",
+                    "migrate-ds",
+                    "--user-container=ou=People",
+                    "--group-container=ou=Groups",
+                    self.ldap_uri,
+                ],
+                stdin_text=self.master.config.admin_password,
+            )
+
+        finally:
+            self.cleanup_migrated_data()
+
 
 class TestDSMigrationOptions(BaseTestDSMigration):
     """

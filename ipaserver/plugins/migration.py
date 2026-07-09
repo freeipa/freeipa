@@ -30,6 +30,8 @@ from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, Bool
 from ipalib.cli import to_cli
 from ipalib.plugable import Registry
+from ipalib.request import context
+from ipaserver.plugins.privilege import principal_has_privilege
 from ipaserver.plugins.user import NO_UPG_MAGIC
 from ipalib import _
 from ipapython.dn import DN
@@ -903,6 +905,12 @@ migration process might be incomplete\n''')
         # check if migration mode is enabled
         if not config.get('ipamigrationenabled', (False,))[0]:
             return dict(result={}, failed={}, enabled=False, compat=True)
+
+        privilege = 'Replication Administrators'
+        op_account = getattr(context, 'principal', None)
+        if not principal_has_privilege(self.api, op_account, privilege):
+            raise errors.ACIError(
+                info=_("not allowed to run migration"))
 
         # connect to DS
         if options.get('cacertfile') is not None:
