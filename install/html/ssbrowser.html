@@ -89,13 +89,13 @@
             <li>
                 Create a new <code>/etc/opt/chrome/policies/managed/mydomain.json</code> file with write privileges limited to the system administrator or root, and include the following line:
                 <div><code>
-                    { "AuthServerWhitelist": "*<span class="example-domain">.example.com</span>" }
+                    { "AuthServerAllowlist": "*<span class="example-domain">.example.com</span>" }
                 </code></div>
                 <div>
                     You can do this by running:
                 </div>
                 <div><code>
-                    [root@server]# echo '{ "AuthServerWhitelist": "*<span class="example-domain">.example.com</span>" }' > /etc/opt/chrome/policies/managed/mydomain.json
+                    [root@server]# echo '{ "AuthServerAllowlist": "*<span class="example-domain">.example.com</span>" }' > /etc/opt/chrome/policies/managed/mydomain.json
                 </code></div>
             </li>
         </ol>
