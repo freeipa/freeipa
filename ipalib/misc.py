@@ -3,7 +3,7 @@
 #
 
 import re
-from ipalib import LocalOrRemote, _, ngettext
+from ipalib import LocalOrRemote, _, ngettext, errors
 from ipalib.output import Output, summary
 from ipalib import Flag
 from ipalib.plugable import Registry
@@ -60,7 +60,15 @@ class env(LocalOrRemote):
 
     def __find_keys(self, variables):
         keys = set()
+        # ipa env VARIABLES support wildcard * but we should prevent
+        # any other regex
+        pattern = re.compile(r'^[\w*]*$')
         for query in variables:
+            if not pattern.match(query):
+                raise errors.ValidationError(
+                    name='variables',
+                    error='Variables support only unicode word characters or *'
+                )
             if '*' in query:
                 pat = re.compile(query.replace('*', '.*') + '$')
                 for key in self.env:
