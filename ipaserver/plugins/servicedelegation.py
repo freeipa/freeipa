@@ -6,6 +6,7 @@ import six
 
 from ipalib import api
 from ipalib import Str
+from ipalib.parameters import Principal
 from ipalib.plugable import Registry
 from .baseldap import (
     LDAPObject,
@@ -17,7 +18,6 @@ from .baseldap import (
     LDAPRetrieve)
 from ipalib import _, ngettext
 from ipalib import errors
-from ipalib.util import validate_principal_chars
 from ipapython.dn import DN
 from ipapython import kerberos
 
@@ -173,7 +173,7 @@ class servicedelegation(LDAPObject):
             label=_('Allowed to Impersonate'),
             flags={'no_create', 'no_update', 'no_search'},
         ),
-        Str(
+        Principal(
             'memberprincipal',
             label=_('Member principals'),
             flags={'no_create', 'no_update', 'no_search'},
@@ -184,7 +184,6 @@ class servicedelegation(LDAPObject):
 def normalize_principal_name(name, realm):
     try:
         princ = kerberos.Principal(name, realm=realm)
-        validate_principal_chars(princ)
     except ValueError as e:
         raise errors.ValidationError(
             name='principal',
@@ -211,8 +210,8 @@ class servicedelegation_add_member(LDAPAddMember):
         for attr in self.member_attrs:
             name = self.member_names[attr]
             doc = self.member_param_doc % name
-            yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
-                      label=_('member %s') % name, alwaysask=True)
+            yield Principal('%s*' % name, cli_name='%ss' % name, doc=doc,
+                            label=_('member %s') % name, alwaysask=True)
 
     def get_member_dns(self, **options):
         """
@@ -301,8 +300,8 @@ class servicedelegation_remove_member(LDAPRemoveMember):
         for attr in self.member_attrs:
             name = self.member_names[attr]
             doc = self.member_param_doc % name
-            yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
-                      label=_('member %s') % name, alwaysask=True)
+            yield Principal('%s*' % name, cli_name='%ss' % name, doc=doc,
+                            label=_('member %s') % name, alwaysask=True)
 
     def get_member_dns(self, **options):
         """
