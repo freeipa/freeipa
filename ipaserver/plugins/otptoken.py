@@ -74,6 +74,10 @@ TOKEN_TYPES = {
 # NOTE: For maximum compatibility, KEY_LENGTH % 5 == 0
 KEY_LENGTH = 35
 
+MAX_OTPKEY_BYTES = 1024
+# Base32 expansion: 5 bytes -> 8 chars
+MAX_OTPKEY_B32_CHARS = ((MAX_OTPKEY_BYTES + 4) // 5) * 8
+
 class OTPTokenKey(Bytes):
     """A binary password type specified in base32."""
 
@@ -87,10 +91,14 @@ class OTPTokenKey(Bytes):
             value = p1
 
         if isinstance(value, unicode):
+            if len(value) > MAX_OTPKEY_B32_CHARS:
+                raise ConversionError(name=self.name, error='OTP key is too large')
             try:
                 value = base64.b32decode(value, True)
             except TypeError as e:
                 raise ConversionError(name=self.name, error=str(e))
+            if len(value) > MAX_OTPKEY_BYTES:
+                raise ConversionError(name=self.name, error='OTP key is too large')
 
         return super(OTPTokenKey, self)._convert_scalar(value)
 
@@ -218,6 +226,7 @@ class otptoken(LDAPObject):
             cli_name='key',
             label=_('Key'),
             doc=_('Token secret (Base32; default: random)'),
+            maxlength=MAX_OTPKEY_BYTES,
             default_from=lambda: os.urandom(KEY_LENGTH),
             autofill=True,
             # force server-side conversion
