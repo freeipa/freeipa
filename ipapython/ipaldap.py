@@ -747,6 +747,7 @@ class LDAPClient:
         'dnszoneidnsname': DNSName,
         'krbcanonicalname': Principal,
         'krbprincipalname': Principal,
+        'memberprincipal':  Principal,
         'usercertificate': x509.IPACertificate,
         'usercertificate;binary': x509.IPACertificate,
         'cACertificate': x509.IPACertificate,
