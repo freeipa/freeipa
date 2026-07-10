@@ -99,3 +99,15 @@ class TestEnv(XMLRPC_test):
         with pytest.raises(errors.OptionError) as e:
             self.run_env(nonexistentoption="nonexistentoption", server=server)
         assert "Unknown option: nonexistentoption" in str(e.value)
+
+    @pytest.mark.parametrize("server", [True, False], ids=["server", "local"])
+    def test_env_with_bad_filter(self, server):
+        with pytest.raises(errors.ValidationError) as e:
+            self.run_env("ldap+cache", server=server)
+        msg = "Variables support only unicode word characters or *"
+        assert msg in str(e.value)
+
+    @pytest.mark.parametrize("server", [True, False], ids=["server", "local"])
+    def test_env_with_good_filter(self, server):
+        cmd_result = self.run_env("ldap_cache*", server=server)
+        self.assert_result(cmd_result)
