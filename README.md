@@ -57,6 +57,9 @@ http://www.freeipa.org/page/Quick_Start_Guide
 
 ## For developers
 
+* Contributing to FreeIPA
+    * See [CONTRIBUTING.md](CONTRIBUTING.md)
+
 * Building FreeIPA from source
     * http://www.freeipa.org/page/Build
     * See the BUILD.txt file in the source root directory
