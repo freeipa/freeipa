@@ -1,0 +1,88 @@
+name: Bug Report
+about: Report a bug in FreeIPA
+title: ''
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug in FreeIPA!
+
+        Before you submit, [search existing issues](https://codeberg.org/freeipa/freeipa/issues) to see if it has already been reported.
+
+        For **security vulnerabilities**, do not use this template. Report them privately to the [Red Hat Product Security Team](https://access.redhat.com/security/team/contact).
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: Issue
+      description: Describe the issue. Which part or component of FreeIPA is affected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: What happens?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What is the expected behavior?
+    validations:
+      required: true
+
+  - type: textarea
+    id: version
+    attributes:
+      label: Version/Release/Distribution
+      description: |
+        Run the following command and paste the output. Also include your OS distribution and release.
+      placeholder: |
+        $ rpm -q freeipa-server freeipa-client ipa-server ipa-client 389-ds-base dogtag-pki-ca idm-pki-ca krb5-server
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Is this a regression?
+      description: A regression means the behavior worked in an older release and fails in a newer one.
+      options:
+        - "Yes"
+        - "No"
+        - "Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: last-known-good
+    attributes:
+      label: Last known good version
+      description: Fill this in only if you selected Yes above. Include the version or distribution where this last worked, and when it started failing if known.
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional info
+      description: |
+        Any additional information, configuration, data, or log snippets needed to reproduce or investigate the issue.
+
+        - Troubleshooting guide: https://www.freeipa.org/page/Troubleshooting
