@@ -22,11 +22,14 @@ Developers:
 	Alexandre Mulatinho
 	Alexey Slaykovsky
 	Alexey Tikhonov
+	Américo Monteiro
 	Amit Kumar
 	Ana Krivokapić
 	Andi Chandler
 	Andika Triwidada
+	Andrew Novak
 	Andrew Wnuk
+	Anonymous
 	Antonio Torres
 	Antonio Torres Moríñigo
 	Anuja More
@@ -48,12 +51,15 @@ Developers:
 	Christian Hermann
 	Christian Rohr
 	Daniel Lara Souza
+	Daniel Nylander
+	Daniel Rusek
 	David Hanina
 	David Kreitschmann
 	David Kupka
 	David O'Brien
 	David Pascual
 	David Spångberg
+	Deleted User
 	Diane Trout
 	Dinesh Prasanth M K
 	Diogo Nunes
@@ -85,6 +91,7 @@ Developers:
 	Gowrishankar Rajaiyan
 	Günther Deschner
 	Hela Basa
+	Hosted Weblate
 	hsu zangmen
 	Ian Brown
 	Ian Kumlien
@@ -101,6 +108,7 @@ Developers:
 	Jarl Gullberg
 	Jason Gerard DeRose
 	Jason Woods
+	Jay Gondaliya
 	Jayesh
 	Jayesh Garg
 	Jeremy Frasier
@@ -124,6 +132,7 @@ Developers:
 	Kevin McCarthy
 	Krzysztof Klimonda
 	Kyle Baker
+	Languages add-on
 	Lars Sjostrom
 	Léane GRASSER
 	Lenka Doudova
@@ -156,6 +165,7 @@ Developers:
 	MIZUTA Takeshi
 	Mohammad Rizwan
 	Mohammad Rizwan Yusuf
+	MOHAMMAD SAMI
 	N M
 	Nalin Dahyabhai
 	Nathan Kinder
@@ -170,10 +180,13 @@ Developers:
 	Oğuz Ersen
 	Oleg Fayans
 	Oleg Kozlov
+	Oleh Fedorenko
+	Olesya Gerasimenko
 	Oliver Gutierrez
 	Ondřej Hamada
 	Orion Poplawski
 	Patrice Duc-Jacquet
+	Pavel Borecki
 	Pavel Březina
 	Pavel Picka
 	Pavel Vomáčka
@@ -211,6 +224,7 @@ Developers:
 	Simo Sorce
 	Simon Nussbaum
 	Slava Aseev
+	Smirta
 	Spencer E. Olson
 	Stanislav Laznicka
 	Stanislav Levin
@@ -227,6 +241,7 @@ Developers:
 	Temuri Doghonadze
 	Theodor van Nahl
 	Thierry Bordaz
+	Thomas Dombradi
 	Thomas Woerner
 	Thorsten Scherf
 	Tibor Dudlák
@@ -234,11 +249,13 @@ Developers:
 	Todd Zullinger
 	Tomáš Babej
 	Tomas Halman
+	Tomáš Hrnčiar
 	Tomáš Křížek
 	Troy Dawson
 	Varun Mylaraiah
 	Vasily Parfenov
 	vectinx
+	Veronika Miticka
 	Viacheslav Sychov
 	Viktor Ashirov
 	Vit Mojzis
@@ -247,6 +264,7 @@ Developers:
 	Weblate Translation Memory
 	William Brown
 	William Jon McCann
+	William Oprandi
 	Wouter Schoot
 	Xiao-Long Chen
 	Yaakov Selkowitz
