@@ -1,5 +1,7 @@
 # VERSION 18 - DO NOT REMOVE THIS LINE
 
+# Do not customise this file; it gets rewritten on every upgrade
+
 ProxyRequests Off
 
 $DOGTAG_AJP_PACKET_SIZE
