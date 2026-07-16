@@ -1732,7 +1732,7 @@ def upgrade_configuration():
                 ca.add_ipa_wait()
 
             # Handle upgrade of AJP connector configuration
-            secret_needs_sync = ca.secure_ajp_connector()
+            ca.secure_ajp_connector()
             if ca.ajp_secret:
                 sub_dict['DOGTAG_AJP_SECRET'] = "secret={}".format(
                     ca.ajp_secret)
@@ -1746,13 +1746,21 @@ def upgrade_configuration():
             else:
                 sub_dict['DOGTAG_AJP_PACKET_SIZE'] = ''
 
-            # force=True will ensure the secret is updated if it changes
+            # There are several conditions that require the updating
+            # of ipa-pki-proxy.conf, in addition to version bump:
+            #
+            # - AJP secret added or changed
+            # - Dogtag AJP packet size added or changed
+            #
+            # Forcing a rewrite on every upgrade avoids the complexity
+            # to check for these conditions.  Therefore: force=True
+            #
             upgrade_file(
                 sub_dict,
                 paths.HTTPD_IPA_PKI_PROXY_CONF,
                 os.path.join(paths.USR_SHARE_IPA_DIR,
                              "ipa-pki-proxy.conf.template"),
-                add=True, force=secret_needs_sync)
+                add=True, force=True)
         else:
             if os.path.isfile(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
