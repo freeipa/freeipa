@@ -169,6 +169,13 @@ ipa_join(Slapi_PBlock *pb)
     /* Get the ber value of the extended operation */
     slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_VALUE, &extop_value);
 
+    if (extop_value == NULL || extop_value->bv_val == NULL ||
+        extop_value->bv_len == 0) {
+        errMesg = "Missing or empty enrollment request value.\n";
+        rc = LDAP_PROTOCOL_ERROR;
+        goto free_and_return;
+    }
+
     /* We are passed in the FQDN of the host to enroll. Do an internal
      * search and pull that entry.
      */
