@@ -17,6 +17,11 @@ Ported from the shell-based test suite (t.ipajoin.sh and t.ipaotp.sh).
 
 from __future__ import absolute_import
 
+import ldap
+import os
+import pytest
+import tempfile
+
 from ipapython.ipautil import ipa_generate_password
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
@@ -612,3 +617,26 @@ class TestIPAJoin(IntegrationTest):
 
         assert result.returncode == EXIT_SASL_BIND_FAILED
         assert ERR_SASL_BIND_FAILED in result.stderr_text
+
+    def test_invalid_extop(self):
+        """Test calling the extended operation with empty request"""
+        uri = f"ldaps://{self.master.hostname}:636"
+
+        # Obtain the CA cert
+        fd, temp_cert_file = tempfile.mkstemp()
+        os.close(fd)
+        with open(temp_cert_file, 'wb') as f:
+            f.write(self.master.get_file_contents("/etc/ipa/ca.crt"))
+
+        conn = ldap.initialize(uri)
+        conn.set_option(ldap.OPT_X_TLS_CACERTFILE, temp_cert_file)
+        conn.set_option(ldap.OPT_X_TLS_PROTOCOL_MIN, 0x301)
+        conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+        conn.set_option(ldap.OPT_X_TLS_NEWCTX, 0)
+
+        admin_dn = f'uid=admin,cn=users,cn=accounts,{self.master.domain.basedn}'
+        conn.simple_bind_s(str(admin_dn), self.master.config.admin_password)
+        req = ldap.extop.ExtendedRequest("2.16.840.1.113730.3.8.10.3", None)
+        with pytest.raises(ldap.PROTOCOL_ERROR,
+                           match="Missing or empty enrollment request value"):
+            conn.extop_s(req)
