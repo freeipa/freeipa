@@ -45,6 +45,7 @@ from ipaserver.install import dsinstance
 from ipaserver.install import httpinstance
 from ipaserver.install import bindinstance
 from ipaserver.install import service
+from ipaserver.install import ca as ca_installer
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import certs
@@ -1740,8 +1741,7 @@ def upgrade_configuration():
     if subject_base:
         sub_dict['ISSUER_DN'] = 'CN=Certificate Authority,' + subject_base
 
-    ca = cainstance.CAInstance(
-            api.env.realm, host_name=api.env.host)
+    ca = ca_installer.get_ca_instance(api.env.realm, host_name=api.env.host)
     ca_running = ca.is_running()
 
     kra = krainstance.KRAInstance(api.env.realm)

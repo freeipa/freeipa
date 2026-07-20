@@ -844,10 +844,14 @@ def install_step_1(standalone, replica_config, options, custodia):
             bind.update_system_records()
 
 
-def uninstall():
-    acme = acmeinstance.ACMEInstance(api.env.realm)
-    acme.uninstall()
+def get_ca_instance(realm, host_name=None, custodia=None):
+    """Return the active CA backend instance (ipacta or Dogtag).
 
+    Detects the configured CA backend the same way ``uninstall()`` always
+    has (via ``ca_backend`` in default.conf, falling back to the presence
+    of the ipacta config file), so callers written for Dogtag's
+    ``CAInstance`` can operate on the right object regardless of backend.
+    """
     internal_ca = get_ca_service() == "ipacta"
 
     # Fallback: detect ipacta by config file even if ca_backend
@@ -857,9 +861,16 @@ def uninstall():
 
     if internal_ca:
         from ipaserver.install.ipactainstance import IpactaInstance
-        ca_instance = IpactaInstance(api.env.realm, api.env.host)
-    else:
-        ca_instance = cainstance.CAInstance(api.env.realm)
+        return IpactaInstance(realm, host_name)
+    return cainstance.CAInstance(realm, host_name=host_name, custodia=custodia)
+
+
+def uninstall():
+    acme = acmeinstance.ACMEInstance(api.env.realm)
+    acme.uninstall()
+
+    ca_instance = get_ca_instance(api.env.realm, api.env.host)
+    if isinstance(ca_instance, cainstance.CAInstance):
         ca_instance.stop_tracking_certificates()
     ipautil.remove_file(paths.RA_AGENT_PEM)
     ipautil.remove_file(paths.RA_AGENT_KEY)
