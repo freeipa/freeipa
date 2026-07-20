@@ -254,6 +254,10 @@ class test_host(host_tasks):
         self.delete_record(self.pkey, self.data.get('del'))
 
     @screenshot
+    @pytest.mark.xfail(
+        reason="https://codeberg.org/freeipa/freeipa/issues/9928",
+        strict=True
+    )
     def test_arbitrary_certificates(self):
         """
         Test managing host arbitrary certificate.
@@ -686,6 +690,10 @@ class test_host(host_tasks):
         self.delete(ENTITY, [self.data2])
 
     @screenshot
+    @pytest.mark.xfail(
+        reason="https://codeberg.org/freeipa/freeipa/issues/9928",
+        strict=True
+    )
     def test_negative_cert(self):
         """ Test negative CSR """
         self.init_app()
