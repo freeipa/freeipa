@@ -353,6 +353,10 @@ class test_user(user_tasks):
         self.delete_record(user.PKEY, user.DATA.get('del'))
 
     @screenshot
+    @pytest.mark.xfail(
+        reason="https://codeberg.org/freeipa/freeipa/issues/9928",
+        strict=True
+    )
     def test_certificate_serial(self):
         """Test long certificate serial no
         Long certificate serial no were shown in scientific notation
