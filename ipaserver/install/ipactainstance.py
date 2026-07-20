@@ -50,8 +50,7 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.dn import DN
-from ipaserver.install import service
-from ipaserver.install.cainstance import lookup_ldap_backend
+from ipaserver.install import cainstance, service
 from ipacta import load_config, set_global_config, get_global_config
 from ipacta.config import IpactaConfig
 from ipacta.storage.factory import get_storage_backend
@@ -493,6 +492,7 @@ class IpactaInstance(service.Service):
         dm_password=None,
         master_host=None,
         promote=False,
+        custodia=None,
     ):
         super().__init__(
             "ipacta",
@@ -605,8 +605,9 @@ class IpactaInstance(service.Service):
         self.pkcs12_info = pkcs12_info
         self.dm_password = dm_password
         self.master_host = master_host
-        self.clone = bool(pkcs12_info)
+        self.clone = pkcs12_info is not None
         self.no_db_setup = promote
+        self._custodia = custodia
 
         # Paths
         self.ipaca_dir = Path(paths.IPACTA_DIR)
@@ -1378,7 +1379,7 @@ class IpactaInstance(service.Service):
         self._certs.ca_signing_key = ca_signing_key
 
         if not self.random_serial_numbers:
-            ldap_backend = lookup_ldap_backend(api)
+            ldap_backend = cainstance.lookup_ldap_backend(api)
             if ldap_backend != "bdb":
                 logger.info(
                     "Forcing random serial numbers to be enabled for the %s "
@@ -1462,14 +1463,26 @@ class IpactaInstance(service.Service):
             "generating server SSL certificate",
             self._certs._generate_server_cert,
         )
-        self.step(
-            "generating RA agent certificate",
-            self._certs._generate_ra_cert,
-        )
-        self.step(
-            "creating CA agent LDAP entry",
-            self._certs._create_ca_agent,
-        )
+        # A fresh install mints a new RA agent identity.  A promoted
+        # replica must reuse the master's RA agent key (imported via
+        # Custodia) so that all CA nodes authenticate as the same agent —
+        # ipacta only supports the promote-based replica flow, unlike
+        # Dogtag which also has a legacy non-promote PKCS#12-based clone
+        # path.
+        if not self.clone:
+            self.step(
+                "generating RA agent certificate",
+                self._certs._generate_ra_cert,
+            )
+            self.step(
+                "creating CA agent LDAP entry",
+                self._certs._create_ca_agent,
+            )
+        elif promote:
+            self.step(
+                "importing RA agent key from master",
+                self._import_ra_key,
+            )
         self.step(
             "verifying RA key accessibility for replicas",
             self._certs._verify_ra_key_custodia,
@@ -1519,6 +1532,25 @@ class IpactaInstance(service.Service):
         config = [] if self.clone else ['caRenewalMaster']
         self.ldap_configure('CA', self.fqdn, None, basedn, config)
 
+    def _import_ra_key(self):
+        """Import the RA agent key from the master via Custodia.
+
+        Called during replica promote so that the new node authenticates
+        as the same RA agent as the rest of the topology, instead of
+        minting its own independent identity (mirrors Dogtag's
+        ``__import_ra_key``/``import_ra_key()``).  Certmonger renewal
+        tracking for the imported key is set up later by the
+        unconditional "configuring RA agent certificate renewal" step
+        that runs for every install path.
+        """
+        if self._custodia is None:
+            raise RuntimeError(
+                "Custodia client required to import the RA agent key on "
+                "a replica"
+            )
+        self._custodia.import_ra_key()
+        cainstance.CAInstance._set_ra_cert_perms()
+
     def _import_replica_keys(self):
         """Import CA key material from the master's PKCS#12 into the NSSDB.
 
@@ -1528,7 +1560,15 @@ class IpactaInstance(service.Service):
         in the NSSDB and skip regeneration.
         """
         pkcs12_file = self.pkcs12_info[0]
-        if not pkcs12_file or not os.path.exists(pkcs12_file):
+        if pkcs12_file is None:
+            # HSM-backed CA: the key material lives on the shared token,
+            # not in a PKCS#12 file, so there is nothing to import here.
+            logger.info(
+                "HSM-backed CA key material is shared via the token; "
+                "skipping PKCS#12 import"
+            )
+            return
+        if not os.path.exists(pkcs12_file):
             raise RuntimeError(
                 f"Replica CA PKCS#12 file not found: {pkcs12_file}"
             )

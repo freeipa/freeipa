@@ -702,6 +702,7 @@ def install_step_0(standalone, replica_config, options, custodia):
             dm_password=dm_password,
             master_host=master_host,
             promote=promote,
+            custodia=custodia,
         )
 
         if replica_config is not None and replica_config.setup_ca:
