@@ -139,6 +139,24 @@ def dnssec_install_master(host):
     return host.run_command(args)
 
 
+def bad_softhsm_version(host):
+    """
+    Return true if the host has softhsm version 2.7.0-0.1.rc1
+    which fails dnssec related tests
+    """
+    platform = tasks.get_platform(host)
+    if platform in ("rhel", "fedora"):
+        cmd = host.run_command(
+            ["rpm", "-qa", "softhsm"]
+        )
+        get_package_version = cmd.stdout_text
+        if not get_package_version:
+            return False
+        if get_package_version.startswith("softhsm-2.7.0-0.1.rc1"):
+            return True
+    return False
+
+
 class TestInstallDNSSECLast(IntegrationTest):
     """Simple DNSSEC test
 
@@ -161,9 +179,11 @@ class TestInstallDNSSECLast(IntegrationTest):
         # add zone with enabled DNSSEC signing on master
         dnszone_add_dnssec(self.master, test_zone)
         # test master
-        assert wait_until_record_is_signed(
-            self.master.ip, test_zone, timeout=100
-        ), "Zone %s is not signed (master)" % test_zone
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
+            assert wait_until_record_is_signed(
+                self.master.ip, test_zone, timeout=100
+            ), "Zone %s is not signed (master)" % test_zone
 
         # test replica
         assert wait_until_record_is_signed(
@@ -174,9 +194,11 @@ class TestInstallDNSSECLast(IntegrationTest):
         # add zone with enabled DNSSEC signing on replica
         dnszone_add_dnssec(self.replicas[0], test_zone_repl)
         # test replica
-        assert wait_until_record_is_signed(
-            self.replicas[0].ip, test_zone_repl, timeout=300
-        ), "Zone %s is not signed (replica)" % test_zone_repl
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
+            assert wait_until_record_is_signed(
+                self.replicas[0].ip, test_zone_repl, timeout=300
+            ), "Zone %s is not signed (replica)" % test_zone_repl
 
         # we do not need to wait, on master zones should be singed faster
         # than on replicas
@@ -186,14 +208,19 @@ class TestInstallDNSSECLast(IntegrationTest):
         ), "DNS zone %s is not signed (master)" % test_zone
 
     def test_key_types(self):
-        assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone)
-        assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone)
-        assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone_repl)
-        assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone_repl)
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
+            assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone)
+            assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone)
+            assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone_repl)
+            assert dnskey_rec_with_ksk_and_zsk(
+                self.replicas[0].ip, test_zone_repl)
 
     def test_disable_reenable_signing_master(self):
-        dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
-                                         rtype="DNSKEY").rrset
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
+            dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
+                                             rtype="DNSKEY").rrset
 
         # disable DNSSEC signing of zone on master
         args = [
@@ -240,8 +267,11 @@ class TestInstallDNSSECLast(IntegrationTest):
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
 
     def test_disable_reenable_signing_replica(self):
-        dnskey_old = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
-                                         rtype="DNSKEY").rrset
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
+            dnskey_old = resolve_with_dnssec(self.replicas[0].ip,
+                                             test_zone_repl,
+                                             rtype="DNSKEY").rrset
 
         # disable DNSSEC signing of zone on replica
         args = [
@@ -347,10 +377,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
         ]
         self.master.run_command(args)
         # test master
-        softhsm_version = tasks.parse_version(
-            tasks.get_softhsm_version(self.master))
-        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             assert wait_until_record_is_signed(
                 self.master.ip, root_zone, timeout=100
             ), "Zone %s is not signed (master)" % root_zone
@@ -374,10 +402,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
         tasks.restart_named(self.master, self.replicas[0])
 
         # wait until zone is signed
-        softhsm_version = tasks.parse_version(
-            tasks.get_softhsm_version(self.master))
-        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             assert wait_until_record_is_signed(
                 self.master.ip, example_test_zone, timeout=100
             ), "Zone %s is not signed (master)" % example_test_zone
@@ -434,10 +460,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
         Validate signed DNS records, using our own signed root zone
         """
         # extract DSKEY from root zone
-        softhsm_version = tasks.parse_version(
-            tasks.get_softhsm_version(self.master))
-        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             ans = resolve_with_dnssec(self.master.ip, root_zone,
                                       rtype="DNSKEY")
         dnskey_rrset = ans.response.get_rrset(ans.response.answer,
@@ -499,10 +523,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
             )
 
         # extract DSKEY from root zone
-        softhsm_version = tasks.parse_version(
-            tasks.get_softhsm_version(self.master))
-        with xfail_context(softhsm_version >= tasks.parse_version('2.7.0'),
-                           'https://pagure.io/freeipa/issue/9920'):
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
             ans = resolve_with_dnssec(
                 self.master.ip, root_zone, rtype="DNSKEY"
             )
@@ -654,9 +676,11 @@ class TestMigrateDNSSECMaster(IntegrationTest):
         # add test zone
         dnszone_add_dnssec(self.master, example_test_zone)
         # wait until zone is signed
-        assert wait_until_record_is_signed(
-            self.master.ip, example_test_zone, timeout=100
-        ), "Zone %s is not signed (master)" % example_test_zone
+        with xfail_context(bad_softhsm_version(self.master),
+                           'https://codeberg.org/freeipa/freeipa/issues/9920'):
+            assert wait_until_record_is_signed(
+                self.master.ip, example_test_zone, timeout=100
+            ), "Zone %s is not signed (master)" % example_test_zone
         # wait until zone is signed
         assert wait_until_record_is_signed(
             self.replicas[0].ip, example_test_zone, timeout=200
