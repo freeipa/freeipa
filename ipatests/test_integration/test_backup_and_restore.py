@@ -34,9 +34,11 @@ from ipapython import ipautil
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
+from ipatests.test_integration.test_dnssec import bad_softhsm_version
 from ipatests.test_integration.test_simple_replication import check_replication
 from ipatests.test_integration.test_topology import find_segment
 from ipatests.util import assert_deepequal
+from ipatests.util import xfail_context
 from ldap.dn import escape_dn_chars
 
 logger = logging.getLogger(__name__)
@@ -404,10 +406,14 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
                 '--dnssec', 'true',
             ])
 
-            assert (
-                wait_until_record_is_signed(
-                    self.master.ip, self.example_test_zone)
-            ), "Zone is not signed"
+            with xfail_context(
+                bad_softhsm_version(self.master),
+                'https://codeberg.org/freeipa/freeipa/issues/9920'
+            ):
+                assert (
+                    wait_until_record_is_signed(
+                        self.master.ip, self.example_test_zone)
+                ), "Zone is not signed"
 
             backup_path = tasks.get_backup_dir(self.master)
 
