@@ -37,3 +37,4 @@ FreeIPA design documentation
    audit-ipa-api.md
    sysaccounts.md
    namespace.md
+   krb-s4u-x509-assertion.md

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from ipalib import api, errors, output, _
 from ipalib import Int, Str
 from . import baseldap
@@ -75,7 +77,15 @@ _default_values = {
 # These attributes never have non-optional values, so they should be
 # ignored in post callbacks
 _option_based_attrs = ('krbauthindmaxticketlife', 'krbauthindmaxrenewableage')
-_supported_options = ('otp', 'radius', 'pkinit', 'hardened', 'idp', 'passkey')
+_supported_options = ('otp', 'radius', 'pkinit', 'hardened', 'idp', 'passkey',
+                      'ssh-authn', 'oidc-authn')
+
+# Valid method/detail in a per-method S4U2Self indicator (after ":").
+# Encoded in LDAP as the part after "--" in the attribute option, e.g.
+# krbAuthIndMaxTicketLife;ssh-authn--publickey -> method "publickey".
+# Accepts lowercase letters, digits, and hyphens; must start with a
+# letter or digit.
+_S4U_METHOD_RE = re.compile(r'^[a-z0-9][a-z0-9-]*$')
 
 @register()
 class krbtpolicy(baseldap.LDAPObject):
@@ -209,6 +219,30 @@ class krbtpolicy(baseldap.LDAPObject):
             label=_('Passkey max renew'),
             doc=_('Passkey ticket maximum renewable age (seconds)'),
             minvalue=1),
+        Int('krbauthindmaxticketlife_ssh_authn?',
+            cli_name='ssh_authn_maxlife',
+            label=_('SSH attestation max life'),
+            doc=_('SSH S4U2Self attestation ticket maximum ticket life'
+                  ' (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_ssh_authn?',
+            cli_name='ssh_authn_maxrenew',
+            label=_('SSH attestation max renew'),
+            doc=_('SSH S4U2Self attestation ticket maximum renewable age'
+                  ' (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxticketlife_oidc_authn?',
+            cli_name='oidc_authn_maxlife',
+            label=_('OIDC attestation max life'),
+            doc=_('OIDC S4U2Self attestation ticket maximum ticket life'
+                  ' (seconds)'),
+            minvalue=1),
+        Int('krbauthindmaxrenewableage_oidc_authn?',
+            cli_name='oidc_authn_maxrenew',
+            label=_('OIDC attestation max renew'),
+            doc=_('OIDC S4U2Self attestation ticket maximum renewable age'
+                  ' (seconds)'),
+            minvalue=1),
     )
 
     def get_dn(self, *keys, **kwargs):
@@ -225,17 +259,53 @@ def rename_authind_options_from_ldap(entry_attrs, options):
         for attr in _option_based_attrs:
             name = '{};{}'.format(attr, subtype)
             if name in entry_attrs:
-                new_name = '{}_{}'.format(attr, subtype)
+                # Python names use underscores; LDAP options use hyphens.
+                new_name = '{}_{}'.format(attr, subtype.replace('-', '_'))
                 entry_attrs[new_name] = entry_attrs.pop(name)
+
+    # Per-method S4U2Self options: krbAuthIndMaxTicketLife;{svc}-authn--{m}
+    # "--" encodes ":" (invalid in LDAP options per RFC 4512).
+    # Decode: "ssh-authn--publickey" -> Python "ssh_authn__publickey"
+    # (replace('-', '_') maps '--' -> '__', preserving the double marker).
+    for name in list(entry_attrs):
+        for attr in _option_based_attrs:
+            if name.startswith(attr + ';'):
+                subtype = name[len(attr) + 1:]
+                if '--' in subtype:
+                    sep = subtype.index('--')
+                    method = subtype[sep + 2:]
+                    if _S4U_METHOD_RE.match(method):
+                        new_name = '{}_{}'.format(
+                            attr, subtype.replace('-', '_'))
+                        entry_attrs[new_name] = entry_attrs.pop(name)
+                    break
 
 
 def rename_authind_options_to_ldap(entry_attrs):
     for subtype in _supported_options:
         for attr in _option_based_attrs:
-            name = '{}_{}'.format(attr, subtype)
+            # Python names use underscores; LDAP options use hyphens.
+            name = '{}_{}'.format(attr, subtype.replace('-', '_'))
             if name in entry_attrs:
                 new_name = '{};{}'.format(attr, subtype)
                 entry_attrs[new_name] = entry_attrs.pop(name)
+
+    # Per-method S4U2Self options: Python suffix "ssh_authn__publickey"
+    # "__" marks the encoded ":" separator.
+    # Encode: "ssh_authn__publickey" -> LDAP option "ssh-authn--publickey"
+    # (replace('_', '-') maps '__' -> '--', restoring the LDAP encoding).
+    for name in list(entry_attrs):
+        for attr in _option_based_attrs:
+            if name.startswith(attr + '_'):
+                suffix = name[len(attr) + 1:]
+                if '__' in suffix:
+                    ldap_suffix = suffix.replace('_', '-')
+                    sep = ldap_suffix.index('--')
+                    method = ldap_suffix[sep + 2:]
+                    if _S4U_METHOD_RE.match(method):
+                        new_name = '{};{}'.format(attr, ldap_suffix)
+                        entry_attrs[new_name] = entry_attrs.pop(name)
+                    break
 
 
 @register()
@@ -337,7 +407,9 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
         else:
             def_values = _default_values.copy()
 
-        entry = ldap.get_entry(dn, list(def_values))
+        # Fetch with base attr names so per-method subtypes are included
+        fetch_attrs = list(def_values) + list(_option_based_attrs)
+        entry = ldap.get_entry(dn, fetch_attrs)
 
         # For per-indicator policies, drop them to defaults
         for subtype in _supported_options:
@@ -348,6 +420,18 @@ class krbtpolicy_reset(baseldap.LDAPQuery):
                         def_values[name] = None
                     else:
                         def_values[name] = _default_values[attr]
+
+        # For per-method S4U2Self policies (attr;svc-authn--method), reset
+        for key in list(entry.keys()):
+            for attr in _option_based_attrs:
+                if key.startswith(attr + ';'):
+                    option = key[len(attr) + 1:]
+                    if '--' in option:
+                        if uid is not None:
+                            def_values[key] = None
+                        else:
+                            def_values[key] = _default_values[attr]
+                        break
 
         # Remove non-subtyped attrs variants,
         # they should never be used directly.

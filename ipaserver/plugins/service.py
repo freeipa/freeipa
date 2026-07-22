@@ -20,12 +20,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import re
 
 from cryptography.hazmat.primitives import hashes
 import six
 
 from ipalib import api, errors, messages
-from ipalib import StrEnum, Bool, Str, Flag
+from ipalib import StrEnum, Bool, Bytes, Str, Flag
 from ipalib.parameters import Principal, Certificate
 from ipalib.plugable import Registry
 from .baseldap import (
@@ -236,6 +237,35 @@ def validate_auth_indicator(entry):
         )
 
 
+# Fixed AS-REQ authentication indicators accepted by krbprincipalauthind.
+_AUTH_IND_FIXED = frozenset({
+    u'radius', u'otp', u'pkinit', u'hardened', u'idp', u'passkey',
+})
+
+# S4U2Self protocol-transition indicators: <service>-authn:<detail>
+#   <service> — lowercase letter then letters/digits (e.g. "ssh", "oidc", "pam")
+#   <detail>  — lowercase letter then letters/digits/hyphens
+#               (e.g. "publickey", "pwd", "mfa", "keyboard-interactive")
+_AUTH_IND_S4U_RE = re.compile(r'^[a-z][a-z0-9]*-authn:[a-z0-9][a-z0-9-]*$')
+
+
+def validate_auth_indicator_value(_, value):
+    """
+    Validate a single krbprincipalauthind value.
+
+    Accepts the fixed AS-REQ indicators (radius, otp, pkinit, hardened, idp,
+    passkey) and S4U2Self protocol-transition indicators of the form
+    '<service>-authn:<detail>' (e.g. 'ssh-authn:publickey', 'oidc-authn:mfa').
+    """
+    if value in _AUTH_IND_FIXED or _AUTH_IND_S4U_RE.match(value):
+        return None
+    return _("must be one of %(fixed)s, or match "
+             "'<service>-authn:<detail>' for S4U2Self attestation "
+             "(e.g. 'ssh-authn:publickey', 'oidc-authn:mfa')") % {
+        'fixed': ', '.join("'%s'" % v for v in sorted(_AUTH_IND_FIXED)),
+    }
+
+
 def normalize_principal(value):
     """
     Ensure that the name in the principal is lower-case. The realm is
@@ -408,13 +438,14 @@ class service(LDAPObject):
         'ipaservice', 'pkiuser'
     ]
     possible_objectclasses = ['ipakrbprincipal', 'ipaallowedoperations',
-                              'resourcedelegation']
+                              'resourcedelegation', 'ipakrbserviceattestation']
     permission_filter_objectclasses = ['ipaservice']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = [
         'krbprincipalname', 'krbcanonicalname', 'usercertificate', 'managedby',
         'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform',
-        'krbprincipalauthind', 'memberprincipal']
+        'krbprincipalauthind', 'memberprincipal',
+        'ipakrbserviceattestationkey', 'ipakrbserviceattestationtype']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
@@ -446,6 +477,7 @@ class service(LDAPObject):
                 'krbprincipalexpiration', 'krbpasswordexpiration',
                 'krblastpwdchange', 'ipakrbauthzdata', 'ipakrbprincipalalias',
                 'krbobjectreferences', 'krbprincipalauthind', 'memberprincipal',
+                'ipakrbserviceattestationkey', 'ipakrbserviceattestationtype',
             },
         },
         'System: Add Services': {
@@ -517,7 +549,15 @@ class service(LDAPObject):
             'ipapermdefaultattr': {'memberPrincipal', 'objectclass'},
             'default_privileges': {'Service Administrators',
                                    'Host Administrators'},
-        }
+        },
+        'System: Manage Service Attestation Keys': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipaKrbServiceAttestationKey',
+                                   'ipaKrbServiceAttestationType',
+                                   'objectclass'},
+            'default_privileges': {'Service Administrators',
+                                   'Host Administrators'},
+        },
     }
 
     label = _('Services')
@@ -594,6 +634,19 @@ class service(LDAPObject):
             label=_('Revocation reason'),
             flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
+        Bytes('ipakrbserviceattestationkey*',
+              label=_('Attestation public key'),
+              doc=_('DER-encoded SubjectPublicKeyInfo for S4U2Self '
+                    'attestation'),
+              flags=['no_search'],
+              ),
+        Str('ipakrbserviceattestationtype*',
+            cli_name='attestation_type',
+            label=_('Attestation service type'),
+            doc=_('Service type allowed for S4U2Self attestation '
+                  '(e.g. oidc, radius, pam)'),
+            flags=['no_search'],
+            ),
         StrEnum('ipakrbauthzdata*',
             cli_name='pac_type',
             label=_('PAC type'),
@@ -602,8 +655,9 @@ class service(LDAPObject):
                   " e.g. this might be necessary for NFS services."),
             values=(u'MS-PAC', u'PAD', u'NONE'),
         ),
-        StrEnum(
+        Str(
             'krbprincipalauthind*',
+            validate_auth_indicator_value,
             cli_name='auth_ind',
             label=_('Authentication Indicators'),
             doc=_("Defines an allow list for Authentication Indicators."
@@ -616,10 +670,11 @@ class service(LDAPObject):
                   " Identity Provider supporting OAuth 2.0 Device"
                   " Authorization Flow (RFC 8628)."
                   " Use 'passkey' to allow passkey-based 2FA authentications."
+                  " Use '<service>-authn:<detail>' to allow S4U2Self"
+                  " attestation indicators"
+                  " (e.g. 'ssh-authn:publickey', 'oidc-authn:mfa')."
                   " With no indicator specified,"
                   " all authentication mechanisms are allowed."),
-            values=(u'radius', u'otp', u'pkinit', u'hardened', u'idp',
-                    u'passkey'),
         ),
     ) + ticket_flags_params
 
@@ -1217,6 +1272,48 @@ class service_remove_cert(LDAPRemoveAttributeViaOption):
                 service=keys)['result'])
 
         return dn
+
+
+@register()
+class service_add_attestation_key(LDAPAddAttributeViaOption):
+    __doc__ = _('Register a service attestation public key for '
+                'S4U2Self attestation')
+    msg_summary = _('Added attestation key to service principal "%(value)s"')
+    attribute = 'ipakrbserviceattestationkey'
+
+    takes_options = (
+        Str(
+            'service_type',
+            cli_name='type',
+            label=_('Service type'),
+            doc=_('Service type for attestation (e.g. oidc, radius, pam)'),
+        ),
+    )
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        assert isinstance(dn, DN)
+        add_missing_object_class(ldap, 'ipakrbserviceattestation', dn)
+        service_type = options.get('service_type')
+        if service_type:
+            try:
+                entry = ldap.get_entry(dn, ['ipakrbserviceattestationtype'])
+                existing = entry.get('ipakrbserviceattestationtype', [])
+                if service_type not in existing:
+                    existing.append(service_type)
+                    entry['ipakrbserviceattestationtype'] = existing
+                    ldap.update_entry(entry)
+            except errors.NotFound:
+                pass
+        return dn
+
+
+@register()
+class service_remove_attestation_key(LDAPRemoveAttributeViaOption):
+    __doc__ = _('Remove a service attestation public key')
+    msg_summary = _('Removed attestation key from service principal '
+                    '"%(value)s"')
+    attribute = 'ipakrbserviceattestationkey'
 
 
 @register()
