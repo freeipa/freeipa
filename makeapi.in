@@ -23,6 +23,9 @@
 # Test the API against a known-good API to ensure that changes aren't made
 # lightly.
 
+# ipalib.cli and ipalib.docformat import each other lazily (inside functions)
+# to avoid a runtime circular import.  Pylint sees this as a cycle.
+# pylint: disable=cyclic-import
 from __future__ import print_function
 
 import locale
@@ -681,6 +684,72 @@ def validate_api_reference():
 
     return rval
 
+
+def make_reference(validate_only=False):
+    """
+    Generate RST reference documentation in doc/reference/ via
+    :mod:`ipalib.docformat`.
+
+    Two kinds of file are produced:
+
+    * ``doc/reference/index.rst``      — all-topics overview
+    * ``doc/reference/<topic>.rst``    — per-topic page with command table
+                                         and per-command body sections
+    """
+    import io
+    from ipalib import docformat
+    from ipalib.cli import to_cli
+
+    xref_commands, _by_topic = docformat.build_xref(api)
+
+    ref = {}  # output path -> file content
+
+    # ── doc/reference/index.rst ───────────────────────────────────────────────
+    out = io.StringIO()
+    docformat.rst_all_topics(api, out)
+    ref['doc/reference/index.rst'] = out.getvalue()
+
+    # ── doc/reference/<topic>.rst ─────────────────────────────────────────────
+    topics = set()
+    for _api_name, cmd in docformat.all_canonical_commands(api):
+        if cmd.topic:
+            topics.add(cmd.topic)
+
+    for topic in sorted(topics):
+        out = io.StringIO()
+        if docformat.rst_topic(api, topic, out, xref_commands):
+            ref['doc/reference/{}.rst'.format(to_cli(topic))] = out.getvalue()
+
+    if validate_only:
+        return ref
+
+    os.makedirs('doc/reference', exist_ok=True)
+    for path, content in ref.items():
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
+    return 0
+
+
+def validate_reference():
+    """
+    Validate doc/reference/ files against the current API.
+
+    Unlike validate_api_reference(), the reference files contain no user
+    notes (no ``//end)`` marker), so the full file content is compared.
+    """
+    ref = make_reference(validate_only=True)
+    rval = 0
+    for path, content in ref.items():
+        try:
+            with open(path, encoding='utf-8') as f:
+                if f.read() != content:
+                    rval = 1
+                    print("Reference difference found in:", path)
+        except FileNotFoundError:
+            rval = 1
+            print("File not found:", path)
+    return rval
+
 def main():
     if platform.system() == "Linux":
         locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -714,11 +783,14 @@ def main():
         else:
             rval |= validate_api()
             rval |= validate_api_reference()
+            rval |= validate_reference()
     else:
         print("Writing API to API.txt")
         rval |= make_api()
         print("Creating API Reference")
         rval |= make_api_reference()
+        print("Creating command reference")
+        rval |= make_reference()
 
     if rval & API_FILE_DIFFERENCE:
         print('')
