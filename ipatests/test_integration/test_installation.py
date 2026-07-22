@@ -690,9 +690,14 @@ class TestADTrustInstallWithDNS_KRA_ADTrust(ADTrustInstallTestBase):
         self.install_replica(self.replicas[1], setup_ca=True, setup_kra=True)
 
 
-def get_pki_tomcatd_pid(host):
+def get_ca_service_pid(host):
+    ca_backend = tasks.get_ca_backend(host)
+    if ca_backend == 'ipacta':
+        svc = 'ipacta'
+    else:
+        svc = 'pki-tomcatd@pki-tomcat'
     pid = ''
-    cmd = host.run_command(['systemctl', 'status', 'pki-tomcatd@pki-tomcat'])
+    cmd = host.run_command(['systemctl', 'status', svc])
     for line in cmd.stdout_text.split('\n'):
         if "Main PID" in line:
             pid = line.split()[2]
@@ -701,9 +706,14 @@ def get_pki_tomcatd_pid(host):
 
 
 def get_ipa_services_pids(host):
+    ca_backend = tasks.get_ca_backend(host)
+    if ca_backend == 'ipacta':
+        ca_svc = 'ipacta'
+    else:
+        ca_svc = 'pki_tomcatd'
     ipa_services_name = [
         "krb5kdc", "kadmin", "named", "httpd", "ipa-custodia",
-        "pki_tomcatd"
+        ca_svc
     ]
     pids_of_ipa_services = {}
     for name in ipa_services_name:
@@ -785,31 +795,37 @@ class TestInstallMaster(IntegrationTest):
         )
 
     def test_ipactl_restart_pki_tomcat(self):
-        """ Test if ipactl restart restarts the pki-tomcatd
+        """ Test if ipactl restart restarts the CA service
 
         Wrong logic was triggering the start instead of restart
         for pki-tomcatd. This test validates that restart
-        called on pki-tomcat properly.
+        called on the CA service properly.
 
         related ticket : https://codeberg.org/freeipa/freeipa/issues/7927
         """
-        # get process id of pki-tomcatd
-        pki_pid = get_pki_tomcatd_pid(self.master)
+        ca_backend = tasks.get_ca_backend(self.master)
+        if ca_backend == 'ipacta':
+            ca_svc_label = "ipacta"
+        else:
+            ca_svc_label = "pki-tomcatd"
 
-        # check if pki-tomcad restarted
+        # get process id of CA service
+        pki_pid = get_ca_service_pid(self.master)
+
+        # check if CA service restarted
         cmd = self.master.run_command(['ipactl', 'restart'])
-        assert "Restarting pki-tomcatd Service" in cmd.stdout_text
+        assert f"Restarting {ca_svc_label} Service" in cmd.stdout_text
 
-        # check if pid for pki-tomcad changed
-        pki_pid_after_restart = get_pki_tomcatd_pid(self.master)
+        # check if pid for CA service changed
+        pki_pid_after_restart = get_ca_service_pid(self.master)
         assert pki_pid != pki_pid_after_restart
 
-        # check if pki-tomcad restarted
+        # check if CA service restarted
         cmd = self.master.run_command(['ipactl', 'restart'])
-        assert "Restarting pki-tomcatd Service" in cmd.stdout_text
+        assert f"Restarting {ca_svc_label} Service" in cmd.stdout_text
 
-        # check if pid for pki-tomcad changed
-        pki_pid_after_restart_2 = get_pki_tomcatd_pid(self.master)
+        # check if pid for CA service changed
+        pki_pid_after_restart_2 = get_ca_service_pid(self.master)
         assert pki_pid_after_restart != pki_pid_after_restart_2
 
     def test_ipactl_scenario_check(self):
@@ -821,9 +837,11 @@ class TestInstallMaster(IntegrationTest):
         other hand in case of restart it will change.
         """
         # listing all services
+        ca_backend = tasks.get_ca_backend(self.master)
+        ca_svc_label = "ipacta" if ca_backend == 'ipacta' else "pki-tomcatd"
         ipa_services_name = [
             "Directory", "krb5kdc", "kadmin", "named", "httpd", "ipa-custodia",
-            "pki-tomcatd", "ipa-otpd", "ipa-dnskeysyncd"
+            ca_svc_label, "ipa-otpd", "ipa-dnskeysyncd"
         ]
 
         # checking the service status
@@ -1230,6 +1248,8 @@ class TestInstallMaster(IntegrationTest):
 
         try:
             cmd = ['ipa-server-install', '--hostname', new_hostname]
+            if self.master.config.ca_backend == 'ipacta':
+                cmd.append('--internal-ca')
             with self.master.spawn_expect(cmd, default_timeout=100) as e:
                 e.expect_exact('Do you want to configure integrated '
                                'DNS (BIND)? [no]: ')
@@ -1291,6 +1311,10 @@ class TestInstallMaster(IntegrationTest):
             if reinstall:
                 tasks.install_packages(self.master, [package_name])
 
+    @pytest.mark.skipif(
+        config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_backup_of_cs_cfg_is_created(self, server_cleanup):
         """
         Test that the installer backs up CS.cfg configuration before it's
@@ -1451,6 +1475,8 @@ class TestInstallMasterDNS(IntegrationTest):
         https://codeberg.org/freeipa/freeipa/issues/2575
         """
         cmd = ['ipa-server-install']
+        if self.master.config.ca_backend == 'ipacta':
+            cmd.append('--internal-ca')
         netbios = create_netbios_name(self.master)
         with self.master.spawn_expect(cmd, default_timeout=100) as e:
             e.expect_exact('Do you want to configure integrated '
@@ -1570,6 +1596,10 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
         assert exp_str in cmd.stdout_text
 
 
+@pytest.mark.skipif(
+    config.ca_backend == 'ipacta',
+    reason="Test uses Dogtag admin PKCS#12 which does not exist with ipacta"
+)
 class TestKRAinstallAfterCertRenew(IntegrationTest):
     """ Test KRA installtion after ca agent cert renewal
 
@@ -2044,6 +2074,10 @@ class TestInstallwithSHA384withRSA(IntegrationTest):
         result = self.master.run_command(cmd_args)
         assert 'SHA-384 With RSA Encryption' in result.stdout_text
 
+    @pytest.mark.skipif(
+        config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_install_master_modify_existing(self, server_cleanup):
         """
         Setup a master
@@ -2095,7 +2129,7 @@ class TestHostnameValidator(IntegrationTest):
     num_replicas = 0
 
     def get_args(self, host):
-        return [
+        args = [
             'ipa-server-install',
             '-n', host.domain.name,
             '-r', host.domain.realm,
@@ -2107,6 +2141,9 @@ class TestHostnameValidator(IntegrationTest):
             '--allow-zone-overlap',
             '--netbios-name', 'EXAMPLE',
         ]
+        if host.config.ca_backend == 'ipacta':
+            args.append('--internal-ca')
+        return args
 
     def test_user_input_hostname(self):
         # https://codeberg.org/freeipa/freeipa/issues/9111

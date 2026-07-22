@@ -42,6 +42,7 @@ class IntegrationTest:
     fips_mode = None
     random_serial = False
     token_password = None
+    ca_backend = None
 
     @classmethod
     def host_by_role(cls, role):
@@ -89,13 +90,17 @@ class IntegrationTest:
         if cls.topology is None:
             return
         else:
+            ca_backend = cls.ca_backend
+            if ca_backend is None:
+                ca_backend = cls.master.config.ca_backend
             if cls.token_password:
                 extra_args.extend(('--token-password', cls.token_password,))
             tasks.install_topo(cls.topology,
                                cls.master, cls.replicas,
                                cls.clients, domain_level,
                                random_serial=cls.random_serial,
-                               extra_args=extra_args,)
+                               extra_args=extra_args,
+                               ca_backend=ca_backend,)
 
     @classmethod
     def uninstall(cls, mh):

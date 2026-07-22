@@ -126,6 +126,8 @@ class BaseConstantsNamespace:
     NAMED_OPENSSL_PROVIDER = None
     NAMED_ZONE_COMMENT = ""
     NOBODY_GROUP = Group("nobody")
+    IPACA_USER = User("ipaca")
+    IPACA_GROUP = Group("ipaca")
     PKI_USER = User("pkiuser")
     PKI_GROUP = Group("pkiuser")
     # ntpd init variable used for daemon options
