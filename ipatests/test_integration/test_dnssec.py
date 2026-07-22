@@ -157,6 +157,9 @@ class TestInstallDNSSECLast(IntegrationTest):
         """Both master and replica have DNS installed"""
         dnssec_install_master(self.master)
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_if_zone_is_signed_master(self):
         # add zone with enabled DNSSEC signing on master
         dnszone_add_dnssec(self.master, test_zone)
@@ -170,6 +173,9 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.replicas[0].ip, test_zone, timeout=200
         ), "DNS zone %s is not signed (replica)" % test_zone
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_if_zone_is_signed_replica(self):
         # add zone with enabled DNSSEC signing on replica
         dnszone_add_dnssec(self.replicas[0], test_zone_repl)
@@ -185,12 +191,18 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.master.ip, test_zone_repl, timeout=5
         ), "DNS zone %s is not signed (master)" % test_zone
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_key_types(self):
         assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone)
         assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone)
         assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone_repl)
         assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone_repl)
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_disable_reenable_signing_master(self):
         dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
                                          rtype="DNSKEY").rrset
@@ -239,6 +251,9 @@ class TestInstallDNSSECLast(IntegrationTest):
                                          rtype="DNSKEY").rrset
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_disable_reenable_signing_replica(self):
         dnskey_old = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
                                          rtype="DNSKEY").rrset
@@ -647,6 +662,9 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             tasks.uninstall_master(replica)
         tasks.uninstall_master(dnssec_master)
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_migrate_dnssec_master(self):
         """Both master and replica have DNS installed"""
         backup_filename = "/var/lib/ipa/ipa-kasp.db.backup"
