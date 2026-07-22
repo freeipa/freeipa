@@ -201,6 +201,8 @@ class TestServerDel(ServerDelBase):
 
         # reinstall the replica
         tasks.uninstall_master(self.replica1)
+        tasks.kinit_admin(self.master)
+        tasks.add_a_record(self.master, self.replica1)
         tasks.install_replica(self.master, self.replica1, setup_ca=True)
 
     def test_ignore_topology_disconnect_replica2(self):
@@ -216,6 +218,8 @@ class TestServerDel(ServerDelBase):
 
         # reinstall the replica
         tasks.uninstall_master(self.replica2, verbose=True)
+        tasks.kinit_admin(self.master)
+        tasks.add_a_record(self.master, self.replica2)
         tasks.install_replica(self.master, self.replica2, setup_ca=True)
 
     def test_removal_of_master_disconnects_both_topologies(self):
