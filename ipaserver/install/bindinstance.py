@@ -794,7 +794,7 @@ class BindInstance(service.Service):
         self.step("setting up server configuration",
             self.__setup_server_configuration)
 
-        # named has to be started after softhsm initialization
+        # named has to be started after PKCS#11 token initialization
         # self.step("restarting named", self.__start)
 
         self.step("configuring named to start on boot", self.switch_service)

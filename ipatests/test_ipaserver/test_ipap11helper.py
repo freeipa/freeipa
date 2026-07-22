@@ -13,7 +13,6 @@ from binascii import hexlify
 import os
 import os.path
 import logging
-import subprocess
 import tempfile
 
 import pytest
@@ -23,14 +22,14 @@ from ipaserver import p11helper as _ipap11helper
 
 pytestmark = pytest.mark.tier0
 
-CONFIG_DATA = """
-# SoftHSM v2 configuration file
-directories.tokendir = %s/tokens
-objectstore.backend = file
+CONFIG_DATA = """# Kryoptic PKCS#11 configuration
+[[slots]]
+slot = 1
+dbtype = "sqlite"
+dbargs = "%s/tokens/kryoptic.sql"
 """
 
-LIBSOFTHSM = paths.LIBSOFTHSM2_SO
-SOFTHSM2_UTIL = paths.SOFTHSM2_UTIL
+LIBKRYOPTIC = paths.LIBKRYOPTIC_SO
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('t')
@@ -57,20 +56,15 @@ def token_path():
 
 @pytest.fixture(scope="module")
 def p11(request, token_path):
-    with open(os.path.join(token_path, 'softhsm2.conf'), 'w') as cfg:
+    conf_path = os.path.join(token_path, 'kryoptic.conf')
+    with open(conf_path, 'w') as cfg:
         cfg.write(CONFIG_DATA % token_path)
 
-    args = [
-        SOFTHSM2_UTIL, '--init-token', '--free',
-        '--label', 'test',
-        '--pin', '1234',
-        '--so-pin', '1234'
-    ]
-    os.environ['SOFTHSM2_CONF'] = os.path.join(token_path, 'softhsm2.conf')
-    subprocess.check_call(args, cwd=token_path)
+    os.environ['KRYOPTIC_CONF'] = conf_path
+    _ipap11helper.init_token(LIBKRYOPTIC, 'test', '1234', '1234')
 
     try:
-        p11 = _ipap11helper.P11_Helper('test', "1234", LIBSOFTHSM)
+        p11 = _ipap11helper.P11_Helper('test', "1234", LIBKRYOPTIC)
     except _ipap11helper.Error:
         pytest.fail('Failed to initialize the helper object.', pytrace=False)
 
@@ -80,11 +74,7 @@ def p11(request, token_path):
         except _ipap11helper.Error:
             pytest.fail('Failed to finalize the helper object.', pytrace=False)
         finally:
-            subprocess.call(
-                [SOFTHSM2_UTIL, '--delete-token', '--label', 'test'],
-                cwd=token_path
-            )
-            os.environ.pop('SOFTHSM2_CONF', None)
+            os.environ.pop('KRYOPTIC_CONF', None)
 
     request.addfinalizer(fin)
 
