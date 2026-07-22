@@ -897,6 +897,19 @@ class BindInstance(service.Service):
         else:
             crypto_policy = "// not available"
 
+        try:
+            result = ipautil.run(["named", "-v"], capture_output=True)
+            named_version = tasks.parse_ipa_version(
+                result.output.split()[1]
+            )
+        except Exception:
+            named_version = None
+
+        if named_version and named_version >= tasks.parse_ipa_version("9.20"):
+            delegation_only_category = ""
+        else:
+            delegation_only_category = "category delegation-only { named; };"
+
         if self.dns_over_tls:
             named_tls_conf = textwrap.dedent("""\
                 tls local-tls {{
@@ -931,6 +944,7 @@ class BindInstance(service.Service):
             NAMED_CUSTOM_CONF=paths.NAMED_CUSTOM_CONF,
             NAMED_CUSTOM_OPTIONS_CONF=paths.NAMED_CUSTOM_OPTIONS_CONF,
             NAMED_LOGGING_OPTIONS_CONF=paths.NAMED_LOGGING_OPTIONS_CONF,
+            NAMED_DELEGATION_ONLY_CATEGORY=delegation_only_category,
             NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
             NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
             NAMED_DNSSEC_VALIDATION=self._get_dnssec_validation(),
@@ -1202,7 +1216,9 @@ class BindInstance(service.Service):
 
     def __generate_rndc_key(self):
         installutils.check_entropy()
-        ipautil.run([paths.GENERATE_RNDC_KEY])
+        ipautil.run([
+            paths.SYSTEMCTL, "start", "named-setup-rndc.service"
+        ])
 
     def add_master_dns_records(self, fqdn, ip_addresses, realm_name, domain_name,
                                reverse_zones):

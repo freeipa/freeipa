@@ -157,6 +157,9 @@ class TestInstallDNSSECLast(IntegrationTest):
         """Both master and replica have DNS installed"""
         dnssec_install_master(self.master)
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_if_zone_is_signed_master(self):
         # add zone with enabled DNSSEC signing on master
         dnszone_add_dnssec(self.master, test_zone)
@@ -170,6 +173,9 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.replicas[0].ip, test_zone, timeout=200
         ), "DNS zone %s is not signed (replica)" % test_zone
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_if_zone_is_signed_replica(self):
         # add zone with enabled DNSSEC signing on replica
         dnszone_add_dnssec(self.replicas[0], test_zone_repl)
@@ -185,12 +191,18 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.master.ip, test_zone_repl, timeout=5
         ), "DNS zone %s is not signed (master)" % test_zone
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_key_types(self):
         assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone)
         assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone)
         assert dnskey_rec_with_ksk_and_zsk(self.master.ip, test_zone_repl)
         assert dnskey_rec_with_ksk_and_zsk(self.replicas[0].ip, test_zone_repl)
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_disable_reenable_signing_master(self):
         dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
                                          rtype="DNSKEY").rrset
@@ -239,6 +251,9 @@ class TestInstallDNSSECLast(IntegrationTest):
                                          rtype="DNSKEY").rrset
         assert dnskey_old != dnskey_new, "DNSKEY should be different"
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_disable_reenable_signing_replica(self):
         dnskey_old = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
                                          rtype="DNSKEY").rrset
@@ -486,16 +501,18 @@ class TestInstallDNSSECFirst(IntegrationTest):
         """
         INITIAL_KEY_FMT = '%s initial-key %d %d %d "%s";'
 
-        # delv reports its version on stderr
-        delv_version = self.master.run_command(
-            ["delv", "-v"]
-        ).stderr_text.rstrip().replace("delv ", "")
-        assert delv_version
+        # delv reports its version on stderr when version < 9.20, and
+        # on stdout otherwise. Parse BIND version instead, as it should match.
+        # example output: BIND 9.18.48 (Extended Support Version) <id:>
+        named_version = self.master.run_command(
+            ["named", "-v"]
+        ).stdout_text.split()[1]
+        assert named_version
 
-        delv_version_parsed = platform_tasks.parse_ipa_version(delv_version)
-        if delv_version_parsed < platform_tasks.parse_ipa_version("9.16"):
+        named_version_parsed = platform_tasks.parse_ipa_version(named_version)
+        if named_version_parsed < platform_tasks.parse_ipa_version("9.16"):
             pytest.skip(
-                f"Requires delv >= 9.16(+yaml), installed: '{delv_version}'"
+                f"Requires delv >= 9.16(+yaml), installed: '{named_version}'"
             )
 
         # extract DSKEY from root zone
@@ -558,7 +575,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "SOA",
         ]
 
-        # delv puts trace info on stderr
         for host in [self.master, self.replicas[0]]:
             result = host.run_command(args)
             yaml_data = yaml.safe_load(result.stdout_text)
@@ -646,6 +662,9 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             tasks.uninstall_master(replica)
         tasks.uninstall_master(dnssec_master)
 
+    @pytest.mark.xfail(
+        reason='https://codeberg.org/freeipa/freeipa/issues/9920',
+        strict=True)
     def test_migrate_dnssec_master(self):
         """Both master and replica have DNS installed"""
         backup_filename = "/var/lib/ipa/ipa-kasp.db.backup"
