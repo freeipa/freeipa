@@ -1603,6 +1603,17 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
 fi
 
 %triggerin client -- openssh-server < 8.2
+
+# Check for sentinel file to disable trigger (RHEL-210657)
+if [ -f "/etc/ipa/no-ssh-trigger" ]; then
+    exit 0
+fi
+
+# Check if IPA manages SSH (RHEL-210657)
+if [ ! -d "/var/lib/ipa-client/sysrestore/sshd" ]; then
+    exit 0
+fi
+
 # Has the client been configured?
 restore=0
 test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
@@ -1639,6 +1650,17 @@ fi
 
 
 %triggerin client -- openssh-server >= 8.2
+
+# Check for sentinel file to disable trigger (RHEL-210657)
+if [ -f "/etc/ipa/no-ssh-trigger" ]; then
+    exit 0
+fi
+
+# Check if IPA manages SSH (RHEL-210657)
+if [ ! -d "/var/lib/ipa-client/sysrestore/sshd" ]; then
+    exit 0
+fi
+
 # Has the client been configured?
 restore=0
 test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
