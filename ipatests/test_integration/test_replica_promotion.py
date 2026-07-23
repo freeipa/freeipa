@@ -12,6 +12,7 @@ import textwrap
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
+from ipatests.test_integration.test_caless import CALessBase
 from ipatests.test_integration.test_ipahealthcheck import (
     run_healthcheck, set_excludes, HEALTHCHECK_PKG
 )
@@ -1459,3 +1460,140 @@ class TestReplicaPromotionRandomPassword(IntegrationTest):
             '--role', 'CA server'
         ])
         assert 'Role status: enabled' in result.stdout_text
+
+
+class TestCAInstallAfterExternalCertInstall(CALessBase):
+    """
+    Test for RHEL-141365: Replica CA installation fails when master uses
+    externally-signed HTTP/LDAP certificates.
+
+    When a server has externally-signed HTTP and LDAP certificates and
+    ipa-ca-install is run on a replica, the CA clone installation hangs with
+    a hidden prompt asking to trust the external CA.
+
+    Test approach:
+    1. Install IPA server with CA
+    2. Replace HTTP/LDAP certs with externally-signed ones
+    3. Install replica without CA
+    4. Run ipa-ca-install on the replica
+    5. Verify CA installation completes without hanging
+
+    Related: https://issues.redhat.com/browse/RHEL-141365
+    """
+    num_replicas = 1
+    external_ca_nickname = 'external-ca'
+
+    @classmethod
+    def install(cls, mh):
+        # Initialize CALessBase (sets up cert_dir for cert creation)
+        super(TestCAInstallAfterExternalCertInstall, cls).install(mh)
+
+        # Install master with CA
+        tasks.install_master(
+            cls.master,
+            setup_dns=True,
+        )
+
+    def _replace_http_ldap_certs_with_external_ca(self):
+        """Replace HTTP and LDAP certs with externally-signed certs."""
+        # CALessBase provides create_pkcs12(), prepare_cacert(), copy_cert()
+        self.create_pkcs12('ca1/server',
+                           password=self.cert_password,
+                           filename='server.p12')
+        self.prepare_cacert('ca1')
+
+        # Copy CA cert to master
+        self.copy_cert(self.master, 'ca1.crt')
+
+        # Install external CA cert
+        self.master.run_command([
+            'ipa-cacert-manage', 'install', 'ca1.crt',
+            '-n', self.external_ca_nickname, '-t', 'CT,C,C'
+        ])
+
+        # Update certificate databases
+        self.master.run_command(['ipa-certupdate'])
+
+        # Copy server p12 to master
+        self.copy_cert(self.master, 'server.p12')
+
+        # Install server certificate for HTTP and LDAP
+        self.master.run_command([
+            'ipa-server-certinstall',
+            '-w', '-d', 'server.p12',
+            '--pin', self.cert_password,
+            '-p', self.master.config.dirman_password
+        ])
+
+        # Restart IPA services
+        self.master.run_command(['ipactl', 'restart'])
+
+        # Verify master is still functional
+        tasks.kinit_admin(self.master)
+        result = self.master.run_command(['ipa', 'user-show', 'admin'])
+        assert 'User login: admin' in result.stdout_text
+
+    def test_replica_with_ca_after_external_certs(self):
+        """
+        End-to-end test for RHEL-141365: replace master HTTP/LDAP certs with
+        externally-signed ones, install a replica without CA, then run
+        ipa-ca-install on the replica.
+
+        This verifies that CA installation on the replica completes
+        successfully without hanging on a hidden prompt about untrusted issuer.
+        """
+        self._replace_http_ldap_certs_with_external_ca()
+
+        # Install replica without CA (matches RHEL-141365 repro)
+        tasks.install_replica(
+            self.master,
+            self.replicas[0],
+            setup_ca=False,
+            setup_dns=True,
+        )
+
+        # Install CA on the replica
+        tasks.install_ca(self.replicas[0])
+
+        replica = self.replicas[0]
+
+        # No hidden prompt / SSL failure in CA install logs
+        log = replica.get_file_contents(
+            paths.IPAREPLICA_CA_INSTALL_LOG, encoding='utf-8'
+        )
+        assert "Trust this certificate" not in log
+        assert "UNTRUSTED ISSUER" not in log
+        assert "BAD_CERTIFICATE" not in log
+
+        # Post-install: replica CA role enabled and IPA API usable
+        tasks.kinit_admin(replica)
+        result = replica.run_command([
+            'ipa', 'server-role-find',
+            '--server', replica.hostname,
+            '--role', 'CA server'
+        ])
+        assert 'Role status: enabled' in result.stdout_text
+
+        result = replica.run_command(['ipa', 'ca-show', 'ipa'])
+        assert 'Name: ipa' in result.stdout_text
+
+        result = replica.run_command(['ipa', 'user-show', 'admin'])
+        assert 'User login: admin' in result.stdout_text
+
+        # CA actually works: issue a service certificate
+        hostname = 'ca-test.%s' % replica.domain.name
+        principal = 'HTTP/%s' % hostname
+        csr_file = '/tmp/ca-test.csr'
+        key_file = '/tmp/ca-test.key'
+        cert_file = '/tmp/ca-test.crt'
+
+        replica.run_command(['ipa', 'host-add', hostname, '--force'])
+        replica.run_command(['ipa', 'service-add', principal, '--force'])
+        replica.run_command([
+            'openssl', 'req', '-newkey', 'rsa:2048', '-keyout', key_file,
+            '-nodes', '-out', csr_file, '-subj', '/CN=%s' % hostname
+        ])
+        replica.run_command([
+            'ipa', 'cert-request', '--principal', principal,
+            '--certificate-out', cert_file, csr_file
+        ])
