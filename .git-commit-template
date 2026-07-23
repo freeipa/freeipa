@@ -2,13 +2,16 @@ component: Subject
 # component: Subject is a single-line summary
 
 Explanation
-# Explanation must describe the fix or feature + the method
-# chosen to implement it, and can span across multiple lines.
+# Explanation must describe the fix or feature and the method
+# chosen to implement it. It can span multiple lines.
 
 Fixes: https://codeberg.org/freeipa/freeipa/issues/XXXX
 or
 Related: https://codeberg.org/freeipa/freeipa/issues/XXXX
-# Fixes: means that the commit fixes the referenced issue(s).
-# Related: means that the commit is related to the issue(s)
-# in some way, but does not resolve it/them.
-
+# Fixes: means that the commit fixes the referenced issue.
+# Related: means that the commit is related to the issue.
+# in some way, but does not resolve it.
+Assisted-by: ai-tool <ai-tool@example.com>
+# If an AI tool assisted with this commit,
+# add the Assisted-by line.
+Signed-off-by: name <email@example.com>
