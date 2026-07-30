@@ -87,11 +87,13 @@ ACME_CONFIG_FILES = (
 
 
 def check_ports():
-    """Check that dogtag ports (8080, 8443) are available.
+    """Check that dogtag ports (8005, 8009, 8080, 8443) are available.
 
     Returns True when ports are free, False if they are taken.
     """
     return all([ipautil.check_port_bindable(8443),
+                ipautil.check_port_bindable(8005),
+                ipautil.check_port_bindable(8009),
                 ipautil.check_port_bindable(8080)])
 
 
