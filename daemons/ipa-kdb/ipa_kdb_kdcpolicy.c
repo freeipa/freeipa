@@ -92,7 +92,11 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
     /* If no mechanisms are set, or it is anonymous PKINIT, allow every auth method */
     if ((ua == IPADB_USER_AUTH_NONE) ||
         (request->kdc_options & KDC_OPT_REQUEST_ANONYMOUS)) {
-        jitter(ONE_DAY_SECONDS, lifetime_out);
+	if (client->max_life > 0) {
+	    jitter(client->max_life, lifetime_out);
+	} else {
+	    jitter(ONE_DAY_SECONDS, lifetime_out);
+	}
         kerr = 0;
         goto done;
     }
