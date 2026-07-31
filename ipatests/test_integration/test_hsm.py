@@ -650,6 +650,13 @@ class TestHSMcertFix(BaseHSMTest):
 
     master_with_dns = False
 
+    @classmethod
+    def uninstall(cls, mh):
+        # As the fixture expire_cert_critical already uninstalls the master,
+        # skip this step in uninstall
+        check_version(cls.master)
+        delete_hsm_token([cls.master] + cls.replicas, cls.token_name)
+
     def test_hsm_renew_expired_cert_on_master(self, expire_cert_critical):
         check_version(self.master)
         expire_cert_critical(self.master)
@@ -674,6 +681,13 @@ class TestHSMcertFixKRA(BaseHSMTest):
 
     master_with_dns = False
     master_with_kra = True
+
+    @classmethod
+    def uninstall(cls, mh):
+        # As the fixture expire_cert_critical already uninstalls the master,
+        # skip this step in uninstall
+        check_version(cls.master)
+        delete_hsm_token([cls.master] + cls.replicas, cls.token_name)
 
     def test_hsm_renew_expired_cert_with_kra(self, expire_cert_critical):
         check_version(self.master)
@@ -701,6 +715,13 @@ class TestHSMcertFixReplica(BaseHSMTest):
             nameservers='master' if cls.master_with_dns else None,
             extra_args=('--token-password', cls.token_password,)
         )
+
+    @classmethod
+    def uninstall(cls, mh):
+        # As the fixture expire_cert_critical already uninstalls the servers,
+        # skip this step in uninstall
+        check_version(cls.master)
+        delete_hsm_token([cls.master] + cls.replicas, cls.token_name)
 
     @pytest.fixture
     def expire_certs(self):
