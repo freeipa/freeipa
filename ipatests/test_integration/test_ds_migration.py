@@ -12,6 +12,7 @@ import os
 import textwrap
 import time
 
+from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
 
@@ -58,6 +59,16 @@ def load_ldif_file(host, ldif_filename, dirman_password):
             "-f", remote_path,
         ]
     )
+
+
+def _remove_389ds_on_client(client):
+    """Remove the test 389-ds instance if it exists."""
+    instance_dir = paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % DS_INSTANCE_NAME
+    if client.transport.file_exists(instance_dir):
+        client.run_command(
+            [paths.DSCTL, DS_INSTANCE_NAME, "remove", "--do-it"],
+            raiseonerr=False,
+        )
 
 
 def _setup_389ds_on_client(client, admin_password):
@@ -149,6 +160,11 @@ class BaseTestDSMigration(IntegrationTest):
                 result.stdout_text + result.stderr_text
             ).lower()
         tasks.service_control_dirsrv(cls.master, "restart")
+
+    @classmethod
+    def uninstall(cls, mh):
+        _remove_389ds_on_client(cls.clients[0])
+        super(BaseTestDSMigration, cls).uninstall(mh)
 
     def kerberos_keys_available(self, uid):
         """Return True if Kerberos keys are available for *uid*."""
