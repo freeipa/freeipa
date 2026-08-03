@@ -1,3 +1,4 @@
 d /run/ipa 0711 root root
+d /run/ipa/otpd-passkey 0700 root root 10m
 d /run/ipa/ccaches 6770 ipaapi ipaapi
 a+ /run/ipa/ccaches - - - - g:@HTTPD_GROUP@:rwx
