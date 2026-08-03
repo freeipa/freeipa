@@ -32,6 +32,7 @@
 #include <openssl/evp.h>
 
 #include "internal.h"
+#include "passkey_state.h"
 
 struct passkey_data {
     int phase;
@@ -73,6 +74,7 @@ static void free_passkey_data(struct passkey_data *p)
     }
 
     if (p->phase == 1) {
+        free(p->state);
         free(p->data.challenge.domain);
         free(p->data.challenge.cryptographic_challenge);
     }
@@ -498,7 +500,8 @@ done:
 
 static int do_passkey_challenge(struct otpd_queue_item *item)
 {
-    unsigned char *challenge = NULL;
+    const krb5_data *principal;
+    bool state_issued = false;
     int ret;
     struct passkey_data *d;
 
@@ -539,17 +542,36 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
     }
 
     d->phase = 1; /* SSS_PASSKEY_PHASE_CHALLENGE */
-    d->state = strdup("ipa_otpd state");
+    principal = krad_packet_get_attr(item->req,
+                                     krad_attr_name2num("User-Name"), 0);
+    if (principal == NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = passkey_state_issue(PASSKEY_STATE_DIR,
+                              principal->data, principal->length,
+                              (char *)d->data.challenge.cryptographic_challenge,
+                              &d->state);
+    if (ret != 0) {
+        otpd_log_err(ret, "Failed to store passkey challenge state");
+        goto done;
+    }
+    state_issued = true;
 
     ret = prepare_rad_reply(item);
     if (ret != 0) {
         otpd_log_err(ret, "prepare_rad_reply() failed.");
+        passkey_state_discard(PASSKEY_STATE_DIR, d->state);
+        state_issued = false;
         goto done;
     }
 
     ret = 0;
 done:
-    free(challenge);
+    if (ret != 0 && state_issued) {
+        passkey_state_discard(PASSKEY_STATE_DIR, d->state);
+    }
 
     otpd_queue_push(&ctx.stdio.responses, item);
     verto_set_flags(ctx.stdio.writer, VERTO_EV_FLAG_PERSIST |
@@ -675,6 +697,7 @@ static int set_fd_nonblocking(int fd)
 
 static int do_passkey_response(struct otpd_queue_item *item)
 {
+    const krb5_data *principal;
     int ret;
     pid_t child_pid;
     int pipefd_to_child[2] = { -1, -1};
@@ -692,6 +715,23 @@ static int do_passkey_response(struct otpd_queue_item *item)
         goto done;
     }
     child_ctx->item = item;
+
+    principal = krad_packet_get_attr(item->req,
+                                     krad_attr_name2num("User-Name"), 0);
+    if (principal == NULL || item->passkey->data_in->state == NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = passkey_state_consume(
+                    PASSKEY_STATE_DIR,
+                    item->passkey->data_in->state,
+                    principal->data, principal->length,
+                    item->passkey->data_in->data.response.cryptographic_challenge);
+    if (ret != 0) {
+        otpd_log_req(item->req, "Invalid or expired passkey challenge state");
+        goto done;
+    }
 
     pk = ipa_passkey_get_public_key(item->user.ipaPassKey,
                            item->passkey->data_in->data.response.credential_id);
