@@ -28,11 +28,15 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <jansson.h>
+#include <openssl/crypto.h>
 #include <openssl/rand.h>
 #include <openssl/evp.h>
 
 #include "internal.h"
-#include "passkey_state.h"
+#include "auth_state.h"
+
+#define AUTH_STATE_METHOD_PASSKEY "passkey"
+#define AUTH_STATE_PASSKEY_TTL 300
 
 struct passkey_data {
     int phase;
@@ -43,11 +47,13 @@ struct passkey_data {
             json_t *credential_id_list;
             int user_verification;
             unsigned char *cryptographic_challenge;
+            size_t cryptographic_challenge_len;
         } challenge;
 
         struct sss_passkey_reply {
             char *credential_id;
             char *cryptographic_challenge;
+            size_t cryptographic_challenge_len;
             char *authenticator_data;
             char *assertion_signature;
             char *user_id;
@@ -206,6 +212,7 @@ const char *otpd_parse_passkey(LDAP *ldp, LDAPMessage *entry,
 static int decode_json(const char *inp, size_t size, struct passkey_data *data)
 {
     json_error_t jret;
+    json_t *challenge;
     int ret;
 
     data->jroot = json_loadb(inp, size, 0, &jret);
@@ -240,6 +247,12 @@ static int decode_json(const char *inp, size_t size, struct passkey_data *data)
                 "authenticator_data", &data->data.response.authenticator_data,
                 "assertion_signature", &data->data.response.assertion_signature,
                 "user_id", &data->data.response.user_id);
+        if (ret == 0) {
+            challenge = json_object_get(data->jdata,
+                                        "cryptographic_challenge");
+            data->data.response.cryptographic_challenge_len =
+                json_string_length(challenge);
+        }
         break;
     default:
         ret = EINVAL;
@@ -527,6 +540,8 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
         ret = ENOMEM;
         goto done;
     }
+    d->data.challenge.cryptographic_challenge_len =
+        strlen((char *)d->data.challenge.cryptographic_challenge);
 
     d->jdata = json_pack("{s:s, s:o, s:i, s:s}",
                                      "domain", item->passkey->domain,
@@ -549,10 +564,12 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
         goto done;
     }
 
-    ret = passkey_state_issue(PASSKEY_STATE_DIR,
-                              principal->data, principal->length,
-                              (char *)d->data.challenge.cryptographic_challenge,
-                              &d->state);
+    ret = auth_state_issue(AUTH_STATE_DIR, AUTH_STATE_METHOD_PASSKEY,
+                           principal->data, principal->length,
+                           d->data.challenge.cryptographic_challenge,
+                           d->data.challenge.cryptographic_challenge_len,
+                           AUTH_STATE_PASSKEY_TTL,
+                           &d->state);
     if (ret != 0) {
         otpd_log_err(ret, "Failed to store passkey challenge state");
         goto done;
@@ -562,7 +579,7 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
     ret = prepare_rad_reply(item);
     if (ret != 0) {
         otpd_log_err(ret, "prepare_rad_reply() failed.");
-        passkey_state_discard(PASSKEY_STATE_DIR, d->state);
+        auth_state_discard(AUTH_STATE_DIR, d->state);
         state_issued = false;
         goto done;
     }
@@ -570,7 +587,7 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
     ret = 0;
 done:
     if (ret != 0 && state_issued) {
-        passkey_state_discard(PASSKEY_STATE_DIR, d->state);
+        auth_state_discard(AUTH_STATE_DIR, d->state);
     }
 
     otpd_queue_push(&ctx.stdio.responses, item);
@@ -708,8 +725,10 @@ static int do_passkey_response(struct otpd_queue_item *item)
     size_t args_idx = 0;
     struct child_ctx *child_ctx;
     char *pk = NULL;
+    void *issued_challenge = NULL;
+    size_t issued_challenge_len = 0;
 
-    child_ctx = calloc(sizeof(struct child_ctx), 1);
+    child_ctx = calloc(1, sizeof(struct child_ctx));
     if (child_ctx == NULL) {
         ret = ENOMEM;
         goto done;
@@ -723,13 +742,23 @@ static int do_passkey_response(struct otpd_queue_item *item)
         goto done;
     }
 
-    ret = passkey_state_consume(
-                    PASSKEY_STATE_DIR,
+    ret = auth_state_consume(
+                    AUTH_STATE_DIR,
                     item->passkey->data_in->state,
+                    AUTH_STATE_METHOD_PASSKEY,
                     principal->data, principal->length,
-                    item->passkey->data_in->data.response.cryptographic_challenge);
+                    &issued_challenge, &issued_challenge_len);
     if (ret != 0) {
         otpd_log_req(item->req, "Invalid or expired passkey challenge state");
+        goto done;
+    }
+    if (issued_challenge_len !=
+            item->passkey->data_in->data.response.cryptographic_challenge_len ||
+        CRYPTO_memcmp(issued_challenge,
+                      item->passkey->data_in->data.response.cryptographic_challenge,
+                      issued_challenge_len) != 0) {
+        ret = EACCES;
+        otpd_log_req(item->req, "Passkey challenge does not match saved state");
         goto done;
     }
 
@@ -840,6 +869,7 @@ static int do_passkey_response(struct otpd_queue_item *item)
     ret = 0;
 
 done:
+    auth_state_free(issued_challenge, issued_challenge_len);
     if (ret != 0) {
         free(child_ctx);
     }

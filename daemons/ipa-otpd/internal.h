@@ -110,7 +110,6 @@ struct otpd_queue_item {
 
     struct {
         char *device_code_reply;
-        krb5_data state;
     } oauth2;
 
     bool get_passkey_config;
@@ -157,9 +156,6 @@ struct otpd_context {
         struct otpd_queue responses;
     } bind;
 
-    struct {
-        struct otpd_queue states;
-    } oauth2_state;
 };
 
 extern struct otpd_context ctx;

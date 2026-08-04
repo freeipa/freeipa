@@ -27,15 +27,19 @@
  */
 
 #include <krb5/krb5.h>
+#include <jansson.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/random.h>
 #include <sys/uio.h>
 
+#include "auth_state.h"
 #include "internal.h"
 
 #define OIDC_CHILD_PATH "/usr/libexec/sssd/oidc_child"
+#define AUTH_STATE_METHOD_IDP "idp"
+#define AUTH_STATE_IDP_DEFAULT_TTL 900
 
 struct child_ctx {
     int read_from_child;
@@ -47,6 +51,32 @@ struct child_ctx {
     struct otpd_queue_item *saved_item;
     enum oauth2_state oauth2_state;
 };
+
+static unsigned int idp_state_ttl(const char *device_state)
+{
+    json_error_t error;
+    json_t *expires_in;
+    json_t *root;
+    json_int_t value;
+    unsigned int ttl = AUTH_STATE_IDP_DEFAULT_TTL;
+
+    root = json_loads(device_state, 0, &error);
+    if (root == NULL) {
+        return ttl;
+    }
+
+    expires_in = json_object_get(root, "expires_in");
+    if (json_is_integer(expires_in)) {
+        value = json_integer_value(expires_in);
+        if (value > 0 && value <= AUTH_STATE_TTL_MAX) {
+            ttl = (unsigned int)value;
+        } else if (value > AUTH_STATE_TTL_MAX) {
+            ttl = AUTH_STATE_TTL_MAX;
+        }
+    }
+    json_decref(root);
+    return ttl;
+}
 
 static int set_fd_nonblocking(int fd)
 {
@@ -151,31 +181,38 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
 
 /* oidc_child will return two lines.
  * The first is a JSON formatted string containing the device code and other
- * data needed to get the access token in the second round. This will be
- * returned to the caller as Radius Proxy-State so that the caller will send
- * it back in the next round.
+ * data needed to get the access token in the second round. It is stored
+ * server-side and represented by an opaque Radius Proxy-State token.
  * The second line is the string expected by the krb5 oauth2 pre-auth plugin
  * and will be send to the caller as Radius Reply-Message.
  */
 static int handle_device_code_reply(struct child_ctx *child_ctx,
                                     const char *dc_reply, char *rad_reply)
 {
+    const krb5_data *principal;
     krad_attrset *attrset = NULL;
+    char *state = NULL;
+    bool state_issued = false;
     int ret;
     krb5_data data = { 0 };
-    struct otpd_queue_item *state_item = NULL;
 
-    ret = otpd_queue_item_new(NULL, &state_item);
+    principal = krad_packet_get_attr(child_ctx->item->req,
+                                     krad_attr_name2num("User-Name"), 0);
+    if (principal == NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = auth_state_issue(AUTH_STATE_DIR, AUTH_STATE_METHOD_IDP,
+                           principal->data, principal->length,
+                           dc_reply, strlen(dc_reply),
+                           idp_state_ttl(dc_reply), &state);
     if (ret != 0) {
-        otpd_log_req(child_ctx->item->req, "Failed to allocate state item");
+        otpd_log_req(child_ctx->item->req,
+                     "Failed to store IdP device state");
         goto done;
     }
-
-    state_item->oauth2.device_code_reply = strdup(dc_reply);
-    if (state_item->oauth2.device_code_reply == NULL) {
-        otpd_log_req(child_ctx->item->req, "Failed to copy device code reply.");
-        goto done;
-    }
+    state_issued = true;
 
     ret = krad_attrset_new(ctx.kctx, &attrset);
     if (ret != 0) {
@@ -184,25 +221,17 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
         goto done;
     }
 
-    state_item->oauth2.state.magic = 0;
-
-    state_item->oauth2.state.data = strdup(dc_reply);
-    if (state_item->oauth2.state.data == NULL) {
-        otpd_log_req(child_ctx->item->req,
-                     "Failed to copy device code reply to krad.");
-        goto done;
-    }
-    state_item->oauth2.state.length = strlen(dc_reply);
-
+    data.magic = 0;
+    data.data = state;
+    data.length = strlen(state);
     ret = add_krad_attr_to_set(child_ctx->item->req,
-                               attrset, &(state_item->oauth2.state),
+                               attrset, &data,
                                krad_attr_name2num("Proxy-State"),
                                "Failed to serialize state to attribute set");
     if (ret != 0) {
         goto done;
     }
 
-    data.magic = 0;
     data.data = rad_reply;
     data.length = strlen(rad_reply);
     ret = add_krad_attr_to_set(child_ctx->item->req, attrset, &data,
@@ -219,20 +248,16 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
     if (ret != 0) {
         otpd_log_err(ret, "Failed to create radius response");
         child_ctx->item->rsp = NULL;
+        goto done;
     }
-
-    otpd_queue_push(&ctx.oauth2_state.states, state_item);
 
     ret = 0;
 done:
     krad_attrset_free(attrset);
-    if (ret != 0) {
-        if (state_item != NULL) {
-            free(state_item->oauth2.state.data);
-            free(state_item->oauth2.device_code_reply);
-            free(state_item);
-        }
+    if (ret != 0 && state_issued) {
+        auth_state_discard(AUTH_STATE_DIR, state);
     }
+    free(state);
 
     return ret;
 }
@@ -355,6 +380,71 @@ static const char *oauth2_state_to_str(enum oauth2_state oauth2_state)
     }
 }
 
+static int consume_idp_state(struct otpd_queue_item *item,
+                             struct otpd_queue_item **saved_item)
+{
+    const krb5_data *principal;
+    krb5_data proxy_state = { 0 };
+    char *token = NULL;
+    void *device_state = NULL;
+    size_t device_state_len = 0;
+    int ret;
+
+    *saved_item = NULL;
+    ret = get_krad_attr_from_packet(item->req,
+                                    krad_attr_name2num("Proxy-State"),
+                                    &proxy_state);
+    if (ret != 0 || proxy_state.length == 0) {
+        otpd_log_req(item->req, "Missing Radius Proxy-State attribute");
+        ret = EINVAL;
+        goto done;
+    }
+
+    principal = krad_packet_get_attr(item->req,
+                                     krad_attr_name2num("User-Name"), 0);
+    if (principal == NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    token = strndup(proxy_state.data, proxy_state.length);
+    if (token == NULL) {
+        ret = ENOMEM;
+        goto done;
+    }
+    if (strlen(token) != proxy_state.length) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = auth_state_consume(AUTH_STATE_DIR, token, AUTH_STATE_METHOD_IDP,
+                             principal->data, principal->length,
+                             &device_state, &device_state_len);
+    if (ret != 0) {
+        otpd_log_req(item->req, "Invalid or expired IdP state");
+        goto done;
+    }
+    if (memchr(device_state, '\0', device_state_len) != NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    *saved_item = calloc(1, sizeof(struct otpd_queue_item));
+    if (*saved_item == NULL) {
+        ret = ENOMEM;
+        goto done;
+    }
+    (*saved_item)->oauth2.device_code_reply = device_state;
+    device_state = NULL;
+    ret = 0;
+
+done:
+    krb5_free_data_contents(NULL, &proxy_state);
+    free(token);
+    auth_state_free(device_state, device_state_len);
+    return ret;
+}
+
 int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
 {
     int ret;
@@ -366,7 +456,6 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
      * is controlled inside this function. Right now max used is below 20 */
     char *args[50] = {NULL};
     size_t args_idx = 0;
-    krb5_data data_state = {0};
     struct otpd_queue_item *saved_item = NULL;
 
     if (oauth2_state != OAUTH2_GET_DEVICE_CODE
@@ -377,29 +466,13 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
     }
 
     if (oauth2_state == OAUTH2_GET_ACCESS_TOKEN) {
-        ret = get_krad_attr_from_packet((*item)->req,
-                                               krad_attr_name2num("Proxy-State"),
-                                               &data_state);
-        if ((ret != 0) || (data_state.length == 0)) {
-            otpd_log_req((*item)->req, "Missing Radius Proxy-State attribute");
-            return EINVAL;
+        ret = consume_idp_state(*item, &saved_item);
+        if (ret != 0) {
+            return ret;
         }
-
-        saved_item = calloc(sizeof(struct otpd_queue_item), 1);
-        if (saved_item == NULL) {
-            otpd_log_req((*item)->req, "No matching saved state found");
-            return EINVAL;
-        }
-        saved_item->oauth2.device_code_reply = strndup(data_state.data,
-                                                       data_state.length);
-        if (saved_item->oauth2.device_code_reply == NULL) {
-            otpd_log_req((*item)->req, "Failed to copy device code reply");
-            return EINVAL;
-        }
-        krb5_free_data_contents(NULL, &data_state);
     }
 
-    child_ctx = calloc(sizeof(struct child_ctx), 1);
+    child_ctx = calloc(1, sizeof(struct child_ctx));
     if (child_ctx == NULL) {
         ret = ENOMEM;
         goto done;

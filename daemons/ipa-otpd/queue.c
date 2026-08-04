@@ -83,7 +83,6 @@ void otpd_queue_item_free(struct otpd_queue_item *item)
     free(item->idp.ipaidpSub);
     free(item->idp.ipaidpDebugLevelStr);
     free(item->oauth2.device_code_reply);
-    free(item->oauth2.state.data);
     free(item->error);
     krad_packet_free(item->req);
     krad_packet_free(item->rsp);
