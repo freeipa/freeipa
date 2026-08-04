@@ -10,7 +10,7 @@ dist_noinst_DATA = ipa-otpd.socket.in ipa-otpd@.service.in test.py
 systemdsystemunit_DATA = ipa-otpd.socket ipa-otpd@.service
 
 ipa_otpd_SOURCES = bind.c forward.c main.c parse.c query.c queue.c stdio.c \
-                   oauth2.c passkey.c passkey_state.c passkey_state.h
+                   auth_state.c auth_state.h oauth2.c passkey.c
 
 %.socket: %.socket.in
 	@sed -e 's|@krb5rundir[@]|$(krb5rundir)|g' \
@@ -29,14 +29,14 @@ TESTS =
 check_PROGRAMS =
 
 if HAVE_CMOCKA
-TESTS += queue_tests passkey_state_tests
-check_PROGRAMS += queue_tests passkey_state_tests
+TESTS += auth_state_tests queue_tests
+check_PROGRAMS += auth_state_tests queue_tests
 endif
 
 queue_tests_SOURCES = ipa_otpd_queue_cmocka_tests.c queue.c
 queue_tests_CFLAGS = $(CMOCKA_CFLAGS)
 queue_tests_LDADD = $(CMOCKA_LIBS)
 
-passkey_state_tests_SOURCES = passkey_state_cmocka_tests.c passkey_state.c
-passkey_state_tests_CFLAGS = $(CMOCKA_CFLAGS) $(CRYPTO_CFLAGS)
-passkey_state_tests_LDADD = $(CMOCKA_LIBS) $(CRYPTO_LIBS)
+auth_state_tests_SOURCES = auth_state_cmocka_tests.c auth_state.c
+auth_state_tests_CFLAGS = $(CMOCKA_CFLAGS) $(CRYPTO_CFLAGS)
+auth_state_tests_LDADD = $(CMOCKA_LIBS) $(CRYPTO_LIBS)
