@@ -1,5 +1,5 @@
 #
-# VERSION 40 - DO NOT REMOVE THIS LINE
+# VERSION 41 - DO NOT REMOVE THIS LINE
 #
 # This file may be overwritten on upgrades.
 #
@@ -26,6 +26,17 @@ LimitRequestFieldSize 100000
 # short for interactive ipa commands. 30 seconds is a good compromise.
 KeepAlive On
 KeepAliveTimeout 30
+
+# Slow-read / slowloris protection (mod_reqtimeout).
+# handshake=5: 5s TLS handshake deadline (normal completes in <100ms)
+# header=20-40,MinRate=500: 20s initial + extension up to 40s at 500 B/s
+#   (accommodates large SPNEGO Negotiate headers, including PQC tokens
+#    such as ML-DSA-65 which produce 5KB+ headers)
+# body=30,MinRate=500: 30s body read timeout at 500 B/s
+#   (accommodates large JSON-RPC batch operations)
+<IfModule reqtimeout_module>
+    RequestReadTimeout handshake=5 header=20-40,MinRate=500 body=30,MinRate=500
+</IfModule>
 
 # ipa-rewrite.conf is loaded separately
 
