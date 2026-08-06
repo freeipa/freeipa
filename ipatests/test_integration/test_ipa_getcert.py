@@ -66,6 +66,14 @@ def prepare_pin(host, file_dir, test_id):
     return pinfile
 
 
+def prepare_certrequest(host, test_id):
+    """Create a cert request for start-tracking -i tests."""
+    host.run_command([
+        'ipa-getcert', 'request', '-w', '-v',
+        '-n', test_id, '-d', NSSDB_VALID, '-I', test_id
+    ])
+
+
 def create_nss_db_with_pin(host, tmpdir, pin="temp123#"):
     """Create NSS DB with a password in tmpdir."""
     passwd_file = os.path.join(tmpdir, 'passwd.txt')
@@ -114,6 +122,15 @@ TOKEN_VERIFY = ['NEED_KEY_PAIR', 'NEWLY_ADDED_NEED_KEYINFO_READ_TOKEN']
 KEYSIZE_VERIFY = ['NEED_KEY_PAIR', 'CA_UNREACHABLE']
 
 PINFILE_VERIFY = ['NEWLY_ADDED_NEED_KEYINFO_READ_PIN']
+
+PRINCIPAL_VERIFY = [
+    'CA_UNREACHABLE', 'CA_UNCONFIGURED', 'NEED_KEY_PAIR',
+]
+
+FILE_PRINCIPAL_VERIFY = [
+    'CA_UNREACHABLE', 'CA_UNCONFIGURED',
+    'NEED_KEY_PAIR', 'NEWLY_ADDED_NEED_KEYINFO_READ_PIN',
+]
 
 NSSDB_VALID = "/etc/pki/nssdb"
 NSSDB_INVALID = "/tmp/nonexistent_nssdb"
@@ -165,8 +182,10 @@ class GetcertTestMixin:
 
     def _assert_positive(self, cmd):
         """Assert positive test: rc=0, cleanup."""
-        assert cmd.returncode == 0
-        clean_requests(self.master)
+        try:
+            assert cmd.returncode == 0
+        finally:
+            clean_requests(self.master)
 
     def _setup_file(self, test_id, need_key=True,
                     need_cert=True, need_pin=False):
@@ -219,7 +238,8 @@ class GetcertTestMixin:
             else:
                 args += ['-g', '2048']
         args.append(renewal)
-        args += ['-N', self.cert_subject]
+        if self.getcert_command == 'request':
+            args += ['-N', self.cert_subject]
         if principal_invalid:
             args += ['-K', 'NoSuchPrincipal%s' % test_id]
         else:
@@ -478,15 +498,17 @@ class TestGetcertRequest(GetcertTestMixin, IntegrationTest):
             '-k', keyfile, '-f', certfile,
             '-g', 'shouldBEnumber%s' % test_id,
         ], raiseonerr=False)
-        assert cmd.returncode == 0, (
-            "Expected request to succeed with fallback "
-            "key size, got rc=%d" % cmd.returncode)
-        result = self.master.run_command(
-            ['openssl', 'pkey', '-in', keyfile,
-             '-text', '-noout']
-        )
-        assert '2048' in result.stdout_text
-        clean_requests(self.master)
+        try:
+            assert cmd.returncode == 0, (
+                "Expected request to succeed with fallback "
+                "key size, got rc=%d" % cmd.returncode)
+            result = self.master.run_command(
+                ['openssl', 'pkey', '-in', keyfile,
+                 '-text', '-noout']
+            )
+            assert '2048' in result.stdout_text
+        finally:
+            clean_requests(self.master)
 
     def test_request_file_invalid_pinfile(self):
         """request with non-existent PIN file"""
@@ -626,3 +648,620 @@ class TestGetcertRequest(GetcertTestMixin, IntegrationTest):
         )
         assert 'NEWLY_ADDED_NEED_KEYINFO_READ_TOKEN' in (
             result.stdout_text)
+
+
+class TestGetcertStartTracking(GetcertTestMixin,
+                               IntegrationTest):
+    """Tests for ipa-getcert start-tracking command."""
+
+    num_replicas = 0
+    num_clients = 0
+    topology = 'line'
+    getcert_command = 'start-tracking'
+    id_prefix = 'TrackReq'
+
+    @classmethod
+    def install(cls, mh):
+        super(TestGetcertStartTracking, cls).install(mh)
+        cls.cert_subject = get_cert_subject_base(cls.master)
+        cls.fqdn = cls.master.hostname
+        cls.realm = cls.master.domain.realm
+        cls.file_dir = create_file_dir(cls.master)
+        clean_requests(cls.master)
+
+    def _nss_cmd(self, test_id, extra_args):
+        """Build start-tracking with NSS storage."""
+        nickname = "GetcertTest-%s" % test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-d', NSSDB_VALID, '-n', nickname,
+                '-t', TOKEN_VALID] + extra_args
+
+    def _nss_invalid_cmd(self, test_id, extra_args):
+        """Build start-tracking with invalid NSSDBDIR."""
+        nickname = "GetcertTest-%s" % test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-d', NSSDB_INVALID, '-n', nickname,
+                '-t', TOKEN_VALID] + extra_args
+
+    def _nss_token_invalid_cmd(self, test_id, extra_args):
+        """Build start-tracking with invalid CertTokenName."""
+        nickname = "GetcertTest-%s" % test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-d', NSSDB_VALID, '-n', nickname,
+                '-t', ' NoSuchToken%s' % test_id
+                ] + extra_args
+
+    def _tracking_args(self, test_id, renewal='-R',
+                       principal_invalid=False,
+                       eku_invalid=False):
+        """Build -I -U -K -D -E -R/-r arguments."""
+        args = ['-I', 'TrackReq_%s' % test_id]
+        if eku_invalid:
+            args += ['-U', 'in.valid.ext.usage.%s'
+                     % test_id]
+        else:
+            args += ['-U', EKU_VALID]
+        if principal_invalid:
+            args += ['-K', 'NoSuchPrincipal%s' % test_id]
+        else:
+            args += ['-K', '%s/%s@%s'
+                     % (test_id, self.fqdn, self.realm)]
+        args += ['-D', self.fqdn, '-E', EMAIL_VALID]
+        args.append(renewal)
+        return args
+
+    def _req_nick_cmd(self, test_id, extra_args,
+                      invalid=False):
+        """Build start-tracking with -i (request id)."""
+        if invalid:
+            nick = "ReqDoesNotExist_%s" % test_id
+        else:
+            nick = test_id
+        return ['ipa-getcert', 'start-tracking',
+                '-i', nick] + extra_args
+
+    # -- NSS NSSDBDIR tests --
+
+    def test_start_tracking_nss_invalid_nssdbdir_basic(
+            self):
+        """start-tracking with invalid NSSDBDIR"""
+        test_id = "st_001_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_invalid_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, NSSDB_ERR_MSGS)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_nss_invalid_nssdbdir_full(
+            self, renewal):
+        """start-tracking with invalid NSSDBDIR and args"""
+        test_id = "st_nssdb_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_invalid_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, NSSDB_ERR_MSGS)
+
+    # -- NSS CertTokenName tests --
+
+    def test_start_tracking_nss_invalid_token_basic(self):
+        """start-tracking with invalid CertTokenName"""
+        test_id = "st_004_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_token_invalid_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, TOKEN_VERIFY)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_nss_invalid_token_full(
+            self, renewal):
+        """start-tracking with invalid CertTokenName"""
+        test_id = "st_tok_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_token_invalid_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, TOKEN_VERIFY)
+
+    # -- NSS positive and EKU/principal tests --
+
+    def test_start_tracking_nss_positive_basic(self):
+        """start-tracking with options d n t - all positive"""
+        test_id = "st_007_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_nss_invalid_eku(
+            self, renewal):
+        """start-tracking with invalid EXTUSAGE"""
+        test_id = "st_eku_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal,
+                    eku_invalid=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_nss_invalid_principal(
+            self, renewal):
+        """start-tracking with invalid CertPrincipalName"""
+        test_id = "st_pri_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal,
+                    principal_invalid=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PRINCIPAL_VERIFY)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_nss_positive_full(
+            self, renewal):
+        """start-tracking all positive"""
+        test_id = "st_pos_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._nss_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- Request identifier (-i) tests --
+
+    def test_start_tracking_id_invalid_nickname_basic(
+            self):
+        """start-tracking -i with invalid request nickname"""
+        test_id = "st_014_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id, [],
+                               invalid=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found', 'not allowed',
+            'None of database directory',
+        ])
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_id_invalid_nickname_full(
+            self, renewal):
+        """start-tracking -i with invalid request nickname"""
+        test_id = "st_idn_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            self._req_nick_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal),
+                invalid=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found', 'not allowed',
+            'None of database directory',
+        ])
+
+    def test_start_tracking_id_positive_basic(self):
+        """start-tracking -i all positive"""
+        test_id = "st_017_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            self._req_nick_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_id_invalid_eku(
+            self, renewal):
+        """start-tracking -i with invalid EXTUSAGE"""
+        test_id = "st_ide_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            self._req_nick_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal,
+                    eku_invalid=True)),
+            raiseonerr=False
+        )
+        try:
+            assert cmd.returncode == 1
+            combined = cmd.stdout_text + cmd.stderr_text
+            assert any(
+                m in combined for m in EKU_ERR_MSGS
+            ), ("Expected one of %r in: %s"
+                % (EKU_ERR_MSGS, combined))
+        finally:
+            clean_requests(self.master)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_id_invalid_principal(
+            self, renewal):
+        """start-tracking -i with invalid principal"""
+        test_id = "st_idp_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            self._req_nick_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal,
+                    principal_invalid=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PRINCIPAL_VERIFY)
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_id_positive_full(
+            self, renewal):
+        """start-tracking -i all positive"""
+        test_id = "st_idf_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            self._req_nick_cmd(
+                test_id,
+                self._tracking_args(
+                    test_id, renewal=renewal)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- FILE key-file invalid tests --
+
+    @pytest.mark.parametrize(
+        "pin_mode,renewal",
+        [(None, '-R'), (None, '-r'),
+         ('inline', '-R'), ('inline', '-r'),
+         ('file', '-R'), ('file', '-r')])
+    def test_start_tracking_file_invalid_keyfile(
+            self, pin_mode, renewal):
+        """start-tracking with invalid FileKeyFile"""
+        test_id = "st_kf_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False,
+                         need_pin=(pin_mode == 'file'))
+        cmd = self.master.run_command(
+            self._file_cmd(
+                test_id,
+                self._file_extra_args(
+                    test_id, pin_mode=pin_mode,
+                    renewal=renewal),
+                key_invalid=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    # -- FILE cert-file invalid tests --
+
+    @pytest.mark.parametrize(
+        "pin_mode,renewal",
+        [(None, '-R'), (None, '-r'),
+         ('inline', '-R'), ('inline', '-r'),
+         ('file', '-R'), ('file', '-r')])
+    def test_start_tracking_file_invalid_certfile(
+            self, pin_mode, renewal):
+        """start-tracking with invalid FileCertFile"""
+        test_id = "st_cf_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id, need_cert=False,
+                         need_pin=(pin_mode == 'file'))
+        cmd = self.master.run_command(
+            self._file_cmd(
+                test_id,
+                self._file_extra_args(
+                    test_id, pin_mode=pin_mode,
+                    renewal=renewal),
+                cert_invalid=True),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    # -- FILE positive + full args tests --
+
+    def test_start_tracking_file_positive_basic(self):
+        """start-tracking -k -f all positive"""
+        test_id = "st_042_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(test_id, []),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    @pytest.mark.parametrize(
+        "pin_mode,renewal",
+        [(None, '-R'), (None, '-r'),
+         ('inline', '-R'), ('inline', '-r'),
+         ('file', '-R'), ('file', '-r')])
+    def test_start_tracking_file_invalid_eku(
+            self, pin_mode, renewal):
+        """start-tracking FILE with invalid EXTUSAGE"""
+        test_id = "st_fek_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(
+            test_id,
+            need_pin=(pin_mode == 'file'))
+        cmd = self.master.run_command(
+            self._file_cmd(
+                test_id,
+                self._file_extra_args(
+                    test_id, pin_mode=pin_mode,
+                    renewal=renewal,
+                    eku_invalid=True)),
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    @pytest.mark.parametrize(
+        "pin_mode,renewal",
+        [(None, '-R'), (None, '-r'),
+         ('inline', '-R'), ('inline', '-r'),
+         ('file', '-R'), ('file', '-r')])
+    def test_start_tracking_file_invalid_principal(
+            self, pin_mode, renewal):
+        """start-tracking FILE invalid CertPrincipalName"""
+        test_id = "st_fpr_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(
+            test_id,
+            need_pin=(pin_mode == 'file'))
+        cmd = self.master.run_command(
+            self._file_cmd(
+                test_id,
+                self._file_extra_args(
+                    test_id, pin_mode=pin_mode,
+                    renewal=renewal,
+                    principal_invalid=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, FILE_PRINCIPAL_VERIFY)
+
+    @pytest.mark.parametrize(
+        "pin_mode,renewal",
+        [(None, '-R'), (None, '-r'),
+         ('inline', '-R'), ('inline', '-r'),
+         ('file', '-R'), ('file', '-r')])
+    def test_start_tracking_file_positive_full(
+            self, pin_mode, renewal):
+        """start-tracking FILE all positive"""
+        test_id = "st_fpo_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(
+            test_id,
+            need_pin=(pin_mode == 'file'))
+        cmd = self.master.run_command(
+            self._file_cmd(
+                test_id,
+                self._file_extra_args(
+                    test_id, pin_mode=pin_mode,
+                    renewal=renewal)),
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    # -- FILE pinfile invalid tests --
+
+    @pytest.mark.parametrize("renewal", ["-R", "-r"])
+    def test_start_tracking_file_invalid_pinfile(
+            self, renewal):
+        """start-tracking with invalid PINFILE"""
+        test_id = "st_fpn_%s" % uuid.uuid4().hex[:8]
+        self._setup_file(test_id)
+        cmd = self.master.run_command(
+            self._file_cmd(
+                test_id,
+                self._file_extra_args(
+                    test_id, pin_mode='file',
+                    renewal=renewal,
+                    pinfile_invalid=True)),
+            raiseonerr=False
+        )
+        self._assert_verify(cmd, PINFILE_VERIFY)
+
+    # -- Extended start-tracking tests --
+
+    @pytest.fixture
+    def nssdb_tmpdir(self):
+        """Create a temp NSS DB dir and clean up."""
+        tmpdir = create_file_dir(self.master)
+        yield tmpdir
+        self.master.run_command(
+            ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+             '-n', 'certtest'], raiseonerr=False
+        )
+        self.master.run_command(
+            ['rm', '-rf', tmpdir], raiseonerr=False)
+
+    def _setup_tracking_with_password(self, tmpdir,
+                                      pin="temp123#"):
+        """Request cert, set NSS DB password, resubmit with
+        wrong PIN to get into NEED_CSR_GEN_PIN state.
+        """
+        request_nss_cert_with_password(
+            self.master, tmpdir, pin)
+        cmd = self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', tmpdir, '-n', 'certtest',
+            '-P', 'temp123'
+        ], raiseonerr=False)
+        assert cmd.returncode == 4, (
+            "Expected resubmit with wrong PIN to exit 4 "
+            "(stuck), got rc=%d" % cmd.returncode)
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text, (
+            "Expected NEED_CSR_GEN_PIN state after "
+            "resubmit with wrong PIN")
+
+    def test_start_tracking_ext_correct_pin(
+            self, nssdb_tmpdir):
+        """start-tracking with correct PIN"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-P', 'temp123#'
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'pin set' in result.stdout_text
+        assert 'track: yes' in result.stdout_text
+
+    def test_start_tracking_ext_incorrect_pin(
+            self, nssdb_tmpdir):
+        """start-tracking with incorrect PIN"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-P', 'temp123'
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+
+    def test_start_tracking_ext_correct_password_file(
+            self, nssdb_tmpdir):
+        """start-tracking with correct password file"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            passwd_file, 'temp123#\n')
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-p', passwd_file
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'pinfile=' in result.stdout_text
+        assert 'track: yes' in result.stdout_text
+
+    def test_start_tracking_ext_wrong_pin_in_file(
+            self, nssdb_tmpdir):
+        """start-tracking with wrong PIN in password file"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            passwd_file, 'temp123#@\n')
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-p', passwd_file
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+
+    def test_start_tracking_ext_incorrect_pin_file(
+            self, nssdb_tmpdir):
+        """start-tracking with non-existent PIN file"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-p', os.path.join(
+                nssdb_tmpdir, 'non-existentfile.txt')
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+
+    def test_start_tracking_ext_correct_pin_by_id(
+            self, nssdb_tmpdir):
+        """start-tracking with correct PIN using request id"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-i', 'testing', '-P', 'temp123#'
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'pin set' in result.stdout_text
+        assert 'track: yes' in result.stdout_text
+
+    def test_start_tracking_ext_incorrect_pin_by_id(
+            self, nssdb_tmpdir):
+        """start-tracking with incorrect PIN using request id"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-i', 'testing', '-P', 'temp123'
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+
+    def test_start_tracking_ext_correct_pwfile_by_id(
+            self, nssdb_tmpdir):
+        """start-tracking with correct password file by id"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            passwd_file, 'temp123#\n')
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-i', 'testing', '-p', passwd_file
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'pinfile=' in result.stdout_text
+        assert 'track: yes' in result.stdout_text
+
+    def test_start_tracking_ext_bad_pin_file_by_id(
+            self, nssdb_tmpdir):
+        """start-tracking with non-existent PIN file by id"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-i', 'testing',
+            '-p', os.path.join(
+                nssdb_tmpdir, 'non-existentfile.txt')
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+
+    def test_start_tracking_ext_wrong_pin_file_by_id(
+            self, nssdb_tmpdir):
+        """start-tracking with wrong PIN in file by id"""
+        self._setup_tracking_with_password(nssdb_tmpdir)
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            passwd_file, 'temp123\n')
+        self.master.run_command([
+            'ipa-getcert', 'start-tracking', '-w', '-v',
+            '-i', 'testing', '-p', passwd_file
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list', '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' in result.stdout_text
