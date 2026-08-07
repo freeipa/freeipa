@@ -104,9 +104,9 @@
 # Require 4.7.0 which brings Python 3 bindings
 # Require 4.12 which has DsRGetForestTrustInformation access rights fixes
 %if 0%{?fedora} < 44
-%global samba_version 2:4.23.8
+%global samba_version 2:4.23.10
 %else
-%global samba_version 2:4.24.3
+%global samba_version 2:4.24.5
 %endif
 
 # 3.14.5-45 or later includes a number of interfaces fixes for IPA interface
