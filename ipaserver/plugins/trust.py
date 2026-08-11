@@ -1830,6 +1830,19 @@ class trust_fetch_domains(LDAPRetrieve):
         result = self.api.Command.trust_show(keys[0], all=True, raw=True)
         self.obj.warning_if_ad_trust_dom_have_missing_SID(result, **options)
 
+        # Fetching domains kinits to a (possibly caller-supplied) AD DC,
+        # possibly with caller-supplied credentials, and writes whatever
+        # trust topology it returns into the directory as authoritative
+        # data via a root-owned oddjobd helper. That helper connects to
+        # LDAP as its own service principal, so the calling user's LDAP
+        # bind never enforces the write ACIs on the trust entry the way
+        # trust-add/-mod/-del do. Require the same write access here
+        # explicitly instead of relying on the (intentionally broad, for
+        # SSSD's sake) read ACI on trust information.
+        if not ldap.can_write(result['result']['dn'], 'ipanttrustdirection'):
+            raise errors.ACIError(
+                info=_("not allowed to refresh trust topology"))
+
         result = dict()
         result['result'] = []
         result['count'] = 0

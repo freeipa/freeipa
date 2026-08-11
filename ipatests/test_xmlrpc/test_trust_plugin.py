@@ -25,10 +25,12 @@ import six
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
+from ipatests.test_xmlrpc.mock_trust import get_trust_dn, get_trusted_dom_dict
 from ipatests.test_xmlrpc.xmlrpc_test import (
-    Declarative, fuzzy_guid, fuzzy_domain_sid, fuzzy_string, fuzzy_uuid,
-    fuzzy_set_optional_oc,
+    Declarative, XMLRPC_test, fuzzy_guid, fuzzy_domain_sid, fuzzy_string,
+    fuzzy_uuid, fuzzy_set_optional_oc,
     fuzzy_digits)
+from ipatests.util import MockLDAP, change_principal, unlock_principal_password
 import pytest
 
 if six.PY3:
@@ -171,3 +173,64 @@ class test_trustconfig(Declarative):
             },
         ),
     ]
+
+
+FETCH_DOMAINS_NORMAL_USER = u'test-trust-fetch-user'
+FETCH_DOMAINS_NORMAL_USER_PASSWORD = u'Secret123'
+
+fetch_domains_test_trust_cn = u'fetchdomainstest.test'
+fetch_domains_test_trust_sid = u'S-1-5-21-1111111111-2222222222-3333333333'
+fetch_domains_test_trust_dn = get_trust_dn(fetch_domains_test_trust_cn)
+
+
+@pytest.mark.tier1
+class TestTrustFetchDomainsPermissions(XMLRPC_test):
+    """
+    Regression test for CVE-2026-19550.
+
+    trust-fetch-domains must not be runnable by a user who only has read
+    access to trust information (granted to all authenticated users via
+    "System: Read Trust Information", for SSSD's sake): its actual effect
+    is to kinit to an AD DC -- optionally with caller-supplied credentials
+    against a caller-supplied server -- and write whatever topology comes
+    back into the directory via a root-owned oddjobd helper. It must be
+    gated on write access to the trust entry, like trust-add/-mod/-del.
+    """
+
+    @pytest.fixture(autouse=True, scope="class")
+    def trust_fetch_domains_setup(self, request, xmlrpc_setup):
+        try:
+            api.Command['trustconfig_show'](trust_type=u'ad')
+        except errors.NotFound:
+            pytest.skip('Trusts are not configured')
+
+        api.Command.user_add(
+            FETCH_DOMAINS_NORMAL_USER,
+            givenname=u'Normal',
+            sn=u'User',
+            userpassword=FETCH_DOMAINS_NORMAL_USER_PASSWORD,
+        )
+        unlock_principal_password(
+            FETCH_DOMAINS_NORMAL_USER, FETCH_DOMAINS_NORMAL_USER_PASSWORD,
+            FETCH_DOMAINS_NORMAL_USER_PASSWORD)
+
+        mockldap = MockLDAP()
+        mockldap.add_entry(
+            fetch_domains_test_trust_dn,
+            get_trusted_dom_dict(
+                fetch_domains_test_trust_cn, fetch_domains_test_trust_sid),
+        )
+
+        def fin():
+            mockldap.del_entry(fetch_domains_test_trust_dn)
+            mockldap.unbind()
+            api.Command.user_del(FETCH_DOMAINS_NORMAL_USER)
+        request.addfinalizer(fin)
+
+    def test_normal_user_cannot_fetch_domains(self):
+        """A user with only read access to trust info cannot trigger a
+        trust topology refresh."""
+        with change_principal(FETCH_DOMAINS_NORMAL_USER,
+                              FETCH_DOMAINS_NORMAL_USER_PASSWORD):
+            with pytest.raises(errors.ACIError):
+                api.Command.trust_fetch_domains(fetch_domains_test_trust_cn)
