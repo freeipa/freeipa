@@ -3271,101 +3271,164 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 	return ret;
 }
 
-/* Checks whether a principal's realm is one of trusted domains' realm or NetBIOS name
- * and returns the realm of the matched trusted domain in 'trusted_domain'
- * Returns 0 in case of success and KRB5_KDB_NOENTRY otherwise
- * If DAL driver is not initialized, returns KRB5_KDB_DBNOTINITED */
-krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
-						  const char *test_realm, size_t size,
-						  char **trusted_realm)
+/*
+ * How much of test_realm one of the names of a trusted domain matches.
+ * trust_name is that domain's Kerberos realm, its NetBIOS name or one of its
+ * UPN suffixes. test_realm is not necessarily NUL terminated, so its length is
+ * size and not strlen().
+ *
+ * Returns size when the two names are equal, that is when trust_name matches
+ * all of test_realm. Returns trust_name_len when test_realm is subordinate to
+ * trust_name, that is when it ends with trust_name at a dot boundary; this
+ * requires trust_name_len < size, so size is the largest result possible.
+ * Returns 0 when neither applies.
+ */
+static size_t
+ipadb_trust_name_match_len(const char *test_realm, size_t size,
+                           const char *trust_name, size_t trust_name_len)
 {
-	struct ipadb_context *ipactx;
-	size_t i, j, length;
-	const char *name;
-	bool result = false;
+    if (size == trust_name_len) {
+        return (strncasecmp(test_realm, trust_name, size) == 0)
+               ? trust_name_len : 0;
+    }
 
-	if (test_realm == NULL || test_realm[0] == '\0') {
-		return KRB5_KDB_NOENTRY;
-	}
+    if ((size > trust_name_len)
+        && (test_realm[size - trust_name_len - 1] == '.')
+        && (strncasecmp(test_realm + (size - trust_name_len), trust_name,
+                        trust_name_len) == 0)) {
+        return trust_name_len;
+    }
 
-	ipactx = ipadb_get_context(kcontext);
-	if (!ipactx || !ipactx->mspac) {
-		return KRB5_KDB_DBNOTINITED;
-	}
+    return 0;
+}
 
-	/* First, compare realm with ours, it would not be from a trusted realm then */
-	if (strncasecmp(test_realm, ipactx->realm, size) == 0) {
-		return KRB5_KDB_NOENTRY;
-	}
+/*
+ * The trusted domain test_realm belongs to, or NULL if none of them owns a
+ * matching name. Every name of every trusted domain is looked at once.
+ *
+ * The domain with the longest match wins, on equal length the first one in the
+ * list of trusts. A name matching all of test_realm ends the search, because no
+ * longer match exists. A subordinate name does not end it, because the list of
+ * trusts carries no order and a longer match may still follow.
+ */
+static const struct ipadb_adtrusts *
+ipadb_find_matching_trust(const struct ipadb_context *ipactx,
+                          const char *test_realm,
+                          size_t size)
+{
+    const struct ipadb_adtrusts *trust;
+    const struct ipadb_adtrusts *subordinate_trust = NULL;
+    size_t max_subordinate_len = 0;
+    size_t match_len;
+    size_t i;
+    size_t j;
 
-	if (!ipactx->mspac || !ipactx->mspac->trusts) {
-		return KRB5_KDB_NOENTRY;
-	}
+    for (i = 0; i < (size_t) ipactx->mspac->num_trusts; i++) {
+        trust = &ipactx->mspac->trusts[i];
 
-	/* Iterate through list of trusts and check if input realm belongs to any of the trust */
-	for(i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
-		size_t len = 0;
-		result = strncasecmp(test_realm,
-				     ipactx->mspac->trusts[i].domain_name,
-				     size) == 0;
+        match_len = ipadb_trust_name_match_len(test_realm, size,
+                                               trust->domain_name,
+                                               strlen(trust->domain_name));
+        if (match_len == size) {
+            return trust;
+        }
+        if (match_len > max_subordinate_len) {
+            subordinate_trust = trust;
+            max_subordinate_len = match_len;
+        }
 
-		if (!result) {
-			len = strlen(ipactx->mspac->trusts[i].domain_name);
-			if ((size > len) && (test_realm[size - len - 1] == '.')) {
-				result = strncasecmp(test_realm + (size - len),
-						     ipactx->mspac->trusts[i].domain_name,
-						     len) == 0;
-			}
-		}
+        /* a NetBIOS name is flat, so only a complete match counts */
+        if (trust->flat_name != NULL) {
+            match_len = ipadb_trust_name_match_len(test_realm, size,
+                                                   trust->flat_name,
+                                                   strlen(trust->flat_name));
+            if (match_len == size) {
+                return trust;
+            }
+        }
 
-                if (!result && (ipactx->mspac->trusts[i].flat_name != NULL)) {
-			result = strncasecmp(test_realm,
-					     ipactx->mspac->trusts[i].flat_name,
-					     size) == 0;
-		}
+        for (j = 0; trust->upn_suffixes != NULL
+                    && trust->upn_suffixes[j] != NULL; j++) {
+            match_len = ipadb_trust_name_match_len(test_realm, size,
+                                                   trust->upn_suffixes[j],
+                                                   trust->upn_suffixes_len[j]);
+            if (match_len == size) {
+                return trust;
+            }
+            if (match_len > max_subordinate_len) {
+                subordinate_trust = trust;
+                max_subordinate_len = match_len;
+            }
+        }
+    }
 
-		if (!result && (ipactx->mspac->trusts[i].upn_suffixes != NULL)) {
-			for (j = 0; ipactx->mspac->trusts[i].upn_suffixes[j]; j++) {
-				result = strncasecmp(test_realm,
-						     ipactx->mspac->trusts[i].upn_suffixes[j],
-						     size) == 0;
-				if (!result) {
-					/* if UPN suffix did not match exactly, find if it is
-					 * superior to the test_realm, e.g. if test_realm ends
-					 * with the UPN suffix prefixed with dot*/
-					len = ipactx->mspac->trusts[i].upn_suffixes_len[j];
-					if ((size > len) && (test_realm[size - len - 1] == '.')) {
-						result = strncasecmp(test_realm + (size - len),
-								     ipactx->mspac->trusts[i].upn_suffixes[j],
-								     len) == 0;
-					}
-				}
-				if (result)
-					break;
-			}
-		}
+    return subordinate_trust;
+}
 
-		if (result) {
-			/* return the realm if caller supplied a place for it */
-			if (trusted_realm != NULL) {
-				name = (ipactx->mspac->trusts[i].parent_name != NULL) ?
-					ipactx->mspac->trusts[i].parent_name :
-					ipactx->mspac->trusts[i].domain_name;
-				length = strlen(name) + 1;
-				*trusted_realm = calloc(1, length);
-				if (*trusted_realm != NULL) {
-					for (j = 0; j < length; j++) {
-						(*trusted_realm)[j] = toupper(name[j]);
-					}
-				} else {
-					return KRB5_KDB_NOENTRY;
-				}
-			}
-			return 0;
-		}
-	}
+/*
+ * Checks whether a principal's realm belongs to one of the trusted domains,
+ * either by matching all of that domain's Kerberos realm, its NetBIOS name or
+ * one of its UPN suffixes, or by being subordinate to its realm or to one of
+ * its UPN suffixes. Returns the realm of that domain in 'trusted_realm', which
+ * is the forest root for a domain of a trusted forest.
+ * Returns 0 in case of success and KRB5_KDB_NOENTRY otherwise
+ * If DAL driver is not initialized, returns KRB5_KDB_DBNOTINITED
+ */
+krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
+                                                  const char *test_realm,
+                                                  size_t size,
+                                                  char **trusted_realm)
+{
+    struct ipadb_context *ipactx;
+    const struct ipadb_adtrusts *trust;
+    const char *name;
+    size_t realm_len;
+    size_t trusted_realm_len;
+    size_t j;
 
-	return KRB5_KDB_NOENTRY;
+    if (test_realm == NULL || size == 0 || test_realm[0] == '\0') {
+        return KRB5_KDB_NOENTRY;
+    }
+
+    ipactx = ipadb_get_context(kcontext);
+    if (ipactx == NULL || ipactx->mspac == NULL) {
+        return KRB5_KDB_DBNOTINITED;
+    }
+
+    /* our own realm is not a trusted realm; the length has to match too */
+    realm_len = strlen(ipactx->realm);
+    if (size == realm_len
+        && strncasecmp(test_realm, ipactx->realm, size) == 0) {
+        return KRB5_KDB_NOENTRY;
+    }
+
+    if (ipactx->mspac->trusts == NULL) {
+        return KRB5_KDB_NOENTRY;
+    }
+
+    trust = ipadb_find_matching_trust(ipactx, test_realm, size);
+    if (trust == NULL) {
+        return KRB5_KDB_NOENTRY;
+    }
+
+    /* return the realm if caller supplied a place for it */
+    if (trusted_realm != NULL) {
+        name = trust->parent_name != NULL
+               ? trust->parent_name
+               : trust->domain_name;
+
+        trusted_realm_len = strlen(name) + 1;
+        *trusted_realm = calloc(1, trusted_realm_len);
+        if (*trusted_realm == NULL) {
+            return KRB5_KDB_NOENTRY;
+        }
+
+        for (j = 0; j < trusted_realm_len; j++) {
+            (*trusted_realm)[j] = toupper((unsigned char) name[j]);
+        }
+    }
+
+    return 0;
 }
 
 static krb5_error_code

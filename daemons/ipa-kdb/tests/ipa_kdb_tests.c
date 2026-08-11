@@ -76,6 +76,27 @@ struct test_ctx {
 #define TEST_REALM_TEMPLATE "some." SUFFIX_TEMPLATE
 #define EXTERNAL_REALM "WRONG.DOMAIN"
 
+/*
+ * Trusted domains for the matching tests. The overlapping pair reproduces two
+ * forests sharing a parent domain; the nested set has matching names at eight
+ * distinct lengths, so that no two names of different trusts are of equal
+ * length and every expectation is independent of the order of the trust list.
+ */
+#define OVERLAP_A_DOMAIN "forest.shared.test"
+#define OVERLAP_A_REALM "FOREST.SHARED.TEST"
+#define OVERLAP_B_DOMAIN "forestry.shared.test"
+#define OVERLAP_B_REALM "FORESTRY.SHARED.TEST"
+#define SHARED_PARENT "shared.test"
+/* a string prefix of the local realm EXAMPLE.COM that is no parent of it */
+#define LOCAL_REALM_PREFIX "EXAMPLE"
+
+struct trust_fixture {
+    const char *domain_name;
+    const char *flat_name;
+    const char *domain_sid;
+    const char *upn_suffixes[3];
+};
+
 static int setup(void **state)
 {
     int ret;
@@ -155,6 +176,133 @@ static int setup(void **state)
     *state = test_ctx;
 
     return 0;
+}
+
+/*
+ * Like setup(), but with a caller supplied list of trusted domains and only the
+ * fields ipadb_is_princ_from_trusted_realm() reads. teardown() is shared with
+ * setup().
+ */
+static int setup_trusts(void **state, const struct trust_fixture *defs,
+                        size_t num_trusts)
+{
+    krb5_context krb5_ctx;
+    krb5_error_code kerr;
+    struct ipadb_context *ipa_ctx;
+    struct test_ctx *test_ctx;
+    size_t i, j, num_suffixes;
+
+    kerr = krb5_init_context(&krb5_ctx);
+    assert_int_equal(kerr, 0);
+
+    kerr = krb5_set_default_realm(krb5_ctx, "EXAMPLE.COM");
+    assert_int_equal(kerr, 0);
+
+    kerr = krb5_db_setup_lib_handle(krb5_ctx);
+    assert_int_equal(kerr, 0);
+
+    ipa_ctx = calloc(1, sizeof(struct ipadb_context));
+    assert_non_null(ipa_ctx);
+
+    kerr = krb5_get_default_realm(krb5_ctx, &ipa_ctx->realm);
+    assert_int_equal(kerr, 0);
+
+    ipa_ctx->mspac = calloc(1, sizeof(struct ipadb_mspac));
+    assert_non_null(ipa_ctx->mspac);
+
+    /* make sure data is not read from LDAP */
+    ipa_ctx->mspac->last_update = time(NULL) - 1;
+
+    ipa_ctx->mspac->num_trusts = num_trusts;
+    ipa_ctx->mspac->trusts = calloc(num_trusts,
+                                    sizeof(struct ipadb_adtrusts));
+    assert_non_null(ipa_ctx->mspac->trusts);
+
+    for (i = 0; i < num_trusts; i++) {
+        struct ipadb_adtrusts *trust = &ipa_ctx->mspac->trusts[i];
+
+        trust->domain_name = strdup(defs[i].domain_name);
+        assert_non_null(trust->domain_name);
+        trust->flat_name = strdup(defs[i].flat_name);
+        assert_non_null(trust->flat_name);
+        trust->domain_sid = strdup(defs[i].domain_sid);
+        assert_non_null(trust->domain_sid);
+
+        for (num_suffixes = 0; defs[i].upn_suffixes[num_suffixes] != NULL;
+             num_suffixes++) {
+        }
+        if (num_suffixes == 0) {
+            continue;
+        }
+
+        trust->upn_suffixes = calloc(num_suffixes + 1, sizeof(char *));
+        assert_non_null(trust->upn_suffixes);
+        trust->upn_suffixes_len = calloc(num_suffixes, sizeof(size_t));
+        assert_non_null(trust->upn_suffixes_len);
+
+        for (j = 0; j < num_suffixes; j++) {
+            trust->upn_suffixes[j] = strdup(defs[i].upn_suffixes[j]);
+            assert_non_null(trust->upn_suffixes[j]);
+            trust->upn_suffixes_len[j] = strlen(trust->upn_suffixes[j]);
+        }
+    }
+
+    ipa_ctx->kcontext = krb5_ctx;
+    kerr = krb5_db_set_context(krb5_ctx, ipa_ctx);
+    assert_int_equal(kerr, 0);
+
+    test_ctx = talloc(NULL, struct test_ctx);
+    assert_non_null(test_ctx);
+
+    test_ctx->krb5_ctx = krb5_ctx;
+
+    *state = test_ctx;
+
+    return 0;
+}
+
+/* Two forests sharing a parent domain, which the first one owns as a UPN
+ * suffix while it is the parent of the second one's realm. The first one's
+ * realm is additionally a string prefix of the second one's, and the second
+ * one owns a UPN suffix that is a string prefix of the local realm. */
+static int setup_overlapping_trusts(void **state)
+{
+    static const struct trust_fixture defs[] = {
+        { OVERLAP_A_DOMAIN, "FOREST", "S-1-5-21-7-8-9",
+          { SHARED_PARENT, NULL } },
+        { OVERLAP_B_DOMAIN, "FORESTRY", "S-1-5-21-10-11-12",
+          { "example", NULL } },
+    };
+
+    return setup_trusts(state, defs, 2);
+}
+
+/*
+ * Trusted domains nested several levels deep:
+ *
+ *   A   realm a.test          UPN suffix test
+ *   B   realm b.a.test        UPN suffix deeper.c.b.a.test
+ *   C   realm c.b.a.test
+ *   D   realm d.test          UPN suffix deep.c.b.a.test
+ *   BB  realm bb.a.test
+ *
+ * B and BB differ in a way that only the dot boundary tells apart, and the UPN
+ * suffixes of B and D are deeper than the realm of C, so realms and suffixes
+ * have to compete by match length alone.
+ */
+static int setup_nested_trusts(void **state)
+{
+    static const struct trust_fixture defs[] = {
+        { "a.test",     "A",  "S-1-5-21-21-1-1", { "test", NULL } },
+        { "b.a.test",   "B",  "S-1-5-21-21-2-2",
+          { "deeper.c.b.a.test", NULL } },
+        { "c.b.a.test", "C",  "S-1-5-21-21-3-3", { NULL } },
+        { "d.test",     "D",  "S-1-5-21-21-4-4",
+          { "deep.c.b.a.test", NULL } },
+        { "bb.a.test",  "BB", "S-1-5-21-21-5-5", { NULL } },
+    };
+
+    return setup_trusts(state, defs, 5);
 }
 
 static int teardown(void **state)
@@ -492,6 +640,51 @@ static void test_dom_sid_string(void **state)
 }
 
 
+/* Resolve test_realm and assert that the expected trusted realm is returned. */
+static void assert_resolves_to(krb5_context krb5_ctx, const char *test_realm,
+                               const char *expected_realm)
+{
+    krb5_error_code kerr;
+    char *trusted_realm = NULL;
+
+    kerr = ipadb_is_princ_from_trusted_realm(krb5_ctx, test_realm,
+                                             strlen(test_realm),
+                                             &trusted_realm);
+    assert_int_equal(kerr, 0);
+    assert_non_null(trusted_realm);
+    assert_string_equal(trusted_realm, expected_realm);
+    free(trusted_realm);
+}
+
+/* Resolve test_realm and assert that it belongs to no trusted domain. */
+static void assert_resolves_to_nothing(krb5_context krb5_ctx,
+                                       const char *test_realm)
+{
+    krb5_error_code kerr;
+    char *trusted_realm = NULL;
+
+    kerr = ipadb_is_princ_from_trusted_realm(krb5_ctx, test_realm,
+                                             strlen(test_realm),
+                                             &trusted_realm);
+    assert_int_equal(kerr, KRB5_KDB_NOENTRY);
+    assert_null(trusted_realm);
+}
+
+/* Reverse the list of trusts, so that a lookup can be repeated with the trusts
+ * in the other order. */
+static void reverse_trusts(struct ipadb_context *ipa_ctx)
+{
+    struct ipadb_adtrusts swap;
+    size_t i, last;
+
+    for (i = 0; i < (size_t) ipa_ctx->mspac->num_trusts / 2; i++) {
+        last = (size_t) ipa_ctx->mspac->num_trusts - 1 - i;
+        swap = ipa_ctx->mspac->trusts[i];
+        ipa_ctx->mspac->trusts[i] = ipa_ctx->mspac->trusts[last];
+        ipa_ctx->mspac->trusts[last] = swap;
+    }
+}
+
 static void test_check_trusted_realms(void **state)
 {
     struct test_ctx *test_ctx;
@@ -522,6 +715,114 @@ static void test_check_trusted_realms(void **state)
                strlen(EXTERNAL_REALM),
                &trusted_realm);
     assert_int_equal(kerr, KRB5_KDB_NOENTRY);
+
+    /* The NetBIOS name resolves when it is the whole name that is tested. */
+    assert_resolves_to(test_ctx->krb5_ctx, FLAT_NAME, REALM);
+
+    /* A NetBIOS name is flat, so a name merely ending in it does not belong to
+     * the trust. */
+    assert_resolves_to_nothing(test_ctx->krb5_ctx, "host." FLAT_NAME);}
+
+static void check_overlapping_namespaces(krb5_context krb5_ctx)
+{
+    /* The realm of the second trust is the parent of nothing but matches
+     * completely, which beats the subordinate match on the UPN suffix of the
+     * first one. */
+    assert_resolves_to(krb5_ctx, OVERLAP_B_REALM, OVERLAP_B_REALM);
+    assert_resolves_to(krb5_ctx, OVERLAP_A_REALM, OVERLAP_A_REALM);
+
+    /* The UPN suffix resolves to the trust owning it, and so does a name below
+     * it that belongs to no trust of its own. */
+    assert_resolves_to(krb5_ctx, "SHARED.TEST", OVERLAP_A_REALM);
+    assert_resolves_to(krb5_ctx, "OTHER.SHARED.TEST", OVERLAP_A_REALM);
+
+    /* A name below both the UPN suffix of the first trust and the realm of the
+     * second one resolves to the second one, whose name is longer. */
+    assert_resolves_to(krb5_ctx, "SUB." OVERLAP_B_REALM, OVERLAP_B_REALM);
+    assert_resolves_to(krb5_ctx, "SUB." OVERLAP_A_REALM, OVERLAP_A_REALM);
+
+    /* A name sharing only its first characters with the local realm is not the
+     * local realm, so it resolves against the trusts like any other name. */
+    assert_resolves_to(krb5_ctx, LOCAL_REALM_PREFIX, OVERLAP_B_REALM);
+
+    assert_resolves_to_nothing(krb5_ctx, EXTERNAL_REALM);
+}
+
+static void test_check_trusted_realms_overlapping_namespaces(void **state)
+{
+    struct test_ctx *test_ctx;
+    struct ipadb_context *ipa_ctx;
+
+    test_ctx = (struct test_ctx *) *state;
+    ipa_ctx = ipadb_get_context(test_ctx->krb5_ctx);
+    assert_non_null(ipa_ctx);
+
+    check_overlapping_namespaces(test_ctx->krb5_ctx);
+    reverse_trusts(ipa_ctx);
+    check_overlapping_namespaces(test_ctx->krb5_ctx);
+}
+
+static void check_nested_namespaces(krb5_context krb5_ctx)
+{
+    /* a complete match at every level */
+    assert_resolves_to(krb5_ctx, "TEST", "A.TEST");
+    assert_resolves_to(krb5_ctx, "A.TEST", "A.TEST");
+    assert_resolves_to(krb5_ctx, "B.A.TEST", "B.A.TEST");
+    assert_resolves_to(krb5_ctx, "C.B.A.TEST", "C.B.A.TEST");
+    assert_resolves_to(krb5_ctx, "D.TEST", "D.TEST");
+    assert_resolves_to(krb5_ctx, "BB.A.TEST", "BB.A.TEST");
+
+    /* one level below each of them, the longest match has to win */
+    assert_resolves_to(krb5_ctx, "X.TEST", "A.TEST");
+    assert_resolves_to(krb5_ctx, "X.A.TEST", "A.TEST");
+    assert_resolves_to(krb5_ctx, "X.B.A.TEST", "B.A.TEST");
+    assert_resolves_to(krb5_ctx, "X.C.B.A.TEST", "C.B.A.TEST");
+    assert_resolves_to(krb5_ctx, "X.D.TEST", "D.TEST");
+
+    /* two and three levels below the deepest realm */
+    assert_resolves_to(krb5_ctx, "Y.X.C.B.A.TEST", "C.B.A.TEST");
+    assert_resolves_to(krb5_ctx, "Z.Y.X.C.B.A.TEST", "C.B.A.TEST");
+
+    /* a UPN suffix longer than any realm wins, and the realm of the trust
+     * owning it is returned rather than the suffix */
+    assert_resolves_to(krb5_ctx, "DEEP.C.B.A.TEST", "D.TEST");
+    assert_resolves_to(krb5_ctx, "X.DEEP.C.B.A.TEST", "D.TEST");
+
+    /* a UPN suffix of a trust high up beats the realm of a trust further down,
+     * so realms and suffixes compete by match length alone */
+    assert_resolves_to(krb5_ctx, "DEEPER.C.B.A.TEST", "B.A.TEST");
+    assert_resolves_to(krb5_ctx, "Z.DEEPER.C.B.A.TEST", "B.A.TEST");
+
+    /* the dot boundary decides: bb.a.test is not below b.a.test, and neither
+     * is a name below bb.a.test */
+    assert_resolves_to(krb5_ctx, "X.BB.A.TEST", "BB.A.TEST");
+
+    /* a NetBIOS name matches completely or not at all */
+    assert_resolves_to(krb5_ctx, "BB", "BB.A.TEST");
+    assert_resolves_to(krb5_ctx, "A", "A.TEST");
+    assert_resolves_to_nothing(krb5_ctx, "X.BB");
+    assert_resolves_to_nothing(krb5_ctx, "X.A");
+
+    /* a name cut short of a trusted domain's name is no match */
+    assert_resolves_to_nothing(krb5_ctx, "B.A.TES");
+    assert_resolves_to_nothing(krb5_ctx, "C.B.A.TES");
+    assert_resolves_to_nothing(krb5_ctx, "DEEP.C.B.A.TES");
+
+    assert_resolves_to_nothing(krb5_ctx, EXTERNAL_REALM);
+}
+
+static void test_check_trusted_realms_nested_namespaces(void **state)
+{
+    struct test_ctx *test_ctx;
+    struct ipadb_context *ipa_ctx;
+
+    test_ctx = (struct test_ctx *) *state;
+    ipa_ctx = ipadb_get_context(test_ctx->krb5_ctx);
+    assert_non_null(ipa_ctx);
+
+    check_nested_namespaces(test_ctx->krb5_ctx);
+    reverse_trusts(ipa_ctx);
+    check_nested_namespaces(test_ctx->krb5_ctx);
 }
 
 int main(int argc, const char *argv[])
@@ -536,6 +837,12 @@ int main(int argc, const char *argv[])
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_check_trusted_realms,
                                         setup, teardown),
+        cmocka_unit_test_setup_teardown(
+                              test_check_trusted_realms_overlapping_namespaces,
+                              setup_overlapping_trusts, teardown),
+        cmocka_unit_test_setup_teardown(
+                                   test_check_trusted_realms_nested_namespaces,
+                                   setup_nested_trusts, teardown),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);
