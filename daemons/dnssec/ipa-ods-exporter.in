@@ -30,7 +30,7 @@ import six
 import systemd.daemon
 
 import ipalib
-from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
+from ipalib.constants import DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -287,7 +287,7 @@ def ldap2master_replica_keys_sync(ldapkeydb, localhsm):
     # import new replica keys from LDAP
     logger.debug("replica pub keys in LDAP: %s",
                  hex_set(ldapkeydb.replica_pubkeys_wrap))
-    logger.debug("replica pub keys in SoftHSM: %s",
+    logger.debug("replica pub keys in local HSM: %s",
                  hex_set(localhsm.replica_pubkeys_wrap))
     new_replica_keys = set(ldapkeydb.replica_pubkeys_wrap.keys()) \
             - set(localhsm.replica_pubkeys_wrap.keys())
@@ -708,8 +708,9 @@ ldapkeydb = LdapKeyDB(ldap, DN(('cn', 'keys'),
                                ('cn', 'sec'),
                                ipalib.api.env.container_dns,
                                ipalib.api.env.basedn))
-localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, SOFTHSM_DNSSEC_TOKEN_LABEL,
-        open(paths.DNSSEC_SOFTHSM_PIN).read())
+localhsm = LocalHSM(
+    paths.LIBKRYOPTIC_SO, DNSSEC_TOKEN_LABEL,
+    open(paths.DNSSEC_HSM_PIN).read())
 
 ldap2master_replica_keys_sync(ldapkeydb, localhsm)
 master2ldap_master_keys_sync(ldapkeydb, localhsm)

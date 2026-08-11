@@ -126,12 +126,12 @@ class BINDMgr:
         if platformconstants.NAMED_OPENSSL_ENGINE is not None:
             uri = "%s;pin-source=%s" % (
                 keyref,
-                paths.DNSSEC_SOFTHSM_PIN
+                paths.DNSSEC_HSM_PIN
             )
         elif platformconstants.NAMED_OPENSSL_PROVIDER is not None:
             uri = "%s;token=%s" % (
                 keyref,
-                ipalib.constants.SOFTHSM_DNSSEC_TOKEN_LABEL
+                ipalib.constants.DNSSEC_TOKEN_LABEL
             )
 
         assert uri is not None

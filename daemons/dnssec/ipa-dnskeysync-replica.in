@@ -15,7 +15,7 @@ import sys
 
 import ipalib
 from ipalib import errors
-from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
+from ipalib.constants import DNSSEC_TOKEN_LABEL
 from ipalib.install.kinit import kinit_keytab
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import standard_logging_setup
@@ -175,10 +175,10 @@ keys_dn = DN(
     ipalib.api.env.basedn
 )
 
-with open(paths.DNSSEC_SOFTHSM_PIN) as f:
+with open(paths.DNSSEC_HSM_PIN) as f:
     localhsm = LocalHSM(
-        paths.LIBSOFTHSM2_SO,
-        SOFTHSM_DNSSEC_TOKEN_LABEL,
+        paths.LIBKRYOPTIC_SO,
+        DNSSEC_TOKEN_LABEL,
         f.read()
     )
 

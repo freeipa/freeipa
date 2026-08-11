@@ -40,14 +40,14 @@
 			<KSK>
 				<Algorithm length="3072">8</Algorithm>
 				<Lifetime>P2Y</Lifetime>
-				<Repository>SoftHSM</Repository>
+				<Repository>Kryoptic</Repository>
 			</KSK>
 
 			<!-- Parameters for ZSK only -->
 			<ZSK>
 				<Algorithm length="2048">8</Algorithm>
 				<Lifetime>P90D</Lifetime>
-				<Repository>SoftHSM</Repository>
+				<Repository>Kryoptic</Repository>
 				<!-- <ManualRollover/> -->
 			</ZSK>
 		</Keys>

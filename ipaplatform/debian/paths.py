@@ -83,6 +83,9 @@ class DebianPathNamespace(BasePathNamespace):
     BIND_LDAP_SO = "/usr/lib/{0}/bind/ldap.so".format(MULTIARCH)
     LIBARCH = "/{0}".format(MULTIARCH)
     LIBSOFTHSM2_SO = "/usr/lib/{0}/softhsm/libsofthsm2.so".format(MULTIARCH)
+    LIBKRYOPTIC_SO = "/usr/lib/{0}/kryoptic/libkryoptic_pkcs11.so".format(
+        MULTIARCH
+    )
     PAM_KRB5_SO = "/usr/lib/{0}/security/pam_krb5.so".format(MULTIARCH)
     LIB_SYSTEMD_SYSTEMD_DIR = "/lib/systemd/system/"
     LIBEXEC_CERTMONGER_DIR = "/usr/lib/certmonger"

@@ -28,12 +28,12 @@ def _warning_already_exists(cls, member):
     )
 
 
-def fake_class(name_or_class_obj, members=()):
+def fake_class(name_or_class_obj, members=(), parent=None):
     if isinstance(name_or_class_obj, scoped_nodes.ClassDef):
         cl = name_or_class_obj
     else:
         cl = scoped_nodes.ClassDef(
-            name=name_or_class_obj, lineno=None, col_offset=None, parent=None,
+            name=name_or_class_obj, lineno=None, col_offset=None, parent=parent,
             end_lineno=None, end_col_offset=None)
 
     for m in members:
@@ -42,16 +42,16 @@ def fake_class(name_or_class_obj, members=()):
                 _warning_already_exists(cl, m)
             else:
                 cl.locals[m] = [scoped_nodes.ClassDef(
-                    name=m, lineno=None, col_offset=None, parent=None,
+                    name=m, lineno=None, col_offset=None, parent=cl,
                     end_lineno=None, end_col_offset=None)]
         elif isinstance(m, dict):
             for key, val in m.items():
                 assert isinstance(key, str), "key must be string"
                 if key in cl.locals:
                     _warning_already_exists(cl, key)
-                    fake_class(cl.locals[key], val)
+                    fake_class(cl.locals[key][0], val, parent=cl)
                 else:
-                    cl.locals[key] = [fake_class(key, val)]
+                    cl.locals[key] = [fake_class(key, val, parent=cl)]
         else:
             # here can be used any astroid type
             if m.name in cl.locals:

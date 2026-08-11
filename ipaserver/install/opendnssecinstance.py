@@ -22,7 +22,7 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipaserver import p11helper
-from ipalib.constants import SOFTHSM_DNSSEC_TOKEN_LABEL
+from ipalib.constants import DNSSEC_TOKEN_LABEL
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +68,8 @@ class OpenDNSSECInstance(service.Service):
             service_desc="OpenDNSSEC enforcer daemon",
         )
         self.conf_file_dict = {
-            'SOFTHSM_LIB': paths.LIBSOFTHSM2_SO,
-            'TOKEN_LABEL': SOFTHSM_DNSSEC_TOKEN_LABEL,
+            'PKCS11_LIB': paths.LIBKRYOPTIC_SO,
+            'TOKEN_LABEL': DNSSEC_TOKEN_LABEL,
             'KASP_DB': paths.OPENDNSSEC_KASP_DB,
             'ODS_USER': constants.ODS_USER,
             'ODS_GROUP': constants.ODS_GROUP,
@@ -145,7 +145,7 @@ class OpenDNSSECInstance(service.Service):
         if not self.fstore.has_file(paths.OPENDNSSEC_ZONELIST_FILE):
             self.fstore.backup_file(paths.OPENDNSSEC_ZONELIST_FILE)
 
-        pin_fd = open(paths.DNSSEC_SOFTHSM_PIN, "r")
+        pin_fd = open(paths.DNSSEC_HSM_PIN, "r")
         pin = pin_fd.read()
         pin_fd.close()
 
@@ -186,8 +186,8 @@ class OpenDNSSECInstance(service.Service):
                 os.fchmod(f.fileno(), 0o644)
 
         directivesetter.set_directive(paths.SYSCONFIG_ODS,
-                                      'SOFTHSM2_CONF',
-                                      paths.DNSSEC_SOFTHSM2_CONF,
+                                      'KRYOPTIC_CONF',
+                                      paths.DNSSEC_KRYOPTIC_CONF,
                                       quotes=False, separator='=')
 
     def __setup_ownership_file_modes(self):
@@ -223,12 +223,12 @@ class OpenDNSSECInstance(service.Service):
 
     def __generate_master_key(self):
 
-        with open(paths.DNSSEC_SOFTHSM_PIN, "r") as f:
+        with open(paths.DNSSEC_HSM_PIN, "r") as f:
             pin = f.read()
 
-        os.environ["SOFTHSM2_CONF"] = paths.DNSSEC_SOFTHSM2_CONF
+        os.environ["KRYOPTIC_CONF"] = paths.DNSSEC_KRYOPTIC_CONF
         p11 = p11helper.P11_Helper(
-            SOFTHSM_DNSSEC_TOKEN_LABEL, pin, paths.LIBSOFTHSM2_SO)
+            DNSSEC_TOKEN_LABEL, pin, paths.LIBKRYOPTIC_SO)
         try:
             # generate master key
             logger.debug("Creating master key")

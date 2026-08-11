@@ -394,7 +394,7 @@ corenet_tcp_bind_generic_node(ipa_dnskey_t)
 corenet_tcp_connect_kerberos_port(ipa_dnskey_t)
 corenet_tcp_connect_rndc_port(ipa_dnskey_t)
 
-# Allow rndc to access SoftHSM token in IPA directory
+# Allow rndc to access PKCS#11 token in IPA directory
 optional_policy(`
     gen_require(`
         type ndc_t;
