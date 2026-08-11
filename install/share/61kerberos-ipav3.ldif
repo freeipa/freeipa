@@ -3,3 +3,7 @@ attributeTypes: (2.16.840.1.113730.3.8.11.32 NAME 'ipaKrbPrincipalAlias' DESC 'D
 objectClasses: (2.16.840.1.113730.3.8.12.8 NAME 'ipaKrbPrincipal' SUP krbPrincipalAux AUXILIARY MUST ( krbPrincipalName $ ipaKrbPrincipalAlias ) X-ORIGIN 'IPA v3' )
 # Resource delegation object class uses memberPrincipal to specify targets and requires a Kerberos principal
 objectClasses: (2.16.840.1.113730.3.8.24.10 NAME 'resourceDelegation' SUP krbPrincipal AUXILIARY MAY ( memberPrincipal ) X-ORIGIN 'IPA v4.10' )
+# Kerberos S4U2Self service attestation support (Phase 1: non-SSH service types)
+attributeTypes: (2.16.840.1.113730.3.8.15.2.4 NAME 'ipaKrbServiceAttestationKey' DESC 'DER-encoded SubjectPublicKeyInfo for Kerberos S4U2Self attestation' EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'IPA v4.12')
+attributeTypes: (2.16.840.1.113730.3.8.15.2.5 NAME 'ipaKrbServiceAttestationType' DESC 'Service type allowed for S4U2Self attestation (e.g. oidc, radius, pam)' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.12')
+objectClasses: (2.16.840.1.113730.3.8.24.11 NAME 'ipaKrbServiceAttestation' DESC 'Mixin for Kerberos services that participate in S4U2Self attestation' SUP top AUXILIARY MAY ( ipaKrbServiceAttestationKey $ ipaKrbServiceAttestationType ) X-ORIGIN 'IPA v4.12')

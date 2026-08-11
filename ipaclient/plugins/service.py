@@ -20,7 +20,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipaclient.frontend import MethodOverride
-from ipalib import errors
+from ipalib import errors, Str
 from ipalib.plugable import Registry
 from ipalib import x509
 from ipalib import _
@@ -48,3 +48,58 @@ class service_show(MethodOverride):
                 raise errors.NoCertificateError(entry=keys[-1])
         else:
             return super(service_show, self).forward(*keys, **options)
+
+
+@register(override=True, no_fail=True)
+class service_add_attestation_key(MethodOverride):
+    def get_options(self):
+        for option in super(service_add_attestation_key, self).get_options():
+            if option.name == 'ipakrbserviceattestationkey':
+                continue
+            yield option
+        yield Str(
+            'pubkeyfile*',
+            cli_name='pubkey',
+            label=_('Public key file'),
+            doc=_('PEM file containing the SubjectPublicKeyInfo public key'),
+            include='cli',
+        )
+
+    def forward(self, *keys, **options):
+        pubkeyfiles = options.pop('pubkeyfile', None)
+        if pubkeyfiles:
+            if not isinstance(pubkeyfiles, (list, tuple)):
+                pubkeyfiles = [pubkeyfiles]
+            options['ipakrbserviceattestationkey'] = [
+                x509.load_public_key_from_file(f) for f in pubkeyfiles
+            ]
+        return super(service_add_attestation_key, self).forward(
+            *keys, **options)
+
+
+@register(override=True, no_fail=True)
+class service_remove_attestation_key(MethodOverride):
+    def get_options(self):
+        for option in super(service_remove_attestation_key,
+                            self).get_options():
+            if option.name == 'ipakrbserviceattestationkey':
+                continue
+            yield option
+        yield Str(
+            'pubkeyfile*',
+            cli_name='pubkey',
+            label=_('Public key file'),
+            doc=_('PEM file containing the SubjectPublicKeyInfo public key'),
+            include='cli',
+        )
+
+    def forward(self, *keys, **options):
+        pubkeyfiles = options.pop('pubkeyfile', None)
+        if pubkeyfiles:
+            if not isinstance(pubkeyfiles, (list, tuple)):
+                pubkeyfiles = [pubkeyfiles]
+            options['ipakrbserviceattestationkey'] = [
+                x509.load_public_key_from_file(f) for f in pubkeyfiles
+            ]
+        return super(service_remove_attestation_key, self).forward(
+            *keys, **options)

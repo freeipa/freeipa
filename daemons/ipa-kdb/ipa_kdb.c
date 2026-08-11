@@ -859,7 +859,11 @@ kdb_vftabl kdb_function_table = {
     .audit_as_req = ipadb_audit_as_req,
     .check_allowed_to_delegate = ipadb_check_allowed_to_delegate,
     .free_principal_e_data = ipadb_free_principal_e_data,
+#ifdef BUILD_IPA_S4U_X509
+    .get_s4u_x509_principal = ipadb_get_s4u_x509_principal,
+#else
     .get_s4u_x509_principal = NULL,
+#endif
     .allowed_to_delegate_from = NULL,
     .get_authdata_info = NULL,
     .free_authdata_info = NULL,
@@ -907,7 +911,11 @@ kdb_vftabl kdb_function_table = {
     .audit_as_req = ipadb_audit_as_req,
     .check_allowed_to_delegate = ipadb_check_allowed_to_delegate,
     .free_principal_e_data = ipadb_free_principal_e_data,
+#ifdef BUILD_IPA_S4U_X509
+    .get_s4u_x509_principal = ipadb_get_s4u_x509_principal,
+#else
     .get_s4u_x509_principal = NULL,
+#endif
     .allowed_to_delegate_from = ipadb_allowed_to_delegate_from,
     .issue_pac = ipadb_v9_issue_pac,
 };

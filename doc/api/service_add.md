@@ -19,10 +19,11 @@ Add a new IPA service.
 * no_members : :ref:`Flag<Flag>` **(Required)**
  * Default: False
 * usercertificate : :ref:`Certificate<Certificate>`
+* ipakrbserviceattestationkey : :ref:`Bytes<Bytes>`
+* ipakrbserviceattestationtype : :ref:`Str<Str>`
 * ipakrbauthzdata : :ref:`StrEnum<StrEnum>`
  * Values: ('MS-PAC', 'PAD', 'NONE')
-* krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
+* krbprincipalauthind : :ref:`Str<Str>`
 * ipakrbrequirespreauth : :ref:`Bool<Bool>`
 * ipakrbokasdelegate : :ref:`Bool<Bool>`
 * ipakrboktoauthasdelegate : :ref:`Bool<Bool>`

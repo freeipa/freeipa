@@ -1,27 +1,21 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
-# service_add_smb
-Add a new SMB service.
+# service_add_attestation_key
+Register a service attestation public key for S4U2Self attestation
 
 ### Arguments
 |Name|Type|Required
 |-|-|-
-|fqdn|:ref:`Str<Str>`|True
-|ipantflatname|:ref:`Str<Str>`|False
+|krbcanonicalname|:ref:`Principal<Principal>`|True
 
 ### Options
+* service_type : :ref:`Str<Str>` **(Required)**
 * all : :ref:`Flag<Flag>` **(Required)**
  * Default: False
 * raw : :ref:`Flag<Flag>` **(Required)**
  * Default: False
 * no_members : :ref:`Flag<Flag>` **(Required)**
  * Default: False
-* setattr : :ref:`Str<Str>`
-* addattr : :ref:`Str<Str>`
-* usercertificate : :ref:`Certificate<Certificate>`
-* ipakrbserviceattestationkey : :ref:`Bytes<Bytes>`
-* ipakrbserviceattestationtype : :ref:`Str<Str>`
-* ipakrbokasdelegate : :ref:`Bool<Bool>`
-* ipakrboktoauthasdelegate : :ref:`Bool<Bool>`
+* ipakrbserviceattestationkey : :ref:`Bytes<Bytes>` **(Required)**
 * version : :ref:`Str<Str>`
 
 ### Output

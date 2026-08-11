@@ -18,8 +18,7 @@ Search for IPA services.
 * krbprincipalname : :ref:`Principal<Principal>`
 * ipakrbauthzdata : :ref:`StrEnum<StrEnum>`
  * Values: ('MS-PAC', 'PAD', 'NONE')
-* krbprincipalauthind : :ref:`StrEnum<StrEnum>`
- * Values: ('radius', 'otp', 'pkinit', 'hardened', 'idp', 'passkey')
+* krbprincipalauthind : :ref:`Str<Str>`
 * timelimit : :ref:`Int<Int>`
 * sizelimit : :ref:`Int<Int>`
 * version : :ref:`Str<Str>`

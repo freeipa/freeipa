@@ -1,12 +1,11 @@
 [//]: # (THE CONTENT BELOW IS GENERATED. DO NOT EDIT.)
-# service_add_smb
-Add a new SMB service.
+# service_remove_attestation_key
+Remove a service attestation public key
 
 ### Arguments
 |Name|Type|Required
 |-|-|-
-|fqdn|:ref:`Str<Str>`|True
-|ipantflatname|:ref:`Str<Str>`|False
+|krbcanonicalname|:ref:`Principal<Principal>`|True
 
 ### Options
 * all : :ref:`Flag<Flag>` **(Required)**
@@ -15,13 +14,7 @@ Add a new SMB service.
  * Default: False
 * no_members : :ref:`Flag<Flag>` **(Required)**
  * Default: False
-* setattr : :ref:`Str<Str>`
-* addattr : :ref:`Str<Str>`
-* usercertificate : :ref:`Certificate<Certificate>`
-* ipakrbserviceattestationkey : :ref:`Bytes<Bytes>`
-* ipakrbserviceattestationtype : :ref:`Str<Str>`
-* ipakrbokasdelegate : :ref:`Bool<Bool>`
-* ipakrboktoauthasdelegate : :ref:`Bool<Bool>`
+* ipakrbserviceattestationkey : :ref:`Bytes<Bytes>` **(Required)**
 * version : :ref:`Str<Str>`
 
 ### Output

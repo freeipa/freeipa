@@ -43,7 +43,7 @@ VENDOR_VERSION = "@VERSION@@VENDOR_SUFFIX@"
 #   IPA 3.2.1:  NUM_VERSION=30201
 #   IPA 3.2.99: NUM_VERSION=30299 (development version)
 #   IPA 3.3.0:  NUM_VERSION=30300
-NUM_VERSION = @NUM_VERSION@
+NUM_VERSION: int = int("@NUM_VERSION@")
 
 
 # The version of the API.
@@ -55,3 +55,8 @@ DEFAULT_PLUGINS = frozenset(l.strip() for l in """
 """.strip().splitlines())
 
 KRB5_BUILD_VERSION = parse_version("@KRB5_BUILD_VERSION@")
+
+# KRB5_KT_END is the return code from krb5_kt_next_entry that signals the
+# end of the keytab.  Its numeric value varies across MIT Kerberos releases
+# and is extracted from krb5.h at build time by configure.
+KRB5_KT_END: int = int("@KRB5_KT_END@")
