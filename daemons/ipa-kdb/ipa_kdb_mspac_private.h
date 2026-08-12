@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "ipa_kdb_mspac_trusts.h"
+
 struct ipadb_mspac {
     char *flat_domain_name;
     char *flat_server_name;
@@ -33,6 +35,7 @@ struct ipadb_mspac {
 
     size_t num_trusts;
     struct ipadb_adtrusts *trusts;
+    struct ipadb_trust_index *trust_idx;  /* tsearch-based index */
     time_t last_update;
 };
 
