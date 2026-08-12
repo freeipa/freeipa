@@ -28,6 +28,7 @@
  *   samAccountName: 20 for backward compatibility reasons
  */
 #define MSPAC_ID_NAME_MAX_LENGTH (2048)
+#include "ipa_kdb_mspac_trusts.h"
 
 struct ipadb_mspac {
     char *flat_domain_name;
@@ -39,6 +40,7 @@ struct ipadb_mspac {
 
     size_t num_trusts;
     struct ipadb_adtrusts *trusts;
+    struct ipadb_trust_index *trust_idx;  /* tsearch-based index */
     time_t last_update;
 };
 
