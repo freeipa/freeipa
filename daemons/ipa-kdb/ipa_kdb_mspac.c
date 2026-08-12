@@ -285,7 +285,7 @@ bool dom_sid_check(const struct dom_sid *sid1, const struct dom_sid *sid2, bool 
 
     /* for same size authorities compare them backwards
      * since RIDs are likely different */
-    for (c = sid1->num_auths; c >= 0; --c)
+    for (c = sid1->num_auths - 1; c >= 0; --c)
         if (sid1->sub_auths[c] != sid2->sub_auths[c])
             return false;
 
@@ -318,6 +318,12 @@ static bool dom_sid_is_prefix(const struct dom_sid *sid1, const struct dom_sid *
         return false;
 
     if (sid1->num_auths > sid2->num_auths)
+        return false;
+
+    /* sid2 may only carry a single extra sub-authority (a RID) on top of
+     * sid1's domain; anything deeper is not a domain/resource-SID
+     * relationship and must not be treated as a prefix match */
+    if (sid2->num_auths - sid1->num_auths > 1)
         return false;
 
     /* now sid1->num_auths <= sid2->num_auths */
