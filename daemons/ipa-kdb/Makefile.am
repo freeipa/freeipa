@@ -36,6 +36,8 @@ ipadb_la_SOURCES = 		\
 	ipa_kdb_mspac.c	\
 	ipa_kdb_mspac_private.h	\
 	ipa_kdb_mspac_trust.c	\
+	ipa_kdb_mspac_trusts.c	\
+	ipa_kdb_mspac_trusts.h	\
 	ipa_kdb_delegation.c	\
 	ipa_kdb_audit_as.c	\
 	$(NULL)
@@ -88,6 +90,7 @@ ipa_kdb_tests_SOURCES =        \
        ipa_kdb_pwdpolicy.c     \
        ipa_kdb_mspac.c         \
        ipa_kdb_mspac_trust.c	\
+       ipa_kdb_mspac_trusts.c  \
        ipa_kdb_delegation.c    \
        ipa_kdb_audit_as.c      \
        $(NULL)
