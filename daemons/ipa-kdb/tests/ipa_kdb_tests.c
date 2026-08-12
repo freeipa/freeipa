@@ -532,6 +532,41 @@ static void test_check_trusted_realms(void **state)
     assert_int_equal(kerr, KRB5_KDB_NOENTRY);
 }
 
+static void test_check_transited_realms(void **state)
+{
+    struct test_ctx *test_ctx = (struct test_ctx *) *state;
+    krb5_error_code kerr;
+    krb5_data empty_transited = {KV5M_DATA, 0, ""};
+    krb5_data our_realm = {KV5M_DATA, strlen("EXAMPLE.COM"), "EXAMPLE.COM"};
+    krb5_data trusted_domain = {KV5M_DATA, strlen(DOMAIN_NAME), DOMAIN_NAME};
+    krb5_data unknown_realm = {KV5M_DATA, strlen(EXTERNAL_REALM), EXTERNAL_REALM};
+    krb5_data short_realm = {KV5M_DATA, 2, "EX"};
+
+    /* Direct trust: our own realm on both sides with an empty transited
+     * path is allowed without consulting trust data. */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &empty_transited,
+                                        &our_realm, &our_realm);
+    assert_int_equal(kerr, 0);
+
+    /* Cross-realm via a trusted domain that also appears in the
+     * transited path. */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &trusted_domain,
+                                        &trusted_domain, &our_realm);
+    assert_int_equal(kerr, 0);
+
+    /* A short realm that is a case-insensitive prefix of our own realm
+     * must not be treated as if it were our own realm (regression test
+     * for a missing length check). */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &empty_transited,
+                                        &short_realm, &our_realm);
+    assert_int_equal(kerr, KRB5_PLUGIN_NO_HANDLE);
+
+    /* Completely unrelated realm never matches. */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &unknown_realm,
+                                        &unknown_realm, &our_realm);
+    assert_int_equal(kerr, KRB5_PLUGIN_NO_HANDLE);
+}
+
 /* ------------------------------------------------------------------ */
 /* Trust index tests                                                   */
 /* ------------------------------------------------------------------ */
@@ -1239,6 +1274,8 @@ int main(int argc, const char *argv[])
         cmocka_unit_test_setup_teardown(test_dom_sid_string,
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_check_trusted_realms,
+                                        setup, teardown),
+        cmocka_unit_test_setup_teardown(test_check_transited_realms,
                                         setup, teardown),
         /* Trust index unit tests (standalone, no krb5 context needed) */
         cmocka_unit_test_setup_teardown(test_trust_index_find_by_domain,
