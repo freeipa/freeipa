@@ -31,6 +31,7 @@
 #include "gen_ndr/ndr_krb5pac.h"
 
 #include "ipa_kdb_mspac_private.h"
+#include "ipa_kdb_mspac_trusts.h"
 
 static char *user_pac_attrs[] = {
     "objectClass",
@@ -1630,8 +1631,6 @@ static struct ipadb_adtrusts *get_domain_from_realm(krb5_context context,
                                                     krb5_data *realm)
 {
     struct ipadb_context *ipactx;
-    struct ipadb_adtrusts *domain;
-    size_t i;
 
     ipactx = ipadb_get_context(context);
     if (!ipactx) {
@@ -1642,17 +1641,8 @@ static struct ipadb_adtrusts *get_domain_from_realm(krb5_context context,
         return NULL;
     }
 
-    for (i = 0; i < ipactx->mspac->num_trusts; i++) {
-        domain = &ipactx->mspac->trusts[i];
-        if (strlen(domain->domain_name) != realm->length) {
-            continue;
-        }
-        if (strncasecmp(domain->domain_name, realm->data, realm->length) == 0) {
-            return domain;
-        }
-    }
-
-    return NULL;
+    return ipadb_trust_find_by_domain(ipactx->mspac->trust_idx,
+                                     realm->data, realm->length);
 }
 
 static struct ipadb_adtrusts *get_domain_from_realm_update(krb5_context context,
@@ -2666,18 +2656,21 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
     free((*mspac)->flat_server_name);
     free((*mspac)->fallback_group);
 
-    if ((*mspac)->num_trusts) {
-        for (i = 0; i < (*mspac)->num_trusts; i++) {
-            free((*mspac)->trusts[i].domain_name);
-            free((*mspac)->trusts[i].flat_name);
-            free((*mspac)->trusts[i].domain_sid);
-            free((*mspac)->trusts[i].sid_blocklist_incoming);
-            free((*mspac)->trusts[i].sid_blocklist_outgoing);
-            free((*mspac)->trusts[i].parent_name);
-            (*mspac)->trusts[i].parent = NULL;
-            if ((*mspac)->trusts[i].upn_suffixes) {
-                for (j = 0; (*mspac)->trusts[i].upn_suffixes[j]; j++) {
-                    free((*mspac)->trusts[i].upn_suffixes[j]);
+    /* Free the trust index before freeing the trust records it points into */
+    ipadb_trust_index_free(&mspac->trust_idx);
+
+    if (mspac->num_trusts) {
+        for (i = 0; i < mspac->num_trusts; i++) {
+            free(mspac->trusts[i].domain_name);
+            free(mspac->trusts[i].flat_name);
+            free(mspac->trusts[i].domain_sid);
+            free(mspac->trusts[i].sid_blocklist_incoming);
+            free(mspac->trusts[i].sid_blocklist_outgoing);
+            free(mspac->trusts[i].parent_name);
+            mspac->trusts[i].parent = NULL;
+            if (mspac->trusts[i].upn_suffixes) {
+                for (j = 0; mspac->trusts[i].upn_suffixes[j]; j++) {
+                    free(mspac->trusts[i].upn_suffixes[j]);
                 }
                 free((*mspac)->trusts[i].upn_suffixes);
                 free((*mspac)->trusts[i].upn_suffixes_len);
@@ -3188,8 +3181,51 @@ ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit,
     ipactx->mspac->fallback_rid     = fallback_rid;
 
     trust_kerr = ipadb_mspac_get_trusted_domains(ipactx);
-    if (trust_kerr)
-        in_stmsg = "Failed to assemble trusted domains information";
+    if (trust_kerr) {
+        in_stmsg = (old_mspac != NULL)
+          ? "Failed to assemble trusted domains information; "
+            "continuing to serve the previous trust snapshot"
+          : "Failed to assemble trusted domains information; "
+            "no previous snapshot available, trust lookups disabled "
+            "until the next successful refresh";
+        goto rollback_mspac;
+    }
+    if (new_mspac->num_trusts > 0) {
+        /* Build the tsearch-based index for fast trust lookups */
+        int idx_err = ipadb_trust_index_build(new_mspac->trusts,
+                                              new_mspac->num_trusts,
+                                              &new_mspac->trust_idx);
+        if (idx_err) {
+            trust_kerr = (krb5_error_code)idx_err;
+            in_stmsg = (old_mspac != NULL)
+              ? "Failed to build trust lookup index; continuing to serve "
+                "the previous trust snapshot"
+              : "Failed to build trust lookup index; no previous snapshot "
+                "available, trust lookups disabled until the next "
+                "successful refresh";
+            goto rollback_mspac;
+        }
+    }
+
+    ipadb_mspac_struct_free(&old_mspac);
+    goto end;
+
+rollback_mspac:
+    if (old_mspac != NULL) {
+        /* A previous snapshot exists: keep serving it rather than a
+         * broken/partial refresh. */
+        ipadb_mspac_struct_free(&ipactx->mspac);
+        ipactx->mspac = old_mspac;
+        new_mspac = NULL; /* avoid a dangling alias onto freed memory */
+    } else {
+        /* No previous snapshot to fall back to, but the local domain
+         * identity fetched above is valid: keep it (without trust data)
+         * so PAC issuance for local principals keeps working and the
+         * refresh throttle above stays in effect, instead of leaving
+         * ipactx->mspac NULL and retrying LDAP unthrottled on every
+         * request until a reinit fully succeeds. */
+        ipadb_mspac_free_trusts(new_mspac);
+    }
 
 end:
     if (stmsg)
@@ -3214,7 +3250,6 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 {
 	struct ipadb_context *ipactx;
 	bool has_transited_contents, has_client_realm, has_server_realm;
-        size_t i;
         krb5_error_code ret;
 
         ipactx = ipadb_get_context(kcontext);
@@ -3243,24 +3278,25 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 		has_transited_contents = true;
 	}
 
-	if (!ipactx->mspac || !ipactx->mspac->trusts) {
+	if (!ipactx->mspac || !ipactx->mspac->trust_idx) {
 		return KRB5_PLUGIN_NO_HANDLE;
 	}
 
-	/* Iterate through list of trusts and check if any of input belongs to any of the trust */
-	for(i=0; i < ipactx->mspac->num_trusts ; i++) {
-		if (!has_transited_contents &&
-		    (strncasecmp(tr_contents->data, ipactx->mspac->trusts[i].domain_name, tr_contents->length) == 0)) {
-			has_transited_contents = true;
-		}
-		if (!has_client_realm &&
-		    (strncasecmp(client_realm->data, ipactx->mspac->trusts[i].domain_name, client_realm->length) == 0)) {
-			has_client_realm = true;
-		}
-		if (!has_server_realm &&
-		    (strncasecmp(server_realm->data, ipactx->mspac->trusts[i].domain_name, server_realm->length) == 0)) {
-			has_server_realm = true;
-		}
+	/* Use indexed lookup instead of iterating through all trusts */
+	if (!has_transited_contents &&
+	    ipadb_trust_find_by_domain(ipactx->mspac->trust_idx,
+				     tr_contents->data, tr_contents->length)) {
+		has_transited_contents = true;
+	}
+	if (!has_client_realm &&
+	    ipadb_trust_find_by_domain(ipactx->mspac->trust_idx,
+				     client_realm->data, client_realm->length)) {
+		has_client_realm = true;
+	}
+	if (!has_server_realm &&
+	    ipadb_trust_find_by_domain(ipactx->mspac->trust_idx,
+				     server_realm->data, server_realm->length)) {
+		has_server_realm = true;
 	}
 
 	/* Tell to KDC that we don't handle this transition so that rules in krb5.conf could play its role */
@@ -3280,9 +3316,9 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 						  char **trusted_realm)
 {
 	struct ipadb_context *ipactx;
-	size_t i, j, length;
+	struct ipadb_adtrusts *trust;
+	size_t j, length;
 	const char *name;
-	bool result = false;
 
 	if (test_realm == NULL || test_realm[0] == '\0') {
 		return KRB5_KDB_NOENTRY;
@@ -3298,74 +3334,34 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 		return KRB5_KDB_NOENTRY;
 	}
 
-	if (!ipactx->mspac || !ipactx->mspac->trusts) {
+	if (!ipactx->mspac->trust_idx) {
 		return KRB5_KDB_NOENTRY;
 	}
 
-	/* Iterate through list of trusts and check if input realm belongs to any of the trust */
-	for(i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
-		size_t len = 0;
-		result = strncasecmp(test_realm,
-				     ipactx->mspac->trusts[i].domain_name,
-				     size) == 0;
-
-		if (!result) {
-			len = strlen(ipactx->mspac->trusts[i].domain_name);
-			if ((size > len) && (test_realm[size - len - 1] == '.')) {
-				result = strncasecmp(test_realm + (size - len),
-						     ipactx->mspac->trusts[i].domain_name,
-						     len) == 0;
-			}
-		}
-
-                if (!result && (ipactx->mspac->trusts[i].flat_name != NULL)) {
-			result = strncasecmp(test_realm,
-					     ipactx->mspac->trusts[i].flat_name,
-					     size) == 0;
-		}
-
-		if (!result && (ipactx->mspac->trusts[i].upn_suffixes != NULL)) {
-			for (j = 0; ipactx->mspac->trusts[i].upn_suffixes[j]; j++) {
-				result = strncasecmp(test_realm,
-						     ipactx->mspac->trusts[i].upn_suffixes[j],
-						     size) == 0;
-				if (!result) {
-					/* if UPN suffix did not match exactly, find if it is
-					 * superior to the test_realm, e.g. if test_realm ends
-					 * with the UPN suffix prefixed with dot*/
-					len = ipactx->mspac->trusts[i].upn_suffixes_len[j];
-					if ((size > len) && (test_realm[size - len - 1] == '.')) {
-						result = strncasecmp(test_realm + (size - len),
-								     ipactx->mspac->trusts[i].upn_suffixes[j],
-								     len) == 0;
-					}
-				}
-				if (result)
-					break;
-			}
-		}
-
-		if (result) {
-			/* return the realm if caller supplied a place for it */
-			if (trusted_realm != NULL) {
-				name = (ipactx->mspac->trusts[i].parent_name != NULL) ?
-					ipactx->mspac->trusts[i].parent_name :
-					ipactx->mspac->trusts[i].domain_name;
-				length = strlen(name) + 1;
-				*trusted_realm = calloc(1, length);
-				if (*trusted_realm != NULL) {
-					for (j = 0; j < length; j++) {
-						(*trusted_realm)[j] = toupper(name[j]);
-					}
-				} else {
-					return KRB5_KDB_NOENTRY;
-				}
-			}
-			return 0;
-		}
+	/* Use the indexed trust lookup: tries domain name (exact + suffix),
+	 * then flat/NetBIOS name (exact), then UPN suffixes (exact + suffix) */
+	trust = ipadb_trust_find_by_name(ipactx->mspac->trust_idx,
+					test_realm, size);
+	if (trust == NULL) {
+		return KRB5_KDB_NOENTRY;
 	}
 
-	return KRB5_KDB_NOENTRY;
+	/* return the realm if caller supplied a place for it */
+	if (trusted_realm != NULL) {
+		name = (trust->parent_name != NULL) ?
+			trust->parent_name :
+			trust->domain_name;
+		length = strlen(name) + 1;
+		*trusted_realm = calloc(1, length);
+		if (*trusted_realm != NULL) {
+			for (j = 0; j < length; j++) {
+				(*trusted_realm)[j] = toupper(name[j]);
+			}
+		} else {
+			return KRB5_KDB_NOENTRY;
+		}
+	}
+	return 0;
 }
 
 static krb5_error_code
