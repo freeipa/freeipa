@@ -190,10 +190,10 @@ char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid)
         return NULL;
     }
 
-    ia = (dom_sid->id_auth[5]) +
-         (dom_sid->id_auth[4] << 8 ) +
-         (dom_sid->id_auth[3] << 16) +
-         (dom_sid->id_auth[2] << 24);
+    ia = ((uint32_t)dom_sid->id_auth[5]) +
+         ((uint32_t)dom_sid->id_auth[4] << 8 ) +
+         ((uint32_t)dom_sid->id_auth[3] << 16) +
+         ((uint32_t)dom_sid->id_auth[2] << 24);
 
     ofs = snprintf(buf, len, "S-%u-%lu", (unsigned int) dom_sid->sid_rev_num,
                                             (unsigned long) ia);
