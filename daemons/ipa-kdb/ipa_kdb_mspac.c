@@ -3251,11 +3251,15 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 	has_client_realm = false;
 	has_server_realm = false;
 
-	/* First, compare client or server realm with ours */
-	if (strncasecmp(client_realm->data, ipactx->realm, client_realm->length) == 0) {
+	/* First, compare client or server realm with ours. The length must
+	 * match too, otherwise a short realm that happens to be a
+	 * case-insensitive prefix of our realm would incorrectly match. */
+	if (client_realm->length == strlen(ipactx->realm) &&
+	    strncasecmp(client_realm->data, ipactx->realm, client_realm->length) == 0) {
 		has_client_realm = true;
 	}
-	if (strncasecmp(server_realm->data, ipactx->realm, server_realm->length) == 0) {
+	if (server_realm->length == strlen(ipactx->realm) &&
+	    strncasecmp(server_realm->data, ipactx->realm, server_realm->length) == 0) {
 		has_server_realm = true;
 	}
 
@@ -3319,8 +3323,11 @@ krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
 		return KRB5_KDB_DBNOTINITED;
 	}
 
-	/* First, compare realm with ours, it would not be from a trusted realm then */
-	if (strncasecmp(test_realm, ipactx->realm, size) == 0) {
+	/* First, compare realm with ours, it would not be from a trusted realm then.
+	 * The length must match too, otherwise a short realm that happens to be a
+	 * case-insensitive prefix of our realm would incorrectly match. */
+	if (size == strlen(ipactx->realm) &&
+	    strncasecmp(test_realm, ipactx->realm, size) == 0) {
 		return KRB5_KDB_NOENTRY;
 	}
 
