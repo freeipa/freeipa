@@ -11,6 +11,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <search.h>
+#include <talloc.h>
 
 #include "ipa_kdb.h"
 #include "gen_ndr/ndr_krb5pac.h"
@@ -333,6 +334,28 @@ ipadb_trust_find_by_sid(struct ipadb_trust_index *idx,
     return find_exact(idx, TRUST_KEY_SID, sid_str, strlen(sid_str));
 }
 
+/*
+ * Convert a binary dom_sid to string and look it up.
+ */
+struct ipadb_adtrusts *
+ipadb_trust_find_by_domsid(struct ipadb_trust_index *idx,
+                          const struct dom_sid *sid)
+{
+    char *sid_str;
+    struct ipadb_adtrusts *found;
+
+    if (!idx || !sid || sid->num_auths < 0 || sid->num_auths > SID_SUB_AUTHS)
+        return NULL;
+
+    sid_str = dom_sid_string(NULL, sid);
+    if (!sid_str)
+        return NULL;
+
+    found = ipadb_trust_find_by_sid(idx, sid_str);
+    talloc_free(sid_str);
+    return found;
+}
+
 /* ------------------------------------------------------------------
  * Suffix match helper
  *
@@ -428,64 +451,35 @@ ipadb_trust_find_by_name(struct ipadb_trust_index *idx,
 }
 
 /* ------------------------------------------------------------------
- * SID prefix lookup (linear, needed for PAC filtering)
+ * SID prefix lookup (needed for PAC filtering)
  * ------------------------------------------------------------------
  */
 
-#define SID_ID_AUTHS 6
-
 /*
- * Check if sid1 is a prefix of sid2, i.e. sid2 starts with all
- * sub-authorities of sid1 and may have at most one more (a RID).
- * Also matches when both SIDs are identical.
+ * Find a trust whose domain SID either equals 'sid' exactly, or is
+ * 'sid' with its last sub-authority (a RID) stripped off.  A resource
+ * or user SID in AD is always <domain SID>-<RID>, so this covers both
+ * shapes with two O(log n) exact lookups instead of a linear prefix
+ * scan.
  */
-static bool sid_is_prefix(const struct dom_sid *sid1,
-                          const struct dom_sid *sid2)
-{
-    int c;
-
-    if (sid1 == sid2)
-        return true;
-    if (sid1 == NULL || sid2 == NULL)
-        return false;
-    if (sid1->sid_rev_num != sid2->sid_rev_num)
-        return false;
-    if (sid1->num_auths > sid2->num_auths)
-        return false;
-
-    /* sid2 may only carry a single extra sub-authority (a RID) on top
-     * of sid1's domain; anything deeper is not a domain/resource-SID
-     * relationship and must not be treated as a prefix match */
-    if (sid2->num_auths - sid1->num_auths > 1)
-        return false;
-
-    for (c = 0; c < sid1->num_auths; c++) {
-        if (sid1->sub_auths[c] != sid2->sub_auths[c])
-            return false;
-    }
-
-    for (c = 0; c < SID_ID_AUTHS; c++) {
-        if (sid1->id_auth[c] != sid2->id_auth[c])
-            return false;
-    }
-
-    return true;
-}
-
 struct ipadb_adtrusts *
-ipadb_trust_find_by_sid_prefix(struct ipadb_adtrusts *trusts,
-                               size_t num_trusts,
+ipadb_trust_find_by_sid_prefix(struct ipadb_trust_index *idx,
                                const struct dom_sid *sid)
 {
-    size_t i;
+    struct ipadb_adtrusts *found;
+    struct dom_sid trimmed;
 
-    if (!trusts || !sid)
+    if (!idx || !sid)
         return NULL;
 
-    for (i = 0; i < num_trusts; i++) {
-        if (sid_is_prefix(&trusts[i].domsid, sid)) {
-            return &trusts[i];
-        }
-    }
-    return NULL;
+    found = ipadb_trust_find_by_domsid(idx, sid);
+    if (found)
+        return found;
+
+    if (sid->num_auths <= 0)
+        return NULL;
+
+    trimmed = *sid;
+    trimmed.num_auths--;
+    return ipadb_trust_find_by_domsid(idx, &trimmed);
 }

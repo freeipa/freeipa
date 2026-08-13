@@ -30,6 +30,10 @@
 #define MSPAC_ID_NAME_MAX_LENGTH (2048)
 #include "ipa_kdb_mspac_trusts.h"
 
+/* Number of sub-authorities a struct dom_sid may hold. Shared between
+ * ipa_kdb_mspac.c and ipa_kdb_mspac_trusts.c. */
+#define SID_SUB_AUTHS 15
+
 struct ipadb_mspac {
     char *flat_domain_name;
     char *flat_server_name;
