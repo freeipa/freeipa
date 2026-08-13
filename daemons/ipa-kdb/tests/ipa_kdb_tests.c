@@ -992,6 +992,54 @@ static void test_trust_index_find_by_name_deep_upn_suffix(void **state)
     }
 }
 
+/* -- Binary dom_sid exact lookup -- */
+static void test_trust_index_find_by_domsid(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+    struct dom_sid sid;
+    int ret;
+
+    /* Match root domain */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST, &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* Match child domain */
+    ret = ipadb_string_to_sid(CHILD_DOM_SID, &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
+
+    /* Match second domain */
+    ret = ipadb_string_to_sid(SECOND_DOM_SID, &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, SECOND_DOMAIN_NAME);
+
+    /* User SID (domain + RID) should NOT match -- exact only */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST "-1000", &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_null(found);
+
+    /* Unknown SID */
+    ret = ipadb_string_to_sid("S-1-5-21-99-99-99", &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_null(found);
+
+    /* NULL inputs */
+    found = ipadb_trust_find_by_domsid(NULL, &sid);
+    assert_null(found);
+    found = ipadb_trust_find_by_domsid(ctx->idx, NULL);
+    assert_null(found);
+}
+
 /* -- SID prefix lookup (indexed) -- */
 static void test_trust_index_find_by_sid_prefix(void **state)
 {
@@ -1210,6 +1258,9 @@ int main(int argc, const char *argv[])
                                         trust_index_teardown),
         cmocka_unit_test(test_trust_index_find_by_name_priority),
         cmocka_unit_test(test_trust_index_find_by_name_deep_upn_suffix),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_domsid,
+                                        trust_index_setup,
+                                        trust_index_teardown),
         cmocka_unit_test_setup_teardown(test_trust_index_find_by_sid_prefix,
                                         trust_index_setup,
                                         trust_index_teardown),
