@@ -992,7 +992,7 @@ static void test_trust_index_find_by_name_deep_upn_suffix(void **state)
     }
 }
 
-/* -- SID prefix lookup (linear) -- */
+/* -- SID prefix lookup (indexed) -- */
 static void test_trust_index_find_by_sid_prefix(void **state)
 {
     struct trust_index_ctx *ctx = *state;
@@ -1003,45 +1003,40 @@ static void test_trust_index_find_by_sid_prefix(void **state)
     /* User SID = domain SID + RID -> should find the domain */
     ret = ipadb_string_to_sid(DOM_SID_TRUST "-1000", &user_sid);
     assert_int_equal(ret, 0);
-    found = ipadb_trust_find_by_sid_prefix(ctx->trusts, ctx->num_trusts,
-                                           &user_sid);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
     assert_non_null(found);
     assert_string_equal(found->domain_name, DOMAIN_NAME);
 
     /* User SID from child domain */
     ret = ipadb_string_to_sid(CHILD_DOM_SID "-500", &user_sid);
     assert_int_equal(ret, 0);
-    found = ipadb_trust_find_by_sid_prefix(ctx->trusts, ctx->num_trusts,
-                                           &user_sid);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
     assert_non_null(found);
     assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
 
     /* Domain SID itself (no RID) -> exact match still found */
     ret = ipadb_string_to_sid(DOM_SID_TRUST, &user_sid);
     assert_int_equal(ret, 0);
-    found = ipadb_trust_find_by_sid_prefix(ctx->trusts, ctx->num_trusts,
-                                           &user_sid);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
     assert_non_null(found);
     assert_string_equal(found->domain_name, DOMAIN_NAME);
 
     /* SID nested more than one RID deep must NOT match */
     ret = ipadb_string_to_sid(DOM_SID_TRUST "-1000-1", &user_sid);
     assert_int_equal(ret, 0);
-    found = ipadb_trust_find_by_sid_prefix(ctx->trusts, ctx->num_trusts,
-                                           &user_sid);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
     assert_null(found);
 
     /* Completely unknown SID */
     ret = ipadb_string_to_sid("S-1-5-21-99-99-99-500", &user_sid);
     assert_int_equal(ret, 0);
-    found = ipadb_trust_find_by_sid_prefix(ctx->trusts, ctx->num_trusts,
-                                           &user_sid);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
     assert_null(found);
 
     /* NULL inputs */
-    found = ipadb_trust_find_by_sid_prefix(NULL, 0, &user_sid);
+    found = ipadb_trust_find_by_sid_prefix(NULL, &user_sid);
     assert_null(found);
-    found = ipadb_trust_find_by_sid_prefix(ctx->trusts, ctx->num_trusts, NULL);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, NULL);
     assert_null(found);
 }
 

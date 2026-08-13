@@ -101,6 +101,15 @@ ipadb_trust_find_by_sid(struct ipadb_trust_index *idx,
                         const char *sid_str);
 
 /*
+ * Exact-match lookup by binary struct dom_sid.
+ * Converts the SID to string internally and searches the by_sid tree.
+ * Returns the matching trust, or NULL.
+ */
+struct ipadb_adtrusts *
+ipadb_trust_find_by_domsid(struct ipadb_trust_index *idx,
+                          const struct dom_sid *sid);
+
+/*
  * Combined lookup: exact match on domain name, then flat name, then UPN
  * suffixes, in that order -- all exact matches are tried before any
  * suffix (subdomain) match is attempted, since an explicitly
@@ -123,12 +132,10 @@ ipadb_trust_find_by_name(struct ipadb_trust_index *idx,
  * the given dom_sid.  This is needed for PAC filtering where we check
  * if a SID belongs to a trusted domain.
  *
- * This falls back to linear scan because SID prefix matching is not
- * amenable to binary tree lookup.
- *
- * trusts/num_trusts are the raw arrays (not the index).
+ * Implemented as two indexed exact-match lookups (the full SID, then
+ * the SID with its trailing RID stripped), so it shares the same
+ * O(log n) index as the other lookups instead of scanning linearly.
  */
 struct ipadb_adtrusts *
-ipadb_trust_find_by_sid_prefix(struct ipadb_adtrusts *trusts,
-                               size_t num_trusts,
+ipadb_trust_find_by_sid_prefix(struct ipadb_trust_index *idx,
                                const struct dom_sid *sid);
