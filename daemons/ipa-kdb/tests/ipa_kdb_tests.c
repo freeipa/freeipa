@@ -1027,6 +1027,184 @@ static void test_trust_index_find_by_name_deep_upn_suffix(void **state)
     }
 }
 
+/* -- An exclusion cancels a suffix (subdomain) match on the exact
+ * excluded name, but not on a subdomain of that excluded name, and
+ * not on unrelated names -- exact-match-only semantics matching
+ * Samba's check_ft_info(). -- */
+static void test_trust_index_find_by_name_tln_exclusion(void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts trusts[5];
+    struct ipadb_adtrusts *found;
+    int ret;
+    size_t i;
+
+    static const struct {
+        const char *domain_name;
+        const char *flat_name;
+        const char *domain_sid;
+    } defs[] = {
+        { "a.test",     "A",  "S-1-5-21-21-1-1" },
+        { "b.a.test",   "B",  "S-1-5-21-21-2-2" },
+        { "c.b.a.test", "C",  "S-1-5-21-21-3-3" },
+        { "d.test",     "D",  "S-1-5-21-21-4-4" },
+        { "bb.a.test",  "BB", "S-1-5-21-21-5-5" },
+    };
+
+    (void)state;
+
+    memset(trusts, 0, sizeof(trusts));
+    for (i = 0; i < 5; i++) {
+        trusts[i].domain_name = strdup(defs[i].domain_name);
+        assert_non_null(trusts[i].domain_name);
+        trusts[i].flat_name = strdup(defs[i].flat_name);
+        assert_non_null(trusts[i].flat_name);
+        trusts[i].domain_sid = strdup(defs[i].domain_sid);
+        assert_non_null(trusts[i].domain_sid);
+        ret = ipadb_string_to_sid(defs[i].domain_sid, &trusts[i].domsid);
+        assert_int_equal(ret, 0);
+    }
+
+    /* Register an exclusion for "foo.c.b.a.test" on trust "d.test" --
+     * which trust holds the exclusion doesn't matter for matching. */
+    trusts[3].exclusions = calloc(2, sizeof(char *));
+    assert_non_null(trusts[3].exclusions);
+    trusts[3].exclusions[0] = strdup("foo.c.b.a.test");
+    assert_non_null(trusts[3].exclusions[0]);
+    trusts[3].exclusions_len = calloc(1, sizeof(size_t));
+    assert_non_null(trusts[3].exclusions_len);
+    trusts[3].exclusions_len[0] = strlen(trusts[3].exclusions[0]);
+
+    ret = ipadb_trust_index_build(trusts, 5, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* Without the exclusion, "foo.c.b.a.test" would fall back to the
+     * domain-suffix match on "c.b.a.test". With it, it must resolve
+     * to no trust at all. */
+    found = ipadb_trust_find_by_name(idx, "foo.c.b.a.test",
+                                     strlen("foo.c.b.a.test"));
+    assert_null(found);
+
+    /* A sibling name that is NOT excluded still resolves normally. */
+    found = ipadb_trust_find_by_name(idx, "bar.c.b.a.test",
+                                     strlen("bar.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "c.b.a.test");
+
+    /* The exclusion is exact-match only: a SUBDOMAIN of the excluded
+     * name is not covered by it and still resolves via the ordinary
+     * domain-suffix fallback. */
+    found = ipadb_trust_find_by_name(idx, "sub.foo.c.b.a.test",
+                                     strlen("sub.foo.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "c.b.a.test");
+
+    ipadb_trust_index_free(&idx);
+    for (i = 0; i < 5; i++) {
+        free(trusts[i].domain_name);
+        free(trusts[i].flat_name);
+        free(trusts[i].domain_sid);
+    }
+    free(trusts[3].exclusions[0]);
+    free(trusts[3].exclusions);
+    free(trusts[3].exclusions_len);
+}
+
+/* -- A trust that contributes many index entries (several UPN suffixes,
+ * a flat name, a SID) must still have its exclusion list honored, and
+ * an unrelated trust's exclusion must not leak into the wrong lookup --
+ * exercises is_excluded()'s per-trust dedup path. -- */
+static void test_trust_index_find_by_name_tln_exclusion_many_suffixes(
+    void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts trusts[2];
+    struct ipadb_adtrusts *found;
+    int ret;
+    size_t i;
+
+    (void)state;
+
+    memset(trusts, 0, sizeof(trusts));
+
+    /* trust 0: many UPN suffixes, one of them excluded. */
+    trusts[0].domain_name = strdup("d.test");
+    assert_non_null(trusts[0].domain_name);
+    trusts[0].flat_name = strdup("D");
+    assert_non_null(trusts[0].flat_name);
+    trusts[0].domain_sid = strdup("S-1-5-21-21-4-4");
+    assert_non_null(trusts[0].domain_sid);
+    ret = ipadb_string_to_sid(trusts[0].domain_sid, &trusts[0].domsid);
+    assert_int_equal(ret, 0);
+
+    trusts[0].upn_suffixes = calloc(4, sizeof(char *));
+    assert_non_null(trusts[0].upn_suffixes);
+    trusts[0].upn_suffixes[0] = strdup("suffix1.test");
+    trusts[0].upn_suffixes[1] = strdup("suffix2.test");
+    trusts[0].upn_suffixes[2] = strdup("suffix3.test");
+    for (i = 0; i < 3; i++)
+        assert_non_null(trusts[0].upn_suffixes[i]);
+    trusts[0].upn_suffixes_len = calloc(3, sizeof(size_t));
+    assert_non_null(trusts[0].upn_suffixes_len);
+    for (i = 0; i < 3; i++)
+        trusts[0].upn_suffixes_len[i] = strlen(trusts[0].upn_suffixes[i]);
+
+    trusts[0].exclusions = calloc(2, sizeof(char *));
+    assert_non_null(trusts[0].exclusions);
+    trusts[0].exclusions[0] = strdup("excluded.other.test");
+    assert_non_null(trusts[0].exclusions[0]);
+    trusts[0].exclusions_len = calloc(1, sizeof(size_t));
+    assert_non_null(trusts[0].exclusions_len);
+    trusts[0].exclusions_len[0] = strlen(trusts[0].exclusions[0]);
+
+    /* trust 1: unrelated, holds the domain "other.test" that the
+     * exclusion above targets a subdomain of. */
+    trusts[1].domain_name = strdup("other.test");
+    assert_non_null(trusts[1].domain_name);
+
+    ret = ipadb_trust_index_build(trusts, 2, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* The excluded name must resolve to no trust, even though trust 0
+     * contributes 6 index entries (domain, flat, SID, 3 UPN suffixes)
+     * that all have to be deduplicated down to a single exclusion-list
+     * scan for this to work correctly. */
+    found = ipadb_trust_find_by_name(idx, "excluded.other.test",
+                                     strlen("excluded.other.test"));
+    assert_null(found);
+
+    /* A sibling of the excluded name still resolves normally. */
+    found = ipadb_trust_find_by_name(idx, "sibling.other.test",
+                                     strlen("sibling.other.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "other.test");
+
+    /* Every UPN suffix on the many-entries trust still resolves. */
+    found = ipadb_trust_find_by_name(idx, "suffix1.test",
+                                     strlen("suffix1.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "d.test");
+    found = ipadb_trust_find_by_name(idx, "suffix3.test",
+                                     strlen("suffix3.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "d.test");
+
+    ipadb_trust_index_free(&idx);
+    free(trusts[0].domain_name);
+    free(trusts[0].flat_name);
+    free(trusts[0].domain_sid);
+    for (i = 0; i < 3; i++)
+        free(trusts[0].upn_suffixes[i]);
+    free(trusts[0].upn_suffixes);
+    free(trusts[0].upn_suffixes_len);
+    free(trusts[0].exclusions[0]);
+    free(trusts[0].exclusions);
+    free(trusts[0].exclusions_len);
+    free(trusts[1].domain_name);
+}
+
 /* -- Binary dom_sid exact lookup -- */
 static void test_trust_index_find_by_domsid(void **state)
 {
@@ -1295,6 +1473,9 @@ int main(int argc, const char *argv[])
                                         trust_index_teardown),
         cmocka_unit_test(test_trust_index_find_by_name_priority),
         cmocka_unit_test(test_trust_index_find_by_name_deep_upn_suffix),
+        cmocka_unit_test(test_trust_index_find_by_name_tln_exclusion),
+        cmocka_unit_test(
+            test_trust_index_find_by_name_tln_exclusion_many_suffixes),
         cmocka_unit_test_setup_teardown(test_trust_index_find_by_domsid,
                                         trust_index_setup,
                                         trust_index_teardown),
