@@ -576,6 +576,11 @@ class trust(LDAPObject):
             label=_('UPN suffixes'),
             flags={'no_create', 'no_search'},
         ),
+        Str('ipanttrusttlnexclusions*',
+            cli_name='tln_exclusions',
+            label=_('Forest trust namespace collision exclusions'),
+            flags={'no_create', 'no_search'},
+            ),
     )
 
     def validate_sid_blocklists(self, entry_attrs):
@@ -592,6 +597,37 @@ class trust(LDAPObject):
                 if not ipaserver.dcerpc.is_sid_valid(value):
                     err = _("invalid SID: {SID}").format(SID=value)
                     raise errors.ValidationError(name=attr, error=err)
+
+    def get_other_trusted_domains(self, ldap, own_dn):
+        """
+        Fetch {'cn', 'suffixes', 'exclusions'} for every ipaNTTrustedDomain
+        entry (root trust or subordinate domain) that does NOT belong to
+        the trust rooted at own_dn, for namespace collision checking.
+        """
+        entries, _truncated = ldap.find_entries(
+            base_dn=DN(self.api.env.container_trusts, self.api.env.basedn),
+            filter='(objectclass=ipaNTTrustedDomain)',
+            attrs_list=['cn', 'ipantadditionalsuffixes',
+                        'ipanttrusttlnexclusions'],
+            scope=SCOPE_SUBTREE,
+        )
+
+        result = []
+        for entry in entries:
+            # DN.endswith() compares whole RDN components (and is
+            # already case-insensitive), unlike a hand-rolled string
+            # suffix check -- this also covers the exact-match case
+            # (entry.dn == own_dn), since a DN trivially "ends with"
+            # itself.
+            if entry.dn.endswith(own_dn):
+                continue
+            result.append({
+                'cn': entry.single_value.get('cn'),
+                'suffixes': list(entry.get('ipantadditionalsuffixes') or []),
+                'exclusions': list(
+                    entry.get('ipanttrusttlnexclusions') or []),
+            })
+        return result
 
     def get_dn(self, *keys, **kwargs):
         trust_type = kwargs.get('trust_type')
@@ -1144,6 +1180,69 @@ class trust_mod(LDAPUpdate):
         assert isinstance(dn, DN)
 
         self.obj.validate_sid_blocklists(e_attrs)
+
+        new_suffixes = e_attrs.get('ipantadditionalsuffixes')
+        new_exclusions = e_attrs.get('ipanttrusttlnexclusions')
+        suffixes_changed = new_suffixes is not None
+        exclusions_changed = new_exclusions is not None
+
+        if _bindings_installed and (suffixes_changed or exclusions_changed):
+            try:
+                current = ldap.get_entry(
+                    dn,
+                    ['ipantadditionalsuffixes', 'ipanttrusttlnexclusions'])
+            except errors.NotFound:
+                current = {}
+
+            current_suffixes = list(
+                current.get('ipantadditionalsuffixes') or [])
+            current_exclusions = list(
+                current.get('ipanttrusttlnexclusions') or [])
+
+            if suffixes_changed:
+                suffixes = new_suffixes
+            else:
+                suffixes = current_suffixes
+
+            if exclusions_changed:
+                exclusions = new_exclusions
+            else:
+                exclusions = current_exclusions
+
+            domain_name = dn[0]['cn']
+            other_trusts = self.obj.get_other_trusted_domains(ldap, dn)
+
+            collision = ipaserver.dcerpc.find_namespace_collision(
+                [domain_name] + list(suffixes), list(exclusions),
+                other_trusts)
+            if collision is not None:
+                candidate, other_cn, _other_name = collision
+                raise errors.TrustTopologyConflictError(
+                    forest=domain_name,
+                    conflict=other_cn,
+                    domains=[candidate])
+
+            # build_forest_trust_info_blob() embeds a fresh timestamp on
+            # every call, so comparing built blob bytes against the
+            # stored blob would never match. Compare the actual values
+            # instead, and skip the rebuild (and the LDAP write it
+            # causes) when they're unchanged -- e.g. an idempotent
+            # automation run that always resends the same suffixes or
+            # exclusions. Attribute equality is case-insensitive
+            # (EQUALITY caseIgnoreMatch), so compare lowercased sets.
+            suffixes_set = {s.lower() for s in suffixes}
+            current_suffixes_set = {s.lower() for s in current_suffixes}
+            exclusions_set = {e.lower() for e in exclusions}
+            current_exclusions_set = {e.lower() for e in current_exclusions}
+            namespace_data_changed = any([
+                suffixes_set != current_suffixes_set,
+                exclusions_set != current_exclusions_set,
+            ])
+
+            if namespace_data_changed:
+                e_attrs['ipanttrustforesttrustinfo'] = [
+                    ipaserver.dcerpc.build_forest_trust_info_blob(
+                        domain_name, suffixes, exclusions)]
 
         return dn
 
