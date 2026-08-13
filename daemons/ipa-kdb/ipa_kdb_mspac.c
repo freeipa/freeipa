@@ -73,7 +73,6 @@ static char *memberof_pac_attrs[] = {
 };
 
 #define SID_ID_AUTHS 6
-#define SID_SUB_AUTHS 15
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
@@ -1752,16 +1751,12 @@ static krb5_error_code check_logon_info_consistent(krb5_context context,
                            info->info->info3.base.domain_sid, true);
     if (!result) {
         /* In S4U case we might be dealing with the PAC issued by the trusted domain */
-        if (is_s4u && (ipactx->mspac->trusts != NULL)) {
-            /* Iterate through list of trusts and check if this SID belongs to
-             * one of the domains we trust */
-            for(size_t i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
-                result = dom_sid_check(&ipactx->mspac->trusts[i].domsid,
-                                       info->info->info3.base.domain_sid, true);
-                if (result) {
-                    is_from_trusted_domain = true;
-                    break;
-                }
+        if (is_s4u && (ipactx->mspac->trust_idx != NULL)) {
+            /* Check if this SID belongs to one of the domains we trust */
+            if (ipadb_trust_find_by_domsid(ipactx->mspac->trust_idx,
+                                           info->info->info3.base.domain_sid)) {
+                result = true;
+                is_from_trusted_domain = true;
             }
         }
 
@@ -1864,16 +1859,13 @@ krb5_error_code filter_logon_info(krb5_context context,
     /* check exact sid */
     result = dom_sid_check(&domain->domsid, info->info->info3.base.domain_sid, true);
     if (!result) {
-        struct ipadb_mspac *mspac_ctx = ipactx->mspac;
-        result = FALSE;
+        struct ipadb_adtrusts *found;
         /* Didn't match but perhaps the original PAC was issued by a child domain's DC? */
-        for (size_t m = 0; m < mspac_ctx->num_trusts; m++) {
-            result = dom_sid_check(&mspac_ctx->trusts[m].domsid,
-                             info->info->info3.base.domain_sid, true);
-            if (result) {
-                domain = &mspac_ctx->trusts[m];
-                break;
-            }
+        found = ipadb_trust_find_by_domsid(ipactx->mspac->trust_idx,
+                                           info->info->info3.base.domain_sid);
+        if (found) {
+            result = true;
+            domain = found;
         }
         if (!result) {
             domstr = dom_sid_string(NULL, info->info->info3.base.domain_sid);
@@ -2105,17 +2097,9 @@ static krb5_error_code ipadb_check_logon_info(krb5_context context,
                 return ENOENT;
             }
             /* In S4U case we might be dealing with the PAC issued by the trusted domain */
-            if (ipactx->mspac->trusts) {
-                /* Iterate through list of trusts and check if this SID belongs to
-                * one of the domains we trust */
-                for(size_t i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
-                    result = dom_sid_check(&ipactx->mspac->trusts[i].domsid,
-                                           &client_sid, false);
-                    if (result) {
-                        is_from_trusted_domain = true;
-                        break;
-                    }
-                }
+            if (ipadb_trust_find_by_sid_prefix(ipactx->mspac->trust_idx,
+                                               &client_sid)) {
+                is_from_trusted_domain = true;
             }
 
             if (!is_from_trusted_domain && !is_s4u) {
