@@ -2665,6 +2665,13 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
                 free((*mspac)->trusts[i].upn_suffixes);
                 free((*mspac)->trusts[i].upn_suffixes_len);
             }
+            if (mspac->trusts[i].exclusions) {
+                for (j = 0; mspac->trusts[i].exclusions[j]; j++) {
+                    free(mspac->trusts[i].exclusions[j]);
+                }
+                free(mspac->trusts[i].exclusions);
+                free(mspac->trusts[i].exclusions_len);
+            }
         }
         free((*mspac)->trusts);
     }
@@ -2784,7 +2791,8 @@ ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     LDAP *lc = NULL;
     char *attrs[] = { "cn", "ipaNTTrustPartner", "ipaNTFlatName",
                       "ipaNTTrustedDomainSID", "ipaNTSIDBlacklistIncoming",
-                      "ipaNTSIDBlacklistOutgoing", "ipaNTAdditionalSuffixes", NULL };
+                      "ipaNTSIDBlacklistOutgoing", "ipaNTAdditionalSuffixes",
+                      "ipaNTTrustTLNExclusions", NULL };
     char *filter = "(objectclass=ipaNTTrustedDomain)";
     krb5_error_code kerr;
     LDAPMessage *res = NULL;
@@ -2898,6 +2906,38 @@ ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
             }
         }
 
+        ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTTrustTLNExclusions",
+                                         &t[n].exclusions);
+
+        if (ret) {
+            if (ret == ENOENT) {
+                /* This attribute is optional */
+                ret = 0;
+                t[n].exclusions = NULL;
+            } else {
+                ret = EINVAL;
+                goto done;
+            }
+        }
+
+        t[n].exclusions_len = NULL;
+        if (t[n].exclusions != NULL) {
+            size_t len = 0;
+
+            for (; t[n].exclusions[len] != NULL; len++);
+
+            if (len != 0) {
+                t[n].exclusions_len = calloc(len, sizeof(size_t));
+                if (t[n].exclusions_len == NULL) {
+                    ret = ENOMEM;
+                    goto done;
+                }
+                for (i = 0; i < len; i++) {
+                    t[n].exclusions_len[i] = strlen(t[n].exclusions[i]);
+                }
+            }
+        }
+
         ret = ipadb_ldap_attr_to_strlist(lc, le, "ipaNTSIDBlacklistIncoming",
                                          &sid_blocklist_incoming);
 
@@ -2986,6 +3026,17 @@ ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
     ret = 0;
 
 done:
+    /* On an early error above, whichever t[n].* fields (domain_name,
+     * flat_name, domain_sid, upn_suffixes[_len], exclusions[_len],
+     * parent_name) were already allocated for the in-progress trust are
+     * intentionally not freed here. ipactx->mspac->trusts already holds
+     * that partially-filled entry (num_trusts was incremented right after
+     * the backing array was grown, before populating the new entry), and
+     * ipadb_reinit_mspac() frees it via ipadb_mspac_struct_free() as soon
+     * as this function reports failure: either immediately on its
+     * rollback path, or as part of the normal free of the previous
+     * snapshot on a later successful reinit. So this is a bounded,
+     * self-healing leak, not an unbounded one. */
     if (ret != 0) {
         krb5_klog_syslog(LOG_ERR, "Failed to read list of trusted domains");
     }
