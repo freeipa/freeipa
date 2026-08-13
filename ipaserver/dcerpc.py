@@ -843,6 +843,66 @@ def string_to_array(what):
     return [ord(v) for v in what]
 
 
+def dns_names_collide(name1, name2):
+    """
+    Mirror Samba's dns_cmp() (source3/rpc_server/lsa/srv_lsa_nt.c):
+    two DNS names collide if they are equal, or one is a
+    dot-separated subdomain of the other.
+    """
+    n1 = name1.lower().rstrip('.')
+    n2 = name2.lower().rstrip('.')
+    if n1 == n2:
+        return True
+    return n1.endswith('.' + n2) or n2.endswith('.' + n1)
+
+
+def find_namespace_collision(candidate_names, my_exclusions, other_trusts):
+    """
+    Check a list of candidate DNS names (e.g. a trust's own domain
+    name plus its UPN suffixes) for an unresolved namespace collision
+    against every other currently configured trust.
+
+    :param candidate_names: DNS names about to be in effect for the
+        trust being validated.
+    :param my_exclusions: that trust's own ipaNTTrustTLNExclusions
+        values (after the pending update).
+    :param other_trusts: iterable of dicts, one per OTHER trust or
+        trust domain entry: {'cn': str, 'suffixes': [str],
+        'exclusions': [str]}. 'suffixes'/'exclusions' are only ever
+        non-empty for a trust's root entry.
+    :returns: (candidate, other_trust_cn, other_name) for the first
+        unresolved collision found, or None if there is none.
+
+    An exclusion cancels a collision only on an EXACT match to the
+    colliding name -- never on a parent/child DNS relationship -- and
+    is honored from either side (the trust being validated, or the
+    other trust), matching Samba's check_ft_info() semantics.
+    """
+    my_exclusions_lower = {excl.lower() for excl in my_exclusions}
+
+    # other_names/other_exclusions_lower depend only on 'trust', not on
+    # the candidate being checked -- precompute them once per trust
+    # instead of once per (candidate, trust) pair.
+    precomputed = []
+    for trust in other_trusts:
+        other_names = [trust['cn']] + list(trust.get('suffixes') or [])
+        other_exclusions_lower = {
+            excl.lower() for excl in (trust.get('exclusions') or [])}
+        precomputed.append((trust['cn'], other_names, other_exclusions_lower))
+
+    for candidate in candidate_names:
+        if candidate.lower() in my_exclusions_lower:
+            continue
+        for trust_cn, other_names, other_exclusions_lower in precomputed:
+            for other in other_names:
+                if not dns_names_collide(candidate, other):
+                    continue
+                if candidate.lower() in other_exclusions_lower:
+                    continue
+                return candidate, trust_cn, other
+    return None
+
+
 class TrustDomainInstance:
 
     def __init__(self, hostname, creds=None):
