@@ -56,6 +56,8 @@ struct ipadb_adtrusts {
     char *parent_name;
     char **upn_suffixes;
     size_t *upn_suffixes_len;
+    char **exclusions;
+    size_t *exclusions_len;
 };
 
 char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid);
