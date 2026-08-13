@@ -375,6 +375,79 @@ ipadb_trust_find_by_domsid(struct ipadb_trust_index *idx,
  * ------------------------------------------------------------------
  */
 
+/*
+ * Check whether 'name' has been explicitly excluded from namespace
+ * collision matching by any trust. Per MS-ADTS 6.1.6.9.3.2, a
+ * TopLevelNameEx exclusion cancels a collision only on an EXACT name
+ * match -- never on a child/parent DNS relationship -- so this is a
+ * full-length comparison, not a suffix scan.
+ *
+ * 'entries' has one element per indexed key (domain name, flat name,
+ * SID, and each UPN suffix), so a trust with several UPN suffixes
+ * appears several times. We deduplicate by trust pointer as we go so
+ * each trust's exclusion list is scanned at most once, regardless of
+ * how many keys point back to it.
+ */
+static bool is_excluded(struct trust_key_entry *entries, size_t num_entries,
+                        const char *name, size_t name_len)
+{
+    size_t i, j, k;
+    size_t num_seen = 0;
+    struct ipadb_adtrusts **seen;
+    struct ipadb_adtrusts *t;
+    size_t elen;
+    bool result = false;
+
+    if (num_entries == 0)
+        return false;
+
+    seen = calloc(num_entries, sizeof(struct ipadb_adtrusts *));
+    if (!seen) {
+        /* Fall back to the unoptimized (but still correct) scan. */
+        for (i = 0; i < num_entries; i++) {
+            t = entries[i].trust;
+            if (!t->exclusions)
+                continue;
+            for (j = 0; t->exclusions[j]; j++) {
+                elen = t->exclusions_len ? t->exclusions_len[j]
+                                         : strlen(t->exclusions[j]);
+                if (elen == name_len &&
+                    strncasecmp(t->exclusions[j], name, name_len) == 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    for (i = 0; i < num_entries; i++) {
+        t = entries[i].trust;
+
+        for (k = 0; k < num_seen; k++) {
+            if (seen[k] == t)
+                break;
+        }
+        if (k < num_seen)
+            continue;
+        seen[num_seen++] = t;
+
+        if (!t->exclusions)
+            continue;
+        for (j = 0; t->exclusions[j]; j++) {
+            elen = t->exclusions_len ? t->exclusions_len[j]
+                                     : strlen(t->exclusions[j]);
+            if (elen == name_len &&
+                strncasecmp(t->exclusions[j], name, name_len) == 0) {
+                result = true;
+                goto done;
+            }
+        }
+    }
+
+done:
+    free(seen);
+    return result;
+}
+
 static struct ipadb_adtrusts *
 suffix_scan(struct trust_key_entry *entries, size_t num_entries,
             const char *name, size_t name_len)
@@ -384,6 +457,9 @@ suffix_scan(struct trust_key_entry *entries, size_t num_entries,
     size_t klen;
     struct ipadb_adtrusts *best = NULL;
     size_t best_len = 0;
+
+    if (is_excluded(entries, num_entries, name, name_len))
+        return NULL;
 
     for (i = 0; i < num_entries; i++) {
         e = &entries[i];
