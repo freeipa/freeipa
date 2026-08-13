@@ -903,6 +903,48 @@ def find_namespace_collision(candidate_names, my_exclusions, other_trusts):
     return None
 
 
+def build_forest_trust_info_blob(domain_name, suffixes, exclusions):
+    """
+    Build a raw NDR-serialized ForestTrustInfo blob suitable for
+    storing directly in a trust's ipaNTTrustForestTrustInfo attribute,
+    from that trust's own domain name, UPN suffixes, and TLN
+    exclusions.
+
+    This performs no RPC round-trip: it is the same construction
+    fetch_domains() already does when parsing a remote domain's
+    forest trust info (drsblobs.ForestTrustInfo /
+    ForestTrustInfoRecord / ForestTrustInfoRecordArmor, packed with
+    ndr_pack()), applied locally to our own trust's data. Only top
+    level name and top level name exclusion records are produced,
+    matching TrustDomainInstance.generate_ftinfo()'s scope.
+    """
+    trust_timestamp = int(time.time() * 1e7 + 116444736000000000)
+    records = []
+
+    def add_record(name, rec_type):
+        record = drsblobs.ForestTrustInfoRecord()
+        record.flags = 0
+        record.timestamp = trust_timestamp
+        record.type = rec_type
+        record.data.string = name
+        armor = drsblobs.ForestTrustInfoRecordArmor()
+        armor.record = record
+        records.append(armor)
+
+    add_record(domain_name, lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME)
+    for suffix in suffixes:
+        add_record(suffix, lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME)
+    for excl in exclusions:
+        add_record(excl, lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME_EX)
+
+    ftinfo = drsblobs.ForestTrustInfo()
+    ftinfo.count = len(records)
+    ftinfo.records = records
+    ftinfo.version = 1
+
+    return ndr_pack(ftinfo)
+
+
 class TrustDomainInstance:
 
     def __init__(self, hostname, creds=None):
