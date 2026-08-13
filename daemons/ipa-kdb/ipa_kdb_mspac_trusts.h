@@ -119,7 +119,11 @@ ipadb_trust_find_by_domsid(struct ipadb_trust_index *idx,
  * Only if none of those match do we fall back to a suffix match
  * (e.g. "child.ad.example.com" matches "ad.example.com" if separated
  * by a dot), taking the longest (most specific) match across domain
- * names and UPN suffixes together.
+ * names and UPN suffixes together. A suffix match is skipped entirely
+ * (falling through to "no trust", not to a shorter remaining match)
+ * if the exact queried name appears in any trust's TLN exclusion
+ * list -- exclusions are always exact-match, never recursive over
+ * subdomains, matching Samba's check_ft_info() semantics.
  *
  * Returns the matching trust or NULL.
  */
