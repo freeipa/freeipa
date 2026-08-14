@@ -636,12 +636,14 @@ static int ipalockout_postop(Slapi_PBlock *pb)
         0); /* Flags */
 
         slapi_modify_internal_pb (pbtm);
-        slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &rc);
+        slapi_pblock_get(pbtm, SLAPI_PLUGIN_INTOP_RESULT, &rc);
 
         if (rc != LDAP_SUCCESS) {
             LOG_TRACE("WARNING: modify error %d on entry '%s'\n",
                       rc, slapi_entry_get_dn_const(target_entry));
 
+            slapi_entry_free(target_entry);
+            target_entry = NULL;
             ldrc = slapi_search_internal_get_entry(sdn, NULL, &target_entry,
                     getPluginID());
 
