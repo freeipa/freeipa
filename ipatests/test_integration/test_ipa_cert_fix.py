@@ -656,3 +656,117 @@ class TestCertFixReplica(IntegrationTest):
         self.replicas[0].run_command(
             ['ipa', 'cert-show', '0x%s' % serial]
         )
+
+
+class TestCertFixWithADTrust(IntegrationTest):
+    """Test that ipa-cert-fix does not break an established AD trust."""
+
+    num_ad_domains = 1
+    ad_user_password = 'Secret123'
+
+    @classmethod
+    def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise pytest.skip("Package samba-client not available "
+                              "on {}".format(cls.master.hostname))
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=['--no-ntp'])
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.sync_time(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @pytest.fixture
+    def advance_clocks(self):
+        """Advance IPA and AD clocks together to expire IPA certs.
+
+        Clocks stay in the future so renewed certs match that date.
+        """
+        tasks.move_date(self.master, 'stop', '+3Years+1day')
+        # Advance the AD clock to match IPA, then restart the KDC
+        # so new tickets use the future time.
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Stop-Service W32Time -Force; '
+             'Set-Date (Get-Date).AddYears(3).AddDays(1); '
+             'Restart-Service -Name kdc -Force'],
+            set_env=False,
+        )
+        # Reset the AD user password so tickets use the future clock.
+        ps_cmd = (
+            '$ProgressPreference = "SilentlyContinue"; '
+            '$ErrorActionPreference = "Stop"; '
+            '$pwd = ConvertTo-SecureString "%s" -AsPlainText -Force; '
+            'Set-ADDefaultDomainPasswordPolicy '
+            '-Identity "%s" '
+            '-MinPasswordAge 0.00:00:00 '
+            '-MaxPasswordAge 36500.00:00:00; '
+            'Set-ADAccountPassword -Identity "testuser" '
+            '-Reset -NewPassword $pwd; '
+            'Set-ADUser -Identity "testuser" '
+            '-PasswordNeverExpires $true '
+            '-ChangePasswordAtLogon $false'
+        ) % (self.ad_user_password, self.ad_domain)
+        self.ad.run_command(
+            ['powershell', '-c', ps_cmd], set_env=False,
+        )
+        self.master.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+    def test_cert_fix_preserves_trust(self, advance_clocks):
+        """Test AD trust works after ipa-cert-fix renews expired certs.
+
+        The IPA and AD clocks are left at the future date. The renewed
+        certificates are not valid at the original time. The AD user is
+        resolved, can obtain a TGT, and can SSH into the IPA server
+        with GSSAPI after cert renewal.
+        """
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+        check_status(self.master, 9, "MONITORING")
+
+        self.master.run_command(['ipactl', 'restart'])
+        tasks.wait_for_sssd_domain_status_online(self.master)
+
+        # Clock jump expires admin TGT and password. Always renew.
+        password = self.master.config.admin_password
+        self.master.run_command(
+            ['kinit', 'admin'],
+            stdin_text='%s\n%s\n%s\n' % (password, password, password),
+        )
+
+        result = self.master.run_command(['ipa', 'trust-find'])
+        assert self.ad_domain in result.stdout_text
+
+        testuser = 'testuser@%s' % self.ad_domain
+        tasks.clear_sssd_cache(self.master)
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        self.master.run_command(['id', testuser])
+
+        # Use a FILE ccache so the AD user ticket is isolated.
+        ccache = 'FILE:/tmp/krb5cc_aduser'
+        self.master.run_command(
+            ['kdestroy', '-c', ccache], raiseonerr=False,
+        )
+        self.master.run_command(
+            ['kinit', '-c', ccache, testuser],
+            stdin_text='%s\n' % self.ad_user_password,
+        )
+        # Fail if the TGT is already expired (kinit can still exit 0).
+        listed = self.master.run_command(['klist', '-c', ccache])
+        logger.info("AD user ticket after clock jump:\n%s",
+                    listed.stdout_text)
+        assert testuser.lower() in listed.stdout_text.lower()
+        self.master.run_command(['klist', '-s', '-c', ccache])
+        result = self.master.run_command(
+            'KRB5CCNAME=%s ssh -o StrictHostKeyChecking=no -K '
+            '-o PubkeyAuthentication=no '
+            '-o PasswordAuthentication=no '
+            '-o GSSAPIAuthentication=yes '
+            '-l %s %s id' % (ccache, testuser, self.master.hostname)
+        )
+        assert testuser.lower() in result.stdout_text.lower()
