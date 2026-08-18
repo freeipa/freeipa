@@ -2636,15 +2636,15 @@ static char *get_server_netbios_name(struct ipadb_context *ipactx)
     return strdup(hostname);
 }
 
-void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
+/* Frees mspac's trust index and trust records, resetting it to a
+ * no-trusts state. Does not touch the local domain identity fields
+ * (flat_domain_name, flat_server_name, domsid, fallback_group,
+ * fallback_rid), nor mspac itself. */
+static void ipadb_mspac_free_trusts(struct ipadb_mspac *mspac)
 {
     size_t i, j;
 
-    if (!*mspac) return;
-
-    free((*mspac)->flat_domain_name);
-    free((*mspac)->flat_server_name);
-    free((*mspac)->fallback_group);
+    if (!mspac) return;
 
     /* Free the trust index before freeing the trust records it points into */
     ipadb_trust_index_free(&mspac->trust_idx);
@@ -2662,8 +2662,8 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
                 for (j = 0; mspac->trusts[i].upn_suffixes[j]; j++) {
                     free(mspac->trusts[i].upn_suffixes[j]);
                 }
-                free((*mspac)->trusts[i].upn_suffixes);
-                free((*mspac)->trusts[i].upn_suffixes_len);
+                free(mspac->trusts[i].upn_suffixes);
+                free(mspac->trusts[i].upn_suffixes_len);
             }
             if (mspac->trusts[i].exclusions) {
                 for (j = 0; mspac->trusts[i].exclusions[j]; j++) {
@@ -2673,8 +2673,22 @@ void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
                 free(mspac->trusts[i].exclusions_len);
             }
         }
-        free((*mspac)->trusts);
+        free(mspac->trusts);
     }
+    mspac->trusts = NULL;
+    mspac->num_trusts = 0;
+}
+
+void ipadb_mspac_struct_free(struct ipadb_mspac **mspac)
+{
+    if (!*mspac) return;
+
+    free((*mspac)->flat_domain_name);
+    free((*mspac)->flat_server_name);
+    free((*mspac)->fallback_group);
+
+    ipadb_mspac_free_trusts(*mspac);
+
     free(*mspac);
 
     *mspac = NULL;
@@ -2834,14 +2848,14 @@ ipadb_mspac_get_trusted_domains(struct ipadb_context *ipactx)
         }
 
         n = ipactx->mspac->num_trusts;
-        ipactx->mspac->num_trusts++;
         t = realloc(ipactx->mspac->trusts,
-                    sizeof(struct ipadb_adtrusts) * ipactx->mspac->num_trusts);
+                    sizeof(struct ipadb_adtrusts) * (n + 1));
         if (!t) {
             ret = ENOMEM;
             goto done;
         }
         ipactx->mspac->trusts = t;
+        ipactx->mspac->num_trusts = n + 1;
 
         memset(&t[n], 0, sizeof(t[n]));
 
@@ -3067,6 +3081,8 @@ ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit,
     uint32_t fallback_rid;
     time_t now;
     const char *in_stmsg = NULL;
+    struct ipadb_mspac *old_mspac = NULL;
+    struct ipadb_mspac *new_mspac = NULL;
     int err;
     krb5_error_code trust_kerr = 0;
 
@@ -3147,6 +3163,7 @@ ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit,
     flat_server_name = get_server_netbios_name(ipactx);
     if (!flat_server_name) {
         err = ENOMEM;
+        in_stmsg = "Out of memory while resolving server NetBIOS name";
         goto end;
     }
 
@@ -3205,21 +3222,30 @@ ipadb_reinit_mspac(struct ipadb_context *ipactx, bool force_reinit,
         goto end;
     }
 
-    /* clean up in case we had old values around */
-    ipadb_mspac_struct_free(&ipactx->mspac);
+    /* Build a replacement MS-PAC struct before discarding the old one.
+     * Trust loading and index construction can fail (e.g. ENOMEM); if they
+     * do, keep serving the previous snapshot instead of leaving trusts
+     * populated without a usable trust_idx. */
+    old_mspac = ipactx->mspac;
 
-    ipactx->mspac = calloc(1, sizeof(struct ipadb_mspac));
-    if (!ipactx->mspac) {
+    new_mspac = calloc(1, sizeof(struct ipadb_mspac));
+    if (!new_mspac) {
         err = ENOMEM;
+        in_stmsg = "Out of memory while allocating MS-PAC trust structure";
         goto end;
     }
 
-    ipactx->mspac->last_update      = now;
-    ipactx->mspac->flat_domain_name = flat_domain_name;
-    ipactx->mspac->flat_server_name = flat_server_name;
-    ipactx->mspac->domsid           = domsid;
-    ipactx->mspac->fallback_group   = fallback_group;
-    ipactx->mspac->fallback_rid     = fallback_rid;
+    new_mspac->last_update      = now;
+    new_mspac->flat_domain_name = flat_domain_name;
+    new_mspac->flat_server_name = flat_server_name;
+    new_mspac->domsid           = domsid;
+    new_mspac->fallback_group   = fallback_group;
+    new_mspac->fallback_rid     = fallback_rid;
+    flat_domain_name = NULL;
+    flat_server_name = NULL;
+    fallback_group = NULL;
+
+    ipactx->mspac = new_mspac;
 
     trust_kerr = ipadb_mspac_get_trusted_domains(ipactx);
     if (trust_kerr) {
