@@ -22,6 +22,7 @@ available. More specific options will be added in coming releases.
 * ipantsidblacklistincoming : :ref:`Str<Str>`
 * ipantsidblacklistoutgoing : :ref:`Str<Str>`
 * ipantadditionalsuffixes : :ref:`Str<Str>`
+* ipanttrusttlnexclusions : :ref:`Str<Str>`
 * setattr : :ref:`Str<Str>`
 * addattr : :ref:`Str<Str>`
 * delattr : :ref:`Str<Str>`

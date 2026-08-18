@@ -35,6 +35,7 @@
 
 #include "ipa_kdb.h"
 #include "ipa_kdb_mspac_private.h"
+#include "ipa_kdb_mspac_trusts.h"
 
 #define NFS_PRINC_STRING "nfs/fully.qualified.host.name@REALM.NAME"
 #define NON_NFS_PRINC_STRING "abcdef/fully.qualified.host.name@REALM.NAME"
@@ -142,6 +143,13 @@ static int setup(void **state)
             strlen(ipa_ctx->mspac->trusts[0].upn_suffixes[i]);
 
     }
+
+    /* Build the trust index for fast lookups */
+    ret = ipadb_trust_index_build(ipa_ctx->mspac->trusts,
+                                  ipa_ctx->mspac->num_trusts,
+                                  &ipa_ctx->mspac->trust_idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(ipa_ctx->mspac->trust_idx);
 
     ipa_ctx->kcontext = krb5_ctx;
     kerr = krb5_db_set_context(krb5_ctx, ipa_ctx);
@@ -524,6 +532,915 @@ static void test_check_trusted_realms(void **state)
     assert_int_equal(kerr, KRB5_KDB_NOENTRY);
 }
 
+static void test_check_transited_realms(void **state)
+{
+    struct test_ctx *test_ctx = (struct test_ctx *) *state;
+    krb5_error_code kerr;
+    krb5_data empty_transited = {KV5M_DATA, 0, ""};
+    krb5_data our_realm = {KV5M_DATA, strlen("EXAMPLE.COM"), "EXAMPLE.COM"};
+    krb5_data trusted_domain = {KV5M_DATA, strlen(DOMAIN_NAME), DOMAIN_NAME};
+    krb5_data unknown_realm = {KV5M_DATA, strlen(EXTERNAL_REALM), EXTERNAL_REALM};
+    krb5_data short_realm = {KV5M_DATA, 2, "EX"};
+
+    /* Direct trust: our own realm on both sides with an empty transited
+     * path is allowed without consulting trust data. */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &empty_transited,
+                                        &our_realm, &our_realm);
+    assert_int_equal(kerr, 0);
+
+    /* Cross-realm via a trusted domain that also appears in the
+     * transited path. */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &trusted_domain,
+                                        &trusted_domain, &our_realm);
+    assert_int_equal(kerr, 0);
+
+    /* A short realm that is a case-insensitive prefix of our own realm
+     * must not be treated as if it were our own realm (regression test
+     * for a missing length check). */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &empty_transited,
+                                        &short_realm, &our_realm);
+    assert_int_equal(kerr, KRB5_PLUGIN_NO_HANDLE);
+
+    /* Completely unrelated realm never matches. */
+    kerr = ipadb_check_transited_realms(test_ctx->krb5_ctx, &unknown_realm,
+                                        &unknown_realm, &our_realm);
+    assert_int_equal(kerr, KRB5_PLUGIN_NO_HANDLE);
+}
+
+/* ------------------------------------------------------------------ */
+/* Trust index tests                                                   */
+/* ------------------------------------------------------------------ */
+
+#define CHILD_DOMAIN_NAME "child." DOMAIN_NAME
+#define CHILD_FLAT_NAME   "CHILD"
+#define CHILD_DOM_SID     "S-1-5-21-7-8-9"
+#define SECOND_DOMAIN_NAME "second.test"
+#define SECOND_FLAT_NAME   "SECOND"
+#define SECOND_DOM_SID     "S-1-5-21-10-11-12"
+
+/* A standalone setup/teardown that builds a richer trust topology
+ * without needing krb5 context (the index is independent of Kerberos). */
+
+struct trust_index_ctx {
+    struct ipadb_adtrusts *trusts;
+    size_t num_trusts;
+    struct ipadb_trust_index *idx;
+};
+
+static int trust_index_setup(void **state)
+{
+    struct trust_index_ctx *ctx;
+    struct ipadb_adtrusts *t;
+    int ret;
+
+    ctx = calloc(1, sizeof(*ctx));
+    assert_non_null(ctx);
+
+    /* 3 trusts: root domain, child domain, and an unrelated second domain */
+    ctx->num_trusts = 3;
+    ctx->trusts = calloc(ctx->num_trusts, sizeof(struct ipadb_adtrusts));
+    assert_non_null(ctx->trusts);
+
+    /* trust 0: root domain with UPN suffixes */
+    t = &ctx->trusts[0];
+    t->domain_name = strdup(DOMAIN_NAME);
+    t->flat_name = strdup(FLAT_NAME);
+    t->domain_sid = strdup(DOM_SID_TRUST);
+    ret = ipadb_string_to_sid(DOM_SID_TRUST, &t->domsid);
+    assert_int_equal(ret, 0);
+    t->upn_suffixes = calloc(3, sizeof(char *));
+    assert_non_null(t->upn_suffixes);
+    t->upn_suffixes[0] = strdup("upn1." DOMAIN_NAME);
+    t->upn_suffixes[1] = strdup("upn2." DOMAIN_NAME);
+    t->upn_suffixes[2] = NULL;
+    t->upn_suffixes_len = calloc(2, sizeof(size_t));
+    assert_non_null(t->upn_suffixes_len);
+    t->upn_suffixes_len[0] = strlen(t->upn_suffixes[0]);
+    t->upn_suffixes_len[1] = strlen(t->upn_suffixes[1]);
+    t->parent_name = NULL;
+
+    /* trust 1: child domain (parent = root) */
+    t = &ctx->trusts[1];
+    t->domain_name = strdup(CHILD_DOMAIN_NAME);
+    t->flat_name = strdup(CHILD_FLAT_NAME);
+    t->domain_sid = strdup(CHILD_DOM_SID);
+    ret = ipadb_string_to_sid(CHILD_DOM_SID, &t->domsid);
+    assert_int_equal(ret, 0);
+    t->parent_name = strdup(DOMAIN_NAME);
+    t->parent = &ctx->trusts[0];
+
+    /* trust 2: unrelated domain */
+    t = &ctx->trusts[2];
+    t->domain_name = strdup(SECOND_DOMAIN_NAME);
+    t->flat_name = strdup(SECOND_FLAT_NAME);
+    t->domain_sid = strdup(SECOND_DOM_SID);
+    ret = ipadb_string_to_sid(SECOND_DOM_SID, &t->domsid);
+    assert_int_equal(ret, 0);
+
+    /* Build index */
+    ret = ipadb_trust_index_build(ctx->trusts, ctx->num_trusts, &ctx->idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(ctx->idx);
+
+    *state = ctx;
+    return 0;
+}
+
+static int trust_index_teardown(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    size_t i, j;
+
+    ipadb_trust_index_free(&ctx->idx);
+    assert_null(ctx->idx);
+
+    for (i = 0; i < ctx->num_trusts; i++) {
+        free(ctx->trusts[i].domain_name);
+        free(ctx->trusts[i].flat_name);
+        free(ctx->trusts[i].domain_sid);
+        free(ctx->trusts[i].parent_name);
+        if (ctx->trusts[i].upn_suffixes) {
+            for (j = 0; ctx->trusts[i].upn_suffixes[j]; j++)
+                free(ctx->trusts[i].upn_suffixes[j]);
+            free(ctx->trusts[i].upn_suffixes);
+            free(ctx->trusts[i].upn_suffixes_len);
+        }
+    }
+    free(ctx->trusts);
+    free(ctx);
+    return 0;
+}
+
+/* -- Exact domain name lookup -- */
+static void test_trust_index_find_by_domain(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+
+    /* Exact match */
+    found = ipadb_trust_find_by_domain(ctx->idx,
+                                       DOMAIN_NAME, strlen(DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* Case-insensitive */
+    found = ipadb_trust_find_by_domain(ctx->idx, "MY.DOMAIN", 9);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* Child domain */
+    found = ipadb_trust_find_by_domain(ctx->idx,
+                                       CHILD_DOMAIN_NAME,
+                                       strlen(CHILD_DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
+
+    /* Second domain */
+    found = ipadb_trust_find_by_domain(ctx->idx,
+                                       SECOND_DOMAIN_NAME,
+                                       strlen(SECOND_DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, SECOND_DOMAIN_NAME);
+
+    /* Non-existent */
+    found = ipadb_trust_find_by_domain(ctx->idx,
+                                       "no.such.domain",
+                                       strlen("no.such.domain"));
+    assert_null(found);
+
+    /* NULL index */
+    found = ipadb_trust_find_by_domain(NULL, DOMAIN_NAME, strlen(DOMAIN_NAME));
+    assert_null(found);
+
+    /* Empty name */
+    found = ipadb_trust_find_by_domain(ctx->idx, "", 0);
+    assert_null(found);
+
+    /* NULL name */
+    found = ipadb_trust_find_by_domain(ctx->idx, NULL, 5);
+    assert_null(found);
+}
+
+/* -- Exact flat/NetBIOS name lookup -- */
+static void test_trust_index_find_by_flat(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+
+    found = ipadb_trust_find_by_flat(ctx->idx, FLAT_NAME, strlen(FLAT_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->flat_name, FLAT_NAME);
+
+    /* Case-insensitive */
+    found = ipadb_trust_find_by_flat(ctx->idx, "mydom", 5);
+    assert_non_null(found);
+    assert_string_equal(found->flat_name, FLAT_NAME);
+
+    found = ipadb_trust_find_by_flat(ctx->idx,
+                                     CHILD_FLAT_NAME,
+                                     strlen(CHILD_FLAT_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->flat_name, CHILD_FLAT_NAME);
+
+    found = ipadb_trust_find_by_flat(ctx->idx,
+                                     SECOND_FLAT_NAME,
+                                     strlen(SECOND_FLAT_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->flat_name, SECOND_FLAT_NAME);
+
+    /* Non-existent */
+    found = ipadb_trust_find_by_flat(ctx->idx, "NOPE", 4);
+    assert_null(found);
+}
+
+/* -- Exact UPN suffix lookup -- */
+static void test_trust_index_find_by_upn(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+
+    found = ipadb_trust_find_by_upn(ctx->idx,
+                                    "upn1." DOMAIN_NAME,
+                                    strlen("upn1." DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    found = ipadb_trust_find_by_upn(ctx->idx,
+                                    "upn2." DOMAIN_NAME,
+                                    strlen("upn2." DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* Case-insensitive */
+    found = ipadb_trust_find_by_upn(ctx->idx,
+                                    "UPN1.MY.DOMAIN",
+                                    strlen("UPN1.MY.DOMAIN"));
+    assert_non_null(found);
+
+    /* Non-existent UPN suffix */
+    found = ipadb_trust_find_by_upn(ctx->idx,
+                                    "upn99." DOMAIN_NAME,
+                                    strlen("upn99." DOMAIN_NAME));
+    assert_null(found);
+
+    /* Domain with no UPN suffixes */
+    found = ipadb_trust_find_by_upn(ctx->idx,
+                                    CHILD_DOMAIN_NAME,
+                                    strlen(CHILD_DOMAIN_NAME));
+    assert_null(found);
+}
+
+/* -- Exact SID string lookup -- */
+static void test_trust_index_find_by_sid(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+
+    found = ipadb_trust_find_by_sid(ctx->idx, DOM_SID_TRUST);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    found = ipadb_trust_find_by_sid(ctx->idx, CHILD_DOM_SID);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
+
+    found = ipadb_trust_find_by_sid(ctx->idx, SECOND_DOM_SID);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, SECOND_DOMAIN_NAME);
+
+    /* Non-existent SID */
+    found = ipadb_trust_find_by_sid(ctx->idx, "S-1-5-21-99-99-99");
+    assert_null(found);
+
+    /* NULL */
+    found = ipadb_trust_find_by_sid(ctx->idx, NULL);
+    assert_null(found);
+
+    found = ipadb_trust_find_by_sid(NULL, DOM_SID_TRUST);
+    assert_null(found);
+}
+
+/* -- Combined lookup (ipadb_trust_find_by_name) -- */
+static void test_trust_index_find_by_name(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+
+    /* 1. Exact domain name */
+    found = ipadb_trust_find_by_name(ctx->idx,
+                                     DOMAIN_NAME, strlen(DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* 2. Suffix match on domain name:
+     *    "sub.child.my.domain" should match "child.my.domain" */
+    found = ipadb_trust_find_by_name(ctx->idx,
+                                     "sub." CHILD_DOMAIN_NAME,
+                                     strlen("sub." CHILD_DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
+
+    /* 3. Flat name */
+    found = ipadb_trust_find_by_name(ctx->idx,
+                                     FLAT_NAME, strlen(FLAT_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->flat_name, FLAT_NAME);
+
+    /* 4. Exact UPN suffix */
+    found = ipadb_trust_find_by_name(ctx->idx,
+                                     "upn1." DOMAIN_NAME,
+                                     strlen("upn1." DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* 5. Suffix match on UPN suffix:
+     *    "host.upn2.my.domain" should match UPN suffix "upn2.my.domain" */
+    found = ipadb_trust_find_by_name(ctx->idx,
+                                     "host.upn2." DOMAIN_NAME,
+                                     strlen("host.upn2." DOMAIN_NAME));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* 6. Case-insensitive combined */
+    found = ipadb_trust_find_by_name(ctx->idx, "SECOND.TEST",
+                                     strlen("SECOND.TEST"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, SECOND_DOMAIN_NAME);
+
+    /* 7. No match at all */
+    found = ipadb_trust_find_by_name(ctx->idx,
+                                     "completely.unknown.realm",
+                                     strlen("completely.unknown.realm"));
+    assert_null(found);
+
+    /* 8. NULL / empty edge cases */
+    found = ipadb_trust_find_by_name(NULL, DOMAIN_NAME, strlen(DOMAIN_NAME));
+    assert_null(found);
+    found = ipadb_trust_find_by_name(ctx->idx, NULL, 5);
+    assert_null(found);
+    found = ipadb_trust_find_by_name(ctx->idx, "", 0);
+    assert_null(found);
+}
+
+/* -- Cross-type name collision: a domain-exact match must win over a
+ * UPN-exact match on another trust, regardless of array order -- */
+static void test_trust_index_find_by_name_priority(void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts trusts[2];
+    struct ipadb_adtrusts *found;
+    int ret;
+
+    (void)state;
+
+    memset(trusts, 0, sizeof(trusts));
+
+    /* trust 0 comes first in array order and has a UPN suffix that
+     * collides with trust 1's domain name. */
+    trusts[0].domain_name = strdup("other.test");
+    assert_non_null(trusts[0].domain_name);
+    trusts[0].upn_suffixes = calloc(2, sizeof(char *));
+    assert_non_null(trusts[0].upn_suffixes);
+    trusts[0].upn_suffixes[0] = strdup("priority.test");
+    assert_non_null(trusts[0].upn_suffixes[0]);
+    trusts[0].upn_suffixes_len = calloc(1, sizeof(size_t));
+    assert_non_null(trusts[0].upn_suffixes_len);
+    trusts[0].upn_suffixes_len[0] = strlen(trusts[0].upn_suffixes[0]);
+
+    /* trust 1 is the "real" owner of the "priority.test" domain name. */
+    trusts[1].domain_name = strdup("priority.test");
+    assert_non_null(trusts[1].domain_name);
+
+    ret = ipadb_trust_index_build(trusts, 2, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* Even though trust 0 (a UPN-exact match) is earlier in array
+     * order, the domain-exact match on trust 1 must win. */
+    found = ipadb_trust_find_by_name(idx, "priority.test",
+                                     strlen("priority.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "priority.test");
+
+    /* "other.test" still resolves via its own domain name. */
+    found = ipadb_trust_find_by_name(idx, "other.test", strlen("other.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "other.test");
+
+    ipadb_trust_index_free(&idx);
+    free(trusts[0].domain_name);
+    free(trusts[0].upn_suffixes[0]);
+    free(trusts[0].upn_suffixes);
+    free(trusts[0].upn_suffixes_len);
+    free(trusts[1].domain_name);
+}
+
+/* -- A deep UPN suffix must not lose to a shorter, coincidental
+ * domain-name suffix match against an unrelated ancestor domain -- */
+static void test_trust_index_find_by_name_deep_upn_suffix(void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts trusts[5];
+    struct ipadb_adtrusts *found;
+    int ret;
+    size_t i;
+
+    static const struct {
+        const char *domain_name;
+        const char *flat_name;
+        const char *domain_sid;
+        const char *upn_suffix;
+    } defs[] = {
+        { "a.test",     "A",  "S-1-5-21-21-1-1", NULL },
+        { "b.a.test",   "B",  "S-1-5-21-21-2-2", "deeper.c.b.a.test" },
+        { "c.b.a.test", "C",  "S-1-5-21-21-3-3", NULL },
+        { "d.test",     "D",  "S-1-5-21-21-4-4", "deep.c.b.a.test" },
+        { "bb.a.test",  "BB", "S-1-5-21-21-5-5", NULL },
+    };
+
+    (void)state;
+
+    memset(trusts, 0, sizeof(trusts));
+    for (i = 0; i < 5; i++) {
+        trusts[i].domain_name = strdup(defs[i].domain_name);
+        assert_non_null(trusts[i].domain_name);
+        trusts[i].flat_name = strdup(defs[i].flat_name);
+        assert_non_null(trusts[i].flat_name);
+        trusts[i].domain_sid = strdup(defs[i].domain_sid);
+        assert_non_null(trusts[i].domain_sid);
+        ret = ipadb_string_to_sid(defs[i].domain_sid, &trusts[i].domsid);
+        assert_int_equal(ret, 0);
+
+        if (defs[i].upn_suffix) {
+            trusts[i].upn_suffixes = calloc(2, sizeof(char *));
+            assert_non_null(trusts[i].upn_suffixes);
+            trusts[i].upn_suffixes[0] = strdup(defs[i].upn_suffix);
+            assert_non_null(trusts[i].upn_suffixes[0]);
+            trusts[i].upn_suffixes_len = calloc(1, sizeof(size_t));
+            assert_non_null(trusts[i].upn_suffixes_len);
+            trusts[i].upn_suffixes_len[0] = strlen(trusts[i].upn_suffixes[0]);
+        }
+    }
+
+    ret = ipadb_trust_index_build(trusts, 5, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* "deep.c.b.a.test" is an exact UPN suffix configured on D; it
+     * must resolve to D, not to C via a domain-name suffix match. */
+    found = ipadb_trust_find_by_name(idx, "deep.c.b.a.test",
+                                     strlen("deep.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "d.test");
+
+    /* Likewise for B's UPN suffix. */
+    found = ipadb_trust_find_by_name(idx, "deeper.c.b.a.test",
+                                     strlen("deeper.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "b.a.test");
+
+    /* No exact match anywhere: falls back to the longest suffix match
+     * across domain names and UPN suffixes together, not whichever
+     * kind happens to be scanned first. */
+    found = ipadb_trust_find_by_name(idx, "sub.deep.c.b.a.test",
+                                     strlen("sub.deep.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "d.test");
+
+    /* A genuine subdomain of c.b.a.test with no UPN suffix involved
+     * still resolves via the ordinary domain-suffix fallback. */
+    found = ipadb_trust_find_by_name(idx, "host.c.b.a.test",
+                                     strlen("host.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "c.b.a.test");
+
+    ipadb_trust_index_free(&idx);
+    for (i = 0; i < 5; i++) {
+        free(trusts[i].domain_name);
+        free(trusts[i].flat_name);
+        free(trusts[i].domain_sid);
+        if (trusts[i].upn_suffixes) {
+            free(trusts[i].upn_suffixes[0]);
+            free(trusts[i].upn_suffixes);
+            free(trusts[i].upn_suffixes_len);
+        }
+    }
+}
+
+/* -- An exclusion cancels a suffix (subdomain) match on the exact
+ * excluded name, but not on a subdomain of that excluded name, and
+ * not on unrelated names -- exact-match-only semantics matching
+ * Samba's check_ft_info(). -- */
+static void test_trust_index_find_by_name_tln_exclusion(void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts trusts[5];
+    struct ipadb_adtrusts *found;
+    int ret;
+    size_t i;
+
+    static const struct {
+        const char *domain_name;
+        const char *flat_name;
+        const char *domain_sid;
+    } defs[] = {
+        { "a.test",     "A",  "S-1-5-21-21-1-1" },
+        { "b.a.test",   "B",  "S-1-5-21-21-2-2" },
+        { "c.b.a.test", "C",  "S-1-5-21-21-3-3" },
+        { "d.test",     "D",  "S-1-5-21-21-4-4" },
+        { "bb.a.test",  "BB", "S-1-5-21-21-5-5" },
+    };
+
+    (void)state;
+
+    memset(trusts, 0, sizeof(trusts));
+    for (i = 0; i < 5; i++) {
+        trusts[i].domain_name = strdup(defs[i].domain_name);
+        assert_non_null(trusts[i].domain_name);
+        trusts[i].flat_name = strdup(defs[i].flat_name);
+        assert_non_null(trusts[i].flat_name);
+        trusts[i].domain_sid = strdup(defs[i].domain_sid);
+        assert_non_null(trusts[i].domain_sid);
+        ret = ipadb_string_to_sid(defs[i].domain_sid, &trusts[i].domsid);
+        assert_int_equal(ret, 0);
+    }
+
+    /* Register an exclusion for "foo.c.b.a.test" on trust "d.test" --
+     * which trust holds the exclusion doesn't matter for matching. */
+    trusts[3].exclusions = calloc(2, sizeof(char *));
+    assert_non_null(trusts[3].exclusions);
+    trusts[3].exclusions[0] = strdup("foo.c.b.a.test");
+    assert_non_null(trusts[3].exclusions[0]);
+    trusts[3].exclusions_len = calloc(1, sizeof(size_t));
+    assert_non_null(trusts[3].exclusions_len);
+    trusts[3].exclusions_len[0] = strlen(trusts[3].exclusions[0]);
+
+    ret = ipadb_trust_index_build(trusts, 5, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* Without the exclusion, "foo.c.b.a.test" would fall back to the
+     * domain-suffix match on "c.b.a.test". With it, it must resolve
+     * to no trust at all. */
+    found = ipadb_trust_find_by_name(idx, "foo.c.b.a.test",
+                                     strlen("foo.c.b.a.test"));
+    assert_null(found);
+
+    /* A sibling name that is NOT excluded still resolves normally. */
+    found = ipadb_trust_find_by_name(idx, "bar.c.b.a.test",
+                                     strlen("bar.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "c.b.a.test");
+
+    /* The exclusion is exact-match only: a SUBDOMAIN of the excluded
+     * name is not covered by it and still resolves via the ordinary
+     * domain-suffix fallback. */
+    found = ipadb_trust_find_by_name(idx, "sub.foo.c.b.a.test",
+                                     strlen("sub.foo.c.b.a.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "c.b.a.test");
+
+    ipadb_trust_index_free(&idx);
+    for (i = 0; i < 5; i++) {
+        free(trusts[i].domain_name);
+        free(trusts[i].flat_name);
+        free(trusts[i].domain_sid);
+    }
+    free(trusts[3].exclusions[0]);
+    free(trusts[3].exclusions);
+    free(trusts[3].exclusions_len);
+}
+
+/* -- A trust that contributes many index entries (several UPN suffixes,
+ * a flat name, a SID) must still have its exclusion list honored, and
+ * an unrelated trust's exclusion must not leak into the wrong lookup --
+ * exercises is_excluded()'s per-trust dedup path. -- */
+static void test_trust_index_find_by_name_tln_exclusion_many_suffixes(
+    void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts trusts[2];
+    struct ipadb_adtrusts *found;
+    int ret;
+    size_t i;
+
+    (void)state;
+
+    memset(trusts, 0, sizeof(trusts));
+
+    /* trust 0: many UPN suffixes, one of them excluded. */
+    trusts[0].domain_name = strdup("d.test");
+    assert_non_null(trusts[0].domain_name);
+    trusts[0].flat_name = strdup("D");
+    assert_non_null(trusts[0].flat_name);
+    trusts[0].domain_sid = strdup("S-1-5-21-21-4-4");
+    assert_non_null(trusts[0].domain_sid);
+    ret = ipadb_string_to_sid(trusts[0].domain_sid, &trusts[0].domsid);
+    assert_int_equal(ret, 0);
+
+    trusts[0].upn_suffixes = calloc(4, sizeof(char *));
+    assert_non_null(trusts[0].upn_suffixes);
+    trusts[0].upn_suffixes[0] = strdup("suffix1.test");
+    trusts[0].upn_suffixes[1] = strdup("suffix2.test");
+    trusts[0].upn_suffixes[2] = strdup("suffix3.test");
+    for (i = 0; i < 3; i++)
+        assert_non_null(trusts[0].upn_suffixes[i]);
+    trusts[0].upn_suffixes_len = calloc(3, sizeof(size_t));
+    assert_non_null(trusts[0].upn_suffixes_len);
+    for (i = 0; i < 3; i++)
+        trusts[0].upn_suffixes_len[i] = strlen(trusts[0].upn_suffixes[i]);
+
+    trusts[0].exclusions = calloc(2, sizeof(char *));
+    assert_non_null(trusts[0].exclusions);
+    trusts[0].exclusions[0] = strdup("excluded.other.test");
+    assert_non_null(trusts[0].exclusions[0]);
+    trusts[0].exclusions_len = calloc(1, sizeof(size_t));
+    assert_non_null(trusts[0].exclusions_len);
+    trusts[0].exclusions_len[0] = strlen(trusts[0].exclusions[0]);
+
+    /* trust 1: unrelated, holds the domain "other.test" that the
+     * exclusion above targets a subdomain of. */
+    trusts[1].domain_name = strdup("other.test");
+    assert_non_null(trusts[1].domain_name);
+
+    ret = ipadb_trust_index_build(trusts, 2, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* The excluded name must resolve to no trust, even though trust 0
+     * contributes 6 index entries (domain, flat, SID, 3 UPN suffixes)
+     * that all have to be deduplicated down to a single exclusion-list
+     * scan for this to work correctly. */
+    found = ipadb_trust_find_by_name(idx, "excluded.other.test",
+                                     strlen("excluded.other.test"));
+    assert_null(found);
+
+    /* A sibling of the excluded name still resolves normally. */
+    found = ipadb_trust_find_by_name(idx, "sibling.other.test",
+                                     strlen("sibling.other.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "other.test");
+
+    /* Every UPN suffix on the many-entries trust still resolves. */
+    found = ipadb_trust_find_by_name(idx, "suffix1.test",
+                                     strlen("suffix1.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "d.test");
+    found = ipadb_trust_find_by_name(idx, "suffix3.test",
+                                     strlen("suffix3.test"));
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, "d.test");
+
+    ipadb_trust_index_free(&idx);
+    free(trusts[0].domain_name);
+    free(trusts[0].flat_name);
+    free(trusts[0].domain_sid);
+    for (i = 0; i < 3; i++)
+        free(trusts[0].upn_suffixes[i]);
+    free(trusts[0].upn_suffixes);
+    free(trusts[0].upn_suffixes_len);
+    free(trusts[0].exclusions[0]);
+    free(trusts[0].exclusions);
+    free(trusts[0].exclusions_len);
+    free(trusts[1].domain_name);
+}
+
+/* -- Binary dom_sid exact lookup -- */
+static void test_trust_index_find_by_domsid(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+    struct dom_sid sid;
+    int ret;
+
+    /* Match root domain */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST, &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* Match child domain */
+    ret = ipadb_string_to_sid(CHILD_DOM_SID, &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
+
+    /* Match second domain */
+    ret = ipadb_string_to_sid(SECOND_DOM_SID, &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, SECOND_DOMAIN_NAME);
+
+    /* User SID (domain + RID) should NOT match -- exact only */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST "-1000", &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_null(found);
+
+    /* Unknown SID */
+    ret = ipadb_string_to_sid("S-1-5-21-99-99-99", &sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_domsid(ctx->idx, &sid);
+    assert_null(found);
+
+    /* NULL inputs */
+    found = ipadb_trust_find_by_domsid(NULL, &sid);
+    assert_null(found);
+    found = ipadb_trust_find_by_domsid(ctx->idx, NULL);
+    assert_null(found);
+}
+
+/* -- SID prefix lookup (indexed) -- */
+static void test_trust_index_find_by_sid_prefix(void **state)
+{
+    struct trust_index_ctx *ctx = *state;
+    struct ipadb_adtrusts *found;
+    struct dom_sid user_sid;
+    int ret;
+
+    /* User SID = domain SID + RID -> should find the domain */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST "-1000", &user_sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* User SID from child domain */
+    ret = ipadb_string_to_sid(CHILD_DOM_SID "-500", &user_sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, CHILD_DOMAIN_NAME);
+
+    /* Domain SID itself (no RID) -> exact match still found */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST, &user_sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
+    assert_non_null(found);
+    assert_string_equal(found->domain_name, DOMAIN_NAME);
+
+    /* SID nested more than one RID deep must NOT match */
+    ret = ipadb_string_to_sid(DOM_SID_TRUST "-1000-1", &user_sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
+    assert_null(found);
+
+    /* Completely unknown SID */
+    ret = ipadb_string_to_sid("S-1-5-21-99-99-99-500", &user_sid);
+    assert_int_equal(ret, 0);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, &user_sid);
+    assert_null(found);
+
+    /* NULL inputs */
+    found = ipadb_trust_find_by_sid_prefix(NULL, &user_sid);
+    assert_null(found);
+    found = ipadb_trust_find_by_sid_prefix(ctx->idx, NULL);
+    assert_null(found);
+}
+
+/* -- Build/free edge cases -- */
+static void test_trust_index_build_empty(void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    int ret;
+
+    (void)state;
+
+    /* Zero trusts */
+    ret = ipadb_trust_index_build(NULL, 0, &idx);
+    assert_int_equal(ret, 0);
+    assert_null(idx);  /* nothing to index */
+
+    /* NULL output pointer */
+    ret = ipadb_trust_index_build(NULL, 0, NULL);
+    assert_int_equal(ret, EINVAL);
+
+    /* Free NULL is safe */
+    ipadb_trust_index_free(NULL);
+    idx = NULL;
+    ipadb_trust_index_free(&idx);
+}
+
+/* -- Build with minimal trust (domain_name only, no flat/sid/upn) -- */
+static void test_trust_index_build_minimal(void **state)
+{
+    struct ipadb_trust_index *idx = NULL;
+    struct ipadb_adtrusts t;
+    struct ipadb_adtrusts *found;
+    int ret;
+
+    (void)state;
+
+    memset(&t, 0, sizeof(t));
+    t.domain_name = strdup("minimal.test");
+    assert_non_null(t.domain_name);
+    /* flat_name, domain_sid, upn_suffixes all NULL */
+
+    ret = ipadb_trust_index_build(&t, 1, &idx);
+    assert_int_equal(ret, 0);
+    assert_non_null(idx);
+
+    /* Can find by domain name */
+    found = ipadb_trust_find_by_domain(idx, "minimal.test",
+                                       strlen("minimal.test"));
+    assert_non_null(found);
+    assert_ptr_equal(found, &t);
+
+    /* Other lookups return NULL since fields are missing */
+    found = ipadb_trust_find_by_flat(idx, "MINIMAL", 7);
+    assert_null(found);
+    found = ipadb_trust_find_by_sid(idx, "S-1-5-21-0-0-0");
+    assert_null(found);
+
+    ipadb_trust_index_free(&idx);
+    free(t.domain_name);
+}
+
+/* -- Verify the index agrees with ipadb_is_princ_from_trusted_realm -- */
+static void test_trust_index_integrated(void **state)
+{
+    struct test_ctx *test_ctx = *state;
+    struct ipadb_context *ipa_ctx;
+    krb5_error_code kerr;
+    char *trusted_realm = NULL;
+
+    ipa_ctx = ipadb_get_context(test_ctx->krb5_ctx);
+    assert_non_null(ipa_ctx);
+    assert_non_null(ipa_ctx->mspac);
+    assert_non_null(ipa_ctx->mspac->trust_idx);
+
+    /* Domain name match */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx,
+               DOMAIN_NAME, strlen(DOMAIN_NAME),
+               &trusted_realm);
+    assert_int_equal(kerr, 0);
+    assert_non_null(trusted_realm);
+    /* DOMAIN_NAME uppercased */
+    assert_string_equal(trusted_realm, "MY.DOMAIN");
+    free(trusted_realm);
+    trusted_realm = NULL;
+
+    /* Flat name match */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx,
+               FLAT_NAME, strlen(FLAT_NAME),
+               &trusted_realm);
+    assert_int_equal(kerr, 0);
+    assert_non_null(trusted_realm);
+    assert_string_equal(trusted_realm, "MY.DOMAIN");
+    free(trusted_realm);
+    trusted_realm = NULL;
+
+    /* UPN suffix match (from setup's SUFFIX_TEMPLATE) */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx,
+               "d0" DOMAIN_NAME, strlen("d0" DOMAIN_NAME),
+               &trusted_realm);
+    assert_int_equal(kerr, 0);
+    assert_non_null(trusted_realm);
+    assert_string_equal(trusted_realm, "MY.DOMAIN");
+    free(trusted_realm);
+    trusted_realm = NULL;
+
+    /* Suffix match: "some.d0my.domain" ends with UPN suffix "d0my.domain" */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx,
+               "some.d0" DOMAIN_NAME, strlen("some.d0" DOMAIN_NAME),
+               &trusted_realm);
+    assert_int_equal(kerr, 0);
+    assert_non_null(trusted_realm);
+    assert_string_equal(trusted_realm, "MY.DOMAIN");
+    free(trusted_realm);
+    trusted_realm = NULL;
+
+    /* Own realm should not match */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx,
+               "EXAMPLE.COM", strlen("EXAMPLE.COM"),
+               &trusted_realm);
+    assert_int_equal(kerr, KRB5_KDB_NOENTRY);
+
+    /* Unknown realm */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx,
+               EXTERNAL_REALM, strlen(EXTERNAL_REALM),
+               &trusted_realm);
+    assert_int_equal(kerr, KRB5_KDB_NOENTRY);
+
+    /* NULL / empty */
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx, NULL, 0, &trusted_realm);
+    assert_int_equal(kerr, KRB5_KDB_NOENTRY);
+
+    kerr = ipadb_is_princ_from_trusted_realm(
+               test_ctx->krb5_ctx, "", 0, &trusted_realm);
+    assert_int_equal(kerr, KRB5_KDB_NOENTRY);
+}
+
 int main(int argc, const char *argv[])
 {
     const struct CMUnitTest tests[] = {
@@ -535,6 +1452,40 @@ int main(int argc, const char *argv[])
         cmocka_unit_test_setup_teardown(test_dom_sid_string,
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_check_trusted_realms,
+                                        setup, teardown),
+        cmocka_unit_test_setup_teardown(test_check_transited_realms,
+                                        setup, teardown),
+        /* Trust index unit tests (standalone, no krb5 context needed) */
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_domain,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_flat,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_upn,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_sid,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_name,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test(test_trust_index_find_by_name_priority),
+        cmocka_unit_test(test_trust_index_find_by_name_deep_upn_suffix),
+        cmocka_unit_test(test_trust_index_find_by_name_tln_exclusion),
+        cmocka_unit_test(
+            test_trust_index_find_by_name_tln_exclusion_many_suffixes),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_domsid,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test_setup_teardown(test_trust_index_find_by_sid_prefix,
+                                        trust_index_setup,
+                                        trust_index_teardown),
+        cmocka_unit_test(test_trust_index_build_empty),
+        cmocka_unit_test(test_trust_index_build_minimal),
+        /* Integration test: index used via ipadb_is_princ_from_trusted_realm */
+        cmocka_unit_test_setup_teardown(test_trust_index_integrated,
                                         setup, teardown),
     };
 
