@@ -69,6 +69,7 @@ Developers:
 	Drew Erny
 	Emilio Herrera
 	Endi Sukma Dewata
+	eric786
 	Erik
 	Erik Belko
 	Fabiano Fidêncio
@@ -219,6 +220,7 @@ Developers:
 	Sergey Orlov
 	Sergio Oliveira Campos
 	Serhii Tsymbaliuk
+	Shalini Khandelwal
 	shanyin
 	Shunsuke matsumoto
 	Simo Sorce
