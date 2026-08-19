@@ -22,10 +22,12 @@ Developers:
 	Alexandre Mulatinho
 	Alexey Slaykovsky
 	Alexey Tikhonov
+	Américo Monteiro
 	Amit Kumar
 	Ana Krivokapić
 	Andi Chandler
 	Andika Triwidada
+	Andrew Novak
 	Andrew Wnuk
 	Antonio Torres
 	Antonio Torres Moríñigo
@@ -63,6 +65,7 @@ Developers:
 	Drew Erny
 	Emilio Herrera
 	Endi Sukma Dewata
+	eric786
 	Erik
 	Erik Belko
 	Fabiano Fidêncio
@@ -101,6 +104,7 @@ Developers:
 	Jarl Gullberg
 	Jason Gerard DeRose
 	Jason Woods
+	Jay Gondaliya
 	Jayesh
 	Jayesh Garg
 	Jeremy Frasier
@@ -156,6 +160,7 @@ Developers:
 	MIZUTA Takeshi
 	Mohammad Rizwan
 	Mohammad Rizwan Yusuf
+	MOHAMMAD SAMI
 	N M
 	Nalin Dahyabhai
 	Nathan Kinder
@@ -170,6 +175,7 @@ Developers:
 	Oğuz Ersen
 	Oleg Fayans
 	Oleg Kozlov
+	Olesya Gerasimenko
 	Oliver Gutierrez
 	Ondřej Hamada
 	Orion Poplawski
@@ -206,6 +212,7 @@ Developers:
 	Sergey Orlov
 	Sergio Oliveira Campos
 	Serhii Tsymbaliuk
+	Shalini Khandelwal
 	shanyin
 	Shunsuke matsumoto
 	Simo Sorce
@@ -239,6 +246,7 @@ Developers:
 	Varun Mylaraiah
 	Vasily Parfenov
 	vectinx
+	Veronika Miticka
 	Viacheslav Sychov
 	Viktor Ashirov
 	Vit Mojzis
