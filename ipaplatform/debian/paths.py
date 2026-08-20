@@ -90,7 +90,6 @@ class DebianPathNamespace(BasePathNamespace):
     DOGTAG_IPA_RENEW_AGENT_SUBMIT = "/usr/lib/certmonger/dogtag-ipa-renew-agent-submit"
     CERTMONGER_DOGTAG_SUBMIT = "/usr/lib/certmonger/dogtag-submit"
     IPA_SERVER_GUARD = "/usr/lib/certmonger/ipa-server-guard"
-    GENERATE_RNDC_KEY = "/bin/true"
     LIBEXEC_IPA_DIR = "/usr/lib/ipa"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/lib/ipa/ipa-dnskeysync-replica"
     IPA_DNSKEYSYNCD = "/usr/lib/ipa/ipa-dnskeysyncd"
