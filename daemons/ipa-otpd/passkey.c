@@ -28,10 +28,15 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <jansson.h>
+#include <openssl/crypto.h>
 #include <openssl/rand.h>
 #include <openssl/evp.h>
 
 #include "internal.h"
+#include "auth_state.h"
+
+#define AUTH_STATE_METHOD_PASSKEY "passkey"
+#define AUTH_STATE_PASSKEY_TTL 300
 
 struct passkey_data {
     int phase;
@@ -42,11 +47,13 @@ struct passkey_data {
             json_t *credential_id_list;
             int user_verification;
             unsigned char *cryptographic_challenge;
+            size_t cryptographic_challenge_len;
         } challenge;
 
         struct sss_passkey_reply {
             char *credential_id;
             char *cryptographic_challenge;
+            size_t cryptographic_challenge_len;
             char *authenticator_data;
             char *assertion_signature;
             char *user_id;
@@ -73,6 +80,7 @@ static void free_passkey_data(struct passkey_data *p)
     }
 
     if (p->phase == 1) {
+        free(p->state);
         free(p->data.challenge.domain);
         free(p->data.challenge.cryptographic_challenge);
     }
@@ -204,6 +212,7 @@ const char *otpd_parse_passkey(LDAP *ldp, LDAPMessage *entry,
 static int decode_json(const char *inp, size_t size, struct passkey_data *data)
 {
     json_error_t jret;
+    json_t *challenge;
     int ret;
 
     data->jroot = json_loadb(inp, size, 0, &jret);
@@ -238,6 +247,12 @@ static int decode_json(const char *inp, size_t size, struct passkey_data *data)
                 "authenticator_data", &data->data.response.authenticator_data,
                 "assertion_signature", &data->data.response.assertion_signature,
                 "user_id", &data->data.response.user_id);
+        if (ret == 0) {
+            challenge = json_object_get(data->jdata,
+                                        "cryptographic_challenge");
+            data->data.response.cryptographic_challenge_len =
+                json_string_length(challenge);
+        }
         break;
     default:
         ret = EINVAL;
@@ -498,7 +513,8 @@ done:
 
 static int do_passkey_challenge(struct otpd_queue_item *item)
 {
-    unsigned char *challenge = NULL;
+    const krb5_data *principal;
+    bool state_issued = false;
     int ret;
     struct passkey_data *d;
 
@@ -524,6 +540,8 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
         ret = ENOMEM;
         goto done;
     }
+    d->data.challenge.cryptographic_challenge_len =
+        strlen((char *)d->data.challenge.cryptographic_challenge);
 
     d->jdata = json_pack("{s:s, s:o, s:i, s:s}",
                                      "domain", item->passkey->domain,
@@ -539,17 +557,38 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
     }
 
     d->phase = 1; /* SSS_PASSKEY_PHASE_CHALLENGE */
-    d->state = strdup("ipa_otpd state");
+    principal = krad_packet_get_attr(item->req,
+                                     krad_attr_name2num("User-Name"), 0);
+    if (principal == NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = auth_state_issue(AUTH_STATE_DIR, AUTH_STATE_METHOD_PASSKEY,
+                           principal->data, principal->length,
+                           d->data.challenge.cryptographic_challenge,
+                           d->data.challenge.cryptographic_challenge_len,
+                           AUTH_STATE_PASSKEY_TTL,
+                           &d->state);
+    if (ret != 0) {
+        otpd_log_err(ret, "Failed to store passkey challenge state");
+        goto done;
+    }
+    state_issued = true;
 
     ret = prepare_rad_reply(item);
     if (ret != 0) {
         otpd_log_err(ret, "prepare_rad_reply() failed.");
+        auth_state_discard(AUTH_STATE_DIR, d->state);
+        state_issued = false;
         goto done;
     }
 
     ret = 0;
 done:
-    free(challenge);
+    if (ret != 0 && state_issued) {
+        auth_state_discard(AUTH_STATE_DIR, d->state);
+    }
 
     otpd_queue_push(&ctx.stdio.responses, item);
     verto_set_flags(ctx.stdio.writer, VERTO_EV_FLAG_PERSIST |
@@ -675,6 +714,7 @@ static int set_fd_nonblocking(int fd)
 
 static int do_passkey_response(struct otpd_queue_item *item)
 {
+    const krb5_data *principal;
     int ret;
     pid_t child_pid;
     int pipefd_to_child[2] = { -1, -1};
@@ -685,13 +725,42 @@ static int do_passkey_response(struct otpd_queue_item *item)
     size_t args_idx = 0;
     struct child_ctx *child_ctx;
     char *pk = NULL;
+    void *issued_challenge = NULL;
+    size_t issued_challenge_len = 0;
 
-    child_ctx = calloc(sizeof(struct child_ctx), 1);
+    child_ctx = calloc(1, sizeof(struct child_ctx));
     if (child_ctx == NULL) {
         ret = ENOMEM;
         goto done;
     }
     child_ctx->item = item;
+
+    principal = krad_packet_get_attr(item->req,
+                                     krad_attr_name2num("User-Name"), 0);
+    if (principal == NULL || item->passkey->data_in->state == NULL) {
+        ret = EINVAL;
+        goto done;
+    }
+
+    ret = auth_state_consume(
+                    AUTH_STATE_DIR,
+                    item->passkey->data_in->state,
+                    AUTH_STATE_METHOD_PASSKEY,
+                    principal->data, principal->length,
+                    &issued_challenge, &issued_challenge_len);
+    if (ret != 0) {
+        otpd_log_req(item->req, "Invalid or expired passkey challenge state");
+        goto done;
+    }
+    if (issued_challenge_len !=
+            item->passkey->data_in->data.response.cryptographic_challenge_len ||
+        CRYPTO_memcmp(issued_challenge,
+                      item->passkey->data_in->data.response.cryptographic_challenge,
+                      issued_challenge_len) != 0) {
+        ret = EACCES;
+        otpd_log_req(item->req, "Passkey challenge does not match saved state");
+        goto done;
+    }
 
     pk = ipa_passkey_get_public_key(item->user.ipaPassKey,
                            item->passkey->data_in->data.response.credential_id);
@@ -800,6 +869,7 @@ static int do_passkey_response(struct otpd_queue_item *item)
     ret = 0;
 
 done:
+    auth_state_free(issued_challenge, issued_challenge_len);
     if (ret != 0) {
         free(child_ctx);
     }
