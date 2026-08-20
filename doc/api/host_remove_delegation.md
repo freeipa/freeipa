@@ -6,7 +6,7 @@ Remove resource delegation from a host
 |Name|Type|Required
 |-|-|-
 |fqdn|:ref:`Str<Str>`|True
-|memberprincipal|:ref:`Str<Str>`|True
+|memberprincipal|:ref:`Principal<Principal>`|True
 
 ### Options
 * all : :ref:`Flag<Flag>` **(Required)**
