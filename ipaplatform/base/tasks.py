@@ -29,8 +29,6 @@ import os
 import logging
 import textwrap
 
-from packaging.version import parse as parse_version
-
 from ipaplatform.paths import paths
 from ipapython import ipautil
 from ipapython.ipachangeconf import IPAChangeConf
@@ -301,9 +299,9 @@ class BaseTaskNamespace:
     def parse_ipa_version(version):
         """
         :param version: textual version
-        :return: object implementing proper __cmp__ method for version compare
+        :return: object implementing the IPAAbstractVersion interface
         """
-        return IPAAbstractVersion(parse_version(version))
+        raise NotImplementedError()
 
     def set_hostname(self, hostname):
         """
