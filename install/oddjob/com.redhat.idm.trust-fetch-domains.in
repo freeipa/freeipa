@@ -219,25 +219,15 @@ with ipautil.private_krb5_config(trusted_domain, options.server) as cfg_file:
 
         try:
             have_ccache = False
-            try:
-                # The keytab may have stale key material (from older trust-add run)
-                cred = kinit_keytab(
-                    oneway_principal,
-                    oneway_keytab_name,
-                    oneway_ccache_name,
-                )
-                if cred.lifetime > 0:
-                    have_ccache = True
-            except (gssapi.exceptions.ExpiredCredentialsError, gssapi.raw.misc.GSSError):
-                pass
-            if not have_ccache:
-                if os.path.exists(oneway_ccache_name):
-                    os.unlink(oneway_ccache_name)
-                kinit_keytab(
-                    oneway_principal,
-                    oneway_keytab_name,
-                    oneway_ccache_name,
-                )
+            # The keytab may have stale key material (from older trust-add run)
+            # Always start from new cache
+            if os.path.exists(oneway_ccache_name):
+                os.unlink(oneway_ccache_name)
+            kinit_keytab(
+                oneway_principal,
+                oneway_keytab_name,
+                oneway_ccache_name,
+            )
         except (gssapi.exceptions.GSSError, gssapi.raw.misc.GSSError):
             # If there was failure on using keytab, assume it is stale and retrieve again
             retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
