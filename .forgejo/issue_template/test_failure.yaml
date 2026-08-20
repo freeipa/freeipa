@@ -1,0 +1,91 @@
+name: Test Failure
+about: Report a failing test in FreeIPA CI or the test suite
+title: ''
+labels:
+  - test-failure
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a test failure in FreeIPA!
+
+        Before you submit, [search existing test failure issues](https://codeberg.org/freeipa/freeipa/issues?q=&type=all&labels=test-failure) to see if this failure has already been reported.
+
+        A good title looks like: `Test failure in ipatests/test_integration/test_foo.py::TestBar::test_baz`
+
+  - type: textarea
+    id: test
+    attributes:
+      label: Test
+      description: Full test path, including file, class, and test method (pytest node id).
+      placeholder: ipatests/test_integration/test_foo.py::TestBar::test_baz
+    validations:
+      required: true
+
+  - type: input
+    id: ci-job
+    attributes:
+      label: CI job or pipeline
+      description: For example, gating, nightly_latest, nightly-rawhide
+      placeholder: nightly_latest
+    validations:
+      required: true
+
+  - type: input
+    id: ci-run
+    attributes:
+      label: CI run link
+      description: Link to the failing PR-CI or other CI job run, if available. Obfuscate the link if it contains sensitive information.
+      placeholder: https://...
+
+  - type: dropdown
+    id: flaky
+    attributes:
+      label: Is the failure reproducible?
+      options:
+        - Consistently reproducible
+        - Flaky
+        - Not reproducible
+        - Unknown
+
+  - type: textarea
+    id: failure-output
+    attributes:
+      label: Failure output
+      description: Paste the relevant traceback, assertion error, or test log output.
+    validations:
+      required: true
+
+  - type: textarea
+    id: version
+    attributes:
+      label: Version/Release/Distribution/FIPS
+      description: |
+        If relevant, include version information from the logs (for example, installed-rpm-...).
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Is this a regression?
+      description: A regression means the test passed in an older release and fails in a newer one.
+      options:
+        - "Yes"
+        - "No"
+        - "Unknown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: last-known-good
+    attributes:
+      label: Last known good version
+      description: Fill this in only if you selected Yes above. Include the version or distribution where the test last passed, and when it started failing if known.
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional info
+      description: |
+        Any additional information, configuration, data, or log snippets needed to reproduce or investigate the issue.
+
+        - Troubleshooting guide: https://www.freeipa.org/page/Troubleshooting
