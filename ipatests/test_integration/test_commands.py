@@ -1318,6 +1318,7 @@ class TestIPACommand(IntegrationTest):
             self.master.run_command(
                 ['ssh', '-v', '-o', 'PasswordAuthentication=no',
                  '-o', 'IdentitiesOnly=yes', '-o', 'StrictHostKeyChecking=no',
+                 '-o', 'GSSAPIAuthentication=no',
                  '-o', 'ConnectTimeout=10', '-l', user, '-i', user_key,
                  self.master.hostname, 'true'])
         finally:
@@ -1448,14 +1449,24 @@ class TestIPACommand(IntegrationTest):
             pytest.xfail('Fix is part of sssd 2.3.0 and is'
                          ' available from fedora32 onwards')
 
-        # start to look at logs a bit before "now"
-        # https://codeberg.org/freeipa/freeipa/issues/8432
-        since = time.strftime(
-            '%Y-%m-%d %H:%M:%S',
-            (datetime.now() - timedelta(seconds=10)).timetuple()
+        password = 'WrongPassword'
+
+        # SSSD may be offline after dirsrv restarts (e.g. ipa-adtrust-install
+        # in FIPS). Without a resolvable user, sshd treats the account as
+        # invalid and auth never reaches pam_sss.
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        tasks.run_repeatedly(
+            self.master,
+            command=['getent', 'passwd', self.testuser],
+            test=lambda stdout: self.testuser in stdout,
+            timeout=120,
         )
 
-        password = 'WrongPassword'
+        # Use master clock: controller time can be ahead of the host and
+        # make journalctl --since miss sshd logs (codeberg #8432).
+        since = self.master.run_command(
+            ['date', '-d', '10 seconds ago', '+%Y-%m-%d %H:%M:%S']
+        ).stdout_text.strip()
 
         tasks.run_ssh_cmd(
             to_host=self.master.external_hostname, username=self.testuser,
@@ -1474,7 +1485,7 @@ class TestIPACommand(IntegrationTest):
 
         # sshd don't flush its logs to syslog immediately
         cmd = ["journalctl", "-u", "sshd", f"--since={since}"]
-        tasks.run_repeatedly(self.master, command=cmd, test=test_cb)
+        tasks.run_repeatedly(self.master, command=cmd, test=test_cb, timeout=60)
 
     def get_dirsrv_id(self):
         serverid = realm_to_serverid(self.master.domain.realm)
@@ -1682,6 +1693,8 @@ class TestIPACommand(IntegrationTest):
              'sshpass', '-p', password,
              'ssh', '-v',
              '-o', 'StrictHostKeyChecking=no',
+             '-o', 'PubkeyAuthentication=no',
+             '-o', 'GSSAPIAuthentication=no',
              'tuser1@%s' % self.master.hostname, 'cat /etc/hosts'],
         )
 
@@ -1699,6 +1712,8 @@ class TestIPACommand(IntegrationTest):
              'sshpass', '-p', password,
              'ssh', '-v',
              '-o', 'StrictHostKeyChecking=no',
+             '-o', 'PubkeyAuthentication=no',
+             '-o', 'GSSAPIAuthentication=no',
              'ruser@%s' % self.master.hostname, 'cat /etc/hosts'],
             raiseonerr=False
         )
