@@ -6,7 +6,7 @@ Add new resource delegation to a service
 |Name|Type|Required
 |-|-|-
 |krbcanonicalname|:ref:`Principal<Principal>`|True
-|memberprincipal|:ref:`Str<Str>`|True
+|memberprincipal|:ref:`Principal<Principal>`|True
 
 ### Options
 * all : :ref:`Flag<Flag>` **(Required)**

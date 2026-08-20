@@ -13,7 +13,7 @@ Remove member from a named service delegation target.
 * raw : :ref:`Flag<Flag>` **(Required)**
  * Default: False
 * version : :ref:`Str<Str>`
-* principal : :ref:`Str<Str>`
+* principal : :ref:`Principal<Principal>`
 
 ### Output
 |Name|Type
