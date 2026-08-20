@@ -46,11 +46,16 @@ case "$IPA_NETWORK_INTERNAL" in
 esac
 
 install_result=1
+IPA_CA_BACKEND_OPT=""
+if [ "${IPA_CA_BACKEND:-ipacta}" = "ipacta" ]; then
+    IPA_CA_BACKEND_OPT="--internal-ca"
+fi
 { ipa-server-install -U \
     --domain "$IPA_TESTS_DOMAIN" \
     --realm "$IPA_TESTS_REALM" \
     -p "$server_password" -a "$server_password" \
     --setup-dns --setup-kra \
+    $IPA_CA_BACKEND_OPT \
     $AUTO_FORWARDERS \
     && install_result=0 ; } || install_result=$?
 

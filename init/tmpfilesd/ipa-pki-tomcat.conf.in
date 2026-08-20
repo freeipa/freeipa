@@ -1,0 +1,30 @@
+# FreeIPA ipacta: pki-tomcat NSSDB directory and file ownership
+#
+# NSSDB files use pkiuser:pkiuser ownership, matching the Dogtag layout.
+# Two additional POSIX ACL grants are needed because NSS uses SQLite WAL mode,
+# which creates cert9.db-wal and cert9.db-shm owned by whichever process last
+# wrote to the database (typically root during install):
+#
+#   user:pkiuser:rw  — ipa-custodia-pki-tomcat (runas: pkiuser) must be able
+#                      to write these root-created WAL/SHM files for pk12util -o
+#   group:ipaca:rw   — ipacta service (User=ipaca) needs the same access
+#
+# 'd' creates the directory if absent and adjusts mode/owner on existing ones.
+# 'a+' adds ACL entry to the path itself only (non-recursive).
+# 'A+' adds ACL entry recursively to the path and all children; used on the
+#      alias/ directory so that dynamically created NSS WAL and SHM files
+#      (cert9.db-wal, cert9.db-shm, key4.db-wal, …) get the same ACL without
+#      needing explicit entries.  The subsequent 'a+' entries then upgrade the
+#      alias/ directory itself from rw to rwx for both principals.
+# 'z' adjusts mode/owner on an existing file; silently ignored if absent.
+d  /etc/pki/pki-tomcat                    0750  pkiuser  pkiuser  -
+a+  /etc/pki/pki-tomcat                   -     -        -        -  group:ipaca:rx
+d  /etc/pki/pki-tomcat/alias             0750  pkiuser  pkiuser  -
+A+  /etc/pki/pki-tomcat/alias            -     -        -        -  user:pkiuser:rw
+A+  /etc/pki/pki-tomcat/alias            -     -        -        -  group:ipaca:rw
+a+  /etc/pki/pki-tomcat/alias            -     -        -        -  user:pkiuser:rwx
+a+  /etc/pki/pki-tomcat/alias            -     -        -        -  group:ipaca:rwx
+z  /etc/pki/pki-tomcat/alias/cert9.db    0640  pkiuser  pkiuser  -
+z  /etc/pki/pki-tomcat/alias/key4.db     0640  pkiuser  pkiuser  -
+z  /etc/pki/pki-tomcat/alias/pkcs11.txt  0640  pkiuser  pkiuser  -
+z  /etc/pki/pki-tomcat/alias/pwdfile.txt 0640  pkiuser  pkiuser  -

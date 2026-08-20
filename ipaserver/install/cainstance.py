@@ -255,9 +255,11 @@ def is_step_one_done():
 
 def is_ca_installed_locally():
     """Check if CA is installed locally by checking for existence of CS.cfg
+    or ipacta.conf
     :return:True/False
     """
-    return os.path.exists(paths.CA_CS_CFG_PATH)
+    return (os.path.exists(paths.CA_CS_CFG_PATH)
+            or os.path.exists(paths.IPACTA_CONF))
 
 
 def lookup_ldap_backend(api):
@@ -1565,6 +1567,9 @@ class CAInstance(DogtagInstance):
 
     def __dogtag10_migration(self):
         self._ldap_update(['50-dogtag10-migration.update'])
+
+    def is_dogtag_configured(self):
+        return self.is_configured() and os.path.exists(paths.CA_CS_CFG_PATH)
 
     def is_crlgen_enabled(self):
         """Check if the local CA instance is generating CRL

@@ -40,9 +40,11 @@ dist_noinst_DATA =		\
 	ipa-acme-manage.in	\
 	ipa-subids.in	\
 	ipa-migrate.in	\
+	ipacta.in	\
 	$(NULL)
 
 nodist_sbin_SCRIPTS =		\
+	ipacta		\
 	ipa-ca-install		\
 	ipa-dns-install		\
 	ipa-kra-install		\

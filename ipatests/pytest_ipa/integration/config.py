@@ -52,6 +52,7 @@ class Config(pytest_multihost.config.Config):
         'azure_tenant_id',
         'azure_admin_client_id',
         'azure_admin_client_secret',
+        'ca_backend',
     }
 
     def __init__(self, **kwargs):
@@ -86,6 +87,7 @@ class Config(pytest_multihost.config.Config):
         self.azure_admin_client_id = kwargs.get('azure_admin_client_id', None)
         self.azure_admin_client_secret = kwargs.get(
             'azure_admin_client_secret', None)
+        self.ca_backend = kwargs.get('ca_backend', 'ipacta')
 
     def get_domain_class(self):
         return Domain

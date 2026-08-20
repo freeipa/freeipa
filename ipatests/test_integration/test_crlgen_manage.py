@@ -11,10 +11,14 @@ from __future__ import absolute_import
 import os
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
+import pytest
 
 from ipaplatform.paths import paths
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
+
+ipatest_config = get_global_config()
 
 CRLGEN_STATUS_ENABLED = 'enabled'
 CRLGEN_STATUS_DISABLED = 'disabled'
@@ -152,6 +156,10 @@ def get_CS_cfg_value(host, directive):
     return value
 
 
+@pytest.mark.skipif(
+    ipatest_config.ca_backend == 'ipacta',
+    reason="CRL gen configuration is stored in CS.cfg (Dogtag only)"
+)
 class TestCRLGenManage(IntegrationTest):
     """Tests the ipa-crlgen-manage command.
 
