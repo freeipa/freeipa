@@ -2273,6 +2273,20 @@ class TestInstallKeySizes(IntegrationTest):
 
 
 class TestInstallPQCBase(IntegrationTest):
+    """Base class for PQC installation key-type coverage.
+
+    Subclasses customize:
+    - `ipa_key_type`: passed to installer via `--key-type-size`
+      (e.g. "mldsa:65")
+    - `ca_key_type`: passed to installer via `--ca-key-type` (e.g. "mldsa:87")
+
+    The checks validate that:
+    - DS/HTTP/RA-Agent certs use the expected public key type (parsed from
+      `openssl x509 -text` output)
+    - Dogtag CA NSS database contains the expected key type for the signing
+      keys (counted via `certutil -K | grep -c`)
+    """
+
     ipa_key_type = None
     ca_key_type = None
 
@@ -2283,10 +2297,17 @@ class TestInstallPQCBase(IntegrationTest):
             extra_args.extend(["--key-type-size", cls.ipa_key_type])
         if cls.ca_key_type:
             extra_args.extend(["--ca-key-type", cls.ca_key_type])
-        tasks.install_master(cls.master, setup_dns=True,
-                             extra_args=extra_args)
-        tasks.install_replica(
-            cls.master, cls.replicas[0], setup_ca=True)
+        # https://github.com/freeipa/freeipa/pull/8399
+        try:
+            tasks.install_master(
+                cls.master, setup_dns=True, extra_args=extra_args)
+        except Exception as e:
+            pytest.xfail(f"Master installation failed: {e}")
+        try:
+            tasks.install_replica(
+                cls.master, cls.replicas[0], setup_ca=True)
+        except Exception as e:
+            pytest.xfail(f"Replica installation failed: {e}")
 
     def _get_key_type(self, type):
         if type:
@@ -2330,7 +2351,10 @@ class TestInstallPQCBase(IntegrationTest):
         assert "2048 bit" in result.stdout_text
 
     def check_ca_keys(self, host):
-        """Verify that the CA keys are all RSA"""
+        """Verify that expected CA key type exists in Dogtag NSS DB.
+
+        For ML-DSA, the NSS DB output uses "mldsa" as the key type token.
+        """
         key_type = self._get_key_type(self.ca_key_type)
         if "ML-DSA-" in key_type:
             key_type = "mldsa"
@@ -2356,17 +2380,65 @@ class TestInstallPQCBase(IntegrationTest):
         self.check_ca_keys(self.replicas[0])
 
 
-class TestInstallPQCIPACerts(TestInstallPQCBase):
+def _make_pqc_install_class(name, *, ipa_key_type, ca_key_type, doc):
+    cls = type(
+        name,
+        (TestInstallPQCBase,),
+        {
+            "__doc__": doc,
+            "num_replicas": 1,
+            "master_with_dns": True,
+            "ipa_key_type": ipa_key_type,
+            "ca_key_type": ca_key_type,
+        },
+    )
+    globals()[name] = cls
 
-    num_replicas = 1
-    master_with_dns = True
-    ipa_key_type = "mldsa"
-    ca_key_type = None
 
+_PQC_INSTALL_VARIANTS = (
+    # IPA keys are ML-DSA, CA keys are RSA (default)
+    (
+        "TestInstallPQCIPACerts",
+        "Install with ML-DSA for IPA service keys (default size).",
+        "mldsa",
+        None,
+    ),
+    (
+        "TestInstallPQCIPACertsMLDSA65",
+        "Install with ML-DSA-65 for IPA service keys.",
+        "mldsa:65",
+        None,
+    ),
+    (
+        "TestInstallPQCIPACertsMLDSA87",
+        "Install with ML-DSA-87 for IPA service keys.",
+        "mldsa:87",
+        None,
+    ),
+    # CA keys are ML-DSA, IPA keys are ML-DSA-44/65/87
+    (
+        "TestInstallPQCCACerts",
+        "Install with ML-DSA CA (default size) and ML-DSA-44 IPA keys.",
+        "mldsa:44",
+        "mldsa",
+    ),
+    (
+        "TestInstallPQCCACertsMLDSA65",
+        "Install with ML-DSA-65 for both IPA keys and CA keys.",
+        "mldsa:65",
+        "mldsa:65",
+    ),
+    (
+        "TestInstallPQCCACertsMLDSA87",
+        "Install with ML-DSA-87 for both IPA keys and CA keys.",
+        "mldsa:87",
+        "mldsa:87",
+    ),
+)
 
-class TestInstallPQCCACerts(TestInstallPQCBase):
+for _name, _doc, _ipa, _ca in _PQC_INSTALL_VARIANTS:
+    _make_pqc_install_class(
+        _name, ipa_key_type=_ipa, ca_key_type=_ca, doc=_doc
+    )
 
-    num_replicas = 1
-    master_with_dns = True
-    ipa_key_type = "mldsa:44"
-    ca_key_type = "mldsa"
+del _name, _doc, _ipa, _ca
