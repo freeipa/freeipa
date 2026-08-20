@@ -31,7 +31,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/random.h>
+#include <signal.h>
+#include <string.h>
 #include <sys/uio.h>
+#include <sys/wait.h>
 
 #include "internal.h"
 
@@ -125,8 +128,6 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
         idx++;
         io = writev(verto_get_fd(ev), iov, idx);
     }
-    otpd_queue_item_free(child_ctx->saved_item);
-
     if (io < 0) {
         switch (errno) {
 #if defined(EWOULDBLOCK) && (!defined(EAGAIN) || EAGAIN - EWOULDBLOCK != 0)
@@ -146,6 +147,14 @@ static void oauth2_on_child_writable(verto_ctx *vctx, verto_ev *ev)
         otpd_log_err(errno, "Failed to send to child");
     }
 
+    if (child_ctx->item->idp.ipaidpClientSecret != NULL) {
+        explicit_bzero(child_ctx->item->idp.ipaidpClientSecret,
+                       strlen(child_ctx->item->idp.ipaidpClientSecret));
+    }
+    if (child_ctx->saved_item != NULL) {
+        otpd_queue_item_free(child_ctx->saved_item);
+        child_ctx->saved_item = NULL;
+    }
     verto_del(ev);
 }
 
@@ -173,6 +182,7 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
 
     state_item->oauth2.device_code_reply = strdup(dc_reply);
     if (state_item->oauth2.device_code_reply == NULL) {
+        ret = ENOMEM;
         otpd_log_req(child_ctx->item->req, "Failed to copy device code reply.");
         goto done;
     }
@@ -188,6 +198,7 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
 
     state_item->oauth2.state.data = strdup(dc_reply);
     if (state_item->oauth2.state.data == NULL) {
+        ret = ENOMEM;
         otpd_log_req(child_ctx->item->req,
                      "Failed to copy device code reply to krad.");
         goto done;
@@ -242,6 +253,12 @@ static int check_access_token_reply(struct child_ctx *child_ctx,
 {
     int ret;
 
+    if (child_ctx->item->user.ipaidpSub == NULL) {
+        otpd_log_req(child_ctx->item->req,
+                     "Missing ipaidpSub for access token verification");
+        return EPERM;
+    }
+
     if (strlen(child_ctx->item->user.ipaidpSub) != len
             || memcmp(child_ctx->item->user.ipaidpSub, buf, len) != 0) {
         return EPERM;
@@ -279,16 +296,21 @@ static void oauth2_on_child_readable(verto_ctx *vctx, verto_ev *ev)
     child_ctx->item->rsp = NULL;
     child_ctx->item->sent = 0;
 
-    io = read(verto_get_fd(ev), buf, 10240);
+    io = read(verto_get_fd(ev), buf, sizeof(buf) - 1);
     if (io < 0) {
         otpd_log_err(errno, "Failed to read from child");
         goto done;
     }
 
-    if (io >= 0) {
-        buf[io] = '\0';
-        otpd_log_req(child_ctx->item->req, "Received: [%s]", buf);
+    if (io == 0) {
+        otpd_log_req(child_ctx->item->req,
+                     "oidc_child closed stdout without producing output");
+        verto_del(ev);
+        goto done;
     }
+
+    buf[io] = '\0';
+    otpd_log_req(child_ctx->item->req, "Received: [%zu bytes]", (size_t)io);
 
     verto_del(ev);
 
@@ -302,7 +324,7 @@ static void oauth2_on_child_readable(verto_ctx *vctx, verto_ev *ev)
         if (rad_reply != NULL) {
             *rad_reply = '\0';
             rad_reply++;
-            end = memchr(rad_reply, '\n', io - (rad_reply - 1 - buf));
+            end = memchr(rad_reply, '\n', io - (rad_reply - buf));
             if (end == NULL) {
                 otpd_log_req(child_ctx->item->req, "Missing second new-line.");
                 goto done;
@@ -328,6 +350,7 @@ static void oauth2_on_child_readable(verto_ctx *vctx, verto_ev *ev)
     }
 
 done:
+    explicit_bzero(buf, sizeof(buf));
     otpd_queue_push(&ctx.stdio.responses, child_ctx->item);
     verto_set_flags(ctx.stdio.writer, VERTO_EV_FLAG_PERSIST |
                                       VERTO_EV_FLAG_IO_ERROR |
@@ -387,16 +410,20 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
 
         saved_item = calloc(sizeof(struct otpd_queue_item), 1);
         if (saved_item == NULL) {
-            otpd_log_req((*item)->req, "No matching saved state found");
-            return EINVAL;
+            otpd_log_req((*item)->req,
+                         "Failed to allocate saved state item");
+            krb5_free_data_contents(NULL, &data_state);
+            return ENOMEM;
         }
         saved_item->oauth2.device_code_reply = strndup(data_state.data,
                                                        data_state.length);
+        krb5_free_data_contents(NULL, &data_state);
         if (saved_item->oauth2.device_code_reply == NULL) {
             otpd_log_req((*item)->req, "Failed to copy device code reply");
-            return EINVAL;
+            free(saved_item);
+            saved_item = NULL;
+            return ENOMEM;
         }
-        krb5_free_data_contents(NULL, &data_state);
     }
 
     child_ctx = calloc(sizeof(struct child_ctx), 1);
@@ -406,6 +433,7 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
     }
     child_ctx->item = (*item);
     child_ctx->saved_item = saved_item;
+    saved_item = NULL; /* ownership transferred to child_ctx */
     child_ctx->oauth2_state = oauth2_state;
 
     otpd_log_req((*item)->req, "oauth2 start: %s",
@@ -466,7 +494,7 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
     }
 
 #if 0
-    for (int i; args[i]; i++) {
+    for (int i = 0; args[i]; i++) {
         otpd_log_req((*item)->req, "oidc_child exec: %s", args[i]);
     }
 #endif
@@ -501,11 +529,21 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
         exit(EXIT_FAILURE);
     } else if (child_pid > 0) { /* parent */
         close(pipefd_to_child[0]);
-        set_fd_nonblocking(pipefd_to_child[1]);
+        pipefd_to_child[0] = -1;
+        ret = set_fd_nonblocking(pipefd_to_child[1]);
+        if (ret != 0) {
+            otpd_log_err(ret, "Failed to set write pipe non-blocking");
+            goto done;
+        }
         child_ctx->write_to_child = pipefd_to_child[1];
 
         close(pipefd_from_child[1]);
-        set_fd_nonblocking(pipefd_from_child[0]);
+        pipefd_from_child[1] = -1;
+        ret = set_fd_nonblocking(pipefd_from_child[0]);
+        if (ret != 0) {
+            otpd_log_err(ret, "Failed to set read pipe non-blocking");
+            goto done;
+        }
         child_ctx->read_from_child = pipefd_from_child[0];
 
         child_ctx->write_ev = verto_add_io(ctx.vctx, VERTO_EV_FLAG_PERSIST |
@@ -519,6 +557,8 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
             otpd_log_err(ret, "Unable to initialize oauth2 writer event");
             goto done;
         }
+        /* verto owns the fd now (IO_CLOSE_FD) */
+        pipefd_to_child[1] = -1;
         verto_set_private(child_ctx->write_ev, child_ctx, NULL);
 
         child_ctx->read_ev = verto_add_io(ctx.vctx, VERTO_EV_FLAG_PERSIST |
@@ -529,14 +569,29 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
                                                     child_ctx->read_from_child);
         if (child_ctx->read_ev == NULL) {
             ret = ENOMEM;
-            otpd_log_err(ret, "Unable to initialize oauth2 writer event");
+            otpd_log_err(ret, "Unable to initialize oauth2 reader event");
+            verto_del(child_ctx->write_ev);
+            child_ctx->write_ev = NULL;
             goto done;
         }
+        /* verto owns the fd now (IO_CLOSE_FD) */
+        pipefd_from_child[0] = -1;
         verto_set_private(child_ctx->read_ev, child_ctx, NULL);
 
         child_ctx->child_ev = verto_add_child(ctx.vctx, VERTO_EV_FLAG_NONE,
                                               oauth2_on_child_exit, child_pid);
+        if (child_ctx->child_ev == NULL) {
+            ret = ENOMEM;
+            otpd_log_err(ret, "Unable to initialize oauth2 child event");
+            verto_del(child_ctx->read_ev);
+            verto_del(child_ctx->write_ev);
+            kill(child_pid, SIGKILL);
+            waitpid(child_pid, NULL, 0);
+            goto done;
+        }
         verto_set_private(child_ctx->child_ev, child_ctx, free_child_ctx);
+        /* child_ctx is now owned by verto via free_child_ctx */
+        child_ctx = NULL;
 
     } else { /* error */
         ret = errno;
@@ -548,6 +603,16 @@ int oauth2(struct otpd_queue_item **item, enum oauth2_state oauth2_state)
 done:
     if (ret == 0) {
         *item = NULL;
+    } else {
+        if (saved_item != NULL) {
+            free(saved_item->oauth2.device_code_reply);
+            free(saved_item);
+        }
+        if (pipefd_to_child[0] >= 0) close(pipefd_to_child[0]);
+        if (pipefd_to_child[1] >= 0) close(pipefd_to_child[1]);
+        if (pipefd_from_child[0] >= 0) close(pipefd_from_child[0]);
+        if (pipefd_from_child[1] >= 0) close(pipefd_from_child[1]);
+        free(child_ctx);
     }
 
     return ret;
