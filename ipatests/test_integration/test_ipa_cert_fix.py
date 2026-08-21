@@ -549,3 +549,87 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+
+class TestCertFixWithADTrust(IntegrationTest):
+    """Test ipa-cert-fix preserves AD trust after certificate renewal.
+
+    A common customer scenario: IPA server has an established trust with
+    Active Directory, certificates expire, and ipa-cert-fix is used to
+    recover. The trust relationship must remain functional after recovery.
+    """
+
+    num_ad_domains = 1
+
+    @classmethod
+    def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise pytest.skip("Package samba-client not available "
+                              "on {}".format(cls.master.hostname))
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=['--no-ntp'])
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.sync_time(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @classmethod
+    def uninstall(cls, mh):
+        # Uninstall method is empty as the uninstallation is done in
+        # the fixture
+        pass
+
+    @pytest.fixture
+    def expire_and_restore(self):
+        """Expire certs, yield for test, then restore time and cleanup."""
+        tasks.move_date(self.master, 'stop', '+3Years+1day')
+        self.master.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+        yield
+
+        self.master.run_command(['systemctl', 'stop', 'certmonger'])
+        self.master.run_command(
+            'rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*'
+        )
+        tasks.uninstall_master(self.master)
+        tasks.move_date(self.master, 'start', '-3Years-1day')
+
+    def test_cert_fix_preserves_trust(self, expire_and_restore):
+        """Test AD trust works after ipa-cert-fix recovery.
+
+        After ipa-cert-fix renews certs at the advanced time, we verify
+        trust at that time (certs are valid). We cannot move the date back
+        because renewed certs would become "not yet valid". AD user
+        resolution via cross-realm Kerberos is not testable due to the
+        clock skew between IPA (advanced) and AD (real time).
+
+        Steps:
+          1. Verify certs are expired (CA_UNREACHABLE)
+          2. Run ipa-cert-fix to renew all certs
+          3. Restart services (certs valid at advanced time)
+          4. Verify AD trust metadata is intact
+        """
+        # Step 1: confirm certs are expired
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        # Step 2: fix the expired certs
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+        check_status(self.master, 9, "MONITORING")
+
+        # Step 3: restart IPA services (certs are valid at advanced time)
+        self.master.run_command(['ipactl', 'restart'])
+
+        # Step 4: verify trust metadata is still intact
+        tasks.kinit_admin(self.master)
+        stdin = (f"{self.master.config.admin_password}\n"
+                 f"{self.master.config.admin_password}\n"
+                 f"{self.master.config.admin_password}\n")
+        self.master.run_command(['kinit', 'admin'], stdin_text=stdin)
+        result = self.master.run_command(
+            ['ipa', 'trust-show', self.ad_domain]
+        )
+        assert self.ad_domain in result.stdout_text
