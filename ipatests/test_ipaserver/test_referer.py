@@ -93,11 +93,11 @@ class test_referer(XMLRPC_test, Unauthorized_HTTP_test):
 
     def test_i18n_messages_valid(self):
         # i18n_messages requires a valid JSON request and we send
-        # nothing. If we get a 500 error then it got past the
+        # nothing. If we get a 400 error then it got past the
         # referer check.
         self.app_uri = "/ipa/i18n_messages"
         response = self._request()
-        assert_equal(response.status, 500, self.app_uri)
+        assert_equal(response.status, 400, self.app_uri)
 
     # /ipa/session/login_x509 is not tested yet as it requires
     # significant additional setup.
