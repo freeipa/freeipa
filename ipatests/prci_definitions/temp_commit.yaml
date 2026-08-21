@@ -69,14 +69,26 @@ jobs:
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
+  fedora-latest/temp_commit1:
     requires: [fedora-latest/build]
     priority: 50
     job:
       class: RunPytest
       args:
         build_url: '{fedora-latest/build_url}'
-        test_suite: test_integration/test_REPLACEME.py
+        test_suite: test_integration/test_ipa_cert_fix.py::TestIpaCertFix test_integration/test_ipa_cert_fix.py::TestIpaCertFixThirdParty
         template: *ci-master-latest
-        timeout: 3600
+        timeout: 7200
+        topology: *master_1repl_1client
+
+  fedora-latest/temp_commit2:
+    requires: [fedora-latest/build]
+    priority: 50
+    job:
+      class: RunPytest
+      args:
+        build_url: '{fedora-latest/build_url}'
+        test_suite: test_integration/test_ipa_cert_fix.py::TestCertFixReplica test_integration/test_ipa_cert_fix.py::TestCertFixCALessReplica
+        template: *ci-master-latest
+        timeout: 7200
         topology: *master_1repl_1client
