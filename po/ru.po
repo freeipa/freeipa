@@ -2,13 +2,14 @@
 # Alexander Bokovoy <abokovoy@redhat.com>, 2018. #zanata
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2018. #zanata, 2026.
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2019. #zanata, 2026.
+# rus svinka <leva38363@icloud.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2026-08-19 19:12+0000\n"
 "PO-Revision-Date: 2026-08-20 01:54+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Last-Translator: rus svinka <leva38363@icloud.com>\n"
 "Language-Team: Russian <https://translate.fedoraproject.org/projects/freeipa/"
 "stable-release/ru/>\n"
 "Language: ru\n"
@@ -19006,7 +19007,7 @@ msgstr "UUID регистрации (не поддерживается)"
 
 #, c-format
 msgid "Enrollment failed. %s\n"
-msgstr "Не удалось выполнить регистрацию. %s\n"
+msgstr "Сбой регистрации. %s\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -19972,7 +19973,7 @@ msgstr "Аппаратная платформа узла (например, \"Le
 
 #, c-format
 msgid "Host is already joined.\n"
-msgstr "Узел уже присоединён.\n"
+msgstr "Хост уже присоединён.\n"
 
 msgid "Host is not supported"
 msgstr "Поддержка узла не предусмотрена"
@@ -20274,7 +20275,7 @@ msgstr "Главные IPA-серверы"
 
 #, c-format
 msgid "IPA namingContext not found\n"
-msgstr "namingContext IPA не найдено\n"
+msgstr "IPA namingContext не найден\n"
 
 msgid "IPA object"
 msgstr "Объект IPA"
@@ -22028,14 +22029,14 @@ msgstr "Отсутствуют установленные в системе ти
 
 #, c-format
 msgid "No values for %s"
-msgstr "Отсутствуют значения для %s"
+msgstr "Нету значения для %s"
 
 msgid "No wait"
 msgstr "Не ждать"
 
 #, c-format
 msgid "No write permissions on keytab file '%s'\n"
-msgstr "Отсутствуют разрешения на запись в  файл таблицы ключей \"%s\"\n"
+msgstr "Нет прав на запись в файл keytab «%s»\n"
 
 msgid "Non-Active Directory domain"
 msgstr "Домен, который не является доменом Active Directory"
@@ -22361,7 +22362,7 @@ msgstr ""
 
 #, c-format
 msgid "Out of memory!"
-msgstr "Недостаточно памяти!"
+msgstr "Закончилась память!"
 
 #, c-format
 msgid "Out of memory!\n"
@@ -24719,7 +24720,7 @@ msgstr "Поиск %(searched_object)s без этих %(relationship)s %(ldap_o
 
 #, c-format
 msgid "Search for %1$s on rootdse failed with error %2$d\n"
-msgstr "Не удалось выполнить поиск %1$s на rootdse. Ошибка: %2$d\n"
+msgstr "Сбой поиска %1$s в rootdse: ошибка %2$d\n"
 
 msgid "Search for CA ACLs."
 msgstr "Поиск CA ACL."
@@ -24759,7 +24760,7 @@ msgstr "Поиск расположений IPA."
 
 #, c-format
 msgid "Search for IPA namingContext failed with error %d\n"
-msgstr "Не удалось выполнить поиск namingContext IPA. Ошибка: %d\n"
+msgstr "Не удалось выполнить поиск IPA namingContext. Ошибка: %d\n"
 
 msgid "Search for IPA servers."
 msgstr "Поиск IPA-серверов."
@@ -26560,7 +26561,7 @@ msgstr "Не удалось создать личную группу. Групп
 
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
-msgstr "Не удалось найти IPA-сервер, используя %s\n"
+msgstr "Не удалось найти IPA-сервер, с %s\n"
 
 #, python-format
 msgid ""
@@ -26614,8 +26615,7 @@ msgstr ""
 
 #, c-format
 msgid "Unable to join host: Kerberos context initialization failed\n"
-msgstr ""
-"Не удалось присоединить узел: ошибка инициализации Kerberos-контекста\n"
+msgstr "Не удалось присоединить узел: ошибка инициализации контекста Kerberos\n"
 
 #, c-format
 msgid "Unable to parse principal\n"
@@ -27160,7 +27160,7 @@ msgstr "Интервал между обновлениями данных зон
 
 #, c-format
 msgid "access() on %1$s failed: errno = %2$d\n"
-msgstr "не удалось выполнить access() для %1$s: номер ошибки = %2$d\n"
+msgstr "Сбой вызова access() для %1$s: errno = %2$d\n"
 
 #, python-format
 msgid "active user with name \"%(user)s\" already exists"
@@ -27379,7 +27379,7 @@ msgstr ""
 
 #, c-format
 msgid "child exited with %d\n"
-msgstr "дочерний процесс завершился с сообщением %d\n"
+msgstr "дочерний процесс завершился с ошибкой %d\n"
 
 msgid "cn is immutable"
 msgstr "cn нельзя изменять"
@@ -27640,7 +27640,7 @@ msgstr ""
 
 #, c-format
 msgid "fork() failed\n"
-msgstr "не удалось выполнить fork()\n"
+msgstr "Сбой вызова \"fork()\"\n"
 
 msgid ""
 "format must be specified as\n"
@@ -27859,11 +27859,11 @@ msgstr "недопустимый номер порта"
 
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
-msgstr "неправильные разрешения команды ipa-getkeytab?\n"
+msgstr "Возможно, у ipa-getkeytab неверные права доступа?\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr "команда ipa-getkeytab не найдена \n"
+msgstr "ipa-getkeytab не найден\n"
 
 msgid "is required"
 msgstr "следует указать"
@@ -28438,7 +28438,7 @@ msgstr "не удалось выполнить запрос, состояние 
 
 #, c-format
 msgid "result not found in XML-RPC response\n"
-msgstr "результат не найден в ответе XML-RPC\n"
+msgstr "в ответе XML-RPC не найден результат\n"
 
 msgid ""
 "retrieve and print all attributes from the server. Affects command output."
