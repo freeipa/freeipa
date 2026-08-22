@@ -242,6 +242,11 @@ class servicedelegation_add_member(LDAPAddMember):
         basedn = self.api.env.container_accounts + self.api.env.basedn
         if names:
             for name in names:
+                # Option values arrive as kerberos.Principal objects;
+                # work with their textual form so that empty values are
+                # still skipped and failures report the principal as a
+                # string.
+                name = unicode(name)
                 if not name:
                     continue
 
@@ -262,7 +267,15 @@ class servicedelegation_add_member(LDAPAddMember):
                         p = unicode(p)
                         if p.lower() == princ.lower():
                             mprinc = p
-                    if mprinc not in entry_attrs.get(self.principal_attr, []):
+                    # memberprincipal values are decoded from LDAP as
+                    # kerberos.Principal objects (_SYNTAX_OVERRIDE in
+                    # ipaldap), so compare their textual forms,
+                    # case-insensitively like krbprincipalname above.
+                    existing = {
+                        unicode(m).lower()
+                        for m in entry_attrs.get(self.principal_attr, [])
+                    }
+                    if mprinc.lower() not in existing:
                         members.append(mprinc)
                     else:
                         raise errors.AlreadyGroupMember()
@@ -348,14 +361,26 @@ class servicedelegation_remove_member(LDAPRemoveMember):
         names = options.get(self.member_names[self.principal_attr], [])
         if names:
             for name in names:
+                # Option values arrive as kerberos.Principal objects;
+                # work with their textual form so that empty values are
+                # still skipped.
+                name = unicode(name)
                 if not name:
                     continue
                 princ = normalize_principal_name(name, self.api.env.realm)
                 try:
-                    if princ in entry_attrs.get(self.principal_attr, []):
-                        entry_attrs[self.principal_attr].remove(princ)
-                    else:
+                    # memberprincipal values are decoded from LDAP as
+                    # kerberos.Principal objects (_SYNTAX_OVERRIDE in
+                    # ipaldap); find the stored value by its textual
+                    # form, case-insensitively, and remove that object.
+                    member_map = {
+                        unicode(m).lower(): m
+                        for m in entry_attrs.get(self.principal_attr, [])
+                    }
+                    found = member_map.get(princ.lower())
+                    if found is None:
                         raise errors.NotGroupMember()
+                    entry_attrs[self.principal_attr].remove(found)
                 except errors.PublicError as e:
                     failed[self.principal_failedattr][
                         self.principal_attr].append((name, unicode(e)))
