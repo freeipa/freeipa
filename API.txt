@@ -2512,7 +2512,7 @@ output: PrimaryKey('value')
 command: host_add_delegation/1
 args: 2,4,3
 arg: Str('fqdn', cli_name='hostname')
-arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+arg: Principal('memberprincipal+', alwaysask=True, cli_name='principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -2729,7 +2729,7 @@ output: PrimaryKey('value')
 command: host_remove_delegation/1
 args: 2,4,3
 arg: Str('fqdn', cli_name='hostname')
-arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+arg: Principal('memberprincipal+', alwaysask=True, cli_name='principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -4798,7 +4798,7 @@ output: PrimaryKey('value')
 command: service_add_delegation/1
 args: 2,4,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
-arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+arg: Principal('memberprincipal+', alwaysask=True, cli_name='principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -4998,7 +4998,7 @@ output: PrimaryKey('value')
 command: service_remove_delegation/1
 args: 2,4,3
 arg: Principal('krbcanonicalname', cli_name='canonical_principal')
-arg: Str('memberprincipal+', alwaysask=True, cli_name='principal')
+arg: Principal('memberprincipal+', alwaysask=True, cli_name='principal')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
@@ -5057,7 +5057,7 @@ args: 1,5,3
 arg: Str('cn', cli_name='delegation_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
-option: Str('principal*', alwaysask=True, cli_name='principals')
+option: Principal('principal*', alwaysask=True, cli_name='principals')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
@@ -5102,7 +5102,7 @@ args: 1,5,3
 arg: Str('cn', cli_name='delegation_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Flag('no_members', autofill=True, default=False)
-option: Str('principal*', alwaysask=True, cli_name='principals')
+option: Principal('principal*', alwaysask=True, cli_name='principals')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
@@ -5145,7 +5145,7 @@ command: servicedelegationtarget_add_member/1
 args: 1,4,3
 arg: Str('cn', cli_name='delegation_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
-option: Str('principal*', alwaysask=True, cli_name='principals')
+option: Principal('principal*', alwaysask=True, cli_name='principals')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
@@ -5177,7 +5177,7 @@ command: servicedelegationtarget_remove_member/1
 args: 1,4,3
 arg: Str('cn', cli_name='delegation_name')
 option: Flag('all', autofill=True, cli_name='all', default=False)
-option: Str('principal*', alwaysask=True, cli_name='principals')
+option: Principal('principal*', alwaysask=True, cli_name='principals')
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])

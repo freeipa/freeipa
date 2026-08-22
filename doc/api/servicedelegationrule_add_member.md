@@ -15,7 +15,7 @@ Add member to a named service delegation rule.
 * no_members : :ref:`Flag<Flag>` **(Required)**
  * Default: False
 * version : :ref:`Str<Str>`
-* principal : :ref:`Str<Str>`
+* principal : :ref:`Principal<Principal>`
 
 ### Output
 |Name|Type
