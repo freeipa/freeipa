@@ -5,7 +5,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2026-08-19 19:12+0000\n"
-"PO-Revision-Date: 2026-08-20 01:19+0000\n"
+"PO-Revision-Date: 2026-08-20 12:12+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/freeipa/"
 "stable-release/pl/>\n"
@@ -10505,8 +10505,8 @@ msgstr "Polecenie sudo"
 #| msgid "priority must be a unique value (%(prio)d already used by %(gname)s)"
 msgid "order must be a unique value (%(order)d already used by %(rule)s)"
 msgstr ""
-"priorytet musi być unikalną wartością (%(prio)d jest już używane przez "
-"%(gname)s)"
+"priorytet musi być unikalną wartością (%(prio)d jest już używane przez %"
+"(gname)s)"
 
 #: ipaserver/plugins/sudorule.py:394
 msgid "Create new Sudo Rule."
@@ -30454,8 +30454,7 @@ msgstr "Błąd podczas rozwiązywania tablicy kluczy: %s.\n"
 #, fuzzy, c-format
 #| msgid "Error obtaining initial credentials: %s.\n"
 msgid "Error getting default Kerberos realm: %s.\n"
-msgstr ""
-"Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
+msgstr "Błąd podczas uzyskiwania początkowych danych uwierzytelniających: %s.\n"
 
 #: client/ipa-join.c:1324
 #, fuzzy, c-format
