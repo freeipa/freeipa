@@ -3,13 +3,14 @@
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2018. #zanata, 2026.
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2019. #zanata, 2026.
 # rus svinka <leva38363@icloud.com>, 2026.
+# Andrei Stepanov <adem4ik@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2026-08-19 19:12+0000\n"
-"PO-Revision-Date: 2026-08-20 01:54+0000\n"
-"Last-Translator: Olesya Gerasimenko <gammaray@basealt.ru>\n"
+"PO-Revision-Date: 2026-08-22 00:20+0000\n"
+"Last-Translator: Andrei Stepanov <adem4ik@gmail.com>\n"
 "Language-Team: Russian <https://translate.fedoraproject.org/projects/freeipa/"
 "stable-release/ru/>\n"
 "Language: ru\n"
@@ -55,35 +56,32 @@ msgstr "Не удалось обменяться данными с CMS (сост
 
 #: ipaserver/install/installutils.py:1612
 msgid "Must be of the form type:size"
-msgstr ""
+msgstr "Должно быть в формате тип:размер"
 
 #: ipaserver/install/installutils.py:1619
-#, fuzzy, python-format
-#| msgid "must be \"%s\""
+#, python-format
 msgid "Key type must be \"%(type)s\""
-msgstr "должно быть \"%s\""
+msgstr "Тип ключа должен быть \"%(type)s\""
 
 #: ipaserver/install/installutils.py:1623
-#, fuzzy, python-format
-#| msgid "must be one of %(values)s"
+#, python-format
 msgid "Key type must be one of: %(types)s"
-msgstr "должно быть одним из следующих значений: %(values)s"
+msgstr "Тип ключа должен быть одним из: %(types)s"
 
 #: ipaserver/install/installutils.py:1631
 #, python-format
 msgid "Not an integer: %(size)s"
-msgstr ""
+msgstr "Не является целым числом: %(size)s"
 
 #: ipaserver/install/installutils.py:1633
-#, fuzzy, python-format
-#| msgid "single label {}s are not supported"
+#, python-format
 msgid "%(type)s keys are not supported yet"
-msgstr "поддержка одноуровневых доменов {}s не предусмотрена"
+msgstr "Ключи типа %(type)s пока не поддерживаются"
 
 #: ipaserver/install/installutils.py:1636
 #, python-brace-format
 msgid "Invalid size {}. Allowed {}"
-msgstr ""
+msgstr "Недопустимый размер {}. Допустимо {}"
 
 #: ipaserver/install/replication.py:1787 ipaserver/install/replication.py:1806
 #, python-format
@@ -389,6 +387,9 @@ msgid ""
 "Are you sure you want to rebuild auto membership? In case of a high number "
 "of users, hosts or groups, the operation may require high CPU usage."
 msgstr ""
+"Вы уверены, что хотите перестроить автоматическое членство? При большом "
+"количестве пользователей, узлов или групп операция может потребовать высокой "
+"загрузки ЦП."
 
 #: ipaserver/plugins/internal.py:168 ipaserver/plugins/automember.py:799
 msgid "Automember rebuild membership task completed"
@@ -523,11 +524,11 @@ msgstr "Пароль с усиленной защитой (SPAKE или FAST)"
 
 #: ipaserver/plugins/internal.py:198
 msgid "External Identity Provider"
-msgstr ""
+msgstr "Внешний поставщик идентификационной информации"
 
 #: ipaserver/plugins/internal.py:199 ipaserver/plugins/internal.py:1233
 msgid "Passkey"
-msgstr ""
+msgstr "Ключ доступа"
 
 #: ipaserver/plugins/internal.py:200
 msgid "Disable per-user override"
@@ -747,10 +748,8 @@ msgid "Identity Settings"
 msgstr "Параметры идентификации"
 
 #: ipaserver/plugins/internal.py:260
-#, fuzzy
-#| msgid "Role Settings"
 msgid "Record Settings"
-msgstr "Параметры роли"
+msgstr "Параметры записи"
 
 #: ipaserver/plugins/internal.py:261
 #, python-brace-format
@@ -921,10 +920,9 @@ msgid "${primary_key} is a member of:"
 msgstr "${primary_key} является участником:"
 
 #: ipaserver/plugins/internal.py:311
-#, fuzzy, python-brace-format
-#| msgid "${primary_key} members:"
+#, python-brace-format
 msgid "${primary_key} member managers:"
-msgstr "Участники ${primary_key}:"
+msgstr "Управляющие участниками ${primary_key}:"
 
 #: ipaserver/plugins/internal.py:314
 msgid "Settings"
@@ -1157,10 +1155,12 @@ msgid ""
 "<i class=\"fa fa-info-circle\"></i> We have launched new UI, <a href='$"
 "{protocol}//${host}/ipa/modern-ui'>try it out!</a>"
 msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Мы запустили новый интерфейс, <a href='$"
+"{protocol}//${host}/ipa/modern-ui'>попробуйте!</a>"
 
 #: ipaserver/plugins/internal.py:419 ipaserver/plugins/internal.py:1765
 msgid "Password or Password+One-Time Password"
-msgstr ""
+msgstr "Пароль или Пароль+Одноразовый пароль"
 
 #: ipaserver/plugins/internal.py:420
 #, python-brace-format
@@ -1380,11 +1380,8 @@ msgid "Add exclusive condition into '${primary_key}'"
 msgstr "Добавить исключающее условие в '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:537
-#, fuzzy
-#| msgid "Are you sure you want to stage selected users?"
 msgid "Are you sure you want to change default group?"
-msgstr ""
-"Вы действительно хотите сделать выбранных пользователей неподтверждёнными?"
+msgstr "Вы уверены, что хотите изменить группу по умолчанию?"
 
 #: ipaserver/plugins/internal.py:539
 msgid "Default host group"
@@ -2258,34 +2255,39 @@ msgid "Add users into user group '${primary_key}'"
 msgstr "Добавить пользователей в группу пользователей '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:833
-#, fuzzy, python-brace-format
-#| msgid "Add user groups into user group '${primary_key}'"
+#, python-brace-format
 msgid "Add groups as member managers for user group '${primary_key}'"
-msgstr "Добавить группы пользователей в группу пользователей '${primary_key}'"
+msgstr ""
+"Добавить группы как управляющих участниками для группы пользователей '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:837
-#, fuzzy, python-brace-format
-#| msgid "Remove user groups from user group '${primary_key}'"
+#, python-brace-format
 msgid "Remove groups from member managers for user group '${primary_key}'"
-msgstr "Удалить группы пользователей из группы пользователей '${primary_key}'"
+msgstr ""
+"Удалить группы из управляющих участниками для группы пользователей '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:841
-#, fuzzy, python-brace-format
-#| msgid "Add users into user group '${primary_key}'"
+#, python-brace-format
 msgid "Add users as member managers for user group '${primary_key}'"
-msgstr "Добавить пользователей в группу пользователей '${primary_key}'"
+msgstr ""
+"Добавить пользователей как управляющих участниками для группы пользователей "
+"'${primary_key}'"
 
 #: ipaserver/plugins/internal.py:845
-#, fuzzy, python-brace-format
-#| msgid "Remove users from user group '${primary_key}'"
+#, python-brace-format
 msgid "Remove users from member managers for user group '${primary_key}'"
-msgstr "Удалить пользователей из группы пользователей '${primary_key}'"
+msgstr ""
+"Удалить пользователей из управляющих участниками для группы пользователей '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:849
-#, fuzzy, python-brace-format
-#| msgid "Add services into user group '${primary_key}'"
+#, python-brace-format
 msgid "Add user ID override into user group '${primary_key}'"
-msgstr "Добавить службы в группу пользователей '${primary_key}'"
+msgstr ""
+"Добавить переопределение ID пользователя в группу пользователей '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:851
 msgid "Group Settings"
@@ -2365,10 +2367,11 @@ msgid "Remove users from user group '${primary_key}'"
 msgstr "Удалить пользователей из группы пользователей '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:885
-#, fuzzy, python-brace-format
-#| msgid "Remove services from user group '${primary_key}'"
+#, python-brace-format
 msgid "Remove user ID overrides from user group '${primary_key}'"
-msgstr "Удалить службы из группы пользователей '${primary_key}'"
+msgstr ""
+"Удалить переопределения ID пользователя из группы пользователей '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:887
 msgid "Group Type"
@@ -2634,32 +2637,24 @@ msgid "Kerberos Key Present, Host Provisioned"
 msgstr "Имеется ключ Kerberos, узел подготовлен к работе"
 
 #: ipaserver/plugins/internal.py:1013 ipaserver/plugins/internal.py:1760
-#, fuzzy
-#| msgid "One Time Password"
 msgid "One-Time Password"
 msgstr "Одноразовый пароль"
 
 #: ipaserver/plugins/internal.py:1014
-#, fuzzy
-#| msgid "One Time Password"
 msgid "One-Time Password Not Present"
-msgstr "Одноразовый пароль"
+msgstr "Одноразовый пароль отсутствует"
 
 #: ipaserver/plugins/internal.py:1015
-#, fuzzy
-#| msgid "One Time Password"
 msgid "One-Time Password Present"
-msgstr "Одноразовый пароль"
+msgstr "Одноразовый пароль присутствует"
 
 #: ipaserver/plugins/internal.py:1016
 msgid "Reset OTP"
 msgstr "Сбросить OTP"
 
 #: ipaserver/plugins/internal.py:1017
-#, fuzzy
-#| msgid "One Time Password"
 msgid "Reset One-Time Password"
-msgstr "Одноразовый пароль"
+msgstr "Сбросить одноразовый пароль"
 
 #: ipaserver/plugins/internal.py:1018
 msgid "Set OTP"
@@ -2670,10 +2665,8 @@ msgid "OTP set"
 msgstr "Установлен OTP"
 
 #: ipaserver/plugins/internal.py:1020
-#, fuzzy
-#| msgid "One Time Password"
 msgid "Set One-Time Password"
-msgstr "Одноразовый пароль"
+msgstr "Установить одноразовый пароль"
 
 #: ipaserver/plugins/internal.py:1021
 msgid "Remove hosts"
@@ -2760,28 +2753,30 @@ msgid "Add host group '${primary_key}' into sudo rules"
 msgstr "Добавить группу узлов '${primary_key}' в правила Sudo"
 
 #: ipaserver/plugins/internal.py:1067
-#, fuzzy, python-brace-format
-#| msgid "Add host groups into host group '${primary_key}'"
+#, python-brace-format
 msgid "Add groups as member managers for host group '${primary_key}'"
-msgstr "Добавить группы узлов в группу узлов '${primary_key}'"
+msgstr ""
+"Добавить группы как управляющих участниками для группы узлов '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1071
-#, fuzzy, python-brace-format
-#| msgid "Remove host groups from host group '${primary_key}'"
+#, python-brace-format
 msgid "Remove groups from member managers for host group '${primary_key}'"
-msgstr "Удалить группы узлов из группы узлов '${primary_key}'"
+msgstr ""
+"Удалить группы из управляющих участниками для группы узлов '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1075
-#, fuzzy, python-brace-format
-#| msgid "Add users into user group '${primary_key}'"
+#, python-brace-format
 msgid "Add users as member managers for host group '${primary_key}'"
-msgstr "Добавить пользователей в группу пользователей '${primary_key}'"
+msgstr ""
+"Добавить пользователей как управляющих участниками для группы узлов '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:1079
-#, fuzzy, python-brace-format
-#| msgid "Remove users from netgroup '${primary_key}'"
+#, python-brace-format
 msgid "Remove users from member managers for host group '${primary_key}'"
-msgstr "Удалить пользователей из сетевой группы '${primary_key}'"
+msgstr ""
+"Удалить пользователей из управляющих участниками для группы узлов '$"
+"{primary_key}'"
 
 #: ipaserver/plugins/internal.py:1082 ipaserver/plugins/internal.py:1182
 #: ipaserver/plugins/sudorule.py:308 ipaserver/plugins/hostgroup.py:178
@@ -2830,39 +2825,35 @@ msgstr "Удалить группы узлов из группы узлов '${p
 
 #: ipaserver/plugins/internal.py:1105
 msgid "Keycloak or Red Hat SSO"
-msgstr ""
+msgstr "Keycloak или Red Hat SSO"
 
 #: ipaserver/plugins/internal.py:1106
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: ipaserver/plugins/internal.py:1107
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: ipaserver/plugins/internal.py:1108
 msgid "Microsoft or Azure"
-msgstr ""
+msgstr "Microsoft или Azure"
 
 #: ipaserver/plugins/internal.py:1109
 msgid "Okta"
-msgstr ""
+msgstr "Okta"
 
 #: ipaserver/plugins/internal.py:1110
 msgid "OAuth 2.0 client details"
-msgstr ""
+msgstr "Сведения о клиенте OAuth 2.0"
 
 #: ipaserver/plugins/internal.py:1111
-#, fuzzy
-#| msgid "Servers details:"
 msgid "Identity provider details"
-msgstr "Сведения о серверах:"
+msgstr "Сведения о поставщике идентификационной информации"
 
 #: ipaserver/plugins/internal.py:1112
-#, fuzzy
-#| msgid "Verify Password"
 msgid "Verify secret"
-msgstr "Проверить пароль"
+msgstr "Проверить секрет"
 
 #: ipaserver/plugins/internal.py:1115
 msgid "User to override"
@@ -3167,32 +3158,25 @@ msgid "Time-based (TOTP)"
 msgstr "На основе времени (TOTP)"
 
 #: ipaserver/plugins/internal.py:1232
-#, fuzzy
-#| msgid "Add Many"
 msgid "Add Passkey"
-msgstr "Добавить много"
+msgstr "Добавить ключ доступа"
 
 #: ipaserver/plugins/internal.py:1235
-#, fuzzy, python-brace-format
-#| msgid "Do you want to remove kerberos alias ${alias}?"
+#, python-brace-format
 msgid "Do you want to remove passkey ${passkey}?"
-msgstr "Вы хотите удалить псевдоним Kerberos ${alias}?"
+msgstr "Вы хотите удалить ключ доступа ${passkey}?"
 
 #: ipaserver/plugins/internal.py:1236
-#, fuzzy
-#| msgid "Remove hosts"
 msgid "Remove Passkey"
-msgstr "Удалить узлы"
+msgstr "Удалить ключ доступа"
 
 #: ipaserver/plugins/internal.py:1237
 msgid "(discoverable) "
-msgstr ""
+msgstr "(обнаруживаемый) "
 
 #: ipaserver/plugins/internal.py:1238
-#, fuzzy
-#| msgid "servers"
 msgid "(server-side) "
-msgstr "серверы"
+msgstr "(серверная сторона) "
 
 #: ipaserver/plugins/internal.py:1244
 msgid "Add Custom Attribute"
@@ -3264,10 +3248,8 @@ msgid "Range Settings"
 msgstr "Параметры диапазона"
 
 #: ipaserver/plugins/internal.py:1271 ipaserver/plugins/idrange.py:269
-#, fuzzy
-#| msgid "No private group"
 msgid "Auto private groups"
-msgstr "Без личной группы"
+msgstr "Автоматические личные группы"
 
 #: ipaserver/plugins/internal.py:1272 ipaserver/plugins/internal.py:1402
 msgid "Base ID"
@@ -3575,20 +3557,16 @@ msgid "User categories"
 msgstr "Категории пользователей"
 
 #: ipaserver/plugins/internal.py:1400
-#, fuzzy
-#| msgid "Add sudo rule"
 msgid "Add subid"
-msgstr "Добавить правило Sudo"
+msgstr "Добавить подчинённый идентификатор"
 
 #: ipaserver/plugins/internal.py:1401
-#, fuzzy
-#| msgid "Assigned ID View"
 msgid "Assigned subids"
-msgstr "Назначенное представление ID"
+msgstr "Назначенные подчинённые идентификаторы"
 
 #: ipaserver/plugins/internal.py:1403
 msgid "DNA remaining"
-msgstr ""
+msgstr "Оставшиеся DNA"
 
 #: ipaserver/plugins/internal.py:1404 ipaserver/plugins/otptoken.py:187
 #: ipaserver/plugins/subid.py:149 ipaserver/plugins/subid.py:473
@@ -3596,32 +3574,28 @@ msgid "Owner"
 msgstr "Владелец"
 
 #: ipaserver/plugins/internal.py:1405 ipaserver/plugins/subid.py:182
-#, fuzzy
-#| msgid "Range size"
 msgid "SubGID range size"
-msgstr "Размер диапазона"
+msgstr "Размер диапазона SubGID"
 
 #: ipaserver/plugins/internal.py:1406 ipaserver/plugins/subid.py:173
 msgid "SubGID range start"
-msgstr ""
+msgstr "Начало диапазона SubGID"
 
 #: ipaserver/plugins/internal.py:1407 ipaserver/plugins/subid.py:164
-#, fuzzy
-#| msgid "Range size"
 msgid "SubUID range size"
-msgstr "Размер диапазона"
+msgstr "Размер диапазона SubUID"
 
 #: ipaserver/plugins/internal.py:1408 ipaserver/plugins/subid.py:155
 msgid "SubUID range start"
-msgstr ""
+msgstr "Начало диапазона SubUID"
 
 #: ipaserver/plugins/internal.py:1410
 msgid "Remaining subids"
-msgstr ""
+msgstr "Оставшиеся подчинённые идентификаторы"
 
 #: ipaserver/plugins/internal.py:1411
 msgid "Subordinate ID Statistics"
-msgstr ""
+msgstr "Статистика подчинённых идентификаторов"
 
 #: ipaserver/plugins/internal.py:1414
 msgid "Add sudo command"
@@ -3845,40 +3819,32 @@ msgid "Remove sudo options"
 msgstr "Удалить параметры Sudo"
 
 #: ipaserver/plugins/internal.py:1541
-#, fuzzy
-#| msgid "Administrative account"
 msgid "Add system account"
-msgstr "Учётная запись администратора"
+msgstr "Добавить системную учётную запись"
 
 #: ipaserver/plugins/internal.py:1542
-#, fuzzy
-#| msgid "Remove automount keys"
 msgid "Remove system account"
-msgstr "Удалить ключи автомонтирования"
+msgstr "Удалить системную учётную запись"
 
 #: ipaserver/plugins/internal.py:1544
-#, fuzzy, python-brace-format
-#| msgid "Add user group '${primary_key}' into roles"
+#, python-brace-format
 msgid "Add system account '${primary_key}' into roles"
-msgstr "Добавить группу пользователей '${primary_key}' в роли"
+msgstr "Добавить системную учётную запись '${primary_key}' в роли"
 
 #: ipaserver/plugins/internal.py:1547
-#, fuzzy, python-brace-format
-#| msgid "Remove user group '${primary_key}' from roles"
+#, python-brace-format
 msgid "Remove system account '${primary_key}' from roles"
-msgstr "Удалить группу пользователей '${primary_key}' из ролей"
+msgstr "Удалить системную учётную запись '${primary_key}' из ролей"
 
 #: ipaserver/plugins/internal.py:1550
-#, fuzzy
-#| msgid "Change password"
 msgid "Change passwords without reset"
-msgstr "Изменить пароль"
+msgstr "Изменять пароли без сброса"
 
 #: ipaserver/plugins/internal.py:1553
-#, fuzzy, python-brace-format
-#| msgid "Add privilege '${primary_key}' into permissions"
+#, python-brace-format
 msgid "Change privileged status of '${primary_key}' system account"
-msgstr "Добавить привилегию '${primary_key}' в разрешения"
+msgstr ""
+"Изменить привилегированный статус системной учётной записи '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1559
 msgid "Autogenerated"
@@ -3937,10 +3903,8 @@ msgid "Administrative account"
 msgstr "Учётная запись администратора"
 
 #: ipaserver/plugins/internal.py:1582
-#, fuzzy
-#| msgid "SID blacklist incoming"
 msgid "SID blocklists"
-msgstr "Входящий \"чёрный список\" SID"
+msgstr "Чёрные списки SID"
 
 #: ipaserver/plugins/internal.py:1583
 msgid "Trust Settings"
@@ -4055,14 +4019,15 @@ msgstr "Добавить пользователя '${primary_key}' в прави
 
 #: ipaserver/plugins/internal.py:1637
 msgid "Auto assign subordinate ids"
-msgstr ""
+msgstr "Автоматически назначать подчинённые идентификаторы"
 
 #: ipaserver/plugins/internal.py:1639
-#, fuzzy, python-brace-format
-#| msgid "Are you sure you want to unlock user ${object}?"
+#, python-brace-format
 msgid ""
 "Are you sure you want to auto-assign a subordinate id to user ${object}?"
-msgstr "Вы действительно хотите разблокировать пользователя ${object}?"
+msgstr ""
+"Вы уверены, что хотите автоматически назначить подчинённый идентификатор "
+"пользователю ${object}?"
 
 #: ipaserver/plugins/internal.py:1642
 msgid "Contact Settings"
@@ -4326,32 +4291,20 @@ msgid "New password is required"
 msgstr "Следует указать новый пароль"
 
 #: ipaserver/plugins/internal.py:1752
-#, fuzzy
-#| msgid ""
-#| "<i class=\"fa fa-info-circle\"></i> To log in with <strong>username and "
-#| "password</strong>, enter them in the corresponding fields, then click "
-#| "'Log in'."
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> <strong>OTP (One-Time Password):</"
 "strong>Generate new OTP code for each OTP field."
 msgstr ""
-"<i class=\"fa fa-info-circle\"></i> Чтобы войти с помощью <strong>имени "
-"пользователя и пароля</strong>, введите их в соответствующие поля, затем "
-"нажмите кнопку \"Войти\"."
+"<i class=\"fa fa-info-circle\"></i> <strong>OTP (Одноразовый пароль):</"
+"strong>Создать новый код OTP для каждого поля OTP."
 
 #: ipaserver/plugins/internal.py:1756
-#, fuzzy
-#| msgid ""
-#| "<i class=\"fa fa-info-circle\"></i> To log in with <strong>username and "
-#| "password</strong>, enter them in the corresponding fields, then click "
-#| "'Log in'."
 msgid ""
 "<i class=\"fa fa-info-circle\"></i> <strong>OTP (One-Time Password):</"
 "strong>Leave blank if you are not using OTP tokens for authentication."
 msgstr ""
-"<i class=\"fa fa-info-circle\"></i> Чтобы войти с помощью <strong>имени "
-"пользователя и пароля</strong>, введите их в соответствующие поля, затем "
-"нажмите кнопку \"Войти\"."
+"<i class=\"fa fa-info-circle\"></i> <strong>OTP (Одноразовый пароль):</"
+"strong>Оставьте пустым, если не используете токены OTP для аутентификации."
 
 #: ipaserver/plugins/internal.py:1761
 msgid "Token synchronization failed"
@@ -4517,6 +4470,37 @@ msgid ""
 "</ol>\n"
 "\n"
 msgstr ""
+"<ol>\n"
+"<li>\n"
+"<p>\n"
+"<a href=\"ca.crt\" id=\"ca-link\" class=\"btn btn-default\">Импорт "
+"сертификата центра сертификации</a>\n"
+"</p>\n"
+"<p>\n"
+"                    Обязательно установите <b>все три</b> флажка.\n"
+"</p>\n"
+"</li>\n"
+"<li>\n"
+"                В адресной строке Firefox введите <code>about:config</code> "
+"для показа списка текущих параметров настройки.\n"
+"</li>\n"
+"<li>\n"
+"                В поле фильтра введите <code>negotiate</code> для "
+"ограничения списка параметров.\n"
+"</li>\n"
+"<li>\n"
+"                Сделайте двойной щелчок по записи <code>network.negotiate-"
+"auth.trusted-uris</code> для показа диалогового окна ввода значения строки.\n"
+"</li>\n"
+"<li>\n"
+"                Введите имя домена, в котором следует проходить "
+"аутентификацию, например, <code class=\"example-domain\">.example.com</code>"
+".\n"
+"</li>\n"
+"<li><a href=\"../ui/index.html\" id=\"return-link\" class=\"btn btn-"
+"default\">Вернуться в веб-интерфейс</a></li>\n"
+"</ol>\n"
+"\n"
 
 #: ipaserver/plugins/internal.py:1853
 msgid ""
@@ -4638,6 +4622,47 @@ msgid ""
 "</ol>\n"
 "\n"
 msgstr ""
+"<h3>\n"
+"            Включение SPNEGO (Simple and Protected GSSAPI Negotiation "
+"Mechanism) для использования аутентификации Kerberos\n"
+"            в Chrome\n"
+"</h3>\n"
+"<ol>\n"
+"<li>\n"
+"                Убедитесь, что необходимый каталог создан, с помощью "
+"следующей команды:\n"
+"<div><code>\n"
+"                    [root@client]# mkdir -p /etc/opt/chrome/policies/managed/"
+"\n"
+"</code></div>\n"
+"</li>\n"
+"<li>\n"
+"                Создайте новый файл <code>/etc/opt/chrome/policies/managed/"
+"mydomain.json</code> с правами на запись только для администратора системы "
+"или пользователя root и добавьте в него следующую строку:\n"
+"<div><code>\n"
+"                    { \"AuthServerWhitelist\": \"*<span class=\"example-"
+"domain\">.example.com</span>\" }\n"
+"</code></div>\n"
+"<div>\n"
+"                    Это можно сделать с помощью следующей команды:\n"
+"</div>\n"
+"<div><code>\n"
+"                    [root@server]# echo '{ \"AuthServerWhitelist\": \"*<span "
+"class=\"example-domain\">.example.com</span>\" }' > /etc/opt/chrome/policies/"
+"managed/mydomain.json\n"
+"</code></div>\n"
+"</li>\n"
+"</ol>\n"
+"<ol>\n"
+"<p>\n"
+"<strong>Примечание:</strong> если используется Chromium, используйте <code>/"
+"etc/chromium/policies/managed/</code> вместо <code>/etc/opt/chrome/policies/"
+"managed/</code> для выполнения двух вышеприведённых шагов настройки SPNEGO в "
+"Chrome.\n"
+"</p>\n"
+"</ol>\n"
+"\n"
 
 #: ipaserver/plugins/internal.py:1939
 msgid ""
@@ -4783,7 +4808,7 @@ msgstr "Управление доступом на основе ролей"
 
 #: ipaserver/plugins/internal.py:2002
 msgid "Subordinate IDs"
-msgstr ""
+msgstr "Подчинённые идентификаторы"
 
 #: ipaserver/plugins/internal.py:2003
 msgid "Sudo"
@@ -5141,28 +5166,20 @@ msgid "Failed allowed to create keytab"
 msgstr "Не удалось разрешить создавать таблицу ключей"
 
 #: ipaserver/plugins/service.py:164 ipaserver/plugins/host.py:242
-#, fuzzy
-#| msgid "Users allowed to retrieve keytab"
 msgid "Users allowed to add resource delegation"
-msgstr "Пользователи, которым разрешено получать таблицу ключей"
+msgstr "Пользователи, которым разрешено добавлять делегирование ресурсов"
 
 #: ipaserver/plugins/service.py:166 ipaserver/plugins/host.py:244
-#, fuzzy
-#| msgid "Groups allowed to retrieve keytab"
 msgid "Groups allowed to add resource delegation"
-msgstr "Группы, которым разрешено получать таблицу ключей"
+msgstr "Группы, которым разрешено добавлять делегирование ресурсов"
 
 #: ipaserver/plugins/service.py:168 ipaserver/plugins/host.py:246
-#, fuzzy
-#| msgid "Hosts allowed to retrieve keytab"
 msgid "Hosts allowed to add resource delegation"
-msgstr "Узлы, которым разрешено получать таблицу ключей"
+msgstr "Узлы, которым разрешено добавлять делегирование ресурсов"
 
 #: ipaserver/plugins/service.py:170 ipaserver/plugins/host.py:248
-#, fuzzy
-#| msgid "Host Groups allowed to retrieve keytab"
 msgid "Host Groups allowed to add resource delegation"
-msgstr "Группы узлов, которым разрешено получать таблицу ключей"
+msgstr "Группы узлов, которым разрешено добавлять делегирование ресурсов"
 
 #: ipaserver/plugins/service.py:176
 msgid "Requires pre-authentication"
@@ -5189,10 +5206,9 @@ msgid "The service is allowed to authenticate on behalf of a client"
 msgstr "Службе разрешена аутентификация от имени клиента"
 
 #: ipaserver/plugins/service.py:234
-#, fuzzy, python-format
-#| msgid "Authentication indicators"
+#, python-format
 msgid "authentication indicators not allowed in service \"%s\""
-msgstr "Индикаторы аутентификации"
+msgstr "индикаторы аутентификации не разрешены в службе \"%s\""
 
 #: ipaserver/plugins/service.py:250
 msgid "Malformed principal"
@@ -5201,7 +5217,7 @@ msgstr "Недопустимая учётная запись"
 #: ipaserver/plugins/service.py:330 ipaserver/plugins/sysaccounts.py:318
 #, python-brace-format
 msgid "{} is required by the IPA master"
-msgstr ""
+msgstr "{} требуется главному IPA-серверу"
 
 #: ipaserver/plugins/service.py:404
 msgid "service"
@@ -5231,10 +5247,8 @@ msgstr "Псевдоним учётной записи службы"
 
 #: ipaserver/plugins/service.py:550 ipaserver/plugins/service.py:551
 #: ipaserver/plugins/host.py:589 ipaserver/plugins/host.py:590
-#, fuzzy
-#| msgid "Delegation name"
 msgid "Delegation principal"
-msgstr "Имя делегирования"
+msgstr "Учётная запись делегирования"
 
 #: ipaserver/plugins/service.py:558
 msgid "Base-64 encoded service certificate"
@@ -5288,6 +5302,17 @@ msgid ""
 "'passkey' to allow passkey-based 2FA authentications. With no indicator "
 "specified, all authentication mechanisms are allowed."
 msgstr ""
+"Определяет список разрешённых индикаторов аутентификации. Используйте 'otp', "
+"чтобы разрешить двухфакторную аутентификацию на основе OTP. Используйте "
+"'radius', чтобы разрешить двухфакторную аутентификацию на основе RADIUS. "
+"Используйте 'pkinit', чтобы разрешить двухфакторную аутентификацию на основе "
+"PKINIT. Используйте 'hardened', чтобы разрешить защищённую от перебора "
+"аутентификацию по паролю с помощью SPAKE или FAST. Используйте 'idp', чтобы "
+"разрешить аутентификацию с помощью внешнего поставщика идентификационной "
+"информации, поддерживающего поток авторизации устройств OAuth 2.0 (RFC 8628)"
+". Используйте 'passkey', чтобы разрешить двухфакторную аутентификацию на "
+"основе ключа доступа. Если индикатор не указан, будут разрешены все "
+"механизмы аутентификации."
 
 #: ipaserver/plugins/service.py:639
 msgid "NONE value cannot be combined with other PAC types"
@@ -5466,100 +5491,41 @@ msgid "Removed aliases to the service principal \"%(value)s\""
 msgstr "Удалены псевдонимы учётной записи службы \"%(value)s\""
 
 #: ipaserver/plugins/service.py:1247
-#, fuzzy
-#| msgid "Add new certificates to a service"
 msgid "Add new resource delegation to a service"
-msgstr "Добавить новые сертификаты в запись службы."
+msgstr "Добавить новое делегирование ресурсов службе"
 
 #: ipaserver/plugins/service.py:1248
-#, fuzzy, python-format
-#| msgid "Added new aliases to the service principal \"%(value)s\""
+#, python-format
 msgid "Added new resource delegation to the service principal \"%(value)s\""
-msgstr "Добавлены новые псевдонимы в учётную запись службы \"%(value)s\""
+msgstr ""
+"Добавлено новое делегирование ресурсов учётной записи службы \"%(value)s\""
 
 #: ipaserver/plugins/service.py:1262
-#, fuzzy
-#| msgid "Remove certificates from a service"
 msgid "Remove resource delegation from a service"
-msgstr "Удалить сертификаты из записи службы."
+msgstr "Удалить делегирование ресурсов со службы"
 
 #: ipaserver/plugins/service.py:1263
-#, fuzzy, python-format
-#| msgid "Removed aliases to the service principal \"%(value)s\""
+#, python-format
 msgid "Removed resource delegation from the service principal \"%(value)s\""
-msgstr "Удалены псевдонимы учётной записи службы \"%(value)s\""
+msgstr "Удалено делегирование ресурсов с учётной записи службы \"%(value)s\""
 
 #: ipaserver/plugins/service.py:1270
-#, fuzzy
-#| msgid ""
-#| "Allow users, groups, hosts or host groups to create a keytab of this "
-#| "service."
 msgid ""
 "Allow users, groups, hosts or host groups to handle a resource delegation of "
 "this service."
 msgstr ""
-"Разрешить пользователям, группам, узлам или группам узлов создавать таблицу "
-"ключей этой службы."
+"Разрешить пользователям, группам, узлам или группам узлов обрабатывать "
+"делегирование ресурсов этой службы."
 
 #: ipaserver/plugins/service.py:1290
-#, fuzzy
-#| msgid ""
-#| "Disallow users, groups, hosts or host groups to create a keytab of this "
-#| "service."
 msgid ""
 "Disallow users, groups, hosts or host groups to handle a resource delegation "
 "of this service."
 msgstr ""
-"Запретить пользователям, группам, узлам или группам узлов создавать таблицу "
-"ключей этой службы."
+"Запретить пользователям, группам, узлам или группам узлов обрабатывать "
+"делегирование ресурсов этой службы."
 
 #: ipaserver/plugins/user.py:82
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Users\n"
-#| "\n"
-#| "Manage user entries. All users are POSIX users.\n"
-#| "\n"
-#| "IPA supports a wide range of username formats, but you need to be aware "
-#| "of any\n"
-#| "restrictions that may apply to your particular environment. For example,\n"
-#| "usernames that start with a digit or usernames that exceed a certain "
-#| "length\n"
-#| "may cause problems for some UNIX systems.\n"
-#| "Use 'ipa config-mod' to change the username format allowed by IPA tools.\n"
-#| "\n"
-#| "Disabling a user account prevents that user from obtaining new Kerberos\n"
-#| "credentials. It does not invalidate any credentials that have already\n"
-#| "been issued.\n"
-#| "\n"
-#| "Password management is not a part of this module. For more information\n"
-#| "about this topic please see: ipa help passwd\n"
-#| "\n"
-#| "Account lockout on password failure happens per IPA master. The user-"
-#| "status\n"
-#| "command can be used to identify which master the user is locked out on.\n"
-#| "It is on that master the administrator must unlock the user.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Add a new user:\n"
-#| "   ipa user-add --first=Tim --last=User --password tuser1\n"
-#| "\n"
-#| " Find all users whose entries include the string \"Tim\":\n"
-#| "   ipa user-find Tim\n"
-#| "\n"
-#| " Find all users with \"Tim\" as the first name:\n"
-#| "   ipa user-find --first=Tim\n"
-#| "\n"
-#| " Disable a user account:\n"
-#| "   ipa user-disable tuser1\n"
-#| "\n"
-#| " Enable a user account:\n"
-#| "   ipa user-enable tuser1\n"
-#| "\n"
-#| " Delete a user:\n"
-#| "   ipa user-del tuser1\n"
 msgid ""
 "\n"
 "Users\n"
@@ -5619,9 +5585,15 @@ msgstr ""
 "IPA поддерживает широкий спектр форматов имён пользователей, но следует "
 "учитывать те ограничения, которые могут существовать в конкретной среде. "
 "Например, имена пользователей, которые начинаются с цифры или превышают "
-"определённую длину, могут  привести к проблемам в некоторых системах UNIX.\n"
+"определённую длину, могут привести к проблемам в некоторых системах UNIX.\n"
 "Используйте команду \"ipa config-mod\" для изменения формата имени "
 "пользователя, разрешённого средствами IPA.\n"
+"\n"
+"Имя пользователя должно соответствовать следующим правилам:\n"
+"- не может состоять только из цифр\n"
+"- должно начинаться с буквы, цифры, _ или .\n"
+"- может содержать буквы, цифры, _, ., или -\n"
+"- может заканчиваться на букву, цифру, _, ., - или $\n"
 "\n"
 "Отключение учётной записи пользователя сделает невозможным получение таким "
 "пользователем новых учётных данных Kerberos. Это не сделает "
@@ -5632,8 +5604,8 @@ msgstr ""
 "\n"
 "Блокировка учётной записи при ошибке пароля выполняется на одном из главных "
 "IPA-серверов. Чтобы определить, на каком главном сервере заблокирован "
-"пользователь,  можно использовать команду user-status.\n"
-"На этом главном сервере администратор должен разблокировать пользователя:\n"
+"пользователь, можно использовать команду user-status. На этом главном "
+"сервере администратор должен разблокировать пользователя.\n"
 "\n"
 "ПРИМЕРЫ:\n"
 "\n"
@@ -5662,10 +5634,8 @@ msgid "user"
 msgstr "пользователь"
 
 #: ipaserver/plugins/user.py:156 ipaserver/plugins/user.py:903
-#, fuzzy
-#| msgid "privileges"
 msgid "privileged user"
-msgstr "Привилегии"
+msgstr "привилегированный пользователь"
 
 #: ipaserver/plugins/user.py:174 ipaserver/plugins/group.py:202
 #: ipaserver/plugins/group.py:426 ipaserver/plugins/group.py:702
@@ -5722,10 +5692,9 @@ msgid "Deleted user \"%(value)s\""
 msgstr "Удален пользователь \"%(value)s\""
 
 #: ipaserver/plugins/user.py:742
-#, fuzzy, python-format
-#| msgid "Deleted user \"%(value)s\""
+#, python-format
 msgid "Preserved user \"%(value)s\""
-msgstr "Удален пользователь \"%(value)s\""
+msgstr "Сохранённый пользователь \"%(value)s\""
 
 #: ipaserver/plugins/user.py:760
 #, python-format
@@ -5851,10 +5820,8 @@ msgid "Time now"
 msgstr "Время сейчас"
 
 #: ipaserver/plugins/user.py:1254
-#, fuzzy
-#| msgid "Password change complete"
 msgid "Password grace count"
-msgstr "Изменение пароля завершено"
+msgstr "Счётчик отсрочки ввода пароля"
 
 #: ipaserver/plugins/user.py:1261
 msgid ""
@@ -5980,18 +5947,16 @@ msgstr "Удалены псевдонимы из записи пользоват
 
 #: ipaserver/plugins/user.py:1418 ipaserver/plugins/baseuser.py:1120
 #: ipaclient/plugins/user.py:87 ipaclient/plugins/stageuser.py:14
-#, fuzzy
-#| msgid "Add one or more certificate mappings to the user entry."
 msgid "Add one or more passkey mappings to the user entry."
 msgstr ""
-"Добавить одно или несколько сопоставлений сертификатов в запись пользователя."
+"Добавить одно или несколько сопоставлений ключей доступа в запись "
+"пользователя."
 
 #: ipaserver/plugins/user.py:1423 ipaserver/plugins/baseuser.py:1138
-#, fuzzy
-#| msgid "Remove one or more certificate mappings from the user entry."
 msgid "Remove one or more passkey mappings from the user entry."
 msgstr ""
-"Удалить одно или несколько сопоставлений сертификатов из записи пользователя."
+"Удалить одно или несколько сопоставлений ключей доступа из записи "
+"пользователя."
 
 #: ipaserver/plugins/hbactest.py:41 ipaserver/plugins/cert.py:70
 msgid "pyhbac is not installed."
@@ -6583,10 +6548,8 @@ msgid "Location"
 msgstr "Расположение"
 
 #: ipaserver/plugins/server.py:133
-#, fuzzy
-#| msgid "Servers in location"
 msgid "Server DNS location"
-msgstr "Серверы в расположении"
+msgstr "Расположение DNS сервера"
 
 #: ipaserver/plugins/server.py:140
 msgid "Service weight"
@@ -6757,10 +6720,9 @@ msgid "Ignoring topology connectivity errors."
 msgstr "Игнорирование ошибок топологии подключений."
 
 #: ipaserver/plugins/server.py:766
-#, fuzzy, python-format
-#| msgid "Failed to remove server %(master)s from server list: %(err)s"
+#, python-format
 msgid "Failed to remove server from security domain: %s"
-msgstr "Не удалось удалить сервер %(master)s из списка серверов: %(err)s"
+msgstr "Не удалось удалить сервер из домена безопасности: %s"
 
 #: ipaserver/plugins/server.py:793
 msgid "Server has already been deleted"
@@ -6826,54 +6788,6 @@ msgid "Cannot hide last enabled %(name)s server."
 msgstr "Не удалось скрыть последний включённый сервер %(name)s."
 
 #: ipaserver/plugins/pwpolicy.py:43
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Password policy\n"
-#| "\n"
-#| "A password policy sets limitations on IPA passwords, including maximum\n"
-#| "lifetime, minimum lifetime, the number of passwords to save in\n"
-#| "history, the number of character classes required (for stronger "
-#| "passwords)\n"
-#| "and the minimum password length.\n"
-#| "\n"
-#| "By default there is a single, global policy for all users. You can also\n"
-#| "create a password policy to apply to a group. Each user is only subject\n"
-#| "to one password policy, either the group policy or the global policy. A\n"
-#| "group policy stands alone; it is not a super-set of the global policy "
-#| "plus\n"
-#| "custom settings.\n"
-#| "\n"
-#| "Each group password policy requires a unique priority setting. If a user\n"
-#| "is in multiple groups that have password policies, this priority "
-#| "determines\n"
-#| "which password policy is applied. A lower value indicates a higher "
-#| "priority\n"
-#| "policy.\n"
-#| "\n"
-#| "Group password policies are automatically removed when the groups they\n"
-#| "are associated with are removed.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Modify the global policy:\n"
-#| "   ipa pwpolicy-mod --minlength=10\n"
-#| "\n"
-#| " Add a new group password policy:\n"
-#| "   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 "
-#| "--minlength=8 --priority=10 localadmins\n"
-#| "\n"
-#| " Display the global password policy:\n"
-#| "   ipa pwpolicy-show\n"
-#| "\n"
-#| " Display a group password policy:\n"
-#| "   ipa pwpolicy-show localadmins\n"
-#| "\n"
-#| " Display the policy that would be applied to a given user:\n"
-#| "   ipa pwpolicy-show --user=tuser1\n"
-#| "\n"
-#| " Modify a group password policy:\n"
-#| "   ipa pwpolicy-mod --minclasses=2 localadmins\n"
 msgid ""
 "\n"
 "Password policy\n"
@@ -6959,12 +6873,32 @@ msgstr ""
 "Групповые политики паролей автоматически удаляются, когда удаляются группы, "
 "с которыми они связаны.\n"
 "\n"
+"Период отсрочки определяет количество входов в LDAP, разрешённых после "
+"истечения срока действия. -1 означает, что срок действия не применяется для "
+"соответствия предыдущему поведению. 0 не допускает дополнительных входов "
+"после истечения срока действия.\n"
+"\n"
+"Параметры pwquality либо взаимоисключающие, либо имеют приоритет над "
+"стандартными значениями политики паролей. В случае минимальной длины пароля, "
+"если используются какие-либо параметры на основе pwquality, минимальная "
+"длина должна быть >= 6.\n"
+"\n"
+"Настройки \"credit\" используются для корректировки требований к сложности "
+"пароля.\n"
+"- При значении 0 (по умолчанию) параметр игнорируется.\n"
+"- При положительном значении каждый символ этого типа в пароле учитывается "
+"для выполнения требования минимальной длины.\n"
+"   Например, при политике паролей `minlength=6`, `dcredit=1` действительны "
+"следующие пароли: abcdef или abcd1\n"
+"- При отрицательном значении указывается минимальное количество символов "
+"этого типа, которое должно присутствовать.\n"
+"\n"
 "ПРИМЕРЫ:\n"
 "\n"
 " Изменить глобальную политику:\n"
 "   ipa pwpolicy-mod --minlength=10\n"
 "\n"
-"Добавить новую групповую политику паролей:\n"
+" Добавить новую групповую политику паролей:\n"
 "   ipa pwpolicy-add --maxlife=90 --minlife=1 --history=10 --minclasses=3 --"
 "minlength=8 --priority=10 localadmins\n"
 "\n"
@@ -7103,99 +7037,98 @@ msgid "Period for which lockout is enforced (seconds)"
 msgstr "Период, в течение которого будет действовать блокировка (в секундах)"
 
 #: ipaserver/plugins/pwpolicy.py:393
-#, fuzzy
-#| msgid "Max renew"
 msgid "Max repeat"
-msgstr "Максимальный срок для обновления"
+msgstr "Макс. повторений"
 
 #: ipaserver/plugins/pwpolicy.py:394
-#, fuzzy
-#| msgid "Maximum number of entries returned"
 msgid "Maximum number of same consecutive characters"
-msgstr "Максимальное количество возвращённых записей"
+msgstr "Максимальное количество одинаковых символов подряд"
 
 #: ipaserver/plugins/pwpolicy.py:402
-#, fuzzy
-#| msgid "Max renew"
 msgid "Max sequence"
-msgstr "Максимальный срок для обновления"
+msgstr "Макс. последовательность"
 
 #: ipaserver/plugins/pwpolicy.py:403
 msgid "The max. length of monotonic character sequences (abcd)"
-msgstr ""
+msgstr "Макс. длина монотонных последовательностей символов (abcd)"
 
 #: ipaserver/plugins/pwpolicy.py:411
 msgid "Dictionary check"
-msgstr ""
+msgstr "Проверка по словарю"
 
 #: ipaserver/plugins/pwpolicy.py:412
 msgid "Check if the password is a dictionary word"
-msgstr ""
+msgstr "Проверить, является ли пароль словом из словаря"
 
 #: ipaserver/plugins/pwpolicy.py:418
-#, fuzzy
-#| msgid "User name"
 msgid "User check"
-msgstr "Имя пользователя"
+msgstr "Проверка на имя пользователя"
 
 #: ipaserver/plugins/pwpolicy.py:419
 msgid "Check if the password contains the username"
-msgstr ""
+msgstr "Проверить, содержит ли пароль имя пользователя"
 
 #: ipaserver/plugins/pwpolicy.py:425
 msgid "Digit Credit"
-msgstr ""
+msgstr "Кредит на цифры"
 
 #: ipaserver/plugins/pwpolicy.py:426
 msgid "The max credit for digits in the password."
-msgstr ""
+msgstr "Максимальный кредит для цифр в пароле."
 
 #: ipaserver/plugins/pwpolicy.py:434
 msgid "Uppercase Credit"
-msgstr ""
+msgstr "Кредит на заглавные"
 
 #: ipaserver/plugins/pwpolicy.py:435
 msgid "The max credit for uppercase characters in the password."
-msgstr ""
+msgstr "Максимальный кредит для заглавных символов в пароле."
 
 #: ipaserver/plugins/pwpolicy.py:443
 msgid "Lowercase Credit"
-msgstr ""
+msgstr "Кредит на строчные"
 
 #: ipaserver/plugins/pwpolicy.py:444
 msgid "The max credit for lowercase characters in the password."
-msgstr ""
+msgstr "Максимальный кредит для строчных символов в пароле."
 
 #: ipaserver/plugins/pwpolicy.py:452
 msgid "Other Credit"
-msgstr ""
+msgstr "Кредит на другие символы"
 
 #: ipaserver/plugins/pwpolicy.py:453
 msgid "The max credit for other characters in the password."
-msgstr ""
+msgstr "Максимальный кредит для других символов в пароле."
 
 #: ipaserver/plugins/pwpolicy.py:461
 msgid "Grace login limit"
-msgstr ""
+msgstr "Предельное количество входов после окончания срока действия"
 
 #: ipaserver/plugins/pwpolicy.py:462
 msgid "Number of LDAP authentications allowed after expiration"
 msgstr ""
+"Количество аутентификаций LDAP, разрешённых после истечения срока действия"
 
 #: ipaserver/plugins/pwpolicy.py:556
 msgid ""
 "Minimum length must be >= 6 if maxrepeat, maxsequence, dictcheck or "
 "usercheck are defined"
 msgstr ""
+"Минимальная длина должна быть >= 6, если заданы maxrepeat, maxsequence, "
+"dictcheck или usercheck"
 
 #: ipaserver/plugins/pwpolicy.py:562
 msgid ""
 "Minimum number of classes cannot be used when character credit are defined"
 msgstr ""
+"Минимальное количество классов не может использоваться, когда определены "
+"кредиты на символы"
 
 #: ipaserver/plugins/pwpolicy.py:588
 msgid "Maximum password life must be equal to or greater than the minimum."
 msgstr ""
+"Максимальный срок жизни пароля должен быть равен минимальному или превышать "
+"его."
 
 #: ipaserver/plugins/pwpolicy.py:608
 msgid "Add a new group password policy."
@@ -7354,10 +7287,8 @@ msgid "must be at least 10"
 msgstr "должно быть не меньше 10"
 
 #: ipaserver/plugins/config.py:129
-#, fuzzy
-#| msgid "Default e-mail domain"
 msgid "Invalid e-mail domain"
-msgstr "Почтовый домен по умолчанию"
+msgstr "Недопустимый почтовый домен"
 
 #: ipaserver/plugins/config.py:143
 msgid "configuration options"
@@ -7524,7 +7455,7 @@ msgstr "Стандартные типы поддерживаемой аутен�
 
 #: ipaserver/plugins/config.py:298 ipaserver/plugins/config.py:299
 msgid "Enable adding subids to new users"
-msgstr ""
+msgstr "Включить добавление подчинённых идентификаторов для новых пользователей"
 
 #: ipaserver/plugins/config.py:303
 msgid "IPA masters"
@@ -7626,48 +7557,36 @@ msgid "DNSec key master"
 msgstr "Мастер ключей DNSec"
 
 #: ipaserver/plugins/config.py:376
-#, fuzzy
-#| msgid "trust configuration"
 msgid "Setup SID configuration"
-msgstr "конфигурация отношений доверия"
+msgstr "Настроить конфигурацию SID"
 
 #: ipaserver/plugins/config.py:377
 msgid "New users and groups automatically get a SID assigned"
-msgstr ""
+msgstr "Новым пользователям и группам автоматически назначается SID"
 
 #: ipaserver/plugins/config.py:382
-#, fuzzy
-#| msgid "Add ID view"
 msgid "Add SIDs"
-msgstr "Добавить представление ID"
+msgstr "Добавить SID"
 
 #: ipaserver/plugins/config.py:383
 msgid "Add SIDs for existing users and groups"
-msgstr ""
+msgstr "Добавить SID для существующих пользователей и групп"
 
 #: ipaserver/plugins/config.py:388 ipaserver/plugins/config.py:389
-#, fuzzy
-#| msgid "Name of the trusted domain"
 msgid "NetBIOS name of the IPA domain"
-msgstr "Имя доверенного домена"
+msgstr "Имя NetBIOS домена IPA"
 
 #: ipaserver/plugins/config.py:394
-#, fuzzy
-#| msgid "Method name"
 msgid "HSM token name"
-msgstr "Имя метода"
+msgstr "Имя токена HSM"
 
 #: ipaserver/plugins/config.py:395
-#, fuzzy
-#| msgid "File containing the vault private key"
 msgid "The HSM token name storing the CA private keys"
-msgstr "Файл, который содержит закрытый ключ хранилища"
+msgstr "Имя токена HSM, хранящего закрытые ключи CA"
 
 #: ipaserver/plugins/config.py:402 ipaserver/plugins/config.py:403
-#, fuzzy
-#| msgid "IPA Server to use"
 msgid "IPA Service key type:size"
-msgstr "IPA-сервер, который следует использовать"
+msgstr "Тип:размер ключа службы IPA"
 
 #: ipaserver/plugins/config.py:479
 msgid "Empty domain is not allowed"
@@ -7693,31 +7612,26 @@ msgid "Modify configuration options."
 msgstr "Изменить параметры конфигурации."
 
 #: ipaserver/plugins/config.py:556
-#, fuzzy
-#| msgid "not allowed to perform operation: %s"
 msgid "not allowed to enable SID generation"
-msgstr "не разрешено выполнение операции: %s"
+msgstr "запрещено включать создание SID"
 
 #: ipaserver/plugins/config.py:564
 msgid ""
 "Up to 15 characters and only uppercase ASCII letters, digits and dashes are "
 "allowed. Empty string is not allowed."
 msgstr ""
+"До 15 символов, разрешены только заглавные буквы ASCII, цифры и дефисы. "
+"Пустая строка не допускается."
 
 #: ipaserver/plugins/config.py:592
-#, fuzzy
-#| msgid "Failed to add"
 msgid "Failed to call DBus"
-msgstr "Ошибка при добавлении"
+msgstr "Не удалось вызвать DBus"
 
 #: ipaserver/plugins/config.py:602
-#, fuzzy
-#| msgid ""
-#| "Fetching domains from trusted forest failed. See details in the error_log"
 msgid "Configuration of SID failed. See details in the error log"
 msgstr ""
-"Не удалось получить домены из доверенного леса. Подробные сведения доступны "
-"в файле error_log"
+"Не удалось выполнить настройку SID. Подробные сведения доступны в журнале "
+"ошибок"
 
 #: ipaserver/plugins/config.py:612
 msgid "The group doesn't exist"
@@ -7758,19 +7672,19 @@ msgid ""
 "Subordinate ID feature can not be disabled when there are subIDs already in "
 "use."
 msgstr ""
+"Функция подчинённых идентификаторов не может быть отключена, если "
+"подчинённые идентификаторы уже используются."
 
 #: ipaserver/plugins/config.py:739 ipaserver/plugins/idrange.py:558
 #: ipaserver/plugins/idrange.py:612 ipaserver/plugins/idrange.py:620
 #: ipaserver/plugins/idrange.py:833 ipaserver/plugins/idrange.py:840
-#, fuzzy
-#| msgid "<all IPA DNS servers>"
 msgid "<all IPA servers>"
-msgstr "<все серверы DNS IPA>"
+msgstr "<все серверы IPA>"
 
 #: ipaserver/plugins/config.py:760
 #, python-format
 msgid "You cannot specify %s without the --enable-sid option"
-msgstr ""
+msgstr "Нельзя указать %s без параметра --enable-sid"
 
 #: ipaserver/plugins/config.py:791 ipaclient/remote_plugins/2_49/config.py:355
 msgid "Show the current configuration."
@@ -7781,12 +7695,16 @@ msgid ""
 "\n"
 "External Identity Provider References\n"
 msgstr ""
+"\n"
+"Ссылки на внешних поставщиков идентификационной информации\n"
 
 #: ipaserver/plugins/idp.py:26
 msgid ""
 "\n"
 "Manage External Identity Provider References.\n"
 msgstr ""
+"\n"
+"Управление ссылками на внешних поставщиков идентификационной информации.\n"
 
 #: ipaserver/plugins/idp.py:28
 msgid ""
@@ -7795,6 +7713,9 @@ msgid ""
 "Flow\n"
 "authentication.\n"
 msgstr ""
+"\n"
+"IPA поддерживает использование внешнего поставщика идентификационной "
+"информации для аутентификации по потоку устройств OAuth2.0.\n"
 
 #: ipaserver/plugins/idp.py:33
 msgid ""
@@ -7803,6 +7724,10 @@ msgid ""
 "   ipa idp-add MyIdP --client-id jhkQty13       --auth-uri https://"
 "oauth2.idp.com/auth       --token-uri https://oauth2.idp.com/token --secret\n"
 msgstr ""
+"\n"
+" Добавить новую ссылку на внешнего поставщика идентификационной информации:\n"
+"   ipa idp-add MyIdP --client-id jhkQty13       --auth-uri https://"
+"oauth2.idp.com/auth       --token-uri https://oauth2.idp.com/token --secret\n"
 
 #: ipaserver/plugins/idp.py:38
 msgid ""
@@ -7811,13 +7736,13 @@ msgid ""
 " endpoints:\n"
 "   ipa idp-add MyIdp --client-id jhkQty13 --provider github --secret\n"
 msgstr ""
+"\n"
+" Добавить новую ссылку на внешнего поставщика идентификационной информации с "
+"использованием предопределённых\n"
+" конечных точек github:\n"
+"   ipa idp-add MyIdp --client-id jhkQty13 --provider github --secret\n"
 
 #: ipaserver/plugins/idp.py:42
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| " Find all servers whose entries include the string \"example.com\":\n"
-#| "   ipa radiusproxy-find example.com\n"
 msgid ""
 "\n"
 " Find all external Identity Provider references whose entries include the "
@@ -7826,30 +7751,23 @@ msgid ""
 "   ipa idp-find test.com\n"
 msgstr ""
 "\n"
-" Найти все серверы, записи которых содержат строку \"example.com\":\n"
-"   ipa radiusproxy-find example.com\n"
+" Найти все ссылки на внешних поставщиков идентификационной информации, "
+"записи которых содержат строку\n"
+" \"test.com\":\n"
+"   ipa idp-find test.com\n"
 
 #: ipaserver/plugins/idp.py:46
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| " Examine the configuration:\n"
-#| "   ipa radiusproxy-show MyRADIUS\n"
 msgid ""
 "\n"
 " Examine the configuration of an external Identity Provider reference:\n"
 "   ipa idp-show MyIdP\n"
 msgstr ""
 "\n"
-" Проверить конфигурацию:\n"
-"   ipa radiusproxy-show MyRADIUS\n"
+" Проверить конфигурацию ссылки на внешнего поставщика идентификационной "
+"информации:\n"
+"   ipa idp-show MyIdP\n"
 
 #: ipaserver/plugins/idp.py:49
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| " Change the secret:\n"
-#| "   ipa radiusproxy-mod MyRADIUS --secret\n"
 msgid ""
 "\n"
 " Change the secret:\n"
@@ -7857,7 +7775,7 @@ msgid ""
 msgstr ""
 "\n"
 " Изменить секрет:\n"
-"   ipa radiusproxy-mod MyRADIUS --secret\n"
+"   ipa idp-mod MyIdP --secret\n"
 
 #: ipaserver/plugins/idp.py:52
 msgid ""
@@ -7865,94 +7783,85 @@ msgid ""
 " Delete an external Identity Provider reference:\n"
 "   ipa idp-del MyIdP\n"
 msgstr ""
+"\n"
+" Удалить ссылку на внешнего поставщика идентификационной информации:\n"
+"   ipa idp-del MyIdP\n"
 
 #: ipaserver/plugins/idp.py:70
 msgid "Invalid URI: not an https scheme"
-msgstr ""
+msgstr "Недействительный URI: не используется схема https"
 
 #: ipaserver/plugins/idp.py:73
 msgid "Invalid URI: missing netloc"
-msgstr ""
+msgstr "Недействительный URI: отсутствует netloc"
 
 #: ipaserver/plugins/idp.py:84 ipaserver/plugins/idp.py:100
 msgid "Identity Provider reference"
-msgstr ""
+msgstr "Ссылка на поставщика идентификационной информации"
 
 #: ipaserver/plugins/idp.py:85 ipaserver/plugins/idp.py:99
 msgid "Identity Provider references"
-msgstr ""
+msgstr "Ссылки на поставщиков идентификационной информации"
 
 #: ipaserver/plugins/idp.py:105
 msgid "Identity Provider reference name"
-msgstr ""
+msgstr "Имя ссылки на поставщика идентификационной информации"
 
 #: ipaserver/plugins/idp.py:111
-#, fuzzy
-#| msgid "Authority ID"
 msgid "Authorization URI"
-msgstr "ID центра"
+msgstr "URI авторизации"
 
 #: ipaserver/plugins/idp.py:112
 msgid "OAuth 2.0 authorization endpoint"
-msgstr ""
+msgstr "Конечная точка авторизации OAuth 2.0"
 
 #: ipaserver/plugins/idp.py:117
 msgid "Device authorization URI"
-msgstr ""
+msgstr "URI авторизации устройства"
 
 #: ipaserver/plugins/idp.py:118
 msgid "Device authorization endpoint"
-msgstr ""
+msgstr "Конечная точка авторизации устройства"
 
 #: ipaserver/plugins/idp.py:123
-#, fuzzy
-#| msgid "Token ID"
 msgid "Token URI"
-msgstr "ID токена"
+msgstr "URI токена"
 
 #: ipaserver/plugins/idp.py:124
-#, fuzzy
-#| msgid "Mount point"
 msgid "Token endpoint"
-msgstr "Точка монтирования"
+msgstr "Конечная точка токена"
 
 #: ipaserver/plugins/idp.py:129
-#, fuzzy
-#| msgid "User Login"
 msgid "User info URI"
-msgstr "Имя учётной записи пользователя"
+msgstr "URI сведений о пользователе"
 
 #: ipaserver/plugins/idp.py:130
-#, fuzzy
-#| msgid "Token serial (informational only)"
 msgid "User information endpoint"
-msgstr "Серийный номер токена (только для сведения)"
+msgstr "Конечная точка сведений о пользователе"
 
 #: ipaserver/plugins/idp.py:135
 msgid "JWKS URI"
-msgstr ""
+msgstr "URI JWKS"
 
 #: ipaserver/plugins/idp.py:136
 msgid "JWKS endpoint"
-msgstr ""
+msgstr "Конечная точка JWKS"
 
 #: ipaserver/plugins/idp.py:140
 msgid "OIDC URL"
-msgstr ""
+msgstr "URL OIDC"
 
 #: ipaserver/plugins/idp.py:142
 msgid "The Identity Provider OIDC URL"
-msgstr ""
+msgstr "URL OIDC поставщика идентификационной информации"
 
 #: ipaserver/plugins/idp.py:146
-#, fuzzy
-#| msgid "Security Identifier"
 msgid "Client identifier"
-msgstr "Идентификатор безопасности"
+msgstr "Идентификатор клиента"
 
 #: ipaserver/plugins/idp.py:148
 msgid "OAuth 2.0 client identifier"
-msgstr ""
+msgstr "Идентификатор клиента OAuth 2.0"
 
 #: ipaserver/plugins/idp.py:152 ipaserver/plugins/radiusproxy.py:127
 msgid "Secret"
@@ -7960,121 +7869,109 @@ msgstr "Секрет"
 
 #: ipaserver/plugins/idp.py:153
 msgid "OAuth 2.0 client secret"
-msgstr ""
+msgstr "Секрет клиента OAuth 2.0"
 
 #: ipaserver/plugins/idp.py:159
 msgid "Scope"
-msgstr ""
+msgstr "Область применения"
 
 #: ipaserver/plugins/idp.py:160
 msgid "OAuth 2.0 scope. Multiple scopes separated by space"
-msgstr ""
+msgstr "Область OAuth 2.0. Несколько областей следует разделять пробелами"
 
 #: ipaserver/plugins/idp.py:164
 msgid "External IdP user identifier attribute"
 msgstr ""
+"Атрибут идентификатора пользователя внешнего поставщика идентификационной "
+"информации"
 
 #: ipaserver/plugins/idp.py:165
 msgid "Attribute for user identity in OAuth 2.0 userinfo"
-msgstr ""
+msgstr "Атрибут для идентификации пользователя в userinfo OAuth 2.0"
 
 #: ipaserver/plugins/idp.py:229
-#, fuzzy
-#| msgid "Add a new ID override."
 msgid "Add a new Identity Provider reference."
-msgstr "Добавить новое переопределение ID."
+msgstr "Добавить новую ссылку на поставщика идентификационной информации."
 
 #: ipaserver/plugins/idp.py:230
-#, fuzzy, python-format
-#| msgid "Added ID override \"%(value)s\""
+#, python-format
 msgid "Added Identity Provider reference \"%(value)s\""
-msgstr "Добавлено переопределение ID \"%(value)s\""
+msgstr ""
+"Добавлена ссылка на поставщика идентификационной информации \"%(value)s\""
 
 #: ipaserver/plugins/idp.py:309
 msgid "IdP provider template"
-msgstr ""
+msgstr "Шаблон поставщика IdP"
 
 #: ipaserver/plugins/idp.py:310
 msgid "Choose a pre-defined template to use"
-msgstr ""
+msgstr "Выберите предопределённый шаблон для использования"
 
 #: ipaserver/plugins/idp.py:317
 msgid "Organization ID or Realm name for IdP provider templates"
 msgstr ""
+"Идентификатор организации или имя области (realm) для шаблонов поставщика IdP"
 
 #: ipaserver/plugins/idp.py:321
-#, fuzzy
-#| msgid "Base DN"
 msgid "Base URL"
-msgstr "Базовое DN"
+msgstr "Базовый URL"
 
 #: ipaserver/plugins/idp.py:322
 msgid "Base URL for IdP provider templates"
-msgstr ""
+msgstr "Базовый URL для шаблонов поставщика IdP"
 
 #: ipaserver/plugins/idp.py:336
-#, fuzzy
-#| msgid "Unknown Error"
 msgid "unknown provider"
-msgstr "Неизвестная ошибка"
+msgstr "неизвестный поставщик"
 
 #: ipaserver/plugins/idp.py:351
-#, fuzzy
-#| msgid "Request is missing \"method\""
 msgid "value is missing"
-msgstr "В запросе не указан метод (\"method\")"
+msgstr "отсутствует значение"
 
 #: ipaserver/plugins/idp.py:385
-#, fuzzy
-#| msgid "cannot specify both raw certificate and file"
 msgid "cannot specify both individual endpoints and IdP provider"
-msgstr "невозможно одновременно указать код сертификата и файл с сертификатом"
+msgstr "нельзя указать одновременно отдельные конечные точки и поставщика IdP"
 
 #: ipaserver/plugins/idp.py:416
-#, fuzzy
-#| msgid "Delete an ID override."
 msgid "Delete an Identity Provider reference."
-msgstr "Удалить переопределение ID."
+msgstr "Удалить ссылку на поставщика идентификационной информации."
 
 #: ipaserver/plugins/idp.py:417
-#, fuzzy, python-format
-#| msgid "Deleted ID override \"%(value)s\""
+#, python-format
 msgid "Deleted Identity Provider reference \"%(value)s\""
-msgstr "Удалено переопределение ID \"%(value)s\""
+msgstr "Удалена ссылка на поставщика идентификационной информации \"%(value)s\""
 
 #: ipaserver/plugins/idp.py:422
-#, fuzzy
-#| msgid "Modify an ID override."
 msgid "Modify an Identity Provider reference."
-msgstr "Изменить переопределение ID."
+msgstr "Изменить ссылку на поставщика идентификационной информации."
 
 #: ipaserver/plugins/idp.py:423
-#, fuzzy, python-format
-#| msgid "Modified service \"%(value)s\""
+#, python-format
 msgid "Modified Identity Provider reference \"%(value)s\""
-msgstr "Изменена служба \"%(value)s\""
+msgstr ""
+"Изменена ссылка на поставщика идентификационной информации \"%(value)s\""
 
 #: ipaserver/plugins/idp.py:428
-#, fuzzy
-#| msgid "Search for Certificate Profiles."
 msgid "Search for Identity Provider references."
-msgstr "Поиск профилей сертификатов."
+msgstr "Поиск ссылок на поставщиков идентификационной информации."
 
 #: ipaserver/plugins/idp.py:430
-#, fuzzy, python-format
-#| msgid "%(count)d ID override matched"
-#| msgid_plural "%(count)d ID overrides matched"
+#, python-format
 msgid "%(count)d Identity Provider reference matched"
 msgid_plural "%(count)d Identity Provider references matched"
-msgstr[0] "установлено соответствие %(count)d переопределения ID"
-msgstr[1] "установлено соответствие %(count)d переопределений ID"
-msgstr[2] "установлено соответствие %(count)d переопределений ID"
+msgstr[0] ""
+"установлено соответствие %(count)d ссылке на поставщика идентификационной "
+"информации"
+msgstr[1] ""
+"установлено соответствие %(count)d ссылкам на поставщиков идентификационной "
+"информации"
+msgstr[2] ""
+"установлено соответствие %(count)d ссылкам на поставщиков идентификационной "
+"информации"
 
 #: ipaserver/plugins/idp.py:445
-#, fuzzy
-#| msgid "Display information about an ID override."
 msgid "Display information about an Identity Provider reference."
-msgstr "Показать сведения о переопределении ID."
+msgstr "Показать сведения о ссылке на поставщика идентификационной информации."
 
 #: ipaserver/plugins/hbac.py:7
 msgid "Host-based access control commands"
@@ -8832,13 +8729,13 @@ msgid ""
 msgstr "Ни один сервер имён не ответил на запрос обратной зоны DNS %(revdns)s"
 
 #: ipaserver/plugins/dns.py:561
-#, fuzzy, python-format
-#| msgid ""
-#| "All nameservers failed to answer the query for DNS reverse zone %(revdns)s"
+#, python-format
 msgid ""
 "No answers could be found in the specified lifetime for DNS reverse zone "
 "%(revdns)s"
-msgstr "Ни один сервер имён не ответил на запрос обратной зоны DNS %(revdns)s"
+msgstr ""
+"Не удалось найти ответы в течение указанного срока действия для обратной "
+"зоны DNS %(revdns)s"
 
 #: ipaserver/plugins/dns.py:571
 #, python-format
@@ -9259,10 +9156,8 @@ msgstr ""
 "существующей зоной"
 
 #: ipaserver/plugins/dns.py:2157
-#, fuzzy
-#| msgid "hosts cannot be set when type is 'group'"
 msgid "cannot be used when a zone is specified"
-msgstr "невозможно указать узлы, когда тип \"group\""
+msgstr "нельзя использовать, когда указана зона"
 
 #: ipaserver/plugins/dns.py:2169
 msgid "Only one zone type is allowed per zone name"
@@ -9651,7 +9546,7 @@ msgstr ""
 #: ipaserver/plugins/dns.py:3593 ipaserver/plugins/dns.py:3741
 #: ipaserver/plugins/dns.py:4004 ipaserver/plugins/dns.py:4041
 msgid "cannot use structured together with raw"
-msgstr ""
+msgstr "нельзя использовать структурированный вместе с необработанным"
 
 #: ipaserver/plugins/dns.py:3615
 #, python-format
@@ -10936,6 +10831,12 @@ msgid ""
 "needs be represented as --sudooption env_keep=FOO --sudooption "
 "env_keep+=BAR.\n"
 msgstr ""
+"\n"
+"Каждый параметр необходимо добавлять отдельно. Проверка того, известен ли "
+"параметр sudo или представлен ли он в корректном формате, не выполняется. "
+"Переменные среды также требуется устанавливать по отдельности. Например, "
+"env_keep=\"FOO BAR\" в sudoers должна быть представлена как --sudooption "
+"env_keep=FOO --sudooption env_keep+=BAR.\n"
 
 #: ipaserver/plugins/sudorule.py:64
 msgid ""
@@ -11040,11 +10941,6 @@ msgstr ""
 "   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 
 #: ipaserver/plugins/sudorule.py:97
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| " Set a default Sudo option:\n"
-#| "   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 msgid ""
 "\n"
 " Set multiple default Sudo options:\n"
@@ -11052,8 +10948,9 @@ msgid ""
 "sudooption mail_badpass\n"
 msgstr ""
 "\n"
-" Указать параметр Sudo по умолчанию:\n"
-"   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
+" Указать несколько параметров Sudo по умолчанию:\n"
+"   ipa sudorule-add-option defaults --sudooption '!authenticate'    --"
+"sudooption mail_badpass\n"
 
 #: ipaserver/plugins/sudorule.py:101
 msgid ""
@@ -11485,22 +11382,16 @@ msgid "Member HBAC service groups"
 msgstr "Группы служб HBAC — участники"
 
 #: ipaserver/plugins/baseldap.py:127
-#, fuzzy
-#| msgid "Remove user ID overrides"
 msgid "Member ID user overrides"
-msgstr "Удалить переопределения ID пользователя"
+msgstr "Переопределения ID пользователя-участника"
 
 #: ipaserver/plugins/baseldap.py:129
-#, fuzzy
-#| msgid "Member user group"
 msgid "Member system accounts"
-msgstr "Группа пользователей — участник"
+msgstr "Системные учётные записи-участники"
 
 #: ipaserver/plugins/baseldap.py:131
-#, fuzzy
-#| msgid "Indirect Member users"
 msgid "Indirect Member ID user overrides"
-msgstr "Пользователи с непрямым участием"
+msgstr "Переопределения ID пользователя с непрямым участием"
 
 #: ipaserver/plugins/baseldap.py:133 ipaclient/remote_plugins/2_49/group.py:159
 msgid "Indirect Member users"
@@ -11618,10 +11509,9 @@ msgid "attribute \"%(attribute)s\" not allowed"
 msgstr "атрибут \"%(attribute)s\" запрещён"
 
 #: ipaserver/plugins/baseldap.py:969
-#, fuzzy, python-format
-#| msgid "attribute \"%s\" not allowed"
+#, python-format
 msgid "these attributes are not allowed: %(attrs)s"
-msgstr "атрибут \"%s\" нельзя использовать"
+msgstr "эти атрибуты запрещены: %(attrs)s"
 
 #: ipaserver/plugins/baseldap.py:979
 msgid ""
@@ -11974,8 +11864,6 @@ msgid "Host locality (e.g. \"Baltimore, MD\")"
 msgstr "Адрес местонахождения узла (например, \"Москва, Россия\")"
 
 #: ipaserver/plugins/host.py:504
-#, fuzzy
-#| msgid "Host location (e.g. \"Lab 2\")"
 msgid "Host physical location hint (e.g. \"Lab 2\")"
 msgstr "Расположение узла (например, \"Lab 2\")"
 
@@ -12055,6 +11943,16 @@ msgid ""
 "'passkey' to allow passkey-based 2FA authentications. With no indicator "
 "specified, all authentication mechanisms are allowed."
 msgstr ""
+"Определяет список разрешённых индикаторов аутентификации. Используйте 'otp', "
+"чтобы разрешить двухфакторную аутентификацию на основе OTP. Используйте "
+"'radius', чтобы разрешить двухфакторную аутентификацию на основе RADIUS. "
+"Используйте 'pkinit', чтобы разрешить двухфакторную аутентификацию на основе "
+"PKINIT. Используйте 'hardened', чтобы разрешить защищённую от перебора "
+"аутентификацию по паролю с помощью SPAKE или FAST. Используйте 'idp', чтобы "
+"разрешить аутентификацию с помощью внешнего поставщика идентификационной "
+"информации. Используйте 'passkey', чтобы разрешить двухфакторную "
+"аутентификацию на основе ключа доступа. Если индикатор не указан, будут "
+"разрешены все механизмы аутентификации."
 
 #: ipaserver/plugins/host.py:697 ipaclient/remote_plugins/2_49/host.py:228
 msgid "Add a new host."
@@ -12216,51 +12114,38 @@ msgid "Removed aliases from host \"%(value)s\""
 msgstr "Удалены псевдонимы из записи узла \"%(value)s\""
 
 #: ipaserver/plugins/host.py:1441
-#, fuzzy
-#| msgid "Create a new service delegation target."
 msgid "Add new resource delegation to a host"
-msgstr "Создать новую цель делегирования служб."
+msgstr "Добавить новое делегирование ресурсов узлу"
 
 #: ipaserver/plugins/host.py:1442
-#, fuzzy, python-format
-#| msgid "Added service delegation target \"%(value)s\""
+#, python-format
 msgid "Added new resource delegation to the host \"%(value)s\""
-msgstr "Добавлена цель делегирования служб \"%(value)s\""
+msgstr "Добавлено новое делегирование ресурсов узлу \"%(value)s\""
 
 #: ipaserver/plugins/host.py:1455
-#, fuzzy
-#| msgid "Remove delegations"
 msgid "Remove resource delegation from a host"
-msgstr "Удалить делегирования"
+msgstr "Удалить делегирование ресурсов с узла"
 
 #: ipaserver/plugins/host.py:1456
-#, fuzzy, python-format
-#| msgid "Removed certificates from host \"%(value)s\""
+#, python-format
 msgid "Removed resource delegation from the host \"%(value)s\""
-msgstr "Удалены сертификаты из записи узла \"%(value)s\""
+msgstr "Удалено делегирование ресурсов с узла \"%(value)s\""
 
 #: ipaserver/plugins/host.py:1462
-#, fuzzy
-#| msgid ""
-#| "Allow users, groups, hosts or host groups to create a keytab of this host."
 msgid ""
 "Allow users, groups, hosts or host groups to handle a resource delegation of "
 "this host."
 msgstr ""
-"Разрешить пользователям, группам, узлам или группам узлов создавать таблицу "
-"ключей этого узла."
+"Разрешить пользователям, группам, узлам или группам узлов обрабатывать "
+"делегирование ресурсов этого узла."
 
 #: ipaserver/plugins/host.py:1482
-#, fuzzy
-#| msgid ""
-#| "Disallow users, groups, hosts or host groups to create a keytab of this "
-#| "host."
 msgid ""
 "Disallow users, groups, hosts or host groups to handle a resource delegation "
 "of this host."
 msgstr ""
-"Запретить пользователям, группам, узлам или группам узлов создавать таблицу "
-"ключей этого узла."
+"Запретить пользователям, группам, узлам или группам узлов обрабатывать "
+"делегирование ресурсов этого узла."
 
 #: ipaserver/plugins/domainlevel.py:18
 msgid ""
@@ -12307,66 +12192,6 @@ msgstr ""
 "предусмотрена поддержка такого уровня."
 
 #: ipaserver/plugins/servicedelegation.py:27
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Service Constrained Delegation\n"
-#| "\n"
-#| "Manage rules to allow constrained delegation of credentials so\n"
-#| "that a service can impersonate a user when communicating with another\n"
-#| "service without requiring the user to actually forward their TGT.\n"
-#| "This makes for a much better method of delegating credentials as it\n"
-#| "prevents exposure of the short term secret of the user.\n"
-#| "\n"
-#| "The naming convention is to append the word \"target\" or \"targets\" to\n"
-#| "a matching rule name. This is not mandatory but helps conceptually\n"
-#| "to associate rules and targets.\n"
-#| "\n"
-#| "A rule consists of two things:\n"
-#| "  - A list of targets the rule applies to\n"
-#| "  - A list of memberPrincipals that are allowed to delegate for\n"
-#| "    those targets\n"
-#| "\n"
-#| "A target consists of a list of principals that can be delegated.\n"
-#| "\n"
-#| "In English, a rule says that this principal can delegate as this\n"
-#| "list of principals, as defined by these targets.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Add a new constrained delegation rule:\n"
-#| "   ipa servicedelegationrule-add ftp-delegation\n"
-#| "\n"
-#| " Add a new constrained delegation target:\n"
-#| "   ipa servicedelegationtarget-add ftp-delegation-target\n"
-#| "\n"
-#| " Add a principal to the rule:\n"
-#| "   ipa servicedelegationrule-add-member --principals=ftp/"
-#| "ipa.example.com       ftp-delegation\n"
-#| "\n"
-#| " Add our target to the rule:\n"
-#| "   ipa servicedelegationrule-add-target       --"
-#| "servicedelegationtargets=ftp-delegation-target ftp-delegation\n"
-#| "\n"
-#| " Add a principal to the target:\n"
-#| "   ipa servicedelegationtarget-add-member --principals=ldap/"
-#| "ipa.example.com       ftp-delegation-target\n"
-#| "\n"
-#| " Display information about a named delegation rule and target:\n"
-#| "   ipa servicedelegationrule_show ftp-delegation\n"
-#| "   ipa servicedelegationtarget_show ftp-delegation-target\n"
-#| "\n"
-#| " Remove a constrained delegation:\n"
-#| "   ipa servicedelegationrule-del ftp-delegation-target\n"
-#| "   ipa servicedelegationtarget-del ftp-delegation\n"
-#| "\n"
-#| "In this example the ftp service can get a TGT for the ldap service on\n"
-#| "the bound user's behalf.\n"
-#| "\n"
-#| "It is strongly discouraged to modify the delegations that ship with\n"
-#| "IPA, ipa-http-delegation and its targets ipa-cifs-delegation-targets and\n"
-#| "ipa-ldap-delegation-targets. Incorrect changes can remove the ability\n"
-#| "to delegate, causing the framework to stop functioning.\n"
 msgid ""
 "\n"
 "Service Constrained Delegation\n"
@@ -12446,7 +12271,7 @@ msgstr ""
 "пользователя при обмене данными с другой службой без необходимости для "
 "пользователя самом деле перенаправлять билет для получения билета (TGT). "
 "Такой метод делегирования учётных данных значительно лучше, так как "
-"предотвращает раскрытие краткосрочного  секрета пользователя.\n"
+"предотвращает раскрытие краткосрочного секрета пользователя.\n"
 "\n"
 "В соответствии с соглашением об именовании к имени соответствующего правила "
 "добавляется слово \"target\" или \"targets\". Такая схема имён не является "
@@ -12455,14 +12280,20 @@ msgstr ""
 "\n"
 "Правило состоит из двух компонентов:\n"
 "  - Список целей (назначений), к которым применяется правило\n"
-"  - Список memberPrincipals, которым разрешено делегирование для этих "
-"целей \n"
+"  - Список memberPrincipals, которым разрешено делегирование для этих целей\n"
 "\n"
 "Цель состоит из списка учётных записей, которые можно делегировать.\n"
 "\n"
-"Если проще, правило утверждает, что определённую учетную запись можно "
+"Если проще, правило утверждает, что определённую учётную запись можно "
 "делегировать как указанный список учётных записей, согласно заданному списку "
 "целей.\n"
+"\n"
+"Как в правиле, так и в цели учётные записи Kerberos можно указать по их "
+"имени или псевдониму, опустив область (realm). Кроме того, по именам можно "
+"указывать узлы. Если указанная учётная запись Kerberos состоит из одного "
+"компонента и не заканчивается знаком \"$\", она будет считаться именем узла. "
+"Имена учётных записей Kerberos, которые заканчиваются на \"$\", обычно "
+"используются в качестве псевдонимов служб, связанных с Active Directory.\n"
 "\n"
 "ПРИМЕРЫ:\n"
 "\n"
@@ -12473,16 +12304,20 @@ msgstr ""
 "   ipa servicedelegationtarget-add ftp-delegation-target\n"
 "\n"
 " Добавить учётную запись в правило:\n"
-"   ipa servicedelegationrule-add-member --principals=ftp/"
-"ipa.example.com       ftp-delegation\n"
+"   ipa servicedelegationrule-add-member --principals=ftp/ipa.example.com"
+"       ftp-delegation\n"
+"\n"
+" Добавить учётную запись узла 'ipa.example.com' в правило:\n"
+"   ipa servicedelegationrule-add-member --principals=ipa.example.com       "
+"ftp-delegation\n"
 "\n"
 " Добавить цель в правило:\n"
 "   ipa servicedelegationrule-add-target       --servicedelegationtargets=ftp-"
 "delegation-target ftp-delegation\n"
 "\n"
 " Добавить учётную запись в цель:\n"
-"   ipa servicedelegationtarget-add-member --principals=ldap/"
-"ipa.example.com       ftp-delegation-target\n"
+"   ipa servicedelegationtarget-add-member --principals=ldap/ipa.example.com"
+"       ftp-delegation-target\n"
 "\n"
 " Показать сведения об именованном правиле делегирования и цели:\n"
 "   ipa servicedelegationrule_show ftp-delegation\n"
@@ -12496,7 +12331,7 @@ msgstr ""
 "службы ldap от имени связанного пользователя.\n"
 "\n"
 "Настоятельно не рекомендуется изменять делегирования, которые поставляются с "
-"IPA, ipa-http-delegation и его цели ipa-cifs-delegation-targets и Ipa-ldap-"
+"IPA, ipa-http-delegation и его цели ipa-cifs-delegation-targets и ipa-ldap-"
 "delegation-targets. Неправильная настройка может привести к потере "
 "возможности делегирования, что повлечет неработоспособность всей системы.\n"
 
@@ -12518,10 +12353,9 @@ msgid "Member principals"
 msgstr "Учётные записи — участники"
 
 #: ipaserver/plugins/servicedelegation.py:190
-#, fuzzy, python-format
-#| msgid "Malformed principal: '%(value)s'"
+#, python-format
 msgid "Malformed principal: %(error)s"
-msgstr "Недопустимая учётная запись: \"%(value)s\""
+msgstr "Недопустимая учётная запись: %(error)s"
 
 #: ipaserver/plugins/servicedelegation.py:200
 msgid "Add target to a named service delegation."
@@ -12666,53 +12500,6 @@ msgid "Remove member from a named service delegation target."
 msgstr "Удалить участника из именованной цели делегирования служб."
 
 #: ipaserver/plugins/stageuser.py:67
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Stageusers\n"
-#| "\n"
-#| "Manage stage user entries.\n"
-#| "\n"
-#| "Stage user entries are directly under the container: \"cn=stage users,\n"
-#| "cn=accounts, cn=provisioning, SUFFIX\".\n"
-#| "User can not authenticate with those entries (even if the entries\n"
-#| "contain credentials) and are candidate to become Active entries.\n"
-#| "\n"
-#| "Active user entries are Posix users directly under the container: "
-#| "\"cn=accounts, SUFFIX\".\n"
-#| "User can authenticate with Active entries, at the condition they have\n"
-#| "credentials\n"
-#| "\n"
-#| "Delete user entries are Posix users directly under the container: "
-#| "\"cn=deleted users,\n"
-#| "cn=accounts, cn=provisioning, SUFFIX\".\n"
-#| "User can not authenticate with those entries (even if the entries contain "
-#| "credentials)\n"
-#| "\n"
-#| "The stage user container contains entries\n"
-#| "    - created by 'stageuser-add' commands that are Posix users\n"
-#| "    - created by external provisioning system\n"
-#| "\n"
-#| "A valid stage user entry MUST:\n"
-#| "    - entry RDN is 'uid'\n"
-#| "    - ipaUniqueID is 'autogenerate'\n"
-#| "\n"
-#| "IPA supports a wide range of username formats, but you need to be aware "
-#| "of any\n"
-#| "restrictions that may apply to your particular environment. For example,\n"
-#| "usernames that start with a digit or usernames that exceed a certain "
-#| "length\n"
-#| "may cause problems for some UNIX systems.\n"
-#| "Use 'ipa config-mod' to change the username format allowed by IPA tools.\n"
-#| "\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Add a new stageuser:\n"
-#| "   ipa stageuser-add --first=Tim --last=User --password tuser1\n"
-#| "\n"
-#| " Add a stageuser from the Delete container\n"
-#| "   ipa stageuser-add  --first=Tim --last=User --from-delete tuser1\n"
 msgid ""
 "\n"
 "Stageusers\n"
@@ -12773,37 +12560,43 @@ msgstr ""
 "Управление записями неподтверждённых пользователей.\n"
 "\n"
 "Записи неподтверждённых пользователей находятся непосредственно в "
-"контейнере: \"cn=stage users,\n"
-"cn=accounts, cn=provisioning, SUFFIX\". Пользователь не может проходить "
-"аутентификацию с помощью этих записей (даже если они содержат учётные "
-"данные), они являются кандидатами на преобразование в активные записи. \n"
+"контейнере: \"cn=stage users, cn=accounts, cn=provisioning, SUFFIX\". "
+"Пользователи не могут проходить аутентификацию с помощью этих записей (даже "
+"если они содержат учётные данные). Эти записи только являются кандидатами на "
+"преобразование в активные записи.\n"
 "\n"
 "Активные записи пользователей являются пользователями Posix, находящимися "
-"непосредственно в  контейнере: \"cn=accounts, SUFFIX\". Пользователь может "
-"проходить аутентификацию с помощью активных записей, если они содержат "
-"учётные данные.\n"
+"непосредственно в контейнере: \"cn=accounts, SUFFIX\". Пользователи могут "
+"проходить аутентификацию с помощью активных записей, при условии наличия у "
+"них учётных данных.\n"
 "\n"
-"Удалённые записи пользователей являются пользователями Posix,  находящимися "
-"непосредственно в  контейнере: \"cn=deleted users, cn=accounts, "
-"cn=provisioning, SUFFIX\". Пользователь не может проходить аутентификацию с "
-"помощью этих записей (даже если они содержат учётные данные).\n"
+"Удалённые записи пользователей являются пользователями Posix, находящимися "
+"непосредственно в контейнере: \"cn=deleted users, cn=accounts, "
+"cn=provisioning, SUFFIX\". Пользователи не могут проходить аутентификацию с "
+"помощью этих записей, даже если они содержат учётные данные.\n"
 "\n"
 "Контейнер неподтверждённых пользователей содержит записи:\n"
 "    - созданные с помощью команд \"stageuser-add\", которые являются "
-"пользователями Posix\n"
-"    - созданные с помощью внешней системы подготовки \n"
+"пользователями Posix,\n"
+"    - созданные с помощью внешней системы подготовки.\n"
 "\n"
 "Корректная запись неподтверждённого пользователя ДОЛЖНА отвечать следующим "
 "требованиям:\n"
-"    - RDN записи имеет значение \"uid\"\n"
-"    - ipaUniqueID имеет значение \"autogenerate\"\n"
+"    - RDN записи имеет значение \"uid\",\n"
+"    - ipaUniqueID имеет значение \"autogenerate\".\n"
 "\n"
 "IPA поддерживает широкий спектр форматов имён пользователей, но следует "
 "учитывать те ограничения, которые могут существовать в конкретной среде. "
 "Например, имена пользователей, которые начинаются с цифры или превышают "
-"определённую длину, могут  привести к проблемам в некоторых системах UNIX.\n"
+"определённую длину, могут привести к проблемам в некоторых системах UNIX.\n"
 "Используйте команду \"ipa config-mod\" для изменения формата имени "
 "пользователя, разрешённого средствами IPA.\n"
+"\n"
+"Имя пользователя должно соответствовать следующим правилам:\n"
+"- не может состоять только из цифр\n"
+"- должно начинаться с буквы, цифры, _ или .\n"
+"- может содержать буквы, цифры, _, ., или -\n"
+"- может заканчиваться на букву, цифру, _, ., - или $\n"
 "\n"
 "\n"
 "ПРИМЕРЫ:\n"
@@ -12811,8 +12604,10 @@ msgstr ""
 " Добавить нового неподтверждённого пользователя:\n"
 "   ipa stageuser-add --first=Tim --last=User --password tuser1\n"
 "\n"
-" Добавить неподтверждённого пользователя из контейнера Delete:\n"
-"   ipa stageuser-add  --first=Tim --last=User --from-delete tuser1\n"
+" Добавить неподтверждённого пользователя из контейнера удалённых "
+"пользователей:\n"
+"   ipa stageuser-add --first=Tim --last=User --from-delete tuser1\n"
+"\n"
 
 #: ipaserver/plugins/stageuser.py:136
 msgid "Stage Users"
@@ -12975,19 +12770,15 @@ msgstr ""
 "неподтверждённого пользователя."
 
 #: ipaserver/plugins/stageuser.py:832
-#, fuzzy
-#| msgid "Add one or more certificate mappings to the stage user entry."
 msgid "Add one or more passkey mappings to the stage user entry."
 msgstr ""
-"Добавить одно или несколько сопоставлений сертификатов в запись "
+"Добавить одно или несколько сопоставлений ключей доступа в запись "
 "неподтверждённого пользователя."
 
 #: ipaserver/plugins/stageuser.py:838
-#, fuzzy
-#| msgid "Remove one or more certificate mappings from the stage user entry."
 msgid "Remove one or more passkey mappings from the stage user entry."
 msgstr ""
-"Удалить одно или несколько сопоставлений сертификатов из записи "
+"Удалить одно или несколько сопоставлений ключей доступа из записи "
 "неподтверждённого пользователя."
 
 #: ipaserver/plugins/sudocmd.py:33
@@ -13023,7 +12814,7 @@ msgstr ""
 #: ipaserver/plugins/sudocmd.py:55
 #, python-format
 msgid "must not contain trailing dot: %s"
-msgstr ""
+msgstr "не должен содержать точку в конце: %s"
 
 #: ipaserver/plugins/sudocmd.py:64
 msgid "sudo command"
@@ -13332,43 +13123,13 @@ msgstr "Вложенные методы для выполнения"
 
 #: ipaserver/plugins/batch.py:81
 msgid "Keep specified attributes in the output, remove everything else."
-msgstr ""
+msgstr "Сохранить указанные атрибуты в выводе, удалить всё остальное."
 
 #: ipaserver/plugins/batch.py:117
 msgid "must contain a tuple (list, dict)"
 msgstr "должно содержать кортеж (список, словарь)"
 
 #: ipaserver/plugins/hostgroup.py:35
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Groups of hosts.\n"
-#| "\n"
-#| "Manage groups of hosts. This is useful for applying access control to a\n"
-#| "number of hosts by using Host-based Access Control.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Add a new host group:\n"
-#| "   ipa hostgroup-add --desc=\"Baltimore hosts\" baltimore\n"
-#| "\n"
-#| " Add another new host group:\n"
-#| "   ipa hostgroup-add --desc=\"Maryland hosts\" maryland\n"
-#| "\n"
-#| " Add members to the hostgroup (using Bash brace expansion):\n"
-#| "   ipa hostgroup-add-member --hosts={box1,box2,box3} baltimore\n"
-#| "\n"
-#| " Add a hostgroup as a member of another hostgroup:\n"
-#| "   ipa hostgroup-add-member --hostgroups=baltimore maryland\n"
-#| "\n"
-#| " Remove a host from the hostgroup:\n"
-#| "   ipa hostgroup-remove-member --hosts=box2 baltimore\n"
-#| "\n"
-#| " Display a host group:\n"
-#| "   ipa hostgroup-show baltimore\n"
-#| "\n"
-#| " Delete a hostgroup:\n"
-#| "   ipa hostgroup-del baltimore\n"
 msgid ""
 "\n"
 "Groups of hosts.\n"
@@ -13408,7 +13169,7 @@ msgstr ""
 "\n"
 "Группы узлов.\n"
 "\n"
-"Управление группами узлов. Оно полезно при применении управления доступом к "
+"Управление группами узлов. Это полезно при применении управления доступом к "
 "ряду узлов с помощью управления доступом на основе узла (HBAC).\n"
 "\n"
 "ПРИМЕРЫ:\n"
@@ -13432,15 +13193,19 @@ msgstr ""
 " Показать группу узлов:\n"
 "   ipa hostgroup-show baltimore\n"
 "\n"
+" Добавить управляющего участниками:\n"
+"   ipa hostgroup-add-member-manager --users=user1 baltimore\n"
+"\n"
+" Удалить управляющего участниками:\n"
+"   ipa hostgroup-remove-member-manager --users=user1 baltimore\n"
+"\n"
 " Удалить группу узлов:\n"
 "   ipa hostgroup-del baltimore\n"
 
 #: ipaserver/plugins/hostgroup.py:95 ipaserver/plugins/group.py:191
 #: ipaclient/frontend.py:71
-#, fuzzy
-#| msgid "Failed members"
 msgid "Failed member manager"
-msgstr "Ошибка участников"
+msgstr "Ошибка управляющего участниками"
 
 #: ipaserver/plugins/hostgroup.py:106 ipaclient/remote_plugins/2_49/host.py:617
 msgid "host group"
@@ -13536,16 +13301,15 @@ msgid "Remove members from a hostgroup."
 msgstr "Удалить участников из группы узлов."
 
 #: ipaserver/plugins/hostgroup.py:362
-#, fuzzy
-#| msgid "Add users that can manage this token."
 msgid "Add users that can manage members of this hostgroup."
-msgstr "Добавить пользователей, которые могут управлять этим токеном."
+msgstr ""
+"Добавить пользователей, которые могут управлять участниками этой группы "
+"узлов."
 
 #: ipaserver/plugins/hostgroup.py:372
-#, fuzzy
-#| msgid "Remove users that can manage this token."
 msgid "Remove users that can manage members of this hostgroup."
-msgstr "Удалить пользователей, которые могут управлять этим токеном."
+msgstr ""
+"Удалить пользователей, которые могут управлять участниками этой группы узлов."
 
 #: ipaserver/plugins/session.py:12
 msgid ""
@@ -13562,29 +13326,6 @@ msgstr ""
 "пользователя."
 
 #: ipaserver/plugins/idrange.py:43
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Modify ID range.\n"
-#| "\n"
-#| "=======\n"
-#| "WARNING:\n"
-#| "\n"
-#| "DNA plugin in 389-ds will allocate IDs based on the ranges configured for "
-#| "the\n"
-#| "local domain. Currently the DNA plugin *cannot* be reconfigured itself "
-#| "based\n"
-#| "on the local ranges set via this family of commands.\n"
-#| "\n"
-#| "Manual configuration change has to be done in the DNA plugin "
-#| "configuration for\n"
-#| "the new local range. Specifically, The dnaNextRange attribute of "
-#| "'cn=Posix\n"
-#| "IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to "
-#| "be\n"
-#| "modified to match the new range.\n"
-#| "=======\n"
-#| "    "
 msgid ""
 "-------\n"
 "WARNING:\n"
@@ -13604,10 +13345,7 @@ msgid ""
 "\n"
 "-------\n"
 msgstr ""
-"\n"
-"Изменить диапазон идентификаторов.\n"
-"   \n"
-"=======    \n"
+"-------\n"
 "ПРЕДУПРЕЖДЕНИЕ:\n"
 "\n"
 "Подключаемый модуль DNA в 389-ds выделяет идентификаторы на основе "
@@ -13617,10 +13355,11 @@ msgstr ""
 "\n"
 "Для нового локального диапазона следует вручную изменить настройки "
 "конфигурации подключаемого модуля DNA. В частности, следует изменить атрибут "
-"dnaNextRange \"cn=Posix\n"
-"IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config\" таким "
-"образом, чтобы он соответствовал новому диапазону.\n"
-"======="
+"dnaNextRange \"cn=Posix IDs,cn=Distributed Numeric Assignment "
+"Plugin,cn=plugins,cn=config\" таким образом, чтобы он соответствовал новому "
+"диапазону.\n"
+"\n"
+"-------\n"
 
 #: ipaserver/plugins/idrange.py:58
 msgid ""
@@ -13765,6 +13504,141 @@ msgid ""
 "groups.\n"
 "\n"
 msgstr ""
+"\n"
+"Диапазоны идентификаторов\n"
+"\n"
+"Управление диапазонами идентификаторов, которые используются для "
+"сопоставления POSIX-идентификаторов с идентификаторами безопасности (SID) и "
+"наоборот.\n"
+"\n"
+"С помощью этой программы можно управлять обоими типами диапазонов "
+"идентификаторов:\n"
+"\n"
+" - диапазоны идентификаторов локального домена\n"
+" - диапазоны идентификаторов доверенных удалённых доменов\n"
+"\n"
+"Следующие атрибуты являются общими для обоих типов:\n"
+"\n"
+" - base-id: первый идентификатор из диапазона POSIX-идентификаторов\n"
+" - range-size: размер диапазона\n"
+"\n"
+"С этими двумя атрибутами объект диапазона может зарезервировать POSIX-"
+"идентификаторы, начиная с base-id и до (но не включительно) base-id+range-"
+"size.\n"
+"\n"
+"Кроме того, можно установить диапазон идентификаторов локального домена\n"
+" - rid-base: первый RID(*) соответствующего диапазона RID\n"
+" - secondary-rid-base: первый RID вторичного диапазона RID\n"
+"\n"
+"Если сервер обновлён с предыдущей версии и определяет локальные диапазоны "
+"идентификаторов, в которых отсутствуют rid-base и secondary-rid-base, "
+"рекомендуется использовать команду `ipa-idrange-fix` для определения "
+"отсутствующих значений и исправления диапазонов идентификаторов.\n"
+"\n"
+"а диапазон идентификаторов доверенного домена следует задавать с помощью\n"
+" - rid-base: первый RID соответствующего диапазона RID\n"
+" - sid: SID доверенного домена\n"
+"\n"
+"и диапазон идентификаторов доверенного домена может устанавливать\n"
+" - auto-private-groups: [true|false|hybrid] автоматическое создание личных "
+"групп\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для доверенного домена\n"
+"\n"
+"Так как доверенных доменов может быть несколько, необходимо указать SID "
+"домена при создании диапазона идентификаторов.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0 \\\n"
+"                  --dom-sid=S-1-5-21-123-456-789 trusted_dom_range\n"
+"\n"
+"Этот диапазон идентификаторов затем будет использоваться IPA-сервером и "
+"поставщиком данных IPA SSSD для назначения UID POSIX пользователям из "
+"доверенного домена.\n"
+"\n"
+"Если, например, для доверенного домена настроен диапазон со следующими "
+"значениями:\n"
+" base-id = 1200000\n"
+" range-size = 200000\n"
+" rid-base = 0\n"
+"RID от 0 до 199999 привязываются к POSIX-идентификаторам от 1200000 до "
+"13999999. Следовательно,\n"
+"RID 1000 <-> Posix ID 1201000\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для локального домена\n"
+"\n"
+"При создании диапазона идентификаторов для локального домена нет "
+"необходимости указывать SID домена. Но, так как существует вероятность того, "
+"что в качестве POSIX-идентификатора для пользователя и группы используется "
+"одно и то же значение, для обработки конфликтов необходим вторичный интервал "
+"RID.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=1000 \\\n"
+"                  --secondary-rid-base=1000000 local_range\n"
+"\n"
+"Данные из диапазонов идентификаторов локального домена используются IPA-"
+"сервером на внутреннем уровне для назначения SID пользователям и группам "
+"IPA. Затем SID сохраняется в объектах пользователя или группы.\n"
+"\n"
+"Если, например, диапазон идентификаторов для локального домена настроен со "
+"значениями из примера выше, то новый пользователь с UID 1200007 получит RID "
+"1007. Если этот RID уже используется группой, он будет заменён на 1000007. "
+"Это может произойти только в том случае, если объект пользователя или группы "
+"был создан с фиксированным идентификатором, потому что при автоматическом "
+"назначении один и тот же идентификатор не назначается дважды. Так как одно и "
+"то же пространство имён идентификаторов делят только пользователи и группы, "
+"для обработки конфликтов достаточно одного резервного диапазона.\n"
+"\n"
+"Для определения POSIX-идентификатора по указанному RID из локального домена "
+"следует сначала проверить, попадает ли RID в основной или вторичный диапазон "
+"RID, а потом вычесть, соответственно, rid-base или secondary-rid-base, затем "
+"добавить base-id.\n"
+"\n"
+"Обычно создание диапазонов идентификаторов является внешне незаметным и не "
+"требует использования интерфейса командной строки. Диапазон идентификаторов "
+"для локального домена будет создан во время установки или обновления "
+"предыдущей версии. Диапазон идентификаторов для доверенного домена будет "
+"создан при создании отношения доверия с помощью команды \"ipa trust-add "
+"...\".\n"
+"\n"
+"СЛУЧАИ ИСПОЛЬЗОВАНИЯ:\n"
+"\n"
+"  Добавление диапазона идентификаторов из домена, с которым установлено "
+"транзитивное отношение доверия\n"
+"\n"
+"    Если у доверенного домена (A) также установлено отношение доверия с "
+"другим доменом (B) и оно является транзитивным, то команда \"ipa trust-add "
+"domain-A\" создаст диапазон только для домена A. Диапазон идентификаторов "
+"для домена B следует добавить вручную.\n"
+"\n"
+"  Добавление дополнительного диапазона идентификаторов для локального "
+"домена\n"
+"\n"
+"    Если диапазон идентификаторов локального домена исчерпан, то есть с "
+"помощью подключаемого модуля DNA невозможно назначить новые идентификаторы "
+"POSIX-пользователям или POSIX-группам, необходимо новый диапазон для "
+"добавления новых пользователей и групп. (В текущей версии данный интерфейс "
+"командной строки и подключаемый модуль DNA не связаны непосредственно, но в "
+"будущей версии может появиться возможность внесения изменений также и в "
+"конфигурацию подключаемого модуля DNA.)\n"
+"\n"
+"В целом, в изменении или удалении диапазонов идентификаторов нет "
+"необходимости. Если для выполнения определённой настройки приходится "
+"изменить или удалить диапазон идентификаторов, это следует делать крайне "
+"осторожно. Поскольку UID хранятся в файловой системе и используются для "
+"управления доступом, возможна ситуация, когда одни пользователи получат "
+"доступ к файлам других пользователей вследствие удаления диапазона "
+"идентификаторов и повторного его использования в другом домене.\n"
+"\n"
+"(*) RID обычно является последним целым числом SID пользователя или группы, "
+"который указывается после SID домена. Например, если SID домена S-1-5-21-123-"
+"456-789, а пользователь из этого домена имеет SID S-1-5-21-123-456-789-1010, "
+"RID пользователя будет 1010. RID являются уникальными в пределах домена, "
+"имеют 32-битные значения и используются для пользователей и групп.\n"
+"\n"
 
 #: ipaserver/plugins/idrange.py:207
 msgid "ID Ranges"
@@ -13819,10 +13693,8 @@ msgid "ID range type, one of allowed values"
 msgstr "Тип диапазона идентификаторов, одно из разрешённых значений"
 
 #: ipaserver/plugins/idrange.py:271
-#, fuzzy
-#| msgid "ID range type, one of allowed values"
 msgid "Auto creation of private groups, one of allowed values"
-msgstr "Тип диапазона идентификаторов, одно из разрешённых значений"
+msgstr "Автоматическое создание личных групп, одно из разрешённых значений"
 
 #: ipaserver/plugins/idrange.py:345
 msgid ""
@@ -13855,46 +13727,6 @@ msgstr ""
 "для доверенного домена"
 
 #: ipaserver/plugins/idrange.py:408
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Add new ID range.\n"
-#| "\n"
-#| "    To add a new ID range you always have to specify\n"
-#| "\n"
-#| "        --base-id\n"
-#| "        --range-size\n"
-#| "\n"
-#| "    Additionally\n"
-#| "\n"
-#| "        --rid-base\n"
-#| "        --secondary-rid-base\n"
-#| "\n"
-#| "    may be given for a new ID range for the local domain while\n"
-#| "\n"
-#| "        --rid-base\n"
-#| "        --dom-sid\n"
-#| "\n"
-#| "    must be given to add a new range for a trusted AD domain.\n"
-#| "\n"
-#| "=======\n"
-#| "WARNING:\n"
-#| "\n"
-#| "DNA plugin in 389-ds will allocate IDs based on the ranges configured for "
-#| "the\n"
-#| "local domain. Currently the DNA plugin *cannot* be reconfigured itself "
-#| "based\n"
-#| "on the local ranges set via this family of commands.\n"
-#| "\n"
-#| "Manual configuration change has to be done in the DNA plugin "
-#| "configuration for\n"
-#| "the new local range. Specifically, The dnaNextRange attribute of "
-#| "'cn=Posix\n"
-#| "IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to "
-#| "be\n"
-#| "modified to match the new range.\n"
-#| "=======\n"
-#| "    "
 msgid ""
 "\n"
 "    Add new ID range.\n"
@@ -13922,7 +13754,7 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Добавление нового диапазона идентификаторов.\n"
+"    Добавление нового диапазона идентификаторов.\n"
 "\n"
 "    Для добавления нового диапазона идентификаторов всегда необходимо "
 "указывать\n"
@@ -13938,26 +13770,17 @@ msgstr ""
 "    могут указываться для нового диапазона идентификаторов для локального "
 "домена, в то время как\n"
 "\n"
+"        --auto-private-groups\n"
+"\n"
+"    может указываться для нового диапазона идентификаторов для доверенного "
+"домена AD, а\n"
+"\n"
 "        --rid-base\n"
 "        --dom-sid\n"
 "\n"
 "    должны быть указаны для добавления нового диапазона для доверенного "
 "домена AD.\n"
 "\n"
-"=======    \n"
-"ПРЕДУПРЕЖДЕНИЕ:\n"
-"\n"
-"Подключаемый модуль DNA в 389-ds выделяет идентификаторы на основе "
-"диапазонов, настроенных для локального домена. В текущей версии сам "
-"подключаемый модуль DNA *нельзя* перенастраивать на основе локальных "
-"диапазонов, установленных с помощью этого семейства команд.\n"
-"\n"
-"Для нового локального диапазона следует вручную изменить настройки "
-"конфигурации подключаемого модуля DNA. В частности, следует изменить атрибут "
-"dnaNextRange \"cn=Posix\n"
-"IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config\" таким "
-"образом, чтобы он соответствовал новому диапазону.\n"
-"======="
 
 #: ipaserver/plugins/idrange.py:434
 #, python-format
@@ -14007,26 +13830,16 @@ msgstr ""
 "ad-trust или ipa-ad-trust-posix"
 
 #: ipaserver/plugins/idrange.py:522
-#, fuzzy
-#| msgid ""
-#| "IPA Range type must be one of ipa-ad-trust or ipa-ad-trust-posix when SID "
-#| "of the trusted domain is specified"
 msgid ""
 "IPA Range type must be one of ipa-ad-trust or ipa-ad-trust-posix when auto-"
 "private-groups is specified"
 msgstr ""
-"Если указан SID доверенного домена, тип диапазона IPA должен быть ipa-ad-"
-"trust или ipa-ad-trust-posix"
+"Тип диапазона IPA должен быть ipa-ad-trust или ipa-ad-trust-posix, если "
+"указан auto-private-groups"
 
 #: ipaserver/plugins/idrange.py:531
-#, fuzzy
-#| msgid ""
-#| "You must specify both rid-base and secondary-rid-base options, because "
-#| "ipa-adtrust-install has already been run."
 msgid "You must specify both rid-base and secondary-rid-base options."
-msgstr ""
-"Необходимо указать оба параметра, rid-base и secondary-rid-base, так как "
-"команда ipa-adtrust-install уже запущена."
+msgstr "Необходимо указать оба параметра, rid-base и secondary-rid-base."
 
 #: ipaserver/plugins/idrange.py:543 ipaserver/plugins/idrange.py:802
 msgid "Primary RID range and secondary RID range cannot overlap"
@@ -14643,18 +14456,19 @@ msgid "RADIUS proxy username"
 msgstr "Имя пользователя прокси RADIUS"
 
 #: ipaserver/plugins/baseuser.py:452
-#, fuzzy
-#| msgid "Vault configuration"
 msgid "External IdP configuration"
-msgstr "Конфигурация хранилища"
+msgstr "Конфигурация внешнего поставщика идентификационной информации"
 
 #: ipaserver/plugins/baseuser.py:456
 msgid "External IdP user identifier"
 msgstr ""
+"Идентификатор пользователя на внешнем поставщике идентификационной информации"
 
 #: ipaserver/plugins/baseuser.py:457
 msgid "A string that identifies the user at external IdP"
 msgstr ""
+"Строка, которая идентифицирует пользователя на внешнем поставщике "
+"идентификационной информации"
 
 #: ipaserver/plugins/baseuser.py:460 ipaclient/remote_plugins/2_156/user.py:254
 msgid "Department Number"
@@ -14695,7 +14509,7 @@ msgstr "Диск домашнего каталога SMB"
 
 #: ipaserver/plugins/baseuser.py:516 ipaserver/plugins/baseuser.py:517
 msgid "Passkey mapping"
-msgstr ""
+msgstr "Сопоставление ключа доступа"
 
 #: ipaserver/plugins/baseuser.py:537 ipaserver/plugins/baseuser.py:541
 #, python-format
@@ -14740,42 +14554,32 @@ msgstr ""
 "Удалены сопоставления сертификатов из записи пользователя \"%(value)s\""
 
 #: ipaserver/plugins/baseuser.py:1121
-#, fuzzy, python-format
-#| msgid "Added certificate mappings to user \"%(value)s\""
+#, python-format
 msgid "Added passkey mappings to user \"%(value)s\""
 msgstr ""
-"Добавлены сопоставления сертификатов в запись пользователя \"%(value)s\""
+"Добавлены сопоставления ключей доступа в запись пользователя \"%(value)s\""
 
 #: ipaserver/plugins/baseuser.py:1139
-#, fuzzy, python-format
-#| msgid "Removed certificate mappings from user \"%(value)s\""
+#, python-format
 msgid "Removed passkey mappings from user \"%(value)s\""
 msgstr ""
-"Удалены сопоставления сертификатов из записи пользователя \"%(value)s\""
+"Удалены сопоставления ключей доступа из записи пользователя \"%(value)s\""
 
 #: ipaserver/plugins/passkeyconfig.py:19
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "DNS server configuration\n"
 msgid ""
 "\n"
 "Passkey configuration\n"
 msgstr ""
 "\n"
-"Конфигурация DNS-сервера\n"
+"Конфигурация ключа доступа\n"
 
 #: ipaserver/plugins/passkeyconfig.py:21
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Manipulate DNS server configuration\n"
 msgid ""
 "\n"
 "Manage Passkey configuration.\n"
 msgstr ""
 "\n"
-"Управлять конфигурацией DNS-сервера\n"
+"Управление конфигурацией ключа доступа.\n"
 
 #: ipaserver/plugins/passkeyconfig.py:23
 msgid ""
@@ -14789,21 +14593,24 @@ msgid ""
 "depends\n"
 "on the type of device (PIN, fingerprint, external pad...)\n"
 msgstr ""
+"\n"
+"IPA поддерживает использование ключей доступа для аутентификации. Устройство "
+"ключа доступа должно быть зарегистрировано в SSSD, а полученное "
+"сопоставление аутентификации должно быть сохранено в записи пользователя.\n"
+"Аутентификация по ключу доступа поддерживает следующий параметр "
+"конфигурации: требовать подтверждение пользователя. Если этот параметр "
+"установлен, метод подтверждения пользователя зависит от типа устройства "
+"(PIN, отпечаток пальца, внешняя панель...)\n"
 
 #: ipaserver/plugins/passkeyconfig.py:32
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| " Display vault configuration:\n"
-#| "   ipa vaultconfig-show\n"
 msgid ""
 "\n"
 " Display the Passkey configuration:\n"
 "   ipa passkeyconfig-show\n"
 msgstr ""
 "\n"
-" Показать конфигурацию хранилища:\n"
-"   ipa vaultconfig-show\n"
+" Показать конфигурацию ключа доступа:\n"
+"   ipa passkeyconfig-show\n"
 
 #: ipaserver/plugins/passkeyconfig.py:35
 msgid ""
@@ -14811,42 +14618,34 @@ msgid ""
 " Modify the Passkey configuration to always require user verification:\n"
 "   ipa passkeyconfig-mod --require-user-verification=TRUE\n"
 msgstr ""
+"\n"
+" Изменить конфигурацию ключа доступа, чтобы всегда требовать подтверждение "
+"пользователя:\n"
+"   ipa passkeyconfig-mod --require-user-verification=TRUE\n"
 
 #: ipaserver/plugins/passkeyconfig.py:48
-#, fuzzy
-#| msgid "OTP configuration options"
 msgid "Passkey configuration options"
-msgstr "Параметры конфигурации OTP"
+msgstr "Параметры конфигурации ключа доступа"
 
 #: ipaserver/plugins/passkeyconfig.py:52 ipaserver/plugins/passkeyconfig.py:53
-#, fuzzy
-#| msgid "OTP Configuration"
 msgid "Passkey Configuration"
-msgstr "Конфигурация OTP"
+msgstr "Конфигурация ключа доступа"
 
 #: ipaserver/plugins/passkeyconfig.py:59
-#, fuzzy
-#| msgid "Requires pre-authentication"
 msgid "Require user verification"
-msgstr "Требуется предварительная аутентификация"
+msgstr "Требовать подтверждение пользователя"
 
 #: ipaserver/plugins/passkeyconfig.py:60
-#, fuzzy
-#| msgid "Requires pre-authentication"
 msgid "Require user verification during authentication"
-msgstr "Требуется предварительная аутентификация"
+msgstr "Требовать подтверждение пользователя при аутентификации"
 
 #: ipaserver/plugins/passkeyconfig.py:89
-#, fuzzy
-#| msgid "Modify CA configuration."
 msgid "Modify Passkey configuration."
-msgstr "Изменить конфигурацию CA."
+msgstr "Изменить конфигурацию ключа доступа."
 
 #: ipaserver/plugins/passkeyconfig.py:94
-#, fuzzy
-#| msgid "Show the current OTP configuration."
 msgid "Show the current Passkey configuration."
-msgstr "Показать текущую конфигурацию OTP."
+msgstr "Показать текущую конфигурацию ключа доступа."
 
 #: ipaserver/plugins/role.py:38 ipaclient/remote_plugins/2_49/role.py:19
 msgid ""
@@ -15872,23 +15671,23 @@ msgstr ""
 #: ipaserver/plugins/cert.py:706
 #, python-format
 msgid "Certificate request for profile '%s' was not requested from a host"
-msgstr ""
+msgstr "Запрос сертификата для профиля '%s' не был отправлен с узла"
 
 #: ipaserver/plugins/cert.py:714
 #, python-format
 msgid ""
 "Certificate request for profile '%s' was not requested from an IPA server"
-msgstr ""
+msgstr "Запрос сертификата для профиля '%s' не был отправлен с сервера IPA"
 
 #: ipaserver/plugins/cert.py:755
 #, python-brace-format
 msgid "CSR subject mismatch, {expected} vs {csr}"
-msgstr ""
+msgstr "Несоответствие субъекта CSR, {expected} и {csr}"
 
 #: ipaserver/plugins/cert.py:766
 #, python-brace-format
 msgid "Invalid subject '{subject}' for profile '{profile}'"
-msgstr ""
+msgstr "Недопустимый субъект '{subject}' для профиля '{profile}'"
 
 #: ipaserver/plugins/cert.py:779
 #, python-format
@@ -16073,6 +15872,12 @@ msgid ""
 "    only --certificate option is supported.\n"
 "    "
 msgstr ""
+"\n"
+"Поиск существующих сертификатов.\n"
+"\n"
+"    Для сертификатов, выпущенных не центром сертификации IPA,\n"
+"    поддерживается только параметр --certificate.\n"
+"    "
 
 #: ipaserver/plugins/cert.py:1618 ipaclient/remote_plugins/2_156/cert.py:140
 msgid "Match cn attribute in subject"
@@ -16123,10 +15928,8 @@ msgid "Revoked on to this date (YYYY-mm-dd)"
 msgstr "Отозван до этой даты (ГГГГ-мм-дд)"
 
 #: ipaserver/plugins/cert.py:1675
-#, fuzzy
-#| msgid "Subject of the certificate"
 msgid "Status of the certificate"
-msgstr "Субъект сертификата"
+msgstr "Состояние сертификата"
 
 #: ipaserver/plugins/cert.py:1681
 msgid "Results should contain primary key attribute only (\"certificate\")"
@@ -16166,10 +15969,8 @@ msgid "Unable to communicate with CMS"
 msgstr "Не удалось обменяться данными с CMS"
 
 #: ipaserver/plugins/dogtag.py:597
-#, fuzzy
-#| msgid "Last failed authentication"
 msgid "PKI API login failed: invalid authentication"
-msgstr "Последняя ошибка при аутентификации"
+msgstr "Ошибка входа в PKI API: недействительная аутентификация"
 
 #: ipaserver/plugins/otptoken.py:42
 msgid ""
@@ -17974,7 +17775,7 @@ msgstr "Открытый ключ хранилища"
 #: ipaserver/plugins/vault.py:660 ipaclient/plugins/vault.py:665
 #, python-brace-format
 msgid "{algo} is not a supported vault wrapping algorithm"
-msgstr ""
+msgstr "{algo} не является поддерживаемым алгоритмом обёртки хранилища"
 
 #: ipaserver/plugins/vault.py:681
 msgid "Service, shared, and user options cannot be specified simultaneously"
@@ -18077,10 +17878,8 @@ msgid "Nonce"
 msgstr "Специальный"
 
 #: ipaserver/plugins/vault.py:1056 ipaserver/plugins/vault.py:1141
-#, fuzzy
-#| msgid "Token hash algorithm"
 msgid "Key wrapping algorithm"
-msgstr "Алгоритм хеширования токена"
+msgstr "Алгоритм обёртки ключа"
 
 #: ipaserver/plugins/vault.py:1065
 #, python-format
@@ -18088,10 +17887,9 @@ msgid "Archived data into vault \"%(value)s\""
 msgstr "Данные архивированы в хранилище \"%(value)s\""
 
 #: ipaserver/plugins/vault.py:1114
-#, fuzzy, python-format
-#| msgid "Unable to remove entry\n"
+#, python-format
 msgid "Unable to archive key: %s"
-msgstr "Не удалось удалить запись\n"
+msgstr "Не удалось заархивировать ключ: %s"
 
 #: ipaserver/plugins/vault.py:1130
 msgid "Retrieve data from a vault."
@@ -18107,10 +17905,9 @@ msgid "No archived data."
 msgstr "Архивированных данных нет."
 
 #: ipaserver/plugins/vault.py:1196
-#, fuzzy, python-format
-#| msgid "Failed to retrieve any keys"
+#, python-format
 msgid "Unable to retrieve key: %s"
-msgstr "Не удалось получить ни одного ключа"
+msgstr "Не удалось получить ключ: %s"
 
 #: ipaserver/plugins/vault.py:1215 ipaclient/remote_plugins/2_156/vault.py:531
 msgid "Add owners to a vault."
@@ -18384,16 +18181,12 @@ msgid "Realm name"
 msgstr "Имя области (realm)"
 
 #: ipaserver/plugins/trust.py:556
-#, fuzzy
-#| msgid "SID blacklist incoming"
 msgid "SID blocklist incoming"
-msgstr "Входящий \"чёрный список\" SID"
+msgstr "Входящий чёрный список SID"
 
 #: ipaserver/plugins/trust.py:560
-#, fuzzy
-#| msgid "SID blacklist outgoing"
 msgid "SID blocklist outgoing"
-msgstr "Исходящий \"чёрный список\" SID"
+msgstr "Исходящий чёрный список SID"
 
 #: ipaserver/plugins/trust.py:576
 msgid "UPN suffixes"
@@ -18612,10 +18405,9 @@ msgstr ""
 "id/--range-size."
 
 #: ipaserver/plugins/trust.py:980
-#, fuzzy, python-brace-format
-#| msgid "Unable to resolve domain controller for {domain} domain. "
+#, python-brace-format
 msgid "Unable to read domain information, check {}"
-msgstr "Не удалось определить контроллер домена для домена {domain}. "
+msgstr "Не удалось прочитать информацию о домене, проверьте {}"
 
 #: ipaserver/plugins/trust.py:989
 msgid "range exists"
@@ -18899,10 +18691,8 @@ msgid "Refresh list of the domains associated with the trust"
 msgstr "Обновить список доменов, связанных с отношением доверия."
 
 #: ipaserver/plugins/trust.py:1844
-#, fuzzy
-#| msgid "not allowed to perform operation: %s"
 msgid "not allowed to refresh trust topology"
-msgstr "не разрешено выполнение операции: %s"
+msgstr "запрещено обновлять топологию отношений доверия"
 
 #: ipaserver/plugins/trust.py:1857
 msgid ""
@@ -18913,20 +18703,16 @@ msgstr ""
 "find для вывода этого списка."
 
 #: ipaserver/plugins/trust.py:1865
-#, fuzzy
-#| msgid "IPA servers configured as AD trust agents"
 msgid "Configure this server as a trust agent."
-msgstr "IPA-серверы, настроенные в качестве агентов отношений доверия AD"
+msgstr "Настроить этот сервер как агент отношений доверия."
 
 #: ipaserver/plugins/trust.py:1881
 msgid "Enable support for trusted domains for old clients"
-msgstr ""
+msgstr "Включить поддержку доверенных доменов для старых клиентов"
 
 #: ipaserver/plugins/trust.py:1898
-#, fuzzy
-#| msgid "not allowed to modify user entries"
 msgid "not allowed to remotely add agent"
-msgstr "запрещено изменять записи пользователей"
+msgstr "запрещено удалённо добавлять агента"
 
 #: ipaserver/plugins/trust.py:1931 ipaclient/remote_plugins/2_156/trust.py:1031
 msgid "Allow use of IPA resources by the domain of the trust"
@@ -19203,142 +18989,105 @@ msgid "Maximum renewable age (seconds)"
 msgstr "Максимальный срок для обновления (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:152
-#, fuzzy
-#| msgid "Max life"
 msgid "OTP max life"
-msgstr "Максимальный срок жизни"
+msgstr "Макс. срок жизни OTP"
 
 #: ipaserver/plugins/krbtpolicy.py:153
-#, fuzzy
-#| msgid "Maximum ticket life (seconds)"
 msgid "OTP token maximum ticket life (seconds)"
-msgstr "Максимальный срок жизни билета (в секундах)"
+msgstr "Максимальный срок жизни билета токена OTP (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:157
-#, fuzzy
-#| msgid "Max renew"
 msgid "OTP max renew"
-msgstr "Максимальный срок для обновления"
+msgstr "Макс. срок для обновления OTP"
 
 #: ipaserver/plugins/krbtpolicy.py:158
-#, fuzzy
-#| msgid "Maximum renewable age (seconds)"
 msgid "OTP token ticket maximum renewable age (seconds)"
-msgstr "Максимальный срок для обновления (в секундах)"
+msgstr "Максимальный срок для обновления токена OTP (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:162
-#, fuzzy
-#| msgid "Max life"
 msgid "RADIUS max life"
-msgstr "Максимальный срок жизни"
+msgstr "Макс. срок жизни билета RADIUS"
 
 #: ipaserver/plugins/krbtpolicy.py:163
-#, fuzzy
-#| msgid "Maximum ticket life (seconds)"
 msgid "RADIUS maximum ticket life (seconds)"
-msgstr "Максимальный срок жизни билета (в секундах)"
+msgstr "Максимальный срок жизни билета RADIUS (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:167
-#, fuzzy
-#| msgid "RADIUS proxy server name"
 msgid "RADIUS max renew"
-msgstr "Имя прокси-сервера RADIUS"
+msgstr "Макс. срок для обновления билета RADIUS"
 
 #: ipaserver/plugins/krbtpolicy.py:168
-#, fuzzy
-#| msgid "Maximum renewable age (seconds)"
 msgid "RADIUS ticket maximum renewable age (seconds)"
-msgstr "Максимальный срок для обновления (в секундах)"
+msgstr "Максимальный срок для обновления билета RADIUS (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:172
-#, fuzzy
-#| msgid "Max life"
 msgid "PKINIT max life"
-msgstr "Максимальный срок жизни"
+msgstr "Макс. срок жизни билета PKINIT"
 
 #: ipaserver/plugins/krbtpolicy.py:173
-#, fuzzy
-#| msgid "Maximum ticket life (seconds)"
 msgid "PKINIT maximum ticket life (seconds)"
-msgstr "Максимальный срок жизни билета (в секундах)"
+msgstr "Максимальный срок жизни билета PKINIT (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:177
-#, fuzzy
-#| msgid "Max renew"
 msgid "PKINIT max renew"
-msgstr "Максимальный срок для обновления"
+msgstr "Макс. срок для обновления билета PKINIT"
 
 #: ipaserver/plugins/krbtpolicy.py:178
-#, fuzzy
-#| msgid "Maximum renewable age (seconds)"
 msgid "PKINIT ticket maximum renewable age (seconds)"
-msgstr "Максимальный срок для обновления (в секундах)"
+msgstr "Максимальный срок для обновления билета PKINIT (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:182
 msgid "Hardened max life"
-msgstr ""
+msgstr "Макс. срок жизни билета с усиленной защитой"
 
 #: ipaserver/plugins/krbtpolicy.py:183
-#, fuzzy
-#| msgid "Maximum ticket life (seconds)"
 msgid "Hardened ticket maximum ticket life (seconds)"
-msgstr "Максимальный срок жизни билета (в секундах)"
+msgstr "Максимальный срок жизни билета с усиленной защитой (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:187
 msgid "Hardened max renew"
-msgstr ""
+msgstr "Макс. срок для обновления билета с усиленной защитой"
 
 #: ipaserver/plugins/krbtpolicy.py:188
-#, fuzzy
-#| msgid "Maximum renewable age (seconds)"
 msgid "Hardened ticket maximum renewable age (seconds)"
-msgstr "Максимальный срок для обновления (в секундах)"
+msgstr ""
+"Максимальный срок для обновления билета с усиленной защитой (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:192
-#, fuzzy
-#| msgid "Max life"
 msgid "IdP max life"
-msgstr "Максимальный срок жизни"
+msgstr "Макс. срок жизни IdP"
 
 #: ipaserver/plugins/krbtpolicy.py:193
-#, fuzzy
-#| msgid "Maximum ticket life (seconds)"
 msgid "External Identity Provider ticket maximum ticket life (seconds)"
-msgstr "Максимальный срок жизни билета (в секундах)"
+msgstr ""
+"Максимальный срок жизни билета внешнего поставщика идентификационной "
+"информации (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:198
-#, fuzzy
-#| msgid "Max renew"
 msgid "IdP max renew"
-msgstr "Максимальный срок для обновления"
+msgstr "Макс. срок для обновления IdP"
 
 #: ipaserver/plugins/krbtpolicy.py:199
-#, fuzzy
-#| msgid "Maximum renewable age (seconds)"
 msgid "External Identity Provider ticket maximum renewable age (seconds)"
-msgstr "Максимальный срок для обновления (в секундах)"
+msgstr ""
+"Максимальный срок для обновления билета внешнего поставщика "
+"идентификационной информации (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:204
 msgid "Passkey max life"
-msgstr ""
+msgstr "Макс. срок жизни ключа доступа"
 
 #: ipaserver/plugins/krbtpolicy.py:205
-#, fuzzy
-#| msgid "Maximum ticket life (seconds)"
 msgid "Passkey ticket maximum ticket life (seconds)"
-msgstr "Максимальный срок жизни билета (в секундах)"
+msgstr "Максимальный срок жизни билета ключа доступа (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:209
-#, fuzzy
-#| msgid "Max renew"
 msgid "Passkey max renew"
-msgstr "Максимальный срок для обновления"
+msgstr "Макс. срок для обновления ключа доступа"
 
 #: ipaserver/plugins/krbtpolicy.py:210
-#, fuzzy
-#| msgid "Maximum renewable age (seconds)"
 msgid "Passkey ticket maximum renewable age (seconds)"
-msgstr "Максимальный срок для обновления (в секундах)"
+msgstr "Максимальный срок для обновления билета ключа доступа (в секундах)"
 
 #: ipaserver/plugins/krbtpolicy.py:243
 msgid "Modify Kerberos ticket policy."
@@ -19870,243 +19619,157 @@ msgid ""
 " Match entry by any subordinate uid in range:\n"
 "   ipa subid-match --subuid=2147483649\n"
 msgstr ""
+"\n"
+"Подчинённые идентификаторы\n"
+"\n"
+"Управление подчинёнными идентификаторами пользователя и группы для "
+"пользователей\n"
+"\n"
+"ПРИМЕРЫ:\n"
+"\n"
+" Автоматически назначить диапазон подчинённых идентификаторов для текущего "
+"пользователя\n"
+"   ipa subid-generate\n"
+"\n"
+" Автоматически назначить диапазон подчинённых идентификаторов для "
+"пользователя alice:\n"
+"   ipa subid-generate --owner=alice\n"
+"\n"
+" Найти подчинённые идентификаторы для пользователя alice:\n"
+"   ipa subid-find --owner=alice\n"
+"\n"
+" Установить соответствие записи по любому подчинённому uid в диапазоне:\n"
+"   ipa subid-match --subuid=2147483649\n"
 
 #: ipaserver/plugins/subid.py:59 ipaserver/plugins/subid.py:62
 msgid "Subordinate id"
-msgstr ""
+msgstr "Подчинённый идентификатор"
 
 #: ipaserver/plugins/subid.py:60 ipaserver/plugins/subid.py:61
 msgid "Subordinate ids"
-msgstr ""
+msgstr "Подчинённые идентификаторы"
 
 #: ipaserver/plugins/subid.py:144
-#, fuzzy
-#| msgid "Profile description"
 msgid "Subordinate id description"
-msgstr "Описание профиля"
+msgstr "Описание подчинённого идентификатора"
 
 #: ipaserver/plugins/subid.py:150 ipaserver/plugins/subid.py:474
 msgid "Owning user of subordinate id entry"
-msgstr ""
+msgstr "Пользователь-владелец записи подчинённого идентификатора"
 
 #: ipaserver/plugins/subid.py:157
 msgid "Start value for subordinate user ID (subuid) range"
 msgstr ""
+"Начальное значение диапазона подчинённых идентификаторов пользователя "
+"(subuid)"
 
 #: ipaserver/plugins/subid.py:166
 msgid "Subordinate user ID count"
-msgstr ""
+msgstr "Количество подчинённых идентификаторов пользователя"
 
 #: ipaserver/plugins/subid.py:175
 msgid "Start value for subordinate group ID (subgid) range"
 msgstr ""
+"Начальное значение диапазона подчинённых идентификаторов группы (subgid)"
 
 #: ipaserver/plugins/subid.py:184
 msgid "Subordinate group ID count"
-msgstr ""
+msgstr "Количество подчинённых идентификаторов группы"
 
 #: ipaserver/plugins/subid.py:213
-#, fuzzy, python-format
-#| msgid "%(oname)s with name \"%(pkey)s\" already exists"
+#, python-format
 msgid ""
 "%(oname)s with with name \"%(pkey)s\" or for user \"%(uid)s\" already exists."
-msgstr "%(oname)s с именем \"%(pkey)s\" уже существует"
+msgstr ""
+"%(oname)s с именем \"%(pkey)s\" или для пользователя \"%(uid)s\" уже "
+"существует."
 
 #: ipaserver/plugins/subid.py:246
-#, fuzzy, python-format
-#| msgid "%(port)s is not a valid port"
+#, python-format
 msgid "'%(dn)s is not a valid user"
-msgstr "%(port)s не является допустимым портом"
+msgstr "'%(dn)s не является допустимым пользователем"
 
 #: ipaserver/plugins/subid.py:272 ipaserver/plugins/subid.py:589
 msgid "Support for subordinate IDs is disabled"
-msgstr ""
+msgstr "Поддержка подчинённых идентификаторов отключена"
 
 #: ipaserver/plugins/subid.py:284
 msgid "subgidnumber must be equal to subuidnumber"
-msgstr ""
+msgstr "subgidnumber должно быть равно subuidnumber"
 
 #: ipaserver/plugins/subid.py:357
-#, fuzzy
-#| msgid "Add a new stage user."
 msgid "Add a new subordinate id."
-msgstr "Добавить нового неподтверждённого пользователя."
+msgstr "Добавить новый подчинённый идентификатор."
 
 #: ipaserver/plugins/subid.py:358
-#, fuzzy, python-format
-#| msgid "Added service \"%(value)s\""
+#, python-format
 msgid "Added subordinate id \"%(value)s\""
-msgstr "Добавлена служба \"%(value)s\""
+msgstr "Добавлен подчинённый идентификатор \"%(value)s\""
 
 #: ipaserver/plugins/subid.py:390
-#, fuzzy
-#| msgid "Delete a Certificate Profile."
 msgid "Delete a subordinate id."
-msgstr "Удалить профиль сертификатов."
+msgstr "Удалить подчинённый идентификатор."
 
 #: ipaserver/plugins/subid.py:391
-#, fuzzy, python-format
-#| msgid "Deleted service \"%(value)s\""
+#, python-format
 msgid "Deleted subordinate id \"%(value)s\""
-msgstr "Удалена служба \"%(value)s\""
+msgstr "Удалён подчинённый идентификатор \"%(value)s\""
 
 #: ipaserver/plugins/subid.py:399
-#, fuzzy
-#| msgid "Modify a stage user."
 msgid "Modify a subordinate id."
-msgstr "Изменить неподтверждённого пользователя."
+msgstr "Изменить подчинённый идентификатор."
 
 #: ipaserver/plugins/subid.py:400
-#, fuzzy, python-format
-#| msgid "Modified service \"%(value)s\""
+#, python-format
 msgid "Modified subordinate id \"%(value)s\""
-msgstr "Изменена служба \"%(value)s\""
+msgstr "Изменён подчинённый идентификатор \"%(value)s\""
 
 #: ipaserver/plugins/subid.py:411
-#, fuzzy
-#| msgid "Search for ranges."
 msgid "Search for subordinate id."
-msgstr "Поиск диапазонов."
+msgstr "Поиск подчинённого идентификатора."
 
 #: ipaserver/plugins/subid.py:413
-#, fuzzy, python-format
-#| msgid "%(count)d service matched"
-#| msgid_plural "%(count)d services matched"
+#, python-format
 msgid "%(count)d subordinate id matched"
 msgid_plural "%(count)d subordinate ids matched"
-msgstr[0] "установлено соответствие %(count)d службы"
-msgstr[1] "установлено соответствие %(count)d служб"
-msgstr[2] "установлено соответствие %(count)d служб"
+msgstr[0] "установлено соответствие %(count)d подчинённому идентификатору"
+msgstr[1] "установлено соответствие %(count)d подчинённым идентификаторам"
+msgstr[2] "установлено соответствие %(count)d подчинённым идентификаторам"
 
 #: ipaserver/plugins/subid.py:446
-#, fuzzy
-#| msgid "Display information about a range."
 msgid "Display information about a subordinate id."
-msgstr "Показать сведения о диапазоне."
+msgstr "Показать сведения о подчинённом идентификаторе."
 
 #: ipaserver/plugins/subid.py:464
 msgid "Generate and auto-assign subuid and subgid range to user entry"
 msgstr ""
+"Создать и автоматически назначить записи пользователя диапазон subuid и "
+"subgid"
 
 #: ipaserver/plugins/subid.py:499
 msgid "Match users by any subordinate uid in their range"
 msgstr ""
+"Установить соответствие пользователей по любому подчинённому uid в их "
+"диапазоне"
 
 #: ipaserver/plugins/subid.py:506
 msgid "SubUID match"
-msgstr ""
+msgstr "Соответствие по SubUID"
 
 #: ipaserver/plugins/subid.py:507
 msgid "Match value for subordinate user ID"
-msgstr ""
+msgstr "Установить соответствие по подчинённому идентификатору пользователя"
 
 #: ipaserver/plugins/subid.py:548
 msgid "Subordinate id statistics"
-msgstr ""
+msgstr "Статистика подчинённых идентификаторов"
 
 #: ipaserver/plugins/subid.py:597
 #, python-format
 msgid "%(remaining)i remaining subordinate id ranges"
-msgstr ""
+msgstr "%(remaining)i оставшихся диапазонов подчинённых идентификаторов"
 
 #: ipaserver/plugins/group.py:64
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Groups of users\n"
-#| "\n"
-#| "Manage groups of users. By default, new groups are POSIX groups. You\n"
-#| "can add the --nonposix option to the group-add command to mark a new "
-#| "group\n"
-#| "as non-POSIX. You can use the --posix argument with the group-mod "
-#| "command\n"
-#| "to convert a non-POSIX group into a POSIX group. POSIX groups cannot be\n"
-#| "converted to non-POSIX groups.\n"
-#| "\n"
-#| "Every group must have a description.\n"
-#| "\n"
-#| "POSIX groups must have a Group ID (GID) number. Changing a GID is\n"
-#| "supported but can have an impact on your file permissions. It is not "
-#| "necessary\n"
-#| "to supply a GID when creating a group. IPA will generate one "
-#| "automatically\n"
-#| "if it is not provided.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Add a new group:\n"
-#| "   ipa group-add --desc='local administrators' localadmins\n"
-#| "\n"
-#| " Add a new non-POSIX group:\n"
-#| "   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
-#| "\n"
-#| " Convert a non-POSIX group to posix:\n"
-#| "   ipa group-mod --posix remoteadmins\n"
-#| "\n"
-#| " Add a new POSIX group with a specific Group ID number:\n"
-#| "   ipa group-add --gid=500 --desc='unix admins' unixadmins\n"
-#| "\n"
-#| " Add a new POSIX group and let IPA assign a Group ID number:\n"
-#| "   ipa group-add --desc='printer admins' printeradmins\n"
-#| "\n"
-#| " Remove a group:\n"
-#| "   ipa group-del unixadmins\n"
-#| "\n"
-#| " To add the \"remoteadmins\" group to the \"localadmins\" group:\n"
-#| "   ipa group-add-member --groups=remoteadmins localadmins\n"
-#| "\n"
-#| " Add multiple users to the \"localadmins\" group:\n"
-#| "   ipa group-add-member --users=test1 --users=test2 localadmins\n"
-#| "\n"
-#| " Remove a user from the \"localadmins\" group:\n"
-#| "   ipa group-remove-member --users=test2 localadmins\n"
-#| "\n"
-#| " Display information about a named group.\n"
-#| "   ipa group-show localadmins\n"
-#| "\n"
-#| "External group membership is designed to allow users from trusted "
-#| "domains\n"
-#| "to be mapped to local POSIX groups in order to actually use IPA "
-#| "resources.\n"
-#| "External members should be added to groups that specifically created as\n"
-#| "external and non-POSIX. Such group later should be included into one of "
-#| "POSIX\n"
-#| "groups.\n"
-#| "\n"
-#| "An external group member is currently a Security Identifier (SID) as "
-#| "defined by\n"
-#| "the trusted domain. When adding external group members, it is possible "
-#| "to\n"
-#| "specify them in either SID, or DOM\\name, or name@domain format. IPA will "
-#| "attempt\n"
-#| "to resolve passed name to SID with the use of Global Catalog of the "
-#| "trusted domain.\n"
-#| "\n"
-#| "Example:\n"
-#| "\n"
-#| "1. Create group for the trusted domain admins' mapping and their local "
-#| "POSIX group:\n"
-#| "\n"
-#| "   ipa group-add --desc='<ad.domain> admins external map' "
-#| "ad_admins_external --external\n"
-#| "   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
-#| "\n"
-#| "2. Add security identifier of Domain Admins of the <ad.domain> to the "
-#| "ad_admins_external\n"
-#| "   group:\n"
-#| "\n"
-#| "   ipa group-add-member ad_admins_external --external 'AD\\Domain "
-#| "Admins'\n"
-#| "\n"
-#| "3. Allow members of ad_admins_external group to be associated with "
-#| "ad_admins POSIX group:\n"
-#| "\n"
-#| "   ipa group-add-member ad_admins --groups ad_admins_external\n"
-#| "\n"
-#| "4. List members of external members of ad_admins_external group to see "
-#| "their SIDs:\n"
-#| "\n"
-#| "   ipa group-show ad_admins_external\n"
 msgid ""
 "\n"
 "Groups of users\n"
@@ -20227,18 +19890,29 @@ msgstr ""
 "\n"
 "Группы пользователей\n"
 "\n"
-"Управление группами пользователей. По умолчанию все новые группы являются "
-"POSIX-группами. Можно добавить параметр --nonposix в команду group-add, "
-"чтобы отметить новую группу в качестве не-POSIX-группы. В команде group-mod "
-"можно использовать аргумент --posix, чтобы преобразовать не-POSIX-группу в "
-"POSIX-группу. POSIX-группы нельзя преобразовать в не-POSIX-группы. \n"
+"Управление группами пользователей, групп или служб. По умолчанию все новые "
+"группы являются POSIX-группами. Можно добавить параметр --nonposix в команду "
+"group-add, чтобы отметить новую группу в качестве не-POSIX-группы. В команде "
+"group-mod можно использовать аргумент --posix, чтобы преобразовать не-POSIX-"
+"группу в POSIX-группу. POSIX-группы нельзя преобразовать в не-POSIX-группы.\n"
 "\n"
 "У каждой группы должно быть описание.\n"
+"\n"
+"Имя группы должно соответствовать следующим правилам:\n"
+"- не может состоять только из цифр\n"
+"- должно начинаться с буквы, цифры, _ или .\n"
+"- может содержать буквы, цифры, _, ., или -\n"
+"- может заканчиваться на букву, цифру, _, ., - или $\n"
 "\n"
 "У POSIX-групп должен быть идентификатор группы (GID). Изменение GID "
 "поддерживается, но может повлиять на разрешения для файлов. При создании "
 "группы необязательно предоставлять GID. Если он не будет предоставлен, IPA "
 "создаст его автоматически.\n"
+"\n"
+"Участниками групп могут быть пользователи, другие группы и службы Kerberos. "
+"В средах POSIX в качестве участников группы будут показаны только "
+"пользователи, но для задач управления в рамках IPA можно использовать "
+"вложенные группы и группы служб.\n"
 "\n"
 "ПРИМЕРЫ:\n"
 "\n"
@@ -20248,7 +19922,7 @@ msgstr ""
 " Добавить новую не-POSIX-группу:\n"
 "   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
 "\n"
-" Преобразовать не-POSIX-группу в posix-группу:\n"
+" Преобразовать не-POSIX-группу в POSIX-группу:\n"
 "   ipa group-mod --posix remoteadmins\n"
 "\n"
 " Добавить новую POSIX-группу с определённым ID группы:\n"
@@ -20260,11 +19934,14 @@ msgstr ""
 " Удалить группу:\n"
 "   ipa group-del unixadmins\n"
 "\n"
-" Чтобы добавить группу \"remoteadmins\" в группу \"localadmins\":\n"
+" Добавить группу \"remoteadmins\" в группу \"localadmins\":\n"
 "   ipa group-add-member --groups=remoteadmins localadmins\n"
 "\n"
 " Добавить нескольких пользователей в группу \"localadmins\":\n"
 "   ipa group-add-member --users=test1 --users=test2 localadmins\n"
+"\n"
+" Добавить службы Kerberos в группу \"printer admins\":\n"
+"   ipa group-add-member --services=CUPS/some.host printeradmins\n"
 "\n"
 " Удалить пользователя из группы \"localadmins\":\n"
 "   ipa group-remove-member --users=test2 localadmins\n"
@@ -20272,15 +19949,26 @@ msgstr ""
 " Показать сведения об именованной группе:\n"
 "   ipa group-show localadmins\n"
 "\n"
+"Управляющие участием в группах — это пользователи или группы, которые могут "
+"добавлять участников в группу или удалять участников из группы.\n"
+"\n"
+" Разрешить пользователю \"test2\" добавлять участников в группу "
+"\"localadmins\" и удалять их из неё:\n"
+"   ipa group-add-member-manager --users=test2 localadmins\n"
+"\n"
+" Отозвать права управления участием у пользователя \"test2\" из "
+"\"localadmins\":\n"
+"   ipa group-remove-member-manager --users=test2 localadmins\n"
+"\n"
 "Участие внешних групп создано для того, чтобы сделать возможной привязку "
 "пользователей из доверенных доменов к локальным POSIX-группам с целью "
 "использования ресурсов IPA. Внешние участники должны быть добавлены в "
-"группы, которые специально созданы, как внешние и не-POSIX. Такая группа "
-"затем должна быть включена в одну из групп POSIX.\n"
+"группы, которые специально созданы как внешние и не-POSIX. Такая группа "
+"затем должна быть включена в одну из POSIX-групп.\n"
 "\n"
 "В текущей версии участник внешней группы является идентификатором "
 "безопасности (Security Identifier или SID), определённым доверенным доменом. "
-"Добавление участников внешней группы можно выполнить в формате SID, DOM\\имя "
+"Добавление участников внешней группы можно выполнить в формате SID, DOMимя "
 "или имя@домен. IPA попытается определить SID по переданному имени путём "
 "использования общего каталога доверенного домена.\n"
 "\n"
@@ -20289,16 +19977,17 @@ msgstr ""
 "1. Создать группу для привязки администраторов (admins) доверенного домена и "
 "их локальную POSIX-группу:\n"
 "\n"
-"   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external "
-"--external\n"
+"   ipa group-add --desc='<ad.domain> admins external map' "
+"ad_admins_external --external\n"
 "   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
 "\n"
 "2. Добавить идентификатор безопасности Domain Admins домена <ad.domain> "
 "группе ad_admins_external:\n"
 "\n"
-"   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'\n"
+"   ipa group-add-member ad_admins_external --external 'ADDomain Admins'\n"
 "\n"
-"3. Разрешить привязку группы ad_admins_external к POSIX-группе ad_admins:\n"
+"3. Разрешить привязку участников группы ad_admins_external к POSIX-группе "
+"ad_admins:\n"
 "\n"
 "   ipa group-add-member ad_admins --groups ad_admins_external\n"
 "\n"
@@ -20353,10 +20042,8 @@ msgid "gid cannot be set for external group"
 msgstr "невозможно указать gid для внешней группы"
 
 #: ipaserver/plugins/group.py:404
-#, fuzzy
-#| msgid "attribute \"%s\" not allowed"
 msgid "attribute \"gidNumber\" not allowed with --nonposix"
-msgstr "атрибут \"%s\" нельзя использовать"
+msgstr "атрибут \"gidNumber\" нельзя использовать с --nonposix"
 
 #: ipaserver/plugins/group.py:411 ipaclient/remote_plugins/2_49/group.py:351
 msgid "Delete group."
@@ -20392,7 +20079,7 @@ msgstr ""
 
 #: ipaserver/plugins/group.py:522
 msgid "An external group cannot be POSIX"
-msgstr ""
+msgstr "Внешняя группа не может быть POSIX"
 
 #: ipaserver/plugins/group.py:541 ipaclient/remote_plugins/2_49/group.py:422
 msgid "Search for groups."
@@ -20459,16 +20146,13 @@ msgid "Not a managed group"
 msgstr "Не является управляемой группой"
 
 #: ipaserver/plugins/group.py:827
-#, fuzzy
-#| msgid "Add users that can manage this token."
 msgid "Add users that can manage members of this group."
-msgstr "Добавить пользователей, которые могут управлять этим токеном."
+msgstr ""
+"Добавить пользователей, которые могут управлять участниками этой группы."
 
 #: ipaserver/plugins/group.py:835
-#, fuzzy
-#| msgid "Remove users that can manage this token."
 msgid "Remove users that can manage members of this group."
-msgstr "Удалить пользователей, которые могут управлять этим токеном."
+msgstr "Удалить пользователей, которые могут управлять участниками этой группы."
 
 #: ipaserver/plugins/aci.py:36 ipaclient/remote_plugins/2_156/aci.py:19
 msgid ""
@@ -21078,27 +20762,6 @@ msgid "IPA role name"
 msgstr "Имя роли IPA"
 
 #: ipaserver/plugins/passwd.py:40
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Set a user's password\n"
-#| "\n"
-#| "If someone other than a user changes that user's password (e.g., "
-#| "Helpdesk\n"
-#| "resets it) then the password will need to be changed the first time it\n"
-#| "is used. This is so the end-user is the only one who knows the password.\n"
-#| "\n"
-#| "The IPA password policy controls how often a password may be changed,\n"
-#| "what strength requirements exist, and the length of the password "
-#| "history.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " To reset your own password:\n"
-#| "   ipa passwd\n"
-#| "\n"
-#| " To change another user's password:\n"
-#| "   ipa passwd tuser1\n"
 msgid ""
 "\n"
 "Set a user's password\n"
@@ -21136,10 +20799,17 @@ msgstr ""
 "Политика паролей IPA управляет частотой смены пароля, требованиями к "
 "надёжности пароля и размером журнала паролей.\n"
 "\n"
+"Если в качестве метода аутентификации пользователя задано использование "
+"пароля+OTP, пользователь должен передать параметр --otp при сбросе пароля.\n"
+"\n"
 "ПРИМЕРЫ:\n"
 "\n"
 " Чтобы сбросить свой собственный пароль:\n"
 "   ipa passwd\n"
+"\n"
+" Чтобы сбросить свой собственный пароль, когда в качестве метода "
+"аутентификации задано использование пароля+OTP:\n"
+"   ipa passwd --otp\n"
 "\n"
 " Чтобы изменить пароль другого пользователя:\n"
 "   ipa passwd tuser1\n"
@@ -21150,7 +20820,7 @@ msgstr "Установить пароль пользователя."
 
 #: ipaserver/plugins/passwd.py:114
 msgid "The OTP if the user has a token configured"
-msgstr ""
+msgstr "OTP, если у пользователя есть настроенный токен"
 
 #: ipaserver/plugins/passwd.py:120
 #, python-format
@@ -21284,11 +20954,8 @@ msgid "not found"
 msgstr "не найдено"
 
 #: ipaserver/plugins/idviews.py:403
-#, fuzzy
-#| msgid "Default Trust View cannot be applied on hosts"
 msgid "ID View cannot be applied to IPA master"
-msgstr ""
-"Представление отношений доверия по умолчанию невозможно применить к узлам"
+msgstr "Представление ID невозможно применить к главному IPA-серверу"
 
 #: ipaserver/plugins/idviews.py:420
 msgid "ID View already applied"
@@ -21771,134 +21438,151 @@ msgid ""
 "   ipa sysaccount-policy my-app --privileged=true\n"
 "\n"
 msgstr ""
+"\n"
+"Системные учётные записи\n"
+"\n"
+"Системные учётные записи предназначены для того, чтобы позволить приложениям "
+"выполнять запросы к базе данных LDAP.\n"
+"В отличие от пользователей IPA, системные учётные записи не имеют свойств "
+"POSIX и не могут быть разрешены как 'пользователи' в среде POSIX.\n"
+"\n"
+"Системные учётные записи хранятся в поддереве LDAP cn=sysaccounts,cn=etc. "
+"Некоторые системные учётные записи являются особыми для собственных операций "
+"IPA и не могут быть удалены.\n"
+"\n"
+"ПРИМЕРЫ:\n"
+"\n"
+" Добавить новую системную учётную запись, установить случайный пароль:\n"
+"   ipa sysaccount-add my-app --random\n"
+"\n"
+" Разрешить системной учётной записи изменять пароли пользователей без "
+"запуска сброса:\n"
+"   ipa sysaccount-mod my-app --privileged=True\n"
+"\n"
+"Системной учётной записи всё ещё должно быть разрешено изменять пароли "
+"пользователей через роль, включающую соответствующее разрешение ('System: "
+"Change User password'), через систему привилегий:\n"
+"    ipa privilege-add 'my-app password change privilege'\n"
+"    ipa privilege-add-permission 'my-app password change "
+"privilege'                       --permission 'System: Change User "
+"password'\n"
+"    ipa role-add 'my-app role'\n"
+"    ipa role-add-privilege 'my-app role'                            --"
+"privilege 'my-app password change privilege'\n"
+"    ipa role-add-member 'my-app role' --sysaccounts my-app\n"
+"\n"
+" Удалить системную учётную запись:\n"
+"   ipa sysaccount-del my-app\n"
+"\n"
+" Найти все системные учётные записи:\n"
+"   ipa sysaccount-find\n"
+"\n"
+" Отключить системную учётную запись:\n"
+"   ipa sysaccount-disable my-app\n"
+"\n"
+" Включить системную учётную запись:\n"
+"   ipa sysaccount-enable my-app\n"
+"\n"
+" Разрешить системной учётной записи изменять пароли пользователей без "
+"сброса:\n"
+"   ipa sysaccount-policy my-app --privileged=true\n"
+"\n"
 
 #: ipaserver/plugins/sysaccounts.py:85
-#, fuzzy
-#| msgid "Privilege"
 msgid "Privileged"
-msgstr "Привилегия"
+msgstr "Привилегированный"
 
 #: ipaserver/plugins/sysaccounts.py:86
 msgid "Allow password updates without reset"
-msgstr ""
+msgstr "Разрешить обновления пароля без сброса"
 
 #: ipaserver/plugins/sysaccounts.py:115
-#, fuzzy
-#| msgid "Administrative account"
 msgid "system account"
-msgstr "Учётная запись администратора"
+msgstr "системная учётная запись"
 
 #: ipaserver/plugins/sysaccounts.py:116
 msgid "system accounts"
-msgstr ""
+msgstr "системные учётные записи"
 
 #: ipaserver/plugins/sysaccounts.py:165
-#, fuzzy
-#| msgid "Account"
 msgid "System Accounts"
-msgstr "Учётная запись"
+msgstr "Системные учётные записи"
 
 #: ipaserver/plugins/sysaccounts.py:166
-#, fuzzy
-#| msgid "Account"
 msgid "System Account"
-msgstr "Учётная запись"
+msgstr "Системная учётная запись"
 
 #: ipaserver/plugins/sysaccounts.py:174
 msgid "System account ID"
-msgstr ""
+msgstr "Идентификатор системной учётной записи"
 
 #: ipaserver/plugins/sysaccounts.py:179
-#, fuzzy
-#| msgid "A description of this host"
 msgid "A description of system account"
-msgstr "Описание этого узла"
+msgstr "Описание системной учётной записи"
 
 #: ipaserver/plugins/sysaccounts.py:276
-#, fuzzy
-#| msgid "Add a new IPA service."
 msgid "Add a new IPA system account."
-msgstr "Добавить новую службу IPA."
+msgstr "Добавить новую системную учётную запись IPA."
 
 #: ipaserver/plugins/sysaccounts.py:277
-#, fuzzy, python-format
-#| msgid "Added segment \"%(value)s\""
+#, python-format
 msgid "Added system account \"%(value)s\""
-msgstr "Добавлен сегмент \"%(value)s\""
+msgstr "Добавлена системная учётная запись \"%(value)s\""
 
 #: ipaserver/plugins/sysaccounts.py:287
-#, fuzzy
-#| msgid "New password is required"
 msgid "Either --password or --random is required"
-msgstr "Следует указать новый пароль"
+msgstr "Требуется указать --password или --random"
 
 #: ipaserver/plugins/sysaccounts.py:308
-#, fuzzy
-#| msgid "Delete an IPA service."
 msgid "Delete an IPA system account."
-msgstr "Удалить службу IPA."
+msgstr "Удалить системную учётную запись IPA."
 
 #: ipaserver/plugins/sysaccounts.py:309
-#, fuzzy, python-format
-#| msgid "Undeleted user account \"%(value)s\""
+#, python-format
 msgid "Deleted system account \"%(value)s\""
-msgstr "Учётная запись пользователя \"%(value)s\" возвращена после удаления"
+msgstr "Удалена системная учётная запись \"%(value)s\""
 
 #: ipaserver/plugins/sysaccounts.py:335
-#, fuzzy
-#| msgid "Modify an existing IPA service."
 msgid "Modify an existing IPA system account."
-msgstr "Изменить существующую службу IPA."
+msgstr "Изменить существующую системную учётную запись IPA."
 
 #: ipaserver/plugins/sysaccounts.py:374
-#, fuzzy
-#| msgid "Search for entitlement accounts."
 msgid "Search for IPA system accounts."
-msgstr "Поиск учётных записей прав."
+msgstr "Поиск системных учётных записей IPA."
 
 #: ipaserver/plugins/sysaccounts.py:377
-#, fuzzy, python-format
-#| msgid "%(count)d segment matched"
-#| msgid_plural "%(count)d segments matched"
+#, python-format
 msgid "%(count)d system account matched"
 msgid_plural "%(count)d system accounts matched"
-msgstr[0] "установлено соответствие %(count)d сегмента"
-msgstr[1] "установлено соответствие %(count)d сегментов"
-msgstr[2] "установлено соответствие %(count)d сегментов"
+msgstr[0] "установлено соответствие %(count)d системной учётной записи"
+msgstr[1] "установлено соответствие %(count)d системным учётным записям"
+msgstr[2] "установлено соответствие %(count)d системным учётным записям"
 
 #: ipaserver/plugins/sysaccounts.py:399
-#, fuzzy
-#| msgid "Display information about an IPA service."
 msgid "Display information about an IPA system account."
-msgstr "Показать сведения о службе IPA."
+msgstr "Показать сведения о системной учётной записи IPA."
 
 #: ipaserver/plugins/sysaccounts.py:417
 msgid "Manage the system account policy."
-msgstr ""
+msgstr "Управление политикой системной учётной записи."
 
 #: ipaserver/plugins/sysaccounts.py:431
-#, fuzzy
-#| msgid "Disable a user account."
 msgid "Disable a system account."
-msgstr "Отключить учётную запись пользователя."
+msgstr "Отключить системную учётную запись."
 
 #: ipaserver/plugins/sysaccounts.py:434
-#, fuzzy, python-format
-#| msgid "Disabled user account \"%(value)s\""
+#, python-format
 msgid "Disabled system account \"%(value)s\""
-msgstr "Учётная запись пользователя \"%(value)s\" отключена"
+msgstr "Отключена системная учётная запись \"%(value)s\""
 
 #: ipaserver/plugins/sysaccounts.py:450
-#, fuzzy
-#| msgid "Enable a user account."
 msgid "Enable a system account."
-msgstr "Включить учётную запись пользователя."
+msgstr "Включить системную учётную запись."
 
 #: ipaserver/plugins/sysaccounts.py:454
-#, fuzzy, python-format
-#| msgid "Enabled user account \"%(value)s\""
+#, python-format
 msgid "Enabled system account \"%(value)s\""
-msgstr "Учётная запись пользователя \"%(value)s\" включена"
+msgstr "Включена системная учётная запись \"%(value)s\""
 
 #: ipaserver/plugins/certmap.py:50
 msgid ""
@@ -23730,10 +23414,8 @@ msgstr ""
 "%(search_base)s, класс объектов: %(objectclass)s)"
 
 #: ipaserver/plugins/migration.py:913
-#, fuzzy
-#| msgid "not allowed to perform operation: %s"
 msgid "not allowed to run migration"
-msgstr "не разрешено выполнение операции: %s"
+msgstr "запрещено запускать миграцию"
 
 #: ipaserver/plugins/ca.py:21
 msgid ""
@@ -23800,6 +23482,13 @@ msgid ""
 "    ipa ca-add puppet --desc \"Puppet\" \\\n"
 "        --subject \"CN=Puppet CA,O=EXAMPLE.COM\"\n"
 msgstr ""
+"\n"
+"  Создать новую службу сертификации, подчинённую службе сертификации IPA "
+"(требуется разрешение\n"
+"  \"System: Add CA\"):\n"
+"\n"
+"    ipa ca-add puppet --desc \"Puppet\" \\\n"
+"        --subject \"CN=Puppet CA,O=EXAMPLE.COM\"\n"
 
 #: ipaserver/plugins/ca.py:44
 msgid ""
@@ -23808,6 +23497,11 @@ msgid ""
 "\n"
 "    ipa ca-disable puppet\n"
 msgstr ""
+"\n"
+"  Отключить службу сертификации (требуется разрешение \"System: Modify CA\")"
+":\n"
+"\n"
+"    ipa ca-disable puppet\n"
 
 #: ipaserver/plugins/ca.py:48
 msgid ""
@@ -23816,6 +23510,11 @@ msgid ""
 "\n"
 "    ipa ca-enable puppet\n"
 msgstr ""
+"\n"
+"  Снова включить службу сертификации (требуется разрешение \"System: Modify "
+"CA\"):\n"
+"\n"
+"    ipa ca-enable puppet\n"
 
 #: ipaserver/plugins/ca.py:52
 msgid ""
@@ -23825,6 +23524,12 @@ msgid ""
 "\n"
 "    ipa ca-del puppet\n"
 msgstr ""
+"\n"
+"  Удалить службу сертификации (требуется разрешение \"System: Delete CA\"; "
+"также\n"
+"  необходимо сначала отключить службу сертификации):\n"
+"\n"
+"    ipa ca-del puppet\n"
 
 #: ipaserver/plugins/ca.py:69 ipaserver/plugins/ca.py:80
 msgid "Certificate Authority"
@@ -23863,16 +23568,12 @@ msgid "Issuer Distinguished Name"
 msgstr "Различающееся имя издателя"
 
 #: ipaserver/plugins/ca.py:127
-#, fuzzy
-#| msgid "Version"
 msgid "RSN Version"
-msgstr "Версия"
+msgstr "Версия RSN"
 
 #: ipaserver/plugins/ca.py:128
-#, fuzzy
-#| msgid "Serial Number (hex)"
 msgid "Random Serial Number Version"
-msgstr "Серийный номер (шестнадцатеричный)"
+msgstr "Версия со случайным серийным номером"
 
 #: ipaserver/plugins/ca.py:255
 msgid "Search for CAs."
@@ -23916,7 +23617,7 @@ msgstr "DN субъекта уже используется CA \"%s\""
 
 #: ipaserver/plugins/ca.py:373
 msgid "Delete a CA (must be disabled first)."
-msgstr ""
+msgstr "Удалить службу сертификации (её необходимо сначала отключить)."
 
 #: ipaserver/plugins/ca.py:375
 #, python-format
@@ -23932,10 +23633,8 @@ msgid "IPA CA cannot be deleted"
 msgstr "Невозможно удалить CA IPA"
 
 #: ipaserver/plugins/ca.py:411
-#, fuzzy
-#| msgid "Must be a decimal number"
 msgid "Must be disabled first"
-msgstr "Должно быть десятичным числом"
+msgstr "Должна быть сначала отключена"
 
 #: ipaserver/plugins/ca.py:419
 msgid "Modify CA configuration."
@@ -24484,10 +24183,9 @@ msgid "Return command defaults"
 msgstr "Вернуть значения команд по умолчанию"
 
 #: ipaserver/plugins/schema.py:291
-#, fuzzy, python-brace-format
-#| msgid "{role}: role not found"
+#, python-brace-format
 msgid "{oname}: {command_name} not found"
-msgstr "{role}: роль не найдена"
+msgstr "{oname}: {command_name} не найдена"
 
 #: ipaserver/plugins/schema.py:344
 msgid "Display information about a class."
@@ -24755,10 +24453,8 @@ msgid "Our domain is not configured"
 msgstr "Наш домен не настроен"
 
 #: ipaserver/dcerpc.py:388
-#, fuzzy
-#| msgid "no trusted domain is configured"
 msgid "No trusted domain is configured"
-msgstr "отсутствуют настроенные доверенные домены"
+msgstr "Отсутствуют настроенные доверенные домены"
 
 #: ipaserver/dcerpc.py:394 ipaserver/dcerpc.py:410 ipaserver/dcerpc.py:428
 #: ipaserver/dcerpc.py:434 ipaserver/dcerpc.py:442 ipaserver/dcerpc.py:457
@@ -24779,10 +24475,8 @@ msgid "trusted domain object not found"
 msgstr "объект доверенного домена не найден"
 
 #: ipaserver/dcerpc.py:429
-#, fuzzy
-#| msgid "SID does not match any trusted domain"
 msgid "Object does not belong to a trusted domain"
-msgstr "SID не соответствует ни одному доверенному домену"
+msgstr "Объект не принадлежит доверенному домену"
 
 #: ipaserver/dcerpc.py:435
 msgid "SSSD was unable to resolve the object to a valid SID"
@@ -24864,6 +24558,8 @@ msgid ""
 "Non-Kerberos user name was specified, please provide user@REALM variant "
 "instead"
 msgstr ""
+"Указано имя пользователя не в формате Kerberos, укажите вариант user@REALM "
+"вместо этого"
 
 #: ipaserver/servroles.py:296
 #, python-format
@@ -24905,10 +24601,8 @@ msgid "Enctype comparison failed!\n"
 msgstr "Ошибка сравнения значений типа шифрования!\n"
 
 #: util/ipa_krb5.c:1002
-#, fuzzy
-#| msgid "Password history size"
 msgid "Password is too long!\n"
-msgstr "Размер журнала паролей"
+msgstr "Слишком длинный пароль!\n"
 
 #: util/ipa_krb5.c:1018
 msgid "Failed to create random key!\n"
@@ -24960,6 +24654,8 @@ msgid ""
 "Unable to create new TLS context (OpenSSL failed to initialize or to load "
 "certificates)\n"
 msgstr ""
+"Не удалось создать новый контекст TLS (OpenSSL не удалось выполнить "
+"инициализацию или загрузить сертификаты)\n"
 
 #: util/ipa_ldap.c:156
 msgid "Unable to initialize STARTTLS session\n"
@@ -25151,14 +24847,12 @@ msgstr ""
 "доверенного домена"
 
 #: ipalib/util.py:1328
-#, fuzzy
-#| msgid "realm or UPN suffix overlaps with trusted domain namespace"
 msgid ""
 "realm or UPN suffix outside of supported realm domains or trusted domains "
 "namespace"
 msgstr ""
-"область (realm) или UPN-суффикс пересекается с пространством имён "
-"доверенного домена"
+"область (realm) или UPN-суффикс за пределами поддерживаемых областей доменов "
+"или пространства имён доверенных доменов"
 
 #: ipalib/frontend.py:431
 msgid "Results are truncated, try a more specific search"
@@ -25197,10 +24891,9 @@ msgid "%(filename)s: file not found"
 msgstr "%(filename)s: файл не найден"
 
 #: ipalib/plugable.py:616
-#, fuzzy, python-brace-format
-#| msgid "Unable to parse principal\n"
+#, python-brace-format
 msgid "Unable to parse option {item}"
-msgstr "Не удалось обработать учётную запись\n"
+msgstr "Не удалось обработать параметр {item}"
 
 #: ipalib/rpc.py:991
 msgid "any of the configured servers"
@@ -25499,19 +25192,16 @@ msgstr "Сертификат для %(ca)s недоступен на этом с
 #: ipalib/messages.py:505
 #, python-format
 msgid "The permission has %(right)s rights but no attributes are set."
-msgstr ""
+msgstr "Разрешение имеет права %(right)s, но атрибуты не заданы."
 
 #: ipalib/messages.py:516
-#, fuzzy, python-format
-#| msgid ""
-#| "Service %(service)s requires restart on IPA server %(server)s to apply "
-#| "configuration changes."
+#, python-format
 msgid ""
 "Change of the state of '%(feature)s' feature requires to run 'ipa-server-"
 "upgrade' command on IPA server %(server)s to apply configuration changes."
 msgstr ""
-"Для применения изменений конфигурации необходимо перезапустить службу "
-"%(service)s на IPA-сервере %(server)s."
+"Для применения изменений конфигурации необходимо запустить команду 'ipa-"
+"server-upgrade' на IPA-сервере %(server)s."
 
 #: ipalib/messages.py:529
 #, python-format
@@ -25519,6 +25209,8 @@ msgid ""
 "User '%(user)s', with UID Number '%(uidnumber)d' is out of all ID Ranges, "
 "'SID' will not be correctly generated."
 msgstr ""
+"Пользователь '%(user)s' с UID '%(uidnumber)d' находится вне всех диапазонов "
+"ID, 'SID' не будет правильно сгенерирован."
 
 #: ipalib/messages.py:541
 #, python-format
@@ -25528,12 +25220,18 @@ msgid ""
 "%(command)s' against each server you want to allow or disable to reset "
 "passwords on."
 msgstr ""
+"Разрешение на сброс пароля является локальным для сервера %(server)s.\n"
+"Перезапустите службы Directory Server на нём. Выполните команду 'ipa %"
+"(command)s' для каждого сервера, на котором вы хотите разрешить или "
+"запретить сброс паролей."
 
 #: ipalib/messages.py:555
 #, python-format
 msgid ""
 "To bind to LDAP with system account '%(uid)s', use the bind DN '%(dn)s'."
 msgstr ""
+"Для привязки к LDAP с системной учётной записью '%(uid)s' используйте DN "
+"привязки '%(dn)s'."
 
 #: ipalib/parameters.py:417
 msgid "incorrect type"
@@ -25621,14 +25319,13 @@ msgid "must be a certificate signing request"
 msgstr "должно быть запросом подписи сертификата"
 
 #: ipalib/parameters.py:1532
-#, fuzzy, python-format
-#| msgid "Not a valid IP address"
+#, python-format
 msgid "not a valid CSR: %s"
-msgstr "Недопустимый IP-адрес"
+msgstr "недействительный CSR: %s"
 
 #: ipalib/parameters.py:1546
 msgid "not a valid CSR"
-msgstr ""
+msgstr "недействительный CSR"
 
 #: ipalib/parameters.py:1556
 #, python-format
@@ -25715,22 +25412,16 @@ msgid "Service principal is required"
 msgstr "Следует указать учётную запись службы"
 
 #: ipalib/parameters.py:2294
-#, fuzzy
-#| msgid "must be at least 10"
 msgid "must be at least 0"
-msgstr "должно быть не меньше 10"
+msgstr "должно быть не меньше 0"
 
 #: ipalib/parameters.py:2303
-#, fuzzy
-#| msgid "Invalid vault type"
 msgid "invalid valid hex"
-msgstr "Недопустимый тип хранилища"
+msgstr "некорректное шестнадцатеричное значение"
 
 #: ipalib/parameters.py:2314
-#, fuzzy
-#| msgid "Minimum serial number"
 msgid "invalid serial number 0"
-msgstr "Минимальный серийный номер"
+msgstr "некорректный серийный номер 0"
 
 #: ipalib/errors.py:296
 #, python-format
@@ -26434,30 +26125,27 @@ msgid "Removed option \"%(option)s\" from Sudo Rule \"%(rule)s\""
 msgstr "Из правила Sudo \"%(rule)s\" удалён параметр \"%(option)s\""
 
 #: ipaclient/plugins/baseuser.py:22
-#, fuzzy
-#| msgid "Registration password"
 msgid "Register the passkey"
-msgstr "Пароль для регистрации"
+msgstr "Зарегистрировать ключ доступа"
 
 #: ipaclient/plugins/baseuser.py:27
 msgid "Require user verification during authentication with the passkey"
 msgstr ""
+"Требовать подтверждение пользователя при аутентификации с помощью ключа "
+"доступа"
 
 #: ipaclient/plugins/baseuser.py:33
 msgid "COSE type to use for registration"
-msgstr ""
+msgstr "Тип COSE, используемый для регистрации"
 
 #: ipaclient/plugins/baseuser.py:39
-#, fuzzy
-#| msgid "Credentials"
 msgid "Credential type"
-msgstr "Учётные данные"
+msgstr "Тип учётных данных"
 
 #: ipaclient/plugins/baseuser.py:62
-#, fuzzy, python-format
-#| msgid "cannot specify both subject/issuer and ipacertmapdata"
+#, python-format
 msgid "cannot specify both %s and passkey mapping"
-msgstr "невозможно одновременно указать subject/issuer и ipacertmapdata"
+msgstr "нельзя указать одновременно %s и сопоставление ключа доступа"
 
 #: ipaclient/plugins/baseuser.py:70
 #, python-format
@@ -26465,6 +26153,8 @@ msgid ""
 "Missing executable %s, use the command with LOGIN PASSKEY instead of LOGIN --"
 "register"
 msgstr ""
+"Отсутствует исполняемый файл %s, используйте команду с LOGIN PASSKEY вместо "
+"LOGIN --register"
 
 #: ipaclient/plugins/cert.py:39 ipaclient/plugins/ca.py:19
 msgid "Write certificate (chain if --chain used) to file"
@@ -26522,7 +26212,7 @@ msgstr "Другой код"
 #: ipaclient/plugins/otptoken.py:185
 #, python-format
 msgid "Unable to synchronize token: %s"
-msgstr ""
+msgstr "Не удалось синхронизировать токен: %s"
 
 #: ipaclient/plugins/location.py:23
 msgid "Servers details:"
@@ -26533,6 +26223,8 @@ msgid ""
 "IMPORTANT: In case of a high number of users, hosts or groups, the operation "
 "may require high CPU usage."
 msgstr ""
+"ВАЖНО: При большом количестве пользователей, узлов или групп операция может "
+"потребовать высокой загрузки ЦП."
 
 #: ipaclient/plugins/vault.py:75 ipaclient/plugins/vault.py:917
 #, python-format
@@ -28606,14 +28298,12 @@ msgstr ""
 msgid "Resolve a host name in DNS."
 msgstr "Определить адрес по имени узла в DNS."
 
-#, fuzzy
-#| msgid "Parse all raw DNS records and return them in a structured way"
 msgid ""
 "Parse all raw DNS records and return them in a structured way. Can not be "
 "used with --raw."
 msgstr ""
 "Проанализировать все необработанные записи DNS и вернуть их в "
-"структурированном виде"
+"структурированном виде. Не может использоваться с --raw."
 
 msgid "Results should contain primary key attribute only (\"name\")"
 msgstr "Результаты должны содержать только атрибут главного ключа (\"name\")"
@@ -28879,6 +28569,46 @@ msgid ""
 "\n"
 "For more information, see the IPA Documentation to Sudo.\n"
 msgstr ""
+"\n"
+"Правила Sudo\n"
+"\n"
+"Sudo (su \"do\") позволяет системному администратору делегировать "
+"полномочия, чтобы дать определённым пользователям (или группам "
+"пользователей) возможность выполнять некоторые (или все) команды от имени "
+"пользователя \"root\" или другого пользователя, вместе с тем предоставляя "
+"журнал аудита команд и их аргументов.\n"
+"\n"
+"IPA предоставляет возможности настройки различных аспектов Sudo:\n"
+"   Users: пользователь (пользователи) или группа (группы), которые могут "
+"вызывать Sudo.\n"
+"   Hosts: узел (узлы) или группа (группы) узлов, пользователи которых могут "
+"вызывать Sudo.\n"
+"   Allow Command: конкретная команда (команды), которые разрешены для "
+"выполнения с помощью Sudo.\n"
+"   Deny Command: конкретная команда (команды), которые запрещены для "
+"выполнения с помощью Sudo.\n"
+"   RunAsUser: пользователь (пользователи) или группа (группы) пользователей, "
+"от имени которых Sudo будет выполнять команды.\n"
+"   RunAsGroup: группа (группы), от имени которых Sudo будет выполнять "
+"команды.\n"
+"   Options: различные параметры sudoers (участники Sudo), которые могут "
+"изменить поведение Sudo.\n"
+"\n"
+"Правилу Sudo можно добавить порядок, который будет руководить порядком "
+"обработки записей (если такой порядок предусмотрен на клиентской стороне). "
+"Порядок определяется числовым индексом (целое число), который не должен "
+"повторяться.\n"
+"\n"
+"IPA предусматривает специальную привязку DN (binddn) для использования с "
+"Sudo:\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+"\n"
+"Чтобы включить binddn, выполните следующую команду для установки пароля:\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \\\n"
+"    -H ldap://ipa.example.com -ZZ -D \"cn=Directory Manager\" \\\n"
+"    uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+"\n"
+"Дополнительные сведения приведены в документации IPA по Sudo.\n"
 
 msgid "member sudo command group"
 msgstr "группа команд — участник Sudo"
@@ -30666,6 +30396,144 @@ msgid ""
 "be\n"
 "modified to match the new range.\n"
 msgstr ""
+"\n"
+"Диапазоны идентификаторов\n"
+"\n"
+"Управление диапазонами идентификаторов, которые используются для "
+"сопоставления POSIX-идентификаторов с идентификаторами безопасности (SID) и "
+"наоборот.\n"
+"\n"
+"С помощью этой программы можно управлять обоими типами диапазонов "
+"идентификаторов:\n"
+"\n"
+" - диапазоны идентификаторов локального домена\n"
+" - диапазоны идентификаторов доверенных удалённых доменов\n"
+"\n"
+"Следующие атрибуты являются общими для обоих типов:\n"
+"\n"
+" - base-id: первый идентификатор из диапазона POSIX-идентификаторов\n"
+" - range-size: размер диапазона\n"
+"\n"
+"С этими двумя атрибутами объект диапазона может зарезервировать POSIX-"
+"идентификаторы, начиная с base-id и до (но не включительно) base-id+range-"
+"size.\n"
+"\n"
+"Кроме того, можно установить диапазон идентификаторов локального домена\n"
+" - rid-base: первый RID(*) соответствующего диапазона RID\n"
+" - secondary-rid-base: первый RID вторичного диапазона RID\n"
+"\n"
+"а диапазон идентификаторов доверенного домена следует задавать с помощью\n"
+" - rid-base: первый RID соответствующего диапазона RID\n"
+" - dom_sid: SID доверенного домена\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для доверенного домена\n"
+"\n"
+"Так как доверенных доменов может быть несколько, необходимо указать SID "
+"домена при создании диапазона идентификаторов.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0"
+"                   --dom-sid=S-1-5-21-123-456-789 trusted_dom_range\n"
+"\n"
+"Этот диапазон идентификаторов затем будет использоваться IPA-сервером и "
+"поставщиком данных IPA SSSD для назначения UID POSIX пользователям из "
+"доверенного домена.\n"
+"\n"
+"Если, например, для доверенного домена настроен диапазон со следующими "
+"значениями:\n"
+" base-id = 1200000\n"
+" range-size = 200000\n"
+" rid-base = 0\n"
+"RID от 0 до 199999 привязываются к POSIX-идентификаторам от 1200000 до "
+"13999999. Следовательно,\n"
+"RID 1000 <-> Posix ID 1201000\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для локального домена\n"
+"\n"
+"При создании диапазона идентификаторов для локального домена нет "
+"необходимости указывать SID домена. Но, так как существует вероятность того, "
+"что в качестве POSIX-идентификатора для пользователя и группы используется "
+"одно и то же значение, для обработки конфликтов необходим вторичный интервал "
+"RID.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=1000"
+"                   --secondary-rid-base=1000000 local_range\n"
+"\n"
+"Данные из диапазонов идентификаторов локального домена используются IPA-"
+"сервером на внутреннем уровне для назначения SID пользователям и группам "
+"IPA. Затем SID сохраняется в объектах пользователя или группы.\n"
+"\n"
+"Если, например, диапазон идентификаторов для локального домена настроен со "
+"значениями из примера выше, то новый пользователь с UID 1200007 получит RID "
+"1007. Если этот RID уже используется группой, он будет заменён на 1000007. "
+"Это может произойти только в том случае, если объект пользователя или группы "
+"был создан с фиксированным идентификатором, потому что при автоматическом "
+"назначении один и тот же идентификатор не назначается дважды. Так как одно и "
+"то же пространство имён идентификаторов делят только пользователи и группы, "
+"для обработки конфликтов достаточно одного резервного диапазона.\n"
+"\n"
+"Для определения POSIX-идентификатора по указанному RID из локального домена "
+"следует сначала проверить, попадает ли RID в основной или вторичный диапазон "
+"RID, а потом вычесть, соответственно, rid-base или secondary-rid-base, затем "
+"добавить base-id.\n"
+"\n"
+"Обычно создание диапазонов идентификаторов является внешне незаметным и не "
+"требует использования интерфейса командной строки. Диапазон идентификаторов "
+"для локального домена будет создан во время установки или обновления "
+"предыдущей версии. Диапазон идентификаторов для доверенного домена будет "
+"создан при создании отношения доверия с помощью команды \"ipa trust-add "
+"...\".\n"
+"\n"
+"СЛУЧАИ ИСПОЛЬЗОВАНИЯ:\n"
+"\n"
+"  Добавление диапазона идентификаторов из домена, с которым установлено "
+"транзитивное отношение доверия\n"
+"\n"
+"    Если у доверенного домена (A) также установлено отношение доверия с "
+"другим доменом (B) и оно является транзитивным, то команда \"ipa trust-add "
+"domain-A\" создаст диапазон только для домена A. Диапазон идентификаторов "
+"для домена B следует добавить вручную.\n"
+"\n"
+"  Добавление дополнительного диапазона идентификаторов для локального "
+"домена\n"
+"\n"
+"    Если диапазон идентификаторов локального домена исчерпан, то есть с "
+"помощью подключаемого модуля DNA невозможно назначить новые идентификаторы "
+"POSIX-пользователям или POSIX-группам, необходимо новый диапазон для "
+"добавления новых пользователей и групп. (В текущей версии данный интерфейс "
+"командной строки и подключаемый модуль DNA не связаны непосредственно, но в "
+"будущей версии может появиться возможность внесения изменений также и в "
+"конфигурацию подключаемого модуля DNA.)\n"
+"\n"
+"В целом, в изменении или удалении диапазонов идентификаторов нет "
+"необходимости. Если для выполнения определённой настройки приходится "
+"изменить или удалить диапазон идентификаторов, это следует делать крайне "
+"осторожно. Поскольку UID хранятся в файловой системе и используются для "
+"управления доступом, возможна ситуация, когда одни пользователи получат "
+"доступ к файлам других пользователей вследствие удаления диапазона "
+"идентификаторов и повторного его использования в другом домене.\n"
+"\n"
+"(*) RID обычно является последним целым числом SID пользователя или группы, "
+"который указывается после SID домена. Например, если SID домена S-1-5-21-123-"
+"456-789, а пользователь из этого домена имеет SID S-1-5-21-123-456-789-1010, "
+"RID пользователя будет 1010. RID являются уникальными в пределах домена, "
+"имеют 32-битные значения и используются для пользователей и групп.\n"
+"\n"
+"ПРЕДУПРЕЖДЕНИЕ:\n"
+"\n"
+"Подключаемый модуль DNA в 389-ds выделяет идентификаторы на основе "
+"диапазонов, настроенных для локального домена. В текущей версии сам "
+"подключаемый модуль DNA *нельзя* перенастраивать на основе локальных "
+"диапазонов, установленных с помощью этого семейства команд.\n"
+"\n"
+"Для нового локального диапазона следует вручную изменить настройки "
+"конфигурации подключаемого модуля DNA. В частности, следует изменить атрибут "
+"dnaNextRange \"cn=Posix IDs,cn=Distributed Numeric Assignment "
+"Plugin,cn=plugins,cn=config\" таким образом, чтобы он соответствовал новому "
+"диапазону.\n"
 
 msgid ""
 "\n"
@@ -31632,103 +31500,6 @@ msgstr ""
 "Разделённый запятыми список разрешений, которые следует предоставить (read, "
 "write). По умолчанию предоставляется разрешение \"write\" (запись)."
 
-#, fuzzy
-#| msgid ""
-#| "\n"
-#| "Groups of users\n"
-#| "\n"
-#| "Manage groups of users. By default, new groups are POSIX groups. You\n"
-#| "can add the --nonposix option to the group-add command to mark a new "
-#| "group\n"
-#| "as non-POSIX. You can use the --posix argument with the group-mod "
-#| "command\n"
-#| "to convert a non-POSIX group into a POSIX group. POSIX groups cannot be\n"
-#| "converted to non-POSIX groups.\n"
-#| "\n"
-#| "Every group must have a description.\n"
-#| "\n"
-#| "POSIX groups must have a Group ID (GID) number. Changing a GID is\n"
-#| "supported but can have an impact on your file permissions. It is not "
-#| "necessary\n"
-#| "to supply a GID when creating a group. IPA will generate one "
-#| "automatically\n"
-#| "if it is not provided.\n"
-#| "\n"
-#| "EXAMPLES:\n"
-#| "\n"
-#| " Add a new group:\n"
-#| "   ipa group-add --desc='local administrators' localadmins\n"
-#| "\n"
-#| " Add a new non-POSIX group:\n"
-#| "   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
-#| "\n"
-#| " Convert a non-POSIX group to posix:\n"
-#| "   ipa group-mod --posix remoteadmins\n"
-#| "\n"
-#| " Add a new POSIX group with a specific Group ID number:\n"
-#| "   ipa group-add --gid=500 --desc='unix admins' unixadmins\n"
-#| "\n"
-#| " Add a new POSIX group and let IPA assign a Group ID number:\n"
-#| "   ipa group-add --desc='printer admins' printeradmins\n"
-#| "\n"
-#| " Remove a group:\n"
-#| "   ipa group-del unixadmins\n"
-#| "\n"
-#| " To add the \"remoteadmins\" group to the \"localadmins\" group:\n"
-#| "   ipa group-add-member --groups=remoteadmins localadmins\n"
-#| "\n"
-#| " Add multiple users to the \"localadmins\" group:\n"
-#| "   ipa group-add-member --users=test1 --users=test2 localadmins\n"
-#| "\n"
-#| " Remove a user from the \"localadmins\" group:\n"
-#| "   ipa group-remove-member --users=test2 localadmins\n"
-#| "\n"
-#| " Display information about a named group.\n"
-#| "   ipa group-show localadmins\n"
-#| "\n"
-#| "External group membership is designed to allow users from trusted "
-#| "domains\n"
-#| "to be mapped to local POSIX groups in order to actually use IPA "
-#| "resources.\n"
-#| "External members should be added to groups that specifically created as\n"
-#| "external and non-POSIX. Such group later should be included into one of "
-#| "POSIX\n"
-#| "groups.\n"
-#| "\n"
-#| "An external group member is currently a Security Identifier (SID) as "
-#| "defined by\n"
-#| "the trusted domain. When adding external group members, it is possible "
-#| "to\n"
-#| "specify them in either SID, or DOM\\name, or name@domain format. IPA will "
-#| "attempt\n"
-#| "to resolve passed name to SID with the use of Global Catalog of the "
-#| "trusted domain.\n"
-#| "\n"
-#| "Example:\n"
-#| "\n"
-#| "1. Create group for the trusted domain admins' mapping and their local "
-#| "POSIX group:\n"
-#| "\n"
-#| "   ipa group-add --desc='<ad.domain> admins external map' "
-#| "ad_admins_external --external\n"
-#| "   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
-#| "\n"
-#| "2. Add security identifier of Domain Admins of the <ad.domain> to the "
-#| "ad_admins_external\n"
-#| "   group:\n"
-#| "\n"
-#| "   ipa group-add-member ad_admins_external --external 'AD\\Domain "
-#| "Admins'\n"
-#| "\n"
-#| "3. Allow members of ad_admins_external group to be associated with "
-#| "ad_admins POSIX group:\n"
-#| "\n"
-#| "   ipa group-add-member ad_admins --groups ad_admins_external\n"
-#| "\n"
-#| "4. List members of external members of ad_admins_external group to see "
-#| "their SIDs:\n"
-#| "\n"
-#| "   ipa group-show ad_admins_external\n"
 msgid ""
 "\n"
 "Groups of users\n"
@@ -31826,7 +31597,7 @@ msgstr ""
 "POSIX-группами. Можно добавить параметр --nonposix в команду group-add, "
 "чтобы отметить новую группу в качестве не-POSIX-группы. В команде group-mod "
 "можно использовать аргумент --posix, чтобы преобразовать не-POSIX-группу в "
-"POSIX-группу. POSIX-группы нельзя преобразовать в не-POSIX-группы. \n"
+"POSIX-группу. POSIX-группы нельзя преобразовать в не-POSIX-группы.\n"
 "\n"
 "У каждой группы должно быть описание.\n"
 "\n"
@@ -31843,7 +31614,7 @@ msgstr ""
 " Добавить новую не-POSIX-группу:\n"
 "   ipa group-add --nonposix --desc='remote administrators' remoteadmins\n"
 "\n"
-" Преобразовать не-POSIX-группу в posix-группу:\n"
+" Преобразовать не-POSIX-группу в POSIX-группу:\n"
 "   ipa group-mod --posix remoteadmins\n"
 "\n"
 " Добавить новую POSIX-группу с определённым ID группы:\n"
@@ -31870,12 +31641,12 @@ msgstr ""
 "Участие внешних групп создано для того, чтобы сделать возможной привязку "
 "пользователей из доверенных доменов к локальным POSIX-группам с целью "
 "использования ресурсов IPA. Внешние участники должны быть добавлены в "
-"группы, которые специально созданы, как внешние и не-POSIX. Такая группа "
-"затем должна быть включена в одну из групп POSIX.\n"
+"группы, которые специально созданы как внешние и не-POSIX. Такая группа "
+"затем должна быть включена в одну из POSIX-групп.\n"
 "\n"
 "В текущей версии участник внешней группы является идентификатором "
 "безопасности (Security Identifier или SID), определённым доверенным доменом. "
-"Добавление участников внешней группы можно выполнить в формате SID, DOM\\имя "
+"Добавление участников внешней группы можно выполнить в формате SID, DOMимя "
 "или имя@домен. IPA попытается определить SID по переданному имени путём "
 "использования общего каталога доверенного домена.\n"
 "\n"
@@ -31884,14 +31655,14 @@ msgstr ""
 "1. Создать группу для привязки администраторов (admins) доверенного домена и "
 "их локальную POSIX-группу:\n"
 "\n"
-"   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external "
-"--external\n"
+"   ipa group-add --desc='<ad.domain> admins external map' "
+"ad_admins_external --external\n"
 "   ipa group-add --desc='<ad.domain> admins' ad_admins\n"
 "\n"
 "2. Добавить идентификатор безопасности Domain Admins домена <ad.domain> "
 "группе ad_admins_external:\n"
 "\n"
-"   ipa group-add-member ad_admins_external --external 'AD\\Domain Admins'\n"
+"   ipa group-add-member ad_admins_external --external 'ADDomain Admins'\n"
 "\n"
 "3. Разрешить привязку группы ad_admins_external к POSIX-группе ad_admins:\n"
 "\n"
@@ -34496,6 +34267,67 @@ msgid ""
 " Set a default Sudo option:\n"
 "   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 msgstr ""
+"\n"
+"Правила Sudo\n"
+"\n"
+"Sudo (su \"do\") позволяет системному администратору делегировать "
+"полномочия, чтобы дать определённым пользователям (или группам "
+"пользователей) возможность выполнять некоторые (или все) команды от имени "
+"пользователя \"root\" или другого пользователя, вместе с тем предоставляя "
+"журнал аудита команд и их аргументов.\n"
+"\n"
+"IPA предоставляет возможности настройки различных аспектов Sudo:\n"
+"   Users: пользователь (пользователи) или группа (группы), которые могут "
+"вызывать Sudo.\n"
+"   Hosts: узел (узлы) или группа (группы) узлов, пользователи которых могут "
+"вызывать Sudo.\n"
+"   Allow Command: конкретная команда (команды), которые разрешены для "
+"выполнения с помощью Sudo.\n"
+"   Deny Command: конкретная команда (команды), которые запрещены для "
+"выполнения с помощью Sudo.\n"
+"   RunAsUser: пользователь (пользователи) или группа (группы) пользователей, "
+"от имени которых Sudo будет выполнять команды.\n"
+"   RunAsGroup: группа (группы), от имени которых Sudo будет выполнять "
+"команды.\n"
+"   Options: различные параметры sudoers (участники Sudo), которые могут "
+"изменить поведение Sudo.\n"
+"\n"
+"Правилу Sudo можно добавить порядок, который будет руководить порядком "
+"обработки записей (если такой порядок предусмотрен на клиентской стороне). "
+"Порядок определяется числовым индексом (целое число), который не должен "
+"повторяться.\n"
+"\n"
+"IPA предусматривает специальную привязку DN (binddn) для использования с "
+"Sudo:\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+"\n"
+"Чтобы включить binddn, выполните следующую команду для установки пароля:\n"
+"LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \\\n"
+"    -H ldap://ipa.example.com -ZZ -D \"cn=Directory Manager\" \\\n"
+"    uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+"\n"
+"ПРИМЕРЫ:\n"
+"\n"
+" Создать новое правило:\n"
+"   ipa sudorule-add readfiles\n"
+"\n"
+" Добавить объект команды Sudo и добавить его в правило в качестве "
+"разрешённой команды:\n"
+"   ipa sudocmd-add /usr/bin/less\n"
+"   ipa sudorule-add-allow-command readfiles --sudocmds /usr/bin/less\n"
+"\n"
+" Добавить узел в правило:\n"
+"   ipa sudorule-add-host readfiles --hosts server.example.com\n"
+"\n"
+" Добавить пользователя в правило:\n"
+"   ipa sudorule-add-user readfiles --users jsmith\n"
+"\n"
+" Добавить специальное правило Sudo для конфигурации сервера Sudo по "
+"умолчанию:\n"
+"   ipa sudorule-add defaults\n"
+"\n"
+" Указать параметр Sudo по умолчанию:\n"
+"   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 
 msgid "sudo command groups to add"
 msgstr "группы команд Sudo, которые следует добавить"
@@ -35173,6 +35005,146 @@ msgid ""
 "modified to match the new range.\n"
 "=======\n"
 msgstr ""
+"\n"
+"Диапазоны идентификаторов\n"
+"\n"
+"Управление диапазонами идентификаторов, которые используются для "
+"сопоставления POSIX-идентификаторов с идентификаторами безопасности (SID) и "
+"наоборот.\n"
+"\n"
+"С помощью этой программы можно управлять обоими типами диапазонов "
+"идентификаторов:\n"
+"\n"
+" - диапазоны идентификаторов локального домена\n"
+" - диапазоны идентификаторов доверенных удалённых доменов\n"
+"\n"
+"Следующие атрибуты являются общими для обоих типов:\n"
+"\n"
+" - base-id: первый идентификатор из диапазона POSIX-идентификаторов\n"
+" - range-size: размер диапазона\n"
+"\n"
+"С этими двумя атрибутами объект диапазона может зарезервировать POSIX-"
+"идентификаторы, начиная с base-id и до (но не включительно) base-id+range-"
+"size.\n"
+"\n"
+"Кроме того, можно установить диапазон идентификаторов локального домена\n"
+" - rid-base: первый RID(*) соответствующего диапазона RID\n"
+" - secondary-rid-base: первый RID вторичного диапазона RID\n"
+"\n"
+"а диапазон идентификаторов доверенного домена следует задавать с помощью\n"
+" - rid-base: первый RID соответствующего диапазона RID\n"
+" - sid: SID доверенного домена\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для доверенного домена\n"
+"\n"
+"Так как доверенных доменов может быть несколько, необходимо указать SID "
+"домена при создании диапазона идентификаторов.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0"
+"                   --dom-sid=S-1-5-21-123-456-789 trusted_dom_range\n"
+"\n"
+"Этот диапазон идентификаторов затем будет использоваться IPA-сервером и "
+"поставщиком данных IPA SSSD для назначения UID POSIX пользователям из "
+"доверенного домена.\n"
+"\n"
+"Если, например, для доверенного домена настроен диапазон со следующими "
+"значениями:\n"
+" base-id = 1200000\n"
+" range-size = 200000\n"
+" rid-base = 0\n"
+"RID от 0 до 199999 привязываются к POSIX-идентификаторам от 1200000 до "
+"13999999. Следовательно,\n"
+"RID 1000 <-> Posix ID 1201000\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для локального домена\n"
+"\n"
+"При создании диапазона идентификаторов для локального домена нет "
+"необходимости указывать SID домена. Но, так как существует вероятность того, "
+"что в качестве POSIX-идентификатора для пользователя и группы используется "
+"одно и то же значение, для обработки конфликтов необходим вторичный интервал "
+"RID.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=1000"
+"                   --secondary-rid-base=1000000 local_range\n"
+"\n"
+"Данные из диапазонов идентификаторов локального домена используются IPA-"
+"сервером на внутреннем уровне для назначения SID пользователям и группам "
+"IPA. Затем SID сохраняется в объектах пользователя или группы.\n"
+"\n"
+"Если, например, диапазон идентификаторов для локального домена настроен со "
+"значениями из примера выше, то новый пользователь с UID 1200007 получит RID "
+"1007. Если этот RID уже используется группой, он будет заменён на 1000007. "
+"Это может произойти только в том случае, если объект пользователя или группы "
+"был создан с фиксированным идентификатором, потому что при автоматическом "
+"назначении один и тот же идентификатор не назначается дважды. Так как одно и "
+"то же пространство имён идентификаторов делят только пользователи и группы, "
+"для обработки конфликтов достаточно одного резервного диапазона.\n"
+"\n"
+"Для определения POSIX-идентификатора по указанному RID из локального домена "
+"следует сначала проверить, попадает ли RID в основной или вторичный диапазон "
+"RID, а потом вычесть, соответственно, rid-base или secondary-rid-base, затем "
+"добавить base-id.\n"
+"\n"
+"Обычно создание диапазонов идентификаторов является внешне незаметным и не "
+"требует использования интерфейса командной строки. Диапазон идентификаторов "
+"для локального домена будет создан во время установки или обновления "
+"предыдущей версии. Диапазон идентификаторов для доверенного домена будет "
+"создан при создании отношения доверия с помощью команды \"ipa trust-add "
+"...\".\n"
+"\n"
+"СЛУЧАИ ИСПОЛЬЗОВАНИЯ:\n"
+"\n"
+"  Добавление диапазона идентификаторов из домена, с которым установлено "
+"транзитивное отношение доверия\n"
+"\n"
+"    Если у доверенного домена (A) также установлено отношение доверия с "
+"другим доменом (B) и оно является транзитивным, то команда \"ipa trust-add "
+"domain-A\" создаст диапазон только для домена A. Диапазон идентификаторов "
+"для домена B следует добавить вручную.\n"
+"\n"
+"  Добавление дополнительного диапазона идентификаторов для локального "
+"домена\n"
+"\n"
+"    Если диапазон идентификаторов локального домена исчерпан, то есть с "
+"помощью подключаемого модуля DNA невозможно назначить новые идентификаторы "
+"POSIX-пользователям или POSIX-группам, необходимо новый диапазон для "
+"добавления новых пользователей и групп. (В текущей версии данный интерфейс "
+"командной строки и подключаемый модуль DNA не связаны непосредственно, но в "
+"будущей версии может появиться возможность внесения изменений также и в "
+"конфигурацию подключаемого модуля DNA.)\n"
+"\n"
+"В целом, в изменении или удалении диапазонов идентификаторов нет "
+"необходимости. Если для выполнения определённой настройки приходится "
+"изменить или удалить диапазон идентификаторов, это следует делать крайне "
+"осторожно. Поскольку UID хранятся в файловой системе и используются для "
+"управления доступом, возможна ситуация, когда одни пользователи получат "
+"доступ к файлам других пользователей вследствие удаления диапазона "
+"идентификаторов и повторного его использования в другом домене.\n"
+"\n"
+"(*) RID обычно является последним целым числом SID пользователя или группы, "
+"который указывается после SID домена. Например, если SID домена S-1-5-21-123-"
+"456-789, а пользователь из этого домена имеет SID S-1-5-21-123-456-789-1010, "
+"RID пользователя будет 1010. RID являются уникальными в пределах домена, "
+"имеют 32-битные значения и используются для пользователей и групп.\n"
+"\n"
+"=======\n"
+"ПРЕДУПРЕЖДЕНИЕ:\n"
+"\n"
+"Подключаемый модуль DNA в 389-ds выделяет идентификаторы на основе "
+"диапазонов, настроенных для локального домена. В текущей версии сам "
+"подключаемый модуль DNA *нельзя* перенастраивать на основе локальных "
+"диапазонов, установленных с помощью этого семейства команд.\n"
+"\n"
+"Для нового локального диапазона следует вручную изменить настройки "
+"конфигурации подключаемого модуля DNA. В частности, следует изменить атрибут "
+"dnaNextRange \"cn=Posix IDs,cn=Distributed Numeric Assignment "
+"Plugin,cn=plugins,cn=config\" таким образом, чтобы он соответствовал новому "
+"диапазону.\n"
+"=======\n"
 
 msgid "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local"
 msgstr ""
@@ -36590,6 +36562,144 @@ msgid ""
 "be\n"
 "modified to match the new range.\n"
 msgstr ""
+"\n"
+"Диапазоны идентификаторов\n"
+"\n"
+"Управление диапазонами идентификаторов, которые используются для "
+"сопоставления POSIX-идентификаторов с идентификаторами безопасности (SID) и "
+"наоборот.\n"
+"\n"
+"С помощью этой программы можно управлять обоими типами диапазонов "
+"идентификаторов:\n"
+"\n"
+" - диапазоны идентификаторов локального домена\n"
+" - диапазоны идентификаторов доверенных удалённых доменов\n"
+"\n"
+"Следующие атрибуты являются общими для обоих типов:\n"
+"\n"
+" - base-id: первый идентификатор из диапазона POSIX-идентификаторов\n"
+" - range-size: размер диапазона\n"
+"\n"
+"С этими двумя атрибутами объект диапазона может зарезервировать POSIX-"
+"идентификаторы, начиная с base-id и до (но не включительно) base-id+range-"
+"size.\n"
+"\n"
+"Кроме того, можно установить диапазон идентификаторов локального домена\n"
+" - rid-base: первый RID(*) соответствующего диапазона RID\n"
+" - secondary-rid-base: первый RID вторичного диапазона RID\n"
+"\n"
+"а диапазон идентификаторов доверенного домена следует задавать с помощью\n"
+" - rid-base: первый RID соответствующего диапазона RID\n"
+" - sid: SID доверенного домена\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для доверенного домена\n"
+"\n"
+"Так как доверенных доменов может быть несколько, необходимо указать SID "
+"домена при создании диапазона идентификаторов.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0"
+"                   --dom-sid=S-1-5-21-123-456-789 trusted_dom_range\n"
+"\n"
+"Этот диапазон идентификаторов затем будет использоваться IPA-сервером и "
+"поставщиком данных IPA SSSD для назначения UID POSIX пользователям из "
+"доверенного домена.\n"
+"\n"
+"Если, например, для доверенного домена настроен диапазон со следующими "
+"значениями:\n"
+" base-id = 1200000\n"
+" range-size = 200000\n"
+" rid-base = 0\n"
+"RID от 0 до 199999 привязываются к POSIX-идентификаторам от 1200000 до "
+"13999999. Следовательно,\n"
+"RID 1000 <-> Posix ID 1201000\n"
+"\n"
+"\n"
+"\n"
+"ПРИМЕР: добавление нового диапазона идентификаторов для локального домена\n"
+"\n"
+"При создании диапазона идентификаторов для локального домена нет "
+"необходимости указывать SID домена. Но, так как существует вероятность того, "
+"что в качестве POSIX-идентификатора для пользователя и группы используется "
+"одно и то же значение, для обработки конфликтов необходим вторичный интервал "
+"RID.\n"
+"\n"
+"  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=1000"
+"                   --secondary-rid-base=1000000 local_range\n"
+"\n"
+"Данные из диапазонов идентификаторов локального домена используются IPA-"
+"сервером на внутреннем уровне для назначения SID пользователям и группам "
+"IPA. Затем SID сохраняется в объектах пользователя или группы.\n"
+"\n"
+"Если, например, диапазон идентификаторов для локального домена настроен со "
+"значениями из примера выше, то новый пользователь с UID 1200007 получит RID "
+"1007. Если этот RID уже используется группой, он будет заменён на 1000007. "
+"Это может произойти только в том случае, если объект пользователя или группы "
+"был создан с фиксированным идентификатором, потому что при автоматическом "
+"назначении один и тот же идентификатор не назначается дважды. Так как одно и "
+"то же пространство имён идентификаторов делят только пользователи и группы, "
+"для обработки конфликтов достаточно одного резервного диапазона.\n"
+"\n"
+"Для определения POSIX-идентификатора по указанному RID из локального домена "
+"следует сначала проверить, попадает ли RID в основной или вторичный диапазон "
+"RID, а потом вычесть, соответственно, rid-base или secondary-rid-base, затем "
+"добавить base-id.\n"
+"\n"
+"Обычно создание диапазонов идентификаторов является внешне незаметным и не "
+"требует использования интерфейса командной строки. Диапазон идентификаторов "
+"для локального домена будет создан во время установки или обновления "
+"предыдущей версии. Диапазон идентификаторов для доверенного домена будет "
+"создан при создании отношения доверия с помощью команды \"ipa trust-add "
+"...\".\n"
+"\n"
+"СЛУЧАИ ИСПОЛЬЗОВАНИЯ:\n"
+"\n"
+"  Добавление диапазона идентификаторов из домена, с которым установлено "
+"транзитивное отношение доверия\n"
+"\n"
+"    Если у доверенного домена (A) также установлено отношение доверия с "
+"другим доменом (B) и оно является транзитивным, то команда \"ipa trust-add "
+"domain-A\" создаст диапазон только для домена A. Диапазон идентификаторов "
+"для домена B следует добавить вручную.\n"
+"\n"
+"  Добавление дополнительного диапазона идентификаторов для локального "
+"домена\n"
+"\n"
+"    Если диапазон идентификаторов локального домена исчерпан, то есть с "
+"помощью подключаемого модуля DNA невозможно назначить новые идентификаторы "
+"POSIX-пользователям или POSIX-группам, необходимо новый диапазон для "
+"добавления новых пользователей и групп. (В текущей версии данный интерфейс "
+"командной строки и подключаемый модуль DNA не связаны непосредственно, но в "
+"будущей версии может появиться возможность внесения изменений также и в "
+"конфигурацию подключаемого модуля DNA.)\n"
+"\n"
+"В целом, в изменении или удалении диапазонов идентификаторов нет "
+"необходимости. Если для выполнения определённой настройки приходится "
+"изменить или удалить диапазон идентификаторов, это следует делать крайне "
+"осторожно. Поскольку UID хранятся в файловой системе и используются для "
+"управления доступом, возможна ситуация, когда одни пользователи получат "
+"доступ к файлам других пользователей вследствие удаления диапазона "
+"идентификаторов и повторного его использования в другом домене.\n"
+"\n"
+"(*) RID обычно является последним целым числом SID пользователя или группы, "
+"который указывается после SID домена. Например, если SID домена S-1-5-21-123-"
+"456-789, а пользователь из этого домена имеет SID S-1-5-21-123-456-789-1010, "
+"RID пользователя будет 1010. RID являются уникальными в пределах домена, "
+"имеют 32-битные значения и используются для пользователей и групп.\n"
+"\n"
+"ПРЕДУПРЕЖДЕНИЕ:\n"
+"\n"
+"Подключаемый модуль DNA в 389-ds выделяет идентификаторы на основе "
+"диапазонов, настроенных для локального домена. В текущей версии сам "
+"подключаемый модуль DNA *нельзя* перенастраивать на основе локальных "
+"диапазонов, установленных с помощью этого семейства команд.\n"
+"\n"
+"Для нового локального диапазона следует вручную изменить настройки "
+"конфигурации подключаемого модуля DNA. В частности, следует изменить атрибут "
+"dnaNextRange \"cn=Posix IDs,cn=Distributed Numeric Assignment "
+"Plugin,cn=plugins,cn=config\" таким образом, чтобы он соответствовал новому "
+"диапазону.\n"
 
 msgid ""
 "\n"
@@ -37265,10 +37375,9 @@ msgstr ""
 "\n"
 
 #: client/ipa-getkeytab.c:774
-#, fuzzy, c-format
-#| msgid "Passwords do not match!"
+#, c-format
 msgid "Passwords do not match!\n"
-msgstr "Пароли не совпадают!"
+msgstr "Пароли не совпадают!\n"
 
 #: client/ipa-getkeytab.c:804
 #, c-format
@@ -37304,7 +37413,7 @@ msgstr "Вывести отладочные данные"
 
 #: client/ipa-getkeytab.c:944
 msgid "Output debug info"
-msgstr ""
+msgstr "Вывести отладочную информацию"
 
 #: client/ipa-getkeytab.c:946
 msgid "Contact this specific KDC Server"
@@ -37455,28 +37564,27 @@ msgstr "Невозможно одновременно указать серве�
 #: client/ipa-getkeytab.c:1105
 #, c-format
 msgid "DNS discovery for domain %s\n"
-msgstr ""
+msgstr "Обнаружение DNS для домена %s\n"
 
 #: client/ipa-getkeytab.c:1110
-#, fuzzy, c-format
-#| msgid "Advertised by servers"
+#, c-format
 msgid "Discovered server %s\n"
-msgstr "Сообщено серверами"
+msgstr "Обнаруженный сервер %s\n"
 
 #: client/ipa-getkeytab.c:1116
 #, c-format
 msgid "Using discovered server %s\n"
-msgstr ""
+msgstr "Используется обнаруженный сервер %s\n"
 
 #: client/ipa-getkeytab.c:1125
 #, c-format
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "Не удалось выполнить обнаружение DNS\n"
 
 #: client/ipa-getkeytab.c:1145
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "Использование сервера из конфигурации %s\n"
 
 #: client/ipa-getkeytab.c:1148
 #, c-format
@@ -37484,10 +37592,9 @@ msgid "Server name not provided and unavailable\n"
 msgstr "Не указано имя сервера, сервер недоступен\n"
 
 #: client/ipa-getkeytab.c:1153
-#, fuzzy, c-format
-#| msgid "Ping a remote server."
+#, c-format
 msgid "Using provided server %s\n"
-msgstr "Проверить связь с удалённым сервером."
+msgstr "Использование указанного сервера %s\n"
 
 #: client/ipa-getkeytab.c:1168
 #, c-format
@@ -37613,10 +37720,9 @@ msgstr "krb5_kt_remove_entry %1$d: %2$s\n"
 
 #: client/ipa-rmkeytab.c:132 client/ipa-rmkeytab.c:154
 #: client/ipa-rmkeytab.c:169 client/ipa-rmkeytab.c:274
-#, fuzzy, c-format
-#| msgid "Failed to get result: %s\n"
+#, c-format
 msgid "Failed to set cursor '%1$s'\n"
-msgstr "Не удалось получить результат: %s\n"
+msgstr "Не удалось установить курсор '%1$s'\n"
 
 #: client/ipa-rmkeytab.c:141
 #, c-format
