@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2026-08-19 19:12+0000\n"
-"PO-Revision-Date: 2026-08-19 21:32+0000\n"
+"PO-Revision-Date: 2026-08-20 12:13+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/freeipa/"
 "stable-release/es/>\n"
@@ -3353,8 +3353,7 @@ msgstr ""
 #, fuzzy, python-brace-format
 #| msgid "Allow host groups to retrieve keytab of '${primary_key}'"
 msgid "Add netgroups into netgroup '${primary_key}'"
-msgstr ""
-"Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
+msgstr "Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1167
 #, fuzzy, python-brace-format
@@ -3373,8 +3372,7 @@ msgstr "Permitir a hosts recuperar tabla de teclas de '${primary_key}'"
 #, fuzzy, python-brace-format
 #| msgid "Allow host groups to retrieve keytab of '${primary_key}'"
 msgid "Add host groups into netgroup '${primary_key}'"
-msgstr ""
-"Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
+msgstr "Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1176
 #, fuzzy, python-brace-format
@@ -3431,15 +3429,13 @@ msgstr "Permitir a hosts recuperar tabla de teclas de '${primary_key}'"
 #, fuzzy, python-brace-format
 #| msgid "Allow host groups to retrieve keytab of '${primary_key}'"
 msgid "Remove host groups from netgroup '${primary_key}'"
-msgstr ""
-"Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
+msgstr "Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1200
 #, fuzzy, python-brace-format
 #| msgid "Allow host groups to retrieve keytab of '${primary_key}'"
 msgid "Remove netgroups from netgroup '${primary_key}'"
-msgstr ""
-"Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
+msgstr "Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1203
 #, fuzzy, python-brace-format
@@ -3788,8 +3784,7 @@ msgstr "Añadir usuarios y grupos a una regla de Mapa de Usuario SELinux."
 #, fuzzy, python-brace-format
 #| msgid "Allow host groups to retrieve keytab of '${primary_key}'"
 msgid "Add host groups into SELinux user map '${primary_key}'"
-msgstr ""
-"Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
+msgstr "Permitir a grupos de host recuperar tabla de teclas de '${primary_key}'"
 
 #: ipaserver/plugins/internal.py:1308
 #, fuzzy, python-brace-format
@@ -16462,8 +16457,7 @@ msgstr "Búsqueda de servicios sin aquellos gestionados por hosts."
 #, fuzzy
 #| msgid "Checks if any of the servers has the DNS service enabled."
 msgid "Checks if any of the servers has the CA service enabled."
-msgstr ""
-"Comprueba si alguno de los servidores tiene un servicio DNS habilitado."
+msgstr "Comprueba si alguno de los servidores tiene un servicio DNS habilitado."
 
 #: ipaserver/plugins/ldap2.py:278
 msgid "Could not read UPG Definition originfilter. Check your permissions."
@@ -18566,8 +18560,7 @@ msgstr "Borrar miembros de un rol."
 #, fuzzy
 #| msgid "Checks if any of the servers has the DNS service enabled."
 msgid "Checks if any of the servers has the KRA service enabled"
-msgstr ""
-"Comprueba si alguno de los servidores tiene un servicio DNS habilitado."
+msgstr "Comprueba si alguno de los servidores tiene un servicio DNS habilitado."
 
 #: ipaserver/plugins/trust.py:84
 msgid ""
@@ -30737,8 +30730,7 @@ msgstr "Grupos de servicio de Miembros de HBAC"
 #, fuzzy
 #| msgid "Results should contain primary key attribute only (\"%s\")"
 msgid "Results should contain primary key attribute only (\"service\")"
-msgstr ""
-"Los resultados deberían contener sólo atributo de clave primaria (“%s”)"
+msgstr "Los resultados deberían contener sólo atributo de clave primaria (“%s”)"
 
 msgid ""
 "\n"
@@ -31171,8 +31163,8 @@ msgstr ""
 "1. Establecer confianza de reino cruzado con Active Directory usando el \n"
 "   dministrador de credenciales AD:\n"
 "\n"
-"   ipa trust-add --type=ad <ad.domain> --admin <AD domain "
-"administrator>            --password\n"
+"   ipa trust-add --type=ad <ad.domain> --admin <AD domain administrator>"
+"            --password\n"
 "\n"
 "2. Listar todas las relaciones de confianza existentes:\n"
 "\n"
@@ -31315,8 +31307,8 @@ msgstr ""
 "específico\n"
 "o con detección automática del tipo de rango y usted desea configurar un "
 "tipo de\n"
-"rango diferente, usted puede necesitar borrar primero la ID del rango "
-"usando \n"
+"rango diferente, usted puede necesitar borrar primero la ID del rango usando "
+"\n"
 "ipa idrange-del antes de reintentar el comando con el rango deseado.\n"
 "    "
 
@@ -31524,7 +31516,9 @@ msgstr ""
 msgid ""
 "comma-separated list of members of a trusted domain in DOM\\name or "
 "name@domain form"
-msgstr "Miembros de un dominio de confianza en formato DOM\\name o name@domain"
+msgstr ""
+"Miembros de un dominio de confianza en formato DOM\\n"
+"ame o name@domain"
 
 #, fuzzy
 #| msgid "Results should contain primary key attribute only (\"name\")"
@@ -32905,8 +32899,8 @@ msgstr ""
 "\n"
 "Una ID de Perfil es una cadena sin espacios o puntuación que empieza con "
 "una\n"
-"letra y seguida por una secuencia de letras, dígitos o guiones bajos "
-"(\"_\").\n"
+"letra y seguida por una secuencia de letras, dígitos o guiones bajos (\"_\")"
+".\n"
 "\n"
 "EJEMPLOS:\n"
 "\n"
@@ -32952,8 +32946,7 @@ msgstr ""
 #, fuzzy
 #| msgid "Results should contain primary key attribute only (\"%s\")"
 msgid "Results should contain primary key attribute only (\"id\")"
-msgstr ""
-"Los resultados deberían contener sólo atributo de clave primaria (“%s”)"
+msgstr "Los resultados deberían contener sólo atributo de clave primaria (“%s”)"
 
 #, fuzzy
 #| msgid ""
