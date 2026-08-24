@@ -85,7 +85,10 @@ class Principal:
 
     def __eq__(self, other):
         if not isinstance(other, Principal):
-            return False
+            try:
+                other = Principal(other)
+            except TypeError:
+                return False
 
         return (self.components == other.components and
                 self.realm == other.realm)
