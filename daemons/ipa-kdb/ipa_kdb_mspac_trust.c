@@ -478,7 +478,7 @@ ipadb_check_trust_view_override(krb5_context context,
         goto end;
     }
 
-    uid_values = ldap_get_values_len(ipactx->lcontext, entry, "uid");
+    uid_values = ldap_get_values_len(ipactx->lcontext, entry, "ipaOriginalUid");
     if (!uid_values || !uid_values[0]) {
         *status = "TRUST_OVERRIDE_UID_UNDEFINED";
         kerr = EINVAL;
