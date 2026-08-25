@@ -37,6 +37,7 @@ from ipalib.util import json_serialize, validate_hostname
 from ipalib.capabilities import client_has_capability
 from ipalib.messages import add_message, SearchResultTruncated
 from ipalib.plugable import Registry
+from ipalib.request import context
 from ipapython.dn import DN, RDN
 from ipapython.version import API_VERSION
 
@@ -997,6 +998,40 @@ last, after all sets and adds."""),
                                               'post',
                                               'exc')
 
+    enforce_managed_permission_operations = []
+
+    def enforce_managed_permissions(self):
+        from ipaserver.plugins.privilege import principal_has_privilege
+        mp = getattr(self.obj, 'managed_permissions', None)
+        if not mp:
+            return
+
+        enforce_mp = self.enforce_managed_permission_operations
+        if not enforce_mp:
+            return
+
+        op_account = getattr(context, 'principal', None)
+        for m in mp.keys():
+            perm = mp[m]
+            rights = list(perm['ipapermright'])
+            defaults = list(perm.get('default_privileges', {}))
+            for r in rights:
+                if not (r in enforce_mp):
+                    continue
+
+                if not defaults:
+                    continue
+
+                results = []
+                for priv in defaults:
+                    results.append(
+                        principal_has_privilege(self.api, op_account, priv)
+                    )
+
+                if not any(results):
+                    raise errors.ACIError(
+                        info=_("not allowed to perform this operation"))
+
     def get_summary_default(self, output):
         if 'value' in output:
             output = dict(output)
@@ -1232,11 +1267,13 @@ last, after all sets and adds."""),
                     )
                     break
 
+
 class LDAPCreate(BaseLDAPCommand, crud.Create):
     """
     Create a new entry in LDAP.
     """
     takes_options = (BaseLDAPCommand.setattr_option, BaseLDAPCommand.addattr_option)
+    enforce_managed_permission_operations = ['add']
 
     def get_args(self):
         for key in self.obj.get_ancestor_primary_keys():
@@ -1247,6 +1284,8 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
     has_output_params = global_output_params
 
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions()
+
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
@@ -1406,7 +1445,11 @@ class LDAPRetrieve(LDAPQuery):
         ),
     )
 
+    enforce_managed_permission_operations = ['read', 'compare', 'search']
+
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions()
+
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
@@ -1483,6 +1526,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
     has_output_params = global_output_params
     allow_empty_update = False
+    enforce_managed_permission_operations = ['write']
 
     def _get_rename_option(self):
         rdnparam = getattr(self.obj.params, self.obj.primary_key.name)
@@ -1500,6 +1544,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             yield self._get_rename_option()
 
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions()
+
         ldap = self.obj.backend
 
         if len(options) == 2: # 'all' and 'raw' are always sent
@@ -1633,7 +1679,11 @@ class LDAPDelete(LDAPMultiQuery):
 
     subtree_delete = True
 
+    enforce_managed_permission_operations = ['delete']
+
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions()
+
         ldap = self.obj.backend
 
         def delete_entry(pkey):
@@ -2454,6 +2504,8 @@ class BaseLDAPModAttribute(LDAPQuery):
         )
 
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions()
+
         ldap = self.obj.backend
         try:
             index = tuple(self.args).index(self.attribute)
