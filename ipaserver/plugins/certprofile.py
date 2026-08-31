@@ -268,9 +268,33 @@ class certprofile_import(LDAPCreate):
 
     PROFILE_ID_PATTERN = re.compile(r'^profileId=([a-zA-Z]\w*)', re.MULTILINE)
 
+    # Dogtag profile policy components (referenced by class_id) that can run
+    # programs / commands on the CA host. certprofile-import otherwise only
+    # validates profileId and passes the rest of the profile straight to
+    # Dogtag, so importing a profile that uses one of these reaches code
+    # execution as pkiuser. Reject them here; a deployment that legitimately
+    # needs such a component must configure the profile directly on the CA,
+    # out of band, rather than through the IPA API.
+    DANGEROUS_CLASS_IDS = frozenset({
+        u'externalprocessconstraintimpl',
+    })
+
+    CLASS_ID_PATTERN = re.compile(r'class_id\s*=\s*(\S+)', re.MULTILINE)
+
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
         ca_enabled_check(self.api)
         context.profile = options['file']
+
+        for class_id in self.CLASS_ID_PATTERN.findall(options['file']):
+            if class_id.strip().lower() in self.DANGEROUS_CLASS_IDS:
+                raise errors.ValidationError(
+                    name='file',
+                    error=_(
+                        "Profile references policy component '%(class_id)s', "
+                        "which can execute programs on the CA host and cannot "
+                        "be imported through IPA."
+                    ) % dict(class_id=class_id.strip())
+                )
 
         matches = self.PROFILE_ID_PATTERN.findall(options['file'])
         if len(matches) == 0:
