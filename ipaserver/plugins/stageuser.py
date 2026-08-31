@@ -117,6 +117,17 @@ logger = logging.getLogger(__name__)
 
 register = Registry()
 
+# Exclude members of the privileged groups (admins, trust admins) from the
+# delegated preserved-/active-user password-reset and RDN-write permissions.
+# Otherwise a Stage User Administrator could reset a preserved privileged
+# account's password (then undelete it) or rename it, escalating to that
+# principal. Mirrors the guard on the active-user "System: Change User
+# password".
+NOT_MEMBEROF_PRIVILEGED = '(!(|(memberOf=%s)(memberOf=%s)))' % (
+    DN('cn=admins', api.env.container_group, api.env.basedn),
+    DN('cn=trust admins', api.env.container_group, api.env.basedn),
+)
+
 
 stageuser_output_params = baseuser_output_params
 
@@ -207,11 +218,19 @@ class stageuser(baseuser):
             'default_privileges': {'Stage User Administrators'},
         },
         # Allow to update Preserved User
+        # Exclude privileged accounts (admins, trust admins): otherwise a
+        # delegated stage administrator could preserve a privileged user, reset
+        # its credentials through this broad write, and undelete it -- a
+        # lifecycle path around the credential exclusions on the active and
+        # preserved-password permissions. Credential resets on preserved users
+        # go through "System: Reset Preserved User password", which carries the
+        # same exclusion.
         'System: Modify Preserved Users': {
             'ipapermlocation': DN(baseuser.delete_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.delete_container_dn, api.env.basedn),
-            'ipapermtargetfilter': {'(objectclass=posixaccount)'},
+            'ipapermtargetfilter': {'(objectclass=posixaccount)',
+                                    NOT_MEMBEROF_PRIVILEGED},
             'ipapermright': {'write'},
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'Stage User Administrators'},
@@ -221,7 +240,8 @@ class stageuser(baseuser):
             'ipapermlocation': DN(baseuser.delete_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.delete_container_dn, api.env.basedn),
-            'ipapermtargetfilter': {'(objectclass=posixaccount)'},
+            'ipapermtargetfilter': {'(objectclass=posixaccount)',
+                                    NOT_MEMBEROF_PRIVILEGED},
             'ipapermright': {'read', 'search', 'write'},
             'ipapermdefaultattr': {
                 'userPassword', 'krbPrincipalKey','krbPasswordExpiration','krbLastPwdChange'
@@ -247,7 +267,8 @@ class stageuser(baseuser):
             'ipapermlocation': DN(baseuser.active_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.active_container_dn, api.env.basedn),
-            'ipapermtargetfilter': {'(objectclass=posixaccount)'},
+            'ipapermtargetfilter': {'(objectclass=posixaccount)',
+                                    NOT_MEMBEROF_PRIVILEGED},
             'ipapermright': {'write'},
             'ipapermdefaultattr': {'uid'},
             'default_privileges': {'Stage User Administrators'},
