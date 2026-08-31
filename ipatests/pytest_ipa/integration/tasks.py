@@ -1154,6 +1154,9 @@ def uninstall_master(host, ignore_topology_disconnect=True,
     host.run_command("find /run/ipa -name 'krb5*' | xargs rm -fv",
                      raiseonerr=False)
     while host.resolver.has_backups():
+        # Network Manager may rewrite resolv.conf during replica
+        # install/uninstall (RHEL)
+        host.resolver.resync_state()
         host.resolver.restore()
     if clean:
         unapply_fixes(host)
@@ -1163,6 +1166,9 @@ def uninstall_client(host):
     host.run_command(['ipa-client-install', '--uninstall', '-U'],
                      raiseonerr=False)
     while host.resolver.has_backups():
+        # Network Manager may rewrite resolv.conf during client
+        # install/uninstall (RHEL)
+        host.resolver.resync_state()
         host.resolver.restore()
     unapply_fixes(host)
 
