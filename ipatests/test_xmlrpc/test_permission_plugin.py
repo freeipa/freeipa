@@ -3156,7 +3156,7 @@ class test_permission_bindtype(Declarative):
 
     tests = [
         dict(
-            desc='Create anonymous %r' % permission1,
+            desc='Try to create anonymous %r with write rights' % permission1,
             command=(
                 'permission_add', [permission1], dict(
                     type=u'user',
@@ -3164,27 +3164,30 @@ class test_permission_bindtype(Declarative):
                     ipapermbindruletype=u'anonymous',
                 )
             ),
+            expected=errors.ValidationError(
+                name='ipapermbindruletype',
+                error=u'the "anonymous" bind type cannot be combined with '
+                      u'write, add or delete rights'),
+        ),
+
+        dict(
+            desc='Create anonymous %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    type=u'user',
+                    ipapermright=u'read',
+                    ipapermbindruletype=u'anonymous',
+                )
+            ),
             expected=dict(
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
-                messages=(
-                    {
-                        'message': ('The permission has write rights but no '
-                                    'attributes are set.'),
-                        'code': 13032,
-                        'type': 'warning',
-                        'name': 'MissingTargetAttributesinPermission',
-                        'data': {
-                            'right': 'write',
-                        }
-                    },
-                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
                     objectclass=objectclasses.permission,
                     type=[u'user'],
-                    ipapermright=[u'write'],
+                    ipapermright=[u'read'],
                     ipapermbindruletype=[u'anonymous'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
@@ -3196,7 +3199,7 @@ class test_permission_bindtype(Declarative):
             permission1, users_dn,
             '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) userdn = "ldap:///anyone";)',
+            'allow (read) userdn = "ldap:///anyone";)',
         ),
 
         dict(
