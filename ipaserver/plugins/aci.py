@@ -273,7 +273,17 @@ def _make_aci(ldap, current, aciname, kw):
         a.name = _make_aci_name(kw['aciprefix'], aciname)
         a.set_permissions(kw['permissions'])
         if 'selfaci' in kw and kw['selfaci']:
-            a.set_bindrule('userdn = "ldap:///self"')
+            # The grant must be satisfiable only by an authenticated bind:
+            # the bound DN has to be the entry's own DN and a real,
+            # non-anonymous DN matching "ldap:///all". An anonymous simple
+            # bind or a SASL ANONYMOUS bind has the empty DN and satisfies
+            # neither clause. No authmethod value means "the client sent no
+            # credentials" (authmethod="none" in an ACI is a no-op that
+            # always evaluates to true), so the "real DN" requirement cannot
+            # be expressed with authmethod; the server-wide "Deny all
+            # modifications for anonymous binds" ACI is the backstop.
+            a.set_bindrule(
+                '(userdn = "ldap:///self" and userdn = "ldap:///all")')
         else:
             dn = entry_attrs['dn']
             a.set_bindrule('groupdn = "ldap:///%s"' % dn)
