@@ -1,0 +1,32 @@
+# No anonymous bind may ever modify the tree.
+#
+# Any self-referential allow ACI - userdn="ldap:///self", or a userattr rule
+# such as ipatokenOwner#SELFDN / managedBy#USERDN - can be satisfied by a
+# credential-less bind. That let an anonymous client create entries under
+# cn=otp via the "Users can create self-managed tokens" ACI.
+#
+# There is no authmethod value that means "the client sent no credentials":
+# the ACI keyword authmethod="none" means "do not check the authentication
+# method" and always evaluates to true, so a deny that ORs in
+# "(authmethod = "none")" would deny to everyone. The only ACI-expressible
+# test for a credential-less bind is the empty DN: an anonymous simple bind
+# and a SASL ANONYMOUS bind both bind with the empty DN, which does not match
+# "ldap:///all", while any authenticated bind (password, GSSAPI, certificate)
+# has a real DN and does. The rule therefore denies userdn != "ldap:///all",
+# and the "absolute" keyword makes the deny final: when the rule matches,
+# access is denied immediately without consulting the other rules, so this
+# closes the whole class of "anonymous principal performs a write"
+# escalations regardless of which allow ACI would otherwise grant it.
+# Authenticated binds (GSSAPI, password simple, ACI-exempt Directory
+# Manager) and reads are unaffected. (An RFC 4513
+# unauthenticated simple bind that keeps a real DN cannot be distinguished
+# from a genuine bind by any ACI clause; keep
+# nsslapd-allow-unauthenticated-binds off.)
+dn: $SUFFIX
+add:aci: (targetattr = "*")(version 3.0; acl "Deny all modifications for anonymous binds"; deny absolute (add,delete,write) userdn != "ldap:///all";)
+
+# The Dogtag PKI database (o=ipaca) is a separate backend with its own ACI set
+# and must be protected the same way. addifexist applies this only on servers
+# that actually host a CA (where o=ipaca exists); CA-less servers skip it.
+dn: o=ipaca
+addifexist:aci: (targetattr = "*")(version 3.0; acl "Deny all modifications for anonymous binds"; deny absolute (add,delete,write) userdn != "ldap:///all";)
