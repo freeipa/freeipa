@@ -23,7 +23,12 @@ add: aci:(targetfilter = "(objectClass=ipatokenTOTP)")(targetattrs = "ipatokenOT
 add: aci:(targetfilter = "(objectClass=ipatokenHOTP)")(targetattrs = "ipatokenOTPalgorithm || ipatokenOTPdigits")(version 3.0; acl "Users/managers can see HOTP details"; allow (read, search, compare) userattr = "ipatokenOwner#USERDN" or userattr = "managedBy#USERDN";)
 add: aci:(targetfilter = "(objectClass=ipaToken)")(targetattrs = "description || ipatokenDisabled || ipatokenNotBefore || ipatokenNotAfter || ipatokenVendor || ipatokenModel || ipatokenSerial")(version 3.0; acl "Managers can write basic token info"; allow (write) userattr = "managedBy#USERDN";)
 add: aci:(targetfilter = "(objectClass=ipaToken)")(version 3.0; acl "Managers can delete tokens"; allow (delete) userattr = "managedBy#USERDN";)
-add: aci:(target = "ldap:///ipatokenuniqueid=*,cn=otp,$SUFFIX")(targetfilter = "(objectClass=ipaToken)")(version 3.0; acl "Users can create self-managed tokens"; allow (add) userattr = "ipatokenOwner#SELFDN" and userattr = "managedBy#SELFDN";)
+# Constrain the self-managed token ADD to the OTP object classes only (and forbid
+# an injected aci), so the SELFDN add path cannot smuggle a Kerberos principal,
+# password or SID into the new entry (attributes that require non-OTP object
+# classes and would fail the objectclass filter / schema).
+remove: aci:(target = "ldap:///ipatokenuniqueid=*,cn=otp,$SUFFIX")(targetfilter = "(objectClass=ipaToken)")(version 3.0; acl "Users can create self-managed tokens"; allow (add) userattr = "ipatokenOwner#SELFDN" and userattr = "managedBy#SELFDN";)
+add: aci:(target = "ldap:///ipatokenuniqueid=*,cn=otp,$SUFFIX")(targetfilter = "(objectClass=ipaToken)")(targattrfilters = "add=objectclass:(|(objectclass=top)(objectclass=ipaToken)(objectclass=ipatokenTOTP)(objectclass=ipatokenHOTP)) && aci:(!(aci=*))")(version 3.0; acl "Users can create self-managed tokens"; allow (add) userattr = "ipatokenOwner#SELFDN" and userattr = "managedBy#SELFDN";)
 
 dn: cn=radiusproxy,$SUFFIX
 default: objectClass: nsContainer
