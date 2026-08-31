@@ -136,7 +136,11 @@ class test_selfservice(Declarative):
                 value=selfservice1,
                 summary=None,
                 result={
-                    'aci': u'(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)',
+                    'aci': u'(targetattr = "street || c || l || st || '
+                    u'postalcode")(version 3.0;acl '
+                    u'"selfservice:testself";allow (write) '
+                    u'(userdn = "ldap:///self" and userdn = '
+                    u'"ldap:///all");)',
                 },
             ),
         ),
@@ -204,7 +208,11 @@ class test_selfservice(Declarative):
                 summary=u'1 selfservice matched',
                 result=[
                     {
-                        'aci': u'(targetattr = "street || c || l || st || postalcode")(version 3.0;acl "selfservice:testself";allow (write) userdn = "ldap:///self";)'
+                        'aci': u'(targetattr = "street || c || l || '
+                        u'st || postalcode")(version 3.0;acl '
+                        u'"selfservice:testself";allow (write) '
+                        u'(userdn = "ldap:///self" and userdn = '
+                        u'"ldap:///all");)'
                     },
                 ],
             ),
@@ -318,7 +326,8 @@ class test_selfservice_misc(Declarative):
                 result={
                     "aci": '(targetattr = "l")(version 3.0;acl '
                     '"selfservice:%s";allow (write) '
-                    'userdn = "ldap:///self";)' % selfservice1,
+                    '(userdn = "ldap:///self" and userdn = '
+                    '"ldap:///all");)' % selfservice1,
                 },
             ),
         ),
@@ -336,7 +345,8 @@ class test_selfservice_misc(Declarative):
                 result={
                     "aci": '(targetattr = "mobile")(version 3.0;acl '
                     '"selfservice:%s";allow (write) '
-                    'userdn = "ldap:///self";)' % selfservice1,
+                    '(userdn = "ldap:///self" and userdn = '
+                    '"ldap:///all");)' % selfservice1,
                 },
             ),
         ),
@@ -792,7 +802,8 @@ class test_selfservice_cli_add_del(Declarative):
                      r'(targetattr = \22badattr\22)'
                      r'(version 3.0;acl '
                      r'\22selfservice:selfservice_add_1002\22;'
-                     r'allow (write) userdn = \22ldap:///self\22;)',
+                     r'allow (write) (userdn = \22ldap:///self\22 '
+                     r'and userdn = \22ldap:///all\22;)',
             ),
         ),
 
@@ -845,7 +856,8 @@ class test_selfservice_cli_add_del(Declarative):
                         '(targetattr = "telephonenumber || mobile || pager'
                         ' || facsimiletelephonenumber")'
                         '(version 3.0;acl "selfservice:%s";'
-                        'allow (write) userdn = "ldap:///self";)'
+                        'allow (write) (userdn = "ldap:///self" and '
+                        'userdn = "ldap:///all");)'
                         % SS_CLI_ADD_1004
                     ),
                 },
@@ -868,7 +880,8 @@ class test_selfservice_cli_add_del(Declarative):
                      r'(targetattr = \22badattrs\22)'
                      r'(version 3.0;acl '
                      r'\22selfservice:selfservice_add_1005\22;'
-                     r'allow (write) userdn = \22ldap:///self\22;)',
+                     r'allow (write) (userdn = \22ldap:///self\22 '
+                     r'and userdn = \22ldap:///all\22;)',
             ),
         ),
 
@@ -1155,7 +1168,7 @@ class test_selfservice_cli_find(Declarative):
                         '(targetattr = "l")'
                         '(version 3.0;acl "selfservice:%s";'
                         'allow (write) '
-                        'userdn = "ldap:///self";)'
+                        '(userdn = "ldap:///self" and userdn = "ldap:///all");)'
                         % SS_CLI_FIND
                     ),
                 }],
@@ -1390,7 +1403,7 @@ class test_selfservice_cli_find(Declarative):
                         '(targetattr = "l")'
                         '(version 3.0;acl "selfservice:%s";'
                         'allow (write) '
-                        'userdn = "ldap:///self";)'
+                        '(userdn = "ldap:///self" and userdn = "ldap:///all");)'
                         % SS_CLI_FIND
                     ),
                 }],
@@ -1472,7 +1485,8 @@ class test_selfservice_show_cli(Declarative):
                            '(version 3.0;acl '
                            '"selfservice:%s";'
                            'allow (write) '
-                           'userdn = "ldap:///self";)'
+                           '(userdn = "ldap:///self" and userdn = '
+                           '"ldap:///all");)'
                            % SS_CLI_SHOW,
                 },
             ),
@@ -1494,7 +1508,8 @@ class test_selfservice_show_cli(Declarative):
                            '(version 3.0;acl '
                            '"selfservice:%s";'
                            'allow (write) '
-                           'userdn = "ldap:///self";)'
+                           '(userdn = "ldap:///self" and userdn = '
+                           '"ldap:///all");)'
                            % SS_CLI_SHOW,
                 },
             ),
@@ -1575,7 +1590,8 @@ class test_selfservice_mod_cli(Declarative):
                     r'(targetattr = \22badattr\22)'
                     r'(version 3.0;acl '
                     r'\22selfservice:%s\22;'
-                    r'allow (write) userdn = \22ldap:///self\22;)'
+                    r'allow (write) (userdn = \22ldap:///self\22 '
+                    r'and userdn = \22ldap:///all\22;)'
                 ) % SS_CLI_MOD,
             ),
         ),
@@ -1641,7 +1657,8 @@ class test_selfservice_mod_cli(Declarative):
                     r'(targetattr = \22badattrs\22)'
                     r'(version 3.0;acl '
                     r'\22selfservice:%s\22;'
-                    r'allow (write) userdn = \22ldap:///self\22;)'
+                    r'allow (write) (userdn = \22ldap:///self\22 '
+                    r'and userdn = \22ldap:///all\22;)'
                 ) % SS_CLI_MOD,
             ),
         ),
