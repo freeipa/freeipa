@@ -1081,12 +1081,12 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     struct ipapwd_operation *pwdop = NULL;
     Slapi_Mods *smods;
     Slapi_Value **pwvals = NULL;
-    int ret;
+    int ret = 0;
     char *errMsg = "Internal operations error\n";
     struct ipapwd_krbcfg *krbcfg = NULL;
     char *principal = NULL;
-    Slapi_Value *ipahost;
-    Slapi_Value *zero;
+    Slapi_Value *ipahost = NULL;
+    Slapi_Value *zero = NULL;
 
     LOG_TRACE("=>\n");
 
@@ -1181,7 +1181,6 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
             if (ret != LDAP_SUCCESS)
                 goto done;
         }
-        slapi_value_free(&ipahost);
     }
     zero = slapi_value_new_string("0");
     if (!slapi_entry_attr_has_syntax_value(pwdop->pwdata.target,
@@ -1192,8 +1191,19 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     slapi_value_free(&zero);
 
     ret = ipapwd_apply_mods(pwdop->pwdata.dn, smods);
-    if (ret)
+    if (ret) {
+        /* Fail closed. This runs as a betxn post-op, so returning an error
+         * aborts the whole transaction (including the ADD/MODIFY). Previously
+         * the failure was only logged, which let an attacker pre-seed a
+         * single-valued krbLastPwdChange to make this compound update fail and
+         * thereby keep injected Kerberos keys usable without the forced
+         * krbPasswordExpiration. If we cannot write the password metadata, the
+         * entry must not keep its keys, so abort instead of continuing. */
         LOG("Failed to set additional password attributes in the post-op!\n");
+        errMsg = "Failed to set password expiration attributes\n";
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
 
     if (!pwdop->skip_keys) {
         if (pwdop->pwdata.changetype == IPA_CHANGETYPE_NORMAL) {
@@ -1206,12 +1216,16 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
     }
 
 done:
+    if (ret != 0) {
+        slapi_send_ldap_result(pb, ret, NULL, errMsg, 0, NULL);
+    }
     if (pwdop && pwdop->pwdata.target) slapi_entry_free(pwdop->pwdata.target);
+    slapi_value_free(&ipahost);
     slapi_mods_free(&smods);
     slapi_ch_free_string(&principal);
     free_ipapwd_krbcfg(&krbcfg);
     ipapwd_free_slapi_value_array(&pwvals);
-    return 0;
+    return ret;
 }
 
 /*
