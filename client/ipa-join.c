@@ -1196,7 +1196,7 @@ join(const char *server, const char *hostname, const char *bindpw, const char *b
     }
 
     if (childpid == 0) {
-        char *argv[12];
+        char *argv[13];
         char *path = "/usr/sbin/ipa-getkeytab";
         int arg = 0;
         int err;
