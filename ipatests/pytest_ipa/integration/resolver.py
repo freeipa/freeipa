@@ -82,6 +82,14 @@ class Resolver(abc.ABC):
         """Checks if stack of backups is not empty"""
         return bool(self.backups)
 
+    def resync_state(self):
+        """Treat the host's current resolver config as expected.
+
+        Use when NetworkManager or IPA install/uninstall rewrote DNS
+        configuration outside Resolver, so restore() can proceed.
+        """
+        self.current_state = self._get_state()
+
     def check_state_expected(self):
         """Checks if resolver configuration has not changed.
 
