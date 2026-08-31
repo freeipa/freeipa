@@ -174,3 +174,94 @@ def test_aci_parsing_10():
                       '(version 3.0;acl "Allow trust agents to retrieve '
                       'keytab keys for cross realm principals";allow (read) '
                       'userattr = "ipaAllowedToPerform;read_keys#GROUPDN";)')
+
+
+def test_aci_parsing_deny_anonymous_bindrule():
+    """The server-wide anonymous-modification deny is a single != term with
+    the "absolute" keyword and round-trips with no suffix."""
+    source = ('(targetattr = "*")(version 3.0;acl '
+              '"Deny all modifications for anonymous binds";'
+              'deny absolute (add,delete,write) userdn != "ldap:///all";)')
+    check_aci_parsing(source, source)
+    a = ACI(source)
+    assert a.action == 'deny'
+    assert a.absolute is True
+    assert a.permissions == ['add', 'delete', 'write']
+    assert a.bindrule['keyword'] == 'userdn'
+    assert a.bindrule['operator'] == '!='
+    assert a.bindrule['expression'] == 'ldap:///all'
+    assert a.bindrule_suffix is None
+    assert a.bindrule_parenthesized is False
+
+
+def test_aci_parsing_parenthesized_selfservice_bindrule():
+    """A compound bind rule wrapped in its own outer parentheses (the
+    self-service self+real-DN rule) parses without error, keeps the first
+    clause as the primary term and the rest as a verbatim suffix, and
+    re-parses to itself with the wrapping intact."""
+    source = ('(targetattr = "ipasshpubkey")(version 3.0;acl '
+              '"selfservice:Users can manage their own SSH public keys";'
+              'allow (write) (userdn = "ldap:///self" and '
+              'userdn = "ldap:///all");)')
+    a = ACI(source)
+    assert a.action == 'allow'
+    assert a.absolute is False
+    assert a.bindrule['keyword'] == 'userdn'
+    assert a.bindrule['operator'] == '='
+    assert a.bindrule['expression'] == 'ldap:///self'
+    assert a.bindrule_suffix == 'and userdn = "ldap:///all"'
+    assert a.bindrule_parenthesized is True
+    # The exported form keeps the wrapping and re-parses to itself.
+    exported = str(a)
+    assert '(userdn = "ldap:///self" and userdn = "ldap:///all")' \
+        in exported
+    assert str(ACI(exported)) == exported
+    # The wrapped rule is not equal to the same unwrapped primary term.
+    b = ACI(source)
+    b.bindrule_parenthesized = False
+    assert not a.isequal(b)
+
+
+def test_aci_parsing_compound_or_bindrule():
+    """A bind rule that is an or-combination (the RBCD managing-principals
+    rule) parses without error, keeps the first clause as the primary term and
+    the rest as a verbatim suffix, and re-parses to itself."""
+    source = ('(targetattr = "memberPrincipal")(version 3.0;acl "rbcd";'
+              'allow (write) userattr = "managedby#GROUPDN" or '
+              'userattr = "managedby#USERDN";)')
+    a = ACI(source)
+    assert a.action == 'allow'
+    assert a.bindrule['keyword'] == 'userattr'
+    assert a.bindrule['operator'] == '='
+    assert a.bindrule['expression'] == 'managedby#GROUPDN'
+    assert a.bindrule_suffix == 'or userattr = "managedby#USERDN"'
+    # The exported form re-parses to itself (idempotent).
+    assert str(ACI(str(a))) == str(a)
+
+
+def test_aci_parsing_userattr_compound_bindrule():
+    """A bind rule with two and-combined userattr clauses (e.g. the OTP
+    self-managed-token rule) no longer mis-parses into a mangled expression."""
+    source = ('(targetattr = "member")(version 3.0;acl "two userattr";'
+              'allow (write) userattr = "ipatokenOwner#SELFDN" and '
+              'userattr = "managedBy#SELFDN";)')
+    a = ACI(source)
+    assert a.bindrule['keyword'] == 'userattr'
+    assert a.bindrule['expression'] == 'ipatokenOwner#SELFDN'
+    assert a.bindrule_suffix == 'and userattr = "managedBy#SELFDN"'
+    assert str(ACI(str(a))) == str(a)
+
+
+def test_aci_inequality_bindrule_suffix():
+    """A compound bind rule differs from the same primary term alone, so a
+    rule that gains (or loses) a continuation clause is detected as a
+    change."""
+    a = make_test_aci()
+    a.set_bindrule_keyword("userattr")
+    a.set_bindrule_expression("managedby#GROUPDN")
+    b = make_test_aci()
+    b.set_bindrule_keyword("userattr")
+    b.set_bindrule_expression("managedby#GROUPDN")
+    b.set_bindrule_suffix('or userattr = "managedby#USERDN"')
+    assert not a.isequal(b)
+    assert a != b
