@@ -760,6 +760,13 @@ ipa idrange-del before retrying the command with the desired range type.
         result['result'].pop('ipanttrustauthincoming', None)
 
     def execute(self, *keys, **options):
+        # the user must have the Replication Administrators privilege
+        privilege = u'Replication Administrators'
+        op_account = getattr(context, 'principal', None)
+        if not principal_has_privilege(self.api, op_account, privilege):
+            raise errors.ACIError(
+                info=_("not allowed to remotely add agent"))
+
         ldap = self.obj.backend
 
         verify_samba_component_presence(ldap, self.api)
