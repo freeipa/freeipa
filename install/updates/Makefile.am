@@ -74,6 +74,7 @@ app_DATA =				\
 	80-schema_compat.update 	\
 	81-externalmembers.update	\
 	90-post_upgrade_plugins.update	\
+	91-admins-privileges.update	\
 	$(NULL)
 
 EXTRA_DIST =				\
