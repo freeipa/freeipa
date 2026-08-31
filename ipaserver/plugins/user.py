@@ -139,7 +139,19 @@ MEMBEROF_ADMINS = "(memberOf={})".format(
     DN('cn=admins', api.env.container_group, api.env.basedn)
 )
 
-NOT_MEMBEROF_ADMINS = '(!{})'.format(MEMBEROF_ADMINS)
+# Members of these privileged groups (admins, trust admins) must not be
+# manageable through delegated user-credential permissions: resetting such an
+# account's password, keys or certificate mapping would let a user
+# administrator impersonate a privileged principal. MEMBEROF_ADMINS is kept
+# separate because "System: Change Admin User password" targets the admins
+# group specifically.
+MEMBEROF_TRUST_ADMINS = "(memberOf={})".format(
+    DN('cn=trust admins', api.env.container_group, api.env.basedn)
+)
+
+NOT_MEMBEROF_PRIVILEGED = '(!(|{}{}))'.format(
+    MEMBEROF_ADMINS, MEMBEROF_TRUST_ADMINS
+)
 PROTECTED_USERS = ('admin',)
 
 
@@ -191,11 +203,13 @@ class user(baseuser):
             'replaces_global_anonymous_aci': True,
             'ipapermbindruletype': 'anonymous',
             'ipapermright': {'read', 'search', 'compare'},
+            # ipaNTSecurityIdentifier is deliberately NOT here: exposing SIDs to
+            # anonymous binds aids enumeration and SID-based attacks. It is read
+            # by authenticated clients via "System: Read User IPA Attributes".
             'ipapermdefaultattr': {
                 'objectclass', 'cn', 'sn', 'description', 'title', 'uid',
                 'displayname', 'givenname', 'initials', 'manager', 'gecos',
                 'gidnumber', 'homedirectory', 'loginshell', 'uidnumber',
-                'ipantsecurityidentifier'
             },
         },
         'System: Read User Addressbook Attributes': {
@@ -224,9 +238,12 @@ class user(baseuser):
             'replaces_global_anonymous_aci': True,
             'ipapermbindruletype': 'all',
             'ipapermright': {'read', 'search', 'compare'},
+            # ipaNTSecurityIdentifier lives here (authenticated read) rather
+            # than in "System: Read User Standard Attributes" (anonymous) so
+            # the SID is not exposed to unauthenticated binds.
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
-                'ipapasskey',
+                'ipapasskey', 'ipantsecurityidentifier',
             },
             'fixup_function': fix_addressbook_permission_bindrule,
         },
@@ -292,7 +309,7 @@ class user(baseuser):
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'ipapermdefaultattr': {
                 'krbprincipalkey', 'passwordhistory', 'sambalmpassword',
@@ -326,7 +343,7 @@ class user(baseuser):
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'ipapermdefaultattr': {'ipasshpubkey'},
             'replaces': [
@@ -338,7 +355,7 @@ class user(baseuser):
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'ipapermdefaultattr': {'usercertificate'},
             'default_privileges': {
@@ -350,7 +367,7 @@ class user(baseuser):
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'ipapermdefaultattr': {'krbprincipalname', 'krbcanonicalname'},
             'default_privileges': {
@@ -362,7 +379,7 @@ class user(baseuser):
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'ipapermdefaultattr': {
                 'businesscategory', 'carlicense', 'cn', 'departmentnumber',
@@ -387,7 +404,7 @@ class user(baseuser):
             'ipapermright': {'delete'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'replaces': [
                 '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -398,7 +415,7 @@ class user(baseuser):
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 permission_filter_objectclasses_string,
-                NOT_MEMBEROF_ADMINS,
+                NOT_MEMBEROF_PRIVILEGED,
             ],
             'ipapermdefaultattr': {
                 'krblastadminunlock', 'krbloginfailedcount', 'nsaccountlock',
@@ -442,6 +459,10 @@ class user(baseuser):
         },
         'System: Manage User Certificate Mappings': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_PRIVILEGED,
+            ],
             'ipapermdefaultattr': {'ipacertmapdata', 'objectclass'},
             'default_privileges': {
                 'Certificate Identity Mapping Administrators'
@@ -449,6 +470,10 @@ class user(baseuser):
         },
         'System: Manage Passkey Mappings': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                permission_filter_objectclasses_string,
+                NOT_MEMBEROF_PRIVILEGED,
+            ],
             'ipapermdefaultattr': {'ipapasskey', 'objectclass'},
             'default_privileges': {
                 'Passkey Administrators'
