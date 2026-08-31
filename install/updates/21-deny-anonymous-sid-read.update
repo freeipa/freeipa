@@ -1,0 +1,17 @@
+# Deny reading ipaNTSecurityIdentifier to anonymous binds.
+#
+# The "System: Read User Standard Attributes" (and "System: Read Groups")
+# managed permissions are anonymous-read permissions whose attribute set
+# includes ipaNTSecurityIdentifier, so an anonymous bind can read the SID of
+# any user/group - useful for enumeration and SID-based attacks. The bind
+# rule denies userdn != "ldap:///all": there is no authmethod value that means
+# "the client sent no credentials" (authmethod="none" in an ACI always
+# evaluates to true), and the empty DN of an anonymous simple bind or a SASL
+# ANONYMOUS bind is the only ACI-expressible marker of a credential-less
+# bind, while any authenticated bind has a real DN and matches
+# "ldap:///all". The "absolute" keyword makes the deny final: when the rule
+# matches, access is denied immediately without consulting the other rules,
+# so it overrides the anonymous allow ACIs of the managed permissions.
+# Authenticated readers (SSSD, trust agents, admins) are untouched.
+dn: $SUFFIX
+add:aci: (targetattr = "ipaNTSecurityIdentifier")(version 3.0; acl "Deny read of NT security identifier for anonymous binds"; deny absolute (read,search,compare) userdn != "ldap:///all";)
