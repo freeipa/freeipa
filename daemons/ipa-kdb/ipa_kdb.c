@@ -437,8 +437,10 @@ int ipadb_get_enc_salt_types(struct ipadb_context *ipactx,
 
 done:
     ldap_value_free_len(vals);
-    for (i = 0; i < c && cvals[i]; i++) {
-        free(cvals[i]);
+    if (cvals) {
+        for (i = 0; i < c && cvals[i]; i++) {
+            free(cvals[i]);
+        }
     }
     free(cvals);
     return ret;
