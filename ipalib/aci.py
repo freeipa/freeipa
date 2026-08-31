@@ -28,11 +28,29 @@ import six
 ACIPat = re.compile(r'\(version\s+3.0\s*;\s*ac[li]\s+\"([^\"]*)\"\s*;'
                     r'\s*(.*);\s*\)', re.UNICODE)
 
-# Break the permissions/bind_rules out
-PermPat = re.compile(r'(\w+)\s*\(([^()]*)\)\s*(.*)', re.UNICODE)
+# Break the permissions/bind_rules out.
+#
+# The action may carry the 389-ds "absolute" keyword
+# (e.g. "deny absolute (add,delete,write) ..."); such a rule is final: when
+# its bind rule matches, its decision is returned without consulting the
+# other rules. It is captured so it round-trips through export.
+PermPat = re.compile(r'(\w+)\s*(absolute\s+)?\(([^()]*)\)\s*(.*)',
+                     re.UNICODE)
 
-# Break the bind rule out
-BindPat = re.compile(r'\(?([a-zA-Z0-9;\.]+)\s*(\!?=)\s*\"(.*)\"\)?',
+# Break the bind rule out.
+#
+# The primary term is "keyword op "value"" (optionally wrapped in parentheses).
+# The value is matched non-greedily (it never contains a double quote), and
+# anything that follows - an "and"/"or"/"not" continuation such as a second
+# userattr/groupdn clause (the RBCD and OTP rules use them) - is captured as a
+# trailing group and preserved verbatim (see set_bindrule / bindrule_suffix).
+# This lets compound bind rules round-trip while keeping bindrule['expression']
+# the plain primary grantee (e.g. "ldap:///self") that the rest of the code
+# inspects. A single-term rule matches exactly as before with an empty trailer.
+# A compound rule wrapped in its own outer parentheses (the self-service
+# "(userdn = \"ldap:///self\" and userdn = \"ldap:///all\")" rules) is unwrapped
+# by set_bindrule before matching, and the wrapping is restored on export.
+BindPat = re.compile(r'\(?([a-zA-Z0-9;\.]+)\s*(\!?=)\s*\"([^\"]*)\"\)?(.*)',
                      re.UNICODE)
 
 ACTIONS = ["allow", "deny"]
@@ -56,8 +74,11 @@ class ACI:
         self.orig_acistr = acistr
         self.target = {}
         self.action = "allow"
+        self.absolute = False
         self.permissions = ["write"]
         self.bindrule = {}
+        self.bindrule_suffix = None
+        self.bindrule_parenthesized = False
         if acistr is not None:
             self._parse_acistr(acistr)
 
@@ -89,8 +110,30 @@ class ACI:
                 aci = aci + "(%s %s \"%s\")" % (t, op, target)
             else:
                 aci = aci + "(%s %s \"%s\")" % (t, op, v['expression'])
-        aci = aci + "(version 3.0;acl \"%s\";%s (%s) %s %s \"%s\"" % (self.name, self.action, ",".join(self.permissions), self.bindrule['keyword'], self.bindrule['operator'], self.bindrule['expression']) + ";)"
+        aci = aci + "(version 3.0;acl \"%s\";%s%s (%s) %s" % (
+            self.name,
+            self.action,
+            " absolute" if self.absolute else "",
+            ",".join(self.permissions),
+            self.export_bindrule(),
+        )
+        aci = aci + ";)"
         return aci
+
+    def export_bindrule(self):
+        """The bind rule in Directory Server syntax: the primary term plus
+        any continuation clause, re-wrapped if the rule was fully
+        parenthesized."""
+        bindrule = '%s %s "%s"' % (
+            self.bindrule['keyword'],
+            self.bindrule['operator'],
+            self.bindrule['expression'],
+        )
+        if self.bindrule_suffix:
+            bindrule = bindrule + " " + self.bindrule_suffix
+        if self.bindrule_parenthesized:
+            bindrule = "(%s)" % bindrule
+        return bindrule
 
     def _unique_list(self, l):
         """
@@ -160,13 +203,14 @@ class ACI:
         self._parse_target(acistr[:vstart-1])
         self.name = acimatch.group(1)
         bindperms = PermPat.match(acimatch.group(2))
-        if not bindperms or len(bindperms.groups()) < 3:
+        if not bindperms or len(bindperms.groups()) < 4:
             raise SyntaxError("malformed ACI, permissions match failed %s" % acistr)
         self.action = bindperms.group(1)
+        self.absolute = bool(bindperms.group(2))
         self.permissions = self._unique_list(
-            bindperms.group(2).replace(' ','').split(',')
+            bindperms.group(3).replace(' ','').split(',')
         )
-        self.set_bindrule(bindperms.group(3))
+        self.set_bindrule(bindperms.group(4))
 
     def validate(self):
         """Do some basic verification that this will produce a
@@ -220,9 +264,38 @@ class ACI:
         self.target['target']['expression'] = target
         self.target['target']['operator'] = operator
 
+    @staticmethod
+    def _outer_parens_wrap(s):
+        """True if the whole rule is wrapped in one outer pair of
+        parentheses: s starts with '(' and that first '(' closes exactly at
+        the last character ('(a = "x" and b = "y")' is, '(a = "x") or
+        (b = "y")' and 'a = "x" or (b = "y")' are not)."""
+        if not s.startswith('('):
+            return False
+        depth = 0
+        for i, ch in enumerate(s):
+            if ch == '(':
+                depth += 1
+            elif ch == ')':
+                depth -= 1
+                if depth == 0:
+                    return i == len(s) - 1
+        return False
+
     def set_bindrule(self, bindrule):
-        if bindrule.startswith('(') != bindrule.endswith(')'):
+        bindrule = bindrule.strip()
+        # Parenthesis balance is a cheap sanity check that also accepts
+        # compound rules (e.g. two or/and-combined userattr clauses, or the
+        # fully parenthesized self-service rule), which the previous
+        # startswith('(') != endswith(')') test rejected.
+        if bindrule.count('(') != bindrule.count(')'):
             raise SyntaxError("non-matching parentheses in bindrule")
+        # A compound rule may be wrapped in its own outer parentheses; parse
+        # the content and remember the wrapping so the rule round-trips
+        # verbatim through export.
+        self.bindrule_parenthesized = self._outer_parens_wrap(bindrule)
+        if self.bindrule_parenthesized:
+            bindrule = bindrule[1:-1]
 
         match = BindPat.match(bindrule)
         if not match or len(match.groups()) < 3:
@@ -230,6 +303,10 @@ class ACI:
         self.set_bindrule_keyword(match.group(1))
         self.set_bindrule_operator(match.group(2))
         self.set_bindrule_expression(match.group(3).replace('"',''))
+        # Everything after the primary term (an and/or/not continuation) is
+        # kept verbatim so the bind rule round-trips through export.
+        suffix = match.group(4).strip()
+        self.set_bindrule_suffix(suffix or None)
 
     def set_bindrule_keyword(self, keyword):
         self.bindrule['keyword'] = keyword
@@ -239,6 +316,12 @@ class ACI:
 
     def set_bindrule_expression(self, expression):
         self.bindrule['expression'] = expression
+
+    def set_bindrule_suffix(self, suffix):
+        """Set an optional extra bind-rule clause (an "and"/"or" continuation
+        such as a second userattr/groupdn clause) appended after the primary
+        term. None clears it."""
+        self.bindrule_suffix = suffix
 
     def isequal(self, b):
         """
@@ -260,6 +343,12 @@ class ACI:
             if self.bindrule.get('operator') != b.bindrule.get('operator'):
                 return False
             if self.bindrule.get('expression') != b.bindrule.get('expression'):
+                return False
+            if self.bindrule_suffix != b.bindrule_suffix:
+                return False
+            if self.absolute != b.absolute:
+                return False
+            if self.bindrule_parenthesized != b.bindrule_parenthesized:
                 return False
 
             if self.target.get('targetfilter',{}).get('expression') != b.target.get('targetfilter',{}).get('expression'):
