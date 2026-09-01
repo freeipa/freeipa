@@ -29,6 +29,8 @@ from ipalib.crud import Search
 from ipalib.frontend import Object
 from ipalib.parameters import Bool, DNSNameParam, Flag, Int, Str, Certificate
 from ipalib.plugable import Registry
+from ipalib.request import context
+from ipaserver.plugins.privilege import principal_has_privilege
 from .baseldap import (
     LDAPCreate,
     LDAPDelete,
@@ -617,6 +619,19 @@ class certmap_match(Search):
         IPA domain and trusted domains.
         :raise RemoteRetrieveError: if DBus returns an exception
         """
+        # The match is resolved by SSSD's root-owned InfoPipe helper
+        # (Users.ListByCertificate), which looks up identities across the
+        # IPA domain and all trusted domains without regard to the caller's
+        # LDAP access. Since this command performs no LDAP operation of its
+        # own, nothing else constrains who may turn a certificate into the
+        # set of users it maps to. Require the Certificate Identity Mapping
+        # Administrators privilege up front, before invoking the helper.
+        privilege = u'Certificate Identity Mapping Administrators'
+        op_account = getattr(context, 'principal', None)
+        if not principal_has_privilege(self.api, op_account, privilege):
+            raise errors.ACIError(
+                info=_("not allowed to match certificates"))
+
         sssd = _sssd()
 
         cert = args[0]
