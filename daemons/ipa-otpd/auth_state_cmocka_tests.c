@@ -483,12 +483,39 @@ static void test_issue_validation_and_missing_dir(void **state)
     assert_int_equal(mkdir(dir, 0700), 0);
 }
 
+static void test_issue_failure_clears_state(void **state)
+{
+    const char *dir = *state;
+    char sentinel;
+    char *token = &sentinel;
+
+    assert_int_equal(auth_state_issue(
+                         dir, NULL, TEST_PRINCIPAL, strlen(TEST_PRINCIPAL),
+                         TEST_PAYLOAD, strlen(TEST_PAYLOAD), TEST_TTL,
+                         &token), EINVAL);
+    assert_null(token);
+
+    token = &sentinel;
+    assert_int_equal(rmdir(dir), 0);
+    assert_int_equal(auth_state_issue(
+                         dir, TEST_METHOD, TEST_PRINCIPAL,
+                         strlen(TEST_PRINCIPAL), TEST_PAYLOAD,
+                         strlen(TEST_PAYLOAD), TEST_TTL, &token), ENOENT);
+    assert_null(token);
+    assert_int_equal(mkdir(dir, 0700), 0);
+}
+
 static void test_discard_is_idempotent(void **state)
 {
     const char *dir = *state;
     char *token = issue_state(dir);
+    char path[PATH_MAX];
 
+    build_state_path(path, dir, token);
+    auth_state_discard(dir, NULL);
+    assert_int_equal(access(path, F_OK), 0);
     auth_state_discard(dir, "invalid");
+    assert_int_equal(access(path, F_OK), 0);
     auth_state_discard(dir, token);
     assert_state_removed(dir, token);
     auth_state_discard(dir, token);
@@ -580,6 +607,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_trailing_data_is_rejected,
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_issue_validation_and_missing_dir,
+                                        setup, teardown),
+        cmocka_unit_test_setup_teardown(test_issue_failure_clears_state,
                                         setup, teardown),
         cmocka_unit_test_setup_teardown(test_discard_is_idempotent,
                                         setup, teardown),
