@@ -49,7 +49,7 @@ from ipalib.parameters import (
     DNSNameParam, Principal
 )
 from ipalib.plugable import Registry
-from .virtual import VirtualCommand
+from .virtual import VirtualCommand, check_operation_access
 from .baseldap import pkey_to_value
 from .certprofile import validate_profile_id
 from ipalib.text import _
@@ -1479,17 +1479,27 @@ class cert_show(Retrieve, CertMethod, VirtualCommand):
         # Dogtag lightweight CAs have shared serial number domain, so
         # we don't tell Dogtag the issuer (but we check the cert after).
         #
+        # Authorize before contacting the RA agent (its calls run as the RA
+        # agent and bypass the caller's LDAP ACIs). The virtual-operation
+        # check needs no certificate; only the host-owns-cert fallback does,
+        # so contact the RA agent only when the ACI path did not grant access.
+        try:
+            self.check_access()
+        except errors.ACIError:
+            access_granted = False
+        else:
+            access_granted = True
+
         result = self.Backend.ra.get_certificate(serial_number)
         cert = x509.load_der_x509_certificate(
                     base64.b64decode(result['certificate']))
 
-        try:
-            self.check_access()
-        except errors.ACIError as acierr:
+        if not access_granted:
             logger.debug("Not granted by ACI to retrieve certificate, "
                          "looking at principal")
             if not bind_principal_can_manage_cert(cert):
-                raise acierr
+                raise errors.ACIError(
+                    info=_('not allowed to retrieve certificate'))
 
         ca_obj = api.Command.ca_show(
             options['cacn'],
@@ -1735,6 +1745,21 @@ Search for existing certificates.
     def _get_cert_key(self, cert):
         return (DN(cert.issuer), cert.serial_number)
 
+    def _ca_search_allowed(self):
+        """Whether the caller may run the direct CA (Dogtag) search.
+
+        ``_ca_search`` queries the CA through the RA agent, which bypasses
+        the caller's LDAP ACIs, so it must be gated. Restrict it to
+        principals granted the ``retrieve certificate`` virtual operation --
+        the same gate ``cert-show`` uses. Callers without it are limited to
+        the LDAP-backed, ACI-enforced ``_ldap_search``.
+        """
+        try:
+            check_operation_access(self.api, u"retrieve certificate")
+        except errors.ACIError:
+            return False
+        return True
+
     def _cert_search(self, pkey_only, **options):
         result = collections.OrderedDict()
 
@@ -1973,7 +1998,7 @@ Search for existing certificates.
         # Do not execute the CA sub-search in CA-less deployment.
         # See https://pagure.io/freeipa/issue/8369.
         searches = [self._cert_search]
-        if ca_enabled:
+        if ca_enabled and self._ca_search_allowed():
             searches.append(self._ca_search)
         # If we set any search option, we skip the LDAP search
         # ideally we would want to perform narrowing search there as well
