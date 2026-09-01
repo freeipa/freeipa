@@ -15,6 +15,8 @@ from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
+from ipaserver.plugins.privilege import principal_has_privilege
+from ipalib.request import context
 from ipalib import _, ngettext, x509
 
 
@@ -58,6 +60,20 @@ EXAMPLES:
 
 
 register = Registry()
+
+
+def ensure_ca_administrator(error):
+    """Guard a CA lifecycle change carried out via the RA agent.
+
+    Adding, deleting, enabling and disabling CAs are performed against
+    Dogtag through the privileged RA agent connection, which bypasses the
+    caller's LDAP ACIs. Require the CA Administrator privilege explicitly,
+    before contacting Dogtag, instead of relying on the caller's effective
+    rights on the (unrelated) CA entry attributes.
+    """
+    op_account = getattr(context, 'principal', None)
+    if not principal_has_privilege(api, op_account, u'CA Administrator'):
+        raise errors.ACIError(info=error)
 
 
 @register()
@@ -308,9 +324,7 @@ class ca_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
         ca_enabled_check(self.api)
-        if not ldap.can_add(dn[1:], 'ipaca'):
-            raise errors.ACIError(
-                info=_("Insufficient 'add' privilege for entry '%s'.") % dn)
+        ensure_ca_administrator(_("Insufficient privilege to add a CA."))
 
         # check that DN only includes standard naming attributes
         dn_attrs = {
@@ -385,9 +399,7 @@ class ca_del(LDAPDelete):
                 api.env.basedn)
         # ensure operator has permission to delete CA
         # before contacting Dogtag
-        if not ldap.can_delete(dn):
-            raise errors.ACIError(info=_(
-                "Insufficient privilege to delete a CA."))
+        ensure_ca_administrator(_("Insufficient privilege to delete a CA."))
 
         if keys[0] == IPA_CA_CN:
             raise errors.ProtectedEntryError(
@@ -445,9 +457,7 @@ class CAQuery(LDAPQuery):
         ca_obj = self.api.Command.ca_show(cn)['result']
 
         # ensure operator has permission to modify CAs
-        if not self.api.Backend.ldap2.can_write(ca_obj['dn'], 'description'):
-            raise errors.ACIError(info=_(
-                "Insufficient privilege to modify a CA."))
+        ensure_ca_administrator(_("Insufficient privilege to modify a CA."))
 
         with self.api.Backend.ra_lightweight_ca as ca_api:
             self.perform_action(ca_api, ca_obj['ipacaid'][0])
