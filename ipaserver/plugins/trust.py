@@ -1842,11 +1842,15 @@ class trust_fetch_domains(LDAPRetrieve):
         # trust topology it returns into the directory as authoritative
         # data via a root-owned oddjobd helper. That helper connects to
         # LDAP as its own service principal, so the calling user's LDAP
-        # bind never enforces the write ACIs on the trust entry the way
-        # trust-add/-mod/-del do. Require the same write access here
-        # explicitly instead of relying on the (intentionally broad, for
-        # SSSD's sake) read ACI on trust information.
-        if not ldap.can_write(result['result']['dn'], 'ipanttrustdirection'):
+        # bind never enforces any ACI on the trust entry the way
+        # trust-add/-mod/-del do. Because the privileged helper bypasses
+        # the caller's access entirely, the caller's effective rights are
+        # not a sufficient gate here: we must verify possession of the
+        # Replication Administrators privilege up front, before invoking
+        # the helper -- exactly as trust-add and trust-enable-agent do.
+        privilege = u'Replication Administrators'
+        op_account = getattr(context, 'principal', None)
+        if not principal_has_privilege(self.api, op_account, privilege):
             raise errors.ACIError(
                 info=_("not allowed to refresh trust topology"))
 
