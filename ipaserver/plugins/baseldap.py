@@ -1000,7 +1000,7 @@ last, after all sets and adds."""),
 
     enforce_managed_permission_operations = []
 
-    def enforce_managed_permissions(self):
+    def enforce_managed_permissions(self, *keys, **options):
         from ipaserver.plugins.privilege import principal_has_privilege
         mp = getattr(self.obj, 'managed_permissions', None)
         if not mp:
@@ -1011,6 +1011,56 @@ last, after all sets and adds."""),
             return
 
         op_account = getattr(context, 'principal', None)
+
+        # Memoise privilege membership: an object commonly grants many of its
+        # managed permissions to the same default privilege (e.g. 'Host
+        # Administrators'), so without caching principal_has_privilege would
+        # repeat the same LDAP search for each of them.
+        priv_cache = {}
+
+        def has_privilege(priv):
+            if priv not in priv_cache:
+                priv_cache[priv] = principal_has_privilege(
+                    self.api, op_account, priv)
+            return priv_cache[priv]
+
+        # Effective rights, if needed at all, are fetched once in a single
+        # get-effective-rights round trip shared by every permission below.
+        # probe['res'] is (entry_rights, {attr: rights}) or None (no entry).
+        probe = {}
+
+        def rights_allow(right, perm, touched):
+            if right == 'add':
+                # The target does not exist yet and target-scoped/SELFDN add
+                # ACIs cannot be evaluated through a get-effective-rights
+                # template probe, so detect the right with a trial add of the
+                # real target entry (see _can_add_target).
+                if 'add' not in probe:
+                    probe['add'] = self._can_add_target(*keys, **options)
+                return probe['add']
+            if 'res' not in probe:
+                probe['res'] = self._probe_effective_rights(
+                    mp, enforce_mp, *keys, **options)
+            res = probe['res']
+            if res is None:
+                # Entry does not exist; let the operation report it properly.
+                return True
+            entry_rights, attr_rights = res
+            if right == 'delete':
+                return 'd' in entry_rights
+            if right == 'write':
+                attrs = touched or {a.lower()
+                                    for a in perm.get('ipapermdefaultattr', ())}
+                if not attrs:
+                    return True
+                return any('w' in attr_rights.get(a, '') for a in attrs)
+            # read / search / compare
+            attrs = {a.lower() for a in perm.get('ipapermdefaultattr', ())}
+            if not attrs:
+                return True
+            return any('r' in attr_rights.get(a, '') for a in attrs)
+
+        modified_attrs = None  # computed lazily, only for 'write'
         for m in mp.keys():
             perm = mp[m]
             rights = list(perm['ipapermright'])
@@ -1022,15 +1072,169 @@ last, after all sets and adds."""),
                 if not defaults:
                     continue
 
-                results = []
-                for priv in defaults:
-                    results.append(
-                        principal_has_privilege(self.api, op_account, priv)
-                    )
+                # For 'write', only enforce permissions that actually govern
+                # an attribute this operation modifies.  An object typically
+                # has many fine-grained write permissions over disjoint
+                # attribute sets; requiring the caller to satisfy every one of
+                # them would deny, for example, a host updating only its own
+                # ipaSSHPubKey just because it is not a Host Administrator for
+                # the unrelated attributes it is not touching.
+                touched = None
+                if r == 'write':
+                    if modified_attrs is None:
+                        modified_attrs = self._modified_attributes(**options)
+                    governed = {a.lower()
+                                for a in perm.get('ipapermdefaultattr', ())}
+                    touched = governed & modified_attrs
+                    if governed and not touched:
+                        continue
 
-                if not any(results):
-                    raise errors.ACIError(
-                        info=_("not allowed to perform this operation"))
+                # Fast path: the caller holds one of the privileges the
+                # managed permission is granted to by default.
+                if any(has_privilege(priv) for priv in defaults):
+                    continue
+
+                # The caller holds no matching privilege, but IPA also grants
+                # access through non-privilege ACIs (self-service, hosts
+                # managing their own entries, hostgroup delegation, managed-by
+                # relationships, ...).  Consult the directory's own effective
+                # rights on the target instead of re-deriving authorization
+                # from privilege membership alone.
+                if rights_allow(r, perm, touched):
+                    continue
+
+                raise errors.ACIError(
+                    info=_("not allowed to perform this operation"))
+
+    def _modified_attributes(self, **options):
+        """Best-effort set of LDAP attributes an update operation changes.
+
+        Derived from the supplied options (named attribute parameters plus
+        ``--setattr``/``--addattr``/``--delattr``), it is used to scope write
+        enforcement to the managed permissions that actually govern them.
+        Being approximate is safe: the directory server still enforces the
+        real per-attribute ACIs on the modify that follows.
+        """
+        attrs = set()
+
+        # Attributes an operation writes that are not passed as options:
+        # member manipulation writes its member_attributes, and the
+        # attribute-mod commands write a single fixed attribute.
+        for attr in getattr(self, 'member_attributes', ()) or ():
+            attrs.add(attr.lower())
+        fixed_attr = getattr(self, 'attribute', None)
+        if fixed_attr:
+            attrs.add(fixed_attr.lower())
+
+        params = self.obj.params
+        for name in options:
+            if name not in params:
+                continue
+            if 'virtual_attribute' in params[name].flags:
+                continue
+            attrs.add(name.lower())
+        for opt_name in ('setattr', 'addattr', 'delattr'):
+            for pair in options.get(opt_name) or ():
+                attr = pair.partition('=')[0].strip().lower()
+                if attr:
+                    attrs.add(attr)
+        return attrs
+
+    def _can_add_target(self, *keys, **options):
+        """Detect whether the bound principal may add the target entry.
+
+        The target does not exist yet, and a get-effective-rights probe uses a
+        synthetic ``cn=template_<oc>_objectclass`` DN that cannot match
+        target-DN-scoped or SELFDN add ACIs (e.g. "Hosts can add own
+        services", ``target=krbprincipalname=*/($$dn)@$REALM``). Instead,
+        attempt to add the *actual* target entry -- deliberately made
+        schema-invalid so it can never be created -- under the caller's own
+        bind. 389-ds evaluates add access before schema, so:
+
+          * ``ACIError`` (insufficient access)  => caller may not add;
+          * any other failure (schema violation) => the ACIs allowed the add.
+        """
+        ldap = self.obj.backend
+        try:
+            dn = self.obj.get_dn(*keys, **options)
+        except errors.NotFound:
+            return True
+
+        # Match the managed-permission targetfilters with the object's
+        # permission-filter objectclasses, and append an undefined class so
+        # the entry can never satisfy schema and thus can never be created.
+        objectclasses = list(
+            self.obj.permission_filter_objectclasses
+            or self.obj.object_class or [])
+        objectclasses.append('ipaAddAuthorizationProbe')
+        entry = ldap.make_entry(dn, objectclass=objectclasses)
+
+        try:
+            ldap.add_entry(entry)
+        except errors.ACIError:
+            return False
+        except errors.PublicError:
+            # The add ACIs permitted the operation; it failed for another
+            # reason (schema), so no entry was created.
+            return True
+
+        # Unreachable in practice (the probe entry is schema-invalid); if the
+        # server did create it, remove it and treat as allowed.
+        try:
+            ldap.delete_entry(dn)
+        except errors.PublicError:
+            pass
+        return True
+
+    def _probe_effective_rights(self, mp, enforce_mp, *keys, **options):
+        """Fetch effective rights on the target in a single round trip.
+
+        Returns ``(entry_rights, {attr: rights})`` parsed from one
+        get-effective-rights query covering every attribute any enforced
+        managed permission may consult, or ``None`` when the entry does not
+        exist (so the caller can let the real operation surface the error).
+
+        Consulting the directory's own ACI evaluation covers every bind-rule
+        mechanism uniformly (privilege ACIs, self-service, hosts managing
+        their own entries, hostgroup delegation, managed-by relationships,
+        ...), unlike privilege-membership checks which see only the RBAC
+        role/privilege/permission chain.
+        """
+        ldap = self.obj.backend
+        try:
+            dn = self.obj.get_dn(*keys, **options)
+        except errors.NotFound:
+            return None
+
+        needed = set()
+        for perm in mp.values():
+            if not perm.get('default_privileges'):
+                continue
+            if not (set(perm['ipapermright']) & set(enforce_mp)):
+                continue
+            needed.update(a.lower() for a in perm.get('ipapermdefaultattr', ()))
+
+        try:
+            rights = ldap.get_effective_rights(dn, sorted(needed) or ['*'])
+        except errors.NotFound:
+            return None
+
+        def _text(value):
+            if isinstance(value, bytes):
+                return value.decode('utf-8')
+            return value
+
+        entry_rights = ''
+        if 'entrylevelrights' in rights:
+            entry_rights = _text(rights['entrylevelrights'][0])
+
+        attr_rights = {}
+        if 'attributelevelrights' in rights:
+            for item in _text(rights['attributelevelrights'][0]).split(', '):
+                name, _sep, value = item.partition(':')
+                attr_rights[name.strip().lower()] = value
+
+        return (entry_rights, attr_rights)
 
     def get_summary_default(self, output):
         if 'value' in output:
@@ -1284,7 +1488,7 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
     has_output_params = global_output_params
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions()
+        self.enforce_managed_permissions(*keys, **options)
 
         ldap = self.obj.backend
 
@@ -1448,7 +1652,7 @@ class LDAPRetrieve(LDAPQuery):
     enforce_managed_permission_operations = ['read', 'compare', 'search']
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions()
+        self.enforce_managed_permissions(*keys, **options)
 
         ldap = self.obj.backend
 
@@ -1544,7 +1748,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             yield self._get_rename_option()
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions()
+        self.enforce_managed_permissions(*keys, **options)
 
         ldap = self.obj.backend
 
@@ -1682,7 +1886,7 @@ class LDAPDelete(LDAPMultiQuery):
     enforce_managed_permission_operations = ['delete']
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions()
+        self.enforce_managed_permissions(*keys, **options)
 
         ldap = self.obj.backend
 
@@ -1816,6 +2020,7 @@ class LDAPAddMember(LDAPModMember):
     member_param_doc = _('%s to add')
     member_count_out = ('%i member added.', '%i members added.')
     allow_same = False
+    enforce_managed_permission_operations = ['write']
 
     has_output = (
         output.Entry('result'),
@@ -1832,6 +2037,8 @@ class LDAPAddMember(LDAPModMember):
     has_output_params = global_output_params
 
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions(*keys, **options)
+
         ldap = self.obj.backend
 
         (member_dns, failed) = self.get_member_dns(**options)
@@ -1914,6 +2121,7 @@ class LDAPRemoveMember(LDAPModMember):
     """
     member_param_doc = _('%s to remove')
     member_count_out = ('%i member removed.', '%i members removed.')
+    enforce_managed_permission_operations = ['write']
 
     has_output = (
         output.Entry('result'),
@@ -1930,6 +2138,8 @@ class LDAPRemoveMember(LDAPModMember):
     has_output_params = global_output_params
 
     def execute(self, *keys, **options):
+        self.enforce_managed_permissions(*keys, **options)
+
         ldap = self.obj.backend
 
         (member_dns, failed) = self.get_member_dns(**options)
@@ -2490,6 +2700,7 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
 class BaseLDAPModAttribute(LDAPQuery):
 
     attribute = None
+    enforce_managed_permission_operations = ['write']
 
     has_output = output.standard_entry
 
@@ -2504,7 +2715,7 @@ class BaseLDAPModAttribute(LDAPQuery):
         )
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions()
+        self.enforce_managed_permissions(*keys, **options)
 
         ldap = self.obj.backend
         try:
