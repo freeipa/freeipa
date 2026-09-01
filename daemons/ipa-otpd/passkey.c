@@ -495,6 +495,7 @@ static int prepare_rad_reply(struct otpd_queue_item *item)
     if (ret != 0) {
         otpd_log_err(ret, "Failed to create radius response");
         item->rsp = NULL;
+        goto done;
     }
 
     ret = 0;
@@ -503,10 +504,7 @@ done:
     krad_attrset_free(attrset);
     free(stmp);
     json_decref(jtmp);
-
-    if (ret != 0) {
-        free(data.data);
-    }
+    free(data.data);
 
     return ret;
 }
@@ -514,7 +512,6 @@ done:
 static int do_passkey_challenge(struct otpd_queue_item *item)
 {
     const krb5_data *principal;
-    bool state_issued = false;
     int ret;
     struct passkey_data *d;
 
@@ -574,19 +571,16 @@ static int do_passkey_challenge(struct otpd_queue_item *item)
         otpd_log_err(ret, "Failed to store passkey challenge state");
         goto done;
     }
-    state_issued = true;
 
     ret = prepare_rad_reply(item);
     if (ret != 0) {
         otpd_log_err(ret, "prepare_rad_reply() failed.");
-        auth_state_discard(AUTH_STATE_DIR, d->state);
-        state_issued = false;
         goto done;
     }
 
     ret = 0;
 done:
-    if (ret != 0 && state_issued) {
+    if (ret != 0 && d->state != NULL) {
         auth_state_discard(AUTH_STATE_DIR, d->state);
     }
 
