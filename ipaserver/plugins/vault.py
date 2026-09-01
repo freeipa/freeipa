@@ -46,6 +46,10 @@ if api.env.in_server:
     from pki.crypto import DES_EDE3_CBC_OID
     from pki.crypto import AES_128_CBC_OID
     from pki import PKIException
+else:
+    DES_EDE3_CBC_OID = "{1 2 840 113549 3 7}"
+    AES_128_CBC_OID = "{2 16 840 1 101 3 4 1 2}"
+    PKIException = Exception
 
 if six.PY3:
     unicode = str
