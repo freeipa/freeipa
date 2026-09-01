@@ -201,7 +201,6 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
     const krb5_data *principal;
     krad_attrset *attrset = NULL;
     char *state = NULL;
-    bool state_issued = false;
     int ret;
     krb5_data data = { 0 };
 
@@ -221,7 +220,6 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
                      "Failed to store IdP device state");
         goto done;
     }
-    state_issued = true;
 
     ret = krad_attrset_new(ctx.kctx, &attrset);
     if (ret != 0) {
@@ -263,7 +261,7 @@ static int handle_device_code_reply(struct child_ctx *child_ctx,
     ret = 0;
 done:
     krad_attrset_free(attrset);
-    if (ret != 0 && state_issued) {
+    if (ret != 0 && state != NULL) {
         auth_state_discard(AUTH_STATE_DIR, state);
     }
     free(state);
