@@ -145,6 +145,18 @@ class GetcertTestMixin:
     getcert_command = None   # 'request' or 'start-tracking'
     id_prefix = None         # 'CertReq' or 'TrackReq'
 
+    @pytest.fixture
+    def nssdb_tmpdir(self):
+        """Create a temp NSS DB dir and clean up after test."""
+        tmpdir = create_file_dir(self.master)
+        yield tmpdir
+        self.master.run_command(
+            ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
+             '-n', 'certtest'], raiseonerr=False
+        )
+        self.master.run_command(
+            ['rm', '-rf', tmpdir], raiseonerr=False)
+
     def _assert_negative(self, cmd, err_msgs):
         """Assert negative test: rc=1, error message present, no request."""
         assert cmd.returncode == 1
@@ -541,18 +553,6 @@ class TestGetcertRequest(GetcertTestMixin, IntegrationTest):
         self._assert_positive(cmd)
 
     # -- Extended request tests --
-
-    @pytest.fixture
-    def nssdb_tmpdir(self):
-        """Create a temp NSS DB dir and clean up after test."""
-        tmpdir = create_file_dir(self.master)
-        yield tmpdir
-        self.master.run_command(
-            ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
-             '-n', 'certtest'], raiseonerr=False
-        )
-        self.master.run_command(
-            ['rm', '-rf', tmpdir], raiseonerr=False)
 
     def test_request_ext_with_correct_pin(self, nssdb_tmpdir):
         """request using NSS database with correct PIN"""
@@ -1074,18 +1074,6 @@ class TestGetcertStartTracking(GetcertTestMixin,
 
     # -- Extended start-tracking tests --
 
-    @pytest.fixture
-    def nssdb_tmpdir(self):
-        """Create a temp NSS DB dir and clean up."""
-        tmpdir = create_file_dir(self.master)
-        yield tmpdir
-        self.master.run_command(
-            ['ipa-getcert', 'stop-tracking', '-d', tmpdir,
-             '-n', 'certtest'], raiseonerr=False
-        )
-        self.master.run_command(
-            ['rm', '-rf', tmpdir], raiseonerr=False)
-
     def _setup_tracking_with_password(self, tmpdir,
                                       pin="temp123#"):
         """Request cert, set NSS DB password, resubmit with
@@ -1265,3 +1253,822 @@ class TestGetcertStartTracking(GetcertTestMixin,
             ['ipa-getcert', 'list', '-i', 'testing']
         )
         assert 'NEED_CSR_GEN_PIN' in result.stdout_text
+
+
+class TestGetcertOther(GetcertTestMixin, IntegrationTest):
+    """Tests for stop-tracking, resubmit, list, and bugzilla
+    regressions."""
+
+    num_replicas = 0
+    num_clients = 0
+    topology = 'line'
+
+    @classmethod
+    def install(cls, mh):
+        super(TestGetcertOther, cls).install(mh)
+        cls.cert_subject = get_cert_subject_base(cls.master)
+        cls.fqdn = cls.master.hostname
+        cls.realm = cls.master.domain.realm
+        cls.file_dir = create_file_dir(cls.master)
+        clean_requests(cls.master)
+
+    # -- stop-tracking tests ----------------------------------------
+
+    def test_stop_tracking_nss_invalid_nssdbdir(self):
+        """stop-tracking with invalid NSSDBDIR"""
+        test_id = "stop_001_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-d', NSSDB_INVALID, '-n', test_id],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, NSSDB_ERR_MSGS)
+
+    def test_stop_tracking_nss_invalid_nickname(self):
+        """stop-tracking with invalid CertNickName"""
+        test_id = "stop_002_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-d', NSSDB_VALID, '-n',
+             'NoSuchNick_%s' % test_id],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found that matched arguments',
+        ])
+
+    def test_stop_tracking_nss_positive(self):
+        """stop-tracking with options d n t - all valid"""
+        test_id = "stop_003_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-d', NSSDB_VALID, '-n', test_id,
+             '-t', TOKEN_VALID],
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_stop_tracking_id_invalid_nickname(self):
+        """stop-tracking -i with invalid request nickname"""
+        test_id = "stop_004_%s" % uuid.uuid4().hex[:8]
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-i', 'ReqDoesNotExist_%s' % test_id],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, [
+            'No request found',
+            'None of database directory',
+        ])
+
+    def test_stop_tracking_id_positive(self):
+        """stop-tracking -i all valid"""
+        test_id = "stop_005_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking', '-i', test_id],
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_stop_tracking_file_invalid_keyfile(self):
+        """stop-tracking with invalid FileKeyFile"""
+        test_id = "stop_006_%s" % uuid.uuid4().hex[:8]
+        certfile = prepare_file_certfile(
+            self.master, self.file_dir, test_id)
+        keyfile = os.path.join(
+            '/root', test_id, 'no.such.pem.key.file.')
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-k', keyfile, '-f', certfile],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_KEY_ERR_MSGS)
+
+    def test_stop_tracking_file_invalid_certfile(self):
+        """stop-tracking with invalid FileCertFile"""
+        test_id = "stop_007_%s" % uuid.uuid4().hex[:8]
+        keyfile = prepare_file_certfile(
+            self.master, self.file_dir, test_id)
+        certfile = os.path.join(
+            test_id, 'NoSuchFileCertFile')
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-k', keyfile, '-f', certfile],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_stop_tracking_file_positive(self, nssdb_tmpdir):
+        """stop-tracking -k -f all valid"""
+        test_id = "stop_008_%s" % uuid.uuid4().hex[:8]
+        certfile = os.path.join(nssdb_tmpdir, '%s.cert.pem' % test_id)
+        keyfile = os.path.join(nssdb_tmpdir, '%s.key.pem' % test_id)
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-f', certfile, '-k', keyfile,
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+                '-k', keyfile, '-f', certfile],
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_stop_tracking_by_nss_db_nickname(self, nssdb_tmpdir):
+        """stop-tracking with NSS db path and nickname"""
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-I', 'testing'
+        ])
+        self.master.run_command([
+            'ipa-getcert', 'stop-tracking',
+            '-d', nssdb_tmpdir, '-n', 'certtest'
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list'])
+        assert (
+            'Number of certificates and requests'
+            ' being tracked: 0'
+            in cmd.stdout_text)
+
+    def test_stop_tracking_by_cert_key_files(self, nssdb_tmpdir):
+        """stop-tracking with certificate and key file path"""
+        certpath = os.path.join(nssdb_tmpdir, 'certtest')
+        keypath = os.path.join(
+            nssdb_tmpdir, 'certtest.key')
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-f', certpath, '-k', keypath,
+            '-I', 'testing'
+        ])
+        self.master.run_command([
+            'ipa-getcert', 'stop-tracking',
+            '-f', certpath, '-k', keypath
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list'])
+        assert (
+            'Number of certificates and requests'
+            ' being tracked: 0'
+            in cmd.stdout_text)
+
+    def test_stop_tracking_with_token(self, nssdb_tmpdir):
+        """stop-tracking with NSS db, nickname, and token"""
+        token = (
+            "NSS FIPS 140-2 Certificate DB"
+            if self.master.is_fips_mode
+            else "NSS Certificate DB")
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-t', token, '-I', 'testing'
+        ])
+        self.master.run_command([
+            'ipa-getcert', 'stop-tracking',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-t', token
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list'])
+        assert (
+            'Number of certificates and requests'
+            ' being tracked: 0'
+            in cmd.stdout_text)
+
+    def test_stop_tracking_invalid_token(self, nssdb_tmpdir):
+        """stop-tracking with invalid token name"""
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-d', nssdb_tmpdir, '-n', 'certtest',
+             '-t', 'non-existent'],
+            raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert 'No request found' in (
+            cmd.stdout_text + cmd.stderr_text)
+
+    # -- resubmit tests ---------------------------------------------
+
+    def test_resubmit_nss_invalid_nssdbdir(self):
+        """resubmit with invalid NSSDBDIR"""
+        test_id = "resub_001_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        try:
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'resubmit',
+                 '-d', NSSDB_INVALID, '-n', test_id,
+                 '-N', self.cert_subject,
+                 '-U', EKU_VALID,
+                 '-K', '%s/%s@%s' % (
+                     test_id, self.fqdn, self.realm),
+                 '-D', self.fqdn,
+                 '-E', EMAIL_VALID],
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            combined = cmd.stdout_text + cmd.stderr_text
+            assert any(
+                m in combined for m in NSSDB_ERR_MSGS)
+        finally:
+            clean_requests(self.master)
+
+    def test_resubmit_nss_invalid_eku(self):
+        """resubmit with invalid EXTUSAGE"""
+        test_id = "resub_003_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        try:
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'resubmit',
+                 '-d', NSSDB_VALID, '-n', test_id,
+                 '-N', self.cert_subject,
+                 '-U', 'in.valid.ext.usage.%s'
+                 % test_id,
+                 '-K', '%s/%s@%s' % (
+                     test_id, self.fqdn, self.realm),
+                 '-D', self.fqdn,
+                 '-E', EMAIL_VALID],
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            combined = (
+                cmd.stdout_text + cmd.stderr_text)
+            assert any(
+                m in combined for m in EKU_ERR_MSGS)
+        finally:
+            clean_requests(self.master)
+
+    def test_resubmit_nss_positive(self):
+        """resubmit all valid"""
+        test_id = "resub_004_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'resubmit',
+             '-d', NSSDB_VALID, '-n', test_id,
+             '-N', self.cert_subject,
+             '-U', EKU_VALID,
+             '-K', '%s/%s@%s' % (
+                 test_id, self.fqdn, self.realm),
+             '-D', self.fqdn,
+             '-E', EMAIL_VALID],
+            raiseonerr=False
+        )
+        self._assert_positive(cmd)
+
+    def test_resubmit_nss_invalid_eku_with_token(self):
+        """resubmit with invalid EXTUSAGE and token"""
+        test_id = "resub_005_%s" % uuid.uuid4().hex[:8]
+        prepare_certrequest(self.master, test_id)
+        try:
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'resubmit',
+                 '-d', NSSDB_VALID, '-n', test_id,
+                 '-t', TOKEN_VALID,
+                 '-N', self.cert_subject,
+                 '-U', 'in.valid.ext.usage.%s'
+                 % test_id,
+                 '-K', '%s/%s@%s' % (
+                     test_id, self.fqdn, self.realm),
+                 '-D', self.fqdn,
+                 '-E', EMAIL_VALID],
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            combined = (
+                cmd.stdout_text + cmd.stderr_text)
+            assert any(
+                m in combined for m in EKU_ERR_MSGS)
+        finally:
+            clean_requests(self.master)
+
+    def test_resubmit_file_invalid_certfile(self):
+        """resubmit -f with invalid FileCertFile"""
+        test_id = "resub_007_%s" % uuid.uuid4().hex[:8]
+        certfile = os.path.join(
+            test_id, 'NoSuchFileCertFile')
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'resubmit',
+             '-f', certfile,
+             '-N', self.cert_subject,
+             '-U', EKU_VALID,
+             '-K', '%s/%s@%s' % (
+                 test_id, self.fqdn, self.realm),
+             '-D', self.fqdn,
+             '-E', EMAIL_VALID],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    def test_resubmit_file_invalid_certfile_with_pin(
+            self):
+        """resubmit -f -P with invalid FileCertFile"""
+        test_id = "resub_008_%s" % uuid.uuid4().hex[:8]
+        certfile = os.path.join(
+            test_id, 'NoSuchFileCertFile')
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'resubmit',
+             '-f', certfile,
+             '-P', '%sjfkdlaj2920' % test_id,
+             '-N', self.cert_subject,
+             '-U', EKU_VALID,
+             '-K', '%s/%s@%s' % (
+                 test_id, self.fqdn, self.realm),
+             '-D', self.fqdn,
+             '-E', EMAIL_VALID],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, FILE_CERT_ERR_MSGS)
+
+    @pytest.mark.parametrize(
+        "test_num",
+        [1016, 1020, 1022, 1028, 1029, 1033],
+    )
+    def test_resubmit_eku_invalid_via_tracking_id(
+            self, test_num):
+        """resubmit with invalid EXTUSAGE via request ID"""
+        test_id = "resub_%d_%s" % (
+            test_num, uuid.uuid4().hex[:8])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'resubmit',
+             '-i', 'TrackReq_%s' % test_id,
+             '-N', self.cert_subject,
+             '-U', 'in.valid.ext.usage.%s' % test_id,
+             '-K', '%s/%s@%s' % (
+                 test_id, self.fqdn, self.realm),
+             '-D', self.fqdn,
+             '-E', EMAIL_VALID],
+            raiseonerr=False
+        )
+        self._assert_negative(cmd, EKU_ERR_MSGS)
+
+    # -- resubmit extended (PIN/password) tests ---------------------
+
+    def test_resubmit_ext_correct_pin(self, nssdb_tmpdir):
+        """resubmit with correct PIN"""
+        request_nss_cert_with_password(
+            self.master, nssdb_tmpdir)
+        self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-P', 'temp123#'
+        ])
+        result = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-i', 'testing']
+        )
+        assert 'pin set' in result.stdout_text
+
+    def test_resubmit_ext_incorrect_pin(self, nssdb_tmpdir):
+        """resubmit with incorrect PIN"""
+        request_nss_cert_with_password(
+            self.master, nssdb_tmpdir)
+        cmd = self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-P', 'temp123'
+        ], raiseonerr=False)
+        assert cmd.returncode == 4, (
+            "Expected resubmit with wrong PIN to "
+            "exit 4 (stuck), got rc=%d"
+            % cmd.returncode)
+        result = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' \
+            in result.stdout_text
+
+    def test_resubmit_ext_correct_password_file(
+            self, nssdb_tmpdir):
+        """resubmit with correct password file"""
+        request_nss_cert_with_password(
+            self.master, nssdb_tmpdir)
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            passwd_file, 'temp123#\n')
+        self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-p', passwd_file
+        ])
+
+    def test_resubmit_ext_incorrect_password_file(
+            self, nssdb_tmpdir):
+        """resubmit with non-existent password file"""
+        request_nss_cert_with_password(
+            self.master, nssdb_tmpdir)
+        cmd = self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-p', os.path.join(
+                nssdb_tmpdir, 'non-existentfile.txt')
+        ], raiseonerr=False)
+        assert cmd.returncode == 4, (
+            "Expected resubmit with missing PIN "
+            "file to exit 4 (stuck), got rc=%d"
+            % cmd.returncode)
+        result = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' \
+            in result.stdout_text
+
+    def test_resubmit_ext_incorrect_token(self, nssdb_tmpdir):
+        """resubmit with incorrect token name"""
+        token = (
+            "NSS FIPS 140-2 Certificate DB"
+            if self.master.is_fips_mode
+            else "NSS Certificate DB")
+        oldpw = os.path.join(
+            nssdb_tmpdir, 'oldpasswd.txt')
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            oldpw, '\n')
+        self.master.put_file_contents(
+            passwd_file,
+            'temp123#\ntemp123#\n')
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-t', token, '-I', 'testing'
+        ])
+        self.master.run_command([
+            'certutil', '-W', '-d', nssdb_tmpdir,
+            '-f', oldpw, '-@', passwd_file
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'resubmit',
+             '-w', '-v',
+             '-d', nssdb_tmpdir, '-n', 'certtest',
+             '-p', passwd_file,
+             '-t', 'non-existent'],
+            raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert 'No request found' in (
+            cmd.stdout_text + cmd.stderr_text)
+
+    def test_resubmit_ext_wrong_pin_in_file(self, nssdb_tmpdir):
+        """resubmit with incorrect password in file"""
+        request_nss_cert_with_password(
+            self.master, nssdb_tmpdir)
+        passwd_file = os.path.join(
+            nssdb_tmpdir, 'passwd.txt')
+        self.master.put_file_contents(
+            passwd_file, 'temp123\n')
+        cmd = self.master.run_command([
+            'ipa-getcert', 'resubmit', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-p', passwd_file
+        ], raiseonerr=False)
+        assert cmd.returncode == 4, (
+            "Expected resubmit with wrong PIN "
+            "file to exit 4 (stuck), got rc=%d"
+            % cmd.returncode)
+        result = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-i', 'testing']
+        )
+        assert 'NEED_CSR_GEN_PIN' \
+            in result.stdout_text
+
+    # -- list / list-cas tests --------------------------------------
+
+    def test_list_options(self):
+        for command in [
+            ['ipa-getcert', 'list'],
+            ['ipa-getcert', 'list', '-r'],
+            ['ipa-getcert', 'list', '-t'],
+            ['ipa-getcert', 'list-cas'],
+        ]:
+            result = self.master.run_command(
+                command,
+                raiseonerr=False
+            )
+            self._assert_positive(result)
+
+    def test_list_by_system_bus(self, nssdb_tmpdir):
+        """list certificates by listening on System bus"""
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest'
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list', '-S']
+        )
+        assert 'MONITORING' in cmd.stdout_text
+
+    def test_list_by_nss_db_and_nickname(self, nssdb_tmpdir):
+        """list one cert on providing NSS db and nickname"""
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest'
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-d', nssdb_tmpdir, '-n', 'certtest']
+        )
+        assert 'MONITORING' in cmd.stdout_text
+
+    def test_list_by_file_storage(self, nssdb_tmpdir):
+        """list one cert on providing file storage path"""
+        certpath = os.path.join(
+            nssdb_tmpdir, 'test.crt')
+        keypath = os.path.join(
+            nssdb_tmpdir, 'test.key')
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-f', certpath, '-k', keypath
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-f', certpath]
+        )
+        self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-f', certpath, '-k', keypath],
+            raiseonerr=False
+        )
+        assert 'MONITORING' in cmd.stdout_text
+
+    def test_list_by_request_identifier(self, nssdb_tmpdir):
+        """list one cert by request identifier"""
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-I', 'testing'
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-i', 'testing']
+        )
+        assert 'MONITORING' in cmd.stdout_text
+
+    def test_list_nonexistent_request_identifier(self):
+        """list with nonexistent request identifier"""
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-i', 'non-existent'],
+            raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert 'No request found' in (
+            cmd.stdout_text + cmd.stderr_text)
+
+    def test_list_nonexistent_file_path(self, nssdb_tmpdir):
+        """list with nonexistent file storage path"""
+        certpath = os.path.join(
+            nssdb_tmpdir, 'test.crt')
+        keypath = os.path.join(
+            nssdb_tmpdir, 'test.key')
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-f', certpath, '-k', keypath
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list', '-f',
+             os.path.join(
+                 nssdb_tmpdir, 'non-existent.crt')],
+            raiseonerr=False
+        )
+        self.master.run_command(
+            ['ipa-getcert', 'stop-tracking',
+             '-f', certpath, '-k', keypath],
+            raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert 'No request found' in (
+            cmd.stdout_text + cmd.stderr_text)
+
+    def test_list_incorrect_nss_db(self):
+        """list with incorrect NSS db and correct nickname"""
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-d', '/tmp/non-existent',
+             '-n', 'certtest'],
+            raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert 'No such file or directory' in (
+            cmd.stdout_text + cmd.stderr_text)
+
+    def test_list_incorrect_nickname(self, nssdb_tmpdir):
+        """list with correct NSS db and wrong nickname"""
+        self.master.run_command([
+            'ipa-getcert', 'request', '-w', '-v',
+            '-d', nssdb_tmpdir, '-n', 'certtest',
+            '-I', 'testing'
+        ])
+        cmd = self.master.run_command(
+            ['ipa-getcert', 'list',
+             '-d', nssdb_tmpdir, '-n', 'non-existent'],
+            raiseonerr=False
+        )
+        assert cmd.returncode == 1
+        assert 'No request found' in (
+            cmd.stdout_text + cmd.stderr_text)
+
+    # -- bugzilla regression tests ----------------------------------
+
+    def test_bz1103090_dbus_restart(self):
+        """certmonger should not crash on D-Bus restart
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1103090
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            self.master.run_command(
+                ['systemctl', 'start', 'certmonger'],
+                raiseonerr=False
+            )
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v',
+                '-d', tmpdir, '-n', 'certtest',
+                '-I', 'dbus_test'
+            ])
+            self.master.run_command(
+                ['systemctl', 'restart', 'dbus'])
+            status = tasks.wait_for_certmonger_status(
+                self.master, ('MONITORING',),
+                'dbus_test', timeout=30
+            )
+            assert status == 'MONITORING', (
+                "certmonger not responsive after "
+                "D-Bus restart, status: %s" % status)
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-i', 'dbus_test'],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
+
+    def test_bz1098208_request_invalid_f(self):
+        """request with -F to invalid location should fail
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1098208
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            certpath = os.path.join(
+                tmpdir, 'test.crt')
+            keypath = os.path.join(
+                tmpdir, 'test.key')
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'request',
+                 '-w', '-v',
+                 '-f', certpath, '-k', keypath,
+                 '-F',
+                 '/tmp/non-existent/test-root.crt'],
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'No such file or directory' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
+
+    def test_bz1098208_request_empty_f(self):
+        """request with empty -F should show usage
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1098208
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            certpath = os.path.join(
+                tmpdir, 'test.crt')
+            keypath = os.path.join(
+                tmpdir, 'test.key')
+            cmd = self.master.run_command(
+                'ipa-getcert request -w -v '
+                '-f %s -k %s -F 2>&1'
+                % (certpath, keypath),
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'Usage: ipa-getcert request' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
+
+    def test_bz1098208_request_invalid_a(self):
+        """request with -a to invalid NSS DB should fail
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1098208
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'request',
+                 '-w', '-v',
+                 '-d', tmpdir, '-n', 'test',
+                 '-a', '/tmp/nonexistent/'],
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'No such file or directory' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
+
+    def test_bz1098208_request_empty_a(self):
+        """request with empty -a should show usage
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1098208
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            cmd = self.master.run_command(
+                'ipa-getcert request -w -v '
+                '-d %s -n test -a 2>&1' % tmpdir,
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'Usage: ipa-getcert request' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
+
+    def test_bz1098208_resubmit_invalid_f(self):
+        """resubmit with -F to invalid location should fail
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1098208
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            certpath = os.path.join(
+                tmpdir, 'test.crt')
+            keypath = os.path.join(
+                tmpdir, 'test.key')
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v',
+                '-f', certpath, '-k', keypath
+            ])
+            cmd = self.master.run_command(
+                ['ipa-getcert', 'resubmit',
+                 '-w', '-v',
+                 '-f', certpath,
+                 '-F',
+                 '/tmp/non-existent/test-root.crt'],
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'No such file or directory' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-f', certpath, '-k', keypath],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
+
+    def test_bz1098208_resubmit_empty_f(self):
+        """resubmit with empty -F should show usage
+
+        related: https://bugzilla.redhat.com/show_bug.cgi?id=1098208
+        """
+        tmpdir = create_file_dir(self.master)
+        try:
+            certpath = os.path.join(
+                tmpdir, 'test.crt')
+            keypath = os.path.join(
+                tmpdir, 'test.key')
+            self.master.run_command([
+                'ipa-getcert', 'request', '-w', '-v',
+                '-f', certpath, '-k', keypath
+            ])
+            cmd = self.master.run_command(
+                'ipa-getcert resubmit -w -v '
+                '-f %s -F 2>&1' % certpath,
+                raiseonerr=False
+            )
+            assert cmd.returncode == 1
+            assert 'Usage: ipa-getcert resubmit' in (
+                cmd.stdout_text + cmd.stderr_text)
+        finally:
+            self.master.run_command(
+                ['ipa-getcert', 'stop-tracking',
+                 '-f', certpath, '-k', keypath],
+                raiseonerr=False
+            )
+            self.master.run_command(
+                ['rm', '-rf', tmpdir],
+                raiseonerr=False)
