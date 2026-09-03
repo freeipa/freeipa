@@ -1,0 +1,12 @@
+[Unit]
+Description=Update IPA client configuration after OS deployment
+Documentation=man:ipa-client-install(1)
+ConditionDirectoryNotEmpty=@localstatedir@/lib/ipa-client/sysrestore/
+After=local-fs.target
+# The migrations rewrite krb5/sssd/ssh/unbound configuration, so run before the
+# consumers of that configuration start.
+Before=sssd.service unbound.service
+
+[Service]
+Type=oneshot
+ExecStart=@libexecdir@/ipa/ipa-client-upgrade
