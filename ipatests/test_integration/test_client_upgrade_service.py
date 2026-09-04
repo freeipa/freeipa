@@ -44,8 +44,20 @@ class TestClientUpgradeService(IntegrationTest):
         )
         return result.stdout_text.strip()
 
-    def _start(self):
-        """(Re)run the oneshot unit and return its Result."""
+    def _trigger_via_sssd(self):
+        """Run the oneshot the way a deployed host does and return its Result.
+
+        Restarting sssd re-enqueues the Wants= dependency from the drop-in,
+        which pulls in the upgrade unit; the Before= ordering means the
+        restart does not return until the oneshot has finished. A plain
+        start of sssd would be a no-op here (it is already active) and would
+        not re-pull the dependency, so restart is required.
+        """
+        self.client.run_command(['systemctl', 'restart', 'sssd.service'])
+        return self._show(UPGRADE_SERVICE, 'Result')
+
+    def _start_unit(self):
+        """Run the oneshot directly and return its Result."""
         # reset-failed so a Result from a previous run does not linger
         self.client.run_command(
             ['systemctl', 'reset-failed', UPGRADE_SERVICE], raiseonerr=False
@@ -86,11 +98,11 @@ class TestClientUpgradeService(IntegrationTest):
         before = self._show(UPGRADE_SERVICE, 'Before')
         assert 'sssd.service' in before.split()
 
-    def test_service_runs_on_enrolled_client(self):
-        """On an enrolled client the unit runs and records the stamp."""
+    def test_service_runs_via_sssd_on_enrolled_client(self):
+        """Restarting sssd pulls in the unit, which records the stamp."""
         self.client.run_command(['rm', '-f', UPGRADE_STAMP])
 
-        assert self._start() == 'success'
+        assert self._trigger_via_sssd() == 'success'
         assert self._stamp_exists()
 
         stamp = self.client.get_file_contents(
@@ -104,7 +116,7 @@ class TestClientUpgradeService(IntegrationTest):
             UPGRADE_STAMP, encoding='utf-8'
         ).strip()
 
-        assert self._start() == 'success'
+        assert self._trigger_via_sssd() == 'success'
 
         after = self.client.get_file_contents(
             UPGRADE_STAMP, encoding='utf-8'
@@ -115,7 +127,8 @@ class TestClientUpgradeService(IntegrationTest):
         """Running the unit performs the client configuration migration.
 
         Inject the obsolete sssd krb5 includedir into krb5.conf, clear the
-        stamp so the migration runs, and confirm the unit removes it.
+        stamp so the migration runs, restart sssd to pull the unit in, and
+        confirm the unit removed it.
         """
         krb5 = self.client.get_file_contents(paths.KRB5_CONF, encoding='utf-8')
         if KRB5_INCLUDEDIR not in krb5:
@@ -124,15 +137,20 @@ class TestClientUpgradeService(IntegrationTest):
             )
         self.client.run_command(['rm', '-f', UPGRADE_STAMP])
 
-        assert self._start() == 'success'
+        assert self._trigger_via_sssd() == 'success'
 
         krb5 = self.client.get_file_contents(paths.KRB5_CONF, encoding='utf-8')
         assert KRB5_INCLUDEDIR not in krb5
 
     def test_service_skipped_on_unenrolled_host(self):
-        """After uninstall the unit is a no-op: no migration, no stamp."""
+        """After uninstall the unit is a no-op: no migration, no stamp.
+
+        sssd is unconfigured once the client is unenrolled, so this starts
+        the unit directly to confirm its own guard (the enrollment check and
+        ConditionDirectoryNotEmpty) short-circuits it.
+        """
         tasks.uninstall_client(self.clients[0])
         self.client.run_command(['rm', '-f', UPGRADE_STAMP])
 
-        assert self._start() == 'success'
+        assert self._start_unit() == 'success'
         assert not self._stamp_exists()
