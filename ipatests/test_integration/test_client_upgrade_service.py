@@ -129,18 +129,27 @@ class TestClientUpgradeService(IntegrationTest):
         Inject the obsolete sssd krb5 includedir into krb5.conf, clear the
         stamp so the migration runs, restart sssd to pull the unit in, and
         confirm the unit removed it.
+
+        krb5.conf is backed up and restored so a regression in the migration
+        cannot leave a broken Kerberos config for later tests on this host.
+        The includedir is prepended, where such top-level directives belong.
         """
-        krb5 = self.client.get_file_contents(paths.KRB5_CONF, encoding='utf-8')
-        if KRB5_INCLUDEDIR not in krb5:
-            self.client.put_file_contents(
-                paths.KRB5_CONF, krb5 + "\n" + KRB5_INCLUDEDIR + "\n"
+        with tasks.FileBackup(self.client, paths.KRB5_CONF):
+            krb5 = self.client.get_file_contents(
+                paths.KRB5_CONF, encoding='utf-8'
             )
-        self.client.run_command(['rm', '-f', UPGRADE_STAMP])
+            if KRB5_INCLUDEDIR not in krb5:
+                self.client.put_file_contents(
+                    paths.KRB5_CONF, KRB5_INCLUDEDIR + "\n" + krb5
+                )
+            self.client.run_command(['rm', '-f', UPGRADE_STAMP])
 
-        assert self._trigger_via_sssd() == 'success'
+            assert self._trigger_via_sssd() == 'success'
 
-        krb5 = self.client.get_file_contents(paths.KRB5_CONF, encoding='utf-8')
-        assert KRB5_INCLUDEDIR not in krb5
+            krb5 = self.client.get_file_contents(
+                paths.KRB5_CONF, encoding='utf-8'
+            )
+            assert KRB5_INCLUDEDIR not in krb5
 
     def test_service_skipped_on_unenrolled_host(self):
         """After uninstall the unit is a no-op: no migration, no stamp.
