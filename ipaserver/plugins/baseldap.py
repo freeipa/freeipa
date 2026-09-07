@@ -1001,7 +1001,10 @@ last, after all sets and adds."""),
     enforce_managed_permission_operations = []
 
     def enforce_managed_permissions(self, *keys, **options):
-        from ipaserver.plugins.privilege import principal_has_privilege
+        # avoid circular import through explicit plugin reference
+        principal_has_privilege = (
+            self.api.packages[0].privilege.principal_has_privilege
+        )
         mp = getattr(self.obj, 'managed_permissions', None)
         if not mp:
             return
@@ -1024,23 +1027,31 @@ last, after all sets and adds."""),
                     self.api, op_account, priv)
             return priv_cache[priv]
 
-        # Effective rights, if needed at all, are fetched once in a single
-        # get-effective-rights round trip shared by every permission below.
-        # probe['res'] is (entry_rights, {attr: rights}) or None (no entry).
-        probe = {}
+        # LDAPDelete and other LDAPMultiQuery commands pass the trailing
+        # primary key as a *list* of pkeys and act on each target entry in
+        # turn (see LDAPDelete.execute). get_dn and the effective-rights probes
+        # below operate on a single entry, so expand the operation into its
+        # individual targets and require the right on every one of them.
+        target_keys = self._expand_target_keys(keys)
 
-        def rights_allow(right, perm, touched):
+        # Effective rights, if needed at all, are fetched at most once per
+        # target in a single get-effective-rights round trip shared by every
+        # permission checked for that target. probes[i]['res'] is
+        # (entry_rights, {attr: rights}) or None (no entry).
+        probes = [{} for _ in target_keys]
+
+        def right_allowed_for(right, perm, touched, probe, tkeys):
             if right == 'add':
                 # The target does not exist yet and target-scoped/SELFDN add
                 # ACIs cannot be evaluated through a get-effective-rights
                 # template probe, so detect the right with a trial add of the
                 # real target entry (see _can_add_target).
                 if 'add' not in probe:
-                    probe['add'] = self._can_add_target(*keys, **options)
+                    probe['add'] = self._can_add_target(*tkeys, **options)
                 return probe['add']
             if 'res' not in probe:
                 probe['res'] = self._probe_effective_rights(
-                    mp, enforce_mp, *keys, **options)
+                    mp, enforce_mp, *tkeys, **options)
             res = probe['res']
             if res is None:
                 # Entry does not exist; let the operation report it properly.
@@ -1054,11 +1065,31 @@ last, after all sets and adds."""),
                 if not attrs:
                     return True
                 return any('w' in attr_rights.get(a, '') for a in attrs)
-            # read / search / compare
-            attrs = {a.lower() for a in perm.get('ipapermdefaultattr', ())}
-            if not attrs:
+            # read / search / compare: a read is never denied wholesale by
+            # 389-ds -- it returns the entry and silently filters out the
+            # individual attributes the caller may not see.  Permit the
+            # operation whenever the caller can view the entry (entry-level
+            # 'v') or read *any* of its attributes.  IPA's read ACIs are
+            # attribute-scoped, so an unprivileged caller reading its own entry
+            # gets 'entryLevelRights: none' yet can still read cn/sn/mail/...;
+            # requiring read on this permission's specific attributes would
+            # wrongly turn such a legitimate partial read into a total denial.
+            # Attribute-level confidentiality (e.g. the admin-only Kerberos
+            # login attributes) stays enforced by 389-ds on the read that
+            # follows.  The probe always requests '*' (see
+            # _probe_effective_rights), so attr_rights reflects every attribute.
+            if 'v' in entry_rights:
                 return True
-            return any('r' in attr_rights.get(a, '') for a in attrs)
+            return any('r' in r for r in attr_rights.values())
+
+        def rights_allow(right, perm, touched):
+            # Permit only if the caller may perform the operation on *every*
+            # target entry the command names (a batch delete/retrieve must be
+            # authorised for all of its pkeys).
+            return all(
+                right_allowed_for(right, perm, touched, probe, tkeys)
+                for probe, tkeys in zip(probes, target_keys)
+            )
 
         modified_attrs = None  # computed lazily, only for 'write'
         for m in mp.keys():
@@ -1105,6 +1136,20 @@ last, after all sets and adds."""),
 
                 raise errors.ACIError(
                     info=_("not allowed to perform this operation"))
+
+    def _expand_target_keys(self, keys):
+        """Expand an operation's keys into one key-tuple per target entry.
+
+        LDAPDelete and other LDAPMultiQuery commands pass the trailing primary
+        key as a list of pkeys and iterate over it, calling get_dn once per
+        entry (see LDAPDelete.execute). get_dn and the effective-rights probes
+        expect a single pkey, so mirror that expansion here. For ordinary
+        single-target commands the keys are returned unchanged as one tuple.
+        """
+        if keys and self.obj.primary_key and isinstance(
+                keys[-1], (list, tuple)):
+            return [keys[:-1] + (pkey,) for pkey in keys[-1]]
+        return [tuple(keys)]
 
     def _modified_attributes(self, **options):
         """Best-effort set of LDAP attributes an update operation changes.
@@ -1214,8 +1259,14 @@ last, after all sets and adds."""),
                 continue
             needed.update(a.lower() for a in perm.get('ipapermdefaultattr', ()))
 
+        # Always include '*' so the effective rights cover every attribute of
+        # the entry, not only the gated ones.  The read/search/compare check
+        # needs to know whether the caller can read *any* attribute (an
+        # unprivileged caller may read its own entry without holding the
+        # object's read privilege), which cannot be answered from the gated
+        # attributes alone.
         try:
-            rights = ldap.get_effective_rights(dn, sorted(needed) or ['*'])
+            rights = ldap.get_effective_rights(dn, sorted(needed | {'*'}))
         except errors.NotFound:
             return None
 
@@ -2020,7 +2071,9 @@ class LDAPAddMember(LDAPModMember):
     member_param_doc = _('%s to add')
     member_count_out = ('%i member added.', '%i members added.')
     allow_same = False
-    enforce_managed_permission_operations = ['write']
+    # Member writes are enforced per-member by 389-ds and reported gracefully
+    # in the command's `failed` output, so no API-level gate is applied here
+    # (an up-front ACIError would abort the whole batch instead).
 
     has_output = (
         output.Entry('result'),
@@ -2037,8 +2090,6 @@ class LDAPAddMember(LDAPModMember):
     has_output_params = global_output_params
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions(*keys, **options)
-
         ldap = self.obj.backend
 
         (member_dns, failed) = self.get_member_dns(**options)
@@ -2121,7 +2172,9 @@ class LDAPRemoveMember(LDAPModMember):
     """
     member_param_doc = _('%s to remove')
     member_count_out = ('%i member removed.', '%i members removed.')
-    enforce_managed_permission_operations = ['write']
+    # Member writes are enforced per-member by 389-ds and reported gracefully
+    # in the command's `failed` output, so no API-level gate is applied here
+    # (an up-front ACIError would abort the whole batch instead).
 
     has_output = (
         output.Entry('result'),
@@ -2138,8 +2191,6 @@ class LDAPRemoveMember(LDAPModMember):
     has_output_params = global_output_params
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions(*keys, **options)
-
         ldap = self.obj.backend
 
         (member_dns, failed) = self.get_member_dns(**options)
@@ -2715,8 +2766,6 @@ class BaseLDAPModAttribute(LDAPQuery):
         )
 
     def execute(self, *keys, **options):
-        self.enforce_managed_permissions(*keys, **options)
-
         ldap = self.obj.backend
         try:
             index = tuple(self.args).index(self.attribute)
@@ -2724,6 +2773,13 @@ class BaseLDAPModAttribute(LDAPQuery):
             obj_keys = keys
         else:
             obj_keys = keys[:index]
+
+        # Enforce on the target entry's own keys.  For the arg-based variants
+        # the attribute value is a trailing positional arg that is not part of
+        # the entry's DN (see obj_keys), so it must be excluded here: passing
+        # the full keys would make the effective-rights probe's get_dn target a
+        # bogus DN and silently bypass the check.
+        self.enforce_managed_permissions(*obj_keys, **options)
 
         dn = self.obj.get_dn(*obj_keys, **options)
         entry_attrs = ldap.make_entry(dn, self.args_options_2_entry(
