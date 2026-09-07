@@ -93,6 +93,7 @@
 
 #define IPA_KRB_AUTHZ_DATA_ATTR "ipaKrbAuthzData"
 #define IPA_USER_AUTH_TYPE "ipaUserAuthType"
+#define IPA_ORIGINAL_UID_ATTR "ipaOriginalUid"
 
 /* Virtual managed ticket flags like "-allow_tix", are always controlled by the
  * "nsAccountLock" attribute, such flags should never be set in the database.
