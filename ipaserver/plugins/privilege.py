@@ -92,11 +92,28 @@ def principal_has_privilege(api, principal, privilege):
     privilege_dn = api.Object.privilege.get_dn(privilege)
     ldap = api.Backend.ldap2
     if principal is None:
-        dn_or_princ = DN(ldap.conn.whoami_s()[4:])
-        if dn_or_princ == DN('cn=Directory Manager'):
+        # whoami reports the bound identity as an entry DN, not a Kerberos
+        # principal name. Check its privilege membership directly by DN: a
+        # 'krbprincipalname=<DN>' filter can never match and would always
+        # (wrongly) report the caller as lacking the privilege.
+        bound_dn = DN(ldap.conn.whoami_s()[4:])
+        if bound_dn == DN('cn=Directory Manager'):
             return True
-    else:
-        dn_or_princ = principal
+        filter = ldap.make_filter(
+            {'memberof': privilege_dn}, rules=ldap.MATCH_ALL)
+        try:
+            ldap.find_entries(base_dn=bound_dn, scope=ldap.SCOPE_BASE,
+                              filter=filter)
+            return True
+        except errors.ExecutionError:
+            # NotFound is the normal negative result (not a member, or the
+            # bound entry does not exist). Any other execution error (database
+            # error, limits, ...) cannot positively confirm the privilege
+            # either, and there is no Kerberos principal to fall back on for
+            # the ID override check below, so fail closed: not privileged.
+            return False
+
+    dn_or_princ = principal
 
     # First try: Check if there is a principal that has the needed
     # privilege.
@@ -109,10 +126,6 @@ def principal_has_privilege(api, principal, privilege):
         return True
     except errors.NotFound:
         pass
-
-    # Do not run ID override check for the user that has no Kerberos principal
-    if principal is None:
-        return False
 
     # Second try: Check if there is an idoverride for the principal as
     # ipaOriginalUid that has the needed privilege.
