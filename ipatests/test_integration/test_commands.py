@@ -1289,9 +1289,10 @@ class TestIPACommand(IntegrationTest):
         tasks.create_active_user(self.master, user, passwd, extra_args=[
             '--homedir', '/home/{}'.format(user)])
         tasks.kinit_admin(self.master)
+        # STIG crypto policy omits ssh-ed25519 from PubkeyAcceptedAlgorithms.
         tasks.run_command_as_user(
-            self.master, user, ['ssh-keygen', '-N', '',
-                                '-f', user_key])
+            self.master, user, ['ssh-keygen', '-t', 'rsa', '-b', '2048',
+                                '-N', '', '-f', user_key])
         ssh_pub_key = self.master.get_file_contents('{}.pub'.format(
             user_key), encoding='utf-8')
         openssl_cmd = [
@@ -1317,6 +1318,7 @@ class TestIPACommand(IntegrationTest):
             # login to the system
             self.master.run_command(
                 ['ssh', '-v', '-o', 'PasswordAuthentication=no',
+                 '-o', 'GSSAPIAuthentication=no',
                  '-o', 'IdentitiesOnly=yes', '-o', 'StrictHostKeyChecking=no',
                  '-o', 'ConnectTimeout=10', '-l', user, '-i', user_key,
                  self.master.hostname, 'true'])
@@ -1448,14 +1450,24 @@ class TestIPACommand(IntegrationTest):
             pytest.xfail('Fix is part of sssd 2.3.0 and is'
                          ' available from fedora32 onwards')
 
-        # start to look at logs a bit before "now"
-        # https://codeberg.org/freeipa/freeipa/issues/8432
-        since = time.strftime(
-            '%Y-%m-%d %H:%M:%S',
-            (datetime.now() - timedelta(seconds=10)).timetuple()
+        password = 'WrongPassword'
+
+        # SSSD may be offline after dirsrv restarts (e.g. ipa-adtrust-install
+        # in FIPS). Without a resolvable user, sshd treats the account as
+        # invalid and auth never reaches pam_sss.
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        tasks.run_repeatedly(
+            self.master,
+            command=['getent', 'passwd', self.testuser],
+            test=lambda stdout: self.testuser in stdout,
+            timeout=120,
         )
 
-        password = 'WrongPassword'
+        # Use master clock: controller time can be ahead of the host and
+        # make journalctl --since miss sshd logs (codeberg #8432).
+        since = self.master.run_command(
+            ['date', '-d', '10 seconds ago', '+%Y-%m-%d %H:%M:%S']
+        ).stdout_text.strip()
 
         tasks.run_ssh_cmd(
             to_host=self.master.external_hostname, username=self.testuser,
@@ -1474,7 +1486,7 @@ class TestIPACommand(IntegrationTest):
 
         # sshd don't flush its logs to syslog immediately
         cmd = ["journalctl", "-u", "sshd", f"--since={since}"]
-        tasks.run_repeatedly(self.master, command=cmd, test=test_cb)
+        tasks.run_repeatedly(self.master, command=cmd, test=test_cb, timeout=60)
 
     def get_dirsrv_id(self):
         serverid = realm_to_serverid(self.master.domain.realm)
@@ -1674,6 +1686,13 @@ class TestIPACommand(IntegrationTest):
             'kinit', restricted_user],
             stdin_text=user_kinit)
         tasks.kdestroy_all(self.clients[0])
+        tasks.clear_sssd_cache(self.clients[0])
+        tasks.run_repeatedly(
+            self.clients[0],
+            command=['getent', 'passwd', restricted_user],
+            test=lambda stdout: restricted_user in stdout,
+            timeout=120,
+        )
 
         # ssh as a restricted user to a user with a valid shell should
         # work
