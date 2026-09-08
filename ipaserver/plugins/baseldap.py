@@ -1027,6 +1027,11 @@ last, after all sets and adds."""),
                     self.api, op_account, priv)
             return priv_cache[priv]
 
+        # Some commands construct the real target principal/DN only later (in
+        # pre_callback), so let them supply the keys the probes should target
+        # (e.g. service-add-smb builds cifs/<hostname> from a bare hostname).
+        keys = self._enforcement_keys(*keys, **options)
+
         # LDAPDelete and other LDAPMultiQuery commands pass the trailing
         # primary key as a *list* of pkeys and act on each target entry in
         # turn (see LDAPDelete.execute). get_dn and the effective-rights probes
@@ -1136,6 +1141,17 @@ last, after all sets and adds."""),
 
                 raise errors.ACIError(
                     info=_("not allowed to perform this operation"))
+
+    def _enforcement_keys(self, *keys, **options):
+        """Keys identifying the target entry for permission enforcement.
+
+        Defaults to the command's own keys. Commands whose real target DN is
+        derived only later -- e.g. service-add-smb, which takes a bare hostname
+        and constructs the ``cifs/<hostname>`` principal in pre_callback --
+        override this so the effective-rights/trial-add probes target the
+        actual entry rather than a DN built from the raw key.
+        """
+        return keys
 
     def _expand_target_keys(self, keys):
         """Expand an operation's keys into one key-tuple per target entry.
