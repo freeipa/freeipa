@@ -799,7 +799,7 @@ int ipapwd_setdate(Slapi_Entry *source, Slapi_Mods *smods, const char *attr,
     Slapi_Attr *t;
     bool exists;
 
-    exists = (slapi_entry_attr_find(source, attr, &t) == 0);
+    exists = (source != NULL && slapi_entry_attr_find(source, attr, &t) == 0);
 
     if (remove) {
         if (exists) {

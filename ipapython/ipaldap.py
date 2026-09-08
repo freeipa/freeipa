@@ -23,7 +23,7 @@ import binascii
 import errno
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from copy import deepcopy
 import contextlib
@@ -972,6 +972,20 @@ class LDAPClient:
 
         return None
 
+    @staticmethod
+    def _encode_datetime(val):
+        """Translate a datetime to an LDAP GeneralizedTime string.
+
+        The GeneralizedTime format used here (``...Z``) denotes UTC, so a
+        timezone-aware value must be converted to UTC first; otherwise its
+        wall-clock components would be emitted verbatim and mislabelled as
+        UTC. A naive datetime is assumed to already be in UTC (the convention
+        used throughout IPA).
+        """
+        if val.tzinfo is not None:
+            val = val.astimezone(timezone.utc)
+        return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+
     def encode(self, val):
         """
         Encode attribute value to LDAP representation (str/bytes).
@@ -999,7 +1013,7 @@ class LDAPClient:
             dct = dict((k, self.encode(v)) for k, v in val.items())
             return dct
         elif isinstance(val, datetime):
-            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT).encode('utf-8')
+            return self._encode_datetime(val).encode('utf-8')
         elif isinstance(val, x509.IPACertificate):
             return val.public_bytes(x509.Encoding.DER)
         elif val is None:
@@ -1389,8 +1403,7 @@ class LDAPClient:
                 value = u'\\'.join(
                     value[i:i+2] for i in six.moves.range(-2, len(value), 2))
             elif isinstance(value, datetime):
-                value = value.strftime(
-                    LDAP_GENERALIZED_TIME_FORMAT)
+                value = cls._encode_datetime(value)
                 value = ldap.filter.escape_filter_chars(value)
             else:
                 value = str(value)
