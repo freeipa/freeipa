@@ -118,3 +118,12 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
 
         # make sure that password IS changed
         self._checkpw(testuser, new_password)
+
+    def test_pwpolicy_success_realm_principal(self):
+        principal = u'%s@%s' % (testuser, api.env.realm)
+        response = self._changepw(principal, old_password, new_password)
+
+        assert_equal(response.status, 200)
+        assert_equal(response.getheader('X-IPA-Pwchange-Result'), 'ok')
+
+        self._checkpw(testuser, new_password)
