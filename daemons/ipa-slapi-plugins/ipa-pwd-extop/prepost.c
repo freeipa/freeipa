@@ -400,6 +400,40 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
         goto done;
     }
 
+    /* If the entry being added already carries a krbPasswordExpiration, treat
+     * it as an explicit request. An explicit request overrides the default
+     * expiration derived by ipapwd_CheckPolicy (which, for an admin-set
+     * password, force-expires the account), but is still capped at the policy
+     * maximum lifetime -- a password must never outlive policy. A
+     * max_pwd_life of 0 means "never expire".
+     *
+     * This is only meaningful on LDAP ADD, where the attribute value is the
+     * request; on a password change it holds the previous expiration and must
+     * not constrain the new one. */
+    {
+        char *req_exp_str;
+        time_t req_exp;
+
+        req_exp_str = slapi_entry_attr_get_charptr(e, "krbPasswordExpiration");
+        req_exp = ipapwd_gentime_to_time_t(req_exp_str);
+        slapi_ch_free_string(&req_exp_str);
+
+        if (req_exp != 0) {
+            time_t policy_max = 0;
+
+            if (pwdop->pwdata.policy.max_pwd_life > 0) {
+                policy_max = pwdop->pwdata.timeNow +
+                             pwdop->pwdata.policy.max_pwd_life;
+            }
+
+            if (policy_max != 0 && req_exp > policy_max) {
+                pwdop->pwdata.expireTime = policy_max;
+            } else {
+                pwdop->pwdata.expireTime = req_exp;
+            }
+        }
+    }
+
     if (is_krb || is_smb || is_ipant) {
 
         Slapi_Value **svals = NULL;
@@ -1147,6 +1181,22 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
         if (pwvals) {
             slapi_mods_add_mod_values(smods, LDAP_MOD_REPLACE,
                                       "passwordHistory", pwvals);
+        }
+    }
+
+    /* The date-setting and grace-time logic below needs the current entry to
+     * detect already-present single-valued attributes (e.g. a client-supplied
+     * krbPasswordExpiration on add) so ipapwd_setdate can REPLACE rather than
+     * append a duplicate value. On add -- and on password changes that skipped
+     * history -- pwdata.target is still NULL, so fetch the just-committed entry
+     * (freed with the mod path's entry at 'done'). */
+    if (pwdop->pwdata.target == NULL) {
+        Slapi_DN *tmp_dn = slapi_sdn_new_dn_byref(pwdop->pwdata.dn);
+        if (tmp_dn) {
+            (void)slapi_search_internal_get_entry(tmp_dn, 0,
+                                                  &pwdop->pwdata.target,
+                                                  ipapwd_plugin_id);
+            slapi_sdn_free(&tmp_dn);
         }
     }
 

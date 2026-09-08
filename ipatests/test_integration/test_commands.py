@@ -471,6 +471,92 @@ class TestIPACommand(IntegrationTest):
         tasks.ldappasswd_sysaccount_change(sysuser, original_passwd,
                                            new_passwd, master)
 
+    def test_user_add_password_expiration_bounded_by_policy(self):
+        """user-add with --password and an explicit --password-expiration.
+
+        The ipa-pwd-extop DS plugin must:
+          * store a single value of the single-valued krbPasswordExpiration
+            attribute (it used to append a second, policy-derived value on add,
+            failing the operation with a schema violation), and
+          * honor an explicitly requested expiration but bound it by the
+            effective password policy, so a password never outlives policy.
+        """
+        master = self.master
+        tasks.kinit_admin(master)
+        base_dn = str(master.domain.basedn)
+
+        # Effective global policy maximum password lifetime, in seconds
+        # (krbMaxPwdLife is stored in seconds; 0 means "never expire").
+        result = master.run_command(['ipa', 'pwpolicy-show', '--raw'])
+        match = re.search(r'krbmaxpwdlife:\s*(\d+)', result.stdout_text)
+        max_life_secs = int(match.group(1)) if match else 0
+
+        def add_user(user, exp_dt):
+            master.run_command(
+                ['ipa', 'user-add', user, '--first', user, '--last', user,
+                 '--password', '--password-expiration',
+                 exp_dt.strftime('%Y%m%d%H%M%SZ')],
+                stdin_text='Secret123\nSecret123\n')
+
+        def stored_expirations(user):
+            result = tasks.ldapsearch_dm(
+                master,
+                'uid={user},cn=users,cn=accounts,{base_dn}'.format(
+                    user=user, base_dn=base_dn),
+                ['krbpasswordexpiration'],
+                scope='base')
+            values = re.findall(r'krbpasswordexpiration: (\S+)',
+                                result.stdout_text.lower())
+            return [datetime.strptime(v.strip().upper(), '%Y%m%d%H%M%SZ')
+                    for v in values]
+
+        # A request comfortably within policy must be honored verbatim.
+        within_user = 'pwdexpwithin'
+        if max_life_secs:
+            within_delta = timedelta(seconds=min(max_life_secs // 2, 86400))
+        else:
+            within_delta = timedelta(days=1)
+        requested = datetime.utcnow() + within_delta
+        # second precision only: krbPasswordExpiration has no sub-second part
+        requested = requested.replace(microsecond=0)
+        try:
+            add_user(within_user, requested)
+            stored = stored_expirations(within_user)
+            assert len(stored) == 1, (
+                'krbPasswordExpiration must be single-valued, got %r' % stored)
+            assert abs((stored[0] - requested).total_seconds()) < 120, (
+                'within-policy request %s not honored, stored %s'
+                % (requested, stored[0]))
+        finally:
+            master.run_command(['ipa', 'user-del', within_user],
+                               raiseonerr=False)
+
+        # A request far beyond policy must be capped at the policy maximum
+        # (only meaningful when the policy actually sets a maximum lifetime).
+        if max_life_secs:
+            over_user = 'pwdexpover'
+            requested = (datetime.utcnow()
+                         + timedelta(seconds=max_life_secs)
+                         + timedelta(days=3650))
+            requested = requested.replace(microsecond=0)
+            try:
+                add_user(over_user, requested)
+                stored = stored_expirations(over_user)
+                assert len(stored) == 1, (
+                    'krbPasswordExpiration must be single-valued, got %r'
+                    % stored)
+                assert stored[0] < requested - timedelta(days=1), (
+                    'beyond-policy request was not capped, stored %s'
+                    % stored[0])
+                cap = (datetime.utcnow() + timedelta(seconds=max_life_secs)
+                       + timedelta(days=1))
+                assert stored[0] <= cap, (
+                    'stored expiration %s exceeds policy cap %s'
+                    % (stored[0], cap))
+            finally:
+                master.run_command(['ipa', 'user-del', over_user],
+                                   raiseonerr=False)
+
     def get_krbinfo(self, user):
         base_dn = str(self.master.domain.basedn)
         result = tasks.ldapsearch_dm(
