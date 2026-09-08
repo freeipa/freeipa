@@ -3182,6 +3182,18 @@ class test_permission_bindtype(Declarative):
             expected=dict(
                 value=permission1,
                 summary=u'Added permission "%s"' % permission1,
+                messages=(
+                    {
+                        'message': ('The permission has read rights but no '
+                                    'attributes are set.'),
+                        'code': 13032,
+                        'type': 'warning',
+                        'name': 'MissingTargetAttributesinPermission',
+                        'data': {
+                            'right': 'read',
+                        }
+                    },
+                ),
                 result=dict(
                     dn=permission1_dn,
                     cn=[permission1],
@@ -3245,13 +3257,13 @@ class test_permission_bindtype(Declarative):
                 summary=u'Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
+                        'message': ('The permission has read rights but no '
                                     'attributes are set.'),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
-                            'right': 'write',
+                            'right': 'read',
                         }
                     },
                 ),
@@ -3260,7 +3272,7 @@ class test_permission_bindtype(Declarative):
                     cn=[permission1],
                     objectclass=objectclasses.permission,
                     type=[u'user'],
-                    ipapermright=[u'write'],
+                    ipapermright=[u'read'],
                     ipapermbindruletype=[u'all'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
@@ -3272,7 +3284,7 @@ class test_permission_bindtype(Declarative):
             permission1, users_dn,
             '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) userdn = "ldap:///all";)',
+            'allow (read) userdn = "ldap:///all";)',
         ),
 
         dict(
@@ -3301,7 +3313,7 @@ class test_permission_bindtype(Declarative):
                         dn=permission1_dn,
                         cn=[permission1],
                         type=[u'user'],
-                        ipapermright=[u'write'],
+                        ipapermright=[u'read'],
                         ipapermbindruletype=[u'all'],
                         objectclass=objectclasses.permission,
                         ipapermissiontype=[u'SYSTEM', u'V2'],
@@ -3348,13 +3360,13 @@ class test_permission_bindtype(Declarative):
                 summary=u'Modified permission "%s"' % permission1,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
+                        'message': ('The permission has read rights but no '
                                     'attributes are set.'),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
-                            'right': 'write',
+                            'right': 'read',
                         }
                     },
                 ),
@@ -3363,7 +3375,7 @@ class test_permission_bindtype(Declarative):
                     cn=[permission1_renamed],
                     type=[u'user'],
                     objectclass=objectclasses.permission,
-                    ipapermright=[u'write'],
+                    ipapermright=[u'read'],
                     ipapermbindruletype=[u'all'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
@@ -3375,7 +3387,7 @@ class test_permission_bindtype(Declarative):
             permission1_renamed, users_dn,
             '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1_renamed +
-            'allow (write) userdn = "ldap:///all";)',
+            'allow (read) userdn = "ldap:///all";)',
         ),
 
         dict(
@@ -3391,13 +3403,13 @@ class test_permission_bindtype(Declarative):
                 summary=u'Modified permission "%s"' % permission1_renamed,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
+                        'message': ('The permission has read rights but no '
                                     'attributes are set.'),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
-                            'right': 'write',
+                            'right': 'read',
                         }
                     },
                 ),
@@ -3406,7 +3418,7 @@ class test_permission_bindtype(Declarative):
                     cn=[permission1_renamed],
                     objectclass=objectclasses.permission,
                     type=[u'user'],
-                    ipapermright=[u'write'],
+                    ipapermright=[u'read'],
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
@@ -3418,7 +3430,7 @@ class test_permission_bindtype(Declarative):
             permission1_renamed, users_dn,
             '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1_renamed +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
+            'allow (read) groupdn = "ldap:///%s";)' % permission1_renamed_dn,
         ),
 
         dict(
@@ -3432,13 +3444,13 @@ class test_permission_bindtype(Declarative):
                 summary=u'Modified permission "%s"' % permission1_renamed,
                 messages=(
                     {
-                        'message': ('The permission has write rights but no '
+                        'message': ('The permission has read rights but no '
                                     'attributes are set.'),
                         'code': 13032,
                         'type': 'warning',
                         'name': 'MissingTargetAttributesinPermission',
                         'data': {
-                            'right': 'write',
+                            'right': 'read',
                         }
                     },
                 ),
@@ -3447,7 +3459,7 @@ class test_permission_bindtype(Declarative):
                     cn=[permission1],
                     type=[u'user'],
                     objectclass=objectclasses.permission,
-                    ipapermright=[u'write'],
+                    ipapermright=[u'read'],
                     ipapermbindruletype=[u'permission'],
                     ipapermissiontype=[u'SYSTEM', u'V2'],
                     ipapermlocation=[users_dn],
@@ -3459,7 +3471,7 @@ class test_permission_bindtype(Declarative):
             permission1, users_dn,
             '(targetfilter = "(objectclass=posixaccount)")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
-            'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
+            'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
 
         dict(
