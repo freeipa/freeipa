@@ -810,6 +810,13 @@ class service_add_smb(LDAPCreate):
             if check:
                 yield arg
 
+    def _enforcement_keys(self, *keys, **options):
+        # The primary key here is a bare hostname; the real target principal
+        # (cifs/<hostname>) is only built in pre_callback. Enforce the add
+        # against that actual principal so the "Hosts can add own services"
+        # ACI (target krbprincipalname=*/($dn)@$REALM) is matched correctly.
+        return ('cifs/{}'.format(keys[0]),)
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,
                      *keys, **options):
         assert isinstance(dn, DN)
