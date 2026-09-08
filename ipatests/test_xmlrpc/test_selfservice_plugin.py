@@ -803,7 +803,7 @@ class test_selfservice_cli_add_del(Declarative):
                      r'(version 3.0;acl '
                      r'\22selfservice:selfservice_add_1002\22;'
                      r'allow (write) (userdn = \22ldap:///self\22 '
-                     r'and userdn = \22ldap:///all\22;)',
+                     r'and userdn = \22ldap:///all\22);)',
             ),
         ),
 
@@ -881,7 +881,7 @@ class test_selfservice_cli_add_del(Declarative):
                      r'(version 3.0;acl '
                      r'\22selfservice:selfservice_add_1005\22;'
                      r'allow (write) (userdn = \22ldap:///self\22 '
-                     r'and userdn = \22ldap:///all\22;)',
+                     r'and userdn = \22ldap:///all\22);)',
             ),
         ),
 
@@ -1591,7 +1591,7 @@ class test_selfservice_mod_cli(Declarative):
                     r'(version 3.0;acl '
                     r'\22selfservice:%s\22;'
                     r'allow (write) (userdn = \22ldap:///self\22 '
-                    r'and userdn = \22ldap:///all\22;)'
+                    r'and userdn = \22ldap:///all\22);)'
                 ) % SS_CLI_MOD,
             ),
         ),
@@ -1658,7 +1658,7 @@ class test_selfservice_mod_cli(Declarative):
                     r'(version 3.0;acl '
                     r'\22selfservice:%s\22;'
                     r'allow (write) (userdn = \22ldap:///self\22 '
-                    r'and userdn = \22ldap:///all\22;)'
+                    r'and userdn = \22ldap:///all\22);)'
                 ) % SS_CLI_MOD,
             ),
         ),
