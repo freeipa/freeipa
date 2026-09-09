@@ -47,6 +47,16 @@ if api.env.in_server:
     from pki.crypto import AES_128_CBC_OID
     from pki import PKIException
 else:
+    import types
+    _key_client = types.SimpleNamespace(
+        KEY_STATUS_ACTIVE=object(),
+        KEY_STATUS_INACTIVE=object(),
+        PASS_PHRASE_TYPE=object(),
+    )
+    pki = types.SimpleNamespace(
+        account=types.SimpleNamespace(AccountClient=object),
+        key=types.SimpleNamespace(KeyClient=_key_client),
+    )
     DES_EDE3_CBC_OID = "{1 2 840 113549 3 7}"
     AES_128_CBC_OID = "{2 16 840 1 101 3 4 1 2}"
     PKIException = Exception
@@ -846,10 +856,8 @@ class vault_del(LDAPDelete):
         assert isinstance(dn, DN)
 
         with self.api.Backend.kra.get_client() as kra_client:
-            # pylint: disable=used-before-assignment
             kra_account = pki.account.AccountClient(kra_client.connection,
                                                     subsystem='kra')
-            # pylint: enable=used-before-assignment
             kra_account.login()
 
             client_key_id = self.obj.get_key_id(dn)

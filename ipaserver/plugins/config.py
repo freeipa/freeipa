@@ -37,7 +37,7 @@ from ipalib import _, messages
 from ipapython.admintool import ScriptError
 from ipapython.dn import DN
 from ipapython.ipavalidate import Email
-from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.plugins.privilege_util import principal_has_privilege
 from ipaserver.install.adtrust import set_and_check_netbios_name
 from ipaserver.install.certs import validate_key_type_size
 

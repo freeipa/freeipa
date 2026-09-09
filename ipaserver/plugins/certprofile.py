@@ -11,7 +11,7 @@ from .baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
     LDAPDelete, LDAPUpdate, LDAPRetrieve)
 from .virtual import VirtualCommand
-from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.plugins.privilege_util import principal_has_privilege
 from ipalib.request import context
 from ipalib import ngettext
 from ipalib.text import _

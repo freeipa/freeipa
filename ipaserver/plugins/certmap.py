@@ -30,7 +30,7 @@ from ipalib.frontend import Object
 from ipalib.parameters import Bool, DNSNameParam, Flag, Int, Str, Certificate
 from ipalib.plugable import Registry
 from ipalib.request import context
-from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.plugins.privilege_util import principal_has_privilege
 from .baseldap import (
     LDAPCreate,
     LDAPDelete,

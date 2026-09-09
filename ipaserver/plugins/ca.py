@@ -15,7 +15,7 @@ from ipaserver.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete,
     LDAPUpdate, LDAPRetrieve, LDAPQuery, pkey_to_value)
 from ipaserver.plugins.cert import ca_enabled_check
-from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.plugins.privilege_util import principal_has_privilege
 from ipalib.request import context
 from ipalib import _, ngettext, x509
 

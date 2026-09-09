@@ -1001,7 +1001,7 @@ last, after all sets and adds."""),
     enforce_managed_permission_operations = []
 
     def enforce_managed_permissions(self, *keys, **options):
-        from ipaserver.plugins.privilege import principal_has_privilege
+        from ipaserver.plugins.privilege_util import principal_has_privilege
         mp = getattr(self.obj, 'managed_permissions', None)
         if not mp:
             return

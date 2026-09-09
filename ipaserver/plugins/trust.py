@@ -57,7 +57,7 @@ from ipaserver.dcerpc_common import (TRUST_ONEWAY,
                                      trust_type_string,
                                      trust_direction_string,
                                      trust_status_string)
-from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.plugins.privilege_util import principal_has_privilege
 
 if six.PY3:
     unicode = str

@@ -31,7 +31,7 @@ from ipaserver import topology
 from ipaserver.servroles import ENABLED, HIDDEN
 from ipaserver.install import bindinstance, dnskeysyncinstance
 from ipaserver.install.service import hide_services, enable_services
-from ipaserver.plugins.privilege import principal_has_privilege
+from ipaserver.plugins.privilege_util import principal_has_privilege
 
 __doc__ = _("""
 IPA servers
