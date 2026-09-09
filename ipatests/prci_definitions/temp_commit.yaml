@@ -55,27 +55,33 @@ topologies:
     memory: 14750
 
 jobs:
-  fedora-latest/build:
+  fedora-rawhide/build:
     requires: []
     priority: 100
     job:
       class: Build
       args:
+        copr: '@shalini10/freeipa'
         git_repo: '{git_repo}'
         git_refspec: '{git_refspec}'
         template: &ci-master-latest
           name: freeipa/ci-master-f44
           version: 0.0.1
+        template: &ci-master-frawhide
+          name: freeipa/ci-master-frawhide
+          version: 0.10.1
         timeout: 1800
         topology: *build
 
-  fedora-latest/temp_commit:
-    requires: [fedora-latest/build]
+  fedora-rawhide/temp_commit:
+    requires: [fedora-rawhide/build]
     priority: 50
     job:
       class: RunPytest
       args:
-        build_url: '{fedora-latest/build_url}'
+        build_url: '{fedora-rawhide/build_url}'
+        update_packages: True
+        copr: '@shalini10/freeipa'
         test_suite: test_integration/test_REPLACEME.py
         template: *ci-master-latest
         timeout: 3600
