@@ -15,6 +15,7 @@ from ipatests.util import (assert_equal, assert_deepequal, raises,
 
 from ipapython.version import API_VERSION
 from ipaserver.plugins.internal import i18n_messages
+from ipaserver.rpcserver import MAX_REQUEST_BODY_SIZE
 
 
 @pytest.mark.tier1
@@ -79,6 +80,30 @@ class test_i18n_messages(XMLRPC_test, Unauthorized_HTTP_test):
 
         response_data = response.read()
         assert_equal(response_data, b'Invalid RPC command')
+        raises(ValueError, json.loads, response_data)
+
+    def test_invalid_payload(self):
+        """
+        Test if end point rejects a body that is not valid JSON
+        """
+        response = self.send_request(params="{invalid_json")
+
+        assert_equal(response.status, 400)
+        assert_equal(response.reason, "Bad Request")
+
+        response_data = response.read()
+        raises(ValueError, json.loads, response_data)
+
+    def test_too_large_payload(self):
+        """
+        Test if end point rejects a body over MAX_REQUEST_BODY_SIZE
+        """
+        response = self.send_request(params="x" * (MAX_REQUEST_BODY_SIZE + 1))
+
+        assert_equal(response.status, 413)
+        assert_equal(response.reason, "Request Entity Too Large")
+
+        response_data = response.read()
         raises(ValueError, json.loads, response_data)
 
     def test_only_post_serves(self):

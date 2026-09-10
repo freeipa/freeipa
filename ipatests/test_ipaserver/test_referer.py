@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import os
 import pytest
 import uuid
@@ -23,6 +24,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.util import assert_equal
 from ipalib import api, errors
 from ipapython.ipautil import run
+from ipapython.version import API_VERSION
 
 testuser = u'tuser'
 password = u'password'
@@ -91,14 +93,6 @@ class test_referer(XMLRPC_test, Unauthorized_HTTP_test):
                     'password': 'password'})
         assert_equal(response.status, 200, self.app_uri)
 
-    def test_i18n_messages_valid(self):
-        # i18n_messages requires a valid JSON request and we send
-        # nothing. If we get a 400 error then it got past the
-        # referer check.
-        self.app_uri = "/ipa/i18n_messages"
-        response = self._request()
-        assert_equal(response.status, 400, self.app_uri)
-
     # /ipa/session/login_x509 is not tested yet as it requires
     # significant additional setup.
     # This can be manually verified by adding
@@ -134,3 +128,49 @@ class test_referer(XMLRPC_test, Unauthorized_HTTP_test):
             response = self._request(host="attacker.test")
 
             assert_equal(response.status, 400, self.app_uri)
+
+    def test_i18n_messages_valid(self):
+        """Valid Referer: the request is served"""
+        self.app_uri = "/ipa/i18n_messages"
+        self.content_type = "application/json"
+        response = self._request(
+            params=json.dumps(
+                {
+                    "method": "i18n_messages",
+                    "params": [[], {"version": API_VERSION}],
+                },
+            ),
+        )
+
+        assert_equal(response.status, 200, self.app_uri)
+
+        # no errors
+        jsondata = json.loads(response.read())
+        assert_equal(jsondata["error"], None)
+        assert jsondata["result"] is not None
+
+    def test_i18n_messages_invalid(self):
+        """
+        Pass in a bad Referer, expect a RefererError.
+
+        This endpoint is served by WSGIExecutioner, which reports every
+        PublicError through the JSON-RPC envelope, so the HTTP status stays 200
+        and the rejection is in the body.
+        """
+        self.app_uri = "/ipa/i18n_messages"
+        self.content_type = "application/json"
+        response = self._request(
+            params=json.dumps(
+                {
+                    "method": "i18n_messages",
+                    "params": [[], {"version": API_VERSION}],
+                },
+            ),
+            host="attacker.test",
+        )
+
+        assert_equal(response.status, 200, self.app_uri)
+
+        jsondata = json.loads(response.read())
+        assert_equal(jsondata["error"]["code"], errors.RefererError.errno)
+        assert_equal(jsondata["result"], None)
