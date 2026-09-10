@@ -1,0 +1,48 @@
+name: Feature Request
+about: Request an enhancement to FreeIPA
+title: ''
+labels:
+  - userstory
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an enhancement to FreeIPA!
+
+        Before you submit, [search existing issues](https://codeberg.org/freeipa/freeipa/issues) to see if a similar request has already been made.
+
+  - type: textarea
+    id: user-story
+    attributes:
+      label: Request for enhancement
+      description: Describe the request as a user story.
+      placeholder: |
+        As <persona, for example, admin>, I want <what?> so that <why?>.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe the real-world scenario or problem this enhancement addresses.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: If you have a specific solution or approach in mind, describe it here.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative approaches or existing workarounds?
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional info
+      description: Any other context, design documents, references, or screenshots related to this request.
