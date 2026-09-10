@@ -24,6 +24,9 @@ from ipaserver.install.sysupgrade import STATEFILE_FILE
 from ipalib.constants import DEFAULT_CONFIG
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
+
+ipatest_config = get_global_config()
 
 # old template without comments for testing
 # and "dnssec-validation no"
@@ -480,6 +483,10 @@ class TestUpgrade(IntegrationTest):
             assert len(location_krb_rec['tXTRecord']) == 1
             assert location_krb_rec['tXTRecord'][0] == f'"{realm}"'
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="pki-tomcatd drop-in file is Dogtag-specific"
+    )
     def test_pki_dropin_file(self):
         """Test that upgrade adds the drop-in file if missing
 

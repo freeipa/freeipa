@@ -14,11 +14,15 @@ from __future__ import absolute_import
 
 from difflib import unified_diff
 import os
+import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipaplatform.paths import paths
 from ipapython.ipaldap import realm_to_serverid
+
+ipatest_config = get_global_config()
 
 # from ipaserver.install.dsinstance
 DS_INSTANCE_PREFIX = 'slapd-'
@@ -239,6 +243,10 @@ class TestUninstallReinstall(IntegrationTest):
         tasks.install_master(self.master, setup_dns=False)
 
 
+@pytest.mark.skipif(
+    ipatest_config.ca_backend == 'ipacta',
+    reason="CRL gen configuration is stored in CS.cfg (Dogtag only)"
+)
 class TestUninstallCRLGen(IntegrationTest):
     """Test uninstallation of a replica with broken CRL configuration.
 

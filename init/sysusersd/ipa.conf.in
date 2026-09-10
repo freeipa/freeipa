@@ -6,3 +6,6 @@ u!  ipaapi      -   "IPA API User"
 
 # - add Apache system account to ipaapi group (platform-specific)
 m   @HTTPD_USER@      ipaapi
+
+# IPA CA user and group
+u!  ipaca      -   "IPA CA User"

@@ -58,12 +58,13 @@ def check_master_removal(host, hostname_to_remove,
     )
 
     if result.returncode == 0:
-        host.run_command(['pki', 'client', 'init', '--force'])
-        result = host.run_command(
-            ['pki', 'securitydomain-host-find'],
-            stdin_text='y\n',
-        ).stdout_text
-        assert hostname_to_remove not in result
+        if tasks.get_ca_backend(host) != 'ipacta':
+            host.run_command(['pki', 'client', 'init', '--force'])
+            result = host.run_command(
+                ['pki', 'securitydomain-host-find'],
+                stdin_text='y\n',
+            ).stdout_text
+            assert hostname_to_remove not in result
 
 
 def check_removal_disconnects_topology(

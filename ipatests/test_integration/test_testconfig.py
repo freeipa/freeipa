@@ -55,6 +55,7 @@ DEFAULT_OUTPUT_DICT = {
     "azure_tenant_id": None,
     "azure_admin_client_id": None,
     "azure_admin_client_secret": None,
+    "ca_backend": "ipacta",
 }
 
 DEFAULT_OUTPUT_ENV = {
@@ -75,6 +76,7 @@ DEFAULT_OUTPUT_ENV = {
     "DOMAINLVL": str(MAX_DOMAIN_LEVEL),
     "LOG_JOURNAL_SINCE": "-1h",
     "IPA_FIPS_MODE": "",
+    "IPA_CA_BACKEND": "ipacta",
 }
 
 DEFAULT_INPUT_ENV = {

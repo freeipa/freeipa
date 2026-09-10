@@ -27,6 +27,7 @@ from cryptography.x509.oid import ObjectIdentifier, NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipalib import x509 as ipa_x509
 from ipaplatform.paths import paths
@@ -35,11 +36,16 @@ from ipapython.dn import DN
 from itertools import chain, repeat
 from ipatests.create_external_ca import ExternalCA, ISSUER_CN
 
+ipatest_config = get_global_config()
+
 IPA_CA = 'ipa_ca.crt'
 ROOT_CA = 'root_ca.crt'
 
-# string to identify PKI restart in the journal
-PKI_START_STR = 'Started pki_tomcatd'
+# string to identify CA service restart in the journal
+if ipatest_config.ca_backend == 'ipacta':
+    PKI_START_STR = 'Started ipacta'
+else:
+    PKI_START_STR = 'Started pki_tomcatd'
 
 
 def check_CA_flag(host, nssdb=paths.PKI_TOMCAT_ALIAS_DIR,
@@ -592,10 +598,10 @@ class TestSelfExternalSelf(IntegrationTest):
         assert not bool(result), ('"Traceback" keyword found in the journal.'
                                   'Please check further')
 
-        # Check if pki-tomcatd was started after switching back.
+        # Check if CA service was started after switching back.
         result = match_in_journal(self.master, since=switch_time,
                                   string=PKI_START_STR)
-        assert bool(result), ('pki_tomcatd not started after switching back to'
+        assert bool(result), ('CA service not started after switching back to '
                               'self-signed CA')
 
         result = self.master.run_command([paths.IPA_CERTUPDATE])
