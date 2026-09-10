@@ -1,6 +1,7 @@
 #
 # Copyright (C) 2026  FreeIPA Contributors see COPYING for license
 #
+import os
 
 import pytest
 import ipatests.util
@@ -11,6 +12,10 @@ from ipaclient.install.ipa_epn import drop_privileges
 from ipapython import admintool
 
 
+@pytest.mark.skipif(
+    os.geteuid() != 0,
+    reason="Must have root privileges to run this test",
+)
 @pytest.mark.parametrize(
     "user,group", [
         ("unknown_user", "daemon"),
