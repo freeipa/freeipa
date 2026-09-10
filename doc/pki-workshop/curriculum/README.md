@@ -1,0 +1,53 @@
+# Practical PKI workshop resources
+
+## Building and deploying the curriculum website
+
+1. Update values in `subst.txt` (locally; don't commit):
+
+    - `EDITION` is the event or conference name, e.g.
+      "DevConf.CZ 2026"
+
+    - `BASE_REALM` and `BASE_DOMAIN` match the parent domain of the
+      cloud environments.
+
+    - `FEEDBACK_URL` is the URL of a feedback form.  You should set
+      up a feedback form for each workshop you run.
+
+    - `CNAME_DOMAIN` is the domain name where the web content will
+      be hosted.  Its value is written to the `CNAME` file, which
+      enables the proper routing when using GitHub Pages.
+
+1. Build the website:
+
+    sudo dnf install cabal-install
+    cabal run site build
+
+  The built site is now in the `_site` subdirectory.
+
+1. Add the workshop environment SSH keys
+
+Participants need access to the **private keys** for their unique
+workshop environments.  The Terraform plan outputs a `keys/`
+directory.  Copy that directory to the `_site/` directory containing
+the built website (so, `_site/keys/...`).  **Remove
+`_site/keys/env1.pem`** which you as the workshop presenter will use
+(so that mischeievous people cannot interefere with your
+environment).
+
+1. Use GitHub pages to publish the site.
+    1. Create a **new repo** (GitHub Pages has one-per-repo limit).
+       For example: `freeipa/deploy-pki-workshop-devconfcz-2026`.
+       You can add this repo as a remote in your local clone of
+       the main `freeipa` repo.
+    1. In AWS route53, configure a `CNAME` for the subdomain that will
+       host the web resource, pointing to `freeipa.github.io`.  This
+       should match the `CNAME` field in `subst.txt`.
+    1. Commit the `_site` directory to a new branch.  You
+       might find [these Git aliases][aliases] useful, e.g.:
+        - `git orphan-branch gh-pages-devconfcz2026`
+        - `git snapshot _site gh-pages-devconfcz2026`
+    1. Push the local branch where you committed the `_site` output
+       to the `gh-pages` branch on the **new repo**.
+
+
+[aliases]: https://github.com/frasertweedale/dotfiles/blob/d5dbac3ff23fcf65c4e0ec5a54cc0188f1919be4/.gitconfig#L93-L116
