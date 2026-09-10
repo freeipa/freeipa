@@ -169,23 +169,30 @@ steps:
     # nothing to dump
     [ -z "$pids" ] && exit 0
 
+    # run podman as privileged user to have access to system journal and cores
+    # podman uses per user storage
+    echo 'Importing pre-built image for generating stacktraces and coredumps...'
+    sudo podman load --input $(Build.Repository.LocalPath)/freeipa-azure-builder-container.tar.gz
+    sudo podman images
+
     # continue in container
     HOST_JOURNAL="/var/log/host_journal"
     CONTAINER_COREDUMP="dump_cores"
-    podman create --privileged \
+    sudo podman create --privileged \
         -v "$(realpath coredumpctl.time.mark)":/coredumpctl.time.mark:ro \
         -v /var/lib/systemd/coredump:/var/lib/systemd/coredump:ro \
         -v /var/log/journal:"$HOST_JOURNAL":ro \
         -v "${BUILD_REPOSITORY_LOCALPATH}":"${IPA_TESTS_REPO_PATH}" \
         --name "$CONTAINER_COREDUMP" freeipa-azure-builder
-    podman start "$CONTAINER_COREDUMP"
+    sudo podman start "$CONTAINER_COREDUMP"
 
-    podman exec -t \
+
+    sudo podman exec -t \
         "$CONTAINER_COREDUMP" \
         /bin/bash --noprofile --norc -eux \
             "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/wait-for-systemd.sh"
 
-    podman exec -t \
+    sudo podman exec -t \
         --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
         --env IPA_TESTS_SCRIPTS="${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}" \
         --env IPA_PLATFORM="${IPA_PLATFORM}" \
@@ -193,7 +200,7 @@ steps:
         /bin/bash --noprofile --norc -eux \
             "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/install-debuginfo.sh"
 
-    podman exec -t \
+    sudo podman exec -t \
         --env IPA_TESTS_REPO_PATH="${IPA_TESTS_REPO_PATH}" \
         --env COREDUMPS_SUBDIR="$COREDUMPS_SUBDIR" \
         --env HOST_JOURNAL="$HOST_JOURNAL" \
@@ -201,6 +208,7 @@ steps:
         /bin/bash --noprofile --norc -eux \
             "${IPA_TESTS_REPO_PATH}/${IPA_TESTS_SCRIPTS}/dump_cores.sh"
     # there should be no crashes
+    echo 'Stacktraces and coredumps of crashed processes can be found in build artifacts'
     exit 1
   condition: succeededOrFailed()
   displayName: Check for coredumps
