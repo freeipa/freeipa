@@ -151,7 +151,9 @@ class TestIpaCertFix(IntegrationTest):
         # Important: run_command with a str argument is able to
         # perform shell expansion but run_command with a list of
         # arguments is not
-        self.master.run_command('rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*')
+        self.master.run_command(
+            'rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*'
+        )
         tasks.uninstall_master(self.master)
         tasks.move_date(self.master, 'start', '-20Years-1day')
 
@@ -254,6 +256,18 @@ class TestIpaCertFix(IntegrationTest):
                                          raiseonerr=False)
         assert result.returncode == 2
 
+    def test_cert_fix_requires_root(self):
+        """
+        Test checks that ipa-cert-fix command fails to run
+        when invoked as a non-root user.
+        """
+        result = self.master.run_command(
+            ['runuser', '-u', 'nobody', '--', 'ipa-cert-fix'],
+            raiseonerr=False,
+        )
+        assert result.returncode == 1
+        assert 'Must be root to run ipa-cert-fix' in result.stderr_text
+
     def test_missing_startup(self, expire_cert_critical):
         """
         Test ipa-cert-fix fails/warns when startup directive is missing
@@ -322,6 +336,96 @@ class TestIpaCertFix(IntegrationTest):
         err_msg = ("CA signing cert is expired, exiting!")
         assert result.returncode == 1
         assert err_msg in result.stderr_text
+
+    def test_user_abort_on_prompt(self, expire_cert_critical):
+        """Test ipa-cert-fix aborts cleanly when user declines the prompt
+
+        When expired certs are detected but the user answers anything other
+        than 'yes' at the confirmation prompt, the tool must exit without
+        modifying any certificate or NSS database.
+
+        """
+        expire_cert_critical(self.master)
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        # 'no' = explicit decline, '\n' = empty Enter
+        for response in ('no\n', '\n'):
+            result = self.master.run_command(
+                ['ipa-cert-fix', '-v'],
+                stdin_text=response,
+            )
+            assert result.returncode == 0
+            assert "Not proceeding" in result.stdout_text
+
+        # Certs must remain unreachable: nothing was changed
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+    def test_certupdate_after_cert_fix(self, expire_cert_critical):
+        """Test ipa-certupdate succeeds and IPA services work after cert fix
+
+        After renewing expired certs with ipa-cert-fix, the documented
+        next step is to run ipa-certupdate to propagate the new certs to
+        all system services. IPA commands must work afterwards.
+        """
+        expire_cert_critical(self.master)
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(
+            ['ipa-cert-fix', '-v'], stdin_text='yes\n'
+        )
+        check_status(self.master, 9, "MONITORING")
+
+        # Propagate renewed certs to all system services
+        self.master.run_command(['ipa-certupdate'])
+
+        # Restart to verify services come up cleanly with new certs
+        self.master.run_command(['ipactl', 'restart'])
+
+        stdin = (
+            f"{self.master.config.admin_password}\n"
+            f"{self.master.config.admin_password}\n"
+            f"{self.master.config.admin_password}\n"
+        )
+        self.master.run_command(['kinit', 'admin'], stdin_text=stdin)
+
+        # Verify all services are running
+        result = self.master.run_command(['ipactl', 'status'])
+        assert result.returncode == 0
+
+        result = self.master.run_command(
+            ['ipa', 'user-find', 'admin']
+        )
+        assert 'User login: admin' in result.stdout_text
+
+    def test_cert_fix_ds_not_running(self, expire_cert_critical):
+        """Test ipa-cert-fix fails when Directory Server is stopped.
+
+        A common maintenance pattern is stopping dirsrv and then running
+        ipa-cert-fix without restarting it first.  The tool needs LDAP to
+        read the current cert state; a stopped DS must produce a clear
+        "cannot connect" error.
+        """
+        error_msg = 'The LDAP server is not running; cannot proceed'
+        expire_cert_critical(self.master)
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        instance = realm_to_serverid(self.master.domain.realm)
+        self.master.run_command(
+            ['systemctl', 'stop', 'dirsrv@%s' % instance]
+        )
+        try:
+            result = self.master.run_command(
+                ['ipa-cert-fix', '-v'],
+                stdin_text='yes\n',
+                raiseonerr=False,
+            )
+            assert result.returncode == 1
+            assert error_msg in result.stdout_text
+        finally:
+            # Always restart DS so fixture teardown can uninstall cleanly
+            self.master.run_command(
+                ['systemctl', 'start', 'dirsrv@%s' % instance]
+            )
 
 
 class TestIpaCertFixThirdParty(CALessBase):
@@ -549,3 +653,14 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+        # Verify RA agent can authenticate to Dogtag on the replica
+        # after cert renewal. A disk vs LDAP serial mismatch would
+        # cause "Failed to authenticate to CA REST API".
+        stdin = (f"{self.master.config.admin_password}\n"
+                 f"{self.master.config.admin_password}\n"
+                 f"{self.master.config.admin_password}\n")
+        self.replicas[0].run_command(
+            ['kinit', 'admin'], stdin_text=stdin
+        )
+        self.replicas[0].run_command(['ipa', 'cert-show', '1'])
