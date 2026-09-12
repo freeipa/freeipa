@@ -23,6 +23,12 @@
 
 #pragma once
 
+/* This is used as a global maximum length for:
+ *   userPrincipalName: no explicit limit
+ *   samAccountName: 20 for backward compatibility reasons
+ */
+#define MSPAC_ID_NAME_MAX_LENGTH (2048)
+
 struct ipadb_mspac {
     char *flat_domain_name;
     char *flat_server_name;
