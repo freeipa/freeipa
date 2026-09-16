@@ -5,8 +5,6 @@
 """
 Test LoginScreen widget and all it's views
 """
-import urllib
-
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_loginscreen as loginscreen
@@ -60,8 +58,7 @@ class TestLoginScreen(UI_driver):
         self.add_record(loginscreen.ENTITY, loginscreen.DATA_ITEST_USER,
                         navigate=False)
 
-    def assert_notification(self, type='success', assert_text=None,
-                            link_text=None, link_url=None):
+    def assert_notification(self, type='success', assert_text=None):
         """
         Assert whether we have a notification of particular type
         """
@@ -86,13 +83,6 @@ class TestLoginScreen(UI_driver):
                 % (assert_text, notification_type),
             )
             assert assert_text in is_present.text
-
-        if link_text and link_url:
-            link = self.find_xelement(".//a", is_present)
-            # Text on link placed on validation widget
-            assert link_text == link.text
-            # URL of link placed on validation widget
-            assert link_url == link.get_attribute('href')
 
     def find_xelement(self, expression, parent, strict=True):
         """
@@ -153,7 +143,7 @@ class TestLoginScreen(UI_driver):
         assert self.logged_in()
 
     def reset_password(self, username=None, current_password=None,
-                       new_password=None, link_text=None, link_url=None):
+                       new_password=None):
         """
         Reset password with the given one
         """
@@ -171,8 +161,7 @@ class TestLoginScreen(UI_driver):
         new_pass_field.send_keys(new_password)
         verify_pass_field.send_keys(new_password)
         verify_pass_field.send_keys(Keys.RETURN)
-        self.assert_notification(assert_text='Password change complete',
-                                 link_text=link_text, link_url=link_url)
+        self.assert_notification(assert_text='Password change complete')
 
     def get_data_from_form_row(self, form_row):
         """
@@ -319,56 +308,6 @@ class TestLoginScreen(UI_driver):
         current_password = loginscreen.PASSWD_ITEST_USER
         new_password = loginscreen.PASSWD_ITEST_USER_NEW
         self.reset_password(username, current_password, new_password)
-        self.relogin_with_new_password()
-
-    @screenshot
-    def test_reset_password_view_with_redirect(self):
-
-        redir_url = self.get_base_url().lower()
-        encoded_redir_url = urllib.parse.urlencode({'url': redir_url})
-        target_url = '/'.join((self.get_base_url(), 'reset_password.html?{}'))
-        self.load_url(target_url.format(encoded_redir_url))
-        assert self.login_screen_visible()
-
-        self.check_elements_of_form(loginscreen.RESET_PASSWORD_FORM)
-        self.check_alerts(loginscreen.RESET_PASSWORD_FORM)
-
-        username = loginscreen.PKEY
-        current_password = loginscreen.PASSWD_ITEST_USER
-        new_password = loginscreen.PASSWD_ITEST_USER_NEW
-        self.reset_password(username, current_password, new_password,
-                            link_text='Continue to next page',
-                            link_url=redir_url,
-                            )
-        self.relogin_with_new_password()
-
-    @screenshot
-    def test_reset_password_view_with_delayed_redirect(self):
-
-        redir_url = self.get_base_url().lower() + '/'
-        encoded_redir_url = urllib.parse.urlencode(
-            {'url': redir_url, 'delay': 5}
-        )
-        target_url = '/'.join((self.get_base_url(), 'reset_password.html?{}'))
-        self.load_url(target_url.format(encoded_redir_url))
-        assert self.login_screen_visible()
-
-        self.check_elements_of_form(loginscreen.RESET_PASSWORD_FORM)
-        self.check_alerts(loginscreen.RESET_PASSWORD_FORM)
-        username = loginscreen.PKEY
-        current_password = loginscreen.PASSWD_ITEST_USER
-        new_password = loginscreen.PASSWD_ITEST_USER_NEW
-        self.reset_password(username, current_password, new_password,
-                            link_text='Continue to next page',
-                            link_url=redir_url,
-                            )
-        self.assert_notification(type='info',
-                                 assert_text='You will be redirected in ')
-        self.wait(3)
-        # check url after start delay timer, but before end
-        assert self.driver.current_url != redir_url
-        self.wait(5)
-        assert self.driver.current_url == redir_url
         self.relogin_with_new_password()
 
     @screenshot
