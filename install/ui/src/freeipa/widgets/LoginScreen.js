@@ -70,8 +70,6 @@ define(['dojo/_base/declare',
             "<strong>certificate</strong>, please make sure you have valid " +
             "personal certificate. ",
 
-        continue_msg: "Continue to next page",
-
         form_auth_failed: "Login failed due to an unknown reason",
 
         krb_auth_failed: "Authentication with Kerberos failed",
@@ -82,8 +80,6 @@ define(['dojo/_base/declare',
             "password.",
 
         password_change_complete: "Password change complete",
-
-        redirect_msg: "You will be redirected in ${count}s",
 
         krbprincipal_expired: "Kerberos Principal you entered is expired",
 
@@ -301,69 +297,6 @@ define(['dojo/_base/declare',
             }.bind(this));
         },
 
-        parse_uri: function() {
-            var opts = {};
-            if (window.location.search.length > 1) {
-                var couples = window.location.search.substr(1).split("&");
-                for (var i=0,l=couples.length; i < l; i++) {
-                    var couple = couples[i].split("=");
-                    var key = decodeURIComponent(couple[0]);
-                    var value = couple.length > 1 ? decodeURIComponent(couple[1]) : '';
-                    opts[key] = value;
-                }
-            }
-            return opts;
-        },
-
-        redir_count_down: function(redir_url, redir_delay) {
-            var val_summary = this.get_widget('validation');
-            val_summary.add_info('redirect',
-                this.redirect_msg.replace('${count}', Math.max(redir_delay, 0)));
-
-            if (redir_delay <= 0) {
-                window.location = redir_url;
-                return;
-            }
-            window.setTimeout(this.redir_count_down.bind(this), 1000,
-                redir_url, redir_delay-1);
-        },
-
-        /* If password reset was initiated due to a failed log in to some
-         * external application one could use a redirection to the desired URL
-         * after a successfull password reset.
-         *
-         * The next uri components are supported:
-         * - 'url' destination URL, which must be URI encoded
-         * - 'delay' time in seconds to delay before redirection
-         *
-         * For example,
-         * https://ipa.demo1.freeipa.org/ipa/ui/reset_password.html?url=http%3A%2F%2Fpvoborni.fedorapeople.org%2Fdoc%2F%23!%2Fguide%2FDebugging&delay=5
-        */
-        redirect: function() {
-            var opts = this.parse_uri();
-            var url = opts['url'];
-            var delay = parseInt(opts['delay'], 10);
-
-            var val_summary = this.get_widget('validation');
-            // button for manual redirection
-            if (url) {
-                val_summary.add_success(
-                    'login',
-                    "".concat(
-                        this.password_change_complete,
-                        ' <a href="', url, '">',
-                        this.continue_msg, '</a>'
-                    )
-                );
-            } else {
-                return;
-            }
-
-            if (delay <= 0 || delay > 0) { // NaN check
-                this.redir_count_down(url, delay);
-            }
-        },
-
         reset_password: function() {
 
             var psw_f = this.get_field('password');
@@ -434,7 +367,6 @@ define(['dojo/_base/declare',
                 new_f.set_value('');
                 ver_f.set_value('');
                 val_summary.add_success('login', this.password_change_complete);
-                this.redirect();
             } else {
                 val_summary.add_error('login', result.message);
             }
@@ -580,16 +512,6 @@ define(['dojo/_base/declare',
             this.cert_msg = text.get(
                 spec.cert_msg || '@i18n:login.cert_msg',
                 this.cert_msg
-            );
-
-            this.redirect_msg = text.get(
-                spec.redirect_msg || '@i18n:login.redirect_msg',
-                this.redirect_msg
-            );
-
-            this.continue_msg = text.get(
-                spec.continue_msg || '@i18n:login.continue_msg',
-                this.continue_msg
             );
 
             this.kerberos_msg = this.kerberos_msg
