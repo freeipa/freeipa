@@ -388,7 +388,6 @@ class i18n_messages(Command):
                 "<strong>certificate</strong>, please make sure you have "
                 "valid personal certificate. "
             ),
-            "continue_msg": _("Continue to next page"),
             "form_auth": _(
                 "<i class=\"fa fa-info-circle\"></i> To log in with "
                 "<strong>username and password</strong>, enter them in the "
@@ -417,7 +416,6 @@ class i18n_messages(Command):
                 "try it out!</a>"),
             "password": _("Password"),
             "password_and_otp": _("Password or Password+One-Time Password"),
-            "redirect_msg": _("You will be redirected in ${count}s"),
             "sync_otp_token": _("Sync OTP Token"),
             "synchronizing": _("Synchronizing"),
             "username": _("Username"),
