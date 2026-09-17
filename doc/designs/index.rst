@@ -13,6 +13,7 @@ FreeIPA design documentation
    adtrust/sidconfig.md
    edns.md
    hsm.md
+   kryoptic-dnssec-token.md
    krb-ticket-policy.md
    extdom-plugin-protocol.md
    expired_certificate_pruning.md
