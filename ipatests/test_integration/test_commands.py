@@ -1548,7 +1548,7 @@ class TestIPACommand(IntegrationTest):
             test=lambda stdout: self.testuser in stdout,
             timeout=120,
          )
- 
+
         # Use master clock: controller time can be ahead of the host and
         # make journalctl --since miss sshd logs (codeberg #8432).
         since = self.master.run_command(
