@@ -903,8 +903,9 @@ class CertDB:
         if service == 'krbtgt':
             principal = api.env.realm
             # PKINIT doesn't support ML-DSA yet, force RSA.
-            keytype = "rsa"
-            keysize = 2048
+            if (keytype != "rsa"):
+                keytype = "rsa"
+                keysize = 2048
         else:
             principal = api.env.host
         template = os.path.join(
