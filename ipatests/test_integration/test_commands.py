@@ -2401,6 +2401,48 @@ class TestIPACommandWithoutReplica(IntegrationTest):
         assert result.returncode == 1
         assert "PAC_MISSING" in result.stderr_text
 
+    def test_session_oversized_body_returns_413(self):
+        """
+        Test that unauthenticated session endpoints reject oversized
+        request bodies with HTTP 413 before any credential validation
+        to prevent WSGI worker pool exhaustion.
+
+        related: CVE-2026-86593
+        """
+        host = self.master.hostname
+        endpoints = [
+            'login_password',
+            'change_password',
+            'sync_token',
+        ]
+        # Generate a 2 MB file to exceed the 1 MB MAX_REQUEST_BODY_SIZE
+        self.master.run_command([
+            'bash', '-c',
+            'printf "user=a&password=" > /tmp/oversized_body.txt '
+            '&& dd if=/dev/zero bs=1024 count=2048 2>/dev/null '
+            '| tr "\\0" "A" >> /tmp/oversized_body.txt'
+        ])
+        for endpoint in endpoints:
+            result = self.master.run_command([
+                paths.BIN_CURL,
+                '-s',
+                '-o', '/dev/null',
+                '-w', '%{http_code}',
+                '-X', 'POST',
+                '-H', 'Content-Type: application/x-www-form-urlencoded',
+                '-H', 'Accept: text/plain',
+                '-H', 'Referer: https://{}/ipa'.format(host),
+                '--cacert', paths.IPA_CA_CRT,
+                '-d', '@/tmp/oversized_body.txt',
+                'https://{}/ipa/session/{}'.format(host, endpoint),
+            ])
+            status_code = result.stdout_text.strip()
+            assert status_code == '413', (
+                'Expected HTTP 413 for oversized body on '
+                '/ipa/session/{}, got {}'.format(endpoint, status_code)
+            )
+        self.master.run_command(['rm', '-f', '/tmp/oversized_body.txt'])
+
 
 class TestIPAautomount(IntegrationTest):
     @classmethod
