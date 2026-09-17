@@ -1110,9 +1110,12 @@ class login_password(Backend, KerberosSession):
 
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
-            query_string = read_input(environ)
+            query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
         else:
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
+
+        if query_string is None:
+            return self.request_body_too_large(environ, start_response)
 
         try:
             query_dict = parse_qs(query_string)
@@ -1289,9 +1292,12 @@ class change_password(Backend, HTTP_Status):
 
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
-            query_string = read_input(environ)
+            query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
         else:
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
+
+        if query_string is None:
+            return self.request_body_too_large(environ, start_response)
 
         try:
             query_dict = parse_qs(query_string)
@@ -1394,9 +1400,12 @@ class sync_token(Backend, HTTP_Status):
         # Make sure this is a POST request.
         method = environ.get('REQUEST_METHOD', '').upper()
         if method == 'POST':
-            query_string = read_input(environ)
+            query_string = read_input(environ, MAX_REQUEST_BODY_SIZE)
         else:
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
+
+        if query_string is None:
+            return self.request_body_too_large(environ, start_response)
 
         # Parse the query string to a dictionary.
         try:
