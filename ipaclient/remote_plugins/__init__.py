@@ -117,18 +117,24 @@ def get_package(api):
         try:
             plugins = api._remote_plugins
         except AttributeError:
-            server_info = ServerInfo(api)
+            schema_file = getattr(api.env, 'schema_file', None)
 
-            client = rpcclient(api)
-            client.finalize()
+            if schema_file:
+                # --schema-file: load from a local ZIP instead of the server.
+                plugins = schema.get_package_from_file(schema_file)
+            else:
+                server_info = ServerInfo(api)
 
-            try:
-                plugins = schema.get_package(server_info, client)
-            except schema.NotAvailable:
-                plugins = compat.get_package(server_info, client)
-            finally:
-                if client.isconnected():
-                    client.disconnect()
+                client = rpcclient(api)
+                client.finalize()
+
+                try:
+                    plugins = schema.get_package(server_info, client)
+                except schema.NotAvailable:
+                    plugins = compat.get_package(server_info, client)
+                finally:
+                    if client.isconnected():
+                        client.disconnect()
 
             object.__setattr__(api, '_remote_plugins', plugins)
 

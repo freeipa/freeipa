@@ -740,6 +740,16 @@ class help(frontend.Local):
     )
     takes_options = (
         Any('outfile?', flags=['no_option']),
+        Str(
+            'format?',
+            label=_('Output format'),
+            doc=_("Documentation format: 'markdown', 'man', or 'rst'"),
+        ),
+        Str(
+            'out?',
+            label=_('Output file'),
+            doc=_('Write documentation output to FILE instead of stdout'),
+        ),
     )
 
     has_output = tuple()
@@ -830,6 +840,33 @@ class help(frontend.Local):
         super(help, self)._on_finalize()
 
     def run(self, key=None, outfile=None, **options):
+        fmt = options.get('format')
+        out_path = options.get('out')
+
+        if fmt is not None:
+            from ipalib import docformat
+            if out_path:
+                sink = open(out_path, 'w', encoding='utf-8')
+            else:
+                sink = sys.stdout
+            try:
+                if fmt == 'markdown':
+                    docformat.generate_markdown(self.api, key, sink)
+                elif fmt == 'man':
+                    docformat.generate_man(self.api, key, sink)
+                elif fmt == 'rst':
+                    docformat.generate_rst(self.api, key, sink)
+                else:
+                    print(
+                        "ipa: ERROR: invalid format '{}': "
+                        "use 'markdown', 'man', or 'rst'".format(fmt),
+                        file=sys.stderr,
+                    )
+            finally:
+                if out_path:
+                    sink.close()
+            return
+
         if outfile is None:
             outfile = sys.stdout
 
