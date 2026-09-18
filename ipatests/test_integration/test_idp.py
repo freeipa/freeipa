@@ -5,6 +5,8 @@ import pytest
 import re
 
 import textwrap
+from datetime import datetime, timedelta
+
 from ipaplatform.paths import paths
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.pytest_ipa.integration import tasks, create_keycloak
@@ -866,3 +868,55 @@ class TestIDPAzure(TestIDP):
             self.cfg.azure_username,
             self.cfg.azure_user_password,
         )
+
+
+class TestIDPCLI(IntegrationTest):
+    """
+    Test the command line validation
+
+    This test is written as an integration test because it validates
+    the client-side behavior of ipa idp-* commands
+    """
+    topology = "line"
+
+    def test_prompts_for_secret(self):
+        """ Test idp-add with --client-cert-p12-file prompts for password """
+        # Note the time to parse the journal
+        since = time.strftime(
+            '%Y-%m-%d %H:%M:%S',
+            (datetime.now() - timedelta(seconds=10)).timetuple()
+        )
+        cmd = ["ipa", "idp-add", "MyKeycloak",
+               "--provider", "keycloak",
+               "--org", "myrealm",
+               "--base-url", "keycloak.example.com",
+               "--client-id", "ipa-client",
+               "--client-auth-method", "private_key_jwt",
+               "--client-cert-p12-file", "/root/ca-agent.p12"]
+
+        with self.master.spawn_expect(cmd, extra_ssh_options=['-t']) as e:
+            e.expect('PKCS#12 password:')
+            e.sendline(self.master.config.admin_password)
+            e.expect('Added Identity Provider reference', timeout=60)
+            e.expect_exit(ignore_remaining_output=True)
+
+        # Ensure that the PKCS12 content is obfuscated in the logs
+        cmd = ["journalctl", "-g", "IPA.API", f"--since={since}"]
+        journal = self.master.run_command(cmd)
+        assert '"userpkcs12": "********"' in journal.stdout_text
+
+        self.master.run_command(["ipa", "idp-del", "MyKeycloak"])
+
+    def test_noninteractive_no_secret(self):
+        """ Test idp-add with --client-cert-p12-file in non-interactive mode """
+        cmd = ["ipa", "-n", "idp-add", "MyKeycloak",
+               "--provider", "keycloak",
+               "--org", "myrealm",
+               "--base-url", "keycloak.example.com",
+               "--client-id", "ipa-client",
+               "--client-auth-method", "private_key_jwt",
+               "--client-cert-p12-file", "/root/ca-agent.p12"]
+
+        result = self.master.run_command(cmd, raiseonerr=False)
+        assert result.returncode == 1
+        assert "ipa: ERROR: 'secret' is required" in result.stderr_text
