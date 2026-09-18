@@ -2,13 +2,14 @@
 # Alexander Bokovoy <abokovoy@redhat.com>, 2018. #zanata
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2018. #zanata, 2026.
 # Olesya Gerasimenko <gammaray@basealt.ru>, 2019. #zanata, 2026.
+# rus svinka <leva38363@icloud.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://codeberg.org/freeipa/freeipa/issues/new\n"
 "POT-Creation-Date: 2024-05-28 15:09+0200\n"
-"PO-Revision-Date: 2026-07-08 11:55+0000\n"
-"Last-Translator: Olesya Gerasimenko <gammaray@basealt.ru>\n"
+"PO-Revision-Date: 2026-08-05 00:46+0000\n"
+"Last-Translator: rus svinka <leva38363@icloud.com>\n"
 "Language-Team: Russian <https://translate.fedoraproject.org/projects/freeipa/"
 "master/ru/>\n"
 "Language: ru\n"
@@ -17,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.7.1.dev0\n"
+"X-Generator: Weblate 2026.8\n"
 
 #, c-format
 msgid "cannot open configuration file %s\n"
@@ -60,10 +61,8 @@ msgstr "Не удалось инициализировать библиотек�
 msgid "Simple bind failed\n"
 msgstr "Не удалось выполнить простую привязку\n"
 
-#, fuzzy
-#| msgid "Simple bind failed\n"
 msgid "SASL Bind failed\n"
-msgstr "Не удалось выполнить простую привязку\n"
+msgstr "Не удалось выполнить SASL привязку\n"
 
 #, c-format
 msgid "Operation failed: %s\n"
@@ -137,7 +136,7 @@ msgstr ""
 #, fuzzy, c-format
 #| msgid "Passwords do not match!"
 msgid "Passwords do not match!\n"
-msgstr "Пароли не совпадают!"
+msgstr "Пароли не совпадают!\n"
 
 #, c-format
 msgid "Failed to open config file %s\n"
@@ -284,35 +283,34 @@ msgstr "Некорректный механизм привязки SASL\n"
 msgid "Cannot specify server and LDAP uri simultaneously.\n"
 msgstr "Невозможно одновременно указать сервер и адрес LDAP\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "DNS discovery for domain %s\n"
-msgstr ""
+msgstr "DNS ??? для домена\n"
 
 #, fuzzy, c-format
 #| msgid "Advertised by servers"
 msgid "Discovered server %s\n"
-msgstr "Сообщено серверами"
+msgstr "Сообщено серверами\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "Using discovered server %s\n"
-msgstr ""
+msgstr "Использование ??? сервера\n"
 
-#, c-format
+#, c-format, fuzzy
 msgid "DNS Discovery failed\n"
-msgstr ""
+msgstr "DNS ?? не получилось\n"
 
 #, c-format
 msgid "Using server from config %s\n"
-msgstr ""
+msgstr "Использование сервера из конфигурации\n"
 
 #, c-format
 msgid "Server name not provided and unavailable\n"
 msgstr "Не указано имя сервера, сервер недоступен\n"
 
-#, fuzzy, c-format
-#| msgid "Ping a remote server."
+#, c-format
 msgid "Using provided server %s\n"
-msgstr "Проверить связь с удалённым сервером."
+msgstr "Использование  ?? сервер\n"
 
 #, c-format
 msgid "Incompatible options provided (-r and -P)\n"
@@ -387,15 +385,15 @@ msgstr "Отсутствует разрешение на присоединен�
 
 #, c-format
 msgid "No write permissions on keytab file '%s'\n"
-msgstr "Отсутствуют разрешения на запись в  файл таблицы ключей \"%s\"\n"
+msgstr "Нет прав на запись в файл keytab «%s»\n"
 
 #, c-format
 msgid "access() on %1$s failed: errno = %2$d\n"
-msgstr "не удалось выполнить access() для %1$s: номер ошибки = %2$d\n"
+msgstr "Сбой вызова access() для %1$s: errno = %2$d\n"
 
 #, c-format
 msgid "Out of memory!"
-msgstr "Недостаточно памяти!"
+msgstr "Закончилась память!"
 
 #, c-format
 msgid "Unable to enable SSL in LDAP\n"
@@ -403,19 +401,19 @@ msgstr "Не удалось включить SSL в LDAP\n"
 
 #, c-format
 msgid "Search for %1$s on rootdse failed with error %2$d\n"
-msgstr "Не удалось выполнить поиск %1$s на rootdse. Ошибка: %2$d\n"
+msgstr "Сбой поиска %1$s в rootdse: ошибка %2$d\n"
 
 #, c-format
 msgid "No values for %s"
-msgstr "Отсутствуют значения для %s"
+msgstr "Нету значения для %s"
 
 #, c-format
 msgid "Search for IPA namingContext failed with error %d\n"
-msgstr "Не удалось выполнить поиск namingContext IPA. Ошибка: %d\n"
+msgstr "Не удалось выполнить поиск IPA namingContext. Ошибка: %d\n"
 
 #, c-format
 msgid "IPA namingContext not found\n"
-msgstr "namingContext IPA не найдено\n"
+msgstr "IPA namingContext не найден\n"
 
 #, c-format
 msgid "Unable to determine root DN of %s\n"
@@ -423,7 +421,7 @@ msgstr "Не удалось определить корневое DN %s\n"
 
 #, c-format
 msgid "Enrollment failed. %s\n"
-msgstr "Не удалось выполнить регистрацию. %s\n"
+msgstr "Сбой регистрации. %s\n"
 
 #, c-format
 msgid "principal not found in XML-RPC response\n"
@@ -431,80 +429,80 @@ msgstr "учётная запись не найдена в ответе XML-RPC\
 
 #, c-format
 msgid "Host is already joined.\n"
-msgstr "Узел уже присоединён.\n"
+msgstr "Хост уже присоединён.\n"
 
 #, c-format
 msgid "curl_slist_append() failed for value: '%s'\n"
-msgstr ""
+msgstr "Сбой вызова curl_slist_append() для значения: «%s»\n"
 
 #, c-format
 msgid "curl_easy_setopt() failed\n"
-msgstr ""
+msgstr "Сбой curl_easy_setopt()\n"
 
 #, c-format
 msgid "Expanding buffer in jsonrpc_handle_response failed"
-msgstr ""
+msgstr "Сбой расширения буфера в jsonrpc_handle_response"
 
 #, c-format
 msgid "curl_global_init() failed\n"
-msgstr ""
+msgstr "сбой  curl_global_init()\n"
 
 #, c-format
 msgid "curl_easy_init() failed\n"
-msgstr ""
+msgstr "сбой curl_easy_init()\n"
 
-#, fuzzy, c-format
-#| msgid "fork() failed\n"
+#, c-format
 msgid "json_dumps() failed\n"
-msgstr "не удалось выполнить fork()\n"
+msgstr "Сбой json_dumps()\n"
 
-#, fuzzy, c-format
-#| msgid "Invalid JSON-RPC request: %(error)s"
+#, c-format
 msgid ""
 "JSON-RPC request:\n"
 "%s\n"
-msgstr "Неверный JSON-RPC запрос: %(error)s"
+msgstr ""
+"Запрос JSON-RPC: \n"
+"%s\n"
 
-#, fuzzy, c-format
-#| msgid "Operation failed: %s\n"
+#, c-format
 msgid "JSON-RPC call failed: %s\n"
-msgstr "Не удалось выполнить операцию: %s\n"
+msgstr "Не удалось выполнить JSON-RPC: %s\n"
 
 #, c-format
 msgid "JSON-RPC call was unauthorized. Check your credentials.\n"
-msgstr ""
+msgstr "Вызов JSON-RPC не авторизован. Проверьте учётные данные.\n"
 
 #, c-format
 msgid "JSON-RPC call failed with status code: %li\n"
-msgstr ""
+msgstr "Сбой вызова JSON-RPC код статуса: %li\n"
 
-#, fuzzy, c-format
-#| msgid "No response"
+#, c-format
 msgid ""
 "JSON-RPC response:\n"
 "%s\n"
-msgstr "Нет ответа"
+msgstr ""
+"Ответ JSON-RPC:\n"
+"%s\n"
 
 #, c-format
 msgid "Extracting the error from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Сбой извлечения ошибки из ответа JSON-RPC: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Не удалось обработать ответ JSON-RPC: %s\n"
 
 #, c-format
 msgid "Parsing JSON-RPC response failed: no 'result' value found.\n"
 msgstr ""
+"Не удалось обработать ответ JSON-RPC: не найдено значение \"результат\".\n"
 
 #, c-format
 msgid "Extracting the data from the JSON-RPC response failed: %s\n"
-msgstr ""
+msgstr "Не удалось извлечь данные из ответа JSON-RPC: %s\n"
 
-#, fuzzy, c-format
-#| msgid "fork() failed\n"
+#, c-format
 msgid "json_pack_ex() failed: %s\n"
-msgstr "не удалось выполнить fork()\n"
+msgstr "Сбой вызова \"json_pack_ex()\": %s\n"
 
 #, c-format
 msgid "Unenrollment successful.\n"
@@ -516,15 +514,15 @@ msgstr "Не удалось отменить регистрацию.\n"
 
 #, c-format
 msgid "result not found in XML-RPC response\n"
-msgstr "результат не найден в ответе XML-RPC\n"
+msgstr "в ответе XML-RPC не найден результат\n"
 
 #, c-format
 msgid "Unable to determine IPA server from %s\n"
-msgstr "Не удалось найти IPA-сервер, используя %s\n"
+msgstr "Не удалось найти IPA-сервер, с %s\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos context initialization failed\n"
-msgstr "Не удалось присоединить узел: ошибка инициализации Kerberos-контекста\n"
+msgstr "Не удалось присоединить узел: ошибка инициализации контекста Kerberos\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
@@ -540,15 +538,15 @@ msgstr ""
 
 #, c-format
 msgid "fork() failed\n"
-msgstr "не удалось выполнить fork()\n"
+msgstr "Сбой вызова \"fork()\"\n"
 
 #, c-format
 msgid "ipa-getkeytab not found\n"
-msgstr "команда ipa-getkeytab не найдена \n"
+msgstr "ipa-getkeytab не найден\n"
 
 #, c-format
 msgid "ipa-getkeytab has bad permissions?\n"
-msgstr "неправильные разрешения команды ipa-getkeytab?\n"
+msgstr "Возможно, у ipa-getkeytab неверные права доступа?\n"
 
 #, c-format
 msgid "executing ipa-getkeytab failed, errno %d\n"
@@ -556,7 +554,7 @@ msgstr "не удалось выполнить команду ipa-getkeytab, н�
 
 #, c-format
 msgid "child exited with %d\n"
-msgstr "дочерний процесс завершился с сообщением %d\n"
+msgstr "дочерний процесс завершился с ошибкой %d\n"
 
 #, c-format
 msgid "Error resolving keytab: %s.\n"
