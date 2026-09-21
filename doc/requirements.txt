@@ -6,7 +6,9 @@ sphinx-book-theme
 # convert markdown to rest
 # m2r2 fork is active in development and works with
 # newer sphinx versions
-m2r2
+# Do not use recent m2r2 version because of
+# https://codeberg.org/freeipa/freeipa/issues/10068
+m2r2 < 1.0.0
 
 ## ipa dependencies
 dnspython

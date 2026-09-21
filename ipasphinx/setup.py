@@ -16,5 +16,7 @@ if __name__ == "__main__":
         doc=__doc__,
         package_dir={"ipasphinx": ""},
         packages=["ipasphinx"],
-        install_requires=["ipaserver", "ipalib", "sphinx > 3.0", "m2r2"],
+        install_requires=[
+            "ipaserver", "ipalib",
+            "sphinx > 3.0", "m2r2 < 1.0.0"],
     )
