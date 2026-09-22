@@ -375,7 +375,8 @@ class TestTrust(BaseTestTrust):
 
     def test_trustdomains_found_in_nonposix_trust(self):
         self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+            self.ad_domain,
+            [self.ad_domain, self.ad_subdomain, self.ad_treedomain])
 
     def test_range_properties_in_nonposix_trust(self):
         self.check_range_properties(self.ad_domain, 'ipa-ad-trust', 200000)
@@ -764,7 +765,8 @@ class TestTrust(BaseTestTrust):
     def test_trustdomains_found_in_posix_trust(self):
         """Tests that all trustdomains can be found."""
         self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+            self.ad_domain,
+            [self.ad_domain, self.ad_subdomain, self.ad_treedomain])
 
     def test_range_properties_in_posix_trust(self):
         """Check the properties of the created range"""
@@ -1097,7 +1099,8 @@ class TestTrust(BaseTestTrust):
             raiseonerr=False)
         assert result.returncode == 1
         self.check_trustdomains(
-            self.ad_domain, [self.ad_domain, self.ad_subdomain])
+            self.ad_domain,
+            [self.ad_domain, self.ad_subdomain, self.ad_treedomain])
 
     @skip_in_fips_mode_due_to_issue_8715
     def test_user_gid_uid_resolution_in_forest_trust_with_shared_secret(self):
