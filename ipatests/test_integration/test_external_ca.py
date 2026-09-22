@@ -26,7 +26,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import ObjectIdentifier, NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 
-from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration import tasks, skip_if_fips
 from ipatests.test_integration.base import IntegrationTest
 from ipalib import x509 as ipa_x509
 from ipaplatform.paths import paths
@@ -679,6 +679,13 @@ class TestExternalCAInvalidCert(IntegrationTest):
         result = self.master.run_command(cmd, raiseonerr=False)
         assert result.returncode == 1
 
+    @skip_if_fips(
+        reason='FIPS mode enforces minimum 2048-bit RSA keys at the '
+               'OpenSSL layer, preventing creation of 1024-bit test '
+               'certificates. The security property this test validates '
+               '(rejection of too-small CA keys) is already guaranteed '
+               'by FIPS itself.'
+    )
     def test_external_ca_with_too_small_key(self):
         # reuse the existing deployment and renewal CSR
         root_ca_fname, ipa_ca_fname = tasks.sign_ca_and_transport(
