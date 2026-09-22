@@ -1854,13 +1854,16 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             self.master, "ipahealthcheck.ipa.trust", "IPATrustDomainsCheck"
         )
         assert returncode == 0
-        trust_domains = ', '.join((self.ad_domain, self.ad_subdomain,))
+        trust_domains = sorted(
+            (self.ad_domain, self.ad_subdomain, self.ad_treedomain))
         for check in data:
             if check["kw"]["key"] == "domain-list":
                 assert check["result"] == "SUCCESS"
+                sssd_domains = check["kw"]["sssd_domains"].split(", ")
+                domains = check["kw"]["trust_domains"].split(", ")
                 assert (
-                    check["kw"]["sssd_domains"] == trust_domains
-                    and check["kw"]["trust_domains"] == trust_domains
+                    sorted(sssd_domains) == trust_domains
+                    and sorted(domains) == trust_domains
                 )
             elif check["kw"]["key"] == "domain-status":
                 assert check["result"] == "SUCCESS"
@@ -1876,7 +1879,8 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
             self.master, "ipahealthcheck.ipa.trust", "IPATrustCatalogCheck"
         )
         assert returncode == 0
-        trust_domains = ', '.join((self.ad_domain, self.ad_subdomain,))
+        trust_domains = ', '.join(
+            (self.ad_domain, self.ad_subdomain, self.ad_treedomain))
         for check in data:
             if check["kw"]["key"] == "AD Global Catalog":
                 assert check["result"] == "SUCCESS"
