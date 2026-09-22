@@ -23,6 +23,7 @@ from ipapython.dn import DN
 from ipapython.ipaldap import realm_to_serverid
 from ipapython.certdb import NSS_SQL_FILES
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.util import xfail_context
 from ipaplatform.paths import paths
 from ipaplatform.osinfo import osinfo
 from ipaserver.install.installutils import resolve_ip_addresses_nss
@@ -1878,7 +1879,11 @@ class TestIpaHealthCheckWithADtrust(IntegrationTest):
         returncode, data = run_healthcheck(
             self.master, "ipahealthcheck.ipa.trust", "IPATrustCatalogCheck"
         )
-        assert returncode == 0
+        with xfail_context(
+            True,
+            reason="https://codeberg.org/freeipa/freeipa/issues/10069"
+        ):
+            assert returncode == 0
         trust_domains = ', '.join(
             (self.ad_domain, self.ad_subdomain, self.ad_treedomain))
         for check in data:
