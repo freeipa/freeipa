@@ -1324,7 +1324,9 @@ class change_password(Backend, HTTP_Status):
         result = 'error'
         policy_error = None
 
-        bind_dn = self._user_bind_dn(data['user'])
+        # bind_dn = self._user_bind_dn(data['user'])
+        bind_dn = DN((self.api.Object.user.primary_key.name, data['user']),
+                     self.api.env.container_user, self.api.env.basedn)
 
         try:
             pw = data['old_password']
