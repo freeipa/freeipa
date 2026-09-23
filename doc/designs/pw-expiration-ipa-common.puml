@@ -1,0 +1,69 @@
+@startuml
+title AS-REQ password expiration flow — FreeIPA KDB plugin (common stages)
+
+participant "Client" as C
+participant "KDC\n(do_as_req)" as KDC
+participant "ipadb_parse_ldap_entry()\n[IPA]" as LDAP
+participant "validate_as_request()\n[MIT krb5]" as VAL
+participant "check_padata()\n[MIT krb5]" as PA
+
+C -> KDC : AS-REQ
+activate KDC
+
+== Stage: principal lookup ==
+
+KDC -> LDAP : get_principal(client)
+activate LDAP
+
+alt user has passwordless method\n(RADIUS | PKINIT | IDP | PASSKEY)
+    LDAP -> LDAP : entry->pw_expiration = 0\nied->pw_expiration = real value
+    note right of LDAP
+        Clear pw_expiration so
+        validate_as_request() won't
+        reject before pre-auth runs.
+        Preserve real value in e_data.
+    end note
+else user has password-only methods
+    LDAP -> LDAP : entry->pw_expiration = real value\nied->pw_expiration = real value
+end
+
+LDAP --> KDC : client entry
+deactivate LDAP
+
+== Stage: VALIDATE_POL ==
+
+KDC -> VAL : validate_as_request(client, server)
+activate VAL
+
+alt user has passwordless method (entry->pw_expiration == 0)
+    note right of VAL
+        Check skipped entirely:
+        pw_expiration is 0, condition
+        short-circuits to false.
+        **All** exemptions are also
+        bypassed (PWCHANGE_SERVICE,
+        REQUIRES_PWCHANGE).
+    end note
+    VAL --> KDC : OK (check skipped)
+else user has password-only methods (entry->pw_expiration == real value)
+    note right of VAL
+        Normal MIT krb5 check runs
+        with PWCHANGE_SERVICE exemption.
+        If expired & not pwchange svc:
+        KRB5KDC_ERR_KEY_EXP returned.
+    end note
+    VAL --> KDC : OK or KRB5KDC_ERR_KEY_EXP
+end
+deactivate VAL
+
+== Stage: ISSUE_TKT ==
+
+KDC -> PA : Run pre-authentication
+activate PA
+PA --> KDC : auth indicators\n(e.g. "pkinit", "hardened", ...)
+deactivate PA
+
+ref over C, PA
+    Continued at ENCR_REP stage
+end ref
+@enduml
