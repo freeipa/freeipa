@@ -119,9 +119,14 @@ static krb5_error_code ipadb_check_pw_policy(krb5_context context,
     if (kerr != 0) {
         return kerr;
     }
+    /* Use ied->pw_expiration rather than db_entry->pw_expiration because
+     * ipadb_parse_ldap_entry() clears the latter to 0 for users with
+     * passwordless auth methods.  ipapwd_check_policy() needs the real
+     * value to detect admin password resets (where pw_expiration equals
+     * last_pwd_change) and bypass the min_pwd_life check. */
     ret = ipapwd_check_policy(ied->pol, passwd, ied->user, time(NULL),
                               db_entry->expiration,
-                              db_entry->pw_expiration,
+                              ied->pw_expiration,
                               ied->last_pwd_change,
                               ied->pw_history);
     return ipapwd_error_to_kerr(context, ret);

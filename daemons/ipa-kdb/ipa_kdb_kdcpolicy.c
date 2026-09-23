@@ -169,17 +169,33 @@ ipa_kdcpolicy_check_as(krb5_context context, krb5_kdcpolicy_moddata moddata,
      * entry->pw_expiration so the KDC does not reject the AS-REQ before
      * pre-authentication.  Now that pre-auth is complete and we know the
      * actual method used, enforce password expiration for password-based
-     * authentication. */
-    if (!passwordless_auth && ied->pw_expiration != 0) {
-        krb5_timestamp now;
-        kerr = krb5_timeofday(context, &now);
-        if (kerr)
-            goto done;
-
-        if ((uint32_t)now > (uint32_t)ied->pw_expiration) {
-            *status = "CLIENT KEY EXPIRED";
+     * authentication.
+     *
+     * Mirror the exemptions from validate_as_request() in kdc_util.c:
+     * - Skip if the server is a password change service (kadmin/changepw)
+     * - Reject if the client requires a password change and the server is
+     *   not a password change service */
+    if (!passwordless_auth &&
+        !(server->attributes & KRB5_KDB_PWCHANGE_SERVICE)) {
+        /* Status strings match validate_as_request() in MIT krb5
+         * kdc_util.c for consistency with KDC log messages. */
+        if (client->attributes & KRB5_KDB_REQUIRES_PWCHANGE) {
+            *status = "REQUIRED PWCHANGE";
             kerr = KRB5KDC_ERR_KEY_EXP;
             goto done;
+        }
+
+        if (ied->pw_expiration != 0) {
+            krb5_timestamp now;
+            kerr = krb5_timeofday(context, &now);
+            if (kerr)
+                goto done;
+
+            if (now > ied->pw_expiration) {
+                *status = "CLIENT KEY EXPIRED";
+                kerr = KRB5KDC_ERR_KEY_EXP;
+                goto done;
+            }
         }
     }
 

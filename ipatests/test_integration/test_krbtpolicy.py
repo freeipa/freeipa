@@ -4,6 +4,7 @@
 
 """
 Module provides tests for Kerberos ticket policy options
+and password expiration enforcement in the kdcpolicy plugin.
 """
 
 from __future__ import absolute_import
@@ -20,10 +21,13 @@ from ipatests.test_integration.test_otp import add_otptoken, del_otptoken
 from ipatests.pytest_ipa.integration import tasks
 
 PASSWORD = "Secret123"
+ALT_PASSWORD = "AltSecret456"
 USER1 = "testuser1"
 USER2 = "testuser2"
 MAXLIFE = 86400
 LANG_PKG = ["langpacks-en"]
+PAST_EXPIRATION = "20200101000000Z"
+FUTURE_EXPIRATION = "29991231235959Z"
 
 def maxlife_within_policy(input, maxlife, slush=3600):
     """Given klist output of the TGT verify that it is within policy
@@ -314,3 +318,235 @@ class TestPWPolicy(IntegrationTest):
             "ls -1 {0} | wc -l".format(paths.IPA_CCACHES)
         )
         assert int(result.stdout_text.strip()) == 5
+
+    # ----------------------------------------------------------------
+    # Password expiration enforcement in ipa_kdcpolicy_check_as()
+    #
+    # The IPA KDB plugin clears entry->pw_expiration for users with
+    # passwordless methods (PKINIT, etc.) so that validate_as_request()
+    # does not reject the AS-REQ before pre-auth.  The kdcpolicy plugin
+    # re-checks expiration after pre-auth using ied->pw_expiration.
+    # ----------------------------------------------------------------
+
+    @pytest.fixture
+    def pkinituser(self):
+        """Create a user with password + PKINIT auth types."""
+        user = "pkinitexpuser"
+        tasks.kinit_admin(self.master)
+        tasks.create_active_user(
+            self.master, user, PASSWORD,
+            extra_args=["--user-auth-type=password",
+                        "--user-auth-type=pkinit"])
+        yield user
+        tasks.kinit_admin(self.master)
+        tasks.user_del(self.master, user, raiseonerr=False)
+
+    def expire_user_password(self, user):
+        """Set password expiration to the past and clear SSSD cache."""
+        tasks.kinit_admin(self.master)
+        self.master.run_command([
+            "ipa", "user-mod", user,
+            "--password-expiration", PAST_EXPIRATION,
+        ])
+        tasks.clear_sssd_cache(self.master)
+
+    def unexpire_user_password(self, user):
+        """Set password expiration to the far future."""
+        tasks.kinit_admin(self.master)
+        self.master.run_command([
+            "ipa", "user-mod", user,
+            "--password-expiration", FUTURE_EXPIRATION,
+        ])
+        tasks.clear_sssd_cache(self.master)
+
+    def test_pw_expiration_pwonly_valid(self):
+        """Password-only user with valid password can kinit."""
+        tasks.kdestroy_all(self.master)
+        result = tasks.kinit_as_user(self.master, USER1, PASSWORD,
+                                     raiseonerr=False)
+        assert result.returncode == 0
+
+    def test_pw_expiration_pwonly_expired(self):
+        """Password-only user with expired password cannot kinit.
+
+        validate_as_request() enforces pw_expiration directly.
+        """
+        self.expire_user_password(USER1)
+        try:
+            tasks.kdestroy_all(self.master)
+            result = tasks.kinit_as_user(self.master, USER1, PASSWORD,
+                                         raiseonerr=False)
+            assert result.returncode != 0
+        finally:
+            self.unexpire_user_password(USER1)
+
+    def test_pw_expiration_pkinit_user_password_rejected(self, pkinituser):
+        """Passwordless-capable user with expired password cannot kinit
+        using password.
+
+        validate_as_request() skips the check (pw_expiration cleared to
+        0 by ipadb_parse_ldap_entry), but ipa_kdcpolicy_check_as()
+        enforces it using ied->pw_expiration.
+        """
+        self.expire_user_password(pkinituser)
+        tasks.kdestroy_all(self.master)
+        result = tasks.kinit_as_user(self.master, pkinituser, PASSWORD,
+                                     raiseonerr=False)
+        assert result.returncode != 0, (
+            "kinit should fail for pkinit+password user with expired password"
+        )
+
+    def test_pw_expiration_pkinit_user_valid(self, pkinituser):
+        """Passwordless-capable user with valid password can kinit."""
+        tasks.kdestroy_all(self.master)
+        result = tasks.kinit_as_user(self.master, pkinituser, PASSWORD,
+                                     raiseonerr=False)
+        assert result.returncode == 0
+
+    def test_pw_expiration_pwonly_kpasswd(self):
+        """Password-only user with expired password can change it via
+        kpasswd.
+
+        validate_as_request() exempts KRB5_KDB_PWCHANGE_SERVICE.
+        """
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=0"],
+                                raiseonerr=False)
+        self.expire_user_password(USER1)
+        try:
+            tasks.kdestroy_all(self.master)
+            with self.master.spawn_expect(
+                ["kpasswd", USER1], default_timeout=30
+            ) as e:
+                e.expect("Password for .+:")
+                e.sendline(PASSWORD)
+                e.expect_exact("Enter new password:")
+                e.sendline(ALT_PASSWORD)
+                e.expect_exact("Enter it again:")
+                e.sendline(ALT_PASSWORD)
+                e.expect_exit(ignore_remaining_output=True)
+
+            # Verify new password works
+            self.unexpire_user_password(USER1)
+            tasks.kdestroy_all(self.master)
+            result = tasks.kinit_as_user(self.master, USER1, ALT_PASSWORD,
+                                         raiseonerr=False)
+            assert result.returncode == 0
+        finally:
+            # Restore original password
+            tasks.kinit_admin(self.master)
+            self.master.run_command(
+                ["ipa", "passwd", USER1],
+                stdin_text="{0}\n{0}\n".format(PASSWORD),
+            )
+            self.unexpire_user_password(USER1)
+
+    def test_pw_expiration_pkinit_user_kpasswd(self, pkinituser):
+        """Passwordless-capable user with expired password can change it
+        via kpasswd.
+
+        validate_as_request() skips the check (pw_expiration cleared),
+        and ipa_kdcpolicy_check_as() must exempt PWCHANGE_SERVICE.
+        """
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=0"],
+                                raiseonerr=False)
+        self.expire_user_password(pkinituser)
+        tasks.kdestroy_all(self.master)
+        with self.master.spawn_expect(
+            ["kpasswd", pkinituser], default_timeout=30
+        ) as e:
+            e.expect("Password for .+:")
+            e.sendline(PASSWORD)
+            e.expect_exact("Enter new password:")
+            e.sendline(ALT_PASSWORD)
+            e.expect_exact("Enter it again:")
+            e.sendline(ALT_PASSWORD)
+            e.expect_exit(ignore_remaining_output=True)
+
+        # Verify new password works
+        self.unexpire_user_password(pkinituser)
+        tasks.kdestroy_all(self.master)
+        result = tasks.kinit_as_user(self.master, pkinituser, ALT_PASSWORD,
+                                     raiseonerr=False)
+        assert result.returncode == 0
+
+    def test_min_pwd_life_admin_reset_pwonly(self):
+        """Admin password reset bypasses min_pwd_life for password-only
+        user.
+
+        When an admin resets a password, krbPasswordExpiration equals
+        krbLastPwdChange, signalling that minimum password age should
+        not apply.
+        """
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=1"],
+                                raiseonerr=False)
+        try:
+            self.master.run_command(
+                ["ipa", "passwd", USER1],
+                stdin_text="{0}\n{0}\n".format(ALT_PASSWORD),
+            )
+            tasks.kdestroy_all(self.master)
+            # User can change password immediately despite minlife
+            with self.master.spawn_expect(
+                ["kinit", USER1], default_timeout=30
+            ) as e:
+                e.expect("Password for .+:")
+                e.sendline(ALT_PASSWORD)
+                e.expect("Password expired")
+                e.expect("Enter new password:")
+                e.sendline(PASSWORD)
+                e.expect("Enter it again:")
+                e.sendline(PASSWORD)
+                e.expect_exit(ignore_remaining_output=True)
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=0"],
+                                    raiseonerr=False)
+
+    def test_min_pwd_life_admin_reset_pkinit_user(self, pkinituser):
+        """Admin password reset bypasses min_pwd_life for
+        passwordless-capable user.
+
+        ipadb_check_pw_policy() must use ied->pw_expiration (real value
+        from LDAP) rather than db_entry->pw_expiration (cleared to 0
+        for passwordless-capable users) for admin-reset detection.
+        """
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=1"],
+                                raiseonerr=False)
+        try:
+            self.master.run_command(
+                ["ipa", "passwd", pkinituser],
+                stdin_text="{0}\n{0}\n".format(ALT_PASSWORD),
+            )
+            tasks.kdestroy_all(self.master)
+            # User can change password immediately despite minlife
+            with self.master.spawn_expect(
+                ["kinit", pkinituser], default_timeout=30
+            ) as e:
+                e.expect("Password for .+:")
+                e.sendline(ALT_PASSWORD)
+                e.expect("Password expired")
+                e.expect("Enter new password:")
+                e.sendline(PASSWORD)
+                e.expect("Enter it again:")
+                e.sendline(PASSWORD)
+                e.expect_exit(ignore_remaining_output=True)
+        finally:
+            tasks.kinit_admin(self.master)
+            self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=0"],
+                                    raiseonerr=False)
+
+    def test_pw_expiration_cleanup(self):
+        """Restore state after password expiration tests."""
+        tasks.kinit_admin(self.master)
+        self.master.run_command(["ipa", "pwpolicy-mod", "--minlife=0"],
+                                raiseonerr=False)
+        self.master.run_command(
+            ["ipa", "passwd", USER1],
+            stdin_text="{0}\n{0}\n".format(PASSWORD),
+            raiseonerr=False,
+        )
+        self.unexpire_user_password(USER1)
