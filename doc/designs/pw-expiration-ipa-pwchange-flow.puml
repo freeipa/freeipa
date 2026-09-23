@@ -1,0 +1,30 @@
+@startuml
+title Password change flow — FreeIPA KDB plugin
+
+participant "Client" as C
+participant "KDC" as KDC
+participant "ipadb_check_pw_policy()\n[IPA]" as PWP
+
+C -> KDC : kpasswd request
+activate KDC
+
+KDC -> KDC : ipadb_change_pwd()
+activate KDC #DarkSalmon
+
+KDC -> PWP : ipapwd_check_policy(...,\nied->pw_expiration, ...)
+activate PWP
+note right of PWP
+    Must use ied->pw_expiration
+    (the real value from LDAP),
+    not db_entry->pw_expiration
+    (which is 0 for passwordless-
+    capable users).
+end note
+PWP --> KDC : policy result
+deactivate PWP
+
+deactivate KDC
+
+KDC --> C : password change result
+deactivate KDC
+@enduml
