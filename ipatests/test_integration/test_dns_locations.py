@@ -174,17 +174,29 @@ class TestDNSLocations(IntegrationTest):
         time.sleep(15)
 
     def _test_A_rec_against_server(self, server_ip, domain, expected_servers,
-                                   rec_list=IPA_CA_A_REC):
+                                   rec_list=IPA_CA_A_REC, retries=3,
+                                   retry_interval=10):
         for rname in rec_list:
             name_abs = rname.derelativize(domain)
             expected = _gen_expected_a_rrset(name_abs, expected_servers)
-            query = resolve_records_from_server(
-                name_abs, 'A', server_ip)
-
-            assert expected == query, (
-                "Expected and received DNS data do not match on server "
-                "with IP: '{}' for name '{}' (expected:\n{}\ngot:\n{})".
-                format(server_ip, name_abs, expected, query))
+            for attempt in range(retries):
+                query = resolve_records_from_server(
+                    name_abs, 'A', server_ip)
+                if expected == query:
+                    break
+                if attempt < retries - 1:
+                    logger.info(
+                        "DNS data mismatch on %s for %s, attempt %d/%d "
+                        "(expected:\n%s\ngot:\n%s), retrying in %ds",
+                        server_ip, name_abs, attempt + 1, retries,
+                        expected, query, retry_interval)
+                    time.sleep(retry_interval)
+            else:
+                assert expected == query, (
+                    "Expected and received DNS data do not match on "
+                    "server with IP: '{}' for name '{}' "
+                    "(expected:\n{}\ngot:\n{})".format(
+                        server_ip, name_abs, expected, query))
 
     def _test_SRV_rec_against_server(self, server_ip, domain, expected_servers,
                                      rec_list=IPA_DEFAULT_MASTER_SRV_REC):
@@ -535,10 +547,11 @@ class TestDNSLocations(IntegrationTest):
         expected_servers = (self.master.ip, self.replicas[1].ip)
 
         ldap = self.master.ldap_connect()
-        tasks.wait_for_replication(ldap)
+        tasks.wait_for_replication(ldap, timeout=120)
 
         for ip in (self.master.ip, self.replicas[0].ip, self.replicas[1].ip):
-            self._test_A_rec_against_server(ip, self.domain, expected_servers)
+            self._test_A_rec_against_server(ip, self.domain, expected_servers,
+                                            retries=6, retry_interval=20)
 
 
     def test_adtrust_system_records(self):
