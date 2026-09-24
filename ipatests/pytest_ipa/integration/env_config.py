@@ -65,6 +65,9 @@ _setting_infos = (
     _SettingInfo('log_journal_since', 'LOG_JOURNAL_SINCE', '-1h'),
     # userspace FIPS mode
     _SettingInfo('fips_mode', 'IPA_FIPS_MODE', False),
+
+    # CA backend: 'ipacta' (default) or 'dogtag'
+    _SettingInfo('ca_backend', 'IPA_CA_BACKEND', 'ipacta'),
 )
 
 

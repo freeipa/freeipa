@@ -428,6 +428,9 @@ def install_check(installer):
     if not setup_ca and options.setup_kra:
         raise ScriptError(
             "--setup-kra cannot be used with CA-less installation")
+    if not setup_ca and getattr(options, 'internal_ca', False):
+        raise ScriptError(
+            "--internal-ca cannot be used with CA-less installation")
     if setup_ca:
         if any(
             (
@@ -710,10 +713,13 @@ def install_check(installer):
     ]
 
     if setup_ca:
+        internal_ca = getattr(options, 'internal_ca', False)
+        ca_backend = 'ipacta' if internal_ca else 'dogtag'
         gopts.extend([
             ipaconf.setOption('enable_ra', 'True'),
             ipaconf.setOption('ra_plugin', 'dogtag'),
-            ipaconf.setOption('dogtag_version', '10')
+            ipaconf.setOption('dogtag_version', '10'),
+            ipaconf.setOption('ca_backend', ca_backend),
         ])
     else:
         gopts.extend([

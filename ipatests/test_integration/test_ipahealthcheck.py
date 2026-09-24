@@ -36,6 +36,9 @@ from ipatests.test_integration.test_external_ca import (
     install_server_external_ca_step2,
     ISSUER_CN,
 )
+from ipatests.pytest_ipa.integration.env_config import get_global_config
+
+ipatest_config = get_global_config()
 
 HEALTHCHECK_LOG = "/var/log/ipa/healthcheck/healthcheck.log"
 HEALTHCHECK_SYSTEMD_FILE = (
@@ -123,7 +126,7 @@ metaservices_checks = [
     "kadmin",
     "krb5kdc",
     "named",
-    "pki_tomcatd",
+    "ipacta" if ipatest_config.ca_backend == 'ipacta' else "pki_tomcatd",
     "sssd",
 ]
 
@@ -417,6 +420,10 @@ class TestIpaHealthCheck(IntegrationTest):
         returncode, _data = run_healthcheck(self.master)
         assert returncode == 0
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="Dogtag CA checks are not available with ipacta backend"
+    )
     def test_dogtag_ca_check_exists(self):
         """
         Testcase to verify checks available in
@@ -487,9 +494,11 @@ class TestIpaHealthCheck(IntegrationTest):
         ipahealthcheck.meta.services when service is stopped and started
         respectively
         """
+        ca_svc = ('ipacta' if tasks.get_ca_backend(self.master) == 'ipacta'
+                  else 'pki_tomcatd')
         svc_list = ('certmonger', 'gssproxy', 'httpd', 'ipa_custodia',
                     'ipa_dnskeysyncd', 'kadmin', 'krb5kdc',
-                    'named', 'pki_tomcatd', 'sssd', 'dirsrv')
+                    'named', ca_svc, 'sssd', 'dirsrv')
 
         for service in svc_list:
             returncode, data = run_healthcheck(
@@ -527,6 +536,10 @@ class TestIpaHealthCheck(IntegrationTest):
                 service_found = True
             assert service_found
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="DogtagCertsConfigCheck requires CS.cfg (Dogtag only)"
+    )
     def test_source_ipahealthcheck_dogtag_ca_dogtagcertsconfigcheck(self):
         """
         Testcase checks behaviour of check DogtagCertsConfigCheck in
@@ -562,15 +575,20 @@ class TestIpaHealthCheck(IntegrationTest):
 
     @pytest.fixture
     def restart_tomcat(self):
-        """Fixture to Stop and then start tomcat instance during test"""
-        self.master.run_command(
-            ["systemctl", "stop", "pki-tomcatd@pki-tomcat"]
-        )
+        """Fixture to Stop and then start CA service during test"""
+        ca_backend = tasks.get_ca_backend(self.master)
+        if ca_backend == 'ipacta':
+            svc = 'ipacta'
+        else:
+            svc = 'pki-tomcatd@pki-tomcat'
+        self.master.run_command(["systemctl", "stop", svc])
         yield
-        self.master.run_command(
-            ["systemctl", "start", "pki-tomcatd@pki-tomcat"]
-        )
+        self.master.run_command(["systemctl", "start", svc])
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="DogtagCertsConnectivityCheck is Dogtag-specific"
+    )
     def test_ipahealthcheck_dogtag_ca_connectivity_check(self, restart_tomcat):
         """
         This testcase checks that when the pki-tomcat service is stopped,
@@ -1687,11 +1705,14 @@ class TestIpaHealthCheck(IntegrationTest):
         # Stop chronyd so it doesn't freak out with time so off
         restart_service(self.master, 'chronyd')
 
-        # Stop pki_tomcatd so certs are not renewable. Don't restart
+        # Stop CA service so certs are not renewable. Don't restart
         # it because by the time the test is done the server is gone.
-        self.master.run_command(
-            ["systemctl", "stop", "pki-tomcatd@pki-tomcat"]
-        )
+        ca_backend = tasks.get_ca_backend(self.master)
+        if ca_backend == 'ipacta':
+            ca_svc = 'ipacta'
+        else:
+            ca_svc = 'pki-tomcatd@pki-tomcat'
+        self.master.run_command(["systemctl", "stop", ca_svc])
 
         try:
             # move date to the grace period
@@ -2226,6 +2247,8 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             )
 
     def test_nssdb_filecheck_bad_owner(self, modify_permissions):
+        ca_backend = tasks.get_ca_backend(self.master)
+        nssdb_owner = 'ipaca' if ca_backend == 'ipacta' else 'pkiuser'
         for testfile in self.nssdb_testfiles:
             modify_permissions(self.master, path=testfile, owner='root')
         returncode, data = run_healthcheck(
@@ -2239,15 +2262,17 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert check["result"] == "WARNING"
             assert check["kw"]["path"] in self.nssdb_testfiles
             assert check["kw"]["type"] == 'owner'
-            assert check["kw"]["expected"] == 'pkiuser'
+            assert check["kw"]["expected"] == nssdb_owner
             assert check["kw"]["got"] == 'root'
             assert (
                 check["kw"]["msg"]
-                == "Ownership of %s is root and should be pkiuser"
-                % check["kw"]["path"]
+                == "Ownership of %s is root and should be %s"
+                % (check["kw"]["path"], nssdb_owner)
             )
 
     def test_nssdb_filecheck_bad_group(self, modify_permissions):
+        ca_backend = tasks.get_ca_backend(self.master)
+        nssdb_group = 'ipaca' if ca_backend == 'ipacta' else 'pkiuser'
         for testfile in self.nssdb_testfiles:
             modify_permissions(self.master, testfile, group='root')
 
@@ -2262,12 +2287,12 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
             assert check["result"] == "WARNING"
             assert check["kw"]["path"] in self.nssdb_testfiles
             assert check["kw"]["type"] == 'group'
-            assert check["kw"]["expected"] == 'pkiuser'
+            assert check["kw"]["expected"] == nssdb_group
             assert check["kw"]["got"] == 'root'
             assert (
                 check["kw"]["msg"]
-                == "Group of %s is root and should be pkiuser"
-                % check["kw"]["path"]
+                == "Group of %s is root and should be %s"
+                % (check["kw"]["path"], nssdb_group)
             )
 
     def test_nssdb_filecheck_too_restrictive(self, modify_permissions):
@@ -2318,6 +2343,10 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
                 % check["kw"]["path"]
             )
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_tomcat_filecheck_bad_owner(self, modify_permissions):
         modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
                            owner='root')
@@ -2341,6 +2370,10 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
                 % check["kw"]["path"]
             )
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_tomcat_filecheck_bad_group(self, modify_permissions):
         modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
                            group='root')
@@ -2364,6 +2397,10 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
                 % check["kw"]["path"]
             )
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_tomcat_filecheck_too_restrictive(self, modify_permissions):
         modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,
                            mode="0600")
@@ -2388,6 +2425,10 @@ class TestIpaHealthCheckFileCheck(IntegrationTest):
                 % check["kw"]["path"]
             )
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_tomcat_filecheck_too_permissive(self, modify_permissions):
         version = tasks.get_healthcheck_version(self.master)
         modify_permissions(self.master, path=paths.CA_CS_CFG_PATH,

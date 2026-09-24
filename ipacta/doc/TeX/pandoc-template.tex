@@ -1,0 +1,181 @@
+$passoptions.latex()$
+\documentclass[
+$for(babel-otherlangs)$
+  $babel-otherlangs$,
+$endfor$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+$if(beamerarticle)$
+\usepackage{beamerarticle} % needs to be loaded first
+$endif$
+\usepackage{xcolor}
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$endif$
+\usepackage{amsmath,amssymb}
+% Render SVG diagram text as vector art using the SVG's own font
+% instead of re-typesetting it with pdfLaTeX. Avoids literal
+% characters in diagram labels (e.g. the underscore in ON_HOLD) being
+% misinterpreted as LaTeX text-mode commands; the underscore package
+% approach was tried and conflicts with the syntax-highlighted code
+% blocks elsewhere in this document.
+\usepackage{svg}
+\svgsetup{inkscapelatex=false}
+% Long inline code spans in the reference tables (function signatures,
+% LDAP DNs) are made breakable at identifier/path boundaries by the
+% wrap-code-in-tables Lua filter (see TeX/Makefile), which emits
+% \allowbreak between segments -- that's a plain, always-expandable
+% command, unlike \seqsplit (tried first, rejected: it scans its
+% argument character-by-character and chokes on the control sequences
+% LaTeX's own escaping inserts, e.g. \_ for an underscore).
+% Running header/footer showing the current section (or "Appendix:
+% <section>" once past the appendix divider -- see
+% TeX/appendix-divider.md, which redefines \sectionmark again) and
+% page number, so a reader can always tell where in the document they
+% are without the table of contents. Section goes in the left header,
+% subsection (when one is active) in the right header -- the classic
+% two-level running-header split, chosen over concatenating both into
+% one side after that produced headers so long they visually collided
+% with the (now-removed) static "ipacta Documentation" left-hand
+% label, e.g. on the very first section, "ipacta -- Comprehensive
+% Documentation -- Process Isolation and Security Model" ran together
+% with it. \sectionmark leaves the right mark empty so a section's own
+% first page (no subsection yet) shows nothing on the right.
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\setlength{\headheight}{13.6pt}
+\fancyhf{}
+\fancyhead[L]{\nouppercase{\leftmark}}
+\fancyhead[R]{\nouppercase{\rightmark}}
+\fancyfoot[L]{ipacta Documentation}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}}
+\renewcommand{\subsectionmark}[1]{\markright{#1}}
+$--
+$-- section numbering
+$--
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+$endif$
+$fonts.latex()$
+$font-settings.latex()$
+$common.latex()$
+% Long lines in fenced code blocks (Python examples, JSON snippets,
+% ASCII-art module-map trees) would otherwise run off the page --
+% verbatim-style environments never wrap on their own, and enabling
+% fancyvrb's breaklines option was tried and rejected: it triggers a
+% lazy \RequirePackage{stringenc} from inside a group (a list item or
+% table cell), which is never allowed and can't be worked around by
+% preloading stringenc earlier without breaking hyperref's own setup.
+% Shrinking the code font instead avoids touching that machinery.
+\fvset{fontsize=\footnotesize}
+\let\oldverbatim\verbatim
+\let\endoldverbatim\endverbatim
+\renewenvironment{verbatim}{\footnotesize\oldverbatim}{\endoldverbatim\normalsize}
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{$subtitle$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+
+\begin{document}
+$if(has-frontmatter)$
+\frontmatter
+$endif$
+$if(title)$
+\maketitle
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+{
+$if(colorlinks)$
+\hypersetup{linkcolor=$if(toccolor)$$toccolor$$else$$endif$}
+$endif$
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+}
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$if(has-frontmatter)$
+\mainmatter
+$endif$
+$body$
+
+$if(has-frontmatter)$
+\backmatter
+$endif$
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+
+$endif$
+$endif$
+$if(biblatex)$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}

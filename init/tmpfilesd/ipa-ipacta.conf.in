@@ -1,0 +1,8 @@
+# FreeIPA ipacta service directories
+#
+# 'd' creates the directory if absent and resets mode/owner on existing ones.
+# This ensures correct ownership even after package reinstalls that reset
+# /var/log/ipacta to root:root, which would prevent the ipaca-user
+# service from opening audit.log.
+d /var/log/ipacta 0750 ipaca ipaca -
+d /run/ipacta     0755 ipaca ipaca -

@@ -5,6 +5,7 @@ import os
 import sys
 
 from ipaserver.custodia.plugin import CSStore
+from ipaserver.masters import get_ca_service
 
 from ipaplatform.paths import paths
 from ipaplatform.constants import constants
@@ -198,6 +199,9 @@ class IPASecStore(CSStore):
         if path[1] not in NAME_DB_MAP:
             raise UnknownKeyName("Unknown DB named '%s'" % path[1])
         dbmap = NAME_DB_MAP[path[1]]
+        if (path[1] in ('ca', 'ca_wrapped')
+                and get_ca_service() == 'ipacta'):
+            dbmap = dict(dbmap, runas=constants.IPACA_USER)
         handler = dbmap['handler']
         if len(path) > 3 and not handler.supports_extra_args:
             raise InvalidKeyArguments('Handler does not support extra args')

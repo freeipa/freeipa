@@ -1,0 +1,35 @@
+[Unit]
+Description=IPA thin CA Service
+After=network.target dirsrv.target
+Wants=dirsrv.target
+Conflicts=pki-tomcatd@pki-tomcat.service
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=ipaca
+Group=ipaca
+Environment=LC_ALL=C.UTF-8
+WorkingDirectory=/var/lib/ipacta/
+RuntimeDirectory=ipacta
+RuntimeDirectoryMode=0755
+LogsDirectory=ipacta
+LogsDirectoryMode=0750
+ExecStart=$SBIN_DIR/ipacta --foreground
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ipacta /var/lib/ipa/pki-ca/publish /etc/pki/pki-tomcat/alias
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+
+[Install]
+WantedBy=multi-user.target

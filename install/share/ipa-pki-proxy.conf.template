@@ -3,6 +3,7 @@
 # Do not customise this file; it gets rewritten on every upgrade
 
 ProxyRequests Off
+ProxyIOBufferSize 65000
 
 $DOGTAG_AJP_PACKET_SIZE
 

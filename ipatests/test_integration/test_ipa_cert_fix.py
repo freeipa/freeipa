@@ -14,10 +14,12 @@ from ipalib import x509
 from ipaplatform.paths import paths
 from ipapython.ipaldap import realm_to_serverid
 from ipatests.pytest_ipa.integration import tasks
+from ipatests.pytest_ipa.integration.env_config import get_global_config
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
 
+ipatest_config = get_global_config()
 logger = logging.getLogger(__name__)
 
 
@@ -155,6 +157,10 @@ class TestIpaCertFix(IntegrationTest):
         tasks.uninstall_master(self.master)
         tasks.move_date(self.master, 'start', '-20Years-1day')
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg does not exist with ipacta backend"
+    )
     def test_missing_csr(self, expire_cert_critical):
         """
         Test that ipa-cert-fix succeeds when CSR is missing from CS.cfg
@@ -254,6 +260,10 @@ class TestIpaCertFix(IntegrationTest):
                                          raiseonerr=False)
         assert result.returncode == 2
 
+    @pytest.mark.skipif(
+        ipatest_config.ca_backend == 'ipacta',
+        reason="CS.cfg and pki-server cert-fix are Dogtag-specific"
+    )
     def test_missing_startup(self, expire_cert_critical):
         """
         Test ipa-cert-fix fails/warns when startup directive is missing

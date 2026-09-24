@@ -30,8 +30,10 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
+from ipaserver.masters import get_ca_service
 from ipalib import api, errors, x509
 from ipapython.dn import DN
+from cryptography.hazmat.primitives import serialization
 
 from . import conncheck, dogtag, cainstance
 
@@ -308,6 +310,7 @@ def print_ca_configuration(options):
 
 def uninstall_check(options):
     """IPA needs to be running so pkidestroy can unregister CA"""
+
     ca = cainstance.CAInstance(api.env.realm)
     if not ca.is_installed():
         return
@@ -379,6 +382,22 @@ def install_check(standalone, replica_config, options):
         else:
             # We got here through ipa-ca-install
             setup_ca = True
+
+        ca_key_type = getattr(options, 'ca_key_type', None)
+        ca_signing_alg = getattr(options, 'ca_signing_algorithm', None)
+        _is_mldsa = False
+        if ca_key_type and 'mldsa' in str(ca_key_type).lower():
+            _is_mldsa = True
+        if ca_signing_alg and 'ML-DSA' in str(ca_signing_alg):
+            _is_mldsa = True
+        if _is_mldsa:
+            from ipacta.key_utils import MLDSA_AVAILABLE
+            if not MLDSA_AVAILABLE:
+                raise ScriptError(
+                    "ML-DSA (post-quantum) key types require "
+                    "python-cryptography >= 49.0 with "
+                    "OpenSSL >= 3.5"
+                )
     else:
         # during replica install, this gets invoked before local DS is
         # available, so use the remote api.
@@ -407,6 +426,38 @@ def install_check(standalone, replica_config, options):
             if not options.token_library_path:
                 options.token_library_path = token_library_path
         setup_ca = replica_config.setup_ca
+
+        if setup_ca:
+            _MLDSA_SIG_OIDS = {
+                "2.16.840.1.101.3.4.3.17",
+                "2.16.840.1.101.3.4.3.18",
+                "2.16.840.1.101.3.4.3.19",
+            }
+            try:
+                ca_certs = certstore.get_ca_certs(
+                    _api.Backend.ldap2, _api.env.basedn,
+                    _api.env.realm, False)
+                for cert_der, _nick, _trusted, _eku, _serial in ca_certs:
+                    cert = x509.load_der_x509_certificate(cert_der)
+                    sig_oid = cert.signature_algorithm_oid.dotted_string
+                    if sig_oid in _MLDSA_SIG_OIDS:
+                        from ipacta.key_utils import (
+                            MLDSA_AVAILABLE,
+                        )
+                        if not MLDSA_AVAILABLE:
+                            raise ScriptError(
+                                "The CA on the remote master uses "
+                                "ML-DSA (post-quantum) keys. "
+                                "python-cryptography >= 49.0 with "
+                                "OpenSSL >= 3.5 is required on "
+                                "this system to install a CA "
+                                "replica."
+                            )
+                        break
+            except ScriptError:
+                raise
+            except Exception:
+                pass
 
     if setup_ca and token_name:
         if (options.token_password_file and options.token_password):
@@ -615,34 +666,77 @@ def install_step_0(standalone, replica_config, options, custodia):
     # In both cases, 389-DS is already configured to have a trusted cert.
     use_ldaps = standalone or replica_config is not None
 
-    ca = cainstance.CAInstance(
-        realm=realm_name, host_name=host_name, custodia=custodia
-    )
-    ca.configure_instance(
-        host_name, dm_password, dm_password,
-        subject_base=subject_base,
-        ca_subject=ca_subject,
-        ca_signing_algorithm=ca_signing_algorithm,
-        ca_key_type=ca_key_type,
-        ca_type=ca_type,
-        external_ca_profile=external_ca_profile,
-        csr_file=csr_file,
-        cert_file=cert_file,
-        cert_chain_file=cert_chain_file,
-        pkcs12_info=pkcs12_info,
-        master_host=master_host,
-        master_replication_port=master_replication_port,
-        ra_p12=ra_p12,
-        ra_only=ra_only,
-        promote=promote,
-        use_ldaps=use_ldaps,
-        pki_config_override=options.pki_config_override,
-        random_serial_numbers=options._random_serial_numbers,
-        token_name=token_name,
-        token_library_path=options.token_library_path,
-        token_password=options.token_password,
-    )
+    # Check if --internal-ca was specified
+    internal_ca = getattr(options, 'internal_ca', False)
 
+    if internal_ca:
+        # Use ipacta Python CA instead of Dogtag/PKI
+        logger.info("Configuring ipacta Python CA (replacing pki-tomcat)")
+        from ipaserver.install.ipactainstance import IpactaInstance
+
+        ca = IpactaInstance(
+            realm=realm_name,
+            host_name=host_name,
+            random_serial_numbers=options._random_serial_numbers,
+            ca_signing_algorithm=ca_signing_algorithm,
+            ca_key_type=getattr(options, 'ca_key_type', None) or "rsa",
+            subject_base=subject_base,
+            ca_subject=ca_subject,
+            external_ca=(ca_type is not None),
+            external_ca_type=ca_type,
+            external_ca_profile=external_ca_profile,
+            csr_file=csr_file,
+            cert_file=cert_file,
+            cert_chain_file=cert_chain_file,
+            pki_config_override=options.pki_config_override,
+            token_name=token_name,
+            token_library_path=(
+                options.token_library_path
+                if hasattr(options, 'token_library_path') else None
+            ),
+            token_password=(
+                options.token_password
+                if hasattr(options, 'token_password') else None
+            ),
+            pkcs12_info=pkcs12_info,
+            dm_password=dm_password,
+            master_host=master_host,
+            promote=promote,
+            custodia=custodia,
+        )
+
+        if replica_config is not None and replica_config.setup_ca:
+            ca.create_instance(promote=promote)
+        else:
+            ca.create_instance()
+    else:
+        ca = cainstance.CAInstance(
+            realm=realm_name, host_name=host_name, custodia=custodia
+        )
+        ca.configure_instance(
+            host_name, dm_password, dm_password,
+            subject_base=subject_base,
+            ca_subject=ca_subject,
+            ca_signing_algorithm=ca_signing_algorithm,
+            ca_key_type=ca_key_type,
+            ca_type=ca_type,
+            external_ca_profile=external_ca_profile,
+            csr_file=csr_file,
+            cert_file=cert_file,
+            cert_chain_file=cert_chain_file,
+            pkcs12_info=pkcs12_info,
+            master_host=master_host,
+            master_replication_port=master_replication_port,
+            ra_p12=ra_p12,
+            ra_only=ra_only,
+            promote=promote,
+            use_ldaps=use_ldaps,
+            pki_config_override=options.pki_config_override,
+            random_serial_numbers=options._random_serial_numbers,
+            token_name=token_name,
+            token_library_path=options.token_library_path,
+            token_password=options.token_password,
+        )
 
 def install_step_1(standalone, replica_config, options, custodia):
     if replica_config is not None and not replica_config.setup_ca:
@@ -652,53 +746,93 @@ def install_step_1(standalone, replica_config, options, custodia):
     host_name = options.host_name
     subject_base = options._subject_base
     basedn = ipautil.realm_to_suffix(realm_name)
+    internal_ca = options.internal_ca
 
-    ca = cainstance.CAInstance(
-        realm=realm_name, host_name=host_name, custodia=custodia
-    )
+    if internal_ca:
+        # ipacta doesn't use pki-tomcat, so skip those steps
+        logger.debug("Configuring ipacta CA (step 1)")
 
-    ca.stop('pki-tomcat')
+        serverid = ipaldap.realm_to_serverid(realm_name)
 
-    # This is done within stopped_service context, which restarts CA
-    ca.enable_client_auth_to_db()
+        if standalone and replica_config is None:
+            dirname = dsinstance.config_dirname(serverid)
 
-    # Lightweight CA key retrieval is configured in step 1 instead
-    # of CAInstance.configure_instance (which is invoked from step
-    # 0) because kadmin_addprinc fails until krb5.conf is installed
-    # by krb.create_instance.
-    #
-    ca.setup_lightweight_ca_key_retrieval()
+            # Store the IPA CA cert chain in DS NSS database and LDAP
+            # For ipacta, CA cert is in /etc/ipa/ca.crt
+            with open(paths.IPA_CA_CRT, 'rb') as f:
+                cacert_der = x509.load_pem_x509_certificate(
+                    f.read()
+                ).public_bytes(
+                    serialization.Encoding.DER
+                )
 
-    serverid = ipaldap.realm_to_serverid(realm_name)
+            dsdb = certs.CertDB(
+                realm_name, nssdir=dirname, subject_base=subject_base)
+            nickname = certdb.get_ca_nickname(realm_name)
+            trust_flags = certdb.IPA_CA_TRUST_FLAGS
+            dsdb.add_cert(cacert_der, nickname, trust_flags)
+            certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
+                                      cacert_der, nickname, trust_flags,
+                                      config_ipa=True, config_compat=True)
 
-    if standalone and replica_config is None:
-        dirname = dsinstance.config_dirname(serverid)
+        from ipaserver.install.ipactainstance import IpactaInstance
+        ca = IpactaInstance(
+            realm=realm_name, host_name=host_name
+        )
+        ca.setup_lightweight_ca_key_retrieval()
 
-        # Store the new IPA CA cert chain in DS NSS database and LDAP
-        cadb = certs.CertDB(
-            realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
-            subject_base=subject_base)
-        dsdb = certs.CertDB(
-            realm_name, nssdir=dirname, subject_base=subject_base)
-        cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca')
-        nickname = certdb.get_ca_nickname(realm_name)
-        trust_flags = certdb.IPA_CA_TRUST_FLAGS
-        dsdb.add_cert(cacert, nickname, trust_flags)
-        certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
-                                  cacert, nickname, trust_flags,
-                                  config_ipa=True, config_compat=True)
+        installutils.restart_dirsrv()
 
-        # Store DS CA cert in Dogtag NSS database
-        trust_flags = dict(reversed(dsdb.list_certs()))
-        server_certs = dsdb.find_server_certs()
-        trust_chain = dsdb.find_root_cert(server_certs[0][0])[:-1]
-        nickname = trust_chain[-1]
-        cert = dsdb.get_cert_from_db(nickname)
-        cadb.add_cert(cert, nickname, trust_flags[nickname])
+        logger.debug("ipacta CA service is running")
 
-    installutils.restart_dirsrv()
+    else:
+        # Default: Use standard Dogtag/PKI
+        ca = cainstance.CAInstance(
+            realm=realm_name, host_name=host_name, custodia=custodia
+        )
 
-    ca.start('pki-tomcat')
+        ca.stop('pki-tomcat')
+
+        # This is done within stopped_service context, which restarts CA
+        ca.enable_client_auth_to_db()
+
+        # Lightweight CA key retrieval is configured in step 1 instead
+        # of CAInstance.configure_instance (which is invoked from step
+        # 0) because kadmin_addprinc fails until krb5.conf is installed
+        # by krb.create_instance.
+        #
+        ca.setup_lightweight_ca_key_retrieval()
+
+        serverid = ipaldap.realm_to_serverid(realm_name)
+
+        if standalone and replica_config is None:
+            dirname = dsinstance.config_dirname(serverid)
+
+            # Store the new IPA CA cert chain in DS NSS database and LDAP
+            cadb = certs.CertDB(
+                realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR,
+                subject_base=subject_base)
+            dsdb = certs.CertDB(
+                realm_name, nssdir=dirname, subject_base=subject_base)
+            cacert = cadb.get_cert_from_db('caSigningCert cert-pki-ca')
+            nickname = certdb.get_ca_nickname(realm_name)
+            trust_flags = certdb.IPA_CA_TRUST_FLAGS
+            dsdb.add_cert(cacert, nickname, trust_flags)
+            certstore.put_ca_cert_nss(api.Backend.ldap2, api.env.basedn,
+                                      cacert, nickname, trust_flags,
+                                      config_ipa=True, config_compat=True)
+
+            # Store DS CA cert in Dogtag NSS database
+            trust_flags = dict(reversed(dsdb.list_certs()))
+            server_certs = dsdb.find_server_certs()
+            trust_chain = dsdb.find_root_cert(server_certs[0][0])[:-1]
+            nickname = trust_chain[-1]
+            cert = dsdb.get_cert_from_db(nickname)
+            cadb.add_cert(cert, nickname, trust_flags[nickname])
+
+        installutils.restart_dirsrv()
+
+        ca.start('pki-tomcat')
 
     if standalone or replica_config is not None:
         # We need to restart apache as we drop a new config file in there
@@ -711,12 +845,34 @@ def install_step_1(standalone, replica_config, options, custodia):
             bind.update_system_records()
 
 
+def get_ca_instance(realm, host_name=None, custodia=None):
+    """Return the active CA backend instance (ipacta or Dogtag).
+
+    Detects the configured CA backend the same way ``uninstall()`` always
+    has (via ``ca_backend`` in default.conf, falling back to the presence
+    of the ipacta config file), so callers written for Dogtag's
+    ``CAInstance`` can operate on the right object regardless of backend.
+    """
+    internal_ca = get_ca_service() == "ipacta"
+
+    # Fallback: detect ipacta by config file even if ca_backend
+    # is missing from default.conf
+    if not internal_ca and os.path.exists(paths.IPACTA_CONF):
+        internal_ca = True
+
+    if internal_ca:
+        from ipaserver.install.ipactainstance import IpactaInstance
+        return IpactaInstance(realm, host_name)
+    return cainstance.CAInstance(realm, host_name=host_name, custodia=custodia)
+
+
 def uninstall():
     acme = acmeinstance.ACMEInstance(api.env.realm)
     acme.uninstall()
 
-    ca_instance = cainstance.CAInstance(api.env.realm)
-    ca_instance.stop_tracking_certificates()
+    ca_instance = get_ca_instance(api.env.realm, api.env.host)
+    if isinstance(ca_instance, cainstance.CAInstance):
+        ca_instance.stop_tracking_certificates()
     ipautil.remove_file(paths.RA_AGENT_PEM)
     ipautil.remove_file(paths.RA_AGENT_KEY)
     if ca_instance.is_configured():
@@ -863,3 +1019,8 @@ class CAInstallInterface(dogtag.DogtagInstallInterface,
     @random_serial_numbers.validator
     def random_serial_numbers(self, value):
         random_serial_numbers_validator(value)
+
+    internal_ca = knob(
+        None,
+        description="Use ipacta Python CA instead of Dogtag/PKI",
+    )
