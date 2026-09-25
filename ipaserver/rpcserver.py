@@ -1236,6 +1236,49 @@ class change_password(Backend, HTTP_Status):
         super(change_password, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
+    def _user_bind_dn(self, user):
+        """Resolve uid, uid@REALM, or a principal alias to the user DN.
+
+        login_password accepts user@IPA.REALM via kerberos.Principal.
+        ipa passwd finds the entry by krbprincipalname so aliases work.
+        """
+        container = DN(self.api.env.container_user, self.api.env.basedn)
+        try:
+            principal = kerberos.Principal(user)
+        except Exception:
+            principal = None
+
+        if principal is None:
+            lookup = user
+            uid = user
+        elif (principal.realm is None
+                or unicode(principal.realm).upper() == self.api.env.realm):
+            uid = principal.username
+            lookup = unicode(
+                kerberos.Principal(uid, realm=self.api.env.realm))
+        else:
+            uid = principal.username
+            lookup = unicode(principal)
+
+        search = None
+        try:
+            search = ldap2(self.api)
+            search.connect()
+            entry = search.find_entry_by_attr(
+                'krbprincipalname', lookup, 'posixaccount', [''],
+                container,
+            )
+            return entry.dn
+        except Exception as e:
+            logger.debug(
+                "change_password: krbprincipalname lookup failed for "
+                "'%s': %s", user, e)
+            return DN((self.api.Object.user.primary_key.name, uid),
+                      container)
+        finally:
+            if search is not None and search.isconnected():
+                search.disconnect()
+
     def __call__(self, environ, start_response):
         logger.info('WSGI change_password.__call__:')
 
@@ -1281,8 +1324,7 @@ class change_password(Backend, HTTP_Status):
         result = 'error'
         policy_error = None
 
-        bind_dn = DN((self.api.Object.user.primary_key.name, data['user']),
-                     self.api.env.container_user, self.api.env.basedn)
+        bind_dn = self._user_bind_dn(data['user'])
 
         try:
             pw = data['old_password']
