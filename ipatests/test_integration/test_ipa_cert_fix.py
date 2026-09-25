@@ -549,3 +549,107 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+
+class TestCertFixWithADTrust(IntegrationTest):
+    """Test that ipa-cert-fix does not break an established AD trust."""
+
+    num_ad_domains = 1
+
+    @classmethod
+    def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise pytest.skip("Package samba-client not available "
+                              "on {}".format(cls.master.hostname))
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=['--no-ntp'])
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.sync_time(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @classmethod
+    def uninstall(cls, mh):
+        # Uninstall method is empty as the uninstallation is done in
+        # the fixture
+        pass
+
+    @pytest.fixture
+    def expire_and_restore(self):
+        """Advance IPA and AD clocks in sync to expire IPA certs."""
+        # Stop NTP and advance IPA master clock
+        tasks.move_date(self.master, 'stop', '+3Years+1day')
+
+        # Advance the AD DC clock by the same amount so that cross-realm
+        # Kerberos is not broken by clock skew.
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Stop-Service W32Time -Force ; '
+             'Set-Date (Get-Date).AddYears(3).AddDays(1)'],
+            raiseonerr=False
+        )
+
+        self.master.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+        yield
+
+        # Restore AD DC clock symmetrically (no NTP dependency)
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Set-Date (Get-Date).AddYears(-3).AddDays(-1) ; '
+             'Start-Service W32Time'],
+            raiseonerr=False
+        )
+
+        # Clean up IPA master
+        self.master.run_command(['systemctl', 'stop', 'certmonger'])
+        self.master.run_command(
+            'rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*'
+        )
+        tasks.uninstall_master(self.master)
+        tasks.move_date(self.master, 'start', '-3Years-1day')
+
+    def test_cert_fix_preserves_trust(self, expire_and_restore):
+        """Test AD trust works after ipa-cert-fix renews expired certs.
+
+        Verify that an AD user can SSH into the IPA server using a GSSAPI
+        ticket obtained via cross-realm Kerberos after cert renewal.
+        """
+        # Step 1: confirm certs are expired
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        # Step 2: fix the expired certs
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+        check_status(self.master, 9, "MONITORING")
+
+        # Step 3: ensure all services are fully up after cert renewal
+        self.master.run_command(['ipactl', 'restart'])
+
+        # Step 4: kinit as an AD user (cross-realm Kerberos) then SSH using
+        # GSSAPI.
+        testuser = 'testuser@%s' % self.ad_domain
+        tasks.clear_sssd_cache(self.master)
+        self.master.run_command(['id', testuser])
+        tasks.kdestroy_all(self.master)
+        try:
+            tasks.kinit_as_user(
+                self.master, testuser, self.master.config.ad_admin_password
+            )
+            self.master.run_command(['klist', '-l'])
+            result = self.master.run_command(
+                [
+                    'ssh', '-q', '-K',
+                    '-o', 'StrictHostKeyChecking=no',
+                    '-o', 'GSSAPIAuthentication=yes',
+                    '-o', 'PubkeyAuthentication=no',
+                    '-l', testuser, self.master.hostname,
+                    'id',
+                ]
+            )
+            assert 'uid=' in result.stdout_text
+        finally:
+            tasks.kdestroy_all(self.master)
