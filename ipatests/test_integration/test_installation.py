@@ -217,7 +217,7 @@ class TestInstallWithCA1(InstallTestBase1):
     def test_install_with_bad_ldap_conf(self):
         """
         Test a client install with a non standard ldap.config
-        https://codeberg.org/freeipa/freeipa/issues/7418
+        https://pagure.io/freeipa/issue/7418
         """
         ldap_conf = paths.OPENLDAP_LDAP_CONF
         base_dn = self.master.domain.basedn
@@ -735,7 +735,7 @@ class TestInstallMaster(IntegrationTest):
     )
     def test_smoke_test_for_debug_mode(self):
         """Test if an IPA server works in debug mode.
-        Related: https://codeberg.org/freeipa/freeipa/issues/8891
+        Related: https://pagure.io/freeipa/issue/8891
 
         Note: this test hardcodes the "httpd" service name.
         """
@@ -763,7 +763,7 @@ class TestInstallMaster(IntegrationTest):
         This is to ensure if said entry is set after installation.
         It also checks if compat tree is disable.
 
-        related: https://codeberg.org/freeipa/freeipa/issues/8193
+        related: https://pagure.io/freeipa/issue/8193
         """
         conn = self.master.ldap_connect()
         entry = conn.get_entry(DN(
@@ -791,7 +791,7 @@ class TestInstallMaster(IntegrationTest):
         for pki-tomcatd. This test validates that restart
         called on pki-tomcat properly.
 
-        related ticket : https://codeberg.org/freeipa/freeipa/issues/7927
+        related ticket : https://pagure.io/freeipa/issue/7927
         """
         # get process id of pki-tomcatd
         pki_pid = get_pki_tomcatd_pid(self.master)
@@ -886,7 +886,7 @@ class TestInstallMaster(IntegrationTest):
     def test_WSGI_worker_process(self):
         """ Test if WSGI worker process count is set to 4
 
-        related ticket : https://codeberg.org/freeipa/freeipa/issues/7587
+        related ticket : https://pagure.io/freeipa/issue/7587
         """
         # check process count in httpd conf file i.e expected string
         exp = b'WSGIDaemonProcess ipa processes=%d' % constants.WSGI_PROCESSES
@@ -907,7 +907,7 @@ class TestInstallMaster(IntegrationTest):
         It needs Yubikey hardware to make command successfull. This test
         just check of proper error thrown when hardware is not attached.
 
-        related ticket : https://codeberg.org/freeipa/freeipa/issues/6979
+        related ticket : https://pagure.io/freeipa/issue/6979
         """
         # try to add yubikey to the user
         args = ['ipa', 'otptoken-add-yubikey', '--owner=admin']
@@ -1049,7 +1049,7 @@ class TestInstallMaster(IntegrationTest):
             assert group_warnings == [], msg.format(group_warnings)
 
     def test_ds_disable_upgrade_hash(self):
-        # Test case for https://codeberg.org/freeipa/freeipa/issues/8315
+        # Test case for https://pagure.io/freeipa/issue/8315
         # Disable password schema migration on LDAP bind
         result = tasks.ldapsearch_dm(
             self.master,
@@ -1081,7 +1081,7 @@ class TestInstallMaster(IntegrationTest):
     def test_nsslapd_sizelimit(self):
         """ Test for default value of nsslapd-sizelimit.
 
-        Related : https://codeberg.org/freeipa/freeipa/issues/8962
+        Related : https://pagure.io/freeipa/issue/8962
         """
         result = tasks.ldapsearch_dm(
             self.master,
@@ -1215,7 +1215,7 @@ class TestInstallMaster(IntegrationTest):
         """
         Test that --hostname parameter is respected in interactive mode.
 
-        https://codeberg.org/freeipa/freeipa/issues/2692
+        https://pagure.io/freeipa/issue/2692
         """
         original_hostname = self.master.hostname
         new_hostname = 'new.' + original_hostname
@@ -1272,7 +1272,7 @@ class TestInstallMaster(IntegrationTest):
         Test if the installer is not dependant on trust-ad package and
         succeeds even when AD subpackage is not installed
 
-        https://codeberg.org/freeipa/freeipa/issues/4011
+        https://pagure.io/freeipa/issue/4011
         """
         if osinfo.id == 'fedora':
             package_name = 'freeipa-server-trust-ad'
@@ -1296,7 +1296,7 @@ class TestInstallMaster(IntegrationTest):
         Test that the installer backs up CS.cfg configuration before it's
         being modified.
 
-        https://codeberg.org/freeipa/freeipa/issues/4166
+        https://pagure.io/freeipa/issue/4166
         """
         bcp_location = paths.CA_CS_CFG_PATH + '.ipabkp'
         original_cfg_content = None
@@ -1343,7 +1343,7 @@ class TestInstallMasterKRA(IntegrationTest):
         This test checks that ipa-ccache-sweep.timer is enabled by default
         during the ipa installation.
 
-        related: https://codeberg.org/freeipa/freeipa/issues/9107
+        related: https://pagure.io/freeipa/issue/9107
         """
         result = self.master.run_command(
             ['systemctl', 'is-enabled', 'ipa-ccache-sweep.timer'],
@@ -1425,7 +1425,7 @@ class TestInstallMasterDNS(IntegrationTest):
         'allow-recursion { any; };'. It also checks if ipa-backup
         command backup the /etc/named/ipa-ext.conf file as well
 
-        related : https://codeberg.org/freeipa/freeipa/issues/8079
+        related : https://pagure.io/freeipa/issue/8079
         """
         # check of /etc/named/ipa-ext.conf exist
         assert self.master.transport.file_exists(paths.NAMED_CUSTOM_CONF)
@@ -1448,7 +1448,7 @@ class TestInstallMasterDNS(IntegrationTest):
         Installer wizard should prompt for DNS even if --setup-dns is not
         provided as an argument.
 
-        https://codeberg.org/freeipa/freeipa/issues/2575
+        https://pagure.io/freeipa/issue/2575
         """
         cmd = ['ipa-server-install']
         netbios = create_netbios_name(self.master)
@@ -1531,7 +1531,7 @@ class TestInstallMasterReservedIPasForwarder(IntegrationTest):
     This test checks if ipa server installation throws an error when
     0.0.0.0 is specified as forwarder IP address.
 
-    related ticket: https://codeberg.org/freeipa/freeipa/issues/6894
+    related ticket: https://pagure.io/freeipa/issue/6894
     """
 
     def test_reserved_ip_as_forwarder(self):
@@ -1576,7 +1576,7 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
     KRA installation was failing after ca-agent cert gets renewed.
     This test checks if the symptoms no longer exist.
 
-    related ticket: https://codeberg.org/freeipa/freeipa/issues/7288
+    related ticket: https://pagure.io/freeipa/issue/7288
     """
 
     def test_KRA_install_after_cert_renew(self):
@@ -1635,10 +1635,8 @@ class TestKRAinstallAfterCertRenew(IntegrationTest):
             # /root/.dogtag/pki-tomcat/ca_admin.cert is checked
             # and KRA install fails. Known IPA issue
             pki_version = tasks.get_pki_version(self.master)
-            with xfail_context(
-                pki_version >= tasks.parse_version('11.6.0'),
-                'https://codeberg.org/freeipa/freeipa/issues/9763'
-            ):
+            with xfail_context(pki_version >= tasks.parse_version('11.6.0'),
+                               'https://pagure.io/freeipa/issue/9763'):
                 cmd = self.master.run_command([
                     'ipa-kra-install', '-p', dm_pass, '-U'
                 ])
@@ -1652,7 +1650,7 @@ class TestKRAinstallOnReplicaWithCAHost(IntegrationTest):
     KRA install on a replica should fail
     if the ca_host line in /etc/ipa/default.conf is present
 
-    Related: https://codeberg.org/freeipa/freeipa/issues/8245
+    Related: https://pagure.io/freeipa/issue/8245
     """
 
     num_replicas = 1
@@ -1684,7 +1682,7 @@ class TestMaskInstall(IntegrationTest):
     This test checks that master/replica installation fails (expectedly) if
     mask > 022.
 
-    related ticket: https://codeberg.org/freeipa/freeipa/issues/7193
+    related ticket: https://pagure.io/freeipa/issue/7193
     """
     topology = 'star'
 
@@ -1724,7 +1722,7 @@ class TestMaskInstall(IntegrationTest):
 
 
 class TestInstallMasterReplica(IntegrationTest):
-    """https://codeberg.org/freeipa/freeipa/issues/7929
+    """https://pagure.io/freeipa/issue/7929
     Problem:
     If a replica installation fails before all the services
     have been enabled then
@@ -1766,7 +1764,7 @@ class TestInstallMasterReplica(IntegrationTest):
         4. On master,
            run ipa-replica-manage del <replicaFQDN> --cleanup --force
         """
-        # https://codeberg.org/freeipa/freeipa/issues/7929
+        # https://pagure.io/freeipa/issue/7929
         # modify the replica entry on Master
         cmd_output = None
         dn_entry = 'dn: cn=KDC,cn=%s,cn=masters,cn=ipa,' \
@@ -1804,7 +1802,7 @@ class TestInstallReplicaAgainstSpecificServer(IntegrationTest):
     install replica2 from replica1 and expect it to get fail as specified
     server is not providing all the services.
 
-    related ticket: https://codeberg.org/freeipa/freeipa/issues/7566
+    related ticket: https://pagure.io/freeipa/issue/7566
     """
 
     num_replicas = 2
@@ -2006,7 +2004,7 @@ class TestInstallWithoutNamed(IntegrationTest):
     @classmethod
     def remove_named(cls, host):
         # remove the bind package and make sure the named user does not exist.
-        # https://codeberg.org/freeipa/freeipa/issues/8936
+        # https://pagure.io/freeipa/issue/8936
         result = host.run_command(['id', 'named'], raiseonerr=False)
         if result.returncode == 0:
             tasks.uninstall_packages(host, ['bind'])
@@ -2109,7 +2107,7 @@ class TestHostnameValidator(IntegrationTest):
         ]
 
     def test_user_input_hostname(self):
-        # https://codeberg.org/freeipa/freeipa/issues/9111
+        # https://pagure.io/freeipa/issue/9111
         # Validate the user-provided hostname
         self.master.run_command(['hostname', 'fedora'])
         result = self.master.run_command(
@@ -2131,7 +2129,7 @@ class TestHostnameValidator(IntegrationTest):
         assert hostname == self.master.hostname
 
     def test_hostname_with_dot(self):
-        # https://codeberg.org/freeipa/freeipa/issues/9111
+        # https://pagure.io/freeipa/issue/9111
         # Validate the user-provided hostname
         self.master.run_command(['hostname', 'fedora'])
         result = self.master.run_command(
@@ -2153,7 +2151,7 @@ class TestHostnameValidator(IntegrationTest):
         assert hostname == self.master.hostname
 
     def test_hostname_matching_domain(self):
-        # https://codeberg.org/freeipa/freeipa/issues/9003
+        # https://pagure.io/freeipa/issue/9003
         # Prevent hostname from matching the domain
         self.master.run_command(['hostname', self.master.hostname])
         args = self.get_args(self.master)
@@ -2330,7 +2328,7 @@ class TestInstallPQCBase(IntegrationTest):
         assert "2048 bit" in result.stdout_text
 
     def check_ca_keys(self, host):
-        """Verify that the CA keys are all RSA"""
+        """Verify Dogtag CA signing keys match the configured CA key type."""
         key_type = self._get_key_type(self.ca_key_type)
         if "ML-DSA-" in key_type:
             key_type = "mldsa"
@@ -2338,7 +2336,9 @@ class TestInstallPQCBase(IntegrationTest):
         result = host.run_command(
             f"certutil -K -d {paths.PKI_TOMCAT_ALIAS_DIR} "
             f"-f {paths.PKI_TOMCAT_ALIAS_PWDFILE_TXT} | grep -c {key_type}")
-        assert "5" in result.stdout_text
+        # Dogtag CA should have exactly 5 signing keys of the expected type
+        key_count = int(result.stdout_text.strip())
+        assert key_count == 5, f"Expected 5 CA keys, found {key_count}"
 
     def test_master_key_sizes(self):
         self.check_key_sizes(self.master)
@@ -2355,6 +2355,81 @@ class TestInstallPQCBase(IntegrationTest):
         self.check_key_sizes(self.replicas[0])
         self.check_ca_keys(self.replicas[0])
 
+    def test_replica_ca_issues_cert_with_mldsa(self):
+        """Test that replica CA can issue certificates with ML-DSA config.
+
+        Validates:
+        - Replica CA is functional and can issue certificates
+        - Certificate issued from replica matches configured key type
+        - CA replication works correctly for ML-DSA scenarios
+        """
+        if self.num_replicas == 0:
+            raise pytest.skip("No replica installed. Skipping")
+        result = tasks.kinit_admin(self.replicas[0], raiseonerr=False)
+        if result.returncode != 0:
+            raise pytest.skip("Replica is not available. Skipping")
+
+        replica = self.replicas[0]
+        expected_key_type = self._get_key_type(self.ipa_key_type)
+
+        # Create a test user on replica
+        test_user = "pqc_replica_test_user"
+        tasks.kinit_admin(replica)
+        try:
+            tasks.user_add(replica, test_user)
+
+            # Generate CSR with the same key type as IPA installation
+            csr_file = "/tmp/replica_test.csr"
+            key_file = "/tmp/replica_test.key"
+            cert_file = "/tmp/replica_test.crt"
+
+            # Generate key and CSR based on configured IPA key type
+            if self.ipa_key_type and self.ipa_key_type.startswith("mldsa"):
+                # ML-DSA CSR
+                algo = expected_key_type
+                replica.run_command([
+                    "openssl", "genpkey", "-algorithm", algo,
+                    "-out", key_file
+                ])
+                replica.run_command([
+                    "openssl", "req", "-new", "-key", key_file,
+                    "-out", csr_file, "-subj", f"/CN={test_user}"
+                ])
+            else:
+                # RSA CSR (default)
+                replica.run_command([
+                    "openssl", "req", "-newkey", "rsa:2048",
+                    "-keyout", key_file, "-nodes", "-out", csr_file,
+                    "-subj", f"/CN={test_user}"
+                ])
+
+            # Request certificate from replica CA
+            replica.run_command([
+                "ipa", "cert-request", "--principal", test_user,
+                "--certificate-out", cert_file, csr_file
+            ])
+
+            # Validate issued certificate has expected key type
+            result = replica.run_command(
+                f"openssl x509 -in {cert_file} -noout -text | grep Public-Key"
+            )
+            assert expected_key_type in result.stdout_text, (
+                f"Expected {expected_key_type} in certificate, "
+                f"got: {result.stdout_text}"
+            )
+
+        finally:
+            # Cleanup
+            replica.run_command(
+                ["rm", "-f", csr_file, key_file, cert_file],
+                raiseonerr=False
+            )
+            replica.run_command(
+                ["ipa", "user-del", test_user],
+                raiseonerr=False
+            )
+            tasks.kdestroy_all(replica)
+
 
 class TestInstallPQCIPACerts(TestInstallPQCBase):
 
@@ -2365,8 +2440,39 @@ class TestInstallPQCIPACerts(TestInstallPQCBase):
 
 
 class TestInstallPQCCACerts(TestInstallPQCBase):
+    """ML-DSA-44 server keys with ML-DSA-65 (default) CA.
+
+    Legacy name; see also 006a.
+    """
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa"
+    ca_key_type = "mldsa:44"
+
+
+class TestInstallWithMLDSA44(TestInstallPQCBase):
+    """Install with ML-DSA-44 for both IPA service keys and CA."""
 
     num_replicas = 1
     master_with_dns = True
     ipa_key_type = "mldsa:44"
-    ca_key_type = "mldsa"
+    ca_key_type = "mldsa:44"
+
+
+class TestInstallWithMLDSA65(TestInstallPQCBase):
+    """Install with ML-DSA-65 for both IPA service keys and CA."""
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa:65"
+    ca_key_type = "mldsa:65"
+
+
+class TestInstallWithMLDSA87(TestInstallPQCBase):
+    """Install with ML-DSA-87 for both IPA service keys and CA."""
+
+    num_replicas = 1
+    master_with_dns = True
+    ipa_key_type = "mldsa:87"
+    ca_key_type = "mldsa:87"
