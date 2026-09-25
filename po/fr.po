@@ -4,13 +4,14 @@
 # Martin Bašti <mbasti@redhat.com>, 2016. #zanata
 # Pavel Vomacka <pvomacka@redhat.com>, 2017. #zanata
 # Léane GRASSER <leane.grasser@proton.me>, 2024.
+# François Grieu <francois.grieu@spirtech.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: freeipa 4.9.0.dev201908140712+gitc9938e3d8\n"
 "Report-Msgid-Bugs-To: https://pagure.io/freeipa/new_issue\n"
 "POT-Creation-Date: 2026-08-19 19:12+0000\n"
-"PO-Revision-Date: 2026-08-20 12:17+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"PO-Revision-Date: 2026-09-25 16:04+0000\n"
+"Last-Translator: François Grieu <francois.grieu@spirtech.com>\n"
 "Language-Team: French <https://translate.fedoraproject.org/projects/freeipa/"
 "stable-release/fr/>\n"
 "Language: fr\n"
@@ -18,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.9.1\n"
 
 #: ipaserver/rpcserver.py:624
 msgid "Request must be a dict"
@@ -7549,11 +7550,11 @@ msgstr "Durée de vie maximale d'un mot de passe (en jours)"
 
 #: ipaserver/plugins/pwpolicy.py:338
 msgid "Min lifetime (hours)"
-msgstr "Durée de vie minimale (jours)"
+msgstr "Durée de vie minimale (heures)"
 
 #: ipaserver/plugins/pwpolicy.py:339
 msgid "Minimum password lifetime (in hours)"
-msgstr "Durée de vie maximale d'un mot de passe (en jours)"
+msgstr "Durée de vie maximale d'un mot de passe (en heures)"
 
 #: ipaserver/plugins/pwpolicy.py:345
 msgid "History size"
