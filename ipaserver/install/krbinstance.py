@@ -40,6 +40,7 @@ from ipapython.version import KRB5_BUILD_VERSION
 from ipalib import api, errors
 from ipalib.constants import ANON_USER
 from ipalib.install import certmonger
+from ipalib.krb_utils import get_krb5kdc_thread_count
 from ipapython.dn import DN
 from ipapython.dogtag import KDC_PROFILE
 
@@ -386,7 +387,7 @@ class KrbInstance(service.Service):
         self.__template_file(paths.KRB5_FREEIPA, client_template=True)
 
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
-        cpus = os.sysconf('SC_NPROCESSORS_ONLN')
+        cpus = get_krb5kdc_thread_count(api.env)
         workers = False
         result = ipautil.run([paths.KLIST, '-V'],
                              raiseonerr=False, capture_output=True)

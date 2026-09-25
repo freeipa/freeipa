@@ -18,6 +18,7 @@
 
 import time
 import re
+import os
 
 import gssapi
 
@@ -212,3 +213,39 @@ def get_credentials_if_valid(name=None, ccache_name=None):
     except gssapi.exceptions.GSSError:
         return None
     return None
+
+
+def get_krb5kdc_thread_count(env=None):
+    """
+    Get the number of threads to use for the KDC.
+
+    This value is overridden by the IPA_KRB5KDC_THREAD_COUNT environment
+    variable.
+
+    If the number of threads is not set, we will auto-detect the number of
+    cores in the system and set a reasonable amount of threads.
+
+    :return: number of threads to use for the KDC
+    :rtype: int
+    """
+    if env is not None and env.krb5kdc_thread_count != 0:
+        return env.krb5kdc_thread_count
+
+    def _cpu_count():
+        try:
+            # Read from cgroup in case we're running in a container
+            with open("/sys/fs/cgroup/cpu.max") as f:
+                quota, period = f.read().strip().split()
+                if quota != "max":
+                    # Do full integer division as quota
+                    # can be set to a fractional value
+                    return max(1, int(quota) // int(period))
+        except Exception:
+            pass
+
+        # Fall back to os.cpu_count(), outside of containers
+        return os.cpu_count() or 1
+
+    cores = _cpu_count()
+    if cores <= 4: return max(2, cores)
+    return min(16, 0.2 * cores + 3.2)
