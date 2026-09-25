@@ -70,6 +70,12 @@ exclude_patterns = [
 #
 html_theme = 'sphinx_book_theme'
 
+html_theme_options = {
+    # Show h2 (Commands) and h3 (individual command names) in the page TOC
+    # sidebar without requiring the user to expand "Commands" first.
+    "show_toc_level": 2,
+}
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
