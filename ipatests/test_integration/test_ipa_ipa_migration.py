@@ -1448,9 +1448,14 @@ class TestIPAMigrationProdMode(MigrationTest):
         assert "test@example.test" in result.stdout_text
         assert "ssh-ed25519" in result.stdout_text
 
-    def test_ipa_migrate_skip_replication_conflicts(self):
-        """
-        Test that ipa-migrate skips replication conflict entries
+    def _migrate_with_modified_ldif(self, ldif_modifier):
+        """Helper method to run migration with a modified LDIF file.
+
+        :param ldif_modifier: A callable that takes ldif_content and returns
+            modified ldif_content
+        :type ldif_modifier: callable
+        :return: Tuple of (result, install_msg)
+        :rtype: tuple
         """
         tasks.kinit_admin(self.master)
         tasks.kinit_admin(self.replicas[0])
@@ -1470,36 +1475,19 @@ class TestIPAMigrationProdMode(MigrationTest):
         # Start IPA back on master
         self.master.run_command(['ipactl', 'start'])
 
-        # Copy LDIF to replica
+        # Get LDIF content
         ldif_content = self.master.get_file_contents(
             ldif_file, encoding="utf-8"
         )
-        replica_ldif = "/tmp/userroot_with_conflict.ldif"
 
-        # Add mocked replication conflict entry to the LDIF
-        users_dn = "cn=users,cn=accounts," + str(self.master.domain.basedn)
-        conflict_entry = textwrap.dedent(
-            """
-            # entry-id: 12345678
-            dn: nsuniqueid=12345678-1234+uid=conflictuser,{users_dn}
-            uid: conflictuser
-            cn: Conflict User
-            uidNumber: 1234
-            gidNumber: 1234
-            sn: User
-            objectClass: top
-            objectClass: person
-            objectClass: inetorgperson
-            objectClass: nsds5replconflict
-            nsds5ReplConflict: namingConflict uid=conflictuser,{users_dn}
+        # Apply modifications
+        modified_ldif = ldif_modifier(ldif_content)
 
-            """
-        ).format(users_dn=users_dn)
-
-        # Append conflict entry to LDIF
-        modified_ldif = ldif_content + conflict_entry
+        # Write modified LDIF to replica
+        replica_ldif = "/tmp/userroot_modified.ldif"
         self.replicas[0].put_file_contents(replica_ldif, modified_ldif)
 
+        # Run migration
         result = run_migrate(
             self.replicas[0],
             "prod-mode",
@@ -1513,8 +1501,127 @@ class TestIPAMigrationProdMode(MigrationTest):
             paths.IPA_MIGRATE_LOG, encoding="utf-8"
         )
 
+        return result, install_msg
+
+    def test_ipa_migrate_skip_replication_conflicts(self):
+        """
+        Test that ipa-migrate skips replication conflict entries
+        """
+        def add_conflict_entry(ldif_content):
+            # Add mocked replication conflict entry to the LDIF
+            users_dn = "cn=users,cn=accounts," + str(self.master.domain.basedn)
+            conflict_entry = textwrap.dedent(
+                """
+                # entry-id: 12345678
+                dn: nsuniqueid=12345678-1234+uid=conflictuser,{users_dn}
+                uid: conflictuser
+                cn: Conflict User
+                uidNumber: 1234
+                gidNumber: 1234
+                sn: User
+                objectClass: top
+                objectClass: person
+                objectClass: inetorgperson
+                objectClass: nsds5replconflict
+                nsds5ReplConflict: namingConflict uid=conflictuser,{users_dn}
+
+                """
+            ).format(users_dn=users_dn)
+            return ldif_content + conflict_entry
+
+        result, install_msg = self._migrate_with_modified_ldif(
+            add_conflict_entry
+        )
+
         assert result.returncode == 0
         assert "Skipping replication conflict entry" in install_msg
+
+    def test_ipa_migrate_case_insensitive_objectclass(self):
+        """
+        Test that ipa-migrate handles case-insensitive objectClass values
+        correctly. LDAP treats objectClass values as case-insensitive
+        (objectIdentifierMatch), so 'ipapwdpolicy' and 'ipaPwdPolicy'
+        should be recognized as the same value and not cause
+        "Type or value exists" errors.
+        """
+        def lowercase_objectclass(ldif_content):
+            # Replace objectClass: ipaPwdPolicy with lowercase version
+            # This simulates a scenario where LDIF has different case
+            # for objectClass values.
+            return ldif_content.replace(
+                'objectClass: ipaPwdPolicy',
+                'objectClass: ipapwdpolicy'
+            )
+
+        result, install_msg = self._migrate_with_modified_ldif(
+            lowercase_objectclass
+        )
+
+        assert result.returncode == 0
+        # Verify no "Type or value exists" error from attempting to add
+        # duplicate objectClass values with different case
+        assert "Type or value exists" not in install_msg
+        assert "Failed to update" not in install_msg
+
+    def test_ipa_migrate_case_insensitive_objectclass_user_entries(self):
+        """
+        Test that case-insensitive objectClass handling works across
+        different entry types, not just password policies. Modifies
+        objectClass values on user entries (inetOrgPerson, posixAccount)
+        to verify schema-based matching rule lookup handles
+        objectIdentifierMatch correctly for any entry type.
+        """
+        def lowercase_user_objectclasses(ldif_content):
+            content = ldif_content.replace(
+                'objectClass: inetOrgPerson',
+                'objectClass: inetorgperson'
+            )
+            content = content.replace(
+                'objectClass: posixAccount',
+                'objectClass: posixaccount'
+            )
+            return content
+
+        result, install_msg = self._migrate_with_modified_ldif(
+            lowercase_user_objectclasses
+        )
+
+        assert result.returncode == 0
+        assert "Type or value exists" not in install_msg
+        assert "Failed to update" not in install_msg
+
+    def test_ipa_migrate_case_insensitive_sn_attribute(self):
+        """
+        Test that ipa-migrate uses schema-based case-insensitive comparison
+        for attributes with caseIgnoreMatch equality rule. The 'sn' attribute
+        inherits caseIgnoreMatch from 'name' via SUP, so the tool should
+        walk the SUP chain, determine it is case-insensitive, and not
+        produce unnecessary updates when only the case differs.
+        """
+        def uppercase_sn(ldif_content):
+            # Change sn values to uppercase for testuser entries.
+            # prepare_ipa_server creates users with --last "User1" etc.,
+            # so the LDIF contains "sn: User1", "sn: User2", etc.
+            for i in range(1, 6):
+                ldif_content = ldif_content.replace(
+                    f'sn: User{i}',
+                    f'sn: USER{i}'
+                )
+            return ldif_content
+
+        result, install_msg = self._migrate_with_modified_ldif(
+            uppercase_sn
+        )
+
+        assert result.returncode == 0
+        # Since sn uses caseIgnoreMatch (via SUP 'name'), 'USER1' and
+        # 'User1' should be recognized as the same value. The tool
+        # should NOT log unnecessary updates for sn attributes.
+        for i in range(1, 6):
+            assert (
+                f"attribute 'sn' replaced with val 'USER{i}'"
+                not in install_msg
+            )
 
 
 class TestIPAMigrationDNSRecords(MigrationTest):
