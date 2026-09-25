@@ -33,7 +33,13 @@ jobs:
 
     - script: |
         set -e
+        gcc main.c -g -o main
+      displayName: Build crashing binary
+
+    - script: |
+        set -e
         mkdir container
+        cp main dist/
         cp -pr dist container/
         cp $(IPA_TESTS_DOCKERFILES)/$(DOCKER_DOCKERFILE) container/Dockerfile
         cd container
