@@ -39,7 +39,6 @@ class IntegrationTest:
     required_extra_roles = []
     topology = None
     domain_level = None
-    fips_mode = None
     random_serial = False
     token_password = None
 
@@ -62,29 +61,12 @@ class IntegrationTest:
         return [cls.domain] + cls.ad_domains
 
     @classmethod
-    def enable_fips_mode(cls):
-        for host in cls.get_all_hosts():
-            if not host.is_fips_mode:
-                host.enable_userspace_fips()
-
-    @classmethod
-    def disable_fips_mode(cls):
-        for host in cls.get_all_hosts():
-            if host.is_userspace_fips:
-                host.disable_userspace_fips()
-
-    @classmethod
     def install(cls, mh):
         extra_args = []
         if cls.domain_level is not None:
             domain_level = cls.domain_level
         else:
             domain_level = cls.master.config.domain_level
-
-        if cls.master.config.fips_mode:
-            cls.fips_mode = True
-        if cls.fips_mode:
-            cls.enable_fips_mode()
 
         if cls.topology is None:
             return
@@ -112,8 +94,6 @@ class IntegrationTest:
         tasks.uninstall_master(cls.master)
         for client in cls.clients:
             tasks.uninstall_client(client)
-        if cls.fips_mode:
-            cls.disable_fips_mode()
 
 
 @ordered
