@@ -40,9 +40,9 @@ CERTBOT_DNS_IPA_SCRIPT = '/usr/libexec/ipa/acme/certbot-dns-ipa'
 
 # OpenSSL `x509 -text` substrings per curve (openssl ecparam -name values).
 ECDSA_CURVE_EXPECTATIONS = {
-    'secp256r1': ('Public-Key: (256 bit)', 'prime256v1'),
-    'secp384r1': ('Public-Key: (384 bit)', 'secp384r1'),
-    'secp521r1': ('Public-Key: (521 bit)', 'secp521r1'),
+    'secp256r1': ('Public-Key: (256 bit', 'prime256v1'),
+    'secp384r1': ('Public-Key: (384 bit', 'secp384r1'),
+    'secp521r1': ('Public-Key: (521 bit', 'secp521r1'),
 }
 
 
