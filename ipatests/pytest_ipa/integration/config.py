@@ -43,7 +43,6 @@ class Config(pytest_multihost.config.Config):
         'dns_forwarder',
         'domain_level',
         'log_journal_since',
-        'fips_mode',
         'token_name',
         'token_password',
         'token_library',
@@ -76,7 +75,6 @@ class Config(pytest_multihost.config.Config):
         self.log_journal_since = kwargs.get('log_journal_since') or '-1h'
         if self.domain_level is None:
             self.domain_level = MAX_DOMAIN_LEVEL
-        self.fips_mode = kwargs.get('fips_mode', False)
         self.token_name = kwargs.get('token_name', None)
         self.token_password = kwargs.get('token_password', None)
         self.token_library = kwargs.get('token_library', None)

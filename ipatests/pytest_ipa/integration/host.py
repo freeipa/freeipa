@@ -28,9 +28,7 @@ import pytest_multihost.host
 from ipaplatform.paths import paths
 from ipapython import ipaldap
 
-from .fips import (
-    is_fips_enabled, enable_userspace_fips, disable_userspace_fips
-)
+from .fips import is_fips_enabled
 from .transport import IPAOpenSSHTransport
 from .resolver import resolver
 
@@ -88,42 +86,6 @@ class Host(pytest_multihost.host.Host):
         if self._fips_mode is None:
             self._fips_mode = is_fips_enabled(self)
         return self._fips_mode
-
-    @property
-    def is_userspace_fips(self):
-        """Check if host uses fake userspace FIPS
-        """
-        return self._userspace_fips
-
-    def enable_userspace_fips(self):
-        """Enable fake userspace FIPS mode
-
-        The call has no effect if the system is already in FIPS mode.
-
-        :return: True if system was modified, else None
-        """
-        if not self.is_fips_mode:
-            enable_userspace_fips(self)
-            self._fips_mode = True
-            self._userspace_fips = True
-            return True
-        else:
-            return False
-
-    def disable_userspace_fips(self):
-        """Disable fake userspace FIPS mode
-
-        The call has no effect if userspace FIPS mode is not enabled.
-
-        :return: True if system was modified, else None
-        """
-        if self.is_userspace_fips:
-            disable_userspace_fips(self)
-            self._userspace_fips = False
-            self._fips_mode = False
-            return True
-        else:
-            return False
 
     @staticmethod
     def _make_host(domain, hostname, role, ip, external_hostname):
