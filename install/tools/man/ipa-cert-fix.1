@@ -31,6 +31,12 @@ replication to other CA servers.  Shared certificates include all
 Dogtag system certificates except the HTTPS certificate, and the IPA
 RA certificate.
 
+Before making any changes, \fIipa-cert-fix\fR prints details of the
+certificates it intends to renew and prompts for confirmation.  Only
+an exact (case-insensitive) response of "yes" will cause the tool to
+proceed; any other response causes it to print "Not proceeding." and
+exit with status 0 without modifying any certificates.
+
 To repair certificates across multiple CA servers, first ensure that
 LDAP replication is working across the topology.  Then run
 \fIipa-cert-fix\fR on one CA server.  Before running
@@ -63,9 +69,11 @@ Output only errors (output from child processes may still be shown).
 \fB\-\-log\-file\fR=\fIFILE\fR
 Log to the given file.
 .SH "EXIT STATUS"
-0 if the command was successful
+0 if the command was successful, or if the user declined to proceed
 
 1 if an error occurred
+
+2 if IPA is not configured on this system
 
 .SH "SEE ALSO"
 .BR ipa-cacert-manage(1)
