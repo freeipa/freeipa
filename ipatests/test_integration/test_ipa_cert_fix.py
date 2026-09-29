@@ -242,6 +242,35 @@ class TestIpaCertFix(IntegrationTest):
         assert "Nothing to do" in result.stdout_text
         check_status(self.master, 9, "MONITORING")
 
+    def test_ipa_cert_fix_aborted_by_user(self, expire_cert_critical):
+          """Test that declining the ipa-cert-fix confirmation prompt
+          leaves certs untouched and exits with returncode 0
+
+          ipa_cert_fix.run() treats any response other than exactly "yes"
+          (case-insensitive) as a decline: it prints "Not proceeding." and
+          returns 0, not an error code. Every other test in this file
+          hardcodes stdin_text='yes\n', so this is the only branch of
+          ipa-cert-fix with no coverage.
+          """
+          expire_cert_critical(self.master)
+
+          # wait for cert expiry
+          check_status(self.master, 8, "CA_UNREACHABLE")
+
+          result = self.master.run_command(
+              ['ipa-cert-fix', '-v'], stdin_text='no\n', raiseonerr=False
+          )
+          assert result.returncode == 0
+          assert "Not proceeding." in result.stdout_text
+          assert "Proceeding." not in result.stdout_text
+
+          # certs must be left untouched after declining
+          check_status(self.master, 8, "CA_UNREACHABLE")
+
+          # tool must still work normally on a subsequent run
+          self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+          check_status(self.master, 9, "MONITORING")
+
     def test_ipa_cert_fix_non_ipa(self):
         """Test ipa-cert-fix doesn't work on non ipa system
 
