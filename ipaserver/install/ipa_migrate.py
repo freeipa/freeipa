@@ -319,8 +319,6 @@ class IPAMigrate():
     local_suffix = None
     log_file_name = LOG_FILE_NAME
     log_file_mode = "a"  # or "w" TBD
-    _case_insensitive_attrs = set()
-    _case_sensitive_attrs = set()
     local_conn = None
     remote_conn = None
     log = logger
@@ -339,6 +337,10 @@ class IPAMigrate():
         '\n    - ...',
         'SSSD should be restarted after a successful migration',
     ]
+
+    def __init__(self):
+        self._case_insensitive_attrs = set()
+        self._case_sensitive_attrs = set()
 
     #
     # Argument Options (will be impacted by AdminTool)
