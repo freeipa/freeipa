@@ -3228,9 +3228,10 @@ class TestHBACFunctional(IntegrationTest):
         # Test SSH access from client0 to client1 and master
         # --------------------------------------------------
         tasks.clear_sssd_cache(self.master)
-        self.refresh_user_cache(
-            self.clients[0], [self.USER_1, self.USER_2], kdestroy=False
-        )
+        for client in self.clients:
+            self.refresh_user_cache(
+                client, [self.USER_1, self.USER_2], kdestroy=False
+            )
         assert self.ssh_auth_success(
             self.USER_1, self.USER_PASSWORD, self.clients[1], self.clients[0]
         )
