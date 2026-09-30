@@ -150,7 +150,7 @@ Add and retrieve a keytab for a clustered HTTP service deployed on client1.examp
    # ipa host-add client-frontend.example.com --ip-address 10.1.2.3
    # ipa service-add HTTP/client-frontend.example.com
    # ipa service-allow-retrieve-keytab HTTP/client-frontend.example.com --hosts={client1.example.com,client2.example.com}
-   # ipa server-allow-create-keytab HTTP/client-frontend.example.com --hosts=client1.example.com
+   # ipa service-allow-create-keytab HTTP/client-frontend.example.com --hosts=client1.example.com
 .fi
 
    On client1, generate and retrieve a new keytab for client-frontend.example.com:
