@@ -639,7 +639,6 @@ class test_user(user_tasks):
         self.select_record(user.PKEY2)
         self.facet_button_click('remove')
         actions.send_keys(Keys.ENTER).perform()
-        self.wait(0.5)
         self.assert_notification(assert_text='1 item(s) deleted')
         self.assert_record(user.PKEY2, negative=True)
 
