@@ -199,19 +199,6 @@ jobs:
         timeout: 7200
         topology: *ad_master_2client
 
-  fedora-latest-ipa-4-13/test_fips:
-    requires: [fedora-latest-ipa-4-13/build]
-    priority: 50
-    job:
-      class: RunPytest
-      args:
-        build_url: '{fedora-latest-ipa-4-13/build_url}'
-        selinux_enforcing: True
-        test_suite: test_integration/test_fips.py
-        template: *ci-ipa-4-13-latest
-        timeout: 7200
-        topology: *master_1repl_1client
-
   fedora-latest-ipa-4-13/test_forced_client_enrolment:
     requires: [fedora-latest-ipa-4-13/build]
     priority: 50
