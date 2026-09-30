@@ -986,6 +986,54 @@ class LDAPClient:
             val = val.astimezone(timezone.utc)
         return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
 
+    def is_attribute_operational(self, name_or_oid):
+        """Check if the attribute is operational."""
+        if six.PY2 and isinstance(name_or_oid, unicode):
+            name_or_oid = name_or_oid.encode('utf-8')
+
+        schema = self._get_schema()
+        if schema is not None:
+            obj = schema.get_obj(ldap.schema.AttributeType, name_or_oid)
+            if obj is not None:
+                return obj.usage == 1
+
+        return None
+
+    def get_attribute_equality_rule(self, name_or_oid):
+        """Return the equality matching rule for the attribute."""
+        if six.PY2 and isinstance(name_or_oid, unicode):
+            name_or_oid = name_or_oid.encode('utf-8')
+
+        schema = self._get_schema()
+        if schema is not None:
+            obj = schema.get_obj(ldap.schema.AttributeType, name_or_oid)
+            if obj is not None:
+                visited = set()
+                while obj is not None:
+                    if obj.oid in visited:
+                        break
+                    visited.add(obj.oid)
+
+                    if obj.equality:
+                        return obj.equality
+
+                    if obj.sup and len(obj.sup) > 0:
+                        obj = schema.get_obj(
+                            ldap.schema.AttributeType,
+                            obj.sup[0])
+                    else:
+                        break
+
+        return None
+
+    def get_schema_ldap_entry(self):
+        """Return the schema subentry as a dictionary."""
+        schema = self._get_schema()
+        if schema is not None:
+            return schema.ldap_entry()
+
+        return None
+
     def encode(self, val):
         """
         Encode attribute value to LDAP representation (str/bytes).
