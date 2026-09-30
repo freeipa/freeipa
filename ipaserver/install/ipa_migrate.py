@@ -1888,26 +1888,21 @@ class IPAMigrate():
                             self.dryrun_record.write(schema_update)
                         continue
 
-                    self.local_conn.conn.modify_ext_s(
-                        "cn=schema", [(
-                            ldap.MOD_ADD,
-                            schema_type[1],
-                            bytes(attr_val, 'utf-8')
-                        )]
-                    )
+                    self.local_conn.add_schema_element(
+                        schema_type[1], attr_val)
                     if schema_type[1] == "attributeTypes":
                         stats['schema_attrs_added'] += 1
                     else:
                         stats['schema_oc_added'] += 1
                     self.log_debug(
                         f"Added schema - {schema_type[1]}: {attr_val}")
-                except ldap.TYPE_OR_VALUE_EXISTS:
+                except errors.DuplicateEntry:
                     # Error 16 - this attribute already exists, move on
                     if schema_type[1] == "attributeTypes":
                         stats['schema_attrs_skipped'] += 1
                     else:
                         stats['schema_oc_skipped'] += 1
-                except ldap.LDAPError as e:
+                except errors.DatabaseError as e:
                     if self.args.force:
                         self.log_debug(
                             "Skipping schema value that triggered an "
