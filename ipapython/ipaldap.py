@@ -879,9 +879,10 @@ class LDAPClient:
 
         if not self._has_schema:
             try:
-                schema = schema_cache.get_schema(
-                    self.ldap_uri, self.conn,
-                    force_update=self._force_schema_updates)
+                with self.error_handler():
+                    schema = schema_cache.get_schema(
+                        self.ldap_uri, self.conn,
+                        force_update=self._force_schema_updates)
             except (errors.ExecutionError, IndexError):
                 schema = None
 
