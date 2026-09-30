@@ -558,12 +558,7 @@ class IPAMigrate():
     # Helper functions
     #
     def attr_is_operational(self, attr):
-        schema = self.local_conn.schema
-        attr_obj = schema.get_obj(ldap.schema.AttributeType, attr)
-        if attr_obj is not None:
-            if attr_obj.usage == 1:
-                return True
-        return False
+        return self.local_conn.is_attribute_operational(attr) or False
 
     def attr_is_case_insensitive(self, attr):
         """
@@ -591,21 +586,9 @@ class IPAMigrate():
         equality matching. Walks the superior attribute type chain if the
         equality rule is not set directly on the attribute.
         """
-        schema = self.local_conn.schema
-        if schema is None:
-            return False
-
-        visited = set()
-        attr_name = attr
-        while attr_name and attr_name not in visited:
-            visited.add(attr_name)
-            attr_obj = schema.get_obj(ldap.schema.AttributeType, attr_name)
-            if attr_obj is None:
-                return False
-            if attr_obj.equality:
-                return attr_obj.equality in CASE_INSENSITIVE_MATCHING_RULES
-            # No equality rule set, walk up to the superior type
-            attr_name = attr_obj.sup[0] if attr_obj.sup else None
+        equality_rule = self.local_conn.get_attribute_equality_rule(attr)
+        if equality_rule is not None:
+            return equality_rule in CASE_INSENSITIVE_MATCHING_RULES
         return False
 
     def replace_suffix(self, entry_dn):
@@ -1848,8 +1831,7 @@ class IPAMigrate():
         else:
             # Query the remote server for its schema
             self.log_debug("Getting schema from the remote server ...")
-            schema = self.remote_conn._get_schema()
-            schema_entry = schema.ldap_entry()
+            schema_entry = self.remote_conn.get_schema_ldap_entry()
             # Grab attribute list
             normalize_attr(schema_entry, 'attributeTypes')
             attributes = ensure_list_str(schema_entry['attributeTypes'])
@@ -1861,8 +1843,7 @@ class IPAMigrate():
                        f"{len(objectclasses)} objectClasses")
 
         # Loop over attributes and objectclasses and count them
-        schema = self.local_conn.schema
-        local_schema = schema.ldap_entry()
+        local_schema = self.local_conn.get_schema_ldap_entry()
         for schema_type in [(attributes, "attributeTypes"),
                             (objectclasses, "objectClasses")]:
             for attr_val in schema_type[0]:
