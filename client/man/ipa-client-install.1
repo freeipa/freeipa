@@ -9,7 +9,7 @@ ipa\-client\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
 Configures a client machine to use IPA for authentication and identity services.
 
-By default this configures SSSD to connect to an IPA server for authentication and authorization. Optionally one can instead configure PAM and NSS (Name Service Switch) to work with an IPA server over Kerberos and LDAP.
+This configures SSSD to connect to an IPA server for authentication and authorization.
 
 An authorized account is required to join a client machine to IPA. This can take the form of a kerberos principal, a one\-time password associated with the machine, or PKINIT identity associated with the machine.
 
@@ -76,7 +76,7 @@ When no \-\-server option is specified, this domain will be used by the installe
 The default value used by the installer is the domain part of the hostname. This option needs to be specified if the primary IPA DNS domain is different from the default value.
 .TP
 \fB\-\-server\fR=\fISERVER\fR
-Set the FQDN of the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf or krb5.conf. Only the first value is considered when used with \-\-no\-sssd. When this option is used, DNS autodiscovery for Kerberos is disabled and a fixed list of KDC and Admin servers is configured.
+Set the FQDN of the IPA server to connect to. May be specified multiple times to add multiple servers to ipa_server value in sssd.conf or krb5.conf. When this option is used, DNS autodiscovery for Kerberos is disabled and a fixed list of KDC and Admin servers is configured.
 
 Under normal circumstances, this option is not needed as the list of servers is retrieved from the primary IPA DNS domain.
 .TP
@@ -141,9 +141,6 @@ Configure SSSD as data source for subid.
 .TP
 \fB\-\-no\-dns\-sshfp\fR
 Do not automatically create DNS SSHFP records.
-.TP
-\fB\-\-noac\fR
-Do not use Authconfig to modify the nsswitch.conf and PAM configuration.
 .TP
 \fB\-f\fR, \fB\-\-force\fR
 Force the settings even if errors occur
@@ -223,9 +220,6 @@ unauthenticated nsupdates instead.
 \fB\-\-no\-krb5\-offline\-passwords\fR
 Configure SSSD not to store user password when the server is offline.
 .TP
-\fB\-S\fR, \fB\-\-no\-sssd\fR
-Do not configure the client to use SSSD for authentication, use nss_ldap instead.
-.TP
 \fB\-\-preserve\-sssd\fR
 Disabled by default. When enabled, preserves old SSSD configuration if it is
 not possible to merge it with a new one. Effectively, if the merge is not
@@ -270,18 +264,6 @@ If there are other similar services providing nss capabilities they will need to
 Files that will be replaced if SSSD is configured (default):
 
 /etc/sssd/sssd.conf
-.TP
-Files that will be replaced if they exist and SSSD is not configured (\-\-no\-sssd):
-
-/etc/ldap.conf
-.br
-/etc/nss_ldap.conf
-.br
-/etc/libnss\-ldap.conf
-.br
-/etc/pam_ldap.conf
-.br
-/etc/nslcd.conf
 .TP
 Files replaced if NTP client (chronyd) configuration is enabled:
 
