@@ -863,11 +863,11 @@ class IPAMigrate():
         try:
             ds_conn = LDAPClient(self.ldapiuri, force_schema_updates=True)
             ds_conn.external_bind()
-            ds_conn._get_schema()
-        except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR, errors.NetworkError):
+            _schema = ds_conn.schema
+        except errors.NetworkError:
             self.handle_error(
                 "Local server is not running, or is unreachable.")
-        except ldap.LDAPError as e:
+        except errors.DatabaseError as e:
             self.handle_error(
                 f"Failed to bind to local server: {str(e)}")
 
