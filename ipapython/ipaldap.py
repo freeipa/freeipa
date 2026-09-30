@@ -1035,6 +1035,18 @@ class LDAPClient:
 
         return None
 
+    def add_schema_element(self, element_type, value):
+        """Add a schema element (attributeTypes, objectClasses, etc.)."""
+        with self.error_handler():
+            self.conn.modify_ext_s(
+                "cn=schema", [(
+                    ldap.MOD_ADD,
+                    element_type,
+                    value if isinstance(value, bytes)
+                    else value.encode('utf-8')
+                )]
+            )
+
     def encode(self, val):
         """
         Encode attribute value to LDAP representation (str/bytes).
