@@ -1148,11 +1148,13 @@ class TestTrust(BaseTestTrust):
         tasks.configure_dns_for_trust(self.master, self.ad)
         tasks.configure_windows_dns_for_trust(self.ad, self.master)
 
-        # create windows side of trust using netdom.exe utility
-        self.ad.run_command(
-            ['netdom.exe', 'trust', self.master.domain.name,
-             '/d:' + self.ad.domain.name,
-             '/passwordt:' + self.shared_secret, '/add', '/oneside:TRUSTED'])
+        # create windows side of trust using powershell
+        ps_cmd = (
+            '[System.DirectoryServices.ActiveDirectory.Forest]'
+            '::getCurrentForest()'
+            '.CreateLocalSideOfTrustRelationship("{}", 1, "{}")'.format(
+                self.master.domain.name, self.shared_secret))
+        self.ad.run_command(['powershell', '-c', ps_cmd])
 
         # create ipa side of trust
         tasks.establish_trust_with_ad(
@@ -1189,13 +1191,17 @@ class TestTrust(BaseTestTrust):
 
     @skip_in_fips_mode_due_to_issue_8715
     def test_remove_external_trust_with_shared_secret(self):
-        self.ad.run_command(
-            ['netdom.exe', 'trust', self.master.domain.name,
-             '/d:' + self.ad.domain.name, '/remove', '/oneside:TRUSTED']
-        )
-        self.remove_trust(self.ad)
-        tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
-        tasks.unconfigure_dns_for_trust(self.master, self.ad)
+        try:
+            ps_cmd = (
+                '[System.DirectoryServices.ActiveDirectory.Forest]'
+                '::getCurrentForest()'
+                '.DeleteLocalSideOfTrustRelationship("{}")'.format(
+                    self.master.domain.name))
+            self.ad.run_command(['powershell', '-c', ps_cmd])
+            self.remove_trust(self.ad)
+        finally:
+            tasks.unconfigure_windows_dns_for_trust(self.ad, self.master)
+            tasks.unconfigure_dns_for_trust(self.master, self.ad)
 
     def test_upgrade_within_forest(self):
         """
