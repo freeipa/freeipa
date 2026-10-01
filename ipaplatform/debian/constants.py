@@ -2,9 +2,9 @@
 # Copyright (C) 2017  FreeIPA Contributors see COPYING for license
 #
 
-'''
+"""
 This Debian family platform module exports platform dependant constants.
-'''
+"""
 
 # Fallback to default path definitions
 from __future__ import absolute_import
