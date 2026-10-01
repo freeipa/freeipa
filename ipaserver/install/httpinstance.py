@@ -29,6 +29,7 @@ import tempfile
 
 from augeas import Augeas
 import dbus
+from pathlib import Path
 
 from ipalib.install import certmonger
 from ipapython import ipaldap
@@ -76,6 +77,16 @@ MODULES = [
     "session",
     "session_cookie",
     "ssl"
+]
+
+CONFS = [
+    Path(paths.HTTPD_IPA_CONF).stem,
+    Path(paths.HTTPD_IPA_REWRITE_CONF).stem,
+    Path(paths.HTTPD_IPA_PKI_PROXY_CONF).stem
+]
+
+SITES = [
+    Path(paths.HTTPD_SSL_SITE_CONF).stem
 ]
 
 class WebGuiInstance(service.SimpleServiceInstance):
@@ -163,6 +174,8 @@ class HTTPInstance(service.Service):
         if not self.is_kdcproxy_configured():
             self.step("create KDC proxy config", self.create_kdcproxy_conf)
             self.step("enable KDC proxy", self.enable_kdcproxy)
+        self.step("configuring httpd confs", self.configure_httpd_confs)
+        self.step("configuring httpd sites", self.configure_httpd_sites)
         self.step("starting httpd", self.start)
         self.step("configuring httpd to start on boot", self.__enable)
         self.step("enabling oddjobd", self.enable_and_start_oddjobd)
@@ -409,6 +422,18 @@ class HTTPInstance(service.Service):
     def restore_httpd_modules(self):
         tasks.restore_httpd_modules(self.sstore, MODULES)
 
+    def configure_httpd_confs(self):
+        tasks.configure_httpd_confs(self.sstore, CONFS)
+
+    def restore_httpd_confs(self):
+        tasks.restore_httpd_confs(self.sstore, CONFS)
+
+    def configure_httpd_sites(self):
+        tasks.configure_httpd_sites(self.sstore, SITES)
+
+    def restore_httpd_sites(self):
+        tasks.restore_httpd_sites(self.sstore, SITES)
+
     def configure_mod_ssl_certs(self):
         """Configure the mod_ssl certificate directives"""
         directivesetter.set_directive(paths.HTTPD_SSL_SITE_CONF,
@@ -557,6 +582,8 @@ class HTTPInstance(service.Service):
         ):
             ipautil.remove_directory(d)
 
+        self.restore_httpd_sites()
+        self.restore_httpd_confs()
         self.restore_httpd_modules()
 
         # Restore SELinux boolean states
