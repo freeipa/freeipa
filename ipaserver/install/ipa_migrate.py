@@ -20,7 +20,6 @@ import subprocess
 import sys
 import time
 from cryptography import x509 as crypto_x509
-from ldap.controls import SimplePagedResultsControl
 from ipalib import api, errors
 from ipalib.facts import is_ipa_configured
 from ipalib.x509 import IPACertificate
@@ -34,7 +33,7 @@ from ipaserver.install.ipa_migrate_constants import (
     STRIP_OP_ATTRS, STRIP_ATTRS, STRIP_OC, PROD_ATTRS,
     DNA_REGEN_VAL, DNA_REGEN_ATTRS, IGNORE_ATTRS,
     DB_EXCLUDE_TREES, POLICY_OP_ATTRS, STATE_OPTIONS, REDACTED_ATTRS,
-    CASE_INSENSITIVE_MATCHING_RULES,
+    CASE_INSENSITIVE_MATCHING_RULES, DB_SEARCH_PAGE_SIZE,
 )
 
 """
@@ -1539,7 +1538,8 @@ class IPAMigrate():
 
     def process_db_entry(self, entry_dn, entry_attrs):
         """
-        Process chunks of remote entries from a paged results search
+        Process one remote entry, as read from the remote server or from
+        the DB LDIF file
 
         entry_dn = the remote entry DN
         entry_attrs = the remote entry's attributes stored in a dict
@@ -1736,75 +1736,51 @@ class IPAMigrate():
         ldifParser.set_class(self)
         ldifParser.parse_entry_records()
 
+    def _iter_remote_db_entries(self):
+        """
+        Search the remote database using a Paged Result search, and yield
+        the DN and the attributes of each entry.  Failing to get entries
+        from the remote server is fatal, an empty result is not.
+
+        The error handling is here, and not around the processing of the
+        entries, so that an error raised while processing an entry is never
+        reported as a failure to get the remote entries.
+        """
+        try:
+            for entry in self.remote_conn.iter_entries(
+                    DN(self.remote_suffix),
+                    filter="(objectclass=*)",
+                    attrs_list=['*', 'nsaccountlock'],
+                    size_limit=0,
+                    time_limit=0,
+                    page_size=DB_SEARCH_PAGE_SIZE,
+                    paged_critical=True):
+                yield str(entry.dn), decode_attr_vals(entry.raw)
+        except errors.EmptyResult:
+            self.log_info("No entries found on remote server")
+        except (
+            errors.NotFound,
+            errors.NetworkError,
+            errors.DatabaseError,
+            errors.LimitsExceeded,
+            errors.ACIError
+        ) as e:
+            self.handle_error(f"Failed to get remote entries: {e}")
+
     def processDBOnline(self):
         """
-        Search UserRoot using a Paged Result search.  This prevents loading
-        too many entries into memory at one time
+        Process the entries of the remote database as they are received
+        from a Paged Result search.  This prevents loading too many entries
+        into memory at one time: only one page of entries is held at a time.
         """
-        results_done = False
-        paged_ctrl = SimplePagedResultsControl(True, size=500, cookie='')
-        controls = [paged_ctrl]
-        req_pr_ctrl = controls[0]
-        db_filter = ("(objectclass=*)")
-
-        # Start the paged results search
-        try:
-            remote_msgid = self.remote_conn.conn.search_ext(
-                str(self.remote_suffix),
-                ldap.SCOPE_SUBTREE,
-                db_filter,
-                ['*', 'nsaccountlock'],
-                serverctrls=controls)
-        except ldap.LDAPError as e:
-            self.log_error(f"Failed to get remote entries: {str(e)}")
-            sys.exit(1)
-
-        while not results_done:
-            try:
-                if not results_done:
-                    type, db_data, db_msgid, db_ctrls = \
-                        self.remote_conn.conn.result3(remote_msgid)
-                    if self.args.verbose:
-                        self.log_debug("Database search succeeded: "
-                                       f"type {type} msgid {db_msgid}")
-            except ldap.LDAPError as e:
-                self.handle_error("Database search failed: "
-                                  f"{str(e)} type {type} msgid {db_msgid}")
-
-            #
-            # Process this chunk of remote entries
-            #
-            for entry in db_data:
-                entry_dn = entry[0]
-                entry_attrs = decode_attr_vals(entry[1])
-                self.process_db_entry(entry_dn, entry_attrs)
-
-            # Get the next batch of entries
-            dbctrls = [
-                c
-                for c in db_ctrls
-                if c.controlType == SimplePagedResultsControl.controlType
-            ]
-            if dbctrls and dbctrls[0].cookie:
-                try:
-                    req_pr_ctrl.cookie = dbctrls[0].cookie
-                    controls = [req_pr_ctrl]
-                    remote_msgid = self.remote_conn.conn.search_ext(
-                        str(self.remote_suffix),
-                        ldap.SCOPE_SUBTREE,
-                        db_filter,
-                        ['*', 'nsaccountlock'],
-                        serverctrls=controls)
-                except ldap.LDAPError as e:
-                    self.handle_error("Problem searching the remote server: "
-                                      f"{str(e)}")
-
-            else:
-                results_done = True
+        for entry_dn, entry_attrs in self._iter_remote_db_entries():
+            self.process_db_entry(entry_dn, entry_attrs)
 
     def migrateDB(self):
         """
-        Used paged search for online method to avoid large memory footprint
+        Migrate the database entries one at a time, from the remote server
+        (online) or from the DB LDIF file (offline), to avoid a large memory
+        footprint
         """
         self.log_info("Migrating database ... (this may take a while)")
         if self.args.db_ldif is not None:

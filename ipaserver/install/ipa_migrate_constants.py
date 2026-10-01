@@ -10,6 +10,10 @@ LOG_FILE_NAME = "/var/log/ipa-migrate.log"
 LDIF_FILE_NAME = "/var/log/ipa-migrate.ldif"
 CONFLICT_FILE_NAME = "/var/log/ipa-migrate-conflict.ldif"
 
+# Number of remote entries to fetch per page when migrating the database
+# online
+DB_SEARCH_PAGE_SIZE = 500
+
 # Matching rules that use case-insensitive comparison
 # We use both names and corresponding OIDs (located on same lines) in one set,
 # since we may get numeric OID in the answer.
