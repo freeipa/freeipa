@@ -58,17 +58,21 @@ class DebianSysvService(base_services.PlatformService):
         if ports:
             ipautil.wait_for_open_ports('localhost', ports, self.api.env.startup_timeout)
 
-    def stop(self, instance_name='', capture_output=True):
+    def stop(self, instance_name="", capture_output=True,
+             update_service_list=True):
         ipautil.run([paths.SBIN_SERVICE, self.service_name, "stop",
                      instance_name], capture_output=capture_output)
-        super(DebianSysvService, self).stop(instance_name)
+        super(DebianSysvService, self).stop(instance_name, capture_output,
+                                            update_service_list)
 
-    def start(self, instance_name='', capture_output=True, wait=True):
+    def start(self, instance_name="", capture_output=True, wait=True,
+              update_service_list=True):
         ipautil.run([paths.SBIN_SERVICE, self.service_name, "start",
                      instance_name], capture_output=capture_output)
         if wait and self.is_running(instance_name):
             self.__wait_for_open_ports(instance_name)
-        super(DebianSysvService, self).start(instance_name)
+        super(DebianSysvService, self).start(instance_name, capture_output,
+                                             wait, update_service_list)
 
     def restart(self, instance_name='', capture_output=True, wait=True):
         ipautil.run([paths.SBIN_SERVICE, self.service_name, "restart",
@@ -104,44 +108,37 @@ class DebianSysvService(base_services.PlatformService):
                 installed = False
         return installed
 
-    @staticmethod
-    def is_enabled(instance_name=""):
+    def is_enabled(self, instance_name=""):
         # Services are always assumed to be enabled when installed
         return True
 
-    @staticmethod
-    def enable():
+    def enable(self, instance_name=""):
         return True
 
-    @staticmethod
-    def disable():
+    def disable(self, instance_name=""):
         return True
 
-    @staticmethod
-    def install():
+    def install(self, instance_name=""):
         return True
 
-    @staticmethod
-    def remove():
+    def remove(self, instance_name=""):
         return True
 
 
 # For services which have no Debian counterpart
 class DebianNoService(base_services.PlatformService):
-    @staticmethod
-    def start():
+    def start(self, instance_name="", capture_output=True, wait=True,
+              update_service_list=True):
         return True
 
-    @staticmethod
-    def stop():
+    def stop(self, instance_name="", capture_output=True,
+             update_service_list=True):
         return True
 
-    @staticmethod
-    def restart():
+    def restart(self, instance_name='', capture_output=True, wait=True):
         return True
 
-    @staticmethod
-    def disable():
+    def disable(self, instance_name=""):
         return True
 
 
