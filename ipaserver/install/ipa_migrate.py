@@ -20,7 +20,6 @@ import subprocess
 import sys
 import time
 from cryptography import x509 as crypto_x509
-from ldap.controls import SimplePagedResultsControl
 from ipalib import api, errors
 from ipalib.facts import is_ipa_configured
 from ipalib.x509 import IPACertificate
@@ -1738,66 +1737,28 @@ class IPAMigrate():
         Search UserRoot using a Paged Result search.  This prevents loading
         too many entries into memory at one time
         """
-        results_done = False
-        paged_ctrl = SimplePagedResultsControl(True, size=500, cookie='')
-        controls = [paged_ctrl]
-        req_pr_ctrl = controls[0]
-        db_filter = ("(objectclass=*)")
-
-        # Start the paged results search
         try:
-            remote_msgid = self.remote_conn.conn.search_ext(
-                str(self.remote_suffix),
-                ldap.SCOPE_SUBTREE,
-                db_filter,
-                ['*', 'nsaccountlock'],
-                serverctrls=controls)
-        except ldap.LDAPError as e:
+            entries = self.remote_conn.get_entries(
+                DN(self.remote_suffix),
+                filter="(objectclass=*)",
+                attrs_list=['*', 'nsaccountlock'],
+                paged_search=True,
+                size_limit=0,
+                time_limit=0)
+        except errors.NotFound:
+            self.log_info("No entries found on remote server")
+            return
+        except errors.NetworkError as e:
+            self.log_error(f"Failed to get remote entries: {str(e)}")
+            sys.exit(1)
+        except errors.DatabaseError as e:
             self.log_error(f"Failed to get remote entries: {str(e)}")
             sys.exit(1)
 
-        while not results_done:
-            try:
-                if not results_done:
-                    type, db_data, db_msgid, db_ctrls = \
-                        self.remote_conn.conn.result3(remote_msgid)
-                    if self.args.verbose:
-                        self.log_debug("Database search succeeded: "
-                                       f"type {type} msgid {db_msgid}")
-            except ldap.LDAPError as e:
-                self.handle_error("Database search failed: "
-                                  f"{str(e)} type {type} msgid {db_msgid}")
-
-            #
-            # Process this chunk of remote entries
-            #
-            for entry in db_data:
-                entry_dn = entry[0]
-                entry_attrs = decode_attr_vals(entry[1])
-                self.process_db_entry(entry_dn, entry_attrs)
-
-            # Get the next batch of entries
-            dbctrls = [
-                c
-                for c in db_ctrls
-                if c.controlType == SimplePagedResultsControl.controlType
-            ]
-            if dbctrls and dbctrls[0].cookie:
-                try:
-                    req_pr_ctrl.cookie = dbctrls[0].cookie
-                    controls = [req_pr_ctrl]
-                    remote_msgid = self.remote_conn.conn.search_ext(
-                        str(self.remote_suffix),
-                        ldap.SCOPE_SUBTREE,
-                        db_filter,
-                        ['*', 'nsaccountlock'],
-                        serverctrls=controls)
-                except ldap.LDAPError as e:
-                    self.handle_error("Problem searching the remote server: "
-                                      f"{str(e)}")
-
-            else:
-                results_done = True
+        for entry in entries:
+            entry_dn = str(entry.dn)
+            entry_attrs = decode_attr_vals(entry.raw)
+            self.process_db_entry(entry_dn, entry_attrs)
 
     def migrateDB(self):
         """
