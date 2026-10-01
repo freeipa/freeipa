@@ -34,6 +34,7 @@ from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, version
 from ipapython import ipaldap
+from ipapython.ipachangeconf import krb5_conf_set_realm_option
 from ipapython import directivesetter
 from ipapython.dn import DN
 from ipapython.version import KRB5_BUILD_VERSION
@@ -1318,6 +1319,16 @@ def setup_kpasswd_server(krb):
         aug.close()
 
 
+def setup_auto_fast_armor(krb):
+    logger.info("[Setup auto_fast_armor]")
+    if not krbinstance.is_pkinit_enabled():
+        logger.info("PKINIT is not enabled, skipping auto_fast_armor")
+        return
+
+    krb5_conf_set_realm_option(
+        paths.KRB5_FREEIPA, krb.realm, 'auto_fast_armor', 'true')
+
+
 def ntpd_cleanup(fqdn, fstore):
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
     timeconf.restore_forced_timeservices(sstore, 'ntpd')
@@ -1989,6 +2000,7 @@ def upgrade_configuration():
     setup_pkinit(krb)
     enable_server_snippet()
     setup_kpasswd_server(krb)
+    setup_auto_fast_armor(krb)
 
     if KRB5_BUILD_VERSION >= parse_version('1.20'):
         krb.pac_tkt_sign_support_enable()
