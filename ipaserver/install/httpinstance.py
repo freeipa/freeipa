@@ -58,6 +58,25 @@ OCSP_DIRECTIVE = 'SSLOCSPEnable'
 
 OCSP_ENABLED = 'ocsp_enabled'
 
+MODULES = [
+    "auth_gssapi",
+    "authz_user",
+    "cgid",
+    "deflate",
+    "dir",
+    "expires",
+    "filter",
+    "headers",
+    "lookup_identity",
+    "mime",
+    "proxy",
+    "proxy_ajp",
+    "reqtimeout",
+    "rewrite",
+    "session",
+    "session_cookie",
+    "ssl"
+]
 
 class WebGuiInstance(service.SimpleServiceInstance):
     def __init__(self):
@@ -119,6 +138,7 @@ class HTTPInstance(service.Service):
 
         self.step("stopping httpd", self.__stop)
         self.step("backing up ssl.conf", self.backup_ssl_conf)
+        self.step("configuring httpd modules", self.configure_httpd_modules)
         self.step("configuring mod_ssl certificate paths",
                   self.configure_mod_ssl_certs)
         self.step("setting mod_ssl protocol list",
@@ -383,6 +403,12 @@ class HTTPInstance(service.Service):
             self.cert = x509.load_certificate_from_file(paths.HTTPD_CERT_FILE)
             self.add_cert_to_service()
 
+    def configure_httpd_modules(self):
+        tasks.configure_httpd_modules(self.sstore, MODULES)
+
+    def restore_httpd_modules(self):
+        tasks.restore_httpd_modules(self.sstore, MODULES)
+
     def configure_mod_ssl_certs(self):
         """Configure the mod_ssl certificate directives"""
         directivesetter.set_directive(paths.HTTPD_SSL_SITE_CONF,
@@ -530,6 +556,8 @@ class HTTPInstance(service.Service):
             paths.HTTPD_ALIAS_DIR
         ):
             ipautil.remove_directory(d)
+
+        self.restore_httpd_modules()
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)

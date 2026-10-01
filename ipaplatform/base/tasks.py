@@ -313,6 +313,25 @@ class BaseTaskNamespace:
         """
         raise NotImplementedError()
 
+    def configure_httpd_modules(self, sstore, modules):
+        """
+        Enable required httpd modules that aren't already enabled, and record
+        any state changes so they can be restored. Not all systems require
+        additional configuration to enable modules beyond simply installing the
+        package dependency, so the default implementation of this method does
+        nothing.
+        """
+        pass
+
+    def restore_httpd_modules(self, sstore, modules):
+        """
+        Restore the httpd modules to the state they were in before IPA was
+        installed. Not all systems require additional configuration to enable
+        modules beyond simply installing the package dependency, so the default
+        implementation of this method does nothing.
+        """
+        pass
+
     def configure_httpd_service_ipa_conf(self):
         """Configure httpd service to work with IPA"""
         raise NotImplementedError()

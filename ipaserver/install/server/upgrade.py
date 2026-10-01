@@ -1836,6 +1836,7 @@ def upgrade_configuration():
     http.fqdn = fqdn
     http.realm = api.env.realm
     http.suffix = ipautil.realm_to_suffix(api.env.realm)
+    http.configure_httpd_modules()
     http.configure_selinux_for_httpd()
     http.set_mod_ssl_protocol()
 

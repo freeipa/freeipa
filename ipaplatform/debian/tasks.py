@@ -24,6 +24,30 @@ from ipapython.dn import DN
 logger = logging.getLogger(__name__)
 
 
+class HttpdModuleState:
+    def __init__(self, module, found, enabled, by_maintainer):
+        self.module = module
+        self.found = found
+        self.enabled = enabled
+        self.by_maintainer = by_maintainer
+
+    def backup_state(self, sstore):
+        sstore.backup_state(self.module, "found", self.found)
+        sstore.backup_state(self.module, "enabled", self.enabled)
+        sstore.backup_state(self.module, "by_maintainer", self.by_maintainer)
+
+    @staticmethod
+    def from_store(sstore, module):
+        if not sstore.has_state(module):
+            return None
+
+        found = sstore.get_state(module, "found")
+        enabled = sstore.get_state(module, "enabled")
+        by_maintainer = sstore.get_state(module, "by_maintainer")
+
+        return HttpdModuleState(module, found, enabled, by_maintainer)
+
+
 class DebianTaskNamespace(RedHatTaskNamespace):
     @staticmethod
     def restore_pre_ipa_client_configuration(fstore, statestore,
@@ -72,6 +96,65 @@ class DebianTaskNamespace(RedHatTaskNamespace):
     def migrate_auth_configuration(self, statestore):
         # Debian doesn't have authselect
         return True
+
+    @staticmethod
+    def get_httpd_module_state(module):
+        result = ipautil.run([paths.A2QUERY, "-m", module], raiseonerr=False,
+                             capture_output=True)
+
+        found = False
+        enabled = False
+        by_maintainer = False
+        if result.returncode == 0:
+            enabled = True
+            found = True
+        elif result.returncode == 1:
+            # not found, so we'll leave everything as is
+            pass
+        else:
+            found = True
+
+        if "by maintainer script" in result.output:
+            by_maintainer = True
+
+        return HttpdModuleState(module, found, enabled, by_maintainer)
+
+    def configure_httpd_modules(self, sstore, modules):
+        changed = False
+        for module in modules:
+            if sstore.has_state(module):
+                # already configured
+                continue
+
+            state = self.get_httpd_module_state(module)
+            state.backup_state(sstore)
+
+            if not state.enabled:
+                ipautil.run([paths.A2ENMOD, module])
+                changed = True
+
+        return changed
+
+    def restore_httpd_modules(self, sstore, modules):
+        for module in modules:
+            state = HttpdModuleState.from_store(sstore, module)
+            if state is None:
+                # if we don't know about the module it's safest not to touch it
+                continue
+
+            if state.enabled:
+                # leave it as is
+                continue
+
+            command = [paths.A2DISMOD]
+            if not state.found:
+                command.append("--purge")
+            elif state.by_maintainer:
+                command.append("--maintmode")
+
+            command.append(module)
+
+            ipautil.run(command, raiseonerr=False, capture_output=True)
 
     def configure_httpd_wsgi_conf(self):
         # Debian doesn't require special mod_wsgi configuration

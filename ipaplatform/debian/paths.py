@@ -122,5 +122,8 @@ class DebianPathNamespace(BasePathNamespace):
     IPA_CUSTODIA_HANDLER = "/usr/lib/ipa/custodia"
     IPA_CUSTODIA_CHECK = "/usr/lib/ipa/ipa-custodia-check"
     WSGI_PREFIX_DIR = "/run/apache2/wsgi"
+    A2ENMOD = "/usr/sbin/a2enmod"
+    A2DISMOD = "/usr/sbin/a2dismod"
+    A2QUERY = "/usr/sbin/a2query"
 
 paths = DebianPathNamespace()
