@@ -1,0 +1,58 @@
+@startuml
+title AS-REQ password expiration flow — vanilla MIT krb5
+
+participant "Client" as C
+participant "KDC\n(do_as_req)" as KDC
+participant "validate_as_request()" as VAL
+participant "check_padata()" as PA
+participant "kdcpolicy plugin\n(check_as)" as POL
+
+C -> KDC : AS-REQ
+activate KDC
+
+== Stage: VALIDATE_POL ==
+
+KDC -> VAL : validate_as_request(client, server)
+activate VAL
+
+alt client->pw_expiration == 0 OR now <= pw_expiration
+    VAL --> KDC : OK
+else now > client->pw_expiration
+    alt server has KRB5_KDB_PWCHANGE_SERVICE
+        note right of VAL
+            Exemption for kadmin/changepw:
+            allow expired-password users
+            to obtain a ticket to change
+            their password
+        end note
+        VAL --> KDC : OK
+    else server is NOT a pwchange service
+        VAL --> KDC : KRB5KDC_ERR_KEY_EXP\n"CLIENT KEY EXPIRED"
+        KDC --> C : KRB_ERROR(KEY_EXP)
+    end
+end
+deactivate VAL
+
+== Stage: ISSUE_TKT ==
+
+KDC -> PA : Run pre-authentication
+activate PA
+PA --> KDC : auth indicators\n(e.g. "pkinit", "hardened", none, ...)
+deactivate PA
+
+== Stage: ENCR_REP ==
+
+KDC -> POL : check_as(client, server, auth_indicators)
+activate POL
+note right of POL
+    Vanilla MIT krb5 has no
+    kdcpolicy plugin by default.
+    No additional pw_expiration
+    check here.
+end note
+POL --> KDC : OK (lifetime constraints only)
+deactivate POL
+
+KDC --> C : AS-REP (ticket)
+deactivate KDC
+@enduml
