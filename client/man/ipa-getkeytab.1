@@ -87,7 +87,7 @@ file.
 Quiet mode. Only errors are displayed.
 .TP
 \fB\-\-permitted\-enctypes\fR
-This options returns a description of the permitted encryption types, like this:
+This option returns a description of the permitted encryption types, like this:
 Supported encryption types:
 AES\-256 CTS mode with 96\-bit SHA\-1 HMAC
 AES\-128 CTS mode with 96\-bit SHA\-1 HMAC
@@ -96,7 +96,7 @@ AES\-256 CTS mode with 192\-bit SHA\-384 HMAC
 ArcFour with HMAC/md5
 .TP
 \fB\-P, \-\-password\fR
-Use this password for the key instead of one randomly generated. The length of the password is limited by 1024 characters. Note that MIT Kerberos also limits passwords entered through kpasswd and kadmin commands to the same length.
+Prompt for a non-random password used as the key for the principal. The length of the password is limited to 1024 characters. Note that MIT Kerberos also limits passwords entered through kpasswd and kadmin commands to the same length.
 .TP
 \fB\-D, \-\-binddn\fR
 The LDAP DN to bind as when retrieving a keytab without Kerberos credentials. Generally used with the \fB\-w\fR or \fB\-W\fR options.
@@ -121,7 +121,7 @@ GSSAPI or EXTERNAL.
 \fB\-r\fR
 Retrieve mode. Retrieve an existing key from the server instead of generating a
 new one. This is incompatible with the \-\-password option, and will work only
-against a IPA server more recent than version 3.3. The user requesting the
+against an IPA server more recent than version 3.3. The user requesting the
 keytab must have access to the keys for this operation to succeed.
 .SH "EXAMPLES"
 Add and retrieve a keytab for the NFS service principal on
@@ -150,7 +150,7 @@ Add and retrieve a keytab for a clustered HTTP service deployed on client1.examp
    # ipa host-add client-frontend.example.com --ip-address 10.1.2.3
    # ipa service-add HTTP/client-frontend.example.com
    # ipa service-allow-retrieve-keytab HTTP/client-frontend.example.com --hosts={client1.example.com,client2.example.com}
-   # ipa server-allow-create-keytab HTTP/client-frontend.example.com --hosts=client1.example.com
+   # ipa service-allow-create-keytab HTTP/client-frontend.example.com --hosts=client1.example.com
 .fi
 
    On client1, generate and retrieve a new keytab for client-frontend.example.com:
