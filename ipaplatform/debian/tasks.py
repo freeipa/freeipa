@@ -24,6 +24,141 @@ from ipapython.dn import DN
 logger = logging.getLogger(__name__)
 
 
+class HttpdState:
+    _prefix = ""
+    _enable = ""
+    _disable = ""
+    _query = ""
+
+    def __init__(self, key, found, enabled, by_maintainer):
+        self.key = key
+        self.found = found
+        self.enabled = enabled
+        self.by_maintainer = by_maintainer
+
+    @classmethod
+    def prefix(cls):
+        return cls._prefix
+
+    @classmethod
+    def from_store(cls, sstore, key):
+        if not sstore.has_state(cls.prefix() + key):
+            return None
+
+        found = sstore.get_state(cls.prefix() + key, "found")
+        enabled = sstore.get_state(cls.prefix() + key, "enabled")
+        by_maintainer = sstore.get_state(cls.prefix() + key, "by_maintainer")
+
+        return cls(key, found, enabled, by_maintainer)
+
+    @classmethod
+    def has_state(cls, sstore, key):
+        return sstore.has_state(cls.prefix() + key)
+
+    @classmethod
+    def get_state(cls, key):
+        result = ipautil.run([paths.A2QUERY, "-" + cls._query, key],
+                             raiseonerr=False, capture_output=True)
+
+        found = False
+        enabled = False
+        by_maintainer = False
+        if result.returncode == 0:
+            enabled = True
+            found = True
+        elif result.returncode == 1:
+            # not found, so we'll leave everything as is
+            pass
+        else:
+            found = True
+
+        if "by maintainer script" in result.output:
+            by_maintainer = True
+
+        return cls(key, found, enabled, by_maintainer)
+
+    def backup_state(self, sstore):
+        sstore.backup_state(self.prefix() + self.key, "found", self.found)
+        sstore.backup_state(self.prefix() + self.key, "enabled", self.enabled)
+        sstore.backup_state(self.prefix() + self.key, "by_maintainer", self.by_maintainer)
+
+    @classmethod
+    def configure(cls, sstore, key):
+        if cls.has_state(sstore, key):
+            # already configured
+            return False
+
+        state = cls.get_state(key)
+        state.backup_state(sstore)
+
+        if not state.enabled:
+            ipautil.run([cls._enable, key])
+            return True
+
+        return False
+
+    @classmethod
+    def configure_all(cls, sstore, keys):
+        changed = False
+        for key in keys:
+            if cls.configure(sstore, key):
+                changed = True
+
+        return changed
+
+    @classmethod
+    def restore(cls, sstore, key):
+        state = cls.from_store(sstore, key)
+        if state is None:
+            # if we don't know about the state it's safest not to touch it
+            return False
+
+        if state.enabled:
+            # leave it as is
+            return False
+
+        command = [cls._disable]
+        if not state.found:
+            command.append("--purge")
+        elif state.by_maintainer:
+            command.append("--maintmode")
+
+        command.append(key)
+
+        ipautil.run(command, raiseonerr=False, capture_output=True)
+        return True
+
+    @classmethod
+    def restore_all(cls, sstore, keys):
+        changed = False
+        for key in keys:
+            if cls.restore(sstore, key):
+                changed = True
+
+        return changed
+
+
+class HttpdModuleState(HttpdState):
+    _prefix = "httpd_mod_"
+    _enable = paths.A2ENMOD
+    _disable = paths.A2DISMOD
+    _query = "m"
+
+
+class HttpdConfState(HttpdState):
+    _prefix = "httpd_conf_"
+    _enable = paths.A2ENCONF
+    _disable = paths.A2DISCONF
+    _query = "c"
+
+
+class HttpdSiteState(HttpdState):
+    _prefix = "httpd_site_"
+    _enable = paths.A2ENSITE
+    _disable = paths.A2DISSITE
+    _query = "s"
+
+
 class DebianTaskNamespace(RedHatTaskNamespace):
     @staticmethod
     def restore_pre_ipa_client_configuration(fstore, statestore,
@@ -72,6 +207,24 @@ class DebianTaskNamespace(RedHatTaskNamespace):
     def migrate_auth_configuration(self, statestore):
         # Debian doesn't have authselect
         return True
+
+    def configure_httpd_modules(self, sstore, modules):
+        HttpdModuleState.configure_all(sstore, modules)
+
+    def restore_httpd_modules(self, sstore, modules):
+        HttpdModuleState.restore_all(sstore, modules)
+
+    def configure_httpd_confs(self, sstore, confs):
+        HttpdConfState.configure_all(sstore, confs)
+
+    def restore_httpd_confs(self, sstore, confs):
+        HttpdConfState.restore_all(sstore, confs)
+
+    def configure_httpd_sites(self, sstore, sites):
+        HttpdSiteState.configure_all(sstore, sites)
+
+    def restore_httpd_sites(self, sstore, sites):
+        HttpdSiteState.restore_all(sstore, sites)
 
     def configure_httpd_wsgi_conf(self):
         # Debian doesn't require special mod_wsgi configuration
