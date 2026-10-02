@@ -769,7 +769,7 @@ class BindInstance(service.Service):
             if installutils.record_in_hosts(str(ip_address), self.fqdn) is None:
                 installutils.add_record_to_hosts(str(ip_address), self.fqdn)
 
-        # Make sure generate-rndc-key.sh runs before named restart
+        # Make sure named-setup-rndc runs before named restart
         self.step("generating rndc key file", self.__generate_rndc_key)
 
         if self.first_instance:
@@ -897,6 +897,21 @@ class BindInstance(service.Service):
         else:
             crypto_policy = "// not available"
 
+        try:
+            # Example expected output from `named -v`:
+            # BIND 9.18.50 (Extended Support Version) <id:>
+            result = ipautil.run(["named", "-v"], capture_output=True)
+            named_version = tasks.parse_ipa_version(
+                result.output.split()[1]
+            )
+        except Exception:
+            raise RuntimeError("Couldn't parse BIND version")
+
+        if named_version and named_version >= tasks.parse_ipa_version("9.20"):
+            delegation_only_category = ""
+        else:
+            delegation_only_category = "category delegation-only { named; };"
+
         if self.dns_over_tls:
             named_tls_conf = textwrap.dedent("""\
                 tls local-tls {{
@@ -931,6 +946,7 @@ class BindInstance(service.Service):
             NAMED_CUSTOM_CONF=paths.NAMED_CUSTOM_CONF,
             NAMED_CUSTOM_OPTIONS_CONF=paths.NAMED_CUSTOM_OPTIONS_CONF,
             NAMED_LOGGING_OPTIONS_CONF=paths.NAMED_LOGGING_OPTIONS_CONF,
+            NAMED_DELEGATION_ONLY_CATEGORY=delegation_only_category,
             NAMED_DATA_DIR=constants.NAMED_DATA_DIR,
             NAMED_ZONE_COMMENT=constants.NAMED_ZONE_COMMENT,
             NAMED_DNSSEC_VALIDATION=self._get_dnssec_validation(),
@@ -1202,7 +1218,17 @@ class BindInstance(service.Service):
 
     def __generate_rndc_key(self):
         installutils.check_entropy()
-        ipautil.run([paths.GENERATE_RNDC_KEY])
+        named_setup_rndc = services.service(
+            'named-setup-rndc', self.api
+        )
+        if named_setup_rndc.is_installed():
+            ipautil.run([
+                paths.SYSTEMCTL, "start", "named-setup-rndc.service"
+            ])
+        else:
+            logger.debug(
+                "named-setup-rndc.service not found, skipping"
+            )
 
     def add_master_dns_records(self, fqdn, ip_addresses, realm_name, domain_name,
                                reverse_zones):
