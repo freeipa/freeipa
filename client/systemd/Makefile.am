@@ -7,11 +7,18 @@ NULL =
 dist_noinst_DATA = 			\
 	ipa-epn.service.in		\
 	ipa-epn.timer.in		\
+	ipa-client-upgrade.service.in	\
 	$(NULL)
 
 systemdsystemunit_DATA = 	\
 	ipa-epn.service			\
 	ipa-epn.timer		\
+	ipa-client-upgrade.service	\
+	$(NULL)
+
+sssddropindir = $(systemdsystemunitdir)/sssd.service.d
+dist_sssddropin_DATA =			\
+	sssd-ipa-client-upgrade.conf	\
 	$(NULL)
 
 CLEANFILES = $(systemdsystemunit_DATA)

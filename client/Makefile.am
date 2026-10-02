@@ -44,6 +44,19 @@ nodist_app_SCRIPTS =		\
 	certbot-dns-ipa		\
 	$(NULL)
 
+libexecipadir = $(libexecdir)/ipa
+nodist_libexecipa_SCRIPTS =	\
+	ipa-client-upgrade	\
+	$(NULL)
+
+ipa-client-upgrade: ipa-client-upgrade.in Makefile
+	$(AM_V_GEN)sed -e 's|@VERSION[@]|$(VERSION)|g' '$(srcdir)/$@.in' > $@
+	$(AM_V_GEN)chmod +x $@
+
+CLEANFILES =			\
+	ipa-client-upgrade	\
+	$(NULL)
+
 ipa_getkeytab_SOURCES =		\
 	ipa-getkeytab.c		\
 	ipa-client-common.c	\
@@ -110,6 +123,7 @@ EXTRA_DIST =			\
 	ipa-client-samba.in	\
 	ipa-epn.in              \
 	certbot-dns-ipa.in      \
+	ipa-client-upgrade.in   \
 	$(NULL)
 
 install-data-hook:
