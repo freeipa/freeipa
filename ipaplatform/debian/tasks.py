@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class DebianTaskNamespace(RedHatTaskNamespace):
-    @staticmethod
-    def restore_pre_ipa_client_configuration(fstore, statestore,
+    def restore_pre_ipa_client_configuration(self, fstore, statestore,
                                              was_sssd_installed,
                                              was_sssd_configured):
         try:
@@ -36,13 +35,11 @@ class DebianTaskNamespace(RedHatTaskNamespace):
             return False
         return True
 
-    @staticmethod
-    def set_nisdomain(nisdomain):
+    def set_nisdomain(self, nisdomain):
         # Debian doesn't use authconfig, nothing to set
         return True
 
-    @staticmethod
-    def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore, sudo=True,
+    def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore, sudo=True,
                                   subid=False):
         if mkhomedir:
             try:
@@ -54,18 +51,15 @@ class DebianTaskNamespace(RedHatTaskNamespace):
         else:
             return True
 
-    @staticmethod
-    def modify_pam_to_use_krb5(statestore):
+    def modify_pam_to_use_krb5(self, statestore):
         # Debian doesn't use authconfig, this is handled by pam-auth-update
         return True
 
-    @staticmethod
-    def backup_auth_configuration(path):
+    def backup_auth_configuration(self, path):
         # Debian doesn't use authconfig, nothing to backup
         return True
 
-    @staticmethod
-    def restore_auth_configuration(path):
+    def restore_auth_configuration(self, path):
         # Debian doesn't use authconfig, nothing to restore
         return True
 
@@ -114,7 +108,8 @@ used by ca-certificates and is provided for information only.\
             ),
         ])
 
-    def write_ca_certificates_dir(self, directory, ca_certs):
+    @staticmethod
+    def write_ca_certificates_dir(directory, ca_certs):
         # pylint: disable=ipa-forbidden-import
         from ipalib import x509  # FixMe: break import cycle
         # pylint: enable=ipa-forbidden-import
@@ -140,7 +135,7 @@ used by ca-certificates and is provided for information only.\
             # the serial number to disambiguate clashes where a subordinate CA
             # had a new certificate issued.
             #
-            # Strictly speaking, certificates are uniquely idenified by (Issuer
+            # Strictly speaking, certificates are uniquely identified by (Issuer
             # DN, Serial Number). Do we care about the possibility of a clash
             # where a subordinate CA had two certificates issued by different
             # CAs who used the same serial number?)
@@ -196,8 +191,9 @@ Serial Number (hex): {cert.serial_number:#x}
             ),
         ])
 
-    def remove_ca_certificates_dir(self, directory):
-        path = Path(paths.CA_CERTIFICATES_DIR)
+    @staticmethod
+    def remove_ca_certificates_dir(directory):
+        path = Path(directory)
         if not path.exists():
             return False
 
