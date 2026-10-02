@@ -17,6 +17,7 @@ from ipatests.pytest_ipa.integration import tasks
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.test_caless import CALessBase, ipa_certs_cleanup
 from ipatests.test_integration.test_cert import get_certmonger_fs_id
+from ipatests.test_integration.test_trust_functional import ssh_with_gssapi
 
 logger = logging.getLogger(__name__)
 
@@ -549,3 +550,98 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+
+class TestCertFixWithADTrust(IntegrationTest):
+    """Test that ipa-cert-fix does not break an established AD trust."""
+
+    num_ad_domains = 1
+    ad_user_password = 'Secret123'
+
+    @classmethod
+    def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise pytest.skip("Package samba-client not available "
+                              "on {}".format(cls.master.hostname))
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=['--no-ntp'])
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.sync_time(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @classmethod
+    def uninstall(cls, mh):
+        # Uninstall method is empty as the uninstallation is done in
+        # the fixture
+        pass
+
+    @pytest.fixture
+    def expire_and_restore(self):
+        """Advance IPA and AD clocks together to expire IPA certs."""
+        tasks.move_date(self.master, 'stop', '+3Years+1day')
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Stop-Service W32Time -Force; '
+             'Set-Date (Get-Date).AddYears(3).AddDays(1)'],
+            set_env=False,
+        )
+        self.master.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+        yield
+
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Set-Date (Get-Date).AddYears(-3).AddDays(-1); '
+             'Start-Service W32Time'],
+            raiseonerr=False,
+            set_env=False,
+        )
+        self.master.run_command(['systemctl', 'stop', 'certmonger'])
+        self.master.run_command(
+            'rm -fv ' + paths.CERTMONGER_REQUESTS_DIR + '*'
+        )
+        tasks.uninstall_master(self.master)
+        tasks.move_date(self.master, 'start', '-3Years-1day')
+
+    def test_cert_fix_preserves_trust(self, expire_and_restore):
+        """Test AD trust works after ipa-cert-fix renews expired certs."""
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+        check_status(self.master, 9, "MONITORING")
+
+        self.master.run_command(['ipactl', 'restart'])
+        tasks.wait_for_sssd_domain_status_online(self.master)
+
+        testuser = 'testuser@%s' % self.ad_domain
+        tasks.clear_sssd_cache(self.master)
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        self.master.run_command(['id', testuser])
+        # Obtain a Kerberos ticket for the AD user and verify it is present
+        # before attempting GSSAPI SSH, so a missing/invalid ticket is
+        # immediately visible in the test log.
+        tasks.kdestroy_all(self.master)
+        tasks.kinit_as_user(
+            self.master,
+            'testuser@%s' % self.ad_domain.upper(),
+            self.ad_user_password,
+        )
+        klist = self.master.run_command(['klist', '-l'])
+        logger.debug("Kerberos ticket cache after kinit:\n%s", klist.stdout_text)
+        assert self.ad_domain.upper() in klist.stdout_text, (
+            "Expected AD realm %s in klist output:\n%s"
+            % (self.ad_domain.upper(), klist.stdout_text)
+        )
+        result = ssh_with_gssapi(
+            self.master,
+            'testuser@%s' % self.ad_domain.upper(),
+            testuser,
+            self.master.hostname,
+            self.ad_user_password,
+        )
+        assert 'uid=' in result.stdout_text
