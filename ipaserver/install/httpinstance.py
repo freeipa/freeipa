@@ -391,6 +391,9 @@ class HTTPInstance(service.Service):
         directivesetter.set_directive(paths.HTTPD_SSL_SITE_CONF,
                                    'SSLCertificateKeyFile',
                                    paths.HTTPD_KEY_FILE, False)
+        directivesetter.set_directive(paths.HTTPD_SSL_SITE_CONF,
+                                      'SSLCertificateChainFile',
+                                      paths.HTTPD_CERT_FILE, False)
         directivesetter.set_directive(
             paths.HTTPD_SSL_CONF,
             'SSLPassPhraseDialog',
