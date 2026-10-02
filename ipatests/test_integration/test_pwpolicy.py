@@ -492,6 +492,44 @@ class TestPWquality(BasePWpolicy):
         assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
         self.reset_password(self.master)
 
+    def test_graceperiod_reset_on_replicated_password_change(self):
+        """Test that a replicated password change resets the grace period"""
+        dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
+             user=USER, base_dn=str(self.master.domain.basedn))
+
+        # Resetting the password will mark it as expired
+        self.reset_password(self.master)
+
+        # Consume some grace logins on the master
+        for _i in range(2):
+            self.master.run_command(
+                ["ldapsearch", "-e", "ppolicy", "-D", dn,
+                 "-w", PASSWORD, "-b", dn]
+            )
+
+        result = tasks.ldapsearch_dm(
+            self.master, dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 2' in result.stdout_text.lower()
+
+        # Change the password on the replica and let it replicate back
+        self.reset_password(self.replicas[0])
+        tasks.wait_for_replication(self.replicas[0].ldap_connect())
+
+        result = tasks.ldapsearch_dm(
+            self.master, dn, ['passwordgraceusertime',],
+        )
+        assert 'passwordgraceusertime: 0' in result.stdout_text.lower()
+
+        # The full grace period is available again on the master
+        result = self.master.run_command(
+            ["ldapsearch", "-e", "ppolicy", "-D", dn,
+             "-w", PASSWORD, "-b", dn]
+        )
+        assert 'Password expired, 2 grace logins remain' \
+            in result.stderr_text
+        self.reset_password(self.master)
+
     def test_graceperiod_zero(self):
         """Test the LDAP bind with zero grace period"""
         dn = "uid={user},cn=users,cn=accounts,{base_dn}".format(
