@@ -16,6 +16,12 @@ and keys, is \fBSTRONGLY RECOMMENDED\fR.
 Do not use this program unless expired certificates are inhibiting
 normal operation and renewal procedures.
 
+\fIipa-cert-fix\fR must be run as \fBroot\fR, and the IPA Directory
+Server (LDAP) must be running, as the tool reads the current
+certificate state from LDAP.  If the Directory Server is stopped,
+\fIipa-cert-fix\fR exits with an error without modifying any
+certificates.
+
 To renew the IPA CA certificate, use \fIipa-cacert-manage(1)\fR.
 
 This tool cannot renew certificates signed by external CAs.  To
@@ -30,6 +36,12 @@ renewal master, and add the new shared certificate(s) to LDAP for
 replication to other CA servers.  Shared certificates include all
 Dogtag system certificates except the HTTPS certificate, and the IPA
 RA certificate.
+
+Before making any changes, \fIipa-cert-fix\fR prints details of the
+certificates it intends to renew and prompts for confirmation.  Only
+an exact (case-insensitive) response of "yes" will cause the tool to
+proceed; any other response causes it to print "Not proceeding." and
+exit with status 0 without modifying any certificates.
 
 To repair certificates across multiple CA servers, first ensure that
 LDAP replication is working across the topology.  Then run
@@ -63,9 +75,12 @@ Output only errors (output from child processes may still be shown).
 \fB\-\-log\-file\fR=\fIFILE\fR
 Log to the given file.
 .SH "EXIT STATUS"
-0 if the command was successful
+0 if the command was successful, or if the user declined to proceed
 
-1 if an error occurred
+1 if an error occurred (for example, not run as root, the Directory
+Server is not running, or the local CA is not installed)
+
+2 if IPA is not configured on this system
 
 .SH "SEE ALSO"
 .BR ipa-cacert-manage(1)
