@@ -1,7 +1,7 @@
 .\"
 .\" Copyright (C) 2019  FreeIPA Contributors see COPYING for license
 .\"
-.TH "ipa-cert-fix" "1" "Mar 25 2019" "IPA" "IPA Manual Pages"
+.TH "ipa-cert-fix" "1" "Apr 06 2026" "IPA" "IPA Manual Pages"
 .SH "NAME"
 ipa\-cert\-fix \- Renew expired certificates
 .SH "SYNOPSIS"
@@ -18,35 +18,103 @@ normal operation and renewal procedures.
 
 To renew the IPA CA certificate, use \fIipa-cacert-manage(1)\fR.
 
-This tool cannot renew certificates signed by external CAs.  To
-install new, externally-signed HTTP, LDAP or KDC certificates, use
-\fIipa-server-certinstall(1)\fR.
+\fIipa-cert-fix\fR automatically detects the deployment type of the
+local server and chooses the appropriate recovery path.  It handles
+CA\-full servers (both renewal masters and non\-renewal\-master
+replicas), CA\-less replicas, and servers with a mix of internally
+and externally signed certificates.
 
-\fIipa-cert-fix\fR will examine IPA and Certificate System
-certificates and renew certificates that are expired, or close to
-expiry (less than two weeks).  If any "shared" certificates are
-renewed, \fIipa-cert-fix\fR will set the current server to be the CA
-renewal master, and add the new shared certificate(s) to LDAP for
-replication to other CA servers.  Shared certificates include all
-Dogtag system certificates except the HTTPS certificate, and the IPA
-RA certificate.
+On a CA renewal master, \fIipa-cert-fix\fR uses \fBpki-server cert-fix\fR
+to regenerate expired Dogtag and IPA service certificates.  If any
+"shared" certificates are renewed (all Dogtag system certificates except
+the HTTPS certificate, and the IPA RA certificate), the server is set
+as the renewal master and the new certificates are added to LDAP for
+replication.
 
-To repair certificates across multiple CA servers, first ensure that
-LDAP replication is working across the topology.  Then run
-\fIipa-cert-fix\fR on one CA server.  Before running
-\fIipa-cert-fix\fR on another CA server, trigger Certmonger renewals
-for shared certificates via \fIgetcert-resubmit(1)\fR (on the other
-CA server).  This is to avoid unnecessary renewal of shared
-certificates.
+On a non\-renewal\-master CA replica, \fIipa-cert-fix\fR fetches the CA
+chain, RA and shared certificates from a working master server,
+then uses certmonger to renew expired certificates through the
+master's CA.  This is a non\-destructive approach that does not
+change the renewal master assignment.
+
+On a CA\-less replica, \fIipa-cert-fix\fR fetches the CA chain and RA
+certificate from a CA server in the topology, then renews HTTP, LDAP
+and KDC certificates through that server via certmonger.
+
+Certificates signed by an external CA cannot be automatically renewed.
+When externally\-signed certificates are detected, \fIipa-cert-fix\fR
+offers to transition them to the internal IPA CA (if available) or
+generates CSR files in \fB/run/ipa/cert\-fix/\fR and prints instructions for manual
+renewal using \fIipa-server-certinstall(1)\fR.
+
+The CA signing certificate must have at least one month of remaining
+validity for the renewal master fix path to proceed.  If it is
+expired or near expiry and the CA is self\-signed, the user is
+directed to \fIipa-cacert-manage(1)\fR.  If the CA is externally
+signed, \fIipa-cert-fix\fR automatically extracts the existing CSR
+from certmonger and writes it to \fB/var/lib/ipa/ca.csr\fR, then
+prints instructions for submitting it to the external CA and
+installing the renewed certificate with
+\fIipa-cacert-manage renew \-\-external\-cert\-file\fR.
 
 Important note: the \fIcertmonger\fR daemon does not immediately notice
 the updated certificates and may trigger a renewal after \fIipa-cert-fix\fR
-completes. As a consequence, \fIgetcert list\fR output may display
+completes.  As a consequence, \fIgetcert list\fR output may display
 that a renewal is in progress even if \fIipa-cert-fix\fR just
-finished. It is recommended to monitor the certmonger-initiated
+finished.  It is recommended to monitor the certmonger\-initiated
 renewal and wait for its completion before any other administrative task.
 
+.SH "SCENARIOS"
+.TP
+\fBRenewal master\fR
+Detected automatically when the server holds the renewal master role,
+or forced with \fB\-\-renewal\-master\fR.  Runs \fBpki-server cert-fix\fR
+to renew Dogtag certificates and installs renewed IPA service
+certificates.  The server becomes (or remains) the renewal master.
+.TP
+\fBCA\-full replica with working master\fR
+Detected when the server has a local CA but is not the renewal master.
+Fetches certificates from a master server and renews via certmonger.
+Does not change the renewal master assignment.
+.TP
+\fBCA\-full replica, promote to renewal master\fR
+Selected when no working master is available.  The user is asked to
+confirm promotion.  After promotion, the renewal master fix path is
+used.  CRL generation must be enabled manually with
+\fIipa-crlgen-manage(1)\fR afterward.
+.TP
+\fBCA\-less replica\fR
+Detected when no CA is installed locally but CA servers exist in the
+topology.  Fetches the CA chain and RA certificate, then renews
+HTTP, LDAP, and KDC certificates via certmonger.
+.TP
+\fBExternal certificates\fR
+Detected when certificates are signed by an external CA.  Offers
+per\-certificate transition to the internal IPA CA or generates CSR
+files for manual renewal.
+
 .SH "OPTIONS"
+.TP
+\fB\-\-force\-server\fR=\fIFQDN\fR
+Use the specified server to fetch certificates from, instead of
+auto\-discovering a master from the topology.  Cannot specify the
+current server.
+.TP
+\fB\-\-renewal\-master\fR
+Force this server to become the renewal master and use the renewal
+master fix path.  Use with caution.  Verify CRL generation and IPA
+configuration after the topology is stable.  Cannot be combined
+with \fB\-\-force\-server\fR.  Not valid on CA\-less replicas.
+.TP
+\fB\-\-dry\-run\fR
+Print the intended actions without executing them.  Useful for
+reviewing what \fIipa-cert-fix\fR would do before committing.
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+Non\-interactive mode.  Never prompt the user for input.  Uses
+auto\-discovered defaults where possible.  If no working master
+can be found in unattended mode, falls back to the renewal master
+approach.
 .TP
 \fB\-\-version\fR
 Show the program's version and exit.
@@ -67,7 +135,24 @@ Log to the given file.
 
 1 if an error occurred
 
+2 if IPA is not configured
+
+.SH "EXAMPLES"
+.TP
+Dry\-run to see what would happen:
+.B ipa\-cert\-fix \-\-dry\-run
+.TP
+Fix a CA replica using a specific master:
+.B ipa\-cert\-fix \-\-force\-server=master.example.com
+.TP
+Unattended fix (e.g., in a script):
+.B ipa\-cert\-fix \-U
+.TP
+Force promotion to renewal master:
+.B ipa\-cert\-fix \-\-renewal\-master
+
 .SH "SEE ALSO"
-.BR ipa-cacert-manage(1)
-.BR ipa-server-certinstall(1)
-.BR getcert-resubmit(1)
+.BR ipa-cacert-manage (1),
+.BR ipa-server-certinstall (1),
+.BR ipa-crlgen-manage (1),
+.BR getcert-resubmit (1)
