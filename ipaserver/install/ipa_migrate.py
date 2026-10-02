@@ -11,7 +11,7 @@ import argparse
 import base64
 import datetime
 import getpass
-import ldap
+from ldap import MOD_ADD, MOD_DELETE
 import ldif
 import logging
 import os
@@ -668,9 +668,9 @@ class IPAMigrate():
                 mod_type = mod[0]
                 attr = mod[1]
                 vals = mod[2]
-                if mod_type == ldap.MOD_ADD:
+                if mod_type == MOD_ADD:
                     action = "add"
-                elif mod_type == ldap.MOD_DELETE:
+                elif mod_type == MOD_DELETE:
                     action = "delete"
                 else:
                     action = "replace"
@@ -828,7 +828,6 @@ class IPAMigrate():
                     "CA certificate is invalid"
                 )
             except (
-                ldap.LDAPError,
                 errors.NetworkError,
                 errors.DatabaseError,
                 IOError
@@ -992,7 +991,7 @@ class IPAMigrate():
                 # If we got here there is no userroot
                 self.handle_error(
                     "Failed to get database base DN as it does not exist")
-        except ldap.LDAPError as e:
+        except errors.DatabaseError as e:
             self.handle_error(
                 "Failed to search Root DSE on remote server: " + str(e))
 
