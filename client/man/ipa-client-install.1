@@ -9,7 +9,7 @@ ipa\-client\-install [\fIOPTION\fR]...
 .SH "DESCRIPTION"
 Configures a client machine to use IPA for authentication and identity services.
 
-By default this configures SSSD to connect to an IPA server for authentication and authorization. Optionally one can instead configure PAM and NSS (Name Switching Service) to work with an IPA server over Kerberos and LDAP.
+By default this configures SSSD to connect to an IPA server for authentication and authorization. Optionally one can instead configure PAM and NSS (Name Service Switch) to work with an IPA server over Kerberos and LDAP.
 
 An authorized account is required to join a client machine to IPA. This can take the form of a kerberos principal, a one\-time password associated with the machine, or PKINIT identity associated with the machine.
 
@@ -31,7 +31,7 @@ When the client machine hostname is not in a subdomain of an IPA server, its dom
 Client machine can also be configured without a DNS autodiscovery at all. When both \-\-server and \-\-domain options are used, client installer will use the specified server and domain directly. \-\-server option accepts multiple server hostnames which can be used for failover mechanism. Without DNS autodiscovery, Kerberos is configured with a fixed list of KDC and  Admin servers. SSSD is still configured to either try to read domain's SRV records or the specified fixed list of servers. When \-\-fixed\-primary option is specified, SSSD will not try to read DNS SRV record at all (see sssd\-ipa(5) for details).
 
 .SS "The Failover Mechanism"
-When some of the IPA servers is not available, client components are able to fallback to other IPA replica and thus preserving a continued service. When client machine is configured to use DNS SRV record autodiscovery (no fixed server was passed to the installer), client components do the fallback automatically, based on the IPA server hostnames and priorities discovered from the DNS SRV records.
+When some of the IPA servers are not available, client components are able to fallback to other IPA replica and thus preserving a continued service. When client machine is configured to use DNS SRV record autodiscovery (no fixed server was passed to the installer), client components do the fallback automatically, based on the IPA server hostnames and priorities discovered from the DNS SRV records.
 
 If DNS autodiscovery is not available, clients should be configured at least with a fixed list of IPA servers that can be used in case of a failure. When only one IPA server is configured, IPA client services will not be available in case of a failure of the IPA server. Please note, that in case of a fixed list of IPA servers, the fixed server lists in client components need to be updated when a new IPA server is enrolled or a current IPA server is decommissioned.
 
@@ -49,7 +49,7 @@ Requirements:
 
 If this has been the case, host can be re\-enrolled using the usual methods.
 
-There are two method of authenticating a re\-enrollment:
+There are two methods of authenticating a re\-enrollment:
 
 1. You can use \-\-force\-join option with ipa\-client\-install command. This authenticates the re\-enrollment using the admin's credentials provided via the \-w/\-\-password option.
 .br
@@ -101,7 +101,7 @@ Prompt for the password for joining a machine to the IPA realm.
 Path to backed up host keytab from previous enrollment. Joins the host even if it is already enrolled.
 .TP
 \fB\-\-mkhomedir\fR
-Configure PAM to create a users home directory if it does not exist.
+Configure PAM to create a user's home directory if it does not exist.
 .TP
 \fB\-\-hostname\fR
 The hostname of this machine (FQDN). If specified, the hostname will be set and the system configuration will be updated to persist over reboot. By default the result of getfqdn() call from Python's socket module is used.
@@ -164,7 +164,7 @@ Unattended installation. The user will not be prompted.
 .TP
 \fB\-\-ca\-cert\-file\fR=\fICA_FILE\fR
 Do not attempt to acquire the IPA CA certificate via automated means,
-instead use the CA certificate found locally in in \fICA_FILE\fR.  The
+instead use the CA certificate found locally in \fICA_FILE\fR.  The
 \fICA_FILE\fR must be an absolute path to a PEM formatted certificate
 file. The CA certificate found in \fICA_FILE\fR is considered
 authoritative and will be installed without checking to see if it's
