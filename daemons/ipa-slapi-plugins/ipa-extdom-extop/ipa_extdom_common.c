@@ -850,6 +850,37 @@ int pack_ber_name(const char *domain_name, const char *name,
     return LDAP_SUCCESS;
 }
 
+/* Read the original data of a user for a REQ_FULL_WITH_GROUPS request.
+ * On success *kv_list is populated and must be freed by the caller with
+ * sss_nss_free_kv(). On error an LDAP result code is returned and an error
+ * message is set on req.
+ */
+static int get_orig_user_data(struct ipa_extdom_ctx *ctx,
+                              struct extdom_req *req,
+                              const char *name,
+                              struct sss_nss_kv **kv_list)
+{
+    int ret;
+    enum sss_id_type id_type;
+
+    ret = sss_nss_getorigbyusername_timeout(name, get_timeout(ctx),
+                                            kv_list, &id_type);
+    if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
+                        || id_type == SSS_ID_TYPE_BOTH)) {
+        set_err_msg(req, "Failed to read original data");
+        if (ret == ENOENT) {
+            ret = LDAP_NO_SUCH_OBJECT;
+        } else if (ret == ETIMEDOUT || ret == ETIME) {
+            ret = LDAP_TIMELIMIT_EXCEEDED;
+        } else {
+            ret = LDAP_OPERATIONS_ERROR;
+        }
+        return ret;
+    }
+
+    return LDAP_SUCCESS;
+}
+
 static int handle_uid_request(struct ipa_extdom_ctx *ctx,
                               struct extdom_req *req,
                               enum request_types request_type, uid_t uid,
@@ -903,18 +934,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
-                                                    &kv_list, &id_type);
-            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
-                                || id_type == SSS_ID_TYPE_BOTH)) {
-                set_err_msg(req, "Failed to read original data");
-                if (ret == ENOENT) {
-                    ret = LDAP_NO_SUCH_OBJECT;
-                } else if (ret == ETIMEDOUT || ret == ETIME) {
-                    ret = LDAP_TIMELIMIT_EXCEEDED;
-                } else {
-                    ret = LDAP_OPERATIONS_ERROR;
-                }
+            ret = get_orig_user_data(ctx, req, pwd.pw_name, &kv_list);
+            if (ret != LDAP_SUCCESS) {
                 goto done;
             }
         }
@@ -1136,18 +1157,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
-                                                    &kv_list, &id_type);
-            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
-                                || id_type == SSS_ID_TYPE_BOTH)) {
-                set_err_msg(req, "Failed to read original data");
-                if (ret == ENOENT) {
-                    ret = LDAP_NO_SUCH_OBJECT;
-                } else if (ret == ETIMEDOUT || ret == ETIME) {
-                    ret = LDAP_TIMELIMIT_EXCEEDED;
-                } else {
-                    ret = LDAP_OPERATIONS_ERROR;
-                }
+            ret = get_orig_user_data(ctx, req, pwd.pw_name, &kv_list);
+            if (ret != LDAP_SUCCESS) {
                 goto done;
             }
         }
@@ -1251,7 +1262,6 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
     int ret;
     char *fq_name = NULL;
     struct passwd pwd;
-    enum sss_id_type id_type;
     size_t buf_len;
     char *buf = NULL;
     struct sss_nss_kv *kv_list = NULL;
@@ -1291,19 +1301,8 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
             goto done;
         }
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name,
-                                                    get_timeout(ctx),
-                                                    &kv_list, &id_type);
-            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
-                              || id_type == SSS_ID_TYPE_BOTH)) {
-                set_err_msg(req, "Failed to read original data");
-                if (ret == ENOENT) {
-                    ret = LDAP_NO_SUCH_OBJECT;
-                } else if (ret == ETIMEDOUT || ret == ETIME) {
-                    ret = LDAP_TIMELIMIT_EXCEEDED;
-                } else {
-                    ret = LDAP_OPERATIONS_ERROR;
-                }
+            ret = get_orig_user_data(ctx, req, pwd.pw_name, &kv_list);
+            if (ret != LDAP_SUCCESS) {
                 goto done;
             }
         }
