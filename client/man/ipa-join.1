@@ -43,7 +43,7 @@ This command is normally executed by the ipa\-client\-install command as part of
 
 The reverse is unenrollment. Unenrolling a host removes the Kerberos key on the IPA server. This prepares the host to be re\-enrolled. This uses the host principal stored in /etc/krb5.keytab to authenticate to the IPA server to perform the unenrollment.
 
-Please note, that while the ipa\-join option removes the client from the domain, it does not actually uninstall the client or properly remove all of the IPA\-related configuration. The only way to uninstall a client completely is to use ipa\-client\-install \-\-uninstall
+Please note that while the \-\-unenroll option removes the client from the domain, it does not actually uninstall the client or properly remove all of the IPA\-related configuration. The only way to uninstall a client completely is to use ipa\-client\-install \-\-uninstall
 (see
 .BR ipa\-client\-install (1)).
 
