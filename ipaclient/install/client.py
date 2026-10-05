@@ -4117,14 +4117,6 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
     )
     no_ntp = enroll_only(no_ntp)
 
-    force_ntpd = knob(
-        None, False,
-        deprecated=True,
-        description="Stop and disable any time&date synchronization services "
-                    "besides ntpd. This option has been deprecated",
-    )
-    force_ntpd = enroll_only(force_ntpd)
-
     nisdomain = knob(
         str, None,
         description="NIS domain name",
@@ -4209,12 +4201,6 @@ class ClientInstallInterface(hostname_.HostNameInstallInterface,
         if self.servers and not self.domain_name:
             raise RuntimeError(
                 "--server cannot be used without providing --domain")
-
-        if self.force_ntpd:
-            logger.warning(
-                "Option --force-ntpd has been deprecated and will be "
-                "removed in a future release."
-            )
 
         if self.ntp_servers and self.no_ntp:
             raise RuntimeError(
