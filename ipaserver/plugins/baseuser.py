@@ -52,6 +52,7 @@ from ipalib.util import (
     ensure_last_krbprincipalname,
     ensure_krbcanonicalname_set,
     default_user_login,
+    default_user_initials,
 )
 
 
@@ -294,7 +295,7 @@ class baseuser(LDAPObject):
         ),
         Str('initials?',
             label=_('Initials'),
-            default_from=lambda givenname, sn: '%c%c' % (givenname[0], sn[0]),
+            default_from=default_user_initials,
             autofill=True,
         ),
         Str('homedirectory?',

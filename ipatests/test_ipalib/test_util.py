@@ -12,7 +12,8 @@ import pytest
 
 from ipalib.util import (
     get_pager, create_https_connection, get_proper_tls_version_span,
-    validate_domain_name, validate_principal_chars, default_user_login
+    validate_domain_name, validate_principal_chars, default_user_login,
+    default_user_initials
 )
 from ipapython.kerberos import Principal
 
@@ -131,3 +132,28 @@ def test_validate_principal_chars_invalid(principal_str):
 ])
 def test_default_user_login(givenname, sn, expected):
     assert default_user_login(givenname, sn) == expected
+
+
+@pytest.mark.parametrize('givenname,sn,expected', [
+    ('John', 'Doe', 'JD'),
+    ('Johan', 'Van der Meer', 'JV'),
+    ('Anselmo', 'Luján Espósito', 'AL'),
+    ('Mary', 'Ann\tSmith', 'MA'),
+    (' Johan ', ' Van der Meer ', 'JV'),
+    ('\tJohan', 'Doe', 'JD'),
+    ('John', '\tDoe', 'JD'),
+    ('Mary Ann', 'Smith', 'MS'),
+])
+def test_default_user_initials(givenname, sn, expected):
+    assert default_user_initials(givenname, sn) == expected
+
+
+@pytest.mark.parametrize('givenname,sn', [
+    ('', 'Doe'),
+    ('John', ''),
+    ('   ', 'Doe'),
+    ('John', '\t\n'),
+])
+def test_default_user_initials_empty_after_strip(givenname, sn):
+    with pytest.raises(IndexError):
+        default_user_initials(givenname, sn)
