@@ -37,6 +37,16 @@ def default_acl(request, xmlrpc_setup):
 
 
 @pytest.fixture(scope='class')
+def default_acl_uppercase(request, xmlrpc_setup):
+    name = u'hosts_services_caIPAserviceCert'.upper()
+    tracker = CAACLTracker(name, service_category=u'all', host_category=u'all')
+    tracker.track_create()
+    tracker.attrs.update(
+        {u'ipamembercertprofile_certprofile': [u'caIPAserviceCert']})
+    return tracker
+
+
+@pytest.fixture(scope='class')
 def crud_acl(request, xmlrpc_setup):
     name = u'crud-acl'
     tracker = CAACLTracker(name)
@@ -73,6 +83,16 @@ def staged_user(request, xmlrpc_setup):
 class TestDefaultACL(XMLRPC_test):
     def test_default_acl_present(self, default_acl):
         default_acl.retrieve()
+
+    def test_delete_default_acl(self, default_acl):
+        """ Delete the default acl """
+        with pytest.raises(errors.ProtectedEntryError):
+            default_acl.delete()
+
+    def test_delete_default_acl_ignorecase(self, default_acl_uppercase):
+        """ Delete the default acl """
+        with pytest.raises(errors.ProtectedEntryError):
+            default_acl_uppercase.delete()
 
 
 @pytest.mark.tier1
