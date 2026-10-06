@@ -195,7 +195,8 @@ class ca(LDAPObject):
     # that automatically for users to hide that complexity.
 
     def add_token_key(self, *keys):
-        if len(keys) == 0 or keys[0] == IPA_CA_CN:
+        # the ca name is stored in a cn attribute which is case-insensitive
+        if len(keys) == 0 or keys[0].lower() == IPA_CA_CN.lower():
             return keys
         config = api.Command['config_show']()['result']
         if 'hsm_token_name' in config and not keys[-1].startswith(
@@ -401,7 +402,8 @@ class ca_del(LDAPDelete):
         # before contacting Dogtag
         ensure_ca_administrator(_("Insufficient privilege to delete a CA."))
 
-        if keys[0] == IPA_CA_CN:
+        # the ca name is stored in a cn attribute which is case-insensitive
+        if keys[0].lower() == IPA_CA_CN.lower():
             raise errors.ProtectedEntryError(
                 label=_("CA"),
                 key=keys[0],
@@ -435,7 +437,8 @@ class ca_mod(LDAPUpdate):
         ca_enabled_check(self.api)
 
         if 'rename' in options or 'cn' in entry_attrs:
-            if keys[0] == IPA_CA_CN:
+            # the ca name is stored in a cn attribute which is case-insensitive
+            if keys[0].lower() == IPA_CA_CN.lower():
                 raise errors.ProtectedEntryError(
                     label=_("CA"),
                     key=keys[0],
@@ -477,7 +480,8 @@ class ca_disable(CAQuery):
     msg_summary = _('Disabled CA "%(value)s"')
 
     def execute(self, cn, **options):
-        if cn == IPA_CA_CN:
+        # the ca name is stored in a cn attribute which is case-insensitive
+        if cn.lower() == IPA_CA_CN.lower():
             raise errors.ProtectedEntryError(
                 label=_("CA"),
                 key=cn,

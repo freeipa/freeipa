@@ -258,7 +258,8 @@ class caacl_del(LDAPDelete):
     msg_summary = _('Deleted CA ACL "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
-        if keys[0] == 'hosts_services_caIPAserviceCert':
+        # the caacl name is stored in a cn attribute which is case-insensitive
+        if keys[0].lower() == 'hosts_services_caIPAserviceCert'.lower():
             raise errors.ProtectedEntryError(
                 label=_("CA ACL"),
                 key=keys[0],
