@@ -133,6 +133,23 @@ def has_soa_or_ns_record(domain):
     return soa_record_found or ns_record_found
 
 
+def default_user_login(givenname, sn):
+    """Generate a default user login from first and last name.
+
+    The default login is the first letter of *givenname* followed by
+    *sn*. All whitespace is removed so names such as ``Van der Meer``
+    produce a valid login (``jvandermeer`` after normalization).
+
+    Non-ASCII letters (including accents) are preserved here. User login
+    validation still uses PATTERN_GROUPUSER_NAME, which allows only
+    ASCII letters, so names like ``Luján Espósito`` cannot use an
+    auto-generated uid until that pattern is extended.
+    """
+    givenname = re.sub(r'\s+', '', givenname)
+    sn = re.sub(r'\s+', '', sn)
+    return givenname[0] + sn
+
+
 def normalize_name(name):
     result = dict()
     components = name.split('@')
