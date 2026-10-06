@@ -53,6 +53,15 @@ def default_profile(request, xmlrpc_setup):
 
 
 @pytest.fixture(scope='class')
+def def_profile_uppercase(request, xmlrpc_setup):
+    name = 'caIPAserviceCert'.upper()
+    desc = u'Standard profile for network services'
+    tracker = CertprofileTracker(name, store=True, desc=desc)
+    tracker.track_create()
+    return tracker
+
+
+@pytest.fixture(scope='class')
 def user_profile(request, xmlrpc_setup):
     name = 'caIPAserviceCert_mod'
     profile_path = prepare_config(
@@ -108,6 +117,11 @@ class TestDefaultProfile(XMLRPC_test):
     def test_deleting_default_profile(self, default_profile):
         with pytest.raises(errors.ValidationError):
             default_profile.delete()
+
+    def test_deleting_default_profile_ignorecase(self, def_profile_uppercase):
+        """ delete profile with UPPERCASE name """
+        with pytest.raises(errors.ValidationError):
+            def_profile_uppercase.delete()
 
     def test_try_rename_by_setattr(self, default_profile):
         command = default_profile.make_update_command(

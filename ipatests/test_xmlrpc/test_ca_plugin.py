@@ -44,6 +44,15 @@ def default_ca(request):
     return tracker
 
 
+@pytest.fixture(scope='module')
+def default_ca_uppercase(request):
+    name = u'ipa'.upper()
+    desc = u'IPA CA'
+    tracker = CATracker(name, fuzzy_issuer, desc=desc)
+    tracker.track_create()
+    return tracker
+
+
 @pytest.fixture(scope='class')
 def crud_subca(request, xmlrpc_setup):
     name = u'crud-subca'
@@ -87,6 +96,16 @@ class TestDefaultCA(XMLRPC_test):
         """IPA CA cannot be deleted."""
         with pytest.raises(errors.ProtectedEntryError):
             default_ca.delete()
+
+    def test_default_ca_disable_ignorecase(self, default_ca_uppercase):
+        """IPA CA cannot be disabled."""
+        with pytest.raises(errors.ProtectedEntryError):
+            default_ca_uppercase.disable()
+
+    def test_default_ca_delete_ignorecase(self, default_ca_uppercase):
+        """IPA CA cannot be deleted."""
+        with pytest.raises(errors.ProtectedEntryError):
+            default_ca_uppercase.delete()
 
 
 @pytest.mark.tier1
