@@ -12,7 +12,7 @@ import pytest
 
 from ipalib.util import (
     get_pager, create_https_connection, get_proper_tls_version_span,
-    validate_domain_name, validate_principal_chars
+    validate_domain_name, validate_principal_chars, default_user_login
 )
 from ipapython.kerberos import Principal
 
@@ -120,3 +120,14 @@ def test_validate_principal_chars_valid(principal_str):
 def test_validate_principal_chars_invalid(principal_str):
     with pytest.raises(ValueError):
         validate_principal_chars(Principal(principal_str))
+
+
+@pytest.mark.parametrize('givenname,sn,expected', [
+    ('John', 'Doe', 'JDoe'),
+    ('Johan', 'Van der Meer', 'JVanderMeer'),
+    ('Anselmo', 'Luján Espósito', 'ALujánEspósito'),
+    ('Mary', 'Ann\tSmith', 'MAnnSmith'),
+    (' Johan ', ' Van der Meer ', 'JVanderMeer'),
+])
+def test_default_user_login(givenname, sn, expected):
+    assert default_user_login(givenname, sn) == expected
