@@ -305,7 +305,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except errors.NetworkError as e:
         sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica2, 636), str(e)))
     except Exception as e:
-        sys.exit("Failed to get data while trying to bind to '%s': %s" % (replica1, str(e)))
+        sys.exit("Failed to get data while trying to bind to '%s': %s" % (replica2, str(e)))
 
     try:
         repl1 = replication.get_cs_replication_manager(realm, replica1,
