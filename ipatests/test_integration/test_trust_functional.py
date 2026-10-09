@@ -130,10 +130,9 @@ def expect_password_change_prompts(test, current_password, new_password):
     :param current_password: User's current password.
     :param new_password: New password to set.
     """
-    # (?i) ignores case, enabling flag this way is atypical.
     test.expect(r'(?i)current password:')
     test.sendline(current_password)
-    test.expect(r'(?i).*password.*:')
+    test.expect(r'(?i)new password:')
     test.sendline(new_password)
     test.expect(r'(?i).*password.*:')
     test.sendline(new_password)
@@ -161,7 +160,10 @@ def passwd_change_with_retry(host, user_fqdn, current_password,
             e.expect_exit(ignore_remaining_output=True, raiseonerr=False)
             last_output = e.before if e.before else ""
 
-        if "password updated successfully" in last_output:
+        if ("authentication tokens updated successfully"
+                in last_output.lower()
+                or "password updated successfully"
+                in last_output.lower()):
             return
         time.sleep(2)
 
