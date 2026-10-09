@@ -51,7 +51,9 @@ from ipalib.util import (
     set_krbcanonicalname,
     check_principal_realm_in_trust_namespace,
     ensure_last_krbprincipalname,
-    ensure_krbcanonicalname_set
+    ensure_krbcanonicalname_set,
+    default_user_login,
+    default_user_initials,
 )
 
 
@@ -274,7 +276,7 @@ class baseuser(LDAPObject):
             cli_name='login',
             label=_('User login'),
             primary_key=True,
-            default_from=lambda givenname, sn: givenname[0] + sn,
+            default_from=default_user_login,
             normalizer=lambda value: value.lower(),
         ),
         Str('givenname',
@@ -297,7 +299,7 @@ class baseuser(LDAPObject):
         ),
         Str('initials?',
             label=_('Initials'),
-            default_from=lambda givenname, sn: '%c%c' % (givenname[0], sn[0]),
+            default_from=default_user_initials,
             autofill=True,
         ),
         Str('homedirectory?',

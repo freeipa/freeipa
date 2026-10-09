@@ -133,6 +133,41 @@ def has_soa_or_ns_record(domain):
     return soa_record_found or ns_record_found
 
 
+def _strip_name_whitespace(name):
+    """Remove all whitespace from a name used to derive user defaults."""
+    return re.sub(r'\s+', '', name)
+
+
+def default_user_login(givenname, sn):
+    """Generate a default user login from first and last name.
+
+    The default login is the first letter of *givenname* followed by
+    *sn*. All whitespace is removed so names such as ``Van der Meer``
+    produce a valid login (``jvandermeer`` after normalization).
+
+    Non-ASCII letters (including accents) are preserved here. User login
+    validation still uses PATTERN_GROUPUSER_NAME, which allows only
+    ASCII letters, so names like ``Luján Espósito`` cannot use an
+    auto-generated uid until that pattern is extended.
+    """
+    givenname = _strip_name_whitespace(givenname)
+    sn = _strip_name_whitespace(sn)
+    return givenname[0] + sn
+
+
+def default_user_initials(givenname, sn):
+    """Generate default initials from first and last name.
+
+    Whitespace is stripped the same way as in :func:`default_user_login`
+    so a leading space is not used as an initial. An empty name after
+    stripping raises IndexError, matching the previous lambda so
+    DefaultFrom can return None.
+    """
+    givenname = _strip_name_whitespace(givenname)
+    sn = _strip_name_whitespace(sn)
+    return '%c%c' % (givenname[0], sn[0])
+
+
 def normalize_name(name):
     result = dict()
     components = name.split('@')
