@@ -20,10 +20,11 @@ class DebianPathNamespace(BasePathNamespace):
     ETC_HTTPD_DIR = "/etc/apache2"
     HTTPD_ALIAS_DIR = "/etc/apache2/ipa"
     HTTPD_CONF_D_DIR = "/etc/apache2/conf-enabled/"
-    HTTPD_IPA_KDCPROXY_CONF_SYMLINK = "/etc/apache2/conf-enabled/ipa-kdc-proxy.conf"
-    HTTPD_IPA_PKI_PROXY_CONF = "/etc/apache2/conf-enabled/ipa-pki-proxy.conf"
+    HTTPD_IPA_KDCPROXY_CONF_SYMLINK = \
+        "/etc/apache2/conf-enabled/ipa-kdc-proxy.conf"
+    HTTPD_IPA_PKI_PROXY_CONF = "/etc/apache2/conf-available/ipa-pki-proxy.conf"
     HTTPD_IPA_REWRITE_CONF = "/etc/apache2/conf-available/ipa-rewrite.conf"
-    HTTPD_IPA_CONF = "/etc/apache2/conf-enabled/ipa.conf"
+    HTTPD_IPA_CONF = "/etc/apache2/conf-available/ipa.conf"
     HTTPD_NSS_CONF = "/etc/apache2/mods-available/nss.conf"
     HTTPD_SSL_CONF = "/etc/apache2/mods-available/ssl.conf"
     HTTPD_SSL_SITE_CONF = "/etc/apache2/sites-available/default-ssl.conf"
@@ -122,5 +123,12 @@ class DebianPathNamespace(BasePathNamespace):
     IPA_CUSTODIA_HANDLER = "/usr/lib/ipa/custodia"
     IPA_CUSTODIA_CHECK = "/usr/lib/ipa/ipa-custodia-check"
     WSGI_PREFIX_DIR = "/run/apache2/wsgi"
+    A2ENMOD = "/usr/sbin/a2enmod"
+    A2DISMOD = "/usr/sbin/a2dismod"
+    A2QUERY = "/usr/sbin/a2query"
+    A2ENCONF = "/usr/sbin/a2enconf"
+    A2DISCONF = "/usr/sbin/a2disconf"
+    A2ENSITE = "/usr/sbin/a2ensite"
+    A2DISSITE = "/usr/sbin/a2dissite"
 
 paths = DebianPathNamespace()

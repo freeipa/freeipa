@@ -313,6 +313,63 @@ class BaseTaskNamespace:
         """
         raise NotImplementedError()
 
+    def configure_httpd_modules(self, sstore, modules):
+        """
+        Enable required httpd modules that aren't already enabled, and record
+        any state changes so they can be restored. Not all systems require
+        additional configuration to enable modules beyond simply installing the
+        package dependency, so the default implementation of this method does
+        nothing.
+        """
+        pass
+
+    def restore_httpd_modules(self, sstore, modules):
+        """
+        Restore the httpd modules to the state they were in before IPA was
+        installed. Not all systems require additional configuration to enable
+        modules beyond simply installing the package dependency, so the default
+        implementation of this method does nothing.
+        """
+        pass
+
+    def configure_httpd_confs(self, sstore, confs):
+        """
+        Enable the httpd confs used by IPA that aren't already enabled, and
+        record any state changes so they can be restored. Not all systems
+        require additional configuration to enable the confs beyond simply
+        installing the HTTP server, so the default implementation of this
+        method does nothing.
+        """
+        pass
+
+    def restore_httpd_confs(self, sstore, confs):
+        """
+        Restore the httpd confs to the state they were in before IPA was
+        installed. Not all systems require additional configuration to enable
+        confs beyond simply installing the HTTP server, so the default
+        implementation of this method does nothing.
+        """
+        pass
+
+    def configure_httpd_sites(self, sstore, sites):
+        """
+        Enable the httpd sites used by IPA that aren't already enabled, and
+        record any state changes so they can be restored. Not all systems
+        require additional configuration to enable the confs beyond simply
+        installing the HTTP server, so the default implementation of this
+        method does nothing.
+        """
+        pass
+
+    def restore_httpd_sites(self, sstore, sites):
+        """
+        Restore the httpd sites to the state they were in before IPA was
+        installed. Not all systems require additional configuration to enable
+        sites beyond simply installing the HTTP server, so the default
+        implementation of this method does nothing.
+        """
+        pass
+
     def configure_httpd_service_ipa_conf(self):
         """Configure httpd service to work with IPA"""
         raise NotImplementedError()
