@@ -31,6 +31,7 @@ installation and configuration tasks.
    designs/index.rst
    workshop.rst
    api/index.rst
+   reference/index.rst
 
 
 Indices and tables
