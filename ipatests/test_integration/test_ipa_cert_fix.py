@@ -549,3 +549,87 @@ class TestCertFixReplica(IntegrationTest):
             'Server-Cert cert-pki-ca'
         )
         assert renewed_expiry > initial_expiry
+
+
+class TestCertFixWithADTrust(IntegrationTest):
+    """Test that ipa-cert-fix does not break an established AD trust."""
+
+    num_ad_domains = 1
+    ad_user_password = 'Secret123'
+
+    @classmethod
+    def install(cls, mh):
+        if not cls.master.transport.file_exists('/usr/bin/rpcclient'):
+            raise pytest.skip("Package samba-client not available "
+                              "on {}".format(cls.master.hostname))
+        tasks.install_master(cls.master, setup_dns=True,
+                             extra_args=['--no-ntp'])
+        cls.ad = cls.ads[0]
+        cls.ad_domain = cls.ad.domain.name
+        tasks.sync_time(cls.master, cls.ad)
+        tasks.install_adtrust(cls.master)
+        tasks.configure_dns_for_trust(cls.master, cls.ad)
+        tasks.establish_trust_with_ad(cls.master, cls.ad_domain)
+
+    @pytest.fixture
+    def expire_and_restore(self):
+        """Advance IPA and AD clocks together to expire IPA certs."""
+        tasks.move_date(self.master, 'stop', '+3Years+1day')
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Stop-Service W32Time -Force; '
+             'Set-Date (Get-Date).AddYears(3).AddDays(1)'],
+            set_env=False,
+        )
+        self.master.run_command(
+            ['ipactl', 'restart', '--ignore-service-failures']
+        )
+
+        yield
+
+        self.ad.run_command(
+            ['powershell', '-c',
+             'Set-Date (Get-Date).AddYears(-3).AddDays(-1); '
+             'Start-Service W32Time'],
+            raiseonerr=False,
+            set_env=False,
+        )
+        tasks.move_date(self.master, 'start', '-3Years-1day')
+
+    def test_cert_fix_preserves_trust(self, expire_and_restore):
+        """Test AD trust works after ipa-cert-fix renews expired certs."""
+        check_status(self.master, 8, "CA_UNREACHABLE")
+
+        self.master.run_command(['ipa-cert-fix', '-v'], stdin_text='yes\n')
+        check_status(self.master, 9, "MONITORING")
+
+        self.master.run_command(['ipactl', 'restart'])
+        tasks.wait_for_sssd_domain_status_online(self.master)
+
+        # The clock jump expires the admin TGT and password. Renew the
+        # ticket, changing the password when Kerberos requires it,
+        # before trust-find.
+        klist = self.master.run_command(['klist'], raiseonerr=False)
+        valid = self.master.run_command(['klist', '-s'], raiseonerr=False)
+        admin_principal = 'admin@%s' % self.master.domain.realm
+        if (valid.returncode != 0
+                or admin_principal not in klist.stdout_text):
+            password = self.master.config.admin_password
+            self.master.run_command(
+                ['kinit', 'admin'],
+                stdin_text='%s\n%s\n%s\n' % (password, password, password),
+            )
+
+        result = self.master.run_command(['ipa', 'trust-find'])
+        assert self.ad_domain in result.stdout_text
+
+        testuser = 'testuser@%s' % self.ad_domain
+        tasks.clear_sssd_cache(self.master)
+        tasks.wait_for_sssd_domain_status_online(self.master)
+        self.master.run_command(['id', testuser])
+        tasks.kdestroy_all(self.master)
+        self.master.run_command([
+            'sshpass', '-p', self.ad_user_password,
+            'ssh', '-tt', '-o', 'StrictHostKeyChecking=no',
+            '-l', testuser, self.master.hostname,
+        ], stdin_text='exit\n')
