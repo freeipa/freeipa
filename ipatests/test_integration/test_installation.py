@@ -2370,3 +2370,39 @@ class TestInstallPQCCACerts(TestInstallPQCBase):
     master_with_dns = True
     ipa_key_type = "mldsa:44"
     ca_key_type = "mldsa"
+
+
+class TestInstallSelfSignedCertificate(IntegrationTest):
+    """Verify that the installation with a self-signed certificate works
+
+    When installing FreeIPA on a system that has SSLCertificateChainFile
+    set in either default-ssl.conf or overarching SSL configuration,
+    FreeIPA should install.
+    """
+
+    @classmethod
+    def install(cls, mh):
+        # Loosely follows https://wiki.debian.org/Self-Signed_Certificate
+
+        cert = "/root/cert.pem"
+        key = "/root/cert.key"
+
+        cls.master.run_command([
+            "openssl", "req", "-new", "-x509", "-days", "365",
+            "-noenc", "-out", cert, "-keyout", key,
+        ])
+
+        extra_contents = textwrap.dedent("""
+        SSLCertificateFile {cert}
+        SSLCertificateKeyFile {key}
+        SSLCertificateChainFile {cert}
+        """)
+
+        conf = cls.master.get_file_contents(
+            paths.HTTPD_SSL_CONF, encoding='utf-8',
+        )
+        cls.master.put_file_contents(
+            paths.HTTPD_SSL_CONF, conf + extra_contents,
+        )
+
+        tasks.install_master(cls.master)
