@@ -157,3 +157,14 @@ def test_default_user_initials(givenname, sn, expected):
 def test_default_user_initials_empty_after_strip(givenname, sn):
     with pytest.raises(IndexError):
         default_user_initials(givenname, sn)
+
+
+@pytest.mark.parametrize('givenname,sn', [
+    ('', 'Doe'),
+    ('John', ''),
+    ('   ', 'Doe'),
+    ('John', '\t\n'),
+])
+def test_default_user_login_empty_after_strip(givenname, sn):
+    with pytest.raises(IndexError):
+        default_user_login(givenname, sn)
