@@ -337,7 +337,7 @@ parse_req_done:
 	 * password generation yet.
 	 */
 	if (newPasswd == NULL || *newPasswd == '\0') {
-		errMesg = "Password generation not implemented.\n";
+		errMesg = "Password generation is not supported. Please specify a password using the -S (interactive)  option.\n";
 		rc = LDAP_UNWILLING_TO_PERFORM;
 		goto free_and_return;
 	}
