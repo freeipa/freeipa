@@ -28,6 +28,7 @@ FreeIPA design documentation
    subordinate-ids.md
    external-idp/external-idp.md
    external-idp/idp-api.md
+   external-idp/idp-client-authentication.md
    random-serial-numbers.md
    client-install-pkinit.md
    passkeys.md
