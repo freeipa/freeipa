@@ -50,14 +50,6 @@
 #include "back_extdom.h"
 #include "util.h"
 
-#if defined HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_TIMEOUT && !HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_TIMEOUT
-#define sss_nss_getorigbyusername_timeout sss_nss_getorigbyname_timeout
-#endif
-
-#if defined HAVE_DECL_SSS_NSS_GETORIGBYGROUPNAME_TIMEOUT && !HAVE_DECL_SSS_NSS_GETORIGBYGROUPNAME_TIMEOUT
-#define sss_nss_getorigbygroupname_timeout sss_nss_getorigbyname_timeout
-#endif
-
 #define SSSD_DOMAIN_SEPARATOR '@'
 
 int get_buffer(size_t *_buf_len, char **_buf)
@@ -486,6 +478,13 @@ static int add_kv_list(BerElement *ber, struct sss_nss_kv *kv_list)
     }
 
     for (c = 0; kv_list[c].key != NULL; c++) {
+#if HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_WITH_GROUPS_TIMEOUT
+        /* Group memberships are emitted as part of the group list of a
+         * RESP_USER_GROUPLIST response, not as attributes. */
+        if (strcmp(kv_list[c].key, SSS_NSS_ATTR_NAME_GROUP_MEMBERSHIP) == 0) {
+            continue;
+        }
+#endif
         single_value_string_array[0] = kv_list[c].value;
         ret = ber_printf(ber,"{s{v}}", kv_list[c].key,
                                        single_value_string_array);
@@ -561,13 +560,15 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
 {
     BerElement *ber = NULL;
     int ret;
-    size_t ngroups;
     gid_t *groups = NULL;
     size_t buf_len;
     char *buf = NULL;
     struct group grp;
     size_t c;
     char *short_user_name = NULL;
+#if !HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_WITH_GROUPS_TIMEOUT
+    size_t ngroups;
+#endif
 
     short_user_name = get_short_name(user_name, domain_name);
     if (short_user_name == NULL) {
@@ -590,11 +591,6 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
     }
 
     if (response_type == RESP_USER_GROUPLIST) {
-        ret = get_user_grouplist(ctx, user_name, gid, &ngroups, &groups);
-        if (ret != LDAP_SUCCESS) {
-            goto done;
-        }
-
         ret = get_buffer(&buf_len, &buf);
         if (ret != LDAP_SUCCESS) {
             goto done;
@@ -609,6 +605,61 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
         ret = ber_printf(ber,"{");
         if (ret == -1) {
             ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+#if HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_WITH_GROUPS_TIMEOUT
+        /* The supplementary groups were returned together with the original
+         * data (see get_orig_user_data()), so take them straight from the
+         * kv_list. SSSD does not necessarily include the primary group among
+         * the memberships (e.g. for a user from a trusted AD domain, where it
+         * comes from the primaryGroupID rather than an explicit membership), so
+         * resolve it by gid and add it unless it is already in the list - this
+         * matches the getgrouplist() based path below which always includes the
+         * primary group. */
+        {
+            bool primary_in_list = false;
+
+            ret = getgrgid_r_wrapper(ctx, gid, &grp, &buf, &buf_len);
+            if (ret != 0) {
+                if (ret == ENOENT) {
+                    ret = LDAP_NO_SUCH_OBJECT;
+                } else if (ret == ETIMEDOUT) {
+                    ret = LDAP_TIMELIMIT_EXCEEDED;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
+                }
+                goto done;
+            }
+
+            for (c = 0; kv_list != NULL && kv_list[c].key != NULL; c++) {
+                if (strcmp(kv_list[c].key,
+                           SSS_NSS_ATTR_NAME_GROUP_MEMBERSHIP) != 0) {
+                    continue;
+                }
+
+                ret = ber_printf(ber, "s", kv_list[c].value);
+                if (ret == -1) {
+                    ret = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+
+                if (strcmp(kv_list[c].value, grp.gr_name) == 0) {
+                    primary_in_list = true;
+                }
+            }
+
+            if (!primary_in_list) {
+                ret = ber_printf(ber, "s", grp.gr_name);
+                if (ret == -1) {
+                    ret = LDAP_OPERATIONS_ERROR;
+                    goto done;
+                }
+            }
+        }
+#else
+        ret = get_user_grouplist(ctx, user_name, gid, &ngroups, &groups);
+        if (ret != LDAP_SUCCESS) {
             goto done;
         }
 
@@ -632,6 +683,7 @@ int pack_ber_user(struct ipa_extdom_ctx *ctx,
                 goto done;
             }
         }
+#endif
 
         ret = ber_printf(ber,"}");
         if (ret == -1) {
@@ -858,6 +910,49 @@ int pack_ber_name(const char *domain_name, const char *name,
     return LDAP_SUCCESS;
 }
 
+/* Read the original data of a user for a REQ_FULL_WITH_GROUPS request.
+ * On success *kv_list is populated and must be freed by the caller with
+ * sss_nss_free_kv(). On error an LDAP result code is returned and an error
+ * message is set on req.
+ *
+ * When SSSD provides sss_nss_getorigbyusername_with_groups_timeout() the
+ * returned kv_list also contains the user's group memberships (entries keyed
+ * with SSS_NSS_ATTR_NAME_GROUP_MEMBERSHIP), which pack_ber_user() uses to build
+ * the group list without an extra getgrouplist() plus a getgrgid() per group.
+ * Otherwise only the original data is returned and pack_ber_user() falls back to
+ * resolving the groups itself.
+ */
+static int get_orig_user_data(struct ipa_extdom_ctx *ctx,
+                              struct extdom_req *req,
+                              const char *name,
+                              struct sss_nss_kv **kv_list)
+{
+    int ret;
+    enum sss_id_type id_type;
+
+#if HAVE_DECL_SSS_NSS_GETORIGBYUSERNAME_WITH_GROUPS_TIMEOUT
+    ret = sss_nss_getorigbyusername_with_groups_timeout(name, get_timeout(ctx),
+                                                        kv_list, &id_type);
+#else
+    ret = sss_nss_getorigbyusername_timeout(name, get_timeout(ctx),
+                                            kv_list, &id_type);
+#endif
+    if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
+                        || id_type == SSS_ID_TYPE_BOTH)) {
+        set_err_msg(req, "Failed to read original data");
+        if (ret == ENOENT) {
+            ret = LDAP_NO_SUCH_OBJECT;
+        } else if (ret == ETIMEDOUT || ret == ETIME) {
+            ret = LDAP_TIMELIMIT_EXCEEDED;
+        } else {
+            ret = LDAP_OPERATIONS_ERROR;
+        }
+        return ret;
+    }
+
+    return LDAP_SUCCESS;
+}
+
 static int handle_uid_request(struct ipa_extdom_ctx *ctx,
                               struct extdom_req *req,
                               enum request_types request_type, uid_t uid,
@@ -911,18 +1006,8 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
-                                                    &kv_list, &id_type);
-            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
-                                || id_type == SSS_ID_TYPE_BOTH)) {
-                set_err_msg(req, "Failed to read original data");
-                if (ret == ENOENT) {
-                    ret = LDAP_NO_SUCH_OBJECT;
-                } else if (ret == ETIMEDOUT || ret == ETIME) {
-                    ret = LDAP_TIMELIMIT_EXCEEDED;
-                } else {
-                    ret = LDAP_OPERATIONS_ERROR;
-                }
+            ret = get_orig_user_data(ctx, req, pwd.pw_name, &kv_list);
+            if (ret != LDAP_SUCCESS) {
                 goto done;
             }
         }
@@ -1144,18 +1229,8 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         }
 
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name, get_timeout(ctx),
-                                                    &kv_list, &id_type);
-            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
-                                || id_type == SSS_ID_TYPE_BOTH)) {
-                set_err_msg(req, "Failed to read original data");
-                if (ret == ENOENT) {
-                    ret = LDAP_NO_SUCH_OBJECT;
-                } else if (ret == ETIMEDOUT || ret == ETIME) {
-                    ret = LDAP_TIMELIMIT_EXCEEDED;
-                } else {
-                    ret = LDAP_OPERATIONS_ERROR;
-                }
+            ret = get_orig_user_data(ctx, req, pwd.pw_name, &kv_list);
+            if (ret != LDAP_SUCCESS) {
                 goto done;
             }
         }
@@ -1259,7 +1334,6 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
     int ret;
     char *fq_name = NULL;
     struct passwd pwd;
-    enum sss_id_type id_type;
     size_t buf_len;
     char *buf = NULL;
     struct sss_nss_kv *kv_list = NULL;
@@ -1299,19 +1373,8 @@ static int handle_username_request(struct ipa_extdom_ctx *ctx,
             goto done;
         }
         if (request_type == REQ_FULL_WITH_GROUPS) {
-            ret = sss_nss_getorigbyusername_timeout(pwd.pw_name,
-                                                    get_timeout(ctx),
-                                                    &kv_list, &id_type);
-            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
-                              || id_type == SSS_ID_TYPE_BOTH)) {
-                set_err_msg(req, "Failed to read original data");
-                if (ret == ENOENT) {
-                    ret = LDAP_NO_SUCH_OBJECT;
-                } else if (ret == ETIMEDOUT || ret == ETIME) {
-                    ret = LDAP_TIMELIMIT_EXCEEDED;
-                } else {
-                    ret = LDAP_OPERATIONS_ERROR;
-                }
+            ret = get_orig_user_data(ctx, req, pwd.pw_name, &kv_list);
+            if (ret != LDAP_SUCCESS) {
                 goto done;
             }
         }
