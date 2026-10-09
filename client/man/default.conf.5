@@ -113,6 +113,9 @@ Specifies whether values should be prompted for or not. The default is True.
 .B kinit_lifetime <time duration spec>
 Controls the lifetime of ticket obtained by users authenticating to the WebGUI using login/password. The expected format is a time duration string. Examples are "2 hours", "1h:30m", "10 minutes", "5min, 30sec". When the parameter is not set in default.conf, the ticket will have a duration inherited from the default value for kerberos clients, that can be set as ticket_lifetime in krb5.conf. When the ticket lifetime has expired, the ticket is not valid anymore and the GUI will prompt to re-login with a message "Your session has expired. Please re-login."
 .TP
+.B krb5kdc_thread_count <integer>
+Specifies the number of threads to use for the KDC. The default is 0, which means auto-detect. The value is automatically set based on the number of cores in the system.
+.TP
 .B ldap_cache <boolean>
 Enable a per-request LDAP cache. The default is True.
 .TP
